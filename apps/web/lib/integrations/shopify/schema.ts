@@ -19,6 +19,17 @@ export const orderSchema = z.object({
       })
       .describe("Amount in shop currency."),
   }),
+  discount_codes: z.array(
+    z.object({
+      code: z.string().describe("The code of the discount."),
+    }),
+  ),
+  billing_address: z
+    .object({
+      country: z.string().nullish(),
+      province: z.string().nullish(),
+    })
+    .nullish(),
 });
 
 export const integrationCredentialsSchema = z.object({

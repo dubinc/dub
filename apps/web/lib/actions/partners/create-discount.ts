@@ -9,6 +9,7 @@ import { getDiscountProvider } from "@/lib/discounts/discount-provider";
 import { DubDiscountAttributes } from "@/lib/stripe/coupon-discount-converter";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
+import { DiscountProvider } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
@@ -52,17 +53,19 @@ export const createDiscountAction = authActionClient
     let coupon: (DubDiscountAttributes & { id: string }) | null = null;
 
     // Fetch existing coupon if couponId is provided otherwise create a new coupon on the discount provider
-    if (couponId) {
-      coupon = await discountProvider.getCoupon({
-        couponId,
-        workspace,
-      });
-    } else {
-      coupon = await discountProvider.createCoupon({
-        workspace,
-        group,
-        data: parsedInput,
-      });
+    if (provider === DiscountProvider.stripe) {
+      if (couponId) {
+        coupon = await discountProvider.getCoupon({
+          couponId,
+          workspace,
+        });
+      } else {
+        coupon = await discountProvider.createCoupon({
+          workspace,
+          group,
+          data: parsedInput,
+        });
+      }
     }
 
     // Create the discount and update the group and program enrollment

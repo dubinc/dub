@@ -54,6 +54,8 @@ export const POST = async (req: Request) => {
     },
     select: {
       id: true,
+      defaultProgramId: true,
+      webhookEnabled: true,
     },
   });
 
@@ -78,7 +80,7 @@ export const POST = async (req: Request) => {
       case "orders/paid":
         response = await ordersPaid({
           event,
-          workspaceId: workspace.id,
+          workspace,
         });
         break;
       case "customers/data_request":
