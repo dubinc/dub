@@ -197,6 +197,7 @@ export const CustomerEnrichedSchema = CustomerSchema.extend({
   }).nullish(),
   discount: DiscountSchema.omit({
     autoProvisionEnabledAt: true,
+    provider: true,
   }).nullish(),
 });
 

@@ -17,6 +17,7 @@ export const DiscountSchema = z.object({
 
 export const DiscountSchemaWithDeprecatedFields = DiscountSchema.omit({
   autoProvisionEnabledAt: true,
+  provider: true,
 })
   .extend({
     duration: z
