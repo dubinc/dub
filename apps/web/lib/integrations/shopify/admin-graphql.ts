@@ -33,6 +33,7 @@ export async function shopifyAdminGraphql<T>({
         "X-Shopify-Access-Token": accessToken,
       },
       body: JSON.stringify({ query, variables }),
+      signal: AbortSignal.timeout(15_000),
     },
   );
 

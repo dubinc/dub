@@ -264,7 +264,10 @@ function DiscountSheetContent({
               <div className="border-border-subtle -mx-px rounded-xl border-x border-t bg-neutral-100 p-2.5">
                 <div className="space-y-4">
                   <div className="flex flex-col gap-2">
-                    <label className="text-content-emphasis text-sm font-medium">
+                    <label
+                      htmlFor="provider"
+                      className="text-content-emphasis text-sm font-medium"
+                    >
                       Discount provider
                     </label>
                     <div className="">
@@ -299,6 +302,7 @@ function DiscountSheetContent({
                             },
                           };
                         })()}
+                        id="provider"
                       >
                         <option value={DiscountProvider.stripe}>Stripe</option>
                         <option value={DiscountProvider.shopify}>

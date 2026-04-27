@@ -22,7 +22,7 @@ async function requireInstalledIntegration(
   if (!workspace.stripeConnectId) {
     throw new DiscountIntegrationNotAvailableError({
       message:
-        "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount.",
+        "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create a discount.",
     });
   }
 
@@ -36,7 +36,7 @@ async function requireInstalledIntegration(
   if (!installation) {
     throw new DiscountIntegrationNotAvailableError({
       message:
-        "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount.",
+        "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create a discount.",
     });
   }
 
