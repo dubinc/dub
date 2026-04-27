@@ -261,6 +261,12 @@ export function AddEditDomainForm({
 
   useEffect(() => {
     if (domain && isValidDomain(domain)) {
+      if (props && domain === props.slug) {
+        debouncedValidateDomain.cancel();
+        setDomainStatus("available");
+        setDomainValidateMessage(null);
+        return;
+      }
       debouncedValidateDomain(domain);
     }
   }, [domain, debouncedValidateDomain]);
