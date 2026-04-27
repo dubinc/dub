@@ -80,6 +80,7 @@ export const uploadedImageSchema = z
     base64ImageSchema,
     storedR2ImageUrlSchema,
     googleFaviconUrlSchema,
+    googleUserContentUrlSchema,
     publicHostedImageSchema,
   ])
   .transform((v) => v || null);
