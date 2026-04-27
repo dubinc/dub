@@ -1,6 +1,10 @@
 import { decryptOrPassthrough } from "@/lib/encryption";
+import { segmentCredentialsSchema } from "@/lib/integrations/segment/schema";
 import { prisma } from "@dub/prisma";
-import { APPSFLYER_INTEGRATION_ID } from "@dub/utils/src";
+import {
+  APPSFLYER_INTEGRATION_ID,
+  SEGMENT_INTEGRATION_ID,
+} from "@dub/utils/src";
 import { redirect } from "next/navigation";
 import IntegrationPageClient from "./page-client";
 
@@ -54,16 +58,12 @@ export default async function IntegrationPage(props: {
     ? integration.installations[0]?.credentials
     : undefined;
 
-  if (
-    credentials &&
-    typeof credentials === "object" &&
-    integration.slug === "segment" &&
-    "writeKey" in credentials &&
-    typeof credentials.writeKey === "string"
-  ) {
+  if (integration.id === SEGMENT_INTEGRATION_ID && credentials) {
+    const parsedCredentials = segmentCredentialsSchema.parse(credentials);
+
     credentials = {
-      ...credentials,
-      writeKey: decryptOrPassthrough(credentials.writeKey),
+      ...parsedCredentials,
+      writeKey: decryptOrPassthrough(parsedCredentials.writeKey),
     };
   }
 

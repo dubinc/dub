@@ -8,14 +8,14 @@ import { SEGMENT_INTEGRATION_ID } from "@dub/utils";
 import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
 import { installIntegration } from "../install";
+import { segmentCredentialsSchema } from "./schema";
 
-const schema = z.object({
-  writeKey: z.string().min(1).max(40),
+const inputSchema = segmentCredentialsSchema.extend({
   workspaceId: z.string(),
 });
 
 export const installSegmentAction = authActionClient
-  .inputSchema(schema)
+  .inputSchema(inputSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { writeKey } = parsedInput;
