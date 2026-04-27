@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { calculatePartnerRanking } from "@/lib/api/network/calculate-partner-ranking";
+import { partnerNetworkPartnerWhere } from "@/lib/api/network/partner-network-partner-where";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/constants/program";
@@ -55,9 +56,17 @@ export const GET = withWorkspace(
     } = getNetworkPartnersQuerySchema.parse(searchParams);
 
     if (status !== "discover") {
+      const partnerWhere = partnerNetworkPartnerWhere({
+        partnerIds,
+        country,
+        platform,
+        subscribers,
+      });
+
       const partners = await prisma.discoveredPartner.findMany({
         where: {
           programId,
+          partner: partnerWhere,
           ...(status === "ignored" && { ignoredAt: { not: null } }),
           ...(status === "invited" && {
             invitedAt: { not: null },
