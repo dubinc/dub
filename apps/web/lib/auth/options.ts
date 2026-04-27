@@ -325,6 +325,7 @@ export const authOptions: NextAuthOptions = {
       type: "oauth" as const,
       clientId: oauth.clientId,
       clientSecret: oauth.clientSecret,
+      checks: ["state" as const],
       authorization: {
         url: oauth.authorizationUrl,
         params: {
@@ -336,7 +337,6 @@ export const authOptions: NextAuthOptions = {
       userinfo: oauth.userInfoUrl,
       profile(profile) {
         if (mapProfile) return mapProfile(profile);
-
         const { sub, email, name, picture } = profile;
         return {
           id: sub,

@@ -31,10 +31,10 @@ export const SSO_LOGIN_PROGRAMS = [
     mapProfile: (profile) => {
       const { email, first_name, last_name, profile_picture } = profile;
       return {
-        id: email ?? "",
-        name: `${first_name} ${last_name}`.trim() || null,
-        email: email ?? null,
-        image: profile_picture ?? null,
+        id: email || undefined,
+        name: `${first_name} ${last_name}`.trim(),
+        email,
+        image: profile_picture,
       };
     },
   },
