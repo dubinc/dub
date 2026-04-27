@@ -9,8 +9,9 @@ import * as z from "zod/v4";
 export const listFolders: ZodOpenApiOperationObject = {
   operationId: "listFolders",
   "x-speakeasy-name-override": "list",
-  summary: "Retrieve a list of folders",
-  description: "Retrieve a list of folders for the authenticated workspace.",
+  summary: "List all folders",
+  description:
+    "Retrieve a paginated list of folders for the authenticated workspace.",
   requestParams: {
     query: listFoldersQuerySchema,
   },

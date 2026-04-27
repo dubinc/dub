@@ -2,6 +2,8 @@
 
 import { OnboardingStep } from "@/lib/onboarding/types";
 import { BoltFill, Button, Crown, Icon } from "@dub/ui";
+import { capitalize } from "@dub/utils";
+import { usePlausible } from "next-plausible";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { ReactNode } from "react";
@@ -113,6 +115,7 @@ function DomainOption({
   bannerIcon?: Icon;
   bannerText?: string;
 }) {
+  const plausible = usePlausible();
   const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
   return (
     <div className="relative flex h-full flex-col items-center gap-6 rounded-xl border border-neutral-300 p-6 pt-12 transition-all">
@@ -142,7 +145,14 @@ function DomainOption({
           type="button"
           variant="primary"
           className="rounded-lg"
-          onClick={() => continueTo(step)}
+          onClick={() => {
+            plausible("Selected Domain", {
+              props: {
+                domainType: capitalize(step.replace("domain/", "")),
+              },
+            });
+            continueTo(step);
+          }}
           loading={isLoading || isSuccessful}
           text={cta}
         />

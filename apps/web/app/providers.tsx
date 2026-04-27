@@ -15,7 +15,6 @@ export default function RootProviders({ children }: { children: ReactNode }) {
       <PlausibleProvider
         enabled
         init={{
-          captureOnLocalhost: true,
           customProperties: {
             trialVariant: isTrialVariant ? "Trial" : "Control",
           },
