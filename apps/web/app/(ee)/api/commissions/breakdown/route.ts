@@ -2,7 +2,6 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { withWorkspace } from "@/lib/auth";
-import { generateRandomName } from "@/lib/names";
 import type { CommissionsBreakdownItem } from "@/lib/swr/use-commissions-breakdown";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
@@ -14,7 +13,7 @@ import * as z from "zod/v4";
 const querySchema = analyticsQuerySchema
   .pick({ start: true, end: true, interval: true, timezone: true })
   .extend({
-    groupBy: z.enum(["type", "group", "customer"]),
+    groupBy: z.enum(["type", "group"]),
     status: z.enum(CommissionStatus).optional(),
     partnerId: z.string().optional(),
     groupId: z.string().optional(),
@@ -187,37 +186,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         }))
         .sort((a, b) => b.earnings - a.earnings);
     }
-  } else if (groupBy === "customer") {
-    const rows = await prisma.commission.groupBy({
-      by: ["customerId"],
-      where: { ...baseWhere, customerId: { not: null } },
-      _sum: { earnings: true },
-      _count: { _all: true },
-      orderBy: { _sum: { earnings: "desc" } },
-      take: 20,
-    });
-
-    if (rows.length === 0) return NextResponse.json([]);
-
-    const customerIds = rows.map((r) => r.customerId!);
-    const customers = await prisma.customer.findMany({
-      where: { id: { in: customerIds } },
-      select: { id: true, name: true, email: true },
-    });
-    const customerMap = new Map(customers.map((c) => [c.id, c]));
-
-    result = rows.map((r) => {
-      const customer = r.customerId ? customerMap.get(r.customerId) : null;
-      return {
-        key: r.customerId ?? "unknown",
-        label:
-          customer?.email ??
-          customer?.name ??
-          generateRandomName(r.customerId ?? undefined),
-        earnings: r._sum.earnings ?? 0,
-        count: r._count._all,
-      };
-    });
   }
 
   return NextResponse.json(result);

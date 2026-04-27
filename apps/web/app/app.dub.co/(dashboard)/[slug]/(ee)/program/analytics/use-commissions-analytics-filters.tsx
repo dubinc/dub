@@ -1,28 +1,20 @@
 "use client";
 
-import { generateRandomName } from "@/lib/names";
-import useCustomers from "@/lib/swr/use-customers";
 import useGroups from "@/lib/swr/use-groups";
 import usePartners from "@/lib/swr/use-partners";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
-import { CustomerAvatar } from "@/ui/customers/customer-avatar";
+import { EnrolledPartnerProps } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { CommissionType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
-import { Sliders, User, Users, Users6 } from "@dub/ui/icons";
+import { Sliders, Users, Users6 } from "@dub/ui/icons";
 import { capitalize, FilterOperator, parseFilterValue } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-const COMMISSION_FILTER_KEYS = [
-  "partnerId",
-  "groupId",
-  "customerId",
-  "type",
-] as const;
+const COMMISSION_FILTER_KEYS = ["partnerId", "groupId", "type"] as const;
 
 export function useCommissionsAnalyticsFilters(
   _commissionsQueryString?: string,
@@ -36,9 +28,6 @@ export function useCommissionsAnalyticsFilters(
 
   const { partners } = usePartnerFilterOptions(
     selectedFilter === "partnerId" ? debouncedSearch : "",
-  );
-  const { customers } = useCustomerFilterOptions(
-    selectedFilter === "customerId" ? debouncedSearch : "",
   );
   const { groups } = useGroups();
 
@@ -69,21 +58,6 @@ export function useCommissionsAnalyticsFilters(
           })) ?? null,
       },
       {
-        key: "customerId",
-        icon: User,
-        label: "Customer",
-        shouldFilter: false,
-        options:
-          customers?.map((customer) => ({
-            value: customer.id,
-            label:
-              customer.email ??
-              customer.name ??
-              generateRandomName(customer.id),
-            icon: <CustomerAvatar customer={customer} className="size-4" />,
-          })) ?? null,
-      },
-      {
         key: "type",
         icon: Sliders,
         label: "Type",
@@ -94,7 +68,7 @@ export function useCommissionsAnalyticsFilters(
         })),
       },
     ],
-    [partners, customers, groups, slug],
+    [partners, groups, slug],
   );
 
   const activeFilters = useMemo(() => {
@@ -116,7 +90,6 @@ export function useCommissionsAnalyticsFilters(
   }, [
     searchParamsObj.partnerId,
     searchParamsObj.groupId,
-    searchParamsObj.customerId,
     searchParamsObj.type,
   ]);
 
@@ -173,7 +146,8 @@ export function useCommissionsAnalyticsFilters(
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: [...COMMISSION_FILTER_KEYS, "page"],
+        // Include customerId for backwards compat in case it's still in the URL
+        del: [...COMMISSION_FILTER_KEYS, "customerId", "page"],
         scroll: false,
       }),
     [queryParams],
@@ -216,7 +190,7 @@ function usePartnerFilterOptions(search: string) {
   const { searchParamsObj } = useRouterStuff();
 
   const { partners, loading: partnersLoading } = usePartners({
-    query: { search },
+    query: { search, sortBy: "totalCommissions", sortOrder: "desc" },
   });
   const { partners: selectedPartners } = usePartners({
     query: {
@@ -235,34 +209,5 @@ function usePartnerFilterOptions(search: string) {
             ?.filter((sp) => !partners?.some((p) => p.id === sp.id))
             ?.map((sp) => ({ ...sp, hideDuringSearch: true })) ?? []),
         ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]),
-  };
-}
-
-function useCustomerFilterOptions(search: string) {
-  const { searchParamsObj } = useRouterStuff();
-
-  const { customers, loading: customersLoading } = useCustomers({
-    query: { search },
-  });
-  const { customers: selectedCustomers } = useCustomers({
-    query: {
-      customerIds: searchParamsObj.customerId
-        ? searchParamsObj.customerId
-            .replace(/^-/, "")
-            .split(",")
-            .filter(Boolean)
-        : undefined,
-    },
-  });
-
-  return {
-    customers: customersLoading
-      ? null
-      : ([
-          ...(customers ?? []),
-          ...(selectedCustomers
-            ?.filter((sc) => !customers?.some((c) => c.id === sc.id))
-            ?.map((sc) => ({ ...sc, hideDuringSearch: true })) ?? []),
-        ] as (CustomerProps & { hideDuringSearch?: boolean })[]),
   };
 }

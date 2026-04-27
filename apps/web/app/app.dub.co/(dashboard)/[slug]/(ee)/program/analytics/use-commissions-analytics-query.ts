@@ -59,5 +59,18 @@ export function useCommissionsAnalyticsQuery() {
     return params.toString();
   }, [workspaceId, status, unit, searchParamsObj]);
 
-  return { queryString, status, unit };
+  const { interval, start, end } = searchParamsObj;
+  const resolvedInterval =
+    start && end ? undefined : interval ?? DUB_PARTNERS_ANALYTICS_INTERVAL;
+  const resolvedStart = start ? new Date(start) : undefined;
+  const resolvedEnd = end ? new Date(end) : undefined;
+
+  return {
+    queryString,
+    status,
+    unit,
+    interval: resolvedInterval,
+    start: resolvedStart,
+    end: resolvedEnd,
+  };
 }

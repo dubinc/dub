@@ -56,6 +56,9 @@ export function ProgramAnalyticsPageClient() {
     queryString: commissionsQueryString,
     status: commissionStatus,
     unit: commissionUnit,
+    interval: commissionsInterval,
+    start: commissionsStart,
+    end: commissionsEnd,
   } = useCommissionsAnalyticsQuery();
 
   const { start, end, interval, selectedTab, saleUnit, view } = useMemo(() => {
@@ -286,6 +289,9 @@ export function ProgramAnalyticsPageClient() {
                     status={commissionStatus}
                     unit={commissionUnit}
                     queryString={commissionsQueryString}
+                    interval={commissionsInterval}
+                    start={commissionsStart}
+                    end={commissionsEnd}
                   />
                 </div>
               </div>

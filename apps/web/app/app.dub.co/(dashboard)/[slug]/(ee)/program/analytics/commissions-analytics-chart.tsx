@@ -49,10 +49,16 @@ export function CommissionsAnalyticsChart({
   status,
   unit = "earnings",
   queryString,
+  interval,
+  start,
+  end,
 }: {
   status: CommissionStatusFilter;
   unit?: "earnings" | "count";
   queryString: string;
+  interval?: string;
+  start?: Date;
+  end?: Date;
 }) {
   const id = useId();
   const color = STATUS_COLORS[status ?? "all"];
@@ -99,7 +105,7 @@ export function CommissionsAnalyticsChart({
       tooltipContent={(d) => (
         <>
           <p className="border-b border-neutral-200 px-4 py-3 text-sm text-neutral-900">
-            {formatDateTooltip(d.date, {})}
+            {formatDateTooltip(d.date, { interval, start, end })}
           </p>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
             <div className="flex items-center gap-2">
@@ -129,7 +135,10 @@ export function CommissionsAnalyticsChart({
           />
         )}
       </ChartContext.Consumer>
-      <XAxis tickFormat={(date) => formatDateTooltip(date, {})} maxTicks={2} />
+      <XAxis
+        tickFormat={(date) => formatDateTooltip(date, { interval, start, end })}
+        maxTicks={2}
+      />
       <YAxis
         showGridLines
         tickFormat={unit === "count" ? nFormatter : currencyFormatter}

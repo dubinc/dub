@@ -6,7 +6,6 @@ import useCommissionsBreakdown, {
 import useGroups from "@/lib/swr/use-groups";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import { BarList } from "@/ui/analytics/bar-list";
-import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
@@ -23,13 +22,11 @@ import { CommissionStatusFilter } from "./commissions-status-selector";
 const FILTER_PARAM_KEYS: Record<string, string | null> = {
   group: "groupId",
   type: "type",
-  customer: "customerId",
 };
 
-const GROUPBY_MAP: Record<string, "type" | "group" | "customer"> = {
+const GROUPBY_MAP: Record<string, "type" | "group"> = {
   group: "group",
   type: "type",
-  customer: "customer",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -48,7 +45,7 @@ const STATUS_ICONS: Record<string, React.ElementType> = {
 
 function mapBreakdownItem(
   item: CommissionsBreakdownItem,
-  groupBy: "type" | "group" | "customer",
+  groupBy: "type" | "group",
   groupColorMap: Map<string, { color: string | null }>,
 ): { icon: ReactNode; title: string; filterValue: string; value: number } {
   let icon: ReactNode = null;
@@ -62,18 +59,6 @@ function mapBreakdownItem(
   } else if (groupBy === "group") {
     const group = groupColorMap.get(item.key);
     icon = <GroupColorCircle group={{ color: group?.color ?? null }} />;
-  } else if (groupBy === "customer") {
-    icon = (
-      <CustomerAvatar
-        customer={{
-          id: item.key,
-          name: item.label,
-          email: item.label.includes("@") ? item.label : null,
-          avatar: null,
-        }}
-        className="size-4"
-      />
-    );
   }
 
   return {
@@ -189,7 +174,7 @@ export function CommissionsBreakdownCards({
 }) {
   const { queryParams, searchParams } = useRouterStuff();
   const [leftTab] = useState("group");
-  const [rightTab, setRightTab] = useState("type");
+  const rightTab = "type"; // single tab — no switching needed
 
   const [leftSelectedItems, setLeftSelectedItems] = useState<string[]>([]);
   const [rightSelectedItems, setRightSelectedItems] = useState<string[]>([]);
@@ -200,11 +185,6 @@ export function CommissionsBreakdownCards({
     groups?.forEach((g) => map.set(g.id, { color: g.color ?? null }));
     return map;
   }, [groups]);
-
-  const handleRightTabChange = useCallback((id: string) => {
-    setRightTab(id);
-    setRightSelectedItems([]);
-  }, []);
 
   const leftFilterParamKey = FILTER_PARAM_KEYS[leftTab] ?? null;
   const rightFilterParamKey = FILTER_PARAM_KEYS[rightTab] ?? null;
@@ -370,12 +350,9 @@ export function CommissionsBreakdownCards({
 
       <CommissionsCard
         status={status}
-        tabs={[
-          { id: "type", label: "Type", icon: Users6 },
-          { id: "customer", label: "Customer", icon: Users6 },
-        ]}
+        tabs={[{ id: "type", label: "Type", icon: Users6 }]}
         selectedTabId={rightTab}
-        onSelectTab={handleRightTabChange}
+        onSelectTab={() => {}}
         dataLength={rightData.length}
         expandLimit={EXPAND_LIMIT}
         isFilterActive={isRightFilterActive}
