@@ -53,6 +53,8 @@ export async function calculatePartnerRanking({
     Prisma.sql`COALESCE(pe.clickToConversionRate, 0) < 1`,
     Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`,
     Prisma.sql`enrolled.id IS NULL`,
+    // Exclude stale Partner Network invite markers when enrollment no longer exists
+    Prisma.sql`dp.invitedAt IS NULL`,
   ];
 
   if (partnerIds && partnerIds.length > 0) {

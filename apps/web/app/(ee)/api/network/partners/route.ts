@@ -59,7 +59,11 @@ export const GET = withWorkspace(
         where: {
           programId,
           ...(status === "ignored" && { ignoredAt: { not: null } }),
-          ...(status === "invited" && { invitedAt: { not: null } }),
+          ...(status === "invited" && {
+            invitedAt: { not: null },
+            ignoredAt: null,
+            programEnrollment: { status: "invited" },
+          }),
           ...(status === "recruited" && {
             invitedAt: { not: null },
             programEnrollment: { status: "approved" },
@@ -81,7 +85,7 @@ export const GET = withWorkspace(
           programEnrollment: true,
         },
         take: pageSize,
-        skip: (page ?? 1 - 1) * pageSize,
+        skip: ((page ?? 1) - 1) * pageSize,
       });
 
       return NextResponse.json(

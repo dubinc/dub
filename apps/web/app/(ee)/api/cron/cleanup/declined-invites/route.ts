@@ -43,6 +43,17 @@ export async function POST(req: Request) {
         break;
       }
 
+      await prisma.discoveredPartner.updateMany({
+        where: {
+          OR: declinedProgramEnrollments.map(({ programId, partnerId }) => ({
+            AND: [{ programId }, { partnerId }],
+          })),
+        },
+        data: {
+          invitedAt: null,
+        },
+      });
+
       const deletedRes = await prisma.programEnrollment.deleteMany({
         where: {
           id: {

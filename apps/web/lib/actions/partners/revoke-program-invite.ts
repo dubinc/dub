@@ -72,6 +72,16 @@ export const revokeProgramInviteAction = authActionClient
         where: { id: programEnrollment.id },
       });
 
+      await tx.discoveredPartner.updateMany({
+        where: {
+          programId,
+          partnerId,
+        },
+        data: {
+          invitedAt: null,
+        },
+      });
+
       return {
         deletedLinks,
         deletedProgramEnrollment,

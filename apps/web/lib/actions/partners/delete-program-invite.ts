@@ -78,4 +78,14 @@ export const deleteProgramInviteAction = authActionClient
         ],
       }),
     ]);
+
+    await prisma.discoveredPartner.updateMany({
+      where: {
+        programId,
+        partnerId,
+      },
+      data: {
+        invitedAt: null,
+      },
+    });
   });
