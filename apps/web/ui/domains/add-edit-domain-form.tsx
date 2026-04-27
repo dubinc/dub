@@ -261,10 +261,12 @@ export function AddEditDomainForm({
 
   useEffect(() => {
     if (domain && isValidDomain(domain)) {
-      // Skip validation when editing an existing domain that hasn't changed —
-      // the validate API returns "conflict" for already-registered domains,
-      // which would disable the Save button even when other fields are edited.
-      if (props && domain === props.slug) return;
+      if (props && domain === props.slug) {
+        debouncedValidateDomain.cancel();
+        setDomainStatus("available");
+        setDomainValidateMessage(null);
+        return;
+      }
       debouncedValidateDomain(domain);
     }
   }, [domain, debouncedValidateDomain]);
