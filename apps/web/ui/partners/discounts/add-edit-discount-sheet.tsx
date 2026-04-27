@@ -61,6 +61,8 @@ const COUPON_CREATION_OPTIONS = [
   },
 ] as const;
 
+const DEFAULT_MAX_DURATION = 6;
+
 function DiscountSheetContent({
   setIsOpen,
   discount,
@@ -87,7 +89,7 @@ function DiscountSheetContent({
     defaultDiscountValues || {
       amount: 10,
       type: "percentage",
-      maxDuration: 6,
+      maxDuration: DEFAULT_MAX_DURATION,
       couponId: "",
       couponTestId: "",
       autoProvisionEnabledAt: null,
@@ -284,6 +286,15 @@ function DiscountSheetContent({
                                 setValue("couponId", "");
                                 setValue("couponTestId", "");
                                 setValue("maxDuration", 0);
+                              } else {
+                                setUseExistingCoupon(false);
+                                setUseStripeTestCouponId(false);
+                                setValue(
+                                  "maxDuration",
+                                  defaultValuesSource.maxDuration === null
+                                    ? Infinity
+                                    : defaultValuesSource.maxDuration,
+                                );
                               }
                             },
                           };

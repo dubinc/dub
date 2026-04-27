@@ -23,6 +23,9 @@ export async function deleteDiscountCodes(
   );
 
   if (discountCodes.length === 0) {
+    console.log(
+      "[deleteDiscountCodes] No discount codes to delete. Skipping...",
+    );
     return;
   }
 
@@ -35,7 +38,9 @@ export async function deleteDiscountCodes(
     },
   });
 
-  console.log(`Deleted ${deletedDiscountCodes.count} discount codes.`);
+  console.log(
+    `[deleteDiscountCodes] Deleted ${deletedDiscountCodes.count} discount codes.`,
+  );
 
   // Only enqueue external-provider cleanup for codes whose provider is known.
   // Orphaned codes (discount relation is null) still get deleted locally above
@@ -48,7 +53,7 @@ export async function deleteDiscountCodes(
   const orphanedCount = discountCodes.length - codesWithProvider.length;
   if (orphanedCount > 0) {
     console.warn(
-      `Skipping external provider cleanup for ${orphanedCount} orphaned discount code(s) with no discount relation.`,
+      `[deleteDiscountCodes] Skipping external provider cleanup for ${orphanedCount} orphaned discount code(s) with no discount relation.`,
     );
   }
 

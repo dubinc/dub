@@ -24,29 +24,27 @@ export const POST = withCron(async ({ rawBody }) => {
 
   console.info(`Banning partner ${partnerId} from program ${programId}...`);
 
-  const { partner, links, program, ...programEnrollment } =
+  const { partner, links, program, discountCodes, ...programEnrollment } =
     await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
       include: {
         partner: true,
         links: {
-          include: {
-            ...includeTags,
-            discountCode: {
-              include: {
-                discount: {
-                  select: {
-                    provider: true,
-                  },
-                },
-              },
-            },
-          },
+          include: includeTags,
         },
         program: {
           select: {
             workspaceId: true,
+          },
+        },
+        discountCodes: {
+          include: {
+            discount: {
+              select: {
+                provider: true,
+              },
+            },
           },
         },
       },
@@ -63,7 +61,7 @@ export const POST = withCron(async ({ rawBody }) => {
     partnerId,
   };
 
-  const [linksUpdated, bountySubmissions, discountCodes, payouts] =
+  const [linksUpdated, bountySubmissions, discountCodesDeleted, payouts] =
     await prisma.$transaction([
       // Disable links
       prisma.link.updateMany({
@@ -116,7 +114,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   console.info(`Disabled ${linksUpdated.count} links.`);
   console.info(`Rejected ${bountySubmissions.count} bounty submissions.`);
-  console.info(`Removed ${discountCodes.count} discount codes.`);
+  console.info(`Removed ${discountCodesDeleted.count} discount codes.`);
   console.info(`Canceled ${payouts.count} payouts.`);
 
   // Mark the commissions as canceled
@@ -140,7 +138,7 @@ export const POST = withCron(async ({ rawBody }) => {
     recordLink(links, { deleted: true }),
 
     // Queue discount code deletions
-    deleteDiscountCodes(links.map((link) => link.discountCode)),
+    deleteDiscountCodes(discountCodes),
   ]);
 
   // Send email
