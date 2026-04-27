@@ -577,7 +577,7 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   discount: DiscountSchema.pick({
     id: true,
     provider: true,
-  }).nullable(),
+  }).nullish(),
 })
   .extend(
     PartnerSchema.pick({
