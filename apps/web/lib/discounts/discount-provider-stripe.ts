@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { PartnerGroup, Project } from "@dub/prisma/client";
 import { nanoid, STRIPE_INTEGRATION_ID, truncate } from "@dub/utils";
-import { z } from "zod/v4";
+import * as z from "zod/v4";
 import { DubApiError } from "../api/errors";
 import { stripeIntegrationSettingsSchema } from "../integrations/stripe/schema";
 import { stripeAppClient } from "../stripe";

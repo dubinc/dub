@@ -1,7 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { Discount, Project } from "@dub/prisma/client";
 import { SHOPIFY_INTEGRATION_ID, nanoid } from "@dub/utils";
-import { decrypt } from "../encryption";
 import {
   ShopifyAdminGraphqlError,
   shopifyAdminGraphql,
@@ -68,13 +67,6 @@ async function requireInstalledIntegration(
         "SHOPIFY_APP_UPGRADE_REQUIRED: Your connected Shopify store doesn't have permission to create discount codes. Please reinstall or upgrade the Dub Shopify app.",
     });
   }
-
-  credentials = {
-    ...credentials,
-    accessToken: credentials.accessToken
-      ? decrypt(credentials.accessToken)
-      : null,
-  };
 
   return {
     ...installation,

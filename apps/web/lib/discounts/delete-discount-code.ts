@@ -35,10 +35,7 @@ export async function deleteDiscountCodes(
     },
   });
 
-  console.log(
-    `Deleted ${deletedDiscountCodes.count} discount codes.`,
-    discountCodes.map(({ id, code }) => ({ id, code })),
-  );
+  console.log(`Deleted ${deletedDiscountCodes.count} discount codes.`);
 
   // Only enqueue external-provider cleanup for codes whose provider is known.
   // Orphaned codes (discount relation is null) still get deleted locally above
