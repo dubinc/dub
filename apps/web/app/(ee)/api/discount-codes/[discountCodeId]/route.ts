@@ -1,8 +1,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -17,9 +17,16 @@ export const DELETE = withWorkspace(
       where: {
         id: discountCodeId,
       },
+      include: {
+        discount: {
+          select: {
+            provider: true,
+          },
+        },
+      },
     });
 
-    if (!discountCode || !discountCode.discountId) {
+    if (!discountCode || !discountCode.discount) {
       throw new DubApiError({
         message: `Discount code (${discountCodeId}) not found.`,
         code: "bad_request",
@@ -59,7 +66,7 @@ export const DELETE = withWorkspace(
           ],
         }),
 
-        deleteDiscountCodes(discountCode),
+        deleteDiscountCodes([discountCode]),
       ]),
     );
 

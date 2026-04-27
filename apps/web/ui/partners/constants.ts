@@ -24,7 +24,7 @@ export const REWARD_EVENTS = {
   },
 } as const;
 
-export const STRIPE_ERROR_MAP: Record<
+export const ERROR_MAP: Record<
   string,
   { title: string; ctaLabel: string; ctaUrl: string }
 > = {
@@ -37,5 +37,15 @@ export const STRIPE_ERROR_MAP: Record<
     title: "Stripe app upgrade required",
     ctaLabel: "Review permissions",
     ctaUrl: "https://marketplace.stripe.com/apps/dub-conversions",
+  },
+  SHOPIFY_CONNECTION_REQUIRED: {
+    title: "Shopify connection required",
+    ctaLabel: "Install Shopify app",
+    ctaUrl: "https://apps.shopify.com/dub-conversion-tracking",
+  },
+  SHOPIFY_APP_UPGRADE_REQUIRED: {
+    title: "Shopify app upgrade required",
+    ctaLabel: "Review permissions",
+    ctaUrl: "https://apps.shopify.com/dub-conversion-tracking",
   },
 };

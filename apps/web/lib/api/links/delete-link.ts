@@ -3,7 +3,7 @@ import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { deleteDiscountCodes } from "../discounts/delete-discount-code";
+import { deleteDiscountCodes } from "../../discounts/delete-discount-code";
 import { linkCache } from "./cache";
 import { includeProgramEnrollment } from "./include-program-enrollment";
 import { includeTags } from "./include-tags";
@@ -17,7 +17,15 @@ export async function deleteLink(linkId: string) {
     include: {
       ...includeTags,
       ...includeProgramEnrollment,
-      discountCode: true,
+      discountCode: {
+        include: {
+          discount: {
+            select: {
+              provider: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -40,11 +48,13 @@ export async function deleteLink(linkId: string) {
             id: link.projectId,
           },
           data: {
-            totalLinks: { decrement: 1 },
+            totalLinks: {
+              decrement: 1,
+            },
           },
         }),
 
-      link.discountCode && deleteDiscountCodes(link.discountCode),
+      link.discountCode && deleteDiscountCodes([link.discountCode]),
     ]),
   );
 

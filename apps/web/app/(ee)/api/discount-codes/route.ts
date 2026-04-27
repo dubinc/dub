@@ -1,18 +1,16 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
+import { createDiscountCode } from "@/lib/discounts/create-discount-code";
 import {
   createDiscountCodeSchema,
   DiscountCodeSchema,
   getDiscountCodesQuerySchema,
 } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
-import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -56,37 +54,6 @@ export const POST = withWorkspace(
 
     const { partnerId, linkId, code } = createDiscountCodeSchema.parse(
       await parseRequestBody(req),
-    );
-
-    if (!workspace.stripeConnectId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "Your workspace isn't connected to Stripe yet. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
-      });
-    }
-
-    const installedStripeIntegration =
-      await prisma.installedIntegration.findFirst({
-        where: {
-          projectId: workspace.id,
-          integrationId: STRIPE_INTEGRATION_ID,
-        },
-        select: {
-          settings: true,
-        },
-      });
-
-    if (!installedStripeIntegration) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "The Stripe integration is not installed on your workspace. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
-      });
-    }
-
-    const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-      installedStripeIntegration.settings || {},
     );
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
@@ -155,43 +122,32 @@ export const POST = withWorkspace(
       });
     }
 
-    try {
-      const discountCode = await createDiscountCode({
-        stripeConnectId: workspace.stripeConnectId,
-        stripeMode: stripeIntegrationSettings.stripeMode,
-        partner: programEnrollment.partner,
-        link,
-        discount,
-        code,
-      });
+    const discountCode = await createDiscountCode({
+      workspace,
+      partner: programEnrollment.partner,
+      link,
+      discount,
+      code,
+    });
 
-      waitUntil(
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "discount_code.created",
-          description: `Discount code (${discountCode.code}) created`,
-          actor: session.user,
-          targets: [
-            {
-              type: "discount_code",
-              id: discountCode.id,
-              metadata: discountCode,
-            },
-          ],
-        }),
-      );
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "discount_code.created",
+        description: `Discount code (${discountCode.code}) created`,
+        actor: session.user,
+        targets: [
+          {
+            type: "discount_code",
+            id: discountCode.id,
+            metadata: discountCode,
+          },
+        ],
+      }),
+    );
 
-      return NextResponse.json(DiscountCodeSchema.parse(discountCode));
-    } catch (error) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          error.code === "more_permissions_required_for_application"
-            ? "STRIPE_APP_UPGRADE_REQUIRED: Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe integration in settings or reach out to our support team for help."
-            : error.message,
-      });
-    }
+    return NextResponse.json(DiscountCodeSchema.parse(discountCode));
   },
   {
     requiredPlan: [

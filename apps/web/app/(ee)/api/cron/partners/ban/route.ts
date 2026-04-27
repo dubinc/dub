@@ -1,9 +1,9 @@
-import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withCron } from "@/lib/cron/with-cron";
+import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { recordLink } from "@/lib/tinybird";
 import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
@@ -33,7 +33,15 @@ export const POST = withCron(async ({ rawBody }) => {
         links: {
           include: {
             ...includeTags,
-            discountCode: true,
+            discountCode: {
+              include: {
+                discount: {
+                  select: {
+                    provider: true,
+                  },
+                },
+              },
+            },
           },
         },
         program: {

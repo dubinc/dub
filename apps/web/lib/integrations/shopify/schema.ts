@@ -20,3 +20,11 @@ export const orderSchema = z.object({
       .describe("Amount in shop currency."),
   }),
 });
+
+export const integrationCredentialsSchema = z.object({
+  accessToken: z
+    .string()
+    .nullish()
+    .describe("Encrypted access token for the Shopify store."),
+  scope: z.string().nullish().describe("Scope of the Shopify store."),
+});

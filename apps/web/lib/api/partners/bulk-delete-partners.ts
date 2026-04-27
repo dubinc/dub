@@ -1,7 +1,7 @@
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { deleteDiscountCodes } from "../discounts/delete-discount-code";
+import { deleteDiscountCodes } from "../../discounts/delete-discount-code";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
 
 const BATCH_SIZE = 250;
@@ -69,6 +69,11 @@ export async function bulkDeletePartners({
         id: true,
         code: true,
         programId: true,
+        discount: {
+          select: {
+            provider: true,
+          },
+        },
       },
     });
 
