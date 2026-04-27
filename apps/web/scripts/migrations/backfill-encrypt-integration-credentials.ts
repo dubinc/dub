@@ -25,7 +25,11 @@ async function main() {
   const installations = await prisma.installedIntegration.findMany({
     where: {
       integrationId: {
-        in: ["int_iWOtrZgmcyU6XDwKr4AYYqLN"],
+        in: [
+          SLACK_INTEGRATION_ID,
+          HUBSPOT_INTEGRATION_ID,
+          SEGMENT_INTEGRATION_ID,
+        ],
       },
       credentials: {
         not: Prisma.DbNull,
