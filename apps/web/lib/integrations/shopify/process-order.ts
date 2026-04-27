@@ -198,7 +198,7 @@ export async function attributeViaDiscountCode({
           trigger: "lead.created",
           workspace,
           data: transformLeadEventData({
-            ...leadEvent,
+            ...clickEvent,
             eventName: "Checkout with discount code",
             link: linkUpdated,
             customer,
