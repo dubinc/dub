@@ -152,7 +152,7 @@ export default async function SuccessPage(props: {
 
           {/* Buttons */}
           <div className="mt-12 flex flex-col gap-3">
-            <CTAButtons email={application?.email} />
+            <CTAButtons />
           </div>
 
           {/* Screenshot */}
