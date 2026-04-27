@@ -92,10 +92,10 @@ export async function attributeViaDiscountCode({
   const clickEvent = await recordFakeClick({
     link,
     customer: {
-      continent: billingAddress?.country
-        ? COUNTRIES_TO_CONTINENTS[billingAddress.country]
+      continent: billingAddress?.country_code
+        ? COUNTRIES_TO_CONTINENTS[billingAddress.country_code]
         : "Unknown",
-      country: billingAddress?.country ?? "Unknown",
+      country: billingAddress?.country_code ?? "Unknown",
       region: billingAddress?.province ?? "Unknown",
     },
   });
@@ -113,7 +113,7 @@ export async function attributeViaDiscountCode({
       linkId: clickEvent.link_id,
       clickId: clickEvent.click_id,
       clickedAt: new Date(clickEvent.timestamp + "Z"),
-      country: billingAddress?.country,
+      country: billingAddress?.country_code,
       projectId: workspace.id,
       programId: link.programId,
       partnerId: link.partnerId,

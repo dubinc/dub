@@ -26,8 +26,8 @@ export const orderSchema = z.object({
   ),
   billing_address: z
     .object({
-      country: z.string().nullish(),
       province: z.string().nullish(),
+      country_code: z.string().nullish(),
     })
     .nullish(),
 });
