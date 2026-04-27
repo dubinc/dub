@@ -132,7 +132,7 @@ export function useCommissionsAnalyticsFilters(
         const newParam = parsed.operator.includes("NOT")
           ? `-${newValues.join(",")}`
           : newValues.join(",");
-        queryParams({ set: { [key]: newParam }, scroll: false });
+        queryParams({ set: { [key]: newParam }, del: "page", scroll: false });
       }
     },
     [searchParamsObj, queryParams],

@@ -21,21 +21,23 @@ export default function useCommissionsTimeseries(
   const url = (() => {
     if (!params?.enabled) return null;
 
-    if (params.queryString) {
-      return `/api/commissions/timeseries?${params.queryString}`;
+    if (params.queryString !== undefined) {
+      return params.queryString
+        ? `/api/commissions/timeseries?${params.queryString}`
+        : null;
     }
 
+    if (!workspaceId) return null;
+
     const searchParams = new URLSearchParams({
-      event: params.event ?? "composite",
       ...(params.start && params.end
         ? {
             start: params.start.toISOString(),
             end: params.end.toISOString(),
           }
         : { interval: params.interval ?? DUB_PARTNERS_ANALYTICS_INTERVAL }),
-      groupBy: params.groupBy ?? "count",
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      workspaceId: workspaceId!,
+      workspaceId,
     });
 
     return `/api/commissions/timeseries?${searchParams.toString()}`;
@@ -46,6 +48,6 @@ export default function useCommissionsTimeseries(
   return {
     data,
     error,
-    loading: !data && !error,
+    loading: url !== null && !data && !error,
   };
 }

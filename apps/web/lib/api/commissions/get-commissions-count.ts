@@ -119,7 +119,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       }),
       createdAt: {
         gte: startDate,
-        lte: endDate,
+        lt: endDate,
       },
       ...(Object.keys(programEnrollmentFilter).length > 0 && {
         programEnrollment: programEnrollmentFilter,
