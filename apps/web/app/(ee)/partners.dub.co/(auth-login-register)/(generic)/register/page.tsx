@@ -1,3 +1,4 @@
+import { SSO_LOGIN_PROGRAMS } from "@/lib/auth/sso-login-programs";
 import { getProgram } from "@/lib/fetchers/get-program";
 import { prisma } from "@dub/prisma";
 import { constructMetadata } from "@dub/utils";
@@ -11,11 +12,17 @@ export const metadata = constructMetadata({
 
 export default async function RegisterPage(props: {
   params: Promise<{ programSlug?: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { programSlug } = await props.params;
+  let { email } = (await props.searchParams) as { email?: string };
 
-  if (programSlug === "framer") {
-    redirect("/framer/login");
+  if (
+    programSlug &&
+    SSO_LOGIN_PROGRAMS.some(({ slug }) => slug === programSlug) &&
+    !email // if email search param is present, don't redirect to login (need to create account)
+  ) {
+    redirect(`/${programSlug}/login`);
   }
 
   const program = programSlug
@@ -26,10 +33,9 @@ export default async function RegisterPage(props: {
     redirect("/register");
   }
 
-  let email: string | undefined = undefined;
-  let lockEmail = false;
-
-  if (program) {
+  // if email search param is not present, check if there is a program application for the program
+  // if so, use the email from the first application
+  if (!email && program) {
     const cookieStore = await cookies();
     const programApplicationIds = cookieStore
       .get("programApplicationIds")
@@ -52,13 +58,14 @@ export default async function RegisterPage(props: {
 
     if (applications.length) {
       email = applications[0].email;
-      lockEmail =
-        applications.length === 1 ||
-        applications.every((app) => app.email === email);
     }
   }
 
   return (
-    <RegisterPageClient program={program} email={email} lockEmail={lockEmail} />
+    <RegisterPageClient
+      program={program}
+      email={email}
+      lockEmail={email ? true : false}
+    />
   );
 }

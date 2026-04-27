@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-export function CTAButtons() {
+export function CTAButtons({ email }: { email?: string }) {
   const { programSlug } = useParams();
   const { status } = useSession();
 
@@ -13,7 +13,13 @@ export function CTAButtons() {
 
   return (
     <>
-      <Link href={status === "authenticated" ? "/" : `${slugPrefix}/register`}>
+      <Link
+        href={
+          status === "authenticated"
+            ? "/programs"
+            : `${slugPrefix}/register${email ? `?email=${email}` : ""}`
+        }
+      >
         <Button
           type="button"
           text={

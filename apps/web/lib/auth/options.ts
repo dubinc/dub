@@ -22,12 +22,12 @@ import { isProduction, shouldApplyRateLimit } from "../api/environment";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
-import { FRAMER_API_HOST } from "./constants";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
+import { SSO_LOGIN_PROGRAMS } from "./sso-login-programs";
 import { trackDubLead } from "./track-dub-lead";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
@@ -299,23 +299,22 @@ export const authOptions: NextAuthOptions = {
       },
     }),
 
-    // Framer
-    {
-      id: "framer",
-      name: "Framer",
-      type: "oauth",
-      clientId: process.env.FRAMER_CLIENT_ID,
-      clientSecret: process.env.FRAMER_CLIENT_SECRET,
-      checks: ["state"],
+    // SSO Login Programs
+    ...SSO_LOGIN_PROGRAMS.map(({ slug, name, oauth }) => ({
+      id: slug,
+      name,
+      type: "oauth" as const,
+      clientId: oauth.clientId,
+      clientSecret: oauth.clientSecret,
       authorization: {
-        url: `${FRAMER_API_HOST}/auth/oauth/authorize`,
+        url: oauth.authorizationUrl,
         params: {
           scope: "email",
           response_type: "code",
         },
       },
-      token: `${FRAMER_API_HOST}/auth/oauth/token`,
-      userinfo: `${FRAMER_API_HOST}/auth/oauth/profile`,
+      token: oauth.tokenUrl,
+      userinfo: oauth.userInfoUrl,
       profile({ sub, email, name, picture }) {
         return {
           id: sub,
@@ -324,7 +323,32 @@ export const authOptions: NextAuthOptions = {
           image: picture,
         };
       },
-    },
+    })),
+    // {
+    //   id: "framer",
+    //   name: "Framer",
+    //   type: "oauth",
+    //   clientId: process.env.FRAMER_CLIENT_ID,
+    //   clientSecret: process.env.FRAMER_CLIENT_SECRET,
+    //   checks: ["state"],
+    //   authorization: {
+    //     url: `${FRAMER_API_HOST}/auth/oauth/authorize`,
+    //     params: {
+    //       scope: "email",
+    //       response_type: "code",
+    //     },
+    //   },
+    //   token: `${FRAMER_API_HOST}/auth/oauth/token`,
+    //   userinfo: `${FRAMER_API_HOST}/auth/oauth/profile`,
+    //   profile({ sub, email, name, picture }) {
+    //     return {
+    //       id: sub,
+    //       name,
+    //       email,
+    //       image: picture,
+    //     };
+    //   },
+    // },
   ],
   // @ts-ignore
   adapter: CustomPrismaAdapter(prisma),
