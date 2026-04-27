@@ -56,7 +56,20 @@ export const POST = withWorkspace(
       const fail = (error: unknown) => {
         if (killed) return;
         killed = true;
-        reject(error);
+        void (async () => {
+          try {
+            await redis.del(
+              `${redisKey}:rows`,
+              `${redisKey}:created`,
+              `${redisKey}:processed`,
+              `${redisKey}:failed`,
+              `${redisKey}:domains`,
+            );
+          } catch {
+            // best-effort: avoid leaving a partial import queue on failure
+          }
+          reject(error);
+        })();
       };
 
       Papa.parse(csvText, {
