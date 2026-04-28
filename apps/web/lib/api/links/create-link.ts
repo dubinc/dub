@@ -3,6 +3,7 @@ import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollme
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
+import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -21,7 +22,6 @@ import { scheduleABTestCompletion } from "./ab-test-scheduler";
 import { linkCache } from "./cache";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
-import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
 
 export async function createLink(link: ProcessedLinkProps) {
@@ -200,9 +200,10 @@ export async function createLink(link: ProcessedLinkProps) {
 
         // Update links usage for workspace
         link.projectId &&
-          updateLinksUsage({
+          publishWorkspaceLinksUsageEvent({
             workspaceId: link.projectId,
-            increment: 1,
+            linksCount: 1,
+            timestamp: new Date().toISOString(),
           }),
 
         // Propagate webhook trigger changes
