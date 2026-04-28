@@ -21,18 +21,18 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { Plus } from "@dub/ui/icons";
+import { UserCheck } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { ContextType, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsChart } from "./analytics-chart";
 import { AnalyticsPartnersTable } from "./analytics-partners-table";
-import { ApplicationsBreakdownCards } from "./application-events/applications-breakdown-cards.tsx";
-import { ApplicationsFunnelChart } from "./application-events/applications-funnel-chart.tsx";
-import { ApplicationsPartnersTable } from "./application-events/applications-partners-table.tsx";
-import { useApplicationEventsFilters } from "./application-events/use-applications-analytics-filters.tsx";
-import { useApplicationsAnalyticsQuery } from "./application-events/use-applications-analytics-query.ts";
+import { ApplicationsBreakdownCards } from "./application-events/applications-breakdown-cards";
+import { ApplicationsFunnelChart } from "./application-events/applications-funnel-chart";
+import { ApplicationsPartnersTable } from "./application-events/applications-partners-table";
+import { useApplicationEventsFilters } from "./application-events/use-applications-analytics-filters";
+import { useApplicationsAnalyticsQuery } from "./application-events/use-applications-analytics-query";
 import { CommissionsAnalyticsChart } from "./commissions-analytics-chart";
 import { CommissionsBreakdownCards } from "./commissions-breakdown-cards";
 import { CommissionsPartnersTable } from "./commissions-partners-table";
@@ -220,7 +220,7 @@ export function ProgramAnalyticsPageClient() {
                     >
                       <Button
                         variant="secondary"
-                        className="w-fit"
+                        className="h-9 w-fit"
                         icon={
                           <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
                         }
@@ -233,7 +233,7 @@ export function ProgramAnalyticsPageClient() {
                     >
                       <Button
                         variant="secondary"
-                        className="w-fit"
+                        className="h-9 w-fit"
                         icon={
                           <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
                         }
@@ -246,8 +246,10 @@ export function ProgramAnalyticsPageClient() {
                     >
                       <Button
                         variant="secondary"
-                        className="w-fit"
-                        icon={<Plus className="h-4 w-4 text-neutral-600" />}
+                        className="h-9 w-fit"
+                        icon={
+                          <UserCheck className="h-4 w-4 text-neutral-600" />
+                        }
                         text={isMobile ? undefined : "View applications"}
                       />
                     </Link>

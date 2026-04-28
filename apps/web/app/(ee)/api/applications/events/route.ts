@@ -59,14 +59,36 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     ...(country && { country }),
     ...(referralSource && { referralSource }),
     ...(groupId && { programEnrollment: { groupId } }),
-    ...(event === "started" && { startedAt: { not: null } }),
-    ...(event === "submitted" && { submittedAt: { not: null } }),
-    ...(event === "approved" && { approvedAt: { not: null } }),
-    ...(event === "rejected" && { rejectedAt: { not: null } }),
-    visitedAt: {
-      gte: startDate,
-      lt: endDate,
-    },
+    ...(event === "visited" && {
+      visitedAt: {
+        gte: startDate,
+        lt: endDate,
+      },
+    }),
+    ...(event === "started" && {
+      startedAt: {
+        gte: startDate,
+        lt: endDate,
+      },
+    }),
+    ...(event === "submitted" && {
+      submittedAt: {
+        gte: startDate,
+        lt: endDate,
+      },
+    }),
+    ...(event === "approved" && {
+      approvedAt: {
+        gte: startDate,
+        lt: endDate,
+      },
+    }),
+    ...(event === "rejected" && {
+      rejectedAt: {
+        gte: startDate,
+        lt: endDate,
+      },
+    }),
   };
 
   const programApplicationEvents =
