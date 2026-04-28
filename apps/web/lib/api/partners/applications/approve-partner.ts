@@ -1,4 +1,4 @@
-import { markApplicationEvents } from "@/lib/application-events/update-application-event";
+import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -135,7 +135,7 @@ export async function approvePartner({
         },
       }),
 
-      markApplicationEvents({
+      trackApplicationEvents({
         event: "approved",
         programId,
         partnerIds: [partnerId],

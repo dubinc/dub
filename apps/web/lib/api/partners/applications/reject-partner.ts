@@ -1,4 +1,4 @@
-import { markApplicationEvents } from "@/lib/application-events/update-application-event";
+import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
 import { WorkspaceProps } from "@/lib/types";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -132,7 +132,7 @@ export async function rejectPartner({
         },
       }),
 
-      markApplicationEvents({
+      trackApplicationEvents({
         event: "rejected",
         programId,
         partnerIds: [partnerId],

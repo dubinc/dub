@@ -1,5 +1,5 @@
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
-import { markApplicationEvents } from "@/lib/application-events/update-application-event";
+import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { withCron } from "@/lib/cron/with-cron";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { sendEmail } from "@dub/email";
@@ -136,7 +136,7 @@ export const POST = withCron(async ({ rawBody }) => {
         "Resolved automatically because the partner application was automatically rejected.",
     }),
 
-    markApplicationEvents({
+    trackApplicationEvents({
       event: "rejected",
       programId,
       partnerIds: [partnerId],

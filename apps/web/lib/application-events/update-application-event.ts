@@ -41,7 +41,7 @@ export async function markApplicationEventSubmitted({
   } catch {}
 }
 
-export async function markApplicationEvents({
+export async function trackApplicationEvents({
   programId,
   partnerIds,
   event,
