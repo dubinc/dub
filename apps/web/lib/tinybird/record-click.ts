@@ -16,10 +16,8 @@ import { getIdentityHash } from "../middleware/utils/get-identity-hash";
 import { conn } from "../planetscale";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
-import {
-  publishPartnerActivityEvent,
-  publishWorkspaceClicksUsageEvent,
-} from "../upstash/redis-streams";
+import { publishPartnerActivityEvent } from "../upstash/redis-streams/partner-activity";
+import { publishWorkspaceClicksUsageEvent } from "../upstash/redis-streams/workspace-clicks-usage";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
 import { transformClickEventData } from "../webhook/transform";
