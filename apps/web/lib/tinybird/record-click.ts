@@ -17,8 +17,8 @@ import { conn } from "../planetscale";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
 import {
-  publishClickEvent,
   publishPartnerActivityEvent,
+  publishWorkspaceClicksUsageEvent,
 } from "../upstash/redis-streams";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
@@ -203,7 +203,7 @@ export async function recordClick({
         // increment the usage count for the workspace
         workspaceId &&
           url &&
-          publishClickEvent({
+          publishWorkspaceClicksUsageEvent({
             linkId,
             workspaceId,
             timestamp: clickData.timestamp,
