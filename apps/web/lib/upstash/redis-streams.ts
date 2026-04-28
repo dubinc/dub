@@ -138,27 +138,58 @@ export class RedisStream {
   }
 }
 
-/* Workspace Usage Stream */
-const WORKSPACE_USAGE_UPDATES_STREAM_KEY = "workspace:usage:updates";
-export const workspaceUsageStream = new RedisStream(
-  WORKSPACE_USAGE_UPDATES_STREAM_KEY,
+/* Workspace Clicks Usage Stream */
+const WORKSPACE_CLICKS_USAGE_UPDATES_STREAM_KEY = "workspace:usage:updates";
+export const workspaceClicksUsageStream = new RedisStream(
+  WORKSPACE_CLICKS_USAGE_UPDATES_STREAM_KEY,
 );
-export interface ClickEvent {
+export interface WorkspaceClicksUsageEvent {
   linkId: string;
   workspaceId: string;
   timestamp: string;
 }
 // Publishes a click event to any relevant streams in a single transaction
-export const publishClickEvent = async (event: ClickEvent) => {
+export const publishWorkspaceClicksUsageEvent = async (
+  event: WorkspaceClicksUsageEvent,
+) => {
   const { linkId, workspaceId, timestamp } = event;
   try {
-    return await redis.xadd(WORKSPACE_USAGE_UPDATES_STREAM_KEY, "*", {
+    return await redis.xadd(WORKSPACE_CLICKS_USAGE_UPDATES_STREAM_KEY, "*", {
       linkId,
       workspaceId,
       timestamp,
     });
   } catch (error) {
-    console.error("Failed to publish click update to streams:", error);
+    console.error("Failed to publish workspace clicks usage event:", error);
+    throw error;
+  }
+};
+
+/* Workspace Links Usage Stream */
+const WORKSPACE_LINKS_USAGE_UPDATES_STREAM_KEY = "workspace:linksUsage:updates";
+export const workspaceLinksUsageStream = new RedisStream(
+  WORKSPACE_LINKS_USAGE_UPDATES_STREAM_KEY,
+);
+
+export interface WorkspaceLinksUsageEvent {
+  workspaceId: string;
+  linksCount: number;
+  timestamp: string;
+}
+
+export const publishWorkspaceLinksUsageEvent = async (
+  event: WorkspaceLinksUsageEvent,
+) => {
+  const { workspaceId, linksCount, timestamp } = event;
+
+  try {
+    return await redis.xadd(WORKSPACE_LINKS_USAGE_UPDATES_STREAM_KEY, "*", {
+      workspaceId,
+      linksCount,
+      timestamp,
+    });
+  } catch (error) {
+    console.error("Failed to publish workspace links usage event:", error);
     throw error;
   }
 };

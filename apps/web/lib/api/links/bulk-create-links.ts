@@ -1,4 +1,5 @@
 import { ProcessedLinkProps } from "@/lib/types";
+import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { getParamsFromURL, linkConstructorSimple, truncate } from "@dub/utils";
@@ -9,7 +10,6 @@ import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeProgramEnrollment } from "./include-program-enrollment";
 import { includeTags } from "./include-tags";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
-import { updateLinksUsage } from "./update-links-usage";
 import { checkIfLinksHaveTags } from "./utils/check-if-links-have-tags";
 import { checkIfLinksHaveWebhooks } from "./utils/check-if-links-have-webhooks";
 import { transformLink } from "./utils/transform-link";
@@ -227,9 +227,10 @@ export async function bulkCreateLinks({
         links: createdLinksData,
         skipRedisCache,
       }),
-      updateLinksUsage({
+      publishWorkspaceLinksUsageEvent({
         workspaceId: links[0].projectId!, // this will always be present
-        increment: links.length,
+        linksCount: links.length,
+        timestamp: new Date().toISOString(),
       }),
     ]),
   );

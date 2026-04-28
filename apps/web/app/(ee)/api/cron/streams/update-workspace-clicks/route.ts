@@ -2,9 +2,9 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { conn } from "@/lib/planetscale";
 import {
-  ClickEvent,
   RedisStreamEntry,
-  workspaceUsageStream,
+  WorkspaceClicksUsageEvent,
+  workspaceClicksUsageStream,
 } from "@/lib/upstash/redis-streams";
 import { NextResponse } from "next/server";
 
@@ -21,7 +21,7 @@ type WorkspaceAggregateUsage = {
 };
 
 const aggregateWorkspaceUsage = (
-  entries: RedisStreamEntry<ClickEvent>[],
+  entries: RedisStreamEntry<WorkspaceClicksUsageEvent>[],
 ): { updates: WorkspaceAggregateUsage[]; lastProcessedId: string | null } => {
   // Aggregate usage by workspaceId
   const aggregatedUsage = new Map<string, WorkspaceAggregateUsage>();
@@ -68,7 +68,7 @@ const aggregateWorkspaceUsage = (
 };
 
 const processWorkspaceUpdateStreamBatch = () =>
-  workspaceUsageStream.processBatch<ClickEvent>(
+  workspaceClicksUsageStream.processBatch<WorkspaceClicksUsageEvent>(
     async (entries) => {
       if (!entries || Object.keys(entries).length === 0) {
         return {
@@ -197,7 +197,7 @@ export async function GET(req: Request) {
     }
 
     // Get stream info for monitoring
-    const streamInfo = await workspaceUsageStream.getStreamInfo();
+    const streamInfo = await workspaceClicksUsageStream.getStreamInfo();
     const response = {
       success: true,
       processed: totalProcessed,

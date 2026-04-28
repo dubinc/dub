@@ -3,9 +3,9 @@ import { getClickEvent } from "../../lib/tinybird/get-click-event";
 
 // update tinybird sale event
 async function main() {
-  const clickId = "liE74JEvfIBXKNmR";
+  const clickId = "D0aoUca8hLdzmJJE";
   const columnName = "link_id";
-  const columnValue = "link_1JRVCZWHWACS7R2KZB9ME6CJR";
+  const columnValue = "link_xxx";
 
   const oldData = await getClickEvent({ clickId });
   if (!oldData) {
@@ -37,13 +37,13 @@ async function main() {
       dataSource: "dub_click_events_mv",
       clickId,
       columnName,
-      oldValue: oldData[columnName],
+      oldValue: "link_1KPRDAYXXE9D2FYM691BK5C59",
     }),
     deleteData({
       dataSource: "dub_click_events_id",
       clickId,
       columnName,
-      oldValue: oldData[columnName],
+      oldValue: "link_1KPRDAYXXE9D2FYM691BK5C59",
     }),
   ]);
   console.log(deleteRes);
