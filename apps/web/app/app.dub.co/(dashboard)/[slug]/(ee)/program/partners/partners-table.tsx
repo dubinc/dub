@@ -279,6 +279,7 @@ export function PartnersTable() {
         {
           id: "tags",
           header: "Tag",
+          minSize: 120,
           maxSize: 200,
           cell: ({ row }) => (
             <PartnerTagsList
