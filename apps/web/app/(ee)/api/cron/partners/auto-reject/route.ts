@@ -135,11 +135,13 @@ export const POST = withCron(async ({ rawBody }) => {
       resolutionReason:
         "Resolved automatically because the partner application was automatically rejected.",
     }),
+
     markApplicationEvents({
       event: "rejected",
       programId,
       partnerIds: [partnerId],
     }),
+
     partner.email &&
       sendEmail({
         to: partner.email,
