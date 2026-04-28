@@ -1,7 +1,7 @@
+import { CustomersTable } from "@/ui/customers/customers-table/customers-table";
 import { ExportCustomersButton } from "@/ui/customers/export-customers-button";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { CustomersPageClient } from "./page-client";
 
 export default function CustomersPage() {
   return (
@@ -15,7 +15,7 @@ export default function CustomersPage() {
       controls={<ExportCustomersButton />}
     >
       <PageWidthWrapper>
-        <CustomersPageClient />
+        <CustomersTable />
       </PageWidthWrapper>
     </PageContent>
   );

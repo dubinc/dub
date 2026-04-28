@@ -20,6 +20,7 @@ const tokenCacheItemSchema = z.object({
   project: z
     .object({
       plan: z.string().nullish(),
+      trialEndsAt: z.coerce.date().nullish(),
     })
     .nullish(),
   installationId: z.string().nullish(),

@@ -788,11 +788,13 @@ export function CopyPopover({
           <button
             type="button"
             onClick={() => {
-              const url = `${API_DOMAIN}/qr?url=${linkConstructor({
-                key: linkProps.key,
-                domain: linkProps.domain,
-                searchParams: { qr: "1" },
-              })}${qrData.hideLogo ? "&hideLogo=true" : ""}`;
+              const url = `${API_DOMAIN}/qr?url=${encodeURIComponent(
+                linkConstructor({
+                  key: linkProps.key,
+                  domain: linkProps.domain,
+                  searchParams: { qr: "1" },
+                }),
+              )}${qrData.hideLogo ? "&hideLogo=true" : ""}`;
               toast.promise(copyUrlToClipboard(url), {
                 success: "Copied QR code URL to clipboard!",
               });

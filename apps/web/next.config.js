@@ -1,4 +1,5 @@
 const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
+const { withPlausibleProxy } = require("next-plausible");
 
 // Suppress specific external package warnings
 const originalConsoleWarn = console.warn;
@@ -18,7 +19,11 @@ console.warn = (...args) => {
 };
 
 /** @type {import('next').NextConfig} */
-module.exports = {
+module.exports = withPlausibleProxy({
+  src: "https://plausible.io/js/pa-T9BPIqC3D0XQFZnP1vHfN.js",
+  scriptPath: "/_proxy/plausible/script.js",
+  apiPath: "/_proxy/plausible/event",
+})({
   reactStrictMode: false,
   transpilePackages: [
     "prettier",
@@ -42,7 +47,7 @@ module.exports = {
       "@team-plain/typescript-sdk",
     ],
     serverActions: {
-      bodySizeLimit: "2mb",
+      bodySizeLimit: "4mb",
     },
   },
   webpack: (config, { webpack, isServer }) => {
@@ -200,9 +205,13 @@ module.exports = {
     return [
       // for dub proxy
       {
-        source: "/_proxy/dub/track/click",
-        destination: "https://api.dub.co/track/click",
+        source: "/_proxy/dub/script.js",
+        destination: "https://www.dubcdn.com/analytics/script.js",
+      },
+      {
+        source: "/_proxy/dub/track/:path*",
+        destination: "https://api.dub.co/track/:path*",
       },
     ];
   },
-};
+});

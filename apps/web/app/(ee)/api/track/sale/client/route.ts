@@ -63,7 +63,6 @@ export const POST = withPublishableKey(
       leadEventName,
       metadata,
       workspace,
-      rawBody: body,
     });
 
     return NextResponse.json(response, { headers: COMMON_CORS_HEADERS });

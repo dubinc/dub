@@ -7,7 +7,7 @@ import {
   EnrolledPartnerExtendedProps,
   EnrolledPartnerProps,
 } from "@/lib/types";
-import { Button, CircleInfo, Modal, Switch } from "@dub/ui";
+import { Button, CircleInfo, InfoTooltip, Modal, Switch } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -121,12 +121,13 @@ function PartnerAdvancedSettingsModal({
           {/* Tenant ID */}
           <div>
             <label>
-              <span className="text-sm font-medium text-neutral-800">
+              <div className="flex items-center gap-1 text-sm font-medium text-neutral-800">
                 Partner{" "}
                 <span className="rounded-md bg-neutral-200 px-1 py-0.5">
                   tenantId
                 </span>
-              </span>
+                <InfoTooltip content="The partner's [unique ID in your system](https://dub.co/docs/api-reference/partners/create#body-tenant-id). Useful for retrieving the partner's links, stats, and other relavant data later on." />
+              </div>
               <input
                 type="text"
                 className={cn(

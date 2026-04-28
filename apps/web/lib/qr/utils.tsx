@@ -530,6 +530,26 @@ export function QRCodeSVG(props: QRPropsSVG) {
     }
   }
 
+  if (isOGContext) {
+    const fgPath = generatePath(cells, margin);
+    return (
+      <svg
+        height={size}
+        width={size}
+        viewBox={`0 0 ${numCells} ${numCells}`}
+        {...otherProps}
+      >
+        <path
+          fill={bgColor}
+          d={`M0,0 h${numCells}v${numCells}H0z`}
+          shapeRendering="crispEdges"
+        />
+        <path fill={fgColor} d={fgPath} shapeRendering="crispEdges" />
+        {image}
+      </svg>
+    );
+  }
+
   const fgPath =
     dotStyle === "rounded"
       ? generateRoundedDotPath(cells, margin)
@@ -537,7 +557,6 @@ export function QRCodeSVG(props: QRPropsSVG) {
         ? generateExtraRoundedDotPath(cells, margin)
         : generateSquareDotPath(cells, margin);
 
-  // The three finder pattern top-left corners in module coordinates (+ margin)
   const numModules = cells.length;
   const finderPositions = [
     { x: margin, y: margin }, // top-left

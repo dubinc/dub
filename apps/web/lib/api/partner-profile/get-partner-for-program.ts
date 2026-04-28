@@ -33,6 +33,12 @@ export async function getPartnerForProgram({
         },
       },
       links: true,
+      discount: {
+        select: {
+          id: true,
+          provider: true,
+        },
+      },
     },
   });
 

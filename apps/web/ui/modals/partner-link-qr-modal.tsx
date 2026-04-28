@@ -120,7 +120,7 @@ export function usePartnerLinkQRModal(props: PartnerLinkQRModalProps) {
         {...props}
       />
     ),
-    [showLinkQRModal, setShowLinkQRModal, props],
+    [showLinkQRModal, setShowLinkQRModal],
   );
 
   return useMemo(

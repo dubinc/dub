@@ -194,6 +194,7 @@ export const withWorkspace = (
                   project: {
                     select: {
                       plan: true,
+                      trialEndsAt: true,
                     },
                   },
                 }),
@@ -239,7 +240,9 @@ export const withWorkspace = (
             ? "1 s"
             : "1 m";
 
-          const planLimit = getRatelimitForPlan(token.project?.plan || "free");
+          const planLimit = getRatelimitForPlan(token.project?.plan || "free", {
+            trialEndsAt: token.project?.trialEndsAt ?? null,
+          });
           limit = planLimit.limits[isAnalytics ? "analyticsApi" : "api"];
 
           const { success, headers } = await rateLimitRequest({

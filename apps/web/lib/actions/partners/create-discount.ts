@@ -5,22 +5,13 @@ import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
-import { stripeAppClient } from "@/lib/stripe";
-import {
-  dubDiscountToStripeCoupon,
-  stripeCouponToDubDiscount,
-  validateStripeCouponForDubDiscount,
-} from "@/lib/stripe/coupon-discount-converter";
+import { getDiscountProvider } from "@/lib/discounts/discount-provider";
+import { DubDiscountAttributes } from "@/lib/stripe/coupon-discount-converter";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  STRIPE_INTEGRATION_ID,
-  truncate,
-} from "@dub/utils";
+import { DiscountProvider } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { Stripe } from "stripe";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
@@ -28,7 +19,8 @@ export const createDiscountAction = authActionClient
   .inputSchema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let {
+    const {
+      provider,
       amount,
       type,
       maxDuration,
@@ -56,79 +48,28 @@ export const createDiscountAction = authActionClient
       );
     }
 
-    if (!workspace.stripeConnectId) {
-      throw new Error(
-        "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount.",
-      );
-    }
+    const discountProvider = getDiscountProvider(provider);
 
-    const installedStripeIntegration =
-      await prisma.installedIntegration.findFirst({
-        where: {
-          projectId: workspace.id,
-          integrationId: STRIPE_INTEGRATION_ID,
-        },
-        select: {
-          settings: true,
-        },
-      });
+    let coupon: (DubDiscountAttributes & { id: string }) | null = null;
 
-    if (!installedStripeIntegration) {
-      throw new Error(
-        "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount.",
-      );
-    }
-
-    const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-      installedStripeIntegration.settings || {},
-    );
-
-    const stripe = stripeAppClient({
-      mode: stripeIntegrationSettings.stripeMode,
-    });
-
-    let stripeCoupon: Stripe.Coupon | undefined;
-    try {
+    // Fetch existing coupon if couponId is provided otherwise create a new coupon on the discount provider
+    if (provider === DiscountProvider.stripe) {
       if (couponId) {
-        stripeCoupon = await stripe.coupons.retrieve(couponId, {
-          stripeAccount: workspace.stripeConnectId,
+        coupon = await discountProvider.getCoupon({
+          couponId,
+          workspace,
         });
-
-        // Validate the Stripe coupon can be converted to a Dub discount
-        const validation = validateStripeCouponForDubDiscount(stripeCoupon);
-        if (!validation.isValid) {
-          throw new Error(
-            `Invalid Stripe coupon: ${validation.errors.join(", ")}`,
-          );
-        }
-
-        // Convert Stripe coupon to Dub discount attributes
-        const dubDiscountAttrs = stripeCouponToDubDiscount(stripeCoupon);
-        amount = dubDiscountAttrs.amount;
-        type = dubDiscountAttrs.type;
-        maxDuration = dubDiscountAttrs.maxDuration;
-
-        // if there is no couponId provided, we need to create a new coupon on Stripe
       } else {
-        const stripeCouponData = dubDiscountToStripeCoupon({
-          name: `Dub Discount (${truncate(group.name, 25)})`,
-          amount,
-          type,
-          maxDuration: maxDuration ?? null,
-        });
-
-        stripeCoupon = await stripe.coupons.create(stripeCouponData, {
-          stripeAccount: workspace.stripeConnectId,
+        coupon = await discountProvider.createCoupon({
+          workspace,
+          group,
+          data: parsedInput,
         });
       }
-    } catch (error) {
-      throw new Error(
-        error.code === "more_permissions_required_for_application"
-          ? "STRIPE_APP_UPGRADE_REQUIRED: Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe integration in settings or reach out to our support team for help."
-          : error.code === "resource_missing"
-            ? `The coupon ID you provided (${couponId}) was not found in your Stripe account. Please check the coupon ID and try again.`
-            : error.message,
-      );
+    } else if (provider === DiscountProvider.shopify) {
+      await discountProvider.assertDiscountIntegrationAvailable({
+        workspace,
+      });
     }
 
     // Create the discount and update the group and program enrollment
@@ -140,7 +81,8 @@ export const createDiscountAction = authActionClient
           amount,
           type,
           maxDuration,
-          couponId: stripeCoupon?.id || couponId,
+          provider,
+          couponId: coupon?.id || couponId || null,
           ...(couponTestId && { couponTestId }),
           ...(autoProvision && { autoProvisionEnabledAt: new Date() }),
         },

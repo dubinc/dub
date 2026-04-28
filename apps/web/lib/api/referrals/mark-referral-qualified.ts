@@ -60,7 +60,6 @@ export const markReferralQualified = async ({
     customerName: referral.name,
     customerEmail: referral.email,
     mode: "wait",
-    rawBody: {},
     workspace: pick(workspace, ["id", "stripeConnectId", "webhookEnabled"]),
     source: "submitted",
   });

@@ -3,6 +3,7 @@ export const ONBOARDING_STEPS = [
   "products",
   "domain",
   "domain/custom",
+  "domain/subdomain",
   "domain/register",
   "program",
   "program/reward",

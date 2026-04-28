@@ -48,6 +48,24 @@ export async function createShopifyLead({
 
   const { link_id: linkId, country, timestamp } = clickData;
 
+  const partnerLink = await prisma.link.findUnique({
+    where: {
+      id: linkId,
+    },
+    select: {
+      id: true,
+      programId: true,
+      partnerId: true,
+    },
+  });
+
+  if (!partnerLink) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Link not found for linkId: ${linkId}`,
+    });
+  }
+
   // create customer
   const customer = await prisma.customer.create({
     data: {
@@ -56,6 +74,8 @@ export async function createShopifyLead({
       name,
       email,
       projectId: workspaceId,
+      programId: partnerLink.programId,
+      partnerId: partnerLink.partnerId,
       clickedAt: new Date(timestamp + "Z"),
       clickId,
       linkId,
