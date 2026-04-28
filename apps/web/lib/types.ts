@@ -137,6 +137,7 @@ import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
 } from "./zod/schemas/payouts";
+import { PartnerApplicationSchema } from "./zod/schemas/program-application";
 import {
   programApplicationFormDataWithValuesSchema,
   programApplicationFormFieldWithValuesSchema,
@@ -533,6 +534,8 @@ export type PartnerProfileReferralsCountByStatus = z.infer<
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
   platforms: PartnerPlatformProps[];
 };
+
+export type PartnerApplicationProps = z.infer<typeof PartnerApplicationSchema>;
 
 export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
 

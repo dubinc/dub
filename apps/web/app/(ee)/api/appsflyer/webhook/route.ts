@@ -107,7 +107,6 @@ export const GET = withAxiom(async (req) => {
         mode: undefined,
         metadata: null,
         workspace,
-        rawBody: queryParams,
       });
 
       response = "Lead event tracked successfully.";
@@ -132,7 +131,6 @@ export const GET = withAxiom(async (req) => {
         leadEventName: undefined,
         metadata: null,
         workspace,
-        rawBody: queryParams,
       });
 
       response = "Sale event tracked successfully.";

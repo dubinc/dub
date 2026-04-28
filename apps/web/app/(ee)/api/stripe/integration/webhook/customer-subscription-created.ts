@@ -146,7 +146,6 @@ export async function customerSubscriptionCreated(
     customerName: customer.name,
     customerEmail: customer.email,
     eventQuantity,
-    rawBody: {},
     workspace: pick(workspace, ["id", "stripeConnectId", "webhookEnabled"]),
     source: "trial",
   });

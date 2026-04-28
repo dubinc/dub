@@ -1,14 +1,23 @@
 "use client";
 
 import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
+import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { getStripe } from "@/lib/stripe/client";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, ButtonProps } from "@dub/ui";
-import { APP_DOMAIN, capitalize, SELF_SERVE_PAID_PLANS } from "@dub/utils";
+import {
+  APP_DOMAIN,
+  capitalize,
+  DUB_TRIAL_PERIOD_DAYS,
+  isWorkspaceBillingTrialActive,
+  SELF_SERVE_PAID_PLANS,
+} from "@dub/utils";
+import { useOnboardingTrialVariant } from "app/app.dub.co/(onboarding)/onboarding/use-onboarding-trial-variant";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmation-modal";
+import { useStartPaidPlanModal } from "../modals/start-paid-plan-modal";
 
 export function UpgradePlanButton({
   plan,
@@ -26,11 +35,16 @@ export function UpgradePlanButton({
   const {
     slug: workspaceSlug,
     plan: currentPlan,
+    planPeriod: currentPlanPeriod,
     stripeId,
     defaultProgramId,
+    trialEndsAt,
   } = useWorkspace();
 
   const plausible = usePlausible();
+  const product = searchParams.get("product");
+  const { isTrialVariant } = useOnboardingTrialVariant();
+  const isTrialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const selectedPlan =
     SELF_SERVE_PAID_PLANS.find(
@@ -41,16 +55,29 @@ export function UpgradePlanButton({
 
   const queryString = searchParams.toString();
 
-  const isCurrentPlan = currentPlan === selectedPlan.name.toLowerCase();
+  const isCurrentPlan =
+    currentPlan === selectedPlan.name.toLowerCase() &&
+    period === currentPlanPeriod;
 
-  // Check if this plan change would lose partner access
-  const losesPartnerAccess =
-    currentPlan &&
-    defaultProgramId &&
-    wouldLosePartnerAccess({
-      currentPlan,
-      newPlan: selectedPlan.name.toLowerCase(),
-    });
+  // Check if this plan change would lose partner access / advanced features
+  const { losesPartnerAccess, losesAdvancedFeatures } = useMemo(() => {
+    if (currentPlan && defaultProgramId) {
+      return {
+        losesPartnerAccess: wouldLosePartnerAccess({
+          currentPlan,
+          newPlan: selectedPlan.name.toLowerCase(),
+        }),
+        losesAdvancedFeatures: wouldLoseAdvancedFeatures({
+          currentPlan,
+          newPlan: selectedPlan.name.toLowerCase(),
+        }),
+      };
+    }
+    return {
+      losesPartnerAccess: false,
+      losesAdvancedFeatures: false,
+    };
+  }, [currentPlan, defaultProgramId, selectedPlan.name]);
 
   const performUpgrade = () => {
     setClicked(true);
@@ -65,10 +92,22 @@ export function UpgradePlanButton({
         period,
         baseUrl: `${APP_DOMAIN}${pathname}${queryString.length > 0 ? `?${queryString}` : ""}`,
         onboarding: searchParams.get("workspace") ? "true" : "false",
+        isTrialVariant: isTrialVariant ? "true" : "false",
       }),
     })
       .then(async (res) => {
-        plausible("Opened Checkout");
+        if (!res.ok) {
+          const body = await res.json().catch(() => null);
+          throw new Error(body?.error?.message ?? "Failed to start checkout.");
+        }
+
+        plausible("Opened Checkout", {
+          props: {
+            ...(product && { product: capitalize(product) }),
+            plan: capitalize(selectedPlan.name),
+            planPeriod: capitalize(period),
+          },
+        });
         if (!stripeId || currentPlan === "free") {
           const data = await res.json();
           const { id: sessionId } = data;
@@ -90,10 +129,21 @@ export function UpgradePlanButton({
   const { setShowPlanChangeConfirmationModal, PlanChangeConfirmationModal } =
     usePlanChangeConfirmationModal({
       onConfirm: performUpgrade,
+      confirmationMode:
+        losesAdvancedFeatures && !losesPartnerAccess
+          ? "advanced-downgrade"
+          : "program-downgrade",
     });
 
+  const { StartPaidPlanModal, setShowStartPaidPlanModal } =
+    useStartPaidPlanModal();
+
   const handleClick = () => {
-    if (losesPartnerAccess) {
+    if (isCurrentPlan && isTrialActive) {
+      setShowStartPaidPlanModal(true);
+      return;
+    }
+    if (losesPartnerAccess || losesAdvancedFeatures) {
       setShowPlanChangeConfirmationModal(true);
     } else {
       performUpgrade();
@@ -103,16 +153,23 @@ export function UpgradePlanButton({
   return (
     <>
       <PlanChangeConfirmationModal />
+      <StartPaidPlanModal />
       <Button
         text={
-          isCurrentPlan
-            ? "Your current plan"
-            : currentPlan === "free"
-              ? `Get started with ${selectedPlan.name} ${capitalize(period)}`
-              : `Switch to ${selectedPlan.name} ${capitalize(period)}`
+          !currentPlan
+            ? "Loading..."
+            : isCurrentPlan
+              ? isTrialActive
+                ? "Activate plan"
+                : "Your current plan"
+              : currentPlan === "free"
+                ? isTrialVariant
+                  ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
+                  : `Upgrade to ${selectedPlan.name} ${capitalize(period)}`
+                : `Switch to ${selectedPlan.name} ${capitalize(period)}`
         }
-        loading={clicked}
-        disabled={!workspaceSlug || isCurrentPlan}
+        loading={clicked || !currentPlan}
+        disabled={!workspaceSlug || (isCurrentPlan && !isTrialActive)}
         onClick={handleClick}
         {...rest}
       />

@@ -197,7 +197,6 @@ export async function completeProgramApplications(userEmail: string) {
               group?.autoApprovePartnersEnabledAt
                 ? qstash.publishJSON({
                     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
-                    delay: 5 * 60,
                     body: {
                       programId: program.id,
                       partnerId: partner.id,

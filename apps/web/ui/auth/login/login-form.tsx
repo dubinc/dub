@@ -35,8 +35,6 @@ export const errorCodes = {
     "Account has been locked due to too many login attempts. Please contact support to unlock your account.",
   "too-many-login-attempts": "Too many login attempts. Please try again later.",
   "email-not-verified": "Please verify your email address.",
-  "framer-account-linking-not-allowed":
-    "It looks like you already have an account with us. Please sign in with your Framer account email instead.",
   "require-saml-sso":
     "Your organization requires authentication through your company's identity provider.",
   Callback:
@@ -45,6 +43,8 @@ export const errorCodes = {
     "There was an issue signing you in. Please ensure your provider settings are correct.",
   OAuthCallback:
     "We faced a problem while processing the response from the OAuth provider. Please try again.",
+  OAuthAccountNotLinked:
+    "It looks like you already have an account with this email. Please sign in with your account email instead.",
 };
 
 export const LoginFormContext = createContext<{

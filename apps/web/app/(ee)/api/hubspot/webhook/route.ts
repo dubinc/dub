@@ -1,6 +1,6 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
-import { qstash } from "@/lib/cron";
+import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import crypto from "crypto";
 import { logAndRespond } from "../../cron/utils";
@@ -50,9 +50,12 @@ export const POST = withAxiom(async (req) => {
     // to QStash and process each event independently in /api/hubspot/webhook/process.
     // This keeps the webhook handler fast and ensures a slow/failing event doesn't
     // block or fail the rest of the batch.
-    const qstashResponse = await qstash.batchJSON(
+    const qstashResponse = await enqueueBatchJobs(
       finalEvents.map((event) => ({
+        queueName: "process-hubspot-webhook",
         url: `${APP_DOMAIN_WITH_NGROK}/api/hubspot/webhook/process`,
+        deduplicationId: event.eventId,
+        method: "POST",
         body: event,
       })),
     );

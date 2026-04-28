@@ -1,6 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 import { isValidDomain } from "./is-valid-domain";
+import { validateDubLinkSubdomain } from "./validate-dub-link-subdomain";
 
 export const validateDomain = async (
   domain: string,
@@ -10,6 +11,10 @@ export const validateDomain = async (
   }
   if (!isValidDomain(domain)) {
     return { error: "Invalid domain", code: "unprocessable_entity" };
+  }
+  const dubLinkError = validateDubLinkSubdomain(domain);
+  if (dubLinkError) {
+    return dubLinkError;
   }
   const exists = await domainExists(domain);
   if (exists) {

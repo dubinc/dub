@@ -9,7 +9,9 @@ export default function TrackSignup() {
   const { data: session } = useSession();
 
   useEffect(() => {
-    plausible("Signed Up");
+    if (session?.user) {
+      plausible("Signed Up");
+    }
   }, [session?.user]);
 
   return null;

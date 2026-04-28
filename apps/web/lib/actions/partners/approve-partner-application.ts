@@ -1,14 +1,18 @@
 "use server";
 
+import { approvePartner } from "@/lib/api/partners/applications/approve-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
 import { approvePartnerSchema } from "@/lib/zod/schemas/partners";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
-// Approve a partner application
-export const approvePartnerAction = authActionClient
-  .inputSchema(approvePartnerSchema)
+const inputSchema = approvePartnerSchema.extend({
+  workspaceId: z.string(),
+});
+
+export const approvePartnerApplicationAction = authActionClient
+  .inputSchema(inputSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, groupId } = parsedInput;
@@ -20,7 +24,7 @@ export const approvePartnerAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await approvePartnerEnrollment({
+    await approvePartner({
       programId,
       partnerId,
       userId: user.id,

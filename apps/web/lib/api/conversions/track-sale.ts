@@ -39,7 +39,6 @@ import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { executeWorkflows } from "../workflows/execute-workflows";
 
 type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
-  rawBody: any;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   source?: CustomerSource; // default is "tracked"
 };
@@ -57,7 +56,6 @@ export const trackSale = async ({
   invoiceId,
   leadEventName,
   metadata,
-  rawBody,
   workspace,
   source = "tracked",
 }: TrackSaleParams) => {
@@ -262,7 +260,6 @@ export const trackSale = async ({
       paymentProcessor,
       invoiceId,
       metadata,
-      rawBody,
       workspace,
       leadEventData,
       customer,
@@ -388,7 +385,6 @@ const _trackSale = async ({
   paymentProcessor,
   invoiceId,
   metadata,
-  rawBody,
   workspace,
   leadEventData,
   customer,

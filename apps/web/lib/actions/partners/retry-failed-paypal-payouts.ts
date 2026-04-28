@@ -80,10 +80,6 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
         );
       }
 
-      if (!payout.paypalTransferId) {
-        throw new Error("This payout has no existing PayPal transfer ID.");
-      }
-
       if (!payout.invoiceId) {
         throw new Error("This payout has no invoice ID.");
       }
@@ -130,6 +126,7 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
         },
         data: {
           status: "sent",
+          method: "paypal",
         },
       });
     } catch (error) {

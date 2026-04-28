@@ -17,32 +17,33 @@ import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
+import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
 import { prisma } from "@dub/prisma";
 import { Program, Project, User } from "@dub/prisma/client";
 import { getDomainWithoutWWW, isLegacyBusinessPlan, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
-// Create a program from the onboarding data
 export const createProgram = async ({
   workspace,
   user,
-  redirectTo,
-  sendProgramWelcomeEmail = false,
+  isProgramOnboarding = false,
 }: {
   workspace: Pick<
     Project,
     | "id"
     | "slug"
+    | "logo"
+    | "name"
     | "plan"
     | "payoutsLimit"
+    | "trialEndsAt"
     | "store"
     | "webhookEnabled"
     | "invoicePrefix"
   >;
   user: Pick<User, "id" | "email">;
-  redirectTo?: string;
-  sendProgramWelcomeEmail?: boolean;
+  isProgramOnboarding?: boolean;
 }) => {
   const { canManageProgram, canMessagePartners } = getPlanCapabilities(
     workspace.plan,
@@ -238,17 +239,44 @@ export const createProgram = async ({
           )
         : []),
 
-      // send email about the new program
-      sendProgramWelcomeEmail &&
-        sendEmail({
-          subject: `Your program ${program.name} is created and ready to share with your partners.`,
-          to: user.email!,
-          react: ProgramWelcome({
-            email: user.email!,
-            workspace,
-            program,
-          }),
-        }),
+      // for individual program onboarding flow, send ProgramWelcomeEmail
+      ...(isProgramOnboarding
+        ? [
+            sendEmail({
+              subject: `Your program ${program.name} is created and ready to share with your partners.`,
+              to: user.email!,
+              react: ProgramWelcome({
+                email: user.email!,
+                workspace,
+                program,
+              }),
+            }),
+          ]
+        : // for workspace trial, send TrialStartedEmail
+          workspace.trialEndsAt
+          ? [
+              sendEmail({
+                to: user.email!,
+                replyTo: "steven.tey@dub.co",
+                subject: "Welcome to your 14-day Dub trial",
+                react: TrialStartedEmail({
+                  email: user.email!,
+                  plan: workspace.plan,
+                  workspace: {
+                    slug: workspace.slug,
+                    logo: workspace.logo,
+                    name: workspace.name,
+                  },
+                  program: {
+                    slug: program.slug,
+                    name: program.name,
+                    logo: program.logo,
+                  },
+                }),
+                variant: "marketing",
+              }),
+            ]
+          : []),
 
       // delete the workspace product cache
       redis.del(`workspace:product:${workspace.slug}`),
@@ -271,7 +299,8 @@ export const createProgram = async ({
     ]),
   );
 
-  if (redirectTo) redirect(redirectTo);
+  if (isProgramOnboarding)
+    redirect(`/${workspace.slug}/program?onboarded-program=true`);
 };
 
 // Invite a partner to the program

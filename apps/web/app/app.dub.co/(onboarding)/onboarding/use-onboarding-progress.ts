@@ -5,7 +5,10 @@ import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { useOnboardingProduct } from "./use-onboarding-product";
+import {
+  ONBOARDING_PRODUCTS,
+  useOnboardingProduct,
+} from "./use-onboarding-product";
 
 const PRE_WORKSPACE_STEPS = ["workspace"];
 
@@ -42,7 +45,7 @@ export function useOnboardingProgress() {
       });
 
       const queryParams = new URLSearchParams({
-        ...(product && ["links", "partners"].includes(product)
+        ...(product && ONBOARDING_PRODUCTS.includes(product)
           ? { product }
           : {}),
         ...(params || {}),

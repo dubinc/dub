@@ -7,7 +7,6 @@ import {
   Button,
   DynamicTooltipWrapper,
   Icon,
-  LoadingSpinner,
   Popover,
   SquareXmark,
   StripeIcon,
@@ -17,11 +16,20 @@ import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useConfirmModal } from "../modals/confirm-modal";
 import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmation-modal";
 import { ThreeDots } from "../shared/icons";
 
 export default function SubscriptionMenu() {
-  const { id: workspaceId, role, plan, defaultProgramId } = useWorkspace();
+  const {
+    id: workspaceId,
+    role,
+    plan,
+    defaultProgramId,
+    billingCycleEndsAt,
+    subscriptionCanceledAt,
+    mutate,
+  } = useWorkspace();
   const router = useRouter();
 
   const permissionsError = clientAccessCheck({
@@ -32,18 +40,37 @@ export default function SubscriptionMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [clicked, setClicked] = useState(false);
 
-  const openBillingPortal = (cancel: boolean) => {
+  const openBillingPortal = () => {
     setIsOpen(false);
     setClicked(true);
-    return fetch(
-      `/api/workspaces/${workspaceId}/billing/${cancel ? "cancel" : "manage"}`,
-      {
-        method: "POST",
-      },
-    ).then(async (res) => {
+    return fetch(`/api/workspaces/${workspaceId}/billing/manage`, {
+      method: "POST",
+    }).then(async (res) => {
       if (res.ok) {
         const url = await res.json();
         router.push(url);
+      } else {
+        const { error } = await res.json();
+        toast.error(error.message);
+        setClicked(false);
+      }
+    });
+  };
+
+  const cancelSubscription = () => {
+    setIsOpen(false);
+    setClicked(true);
+    return fetch(`/api/workspaces/${workspaceId}/billing/cancel`, {
+      method: "POST",
+    }).then(async (res) => {
+      if (res.ok) {
+        // sleep for 2 seconds to make sure Stripe webhook was received, and then mutate
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await mutate();
+        setClicked(false);
+        toast.success(
+          "Your subscription has been scheduled for cancellation at the end of the current period.",
+        );
       } else {
         const { error } = await res.json();
         toast.error(error.message);
@@ -60,15 +87,47 @@ export default function SubscriptionMenu() {
 
   const { setShowPlanChangeConfirmationModal, PlanChangeConfirmationModal } =
     usePlanChangeConfirmationModal({
-      onConfirm: () => openBillingPortal(true),
+      onConfirm: async () => {
+        await cancelSubscription();
+        setShowPlanChangeConfirmationModal(false);
+      },
     });
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Cancel subscription",
+    description: (
+      <p>
+        Your subscription will be scheduled for cancellation at the end of your
+        current billing period
+        {billingCycleEndsAt ? (
+          <span className="font-medium text-neutral-900">
+            {" "}
+            (
+            {new Date(billingCycleEndsAt).toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}
+            )
+          </span>
+        ) : (
+          ""
+        )}
+        . You will keep access until then.
+      </p>
+    ),
+    cancelText: "Not now",
+    confirmText: "Cancel subscription",
+    onConfirm: async () => {
+      await cancelSubscription();
+    },
+  });
 
   const handleCancelSubscription = () => {
     setIsOpen(false);
     if (losesPartnerAccess) {
       setShowPlanChangeConfirmationModal(true);
     } else {
-      openBillingPortal(true);
+      setShowConfirmModal(true);
     }
   };
 
@@ -79,6 +138,7 @@ export default function SubscriptionMenu() {
   return (
     <>
       <PlanChangeConfirmationModal />
+      {confirmModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -88,14 +148,18 @@ export default function SubscriptionMenu() {
               <MenuItem
                 icon={StripeIcon}
                 label="Open billing portal"
-                onSelect={() => openBillingPortal(false)}
+                onSelect={() => openBillingPortal()}
                 disabledTooltip={permissionsError}
               />
               <MenuItem
                 icon={SquareXmark}
                 label="Cancel subscription"
                 onSelect={handleCancelSubscription}
-                disabledTooltip={permissionsError}
+                disabledTooltip={
+                  subscriptionCanceledAt
+                    ? "Your subscription has already been scheduled for cancellation."
+                    : permissionsError
+                }
               />
             </Command.List>
           </Command>
@@ -106,14 +170,8 @@ export default function SubscriptionMenu() {
           type="button"
           className="h-9 px-2"
           variant="secondary"
-          icon={
-            clicked ? (
-              <LoadingSpinner className="size-4 shrink-0" />
-            ) : (
-              <ThreeDots className="size-4 shrink-0" />
-            )
-          }
-          disabled={clicked}
+          icon={<ThreeDots className="size-4 shrink-0" />}
+          loading={clicked}
         />
       </Popover>
     </>
