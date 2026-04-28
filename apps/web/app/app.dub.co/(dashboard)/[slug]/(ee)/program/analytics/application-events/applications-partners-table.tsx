@@ -1,6 +1,5 @@
 "use client";
 
-import { useApplicationEvents } from "@/lib/swr/use-application-events";
 import { ApplicationEvent } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
@@ -12,6 +11,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { cn, COUNTRIES, formatDate } from "@dub/utils";
+import { useApplicationEvents } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/analytics/application-events/use-application-events";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useState } from "react";
 import { PartnerAnalyticsFilterCell } from "../partner-analytics-filter-cell";

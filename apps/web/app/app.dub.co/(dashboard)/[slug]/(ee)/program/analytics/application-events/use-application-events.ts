@@ -1,8 +1,8 @@
+import useWorkspace from "@/lib/swr/use-workspace";
+import { ApplicationEvent, ApplicationEventsQuery } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { ApplicationEvent, ApplicationEventsQuery } from "../types";
-import useWorkspace from "./use-workspace";
 
 export function useApplicationEvents(filters: ApplicationEventsQuery) {
   const { id: workspaceId } = useWorkspace();
