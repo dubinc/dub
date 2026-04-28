@@ -41,6 +41,11 @@ import {
   requestTypeSchema,
 } from "./api-logs/schemas";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
+import {
+  APPLICATION_EVENT_STAGES,
+  applicationEventSchema,
+  applicationEventsQuerySchema,
+} from "./application-events/schema";
 import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./bounty/constants";
 import { BOUNTY_SOCIAL_PLATFORMS } from "./bounty/social-content";
 import {
@@ -920,3 +925,12 @@ export type ApiLogsCountByRoutePattern = ApiLogsCountRow;
 export type RequestType = z.infer<typeof requestTypeSchema>;
 
 export type ApiLogTB = z.infer<typeof apiLogSchemaTB>;
+
+// Application events
+export type ApplicationEvent = z.infer<typeof applicationEventSchema>;
+
+export type ApplicationEventsQuery = z.infer<
+  typeof applicationEventsQuerySchema
+>;
+
+export type ApplicationEventStages = (typeof APPLICATION_EVENT_STAGES)[number];
