@@ -17,7 +17,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import * as z from "zod/v4";
-import { STRIPE_ERROR_MAP } from "../partners/constants";
+import { ERROR_MAP } from "../partners/constants";
 import { X } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
@@ -88,12 +88,12 @@ const AddDiscountCodeModal = ({
       },
       onError: (error) => {
         if (error) {
-          const code = Object.keys(STRIPE_ERROR_MAP).find((key) =>
+          const code = Object.keys(ERROR_MAP).find((key) =>
             error.startsWith(key),
           );
 
           if (code) {
-            const { title, ctaLabel, ctaUrl } = STRIPE_ERROR_MAP[code];
+            const { title, ctaLabel, ctaUrl } = ERROR_MAP[code];
             const message = error.replace(`${code}: `, "");
 
             toast.custom(() => (

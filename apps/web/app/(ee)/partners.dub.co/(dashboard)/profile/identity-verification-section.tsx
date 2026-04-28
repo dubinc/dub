@@ -229,7 +229,7 @@ export function IdentityVerificationSection({
           {!IS_DUPLICATE_IDENTITY_DECLINE && (
             <div className="flex items-center gap-1 text-xs font-medium text-neutral-400">
               <span>Powered by</span>
-              <Veriff className="w-auto" />
+              <Veriff className="w-auto pb-px" />
             </div>
           )}
         </div>

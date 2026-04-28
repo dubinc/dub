@@ -14,10 +14,6 @@ export default async function RegisterPage(props: {
 }) {
   const { programSlug } = await props.params;
 
-  if (programSlug === "framer") {
-    redirect("/framer/login");
-  }
-
   const program = programSlug
     ? (await getProgram({ slug: programSlug })) ?? undefined
     : undefined;
