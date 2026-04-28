@@ -21,12 +21,18 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
+import { Plus } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { ContextType, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsChart } from "./analytics-chart";
 import { AnalyticsPartnersTable } from "./analytics-partners-table";
+import { ApplicationsBreakdownCards } from "./application-events/applications-breakdown-cards.tsx";
+import { ApplicationsFunnelChart } from "./application-events/applications-funnel-chart.tsx";
+import { ApplicationsPartnersTable } from "./application-events/applications-partners-table.tsx";
+import { useApplicationsAnalyticsFilters } from "./application-events/use-applications-analytics-filters.tsx";
+import { useApplicationsAnalyticsQuery } from "./application-events/use-applications-analytics-query.ts";
 import { CommissionsAnalyticsChart } from "./commissions-analytics-chart";
 import { CommissionsBreakdownCards } from "./commissions-breakdown-cards";
 import { CommissionsPartnersTable } from "./commissions-partners-table";
@@ -34,11 +40,12 @@ import { CommissionsStatusSelector } from "./commissions-status-selector";
 import { useCommissionsAnalyticsFilters } from "./use-commissions-analytics-filters";
 import { useCommissionsAnalyticsQuery } from "./use-commissions-analytics-query";
 
-type PageTab = "performance" | "commissions";
+type PageTab = "performance" | "commissions" | "applications";
 
 const PAGE_TABS: { id: PageTab; label: string }[] = [
   { id: "performance", label: "Performance" },
   { id: "commissions", label: "Commissions" },
+  { id: "applications", label: "Applications" },
 ];
 
 export function ProgramAnalyticsPageClient() {
@@ -49,7 +56,9 @@ export function ProgramAnalyticsPageClient() {
 
   const pageTab = useMemo<PageTab>(() => {
     const raw = searchParamsObj.pageTab;
-    return raw === "commissions" ? "commissions" : "performance";
+    return raw === "commissions" || raw === "applications"
+      ? raw
+      : "performance";
   }, [searchParamsObj]);
 
   const {
@@ -60,6 +69,9 @@ export function ProgramAnalyticsPageClient() {
     start: commissionsStart,
     end: commissionsEnd,
   } = useCommissionsAnalyticsQuery();
+
+  const { stage: applicationsStage, view: applicationsView } =
+    useApplicationsAnalyticsQuery();
 
   const { start, end, interval, selectedTab, saleUnit, view } = useMemo(() => {
     const { event, ...rest } = searchParamsObj;
@@ -129,6 +141,17 @@ export function ProgramAnalyticsPageClient() {
     setSearch: commSetSearch,
   } = useCommissionsAnalyticsFilters(commissionsQueryString);
 
+  const {
+    filters: applicationsFilters,
+    activeFilters: applicationsActiveFilters,
+    onSelect: applicationsOnSelect,
+    onRemove: applicationsOnRemove,
+    onRemoveFilter: applicationsOnRemoveFilter,
+    onRemoveAll: applicationsOnRemoveAll,
+    onOpenFilter: applicationsOnOpenFilter,
+    onToggleOperator: applicationsOnToggleOperator,
+  } = useApplicationsAnalyticsFilters();
+
   const filterSelect =
     pageTab === "performance" ? (
       <Filter.Select
@@ -141,7 +164,7 @@ export function ProgramAnalyticsPageClient() {
         isAdvancedFilter
         askAI
       />
-    ) : (
+    ) : pageTab === "commissions" ? (
       <Filter.Select
         className="w-full md:w-fit"
         filters={commFilters}
@@ -150,6 +173,16 @@ export function ProgramAnalyticsPageClient() {
         onRemove={commOnRemove}
         onOpenFilter={commOnOpenFilter}
         onSearchChange={commSetSearch}
+        isAdvancedFilter
+      />
+    ) : (
+      <Filter.Select
+        className="w-full md:w-fit"
+        filters={applicationsFilters}
+        activeFilters={applicationsActiveFilters}
+        onSelect={applicationsOnSelect}
+        onRemove={applicationsOnRemove}
+        onOpenFilter={applicationsOnOpenFilter}
         isAdvancedFilter
       />
     );
@@ -194,7 +227,7 @@ export function ProgramAnalyticsPageClient() {
                         text={isMobile ? undefined : "View Events"}
                       />
                     </Link>
-                  ) : (
+                  ) : pageTab === "commissions" ? (
                     <Link
                       href={`/${slug}/program/commissions${getQueryString({}, { exclude: ["pageTab", "commissionUnit", "event", "saleUnit", "view"] })}`}
                     >
@@ -205,6 +238,17 @@ export function ProgramAnalyticsPageClient() {
                           <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
                         }
                         text={isMobile ? undefined : "View Commissions"}
+                      />
+                    </Link>
+                  ) : (
+                    <Link
+                      href={`/${slug}/program/partners/applications${getQueryString({}, { exclude: ["pageTab", "commissionUnit", "event", "saleUnit", "view", "status"] })}`}
+                    >
+                      <Button
+                        variant="secondary"
+                        className="w-fit"
+                        icon={<Plus className="h-4 w-4 text-neutral-600" />}
+                        text={isMobile ? undefined : "View applications"}
                       />
                     </Link>
                   )}
@@ -220,9 +264,13 @@ export function ProgramAnalyticsPageClient() {
                   ? streaming || perfActiveFilters.length
                     ? "h-3"
                     : "h-0"
-                  : commActiveFilters.length
-                    ? "h-3"
-                    : "h-0",
+                  : pageTab === "commissions"
+                    ? commActiveFilters.length
+                      ? "h-3"
+                      : "h-0"
+                    : applicationsActiveFilters.length
+                      ? "h-3"
+                      : "h-0",
               )}
             />
             {pageTab === "performance" ? (
@@ -236,7 +284,7 @@ export function ProgramAnalyticsPageClient() {
                 onToggleOperator={perfOnToggleOperator}
                 isAdvancedFilter
               />
-            ) : (
+            ) : pageTab === "commissions" ? (
               <Filter.List
                 filters={commFilters}
                 activeFilters={commActiveFilters}
@@ -245,6 +293,17 @@ export function ProgramAnalyticsPageClient() {
                 onRemoveFilter={commOnRemoveFilter}
                 onRemoveAll={commOnRemoveAll}
                 onToggleOperator={commOnToggleOperator}
+                isAdvancedFilter
+              />
+            ) : (
+              <Filter.List
+                filters={applicationsFilters}
+                activeFilters={applicationsActiveFilters}
+                onSelect={applicationsOnSelect}
+                onRemove={applicationsOnRemove}
+                onRemoveFilter={applicationsOnRemoveFilter}
+                onRemoveAll={applicationsOnRemoveAll}
+                onToggleOperator={applicationsOnToggleOperator}
                 isAdvancedFilter
               />
             )}
@@ -277,7 +336,7 @@ export function ProgramAnalyticsPageClient() {
               <AnalyticsChart />
               <AnalyticsPartnersTable />
             </>
-          ) : (
+          ) : pageTab === "commissions" ? (
             <>
               <CommissionsStatusSelector
                 status={commissionStatus}
@@ -297,6 +356,14 @@ export function ProgramAnalyticsPageClient() {
               </div>
               <CommissionsPartnersTable queryString={commissionsQueryString} />
             </>
+          ) : (
+            <>
+              <ApplicationsFunnelChart
+                stage={applicationsStage}
+                view={applicationsView}
+              />
+              <ApplicationsPartnersTable stage={applicationsStage} />
+            </>
           )}
         </div>
 
@@ -307,11 +374,13 @@ export function ProgramAnalyticsPageClient() {
             <LocationSection />
             <DeviceSection />
           </div>
-        ) : (
+        ) : pageTab === "commissions" ? (
           <CommissionsBreakdownCards
             status={commissionStatus}
             queryString={commissionsQueryString}
           />
+        ) : (
+          <ApplicationsBreakdownCards stage={applicationsStage} />
         )}
       </div>
     </AnalyticsContext.Provider>

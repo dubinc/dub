@@ -14,7 +14,7 @@ import {
 import { cn, COUNTRIES, formatDate } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useState } from "react";
-import { PartnerAnalyticsFilterCell } from "./partner-analytics-filter-cell";
+import { PartnerAnalyticsFilterCell } from "../partner-analytics-filter-cell";
 import {
   ApplicationsStage,
   useApplicationsAnalyticsQueryString,
