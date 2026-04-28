@@ -32,7 +32,7 @@ function StartPaidPlanModal({
 
   const planDetails = useMemo(() => {
     if (!plan || plan === "free" || plan === "enterprise") return null;
-    return getPlanDetails({ plan, planTier });
+    return getPlanDetails({ plan, planTier: planTier ?? undefined });
   }, [plan, planTier]);
 
   const workspacePlanPeriod = planPeriod ?? "monthly";
