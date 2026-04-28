@@ -1,11 +1,11 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { conn } from "@/lib/planetscale";
+import { RedisStreamEntry } from "@/lib/upstash/redis-streams/client";
 import {
-  RedisStreamEntry,
   WorkspaceClicksUsageEvent,
   workspaceClicksUsageStream,
-} from "@/lib/upstash/redis-streams";
+} from "@/lib/upstash/redis-streams/workspace-clicks-usage";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
