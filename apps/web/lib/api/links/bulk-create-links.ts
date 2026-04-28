@@ -229,7 +229,7 @@ export async function bulkCreateLinks({
       }),
       publishWorkspaceLinksUsageEvent({
         workspaceId: links[0].projectId!, // this will always be present
-        increment: links.length,
+        linksCount: links.length,
         timestamp: new Date().toISOString(),
       }),
     ]),
