@@ -49,24 +49,34 @@ export function useApplicationsAnalytics<
   };
 }
 
-// TODO:
-// Cleanup this
+export function useApplicationsAnalyticsCount(
+  filters: Omit<ApplicationEventAnalyticsQuery, "groupBy"> = {},
+) {
+  const { id: workspaceId } = useWorkspace();
+  const { getQueryString } = useRouterStuff();
 
-export function useApplicationsAnalyticsCount({
-  queryString,
-  enabled = true,
-}: {
-  queryString?: string;
-  enabled?: boolean;
-}) {
-  const url =
-    enabled && queryString
-      ? `/api/applications/analytics?groupBy=count&${queryString}`
-      : null;
+  const queryString = getQueryString(
+    {
+      ...filters,
+      groupBy: "count",
+      workspaceId,
+    },
+    {
+      exclude: [
+        "pageTab",
+        "applicationEvent",
+        "view",
+        "sortBy",
+        "sortOrder",
+        "page",
+        "pageSize",
+      ],
+    },
+  );
 
   const { data, error, isLoading } = useSWR<
     ApplicationAnalyticsByGroup["count"]
-  >(url, fetcher, {
+  >(workspaceId ? `/api/applications/analytics${queryString}` : null, fetcher, {
     keepPreviousData: true,
   });
 
