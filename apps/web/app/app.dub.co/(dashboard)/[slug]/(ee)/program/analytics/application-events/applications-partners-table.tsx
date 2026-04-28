@@ -11,14 +11,11 @@ import {
   useTable,
 } from "@dub/ui";
 import { cn, COUNTRIES, formatDate } from "@dub/utils";
-import { useApplicationEvents } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/analytics/application-events/use-application-events";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useState } from "react";
 import { PartnerAnalyticsFilterCell } from "../partner-analytics-filter-cell";
-import {
-  ApplicationsStage,
-  useApplicationsAnalyticsQueryString,
-} from "./use-applications-analytics-query";
+import { useApplicationEvents } from "./use-application-events";
+import { ApplicationsStage } from "./use-applications-analytics-query";
 
 const PAGE_SIZE = 10;
 
@@ -42,8 +39,7 @@ export function ApplicationsPartnersTable({
   stage: ApplicationsStage;
 }) {
   const { pagination, setPagination } = usePagination(PAGE_SIZE);
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
-  const { buildQueryString } = useApplicationsAnalyticsQueryString();
+  const { queryParams, searchParams } = useRouterStuff();
 
   const [stagedPartnerIds, setStagedPartnerIds] = useState<string[] | null>(
     null,
@@ -94,24 +90,6 @@ export function ApplicationsPartnersTable({
   useKeyboardShortcut("Escape", () => setStagedPartnerIds(null), {
     enabled: stagedPartnerIds !== null,
     priority: 2,
-  });
-
-  const queryString = buildQueryString({
-    params: {
-      event: stage,
-      pageSize: String(PAGE_SIZE),
-      page: String(pagination.pageIndex),
-      sortBy: STAGE_AT_KEY[stage],
-      sortOrder: "desc",
-    },
-    include: [
-      "start",
-      "end",
-      "partnerId",
-      "groupId",
-      "country",
-      "referralSource",
-    ],
   });
 
   const { data, error, isLoading } = useApplicationEvents({

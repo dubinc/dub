@@ -21,13 +21,6 @@ export const trackApplicationEventBodySchema = z.object({
   referrer: z.string().nullish(),
 });
 
-// TODO: Remove this
-export const APPLICATION_ANALYTICS_GROUP_BY = [
-  "count",
-  "country",
-  "referralSource",
-] as const;
-
 const sharedFilterSchema = analyticsQuerySchema
   .pick({
     start: true,
@@ -108,16 +101,3 @@ export const applicationEventAnalyticsSchema = {
     start: z.string(),
   }),
 };
-
-// Application timeseries
-// export const applicationEventTimeseriesQuerySchema = sharedFilterSchema;
-
-// export const applicationEventTimeseriesSchema = z.array(
-//   metricsSchema.extend({
-//     start: z
-//       .string()
-//       .describe(
-//         "Bucket start timestamp (ISO). Counts are aggregated within this bucket.",
-//       ),
-//   }),
-// );

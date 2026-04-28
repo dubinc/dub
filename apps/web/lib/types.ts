@@ -43,6 +43,7 @@ import {
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
 import {
   APPLICATION_EVENT_STAGES,
+  applicationEventAnalyticsQuerySchema,
   applicationEventSchema,
   applicationEventsQuerySchema,
 } from "./application-events/schema";
@@ -931,6 +932,10 @@ export type ApplicationEvent = z.infer<typeof applicationEventSchema>;
 
 export type ApplicationEventsQuery = z.infer<
   typeof applicationEventsQuerySchema
+>;
+
+export type ApplicationEventAnalyticsQuery = z.infer<
+  typeof applicationEventAnalyticsQuerySchema
 >;
 
 export type ApplicationEventStages = (typeof APPLICATION_EVENT_STAGES)[number];
