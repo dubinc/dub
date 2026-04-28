@@ -17,7 +17,7 @@ export const SSO_LOGIN_PROGRAMS = [
     name: "Beehiiv",
     slug: "beehiiv",
     logo: "https://assets.dub.co/companies/beehiiv.svg",
-    applyUrl: "https://partners.dub.co/programs/marketplace/beehiiv",
+    applyUrl: "https://www.beehiiv.com/partners",
     oauth: {
       clientId: process.env.BEEHIIV_CLIENT_ID as string,
       clientSecret: process.env.BEEHIIV_CLIENT_SECRET as string,
