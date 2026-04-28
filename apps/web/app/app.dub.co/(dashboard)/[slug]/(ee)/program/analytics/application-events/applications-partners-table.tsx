@@ -1,6 +1,6 @@
 "use client";
 
-import { ApplicationEvent } from "@/lib/types";
+import { ApplicationEvent, ApplicationEventStages } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
   Button,
@@ -15,7 +15,6 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useState } from "react";
 import { PartnerAnalyticsFilterCell } from "../partner-analytics-filter-cell";
 import { useApplicationEvents } from "./use-application-events";
-import { ApplicationsStage } from "./use-applications-analytics-query";
 
 const PAGE_SIZE = 10;
 
@@ -36,7 +35,7 @@ const STAGE_LABEL = {
 export function ApplicationsPartnersTable({
   stage,
 }: {
-  stage: ApplicationsStage;
+  stage: ApplicationEventStages;
 }) {
   const { pagination, setPagination } = usePagination(PAGE_SIZE);
   const { queryParams, searchParams } = useRouterStuff();

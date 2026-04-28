@@ -5,7 +5,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { getIP } from "@/lib/api/utils/get-ip";
 import {
   APPLICATION_ID_COOKIE_MAX_AGE,
-  trackApplicationEventBodySchema,
+  trackApplicationEventSchema,
 } from "@/lib/application-events/schema";
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
@@ -49,7 +49,7 @@ export const POST = withAxiom(async (req) => {
       });
     }
 
-    const { eventName, url, referrer } = trackApplicationEventBodySchema.parse(
+    const { eventName, url, referrer } = trackApplicationEventSchema.parse(
       await parseRequestBody(req),
     );
 

@@ -1,15 +1,16 @@
 "use client";
 
-import { TrackApplicationEventBody } from "@/lib/application-events/schema";
+import { trackApplicationEventSchema } from "@/lib/application-events/schema";
 import { prettyPrint } from "@dub/utils";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
+import { z } from "zod/v4";
 
 async function trackApplicationEvent({
   eventName,
   url,
   referrer,
-}: TrackApplicationEventBody) {
+}: z.infer<typeof trackApplicationEventSchema>) {
   const response = await fetch("/api/track/application", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

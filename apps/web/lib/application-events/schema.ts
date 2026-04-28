@@ -15,7 +15,7 @@ export const APPLICATION_EVENT_STAGES = [
   "approved",
 ] as const;
 
-export const trackApplicationEventBodySchema = z.object({
+export const trackApplicationEventSchema = z.object({
   eventName: z.enum(["visit", "start"]),
   url: z.url(),
   referrer: z.string().nullish(),
