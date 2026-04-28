@@ -4,7 +4,7 @@ import { currencyFormatter } from "@dub/utils";
 import { useReferralsEmbedData } from "./page-client";
 
 export function ReferralsEmbedEarningsSummary() {
-  const { program, partner, earnings } = useReferralsEmbedData();
+  const { program, partner, earnings, themeOptions } = useReferralsEmbedData();
 
   // for custom SSO login programs, we just redirect to the login page
   // so they can easily login with SSO instead of creating a new account
@@ -13,7 +13,10 @@ export function ReferralsEmbedEarningsSummary() {
   );
 
   return (
-    <div className="border-border-subtle bg-bg-default flex flex-col justify-between gap-4 rounded-lg border p-4">
+    <div
+      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
+      className="border-border-subtle bg-bg-default flex flex-col justify-between gap-4 rounded-lg border p-4"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
           <p className="text-content-subtle text-sm">Earnings</p>

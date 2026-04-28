@@ -19,6 +19,7 @@ export function ProgramRewardList({
   className,
   iconClassName,
   showModifiersTooltip = true,
+  backgroundColor,
 }: {
   rewards: RewardProps[];
   discount?: DiscountProps | null;
@@ -26,13 +27,17 @@ export function ProgramRewardList({
   className?: string;
   iconClassName?: string;
   showModifiersTooltip?: boolean;
+  backgroundColor?: string;
 }) {
   const { programSlug } = useParams();
   const sortedFilteredRewards = rewards.filter((r) => getRewardAmount(r) >= 0);
 
   if (sortedFilteredRewards.length === 0 && !discount) {
     return (
-      <div className="border-border-subtle bg-bg-default flex items-center justify-between rounded-md border px-4 py-3">
+      <div
+        style={{ backgroundColor }}
+        className="border-border-subtle bg-bg-default flex items-center justify-between rounded-md border px-4 py-3"
+      >
         <p className="text-content-subtle text-sm">
           You are not eligible for any rewards at this time.
         </p>
@@ -52,6 +57,7 @@ export function ProgramRewardList({
 
   return (
     <ul
+      style={{ backgroundColor }}
       className={cn(
         "text-content-default flex flex-col gap-4 text-sm leading-tight",
         variant === "default" &&

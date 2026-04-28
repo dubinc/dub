@@ -58,11 +58,9 @@ async function ReferralsEmbedRSC({
 }
 
 function EmbedInlineLoading({ themeOptions }: { themeOptions: ThemeOptions }) {
+  const backgroundColor = themeOptions.backgroundColor || "transparent";
   return (
-    <div
-      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
-      className="flex min-h-screen flex-col"
-    >
+    <div style={{ backgroundColor }} className="flex min-h-screen flex-col">
       <div className="p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
           <HeroBackground color="#737373" />
@@ -70,7 +68,10 @@ function EmbedInlineLoading({ themeOptions }: { themeOptions: ThemeOptions }) {
             Referral link
           </span>
           <div className="xs:flex-row relative mt-3 flex flex-col items-center gap-2">
-            <div className="xs:w-72 border-border-default bg-bg-muted h-10 w-full rounded-md border" />
+            <div
+              style={{ backgroundColor }}
+              className="xs:w-72 border-border-default h-10 w-full rounded-md border opacity-70"
+            />
             <Button
               icon={<Copy className="size-4" />}
               text="Copy link"
@@ -81,15 +82,30 @@ function EmbedInlineLoading({ themeOptions }: { themeOptions: ThemeOptions }) {
           <span className="text-content-emphasis mt-12 text-base font-semibold">
             Rewards
           </span>
-          <div className="bg-bg-default border-border-subtle mt-2 h-20 w-[28rem] rounded-md border" />
+          <div
+            style={{ backgroundColor }}
+            className="border-border-subtle mt-2 h-20 w-[28rem] animate-pulse rounded-md border opacity-70"
+          />
         </div>
         <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
-          <div className="border-border-subtle bg-bg-muted h-full w-full rounded-lg border sm:col-span-2" />
-          <div className="border-border-subtle bg-bg-muted h-full w-full rounded-lg border" />
+          <div
+            style={{ backgroundColor }}
+            className="border-border-subtle h-full w-full rounded-lg border opacity-70 sm:col-span-2"
+          />
+          <div
+            style={{ backgroundColor }}
+            className="border-border-subtle h-full w-full rounded-lg border opacity-70"
+          />
         </div>
         <div className="mt-4">
-          <div className="border-border-subtle bg-bg-muted h-10 w-full rounded-lg border" />
-          <div className="border-border-muted my-4 h-80 w-full rounded-lg border p-2" />
+          <div
+            style={{ backgroundColor }}
+            className="border-border-subtle h-10 w-full rounded-lg border opacity-70"
+          />
+          <div
+            style={{ backgroundColor }}
+            className="border-border-muted my-4 h-80 w-full rounded-lg border p-2 opacity-70"
+          />
         </div>
       </div>
     </div>

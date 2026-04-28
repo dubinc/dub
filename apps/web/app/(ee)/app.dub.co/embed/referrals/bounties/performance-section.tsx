@@ -32,6 +32,7 @@ import {
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
+import { useReferralsEmbedData } from "../page-client";
 import { useEmbedToken } from "../../use-embed-token";
 
 type PerformanceAttribute = keyof typeof PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES;
@@ -96,13 +97,20 @@ export function EmbedBountyPerformanceSection({
   bounty: PartnerBountyProps;
   programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
 }) {
+  const { themeOptions } = useReferralsEmbedData();
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
         <h2 className="text-content-emphasis text-sm font-semibold">
           Performance
         </h2>
-        <div className="border-border-subtle bg-bg-default rounded-xl border p-5">
+        <div
+          style={{
+            backgroundColor: themeOptions.backgroundColor || "transparent",
+          }}
+          className="border-border-subtle bg-bg-default rounded-xl border p-5"
+        >
           <EmbedBountyPerformanceChart
             bounty={bounty}
             programEnrollment={programEnrollment}

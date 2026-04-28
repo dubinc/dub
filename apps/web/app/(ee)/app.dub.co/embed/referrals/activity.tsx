@@ -11,6 +11,7 @@ export function ReferralsEmbedActivity() {
   const {
     group: { brandColor: color },
     stats: { clicks, leads, sales, saleAmount },
+    themeOptions,
   } = useReferralsEmbedData();
 
   const token = useEmbedToken();
@@ -39,7 +40,10 @@ export function ReferralsEmbedActivity() {
   );
 
   return (
-    <div className="border-border-subtle bg-bg-default rounded-lg border sm:col-span-2">
+    <div
+      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
+      className="border-border-subtle bg-bg-default rounded-lg border sm:col-span-2"
+    >
       {isEmpty ? (
         <EmptyState />
       ) : (

@@ -25,7 +25,7 @@ export function ReferralsEmbedQuickstart({
   hasResources: boolean;
   setSelectedTab: (tab: "Links" | "Resources") => void;
 }) {
-  const { program, group, links, earnings } = useReferralsEmbedData();
+  const { program, group, links, earnings, themeOptions } = useReferralsEmbedData();
 
   const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
@@ -123,6 +123,7 @@ export function ReferralsEmbedQuickstart({
 
   return (
     <motion.div
+      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
       className="border-border-muted bg-bg-default rounded-lg border p-2"
       {...TAB_ITEM_ANIMATION_SETTINGS}
     >
