@@ -1,8 +1,12 @@
 import { GroupSchema } from "@/lib/zod/schemas/groups";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
-import { parseDateSchema } from "@/lib/zod/schemas/utils";
 import { COUNTRY_CODES } from "@dub/utils";
 import * as z from "zod/v4";
+import { analyticsQuerySchema } from "../zod/schemas/analytics";
+
+export const APPLICATION_ID_COOKIE_PREFIX = "dub_app_evt_id_";
+
+export const APPLICATION_ID_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 export const trackApplicationEventBodySchema = z.object({
   eventName: z.enum(["visit", "start"]),
@@ -10,54 +14,39 @@ export const trackApplicationEventBodySchema = z.object({
   referrer: z.string().nullish(),
 });
 
-export const APPLICATION_ID_COOKIE_PREFIX = "dub_app_evt_id_";
-
-export const APPLICATION_ID_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
-
-export const APPLICATION_EVENT_TYPES = [
-  "visited",
-  "started",
-  "submitted",
-  "approved",
-  "rejected",
-] as const;
-
+// TODO: Remove this
 export const APPLICATION_ANALYTICS_GROUP_BY = [
   "count",
   "country",
   "referralSource",
 ] as const;
 
-export const applicationEventsFilterSchema = z.object({
-  groupId: z.string().optional(),
-  partnerId: z.string().optional(),
-  country: z.enum(COUNTRY_CODES).optional(),
-  referralSource: z.string().optional(),
-  start: parseDateSchema.optional(),
-  end: parseDateSchema.optional(),
+const sharedFilterSchema = analyticsQuerySchema
+  .pick({
+    start: true,
+    end: true,
+    interval: true,
+    timezone: true,
+  })
+  .extend({
+    groupId: z.string().optional(),
+    partnerId: z.string().optional(),
+    country: z.enum(COUNTRY_CODES).optional(),
+    referralSource: z.string().optional(),
+  });
+
+// Application events
+export const applicationEventsQuerySchema = sharedFilterSchema.extend({
+  event: z
+    .enum(["visited", "started", "submitted", "approved", "rejected"])
+    .optional(),
+  page: z.coerce.number().default(1),
+  pageSize: z.coerce.number().max(100).default(50),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  sortBy: z
+    .enum(["visitedAt", "startedAt", "submittedAt", "approvedAt", "rejectedAt"])
+    .default("visitedAt"),
 });
-
-export const applicationEventsQuerySchema =
-  applicationEventsFilterSchema.extend({
-    event: z.enum(APPLICATION_EVENT_TYPES).optional(),
-    page: z.coerce.number().default(1),
-    pageSize: z.coerce.number().max(100).default(50),
-    sortOrder: z.enum(["asc", "desc"]).default("desc"),
-    sortBy: z
-      .enum([
-        "visitedAt",
-        "startedAt",
-        "submittedAt",
-        "approvedAt",
-        "rejectedAt",
-      ])
-      .default("visitedAt"),
-  });
-
-export const applicationAnalyticsQuerySchema =
-  applicationEventsFilterSchema.extend({
-    groupBy: z.enum(APPLICATION_ANALYTICS_GROUP_BY).default("count"),
-  });
 
 export const applicationEventSchema = z.object({
   id: z.string(),
@@ -82,10 +71,14 @@ export const applicationEventSchema = z.object({
   }).nullable(),
 });
 
-// TODO:
-// Improve this schema
+// Application analytics
+export const applicationEventAnalyticsQuerySchema = sharedFilterSchema.extend({
+  groupBy: z
+    .enum(["count", "country", "referralSource", "timeseries"])
+    .default("count"),
+});
 
-const funnelCountsSchema = z.object({
+const metricsSchema = z.object({
   visits: z.number(),
   starts: z.number(),
   submissions: z.number(),
@@ -93,12 +86,31 @@ const funnelCountsSchema = z.object({
   rejections: z.number(),
 });
 
-export const applicationAnalyticsSchema = z.union([
-  funnelCountsSchema,
-  z.array(
-    funnelCountsSchema.extend({
-      country: z.string().nullable().optional(),
-      referralSource: z.string().optional(),
-    }),
-  ),
-]);
+export const applicationEventAnalyticsSchema = {
+  count: metricsSchema,
+
+  country: metricsSchema.extend({
+    country: z.string(),
+  }),
+
+  referralSource: metricsSchema.extend({
+    referralSource: z.string(),
+  }),
+
+  timeseries: metricsSchema.extend({
+    start: z.string(),
+  }),
+};
+
+// Application timeseries
+// export const applicationEventTimeseriesQuerySchema = sharedFilterSchema;
+
+// export const applicationEventTimeseriesSchema = z.array(
+//   metricsSchema.extend({
+//     start: z
+//       .string()
+//       .describe(
+//         "Bucket start timestamp (ISO). Counts are aggregated within this bucket.",
+//       ),
+//   }),
+// );

@@ -1,3 +1,4 @@
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import {
   applicationEventSchema,
@@ -9,9 +10,10 @@ import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// GET /api/applications/events – list application events for the workspace's default program
+// GET /api/applications/events – list application events
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
+
   const {
     groupId,
     partnerId,
@@ -20,11 +22,20 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     event,
     start,
     end,
+    interval,
+    timezone,
     page,
     pageSize,
     sortBy,
     sortOrder,
   } = applicationEventsQuerySchema.parse(searchParams);
+
+  const { startDate, endDate } = getStartEndDates({
+    interval,
+    start,
+    end,
+    timezone,
+  });
 
   const where: Prisma.ProgramApplicationEventWhereInput = {
     programId,
@@ -32,67 +43,54 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     ...(country && { country }),
     ...(referralSource && { referralSource }),
     ...(groupId && { application: { groupId } }),
-    // visitedAt is always set (non-null), so "visited" needs no filter
     ...(event === "started" && { startedAt: { not: null } }),
     ...(event === "submitted" && { submittedAt: { not: null } }),
     ...(event === "approved" && { approvedAt: { not: null } }),
     ...(event === "rejected" && { rejectedAt: { not: null } }),
-    ...((start || end) && {
-      visitedAt: {
-        ...(start && { gte: start }),
-        ...(end && { lte: end }),
-      },
-    }),
+    visitedAt: {
+      gte: startDate,
+      lt: endDate,
+    },
   };
 
-  const rows = await prisma.programApplicationEvent.findMany({
-    where,
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-    select: {
-      id: true,
-      country: true,
-      referralSource: true,
-      referredByPartnerId: true,
-      visitedAt: true,
-      startedAt: true,
-      submittedAt: true,
-      approvedAt: true,
-      rejectedAt: true,
-      programEnrollment: {
-        select: {
-          partner: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
+  const programApplicationEvents =
+    await prisma.programApplicationEvent.findMany({
+      where,
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: {
+        programEnrollment: {
+          select: {
+            partner: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+            partnerGroup: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                color: true,
+              },
             },
           },
         },
       },
-      application: {
-        select: {
-          partnerGroup: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              color: true,
-            },
-          },
-        },
-      },
-    },
-  });
+    });
 
-  const events = rows.map(({ programEnrollment, application, ...rest }) => ({
-    ...rest,
-    partner: programEnrollment?.partner ?? null,
-    group: application?.partnerGroup ?? null,
-  }));
+  const response = programApplicationEvents.map(
+    ({ programEnrollment, ...rest }) => ({
+      ...rest,
+      partner: programEnrollment?.partner ?? null,
+      group: programEnrollment?.partnerGroup ?? null,
+    }),
+  );
 
-  return NextResponse.json(z.array(applicationEventSchema).parse(events));
+  return NextResponse.json(z.array(applicationEventSchema).parse(response));
 });
