@@ -160,14 +160,19 @@ export const getCommissionsQuerySchema = z
     }),
   });
 
-export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
-  page: true,
-  pageSize: true,
-  sortOrder: true,
-  sortBy: true,
-  startingAfter: true,
-  endingBefore: true,
-});
+export const getCommissionsCountQuerySchema = getCommissionsQuerySchema
+  .omit({
+    page: true,
+    pageSize: true,
+    sortOrder: true,
+    sortBy: true,
+    startingAfter: true,
+    endingBefore: true,
+  })
+  .extend({
+    // Accept raw string to support comma-separated multi-value (e.g. "sale,lead")
+    type: z.string().optional(),
+  });
 
 export const createCommissionSchema = z.object({
   workspaceId: z.string(),
