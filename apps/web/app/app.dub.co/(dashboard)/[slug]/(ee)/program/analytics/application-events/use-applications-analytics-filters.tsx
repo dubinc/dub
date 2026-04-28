@@ -129,7 +129,7 @@ export function useApplicationEventsFilters() {
           })) ?? null,
       },
     ],
-    [countries, referralSources, slug, stageMetricKey],
+    [countries, partnerGroups, partners, referralSources, slug, stageMetricKey],
   );
 
   const activeFilters = useMemo(() => {

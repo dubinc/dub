@@ -8,7 +8,7 @@ import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { ApplicationEventAnalyticsQuery } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { Partner, Prisma } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { format } from "date-fns/format";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -23,10 +23,7 @@ type TimeseriesApplicationRow = {
 };
 
 type PartnerGroupApplicationRow = {
-  groupId: string | null;
-  groupName: string | null;
-  groupSlug: string | null;
-  groupColor: string | null;
+  groupId: string;
   visits: bigint;
   starts: bigint;
   submissions: bigint;
@@ -105,6 +102,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       by: [groupByColumnMap[groupBy]],
       where,
       ...aggregations,
+      orderBy: {
+        _count: {
+          [groupBy]: "desc",
+        },
+      },
     });
 
     const results = events.map((row) => ({
@@ -156,23 +158,22 @@ async function byPartner({
     .map(({ partnerId }) => partnerId)
     .filter((id): id is string => Boolean(id));
 
-  let partners: Pick<Partner, "id" | "name" | "image" | "email">[] = [];
-
-  if (partnerIds.length > 0) {
-    partners = await prisma.partner.findMany({
-      where: {
-        id: {
-          in: partnerIds,
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        image: true,
-        email: true,
-      },
-    });
-  }
+  const partners =
+    partnerIds.length > 0
+      ? await prisma.partner.findMany({
+          where: {
+            id: {
+              in: partnerIds,
+            },
+          },
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            email: true,
+          },
+        })
+      : [];
 
   const partnerById = new Map(partners.map((p) => [p.id, p]));
 
@@ -313,6 +314,7 @@ async function byPartnerGroup({
     Prisma.sql`e.programId = ${programId}`,
     Prisma.sql`e.visitedAt >= ${startDate}`,
     Prisma.sql`e.visitedAt < ${endDate}`,
+    Prisma.sql`pe.groupId IS NOT NULL`,
   ];
 
   if (partnerId) {
@@ -337,39 +339,60 @@ async function byPartnerGroup({
     Prisma.sql`
       SELECT
         pe.groupId AS groupId,
-        pg.name AS groupName,
-        pg.slug AS groupSlug,
-        pg.color AS groupColor,
         COUNT(e.visitedAt) AS visits,
         COUNT(e.startedAt) AS starts,
         COUNT(e.submittedAt) AS submissions,
         COUNT(e.approvedAt) AS approvals,
         COUNT(e.rejectedAt) AS rejections
       FROM ProgramApplicationEvent e
-      LEFT JOIN ProgramEnrollment pe
+      JOIN ProgramEnrollment pe
         ON pe.programId = e.programId
        AND pe.partnerId = e.partnerId
-      LEFT JOIN PartnerGroup pg
-        ON pg.id = pe.groupId
       WHERE ${whereClause}
-      GROUP BY pe.groupId, pg.name, pg.slug, pg.color`,
+      GROUP BY pe.groupId`,
   );
 
-  const results = rows.map((r) => ({
-    partnerGroup: r.groupId
-      ? {
-          id: r.groupId,
-          name: r.groupName ?? "",
-          slug: r.groupSlug ?? "",
-          color: r.groupColor ?? "",
-        }
-      : null,
-    visits: Number(r.visits),
-    starts: Number(r.starts),
-    submissions: Number(r.submissions),
-    approvals: Number(r.approvals),
-    rejections: Number(r.rejections),
-  }));
+  const groupIds = rows.map((row) => row.groupId);
+
+  const partnerGroups =
+    groupIds.length > 0
+      ? await prisma.partnerGroup.findMany({
+          where: {
+            id: {
+              in: groupIds,
+            },
+          },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            color: true,
+          },
+        })
+      : [];
+
+  const partnerGroupById = new Map(
+    partnerGroups.map((group) => [group.id, group]),
+  );
+
+  const results = rows.flatMap((row) => {
+    const partnerGroup = partnerGroupById.get(row.groupId);
+
+    if (!partnerGroup) {
+      return [];
+    }
+
+    return [
+      {
+        partnerGroup,
+        visits: Number(row.visits),
+        starts: Number(row.starts),
+        submissions: Number(row.submissions),
+        approvals: Number(row.approvals),
+        rejections: Number(row.rejections),
+      },
+    ];
+  });
 
   return NextResponse.json(
     z.array(applicationEventAnalyticsSchema["partnerGroup"]).parse(results),
