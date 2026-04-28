@@ -30,22 +30,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     sortOrder,
   } = applicationEventsQuerySchema.parse(searchParams);
 
-  console.log({
-    groupId,
-    partnerId,
-    country,
-    referralSource,
-    event,
-    start,
-    end,
-    interval,
-    timezone,
-    page,
-    pageSize,
-    sortBy,
-    sortOrder,
-  });
-
   const { startDate, endDate } = getStartEndDates({
     interval,
     start,
