@@ -97,7 +97,7 @@ export async function checkoutSessionCompleted(
       domainsLimit: limits.domains,
       aiLimit: limits.ai,
       tagsLimit: limits.tags,
-      partnerTagsLimit: plan.limits.partnerTags,
+      partnerTagsLimit: limits.partnerTags,
       foldersLimit: limits.folders,
       groupsLimit: limits.groups,
       networkInvitesLimit: limits.networkInvites,
