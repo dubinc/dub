@@ -242,7 +242,7 @@ export function ProgramAnalyticsPageClient() {
                     </Link>
                   ) : (
                     <Link
-                      href={`/${slug}/program/partners/applications${getQueryString({}, { exclude: ["pageTab", "commissionUnit", "event", "saleUnit", "view", "status"] })}`}
+                      href={`/${slug}/program/partners/applications${getQueryString({}, { include: ["groupId", "country"] })}`}
                     >
                       <Button
                         variant="secondary"
