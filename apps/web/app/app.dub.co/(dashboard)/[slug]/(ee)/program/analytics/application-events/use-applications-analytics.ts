@@ -1,6 +1,7 @@
-import {
-  applicationEventAnalyticsSchema,
-} from "@/lib/application-events/schema";
+import { applicationEventAnalyticsSchema } from "@/lib/application-events/schema";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { ApplicationEventAnalyticsQuery } from "@/lib/types";
+import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import * as z from "zod/v4";
@@ -11,23 +12,33 @@ type ApplicationAnalyticsByGroup = {
   >;
 };
 
-export function useApplicationsAnalyticsCount(
-  {
-    queryString,
-    enabled = true,
-  }: {
-    queryString?: string;
-    enabled?: boolean;
-  },
-) {
-  const url =
-    enabled && queryString
-      ? `/api/applications/analytics?groupBy=count&${queryString}`
-      : null;
+export function useApplicationsAnalytics<
+  TGroupBy extends keyof ApplicationAnalyticsByGroup,
+>(filters: ApplicationEventAnalyticsQuery & { groupBy: TGroupBy }) {
+  const { id: workspaceId } = useWorkspace();
+  const { getQueryString } = useRouterStuff();
+
+  const queryString = getQueryString(
+    {
+      ...filters,
+      workspaceId,
+    },
+    {
+      exclude: [
+        "pageTab",
+        "applicationEvent",
+        "view",
+        "sortBy",
+        "sortOrder",
+        "page",
+        "pageSize",
+      ],
+    },
+  );
 
   const { data, error, isLoading } = useSWR<
-    ApplicationAnalyticsByGroup["count"]
-  >(url, fetcher, {
+    ApplicationAnalyticsByGroup[TGroupBy][]
+  >(workspaceId ? `/api/applications/analytics${queryString}` : null, fetcher, {
     keepPreviousData: true,
   });
 
@@ -38,25 +49,23 @@ export function useApplicationsAnalyticsCount(
   };
 }
 
-export function useApplicationsAnalyticsGrouped<
-  TGroupBy extends keyof ApplicationAnalyticsByGroup,
->({
-  groupBy,
+// TODO:
+// Cleanup this
+
+export function useApplicationsAnalyticsCount({
   queryString,
   enabled = true,
 }: {
-  groupBy: TGroupBy;
   queryString?: string;
   enabled?: boolean;
 }) {
-  const url = enabled
-    ? `/api/applications/analytics?groupBy=${groupBy}${
-        queryString ? `&${queryString}` : ""
-      }`
-    : null;
+  const url =
+    enabled && queryString
+      ? `/api/applications/analytics?groupBy=count&${queryString}`
+      : null;
 
   const { data, error, isLoading } = useSWR<
-    ApplicationAnalyticsByGroup[TGroupBy][]
+    ApplicationAnalyticsByGroup["count"]
   >(url, fetcher, {
     keepPreviousData: true,
   });

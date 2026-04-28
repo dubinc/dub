@@ -6,8 +6,9 @@ import {
 } from "@/lib/application-events/schema";
 import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
+import { ApplicationEventAnalyticsQuery } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Partner, Prisma } from "@dub/prisma/client";
 import { format } from "date-fns/format";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -21,9 +22,34 @@ type TimeseriesApplicationRow = {
   rejections: bigint;
 };
 
+type PartnerGroupApplicationRow = {
+  groupId: string | null;
+  groupName: string | null;
+  groupSlug: string | null;
+  groupColor: string | null;
+  visits: bigint;
+  starts: bigint;
+  submissions: bigint;
+  approvals: bigint;
+  rejections: bigint;
+};
+
+const aggregations = {
+  _count: {
+    visitedAt: true,
+    startedAt: true,
+    submittedAt: true,
+    approvedAt: true,
+    rejectedAt: true,
+  },
+} as const;
+
 // GET /api/applications/analytics
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
+
+  const parsedFilters =
+    applicationEventAnalyticsQuerySchema.parse(searchParams);
 
   const {
     groupBy,
@@ -35,9 +61,9 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     end,
     interval,
     timezone,
-  } = applicationEventAnalyticsQuerySchema.parse(searchParams);
+  } = parsedFilters;
 
-  const { startDate, endDate, granularity } = getStartEndDates({
+  const { startDate, endDate } = getStartEndDates({
     interval,
     start,
     end,
@@ -49,22 +75,12 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     ...(partnerId && { partnerId }),
     ...(country && { country }),
     ...(referralSource && { referralSource }),
-    ...(groupId && { application: { groupId } }),
+    ...(groupId && { programEnrollment: { groupId } }),
     visitedAt: {
       gte: startDate,
       lt: endDate,
     },
   };
-
-  const aggregations = {
-    _count: {
-      visitedAt: true,
-      startedAt: true,
-      submittedAt: true,
-      approvedAt: true,
-      rejectedAt: true,
-    },
-  } as const;
 
   const responseSchema = applicationEventAnalyticsSchema[groupBy];
 
@@ -79,56 +95,149 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   }
 
   // Get the counts grouped by the specified column
-  if (groupBy === "referralSource" || groupBy === "country") {
+  if (["referralSource", "country"].includes(groupBy)) {
+    const groupByColumnMap = {
+      referralSource: "referralSource",
+      country: "country",
+    };
+
     const events = await prisma.programApplicationEvent.groupBy({
-      by: [groupBy],
+      by: [groupByColumnMap[groupBy]],
       where,
       ...aggregations,
     });
 
     const results = events.map((row) => ({
-      [groupBy]: row[groupBy],
+      [groupBy]: row[groupByColumnMap[groupBy]],
       ...formatCounts(row._count),
     }));
 
     return NextResponse.json(z.array(responseSchema).parse(results));
   }
 
+  // Get the counts grouped by the partner
+  if (groupBy === "partner") {
+    return byPartner({
+      where,
+    });
+  }
+
+  // Get the counts grouped by the partner group
+  if (groupBy === "partnerGroup") {
+    return byPartnerGroup({
+      ...parsedFilters,
+      programId,
+    });
+  }
+
   // Get the timeseries
   if (groupBy === "timeseries") {
-    const { dateFormat, dateIncrement, startFunction, formatString } =
-      sqlGranularityMap[granularity];
+    return byTimeseries({
+      ...parsedFilters,
+      programId,
+    });
+  }
 
-    const conditions: Prisma.Sql[] = [
-      Prisma.sql`e.programId = ${programId}`,
-      Prisma.sql`e.visitedAt >= ${startDate}`,
-      Prisma.sql`e.visitedAt < ${endDate}`,
-    ];
+  return NextResponse.json(null);
+});
 
-    if (partnerId) {
-      conditions.push(Prisma.sql`e.partnerId = ${partnerId}`);
-    }
+async function byPartner({
+  where,
+}: {
+  where: Prisma.ProgramApplicationEventWhereInput;
+}) {
+  const events = await prisma.programApplicationEvent.groupBy({
+    by: ["partnerId"],
+    where,
+    ...aggregations,
+  });
 
-    if (groupId) {
-      conditions.push(Prisma.sql`EXISTS (
-        SELECT 1 FROM ProgramApplication pa
-        WHERE pa.id = e.programApplicationId
-          AND pa.groupId = ${groupId}
+  const partnerIds = events
+    .map(({ partnerId }) => partnerId)
+    .filter((id): id is string => Boolean(id));
+
+  let partners: Pick<Partner, "id" | "name" | "image" | "email">[] = [];
+
+  if (partnerIds.length > 0) {
+    partners = await prisma.partner.findMany({
+      where: {
+        id: {
+          in: partnerIds,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        email: true,
+      },
+    });
+  }
+
+  const partnerById = new Map(partners.map((p) => [p.id, p]));
+
+  const results = events.map((row) => ({
+    partner: row.partnerId ? partnerById.get(row.partnerId) ?? null : null,
+    ...formatCounts(row._count),
+  }));
+
+  return NextResponse.json(
+    z.array(applicationEventAnalyticsSchema["partner"]).parse(results),
+  );
+}
+
+async function byTimeseries({
+  programId,
+  groupId,
+  partnerId,
+  country,
+  referralSource,
+  timezone,
+  interval,
+  start,
+  end,
+}: ApplicationEventAnalyticsQuery & { programId: string }) {
+  const { startDate, endDate, granularity } = getStartEndDates({
+    interval,
+    start,
+    end,
+    timezone,
+  });
+
+  const { dateFormat, dateIncrement, startFunction, formatString } =
+    sqlGranularityMap[granularity];
+
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`e.programId = ${programId}`,
+    Prisma.sql`e.visitedAt >= ${startDate}`,
+    Prisma.sql`e.visitedAt < ${endDate}`,
+  ];
+
+  if (partnerId) {
+    conditions.push(Prisma.sql`e.partnerId = ${partnerId}`);
+  }
+
+  if (groupId) {
+    conditions.push(Prisma.sql`EXISTS (
+        SELECT 1 FROM ProgramEnrollment pe
+        WHERE pe.programId = e.programId
+          AND pe.partnerId = e.partnerId
+          AND pe.groupId = ${groupId}
       )`);
-    }
+  }
 
-    if (country) {
-      conditions.push(Prisma.sql`e.country = ${country}`);
-    }
+  if (country) {
+    conditions.push(Prisma.sql`e.country = ${country}`);
+  }
 
-    if (referralSource) {
-      conditions.push(Prisma.sql`e.referralSource = ${referralSource}`);
-    }
+  if (referralSource) {
+    conditions.push(Prisma.sql`e.referralSource = ${referralSource}`);
+  }
 
-    const whereClause = Prisma.join(conditions, " AND ");
+  const whereClause = Prisma.join(conditions, " AND ");
 
-    const rows = await prisma.$queryRaw<TimeseriesApplicationRow[]>(
-      Prisma.sql`
+  const rows = await prisma.$queryRaw<TimeseriesApplicationRow[]>(
+    Prisma.sql`
       SELECT
         DATE_FORMAT(CONVERT_TZ(e.visitedAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start,
         COUNT(e.visitedAt) AS visits,
@@ -140,46 +249,132 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       WHERE ${whereClause}
       GROUP BY start
       ORDER BY start ASC`,
-    );
+  );
 
-    const lookup = Object.fromEntries(
-      rows.map((r) => [
-        r.start,
-        {
-          visits: Number(r.visits),
-          starts: Number(r.starts),
-          submissions: Number(r.submissions),
-          approvals: Number(r.approvals),
-          rejections: Number(r.rejections),
-        },
-      ]),
-    );
+  const lookup = Object.fromEntries(
+    rows.map((r) => [
+      r.start,
+      {
+        visits: Number(r.visits),
+        starts: Number(r.starts),
+        submissions: Number(r.submissions),
+        approvals: Number(r.approvals),
+        rejections: Number(r.rejections),
+      },
+    ]),
+  );
 
-    let currentDate = startFunction(startDate);
-    const timeseries: z.infer<typeof responseSchema>[] = [];
+  let currentDate = startFunction(startDate);
+  const timeseries: z.infer<
+    (typeof applicationEventAnalyticsSchema)["timeseries"]
+  >[] = [];
 
-    while (currentDate < endDate) {
-      const periodKey = format(currentDate, formatString);
+  while (currentDate < endDate) {
+    const periodKey = format(currentDate, formatString);
 
-      timeseries.push({
-        start: currentDate.toISOString(),
-        ...(lookup[periodKey] ?? {
-          visits: 0,
-          starts: 0,
-          submissions: 0,
-          approvals: 0,
-          rejections: 0,
-        }),
-      });
+    timeseries.push({
+      start: currentDate.toISOString(),
+      ...(lookup[periodKey] ?? {
+        visits: 0,
+        starts: 0,
+        submissions: 0,
+        approvals: 0,
+        rejections: 0,
+      }),
+    });
 
-      currentDate = dateIncrement(currentDate);
-    }
-
-    return NextResponse.json(z.array(responseSchema).parse(timeseries));
+    currentDate = dateIncrement(currentDate);
   }
 
-  return NextResponse.json(null);
-});
+  return NextResponse.json(
+    z.array(applicationEventAnalyticsSchema["timeseries"]).parse(timeseries),
+  );
+}
+
+async function byPartnerGroup({
+  programId,
+  groupId,
+  partnerId,
+  country,
+  referralSource,
+  timezone,
+  interval,
+  start,
+  end,
+}: ApplicationEventAnalyticsQuery & { programId: string }) {
+  const { startDate, endDate } = getStartEndDates({
+    interval,
+    start,
+    end,
+    timezone,
+  });
+
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`e.programId = ${programId}`,
+    Prisma.sql`e.visitedAt >= ${startDate}`,
+    Prisma.sql`e.visitedAt < ${endDate}`,
+  ];
+
+  if (partnerId) {
+    conditions.push(Prisma.sql`e.partnerId = ${partnerId}`);
+  }
+
+  if (country) {
+    conditions.push(Prisma.sql`e.country = ${country}`);
+  }
+
+  if (referralSource) {
+    conditions.push(Prisma.sql`e.referralSource = ${referralSource}`);
+  }
+
+  if (groupId) {
+    conditions.push(Prisma.sql`pe.groupId = ${groupId}`);
+  }
+
+  const whereClause = Prisma.join(conditions, " AND ");
+
+  const rows = await prisma.$queryRaw<PartnerGroupApplicationRow[]>(
+    Prisma.sql`
+      SELECT
+        pe.groupId AS groupId,
+        pg.name AS groupName,
+        pg.slug AS groupSlug,
+        pg.color AS groupColor,
+        COUNT(e.visitedAt) AS visits,
+        COUNT(e.startedAt) AS starts,
+        COUNT(e.submittedAt) AS submissions,
+        COUNT(e.approvedAt) AS approvals,
+        COUNT(e.rejectedAt) AS rejections
+      FROM ProgramApplicationEvent e
+      LEFT JOIN ProgramEnrollment pe
+        ON pe.programId = e.programId
+       AND pe.partnerId = e.partnerId
+      LEFT JOIN PartnerGroup pg
+        ON pg.id = pe.groupId
+      WHERE ${whereClause}
+      GROUP BY pe.groupId, pg.name, pg.slug, pg.color`,
+  );
+
+  const results = rows.map((r) => ({
+    partnerGroup: r.groupId
+      ? {
+          id: r.groupId,
+          name: r.groupName ?? "",
+          slug: r.groupSlug ?? "",
+          color: r.groupColor ?? "",
+        }
+      : null,
+    visits: Number(r.visits),
+    starts: Number(r.starts),
+    submissions: Number(r.submissions),
+    approvals: Number(r.approvals),
+    rejections: Number(r.rejections),
+  }));
+
+  return NextResponse.json(
+    z.array(applicationEventAnalyticsSchema["partnerGroup"]).parse(results),
+  );
+}
 
 function formatCounts(c: {
   visitedAt: number;

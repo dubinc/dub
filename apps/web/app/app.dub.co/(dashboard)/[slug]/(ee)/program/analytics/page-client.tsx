@@ -31,7 +31,7 @@ import { AnalyticsPartnersTable } from "./analytics-partners-table";
 import { ApplicationsBreakdownCards } from "./application-events/applications-breakdown-cards.tsx";
 import { ApplicationsFunnelChart } from "./application-events/applications-funnel-chart.tsx";
 import { ApplicationsPartnersTable } from "./application-events/applications-partners-table.tsx";
-import { useApplicationsAnalyticsFilters } from "./application-events/use-applications-analytics-filters.tsx";
+import { useApplicationEventsFilters } from "./application-events/use-applications-analytics-filters.tsx";
 import { useApplicationsAnalyticsQuery } from "./application-events/use-applications-analytics-query.ts";
 import { CommissionsAnalyticsChart } from "./commissions-analytics-chart";
 import { CommissionsBreakdownCards } from "./commissions-breakdown-cards";
@@ -150,7 +150,7 @@ export function ProgramAnalyticsPageClient() {
     onRemoveAll: applicationsOnRemoveAll,
     onOpenFilter: applicationsOnOpenFilter,
     onToggleOperator: applicationsOnToggleOperator,
-  } = useApplicationsAnalyticsFilters();
+  } = useApplicationEventsFilters();
 
   const filterSelect =
     pageTab === "performance" ? (
