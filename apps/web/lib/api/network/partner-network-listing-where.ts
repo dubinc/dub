@@ -1,7 +1,7 @@
 import { PlatformType, Prisma } from "@dub/prisma/client";
 
-/** Shared `PartnerWhereInput` for Partner Network tab counts and non-discover lists (discoverable partners + optional filters). */
-export function partnerNetworkPartnerWhere({
+/** Shared `PartnerWhereInput` for Partner Network tab counts and non-discover lists. */
+export function partnerNetworkListingWhere({
   partnerIds,
   country,
   platform,

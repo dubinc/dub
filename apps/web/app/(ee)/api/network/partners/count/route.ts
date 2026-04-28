@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { partnerNetworkPartnerWhere } from "@/lib/api/network/partner-network-partner-where";
+import { partnerNetworkListingWhere } from "@/lib/api/network/partner-network-listing-where";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getNetworkPartnersCountQuerySchema } from "@/lib/zod/schemas/partner-network";
@@ -38,7 +38,7 @@ export const GET = withWorkspace(
       subscribers,
     } = getNetworkPartnersCountQuerySchema.parse(searchParams);
 
-    const commonWhere: Prisma.PartnerWhereInput = partnerNetworkPartnerWhere({
+    const commonWhere: Prisma.PartnerWhereInput = partnerNetworkListingWhere({
       partnerIds,
       country,
       platform,

@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { calculatePartnerRanking } from "@/lib/api/network/calculate-partner-ranking";
-import { partnerNetworkPartnerWhere } from "@/lib/api/network/partner-network-partner-where";
+import { partnerNetworkListingWhere } from "@/lib/api/network/partner-network-listing-where";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/constants/program";
@@ -56,7 +56,7 @@ export const GET = withWorkspace(
     } = getNetworkPartnersQuerySchema.parse(searchParams);
 
     if (status !== "discover") {
-      const partnerWhere = partnerNetworkPartnerWhere({
+      const partnerWhere = partnerNetworkListingWhere({
         partnerIds,
         country,
         platform,
