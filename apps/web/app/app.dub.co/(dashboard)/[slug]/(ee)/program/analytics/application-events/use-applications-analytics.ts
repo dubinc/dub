@@ -1,16 +1,11 @@
-import { applicationEventAnalyticsSchema } from "@/lib/application-events/schema";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ApplicationEventAnalyticsQuery } from "@/lib/types";
+import {
+  ApplicationAnalyticsByGroup,
+  ApplicationEventAnalyticsQuery,
+} from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import * as z from "zod/v4";
-
-type ApplicationAnalyticsByGroup = {
-  [K in keyof typeof applicationEventAnalyticsSchema]: z.infer<
-    (typeof applicationEventAnalyticsSchema)[K]
-  >;
-};
 
 export function useApplicationsAnalytics<
   TGroupBy extends keyof ApplicationAnalyticsByGroup,
