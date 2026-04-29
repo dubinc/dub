@@ -1,4 +1,8 @@
-import { EventType, RewardStructure } from "@dub/prisma/client";
+import {
+  EventType,
+  RewardStructure,
+  SpendLimitInterval,
+} from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 import { centsSchema } from "./utils";
@@ -309,6 +313,8 @@ export const RewardSchema = z.object({
   amountInCents: z.number().int().nullable().optional(),
   amountInPercentage: decimalToNumber,
   maxDuration: z.number().nullish(),
+  spendLimitAmount: z.number().int().nullish(),
+  spendLimitInterval: z.enum(SpendLimitInterval).nullish(),
   modifiers: z.any().nullish(), // TODO: Fix this
   updatedAt: z.coerce.date(),
 });
@@ -323,6 +329,15 @@ export const createOrUpdateRewardSchema = z.object({
   amountInCents: FLAT_REWARD_AMOUNT_SCHEMA.optional(),
   amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
   maxDuration: maxDurationSchema,
+  spendLimitAmount: z
+    .number()
+    .int()
+    .min(1, { message: "Spend limit amount must be greater than $0" })
+    .max(999_999_99, {
+      message: "Spend limit amount cannot be greater than $999,999.99",
+    })
+    .nullish(),
+  spendLimitInterval: z.enum(SpendLimitInterval).nullish(),
   modifiers: rewardConditionsArraySchema.nullish(),
   description: z.string().max(REWARD_DESCRIPTION_MAX_LENGTH).nullish(),
   tooltipDescription: z

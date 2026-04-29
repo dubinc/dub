@@ -118,4 +118,15 @@ export function validateReward(
       });
     }
   }
+
+  const hasSpendLimitAmount = reward.spendLimitAmount != null;
+  const hasSpendLimitInterval = reward.spendLimitInterval != null;
+
+  if (hasSpendLimitAmount !== hasSpendLimitInterval) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "spendLimitAmount and spendLimitInterval must both be provided, or both omitted.",
+    });
+  }
 }
