@@ -5,7 +5,6 @@ import {
   FraudRuleType,
 } from "@dub/prisma/client";
 import * as z from "zod/v4";
-import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema, PartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
@@ -264,14 +263,16 @@ const baseFraudEventSchema = z.object({
   }),
 });
 
+const fraudEventCustomerSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  email: z.string().nullish(),
+  avatar: z.string().nullish(),
+});
+
 export const fraudEventSchemas = {
   referralSourceBanned: baseFraudEventSchema.extend({
-    customer: CustomerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      avatar: true,
-    }),
+    customer: fraudEventCustomerSchema,
     metadata: z
       .object({
         source: z.string(),
@@ -280,12 +281,7 @@ export const fraudEventSchemas = {
   }),
 
   paidTrafficDetected: baseFraudEventSchema.extend({
-    customer: CustomerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      avatar: true,
-    }),
+    customer: fraudEventCustomerSchema,
     metadata: z
       .object({
         source: z.string(),
@@ -295,12 +291,7 @@ export const fraudEventSchemas = {
   }),
 
   customerEmailMatch: baseFraudEventSchema.extend({
-    customer: CustomerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      avatar: true,
-    }),
+    customer: fraudEventCustomerSchema,
     metadata: z
       .object({
         matchType: z.enum(CustomerEmailMatchType),
@@ -310,12 +301,7 @@ export const fraudEventSchemas = {
   }),
 
   customerEmailSuspiciousDomain: baseFraudEventSchema.extend({
-    customer: CustomerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      avatar: true,
-    }),
+    customer: fraudEventCustomerSchema,
   }),
 
   partnerCrossProgramBan: baseFraudEventSchema.extend({
