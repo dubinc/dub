@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { Customer, Link, Project } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { chunk, nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
@@ -136,25 +136,28 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
         },
       });
 
-      await Promise.allSettled(
-        customers.map((customer) => {
-          const links =
-            partnerEmailToLinks[customer.promoter_campaign.promoter.email] ??
-            [];
+      const customerChunks = chunk(customers, 10);
+      for (const customerChunk of customerChunks) {
+        await Promise.allSettled(
+          customerChunk.map((customer) => {
+            const links =
+              partnerEmailToLinks[customer.promoter_campaign.promoter.email] ??
+              [];
 
-          return createCustomer({
-            workspace,
-            links,
-            customer,
-            existingCustomers,
-            latestLeadAt:
-              partnerEmailToLatestLeadAt[
-                customer.promoter_campaign.promoter.email
-              ],
-            importId,
-          });
-        }),
-      );
+            return createCustomer({
+              workspace,
+              links,
+              customer,
+              existingCustomers,
+              latestLeadAt:
+                partnerEmailToLatestLeadAt[
+                  customer.promoter_campaign.promoter.email
+                ],
+              importId,
+            });
+          }),
+        );
+      }
     }
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -222,7 +225,6 @@ async function createCustomer({
   );
 
   if (customerFound) {
-    console.log(`A customer already exists with email ${customer.email}`);
     return;
   }
 
