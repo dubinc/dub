@@ -1,4 +1,4 @@
-import { TrackLeadResponse, TrackSaleResponse } from "@/lib/types";
+import { TrackSaleResponse } from "@/lib/types";
 import {
   randomCustomer,
   randomId,
@@ -25,6 +25,49 @@ describe.concurrent("Sale rewards with conditions", async () => {
     paymentProcessor: "stripe",
     amount: randomSaleAmount(),
     invoiceId: `INV_${randomId()}`,
+  });
+
+  const newCustomer = randomCustomer();
+
+  test("when {Sale} {Type} is {new} vs {recurring}", async () => {
+    const clickResponse = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: E2E_TRACK_CLICK_HEADERS,
+      body: {
+        domain: "getacme.link",
+        key: "marvin",
+      },
+    });
+    expect(clickResponse.status).toEqual(200);
+    const trackedClickId = clickResponse.data.clickId;
+    expect(trackedClickId).toStrictEqual(expect.any(String));
+    const sale = randomSale("E2E first sale");
+
+    // here we use direct sale tracking to save time
+    const trackSaleResponse = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        ...sale,
+        clickId: trackedClickId,
+        customerExternalId: newCustomer.externalId,
+        customerName: newCustomer.name,
+        customerEmail: newCustomer.email,
+        customerAvatar: newCustomer.avatar,
+      },
+    });
+
+    expect(trackSaleResponse.status).toEqual(200);
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    await verifyCommission({
+      http,
+      invoiceId: sale.invoiceId,
+      expectedEarnings: E2E_SALE_REWARD.modifiers[5].amountInCents!,
+    });
+
+    // no need to verify second sale since it will be verified below
+    // in the {Customer} {Subscription Duration} is {less than or equal to} {3} test
   });
 
   test("When {Sale} {Product ID} is {regularProductId}", async () => {
@@ -117,43 +160,6 @@ describe.concurrent("Sale rewards with conditions", async () => {
     });
   });
 
-  test("when {Customer} {Subscription Duration} is {less than or equal to} {3}", async () => {
-    const clickResponse = await http.post<{ clickId: string }>({
-      path: "/track/click",
-      headers: E2E_TRACK_CLICK_HEADERS,
-      body: {
-        domain: "getacme.link",
-        key: "marvin",
-      },
-    });
-    expect(clickResponse.status).toEqual(200);
-    const trackedClickId = clickResponse.data.clickId;
-    expect(trackedClickId).toStrictEqual(expect.any(String));
-    const newCustomer = randomCustomer();
-    const sale = randomSale("E2E customer subscription duration condition");
-
-    // here we use direct sale tracking to save time
-    const trackSaleResponse = await http.post<TrackSaleResponse>({
-      path: "/track/sale",
-      body: {
-        ...sale,
-        clickId: trackedClickId,
-        customerExternalId: newCustomer.externalId,
-        customerName: newCustomer.name,
-        customerEmail: newCustomer.email,
-        customerAvatar: newCustomer.avatar,
-      },
-    });
-
-    expect(trackSaleResponse.status).toEqual(200);
-
-    await verifyCommission({
-      http,
-      invoiceId: sale.invoiceId,
-      expectedEarnings: E2E_SALE_REWARD.modifiers[3].amountInCents!,
-    });
-  });
-
   test("when {Customer} {Signup Date} is {greater than} {Feb 16, 2026} AND {less than} {Feb 18, 2026}", async () => {
     const sale = randomSale("E2E customer signup date condition");
 
@@ -174,73 +180,22 @@ describe.concurrent("Sale rewards with conditions", async () => {
     });
   });
 
-  test("when {Customer} {Subscription Duration} is {less than or equal to} {3} for both first and second sale events", async () => {
-    const clickResponse = await http.post<{ clickId: string }>({
-      path: "/track/click",
-      headers: E2E_TRACK_CLICK_HEADERS,
-      body: {
-        domain: "getacme.link",
-        key: "marvin",
-      },
-    });
-
-    expect(clickResponse.status).toEqual(200);
-
-    const trackedClickId = clickResponse.data.clickId;
-    const customer = randomCustomer();
-
-    const trackLeadResponse = await http.post<TrackLeadResponse>({
-      path: "/track/lead",
-      body: {
-        clickId: trackedClickId,
-        eventName: "E2E click to lead to recurring sales",
-        customerExternalId: customer.externalId,
-        customerName: customer.name,
-        customerEmail: customer.email,
-        customerAvatar: customer.avatar,
-      },
-    });
-
-    expect(trackLeadResponse.status).toEqual(200);
-
-    const firstSale = randomSale("E2E first sale");
-
-    const firstTrackSaleResponse = await http.post<TrackSaleResponse>({
+  test("when {Customer} {Subscription Duration} is {less than or equal to} {3}", async () => {
+    const sale = randomSale("E2E customer subscription duration condition");
+    const trackSaleResponse = await http.post<TrackSaleResponse>({
       path: "/track/sale",
       body: {
-        ...firstSale,
-        customerExternalId: customer.externalId,
-        amount: 10000,
+        ...sale,
+        customerExternalId: newCustomer.externalId,
       },
     });
 
-    expect(firstTrackSaleResponse.status).toEqual(200);
-
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    const secondSale = randomSale("E2E second sale");
-
-    const secondTrackSaleResponse = await http.post<TrackSaleResponse>({
-      path: "/track/sale",
-      body: {
-        ...secondSale,
-        customerExternalId: customer.externalId,
-        amount: 10000,
-      },
-    });
-
-    expect(secondTrackSaleResponse.status).toEqual(200);
+    expect(trackSaleResponse.status).toEqual(200);
 
     await verifyCommission({
       http,
-      invoiceId: firstSale.invoiceId,
-      expectedEarnings: E2E_SALE_REWARD.amountInCents,
-    });
-
-    await verifyCommission({
-      http,
-      invoiceId: secondSale.invoiceId,
-      expectedEarnings: E2E_SALE_REWARD.modifiers[5].amountInCents!,
+      invoiceId: sale.invoiceId,
+      expectedEarnings: E2E_SALE_REWARD.modifiers[3].amountInCents!,
     });
   });
 });

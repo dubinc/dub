@@ -325,43 +325,21 @@ function ConditionLogic({
   const isSaleTypeCondition =
     condition.entity === "sale" && condition.attribute === "type";
 
-  const availableConditionOperators: (typeof CONDITION_OPERATORS)[number][] =
-    isSaleTypeCondition
-      ? ["equals_to", "not_equals"]
-      : ["number", "currency"].includes(attributeType)
-        ? NUMBER_CONDITION_OPERATORS
-        : attributeType === "enum"
-          ? ENUM_CONDITION_OPERATORS
-          : attributeType === "date"
-            ? DATE_CONDITION_OPERATORS
-            : STRING_CONDITION_OPERATORS;
-
-  useEffect(() => {
-    if (isCustomerSourceCondition && condition.operator !== "equals_to") {
-      setValue(
-        conditionKey,
-        {
-          ...condition,
-          operator: "equals_to",
-        },
-        {
-          shouldDirty: true,
-        },
-      );
-    }
-  }, [
-    isCustomerSourceCondition,
-    condition.operator,
-    condition,
-    conditionKey,
-    setValue,
-  ]);
+  const availableConditionOperators: (typeof CONDITION_OPERATORS)[number][] = [
+    "number",
+    "currency",
+  ].includes(attributeType)
+    ? NUMBER_CONDITION_OPERATORS
+    : attributeType === "enum"
+      ? ENUM_CONDITION_OPERATORS
+      : attributeType === "date"
+        ? DATE_CONDITION_OPERATORS
+        : STRING_CONDITION_OPERATORS;
 
   useEffect(() => {
     if (
-      isSaleTypeCondition &&
-      condition.operator &&
-      !availableConditionOperators.includes(condition.operator)
+      (isCustomerSourceCondition || isSaleTypeCondition) &&
+      condition.operator !== "equals_to"
     ) {
       setValue(
         conditionKey,
@@ -375,9 +353,9 @@ function ConditionLogic({
       );
     }
   }, [
+    isCustomerSourceCondition,
     isSaleTypeCondition,
     condition.operator,
-    availableConditionOperators,
     condition,
     conditionKey,
     setValue,
@@ -456,7 +434,7 @@ function ConditionLogic({
                       }))}
                   />
                 </InlineBadgePopover>{" "}
-                {isCustomerSourceCondition ? (
+                {isCustomerSourceCondition || isSaleTypeCondition ? (
                   <span className="text-content-emphasis font-medium">is </span>
                 ) : (
                   <InlineBadgePopover
