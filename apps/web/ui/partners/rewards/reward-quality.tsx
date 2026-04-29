@@ -74,16 +74,24 @@ export const getRewardQuality = ({
   }
 
   if (isOneOff) {
+    if (amountInCents >= 100_00) {
+      return "strong";
+    }
+
+    if (amountInCents >= 50_00) {
+      return "good";
+    }
+
     return "limited";
   }
 
   const totalCents = isLifetime ? Infinity : amountInCents * (months ?? 0);
 
-  if (totalCents < 3000 || (months ?? 0) < 6) {
+  if (totalCents < 50_00 || (months ?? 0) < 6) {
     return "low";
   }
 
-  if (totalCents > 10000 && (isLifetime || (months != null && months >= 12))) {
+  if (totalCents > 100_00 && (isLifetime || (months != null && months >= 12))) {
     return "strong";
   }
 
