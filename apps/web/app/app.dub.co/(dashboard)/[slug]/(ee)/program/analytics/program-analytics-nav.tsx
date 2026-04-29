@@ -2,9 +2,12 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PageNavTabs } from "@/ui/layout/page-nav-tabs";
-import { InvoiceDollar, LinesY } from "@dub/ui";
+import { InvoiceDollar, LinesY, UserCheck } from "@dub/ui";
 
-export type ProgramAnalyticsTabId = "performance" | "commissions";
+export type ProgramAnalyticsTabId =
+  | "performance"
+  | "commissions"
+  | "applications";
 
 export const PROGRAM_ANALYTICS_TABS: {
   id: ProgramAnalyticsTabId;
@@ -13,6 +16,7 @@ export const PROGRAM_ANALYTICS_TABS: {
 }[] = [
   { id: "performance", label: "Performance", icon: LinesY },
   { id: "commissions", label: "Commissions", icon: InvoiceDollar },
+  { id: "applications", label: "Applications", icon: UserCheck },
 ];
 
 export function ProgramAnalyticsNav() {

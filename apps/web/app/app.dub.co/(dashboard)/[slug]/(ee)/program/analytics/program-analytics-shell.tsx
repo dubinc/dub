@@ -13,14 +13,24 @@ import { ReferrersUTMs } from "@/ui/analytics/referrers-utms";
 import { useAnalyticsFilters } from "@/ui/analytics/use-analytics-filters";
 import { useAnalyticsQuery } from "@/ui/analytics/use-analytics-query";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { Button, Filter, SquareLayoutGrid6, useMediaQuery, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  Filter,
+  SquareLayoutGrid6,
+  useMediaQuery,
+  useRouterStuff,
+} from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ContextType, ReactNode, useMemo } from "react";
 import useSWR from "swr";
+import { ApplicationsBreakdownCards } from "./application-events/applications-breakdown-cards";
+import { useApplicationEventsFilters } from "./application-events/use-applications-analytics-filters";
+import { useApplicationsAnalyticsQuery } from "./application-events/use-applications-analytics-query";
 import { CommissionsBreakdownCards } from "./commissions-breakdown-cards";
 import {
+  PROGRAM_ANALYTICS_TABS,
   ProgramAnalyticsNav,
   ProgramAnalyticsTabId,
 } from "./program-analytics-nav";
@@ -35,14 +45,15 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
   const { tab } = useParams() as { tab?: string };
 
   const pageTab: ProgramAnalyticsTabId =
-    tab && ["performance", "commissions"].includes(tab)
+    tab && PROGRAM_ANALYTICS_TABS.some((t) => t.id === tab)
       ? (tab as ProgramAnalyticsTabId)
       : "performance";
 
-  const {
-    queryString: commissionsQueryString,
-    status: commissionStatus,
-  } = useCommissionsAnalyticsQuery();
+  const { queryString: commissionsQueryString, status: commissionStatus } =
+    useCommissionsAnalyticsQuery();
+
+  const { stage: applicationsStage, view: applicationsView } =
+    useApplicationsAnalyticsQuery();
 
   const { start, end, interval, selectedTab, saleUnit, view } = useMemo(() => {
     const { event, ...rest } = searchParamsObj;
@@ -112,19 +123,19 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
     setSearch: commSetSearch,
   } = useCommissionsAnalyticsFilters(commissionsQueryString);
 
+  const {
+    filters: applicationsFilters,
+    activeFilters: applicationsActiveFilters,
+    onSelect: applicationsOnSelect,
+    onRemove: applicationsOnRemove,
+    onRemoveFilter: applicationsOnRemoveFilter,
+    onRemoveAll: applicationsOnRemoveAll,
+    onOpenFilter: applicationsOnOpenFilter,
+    onToggleOperator: applicationsOnToggleOperator,
+  } = useApplicationEventsFilters();
+
   const filterSelect =
-    pageTab === "performance" ? (
-      <Filter.Select
-        className="w-full md:w-fit"
-        filters={perfFilters}
-        activeFilters={perfActiveFilters}
-        onSelect={perfOnSelect}
-        onRemove={perfOnRemove}
-        onOpenFilter={perfOnOpenFilter}
-        isAdvancedFilter
-        askAI
-      />
-    ) : (
+    pageTab === "commissions" ? (
       <Filter.Select
         className="w-full md:w-fit"
         filters={commFilters}
@@ -134,6 +145,27 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
         onOpenFilter={commOnOpenFilter}
         onSearchChange={commSetSearch}
         isAdvancedFilter
+      />
+    ) : pageTab === "applications" ? (
+      <Filter.Select
+        className="w-full md:w-fit"
+        filters={applicationsFilters}
+        activeFilters={applicationsActiveFilters}
+        onSelect={applicationsOnSelect}
+        onRemove={applicationsOnRemove}
+        onOpenFilter={applicationsOnOpenFilter}
+        isAdvancedFilter
+      />
+    ) : (
+      <Filter.Select
+        className="w-full md:w-fit"
+        filters={perfFilters}
+        activeFilters={perfActiveFilters}
+        onSelect={perfOnSelect}
+        onRemove={perfOnRemove}
+        onOpenFilter={perfOnOpenFilter}
+        isAdvancedFilter
+        askAI
       />
     );
 
@@ -199,27 +231,15 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
             <div
               className={cn(
                 "transition-[height] duration-[300ms]",
-                pageTab === "performance"
-                  ? streaming || perfActiveFilters.length
-                    ? "h-3"
-                    : "h-0"
-                  : commActiveFilters.length
-                    ? "h-3"
-                    : "h-0",
+                streaming ||
+                  perfActiveFilters.length ||
+                  commActiveFilters.length ||
+                  applicationsActiveFilters.length
+                  ? "h-3"
+                  : "h-0",
               )}
             />
-            {pageTab === "performance" ? (
-              <Filter.List
-                filters={perfFilters}
-                activeFilters={activeFiltersWithStreaming}
-                onSelect={perfOnSelect}
-                onRemove={perfOnRemove}
-                onRemoveFilter={perfOnRemoveFilter}
-                onRemoveAll={perfOnRemoveAll}
-                onToggleOperator={perfOnToggleOperator}
-                isAdvancedFilter
-              />
-            ) : (
+            {pageTab === "commissions" ? (
               <Filter.List
                 filters={commFilters}
                 activeFilters={commActiveFilters}
@@ -228,6 +248,28 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
                 onRemoveFilter={commOnRemoveFilter}
                 onRemoveAll={commOnRemoveAll}
                 onToggleOperator={commOnToggleOperator}
+                isAdvancedFilter
+              />
+            ) : pageTab === "applications" ? (
+              <Filter.List
+                filters={applicationsFilters}
+                activeFilters={applicationsActiveFilters}
+                onSelect={applicationsOnSelect}
+                onRemove={applicationsOnRemove}
+                onRemoveFilter={applicationsOnRemoveFilter}
+                onRemoveAll={applicationsOnRemoveAll}
+                onToggleOperator={applicationsOnToggleOperator}
+                isAdvancedFilter
+              />
+            ) : (
+              <Filter.List
+                filters={perfFilters}
+                activeFilters={activeFiltersWithStreaming}
+                onSelect={perfOnSelect}
+                onRemove={perfOnRemove}
+                onRemoveFilter={perfOnRemoveFilter}
+                onRemoveAll={perfOnRemoveAll}
+                onToggleOperator={perfOnToggleOperator}
                 isAdvancedFilter
               />
             )}
@@ -241,18 +283,20 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        {pageTab === "performance" ? (
+        {pageTab === "commissions" ? (
+          <CommissionsBreakdownCards
+            status={commissionStatus}
+            queryString={commissionsQueryString}
+          />
+        ) : pageTab === "applications" ? (
+          <ApplicationsBreakdownCards stage={applicationsStage} />
+        ) : (
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <PartnerSection />
             <ReferrersUTMs />
             <LocationSection />
             <DeviceSection />
           </div>
-        ) : (
-          <CommissionsBreakdownCards
-            status={commissionStatus}
-            queryString={commissionsQueryString}
-          />
         )}
       </div>
     </AnalyticsContext.Provider>
