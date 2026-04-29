@@ -5,7 +5,7 @@ import { withWorkspace } from "@/lib/auth";
 import type { CommissionsBreakdownItem } from "@/lib/swr/use-commissions-breakdown";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
-import { CommissionStatus, CommissionType } from "@dub/prisma/client";
+import { CommissionStatus, CommissionType, Prisma } from "@dub/prisma/client";
 import { capitalize, parseFilterValue } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -130,51 +130,80 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         count: r._count._all,
       }));
   } else if (groupBy === "groupId") {
-    const partnerEarnings = await prisma.commission.groupBy({
-      by: ["partnerId"],
-      where: baseWhere,
-      _sum: { earnings: true },
-      _count: { _all: true },
-      orderBy: { _sum: { earnings: "desc" } },
-    });
+    // Single raw SQL query: JOIN Commission → ProgramEnrollment → PartnerGroup
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`c.programId = ${programId}`,
+      Prisma.sql`c.createdAt >= ${startDate}`,
+      Prisma.sql`c.createdAt < ${endDate}`,
+      status
+        ? Prisma.sql`c.status = ${status}`
+        : Prisma.sql`c.status NOT IN (${Prisma.join([
+            CommissionStatus.duplicate,
+            CommissionStatus.fraud,
+            CommissionStatus.canceled,
+          ])})`,
+    ];
 
-    if (partnerEarnings.length > 0) {
-      const partnerIds = partnerEarnings.map((p) => p.partnerId);
-
-      const enrollments = await prisma.programEnrollment.findMany({
-        where: { programId, partnerId: { in: partnerIds } },
-        select: {
-          partnerId: true,
-          groupId: true,
-          partnerGroup: { select: { name: true } },
-        },
-      });
-
-      const enrollmentMap = new Map(enrollments.map((e) => [e.partnerId, e]));
-
-      const groupMap = new Map<
-        string,
-        { label: string; earnings: number; count: number }
-      >();
-      for (const p of partnerEarnings) {
-        const enrollment = enrollmentMap.get(p.partnerId);
-        const key = enrollment?.groupId ?? "ungrouped";
-        const label = enrollment?.partnerGroup?.name ?? "Ungrouped";
-        const entry = groupMap.get(key) ?? { label, earnings: 0, count: 0 };
-        entry.earnings += p._sum.earnings ?? 0;
-        entry.count += p._count._all;
-        groupMap.set(key, entry);
-      }
-
-      result = Array.from(groupMap.entries())
-        .map(([key, { label, earnings, count }]) => ({
-          key,
-          label,
-          earnings,
-          count,
-        }))
-        .sort((a, b) => b.earnings - a.earnings);
+    if (partnerFilter) {
+      const list = Prisma.join(
+        partnerFilter.values.map((v) => Prisma.sql`${v}`),
+      );
+      conditions.push(
+        partnerFilter.sqlOperator === "NOT IN"
+          ? Prisma.sql`c.partnerId NOT IN (${list})`
+          : Prisma.sql`c.partnerId IN (${list})`,
+      );
     }
+
+    if (typeFilter) {
+      const list = Prisma.join(typeFilter.values.map((v) => Prisma.sql`${v}`));
+      conditions.push(
+        typeFilter.sqlOperator === "NOT IN"
+          ? Prisma.sql`c.type NOT IN (${list})`
+          : Prisma.sql`c.type IN (${list})`,
+      );
+    }
+
+    if (groupFilter) {
+      const list = Prisma.join(groupFilter.values.map((v) => Prisma.sql`${v}`));
+      conditions.push(
+        groupFilter.sqlOperator === "NOT IN"
+          ? Prisma.sql`pe.groupId NOT IN (${list})`
+          : Prisma.sql`pe.groupId IN (${list})`,
+      );
+    }
+
+    const where = Prisma.join(conditions, " AND ");
+
+    const rows = await prisma.$queryRaw<
+      {
+        groupId: string | null;
+        groupName: string | null;
+        earnings: bigint;
+        count: bigint;
+      }[]
+    >(
+      Prisma.sql`
+        SELECT
+          pe.groupId,
+          pg.name        AS groupName,
+          SUM(c.earnings) AS earnings,
+          COUNT(c.id)    AS count
+        FROM Commission c
+        JOIN ProgramEnrollment pe
+          ON pe.programId = c.programId AND pe.partnerId = c.partnerId
+        LEFT JOIN PartnerGroup pg ON pg.id = pe.groupId
+        WHERE ${where}
+        GROUP BY pe.groupId, pg.name
+        ORDER BY earnings DESC`,
+    );
+
+    result = rows.map((r) => ({
+      key: r.groupId ?? "ungrouped",
+      label: r.groupName ?? "Ungrouped",
+      earnings: Number(r.earnings),
+      count: Number(r.count),
+    }));
   }
 
   return NextResponse.json(result);
