@@ -1,7 +1,7 @@
 "use client";
 
 import { CommissionsCount } from "@/lib/types";
-import { ToggleGroup, useRouterStuff } from "@dub/ui";
+import { ToggleGroup, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { ChevronRight } from "lucide-react";
@@ -63,6 +63,8 @@ export function CommissionsStatusSelector({
     { keepPreviousData: true },
   );
 
+  const { isMobile } = useMediaQuery();
+
   return (
     <div className="grid w-full grid-cols-4 divide-x divide-neutral-200 overflow-y-hidden">
       <NumberFlowGroup>
@@ -110,17 +112,23 @@ export function CommissionsStatusSelector({
                   {commissionsCount ? (
                     <NumberFlow
                       value={unit === "earnings" ? earnings / 100 : count}
-                      className="text-xl font-medium sm:text-3xl"
+                      className="text-xl font-medium sm:text-2xl"
                       format={
                         unit === "earnings"
                           ? {
+                              ...(isMobile && {
+                                notation: "compact",
+                              }),
                               style: "currency",
                               currency: "USD",
                               // @ts-ignore – trailingZeroDisplay is valid
                               trailingZeroDisplay: "stripIfInteger",
                             }
                           : {
-                              notation: count > 999999 ? "compact" : "standard",
+                              notation:
+                                isMobile || count > 999999
+                                  ? "compact"
+                                  : "standard",
                             }
                       }
                     />

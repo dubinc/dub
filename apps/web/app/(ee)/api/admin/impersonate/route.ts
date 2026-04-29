@@ -6,21 +6,40 @@ import { NextResponse } from "next/server";
 
 // POST /api/admin/impersonate
 export const POST = withAdmin(async ({ req }) => {
-  const { email, slug } = await req.json();
+  const { email, slug, partnerEmail } = await req.json();
 
   const response = await prisma.user.findFirst({
     where: email
-      ? { email }
-      : {
-          projects: {
-            some: {
-              project: {
-                slug,
+      ? {
+          OR: [
+            { email },
+            {
+              partners: {
+                some: { partner: { email } },
               },
-              role: "owner",
+            },
+          ],
+        }
+      : partnerEmail
+        ? {
+            partners: {
+              some: {
+                partner: {
+                  email: partnerEmail,
+                },
+              },
+            },
+          }
+        : {
+            projects: {
+              some: {
+                project: {
+                  slug,
+                },
+                role: "owner",
+              },
             },
           },
-        },
     select: {
       email: true,
       projects: {

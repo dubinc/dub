@@ -13,12 +13,11 @@ import * as z from "zod/v4";
 const querySchema = analyticsQuerySchema
   .pick({ start: true, end: true, interval: true, timezone: true })
   .extend({
-    groupBy: z.enum(["type", "group"]),
+    groupBy: z.enum(["type", "groupId"]),
     status: z.enum(CommissionStatus).optional(),
     partnerId: z.string().optional(),
     groupId: z.string().optional(),
     type: z.string().optional(),
-    country: z.string().optional(),
   });
 
 // GET /api/commissions/breakdown
@@ -35,7 +34,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     partnerId,
     groupId,
     type,
-    country,
   } = querySchema.parse(searchParams);
 
   assertValidDateRangeForPlan({
@@ -55,7 +53,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const partnerFilter = parseFilterValue(partnerId);
   const groupFilter = parseFilterValue(groupId);
-  const countryFilter = parseFilterValue(country);
 
   const rawTypeFilter = parseFilterValue(type);
   const validCommissionTypes = new Set(Object.values(CommissionType));
@@ -111,14 +108,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
             : { in: groupFilter.values },
       },
     }),
-    ...(countryFilter && {
-      customer: {
-        country:
-          countryFilter.sqlOperator === "NOT IN"
-            ? { notIn: countryFilter.values }
-            : { in: countryFilter.values },
-      },
-    }),
   };
 
   let result: CommissionsBreakdownItem[] = [];
@@ -140,7 +129,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         earnings: r._sum.earnings ?? 0,
         count: r._count._all,
       }));
-  } else if (groupBy === "group") {
+  } else if (groupBy === "groupId") {
     const partnerEarnings = await prisma.commission.groupBy({
       by: ["partnerId"],
       where: baseWhere,

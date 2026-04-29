@@ -21,6 +21,10 @@
       "schedule": "* * * * *"
     },
     {
+      "path": "/api/cron/streams/update-workspace-links-usage",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/cron/streams/update-partner-stats",
       "schedule": "*/2 * * * *"
     },

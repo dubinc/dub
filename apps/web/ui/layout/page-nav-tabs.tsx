@@ -1,6 +1,11 @@
 "use client";
 
-import { ArrowUpRight2, Icon, useScrollProgress } from "@dub/ui";
+import {
+  ArrowUpRight2,
+  Icon,
+  useRouterStuff,
+  useScrollProgress,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
 import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
@@ -25,10 +30,17 @@ export type PageNavTabsProps = {
   basePath: string;
   tabs: PageNavTabsTab[];
   quickLinks?: PageNavTabsQuicklink[];
+  preservedQueryParams?: string[];
 };
 
-export function PageNavTabs({ basePath, tabs, quickLinks }: PageNavTabsProps) {
+export function PageNavTabs({
+  basePath,
+  tabs,
+  quickLinks,
+  preservedQueryParams,
+}: PageNavTabsProps) {
   const pathname = usePathname();
+  const { getQueryString } = useRouterStuff();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const layoutGroupId = useId();
@@ -69,12 +81,25 @@ export function PageNavTabs({ basePath, tabs, quickLinks }: PageNavTabsProps) {
             layout
             className={cn("relative z-0 inline-flex items-center gap-1")}
           >
-            {tabs.map(({ id, label, icon: Icon, badge }) => {
-              const isSelected = pathname.endsWith(`/${id}`);
+            {tabs.map(({ id, label, icon: Icon, badge }, idx) => {
+              // if it's the base path, match the first tab
+              const isSelected =
+                pathname.endsWith(basePath) && idx === 0
+                  ? true
+                  : pathname.endsWith(`/${id}`);
               return (
                 <Link
                   key={id}
-                  href={`${basePath}/${id}`}
+                  href={`${basePath}/${id}${
+                    preservedQueryParams
+                      ? getQueryString(
+                          {},
+                          {
+                            include: preservedQueryParams,
+                          },
+                        )
+                      : ""
+                  }`}
                   data-selected={isSelected}
                   className={cn(
                     "text-content-emphasis relative z-10 flex items-center gap-2 px-2.5 py-1 text-sm font-medium",

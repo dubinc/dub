@@ -1,4 +1,4 @@
-export const RATE_LIMITS = {
+export const RATELIMIT_POLICIES = {
   programImageUpload: {
     attempts: 10,
     window: "24 h",

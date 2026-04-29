@@ -13,65 +13,36 @@ import { ReferrersUTMs } from "@/ui/analytics/referrers-utms";
 import { useAnalyticsFilters } from "@/ui/analytics/use-analytics-filters";
 import { useAnalyticsQuery } from "@/ui/analytics/use-analytics-query";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import {
-  Button,
-  Filter,
-  SquareLayoutGrid6,
-  ToggleGroup,
-  useMediaQuery,
-  useRouterStuff,
-} from "@dub/ui";
-import { UserCheck } from "@dub/ui/icons";
+import { Button, Filter, SquareLayoutGrid6, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
-import { ContextType, useMemo } from "react";
+import { useParams } from "next/navigation";
+import { ContextType, ReactNode, useMemo } from "react";
 import useSWR from "swr";
-import { AnalyticsChart } from "./analytics-chart";
-import { AnalyticsPartnersTable } from "./analytics-partners-table";
-import { ApplicationsBreakdownCards } from "./application-events/applications-breakdown-cards";
-import { ApplicationsFunnelChart } from "./application-events/applications-funnel-chart";
-import { ApplicationsPartnersTable } from "./application-events/applications-partners-table";
-import { useApplicationEventsFilters } from "./application-events/use-applications-analytics-filters";
-import { useApplicationsAnalyticsQuery } from "./application-events/use-applications-analytics-query";
-import { CommissionsAnalyticsChart } from "./commissions-analytics-chart";
 import { CommissionsBreakdownCards } from "./commissions-breakdown-cards";
-import { CommissionsPartnersTable } from "./commissions-partners-table";
-import { CommissionsStatusSelector } from "./commissions-status-selector";
+import {
+  ProgramAnalyticsNav,
+  ProgramAnalyticsTabId,
+} from "./program-analytics-nav";
 import { useCommissionsAnalyticsFilters } from "./use-commissions-analytics-filters";
 import { useCommissionsAnalyticsQuery } from "./use-commissions-analytics-query";
 
-type PageTab = "performance" | "commissions" | "applications";
-
-const PAGE_TABS: { id: PageTab; label: string }[] = [
-  { id: "performance", label: "Performance" },
-  { id: "commissions", label: "Commissions" },
-  { id: "applications", label: "Applications" },
-];
-
-export function ProgramAnalyticsPageClient() {
-  const { slug, defaultProgramId } = useWorkspace();
-  const { program } = useProgram();
-  const { searchParamsObj, getQueryString, queryParams } = useRouterStuff();
+export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
   const { isMobile } = useMediaQuery();
+  const { program } = useProgram();
+  const { slug, defaultProgramId } = useWorkspace();
+  const { searchParamsObj, getQueryString } = useRouterStuff();
+  const { tab } = useParams() as { tab?: string };
 
-  const pageTab = useMemo<PageTab>(() => {
-    const raw = searchParamsObj.pageTab;
-    return raw === "commissions" || raw === "applications"
-      ? raw
+  const pageTab: ProgramAnalyticsTabId =
+    tab && ["performance", "commissions"].includes(tab)
+      ? (tab as ProgramAnalyticsTabId)
       : "performance";
-  }, [searchParamsObj]);
 
   const {
     queryString: commissionsQueryString,
     status: commissionStatus,
-    unit: commissionUnit,
-    interval: commissionsInterval,
-    start: commissionsStart,
-    end: commissionsEnd,
   } = useCommissionsAnalyticsQuery();
-
-  const { stage: applicationsStage, view: applicationsView } =
-    useApplicationsAnalyticsQuery();
 
   const { start, end, interval, selectedTab, saleUnit, view } = useMemo(() => {
     const { event, ...rest } = searchParamsObj;
@@ -141,17 +112,6 @@ export function ProgramAnalyticsPageClient() {
     setSearch: commSetSearch,
   } = useCommissionsAnalyticsFilters(commissionsQueryString);
 
-  const {
-    filters: applicationsFilters,
-    activeFilters: applicationsActiveFilters,
-    onSelect: applicationsOnSelect,
-    onRemove: applicationsOnRemove,
-    onRemoveFilter: applicationsOnRemoveFilter,
-    onRemoveAll: applicationsOnRemoveAll,
-    onOpenFilter: applicationsOnOpenFilter,
-    onToggleOperator: applicationsOnToggleOperator,
-  } = useApplicationEventsFilters();
-
   const filterSelect =
     pageTab === "performance" ? (
       <Filter.Select
@@ -164,7 +124,7 @@ export function ProgramAnalyticsPageClient() {
         isAdvancedFilter
         askAI
       />
-    ) : pageTab === "commissions" ? (
+    ) : (
       <Filter.Select
         className="w-full md:w-fit"
         filters={commFilters}
@@ -173,16 +133,6 @@ export function ProgramAnalyticsPageClient() {
         onRemove={commOnRemove}
         onOpenFilter={commOnOpenFilter}
         onSearchChange={commSetSearch}
-        isAdvancedFilter
-      />
-    ) : (
-      <Filter.Select
-        className="w-full md:w-fit"
-        filters={applicationsFilters}
-        activeFilters={applicationsActiveFilters}
-        onSelect={applicationsOnSelect}
-        onRemove={applicationsOnRemove}
-        onOpenFilter={applicationsOnOpenFilter}
         isAdvancedFilter
       />
     );
@@ -220,37 +170,24 @@ export function ProgramAnalyticsPageClient() {
                     >
                       <Button
                         variant="secondary"
-                        className="h-9 w-fit"
+                        className="w-fit"
                         icon={
                           <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
                         }
                         text={isMobile ? undefined : "View Events"}
                       />
                     </Link>
-                  ) : pageTab === "commissions" ? (
+                  ) : (
                     <Link
                       href={`/${slug}/program/commissions${getQueryString({}, { exclude: ["pageTab", "commissionUnit", "event", "saleUnit", "view"] })}`}
                     >
                       <Button
                         variant="secondary"
-                        className="h-9 w-fit"
+                        className="w-fit"
                         icon={
                           <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
                         }
                         text={isMobile ? undefined : "View Commissions"}
-                      />
-                    </Link>
-                  ) : (
-                    <Link
-                      href={`/${slug}/program/partners/applications${getQueryString({}, { include: ["groupId", "country"] })}`}
-                    >
-                      <Button
-                        variant="secondary"
-                        className="h-9 w-fit"
-                        icon={
-                          <UserCheck className="h-4 w-4 text-neutral-600" />
-                        }
-                        text={isMobile ? undefined : "View applications"}
                       />
                     </Link>
                   )}
@@ -266,13 +203,9 @@ export function ProgramAnalyticsPageClient() {
                   ? streaming || perfActiveFilters.length
                     ? "h-3"
                     : "h-0"
-                  : pageTab === "commissions"
-                    ? commActiveFilters.length
-                      ? "h-3"
-                      : "h-0"
-                    : applicationsActiveFilters.length
-                      ? "h-3"
-                      : "h-0",
+                  : commActiveFilters.length
+                    ? "h-3"
+                    : "h-0",
               )}
             />
             {pageTab === "performance" ? (
@@ -286,7 +219,7 @@ export function ProgramAnalyticsPageClient() {
                 onToggleOperator={perfOnToggleOperator}
                 isAdvancedFilter
               />
-            ) : pageTab === "commissions" ? (
+            ) : (
               <Filter.List
                 filters={commFilters}
                 activeFilters={commActiveFilters}
@@ -297,76 +230,15 @@ export function ProgramAnalyticsPageClient() {
                 onToggleOperator={commOnToggleOperator}
                 isAdvancedFilter
               />
-            ) : (
-              <Filter.List
-                filters={applicationsFilters}
-                activeFilters={applicationsActiveFilters}
-                onSelect={applicationsOnSelect}
-                onRemove={applicationsOnRemove}
-                onRemoveFilter={applicationsOnRemoveFilter}
-                onRemoveAll={applicationsOnRemoveAll}
-                onToggleOperator={applicationsOnToggleOperator}
-                isAdvancedFilter
-              />
             )}
           </div>
         </div>
 
-        <div className="border-border-subtle divide-border-subtle divide-y overflow-hidden rounded-xl border sm:rounded-2xl">
-          <div className="px-2 py-1.5">
-            <ToggleGroup
-              options={PAGE_TABS.map((t) => ({ value: t.id, label: t.label }))}
-              selected={pageTab}
-              selectAction={(id) =>
-                queryParams({
-                  set: { pageTab: id as PageTab },
-                  del:
-                    id === "performance"
-                      ? ["status", "commissionUnit"]
-                      : ["event", "saleUnit", "view"],
-                  scroll: false,
-                })
-              }
-              className="gap-0.5 border-0 bg-transparent p-0"
-              optionClassName="text-xs font-medium px-3 py-1.5"
-              indicatorClassName="border-0 bg-neutral-100"
-            />
+        <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100 sm:rounded-2xl">
+          <ProgramAnalyticsNav />
+          <div className="border-border-subtle divide-border-subtle -mx-px -mb-px divide-y overflow-hidden rounded-xl border bg-white">
+            {children}
           </div>
-
-          {pageTab === "performance" ? (
-            <>
-              <AnalyticsChart />
-              <AnalyticsPartnersTable />
-            </>
-          ) : pageTab === "commissions" ? (
-            <>
-              <CommissionsStatusSelector
-                status={commissionStatus}
-                queryString={commissionsQueryString}
-              />
-              <div className="relative h-72 md:h-96">
-                <div className="relative size-full p-6 pt-10">
-                  <CommissionsAnalyticsChart
-                    status={commissionStatus}
-                    unit={commissionUnit}
-                    queryString={commissionsQueryString}
-                    interval={commissionsInterval}
-                    start={commissionsStart}
-                    end={commissionsEnd}
-                  />
-                </div>
-              </div>
-              <CommissionsPartnersTable queryString={commissionsQueryString} />
-            </>
-          ) : (
-            <>
-              <ApplicationsFunnelChart
-                stage={applicationsStage}
-                view={applicationsView}
-              />
-              <ApplicationsPartnersTable stage={applicationsStage} />
-            </>
-          )}
         </div>
 
         {pageTab === "performance" ? (
@@ -376,13 +248,11 @@ export function ProgramAnalyticsPageClient() {
             <LocationSection />
             <DeviceSection />
           </div>
-        ) : pageTab === "commissions" ? (
+        ) : (
           <CommissionsBreakdownCards
             status={commissionStatus}
             queryString={commissionsQueryString}
           />
-        ) : (
-          <ApplicationsBreakdownCards stage={applicationsStage} />
         )}
       </div>
     </AnalyticsContext.Provider>
