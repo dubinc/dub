@@ -19,7 +19,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ContextType, ReactNode, useMemo } from "react";
 import useSWR from "swr";
-import { CommissionsBreakdownCards } from "./commissions-breakdown-cards";
+import { CommissionsAnalyticsCards } from "./commissions-analytics-cards";
 import {
   ProgramAnalyticsNav,
   ProgramAnalyticsTabId,
@@ -249,7 +249,7 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
             <DeviceSection />
           </div>
         ) : (
-          <CommissionsBreakdownCards
+          <CommissionsAnalyticsCards
             status={commissionStatus}
             queryString={commissionsQueryString}
           />

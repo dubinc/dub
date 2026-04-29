@@ -1,7 +1,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
-import useCommissionsTimeseries from "@/lib/swr/use-commissions-timeseries";
+import useCommissionAnalytics from "@/lib/swr/use-commission-analytics";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
@@ -59,8 +59,7 @@ export function OverviewChart() {
   );
 
   const { data: commissions, error: commissionsError } =
-    useCommissionsTimeseries({
-      event: "sales",
+    useCommissionAnalytics({
       groupBy: "timeseries",
       interval: interval as IntervalOptions | undefined,
       start: start ? new Date(start) : undefined,
