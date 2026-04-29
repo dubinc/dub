@@ -220,8 +220,26 @@ export function PartnersTable() {
           minSize: 150,
           maxSize: 250,
           cell: ({ row }) => {
+            const showInvitedInline =
+              columnVisibility.status === false &&
+              row.original.status === ProgramEnrollmentStatus.invited;
+
             return (
-              <PartnerRowItem partner={row.original} showPermalink={false} />
+              <PartnerRowItem
+                partner={row.original}
+                showPermalink={false}
+                suffix={
+                  showInvitedInline ? (
+                    <StatusBadge
+                      size="sm"
+                      icon={null}
+                      variant={PartnerStatusBadges.invited.variant}
+                    >
+                      {PartnerStatusBadges.invited.label}
+                    </StatusBadge>
+                  ) : null
+                }
+              />
             );
           },
         },
@@ -453,7 +471,7 @@ export function PartnersTable() {
           ),
         },
       ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
-    [workspaceId, groups],
+    [workspaceId, groups, columnVisibility],
   );
 
   const { table, ...tableProps } = useTable({
