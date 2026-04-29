@@ -4,6 +4,7 @@ import { ImpersonateUser } from "./components/impersonate-user";
 import { ImpersonateWorkspace } from "./components/impersonate-workspace";
 import { RefreshDomain } from "./components/refresh-domain";
 import { ResetLoginAttempts } from "./components/reset-login-attempts";
+import { SlackSupportInvite } from "./components/slack-support-invite";
 
 export default function AdminPage() {
   return (
@@ -54,6 +55,14 @@ export default function AdminPage() {
           Reset a user's invalidLoginAttempts and lockedAt fields
         </p>
         <ResetLoginAttempts />
+      </div>
+      <div className="flex flex-col space-y-4 px-5 py-10">
+        <h2 className="text-xl font-semibold">Slack Support Invite</h2>
+        <p className="text-sm text-neutral-500">
+          Manually send a priority Slack Connect invite to a user for a given
+          workspace (bypasses the plan check).
+        </p>
+        <SlackSupportInvite />
       </div>
     </div>
   );
