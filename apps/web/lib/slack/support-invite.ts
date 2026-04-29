@@ -115,6 +115,10 @@ async function sendSlackConnectInvite({
     emails: [email],
   });
 
+  console.log(
+    `[slack] sent Slack Connect invite to ${email} for channel ${channelId}`,
+  );
+
   return inviteId!;
 }
 

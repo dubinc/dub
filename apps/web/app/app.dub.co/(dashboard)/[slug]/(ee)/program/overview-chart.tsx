@@ -129,8 +129,8 @@ export function OverviewChart() {
           </div>
 
           <ButtonLink
-            href={`/${slug}/program/${viewType === "commissions" ? "commissions" : "analytics"}${getQueryString(
-              undefined,
+            href={`/${slug}/program/analytics${viewType === "commissions" ? "/commissions" : ""}${getQueryString(
+              viewType === "leads" ? { event: "leads" } : {},
               {
                 include: ["interval", "start", "end"],
               },
