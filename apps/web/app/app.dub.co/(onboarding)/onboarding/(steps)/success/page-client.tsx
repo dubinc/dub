@@ -26,7 +26,7 @@ import {
   Plug2,
   Users,
 } from "@dub/ui";
-import { Slack2 } from "@dub/ui/icons";
+import { Slack } from "@dub/ui/icons";
 import { capitalize, cn, isWorkspaceBillingTrialActive } from "@dub/utils";
 import { usePlausible } from "next-plausible";
 import Link from "next/link";
@@ -304,7 +304,7 @@ export function SuccessPageClient({
             <div className="flex items-center justify-between gap-2 px-2.5 py-2">
               <div className="flex min-w-0 items-center gap-2">
                 <div className="flex size-8 items-center justify-center rounded-md bg-black/5">
-                  <Slack2 className="size-4" />
+                  <Slack className="size-4" />
                 </div>
                 <div className="min-w-0">
                   <div className="text-content-default text-sm font-medium">

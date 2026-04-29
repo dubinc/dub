@@ -46,7 +46,6 @@ export * from "./openai";
 export * from "./product-hunt";
 export * from "./reddit";
 export * from "./slack";
-export * from "./slack-2";
 export * from "./slack-colorful";
 export * from "./tiktok";
 export * from "./twitter";
