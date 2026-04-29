@@ -222,7 +222,8 @@ export function PartnersTable() {
           cell: ({ row }) => {
             const showInvitedInline =
               columnVisibility.status === false &&
-              row.original.status === ProgramEnrollmentStatus.invited;
+              row.original.status === ProgramEnrollmentStatus.invited &&
+              searchParams.get("status") !== ProgramEnrollmentStatus.invited;
 
             return (
               <PartnerRowItem
@@ -471,7 +472,7 @@ export function PartnersTable() {
           ),
         },
       ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
-    [workspaceId, groups, columnVisibility],
+    [workspaceId, groups, columnVisibility, searchParams],
   );
 
   const { table, ...tableProps } = useTable({
