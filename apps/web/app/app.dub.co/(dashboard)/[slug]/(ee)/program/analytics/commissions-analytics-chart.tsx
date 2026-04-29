@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
-import useCommissionsTimeseries from "@/lib/swr/use-commissions-timeseries";
+import useCommissionAnalytics from "@/lib/swr/use-commission-analytics";
 import {
   Areas,
   ChartContext,
@@ -63,8 +63,12 @@ export function CommissionsAnalyticsChart({
   const id = useId();
   const color = STATUS_COLORS[status ?? "all"];
 
-  const { data, loading, error } = useCommissionsTimeseries({
-    enabled: true,
+  const {
+    data,
+    isLoading: loading,
+    error,
+  } = useCommissionAnalytics({
+    groupBy: "timeseries",
     queryString,
   });
 

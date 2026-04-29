@@ -920,3 +920,8 @@ export type ApiLogsCountByRoutePattern = ApiLogsCountRow;
 export type RequestType = z.infer<typeof requestTypeSchema>;
 
 export type ApiLogTB = z.infer<typeof apiLogSchemaTB>;
+
+export type {
+  CommissionAnalyticsByGroup,
+  CommissionAnalyticsQuery,
+} from "./commissions/schema";
