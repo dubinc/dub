@@ -1,8 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
-import { ErrorCode, WebClient, type WebAPIPlatformError } from "@slack/web-api";
-
-const INTERNAL_SUPPORT_USERGROUP_ID = "S0AJUBR8Y1Y";
-const SLACK_SUPPORT_TIMEOUT_MS = 10_000;
+import { ErrorCode, type WebAPIPlatformError } from "@slack/web-api";
+import { getSlackClient } from "./client";
 
 function slackFailedWith(
   err: unknown,
@@ -18,23 +16,14 @@ function slackFailedWith(
   );
 }
 
-function getSupportSlack(): WebClient {
-  const token = process.env.DUB_SLACK_ASSISTANT_BOT_TOKEN;
-  if (!token) {
-    throw new DubApiError({
-      code: "internal_server_error",
-      message: "Priority Slack support is not available right now.",
-    });
-  }
-  return new WebClient(token, { timeout: SLACK_SUPPORT_TIMEOUT_MS });
-}
+const INTERNAL_SUPPORT_USERGROUP_ID = "S0AJUBR8Y1Y";
 
 async function inviteInternalSupportMembersToChannel({
   channelId,
 }: {
   channelId: string;
 }): Promise<void> {
-  const slack = getSupportSlack();
+  const slack = getSlackClient();
   const listed = await slack.usergroups.users.list({
     usergroup: INTERNAL_SUPPORT_USERGROUP_ID,
   });
@@ -87,7 +76,7 @@ async function createSharedCustomerChannel({
   workspaceSlug: string;
 }): Promise<{ channelId: string } | { nameTaken: true }> {
   const name = sharedSupportChannelName({ workspaceSlug });
-  const slack = getSupportSlack();
+  const slack = getSlackClient();
 
   try {
     const { channel } = await slack.conversations.create({
@@ -118,7 +107,7 @@ async function sendSlackConnectInvite({
   channelId: string;
   email: string;
 }): Promise<string> {
-  const slack = getSupportSlack();
+  const slack = getSlackClient();
   await inviteInternalSupportMembersToChannel({ channelId });
 
   const { invite_id: inviteId } = await slack.conversations.inviteShared({
@@ -142,15 +131,17 @@ export async function requestSlackConnectSupportInvite({
     throw new DubApiError({
       code: "conflict",
       message:
-        "Your workspace already has a Dub support channel. Ask your Slack admin to add you to it.",
+        "Your workspace already has a Dub support channel. Please ask your Slack admin to add you to it.",
     });
   }
 
+  const inviteId = await sendSlackConnectInvite({
+    channelId: result.channelId,
+    email,
+  });
+
   return {
-    inviteId: await sendSlackConnectInvite({
-      channelId: result.channelId,
-      email,
-    }),
+    inviteId,
   };
 }
 
