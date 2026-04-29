@@ -17,6 +17,8 @@ export function ProgramRewardDescription({
     | "event"
     | "maxDuration"
     | "modifiers"
+    | "spendLimitAmount"
+    | "spendLimitInterval"
     | "tooltipDescription"
     | "type"
     | "amountInCents"
@@ -65,6 +67,23 @@ export function ProgramRewardDescription({
               ) : null}
             </>
           )}
+
+          {/* Spend limit */}
+          {reward.spendLimitAmount != null &&
+          reward.spendLimitInterval != null ? (
+            <>
+              {" "}
+              <span className={cn(periodClassName)}>
+                with a spend limit of{" "}
+                <strong className={cn("font-semibold", amountClassName)}>
+                  ${reward.spendLimitAmount / 100}{" "}
+                </strong>
+                {reward.spendLimitInterval === "allTime"
+                  ? "all-time"
+                  : `per ${reward.spendLimitInterval}`}
+              </span>
+            </>
+          ) : null}
 
           {/* Modifiers */}
           {showModifiersTooltip &&

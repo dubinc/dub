@@ -143,6 +143,10 @@ export const getRewardPayload = ({ data }: { data: FormData }) => {
     ...amount,
     maxDuration:
       Infinity === Number(data.maxDuration) ? null : data.maxDuration,
+    spendLimitAmount:
+      data.spendLimitAmount == null || data.spendLimitInterval == null
+        ? null
+        : Math.round(Number(data.spendLimitAmount) * 100),
     modifiers,
   };
 };
@@ -184,6 +188,11 @@ function RewardSheetContent({
         defaultValuesSource?.amountInPercentage != null
           ? defaultValuesSource.amountInPercentage
           : undefined,
+      spendLimitAmount:
+        defaultValuesSource?.spendLimitAmount != null
+          ? defaultValuesSource.spendLimitAmount / 100
+          : null,
+      spendLimitInterval: defaultValuesSource?.spendLimitInterval ?? null,
       description: defaultValuesSource?.description ?? null,
       tooltipDescription: defaultValuesSource?.tooltipDescription ?? null,
       modifiers: defaultValuesSource?.modifiers?.map((m) => {
@@ -224,6 +233,8 @@ function RewardSheetContent({
     amountInPercentage,
     type,
     maxDuration,
+    spendLimitAmount,
+    spendLimitInterval,
     description,
     tooltipDescription,
     modifiers,
@@ -233,6 +244,8 @@ function RewardSheetContent({
     "amountInPercentage",
     "type",
     "maxDuration",
+    "spendLimitAmount",
+    "spendLimitInterval",
     "description",
     "tooltipDescription",
     "modifiers",
@@ -240,6 +253,8 @@ function RewardSheetContent({
 
   // Compute amount based on type
   const amount = type === "flat" ? amountInCents : amountInPercentage;
+  const spendLimitEnabled =
+    spendLimitAmount != null && spendLimitInterval != null;
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -455,6 +470,87 @@ function RewardSheetContent({
                           </InlineBadgePopover>
                         </>
                       )}
+                      {", "}with{" "}
+                      <InlineBadgePopover
+                        text={
+                          spendLimitEnabled
+                            ? "a spend limit of"
+                            : "no spend limit"
+                        }
+                      >
+                        <InlineBadgePopoverMenu
+                          selectedValue={spendLimitEnabled ? "limit" : "none"}
+                          onSelect={(value) => {
+                            if (value === "none") {
+                              setValue("spendLimitAmount", null, {
+                                shouldDirty: true,
+                              });
+                              setValue("spendLimitInterval", null, {
+                                shouldDirty: true,
+                              });
+                            } else {
+                              setValue(
+                                "spendLimitAmount",
+                                spendLimitAmount ?? 100,
+                                {
+                                  shouldDirty: true,
+                                },
+                              );
+                              setValue(
+                                "spendLimitInterval",
+                                spendLimitInterval ?? "allTime",
+                                {
+                                  shouldDirty: true,
+                                },
+                              );
+                            }
+                          }}
+                          items={[
+                            { text: "no spend limit", value: "none" },
+                            { text: "a spend limit of", value: "limit" },
+                          ]}
+                        />
+                      </InlineBadgePopover>{" "}
+                      {spendLimitEnabled ? (
+                        <>
+                          <InlineBadgePopover
+                            text={
+                              spendLimitAmount != null &&
+                              !isNaN(spendLimitAmount)
+                                ? `$${spendLimitAmount}`
+                                : "amount"
+                            }
+                            invalid={
+                              spendLimitAmount == null ||
+                              isNaN(spendLimitAmount)
+                            }
+                          >
+                            <SpendLimitAmountInput />
+                          </InlineBadgePopover>{" "}
+                          <InlineBadgePopover
+                            text={
+                              spendLimitInterval === "allTime"
+                                ? "all-time"
+                                : `per ${spendLimitInterval}`
+                            }
+                          >
+                            <InlineBadgePopoverMenu
+                              selectedValue={spendLimitInterval ?? "allTime"}
+                              onSelect={(value) =>
+                                setValue("spendLimitInterval", value as any, {
+                                  shouldDirty: true,
+                                })
+                              }
+                              items={[
+                                { text: "all-time", value: "allTime" },
+                                { text: "per day", value: "day" },
+                                { text: "per week", value: "week" },
+                                { text: "per month", value: "month" },
+                              ]}
+                            />
+                          </InlineBadgePopover>
+                        </>
+                      ) : null}
                       {modifiers?.length ? (
                         <> for all other {selectedEvent}s</>
                       ) : null}
@@ -758,6 +854,40 @@ function AmountInput() {
       />
       <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
         {type === "flat" ? "USD" : "%"}
+      </span>
+    </div>
+  );
+}
+
+function SpendLimitAmountInput() {
+  const { register } = useAddEditRewardForm();
+  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  return (
+    <div className="relative rounded-md shadow-sm">
+      <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
+        $
+      </span>
+      <input
+        className="block w-full rounded-md border-neutral-300 px-1.5 py-1 pl-4 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm"
+        {...register("spendLimitAmount", {
+          required: true,
+          setValueAs: (value: string) => (value === "" ? null : +value),
+          min: 0,
+          onChange: handleMoneyInputChange,
+        })}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            setIsOpen(false);
+            return;
+          }
+
+          handleMoneyKeyDown(e);
+        }}
+      />
+      <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
+        USD
       </span>
     </div>
   );

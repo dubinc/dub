@@ -36,6 +36,7 @@ export {
   ProgramPayoutMode,
   RewardStructure,
   SalesChannel,
+  SpendLimitInterval,
   WebhookReceiver,
   WorkflowTrigger,
   WorkspaceRole,

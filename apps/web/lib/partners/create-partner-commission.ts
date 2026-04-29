@@ -24,6 +24,7 @@ import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
+import { getCappedEarnings } from "./clamp-earnings-to-spend-limit";
 import { determinePartnerReward } from "./determine-partner-reward";
 import { getRewardAmount } from "./get-reward-amount";
 
@@ -275,6 +276,31 @@ export const createPartnerCommission = async ({
         });
       }
     }
+  }
+
+  if (
+    reward &&
+    reward.spendLimitAmount != null &&
+    reward.spendLimitInterval != null
+  ) {
+    earnings = await getCappedEarnings({
+      programEnrollment,
+      reward,
+      earnings,
+    });
+  }
+
+  // If spend limit clamped earnings to 0, skip commission creation
+  if (earnings === 0) {
+    console.log(
+      `Earnings for partner ${partnerId} for ${event} event are 0 after spend limit clamping, skipping commission creation...`,
+    );
+
+    return {
+      commission: null,
+      programEnrollment,
+      webhookPartner: constructWebhookPartner(programEnrollment),
+    };
   }
 
   try {
