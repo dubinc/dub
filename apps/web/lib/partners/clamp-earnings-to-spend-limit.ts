@@ -10,7 +10,11 @@ import {
 } from "date-fns";
 import { RewardProps } from "../types";
 
-function getSpendLimitWindow({ interval }: { interval: SpendLimitInterval }) {
+export function getSpendLimitWindow({
+  interval,
+}: {
+  interval: SpendLimitInterval;
+}) {
   const date = new Date();
 
   if (interval === "day") {

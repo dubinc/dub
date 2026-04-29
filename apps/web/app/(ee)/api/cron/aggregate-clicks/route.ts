@@ -26,6 +26,9 @@ const schema = z.object({
   batchNumber: z.number().optional().default(1),
 });
 
+// TODO:
+// Fix Cross-batch leak
+
 // This route is used aggregate clicks events on daily basis for Program links and add to the Commission table
 // Runs every day at 00:00 (0 0 * * *)
 // GET /api/cron/aggregate-clicks
@@ -168,6 +171,48 @@ async function handler(req: Request) {
       }
     }
 
+    // Get existing commissions for the links
+    const programIds = linksWithClickRewards
+      .map(({ programId }) => programId)
+      .filter((id): id is string => id !== null);
+
+    const partnerIds = linksWithClickRewards
+      .map(({ partnerId }) => partnerId)
+      .filter((id): id is string => id !== null);
+
+    const existingCommissions = await prisma.commission.groupBy({
+      by: ["programId", "partnerId"],
+      where: {
+        programId: {
+          in: programIds,
+        },
+        partnerId: {
+          in: partnerIds,
+        },
+        status: {
+          in: ["pending", "processed", "paid"],
+        },
+        type: CommissionType.click,
+      },
+      _sum: {
+        earnings: true,
+      },
+    });
+
+    // Create a map for easy lookup programId:partnerId
+    const historicalEarningsMap = new Map<string, { earnings: number }>();
+
+    for (const commission of existingCommissions) {
+      const key = `${commission.programId}-${commission.partnerId}`;
+      historicalEarningsMap.set(key, {
+        earnings: commission._sum.earnings ?? 0,
+      });
+    }
+
+    // Tracks earnings already allocated in *this* batch so multiple links
+    // for the same (program, partner) pair share the spend limit budget.
+    const usedSpendLimitMap = new Map<string, number>();
+
     // Create commissions for each link
     const commissionsToCreate = linksWithClickRewards
       .map(({ id, programId, partnerId, programEnrollment }) => {
@@ -175,7 +220,7 @@ async function handler(req: Request) {
           return null;
         }
 
-        const { linkClicks, earnings } = linkEarningsMap.get(id) || {
+        let { linkClicks, earnings } = linkEarningsMap.get(id) || {
           linkClicks: 0,
           earnings: 0,
         };
@@ -183,6 +228,29 @@ async function handler(req: Request) {
         if (linkClicks === 0 || earnings === 0) {
           return null;
         }
+
+        // Cap earnings to spend limit
+        const key = `${programId}-${partnerId}`;
+        const spendLimitAmount = programEnrollment.clickReward.spendLimitAmount;
+
+        if (spendLimitAmount) {
+          const historicalEarnings =
+            historicalEarningsMap.get(key)?.earnings ?? 0;
+          const usedThisBatch = usedSpendLimitMap.get(key) ?? 0;
+          const remaining =
+            spendLimitAmount - historicalEarnings - usedThisBatch;
+
+          earnings = Math.max(0, Math.min(earnings, remaining));
+        }
+
+        if (earnings === 0) {
+          return null;
+        }
+
+        usedSpendLimitMap.set(
+          key,
+          (usedSpendLimitMap.get(key) ?? 0) + earnings,
+        );
 
         return {
           id: createId({ prefix: "cm_" }),
