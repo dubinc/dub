@@ -105,7 +105,7 @@ export async function invoicePaid(
 
   if (!ok) {
     console.info(
-      "[Stripe Webhook] Skipping already processed invoice.",
+      "[invoice.paid] Skipping already processed invoice.",
       invoiceId,
     );
     return {
@@ -244,6 +244,10 @@ export async function invoicePaid(
     | undefined = undefined;
 
   if (link.programId && link.partnerId) {
+    const productIds = invoice.lines.data
+      .map(({ pricing }) => pricing?.price_details?.product)
+      .filter((productId) => productId != null);
+
     createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
@@ -261,7 +265,7 @@ export async function invoicePaid(
           signupDate: customer.createdAt,
         },
         sale: {
-          productId: invoice.lines.data[0]?.pricing?.price_details?.product,
+          productIds,
           amount: saleData.amount,
         },
       },

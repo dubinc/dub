@@ -27,7 +27,7 @@ import { Customer, Project } from "@dub/prisma/client";
 import { COUNTRIES_TO_CONTINENTS, nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
-import { getCheckoutSessionProductId } from "./utils/get-checkout-session-product-id";
+import { getCheckoutSessionProductIds } from "./utils/get-checkout-session-product-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 import { getPromotionCode } from "./utils/get-promotion-code";
 import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
@@ -358,9 +358,10 @@ export async function checkoutSessionCompleted(
 
     if (!ok) {
       console.info(
-        "[Stripe Webhook] Skipping already processed invoice.",
+        "[checkout.session.completed] Skipping already processed invoice.",
         invoiceId,
       );
+
       return {
         response: `Invoice with ID ${invoiceId} already processed, skipping...`,
         workspaceId: workspace.id,
@@ -483,7 +484,7 @@ export async function checkoutSessionCompleted(
     | undefined = undefined;
 
   if (link && link.programId && link.partnerId) {
-    const productId = await getCheckoutSessionProductId({
+    const productIds = await getCheckoutSessionProductIds({
       checkoutSessionId: charge.id,
       stripeAccountId,
       mode,
@@ -506,7 +507,7 @@ export async function checkoutSessionCompleted(
           signupDate: customer.createdAt,
         },
         sale: {
-          productId,
+          productIds,
           amount: saleData.amount,
         },
       },

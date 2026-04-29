@@ -2,7 +2,7 @@ import { stripeAppClient } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
 import type Stripe from "stripe";
 
-function productIdFromLineItemPrice(
+export function productIdFromLineItemPrice(
   price: Stripe.Price | string | null | undefined,
 ): string | null {
   if (!price || typeof price === "string") {
@@ -26,7 +26,7 @@ function productIdFromLineItemPrice(
   return product.id;
 }
 
-export async function getCheckoutSessionProductId({
+export async function getCheckoutSessionProductIds({
   checkoutSessionId,
   stripeAccountId,
   mode,
@@ -34,15 +34,17 @@ export async function getCheckoutSessionProductId({
   checkoutSessionId: string;
   stripeAccountId?: string | null;
   mode: StripeMode;
-}): Promise<string | null> {
+}): Promise<string[] | null> {
   if (!stripeAccountId) {
     return null;
   }
 
   try {
-    const lineItems = await stripeAppClient({
+    const stripeApp = stripeAppClient({
       mode,
-    }).checkout.sessions.listLineItems(
+    });
+
+    const lineItems = await stripeApp.checkout.sessions.listLineItems(
       checkoutSessionId,
       {
         expand: ["data.price.product"],
@@ -53,16 +55,30 @@ export async function getCheckoutSessionProductId({
       },
     );
 
-    for (const item of lineItems.data) {
-      const productId = productIdFromLineItemPrice(item.price);
-      if (productId) {
-        return productId;
-      }
+    if (lineItems.data.length === 0) {
+      console.log(
+        `[getCheckoutSessionProductIds] No line items found for checkout session ${checkoutSessionId}.`,
+      );
+      return null;
     }
 
-    return null;
+    const productIds = lineItems.data
+      .map((item) => productIdFromLineItemPrice(item.price))
+      .filter((productId) => productId !== null);
+
+    if (productIds.length === 0) {
+      console.log(
+        `[getCheckoutSessionProductIds] No valid product IDs found for checkout session ${checkoutSessionId}.`,
+      );
+      return null;
+    }
+
+    return productIds;
   } catch (error) {
-    console.log("Failed to get checkout session product ID:", error);
+    console.log(
+      "[getCheckoutSessionProductIds] Failed to get checkout session product ID:",
+      error,
+    );
     return null;
   }
 }
