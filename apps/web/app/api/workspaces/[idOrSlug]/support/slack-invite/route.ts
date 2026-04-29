@@ -59,13 +59,14 @@ export const POST = withWorkspace(
     }
 
     const { inviteId } = await requestSlackConnectSupportInvite({
-      email,
       workspaceSlug: workspace.slug,
+      email,
     });
 
     return NextResponse.json({ inviteId });
   },
   {
+    requiredPlan: ["advanced", "enterprise"],
     requiredPermissions: ["workspaces.write"],
   },
 );
