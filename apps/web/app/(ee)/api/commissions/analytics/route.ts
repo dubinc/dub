@@ -384,7 +384,6 @@ async function byPartnerId({
     _sum: { earnings: true },
     _count: { _all: true },
     orderBy: { _sum: { earnings: "desc" } },
-    take: 100,
   });
 
   if (grouped.length === 0) {

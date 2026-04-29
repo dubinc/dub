@@ -12,7 +12,7 @@ import { AnimatedSizeContainer, Button, CircleCheckFill } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
 import { usePlausible } from "next-plausible";
 import { useAction } from "next-safe-action/hooks";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { useOnboardingProgress } from "../../../use-onboarding-progress";
@@ -49,6 +49,7 @@ const PAYOUT_MODELS = [
 
 export function Form() {
   const { continueTo } = useOnboardingProgress();
+  const rewardAmountInputId = useId();
 
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const { id: workspaceId, mutate } = useWorkspace();
@@ -404,12 +405,15 @@ export function Form() {
               </div>
             )}
 
-            <label className="space-y-2">
+            <div className="space-y-2">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-content-emphasis block text-sm font-semibold">
+                <label
+                  htmlFor={rewardAmountInputId}
+                  className="text-content-emphasis block text-sm font-semibold"
+                >
                   {type === "percentage" ? "Percentage" : "Amount"} per{" "}
                   {defaultRewardType}
-                </span>
+                </label>
                 <RewardQualityFieldIndicator
                   event={defaultRewardType as EventType}
                   type={type}
@@ -429,6 +433,7 @@ export function Form() {
                   {type === "flat" && "$"}
                 </span>
                 <input
+                  id={rewardAmountInputId}
                   className={cn(
                     "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                     type === "flat" ? "pl-6 pr-12" : "pr-7",
@@ -449,7 +454,7 @@ export function Form() {
                   {type === "flat" ? "USD" : "%"}
                 </span>
               </div>
-            </label>
+            </div>
           </div>
         </AnimatedSizeContainer>
       </div>
