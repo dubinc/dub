@@ -45,6 +45,11 @@ export type CreatePartnerCommissionProps = {
   skipWorkflow?: boolean;
 };
 
+type RewardWithProduct = {
+  reward: RewardProps;
+  sale: { amount: number; quantity: number };
+};
+
 const constructWebhookPartner = (
   programEnrollment: ProgramEnrollment & { partner: Partner; links: Link[] },
   {
@@ -79,8 +84,9 @@ export const createPartnerCommission = async ({
   skipWorkflow = false,
 }: CreatePartnerCommissionProps) => {
   let earnings = 0;
-  let reward: RewardProps | null = null;
   let status: CommissionStatus = "pending";
+  let reward: RewardProps | null = null;
+  let rewards: RewardWithProduct[] = []; // TODO: Find a better name
 
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId,
@@ -141,17 +147,64 @@ export const createPartnerCommission = async ({
       };
     }
 
-    reward = determinePartnerReward({
-      event,
-      programEnrollment,
-      context,
-    });
+    // Sale event products
+    const products = context?.sale?.products ?? [];
+
+    if (products.length > 0) {
+      for (const product of products) {
+        const reward = determinePartnerReward({
+          event,
+          programEnrollment,
+          context: {
+            ...context,
+            sale: {
+              ...context?.sale,
+              productId: product.id,
+              amount: product.amount,
+            },
+          },
+        });
+
+        if (reward) {
+          rewards.push({
+            reward,
+            sale: {
+              amount: product.amount,
+              quantity: product.quantity,
+            },
+          });
+        }
+      }
+
+      if (rewards.length > 0) {
+        reward = rewards[0].reward;
+      }
+    } else {
+      reward = determinePartnerReward({
+        event,
+        programEnrollment,
+        context,
+      });
+
+      if (reward) {
+        rewards.push({
+          reward,
+          sale: {
+            quantity,
+            amount,
+          },
+        });
+      }
+    }
+
+    console.log("rewards calculated", rewards);
 
     // if there is no reward, skip commission creation
     if (!reward) {
       console.log(
         `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
       );
+
       return {
         commission: null,
         programEnrollment,
@@ -198,6 +251,7 @@ export const createPartnerCommission = async ({
         } else {
           if (
             firstCommission.rewardId &&
+            reward &&
             firstCommission.rewardId !== reward.id
           ) {
             const originalReward = await prisma.reward.findUnique({
@@ -267,12 +321,18 @@ export const createPartnerCommission = async ({
       // for lead events, we just multiply the reward amount by the quantity
       if (event === "lead") {
         earnings = getRewardAmount(reward) * quantity;
-        // for sale events, we need to calculate the earnings based on the sale amount
-      } else {
-        earnings = calculateSaleEarnings({
-          reward,
-          sale: { quantity, amount },
-        });
+      }
+      // for sale events, we need to calculate the earnings based on the sale amount
+      else {
+        earnings = rewards.reduce(
+          (acc, { reward, sale }) =>
+            acc +
+            calculateSaleEarnings({
+              reward,
+              sale,
+            }),
+          0,
+        );
       }
     }
   }
