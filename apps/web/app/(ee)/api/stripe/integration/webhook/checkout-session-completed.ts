@@ -27,7 +27,7 @@ import { Customer, Project } from "@dub/prisma/client";
 import { COUNTRIES_TO_CONTINENTS, nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
-import { getCheckoutSessionProductIds } from "./utils/get-checkout-session-product-id";
+import { getCheckoutSessionProducts } from "./utils/get-checkout-session-product-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 import { getPromotionCode } from "./utils/get-promotion-code";
 import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
@@ -484,7 +484,7 @@ export async function checkoutSessionCompleted(
     | undefined = undefined;
 
   if (link && link.programId && link.partnerId) {
-    const productIds = await getCheckoutSessionProductIds({
+    const products = await getCheckoutSessionProducts({
       checkoutSessionId: charge.id,
       stripeAccountId,
       mode,
@@ -507,7 +507,7 @@ export async function checkoutSessionCompleted(
           signupDate: customer.createdAt,
         },
         sale: {
-          productIds,
+          products,
           amount: saleData.amount,
         },
       },

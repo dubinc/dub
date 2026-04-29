@@ -377,9 +377,18 @@ export const rewardContextSchema = z.object({
 
   sale: z
     .object({
-      // productId: z.string().nullish(),
-      productIds: z.array(z.string()).nullish(),
+      productId: z.string().nullish(),
       amount: z.number().nullish(),
+      products: z
+        .array(
+          z.object({
+            id: z.string(),
+            amount: z.number(),
+            quantity: z.number(),
+          }),
+        )
+        .nullish()
+        .describe("Only used in Stripe integration."),
     })
     .optional(),
 

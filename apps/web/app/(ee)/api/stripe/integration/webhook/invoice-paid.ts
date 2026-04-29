@@ -244,9 +244,22 @@ export async function invoicePaid(
     | undefined = undefined;
 
   if (link.programId && link.partnerId) {
-    const productIds = invoice.lines.data
-      .map(({ pricing }) => pricing?.price_details?.product)
-      .filter((productId) => productId != null);
+    const products = invoice.lines.data
+      .map((line) => {
+        const productId = line.pricing?.price_details?.product;
+
+        if (!productId) return null;
+
+        return {
+          id: productId,
+          amount: line.amount,
+          quantity: line.quantity ?? 1,
+        };
+      })
+      .filter(
+        (p): p is { id: string; amount: number; quantity: number } =>
+          p !== null,
+      );
 
     createdCommission = await createPartnerCommission({
       event: "sale",
@@ -265,7 +278,7 @@ export async function invoicePaid(
           signupDate: customer.createdAt,
         },
         sale: {
-          productIds,
+          products,
           amount: saleData.amount,
         },
       },

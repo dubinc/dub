@@ -26,7 +26,7 @@ export function productIdFromLineItemPrice(
   return product.id;
 }
 
-export async function getCheckoutSessionProductIds({
+export async function getCheckoutSessionProducts({
   checkoutSessionId,
   stripeAccountId,
   mode,
@@ -34,9 +34,9 @@ export async function getCheckoutSessionProductIds({
   checkoutSessionId: string;
   stripeAccountId?: string | null;
   mode: StripeMode;
-}): Promise<string[] | null> {
+}) {
   if (!stripeAccountId) {
-    return null;
+    return [];
   }
 
   try {
@@ -57,28 +57,41 @@ export async function getCheckoutSessionProductIds({
 
     if (lineItems.data.length === 0) {
       console.log(
-        `[getCheckoutSessionProductIds] No line items found for checkout session ${checkoutSessionId}.`,
+        `[getCheckoutSessionProducts] No line items found for checkout session ${checkoutSessionId}.`,
       );
-      return null;
+      return [];
     }
 
-    const productIds = lineItems.data
-      .map((item) => productIdFromLineItemPrice(item.price))
-      .filter((productId) => productId !== null);
+    const products = lineItems.data
+      .map((line) => {
+        const productId = productIdFromLineItemPrice(line.price);
 
-    if (productIds.length === 0) {
+        if (!productId) return null;
+
+        return {
+          id: productId,
+          amount: line.amount_total,
+          quantity: line.quantity ?? 1,
+        };
+      })
+      .filter(
+        (p): p is { id: string; amount: number; quantity: number } =>
+          p !== null,
+      );
+
+    if (products.length === 0) {
       console.log(
-        `[getCheckoutSessionProductIds] No valid product IDs found for checkout session ${checkoutSessionId}.`,
+        `[getCheckoutSessionProducts] No valid products found for checkout session ${checkoutSessionId}.`,
       );
-      return null;
+      return [];
     }
 
-    return productIds;
+    return products;
   } catch (error) {
     console.log(
-      "[getCheckoutSessionProductIds] Failed to get checkout session product ID:",
+      "[getCheckoutSessionProducts] Failed to get checkout session products:",
       error,
     );
-    return null;
+    return [];
   }
 }
