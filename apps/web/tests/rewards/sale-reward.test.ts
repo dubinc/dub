@@ -210,6 +210,7 @@ describe.concurrent("Sale rewards with conditions", async () => {
       body: {
         ...firstSale,
         customerExternalId: customer.externalId,
+        amount: 10000,
       },
     });
 
@@ -224,6 +225,7 @@ describe.concurrent("Sale rewards with conditions", async () => {
       body: {
         ...secondSale,
         customerExternalId: customer.externalId,
+        amount: 10000,
       },
     });
 
