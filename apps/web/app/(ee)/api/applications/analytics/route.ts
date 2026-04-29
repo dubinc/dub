@@ -69,10 +69,10 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const where: Prisma.ProgramApplicationEventWhereInput = {
     programId,
-    ...(partnerId && { partnerId }),
+    ...(partnerId && { referredByPartnerId: partnerId }),
+    ...(groupId && { programEnrollment: { groupId } }),
     ...(country && { country }),
     ...(referralSource && { referralSource }),
-    ...(groupId && { programEnrollment: { groupId } }),
     visitedAt: {
       gte: startDate,
       lt: endDate,
@@ -149,13 +149,13 @@ async function byPartner({
   where: Prisma.ProgramApplicationEventWhereInput;
 }) {
   const events = await prisma.programApplicationEvent.groupBy({
-    by: ["partnerId"],
+    by: ["referredByPartnerId"],
     where,
     ...aggregations,
   });
 
   const partnerIds = events
-    .map(({ partnerId }) => partnerId)
+    .map(({ referredByPartnerId }) => referredByPartnerId)
     .filter((id): id is string => Boolean(id));
 
   const partners =
@@ -178,7 +178,9 @@ async function byPartner({
   const partnerById = new Map(partners.map((p) => [p.id, p]));
 
   const results = events.map((row) => ({
-    partner: row.partnerId ? partnerById.get(row.partnerId) ?? null : null,
+    partner: row.referredByPartnerId
+      ? partnerById.get(row.referredByPartnerId) ?? null
+      : null,
     ...formatCounts(row._count),
   }));
 
