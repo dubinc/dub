@@ -8,7 +8,8 @@ type EnqueueBatchJobsProps = PublishBatchRequest<unknown> & {
     | "send-partner-summary"
     | "create-discount-code"
     | "sync-bounty-social-metrics"
-    | "process-hubspot-webhook";
+    | "process-hubspot-webhook"
+    | "delete-discount-code";
 };
 
 // Generic helper to enqueue a batch of QStash jobs.

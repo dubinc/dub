@@ -1,6 +1,6 @@
-import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { linkCache } from "@/lib/api/links/cache";
 import { withCron } from "@/lib/cron/with-cron";
+import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { sendBatchEmail } from "@dub/email";
 import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
 import { prisma } from "@dub/prisma";
@@ -37,7 +37,15 @@ export const POST = withCron(async ({ rawBody }) => {
         },
       },
       links: true,
-      discountCodes: true,
+      discountCodes: {
+        include: {
+          discount: {
+            select: {
+              provider: true,
+            },
+          },
+        },
+      },
     },
   });
 

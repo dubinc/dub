@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -33,6 +34,7 @@ export const deleteProgramInviteAction = authActionClient
             partnerId,
             programId,
           },
+          status: "invited", // can only delete invited enrollments
         },
         include: {
           program: true,
@@ -41,8 +43,8 @@ export const deleteProgramInviteAction = authActionClient
         },
       });
 
-    if (programEnrollment.status !== "invited") {
-      throw new Error("Invite not found.");
+    if (programEnrollment.totalCommissions > 0) {
+      throw new Error("Partner has commissions, cannot delete invite.");
     }
 
     // only delete links that have don't have sales / leads
@@ -51,18 +53,27 @@ export const deleteProgramInviteAction = authActionClient
     );
 
     await Promise.allSettled([
-      prisma.programEnrollment.delete({
-        where: {
-          id: programEnrollment.id,
-        },
-      }),
-
       prisma.link.deleteMany({
         where: { id: { in: linksToDelete.map((link) => link.id) } },
       }),
-
       bulkDeleteLinks(linksToDelete),
+      prisma.discoveredPartner.delete({
+        where: {
+          programId_partnerId: {
+            partnerId,
+            programId,
+          },
+        },
+      }),
+    ]);
 
+    await prisma.programEnrollment.delete({
+      where: {
+        id: programEnrollment.id,
+      },
+    });
+
+    waitUntil(
       recordAuditLog({
         workspaceId: workspace.id,
         programId,
@@ -77,5 +88,5 @@ export const deleteProgramInviteAction = authActionClient
           },
         ],
       }),
-    ]);
+    );
   });

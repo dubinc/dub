@@ -1,7 +1,5 @@
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { createDiscountCode } from "./create-discount-code";
 
 export async function generateDiscountCodeForPartner({
@@ -39,28 +37,11 @@ export async function generateDiscountCodeForPartner({
       id: workspaceId,
     },
     select: {
+      id: true,
       stripeConnectId: true,
-      installedIntegrations: {
-        where: {
-          integrationId: STRIPE_INTEGRATION_ID,
-        },
-      },
+      shopifyStoreId: true,
     },
   });
-
-  if (!workspace.stripeConnectId) {
-    console.log("Workspace does not have stripeConnectId");
-    return;
-  }
-
-  if (!workspace.installedIntegrations.length) {
-    console.log("Workspace does not have the Stripe integration installed");
-    return;
-  }
-
-  const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-    workspace.installedIntegrations[0].settings || {},
-  );
 
   const partnerDefaultLink = await prisma.link.findFirst({
     where: {
@@ -87,8 +68,7 @@ export async function generateDiscountCodeForPartner({
 
   try {
     await createDiscountCode({
-      stripeConnectId: workspace.stripeConnectId,
-      stripeMode: stripeIntegrationSettings.stripeMode,
+      workspace,
       partner,
       link: partnerDefaultLink,
       discount: group.discount,

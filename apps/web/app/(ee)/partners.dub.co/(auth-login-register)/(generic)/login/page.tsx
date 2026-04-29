@@ -1,11 +1,12 @@
+import { SSO_LOGIN_PROGRAMS } from "@/lib/auth/sso-login-programs";
 import { getProgram } from "@/lib/fetchers/get-program";
 import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
-import { FramerButton } from "@/ui/auth/login/framer-button";
 import LoginForm from "@/ui/auth/login/login-form";
 import { AuthLayout } from "@/ui/layout/auth-layout";
 import { cn, constructMetadata } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { SSOLoginButton } from "./sso-login-button";
 
 export const metadata = constructMetadata({
   fullTitle: "Login to partners.dub.co",
@@ -16,25 +17,29 @@ export default async function LoginPage(props: {
 }) {
   const { programSlug } = await props.params;
 
-  if (programSlug === "framer") {
+  const customSSOLoginProgram = programSlug
+    ? SSO_LOGIN_PROGRAMS.find((program) => program.slug === programSlug)
+    : undefined;
+
+  if (customSSOLoginProgram) {
     return (
       <AuthLayout showTerms="partners">
         <div className="mx-auto my-10 flex w-full max-w-sm flex-col gap-8">
           <div className="animate-slide-up-fade relative flex w-auto flex-col items-center [--offset:10px] [animation-duration:1.3s] [animation-fill-mode:both]">
             <img
-              src="https://assets.dub.co/testimonials/companies/framer.svg"
-              alt="Framer Logo"
+              src={customSSOLoginProgram.logo}
+              alt={`${customSSOLoginProgram.name} Logo`}
               className="h-8"
             />
           </div>
           <div className="animate-slide-up-fade flex flex-col items-center justify-center gap-2 [--offset:10px] [animation-delay:0.15s] [animation-duration:1.3s] [animation-fill-mode:both]">
             <h1 className="text-lg font-medium text-neutral-800">
-              Sign in to Framer Partners
+              Sign in to {customSSOLoginProgram.name} Partners
             </h1>
             <p className="text-center text-sm text-neutral-700">
-              Not a Framer Partner?&nbsp;
+              Not a {customSSOLoginProgram.name} Partner?&nbsp;
               <a
-                href="https://www.framer.com/creators"
+                href={customSSOLoginProgram.applyUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-normal underline decoration-dotted underline-offset-2 transition-colors hover:text-black"
@@ -45,7 +50,10 @@ export default async function LoginPage(props: {
           </div>
 
           <div className="animate-slide-up-fade [--offset:10px] [animation-delay:0.3s] [animation-duration:1.3s] [animation-fill-mode:both]">
-            <FramerButton />
+            <SSOLoginButton
+              name={customSSOLoginProgram.name}
+              slug={customSSOLoginProgram.slug}
+            />
           </div>
         </div>
       </AuthLayout>

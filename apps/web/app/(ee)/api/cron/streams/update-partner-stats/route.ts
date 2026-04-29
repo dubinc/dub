@@ -4,7 +4,7 @@ import { conn } from "@/lib/planetscale";
 import {
   PartnerActivityEvent,
   partnerActivityStream,
-} from "@/lib/upstash/redis-streams";
+} from "@/lib/upstash/redis-streams/partner-activity";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollment } from "@dub/prisma/client";
 import { toCentsNumber } from "@dub/utils";

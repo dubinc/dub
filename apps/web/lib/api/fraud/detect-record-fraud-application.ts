@@ -13,8 +13,7 @@ interface FraudApplicationContext {
   };
 }
 
-// Detect and record fraud events for the partner when they apply to a program
-// Checks for cross-program bans and duplicate payout methods
+// Detect and record fraud events for the partner when they apply to a program (partnerDuplicateAccount fraud rule)
 export async function detectAndRecordFraudApplication({
   context: { program, partner },
 }: {

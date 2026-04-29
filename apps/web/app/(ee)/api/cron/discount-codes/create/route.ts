@@ -1,8 +1,7 @@
-import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
 import { withCron } from "@/lib/cron/with-cron";
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
+import { createDiscountCode } from "@/lib/discounts/create-discount-code";
+import { isDiscountIntegrationNotAvailableError } from "@/lib/discounts/discount-error";
 import { prisma } from "@dub/prisma";
-import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -46,11 +45,7 @@ export const POST = withCron(async ({ rawBody }) => {
         select: {
           id: true,
           stripeConnectId: true,
-          installedIntegrations: {
-            where: {
-              integrationId: STRIPE_INTEGRATION_ID,
-            },
-          },
+          shopifyStoreId: true,
         },
       },
     },
@@ -76,20 +71,10 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const { project: workspace, programEnrollment } = link;
-  const { partner, discount, program } = programEnrollment;
-
-  if (!workspace.stripeConnectId) {
-    return logAndRespond(
-      `Workspace ${workspace.id} does not have stripeConnectId set. Skipping...`,
-    );
-  }
-
-  if (!workspace.installedIntegrations.length) {
-    return logAndRespond(
-      `Workspace ${workspace.id} does not have the Stripe integration installed. Skipping...`,
-    );
-  }
+  const {
+    project: workspace,
+    programEnrollment: { program, partner, discount },
+  } = link;
 
   if (!discount) {
     return logAndRespond(
@@ -97,17 +82,22 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-    workspace.installedIntegrations[0].settings || {},
-  );
+  try {
+    await createDiscountCode({
+      workspace,
+      partner,
+      link,
+      discount,
+    });
+  } catch (error) {
+    if (isDiscountIntegrationNotAvailableError(error)) {
+      return logAndRespond(
+        `Workspace has not installed the ${discount.provider} integration. Skipping...`,
+      );
+    }
 
-  await createDiscountCode({
-    stripeConnectId: workspace.stripeConnectId,
-    stripeMode: stripeIntegrationSettings.stripeMode,
-    partner,
-    link,
-    discount,
-  });
+    throw error;
+  }
 
   return logAndRespond(`Discount code created for link ${linkId}.`);
 });

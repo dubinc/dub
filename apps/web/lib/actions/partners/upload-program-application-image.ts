@@ -3,7 +3,7 @@
 import { getIP } from "@/lib/api/utils/get-ip";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
-import { RATE_LIMITS } from "@/lib/upstash/ratelimit-policy";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
@@ -13,7 +13,7 @@ const inputSchema = z.object({
   programSlug: z.string().trim().toLowerCase().min(1),
 });
 
-const rateLimitPolicy = RATE_LIMITS.programImageUpload;
+const rateLimitPolicy = RATELIMIT_POLICIES.programImageUpload;
 
 export const uploadProgramApplicationImageAction = actionClient
   .inputSchema(inputSchema)
