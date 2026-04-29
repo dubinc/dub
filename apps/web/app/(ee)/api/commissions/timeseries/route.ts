@@ -18,7 +18,6 @@ const querySchema = analyticsQuerySchema
     partnerId: z.string().optional(),
     groupId: z.string().optional(),
     type: z.string().optional(),
-    country: z.string().optional(),
   });
 
 interface CommissionTimeseriesRow {
@@ -31,17 +30,8 @@ interface CommissionTimeseriesRow {
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const {
-    start,
-    end,
-    interval,
-    timezone,
-    status,
-    partnerId,
-    groupId,
-    type,
-    country,
-  } = querySchema.parse(searchParams);
+  const { start, end, interval, timezone, status, partnerId, groupId, type } =
+    querySchema.parse(searchParams);
 
   const { startDate, endDate, granularity } = getStartEndDates({
     interval,
@@ -106,24 +96,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         WHERE pe.programId = c.programId
           AND pe.partnerId = c.partnerId
           AND pe.groupId ${op} (${list})
-      )`);
-    }
-  }
-  if (country) {
-    const countryFilter = parseFilterValue(country);
-    if (countryFilter) {
-      const list = Prisma.join(
-        countryFilter.values.map((v) => Prisma.sql`${v}`),
-      );
-      const op =
-        countryFilter.sqlOperator === "NOT IN"
-          ? Prisma.sql`NOT IN`
-          : Prisma.sql`IN`;
-
-      conditions.push(Prisma.sql`EXISTS (
-        SELECT 1 FROM Customer cu
-        WHERE cu.id = c.customerId
-          AND cu.country ${op} (${list})
       )`);
     }
   }

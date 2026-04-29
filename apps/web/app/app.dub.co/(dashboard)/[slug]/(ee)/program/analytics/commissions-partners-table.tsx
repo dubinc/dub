@@ -119,19 +119,6 @@ export function CommissionsPartnersTable({
         },
       },
       {
-        id: "group",
-        header: "Group",
-        minSize: 140,
-        cell: ({ row }) =>
-          row.original.groupName ? (
-            <span className="truncate text-sm text-neutral-700">
-              {row.original.groupName}
-            </span>
-          ) : (
-            <span className="text-neutral-400">—</span>
-          ),
-      },
-      {
         id: "location",
         header: "Location",
         minSize: 140,

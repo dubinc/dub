@@ -8,26 +8,11 @@ import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinne
 import { BarList } from "@/ui/analytics/bar-list";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
-import {
-  CircleCheck,
-  CircleDotted,
-  CircleHalfDottedClock,
-  Users6,
-} from "@dub/ui/icons";
+import { Modal, useRouterStuff } from "@dub/ui";
+import { CircleCheck, CircleDotted, CircleHalfDottedClock } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ReactNode, useCallback, useMemo, useState } from "react";
 import { CommissionStatusFilter } from "./commissions-status-selector";
-
-const FILTER_PARAM_KEYS: Record<string, string | null> = {
-  group: "groupId",
-  type: "type",
-};
-
-const GROUPBY_MAP: Record<string, "type" | "group"> = {
-  group: "group",
-  type: "type",
-};
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Pending",
@@ -43,23 +28,23 @@ const STATUS_ICONS: Record<string, React.ElementType> = {
   all: CircleDotted,
 };
 
+type BreakdownGroupBy = "type" | "groupId";
+
 function mapBreakdownItem(
   item: CommissionsBreakdownItem,
-  groupBy: "type" | "group",
+  groupBy: BreakdownGroupBy,
   groupColorMap: Map<string, { color: string | null }>,
-): { icon: ReactNode; title: string; filterValue: string; value: number } {
-  let icon: ReactNode = null;
-
-  if (groupBy === "type") {
-    icon = (
+) {
+  const icon =
+    groupBy === "type" ? (
       <CommissionTypeIcon
         type={item.key as "sale" | "custom" | "lead" | "click"}
       />
+    ) : (
+      <GroupColorCircle
+        group={{ color: groupColorMap.get(item.key)?.color ?? null }}
+      />
     );
-  } else if (groupBy === "group") {
-    const group = groupColorMap.get(item.key);
-    icon = <GroupColorCircle group={{ color: group?.color ?? null }} />;
-  }
 
   return {
     icon,
@@ -69,11 +54,55 @@ function mapBreakdownItem(
   };
 }
 
-function CommissionsCard({
+function useUrlListFilter(paramKey: string) {
+  const { queryParams, searchParams } = useRouterStuff();
+  const [selected, setSelected] = useState<string[]>([]);
+
+  const activeFilterValues = useMemo(
+    () => searchParams.get(paramKey)?.split(",").filter(Boolean) ?? [],
+    [paramKey, searchParams],
+  );
+  const isFilterActive = searchParams.has(paramKey);
+
+  const applyFilterValues = useCallback(
+    (values: string[]) => {
+      if (values.length === 0) {
+        queryParams({ del: paramKey, scroll: false });
+      } else {
+        queryParams({ set: { [paramKey]: values.join(",") }, scroll: false });
+      }
+      setSelected([]);
+    },
+    [paramKey, queryParams],
+  );
+
+  const clearFilter = useCallback(() => {
+    setSelected([]);
+    if (searchParams.has(paramKey)) {
+      queryParams({ del: paramKey, scroll: false });
+    }
+  }, [paramKey, queryParams, searchParams]);
+
+  const toggleFilter = useCallback((val: string) => {
+    setSelected((prev) =>
+      prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val],
+    );
+  }, []);
+
+  return {
+    selected,
+    activeFilterValues,
+    isFilterActive,
+    applyFilterValues,
+    clearFilter,
+    toggleFilter,
+    clearSelection: () => setSelected([]),
+  };
+}
+
+function BreakdownCardShell({
   status,
-  tabs,
-  selectedTabId,
-  onSelectTab,
+  title,
   dataLength,
   expandLimit,
   isFilterActive,
@@ -81,9 +110,7 @@ function CommissionsCard({
   children,
 }: {
   status: CommissionStatusFilter;
-  tabs: { id: string; label: string; icon: React.ElementType }[];
-  selectedTabId: string;
-  onSelectTab: (id: string) => void;
+  title: string;
   dataLength?: number;
   expandLimit: number;
   isFilterActive?: boolean;
@@ -94,11 +121,9 @@ function CommissionsCard({
   }) => ReactNode;
 }) {
   const [showModal, setShowModal] = useState(false);
-
   const showViewAll = (dataLength ?? 0) > expandLimit;
   const statusKey = status ?? "all";
   const StatusIcon = STATUS_ICONS[statusKey];
-  const selectedTab = tabs.find((t) => t.id === selectedTabId) ?? tabs[0];
 
   return (
     <>
@@ -108,7 +133,7 @@ function CommissionsCard({
         className="max-w-lg px-0"
       >
         <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
-          <h1 className="text-lg font-semibold">{selectedTab?.label}</h1>
+          <h1 className="text-lg font-semibold">{title}</h1>
           <div className="flex items-center gap-1 text-neutral-500">
             <StatusIcon className="h-4 w-4" />
             <p className="text-xs uppercase">{STATUS_LABELS[statusKey]}</p>
@@ -119,11 +144,7 @@ function CommissionsCard({
 
       <div className="group relative z-0 h-[400px] overflow-hidden rounded-lg border border-neutral-200 bg-white sm:rounded-xl">
         <div className="flex items-center justify-between border-b border-neutral-200 px-4">
-          <TabSelect
-            options={tabs.map((t) => ({ id: t.id, label: t.label }))}
-            selected={selectedTabId}
-            onSelect={onSelectTab}
-          />
+          <p className="py-3 text-sm font-medium text-neutral-900">{title}</p>
           <div className="flex items-center gap-1 pr-2 text-neutral-500">
             <StatusIcon className="hidden h-4 w-4 sm:block" />
             <p className="text-xs uppercase">{STATUS_LABELS[statusKey]}</p>
@@ -139,6 +160,7 @@ function CommissionsCard({
             <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-full bg-gradient-to-t from-white" />
             <div className="relative flex w-full items-center justify-center gap-2 py-4">
               <button
+                type="button"
                 onClick={() => setShowModal(true)}
                 className={cn(
                   "h-8 w-fit rounded-lg px-3 text-sm transition-colors",
@@ -151,6 +173,7 @@ function CommissionsCard({
               </button>
               {isFilterActive && onClearFilter && (
                 <button
+                  type="button"
                   onClick={onClearFilter}
                   className="h-8 w-fit rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-600 transition-colors hover:bg-neutral-50 active:border-neutral-300"
                 >
@@ -165,6 +188,87 @@ function CommissionsCard({
   );
 }
 
+const EXPAND_LIMIT = 8;
+
+const BAR_LIST_SHARED = {
+  unit: "sales" as const,
+  filterSelectedBackground: "bg-neutral-900",
+  filterSelectedHoverBackground: "hover:bg-neutral-700",
+  filterHoverClass: "bg-white border border-neutral-200",
+};
+
+function BreakdownBarPanel({
+  status,
+  title,
+  tab,
+  filter,
+  rawItems,
+  loading,
+  groupColorMap,
+  barBackground,
+  hoverBackground,
+}: {
+  status: CommissionStatusFilter;
+  title: string;
+  tab: BreakdownGroupBy;
+  filter: ReturnType<typeof useUrlListFilter>;
+  rawItems: CommissionsBreakdownItem[] | undefined;
+  loading: boolean;
+  groupColorMap: Map<string, { color: string | null }>;
+  barBackground: string;
+  hoverBackground: string;
+}) {
+  const data = useMemo(
+    () =>
+      (rawItems ?? []).map((item) =>
+        mapBreakdownItem(item, tab, groupColorMap),
+      ),
+    [rawItems, tab, groupColorMap],
+  );
+  const maxValue = Math.max(0, ...data.map((d) => d.value));
+
+  return (
+    <BreakdownCardShell
+      status={status}
+      title={title}
+      dataLength={data.length}
+      expandLimit={EXPAND_LIMIT}
+      isFilterActive={filter.isFilterActive}
+      onClearFilter={filter.clearFilter}
+    >
+      {({ limit, setShowModal }) =>
+        loading ? (
+          <div className="absolute inset-0 flex h-[300px] w-full items-center justify-center bg-white/50">
+            <AnalyticsLoadingSpinner />
+          </div>
+        ) : data.length === 0 ? (
+          <div className="flex h-[300px] items-center justify-center">
+            <p className="text-sm text-neutral-600">No data available</p>
+          </div>
+        ) : (
+          <BarList
+            tab={tab}
+            {...BAR_LIST_SHARED}
+            data={data}
+            maxValue={maxValue}
+            barBackground={barBackground}
+            hoverBackground={hoverBackground}
+            setShowModal={setShowModal}
+            limit={limit}
+            selectedFilterValues={filter.selected}
+            activeFilterValues={filter.activeFilterValues}
+            onToggleFilter={filter.toggleFilter}
+            onClearFilter={filter.clearFilter}
+            onClearSelection={filter.clearSelection}
+            onApplyFilterValues={filter.applyFilterValues}
+            onRowFilterItem={(val) => filter.applyFilterValues([val])}
+          />
+        )
+      }
+    </BreakdownCardShell>
+  );
+}
+
 export function CommissionsBreakdownCards({
   status,
   queryString,
@@ -172,12 +276,8 @@ export function CommissionsBreakdownCards({
   status: CommissionStatusFilter;
   queryString: string;
 }) {
-  const { queryParams, searchParams } = useRouterStuff();
-  const [leftTab] = useState("group");
-  const rightTab = "type"; // single tab — no switching needed
-
-  const [leftSelectedItems, setLeftSelectedItems] = useState<string[]>([]);
-  const [rightSelectedItems, setRightSelectedItems] = useState<string[]>([]);
+  const groupFilter = useUrlListFilter("groupId");
+  const typeFilter = useUrlListFilter("type");
 
   const { groups } = useGroups();
   const groupColorMap = useMemo(() => {
@@ -186,217 +286,39 @@ export function CommissionsBreakdownCards({
     return map;
   }, [groups]);
 
-  const leftFilterParamKey = FILTER_PARAM_KEYS[leftTab] ?? null;
-  const rightFilterParamKey = FILTER_PARAM_KEYS[rightTab] ?? null;
-
-  const leftActiveFilterValues = useMemo(
-    () =>
-      leftFilterParamKey
-        ? searchParams.get(leftFilterParamKey)?.split(",").filter(Boolean) ?? []
-        : [],
-    [leftFilterParamKey, searchParams],
-  );
-  const rightActiveFilterValues = useMemo(
-    () =>
-      rightFilterParamKey
-        ? searchParams.get(rightFilterParamKey)?.split(",").filter(Boolean) ??
-          []
-        : [],
-    [rightFilterParamKey, searchParams],
-  );
-
-  const isLeftFilterActive =
-    !!leftFilterParamKey && searchParams.has(leftFilterParamKey);
-  const isRightFilterActive =
-    !!rightFilterParamKey && searchParams.has(rightFilterParamKey);
-
-  const leftGroupBy = GROUPBY_MAP[leftTab];
-  const rightGroupBy = GROUPBY_MAP[rightTab];
-
-  const { data: leftRawData, isLoading: leftLoading } = useCommissionsBreakdown(
-    { queryString, groupBy: leftGroupBy },
-  );
-
-  const { data: rightRawData, isLoading: rightLoading } =
-    useCommissionsBreakdown({ queryString, groupBy: rightGroupBy });
-
-  const leftData = useMemo(
-    () =>
-      (leftRawData ?? []).map((item) =>
-        mapBreakdownItem(item, leftGroupBy, groupColorMap),
-      ),
-    [leftRawData, leftGroupBy, groupColorMap],
-  );
-  const rightData = useMemo(
-    () =>
-      (rightRawData ?? []).map((item) =>
-        mapBreakdownItem(item, rightGroupBy, groupColorMap),
-      ),
-    [rightRawData, rightGroupBy, groupColorMap],
-  );
-
-  const leftMaxValue = Math.max(0, ...leftData.map((d) => d.value));
-  const rightMaxValue = Math.max(0, ...rightData.map((d) => d.value));
-
-  const onLeftToggleFilter = useCallback(
-    (val: string) =>
-      setLeftSelectedItems((prev) =>
-        prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val],
-      ),
-    [],
-  );
-  const onLeftApplyFilterValues = useCallback(
-    (values: string[]) => {
-      if (!leftFilterParamKey) return;
-      if (values.length === 0) {
-        queryParams({ del: leftFilterParamKey, scroll: false });
-      } else {
-        queryParams({
-          set: { [leftFilterParamKey]: values.join(",") },
-          scroll: false,
-        });
-      }
-      setLeftSelectedItems([]);
-    },
-    [leftFilterParamKey, queryParams],
-  );
-  const onLeftClearFilter = useCallback(() => {
-    setLeftSelectedItems([]);
-    if (isLeftFilterActive && leftFilterParamKey)
-      queryParams({ del: leftFilterParamKey, scroll: false });
-  }, [isLeftFilterActive, leftFilterParamKey, queryParams]);
-
-  const onRightToggleFilter = useCallback(
-    (val: string) =>
-      setRightSelectedItems((prev) =>
-        prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val],
-      ),
-    [],
-  );
-  const onRightApplyFilterValues = useCallback(
-    (values: string[]) => {
-      if (!rightFilterParamKey) return;
-      if (values.length === 0) {
-        queryParams({ del: rightFilterParamKey, scroll: false });
-      } else {
-        queryParams({
-          set: { [rightFilterParamKey]: values.join(",") },
-          scroll: false,
-        });
-      }
-      setRightSelectedItems([]);
-    },
-    [rightFilterParamKey, queryParams],
-  );
-  const onRightClearFilter = useCallback(() => {
-    setRightSelectedItems([]);
-    if (isRightFilterActive && rightFilterParamKey)
-      queryParams({ del: rightFilterParamKey, scroll: false });
-  }, [isRightFilterActive, rightFilterParamKey, queryParams]);
-
-  const EXPAND_LIMIT = 8;
+  const { data: groupRows, isLoading: groupLoading } = useCommissionsBreakdown({
+    queryString,
+    groupBy: "groupId",
+  });
+  const { data: typeRows, isLoading: typeLoading } = useCommissionsBreakdown({
+    queryString,
+    groupBy: "type",
+  });
 
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-      <CommissionsCard
+      <BreakdownBarPanel
         status={status}
-        tabs={[{ id: "group", label: "Partner Group", icon: Users6 }]}
-        selectedTabId={leftTab}
-        onSelectTab={() => {}}
-        dataLength={leftData.length}
-        expandLimit={EXPAND_LIMIT}
-        isFilterActive={isLeftFilterActive}
-        onClearFilter={onLeftClearFilter}
-      >
-        {({ limit, setShowModal }) =>
-          leftLoading ? (
-            <div className="absolute inset-0 flex h-[300px] w-full items-center justify-center bg-white/50">
-              <AnalyticsLoadingSpinner />
-            </div>
-          ) : leftData.length === 0 ? (
-            <div className="flex h-[300px] items-center justify-center">
-              <p className="text-sm text-neutral-600">No data available</p>
-            </div>
-          ) : (
-            <BarList
-              tab={leftTab}
-              unit="sales"
-              data={leftData}
-              maxValue={leftMaxValue}
-              barBackground="bg-orange-100"
-              hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"
-              filterSelectedBackground="bg-neutral-900"
-              filterSelectedHoverBackground="hover:bg-neutral-700"
-              filterHoverClass="bg-white border border-neutral-200"
-              setShowModal={setShowModal}
-              limit={limit}
-              selectedFilterValues={leftSelectedItems}
-              activeFilterValues={leftActiveFilterValues}
-              onToggleFilter={onLeftToggleFilter}
-              onClearFilter={onLeftClearFilter}
-              onClearSelection={() => setLeftSelectedItems([])}
-              onApplyFilterValues={
-                leftFilterParamKey ? onLeftApplyFilterValues : undefined
-              }
-              onRowFilterItem={
-                leftFilterParamKey
-                  ? (val) => onLeftApplyFilterValues([val])
-                  : undefined
-              }
-            />
-          )
-        }
-      </CommissionsCard>
-
-      <CommissionsCard
+        title="Partner Group"
+        tab="groupId"
+        filter={groupFilter}
+        rawItems={groupRows}
+        loading={groupLoading}
+        groupColorMap={groupColorMap}
+        barBackground="bg-orange-100"
+        hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"
+      />
+      <BreakdownBarPanel
         status={status}
-        tabs={[{ id: "type", label: "Type", icon: Users6 }]}
-        selectedTabId={rightTab}
-        onSelectTab={() => {}}
-        dataLength={rightData.length}
-        expandLimit={EXPAND_LIMIT}
-        isFilterActive={isRightFilterActive}
-        onClearFilter={onRightClearFilter}
-      >
-        {({ limit, setShowModal }) =>
-          rightLoading ? (
-            <div className="absolute inset-0 flex h-[300px] w-full items-center justify-center bg-white/50">
-              <AnalyticsLoadingSpinner />
-            </div>
-          ) : rightData.length === 0 ? (
-            <div className="flex h-[300px] items-center justify-center">
-              <p className="text-sm text-neutral-600">No data available</p>
-            </div>
-          ) : (
-            <BarList
-              tab={rightTab}
-              unit="sales"
-              data={rightData}
-              maxValue={rightMaxValue}
-              barBackground="bg-neutral-100"
-              hoverBackground="hover:bg-gradient-to-r hover:from-neutral-50 hover:to-transparent hover:border-neutral-300"
-              filterSelectedBackground="bg-neutral-900"
-              filterSelectedHoverBackground="hover:bg-neutral-700"
-              filterHoverClass="bg-white border border-neutral-200"
-              setShowModal={setShowModal}
-              limit={limit}
-              selectedFilterValues={rightSelectedItems}
-              activeFilterValues={rightActiveFilterValues}
-              onToggleFilter={onRightToggleFilter}
-              onClearFilter={onRightClearFilter}
-              onClearSelection={() => setRightSelectedItems([])}
-              onApplyFilterValues={
-                rightFilterParamKey ? onRightApplyFilterValues : undefined
-              }
-              onRowFilterItem={
-                rightFilterParamKey
-                  ? (val) => onRightApplyFilterValues([val])
-                  : undefined
-              }
-            />
-          )
-        }
-      </CommissionsCard>
+        title="Type"
+        tab="type"
+        filter={typeFilter}
+        rawItems={typeRows}
+        loading={typeLoading}
+        groupColorMap={groupColorMap}
+        barBackground="bg-neutral-100"
+        hoverBackground="hover:bg-gradient-to-r hover:from-neutral-50 hover:to-transparent hover:border-neutral-300"
+      />
     </div>
   );
 }

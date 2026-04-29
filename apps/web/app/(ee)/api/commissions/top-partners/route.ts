@@ -16,24 +16,14 @@ const querySchema = analyticsQuerySchema
     partnerId: z.string().optional(),
     groupId: z.string().optional(),
     type: z.string().optional(),
-    country: z.string().optional(),
   });
 
 // GET /api/commissions/top-partners
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const {
-    start,
-    end,
-    interval,
-    timezone,
-    status,
-    partnerId,
-    groupId,
-    type,
-    country,
-  } = querySchema.parse(searchParams);
+  const { start, end, interval, timezone, status, partnerId, groupId, type } =
+    querySchema.parse(searchParams);
 
   assertValidDateRangeForPlan({
     plan: workspace.plan,
@@ -52,7 +42,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const partnerFilter = parseFilterValue(partnerId);
   const groupFilter = parseFilterValue(groupId);
-  const countryFilter = parseFilterValue(country);
 
   const rawTypeFilter = parseFilterValue(type);
   const validCommissionTypes = new Set(Object.values(CommissionType));
@@ -110,14 +99,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
               : { in: groupFilter.values },
         },
       }),
-      ...(countryFilter && {
-        customer: {
-          country:
-            countryFilter.sqlOperator === "NOT IN"
-              ? { notIn: countryFilter.values }
-              : { in: countryFilter.values },
-        },
-      }),
     },
     _sum: { earnings: true },
     _count: { _all: true },
@@ -129,37 +110,23 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const partnerIds = grouped.map((g) => g.partnerId);
 
-  const [partners, enrollments] = await Promise.all([
-    prisma.partner.findMany({
-      where: { id: { in: partnerIds } },
-      select: { id: true, name: true, image: true, country: true },
-    }),
-    prisma.programEnrollment.findMany({
-      where: { programId, partnerId: { in: partnerIds } },
-      select: {
-        partnerId: true,
-        groupId: true,
-        partnerGroup: { select: { name: true } },
-      },
-    }),
-  ]);
+  const partners = await prisma.partner.findMany({
+    where: { id: { in: partnerIds } },
+    select: { id: true, name: true, image: true, country: true },
+  });
 
   const partnerMap = new Map(partners.map((p) => [p.id, p]));
-  const enrollmentMap = new Map(enrollments.map((e) => [e.partnerId, e]));
 
   const result = grouped.flatMap((g) => {
     const partner = partnerMap.get(g.partnerId);
     if (!partner) return [];
 
-    const enrollment = enrollmentMap.get(g.partnerId);
     return [
       {
         partnerId: g.partnerId,
         name: partner.name,
         image: partner.image ?? null,
         country: partner.country ?? null,
-        groupId: enrollment?.groupId ?? null,
-        groupName: enrollment?.partnerGroup?.name ?? null,
         earnings: g._sum.earnings ?? 0,
         commissionCount: g._count._all,
       },
