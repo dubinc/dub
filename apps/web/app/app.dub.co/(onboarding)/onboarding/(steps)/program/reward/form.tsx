@@ -404,7 +404,7 @@ export function Form() {
               </div>
             )}
 
-            <div className="space-y-2">
+            <label className="space-y-2">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-content-emphasis block text-sm font-semibold">
                   {type === "percentage" ? "Percentage" : "Amount"} per{" "}
@@ -449,7 +449,7 @@ export function Form() {
                   {type === "flat" ? "USD" : "%"}
                 </span>
               </div>
-            </div>
+            </label>
           </div>
         </AnimatedSizeContainer>
       </div>
