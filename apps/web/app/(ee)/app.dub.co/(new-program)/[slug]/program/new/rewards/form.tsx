@@ -6,11 +6,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { COMMISSION_TYPES } from "@/lib/zod/schemas/rewards";
+import { RewardQualityFieldIndicator } from "@/ui/partners/rewards/reward-quality";
+import type { EventType } from "@dub/prisma/client";
 import { Button, CircleCheckFill } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -62,19 +64,36 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [type, defaultRewardType, maxDuration] = watch([
+  const [
+    type,
+    defaultRewardType,
+    maxDuration,
+    amountInCents,
+    amountInPercentage,
+  ] = watch([
     "type",
     "defaultRewardType",
     "maxDuration",
+    "amountInCents",
+    "amountInPercentage",
   ]);
 
   const [commissionStructure, setCommissionStructure] = useState<
     "one-off" | "recurring"
   >("recurring");
+  const lastSaleMaxDurationRef = useRef<number | null | undefined>(
+    defaultRewardType === "sale" ? maxDuration : null,
+  );
 
   useEffect(() => {
     setCommissionStructure(maxDuration === 0 ? "one-off" : "recurring");
   }, [maxDuration]);
+
+  useEffect(() => {
+    if (defaultRewardType === "sale") {
+      lastSaleMaxDurationRef.current = maxDuration;
+    }
+  }, [defaultRewardType, maxDuration]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -158,9 +177,18 @@ export function Form() {
                             setValue("type", "percentage", {
                               shouldDirty: true,
                             });
+                            setValue(
+                              "maxDuration",
+                              lastSaleMaxDurationRef.current ?? null,
+                              {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              },
+                            );
                           }
 
                           if (key === "lead") {
+                            lastSaleMaxDurationRef.current = maxDuration;
                             setValue("type", "flat", { shouldDirty: true });
                             setValue("maxDuration", 0, { shouldDirty: true });
                           }
@@ -372,10 +400,25 @@ export function Form() {
           )}
 
           <div>
-            <label className="text-sm font-medium text-neutral-800">
-              {type === "percentage" ? "Percentage" : "Amount"} per{" "}
-              {defaultRewardType}
-            </label>
+            <div className="flex items-center justify-between gap-3">
+              <label className="text-sm font-medium text-neutral-800">
+                {type === "percentage" ? "Percentage" : "Amount"} per{" "}
+                {defaultRewardType}
+              </label>
+              <RewardQualityFieldIndicator
+                event={defaultRewardType as EventType}
+                type={type}
+                amountInCents={
+                  type === "flat" && amountInCents != null
+                    ? amountInCents * 100
+                    : null
+                }
+                amountInPercentage={
+                  type === "percentage" ? amountInPercentage : null
+                }
+                maxDuration={maxDuration}
+              />
+            </div>
             <div className="relative mt-2 rounded-md shadow-sm">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
                 {type === "flat" && "$"}

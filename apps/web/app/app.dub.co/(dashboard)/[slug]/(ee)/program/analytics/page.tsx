@@ -1,34 +1,65 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
-import { PageContent } from "@/ui/layout/page-content";
-import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import WorkspaceExceededEvents from "@/ui/workspaces/workspace-exceeded-events";
-import { ProgramAnalyticsPageClient } from "./page-client";
+import { notFound, useParams } from "next/navigation";
+import { AnalyticsChart } from "./analytics-chart";
+import { AnalyticsPartnersTable } from "./analytics-partners-table";
+import { CommissionsAnalyticsChart } from "./commissions-analytics-chart";
+import { CommissionsPartnersTable } from "./commissions-partners-table";
+import { CommissionsStatusSelector } from "./commissions-status-selector";
+import {
+  PROGRAM_ANALYTICS_TABS,
+  ProgramAnalyticsTabId,
+} from "./program-analytics-nav";
+import { useCommissionsAnalyticsQuery } from "./use-commissions-analytics-query";
 
-export default function ProgramAnalytics() {
+export default function ProgramAnalyticsTabPage() {
+  const { tab } = useParams() as { tab?: ProgramAnalyticsTabId };
+
+  if (tab && !PROGRAM_ANALYTICS_TABS.some((t) => t.id === tab)) {
+    notFound();
+  }
+
+  if (tab === "commissions") {
+    return <CommissionsTab />;
+  }
+
   return (
-    <PageContent
-      title="Analytics"
-      titleInfo={{
-        title:
-          "Learn how to use Dub to track and measure your program's performance.",
-        href: "https://dub.co/help/article/program-analytics",
-      }}
-    >
-      <PageWidthWrapper>
-        <ProgramAnalyticsPageWrapper />
-      </PageWidthWrapper>
-    </PageContent>
+    <>
+      <AnalyticsChart />
+      <AnalyticsPartnersTable />
+    </>
   );
 }
 
-function ProgramAnalyticsPageWrapper() {
-  const { exceededEvents } = useWorkspace();
+function CommissionsTab() {
+  const {
+    queryString: commissionsQueryString,
+    status: commissionStatus,
+    unit: commissionUnit,
+    interval: commissionsInterval,
+    start: commissionsStart,
+    end: commissionsEnd,
+  } = useCommissionsAnalyticsQuery();
 
-  if (exceededEvents) {
-    return <WorkspaceExceededEvents />;
-  }
-
-  return <ProgramAnalyticsPageClient />;
+  return (
+    <>
+      <CommissionsStatusSelector
+        status={commissionStatus}
+        queryString={commissionsQueryString}
+      />
+      <div className="relative h-72 md:h-96">
+        <div className="relative size-full p-6 pt-10">
+          <CommissionsAnalyticsChart
+            status={commissionStatus}
+            unit={commissionUnit}
+            queryString={commissionsQueryString}
+            interval={commissionsInterval}
+            start={commissionsStart}
+            end={commissionsEnd}
+          />
+        </div>
+      </div>
+      <CommissionsPartnersTable queryString={commissionsQueryString} />
+    </>
+  );
 }

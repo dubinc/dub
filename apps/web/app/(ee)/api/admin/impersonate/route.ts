@@ -6,28 +6,39 @@ import { NextResponse } from "next/server";
 
 // POST /api/admin/impersonate
 export const POST = withAdmin(async ({ req }) => {
-  const { email, slug, partnerEmail } = await req.json();
+  const { email, slug } = await req.json();
 
-  const response = await prisma.user.findFirst({
-    where: email
-      ? {
-          OR: [
-            { email },
-            {
-              partners: {
-                some: { partner: { email } },
+  let userEmails: string[] = [];
+  if (email) {
+    userEmails.push(email);
+    const partner = await prisma.partner.findUnique({
+      where: {
+        email,
+      },
+      select: {
+        users: {
+          select: {
+            user: {
+              select: {
+                email: true,
               },
             },
-          ],
-        }
-      : partnerEmail
+          },
+          take: 1,
+        },
+      },
+    });
+    if (partner?.users && partner.users.length > 0) {
+      userEmails.push(...partner.users.map((user) => user.user.email || ""));
+    }
+  }
+
+  const response = await prisma.user.findFirst({
+    where:
+      userEmails.length > 0
         ? {
-            partners: {
-              some: {
-                partner: {
-                  email: partnerEmail,
-                },
-              },
+            email: {
+              in: userEmails,
             },
           }
         : {
