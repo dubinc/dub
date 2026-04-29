@@ -201,6 +201,8 @@ export const createPartnerCommission = async ({
         ...context,
         sale: {
           ...context?.sale,
+          // Callers that pass it explicitly keep their value, and
+          // Stripe webhooks (which send `products[]`) still surface a productId via the first line item
           ...(event === "sale" && {
             productId: context?.sale?.productId ?? products[0]?.id,
           }),
