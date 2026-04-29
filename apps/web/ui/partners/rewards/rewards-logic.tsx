@@ -322,6 +322,19 @@ function ConditionLogic({
   // Auto-set operator to "equals_to" for customer.source
   const isCustomerSourceCondition =
     condition.entity === "customer" && condition.attribute === "source";
+  const isSaleTypeCondition =
+    condition.entity === "sale" && condition.attribute === "type";
+
+  const availableConditionOperators: (typeof CONDITION_OPERATORS)[number][] =
+    isSaleTypeCondition
+      ? ["equals_to", "not_equals"]
+      : ["number", "currency"].includes(attributeType)
+        ? NUMBER_CONDITION_OPERATORS
+        : attributeType === "enum"
+          ? ENUM_CONDITION_OPERATORS
+          : attributeType === "date"
+            ? DATE_CONDITION_OPERATORS
+            : STRING_CONDITION_OPERATORS;
 
   useEffect(() => {
     if (isCustomerSourceCondition && condition.operator !== "equals_to") {
@@ -339,6 +352,32 @@ function ConditionLogic({
   }, [
     isCustomerSourceCondition,
     condition.operator,
+    condition,
+    conditionKey,
+    setValue,
+  ]);
+
+  useEffect(() => {
+    if (
+      isSaleTypeCondition &&
+      condition.operator &&
+      !availableConditionOperators.includes(condition.operator)
+    ) {
+      setValue(
+        conditionKey,
+        {
+          ...condition,
+          operator: "equals_to",
+        },
+        {
+          shouldDirty: true,
+        },
+      );
+    }
+  }, [
+    isSaleTypeCondition,
+    condition.operator,
+    availableConditionOperators,
     condition,
     conditionKey,
     setValue,
@@ -459,14 +498,7 @@ function ConditionLogic({
                           },
                         )
                       }
-                      items={(["number", "currency"].includes(attributeType)
-                        ? NUMBER_CONDITION_OPERATORS
-                        : attributeType === "enum"
-                          ? ENUM_CONDITION_OPERATORS
-                          : attributeType === "date"
-                            ? DATE_CONDITION_OPERATORS
-                            : STRING_CONDITION_OPERATORS
-                      ).map((operator) => ({
+                      items={availableConditionOperators.map((operator) => ({
                         text: CONDITION_OPERATOR_LABELS[operator],
                         value: operator,
                       }))}

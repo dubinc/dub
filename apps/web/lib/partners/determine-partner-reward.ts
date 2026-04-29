@@ -34,6 +34,8 @@ export const determinePartnerReward = ({
   programEnrollment: ProgramEnrollmentWithReward;
   context?: RewardContext; // additional reward context (e.g. customer.country, sale.productId, etc.)
 }) => {
+  console.log("[determinePartnerReward] context", context);
+
   let partnerReward: Reward =
     programEnrollment[REWARD_EVENT_COLUMN_MAPPING[event]];
 

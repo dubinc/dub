@@ -180,6 +180,21 @@ export const REWARD_CONDITIONS: Record<
             label: "Amount",
             type: "currency",
           },
+          {
+            id: "type",
+            label: "Type",
+            type: "string",
+            options: [
+              {
+                id: "new",
+                label: "new",
+              },
+              {
+                id: "recurring",
+                label: "recurring",
+              },
+            ],
+          },
         ],
       },
     ],
@@ -379,6 +394,7 @@ export const rewardContextSchema = z.object({
     .object({
       productId: z.string().nullish(),
       amount: z.number().nullish(),
+      type: z.enum(["new", "recurring"]).nullish(),
     })
     .optional(),
 
