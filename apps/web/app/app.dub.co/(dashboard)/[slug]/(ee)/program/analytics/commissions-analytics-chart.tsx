@@ -63,9 +63,12 @@ export function CommissionsAnalyticsChart({
   const id = useId();
   const color = STATUS_COLORS[status ?? "all"];
 
-  const { data, isLoading: loading, error } = useCommissionAnalytics({
+  const {
+    data,
+    isLoading: loading,
+    error,
+  } = useCommissionAnalytics({
     groupBy: "timeseries",
-    enabled: true,
     queryString,
   });
 

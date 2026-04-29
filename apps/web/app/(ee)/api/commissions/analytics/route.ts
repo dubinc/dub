@@ -2,11 +2,11 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
+import { withWorkspace } from "@/lib/auth";
 import {
   commissionAnalyticsQuerySchema,
   commissionAnalyticsSchema,
 } from "@/lib/commissions/schema";
-import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import type { CommissionAnalyticsQuery } from "@/lib/types";
 import { prisma } from "@dub/prisma";
@@ -179,9 +179,7 @@ async function byType({
   const baseWhere: Prisma.CommissionWhereInput = {
     programId,
     createdAt: { gte: startDate, lt: endDate },
-    status: status
-      ? status
-      : { notIn: [...excludedStatuses] },
+    status: status ? status : { notIn: [...excludedStatuses] },
     ...(partnerFilter && {
       partnerId:
         partnerFilter.sqlOperator === "NOT IN"
@@ -237,7 +235,6 @@ async function byGroupId({
 }) {
   const { status, partnerId, groupId, type } = parsed;
   const partnerFilter = parseFilterValue(partnerId);
-  const groupFilter = parseFilterValue(groupId);
 
   const rawTypeFilter = parseFilterValue(type);
   const validCommissionTypes = new Set(Object.values(CommissionType));
@@ -307,7 +304,7 @@ async function byGroupId({
     const label =
       row.groupId === null
         ? "Ungrouped"
-        : (partnerGroupById.get(row.groupId)?.name ?? row.groupId);
+        : partnerGroupById.get(row.groupId)?.name ?? row.groupId;
 
     return {
       key,
@@ -362,9 +359,7 @@ async function byPartnerId({
     where: {
       programId,
       createdAt: { gte: startDate, lt: endDate },
-      status: status
-        ? status
-        : { notIn: [...excludedStatuses] },
+      status: status ? status : { notIn: [...excludedStatuses] },
       ...(partnerFilter && {
         partnerId:
           partnerFilter.sqlOperator === "NOT IN"
@@ -489,9 +484,8 @@ async function byTimeseries({
 
   let currentDate = startFunction(startDate);
 
-  const timeseries: z.infer<
-    (typeof commissionAnalyticsSchema)["timeseries"]
-  > = [];
+  const timeseries: z.infer<(typeof commissionAnalyticsSchema)["timeseries"]> =
+    [];
 
   while (currentDate < endDate) {
     const periodKey = format(currentDate, formatString);
