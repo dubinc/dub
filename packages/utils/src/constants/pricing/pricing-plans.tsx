@@ -9,9 +9,6 @@ export type PlanFeature = {
     cta?: string;
     href?: string;
   };
-  ctaLink?: {
-    label: string;
-  };
 };
 
 export type PlanDetails = {
@@ -466,9 +463,6 @@ export const PLANS: PlanDetails[] = [
       {
         id: "slack",
         text: "Priority Slack support",
-        ctaLink: {
-          label: "request an invite",
-        },
       },
     ] as PlanFeature[],
   },
