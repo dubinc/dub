@@ -23,6 +23,7 @@ import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
+import { rewardConditionsArraySchema } from "../zod/schemas/rewards";
 import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { determinePartnerReward } from "./determine-partner-reward";
 import { getRewardAmount } from "./get-reward-amount";
@@ -147,10 +148,23 @@ export const createPartnerCommission = async ({
       };
     }
 
-    // Sale event products
     const products = context?.sale?.products ?? [];
 
-    if (products.length > 0) {
+    const modifiers = rewardConditionsArraySchema.safeParse(
+      programEnrollment.saleReward?.modifiers,
+    );
+
+    const hasProductIdModifier = modifiers.success
+      ? modifiers.data.some((m) =>
+          m.conditions.some(
+            (c) => c.entity === "sale" && c.attribute === "productId",
+          ),
+        )
+      : false;
+
+    // If there are products and a productId modifier,
+    // we need to calculate the reward for each product (for Stripe integration only)
+    if (products.length > 0 && hasProductIdModifier) {
       for (const product of products) {
         const reward = determinePartnerReward({
           event,
@@ -179,7 +193,20 @@ export const createPartnerCommission = async ({
       if (rewards.length > 0) {
         reward = rewards[0].reward;
       }
-    } else {
+    }
+    // If there are no products or no productId modifier,
+    // we can calculate the reward for the entire sale
+    else {
+      context = {
+        ...context,
+        sale: {
+          ...context?.sale,
+          ...(event === "sale" && {
+            productId: context?.sale?.productId ?? products[0]?.id,
+          }),
+        },
+      };
+
       reward = determinePartnerReward({
         event,
         programEnrollment,
@@ -196,8 +223,6 @@ export const createPartnerCommission = async ({
         });
       }
     }
-
-    console.log("rewards calculated", rewards);
 
     // if there is no reward, skip commission creation
     if (!reward) {
@@ -251,7 +276,6 @@ export const createPartnerCommission = async ({
         } else {
           if (
             firstCommission.rewardId &&
-            reward &&
             firstCommission.rewardId !== reward.id
           ) {
             const originalReward = await prisma.reward.findUnique({
