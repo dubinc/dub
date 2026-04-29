@@ -4,6 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import WorkspaceExceededEvents from "@/ui/workspaces/workspace-exceeded-events";
+import { ProgramAnalyticsShell } from "./program-analytics-shell";
 
 export default function ProgramAnalyticsLayout({
   children,
@@ -25,7 +26,9 @@ export default function ProgramAnalyticsLayout({
         href: "https://dub.co/help/article/program-analytics",
       }}
     >
-      <PageWidthWrapper>{children}</PageWidthWrapper>
+      <PageWidthWrapper>
+        <ProgramAnalyticsShell>{children}</ProgramAnalyticsShell>
+      </PageWidthWrapper>
     </PageContent>
   );
 }
