@@ -4,37 +4,35 @@ import * as z from "zod/v4";
 import { tb } from "../../../lib/tinybird/client";
 import { recordSaleWithTimestamp } from "../../../lib/tinybird/record-sale";
 
-const getSaleEvent = tb.buildPipe({
-  pipe: "get_sale_events",
+const getEvents = tb.buildPipe({
+  pipe: "internal_get_events",
   parameters: z.object({
-    linkId: z.string(),
+    customerId: z.string(),
   }),
   data: z.any(),
 });
 
 // update tinybird sale event
 async function main() {
-  const linkId = "link_xxx";
-  const columnName = "amount";
-  const columnValue = 20000;
+  const customerId = "cus_xxx";
+  const oldLinkId = "link_xxx";
+  const newLinkId = "link_xxx";
 
-  const link = await prisma.link.findUniqueOrThrow({
+  const newLink = await prisma.link.findUniqueOrThrow({
     where: {
-      id: linkId,
+      id: newLinkId,
     },
   });
 
-  const { data } = await getSaleEvent({ linkId });
+  const { data } = await getEvents({ customerId });
   if (data.length === 0) {
     console.log("No data found");
     return;
   }
   const updatedData = data.map((item) => ({
     ...item,
-    [columnName]: columnValue,
-    domain: link.domain,
-    key: link.key,
-    workspace_id: link.projectId,
+    link_id: newLink.id,
+    key: newLink.key,
   }));
   console.log(updatedData);
 
@@ -45,15 +43,11 @@ async function main() {
   const deleteRes = await Promise.allSettled([
     deleteData({
       dataSource: "dub_sale_events",
-      linkId,
-      columnName,
-      oldValue: 50000,
+      linkId: oldLinkId,
     }),
     deleteData({
       dataSource: "dub_sale_events_mv",
-      linkId,
-      columnName,
-      oldValue: 50000,
+      linkId: oldLinkId,
     }),
   ]);
   console.log(deleteRes);
@@ -62,13 +56,9 @@ async function main() {
 const deleteData = async ({
   dataSource,
   linkId,
-  columnName,
-  oldValue,
 }: {
   dataSource: string;
   linkId: string;
-  columnName: string;
-  oldValue: number;
 }) => {
   return fetch(
     `https://api.us-east.tinybird.co/v0/datasources/${dataSource}/delete`,
@@ -78,7 +68,7 @@ const deleteData = async ({
         Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: `delete_condition=link_id='${linkId}' and ${columnName}='${oldValue}'`,
+      body: `delete_condition=link_id='${linkId}' and customer_id='cus_1KPRE36329N3YYR6YPG0KXB2J'`,
     },
   ).then((res) => res.json());
 };
