@@ -54,6 +54,7 @@ export const POST = withWorkspace(
         product: "Dub",
         type: provider,
       }),
+
       currentDirectoryId &&
         directorySyncController.directories.delete(currentDirectoryId),
     ]);
@@ -83,10 +84,13 @@ export const DELETE = withWorkspace(
       });
     }
 
-    if (directory.data.tenant !== workspace.id) {
+    if (
+      directory.data.tenant !== workspace.id &&
+      directory.data.product !== "Dub"
+    ) {
       throw new DubApiError({
-        code: "bad_request",
-        message: "Directory ID does not match",
+        code: "unauthorized",
+        message: "You are not authorized to delete this directory.",
       });
     }
 
