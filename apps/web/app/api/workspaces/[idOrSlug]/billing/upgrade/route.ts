@@ -63,8 +63,26 @@ export const POST = withWorkspace(
       }
     }
 
-    // if the user has an active or trialing subscription, create billing portal to upgrade
     if (workspace.stripeId && existingSubscription) {
+      if (existingSubscription.status === "trialing") {
+        await stripe.subscriptions.update(existingSubscription.id, {
+          items: [
+            {
+              id: existingSubscription.items.data[0].id,
+              price: prices.data[0].id,
+            },
+          ],
+          proration_behavior: "none", // no invoice is created and no charge is issued
+        });
+
+        const successUrl = new URL(baseUrl);
+        successUrl.searchParams.set("upgraded", "true");
+        successUrl.searchParams.set("plan", plan);
+        successUrl.searchParams.set("period", period);
+        return NextResponse.json({ url: successUrl.toString() });
+      }
+
+      // Active subscriptions: use the billing portal's plan-change confirmation flow.
       const { url } = await stripe.billingPortal.sessions.create({
         customer: workspace.stripeId,
         return_url: baseUrl,

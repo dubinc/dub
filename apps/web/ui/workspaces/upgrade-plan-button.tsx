@@ -18,6 +18,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmation-modal";
 import { useStartPaidPlanModal } from "../modals/start-paid-plan-modal";
+import { useSwitchTrialPlanModal } from "../modals/switch-trial-plan-modal";
 
 export function UpgradePlanButton({
   plan,
@@ -138,9 +139,24 @@ export function UpgradePlanButton({
   const { StartPaidPlanModal, setShowStartPaidPlanModal } =
     useStartPaidPlanModal();
 
+  const isSwitchingTrialPlan =
+    isTrialActive && !isCurrentPlan && currentPlan !== "free";
+
+  const { SwitchTrialPlanModal, setShowSwitchTrialPlanModal } =
+    useSwitchTrialPlanModal({
+      newPlan: plan,
+      newPeriod: period,
+      newTier: tier,
+      onConfirm: performUpgrade,
+    });
+
   const handleClick = () => {
     if (isCurrentPlan && isTrialActive) {
       setShowStartPaidPlanModal(true);
+      return;
+    }
+    if (isSwitchingTrialPlan) {
+      setShowSwitchTrialPlanModal(true);
       return;
     }
     if (losesPartnerAccess || losesAdvancedFeatures) {
@@ -154,6 +170,7 @@ export function UpgradePlanButton({
     <>
       <PlanChangeConfirmationModal />
       <StartPaidPlanModal />
+      <SwitchTrialPlanModal />
       <Button
         text={
           !currentPlan
@@ -166,7 +183,9 @@ export function UpgradePlanButton({
                 ? isTrialVariant
                   ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
                   : `Upgrade to ${selectedPlan.name} ${capitalize(period)}`
-                : `Switch to ${selectedPlan.name} ${capitalize(period)}`
+                : isTrialActive
+                  ? `Switch trial to ${selectedPlan.name} ${capitalize(period)}`
+                  : `Switch to ${selectedPlan.name} ${capitalize(period)}`
         }
         loading={clicked || !currentPlan}
         disabled={!workspaceSlug || (isCurrentPlan && !isTrialActive)}

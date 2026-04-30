@@ -278,7 +278,9 @@ export default function WorkspaceBillingUpgradePage() {
                                   ? `Switch to ${period}`
                                   : isDowngrade
                                     ? "Downgrade"
-                                    : "Upgrade"
+                                    : isWorkspaceBillingTrialActive(trialEndsAt)
+                                      ? "Switch trial"
+                                      : "Upgrade"
                           }
                           variant={isDowngrade ? "secondary" : "primary"}
                           className="h-8 shadow-sm"
