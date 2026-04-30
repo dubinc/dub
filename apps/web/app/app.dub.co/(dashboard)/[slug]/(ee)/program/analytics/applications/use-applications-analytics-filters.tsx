@@ -74,16 +74,18 @@ export function useApplicationEventsFilters() {
         label: "Partner",
         shouldFilter: false,
         options:
-          partners?.map((row) => {
-            const partner = row.partner;
+          partners
+            ?.filter((row) => row[stageMetricKey] > 0)
+            .map((row) => {
+              const partner = row.partner;
 
-            return {
-              value: partner.id,
-              label: partner.name,
-              icon: <PartnerAvatar partner={partner} className="size-4" />,
-              right: nFormatter(row[stageMetricKey]),
-            };
-          }) ?? [],
+              return {
+                value: partner.id,
+                label: partner.name,
+                icon: <PartnerAvatar partner={partner} className="size-4" />,
+                right: nFormatter(row[stageMetricKey]),
+              };
+            }) ?? [],
       },
       {
         key: "referralSource",
@@ -91,11 +93,13 @@ export function useApplicationEventsFilters() {
         label: "Application source",
         labelPlural: "application sources",
         options:
-          referralSources?.map((row) => ({
-            value: row.referralSource,
-            label: row.referralSource,
-            right: nFormatter(row[stageMetricKey]),
-          })) ?? [],
+          referralSources
+            ?.filter((row) => row[stageMetricKey] > 0)
+            .map((row) => ({
+              value: row.referralSource,
+              label: row.referralSource,
+              right: nFormatter(row[stageMetricKey]),
+            })) ?? [],
       },
       {
         key: "country",
@@ -118,11 +122,13 @@ export function useApplicationEventsFilters() {
           return COUNTRIES[value] ?? value;
         },
         options:
-          countries?.map((row) => ({
-            value: row.country,
-            label: COUNTRIES[row.country] ?? row.country,
-            right: nFormatter(row[stageMetricKey]),
-          })) ?? [],
+          countries
+            ?.filter((row) => row[stageMetricKey] > 0)
+            .map((row) => ({
+              value: row.country,
+              label: COUNTRIES[row.country] ?? row.country,
+              right: nFormatter(row[stageMetricKey]),
+            })) ?? [],
       },
     ],
     [countries, groups, partners, referralSources, slug, stageMetricKey],

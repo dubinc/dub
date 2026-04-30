@@ -90,6 +90,7 @@ function ApplicationsAnalyticsCardShell({
     const rows = data ?? [];
     return rows
       .map((row) => mapRow(row, stageKey))
+      .filter((row) => row.value > 0)
       .sort((a, b) => b.value - a.value);
   }, [data, mapRow, stageKey]);
 
