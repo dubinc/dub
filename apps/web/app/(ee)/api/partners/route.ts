@@ -4,6 +4,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import {
   createPartnerSchema,
@@ -11,7 +12,9 @@ import {
   getPartnersQuerySchemaExtended,
   partnerPlatformSchema,
 } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
 import { toCentsNumber } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -113,6 +116,8 @@ export const POST = withWorkspace(
       programId,
     });
 
+    throwIfPartnersLimitExceeded(workspace);
+
     const enrolledPartner = await createAndEnrollPartner({
       workspace,
       program,
@@ -120,6 +125,19 @@ export const POST = withWorkspace(
       link,
       userId: session.user.id,
     });
+
+    waitUntil(
+      prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          partnersUsage: {
+            increment: 1,
+          },
+        },
+      }),
+    );
 
     return NextResponse.json(enrolledPartner, {
       status: 201,

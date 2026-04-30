@@ -6,7 +6,7 @@ import { bulkCreateLinks } from "@/lib/api/links";
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
-import { throwIfTrialProgramEnrollmentLimitExceeded } from "@/lib/partners/throw-if-trial-program-enrollment-exceeded";
+import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { bulkInvitePartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
@@ -92,25 +92,30 @@ export const bulkInvitePartnersAction = authActionClient
       throw new Error("Invalid group ID provided.");
     }
 
-    const { count: createdPartnersCount } = await prisma.$transaction(
-      async (tx) => {
-        await throwIfTrialProgramEnrollmentLimitExceeded({
-          programId,
-          additionalEnrollments: emailsToInvite.length,
-          trialEndsAt: workspace.trialEndsAt,
-          tx,
-        });
+    const createdPartnersCount = await prisma.$transaction(async (tx) => {
+      const { count } = await tx.partner.createMany({
+        data: emailsToInvite.map((email) => ({
+          id: createId({ prefix: "pn_" }),
+          email,
+          name: email,
+        })),
+        skipDuplicates: true,
+      });
 
-        return tx.partner.createMany({
-          data: emailsToInvite.map((email) => ({
-            id: createId({ prefix: "pn_" }),
-            email,
-            name: email,
-          })),
-          skipDuplicates: true,
-        });
-      },
-    );
+      throwIfPartnersLimitExceeded({
+        ...workspace,
+        additionalEnrollments: count,
+      });
+
+      return count;
+    });
+
+    if (createdPartnersCount === 0) {
+      return {
+        invitedCount: 0,
+        skippedCount: alreadyEnrolledEmails.size,
+      };
+    }
 
     console.log(
       `Created ${createdPartnersCount} out of ${emailsToInvite.length} provided partners (${emailsToInvite.length - createdPartnersCount} already exist on Dub)`,
