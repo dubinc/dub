@@ -103,7 +103,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const {
     register,
     handleSubmit,
-    formState: { isSubmitting, isSubmitSuccessful },
+    formState: { isSubmitting },
     watch,
     setValue,
   } = useForm<InvitePartnerFormData>({
