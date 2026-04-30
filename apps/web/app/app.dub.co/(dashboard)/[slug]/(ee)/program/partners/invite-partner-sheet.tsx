@@ -429,9 +429,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             variant="primary"
             text="Send invite"
             className="w-fit"
-            loading={
-              isPending || isBulkPending || isSubmitting || isSubmitSuccessful
-            }
+            loading={isPending || isBulkPending || isSubmitting}
             disabled={
               isPending || isBulkPending || isEditingEmail || isSavingEmailData
             }
