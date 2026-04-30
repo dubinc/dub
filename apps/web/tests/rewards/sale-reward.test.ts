@@ -1,4 +1,4 @@
-import { TrackSaleResponse } from "@/lib/types";
+import { TrackLeadResponse, TrackSaleResponse } from "@/lib/types";
 import {
   randomCustomer,
   randomId,
@@ -15,7 +15,7 @@ import { verifyCommission } from "tests/utils/verify-commission";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
-describe.concurrent("Sale rewards with conditions", async () => {
+describe("Sale rewards with conditions", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
@@ -154,18 +154,29 @@ describe.concurrent("Sale rewards with conditions", async () => {
       expect(clickResponse.status).toEqual(200);
       const trackedClickId = clickResponse.data.clickId;
       expect(trackedClickId).toStrictEqual(expect.any(String));
-      const sale = randomSale("E2E first sale");
 
-      // here we use direct sale tracking to save time
-      const trackSaleResponse = await http.post<TrackSaleResponse>({
-        path: "/track/sale",
+      const trackLeadResponse = await http.post<TrackLeadResponse>({
+        path: "/track/lead",
         body: {
-          ...sale,
           clickId: trackedClickId,
+          eventName: "E2E lead for new/recurring sale test",
           customerExternalId: newCustomer.externalId,
           customerName: newCustomer.name,
           customerEmail: newCustomer.email,
           customerAvatar: newCustomer.avatar,
+          mode: "wait",
+        },
+      });
+
+      expect(trackLeadResponse.status).toEqual(200);
+
+      const sale = randomSale("E2E first sale");
+
+      const trackSaleResponse = await http.post<TrackSaleResponse>({
+        path: "/track/sale",
+        body: {
+          ...sale,
+          customerExternalId: newCustomer.externalId,
         },
       });
 
@@ -178,9 +189,6 @@ describe.concurrent("Sale rewards with conditions", async () => {
         invoiceId: sale.invoiceId,
         expectedEarnings: E2E_SALE_REWARD.modifiers[5].amountInCents!,
       });
-
-      // add a 5s sleep to ensure the lead event is fully processed
-      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // no need to verify second sale since it will be verified below
       // in the {Customer} {Subscription Duration} is {less than or equal to} {3} test
