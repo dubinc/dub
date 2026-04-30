@@ -71,8 +71,8 @@ async function main() {
     console.table(toUpdate);
 
     await Promise.all(
-      toUpdate.map((workspace) => {
-        return prisma.project.update({
+      toUpdate.map((workspace) =>
+        prisma.project.update({
           where: {
             id: workspace.id,
           },
@@ -80,8 +80,8 @@ async function main() {
             partnersUsage: workspace.partnersUsage,
             partnersLimit: workspace.partnersLimit,
           },
-        });
-      }),
+        }),
+      ),
     );
   }
 }
