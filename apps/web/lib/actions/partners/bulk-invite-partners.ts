@@ -123,8 +123,6 @@ export const bulkInvitePartnersAction = authActionClient
     const partnerGroupDefaultLinks = group.partnerGroupDefaultLinks;
     const utmTemplate = group.utmTemplate;
 
-    // Create enrollments + bump partnersUsage atomically. Check the limit
-    // against the number we're about to create so we don't half-apply.
     const invitedCount = await prisma.$transaction(async (tx) => {
       const { count: invitedCount } = await tx.programEnrollment.createMany({
         data: partners.map((partner) => ({
