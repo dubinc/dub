@@ -214,14 +214,27 @@ async function byPartner({
         })
       : [];
 
-  const partnerById = new Map(partners.map((p) => [p.id, p]));
+  const eventCountByPartnerId = new Map(
+    events.map(({ referredByPartnerId, _count }) => [
+      referredByPartnerId,
+      _count,
+    ]),
+  );
 
-  const results = events.map((row) => ({
-    partner: row.referredByPartnerId
-      ? partnerById.get(row.referredByPartnerId) ?? null
-      : null,
-    ...formatCounts(row._count),
-  }));
+  const results = partners
+    .map((partner) => {
+      const partnerEvents = eventCountByPartnerId.get(partner.id);
+
+      if (!partnerEvents) {
+        return null;
+      }
+
+      return {
+        partner,
+        ...formatCounts(partnerEvents),
+      };
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null);
 
   return NextResponse.json(
     z.array(applicationEventAnalyticsSchema["partner"]).parse(results),

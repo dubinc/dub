@@ -38,18 +38,22 @@ export function useApplicationEventsFilters() {
 
   const { data: partners } = useApplicationsAnalytics({
     groupBy: "partner",
+    exclude: ["partnerId"],
   });
 
   const { data: partnerGroups } = useApplicationsAnalytics({
     groupBy: "partnerGroup",
+    exclude: ["groupId"],
   });
 
   const { data: referralSources } = useApplicationsAnalytics({
     groupBy: "referralSource",
+    exclude: ["referralSource"],
   });
 
   const { data: countries } = useApplicationsAnalytics({
     groupBy: "country",
+    exclude: ["country"],
   });
 
   const filters = useMemo(
@@ -71,7 +75,7 @@ export function useApplicationEventsFilters() {
                 ? `/${slug}/program/groups/${group.slug}/rewards`
                 : undefined,
             };
-          }) ?? null,
+          }) ?? [],
       },
       {
         key: "partnerId",
@@ -86,8 +90,9 @@ export function useApplicationEventsFilters() {
               value: partner.id,
               label: partner.name,
               icon: <PartnerAvatar partner={partner} className="size-4" />,
+              right: nFormatter(row[stageMetricKey]),
             };
-          }) ?? null,
+          }) ?? [],
       },
       {
         key: "referralSource",
@@ -99,7 +104,7 @@ export function useApplicationEventsFilters() {
             value: row.referralSource,
             label: row.referralSource,
             right: nFormatter(row[stageMetricKey]),
-          })) ?? null,
+          })) ?? [],
       },
       {
         key: "country",
@@ -126,7 +131,7 @@ export function useApplicationEventsFilters() {
             value: row.country,
             label: COUNTRIES[row.country] ?? row.country,
             right: nFormatter(row[stageMetricKey]),
-          })) ?? null,
+          })) ?? [],
       },
     ],
     [countries, partnerGroups, partners, referralSources, slug, stageMetricKey],

@@ -7,9 +7,21 @@ import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 
+type ApplicationAnalyticsFilterKey = Extract<
+  keyof ApplicationEventAnalyticsQuery,
+  "partnerId" | "referralSource" | "country" | "groupId"
+>;
+
+interface UseApplicationsAnalyticsProps<
+  TGroupBy extends keyof ApplicationAnalyticsByGroup,
+> extends ApplicationEventAnalyticsQuery {
+  groupBy: TGroupBy;
+  exclude?: ApplicationAnalyticsFilterKey[];
+}
+
 export function useApplicationsAnalytics<
   TGroupBy extends keyof ApplicationAnalyticsByGroup,
->(filters: ApplicationEventAnalyticsQuery & { groupBy: TGroupBy }) {
+>({ exclude, ...filters }: UseApplicationsAnalyticsProps<TGroupBy>) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
@@ -27,6 +39,7 @@ export function useApplicationsAnalytics<
         "sortOrder",
         "page",
         "pageSize",
+        ...(exclude ?? []),
       ],
     },
   );
