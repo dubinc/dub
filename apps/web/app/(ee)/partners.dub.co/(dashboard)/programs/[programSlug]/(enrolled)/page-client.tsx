@@ -642,7 +642,6 @@ function BrandedChart({
         </ChartContext.Consumer>
 
         <XAxis
-          maxTicks={interval === "24h" ? 2 : undefined}
           showAxisLine={false}
           tickFormat={
             interval === "24h"
