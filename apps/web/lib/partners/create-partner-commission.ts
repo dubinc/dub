@@ -138,6 +138,12 @@ export const createPartnerCommission = async ({
           subscriptionStartDate,
           subscriptionDurationMonths,
         },
+        ...(event === "sale" && {
+          sale: {
+            ...context?.sale,
+            type: firstCommission ? "recurring" : "new",
+          },
+        }),
       };
     }
 
