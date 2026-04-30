@@ -337,6 +337,7 @@ function PlanIncludedProducts({ plan }: { plan: PlanDetails }) {
         <Link
           href="https://dub.co/links"
           target="_blank"
+          rel="noopener noreferrer"
           className="flex w-fit items-center gap-2 text-xs font-semibold leading-4 tracking-tight text-neutral-600 transition-colors hover:text-neutral-950"
         >
           <DubProductIcon
@@ -350,6 +351,7 @@ function PlanIncludedProducts({ plan }: { plan: PlanDetails }) {
           <Link
             href="https://dub.co/partners"
             target="_blank"
+            rel="noopener noreferrer"
             className="flex w-fit items-center gap-2 text-xs font-semibold leading-4 tracking-tight text-neutral-600 transition-colors hover:text-neutral-950"
           >
             <DubProductIcon
