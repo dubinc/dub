@@ -74,15 +74,19 @@ export const DELETE = withWorkspace(
     const { directorySyncController } = await jackson();
 
     const directory =
-      await directorySyncController.directories.getByTenantAndProduct(
-        workspace.id,
-        "Dub",
-      );
+      await directorySyncController.directories.get(directoryId);
 
     if (!directory || directory.error || !directory.data) {
       throw new DubApiError({
         code: "internal_server_error",
         message: directory.error.message,
+      });
+    }
+
+    if (directory.data.tenant !== workspace.id) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Directory ID does not match",
       });
     }
 
