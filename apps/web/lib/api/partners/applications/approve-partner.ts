@@ -53,11 +53,10 @@ export async function approvePartner({
     });
   }
 
-  if (programEnrollment.status !== "pending") {
+  if (!["pending", "rejected"].includes(programEnrollment.status)) {
     throw new DubApiError({
       code: "bad_request",
-      message:
-        "This enrollment cannot be approved because it is no longer pending.",
+      message: `This enrollment cannot be approved because it is already ${programEnrollment.status}.`,
     });
   }
 
