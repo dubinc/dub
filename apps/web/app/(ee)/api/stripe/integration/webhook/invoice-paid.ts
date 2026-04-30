@@ -253,7 +253,7 @@ export async function invoicePaid(
         return {
           id: productId,
           amount: line.amount,
-          quantity: line.quantity ?? 1,
+          quantity: line.quantity,
         };
       })
       .filter(

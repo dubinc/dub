@@ -71,7 +71,7 @@ export async function getCheckoutSessionProducts({
         return {
           id: productId,
           amount: line.amount_total,
-          quantity: line.quantity ?? 1,
+          quantity: line.quantity,
         };
       })
       .filter(
