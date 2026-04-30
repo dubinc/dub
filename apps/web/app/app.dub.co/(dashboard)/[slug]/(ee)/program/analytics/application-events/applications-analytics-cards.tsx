@@ -15,7 +15,7 @@ import { cn, COUNTRIES, parseFilterValue } from "@dub/utils";
 import { ReactNode, useCallback, useMemo, useState } from "react";
 import { useApplicationsAnalytics } from "./use-applications-analytics";
 
-type BreakdownTab = "referralSource" | "country";
+type AnalyticsTab = "referralSource" | "country";
 
 const STAGE_VALUE_KEY: Record<
   ApplicationEventStages,
@@ -43,7 +43,7 @@ const STAGE_ICONS: Record<ApplicationEventStages, React.ElementType> = {
   approved: CircleCheck,
 };
 
-function ApplicationsBreakdownCardShell({
+function ApplicationsAnalyticsCardShell({
   tab,
   title,
   stage,
@@ -53,7 +53,7 @@ function ApplicationsBreakdownCardShell({
   isLoading,
   mapRow,
 }: {
-  tab: BreakdownTab;
+  tab: AnalyticsTab;
   title: string;
   stage: ApplicationEventStages;
   barBackground: string;
@@ -243,7 +243,7 @@ function ApplicationsBreakdownCardShell({
   );
 }
 
-export function ApplicationsBreakdownCards({
+export function ApplicationsAnalyticsCards({
   stage,
 }: {
   stage: ApplicationEventStages;
@@ -256,7 +256,7 @@ export function ApplicationsBreakdownCards({
 
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-      <ApplicationsBreakdownCardShell
+      <ApplicationsAnalyticsCardShell
         tab="referralSource"
         title="Application source"
         stage={stage}
@@ -275,7 +275,7 @@ export function ApplicationsBreakdownCards({
         barBackground="bg-neutral-100"
         hoverBackground="hover:bg-gradient-to-r hover:from-neutral-50 hover:to-transparent hover:border-neutral-300"
       />
-      <ApplicationsBreakdownCardShell
+      <ApplicationsAnalyticsCardShell
         tab="country"
         title="Country"
         stage={stage}

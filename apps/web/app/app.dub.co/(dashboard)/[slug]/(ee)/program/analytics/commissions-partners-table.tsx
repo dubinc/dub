@@ -1,8 +1,7 @@
 "use client";
 
-import useCommissionAnalytics, {
-  CommissionAnalyticsPartnerRow,
-} from "@/lib/swr/use-commission-analytics";
+import useCommissionAnalytics from "@/lib/swr/use-commission-analytics";
+import { CommissionAnalyticsPartnerRow } from "@/lib/types";
 import {
   Button,
   Table,

@@ -3,17 +3,11 @@ import { IntervalOptions } from "@/lib/analytics/types";
 import type {
   CommissionAnalyticsByGroup,
   CommissionAnalyticsGroupBy,
-} from "@/lib/commissions/schema";
+} from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import { useMemo } from "react";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
-
-export type {
-  CommissionAnalyticsPartnerRow,
-  CommissionCategoryRow,
-  CommissionTimeseriesItem,
-} from "@/lib/commissions/schema";
 
 export default function useCommissionAnalytics<
   G extends CommissionAnalyticsGroupBy,
