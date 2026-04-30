@@ -1,5 +1,6 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import {
   applicationEventAnalyticsQuerySchema,
   applicationEventAnalyticsSchema,
@@ -9,6 +10,7 @@ import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { ApplicationEventAnalyticsQuery } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { parseFilterValue } from "@dub/utils";
 import { format } from "date-fns/format";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -60,6 +62,16 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     timezone,
   } = parsedFilters;
 
+  if (groupBy !== "timeseries") {
+    assertValidDateRangeForPlan({
+      plan: workspace.plan,
+      dataAvailableFrom: workspace.createdAt,
+      interval,
+      start,
+      end,
+    });
+  }
+
   const { startDate, endDate } = getStartEndDates({
     interval,
     start,
@@ -67,12 +79,39 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     timezone,
   });
 
+  const partnerFilter = parseFilterValue(partnerId);
+  const groupFilter = parseFilterValue(groupId);
+  const countryFilter = parseFilterValue(country);
+  const referralSourceFilter = parseFilterValue(referralSource);
+
   const where: Prisma.ProgramApplicationEventWhereInput = {
     programId,
-    ...(partnerId && { referredByPartnerId: partnerId }),
-    ...(groupId && { programEnrollment: { groupId } }),
-    ...(country && { country }),
-    ...(referralSource && { referralSource }),
+    ...(partnerFilter && {
+      referredByPartnerId:
+        partnerFilter.sqlOperator === "NOT IN"
+          ? { notIn: partnerFilter.values }
+          : { in: partnerFilter.values },
+    }),
+    ...(groupFilter && {
+      programEnrollment: {
+        groupId:
+          groupFilter.sqlOperator === "NOT IN"
+            ? { notIn: groupFilter.values }
+            : { in: groupFilter.values },
+      },
+    }),
+    ...(countryFilter && {
+      country:
+        countryFilter.sqlOperator === "NOT IN"
+          ? { notIn: countryFilter.values }
+          : { in: countryFilter.values },
+    }),
+    ...(referralSourceFilter && {
+      referralSource:
+        referralSourceFilter.sqlOperator === "NOT IN"
+          ? { notIn: referralSourceFilter.values }
+          : { in: referralSourceFilter.values },
+    }),
     visitedAt: {
       gte: startDate,
       lt: endDate,
@@ -210,31 +249,58 @@ async function byTimeseries({
   const { dateFormat, dateIncrement, startFunction, formatString } =
     sqlGranularityMap[granularity];
 
+  const partnerFilter = parseFilterValue(partnerId);
+  const groupFilter = parseFilterValue(groupId);
+  const countryFilter = parseFilterValue(country);
+  const referralSourceFilter = parseFilterValue(referralSource);
+
   const conditions: Prisma.Sql[] = [
     Prisma.sql`e.programId = ${programId}`,
     Prisma.sql`e.visitedAt >= ${startDate}`,
     Prisma.sql`e.visitedAt < ${endDate}`,
   ];
 
-  if (partnerId) {
-    conditions.push(Prisma.sql`e.partnerId = ${partnerId}`);
+  if (partnerFilter) {
+    const list = Prisma.join(partnerFilter.values.map((v) => Prisma.sql`${v}`));
+    conditions.push(
+      partnerFilter.sqlOperator === "NOT IN"
+        ? Prisma.sql`e.partnerId NOT IN (${list})`
+        : Prisma.sql`e.partnerId IN (${list})`,
+    );
   }
 
-  if (groupId) {
+  if (groupFilter) {
+    const list = Prisma.join(groupFilter.values.map((v) => Prisma.sql`${v}`));
+    const op =
+      groupFilter.sqlOperator === "NOT IN"
+        ? Prisma.sql`NOT IN`
+        : Prisma.sql`IN`;
     conditions.push(Prisma.sql`EXISTS (
         SELECT 1 FROM ProgramEnrollment pe
         WHERE pe.programId = e.programId
           AND pe.partnerId = e.partnerId
-          AND pe.groupId = ${groupId}
+          AND pe.groupId ${op} (${list})
       )`);
   }
 
-  if (country) {
-    conditions.push(Prisma.sql`e.country = ${country}`);
+  if (countryFilter) {
+    const list = Prisma.join(countryFilter.values.map((v) => Prisma.sql`${v}`));
+    conditions.push(
+      countryFilter.sqlOperator === "NOT IN"
+        ? Prisma.sql`e.country NOT IN (${list})`
+        : Prisma.sql`e.country IN (${list})`,
+    );
   }
 
-  if (referralSource) {
-    conditions.push(Prisma.sql`e.referralSource = ${referralSource}`);
+  if (referralSourceFilter) {
+    const list = Prisma.join(
+      referralSourceFilter.values.map((v) => Prisma.sql`${v}`),
+    );
+    conditions.push(
+      referralSourceFilter.sqlOperator === "NOT IN"
+        ? Prisma.sql`e.referralSource NOT IN (${list})`
+        : Prisma.sql`e.referralSource IN (${list})`,
+    );
   }
 
   const whereClause = Prisma.join(conditions, " AND ");
@@ -312,6 +378,11 @@ async function byPartnerGroup({
     timezone,
   });
 
+  const partnerFilter = parseFilterValue(partnerId);
+  const countryFilter = parseFilterValue(country);
+  const referralSourceFilter = parseFilterValue(referralSource);
+  const groupFilter = parseFilterValue(groupId);
+
   const conditions: Prisma.Sql[] = [
     Prisma.sql`e.programId = ${programId}`,
     Prisma.sql`e.visitedAt >= ${startDate}`,
@@ -319,20 +390,42 @@ async function byPartnerGroup({
     Prisma.sql`pe.groupId IS NOT NULL`,
   ];
 
-  if (partnerId) {
-    conditions.push(Prisma.sql`e.partnerId = ${partnerId}`);
+  if (partnerFilter) {
+    const list = Prisma.join(partnerFilter.values.map((v) => Prisma.sql`${v}`));
+    conditions.push(
+      partnerFilter.sqlOperator === "NOT IN"
+        ? Prisma.sql`e.partnerId NOT IN (${list})`
+        : Prisma.sql`e.partnerId IN (${list})`,
+    );
   }
 
-  if (country) {
-    conditions.push(Prisma.sql`e.country = ${country}`);
+  if (countryFilter) {
+    const list = Prisma.join(countryFilter.values.map((v) => Prisma.sql`${v}`));
+    conditions.push(
+      countryFilter.sqlOperator === "NOT IN"
+        ? Prisma.sql`e.country NOT IN (${list})`
+        : Prisma.sql`e.country IN (${list})`,
+    );
   }
 
-  if (referralSource) {
-    conditions.push(Prisma.sql`e.referralSource = ${referralSource}`);
+  if (referralSourceFilter) {
+    const list = Prisma.join(
+      referralSourceFilter.values.map((v) => Prisma.sql`${v}`),
+    );
+    conditions.push(
+      referralSourceFilter.sqlOperator === "NOT IN"
+        ? Prisma.sql`e.referralSource NOT IN (${list})`
+        : Prisma.sql`e.referralSource IN (${list})`,
+    );
   }
 
-  if (groupId) {
-    conditions.push(Prisma.sql`pe.groupId = ${groupId}`);
+  if (groupFilter) {
+    const list = Prisma.join(groupFilter.values.map((v) => Prisma.sql`${v}`));
+    conditions.push(
+      groupFilter.sqlOperator === "NOT IN"
+        ? Prisma.sql`pe.groupId NOT IN (${list})`
+        : Prisma.sql`pe.groupId IN (${list})`,
+    );
   }
 
   const whereClause = Prisma.join(conditions, " AND ");

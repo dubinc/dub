@@ -1,6 +1,5 @@
 import { GroupSchema } from "@/lib/zod/schemas/groups";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
-import { COUNTRY_CODES } from "@dub/utils";
 import * as z from "zod/v4";
 import { analyticsQuerySchema } from "../zod/schemas/analytics";
 
@@ -31,7 +30,7 @@ const sharedFilterSchema = analyticsQuerySchema
   .extend({
     groupId: z.string().optional(),
     partnerId: z.string().optional(),
-    country: z.enum(COUNTRY_CODES).optional(),
+    country: z.string().optional(),
     referralSource: z.string().optional(),
   });
 

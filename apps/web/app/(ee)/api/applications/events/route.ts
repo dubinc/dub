@@ -1,5 +1,6 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import {
   applicationEventSchema,
   applicationEventsQuerySchema,
@@ -7,6 +8,7 @@ import {
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { parseFilterValue } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -30,6 +32,14 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     sortOrder,
   } = applicationEventsQuerySchema.parse(searchParams);
 
+  assertValidDateRangeForPlan({
+    plan: workspace.plan,
+    dataAvailableFrom: workspace.createdAt,
+    interval,
+    start,
+    end,
+  });
+
   const { startDate, endDate } = getStartEndDates({
     interval,
     start,
@@ -37,12 +47,39 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     timezone,
   });
 
+  const partnerFilter = parseFilterValue(partnerId);
+  const countryFilter = parseFilterValue(country);
+  const groupFilter = parseFilterValue(groupId);
+  const referralSourceFilter = parseFilterValue(referralSource);
+
   const where: Prisma.ProgramApplicationEventWhereInput = {
     programId,
-    ...(partnerId && { partnerId }),
-    ...(country && { country }),
-    ...(referralSource && { referralSource }),
-    ...(groupId && { programEnrollment: { groupId } }),
+    ...(partnerFilter && {
+      partnerId:
+        partnerFilter.sqlOperator === "NOT IN"
+          ? { notIn: partnerFilter.values }
+          : { in: partnerFilter.values },
+    }),
+    ...(countryFilter && {
+      country:
+        countryFilter.sqlOperator === "NOT IN"
+          ? { notIn: countryFilter.values }
+          : { in: countryFilter.values },
+    }),
+    ...(referralSourceFilter && {
+      referralSource:
+        referralSourceFilter.sqlOperator === "NOT IN"
+          ? { notIn: referralSourceFilter.values }
+          : { in: referralSourceFilter.values },
+    }),
+    ...(groupFilter && {
+      programEnrollment: {
+        groupId:
+          groupFilter.sqlOperator === "NOT IN"
+            ? { notIn: groupFilter.values }
+            : { in: groupFilter.values },
+      },
+    }),
     ...(event === "visited" && {
       visitedAt: {
         gte: startDate,
