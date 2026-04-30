@@ -27,6 +27,7 @@ export type PlanDetails = {
     folders: number;
     groups: number;
     networkInvites: number;
+    partners: number;
     users: number;
     ai: number;
     api: number;
@@ -144,6 +145,7 @@ export const PLANS: PlanDetails[] = [
       folders: 0,
       groups: 0,
       networkInvites: 0,
+      partners: 0,
       users: 1,
       ai: 10,
       api: 60,
@@ -167,6 +169,7 @@ export const PLANS: PlanDetails[] = [
       folders: 3,
       groups: 0,
       networkInvites: 0,
+      partners: 0,
       users: 3,
       ai: 1_000,
       api: 600,
@@ -256,6 +259,7 @@ export const PLANS: PlanDetails[] = [
       folders: 20,
       groups: 3,
       networkInvites: 0,
+      partners: 500,
       users: 10,
       ai: 1_000,
       api: 1_200,
@@ -364,6 +368,7 @@ export const PLANS: PlanDetails[] = [
       folders: 50,
       groups: INFINITY_NUMBER,
       networkInvites: 0,
+      partners: 5_000,
       users: 20,
       ai: 1_000,
       api: 3_000,
@@ -481,6 +486,7 @@ export const PLANS: PlanDetails[] = [
       folders: INFINITY_NUMBER,
       groups: INFINITY_NUMBER,
       networkInvites: 20,
+      partners: INFINITY_NUMBER,
       users: 30,
       ai: 1_000,
       api: 3_000,

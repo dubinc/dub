@@ -1,7 +1,6 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
-import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useStartPaidPlanModal } from "@/ui/modals/start-paid-plan-modal";
 import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
@@ -20,7 +19,6 @@ import {
   INFINITY_NUMBER,
   isWorkspaceBillingTrialActive,
   nFormatter,
-  TRIAL_PROGRAM_ENROLLMENT_LIMIT,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { ChevronRight } from "lucide-react";
@@ -43,6 +41,8 @@ function UsageInner() {
     linksLimit,
     payoutsUsage,
     payoutsLimit,
+    partnersUsage,
+    partnersLimit,
     billingCycleStart,
     plan,
     slug,
@@ -54,11 +54,6 @@ function UsageInner() {
   } = useWorkspace({ swrOpts: { keepPreviousData: true } });
 
   const isTrial = isWorkspaceBillingTrialActive(trialEndsAt);
-
-  const { partnersCount } = usePartnersCount<number>({
-    ignoreParams: true,
-    enabled: Boolean(isTrial && defaultProgramId),
-  });
 
   const permissionsError = clientAccessCheck({
     action: "billing.write",
@@ -102,14 +97,14 @@ function UsageInner() {
       [
         [usage, usageLimit],
         [payoutsUsage, payoutsLimit],
-        [partnersCount, TRIAL_PROGRAM_ENROLLMENT_LIMIT],
+        [partnersUsage, partnersLimit],
       ].map(
         ([usage, limit]) =>
           usage !== undefined &&
           limit !== undefined &&
           usage / Math.max(0, usage, limit) >= 0.9,
       ),
-    [usage, usageLimit, payoutsUsage, payoutsLimit, partnersCount],
+    [usage, usageLimit, payoutsUsage, payoutsLimit, partnersUsage],
   );
 
   const warning = warnings.some((w) => w);
@@ -172,8 +167,8 @@ function UsageInner() {
                 <UsageRow
                   icon={Users}
                   label="Partners"
-                  usage={defaultProgramId ? partnersCount : 0}
-                  limit={TRIAL_PROGRAM_ENROLLMENT_LIMIT}
+                  usage={defaultProgramId ? partnersUsage : 0}
+                  limit={partnersLimit}
                   showNextPlan={false}
                   nextPlanLimit={undefined}
                   warning={warnings[2]}
