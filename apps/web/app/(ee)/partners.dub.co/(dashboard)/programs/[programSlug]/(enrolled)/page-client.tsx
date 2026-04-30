@@ -641,7 +641,12 @@ function BrandedChart({
           )}
         </ChartContext.Consumer>
 
-        <XAxis showAxisLine={false} />
+        <XAxis
+          showAxisLine={false}
+          tickFormat={(date) =>
+            formatDateTooltip(date, { interval, start, end })
+          }
+        />
         <Areas
           seriesStyles={[
             {

@@ -1,8 +1,8 @@
 "use client";
 
-import useCommissionsTopPartners, {
-  CommissionsTopPartner,
-} from "@/lib/swr/use-commissions-top-partners";
+import useCommissionAnalytics, {
+  CommissionAnalyticsPartnerRow,
+} from "@/lib/swr/use-commission-analytics";
 import {
   Button,
   Table,
@@ -73,11 +73,12 @@ export function CommissionsPartnersTable({
   });
 
   const {
-    partners: allPartners,
+    data: allPartners,
     isLoading,
     error,
-  } = useCommissionsTopPartners({
+  } = useCommissionAnalytics({
     queryString,
+    groupBy: "partnerId",
   });
 
   const pageData = useMemo(
@@ -89,7 +90,7 @@ export function CommissionsPartnersTable({
     [allPartners, pagination.pageIndex],
   );
 
-  const { table, ...tableProps } = useTable<CommissionsTopPartner>({
+  const { table, ...tableProps } = useTable<CommissionAnalyticsPartnerRow>({
     data: pageData ?? [],
     columns: [
       {

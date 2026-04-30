@@ -1,8 +1,8 @@
 "use client";
 
-import useCommissionsBreakdown, {
-  CommissionsBreakdownItem,
-} from "@/lib/swr/use-commissions-breakdown";
+import useCommissionAnalytics, {
+  CommissionCategoryRow,
+} from "@/lib/swr/use-commission-analytics";
 import useGroups from "@/lib/swr/use-groups";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import { BarList } from "@/ui/analytics/bar-list";
@@ -28,15 +28,15 @@ const STATUS_ICONS: Record<string, React.ElementType> = {
   all: CircleDotted,
 };
 
-type BreakdownGroupBy = "type" | "groupId";
+type CommissionsBarListTab = "type" | "groupId";
 
-function mapBreakdownItem(
-  item: CommissionsBreakdownItem,
-  groupBy: BreakdownGroupBy,
+function mapCommissionBarRow(
+  item: CommissionCategoryRow,
+  tab: CommissionsBarListTab,
   groupColorMap: Map<string, { color: string | null }>,
 ) {
   const icon =
-    groupBy === "type" ? (
+    tab === "type" ? (
       <CommissionTypeIcon
         type={item.key as "sale" | "custom" | "lead" | "click"}
       />
@@ -100,7 +100,7 @@ function useUrlListFilter(paramKey: string) {
   };
 }
 
-function BreakdownCardShell({
+function CommissionAnalyticsCardShell({
   status,
   title,
   dataLength,
@@ -197,7 +197,7 @@ const BAR_LIST_SHARED = {
   filterHoverClass: "bg-white border border-neutral-200",
 };
 
-function BreakdownBarPanel({
+function CommissionBarPanel({
   status,
   title,
   tab,
@@ -210,9 +210,9 @@ function BreakdownBarPanel({
 }: {
   status: CommissionStatusFilter;
   title: string;
-  tab: BreakdownGroupBy;
+  tab: CommissionsBarListTab;
   filter: ReturnType<typeof useUrlListFilter>;
-  rawItems: CommissionsBreakdownItem[] | undefined;
+  rawItems: CommissionCategoryRow[] | undefined;
   loading: boolean;
   groupColorMap: Map<string, { color: string | null }>;
   barBackground: string;
@@ -221,14 +221,14 @@ function BreakdownBarPanel({
   const data = useMemo(
     () =>
       (rawItems ?? []).map((item) =>
-        mapBreakdownItem(item, tab, groupColorMap),
+        mapCommissionBarRow(item, tab, groupColorMap),
       ),
     [rawItems, tab, groupColorMap],
   );
   const maxValue = Math.max(0, ...data.map((d) => d.value));
 
   return (
-    <BreakdownCardShell
+    <CommissionAnalyticsCardShell
       status={status}
       title={title}
       dataLength={data.length}
@@ -265,11 +265,11 @@ function BreakdownBarPanel({
           />
         )
       }
-    </BreakdownCardShell>
+    </CommissionAnalyticsCardShell>
   );
 }
 
-export function CommissionsBreakdownCards({
+export function CommissionsAnalyticsCards({
   status,
   queryString,
 }: {
@@ -286,18 +286,18 @@ export function CommissionsBreakdownCards({
     return map;
   }, [groups]);
 
-  const { data: groupRows, isLoading: groupLoading } = useCommissionsBreakdown({
+  const { data: groupRows, isLoading: groupLoading } = useCommissionAnalytics({
     queryString,
     groupBy: "groupId",
   });
-  const { data: typeRows, isLoading: typeLoading } = useCommissionsBreakdown({
+  const { data: typeRows, isLoading: typeLoading } = useCommissionAnalytics({
     queryString,
     groupBy: "type",
   });
 
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-      <BreakdownBarPanel
+      <CommissionBarPanel
         status={status}
         title="Partner Group"
         tab="groupId"
@@ -308,7 +308,7 @@ export function CommissionsBreakdownCards({
         barBackground="bg-orange-100"
         hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"
       />
-      <BreakdownBarPanel
+      <CommissionBarPanel
         status={status}
         title="Type"
         tab="type"

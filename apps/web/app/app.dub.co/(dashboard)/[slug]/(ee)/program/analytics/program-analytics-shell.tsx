@@ -25,10 +25,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ContextType, ReactNode, useMemo } from "react";
 import useSWR from "swr";
-import { ApplicationsBreakdownCards } from "./application-events/applications-breakdown-cards";
+import { ApplicationsAnalyticsCards } from "./application-events/applications-analytics-cards";
 import { useApplicationEventsFilters } from "./application-events/use-applications-analytics-filters";
 import { useApplicationsAnalyticsQuery } from "./application-events/use-applications-analytics-query";
-import { CommissionsBreakdownCards } from "./commissions-breakdown-cards";
+import { CommissionsAnalyticsCards } from "./commissions-analytics-cards";
 import {
   PROGRAM_ANALYTICS_TABS,
   ProgramAnalyticsNav,
@@ -284,12 +284,12 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
         </div>
 
         {pageTab === "commissions" ? (
-          <CommissionsBreakdownCards
+          <CommissionsAnalyticsCards
             status={commissionStatus}
             queryString={commissionsQueryString}
           />
         ) : pageTab === "applications" ? (
-          <ApplicationsBreakdownCards stage={applicationsStage} />
+          <ApplicationsAnalyticsCards stage={applicationsStage} />
         ) : (
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <PartnerSection />

@@ -11,6 +11,7 @@ import {
   getRewardPayload,
   useAddEditRewardForm,
 } from "./add-edit-reward-sheet";
+import { getRewardQuality, RewardQualityIndicator } from "./reward-quality";
 
 export function RewardPreviewCard() {
   const { control } = useAddEditRewardForm();
@@ -25,13 +26,44 @@ export function RewardPreviewCard() {
   }
 
   const Icon = REWARD_EVENTS[reward.event].icon;
+  const type = data.type ?? reward.type;
+  const hasConditions = !!data.modifiers?.length;
+  const quality = getRewardQuality({
+    event: reward.event,
+    type,
+    amountInCents:
+      type === "flat" &&
+      data.amountInCents != null &&
+      !Number.isNaN(data.amountInCents)
+        ? data.amountInCents * 100
+        : null,
+    amountInPercentage:
+      type === "percentage" &&
+      data.amountInPercentage != null &&
+      !Number.isNaN(data.amountInPercentage)
+        ? data.amountInPercentage
+        : null,
+    maxDuration: data.maxDuration,
+  });
 
   return (
     <div className="border-border-subtle bg-bg-muted rounded-xl border shadow-sm">
-      <div className="px-4 py-2.5">
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5">
         <span className="text-content-emphasis flex items-center gap-2.5 text-sm font-semibold">
           Reward preview
         </span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-neutral-500">
+            {hasConditions ? "Base reward quality" : "Reward quality"}
+          </span>
+          <RewardQualityIndicator
+            event={reward.event}
+            quality={quality}
+            tooltipFooter={
+              hasConditions ? "Based on default reward only" : undefined
+            }
+          />
+        </div>
       </div>
 
       <div className="border-border-subtle bg-bg-default -mx-px rounded-xl border-x border-t p-4">

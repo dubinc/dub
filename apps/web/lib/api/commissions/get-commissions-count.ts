@@ -70,8 +70,15 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
         ],
       };
 
+  const groupFilter = parseFilterValue(groupId);
+
   const programEnrollmentFilter = {
-    ...(groupId && { groupId }),
+    ...(groupFilter && {
+      groupId:
+        groupFilter.sqlOperator === "NOT IN"
+          ? { notIn: groupFilter.values }
+          : { in: groupFilter.values },
+    }),
     ...(isHoldStatus && {
       fraudEventGroups: {
         some: {

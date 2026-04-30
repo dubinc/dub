@@ -300,6 +300,13 @@ export const DELETE = withWorkspace(
       }),
     ]);
 
+    if (group.programId !== programId) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: `Group "${groupIdOrSlug}" not found in your program.`,
+      });
+    }
+
     if (group.slug === DEFAULT_PARTNER_GROUP.slug) {
       throw new DubApiError({
         code: "forbidden",

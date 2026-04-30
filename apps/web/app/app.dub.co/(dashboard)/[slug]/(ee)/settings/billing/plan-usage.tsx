@@ -43,14 +43,11 @@ import {
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { CSSProperties, ReactNode, useMemo } from "react";
 import { toast } from "sonner";
 import { UsageChart } from "./usage-chart";
 
 export default function PlanUsage() {
-  const router = useRouter();
-
   const {
     id: workspaceId,
     slug,
