@@ -219,8 +219,8 @@ export const createPartnerCommission = async ({
         rewards.push({
           reward,
           sale: {
-            quantity,
             amount,
+            quantity,
           },
         });
       }
