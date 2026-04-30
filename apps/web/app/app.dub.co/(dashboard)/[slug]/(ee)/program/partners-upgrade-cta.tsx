@@ -22,7 +22,7 @@ export function PartnersUpgradeCTA({
     if (!canManageProgram || isLegacyBusinessPlan({ plan, payoutsLimit })) {
       return {
         cta: "Upgrade plan",
-        href: `/${slug}/upgrade`,
+        href: `/${slug}/upgrade?plan=business`,
       };
     } else {
       return {

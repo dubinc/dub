@@ -11,6 +11,7 @@ import {
   Check,
   CircleQuestion,
   ConnectedDots4,
+  DubProductIcon,
   Globe,
   Hyperlink,
   Icon,
@@ -233,6 +234,7 @@ export default function WorkspaceBillingUpgradePage() {
                           </>
                         )}
                       </div>
+                      <PlanIncludedProducts plan={plan} />
                     </div>
                     <div className="flex gap-3">
                       <button
@@ -322,6 +324,46 @@ export default function WorkspaceBillingUpgradePage() {
         </div>
       </PageWidthWrapper>
     </PageContent>
+  );
+}
+
+function PlanIncludedProducts({ plan }: { plan: PlanDetails }) {
+  return (
+    <div className="mt-5 grid gap-2">
+      <span className="text-xs font-normal leading-4 text-neutral-500">
+        Includes
+      </span>
+      <div className="grid min-h-12 content-start gap-2">
+        <Link
+          href="https://dub.co/links"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex w-fit items-center gap-2 text-xs font-semibold leading-4 tracking-tight text-neutral-600 transition-colors hover:text-neutral-950"
+        >
+          <DubProductIcon
+            product="links"
+            className="size-5"
+            iconClassName="size-3"
+          />
+          <span>Dub Links</span>
+        </Link>
+        {plan.limits.payouts > 0 && (
+          <Link
+            href="https://dub.co/partners"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-fit items-center gap-2 text-xs font-semibold leading-4 tracking-tight text-neutral-600 transition-colors hover:text-neutral-950"
+          >
+            <DubProductIcon
+              product="partners"
+              className="size-5"
+              iconClassName="size-3"
+            />
+            <span>Dub Partners</span>
+          </Link>
+        )}
+      </div>
+    </div>
   );
 }
 
