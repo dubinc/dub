@@ -53,7 +53,7 @@ export const POST = withWorkspace(
 
       if (!directory || directory.error || !directory.data) {
         throw new DubApiError({
-          code: "internal_server_error",
+          code: "not_found",
           message: directory?.error?.message ?? "Directory not found.",
         });
       }
@@ -63,7 +63,7 @@ export const POST = withWorkspace(
         directory.data.product !== "Dub"
       ) {
         throw new DubApiError({
-          code: "unauthorized",
+          code: "not_found",
           message: "Directory not found.",
         });
       }
@@ -101,7 +101,7 @@ export const DELETE = withWorkspace(
 
     if (!directory || directory.error || !directory.data) {
       throw new DubApiError({
-        code: "internal_server_error",
+        code: "not_found",
         message: directory?.error?.message ?? "Directory not found.",
       });
     }
@@ -111,7 +111,7 @@ export const DELETE = withWorkspace(
       directory.data.product !== "Dub"
     ) {
       throw new DubApiError({
-        code: "unauthorized",
+        code: "not_found",
         message: "Directory not found.",
       });
     }
