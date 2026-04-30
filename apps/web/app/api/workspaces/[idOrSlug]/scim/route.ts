@@ -59,7 +59,7 @@ export const POST = withWorkspace(
       }
 
       if (
-        directory.data.tenant !== workspace.id &&
+        directory.data.tenant !== workspace.id ||
         directory.data.product !== "Dub"
       ) {
         throw new DubApiError({
@@ -107,7 +107,7 @@ export const DELETE = withWorkspace(
     }
 
     if (
-      directory.data.tenant !== workspace.id &&
+      directory.data.tenant !== workspace.id ||
       directory.data.product !== "Dub"
     ) {
       throw new DubApiError({
