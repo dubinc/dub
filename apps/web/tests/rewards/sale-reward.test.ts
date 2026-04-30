@@ -15,7 +15,7 @@ import { verifyCommission } from "tests/utils/verify-commission";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
-describe("Sale rewards with conditions", async () => {
+describe.sequential("Sale rewards with conditions", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
