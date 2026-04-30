@@ -641,7 +641,15 @@ function BrandedChart({
           )}
         </ChartContext.Consumer>
 
-        <XAxis showAxisLine={false} />
+        <XAxis
+          maxTicks={interval === "24h" ? 2 : undefined}
+          showAxisLine={false}
+          tickFormat={
+            interval === "24h"
+              ? (date) => formatDateTooltip(date, { interval })
+              : undefined
+          }
+        />
         <Areas
           seriesStyles={[
             {
