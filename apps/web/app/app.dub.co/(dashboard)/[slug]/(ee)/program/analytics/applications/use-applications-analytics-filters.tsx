@@ -1,5 +1,6 @@
 "use client";
 
+import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
@@ -36,14 +37,11 @@ export function useApplicationEventsFilters() {
     return "visits";
   }, [stage]);
 
+  const { groups } = useGroups();
+
   const { data: partners } = useApplicationsAnalytics({
     groupBy: "partner",
     exclude: ["partnerId"],
-  });
-
-  const { data: partnerGroups } = useApplicationsAnalytics({
-    groupBy: "partnerGroup",
-    exclude: ["groupId"],
   });
 
   const { data: referralSources } = useApplicationsAnalytics({
@@ -61,21 +59,14 @@ export function useApplicationEventsFilters() {
       {
         key: "groupId",
         icon: Users6,
-        label: "Group",
+        label: "Partner Group",
         options:
-          partnerGroups?.map((row) => {
-            const group = row.partnerGroup;
-
-            return {
-              value: group.id,
-              label: group.name,
-              icon: <GroupColorCircle group={group} />,
-              right: nFormatter(row[stageMetricKey]),
-              permalink: slug
-                ? `/${slug}/program/groups/${group.slug}/rewards`
-                : undefined,
-            };
-          }) ?? [],
+          groups?.map((group) => ({
+            value: group.id,
+            label: group.name,
+            icon: <GroupColorCircle group={group} />,
+            permalink: `/${slug}/program/groups/${group.slug}/rewards`,
+          })) ?? [],
       },
       {
         key: "partnerId",
@@ -134,7 +125,7 @@ export function useApplicationEventsFilters() {
           })) ?? [],
       },
     ],
-    [countries, partnerGroups, partners, referralSources, slug, stageMetricKey],
+    [countries, groups, partners, referralSources, slug, stageMetricKey],
   );
 
   const activeFilters = useMemo(() => {
