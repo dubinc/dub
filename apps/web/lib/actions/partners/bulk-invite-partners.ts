@@ -164,6 +164,13 @@ export const bulkInvitePartnersAction = authActionClient
       `Created ${invitedCount} program enrollments with status "invited"`,
     );
 
+    if (invitedCount === 0) {
+      return {
+        invitedCount,
+        skippedCount: alreadyEnrolledEmails.size,
+      };
+    }
+
     waitUntil(
       (async () => {
         // Create default links for the partners for each group default link
