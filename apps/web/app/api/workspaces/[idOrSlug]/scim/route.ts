@@ -47,6 +47,28 @@ export const POST = withWorkspace(
 
     const { directorySyncController } = await jackson();
 
+    if (currentDirectoryId) {
+      const directory =
+        await directorySyncController.directories.get(currentDirectoryId);
+
+      if (!directory || directory.error || !directory.data) {
+        throw new DubApiError({
+          code: "internal_server_error",
+          message: directory.error.message,
+        });
+      }
+
+      if (
+        directory.data.tenant !== workspace.id &&
+        directory.data.product !== "Dub"
+      ) {
+        throw new DubApiError({
+          code: "unauthorized",
+          message: "Directory not found.",
+        });
+      }
+    }
+
     const [data, _] = await Promise.all([
       directorySyncController.directories.create({
         name: "Dub SCIM Directory",
@@ -90,7 +112,7 @@ export const DELETE = withWorkspace(
     ) {
       throw new DubApiError({
         code: "unauthorized",
-        message: "You are not authorized to delete this directory.",
+        message: "Directory not found.",
       });
     }
 
