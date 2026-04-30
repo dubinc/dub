@@ -437,7 +437,7 @@ export function useAnalyticsFilters({
               {
                 key: "groupId",
                 icon: Users6,
-                label: "Group",
+                label: "Partner Group",
                 getOptionIcon: (_value, props) => {
                   const group = props.option?.data?.group;
                   return group ? <GroupColorCircle group={group} /> : null;
