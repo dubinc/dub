@@ -1,3 +1,4 @@
+import { decryptOrPassthrough } from "@/lib/encryption";
 import { prisma } from "@dub/prisma";
 import { Discount, Project } from "@dub/prisma/client";
 import { SHOPIFY_INTEGRATION_ID, nanoid } from "@dub/utils";
@@ -70,7 +71,12 @@ async function requireInstalledIntegration(
 
   return {
     ...installation,
-    credentials,
+    credentials: {
+      ...credentials,
+      accessToken: credentials.accessToken
+        ? decryptOrPassthrough(credentials.accessToken)
+        : credentials.accessToken,
+    },
   };
 }
 

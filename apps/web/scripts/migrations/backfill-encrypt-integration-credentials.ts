@@ -6,6 +6,7 @@ import { Prisma } from "@dub/prisma/client";
 import {
   HUBSPOT_INTEGRATION_ID,
   SEGMENT_INTEGRATION_ID,
+  SHOPIFY_INTEGRATION_ID,
   SLACK_INTEGRATION_ID,
 } from "@dub/utils";
 import * as z from "zod/v4";
@@ -13,6 +14,10 @@ import * as z from "zod/v4";
 // Encrypts plaintext credential fields on existing InstalledIntegration rows.
 // Idempotent: a field that already round-trips through decrypt() is left alone.
 function isAlreadyEncrypted(value: string) {
+  if (typeof value !== "string" || value.length === 0) {
+    return false;
+  }
+
   try {
     decrypt(value);
     return true;
@@ -29,6 +34,7 @@ async function main() {
           SLACK_INTEGRATION_ID,
           HUBSPOT_INTEGRATION_ID,
           SEGMENT_INTEGRATION_ID,
+          SHOPIFY_INTEGRATION_ID,
         ],
       },
       credentials: {
@@ -96,6 +102,21 @@ async function main() {
           ...credentials,
           writeKey: encrypt(credentials.writeKey),
         });
+      }
+
+      // Shopify
+      else if (
+        installation.integrationId === SHOPIFY_INTEGRATION_ID &&
+        credentials?.accessToken
+      ) {
+        if (isAlreadyEncrypted(credentials.accessToken)) {
+          continue;
+        }
+
+        encryptedCredentials = {
+          ...credentials,
+          accessToken: encrypt(credentials.accessToken),
+        };
       }
 
       if (!encryptedCredentials) {
