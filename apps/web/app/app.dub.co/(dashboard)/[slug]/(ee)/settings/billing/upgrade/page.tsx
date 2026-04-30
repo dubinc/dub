@@ -17,7 +17,6 @@ import {
   Icon,
   Plug2,
   ToggleGroup,
-  Tooltip,
   Users2,
 } from "@dub/ui";
 import {
@@ -330,34 +329,38 @@ export default function WorkspaceBillingUpgradePage() {
 
 function PlanIncludedProducts({ plan }: { plan: PlanDetails }) {
   return (
-    <div className="mt-5 flex items-center gap-2 text-sm text-neutral-500">
-      <span>Includes</span>
-      <div className="flex items-center gap-1.5">
-        <Tooltip
-          content="[Dub Links](https://dub.co/links)"
-          contentClassName="px-3 py-2"
+    <div className="mt-5 grid gap-2">
+      <span className="text-xs font-normal leading-4 text-neutral-500">
+        Includes
+      </span>
+      <div className="grid min-h-12 content-start gap-2">
+        <Link
+          href="https://dub.co/links"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex w-fit items-center gap-2 text-xs font-semibold leading-4 tracking-tight text-neutral-600 transition-colors hover:text-neutral-950"
         >
-          <span>
+          <DubProductIcon
+            product="links"
+            className="size-5"
+            iconClassName="size-3"
+          />
+          <span>Dub Links</span>
+        </Link>
+        {plan.limits.payouts > 0 && (
+          <Link
+            href="https://dub.co/partners"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-fit items-center gap-2 text-xs font-semibold leading-4 tracking-tight text-neutral-600 transition-colors hover:text-neutral-950"
+          >
             <DubProductIcon
-              product="links"
+              product="partners"
               className="size-5"
               iconClassName="size-3"
             />
-          </span>
-        </Tooltip>
-        {plan.limits.payouts > 0 && (
-          <Tooltip
-            content="[Dub Partners](https://dub.co/partners)"
-            contentClassName="px-3 py-2"
-          >
-            <span>
-              <DubProductIcon
-                product="partners"
-                className="size-5"
-                iconClassName="size-3"
-              />
-            </span>
-          </Tooltip>
+            <span>Dub Partners</span>
+          </Link>
         )}
       </div>
     </div>
