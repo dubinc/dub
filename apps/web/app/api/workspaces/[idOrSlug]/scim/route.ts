@@ -54,7 +54,7 @@ export const POST = withWorkspace(
       if (!directory || directory.error || !directory.data) {
         throw new DubApiError({
           code: "internal_server_error",
-          message: directory.error.message ?? "Directory not found.",
+          message: directory?.error?.message ?? "Directory not found.",
         });
       }
 
@@ -102,7 +102,7 @@ export const DELETE = withWorkspace(
     if (!directory || directory.error || !directory.data) {
       throw new DubApiError({
         code: "internal_server_error",
-        message: directory.error.message ?? "Directory not found.",
+        message: directory?.error?.message ?? "Directory not found.",
       });
     }
 
