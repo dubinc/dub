@@ -11,11 +11,13 @@ import {
   Check,
   CircleQuestion,
   ConnectedDots4,
+  DubProductIcon,
   Globe,
   Hyperlink,
   Icon,
   Plug2,
   ToggleGroup,
+  Tooltip,
   Users2,
 } from "@dub/ui";
 import {
@@ -233,6 +235,7 @@ export default function WorkspaceBillingUpgradePage() {
                           </>
                         )}
                       </div>
+                      <PlanIncludedProducts plan={plan} />
                     </div>
                     <div className="flex gap-3">
                       <button
@@ -322,6 +325,42 @@ export default function WorkspaceBillingUpgradePage() {
         </div>
       </PageWidthWrapper>
     </PageContent>
+  );
+}
+
+function PlanIncludedProducts({ plan }: { plan: PlanDetails }) {
+  return (
+    <div className="mt-5 flex items-center gap-2 text-sm text-neutral-500">
+      <span>Includes</span>
+      <div className="flex items-center gap-1.5">
+        <Tooltip
+          content="[Dub Links](https://dub.co/links)"
+          contentClassName="px-3 py-2"
+        >
+          <span>
+            <DubProductIcon
+              product="links"
+              className="size-5"
+              iconClassName="size-3"
+            />
+          </span>
+        </Tooltip>
+        {plan.limits.payouts > 0 && (
+          <Tooltip
+            content="[Dub Partners](https://dub.co/partners)"
+            contentClassName="px-3 py-2"
+          >
+            <span>
+              <DubProductIcon
+                product="partners"
+                className="size-5"
+                iconClassName="size-3"
+              />
+            </span>
+          </Tooltip>
+        )}
+      </div>
+    </div>
   );
 }
 
