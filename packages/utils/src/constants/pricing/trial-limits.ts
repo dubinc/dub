@@ -9,7 +9,7 @@ export const TRIAL_LIMITS = {
   folders: 5,
   groups: 5,
   networkInvites: 0,
-  partners: 100,
+  partners: 50,
   users: 5,
   ai: 100,
   api: 120,

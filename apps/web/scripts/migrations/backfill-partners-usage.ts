@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { getPlanDetails } from "@dub/utils";
+import { getPlanDetails, TRIAL_LIMITS } from "@dub/utils";
 import "dotenv-flow/config";
 
 // Backfills partnersUsage and partnersLimit for all workspaces.
@@ -12,15 +12,16 @@ async function main() {
         defaultProgramId: {
           not: null,
         },
-        partnersLimit: 0,
       },
       select: {
         id: true,
+        slug: true,
         plan: true,
         planTier: true,
+        trialEndsAt: true,
         defaultProgramId: true,
       },
-      take: 1,
+      take: 10,
       skip: cursor ? 1 : 0,
       cursor,
       orderBy: { id: "asc" },
@@ -57,14 +58,17 @@ async function main() {
 
     const toUpdate = workspaces.map((workspace) => {
       const planDetails = getPlanDetails({
-        plan: workspace.plan,
+        plan: workspace.plan.split(" ")[0],
         planTier: workspace.planTier,
       });
 
       return {
         id: workspace.id,
+        slug: workspace.slug,
         partnersUsage: programIdToUsage.get(workspace.defaultProgramId!) ?? 0,
-        partnersLimit: planDetails?.limits.partners ?? 0,
+        partnersLimit: workspace.trialEndsAt
+          ? TRIAL_LIMITS.partners
+          : planDetails?.limits.partners ?? 0,
       };
     });
 
