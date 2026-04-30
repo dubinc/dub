@@ -3,6 +3,7 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
+import { SlackSupportSettingsCard } from "@/ui/workspaces/slack-support-settings-card";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import { Form } from "@dub/ui";
 import { useSession } from "next-auth/react";
@@ -23,6 +24,7 @@ export default function WorkspaceSettingsClient() {
 
   return (
     <div className="mb-6 space-y-6">
+      <SlackSupportSettingsCard />
       <Form
         title="Workspace Name"
         description={`This is the name of your workspace on ${process.env.NEXT_PUBLIC_APP_NAME}.`}

@@ -1,6 +1,8 @@
 import { CRON_BATCH_SIZE, qstash } from "@/lib/cron";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
+import { isDiscountIntegrationNotAvailableError } from "@/lib/discounts/discount-error";
+import { getDiscountProvider } from "@/lib/discounts/discount-provider";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -30,6 +32,7 @@ export const POST = withCron(async ({ rawBody }) => {
             select: {
               id: true,
               stripeConnectId: true,
+              shopifyStoreId: true,
             },
           },
         },
@@ -48,12 +51,21 @@ export const POST = withCron(async ({ rawBody }) => {
   }
 
   const { program } = discount;
-  const { workspace } = program;
 
-  if (!workspace.stripeConnectId) {
-    return logAndRespond(
-      `Workspace ${workspace.id} does not have stripeConnectId set. Skipping...`,
-    );
+  const discountProvider = getDiscountProvider(discount.provider);
+
+  try {
+    await discountProvider.assertDiscountIntegrationAvailable({
+      workspace: program.workspace,
+    });
+  } catch (error) {
+    if (isDiscountIntegrationNotAvailableError(error)) {
+      return logAndRespond(
+        `Workspace has not installed the ${discount.provider} integration. Skipping...`,
+      );
+    }
+
+    throw error;
   }
 
   const programEnrollments = await prisma.programEnrollment.findMany({

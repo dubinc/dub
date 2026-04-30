@@ -7,8 +7,8 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import { useUsageTimeseries } from "@/lib/swr/use-usage-timeseries";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { useManageUsageModal } from "@/ui/modals/manage-usage-modal";
 import { useStartPaidPlanModal } from "@/ui/modals/start-paid-plan-modal";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
@@ -43,14 +43,11 @@ import {
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { CSSProperties, ReactNode, useMemo } from "react";
 import { toast } from "sonner";
 import { UsageChart } from "./usage-chart";
 
 export default function PlanUsage() {
-  const router = useRouter();
-
   const {
     id: workspaceId,
     slug,

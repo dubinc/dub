@@ -17,6 +17,7 @@ import { COUNTRY_CODES } from "@dub/utils";
 import * as z from "zod/v4";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
+import { DiscountSchema } from "./discount";
 import {
   base64ImageSchema,
   googleFaviconUrlSchema,
@@ -573,6 +574,10 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   customerDataSharingEnabledAt: z.date().nullish(),
   groupMoveDisabledAt: z.date().nullish(),
   platforms: z.array(partnerPlatformSchema).nullable(),
+  discount: DiscountSchema.pick({
+    id: true,
+    provider: true,
+  }).nullish(),
 })
   .extend(
     PartnerSchema.pick({
