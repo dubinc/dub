@@ -646,7 +646,6 @@ function BrandedChart({
           tickFormat={(date) =>
             formatDateTooltip(date, { interval, start, end })
           }
-          maxTicks={2}
         />
         <Areas
           seriesStyles={[
