@@ -68,10 +68,23 @@ export const POST = withWorkspace(
 
 // DELETE /api/workspaces/[idOrSlug]/scim – delete a SCIM directory
 export const DELETE = withWorkspace(
-  async ({ searchParams }) => {
+  async ({ workspace, searchParams }) => {
     const { directoryId } = deleteDirectorySchema.parse(searchParams);
 
     const { directorySyncController } = await jackson();
+
+    const directory =
+      await directorySyncController.directories.getByTenantAndProduct(
+        workspace.id,
+        "Dub",
+      );
+
+    if (!directory || directory.error || !directory.data) {
+      throw new DubApiError({
+        code: "internal_server_error",
+        message: directory.error.message,
+      });
+    }
 
     const { error, data } =
       await directorySyncController.directories.delete(directoryId);
