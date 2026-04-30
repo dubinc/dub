@@ -15,7 +15,7 @@ import { verifyCommission } from "tests/utils/verify-commission";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
-describe.sequential("Sale rewards with conditions", async () => {
+describe.concurrent("Sale rewards with conditions", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
@@ -26,8 +26,6 @@ describe.sequential("Sale rewards with conditions", async () => {
     amount: randomSaleAmount(),
     invoiceId: `INV_${randomId()}`,
   });
-
-  const newCustomer = randomCustomer();
 
   describe.concurrent("concurrent track/sale tests", () => {
     test("When {Sale} {Product ID} is {regularProductId}", async () => {
@@ -141,7 +139,9 @@ describe.sequential("Sale rewards with conditions", async () => {
     });
   });
 
-  describe("subsequent track/sale tests (dependent on concurrent track/sale tests)", () => {
+  const newCustomer = randomCustomer();
+
+  describe.sequential("sequential track/sale tests", () => {
     test("when {Sale} {Type} is {new} vs {recurring}", async () => {
       const clickResponse = await http.post<{ clickId: string }>({
         path: "/track/click",
@@ -178,6 +178,9 @@ describe.sequential("Sale rewards with conditions", async () => {
         invoiceId: sale.invoiceId,
         expectedEarnings: E2E_SALE_REWARD.modifiers[5].amountInCents!,
       });
+
+      // add a 5s sleep to ensure the lead event is fully processed
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // no need to verify second sale since it will be verified below
       // in the {Customer} {Subscription Duration} is {less than or equal to} {3} test
