@@ -92,36 +92,20 @@ export const bulkInvitePartnersAction = authActionClient
       throw new Error("Invalid group ID provided.");
     }
 
-    const createdPartnersCount = await prisma.$transaction(async (tx) => {
-      const { count } = await tx.partner.createMany({
-        data: emailsToInvite.map((email) => ({
-          id: createId({ prefix: "pn_" }),
-          email,
-          name: email,
-        })),
-        skipDuplicates: true,
-      });
-
-      throwIfPartnersLimitExceeded({
-        ...workspace,
-        additionalEnrollments: count,
-      });
-
-      return count;
+    const { count: createdPartnersCount } = await prisma.partner.createMany({
+      data: emailsToInvite.map((email) => ({
+        id: createId({ prefix: "pn_" }),
+        email,
+        name: email,
+      })),
+      skipDuplicates: true,
     });
-
-    if (createdPartnersCount === 0) {
-      return {
-        invitedCount: 0,
-        skippedCount: alreadyEnrolledEmails.size,
-      };
-    }
 
     console.log(
       `Created ${createdPartnersCount} out of ${emailsToInvite.length} provided partners (${emailsToInvite.length - createdPartnersCount} already exist on Dub)`,
     );
 
-    // Fetch the created partners
+    // Fetch the partners
     const partners = await prisma.partner.findMany({
       where: {
         email: {
@@ -139,19 +123,43 @@ export const bulkInvitePartnersAction = authActionClient
     const partnerGroupDefaultLinks = group.partnerGroupDefaultLinks;
     const utmTemplate = group.utmTemplate;
 
-    const { count: invitedCount } = await prisma.programEnrollment.createMany({
-      data: partners.map((partner) => ({
-        id: createId({ prefix: "pge_" }),
-        programId,
-        partnerId: partner.id,
-        status: "invited",
-        groupId: group.id,
-        clickRewardId: group.clickRewardId,
-        leadRewardId: group.leadRewardId,
-        saleRewardId: group.saleRewardId,
-        discountId: group.discountId,
-      })),
-      skipDuplicates: true,
+    // Create enrollments + bump partnersUsage atomically. Check the limit
+    // against the number we're about to create so we don't half-apply.
+    const invitedCount = await prisma.$transaction(async (tx) => {
+      const { count: invitedCount } = await tx.programEnrollment.createMany({
+        data: partners.map((partner) => ({
+          id: createId({ prefix: "pge_" }),
+          programId,
+          partnerId: partner.id,
+          status: "invited",
+          groupId: group.id,
+          clickRewardId: group.clickRewardId,
+          leadRewardId: group.leadRewardId,
+          saleRewardId: group.saleRewardId,
+          discountId: group.discountId,
+        })),
+        skipDuplicates: true,
+      });
+
+      if (invitedCount > 0) {
+        throwIfPartnersLimitExceeded({
+          ...workspace,
+          additionalEnrollments: invitedCount,
+        });
+
+        await tx.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            partnersUsage: {
+              increment: invitedCount,
+            },
+          },
+        });
+      }
+
+      return invitedCount;
     });
 
     console.log(
