@@ -25,9 +25,9 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ContextType, ReactNode, useMemo } from "react";
 import useSWR from "swr";
-import { ApplicationsAnalyticsCards } from "./application-events/applications-analytics-cards";
-import { useApplicationEventsFilters } from "./application-events/use-applications-analytics-filters";
-import { useApplicationsAnalyticsQuery } from "./application-events/use-applications-analytics-query";
+import { ApplicationsAnalyticsCards } from "./applications/applications-analytics-cards";
+import { useApplicationEventsFilters } from "./applications/use-applications-analytics-filters";
+import { useApplicationsAnalyticsQuery } from "./applications/use-applications-analytics-query";
 import { CommissionsAnalyticsCards } from "./commissions-analytics-cards";
 import {
   PROGRAM_ANALYTICS_TABS,

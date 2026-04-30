@@ -8,7 +8,7 @@ import {
   commissionAnalyticsSchema,
 } from "@/lib/commissions/schema";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
-import { CommissionAnalyticsQuery } from "@/lib/types";
+import type { CommissionAnalyticsQuery } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { CommissionStatus, CommissionType, Prisma } from "@dub/prisma/client";
 import { capitalize, parseFilterValue } from "@dub/utils";

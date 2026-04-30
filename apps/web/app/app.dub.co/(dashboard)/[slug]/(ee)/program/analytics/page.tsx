@@ -3,9 +3,9 @@
 import { notFound, useParams } from "next/navigation";
 import { AnalyticsChart } from "./analytics-chart";
 import { AnalyticsPartnersTable } from "./analytics-partners-table";
-import { ApplicationsFunnelChart } from "./application-events/applications-funnel-chart";
-import { ApplicationsPartnersTable } from "./application-events/applications-partners-table";
-import { useApplicationsAnalyticsQuery } from "./application-events/use-applications-analytics-query";
+import { ApplicationsFunnelChart } from "./applications/applications-funnel-chart";
+import { ApplicationsPartnersTable } from "./applications/applications-partners-table";
+import { useApplicationsAnalyticsQuery } from "./applications/use-applications-analytics-query";
 import { CommissionsAnalyticsChart } from "./commissions-analytics-chart";
 import { CommissionsPartnersTable } from "./commissions-partners-table";
 import { CommissionsStatusSelector } from "./commissions-status-selector";
