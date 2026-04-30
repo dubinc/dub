@@ -86,11 +86,15 @@ export const POST = withWorkspace(
     } else {
       const customer = await getDubCustomer(session.user.id);
 
-      // New Stripe customer + no prior trial on workspace: partner checkout trial.
-      // Returning Stripe customers (e.g. canceled sub) must not get another trial here.
+      // Only apply trial if the customer is a:
+      // - new Stripe customer
+      // - no prior/existing trial on workspace
+      // - is coming from onboarding
+      // - is trial variant
       const shouldApplyCheckoutTrial =
         workspace.stripeId == null &&
         workspace.trialEndsAt == null &&
+        onboarding &&
         isTrialVariant;
 
       const stripeSession = await stripe.checkout.sessions.create({
