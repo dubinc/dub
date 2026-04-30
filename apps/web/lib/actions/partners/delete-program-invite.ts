@@ -73,39 +73,39 @@ export const deleteProgramInviteAction = authActionClient
       }),
     ]);
 
-    await prisma.programEnrollment.delete({
-      where: {
-        id: programEnrollment.id,
-      },
-    });
+    await prisma.$transaction([
+      prisma.programEnrollment.delete({
+        where: {
+          id: programEnrollment.id,
+        },
+      }),
+
+      prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          partnersUsage: {
+            decrement: 1,
+          },
+        },
+      }),
+    ]);
 
     waitUntil(
-      Promise.allSettled([
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "partner.invite_deleted",
-          description: `Partner ${partner.id} invite deleted`,
-          actor: user,
-          targets: [
-            {
-              type: "partner",
-              id: partner.id,
-              metadata: partner,
-            },
-          ],
-        }),
-
-        prisma.project.update({
-          where: {
-            id: workspace.id,
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "partner.invite_deleted",
+        description: `Partner ${partner.id} invite deleted`,
+        actor: user,
+        targets: [
+          {
+            type: "partner",
+            id: partner.id,
+            metadata: partner,
           },
-          data: {
-            partnersUsage: {
-              decrement: 1,
-            },
-          },
-        }),
-      ]),
+        ],
+      }),
     );
   });
