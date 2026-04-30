@@ -643,10 +643,8 @@ function BrandedChart({
 
         <XAxis
           showAxisLine={false}
-          tickFormat={
-            interval === "24h"
-              ? (date) => formatDateTooltip(date, { interval })
-              : undefined
+          tickFormat={(date) =>
+            formatDateTooltip(date, { interval, start, end })
           }
         />
         <Areas
