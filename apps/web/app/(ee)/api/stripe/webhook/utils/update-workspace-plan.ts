@@ -110,6 +110,7 @@ export async function updateWorkspacePlan({
           foldersLimit: limits.folders,
           groupsLimit: limits.groups,
           networkInvitesLimit: limits.networkInvites,
+          partnersLimit: limits.partners,
           usersLimit: limits.users,
           ...(["active", "trialing"].includes(subscription.status)
             ? { paymentFailedAt: null }

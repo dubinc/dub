@@ -3,12 +3,11 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import useGroupsCount from "@/lib/swr/use-groups-count";
-import usePartnersCount from "@/lib/swr/use-partners-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import { useUsageTimeseries } from "@/lib/swr/use-usage-timeseries";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { useManageUsageModal } from "@/ui/modals/manage-usage-modal";
 import { useStartPaidPlanModal } from "@/ui/modals/start-paid-plan-modal";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
@@ -43,14 +42,11 @@ import {
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { CSSProperties, ReactNode, useMemo } from "react";
 import { toast } from "sonner";
 import { UsageChart } from "./usage-chart";
 
 export default function PlanUsage() {
-  const router = useRouter();
-
   const {
     id: workspaceId,
     slug,
@@ -72,6 +68,8 @@ export default function PlanUsage() {
     domainsLimit,
     foldersUsage,
     foldersLimit,
+    partnersUsage,
+    partnersLimit,
     groupsLimit,
     tagsLimit,
     usersLimit,
@@ -92,12 +90,6 @@ export default function PlanUsage() {
 
   const { data: tags } = useTagsCount();
   const { users } = useWorkspaceUsers();
-
-  const { partnersCount } = usePartnersCount<number>({
-    status: "approved",
-    ignoreParams: true,
-    enabled: Boolean(defaultProgramId),
-  });
 
   const { groupsCount } = useGroupsCount();
 
@@ -407,8 +399,8 @@ export default function PlanUsage() {
             <UsageCategory
               title="Partners"
               icon={Users}
-              usage={partnersCount ?? 0}
-              usageLimit={INFINITY_NUMBER}
+              usage={partnersUsage}
+              usageLimit={partnersLimit}
               href={`/${slug}/program/partners`}
             />
             <UsageCategory
