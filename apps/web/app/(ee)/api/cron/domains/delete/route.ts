@@ -10,6 +10,7 @@ import { recordLink } from "@/lib/tinybird/record-link";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
+import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,7 @@ export async function POST(req: Request) {
     });
 
     if (!domainRecord) {
-      return new Response(`Domain ${domain} not found. Skipping...`);
+      return logAndRespond(`Domain ${domain} not found. Skipping...`);
     }
 
     const links = await prisma.link.findMany({
@@ -51,55 +52,55 @@ export async function POST(req: Request) {
 
     console.log(`Found ${links.length} links to delete`);
 
-    if (links.length === 0) {
-      return new Response("No more links to delete. Exiting...");
-    }
+    if (links.length > 0) {
+      const response = await Promise.allSettled([
+        // Remove the link from Redis
+        linkCache.deleteMany(links),
 
-    const response = await Promise.allSettled([
-      // Remove the link from Redis
-      linkCache.deleteMany(links),
+        // Record link in Tinybird
+        recordLink(links, { deleted: true }),
 
-      // Record link in Tinybird
-      recordLink(links, { deleted: true }),
-
-      // Remove image from R2 storage if it exists
-      links
-        .filter((link) => link.image?.startsWith(`${R2_URL}/images/${link.id}`))
-        .map((link) =>
-          limiter.schedule(() =>
-            storage.delete({ key: link.image!.replace(`${R2_URL}/`, "") }),
+        // Remove image from R2 storage if it exists
+        links
+          .filter((link) =>
+            link.image?.startsWith(`${R2_URL}/images/${link.id}`),
+          )
+          .map((link) =>
+            limiter.schedule(() =>
+              storage.delete({ key: link.image!.replace(`${R2_URL}/`, "") }),
+            ),
           ),
-        ),
 
-      // Remove the link from MySQL
-      prisma.link.deleteMany({
-        where: {
-          id: { in: links.map((link) => link.id) },
-        },
-      }),
-
-      // Update the project's total links count
-      links[0].projectId &&
-        prisma.project.update({
+        // Remove the link from MySQL
+        prisma.link.deleteMany({
           where: {
-            id: links[0].projectId,
-          },
-          data: {
-            totalLinks: { decrement: links.length },
+            id: { in: links.map((link) => link.id) },
           },
         }),
-    ]);
 
-    console.log(response);
+        // Update the project's total links count
+        links[0].projectId &&
+          prisma.project.update({
+            where: {
+              id: links[0].projectId,
+            },
+            data: {
+              totalLinks: { decrement: links.length },
+            },
+          }),
+      ]);
 
-    response.forEach((promise) => {
-      if (promise.status === "rejected") {
-        console.error("deleteDomainAndLinks", {
-          reason: promise.reason,
-          domain,
-        });
-      }
-    });
+      console.log(response);
+
+      response.forEach((promise) => {
+        if (promise.status === "rejected") {
+          console.error("deleteDomainAndLinks", {
+            reason: promise.reason,
+            domain,
+          });
+        }
+      });
+    }
 
     const remainingLinks = await prisma.link.count({
       where: {
@@ -107,14 +108,14 @@ export async function POST(req: Request) {
       },
     });
 
-    console.log("remainingLinks", remainingLinks);
+    console.log(`Found ${remainingLinks} remaining links for ${domain}.`);
 
     if (remainingLinks > 0) {
       await queueDomainDeletion({
         domain,
         delay: 2,
       });
-      return new Response(
+      return logAndRespond(
         `Deleted ${links.length} links, ${remainingLinks} remaining. Starting next batch...`,
       );
     }
@@ -130,7 +131,7 @@ export async function POST(req: Request) {
         storage.delete({ key: domainRecord.logo.replace(`${R2_URL}/`, "") }),
     ]);
 
-    return new Response(
+    return logAndRespond(
       `Deleted ${links.length} links, no more links remaining. Domain deleted.`,
     );
   } catch (error) {
