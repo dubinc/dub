@@ -193,10 +193,7 @@ export const createPartnerCommission = async ({
       if (rewards.length > 0) {
         reward = rewards[0].reward;
       }
-    }
-    // If there are no products or no productId modifier,
-    // we can calculate the reward for the entire sale
-    else {
+    } else {
       context = {
         ...context,
         sale: {
