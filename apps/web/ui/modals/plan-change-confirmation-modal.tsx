@@ -5,7 +5,14 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal } from "@dub/ui";
 import { TriangleWarning } from "@dub/ui/icons";
-import { OG_AVATAR_URL, pluralize } from "@dub/utils";
+import {
+  capitalize,
+  getPlanDetails,
+  OG_AVATAR_URL,
+  pluralize,
+} from "@dub/utils";
+import NumberFlow from "@number-flow/react";
+import { ArrowDown } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
@@ -16,6 +23,48 @@ import {
 } from "react";
 import { Markdown } from "../shared/markdown";
 
+function PlanCard({
+  label,
+  name,
+  price,
+  period,
+}: {
+  label: string;
+  name: string;
+  price: number | null;
+  period: "monthly" | "yearly";
+}) {
+  const billingLabel =
+    period === "yearly" ? "per month, billed yearly" : "per month";
+
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-neutral-100 p-1 pt-0">
+      <h3 className="px-1.5 py-2 text-xs font-medium leading-4 text-neutral-500">
+        {label}
+      </h3>
+      <div className="rounded-lg border border-neutral-200 bg-white p-3">
+        <p className="text-base font-semibold leading-none text-neutral-800">
+          {name}
+        </p>
+        {price != null && (
+          <div className="mt-1.5 flex items-baseline gap-1">
+            <NumberFlow
+              value={price}
+              className="text-sm font-medium tabular-nums text-neutral-900"
+              format={{
+                style: "currency",
+                currency: "USD",
+                minimumFractionDigits: 0,
+              }}
+            />
+            <span className="text-sm text-neutral-500">{billingLabel}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export type PlanChangeConfirmationMode =
   | "program-downgrade"
   | "advanced-downgrade";
@@ -24,18 +73,27 @@ function PlanChangeConfirmationModal({
   showPlanChangeConfirmationModal,
   setShowPlanChangeConfirmationModal,
   confirmationMode,
+  newPlan,
+  newPeriod,
+  newTier = 1,
   onConfirm,
 }: {
   showPlanChangeConfirmationModal: boolean;
   setShowPlanChangeConfirmationModal: Dispatch<SetStateAction<boolean>>;
   confirmationMode: PlanChangeConfirmationMode;
-  onConfirm: () => void | Promise<void>;
+  newPlan: string;
+  newPeriod: "monthly" | "yearly";
+  newTier?: number;
+  onConfirm: () => Promise<void>;
 }) {
   const {
     slug,
     name: workspaceName,
     logo: workspaceLogo,
     defaultProgramId,
+    plan: currentPlan,
+    planPeriod: currentPlanPeriod,
+    planTier: currentPlanTier = 1,
   } = useWorkspace();
 
   const { program } = useProgram({
@@ -49,6 +107,24 @@ function PlanChangeConfirmationModal({
     });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const currentPeriod: "monthly" | "yearly" =
+    currentPlanPeriod === "yearly" ? "yearly" : "monthly";
+
+  const currentPlanDetails = useMemo(() => {
+    if (!currentPlan || currentPlan === "free" || currentPlan === "enterprise")
+      return null;
+    return getPlanDetails({ plan: currentPlan, planTier: currentPlanTier });
+  }, [currentPlan, currentPlanTier]);
+
+  const newPlanDetails = useMemo(
+    () => getPlanDetails({ plan: newPlan, planTier: newTier }),
+    [newPlan, newTier],
+  );
+
+  const currentPrice = currentPlanDetails?.price?.[currentPeriod] ?? null;
+  const newPrice = newPlanDetails?.price?.[newPeriod] ?? null;
+  const newPlanLabel = newPlanDetails?.name ?? capitalize(newPlan);
 
   const displayName = program?.name ?? workspaceName ?? "";
   const logoSrc =
@@ -84,6 +160,29 @@ function PlanChangeConfirmationModal({
       </div>
 
       <div className="flex flex-col gap-4 bg-neutral-50 p-4 sm:p-6">
+        <div className="flex flex-col gap-3">
+          <PlanCard
+            label="Current plan"
+            name={
+              currentPlanDetails?.name ?? capitalize(currentPlan ?? "") ?? ""
+            }
+            price={currentPrice}
+            period={currentPeriod}
+          />
+
+          <ArrowDown
+            className="ml-7 size-5 text-neutral-400"
+            aria-hidden="true"
+          />
+
+          <PlanCard
+            label="New plan"
+            name={newPlanLabel}
+            price={newPrice}
+            period={newPeriod}
+          />
+        </div>
+
         <div className="flex flex-col gap-1 rounded-lg bg-amber-100 p-1">
           <div className="flex items-center gap-2 p-2">
             <TriangleWarning className="size-4 shrink-0 text-amber-500" />
@@ -149,10 +248,16 @@ function PlanChangeConfirmationModal({
 }
 
 export function usePlanChangeConfirmationModal({
+  newPlan,
+  newPeriod,
+  newTier,
   onConfirm,
   confirmationMode = "program-downgrade",
 }: {
-  onConfirm: () => void | Promise<void>;
+  newPlan: string;
+  newPeriod: "monthly" | "yearly";
+  newTier?: number;
+  onConfirm: () => Promise<void>;
   confirmationMode?: PlanChangeConfirmationMode;
 }) {
   const [showPlanChangeConfirmationModal, setShowPlanChangeConfirmationModal] =
@@ -165,12 +270,24 @@ export function usePlanChangeConfirmationModal({
   const confirmationModeRef = useRef(confirmationMode);
   confirmationModeRef.current = confirmationMode;
 
+  const newPlanRef = useRef(newPlan);
+  newPlanRef.current = newPlan;
+
+  const newPeriodRef = useRef(newPeriod);
+  newPeriodRef.current = newPeriod;
+
+  const newTierRef = useRef(newTier);
+  newTierRef.current = newTier;
+
   const PlanChangeConfirmationModalCallback = useCallback(() => {
     return (
       <PlanChangeConfirmationModal
         showPlanChangeConfirmationModal={showPlanChangeConfirmationModal}
         setShowPlanChangeConfirmationModal={setShowPlanChangeConfirmationModal}
         confirmationMode={confirmationModeRef.current}
+        newPlan={newPlanRef.current}
+        newPeriod={newPeriodRef.current}
+        newTier={newTierRef.current}
         onConfirm={() => onConfirmRef.current()}
       />
     );

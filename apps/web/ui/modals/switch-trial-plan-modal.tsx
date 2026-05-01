@@ -127,7 +127,7 @@ function SwitchTrialPlanModal({
       </div>
 
       <div className="flex flex-col gap-2 bg-neutral-50 p-4 sm:p-6">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <PlanCard
             label="Current plan"
             name={
@@ -137,9 +137,10 @@ function SwitchTrialPlanModal({
             period={currentPeriod}
           />
 
-          <div className="flex items-start px-7">
-            <ArrowDown className="size-5 text-neutral-400" aria-hidden="true" />
-          </div>
+          <ArrowDown
+            className="ml-7 size-5 text-neutral-400"
+            aria-hidden="true"
+          />
 
           <PlanCard
             label="New plan"

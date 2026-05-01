@@ -131,6 +131,9 @@ export function UpgradePlanButton({
 
   const { setShowPlanChangeConfirmationModal, PlanChangeConfirmationModal } =
     usePlanChangeConfirmationModal({
+      newPlan: plan,
+      newPeriod: period,
+      newTier: tier,
       onConfirm: performUpgrade,
       confirmationMode:
         losesAdvancedFeatures && !losesPartnerAccess
@@ -157,12 +160,13 @@ export function UpgradePlanButton({
       setShowStartPaidPlanModal(true);
       return;
     }
+    if (losesPartnerAccess || losesAdvancedFeatures) {
+      setShowPlanChangeConfirmationModal(true);
+      return;
+    }
     if (isSwitchingTrialPlan) {
       setShowSwitchTrialPlanModal(true);
       return;
-    }
-    if (losesPartnerAccess || losesAdvancedFeatures) {
-      setShowPlanChangeConfirmationModal(true);
     } else {
       performUpgrade();
     }
