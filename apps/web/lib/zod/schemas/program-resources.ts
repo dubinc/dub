@@ -13,7 +13,7 @@ export const programResourceFileSchema = z.object({
   id: z.string(),
   name: z.string(),
   size: z.number(),
-  url: z.url(),
+  url: z.httpUrl(),
 });
 
 export const programResourceColorSchema = z.object({
@@ -25,7 +25,7 @@ export const programResourceColorSchema = z.object({
 export const programResourceLinkSchema = z.object({
   id: z.string(),
   name: z.string(),
-  url: z.url(),
+  url: z.httpUrl(),
 });
 
 export const programResourcesSchema = z.object({

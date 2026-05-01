@@ -12,7 +12,7 @@ import { authPartnerActionClient } from "../safe-action";
 const schema = z.object({
   platform: z.enum(PlatformType),
   handle: z.string().min(1),
-  postUrl: z.url().optional(),
+  postUrl: z.httpUrl().optional(),
 });
 
 // Verify social accounts using the verification code

@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const searchParamsSchema = z.object({
-  url: z.url("Social media URL is required."),
+  url: z.httpUrl("Social media URL is required."),
 });
 
 // GET /api/partner-profile/programs/[programId]/bounties/[bountyId]/social-content-stats
