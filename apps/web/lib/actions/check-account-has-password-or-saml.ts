@@ -14,8 +14,8 @@ const schema = z.object({
   email: emailSchema,
 });
 
-// Check if account exists
-export const checkAccountExistsAction = actionClient
+// Check if account has password or SAML is enforced
+export const checkAccountHasPasswordOrSAML = actionClient
   .inputSchema(schema)
   .use(throwIfAuthenticated)
   .action(async ({ parsedInput }) => {
@@ -45,7 +45,6 @@ export const checkAccountExistsAction = actionClient
     ]);
 
     return {
-      accountExists: !!user,
       hasPassword: !!user?.passwordHash,
       requireSAML: isSamlEnforced,
     };
