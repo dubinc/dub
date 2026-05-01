@@ -18,8 +18,11 @@ export async function IntegrationsList() {
       <Suspense
         fallback={
           <>
-            <div className="box-content h-9 animate-pulse rounded-md bg-neutral-200 py-px" />
             <FeaturedIntegrationsLoader />
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="h-6 w-48 animate-pulse rounded-md bg-neutral-200" />
+              <div className="h-10 w-full animate-pulse rounded-lg bg-neutral-200 sm:max-w-sm" />
+            </div>
             <IntegrationsCardsLoader />
           </>
         }
@@ -50,10 +53,23 @@ async function IntegrationsListRSC() {
 
   return (
     <>
-      <SearchBoxPersisted debounceTimeoutMs={250} />
       <EnabledIntegrations integrations={integrations} />
       <FeaturedIntegrations integrations={integrations} />
-      <IntegrationsCards integrations={integrations} />
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h2 className="text-lg font-semibold leading-7 text-neutral-900">
+            Available integrations
+          </h2>
+          <div className="w-full sm:max-w-sm">
+            <SearchBoxPersisted
+              debounceTimeoutMs={250}
+              inputClassName="h-10"
+              placeholder="Search integrations..."
+            />
+          </div>
+        </div>
+        <IntegrationsCards integrations={integrations} />
+      </div>
     </>
   );
 }

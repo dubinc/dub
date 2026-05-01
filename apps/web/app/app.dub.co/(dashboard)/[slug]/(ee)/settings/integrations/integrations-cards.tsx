@@ -79,7 +79,7 @@ export function IntegrationsCards({
                 <h2 className="font-medium leading-4 text-neutral-800">
                   {category}
                 </h2>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   {groupedIntegrations[category]!.map((integration) => (
                     <IntegrationCard
                       key={integration.id}
@@ -128,7 +128,7 @@ export function IntegrationsCardsLoader() {
   return [...Array(3)].map((_, idx) => (
     <div key={idx}>
       <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {[...Array(3)].map((_, idx) => (
           <div
             key={idx}

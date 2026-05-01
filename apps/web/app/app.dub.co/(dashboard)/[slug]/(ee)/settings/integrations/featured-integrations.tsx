@@ -11,22 +11,19 @@ import {
   useCarousel,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { IntegrationsWithInstallations } from "./integrations-list";
 
 const FEATURED_SLUGS = ["make", "zapier", "stripe", "shopify"];
+const FEATURED_AUTOPLAY_DELAY = 8000;
 
 export function FeaturedIntegrations({
   integrations,
 }: {
   integrations: IntegrationsWithInstallations;
 }) {
-  const searchParams = useSearchParams();
-  const search = searchParams.get("search");
-
   const { slug } = useWorkspace();
 
   const featuredIntegrations = integrations.filter(
@@ -37,72 +34,68 @@ export function FeaturedIntegrations({
   );
 
   return (
-    <AnimatePresence initial={false}>
-      {!search && (
-        <motion.div
-          key="featured-integrations"
-          initial={{ opacity: 0, translateY: 10 }}
-          animate={{ opacity: 1, translateY: 0 }}
-          exit={{ opacity: 0, translateY: 10 }}
-          transition={{ duration: 0.1 }}
-        >
-          <Carousel
-            autoplay={{ delay: 5000 }}
-            opts={{ loop: true }}
-            className="bg-white"
-          >
-            <div className="[mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
-              <CarouselContent>
-                {featuredIntegrations.map((integration, idx) => (
-                  <CarouselItem key={idx} className="basis-2/3">
-                    <Link
-                      href={`/${slug}/settings/integrations/${integration.slug}`}
-                      className="group relative block"
-                    >
-                      {/* Image */}
-                      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-                        <BlurImage
-                          src={integration.screenshots![0]}
-                          alt={`Screenshot of ${integration.name}`}
-                          width={900}
-                          height={580}
-                          className="aspect-[900/580] w-full overflow-hidden rounded-xl object-cover object-top [mask-image:linear-gradient(black_90%,transparent)]"
-                        />
-                      </div>
+    <motion.div
+      key="featured-integrations"
+      initial={{ opacity: 0, translateY: 10 }}
+      animate={{ opacity: 1, translateY: 0 }}
+      exit={{ opacity: 0, translateY: 10 }}
+      transition={{ duration: 0.1 }}
+    >
+      <Carousel
+        autoplay={{ delay: FEATURED_AUTOPLAY_DELAY }}
+        opts={{ loop: true }}
+        className="bg-white"
+      >
+        <div className="[mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
+          <CarouselContent>
+            {featuredIntegrations.map((integration, idx) => (
+              <CarouselItem key={idx} className="basis-1/2">
+                <Link
+                  href={`/${slug}/settings/integrations/${integration.slug}`}
+                  className="group relative block"
+                >
+                  {/* Image */}
+                  <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                    <BlurImage
+                      src={integration.screenshots![0]}
+                      alt={`Screenshot of ${integration.name}`}
+                      width={900}
+                      height={580}
+                      className="aspect-[900/580] w-full overflow-hidden rounded-xl object-cover object-top [mask-image:linear-gradient(black_90%,transparent)]"
+                    />
+                  </div>
 
-                      {/* Category badge */}
-                      <div className="absolute left-4 top-4 rounded bg-white px-2 py-1 text-[0.625rem] font-semibold uppercase text-neutral-800 shadow-[0_2px_2px_0_#00000014]">
-                        {integration.category}
-                      </div>
+                  {/* Category badge */}
+                  <div className="absolute left-4 top-4 rounded bg-white px-2 py-1 text-[0.625rem] font-semibold uppercase text-neutral-800 shadow-[0_2px_2px_0_#00000014]">
+                    {integration.category}
+                  </div>
 
-                      {/* Bottom card */}
-                      <div className="absolute inset-x-4 bottom-4 hidden items-center gap-3 rounded-lg bg-white p-3 transition-all duration-100 group-hover:drop-shadow-sm sm:flex">
-                        <div className="shrink-0">
-                          <IntegrationLogo
-                            src={integration.logo}
-                            alt={`Logo for ${integration.name}`}
-                            className="size-12"
-                          />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-base font-medium text-neutral-900">
-                            {integration.name}
-                          </span>
-                          <p className="line-clamp-2 text-sm font-medium text-neutral-700">
-                            {integration.description}
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-            </div>
-            <CarouselNavBar featuredIntegrations={featuredIntegrations} />
-          </Carousel>
-        </motion.div>
-      )}
-    </AnimatePresence>
+                  {/* Bottom card */}
+                  <div className="absolute inset-x-4 bottom-4 hidden items-center gap-3 rounded-lg bg-white p-3 transition-all duration-100 group-hover:drop-shadow-sm sm:flex">
+                    <div className="shrink-0">
+                      <IntegrationLogo
+                        src={integration.logo}
+                        alt={`Logo for ${integration.name}`}
+                        className="size-12"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-base font-medium text-neutral-900">
+                        {integration.name}
+                      </span>
+                      <p className="line-clamp-2 text-sm font-medium text-neutral-700">
+                        {integration.description}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </div>
+        <CarouselNavBar featuredIntegrations={featuredIntegrations} />
+      </Carousel>
+    </motion.div>
   );
 }
 
@@ -173,9 +166,9 @@ export function FeaturedIntegrationsLoader() {
       <div className="overflow-hidden">
         <div className="-ml-4 flex -translate-x-1/2">
           {[...Array(3)].map((_, idx) => (
-            <div key={idx} className="min-w-0 shrink-0 grow-0 basis-2/3 pl-4">
+            <div key={idx} className="min-w-0 shrink-0 grow-0 basis-1/2 pl-4">
               <div className="border border-transparent">
-                <div className="aspect-[900/580] animate-pulse rounded-lg bg-neutral-200" />
+                <div className="aspect-[900/580] animate-pulse rounded-xl bg-neutral-200" />
               </div>
             </div>
           ))}
