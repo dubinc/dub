@@ -92,8 +92,7 @@ export const POST = withWorkspace(
             programId,
             groupId,
             name: partner.name,
-            email:
-              partner.email ?? `${partner.id}@e2e.dub-internal-test.com`,
+            email: partner.email ?? `${partner.id}@e2e.dub-internal-test.com`,
             country: partner.country ?? "US",
             formData: { fields: [] },
           },
@@ -155,8 +154,7 @@ export const POST = withWorkspace(
             programId,
             groupId,
             name: partner.name,
-            email:
-              partner.email ?? `${partner.id}@e2e.dub-internal-test.com`,
+            email: partner.email ?? `${partner.id}@e2e.dub-internal-test.com`,
             country: partner.country ?? "US",
             formData: { fields: [] },
           },

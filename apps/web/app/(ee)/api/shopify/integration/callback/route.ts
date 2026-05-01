@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { encrypt } from "@/lib/encryption";
 import { installIntegration } from "@/lib/integrations/install";
 import { prisma } from "@dub/prisma";
 import { SHOPIFY_INTEGRATION_ID } from "@dub/utils";
@@ -46,7 +47,7 @@ export const PATCH = withWorkspace(
           workspaceId: workspace.id,
           integrationId: SHOPIFY_INTEGRATION_ID,
           credentials: {
-            accessToken: body.accessToken,
+            accessToken: encrypt(body.accessToken),
             scope: body.scope,
           },
         });

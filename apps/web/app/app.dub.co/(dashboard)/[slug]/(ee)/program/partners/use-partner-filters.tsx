@@ -3,6 +3,7 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { encodeRangeToken, parseRangeToken, useRouterStuff } from "@dub/ui";
 import {
@@ -224,11 +225,7 @@ export function usePartnerFilters(
                 enabledFilters.includes(m.filterKey),
               ),
               getOptionIcon: (value: string) => (
-                <img
-                  alt={value}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
+                <CountryFlag countryCode={value} />
               ),
               getOptionLabel: (value: string) => COUNTRIES[value],
               options:

@@ -4,7 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { throwIfTrialProgramEnrollmentLimitExceeded } from "@/lib/partners/throw-if-trial-program-enrollment-exceeded";
+import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
@@ -65,10 +65,7 @@ export const invitePartnerAction = authActionClient
       throw new Error("No group ID provided and no default group ID found.");
     }
 
-    await throwIfTrialProgramEnrollmentLimitExceeded({
-      programId,
-      trialEndsAt: workspace.trialEndsAt,
-    });
+    throwIfPartnersLimitExceeded(workspace);
 
     const enrolledPartner = await createAndEnrollPartner({
       workspace,

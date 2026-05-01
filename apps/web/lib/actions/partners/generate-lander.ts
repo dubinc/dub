@@ -23,7 +23,7 @@ import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
-  websiteUrl: z.url(),
+  websiteUrl: z.httpUrl(),
   landerData: programLanderSchema.optional(),
   prompt: z.string().optional(),
 });

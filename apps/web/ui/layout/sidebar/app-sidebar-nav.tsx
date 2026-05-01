@@ -509,9 +509,9 @@ export function AppSidebarNav({
             pathname.includes("/program/messages/") ||
             pathname.endsWith("/program/payouts/success")
           ? null
-          : pathname.startsWith(`/${slug}/links`)
-            ? "links"
-            : "program";
+          : pathname.startsWith(`/${slug}/program`)
+            ? "program"
+            : "links";
   }, [slug, pathname]);
 
   const { program } = useProgram({

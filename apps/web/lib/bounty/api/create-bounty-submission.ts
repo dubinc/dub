@@ -21,7 +21,7 @@ import {
   Prisma,
   WorkspaceRole,
 } from "@dub/prisma/client";
-import { getDomainWithoutWWW, isValidUrl } from "@dub/utils";
+import { getDomainWithoutWWW, isValidUrl, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";
 import * as z from "zod/v4";
@@ -79,6 +79,8 @@ export class BountySubmissionHandler {
     this.validateEligibility();
 
     this.validateRequirements();
+
+    this.validateFiles();
 
     await this.validateSocialContent();
 
@@ -408,6 +410,30 @@ export class BountySubmissionHandler {
         code: "unprocessable_entity",
         message: `All URLs must be from one of the following domains: ${domainsList}. Please check your submission.`,
       });
+    }
+  }
+
+  private validateFiles() {
+    if (this.files.length === 0) {
+      return;
+    }
+
+    // Validate the URL to the partner's own upload location in R2
+    const r2 = new URL(R2_URL);
+    const expectedPath = `/programs/${this.programId}/bounties/${this.bountyId}/submissions/${this.partner.id}/`;
+
+    for (const file of this.files) {
+      const parsed = new URL(file.url);
+
+      if (
+        parsed.origin !== r2.origin ||
+        !parsed.pathname.startsWith(expectedPath)
+      ) {
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: "Invalid file URL.",
+        });
+      }
     }
   }
 

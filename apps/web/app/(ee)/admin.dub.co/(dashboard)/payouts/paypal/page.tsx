@@ -3,6 +3,7 @@
 import type { PaypalPayoutResponse } from "@/lib/paypal/get-pending-payouts";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
   Button,
@@ -92,11 +93,7 @@ function PaypalPayoutsPageClient() {
               className="flex items-center gap-3"
               title={COUNTRIES[country] ?? country}
             >
-              <img
-                alt={country}
-                src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                className="size-4 shrink-0"
-              />
+              <CountryFlag countryCode={country} />
               <span className="truncate text-sm text-neutral-900">
                 {COUNTRIES[country] ?? country}
               </span>

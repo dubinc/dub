@@ -2,6 +2,7 @@
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { buttonVariants } from "@dub/ui";
 import { capitalize, cn, isLegacyBusinessPlan, nFormatter } from "@dub/utils";
 import Link from "next/link";
@@ -14,15 +15,15 @@ export function PartnersUpgradeCTA({
   title?: string;
   description?: string;
 }) {
-  const { slug, plan, store, payoutsLimit } = useWorkspace();
+  const { slug, plan, store, partnersLimit } = useWorkspace();
 
   const { canManageProgram } = getPlanCapabilities(plan);
 
   const { cta, href } = useMemo(() => {
-    if (!canManageProgram || isLegacyBusinessPlan({ plan, payoutsLimit })) {
+    if (!canManageProgram || isLegacyBusinessPlan({ plan, partnersLimit })) {
       return {
         cta: "Upgrade plan",
-        href: `/${slug}/upgrade`,
+        href: `/${slug}/upgrade?plan=business`,
       };
     } else {
       return {
@@ -30,7 +31,7 @@ export function PartnersUpgradeCTA({
         href: `/${slug}/program/new`,
       };
     }
-  }, [canManageProgram, slug, payoutsLimit]);
+  }, [canManageProgram, slug, partnersLimit]);
 
   return (
     <div className="flex min-h-[calc(100vh-60px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
@@ -127,9 +128,8 @@ function ExamplePartnerCell({
             />
             <div className="flex h-full flex-col justify-between px-4 py-3">
               <div className="flex items-center gap-1.5">
-                <img
-                  alt={`${partner.country} flag`}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${partner.country.toLowerCase()}.svg`}
+                <CountryFlag
+                  countryCode={partner.country}
                   className="size-3.5 rounded-full"
                 />
                 <span className="whitespace-nowrap text-sm font-medium text-neutral-800">

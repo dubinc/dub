@@ -104,8 +104,8 @@ export const updateProgramSchema = z.object({
       message: `Minimum payout amount must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.join(", ")}`,
     }),
   supportEmail: z.email().max(255).nullish(),
-  helpUrl: z.url().max(500).nullish(),
-  termsUrl: z.url().max(500).nullish(),
+  helpUrl: z.httpUrl().max(500).nullish(),
+  termsUrl: z.httpUrl().max(500).nullish(),
   messagingEnabledAt: z.coerce.date().nullish(),
   referralFormData: referralFormSchema.nullish(),
 });

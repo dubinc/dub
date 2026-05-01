@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { decryptOrPassthrough } from "@/lib/encryption";
 import { InstalledIntegration } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { OAuthProvider, OAuthProviderConfig } from "../oauth-provider";
@@ -19,7 +20,7 @@ class SlackOAuthProvider extends OAuthProvider<typeof slackAuthTokenSchema> {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-        token: credentials.accessToken,
+        token: decryptOrPassthrough(credentials.accessToken),
         client_id: process.env.SLACK_CLIENT_ID!,
         client_secret: process.env.SLACK_CLIENT_SECRET!,
       }),

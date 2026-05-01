@@ -58,14 +58,15 @@ export function OverviewChart() {
     fetcher,
   );
 
-  const { data: commissions, error: commissionsError } =
-    useCommissionAnalytics({
+  const { data: commissions, error: commissionsError } = useCommissionAnalytics(
+    {
       groupBy: "timeseries",
       interval: interval as IntervalOptions | undefined,
       start: start ? new Date(start) : undefined,
       end: end ? new Date(end) : undefined,
       enabled: viewType === "commissions",
-    });
+    },
+  );
 
   const data = useMemo(() => {
     const sourceData = viewType === "commissions" ? commissions : analyticsData;

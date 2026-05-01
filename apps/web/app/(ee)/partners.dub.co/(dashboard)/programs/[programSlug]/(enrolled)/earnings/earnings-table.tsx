@@ -8,6 +8,7 @@ import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
   CopyText,
@@ -180,11 +181,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
                   title={COUNTRIES[getValue()] ?? getValue()}
                 >
                   {getValue() ? (
-                    <img
-                      alt={getValue()}
-                      src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
-                      className="size-4 shrink-0"
-                    />
+                    <CountryFlag countryCode={getValue()} />
                   ) : (
                     <Globe className="size-4 shrink-0" />
                   )}

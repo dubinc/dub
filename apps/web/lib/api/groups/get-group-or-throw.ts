@@ -41,14 +41,14 @@ export const getGroupOrThrow = async ({
   if (!group) {
     throw new DubApiError({
       code: "not_found",
-      message: `Group with ID ${groupId} not found.`,
+      message: `Group "${groupId}" not found.`,
     });
   }
 
   if (group.programId !== programId) {
     throw new DubApiError({
       code: "forbidden",
-      message: `Group with ID ${groupId} not found in your program.`,
+      message: `Group "${groupId}" not found in your program.`,
     });
   }
 

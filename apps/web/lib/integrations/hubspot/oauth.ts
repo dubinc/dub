@@ -1,3 +1,4 @@
+import { decryptOrPassthrough, encrypt } from "@/lib/encryption";
 import { prisma } from "@dub/prisma";
 import { InstalledIntegration } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -15,7 +16,13 @@ class HubSpotOAuthProvider extends OAuthProvider<
   async refreshTokenForInstallation(
     installation: InstalledIntegration,
   ): Promise<HubSpotAuthToken> {
-    const token = hubSpotAuthTokenSchema.parse(installation.credentials);
+    let token = hubSpotAuthTokenSchema.parse(installation.credentials);
+
+    token = {
+      ...token,
+      access_token: decryptOrPassthrough(token.access_token),
+      refresh_token: decryptOrPassthrough(token.refresh_token),
+    };
 
     if (this.isTokenValid(token)) {
       return token;
@@ -33,7 +40,11 @@ class HubSpotOAuthProvider extends OAuthProvider<
         id: installation.id,
       },
       data: {
-        credentials,
+        credentials: {
+          ...credentials,
+          access_token: encrypt(credentials.access_token),
+          refresh_token: encrypt(credentials.refresh_token),
+        },
       },
     });
 

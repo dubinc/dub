@@ -87,6 +87,9 @@ export default function SubscriptionMenu() {
 
   const { setShowPlanChangeConfirmationModal, PlanChangeConfirmationModal } =
     usePlanChangeConfirmationModal({
+      newPlan: "free",
+      newPeriod: "monthly",
+      newTier: 1,
       onConfirm: async () => {
         await cancelSubscription();
         setShowPlanChangeConfirmationModal(false);
