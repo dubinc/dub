@@ -13,7 +13,13 @@ import { ReferrersUTMs } from "@/ui/analytics/referrers-utms";
 import { useAnalyticsFilters } from "@/ui/analytics/use-analytics-filters";
 import { useAnalyticsQuery } from "@/ui/analytics/use-analytics-query";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { Button, Filter, SquareLayoutGrid6, useMediaQuery, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  Filter,
+  SquareLayoutGrid6,
+  useMediaQuery,
+  useRouterStuff,
+} from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -39,10 +45,8 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
       ? (tab as ProgramAnalyticsTabId)
       : "performance";
 
-  const {
-    queryString: commissionsQueryString,
-    status: commissionStatus,
-  } = useCommissionsAnalyticsQuery();
+  const { queryString: commissionsQueryString, status: commissionStatus } =
+    useCommissionsAnalyticsQuery();
 
   const { start, end, interval, selectedTab, saleUnit, view } = useMemo(() => {
     const { event, ...rest } = searchParamsObj;

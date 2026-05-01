@@ -2,6 +2,7 @@
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { buttonVariants } from "@dub/ui";
 import { capitalize, cn, isLegacyBusinessPlan, nFormatter } from "@dub/utils";
 import Link from "next/link";
@@ -127,9 +128,8 @@ function ExamplePartnerCell({
             />
             <div className="flex h-full flex-col justify-between px-4 py-3">
               <div className="flex items-center gap-1.5">
-                <img
-                  alt={`${partner.country} flag`}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${partner.country.toLowerCase()}.svg`}
+                <CountryFlag
+                  countryCode={partner.country}
                   className="size-3.5 rounded-full"
                 />
                 <span className="whitespace-nowrap text-sm font-medium text-neutral-800">

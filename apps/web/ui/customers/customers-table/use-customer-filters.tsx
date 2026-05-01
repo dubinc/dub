@@ -2,6 +2,7 @@ import useCustomersCount from "@/lib/swr/use-customers-count";
 import usePartners from "@/lib/swr/use-partners";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { LinkLogo, useRouterStuff } from "@dub/ui";
 import { FlagWavy, Hyperlink, SquareUserSparkle2, Users } from "@dub/ui/icons";
 import {
@@ -74,13 +75,7 @@ export function useCustomerFilters(
         key: "country",
         icon: FlagWavy,
         label: "Country",
-        getOptionIcon: (value) => (
-          <img
-            alt={value}
-            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
-            className="size-4 shrink-0"
-          />
-        ),
+        getOptionIcon: (value) => <CountryFlag countryCode={value} />,
         getOptionLabel: (value) => COUNTRIES[value],
         options:
           countriesCount

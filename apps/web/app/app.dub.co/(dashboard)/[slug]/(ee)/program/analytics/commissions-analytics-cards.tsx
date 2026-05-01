@@ -9,7 +9,11 @@ import { BarList } from "@/ui/analytics/bar-list";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { Modal, useRouterStuff } from "@dub/ui";
-import { CircleCheck, CircleDotted, CircleHalfDottedClock } from "@dub/ui/icons";
+import {
+  CircleCheck,
+  CircleDotted,
+  CircleHalfDottedClock,
+} from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ReactNode, useCallback, useMemo, useState } from "react";
 import { CommissionStatusFilter } from "./commissions-status-selector";

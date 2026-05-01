@@ -6,6 +6,7 @@ import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
@@ -98,13 +99,7 @@ export function ProgramCustomersPageClient() {
             const country = row.original.country;
             return (
               <div className="flex items-center gap-2">
-                {country && (
-                  <img
-                    alt={`${country} flag`}
-                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                    className="size-4 shrink-0"
-                  />
-                )}
+                {country && <CountryFlag countryCode={country} />}
                 <span className="min-w-0 truncate">
                   {(country ? COUNTRIES[country] : null) ?? "-"}
                 </span>
