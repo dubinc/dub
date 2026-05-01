@@ -14,6 +14,7 @@ import {
   SetStateAction,
   useCallback,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -23,7 +24,7 @@ type SwitchTrialPlanModalProps = {
   newPlan: string;
   newPeriod: "monthly" | "yearly";
   newTier?: number;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
 };
 
 function PlanCard({
@@ -115,17 +116,6 @@ function SwitchTrialPlanModal({
   const newPriceBillingLabel =
     newPeriod === "yearly" ? "per month, billed yearly" : "month";
 
-  const handleConfirm = async () => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-    try {
-      onConfirm();
-      setShowModal(false);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <Modal
       showModal={showModal}
@@ -204,8 +194,16 @@ function SwitchTrialPlanModal({
           className="h-8 rounded-lg px-3 text-sm"
           text="Switch plan"
           loading={isSubmitting}
-          disabled={isSubmitting}
-          onClick={handleConfirm}
+          onClick={async () => {
+            if (isSubmitting) return;
+            setIsSubmitting(true);
+            try {
+              await onConfirm();
+            } finally {
+              setShowModal(false);
+              setIsSubmitting(false);
+            }
+          }}
         />
       </div>
     </Modal>
@@ -221,9 +219,14 @@ export function useSwitchTrialPlanModal({
   newPlan: string;
   newPeriod: "monthly" | "yearly";
   newTier?: number;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
 }) {
   const [showModal, setShowModal] = useState(false);
+
+  // Ref keeps the modal wrapper callback stable when the parent re-renders with a
+  // new onConfirm (e.g. performUpgrade) so inner state like isSubmitting is not reset.
+  const onConfirmRef = useRef(onConfirm);
+  onConfirmRef.current = onConfirm;
 
   const SwitchTrialPlanModalCallback = useCallback(() => {
     return (
@@ -233,10 +236,10 @@ export function useSwitchTrialPlanModal({
         newPlan={newPlan}
         newPeriod={newPeriod}
         newTier={newTier}
-        onConfirm={onConfirm}
+        onConfirm={() => onConfirmRef.current()}
       />
     );
-  }, [showModal, newPlan, newPeriod, newTier, onConfirm]);
+  }, [showModal, newPlan, newPeriod, newTier]);
 
   return useMemo(
     () => ({

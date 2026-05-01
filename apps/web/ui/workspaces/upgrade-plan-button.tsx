@@ -80,28 +80,35 @@ export function UpgradePlanButton({
     };
   }, [currentPlan, defaultProgramId, selectedPlan.name]);
 
-  const performUpgrade = () => {
+  const performUpgrade = async () => {
     setClicked(true);
-    fetch(`/api/workspaces/${workspaceSlug}/billing/upgrade`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        plan,
-        tier,
-        period,
-        baseUrl: `${APP_DOMAIN}${pathname}${queryString.length > 0 ? `?${queryString}` : ""}`,
-        onboarding: searchParams.get("workspace") ? "true" : "false",
-        isTrialVariant: isTrialVariant ? "true" : "false",
-      }),
-    })
-      .then(async (res) => {
-        if (!res.ok) {
-          const body = await res.json().catch(() => null);
-          throw new Error(body?.error?.message ?? "Failed to start checkout.");
-        }
+    try {
+      const res = await fetch(
+        `/api/workspaces/${workspaceSlug}/billing/upgrade`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            plan,
+            tier,
+            period,
+            baseUrl: `${APP_DOMAIN}${pathname}${queryString.length > 0 ? `?${queryString}` : ""}`,
+            onboarding: searchParams.get("workspace") ? "true" : "false",
+            isTrialVariant: isTrialVariant ? "true" : "false",
+          }),
+        },
+      );
 
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error?.message ?? "Failed to start checkout.");
+      }
+
+      if (!stripeId || currentPlan === "free") {
+        const data = await res.json();
+        const { id: sessionId } = data;
         plausible("Opened Checkout", {
           props: {
             ...(product && { product: capitalize(product) }),
@@ -109,22 +116,17 @@ export function UpgradePlanButton({
             planPeriod: capitalize(period),
           },
         });
-        if (!stripeId || currentPlan === "free") {
-          const data = await res.json();
-          const { id: sessionId } = data;
-          const stripe = await getStripe();
-          stripe?.redirectToCheckout({ sessionId });
-        } else {
-          const { url } = await res.json();
-          router.push(url);
-        }
-      })
-      .catch((err) => {
-        alert(err);
-      })
-      .finally(() => {
-        setClicked(false);
-      });
+        const stripe = await getStripe();
+        stripe?.redirectToCheckout({ sessionId });
+      } else {
+        const { url } = await res.json();
+        router.push(url);
+      }
+    } catch (err) {
+      alert(err);
+    } finally {
+      setClicked(false);
+    }
   };
 
   const { setShowPlanChangeConfirmationModal, PlanChangeConfirmationModal } =
