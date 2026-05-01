@@ -218,7 +218,19 @@ export const createAndEnrollPartner = async ({
   });
 
   waitUntil(
-    Promise.all([
+    Promise.allSettled([
+      // Status is always "invited" or "approved" here — no caller passes "pending"
+      prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          partnersUsage: {
+            increment: 1,
+          },
+        },
+      }),
+
       // upload partner image to R2
       partner.image &&
         !isStored(partner.image) &&

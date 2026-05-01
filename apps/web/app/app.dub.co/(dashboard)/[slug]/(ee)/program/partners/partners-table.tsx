@@ -22,6 +22,7 @@ import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
@@ -313,13 +314,7 @@ export function PartnersTable() {
             const country = row.original.country;
             return (
               <div className="flex items-center gap-2 whitespace-nowrap">
-                {country && (
-                  <img
-                    alt={`${country} flag`}
-                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                    className="size-4 shrink-0"
-                  />
-                )}
+                {country && <CountryFlag countryCode={country} />}
                 <span className="whitespace-nowrap">
                   {(country ? COUNTRIES[country] : null) ?? "-"}
                 </span>

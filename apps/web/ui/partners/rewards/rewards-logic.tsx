@@ -16,6 +16,7 @@ import {
   RewardConditionEntityAttribute,
   STRING_CONDITION_OPERATORS,
 } from "@/lib/zod/schemas/rewards";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { X } from "@/ui/shared/icons";
 import { RewardStructure } from "@dub/prisma/client";
 import {
@@ -545,10 +546,9 @@ function ConditionLogic({
                                 text: name,
                                 value: key,
                                 icon: (
-                                  <img
-                                    alt={`${key} flag`}
-                                    src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
-                                    className="size-3 shrink-0"
+                                  <CountryFlag
+                                    countryCode={key}
+                                    className="size-3"
                                   />
                                 ),
                               }),

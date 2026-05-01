@@ -1,5 +1,6 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
+import { encrypt } from "@/lib/encryption";
 import { HubSpotApi } from "@/lib/integrations/hubspot/api";
 import { HUBSPOT_DUB_CONTACT_PROPERTIES } from "@/lib/integrations/hubspot/constants";
 import { hubSpotOAuthProvider } from "@/lib/integrations/hubspot/oauth";
@@ -86,6 +87,8 @@ export const GET = async (req: Request) => {
     const credentials = {
       ...token,
       created_at: Date.now(),
+      access_token: encrypt(token.access_token),
+      refresh_token: encrypt(token.refresh_token),
     };
 
     const installedIntegration = await installIntegration({
@@ -97,7 +100,7 @@ export const GET = async (req: Request) => {
 
     if (installedIntegration) {
       const hubSpotApi = new HubSpotApi({
-        token: credentials.access_token,
+        token: token.access_token,
       });
 
       waitUntil(

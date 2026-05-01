@@ -2,6 +2,7 @@
 
 import useCommissionAnalytics from "@/lib/swr/use-commission-analytics";
 import { CommissionAnalyticsPartnerRow } from "@/lib/types";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import {
   Button,
   Table,
@@ -127,11 +128,7 @@ export function CommissionsPartnersTable({
           if (!country) return <span className="text-neutral-400">—</span>;
           return (
             <div className="flex items-center gap-2">
-              <img
-                alt={`${country} flag`}
-                src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                className="size-4 shrink-0"
-              />
+              <CountryFlag countryCode={country} />
               <span className="min-w-0 truncate text-sm text-neutral-700">
                 {COUNTRIES[country] ?? country}
               </span>

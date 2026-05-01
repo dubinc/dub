@@ -126,6 +126,7 @@ export async function customerSubscriptionDeleted(
       foldersLimit: FREE_PLAN.limits.folders!,
       groupsLimit: FREE_PLAN.limits.groups!,
       networkInvitesLimit: FREE_PLAN.limits.networkInvites!,
+      partnersLimit: FREE_PLAN.limits.partners!,
       usersLimit: FREE_PLAN.limits.users!,
       paymentFailedAt: null,
     },

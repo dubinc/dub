@@ -300,8 +300,9 @@ export const PATCH = withWorkspace(
           })),
       );
 
-    let { tagNames, expiresAt } = data;
+    let { tagNames, expiresAt, webhookIds } = data;
     const tagIds = combineTagIds(data);
+
     // tag checks
     if (tagIds && tagIds.length > 0) {
       const tags = await prisma.tag.findMany({
@@ -334,6 +335,34 @@ export const PATCH = withWorkspace(
           message: `Invalid tagNames detected: ${tagNames.filter((tagName) => tags.find(({ name }) => tagName === name) === undefined).join(", ")}`,
         });
       }
+    }
+
+    // Webhook checks
+    if (webhookIds && webhookIds.length > 0) {
+      const webhooks = await prisma.webhook.findMany({
+        where: {
+          id: {
+            in: webhookIds,
+          },
+          projectId: workspace.id,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      const invalidWebhookIds = webhookIds.filter(
+        (id) => !webhooks.some((webhook) => webhook.id === id),
+      );
+
+      if (invalidWebhookIds.length > 0) {
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: `Invalid webhookIds detected: ${invalidWebhookIds.join(", ")}`,
+        });
+      }
+
+      data.webhookIds = webhooks.map((webhook) => webhook.id);
     }
 
     if (data.folderId) {

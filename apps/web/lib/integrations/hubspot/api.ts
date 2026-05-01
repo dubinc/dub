@@ -1,3 +1,4 @@
+import { prettyPrint } from "@dub/utils";
 import { hubSpotContactSchema, hubSpotDealSchema } from "./schema";
 
 type FetchOptions = Omit<RequestInit, "body"> & {
@@ -36,7 +37,7 @@ export class HubSpotApi {
     if (process.env.NODE_ENV === "development") {
       console.log("[HubSpot] API response", {
         url,
-        result,
+        result: prettyPrint(result),
       });
     }
 

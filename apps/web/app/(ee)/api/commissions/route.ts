@@ -19,11 +19,14 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const {
     status: _status,
     fraudEventGroupId,
+    type: rawType,
     ...restSearchParams
   } = searchParams;
 
   let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema.parse(
-    isHoldStatus ? restSearchParams : searchParams,
+    isHoldStatus
+      ? restSearchParams
+      : { ...restSearchParams, status: searchParams.status },
   );
 
   if (tenantId && !partnerId) {
@@ -51,6 +54,8 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const commissions = await getCommissions({
     ...filters,
+    // Pass raw type string (may be comma-separated) for multi-value handling
+    ...(rawType && { type: rawType }),
     partnerId,
     programId,
     isHoldStatus,

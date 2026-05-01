@@ -14,6 +14,12 @@ export const GET = withSession(async ({ params }) => {
       status: "invalid",
     });
   }
+  if (domain.startsWith("www.")) {
+    return NextResponse.json({
+      status: "invalid",
+      message: "Custom domain cannot start with www.",
+    });
+  }
   const dubLinkError = validateDubLinkSubdomain(domain);
   if (dubLinkError) {
     return NextResponse.json({

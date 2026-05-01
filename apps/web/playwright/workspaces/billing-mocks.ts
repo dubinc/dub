@@ -181,6 +181,28 @@ export async function finishOnboardingCheckoutWithoutStripeRedirect(
 }
 
 /**
+ * After a mocked billing upgrade POST from dashboard settings (non-onboarding success_url),
+ * skip `redirectToCheckout` — same rationale as {@link finishOnboardingCheckoutWithoutStripeRedirect}.
+ */
+export async function finishBillingUpgradeCheckoutWithoutStripeRedirect(
+  page: Page,
+  options: {
+    slug: string;
+    baseURL: string;
+    plan?: string;
+    period?: string;
+  },
+) {
+  const { slug, baseURL, plan = "pro", period = "monthly" } = options;
+  const origin = baseURL.replace(/\/$/, "");
+  await applyMockTrialToWorkspace(slug);
+  await page.goto(
+    `${origin}/${slug}?upgraded=true&plan=${encodeURIComponent(plan)}&period=${encodeURIComponent(period)}`,
+    { waitUntil: "load" },
+  );
+}
+
+/**
  * Intercepts the upgrade API so the dev server never calls Stripe, and
  * intercepts Hosted Checkout navigation so Stripe never loads a fake session id
  * (which throws CheckoutInitError). Trial state is applied with Prisma — no

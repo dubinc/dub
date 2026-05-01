@@ -1,7 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
 import { Button, Key, Modal, Tooltip, useMediaQuery } from "@dub/ui";
-import { OG_AVATAR_URL } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -11,6 +10,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { UserAvatar } from "../users/user-avatar";
 
 function DeleteTokenModal({
   showDeleteTokenModal,
@@ -102,15 +102,12 @@ function DeleteTokenModal({
           <div className="flex items-center gap-2">
             {token.user && (
               <Tooltip content={token.user.name}>
-                <img
-                  src={
-                    token.user.isMachine
-                      ? `https://api.dicebear.com/7.x/bottts/svg?seed=${token.user.id}`
-                      : token.user.image || `${OG_AVATAR_URL}${token.user.id}`
-                  }
-                  alt={token.user.name!}
-                  className="size-5 rounded-full"
-                />
+                <div>
+                  <UserAvatar
+                    user={token.user}
+                    className="size-5 rounded-full"
+                  />
+                </div>
               </Tooltip>
             )}
             <p className="text-xs text-neutral-500">

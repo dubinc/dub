@@ -10,7 +10,7 @@ export const programLanderImageBlockSchema =
   programLanderBlockCommonSchema.extend({
     type: z.literal("image"),
     data: z.object({
-      url: z.url(),
+      url: z.httpUrl(),
       alt: z.string().optional(),
       width: z.number().optional(),
       height: z.number().optional(),
@@ -30,11 +30,7 @@ export const programLanderFileSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
-  url: z
-    .url()
-    .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
-      message: "Only HTTP and HTTPS URLs are allowed for files.",
-    }),
+  url: z.httpUrl({ error: "Only HTTP and HTTPS URLs are allowed for files." }),
   external: z.boolean().optional(), // TODO: not using this atm, might wanna change this to `downloadable` boolean instead
 });
 

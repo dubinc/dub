@@ -5,6 +5,7 @@ import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import {
   BlurImage,
@@ -553,13 +554,7 @@ export function useAnalyticsFilters({
         getOptionIcon: (value) => {
           if (typeof value !== "string") return null;
 
-          return (
-            <img
-              alt={value}
-              src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
-              className="size-4 shrink-0"
-            />
-          );
+          return <CountryFlag countryCode={value} />;
         },
         options:
           countries?.map(({ country, ...rest }) => ({
@@ -577,13 +572,7 @@ export function useAnalyticsFilters({
           cities?.map(({ city, country, ...rest }) => ({
             value: city,
             label: city,
-            icon: (
-              <img
-                alt={country}
-                src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                className="size-4 shrink-0"
-              />
-            ),
+            icon: <CountryFlag countryCode={country} />,
             right: getFilterOptionTotal(rest),
           })) ?? null,
       },
@@ -595,13 +584,7 @@ export function useAnalyticsFilters({
           regions?.map(({ region, country, ...rest }) => ({
             value: region,
             label: REGIONS[region] || region.split("-")[1],
-            icon: (
-              <img
-                alt={country}
-                src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                className="size-4 shrink-0"
-              />
-            ),
+            icon: <CountryFlag countryCode={country} />,
             right: getFilterOptionTotal(rest),
           })) ?? null,
       },
