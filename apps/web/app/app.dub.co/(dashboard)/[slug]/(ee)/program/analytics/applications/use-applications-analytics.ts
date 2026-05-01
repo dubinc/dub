@@ -9,7 +9,7 @@ import useSWR from "swr";
 
 type ApplicationAnalyticsFilterKey = Extract<
   keyof ApplicationEventAnalyticsQuery,
-  "partnerId" | "referralSource" | "country" | "groupId"
+  "partnerId" | "referralSource" | "country"
 >;
 
 interface UseApplicationsAnalyticsProps<

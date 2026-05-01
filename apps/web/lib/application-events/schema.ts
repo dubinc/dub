@@ -73,14 +73,7 @@ export const applicationEventSchema = z.object({
 // Application analytics
 export const applicationEventAnalyticsQuerySchema = sharedFilterSchema.extend({
   groupBy: z
-    .enum([
-      "count",
-      "country",
-      "referralSource",
-      "timeseries",
-      "partnerGroup",
-      "partner",
-    ])
+    .enum(["count", "timeseries", "partnerId", "referralSource", "country"])
     .default("count"),
 });
 
@@ -95,33 +88,25 @@ const metricsSchema = z.object({
 export const applicationEventAnalyticsSchema = {
   count: metricsSchema,
 
-  country: metricsSchema.extend({
-    country: z.string(),
+  timeseries: metricsSchema.extend({
+    start: z.string(),
+  }),
+
+  partnerId: metricsSchema.extend({
+    partner: PartnerSchema.pick({
+      id: true,
+      name: true,
+      image: true,
+      email: true,
+      country: true,
+    }),
   }),
 
   referralSource: metricsSchema.extend({
     referralSource: z.string(),
   }),
 
-  partner: metricsSchema.extend({
-    partner: PartnerSchema.pick({
-      id: true,
-      name: true,
-      image: true,
-      email: true,
-    }),
-  }),
-
-  partnerGroup: metricsSchema.extend({
-    partnerGroup: GroupSchema.pick({
-      id: true,
-      name: true,
-      slug: true,
-      color: true,
-    }),
-  }),
-
-  timeseries: metricsSchema.extend({
-    start: z.string(),
+  country: metricsSchema.extend({
+    country: z.string(),
   }),
 };

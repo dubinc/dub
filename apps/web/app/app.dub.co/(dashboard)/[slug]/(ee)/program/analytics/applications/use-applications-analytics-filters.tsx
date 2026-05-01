@@ -1,11 +1,9 @@
 "use client";
 
-import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { useRouterStuff } from "@dub/ui";
-import { FlagWavy, Globe2, Users, Users6 } from "@dub/ui/icons";
+import { FlagWavy, Globe2, Users } from "@dub/ui/icons";
 import {
   COUNTRIES,
   FilterOperator,
@@ -16,12 +14,7 @@ import { useCallback, useMemo } from "react";
 import { useApplicationsAnalytics } from "./use-applications-analytics";
 import { useApplicationsAnalyticsQuery } from "./use-applications-analytics-query";
 
-const FILTER_KEYS = [
-  "partnerId",
-  "groupId",
-  "country",
-  "referralSource",
-] as const;
+const FILTER_KEYS = ["partnerId", "country", "referralSource"] as const;
 
 export function useApplicationEventsFilters() {
   const { slug } = useWorkspace();
@@ -37,10 +30,8 @@ export function useApplicationEventsFilters() {
     return "visits";
   }, [stage]);
 
-  const { groups } = useGroups();
-
   const { data: partners } = useApplicationsAnalytics({
-    groupBy: "partner",
+    groupBy: "partnerId",
     exclude: ["partnerId"],
   });
 
@@ -56,18 +47,6 @@ export function useApplicationEventsFilters() {
 
   const filters = useMemo(
     () => [
-      {
-        key: "groupId",
-        icon: Users6,
-        label: "Partner Group",
-        options:
-          groups?.map((group) => ({
-            value: group.id,
-            label: group.name,
-            icon: <GroupColorCircle group={group} />,
-            permalink: `/${slug}/program/groups/${group.slug}/rewards`,
-          })) ?? [],
-      },
       {
         key: "partnerId",
         icon: Users,
@@ -90,8 +69,8 @@ export function useApplicationEventsFilters() {
       {
         key: "referralSource",
         icon: Globe2,
-        label: "Application source",
-        labelPlural: "application sources",
+        label: "Source",
+        labelPlural: "sources",
         options:
           referralSources
             ?.filter((row) => row[stageMetricKey] > 0)
@@ -131,7 +110,7 @@ export function useApplicationEventsFilters() {
             })) ?? [],
       },
     ],
-    [countries, groups, partners, referralSources, slug, stageMetricKey],
+    [countries, partners, referralSources, slug, stageMetricKey],
   );
 
   const activeFilters = useMemo(() => {

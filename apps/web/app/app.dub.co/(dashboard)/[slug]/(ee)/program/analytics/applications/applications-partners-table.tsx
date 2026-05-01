@@ -1,7 +1,6 @@
 "use client";
 
-import { ApplicationEvent, ApplicationEventStages } from "@/lib/types";
-import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
+import { ApplicationEventStages } from "@/lib/types";
 import {
   Button,
   Table,
@@ -14,7 +13,7 @@ import { cn, COUNTRIES, formatDate } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useState } from "react";
 import { PartnerAnalyticsFilterCell } from "../partner-analytics-filter-cell";
-import { useApplicationEvents } from "./use-application-events";
+import { useApplicationsAnalytics } from "./use-applications-analytics";
 
 const PAGE_SIZE = 10;
 
@@ -91,15 +90,11 @@ export function ApplicationsPartnersTable({
     priority: 2,
   });
 
-  const { data, error, isLoading } = useApplicationEvents({
-    event: stage,
-    pageSize: pagination.pageSize,
-    page: pagination.pageIndex,
-    sortBy: STAGE_AT_KEY[stage],
-    sortOrder: "desc",
+  const { data, error, isLoading } = useApplicationsAnalytics({
+    groupBy: "partnerId",
   });
 
-  const { table, ...tableProps } = useTable<ApplicationEvent>({
+  const { table, ...tableProps } = useTable({
     data: data ?? [],
     columns: [
       {
@@ -134,32 +129,11 @@ export function ApplicationsPartnersTable({
         },
       },
       {
-        id: "group",
-        header: "Group",
-        minSize: 140,
-        cell: ({ row }) => {
-          const group = row.original.group;
-
-          if (!group) {
-            return <span className="text-neutral-400">—</span>;
-          }
-
-          return (
-            <div className="flex items-center gap-2">
-              <GroupColorCircle group={group} />
-              <span className="truncate text-sm text-neutral-700">
-                {group.name}
-              </span>
-            </div>
-          );
-        },
-      },
-      {
         id: "location",
         header: "Location",
         minSize: 140,
         cell: ({ row }) => {
-          const country = row.original.country;
+          const country = row.original.partner.country;
 
           if (!country) {
             return <span className="text-neutral-400">—</span>;
@@ -200,6 +174,10 @@ export function ApplicationsPartnersTable({
   });
 
   const showFloatingBar = stagedPartnerIds !== null || isFilterActive;
+
+  if (data && data.length === 0) {
+    return null; // hide section if no partner-driven data
+  }
 
   return (
     <div className={cn("relative", isLoading && "pointer-events-none")}>

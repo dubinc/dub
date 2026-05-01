@@ -1,6 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import {
   applicationEventAnalyticsQuerySchema,
   applicationEventAnalyticsSchema,
@@ -61,16 +60,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     interval,
     timezone,
   } = parsedFilters;
-
-  if (groupBy !== "timeseries") {
-    assertValidDateRangeForPlan({
-      plan: workspace.plan,
-      dataAvailableFrom: workspace.createdAt,
-      interval,
-      start,
-      end,
-    });
-  }
 
   const { startDate, endDate } = getStartEndDates({
     interval,
@@ -157,17 +146,9 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   }
 
   // Get the counts grouped by the partner
-  if (groupBy === "partner") {
-    return byPartner({
+  if (groupBy === "partnerId") {
+    return byPartnerId({
       where,
-    });
-  }
-
-  // Get the counts grouped by the partner group
-  if (groupBy === "partnerGroup") {
-    return byPartnerGroup({
-      ...parsedFilters,
-      programId,
     });
   }
 
@@ -182,7 +163,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   return NextResponse.json(null);
 });
 
-async function byPartner({
+async function byPartnerId({
   where,
 }: {
   where: Prisma.ProgramApplicationEventWhereInput;
@@ -370,140 +351,6 @@ async function byTimeseries({
 
   return NextResponse.json(
     z.array(applicationEventAnalyticsSchema["timeseries"]).parse(timeseries),
-  );
-}
-
-async function byPartnerGroup({
-  programId,
-  groupId,
-  partnerId,
-  country,
-  referralSource,
-  timezone,
-  interval,
-  start,
-  end,
-}: ApplicationEventAnalyticsQuery & { programId: string }) {
-  const { startDate, endDate } = getStartEndDates({
-    interval,
-    start,
-    end,
-    timezone,
-  });
-
-  const partnerFilter = parseFilterValue(partnerId);
-  const countryFilter = parseFilterValue(country);
-  const referralSourceFilter = parseFilterValue(referralSource);
-  const groupFilter = parseFilterValue(groupId);
-
-  const conditions: Prisma.Sql[] = [
-    Prisma.sql`e.programId = ${programId}`,
-    Prisma.sql`e.visitedAt >= ${startDate}`,
-    Prisma.sql`e.visitedAt < ${endDate}`,
-    Prisma.sql`pe.groupId IS NOT NULL`,
-  ];
-
-  if (partnerFilter) {
-    const list = Prisma.join(partnerFilter.values.map((v) => Prisma.sql`${v}`));
-    conditions.push(
-      partnerFilter.sqlOperator === "NOT IN"
-        ? Prisma.sql`e.partnerId NOT IN (${list})`
-        : Prisma.sql`e.partnerId IN (${list})`,
-    );
-  }
-
-  if (countryFilter) {
-    const list = Prisma.join(countryFilter.values.map((v) => Prisma.sql`${v}`));
-    conditions.push(
-      countryFilter.sqlOperator === "NOT IN"
-        ? Prisma.sql`e.country NOT IN (${list})`
-        : Prisma.sql`e.country IN (${list})`,
-    );
-  }
-
-  if (referralSourceFilter) {
-    const list = Prisma.join(
-      referralSourceFilter.values.map((v) => Prisma.sql`${v}`),
-    );
-    conditions.push(
-      referralSourceFilter.sqlOperator === "NOT IN"
-        ? Prisma.sql`e.referralSource NOT IN (${list})`
-        : Prisma.sql`e.referralSource IN (${list})`,
-    );
-  }
-
-  if (groupFilter) {
-    const list = Prisma.join(groupFilter.values.map((v) => Prisma.sql`${v}`));
-    conditions.push(
-      groupFilter.sqlOperator === "NOT IN"
-        ? Prisma.sql`pe.groupId NOT IN (${list})`
-        : Prisma.sql`pe.groupId IN (${list})`,
-    );
-  }
-
-  const whereClause = Prisma.join(conditions, " AND ");
-
-  const rows = await prisma.$queryRaw<PartnerGroupApplicationRow[]>(
-    Prisma.sql`
-      SELECT
-        pe.groupId AS groupId,
-        COUNT(e.visitedAt) AS visits,
-        COUNT(e.startedAt) AS starts,
-        COUNT(e.submittedAt) AS submissions,
-        COUNT(e.approvedAt) AS approvals,
-        COUNT(e.rejectedAt) AS rejections
-      FROM ProgramApplicationEvent e
-      JOIN ProgramEnrollment pe
-        ON pe.programId = e.programId
-       AND pe.partnerId = e.partnerId
-      WHERE ${whereClause}
-      GROUP BY pe.groupId`,
-  );
-
-  const groupIds = rows.map((row) => row.groupId);
-
-  const partnerGroups =
-    groupIds.length > 0
-      ? await prisma.partnerGroup.findMany({
-          where: {
-            id: {
-              in: groupIds,
-            },
-          },
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-            color: true,
-          },
-        })
-      : [];
-
-  const partnerGroupById = new Map(
-    partnerGroups.map((group) => [group.id, group]),
-  );
-
-  const results = rows.flatMap((row) => {
-    const partnerGroup = partnerGroupById.get(row.groupId);
-
-    if (!partnerGroup) {
-      return [];
-    }
-
-    return [
-      {
-        partnerGroup,
-        visits: Number(row.visits),
-        starts: Number(row.starts),
-        submissions: Number(row.submissions),
-        approvals: Number(row.approvals),
-        rejections: Number(row.rejections),
-      },
-    ];
-  });
-
-  return NextResponse.json(
-    z.array(applicationEventAnalyticsSchema["partnerGroup"]).parse(results),
   );
 }
 

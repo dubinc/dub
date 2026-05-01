@@ -147,7 +147,7 @@ function ApplicationsAnalyticsCardShell({
           </div>
         </div>
         <BarList
-          tab={tab === "referralSource" ? "Application source" : "Country"}
+          tab={`Application ${tab === "referralSource" ? "source" : "country"}`}
           unit="applications"
           data={mapped}
           maxValue={maxValue}
@@ -191,7 +191,7 @@ function ApplicationsAnalyticsCardShell({
             </div>
           ) : (
             <BarList
-              tab={tab === "referralSource" ? "Application source" : "Country"}
+              tab={`Application ${tab === "referralSource" ? "source" : "country"}`}
               unit="applications"
               data={mapped}
               maxValue={maxValue}
@@ -278,7 +278,7 @@ export function ApplicationsAnalyticsCards({
       />
       <ApplicationsAnalyticsCardShell
         tab="country"
-        title="Country"
+        title="Application country"
         stage={stage}
         data={countries}
         isLoading={countriesLoading}
