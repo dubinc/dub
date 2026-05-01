@@ -86,16 +86,3 @@ export const maxDurationSchema = z.coerce
     message: `Max duration must be ${RECURRING_MAX_DURATIONS.join(", ")}`,
   })
   .nullish();
-
-// Validates a user-supplied URL and restricts the protocol to http(s).
-// Prevents `javascript:`, `data:`, `vbscript:`, etc. from slipping through `z.url()`.
-export const httpUrlSchema = ({ message }: { message?: string } = {}) =>
-  z.url().refine(
-    (url) => {
-      const protocol = new URL(url).protocol;
-      return protocol === "http:" || protocol === "https:";
-    },
-    {
-      message: message ?? "URL must use http:// or https://",
-    },
-  );

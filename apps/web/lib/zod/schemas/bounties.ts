@@ -20,11 +20,7 @@ import {
 import * as z from "zod/v4";
 import { CommissionSchema } from "./commissions";
 import { GroupSchema } from "./groups";
-import {
-  booleanQuerySchema,
-  getPaginationQuerySchema,
-  httpUrlSchema,
-} from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { nullableCountSchema, parseDateSchema } from "./utils";
@@ -141,9 +137,7 @@ export const updateBountySchema = createBountySchema
   .partial();
 
 export const BountySubmissionFileSchema = z.object({
-  url: httpUrlSchema({ message: "File URL must be an http(s) URL." }).describe(
-    "The URL of the uploaded file.",
-  ),
+  url: z.httpUrl().describe("The URL of the uploaded file."),
   fileName: z.string().describe("The original file name."),
   size: z.number().describe("The file size in bytes."),
 });
@@ -332,10 +326,7 @@ export const createBountySubmissionInputSchema = z.object({
     .array(BountySubmissionFileSchema)
     .max(BOUNTY_MAX_SUBMISSION_FILES)
     .default([]),
-  urls: z
-    .array(httpUrlSchema({ message: "Submission URL must be an http(s) URL." }))
-    .max(BOUNTY_MAX_SUBMISSION_URLS)
-    .default([]),
+  urls: z.array(z.httpUrl()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
   description: z
     .string()
     .trim()
