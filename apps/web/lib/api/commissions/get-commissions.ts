@@ -1,12 +1,21 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
-import { CommissionStatus, FraudEventStatus } from "@dub/prisma/client";
+import {
+  CommissionStatus,
+  CommissionType,
+  FraudEventStatus,
+} from "@dub/prisma/client";
+import { parseFilterValue } from "@dub/utils";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
 import { buildPaginationQuery } from "../pagination";
 
-type CommissionsFilters = z.infer<typeof getCommissionsQuerySchema> & {
+type CommissionsFilters = Omit<
+  z.infer<typeof getCommissionsQuerySchema>,
+  "type"
+> & {
+  type?: string;
   programId: string;
   isHoldStatus?: boolean;
   fraudEventGroupId?: string;
@@ -82,11 +91,37 @@ export async function getCommissions(filters: CommissionsFilters) {
     timezone,
   });
 
+  const partnerFilter = parseFilterValue(partnerId);
+  const groupFilter = parseFilterValue(groupId);
+
+  const validCommissionTypes = new Set(Object.values(CommissionType));
+  const rawTypeFilter = parseFilterValue(type);
+  if (
+    rawTypeFilter?.sqlOperator === "IN" &&
+    !rawTypeFilter.values.some((v) =>
+      validCommissionTypes.has(v as CommissionType),
+    )
+  ) {
+    return [];
+  }
+  const typeFilter =
+    rawTypeFilter &&
+    rawTypeFilter.values.some((v) =>
+      validCommissionTypes.has(v as CommissionType),
+    )
+      ? {
+          ...rawTypeFilter,
+          values: rawTypeFilter.values.filter((v) =>
+            validCommissionTypes.has(v as CommissionType),
+          ) as CommissionType[],
+        }
+      : null;
+
   const statusFilter = isHoldStatus
     ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
     : status
       ? status
-      : customerId || partnerId || type
+      : customerId || partnerFilter || typeFilter
         ? undefined
         : {
             notIn: [
@@ -97,7 +132,12 @@ export async function getCommissions(filters: CommissionsFilters) {
           };
 
   const programEnrollmentFilter = {
-    ...(groupId && { groupId }),
+    ...(groupFilter && {
+      groupId:
+        groupFilter.sqlOperator === "NOT IN"
+          ? { notIn: groupFilter.values }
+          : { in: groupFilter.values },
+    }),
     ...(isHoldStatus && {
       fraudEventGroups: {
         some: {
@@ -118,9 +158,19 @@ export async function getCommissions(filters: CommissionsFilters) {
             not: 0,
           },
           programId,
-          partnerId,
+          ...(partnerFilter && {
+            partnerId:
+              partnerFilter.sqlOperator === "NOT IN"
+                ? { notIn: partnerFilter.values }
+                : { in: partnerFilter.values },
+          }),
           status: statusFilter,
-          type,
+          ...(typeFilter && {
+            type:
+              typeFilter.sqlOperator === "NOT IN"
+                ? { notIn: typeFilter.values }
+                : { in: typeFilter.values },
+          }),
           customerId,
           payoutId,
           ...(eventIds && {
