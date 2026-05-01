@@ -27,11 +27,11 @@ const schema = z.object({
 // Triggers re-embedding of a single docs/help article.
 // Called by the docs GitHub Action when a .mdx file changes.
 //
-// Auth: Authorization: Bearer <EMBEDDING_SYNC_SECRET>
+// Auth: Authorization: Bearer <CRON_SECRET>
 // Body: { url: string; delay?: number }
 export const POST = async (req: Request) => {
   const authHeader = req.headers.get("Authorization");
-  const secret = process.env.EMBEDDING_SYNC_SECRET;
+  const secret = process.env.CRON_SECRET;
 
   if (!secret || authHeader !== `Bearer ${secret}`) {
     return new Response("Unauthorized", { status: 401 });

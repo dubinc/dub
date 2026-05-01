@@ -6,7 +6,7 @@ import { bulkCreateLinks } from "@/lib/api/links";
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
-import { throwIfTrialProgramEnrollmentLimitExceeded } from "@/lib/partners/throw-if-trial-program-enrollment-exceeded";
+import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { bulkInvitePartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
@@ -92,31 +92,20 @@ export const bulkInvitePartnersAction = authActionClient
       throw new Error("Invalid group ID provided.");
     }
 
-    const { count: createdPartnersCount } = await prisma.$transaction(
-      async (tx) => {
-        await throwIfTrialProgramEnrollmentLimitExceeded({
-          programId,
-          additionalEnrollments: emailsToInvite.length,
-          trialEndsAt: workspace.trialEndsAt,
-          tx,
-        });
-
-        return tx.partner.createMany({
-          data: emailsToInvite.map((email) => ({
-            id: createId({ prefix: "pn_" }),
-            email,
-            name: email,
-          })),
-          skipDuplicates: true,
-        });
-      },
-    );
+    const { count: createdPartnersCount } = await prisma.partner.createMany({
+      data: emailsToInvite.map((email) => ({
+        id: createId({ prefix: "pn_" }),
+        email,
+        name: email,
+      })),
+      skipDuplicates: true,
+    });
 
     console.log(
       `Created ${createdPartnersCount} out of ${emailsToInvite.length} provided partners (${emailsToInvite.length - createdPartnersCount} already exist on Dub)`,
     );
 
-    // Fetch the created partners
+    // Fetch the partners
     const partners = await prisma.partner.findMany({
       where: {
         email: {
@@ -134,24 +123,53 @@ export const bulkInvitePartnersAction = authActionClient
     const partnerGroupDefaultLinks = group.partnerGroupDefaultLinks;
     const utmTemplate = group.utmTemplate;
 
-    const { count: invitedCount } = await prisma.programEnrollment.createMany({
-      data: partners.map((partner) => ({
-        id: createId({ prefix: "pge_" }),
-        programId,
-        partnerId: partner.id,
-        status: "invited",
-        groupId: group.id,
-        clickRewardId: group.clickRewardId,
-        leadRewardId: group.leadRewardId,
-        saleRewardId: group.saleRewardId,
-        discountId: group.discountId,
-      })),
-      skipDuplicates: true,
+    const invitedCount = await prisma.$transaction(async (tx) => {
+      const { count: invitedCount } = await tx.programEnrollment.createMany({
+        data: partners.map((partner) => ({
+          id: createId({ prefix: "pge_" }),
+          programId,
+          partnerId: partner.id,
+          status: "invited",
+          groupId: group.id,
+          clickRewardId: group.clickRewardId,
+          leadRewardId: group.leadRewardId,
+          saleRewardId: group.saleRewardId,
+          discountId: group.discountId,
+        })),
+        skipDuplicates: true,
+      });
+
+      if (invitedCount > 0) {
+        throwIfPartnersLimitExceeded({
+          ...workspace,
+          additionalEnrollments: invitedCount,
+        });
+
+        await tx.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            partnersUsage: {
+              increment: invitedCount,
+            },
+          },
+        });
+      }
+
+      return invitedCount;
     });
 
     console.log(
       `Created ${invitedCount} program enrollments with status "invited"`,
     );
+
+    if (invitedCount === 0) {
+      return {
+        invitedCount,
+        skippedCount: alreadyEnrolledEmails.size,
+      };
+    }
 
     waitUntil(
       (async () => {

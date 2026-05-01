@@ -3,7 +3,7 @@ import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { triggerWorkflows } from "../../../cron/qstash-workflow";
-import { throwIfTrialProgramEnrollmentLimitExceeded } from "../../../partners/throw-if-trial-program-enrollment-exceeded";
+import { throwIfPartnersLimitExceeded } from "../../../partners/throw-if-partners-limit-exceeded";
 import { approvePartnerSchema } from "../../../zod/schemas/partners";
 import { trackActivityLog } from "../../activity-log/track-activity-log";
 import { DubApiError } from "../../errors";
@@ -37,6 +37,8 @@ export async function approvePartner({
             select: {
               id: true,
               trialEndsAt: true,
+              partnersUsage: true,
+              partnersLimit: true,
             },
           },
         },
@@ -77,11 +79,7 @@ export async function approvePartner({
   });
 
   await prisma.$transaction(async (tx) => {
-    await throwIfTrialProgramEnrollmentLimitExceeded({
-      programId,
-      trialEndsAt: program.workspace.trialEndsAt,
-      tx,
-    });
+    throwIfPartnersLimitExceeded(program.workspace);
 
     const programEnrollment = await tx.programEnrollment.update({
       where: {
@@ -114,6 +112,17 @@ export async function approvePartner({
         },
       });
     }
+
+    await tx.project.update({
+      where: {
+        id: program.workspace.id,
+      },
+      data: {
+        partnersUsage: {
+          increment: 1,
+        },
+      },
+    });
   });
 
   waitUntil(

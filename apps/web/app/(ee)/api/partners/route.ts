@@ -4,6 +4,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import {
   createPartnerSchema,
@@ -112,6 +113,8 @@ export const POST = withWorkspace(
       workspaceId: workspace.id,
       programId,
     });
+
+    throwIfPartnersLimitExceeded(workspace);
 
     const enrolledPartner = await createAndEnrollPartner({
       workspace,
