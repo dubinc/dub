@@ -20,7 +20,7 @@ import {
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
+import { capitalize, cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ContextType, ReactNode, useMemo } from "react";
@@ -196,33 +196,28 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
               <div className="flex w-full grow items-center gap-2 md:w-auto">
                 {dateRangePicker}
                 <div className="flex grow justify-end gap-2">
-                  {pageTab === "performance" ? (
-                    <Link
-                      href={`/${slug}/events${getQueryString({ folderId: program?.defaultFolderId, event: selectedTab, interval })}`}
-                    >
-                      <Button
-                        variant="secondary"
-                        className="w-fit"
-                        icon={
-                          <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
-                        }
-                        text={isMobile ? undefined : "View Events"}
-                      />
-                    </Link>
-                  ) : (
-                    <Link
-                      href={`/${slug}/program/commissions${getQueryString({}, { exclude: ["pageTab", "commissionUnit", "event", "saleUnit", "view"] })}`}
-                    >
-                      <Button
-                        variant="secondary"
-                        className="w-fit"
-                        icon={
-                          <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
-                        }
-                        text={isMobile ? undefined : "View Commissions"}
-                      />
-                    </Link>
-                  )}
+                  <Link
+                    href={
+                      pageTab === "commissions"
+                        ? `/${slug}/program/commissions${getQueryString({}, { include: ["interval", "start", "end", "partnerId", "groupId", "type"] })}`
+                        : pageTab === "applications"
+                          ? `/${slug}/program/partners/applications`
+                          : `/${slug}/events${getQueryString({ folderId: program?.defaultFolderId, event: selectedTab, interval })}`
+                    }
+                  >
+                    <Button
+                      variant="secondary"
+                      className="w-fit"
+                      icon={
+                        <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
+                      }
+                      text={
+                        isMobile
+                          ? undefined
+                          : `View ${pageTab === "performance" ? "Events" : capitalize(pageTab)}`
+                      }
+                    />
+                  </Link>
                 </div>
               </div>
             </div>
