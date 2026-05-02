@@ -17,7 +17,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
   const {
-    groupId,
     partnerId,
     country,
     referralSource,
@@ -49,7 +48,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const partnerFilter = parseFilterValue(partnerId);
   const countryFilter = parseFilterValue(country);
-  const groupFilter = parseFilterValue(groupId);
   const referralSourceFilter = parseFilterValue(referralSource);
 
   const where: Prisma.ProgramApplicationEventWhereInput = {
@@ -71,14 +69,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         referralSourceFilter.sqlOperator === "NOT IN"
           ? { notIn: referralSourceFilter.values }
           : { in: referralSourceFilter.values },
-    }),
-    ...(groupFilter && {
-      programEnrollment: {
-        groupId:
-          groupFilter.sqlOperator === "NOT IN"
-            ? { notIn: groupFilter.values }
-            : { in: groupFilter.values },
-      },
     }),
     ...(event === "visited" && {
       visitedAt: {
