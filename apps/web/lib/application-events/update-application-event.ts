@@ -17,11 +17,22 @@ export async function markApplicationEventSubmitted({
 >) {
   const cookieStore = await cookies();
   const cookieName = getApplicationEventCookieName(programId);
-  const eventId = cookieStore.get(cookieName)?.value;
+  const applicationEventId = cookieStore.get(cookieName)?.value;
+  if (!applicationEventId && !partnerId) {
+    console.error(
+      "[markApplicationEventSubmitted]: No application event ID or partner ID provided, skipping...",
+    );
+    return;
+  }
 
   try {
     await prisma.programApplicationEvent.updateMany({
-      where: eventId ? { id: eventId } : { programId, partnerId },
+      where: {
+        ...(applicationEventId
+          ? { id: applicationEventId }
+          : { programId, partnerId }),
+        submittedAt: null,
+      },
       data: {
         partnerId,
         submittedAt: new Date(),

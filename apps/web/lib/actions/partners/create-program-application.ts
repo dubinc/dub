@@ -329,7 +329,7 @@ async function createApplicationAndEnrollment({
         }),
       );
 
-      await Promise.all([
+      await Promise.allSettled([
         notifyPartnerApplication({
           partner,
           program,
