@@ -56,6 +56,43 @@ export const PAYOUT_METHODS = [
   },
 ] as const;
 
+/** When bank or PayPal is the only choice (e.g. US), avoid international wire copy (FX / 15 days). */
+const SOLO_BANK_FEATURES: PayoutMethodFeature[] = [
+  {
+    icon: CircleDollar,
+    text: "Receive payouts directly in your bank account",
+  },
+  { icon: Zap, text: "1-time no hassle setup" },
+];
+
+const SOLO_PAYPAL_FEATURES: PayoutMethodFeature[] = [
+  {
+    icon: CircleDollar,
+    text: "Receive payouts directly via PayPal",
+  },
+  { icon: Zap, text: "1-time no hassle setup" },
+];
+
+export function getPayoutMethodFeaturesForSelector(
+  methodId: (typeof PAYOUT_METHODS)[number]["id"],
+  isSingleOption: boolean,
+): readonly PayoutMethodFeature[] {
+  const method = PAYOUT_METHODS.find((m) => m.id === methodId);
+  if (!method) {
+    return [];
+  }
+  if (!isSingleOption) {
+    return method.features;
+  }
+  if (methodId === "connect") {
+    return SOLO_BANK_FEATURES;
+  }
+  if (methodId === "paypal") {
+    return SOLO_PAYPAL_FEATURES;
+  }
+  return method.features;
+}
+
 const PAYOUT_METHOD_ICON_CONFIG = Object.fromEntries(
   PAYOUT_METHODS.map((m) => [
     m.id,
