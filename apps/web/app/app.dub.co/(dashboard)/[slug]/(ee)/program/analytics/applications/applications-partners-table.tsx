@@ -1,5 +1,6 @@
 "use client";
 
+import { APPLICATION_EVENT_STAGES } from "@/lib/application-events/schema";
 import { ApplicationEventStages } from "@/lib/types";
 import {
   Button,
@@ -9,7 +10,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { cn, COUNTRIES, formatDate } from "@dub/utils";
+import { capitalize, cn, nFormatter } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useState } from "react";
 import { PartnerAnalyticsFilterCell } from "../partner-analytics-filter-cell";
@@ -17,25 +18,17 @@ import { useApplicationsAnalytics } from "./use-applications-analytics";
 
 const PAGE_SIZE = 10;
 
-const STAGE_AT_KEY = {
-  visited: "visitedAt",
-  started: "startedAt",
-  submitted: "submittedAt",
-  approved: "approvedAt",
-} as const;
+const STAGE_VALUE_KEY: Record<
+  ApplicationEventStages,
+  "visits" | "starts" | "submissions" | "approvals"
+> = {
+  visited: "visits",
+  started: "starts",
+  submitted: "submissions",
+  approved: "approvals",
+};
 
-const STAGE_LABEL = {
-  visited: "Visited At",
-  started: "Started At",
-  submitted: "Submitted At",
-  approved: "Enrolled At",
-} as const;
-
-export function ApplicationsPartnersTable({
-  stage,
-}: {
-  stage: ApplicationEventStages;
-}) {
+export function ApplicationsPartnersTable() {
   const { pagination, setPagination } = usePagination(PAGE_SIZE);
   const { queryParams, searchParams } = useRouterStuff();
 
@@ -99,7 +92,7 @@ export function ApplicationsPartnersTable({
     columns: [
       {
         id: "partner",
-        header: "Partner",
+        header: "Referral partner",
         enableHiding: false,
         minSize: 220,
         cell: ({ row }) => {
@@ -128,41 +121,15 @@ export function ApplicationsPartnersTable({
           );
         },
       },
-      {
-        id: "location",
-        header: "Location",
-        minSize: 140,
-        cell: ({ row }) => {
-          const country = row.original.partner.country;
-
-          if (!country) {
-            return <span className="text-neutral-400">—</span>;
-          }
-
-          return (
-            <div className="flex items-center gap-2">
-              <img
-                alt={`${country} flag`}
-                src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                className="size-4 shrink-0"
-              />
-              <span className="min-w-0 truncate text-sm text-neutral-700">
-                {COUNTRIES[country] ?? country}
-              </span>
-            </div>
-          );
-        },
-      },
-      {
-        id: "stageAt",
-        header: STAGE_LABEL[stage],
+      ...APPLICATION_EVENT_STAGES.map((stage) => ({
+        id: stage,
+        header: capitalize(STAGE_VALUE_KEY[stage]) as string,
         minSize: 160,
-        accessorFn: (event) => {
-          const trackedAt = event[STAGE_AT_KEY[stage]];
-
-          return trackedAt ? formatDate(trackedAt, { month: "short" }) : "—";
+        cell: ({ row }) => {
+          const value = row.original[STAGE_VALUE_KEY[stage]];
+          return <span>{nFormatter(value)}</span>;
         },
-      },
+      })),
     ],
     pagination,
     onPaginationChange: setPagination,

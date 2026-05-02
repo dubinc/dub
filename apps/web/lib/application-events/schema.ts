@@ -28,10 +28,9 @@ const sharedFilterSchema = analyticsQuerySchema
     timezone: true,
   })
   .extend({
-    groupId: z.string().optional(),
     partnerId: z.string().optional(),
-    country: z.string().optional(),
     referralSource: z.string().optional(),
+    country: z.string().optional(),
   });
 
 // Application events
@@ -98,7 +97,6 @@ export const applicationEventAnalyticsSchema = {
       name: true,
       image: true,
       email: true,
-      country: true,
     }),
   }),
 

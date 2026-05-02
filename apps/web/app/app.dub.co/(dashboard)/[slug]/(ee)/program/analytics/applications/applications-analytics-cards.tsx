@@ -29,13 +29,6 @@ const STAGE_VALUE_KEY: Record<
 
 type StageValueKey = (typeof STAGE_VALUE_KEY)[ApplicationEventStages];
 
-const STAGE_LABELS: Record<ApplicationEventStages, string> = {
-  visited: "Visited",
-  started: "Started",
-  submitted: "Submitted",
-  approved: "Applied",
-};
-
 const STAGE_ICONS: Record<ApplicationEventStages, React.ElementType> = {
   visited: CircleDotted,
   started: CircleHalfDottedClock,
@@ -84,7 +77,6 @@ function ApplicationsAnalyticsCardShell({
 
   const stageKey = STAGE_VALUE_KEY[stage];
   const StageIcon = STAGE_ICONS[stage];
-  const stageLabel = STAGE_LABELS[stage];
 
   const mapped = useMemo(() => {
     const rows = data ?? [];
@@ -143,7 +135,7 @@ function ApplicationsAnalyticsCardShell({
           <h1 className="text-lg font-semibold">{title}</h1>
           <div className="flex items-center gap-1 text-neutral-500">
             <StageIcon className="h-4 w-4" />
-            <p className="text-xs uppercase">{stageLabel}</p>
+            <p className="text-xs uppercase">{STAGE_VALUE_KEY[stage]}</p>
           </div>
         </div>
         <BarList
@@ -176,7 +168,7 @@ function ApplicationsAnalyticsCardShell({
           />
           <div className="flex items-center gap-1 pr-2 text-neutral-500">
             <StageIcon className="hidden h-4 w-4 sm:block" />
-            <p className="text-xs uppercase">{stageLabel}</p>
+            <p className="text-xs uppercase">{STAGE_VALUE_KEY[stage]}</p>
           </div>
         </div>
 

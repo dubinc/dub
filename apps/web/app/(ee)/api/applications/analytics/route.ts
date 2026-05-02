@@ -7,6 +7,7 @@ import {
 import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { ApplicationEventAnalyticsQuery } from "@/lib/types";
+import { TZDate, tz } from "@date-fns/tz";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { parseFilterValue } from "@dub/utils";
@@ -15,16 +16,7 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 type TimeseriesApplicationRow = {
-  start: string;
-  visits: bigint;
-  starts: bigint;
-  submissions: bigint;
-  approvals: bigint;
-  rejections: bigint;
-};
-
-type PartnerGroupApplicationRow = {
-  groupId: string;
+  start: string | Date;
   visits: bigint;
   starts: bigint;
   submissions: bigint;
@@ -51,15 +43,17 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const {
     groupBy,
-    groupId,
     partnerId,
     country,
     referralSource,
     start,
     end,
     interval,
-    timezone,
+    timezone: timezoneParam,
   } = parsedFilters;
+
+  // Align with CONVERT_TZ in raw SQL and analyticsQuerySchema default (UTC when omitted).
+  const timezone = timezoneParam ?? "UTC";
 
   const { startDate, endDate } = getStartEndDates({
     interval,
@@ -69,7 +63,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   });
 
   const partnerFilter = parseFilterValue(partnerId);
-  const groupFilter = parseFilterValue(groupId);
   const countryFilter = parseFilterValue(country);
   const referralSourceFilter = parseFilterValue(referralSource);
 
@@ -81,25 +74,17 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
           ? { notIn: partnerFilter.values }
           : { in: partnerFilter.values },
     }),
-    ...(groupFilter && {
-      programEnrollment: {
-        groupId:
-          groupFilter.sqlOperator === "NOT IN"
-            ? { notIn: groupFilter.values }
-            : { in: groupFilter.values },
-      },
+    ...(referralSourceFilter && {
+      referralSource:
+        referralSourceFilter.sqlOperator === "NOT IN"
+          ? { notIn: referralSourceFilter.values }
+          : { in: referralSourceFilter.values },
     }),
     ...(countryFilter && {
       country:
         countryFilter.sqlOperator === "NOT IN"
           ? { notIn: countryFilter.values }
           : { in: countryFilter.values },
-    }),
-    ...(referralSourceFilter && {
-      referralSource:
-        referralSourceFilter.sqlOperator === "NOT IN"
-          ? { notIn: referralSourceFilter.values }
-          : { in: referralSourceFilter.values },
     }),
     visitedAt: {
       gte: startDate,
@@ -157,6 +142,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     return byTimeseries({
       ...parsedFilters,
       programId,
+      timezone,
     });
   }
 
@@ -218,13 +204,12 @@ async function byPartnerId({
     .filter((r): r is NonNullable<typeof r> => r !== null);
 
   return NextResponse.json(
-    z.array(applicationEventAnalyticsSchema["partner"]).parse(results),
+    z.array(applicationEventAnalyticsSchema["partnerId"]).parse(results),
   );
 }
 
 async function byTimeseries({
   programId,
-  groupId,
   partnerId,
   country,
   referralSource,
@@ -233,18 +218,19 @@ async function byTimeseries({
   start,
   end,
 }: ApplicationEventAnalyticsQuery & { programId: string }) {
+  const tzId = timezone ?? "UTC";
+
   const { startDate, endDate, granularity } = getStartEndDates({
     interval,
     start,
     end,
-    timezone,
+    timezone: tzId,
   });
 
   const { dateFormat, dateIncrement, startFunction, formatString } =
     sqlGranularityMap[granularity];
 
   const partnerFilter = parseFilterValue(partnerId);
-  const groupFilter = parseFilterValue(groupId);
   const countryFilter = parseFilterValue(country);
   const referralSourceFilter = parseFilterValue(referralSource);
 
@@ -263,29 +249,6 @@ async function byTimeseries({
     );
   }
 
-  if (groupFilter) {
-    const list = Prisma.join(groupFilter.values.map((v) => Prisma.sql`${v}`));
-    const op =
-      groupFilter.sqlOperator === "NOT IN"
-        ? Prisma.sql`NOT IN`
-        : Prisma.sql`IN`;
-    conditions.push(Prisma.sql`EXISTS (
-        SELECT 1 FROM ProgramEnrollment pe
-        WHERE pe.programId = e.programId
-          AND pe.partnerId = e.partnerId
-          AND pe.groupId ${op} (${list})
-      )`);
-  }
-
-  if (countryFilter) {
-    const list = Prisma.join(countryFilter.values.map((v) => Prisma.sql`${v}`));
-    conditions.push(
-      countryFilter.sqlOperator === "NOT IN"
-        ? Prisma.sql`e.country NOT IN (${list})`
-        : Prisma.sql`e.country IN (${list})`,
-    );
-  }
-
   if (referralSourceFilter) {
     const list = Prisma.join(
       referralSourceFilter.values.map((v) => Prisma.sql`${v}`),
@@ -297,12 +260,21 @@ async function byTimeseries({
     );
   }
 
+  if (countryFilter) {
+    const list = Prisma.join(countryFilter.values.map((v) => Prisma.sql`${v}`));
+    conditions.push(
+      countryFilter.sqlOperator === "NOT IN"
+        ? Prisma.sql`e.country NOT IN (${list})`
+        : Prisma.sql`e.country IN (${list})`,
+    );
+  }
+
   const whereClause = Prisma.join(conditions, " AND ");
 
   const rows = await prisma.$queryRaw<TimeseriesApplicationRow[]>(
     Prisma.sql`
       SELECT
-        DATE_FORMAT(CONVERT_TZ(e.visitedAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start,
+        DATE_FORMAT(CONVERT_TZ(e.visitedAt, "UTC", ${tzId}), ${dateFormat}) AS start,
         COUNT(e.visitedAt) AS visits,
         COUNT(e.startedAt) AS starts,
         COUNT(e.submittedAt) AS submissions,
@@ -314,9 +286,16 @@ async function byTimeseries({
       ORDER BY start ASC`,
   );
 
+  const periodKeyFromSql = (start: TimeseriesApplicationRow["start"]) =>
+    typeof start === "string"
+      ? start
+      : format(new TZDate(start, tzId), formatString, {
+          in: tz(tzId),
+        });
+
   const lookup = Object.fromEntries(
     rows.map((r) => [
-      r.start,
+      periodKeyFromSql(r.start),
       {
         visits: Number(r.visits),
         starts: Number(r.starts),
@@ -327,13 +306,18 @@ async function byTimeseries({
     ]),
   );
 
-  let currentDate = startFunction(startDate);
+  const tzStartDate = new TZDate(startDate, tzId);
+  const tzEndDate = new TZDate(endDate, tzId);
+
+  let currentDate = startFunction(tzStartDate);
   const timeseries: z.infer<
     (typeof applicationEventAnalyticsSchema)["timeseries"]
   >[] = [];
 
-  while (currentDate < endDate) {
-    const periodKey = format(currentDate, formatString);
+  while (currentDate < tzEndDate) {
+    const periodKey = format(currentDate, formatString, {
+      in: tz(tzId),
+    });
 
     timeseries.push({
       start: currentDate.toISOString(),
