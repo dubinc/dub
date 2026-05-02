@@ -188,7 +188,6 @@ export default function WorkspaceBillingUpgradePage() {
                 return (
                   <div
                     key={plan.name}
-                    data-testid={`billing-upgrade-column-${plan.name.toLowerCase()}`}
                     className={cn(
                       "relative top-0 flex h-full flex-col gap-6 bg-white p-5 lg:p-3 xl:p-5",
                       "max-lg:rounded-xl max-lg:border max-lg:border-neutral-200",
