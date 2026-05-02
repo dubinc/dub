@@ -81,7 +81,7 @@ function ApplicationsTab() {
         stage={applicationsStage}
         view={applicationsView}
       />
-      <ApplicationsPartnersTable stage={applicationsStage} />
+      <ApplicationsPartnersTable />
     </>
   );
 }

@@ -157,7 +157,7 @@ export function ApplicationsFunnelChart({
                         colorClassName,
                       )}
                     />
-                    <span>{capitalize(STAGE_KEY[id])}</span>
+                    <span className="capitalize">{STAGE_KEY[id]}</span>
                   </div>
                   <div className="mt-1 flex h-12 items-center">
                     {value || value === 0 ? (
@@ -223,7 +223,7 @@ export function ApplicationsFunnelChart({
                             )}
                           />
                           <p className="capitalize text-neutral-600">
-                            {stage === "approved" ? "Enrolled" : stage}
+                            {STAGE_KEY[stage]}
                           </p>
                         </div>
                         <p className="text-right font-medium text-neutral-900">
