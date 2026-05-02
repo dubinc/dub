@@ -264,7 +264,7 @@ export function ApplicationsAnalyticsCards({
                 <ReferrerIcon display={source} />
               ),
             title: getReferralSourceDisplayValue(source),
-            filterValue: getReferralSourceDisplayValue(source),
+            filterValue: source,
             value,
           };
         }}
