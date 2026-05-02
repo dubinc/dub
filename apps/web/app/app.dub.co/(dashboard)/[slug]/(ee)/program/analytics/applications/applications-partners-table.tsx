@@ -1,7 +1,7 @@
 "use client";
 
 import { APPLICATION_EVENT_STAGES } from "@/lib/application-events/schema";
-import { ApplicationEventStages } from "@/lib/types";
+import { STAGE_VALUE_KEY } from "@/lib/application-events/utils";
 import {
   Button,
   Table,
@@ -17,16 +17,6 @@ import { PartnerAnalyticsFilterCell } from "../partner-analytics-filter-cell";
 import { useApplicationsAnalytics } from "./use-applications-analytics";
 
 const PAGE_SIZE = 10;
-
-const STAGE_VALUE_KEY: Record<
-  ApplicationEventStages,
-  "visits" | "starts" | "submissions" | "approvals"
-> = {
-  visited: "visits",
-  started: "starts",
-  submitted: "submissions",
-  approved: "approvals",
-};
 
 export function ApplicationsPartnersTable() {
   const { pagination, setPagination } = usePagination(PAGE_SIZE);

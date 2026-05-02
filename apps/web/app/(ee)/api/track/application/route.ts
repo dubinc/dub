@@ -53,7 +53,7 @@ export const POST = withAxiom(async (req) => {
       await parseRequestBody(req),
     );
 
-    const programSlug = identityProgramSlug(url);
+    const { programSlug, isMarketplace } = identityProgramSlug(url);
 
     if (!programSlug) {
       throw new DubApiError({
@@ -85,6 +85,7 @@ export const POST = withAxiom(async (req) => {
         program,
         url,
         referrer,
+        isMarketplace,
       });
     } else if (eventName === "start") {
       await trackStartEvent({
@@ -115,11 +116,13 @@ async function trackVisitEvent({
   program,
   url,
   referrer,
+  isMarketplace,
 }: {
   req: NextRequest;
   program: Pick<Program, "id">;
   url: string;
   referrer: string | null | undefined;
+  isMarketplace: boolean;
 }) {
   const cookieName = getApplicationEventCookieName(program.id);
   const existingEventId = req.cookies.get(cookieName)?.value;
@@ -163,9 +166,11 @@ async function trackVisitEvent({
         data: {
           id: createId({ prefix: "pga_evt_" }),
           programId: program.id,
-          referralSource: referrer
-            ? getDomainWithoutWWW(referrer) || "(direct)"
-            : "(direct)",
+          referralSource: isMarketplace
+            ? "marketplace"
+            : referrer
+              ? getDomainWithoutWWW(referrer) || "direct"
+              : "direct",
           referredByPartnerId: referredByPartner?.id,
           partnerId: session?.user?.defaultPartnerId,
           visitedAt: new Date(),
@@ -278,6 +283,7 @@ async function getRequestContext(req: NextRequest) {
 // Identify the program slug from the URL
 // Supports:
 //   - https://partners.dub.co/{programSlug}
+//   - https://partners.dub.co/programs/{programSlug}/apply
 //   - https://partners.dub.co/programs/marketplace/{programSlug}
 function identityProgramSlug(url: string) {
   try {
@@ -285,16 +291,21 @@ function identityProgramSlug(url: string) {
     const parts = urlObj.pathname.split("/").filter(Boolean);
 
     if (parts.length === 0) {
-      return null;
+      return { programSlug: null, isMarketplace: false };
     }
 
-    const programSlug =
-      parts[0] === "programs" && parts[1] === "marketplace"
-        ? parts[2]
-        : parts[0];
+    const isMarketplace = parts[0] === "programs" && parts[1] === "marketplace";
+    const programSlug = isMarketplace // e.g. https://partners.dub.co/programs/marketplace/acme
+      ? parts[2]
+      : parts[0] === "programs" // e.g. https://partners.dub.co/programs/acme/apply
+        ? parts[1]
+        : parts[0]; // e.g. https://partners.dub.co/acme, or https://partners.dub.co/acme/apply, or https://partners.dub.co/acme/group/apply
 
-    return programSlug?.toLowerCase() ?? null;
+    return {
+      programSlug: programSlug.toLowerCase(),
+      isMarketplace,
+    };
   } catch (error) {
-    return null;
+    return { programSlug: null, isMarketplace: false };
   }
 }

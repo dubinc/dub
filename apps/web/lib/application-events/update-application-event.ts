@@ -4,8 +4,8 @@ import { cookies } from "next/headers";
 import { getApplicationEventCookieName } from "./utils";
 
 // Application events visited as a guest have partnerId: null — look up the
-// event via the browser cookie and backfill partnerId + submittedAt. Fall
-// back to the (programId, partnerId) lookup if no cookie is present (e.g. the
+// event via the browser cookie and backfill partnerId + submittedAt.
+// Fallback to the (programId, partnerId) lookup if no cookie is present (e.g. the
 // partner visited while already logged in on a different browser).
 export async function markApplicationEventSubmitted({
   programId,
@@ -21,17 +21,7 @@ export async function markApplicationEventSubmitted({
 
   try {
     await prisma.programApplicationEvent.updateMany({
-      where: {
-        OR: [
-          {
-            programId,
-            partnerId,
-          },
-          {
-            id: eventId,
-          },
-        ],
-      },
+      where: eventId ? { id: eventId } : { programId, partnerId },
       data: {
         partnerId,
         submittedAt: new Date(),
