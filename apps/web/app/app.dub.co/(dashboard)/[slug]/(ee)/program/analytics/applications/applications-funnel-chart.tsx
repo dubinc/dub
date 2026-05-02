@@ -11,7 +11,7 @@ import {
   YAxis,
 } from "@dub/ui/charts";
 import { ChartLine, Filter2, LoadingSpinner } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { capitalize, cn } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -60,25 +60,21 @@ export function ApplicationsFunnelChart({
     () => [
       {
         id: "visited",
-        label: "Visit",
         value: data?.visits ?? 0,
         colorClassName: "text-blue-600",
       },
       {
         id: "started",
-        label: "Start",
         value: data?.starts ?? 0,
         colorClassName: "text-violet-600",
       },
       {
         id: "submitted",
-        label: "Submit",
         value: data?.submissions ?? 0,
         colorClassName: "text-pink-500",
       },
       {
         id: "approved",
-        label: "Enrolled",
         value: data?.approvals ?? 0,
         colorClassName: "text-teal-400",
       },
@@ -103,30 +99,26 @@ export function ApplicationsFunnelChart({
               [
                 {
                   id: "visited",
-                  label: "Visit",
                   colorClassName: "text-blue-500/50",
                   value: data?.visits,
                 },
                 {
                   id: "started",
-                  label: "Start",
                   colorClassName: "text-violet-600/50",
                   value: data?.starts,
                 },
                 {
                   id: "submitted",
-                  label: "Submit",
                   colorClassName: "text-pink-500/50",
                   value: data?.submissions,
                 },
                 {
                   id: "approved",
-                  label: "Enrolled",
                   colorClassName: "text-teal-400/50",
                   value: data?.approvals,
                 },
               ] as const
-            ).map(({ id, label, colorClassName, value }, idx) => (
+            ).map(({ id, colorClassName, value }, idx) => (
               <div key={id} className="relative z-0">
                 {idx > 0 && (
                   <div className="absolute left-0 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-neutral-200 bg-white p-1.5">
@@ -165,7 +157,7 @@ export function ApplicationsFunnelChart({
                         colorClassName,
                       )}
                     />
-                    <span>{label}</span>
+                    <span>{capitalize(STAGE_KEY[id])}</span>
                   </div>
                   <div className="mt-1 flex h-12 items-center">
                     {value || value === 0 ? (
@@ -256,7 +248,12 @@ export function ApplicationsFunnelChart({
                 </TimeSeriesChart>
               </div>
             ) : (
-              <FunnelChart steps={steps} />
+              <FunnelChart
+                steps={steps.map((step) => ({
+                  ...step,
+                  label: capitalize(STAGE_KEY[step.id]) as string,
+                }))}
+              />
             )}
 
             <div className="absolute right-3 top-3 flex items-center gap-2">
