@@ -34,7 +34,7 @@ const aggregations = {
   },
 } as const;
 
-// GET /api/applications/analytics
+// GET /api/partners/applications/analytics
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 

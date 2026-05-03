@@ -7,18 +7,16 @@ import {
 import { ApplicationEventStages } from "@/lib/types";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import { BarList } from "@/ui/analytics/bar-list";
-import { ReferrerIcon } from "@/ui/analytics/referrer-icon";
 import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import {
   CircleCheck,
   CircleDotted,
   CircleHalfDottedClock,
   FlagWavy,
-  Globe,
-  Shop,
 } from "@dub/ui/icons";
 import { cn, COUNTRIES, parseFilterValue } from "@dub/utils";
 import { ReactNode, useCallback, useMemo, useState } from "react";
+import { ApplicationReferralSourceIcon } from "./application-referral-source-icon";
 import { useApplicationsAnalytics } from "./use-applications-analytics";
 
 type AnalyticsTab = "referralSource" | "country";
@@ -255,14 +253,7 @@ export function ApplicationsAnalyticsCards({
           const source = row.referralSource as string;
           const value = (row?.[stageKey] as number | undefined) ?? 0;
           return {
-            icon:
-              source === "marketplace" ? (
-                <Shop />
-              ) : source === "direct" ? (
-                <Globe />
-              ) : (
-                <ReferrerIcon display={source} />
-              ),
+            icon: <ApplicationReferralSourceIcon referralSource={source} />,
             title: getReferralSourceDisplayValue(source),
             filterValue: source,
             value,

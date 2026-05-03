@@ -17,11 +17,16 @@ interface UseApplicationsAnalyticsProps<
 > extends ApplicationEventAnalyticsQuery {
   groupBy: TGroupBy;
   exclude?: ApplicationAnalyticsFilterKey[];
+  enabled?: boolean;
 }
 
 export function useApplicationsAnalytics<
   TGroupBy extends keyof ApplicationAnalyticsByGroup,
->({ exclude, ...filters }: UseApplicationsAnalyticsProps<TGroupBy>) {
+>({
+  exclude,
+  enabled = true,
+  ...filters
+}: UseApplicationsAnalyticsProps<TGroupBy>) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
@@ -46,9 +51,15 @@ export function useApplicationsAnalytics<
 
   const { data, error, isLoading } = useSWR<
     ApplicationAnalyticsByGroup[TGroupBy][]
-  >(workspaceId ? `/api/applications/analytics${queryString}` : null, fetcher, {
-    keepPreviousData: true,
-  });
+  >(
+    workspaceId && enabled
+      ? `/api/partners/applications/analytics${queryString}`
+      : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
 
   return {
     data,
@@ -84,9 +95,13 @@ export function useApplicationsAnalyticsCount(
 
   const { data, error, isLoading } = useSWR<
     ApplicationAnalyticsByGroup["count"]
-  >(workspaceId ? `/api/applications/analytics${queryString}` : null, fetcher, {
-    keepPreviousData: true,
-  });
+  >(
+    workspaceId ? `/api/partners/applications/analytics${queryString}` : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
 
   return {
     data,

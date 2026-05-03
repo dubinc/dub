@@ -12,7 +12,7 @@ import { Button, IconMenu, Popover } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import { ReactNode, useState } from "react";
 
-export function ImportExportButtons() {
+export function PartnersMenuPopover() {
   const router = useRouter();
   const { slug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);

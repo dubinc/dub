@@ -26,7 +26,7 @@ import { useParams } from "next/navigation";
 import { ContextType, ReactNode, useMemo } from "react";
 import useSWR from "swr";
 import { ApplicationsAnalyticsCards } from "./applications/applications-analytics-cards";
-import { useApplicationEventsFilters } from "./applications/use-applications-analytics-filters";
+import { useApplicationAnalyticsFilters } from "./applications/use-applications-analytics-filters";
 import { useApplicationsAnalyticsQuery } from "./applications/use-applications-analytics-query";
 import { CommissionsAnalyticsCards } from "./commissions-analytics-cards";
 import {
@@ -132,7 +132,7 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
     onRemoveAll: applicationsOnRemoveAll,
     onOpenFilter: applicationsOnOpenFilter,
     onToggleOperator: applicationsOnToggleOperator,
-  } = useApplicationEventsFilters();
+  } = useApplicationAnalyticsFilters();
 
   const filterSelect =
     pageTab === "commissions" ? (

@@ -147,7 +147,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
     () => [
       {
         id: "partner",
-        header: "Applicant",
+        header: "Partner",
         enableHiding: false,
         minSize: 250,
         cell: ({ row }) => {

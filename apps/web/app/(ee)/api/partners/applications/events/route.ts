@@ -12,7 +12,7 @@ import { parseFilterValue } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// GET /api/applications/events – list application events
+// GET /api/partners/applications/events – list application events
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 

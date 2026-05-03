@@ -13,13 +13,15 @@ import NumberFlow from "@number-flow/react";
 import { useContext, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { ExceededEventsLimit } from "../../../../../../ui/partners/overview/exceeded-events-limit";
+import { useApplicationsAnalytics } from "./analytics/applications/use-applications-analytics";
 
-type ViewType = "sales" | "leads" | "commissions";
+type ViewType = "sales" | "leads" | "commissions" | "applications";
 
 const viewTypeToEvent = {
   sales: "Revenue",
   leads: "Leads",
   commissions: "Commissions",
+  applications: "Applications",
 };
 
 const chartOptions = Object.entries(viewTypeToEvent).map(([value, label]) => ({
@@ -58,18 +60,28 @@ export function OverviewChart() {
     fetcher,
   );
 
-  const { data: commissions, error: commissionsError } = useCommissionAnalytics(
-    {
+  const { data: commissionsTimeseries, error: commissionsError } =
+    useCommissionAnalytics({
       groupBy: "timeseries",
       interval: interval as IntervalOptions | undefined,
       start: start ? new Date(start) : undefined,
       end: end ? new Date(end) : undefined,
       enabled: viewType === "commissions",
-    },
-  );
+    });
+
+  const { data: applicationsTimeseries, error: applicationsError } =
+    useApplicationsAnalytics({
+      groupBy: "timeseries",
+      enabled: viewType === "applications",
+    });
 
   const data = useMemo(() => {
-    const sourceData = viewType === "commissions" ? commissions : analyticsData;
+    const sourceData =
+      viewType === "commissions"
+        ? commissionsTimeseries
+        : viewType === "applications"
+          ? applicationsTimeseries
+          : analyticsData;
 
     return sourceData?.map((item) => ({
       date: new Date(item.start),
@@ -77,19 +89,26 @@ export function OverviewChart() {
         amount:
           viewType === "commissions"
             ? item.earnings
-            : viewType === "sales"
-              ? item.saleAmount
-              : item.leads,
+            : viewType === "applications"
+              ? item.submissions
+              : viewType === "sales"
+                ? item.saleAmount
+                : item.leads,
       },
     }));
-  }, [analyticsData, commissions, viewType]);
+  }, [analyticsData, applicationsTimeseries, commissionsTimeseries, viewType]);
 
   const total = useMemo(() => {
     return data?.reduce((acc, curr) => acc + curr.values.amount, 0);
   }, [data]);
 
-  const isLoading = !data && !analyticsError && !commissionsError;
-  const error = analyticsError || commissionsError;
+  const isLoading =
+    viewType === "commissions"
+      ? !data && !commissionsError
+      : viewType === "applications"
+        ? !data && !applicationsError
+        : !data && !analyticsError;
+  const error = analyticsError || commissionsError || applicationsError;
 
   return (
     <div className="flex size-full flex-col gap-6">
@@ -112,9 +131,13 @@ export function OverviewChart() {
             />
             {total !== undefined ? (
               <NumberFlow
-                value={viewType === "leads" ? total : total / 100}
+                value={
+                  viewType === "leads" || viewType === "applications"
+                    ? total
+                    : total / 100
+                }
                 className="text-content-emphasis block text-3xl font-medium"
-                {...(viewType === "leads"
+                {...(viewType === "leads" || viewType === "applications"
                   ? {}
                   : {
                       format: {
@@ -129,8 +152,18 @@ export function OverviewChart() {
           </div>
 
           <ButtonLink
-            href={`/${slug}/program/analytics${viewType === "commissions" ? "/commissions" : ""}${getQueryString(
-              viewType === "leads" ? { event: "leads" } : {},
+            href={`/${slug}/program/analytics${
+              viewType === "commissions"
+                ? "/commissions"
+                : viewType === "applications"
+                  ? "/applications"
+                  : ""
+            }${getQueryString(
+              viewType === "leads"
+                ? { event: "leads" }
+                : viewType === "applications"
+                  ? { applicationEvent: "submitted" }
+                  : {},
               {
                 include: ["interval", "start", "end"],
               },
@@ -181,7 +214,7 @@ export function OverviewChart() {
                       </p>
                     </div>
                     <p className="text-right font-medium text-neutral-900">
-                      {viewType === "leads"
+                      {viewType === "leads" || viewType === "applications"
                         ? nFormatter(d.values.amount, { full: true })
                         : currencyFormatter(d.values.amount)}
                     </p>
@@ -197,7 +230,11 @@ export function OverviewChart() {
             />
             <YAxis
               showGridLines
-              tickFormat={viewType === "leads" ? nFormatter : currencyFormatter}
+              tickFormat={
+                viewType === "leads" || viewType === "applications"
+                  ? nFormatter
+                  : currencyFormatter
+              }
             />
             <Areas />
           </TimeSeriesChart>

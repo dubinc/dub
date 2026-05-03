@@ -1,5 +1,6 @@
 "use client";
 
+import { getReferralSourceDisplayValue } from "@/lib/application-events/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { useRouterStuff } from "@dub/ui";
@@ -11,12 +12,13 @@ import {
   parseFilterValue,
 } from "@dub/utils";
 import { useCallback, useMemo } from "react";
+import { ApplicationReferralSourceIcon } from "./application-referral-source-icon";
 import { useApplicationsAnalytics } from "./use-applications-analytics";
 import { useApplicationsAnalyticsQuery } from "./use-applications-analytics-query";
 
 const FILTER_KEYS = ["partnerId", "country", "referralSource"] as const;
 
-export function useApplicationEventsFilters() {
+export function useApplicationAnalyticsFilters() {
   const { slug } = useWorkspace();
   const { stage } = useApplicationsAnalyticsQuery();
   const { searchParamsObj, queryParams } = useRouterStuff();
@@ -76,7 +78,12 @@ export function useApplicationEventsFilters() {
             ?.filter((row) => row[stageMetricKey] > 0)
             .map((row) => ({
               value: row.referralSource,
-              label: row.referralSource,
+              label: getReferralSourceDisplayValue(row.referralSource),
+              icon: (
+                <ApplicationReferralSourceIcon
+                  referralSource={row.referralSource}
+                />
+              ),
               right: nFormatter(row[stageMetricKey]),
             })) ?? [],
       },

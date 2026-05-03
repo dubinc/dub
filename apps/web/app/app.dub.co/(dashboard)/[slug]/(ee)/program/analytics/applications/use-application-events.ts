@@ -19,7 +19,7 @@ export function useApplicationEvents(filters: ApplicationEventsQuery) {
   );
 
   const { data, error, isLoading } = useSWR<ApplicationEvent[]>(
-    workspaceId ? `/api/applications/events${queryString}` : null,
+    workspaceId ? `/api/partners/applications/events${queryString}` : null,
     fetcher,
     {
       keepPreviousData: true,
