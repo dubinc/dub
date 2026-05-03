@@ -190,6 +190,8 @@ async function trackVisitEvent({
       httpOnly: true,
       maxAge: APPLICATION_ID_COOKIE_MAX_AGE,
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
     });
   } catch {}
 }

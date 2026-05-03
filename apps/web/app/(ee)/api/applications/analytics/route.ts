@@ -111,8 +111,10 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       country: "country",
     };
 
+    const groupByColumn = groupByColumnMap[groupBy];
+
     const events = await prisma.programApplicationEvent.groupBy({
-      by: [groupByColumnMap[groupBy]],
+      by: [groupByColumn],
       where,
       ...aggregations,
       orderBy: {
@@ -122,10 +124,12 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       },
     });
 
-    const results = events.map((row) => ({
-      [groupBy]: row[groupByColumnMap[groupBy]],
-      ...formatCounts(row._count),
-    }));
+    const results = events
+      .filter((row) => row[groupByColumn] !== null)
+      .map((row) => ({
+        [groupBy]: row[groupByColumn],
+        ...formatCounts(row._count),
+      }));
 
     return NextResponse.json(z.array(responseSchema).parse(results));
   }
