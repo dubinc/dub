@@ -511,6 +511,22 @@ export function useAnalyticsFilters({
         : programPage
           ? [
               {
+                key: "partnerId",
+                icon: Users,
+                label: "Partner",
+                options:
+                  partners?.map(({ partner, ...rest }) => {
+                    return {
+                      value: partner.id,
+                      label: partner.name,
+                      icon: (
+                        <PartnerAvatar partner={partner} className="size-4" />
+                      ),
+                      right: getFilterOptionTotal(rest),
+                    };
+                  }) ?? null,
+              },
+              {
                 key: "groupId",
                 icon: Users6,
                 label: "Partner Group",
@@ -528,25 +544,9 @@ export function useAnalyticsFilters({
                   })) ?? null,
               },
               {
-                key: "partnerId",
-                icon: Users,
-                label: "Partner",
-                options:
-                  partners?.map(({ partner, ...rest }) => {
-                    return {
-                      value: partner.id,
-                      label: partner.name,
-                      icon: (
-                        <PartnerAvatar partner={partner} className="size-4" />
-                      ),
-                      right: getFilterOptionTotal(rest),
-                    };
-                  }) ?? null,
-              },
-              {
                 key: "partnerTagId",
                 icon: Tag,
-                label: "Partner tag",
+                label: "Partner Tag",
                 multiple: true,
                 getOptionLabel: (value) =>
                   partnerTagIdToName.get(value) ?? null,

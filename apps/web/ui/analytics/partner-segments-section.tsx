@@ -1,10 +1,9 @@
 import { AnalyticsGroupByOptions } from "@/lib/analytics/types";
 import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { LinkLogo, useRouterStuff } from "@dub/ui";
-import { Hyperlink, Users6 } from "@dub/ui/icons";
+import { Hyperlink, Tag, Users6 } from "@dub/ui/icons";
 import { getApexDomain } from "@dub/utils";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import TagBadge from "../links/tag-badge";
 import { GroupColorCircle } from "../partners/groups/group-color-circle";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
@@ -54,7 +53,7 @@ const TAB_CONFIG: Record<
   },
 };
 
-export function PartnerSection() {
+export function PartnerSegmentsSection() {
   const { queryParams, searchParams } = useRouterStuff();
 
   const { selectedTab, saleUnit, adminPage, partnerPage } =
@@ -183,14 +182,7 @@ export function PartnerSection() {
       if (isGroupsSubtab) {
         icon = d.group ? <GroupColorCircle group={d.group} /> : null;
       } else if (isTagsSubtab) {
-        icon =
-          d.tag || d.partnerTag ? (
-            <TagBadge
-              color={d.tag?.color ?? "blue"}
-              withIcon
-              className="sm:p-1"
-            />
-          ) : null;
+        icon = d.tag || d.partnerTag ? <Tag className="size-3.5" /> : null;
       } else {
         icon = (
           <LinkLogo
