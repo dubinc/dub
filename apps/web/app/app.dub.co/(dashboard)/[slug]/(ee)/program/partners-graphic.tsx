@@ -1,3 +1,4 @@
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { capitalize, cn, nFormatter } from "@dub/utils";
 
 export function PartnersGraphic() {
@@ -66,9 +67,8 @@ function ExamplePartnerCell({
             />
             <div className="flex h-full flex-col justify-between px-4 py-3">
               <div className="flex items-center gap-1.5">
-                <img
-                  alt={`${partner.country} flag`}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${partner.country.toLowerCase()}.svg`}
+                <CountryFlag
+                  countryCode={partner.country}
                   className="size-3.5 rounded-full"
                 />
                 <span className="whitespace-nowrap text-sm font-medium text-neutral-800">

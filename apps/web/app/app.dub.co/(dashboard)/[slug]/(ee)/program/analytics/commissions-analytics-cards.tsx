@@ -1,15 +1,18 @@
 "use client";
 
-import useCommissionAnalytics, {
-  CommissionCategoryRow,
-} from "@/lib/swr/use-commission-analytics";
+import useCommissionAnalytics from "@/lib/swr/use-commission-analytics";
 import useGroups from "@/lib/swr/use-groups";
+import { CommissionCategoryRow } from "@/lib/types";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import { BarList } from "@/ui/analytics/bar-list";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { Modal, useRouterStuff } from "@dub/ui";
-import { CircleCheck, CircleDotted, CircleHalfDottedClock } from "@dub/ui/icons";
+import {
+  CircleCheck,
+  CircleDotted,
+  CircleHalfDottedClock,
+} from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ReactNode, useCallback, useMemo, useState } from "react";
 import { CommissionStatusFilter } from "./commissions-status-selector";

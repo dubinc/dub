@@ -7,7 +7,7 @@ const getVercelConfigResponse = async (domain: string) => {
     {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
+        Authorization: `Bearer ${process.env.VERCEL_API_KEY}`,
         "Content-Type": "application/json",
       },
     },

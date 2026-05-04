@@ -2,9 +2,10 @@
 
 import { CommissionsCount } from "@/lib/types";
 import { ToggleGroup, useMediaQuery, useRouterStuff } from "@dub/ui";
-import { fetcher } from "@dub/utils";
+import { cn, fetcher } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 import useSWR from "swr";
 export type CommissionStatusFilter =
   | "pending"
@@ -72,7 +73,7 @@ export function CommissionsStatusSelector({
           const key = id ?? "all";
           const earnings = commissionsCount?.[key]?.earnings ?? 0;
           const count = commissionsCount?.[key]?.count ?? 0;
-          const isActive = id === status;
+          const displayValue = unit === "earnings" ? earnings / 100 : count;
           const isLast = idx === STATUS_TABS.length - 1;
 
           return (
@@ -85,34 +86,43 @@ export function CommissionsStatusSelector({
                   />
                 </div>
               )}
-              <button
-                className="border-box relative block h-full w-full min-w-[80px] flex-none px-4 py-3 text-left transition-colors hover:bg-neutral-50 focus:outline-none active:bg-neutral-100 sm:min-w-[180px] sm:px-8 sm:py-6"
-                onClick={() =>
-                  id === undefined
-                    ? queryParams({ del: "status", scroll: false })
-                    : queryParams({ set: { status: id }, scroll: false })
+              <Link
+                className={cn(
+                  "border-box relative block h-full w-full min-w-[110px] flex-none px-4 py-3 text-left sm:min-w-[240px] sm:px-8 sm:py-6",
+                  "transition-colors hover:bg-neutral-50 focus:outline-none active:bg-neutral-100",
+                  "ring-inset ring-neutral-500 focus-visible:ring-1",
+                )}
+                href={
+                  queryParams({
+                    ...(id === undefined
+                      ? { del: "status" }
+                      : { set: { status: id } }),
+                    scroll: false,
+                    getNewPath: true,
+                  }) as string
                 }
+                aria-current={status === id ? "page" : undefined}
               >
                 <div
-                  className={[
+                  className={cn(
                     "absolute bottom-0 left-0 h-0.5 w-full bg-black transition-transform duration-100",
-                    !isActive ? "translate-y-[3px]" : "",
-                  ].join(" ")}
+                    status !== id && "translate-y-[3px]",
+                  )}
                 />
                 <div className="flex items-center gap-2.5 text-sm text-neutral-600">
                   <div
-                    className={[
+                    className={cn(
                       "h-2 w-2 rounded-sm bg-current shadow-[inset_0_0_0_1px_#00000019]",
                       colorClassName,
-                    ].join(" ")}
+                    )}
                   />
                   <span>{label}</span>
                 </div>
                 <div className="mt-1 flex h-12 items-center">
                   {commissionsCount ? (
                     <NumberFlow
-                      value={unit === "earnings" ? earnings / 100 : count}
-                      className="text-xl font-medium sm:text-2xl"
+                      value={displayValue}
+                      className="text-xl font-medium sm:text-3xl"
                       format={
                         unit === "earnings"
                           ? {
@@ -133,10 +143,10 @@ export function CommissionsStatusSelector({
                       }
                     />
                   ) : (
-                    <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
+                    <div className="h-9 w-16 animate-pulse rounded-md bg-neutral-200" />
                   )}
                 </div>
-              </button>
+              </Link>
 
               {isLast && (
                 <ToggleGroup

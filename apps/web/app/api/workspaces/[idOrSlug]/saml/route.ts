@@ -104,6 +104,27 @@ export const DELETE = withWorkspace(
 
     const { apiController } = await jackson();
 
+    const connections = await apiController.getConnections({
+      tenant: workspace.id,
+      product: "Dub",
+    });
+
+    const connection = connections.find(
+      (connection) => connection.clientID === clientID,
+    );
+
+    if (!connection) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "SAML connection not found",
+      });
+    }
+
+    await apiController.deleteConnections({
+      clientID: connection.clientID,
+      clientSecret: connection.clientSecret,
+    });
+
     await apiController.deleteConnections({
       clientID,
       clientSecret,

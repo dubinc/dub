@@ -54,23 +54,3 @@ export const commissionAnalyticsSchema = {
 
   partnerId: z.array(commissionPartnerIdRowSchema),
 } as const;
-
-export type CommissionAnalyticsQuery = z.infer<
-  typeof commissionAnalyticsQuerySchema
->;
-
-export type CommissionAnalyticsGroupBy = CommissionAnalyticsQuery["groupBy"];
-
-export type CommissionAnalyticsByGroup = {
-  [K in keyof typeof commissionAnalyticsSchema]: z.infer<
-    (typeof commissionAnalyticsSchema)[K]
-  >;
-};
-
-export type CommissionCategoryRow = CommissionAnalyticsByGroup["type"][number];
-
-export type CommissionTimeseriesItem =
-  CommissionAnalyticsByGroup["timeseries"][number];
-
-export type CommissionAnalyticsPartnerRow =
-  CommissionAnalyticsByGroup["partnerId"][number];

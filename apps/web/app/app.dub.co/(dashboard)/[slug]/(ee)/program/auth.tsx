@@ -10,7 +10,7 @@ import { ReactNode } from "react";
 import { PartnersUpgradeCTA } from "./partners-upgrade-cta";
 
 export default function ProgramAuth({ children }: { children: ReactNode }) {
-  const { plan, defaultProgramId, payoutsLimit, loading } = useWorkspace();
+  const { plan, defaultProgramId, partnersLimit, loading } = useWorkspace();
   const { loading: programLoading } = useProgram();
 
   if (loading || (defaultProgramId && programLoading)) {
@@ -20,7 +20,7 @@ export default function ProgramAuth({ children }: { children: ReactNode }) {
   if (
     !defaultProgramId ||
     !getPlanCapabilities(plan).canManageProgram ||
-    isLegacyBusinessPlan({ plan, payoutsLimit })
+    isLegacyBusinessPlan({ plan, partnersLimit })
   ) {
     return (
       <PageContent>

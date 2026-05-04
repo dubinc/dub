@@ -91,15 +91,18 @@ export async function AppMiddleware(req: NextRequest) {
         "/links",
         "/analytics",
         "/events",
-        "/customers",
-        "/program",
-        "/programs",
-        "/settings",
         "/upgrade",
         "/guides",
         "/wrapped",
+        "/programs",
+        // here we have separate logic for the root paths instead of path.startsWith("/program")
+        // because some workspace slugs are program-something which will break
+        "/program",
+        "/customers",
+        "/settings",
       ].includes(path) ||
       path.startsWith("/program/") ||
+      path.startsWith("/customers/") ||
       path.startsWith("/settings/") ||
       isTopLevelSettingsRedirect(path)
     ) {

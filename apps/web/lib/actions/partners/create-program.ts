@@ -36,7 +36,7 @@ export const createProgram = async ({
     | "logo"
     | "name"
     | "plan"
-    | "payoutsLimit"
+    | "partnersLimit"
     | "trialEndsAt"
     | "store"
     | "webhookEnabled"
@@ -53,7 +53,7 @@ export const createProgram = async ({
     !canManageProgram ||
     isLegacyBusinessPlan({
       plan: workspace.plan,
-      payoutsLimit: workspace.payoutsLimit,
+      partnersLimit: workspace.partnersLimit,
     })
   ) {
     throw new Error(

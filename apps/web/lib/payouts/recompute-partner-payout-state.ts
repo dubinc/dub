@@ -78,7 +78,12 @@ export async function recomputePartnerPayoutState(
   let payoutsEnabledAt: Date | null = null;
 
   if (defaultPayoutMethod) {
-    payoutsEnabledAt = partner.payoutsEnabledAt ?? new Date();
+    // if default payout method has changed, set payoutsEnabledAt to today
+    // otherwise, use the existing payoutsEnabledAt (or today if null)
+    payoutsEnabledAt =
+      defaultPayoutMethod !== partner.defaultPayoutMethod
+        ? new Date()
+        : partner.payoutsEnabledAt ?? new Date();
   } else {
     payoutsEnabledAt = null;
   }

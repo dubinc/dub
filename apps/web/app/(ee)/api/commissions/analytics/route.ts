@@ -1,7 +1,6 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { withWorkspace } from "@/lib/auth";
 import {
   commissionAnalyticsQuerySchema,
@@ -108,14 +107,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   if (groupBy === "timeseries") {
     return byTimeseries({ workspace, programId, parsed });
   }
-
-  assertValidDateRangeForPlan({
-    plan: workspace.plan,
-    dataAvailableFrom: workspace.createdAt,
-    interval: parsed.interval,
-    start: parsed.start,
-    end: parsed.end,
-  });
 
   const { startDate, endDate } = getStartEndDates({
     interval: parsed.interval,

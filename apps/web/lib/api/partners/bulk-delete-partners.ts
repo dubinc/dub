@@ -191,6 +191,19 @@ export async function bulkDeletePartners({
     console.log(
       `Deleted ${deletedProgramEnrollments.count} program enrollments`,
     );
+
+    if (deletedProgramEnrollments.count > 0) {
+      await prisma.project.updateMany({
+        where: {
+          defaultProgramId: ACME_PROGRAM_ID,
+        },
+        data: {
+          partnersUsage: {
+            decrement: deletedProgramEnrollments.count,
+          },
+        },
+      });
+    }
   }
 
   if (deletePartners) {

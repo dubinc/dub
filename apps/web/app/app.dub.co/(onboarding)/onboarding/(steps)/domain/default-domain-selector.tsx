@@ -10,18 +10,16 @@ import { ReactNode } from "react";
 import { LaterButton } from "../../later-button";
 import { useOnboardingProduct } from "../../use-onboarding-product";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
-import { useOnboardingTrialVariant } from "../../use-onboarding-trial-variant";
 
 export function DefaultDomainSelector() {
   const searchParams = useSearchParams();
-  const { isTrialVariant } = useOnboardingTrialVariant();
   const workspaceSlug = searchParams.get("workspace");
   const product = useOnboardingProduct();
 
   return (
     <>
       <div className="animate-fade-in mx-auto grid w-full gap-4 sm:max-w-[600px] sm:grid-cols-2">
-        {isTrialVariant && (
+        {product === "partners" && (
           <DomainOption
             step="domain/subdomain"
             icon="https://assets.dub.co/icons/gift.webp"
@@ -58,7 +56,7 @@ export function DefaultDomainSelector() {
           description="Already have a domain? Connect it to your Dub workspace."
           cta="Connect domain"
         />
-        {!isTrialVariant && (
+        {product === "links" && (
           <DomainOption
             step="domain/register"
             icon="https://assets.dub.co/icons/gift.webp"

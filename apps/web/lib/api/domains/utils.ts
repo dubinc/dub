@@ -12,6 +12,12 @@ export const validateDomain = async (
   if (!isValidDomain(domain)) {
     return { error: "Invalid domain", code: "unprocessable_entity" };
   }
+  if (domain.startsWith("www.")) {
+    return {
+      error: "Custom domain cannot start with www.",
+      code: "unprocessable_entity",
+    };
+  }
   const dubLinkError = validateDubLinkSubdomain(domain);
   if (dubLinkError) {
     return dubLinkError;
