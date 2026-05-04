@@ -1,4 +1,5 @@
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { useRouterStuff } from "@dub/ui";
 import { Globe, Hyperlink } from "@dub/ui/icons";
 import { COUNTRIES, linkConstructor, nFormatter } from "@dub/utils";
@@ -45,13 +46,7 @@ export function usePartnerCustomerFilters() {
           countriesCount?.map(({ country, _count }) => ({
             value: country,
             label: COUNTRIES[country] || country,
-            icon: (
-              <img
-                alt={`${country} flag`}
-                src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                className="size-4"
-              />
-            ),
+            icon: <CountryFlag countryCode={country} />,
             right: nFormatter(_count, { full: true }),
           })) ?? null,
       },

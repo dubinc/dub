@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { Customer, Link, Project } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { chunk, nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
@@ -147,21 +147,26 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
         },
       });
 
-      await Promise.allSettled(
-        customers.map((customer) => {
-          const partnerId = partnerKeysToId[customer.partnership_key];
-          const links = partnerId ? partnerIdToLinks.get(partnerId) ?? [] : [];
+      const customerChunks = chunk(customers, 10);
+      for (const customerChunk of customerChunks) {
+        await Promise.allSettled(
+          customerChunk.map((customer) => {
+            const partnerId = partnerKeysToId[customer.partnership_key];
+            const links = partnerId
+              ? partnerIdToLinks.get(partnerId) ?? []
+              : [];
 
-          return createCustomer({
-            workspace: program.workspace,
-            links,
-            customer,
-            existingCustomers,
-            latestLeadAt: partnerKeysToLatestLeadAt[customer.partnership_key],
-            importId,
-          });
-        }),
-      );
+            return createCustomer({
+              workspace: program.workspace,
+              links,
+              customer,
+              existingCustomers,
+              latestLeadAt: partnerKeysToLatestLeadAt[customer.partnership_key],
+              importId,
+            });
+          }),
+        );
+      }
     }
 
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -233,7 +238,6 @@ async function createCustomer({
   );
 
   if (customerFound) {
-    console.log(`A customer already exists with email ${customer.email}`);
     return;
   }
 

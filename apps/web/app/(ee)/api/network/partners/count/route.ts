@@ -1,4 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
+import {
+  partnerNetworkListingParts,
+  partnerWhereFromListingParts,
+} from "@/lib/api/network/partner-network-listing-where";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getNetworkPartnersCountQuerySchema } from "@/lib/zod/schemas/partner-network";
@@ -37,41 +41,14 @@ export const GET = withWorkspace(
       subscribers,
     } = getNetworkPartnersCountQuerySchema.parse(searchParams);
 
-    // Build platform filter - combine platform type and subscribers if both are set
-    const platformFilter: Prisma.PartnerPlatformWhereInput | undefined =
-      platform || subscribers
-        ? {
-            verifiedAt: { not: null },
-            ...(platform && { type: platform }),
-            ...(subscribers === "<5000" && {
-              subscribers: { lt: 5000 },
-            }),
-            ...(subscribers === "5000-25000" && {
-              subscribers: { gte: 5000, lt: 25000 },
-            }),
-            ...(subscribers === "25000-100000" && {
-              subscribers: { gte: 25000, lt: 100000 },
-            }),
-            ...(subscribers === "100000+" && {
-              subscribers: { gte: 100000 },
-            }),
-          }
-        : undefined;
+    const listingParts = partnerNetworkListingParts({
+      partnerIds,
+      country,
+      platform,
+      subscribers,
+    });
 
-    const commonWhere: Prisma.PartnerWhereInput = {
-      discoverableAt: { not: null },
-      ...(partnerIds && {
-        id: { in: partnerIds },
-      }),
-      ...(country && {
-        country,
-      }),
-      ...(platformFilter && {
-        platforms: {
-          some: platformFilter,
-        },
-      }),
-    };
+    const commonWhere = partnerWhereFromListingParts(listingParts);
 
     const statusWheres = {
       discover: {
@@ -202,12 +179,16 @@ export const GET = withWorkspace(
         }),
       };
 
-      // Build partner where clause combining all filters
+      const mergedPlatformsSome: Prisma.PartnerPlatformWhereInput =
+        listingParts.listingPlatformSome
+          ? { AND: [listingParts.listingPlatformSome, platformPlatformFilter] }
+          : platformPlatformFilter;
+
       const partnerWhere: Prisma.PartnerWhereInput = {
-        ...commonWhere,
+        ...listingParts.listingPartnerBase,
         ...statusWhereForFacet,
         platforms: {
-          some: platformPlatformFilter,
+          some: mergedPlatformsSome,
         },
       };
 
@@ -217,7 +198,7 @@ export const GET = withWorkspace(
         select: {
           id: true,
           platforms: {
-            where: platformPlatformFilter,
+            where: mergedPlatformsSome,
             select: {
               type: true,
             },
@@ -256,21 +237,30 @@ export const GET = withWorkspace(
 
       const subscriberCounts = await Promise.all(
         subscriberRanges.map(async (range) => {
+          const rangePlatformSome: Prisma.PartnerPlatformWhereInput = {
+            verifiedAt: { not: null },
+            ...(range.max !== null
+              ? {
+                  subscribers: { gte: range.min, lt: range.max + 1 },
+                }
+              : {
+                  subscribers: { gte: range.min },
+                }),
+            ...(platform && { type: platform }),
+          };
+
+          const mergedPlatformsSome: Prisma.PartnerPlatformWhereInput =
+            listingParts.listingPlatformSome
+              ? {
+                  AND: [listingParts.listingPlatformSome, rangePlatformSome],
+                }
+              : rangePlatformSome;
+
           const where: Prisma.PartnerWhereInput = {
-            ...commonWhere,
+            ...listingParts.listingPartnerBase,
             ...statusWhereForFacet,
             platforms: {
-              some: {
-                verifiedAt: { not: null },
-                ...(range.max !== null
-                  ? {
-                      subscribers: { gte: range.min, lt: range.max + 1 },
-                    }
-                  : {
-                      subscribers: { gte: range.min },
-                    }),
-                ...(platform && { type: platform }),
-              },
+              some: mergedPlatformsSome,
             },
           };
 

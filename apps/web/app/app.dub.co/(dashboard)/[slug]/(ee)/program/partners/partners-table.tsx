@@ -24,6 +24,7 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { PartnerTagsList } from "@/ui/partners/partner-tags-list";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
@@ -234,8 +235,27 @@ export function PartnersTable() {
           minSize: 150,
           maxSize: 250,
           cell: ({ row }) => {
+            const showInvitedInline =
+              columnVisibility.status === false &&
+              row.original.status === ProgramEnrollmentStatus.invited &&
+              searchParams.get("status") !== ProgramEnrollmentStatus.invited;
+
             return (
-              <PartnerRowItem partner={row.original} showPermalink={false} />
+              <PartnerRowItem
+                partner={row.original}
+                showPermalink={false}
+                suffix={
+                  showInvitedInline ? (
+                    <StatusBadge
+                      size="sm"
+                      icon={null}
+                      variant={PartnerStatusBadges.invited.variant}
+                    >
+                      {PartnerStatusBadges.invited.label}
+                    </StatusBadge>
+                  ) : null
+                }
+              />
             );
           },
         },
@@ -324,13 +344,7 @@ export function PartnersTable() {
             const country = row.original.country;
             return (
               <div className="flex items-center gap-2 whitespace-nowrap">
-                {country && (
-                  <img
-                    alt={`${country} flag`}
-                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                    className="size-4 shrink-0"
-                  />
-                )}
+                {country && <CountryFlag countryCode={country} />}
                 <span className="whitespace-nowrap">
                   {(country ? COUNTRIES[country] : null) ?? "-"}
                 </span>
@@ -483,12 +497,7 @@ export function PartnersTable() {
           ),
         },
       ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
-    [
-      workspaceId,
-      groups,
-      setPendingEditTagsPartners,
-      setShowEditPartnerTagsModal,
-    ],
+    [workspaceId, groups, columnVisibility, searchParams],
   );
 
   const { table, ...tableProps } = useTable({

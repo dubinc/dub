@@ -45,7 +45,7 @@ export async function updateWorkspacePlan({
     | "trialEndsAt"
     | "billingCycleEndsAt"
     | "subscriptionCanceledAt"
-    | "payoutsLimit"
+    | "partnersLimit"
   > & {
     plan: string;
     restrictedTokens: {
@@ -81,7 +81,7 @@ export async function updateWorkspacePlan({
   // - workspace changes their plan period / tier
   // - trialEndsAt changes (i.e. free trial -> paid subscription)
   // - cancellationFields changes (billingCycleEndsAt or subscriptionCanceledAt)
-  // - the payouts limit increases and the updated price ID is a new business price ID
+  // - the partners limit increases and the updated price ID is a new business price ID
   if (
     workspace.plan !== newPlanName ||
     workspace.planPeriod !== planPeriod ||
@@ -90,7 +90,7 @@ export async function updateWorkspacePlan({
     workspace.billingCycleEndsAt !== cancellationFields.billingCycleEndsAt ||
     workspace.subscriptionCanceledAt !==
       cancellationFields.subscriptionCanceledAt ||
-    (workspace.payoutsLimit < newPlan.limits.payouts &&
+    (workspace.partnersLimit < newPlan.limits.partners &&
       NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {
     const [updatedWorkspace] = await Promise.allSettled([
@@ -111,6 +111,7 @@ export async function updateWorkspacePlan({
           foldersLimit: limits.folders,
           groupsLimit: limits.groups,
           networkInvitesLimit: limits.networkInvites,
+          partnersLimit: limits.partners,
           usersLimit: limits.users,
           ...(["active", "trialing"].includes(subscription.status)
             ? { paymentFailedAt: null }

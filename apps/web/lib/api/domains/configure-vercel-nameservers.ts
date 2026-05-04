@@ -8,7 +8,7 @@ export const configureVercelNameservers = async (
     {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
+        Authorization: `Bearer ${process.env.VERCEL_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

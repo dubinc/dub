@@ -24,10 +24,10 @@ export const removeDomainFromVercel = async (domain: string) => {
   // so we should only remove it from our Vercel project
   if (domains.filter((d) => d.slug !== domain).length > 0) {
     return await fetch(
-      `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}/domains/${domain.toLowerCase()}?teamId=${process.env.TEAM_ID_VERCEL}`,
+      `https://api.vercel.com/v9/projects/${process.env.VERCEL_PROJECT_ID}/domains/${domain.toLowerCase()}?teamId=${process.env.TEAM_ID_VERCEL}`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
+          Authorization: `Bearer ${process.env.VERCEL_API_KEY}`,
         },
         method: "DELETE",
       },
@@ -39,7 +39,7 @@ export const removeDomainFromVercel = async (domain: string) => {
       `https://api.vercel.com/v6/domains/${domain.toLowerCase()}?teamId=${process.env.TEAM_ID_VERCEL}`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.AUTH_BEARER_TOKEN}`,
+          Authorization: `Bearer ${process.env.VERCEL_API_KEY}`,
         },
         method: "DELETE",
       },

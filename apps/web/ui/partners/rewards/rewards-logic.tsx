@@ -16,6 +16,7 @@ import {
   RewardConditionEntityAttribute,
   STRING_CONDITION_OPERATORS,
 } from "@/lib/zod/schemas/rewards";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { X } from "@/ui/shared/icons";
 import { RewardStructure } from "@dub/prisma/client";
 import {
@@ -322,9 +323,25 @@ function ConditionLogic({
   // Auto-set operator to "equals_to" for customer.source
   const isCustomerSourceCondition =
     condition.entity === "customer" && condition.attribute === "source";
+  const isSaleTypeCondition =
+    condition.entity === "sale" && condition.attribute === "type";
+
+  const availableConditionOperators: (typeof CONDITION_OPERATORS)[number][] = [
+    "number",
+    "currency",
+  ].includes(attributeType)
+    ? NUMBER_CONDITION_OPERATORS
+    : attributeType === "enum"
+      ? ENUM_CONDITION_OPERATORS
+      : attributeType === "date"
+        ? DATE_CONDITION_OPERATORS
+        : STRING_CONDITION_OPERATORS;
 
   useEffect(() => {
-    if (isCustomerSourceCondition && condition.operator !== "equals_to") {
+    if (
+      (isCustomerSourceCondition || isSaleTypeCondition) &&
+      condition.operator !== "equals_to"
+    ) {
       setValue(
         conditionKey,
         {
@@ -338,6 +355,7 @@ function ConditionLogic({
     }
   }, [
     isCustomerSourceCondition,
+    isSaleTypeCondition,
     condition.operator,
     condition,
     conditionKey,
@@ -417,7 +435,7 @@ function ConditionLogic({
                       }))}
                   />
                 </InlineBadgePopover>{" "}
-                {isCustomerSourceCondition ? (
+                {isCustomerSourceCondition || isSaleTypeCondition ? (
                   <span className="text-content-emphasis font-medium">is </span>
                 ) : (
                   <InlineBadgePopover
@@ -459,14 +477,7 @@ function ConditionLogic({
                           },
                         )
                       }
-                      items={(["number", "currency"].includes(attributeType)
-                        ? NUMBER_CONDITION_OPERATORS
-                        : attributeType === "enum"
-                          ? ENUM_CONDITION_OPERATORS
-                          : attributeType === "date"
-                            ? DATE_CONDITION_OPERATORS
-                            : STRING_CONDITION_OPERATORS
-                      ).map((operator) => ({
+                      items={availableConditionOperators.map((operator) => ({
                         text: CONDITION_OPERATOR_LABELS[operator],
                         value: operator,
                       }))}
@@ -535,10 +546,9 @@ function ConditionLogic({
                                 text: name,
                                 value: key,
                                 icon: (
-                                  <img
-                                    alt={`${key} flag`}
-                                    src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
-                                    className="size-3 shrink-0"
+                                  <CountryFlag
+                                    countryCode={key}
+                                    className="size-3"
                                   />
                                 ),
                               }),

@@ -115,6 +115,8 @@ export const WorkspaceSchema = z
       .describe("The partner tags limit of the workspace."),
     foldersUsage: z.number().describe("The folders usage of the workspace."),
     foldersLimit: z.number().describe("The folders limit of the workspace."),
+    partnersUsage: z.number().describe("The partners usage of the workspace."),
+    partnersLimit: z.number().describe("The partners limit of the workspace."),
     groupsLimit: z.number().describe("The groups limit of the workspace."),
     networkInvitesLimit: z
       .number()

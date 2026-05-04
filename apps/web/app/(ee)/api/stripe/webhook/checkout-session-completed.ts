@@ -101,6 +101,7 @@ export async function checkoutSessionCompleted(
       foldersLimit: limits.folders,
       groupsLimit: limits.groups,
       networkInvitesLimit: limits.networkInvites,
+      partnersLimit: limits.partners,
       usersLimit: limits.users,
       trialEndsAt,
       paymentFailedAt: null,

@@ -5,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import EmptyState from "@/ui/shared/empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
@@ -457,11 +458,7 @@ export default function EventsTable({
               {getValue() === "Unknown" ? (
                 <Globe className="size-4 shrink-0" />
               ) : (
-                <img
-                  alt={getValue()}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
+                <CountryFlag countryCode={getValue()} />
               )}
               <span className="truncate">
                 {COUNTRIES[getValue()] ?? getValue()}
@@ -484,11 +481,7 @@ export default function EventsTable({
                 {!country || country === "Unknown" ? (
                   <Globe className="size-4 shrink-0" />
                 ) : (
-                  <img
-                    alt={country}
-                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                    className="size-4 shrink-0"
-                  />
+                  <CountryFlag countryCode={country} />
                 )}
                 <span className="truncate">{getValue()}</span>
               </div>
@@ -510,11 +503,7 @@ export default function EventsTable({
                 {!country || country === "Unknown" ? (
                   <Globe className="size-4 shrink-0" />
                 ) : (
-                  <img
-                    alt={country}
-                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                    className="size-4 shrink-0"
-                  />
+                  <CountryFlag countryCode={country} />
                 )}
                 <span className="truncate">
                   {REGIONS[getValue()] || getValue().split("-")[1]}

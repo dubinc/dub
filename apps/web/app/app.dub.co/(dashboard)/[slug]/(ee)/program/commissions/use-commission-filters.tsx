@@ -12,7 +12,13 @@ import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { CommissionType } from "@dub/prisma/client";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { Sliders, User, Users, Users6 } from "@dub/ui/icons";
-import { capitalize, cn, nFormatter } from "@dub/utils";
+import {
+  capitalize,
+  cn,
+  FilterOperator,
+  nFormatter,
+  parseFilterValue,
+} from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -121,17 +127,27 @@ export function useCommissionFilters() {
   );
 
   const activeFilters = useMemo(() => {
-    const { customerId, partnerId, status, type, payoutId, groupId } =
-      searchParamsObj;
-
-    return [
-      ...(customerId ? [{ key: "customerId", value: customerId }] : []),
-      ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
-      ...(status ? [{ key: "status", value: status }] : []),
-      ...(type ? [{ key: "type", value: type }] : []),
-      ...(payoutId ? [{ key: "payoutId", value: payoutId }] : []),
-      ...(groupId ? [{ key: "groupId", value: groupId }] : []),
-    ];
+    const result: {
+      key: string;
+      operator: FilterOperator;
+      values: string[];
+    }[] = [];
+    const keys = [
+      "customerId",
+      "partnerId",
+      "status",
+      "type",
+      "payoutId",
+      "groupId",
+    ] as const;
+    for (const key of keys) {
+      const raw = searchParamsObj[key];
+      if (!raw) continue;
+      const parsed = parseFilterValue(raw);
+      if (parsed)
+        result.push({ key, operator: parsed.operator, values: parsed.values });
+    }
+    return result;
   }, [
     searchParamsObj.customerId,
     searchParamsObj.partnerId,
@@ -142,30 +158,83 @@ export function useCommissionFilters() {
   ]);
 
   const onSelect = useCallback(
-    (key: string, value: any) =>
-      queryParams({
-        set: {
-          [key]: value,
-        },
-        del: "page",
-      }),
-    [queryParams],
+    (key: string, value: string) => {
+      const currentParam = searchParamsObj[key];
+      if (!currentParam) {
+        queryParams({ set: { [key]: value }, del: "page" });
+        return;
+      }
+      const parsed = parseFilterValue(currentParam);
+      if (parsed && !parsed.values.includes(value)) {
+        const newValues = [...parsed.values, value];
+        const newParam = parsed.operator.includes("NOT")
+          ? `-${newValues.join(",")}`
+          : newValues.join(",");
+        queryParams({ set: { [key]: newParam }, del: "page" });
+      }
+    },
+    [searchParamsObj, queryParams],
   );
 
   const onRemove = useCallback(
-    (key: string) =>
-      queryParams({
-        del: [key, "page"],
-      }),
+    (key: string, value: string) => {
+      const currentParam = searchParamsObj[key];
+      if (!currentParam) return;
+      const parsed = parseFilterValue(currentParam);
+      if (!parsed) {
+        queryParams({ del: [key, "page"] });
+        return;
+      }
+      const newValues = parsed.values.filter((v) => v !== value);
+      if (newValues.length === 0) {
+        queryParams({ del: [key, "page"] });
+      } else {
+        const newParam = parsed.operator.includes("NOT")
+          ? `-${newValues.join(",")}`
+          : newValues.join(",");
+        queryParams({ set: { [key]: newParam }, del: "page" });
+      }
+    },
+    [searchParamsObj, queryParams],
+  );
+
+  const onRemoveFilter = useCallback(
+    (key: string) => queryParams({ del: [key, "page"] }),
     [queryParams],
   );
 
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["status", "partnerId", "customerId", "payoutId", "groupId"],
+        del: [
+          "status",
+          "partnerId",
+          "customerId",
+          "payoutId",
+          "groupId",
+          "type",
+        ],
       }),
     [queryParams],
+  );
+
+  const onToggleOperator = useCallback(
+    (key: string) => {
+      const currentParam = searchParamsObj[key];
+      if (!currentParam) return;
+      const isNegated = currentParam.startsWith("-");
+      const cleanValue = isNegated ? currentParam.slice(1) : currentParam;
+      queryParams({
+        set: { [key]: isNegated ? cleanValue : `-${cleanValue}` },
+        del: "page",
+      });
+    },
+    [searchParamsObj, queryParams],
+  );
+
+  const onOpenFilter = useCallback(
+    (key: string | null) => setSelectedFilter(key),
+    [],
   );
 
   return {
@@ -173,7 +242,10 @@ export function useCommissionFilters() {
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
+    onToggleOperator,
+    onOpenFilter,
     setSearch,
     setSelectedFilter,
   };
@@ -186,20 +258,26 @@ function usePartnerFilterOptions(search: string) {
     query: { search },
   });
 
-  const { partners: selectedPartners } = usePartners({
-    query: {
-      partnerIds: searchParamsObj.partnerId
-        ? [searchParamsObj.partnerId]
+  const activePartnerIds = useMemo(
+    () =>
+      searchParamsObj.partnerId
+        ? searchParamsObj.partnerId.replace(/^-/, "").split(",").filter(Boolean)
         : undefined,
-    },
+    [searchParamsObj.partnerId],
+  );
+
+  const { partners: selectedPartners } = usePartners({
+    query: { partnerIds: activePartnerIds },
   });
 
   const result = useMemo(() => {
     return partnersLoading ||
-      // Consider partners loading if we can't find the currently filtered partner
-      (searchParamsObj.partnerId &&
-        ![...(selectedPartners ?? []), ...(partners ?? [])].some(
-          (p) => p.id === searchParamsObj.partnerId,
+      // Consider partners loading if we can't find all currently filtered partners
+      (activePartnerIds?.length &&
+        !activePartnerIds.every((id) =>
+          [...(selectedPartners ?? []), ...(partners ?? [])].some(
+            (p) => p.id === id,
+          ),
         ))
       ? null
       : ([

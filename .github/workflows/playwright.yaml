@@ -57,7 +57,7 @@ jobs:
       SMTP_USER: "smtpUser"
       SMTP_PASSWORD: "smtpPassword"
 
-      EMBEDDING_SYNC_SECRET: "xx"
+      CRON_SECRET: "xx"
       ANTHROPIC_API_KEY: "xx"
 
       STRIPE_SECRET_KEY: "xx"

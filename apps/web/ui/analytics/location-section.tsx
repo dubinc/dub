@@ -1,4 +1,5 @@
 import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { useRouterStuff } from "@dub/ui";
 import {
   FlagWavy,
@@ -99,11 +100,7 @@ export function LocationSection() {
                           className="size-4 rounded-full border border-cyan-500"
                         />
                       ) : (
-                        <img
-                          alt={d.country}
-                          src={`https://hatscripts.github.io/circle-flags/flags/${d.country.toLowerCase()}.svg`}
-                          className="size-4 shrink-0"
-                        />
+                        <CountryFlag countryCode={d.country} />
                       ),
                     title:
                       tab === "continents"
@@ -130,11 +127,7 @@ export function LocationSection() {
                         className="size-4 rounded-full border border-cyan-500"
                       />
                     ) : (
-                      <img
-                        alt={d.country}
-                        src={`https://hatscripts.github.io/circle-flags/flags/${d.country.toLowerCase()}.svg`}
-                        className="size-4 shrink-0"
-                      />
+                      <CountryFlag countryCode={d.country} />
                     ),
                   title:
                     tab === "continents"

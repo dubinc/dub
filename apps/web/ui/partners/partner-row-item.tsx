@@ -5,6 +5,7 @@ import { cn, formatDateTimeSmart } from "@dub/utils";
 import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import type { ReactNode } from "react";
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
 import { PartnerAvatar } from "./partner-avatar";
 import {
@@ -15,6 +16,7 @@ import {
 interface PartnerRowItemProps {
   showPermalink?: boolean;
   showFraudIndicator?: boolean;
+  suffix?: ReactNode;
   partner: {
     id: string;
     name: string;
@@ -168,6 +170,7 @@ export function PartnerRowItem({
   partner,
   showPermalink = true,
   showFraudIndicator = true,
+  suffix,
 }: PartnerRowItemProps) {
   const { slug } = useParams();
   const { statusKey, showPayoutsEnabled } = usePartnerPayoutStatus(partner);
@@ -218,6 +221,8 @@ export function PartnerRowItem({
       >
         {partner.name}
       </As>
+
+      {suffix}
 
       {showFraudIndicator && <PartnerFraudIndicator partnerId={partner.id} />}
     </div>

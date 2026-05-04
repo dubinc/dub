@@ -12,6 +12,7 @@ import {
   createContext,
   forwardRef,
   useContext,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useState,
@@ -251,6 +252,10 @@ export const RichTextProvider = forwardRef<
       onUpdate: ({ editor }) => onChange?.(editor),
       immediatelyRender: false,
     });
+
+    useEffect(() => {
+      editor?.setEditable(editable ?? true);
+    }, [editor, editable]);
 
     useImperativeHandle(ref, () => ({
       setContent: (content: any) => {
