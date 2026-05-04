@@ -268,7 +268,7 @@ export async function POST(req: Request) {
           if (
             targetEnrollment &&
             sourceEnrollment.status === "approved" &&
-            targetEnrollment.status !== "approved"
+            ["pending", "invited"].includes(targetEnrollment.status)
           ) {
             await tx.programEnrollment.update({
               where: {
