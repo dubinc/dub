@@ -82,7 +82,7 @@ export const getPartnerEnrollmentInfo = async ({
       image: result.image,
       groupId: result.groupId,
       tenantId: result.tenantId,
-      tagIds: result.partnerTagIds
+      partnerTagIds: result.partnerTagIds
         ? result.partnerTagIds.split(",").filter(Boolean)
         : [],
     },

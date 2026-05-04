@@ -157,16 +157,16 @@ export async function createLink(link: ProcessedLinkProps) {
         // Record link in Tinybird
         recordLink({
           ...response,
-          ...((partner?.groupId || partner?.tagIds) && {
+          ...(partner && {
             programEnrollment: {
               ...(partner?.groupId && {
                 groupId: partner.groupId,
               }),
-              programPartnerTags: partner?.tagIds?.map((id: string) => ({
-                partnerTag: {
-                  id,
-                },
-              })),
+              programPartnerTags: partner?.partnerTagIds.map(
+                (partnerTagId: string) => ({
+                  partnerTagId,
+                }),
+              ),
             },
           }),
         }),

@@ -1,7 +1,6 @@
 import {
   DiscountProps,
   PartnerProps,
-  PartnerTagProps,
   ProgramEnrollmentProps,
 } from "@/lib/types";
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
@@ -27,9 +26,7 @@ export type ExpandedLink = Link & {
   > | null;
   programEnrollment?:
     | (Pick<ProgramEnrollmentProps, "groupId"> & {
-        programPartnerTags?:
-          | { partnerTag: Pick<PartnerTagProps, "id"> }[]
-          | null;
+        programPartnerTags?: { partnerTagId: string }[] | null;
       })
     | null;
 };
