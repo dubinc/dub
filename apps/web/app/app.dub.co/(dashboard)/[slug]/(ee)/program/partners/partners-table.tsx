@@ -165,59 +165,6 @@ export function PartnersTable() {
 
   const { groups } = useGroups();
 
-  const [pendingChangeGroupPartners, setPendingChangeGroupPartners] = useState<
-    EnrolledPartnerProps[]
-  >([]);
-
-  const [pendingEditTagsPartners, setPendingEditTagsPartners] = useState<
-    EnrolledPartnerProps[]
-  >([]);
-
-  const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
-    partners: pendingChangeGroupPartners,
-  });
-
-  const { EditPartnerTagsModal, setShowEditPartnerTagsModal } =
-    useEditPartnerTagsModal({
-      partners: pendingEditTagsPartners,
-    });
-
-  const [pendingArchivePartners, setPendingArchivePartners] = useState<
-    EnrolledPartnerProps[]
-  >([]);
-
-  const { BulkArchivePartnersModal, setShowBulkArchivePartnersModal } =
-    useBulkArchivePartnersModal({
-      partners: pendingArchivePartners,
-      onConfirm: async () => {
-        await mutatePrefix("/api/partners");
-      },
-    });
-
-  const [pendingDeactivatePartners, setPendingDeactivatePartners] = useState<
-    EnrolledPartnerProps[]
-  >([]);
-
-  const { BulkDeactivatePartnersModal, setShowBulkDeactivatePartnersModal } =
-    useBulkDeactivatePartnersModal({
-      partners: pendingDeactivatePartners,
-      onConfirm: async () => {
-        await mutatePrefix("/api/partners");
-      },
-    });
-
-  const [pendingBanPartners, setPendingBanPartners] = useState<
-    EnrolledPartnerProps[]
-  >([]);
-
-  const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
-    useBulkBanPartnersModal({
-      partners: pendingBanPartners,
-      onConfirm: async () => {
-        await mutatePrefix("/api/partners");
-      },
-    });
-
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "partners-table-columns-v2",
     partnersColumns,
@@ -282,12 +229,10 @@ export function PartnersTable() {
         },
         {
           id: "tags",
-          header: "Tag",
+          header: "Tags",
           minSize: 120,
           maxSize: 200,
-          cell: ({ row }) => (
-            <PartnerTagsCell partner={row.original} />
-          ),
+          cell: ({ row }) => <PartnerTagsCell partner={row.original} />,
         },
         {
           id: "createdAt",
@@ -551,56 +496,13 @@ export function PartnersTable() {
 
     getRowId: (row) => row.id,
     selectionControls: (table) => (
-      <>
-        <Button
-          variant="primary"
-          text="Change group"
-          icon={<Users6 className="size-3.5 shrink-0" />}
-          className="h-7 w-fit rounded-lg px-2.5"
-          loading={false}
-          onClick={() => {
-            const partners = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original);
-
-            setPendingChangeGroupPartners(partners);
-            setShowChangeGroupModal(true);
-          }}
-        />
-        <Button
-          variant="secondary"
-          text="Update tags"
-          icon={<Tag className="size-3.5 shrink-0" />}
-          className="h-7 w-fit rounded-lg px-2.5"
-          onClick={() => {
-            const partners = table
-              .getSelectedRowModel()
-              .rows.map((row) => row.original);
-
-            setPendingEditTagsPartners(partners);
-            setShowEditPartnerTagsModal(true);
-          }}
-        />
-
-        {(!searchParams.get("status") ||
-          searchParams.get("status") === "approved") && (
-          <BulkActionsMenu
-            table={table}
-            onArchivePartners={(partners) => {
-              setPendingArchivePartners(partners);
-              setShowBulkArchivePartnersModal(true);
-            }}
-            onDeactivatePartners={(partners) => {
-              setPendingDeactivatePartners(partners);
-              setShowBulkDeactivatePartnersModal(true);
-            }}
-            onBanPartners={(partners) => {
-              setPendingBanPartners(partners);
-              setShowBulkBanPartnersModal(true);
-            }}
-          />
-        )}
-      </>
+      <PartnersBulkActionsBar
+        table={table}
+        showBulkActionsMenu={
+          !searchParams.get("status") ||
+          searchParams.get("status") === "approved"
+        }
+      />
     ),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
@@ -612,11 +514,6 @@ export function PartnersTable() {
 
   return (
     <div className="flex flex-col gap-4">
-      <ChangeGroupModal />
-      <EditPartnerTagsModal />
-      <BulkArchivePartnersModal />
-      <BulkDeactivatePartnersModal />
-      <BulkBanPartnersModal />
       <PartnersFilters sortBy={sortBy} sortOrder={sortOrder} status={status} />
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
@@ -1051,6 +948,112 @@ const PartnerTagsCell = memo(function PartnerTagsCell({
           setShowEditPartnerTagsModal(true);
         }}
       />
+    </>
+  );
+});
+
+const PartnersBulkActionsBar = memo(function PartnersBulkActionsBar({
+  table,
+  showBulkActionsMenu,
+}: {
+  table: TableType<EnrolledPartnerProps>;
+  showBulkActionsMenu: boolean;
+}) {
+  const [pendingChangeGroupPartners, setPendingChangeGroupPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+  const [pendingEditTagsPartners, setPendingEditTagsPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+  const [pendingArchivePartners, setPendingArchivePartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+  const [pendingDeactivatePartners, setPendingDeactivatePartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+  const [pendingBanPartners, setPendingBanPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+
+  const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
+    partners: pendingChangeGroupPartners,
+  });
+  const { EditPartnerTagsModal, setShowEditPartnerTagsModal } =
+    useEditPartnerTagsModal({
+      partners: pendingEditTagsPartners,
+    });
+
+  const { BulkArchivePartnersModal, setShowBulkArchivePartnersModal } =
+    useBulkArchivePartnersModal({
+      partners: pendingArchivePartners,
+      onConfirm: async () => {
+        await mutatePrefix("/api/partners");
+      },
+    });
+  const { BulkDeactivatePartnersModal, setShowBulkDeactivatePartnersModal } =
+    useBulkDeactivatePartnersModal({
+      partners: pendingDeactivatePartners,
+      onConfirm: async () => {
+        await mutatePrefix("/api/partners");
+      },
+    });
+  const { BulkBanPartnersModal, setShowBulkBanPartnersModal } =
+    useBulkBanPartnersModal({
+      partners: pendingBanPartners,
+      onConfirm: async () => {
+        await mutatePrefix("/api/partners");
+      },
+    });
+
+  return (
+    <>
+      <ChangeGroupModal />
+      <EditPartnerTagsModal />
+      <BulkArchivePartnersModal />
+      <BulkDeactivatePartnersModal />
+      <BulkBanPartnersModal />
+      <Button
+        variant="primary"
+        text="Change group"
+        icon={<Users6 className="size-3.5 shrink-0" />}
+        className="h-7 w-fit rounded-lg px-2.5"
+        loading={false}
+        onClick={() => {
+          setPendingChangeGroupPartners(
+            table.getSelectedRowModel().rows.map((row) => row.original),
+          );
+          setShowChangeGroupModal(true);
+        }}
+      />
+      <Button
+        variant="secondary"
+        text="Update tags"
+        icon={<Tag className="size-3.5 shrink-0" />}
+        className="h-7 w-fit rounded-lg px-2.5"
+        onClick={() => {
+          setPendingEditTagsPartners(
+            table.getSelectedRowModel().rows.map((row) => row.original),
+          );
+          setShowEditPartnerTagsModal(true);
+        }}
+      />
+      {showBulkActionsMenu && (
+        <BulkActionsMenu
+          table={table}
+          onArchivePartners={(partners) => {
+            setPendingArchivePartners(partners);
+            setShowBulkArchivePartnersModal(true);
+          }}
+          onDeactivatePartners={(partners) => {
+            setPendingDeactivatePartners(partners);
+            setShowBulkDeactivatePartnersModal(true);
+          }}
+          onBanPartners={(partners) => {
+            setPendingBanPartners(partners);
+            setShowBulkBanPartnersModal(true);
+          }}
+        />
+      )}
     </>
   );
 });
