@@ -7,7 +7,7 @@ import { authActionClient } from "../../safe-action";
 
 // Delete a partner tag
 export const deletePartnerTagAction = authActionClient
-  .schema(deletePartnerTagSchema)
+  .inputSchema(deletePartnerTagSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { partnerTagId } = parsedInput;

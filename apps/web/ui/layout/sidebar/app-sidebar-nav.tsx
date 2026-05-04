@@ -90,7 +90,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     description:
       "Kickstart viral product-led growth with powerful, branded referral and affiliate programs.",
     learnMoreHref: "https://dub.co/partners",
-    icon: ConnectedDots4 as Icon,
+    icon: ConnectedDots4,
     href: slug ? `/${slug}/program` : "/program",
     active:
       !!slug &&

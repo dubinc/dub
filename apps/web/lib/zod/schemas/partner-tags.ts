@@ -21,7 +21,7 @@ export const getPartnerTagsQuerySchema = z
       .describe("The search term to filter the partner tags by."),
     ids: z
       .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .transform((v) => (Array.isArray(v) ? v : v.split(",").filter(Boolean)))
       .optional()
       .describe("IDs of partner tags to filter by."),
   })

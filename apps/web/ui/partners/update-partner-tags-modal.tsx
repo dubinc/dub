@@ -2,7 +2,7 @@ import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createPartnerTagAction } from "@/lib/actions/partners/tags/create-partner-tag";
 import { deletePartnerTagAction } from "@/lib/actions/partners/tags/delete-partner-tag";
 import { updatePartnerTagAction } from "@/lib/actions/partners/tags/update-partner-tag";
-import { updatePartnerTagsAction } from "@/lib/actions/partners/tags/update-partner-tags";
+import { updateProgramPartnerTagsAction } from "@/lib/actions/partners/tags/update-program-partner-tags";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { usePartnerTagsCount } from "@/lib/swr/use-partner-tags-count";
@@ -45,16 +45,16 @@ import { ThreeDots } from "../shared/icons";
 const itemClassName =
   "group/button flex h-10 cursor-pointer items-center justify-between gap-4 rounded-lg px-2.5 data-[selected=true]:bg-black/[0.03]";
 
-type EditPartnerTagsModalProps = {
-  showEditPartnerTagsModal: boolean;
-  setShowEditPartnerTagsModal: Dispatch<SetStateAction<boolean>>;
+type UpdatePartnerTagsModalProps = {
+  showUpdatePartnerTagsModal: boolean;
+  setShowUpdatePartnerTagsModal: Dispatch<SetStateAction<boolean>>;
   partners: Pick<EnrolledPartnerProps, "id" | "name" | "image" | "tags">[];
 };
 
-function EditPartnerTagsModalContent({
-  setShowEditPartnerTagsModal,
+function UpdatePartnerTagsModalContent({
+  setShowUpdatePartnerTagsModal,
   partners,
-}: EditPartnerTagsModalProps) {
+}: UpdatePartnerTagsModalProps) {
   const { id: workspaceId } = useWorkspace();
 
   const [search, setSearch] = useState("");
@@ -147,11 +147,11 @@ function EditPartnerTagsModalContent({
   }, [partners, availableTags, selectionState]);
 
   const { executeAsync: updatePartnerTags, isPending } = useAction(
-    updatePartnerTagsAction,
+    updateProgramPartnerTagsAction,
     {
       onSuccess: () => {
         toast.success("Partner tags updated successfully!");
-        setShowEditPartnerTagsModal(false);
+        setShowUpdatePartnerTagsModal(false);
         mutatePrefix("/api/partners");
         mutatePrefix("/api/partners/tags");
       },
@@ -346,7 +346,7 @@ function EditPartnerTagsModalContent({
         )}
         <div className="flex items-center gap-2">
           <Button
-            onClick={() => setShowEditPartnerTagsModal(false)}
+            onClick={() => setShowUpdatePartnerTagsModal(false)}
             variant="secondary"
             text="Cancel"
             className="h-8 w-fit px-3"
@@ -366,14 +366,14 @@ function EditPartnerTagsModalContent({
   );
 }
 
-function EditPartnerTagsModal(props: EditPartnerTagsModalProps) {
+function UpdatePartnerTagsModal(props: UpdatePartnerTagsModalProps) {
   return (
     <Modal
-      showModal={props.showEditPartnerTagsModal}
-      setShowModal={props.setShowEditPartnerTagsModal}
+      showModal={props.showUpdatePartnerTagsModal}
+      setShowModal={props.setShowUpdatePartnerTagsModal}
       className="focus:outline-none"
     >
-      <EditPartnerTagsModalContent {...props} />
+      <UpdatePartnerTagsModalContent {...props} />
     </Modal>
   );
 }
@@ -553,27 +553,27 @@ function TagOption({
   );
 }
 
-export function useEditPartnerTagsModal({
+export function useUpdatePartnerTagsModal({
   partners,
-}: Pick<EditPartnerTagsModalProps, "partners">) {
-  const [showEditPartnerTagsModal, setShowEditPartnerTagsModal] =
+}: Pick<UpdatePartnerTagsModalProps, "partners">) {
+  const [showUpdatePartnerTagsModal, setShowUpdatePartnerTagsModal] =
     useState(false);
 
-  const EditPartnerTagsModalCallback = useCallback(() => {
+  const UpdatePartnerTagsModalCallback = useCallback(() => {
     return (
-      <EditPartnerTagsModal
-        showEditPartnerTagsModal={showEditPartnerTagsModal}
-        setShowEditPartnerTagsModal={setShowEditPartnerTagsModal}
+      <UpdatePartnerTagsModal
+        showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
+        setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
         partners={partners}
       />
     );
-  }, [showEditPartnerTagsModal, setShowEditPartnerTagsModal, partners]);
+  }, [showUpdatePartnerTagsModal, setShowUpdatePartnerTagsModal, partners]);
 
   return useMemo(
     () => ({
-      setShowEditPartnerTagsModal,
-      EditPartnerTagsModal: EditPartnerTagsModalCallback,
+      setShowUpdatePartnerTagsModal,
+      UpdatePartnerTagsModal: UpdatePartnerTagsModalCallback,
     }),
-    [setShowEditPartnerTagsModal, EditPartnerTagsModalCallback],
+    [setShowUpdatePartnerTagsModal, UpdatePartnerTagsModalCallback],
   );
 }

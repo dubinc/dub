@@ -12,7 +12,7 @@ import { authActionClient } from "../../safe-action";
 
 // Create a partner tag
 export const createPartnerTagAction = authActionClient
-  .schema(createPartnerTagSchema)
+  .inputSchema(createPartnerTagSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { name } = parsedInput;

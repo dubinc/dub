@@ -12,10 +12,10 @@ import { authActionClient } from "../../safe-action";
 const PARTNER_LINKS_TINYBIRD_BATCH_SIZE = 500;
 
 // Update a partner's tags
-export const updatePartnerTagsAction = authActionClient
-  .schema(updatePartnerTagsSchema)
+export const updateProgramPartnerTagsAction = authActionClient
+  .inputSchema(updatePartnerTagsSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace, user } = ctx;
+    const { workspace } = ctx;
     const {
       partnerIds: partnerIdsInput,
       addTagIds: addTagIdsInput,

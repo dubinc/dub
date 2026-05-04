@@ -18,11 +18,11 @@ import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
 import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
-import { useEditPartnerTagsModal } from "@/ui/partners/edit-partner-tags-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { PartnerTagsList } from "@/ui/partners/partner-tags-list";
+import { useUpdatePartnerTagsModal } from "@/ui/partners/update-partner-tags-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { ThreeDots } from "@/ui/shared/icons";
@@ -685,8 +685,8 @@ function RowMenuButton({
     partners: [row.original],
   });
 
-  const { EditPartnerTagsModal, setShowEditPartnerTagsModal } =
-    useEditPartnerTagsModal({
+  const { UpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
+    useUpdatePartnerTagsModal({
       partners: [row.original],
     });
 
@@ -744,7 +744,7 @@ function RowMenuButton({
   return (
     <>
       <ChangeGroupModal />
-      <EditPartnerTagsModal />
+      <UpdatePartnerTagsModal />
       <ArchivePartnerModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
@@ -771,7 +771,7 @@ function RowMenuButton({
                     icon={Tag}
                     label="Update tags"
                     onSelect={() => {
-                      setShowEditPartnerTagsModal(true);
+                      setShowUpdatePartnerTagsModal(true);
                       setIsOpen(false);
                     }}
                   />
@@ -843,7 +843,7 @@ function RowMenuButton({
                       icon={Tag}
                       label="Update tags"
                       onSelect={() => {
-                        setShowEditPartnerTagsModal(true);
+                        setShowUpdatePartnerTagsModal(true);
                         setIsOpen(false);
                       }}
                     />
@@ -933,19 +933,19 @@ const PartnerTagsCell = memo(function PartnerTagsCell({
 }: {
   partner: EnrolledPartnerProps;
 }) {
-  const { EditPartnerTagsModal, setShowEditPartnerTagsModal } =
-    useEditPartnerTagsModal({
+  const { UpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
+    useUpdatePartnerTagsModal({
       partners: [partner],
     });
 
   return (
     <>
-      <EditPartnerTagsModal />
+      <UpdatePartnerTagsModal />
       <PartnerTagsList
         compact
         tags={partner.tags}
         onAddTag={() => {
-          setShowEditPartnerTagsModal(true);
+          setShowUpdatePartnerTagsModal(true);
         }}
       />
     </>
@@ -978,8 +978,8 @@ const PartnersBulkActionsBar = memo(function PartnersBulkActionsBar({
   const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
     partners: pendingChangeGroupPartners,
   });
-  const { EditPartnerTagsModal, setShowEditPartnerTagsModal } =
-    useEditPartnerTagsModal({
+  const { UpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
+    useUpdatePartnerTagsModal({
       partners: pendingEditTagsPartners,
     });
 
@@ -1008,7 +1008,7 @@ const PartnersBulkActionsBar = memo(function PartnersBulkActionsBar({
   return (
     <>
       <ChangeGroupModal />
-      <EditPartnerTagsModal />
+      <UpdatePartnerTagsModal />
       <BulkArchivePartnersModal />
       <BulkDeactivatePartnersModal />
       <BulkBanPartnersModal />
@@ -1034,7 +1034,7 @@ const PartnersBulkActionsBar = memo(function PartnersBulkActionsBar({
           setPendingEditTagsPartners(
             table.getSelectedRowModel().rows.map((row) => row.original),
           );
-          setShowEditPartnerTagsModal(true);
+          setShowUpdatePartnerTagsModal(true);
         }}
       />
       {showBulkActionsMenu && (

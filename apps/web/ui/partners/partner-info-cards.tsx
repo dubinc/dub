@@ -31,7 +31,6 @@ import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { Fragment, ReactNode, createElement } from "react";
 import useSWR from "swr";
-import { useEditPartnerTagsModal } from "./edit-partner-tags-modal";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
 import {
   PartnerApplicationFraudBanner,
@@ -49,6 +48,7 @@ import {
 } from "./payouts/payout-method-config";
 import { ProgramRewardList } from "./program-reward-list";
 import { TrustedPartnerBadge } from "./trusted-partner-badge";
+import { useUpdatePartnerTagsModal } from "./update-partner-tags-modal";
 
 type PartnerInfoCardsProps = {
   showFraudIndicator?: boolean;
@@ -446,14 +446,14 @@ export function PartnerInfoCards({
 }
 
 function TagsList({ partner }: { partner: EnrolledPartnerExtendedProps }) {
-  const { EditPartnerTagsModal, setShowEditPartnerTagsModal } =
-    useEditPartnerTagsModal({
+  const { UpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
+    useUpdatePartnerTagsModal({
       partners: [partner],
     });
 
   return (
     <div className="border-border-subtle flex flex-col border-t p-4">
-      <EditPartnerTagsModal />
+      <UpdatePartnerTagsModal />
       <div className="mb-2 flex justify-between gap-2">
         <span className="text-content-emphasis block text-xs font-semibold">
           Tags
@@ -461,7 +461,7 @@ function TagsList({ partner }: { partner: EnrolledPartnerExtendedProps }) {
 
         <button
           type="button"
-          onClick={() => setShowEditPartnerTagsModal(true)}
+          onClick={() => setShowUpdatePartnerTagsModal(true)}
           className="text-content-subtle hover:text-content-default text-xs font-medium"
         >
           Manage
@@ -470,7 +470,7 @@ function TagsList({ partner }: { partner: EnrolledPartnerExtendedProps }) {
       <PartnerTagsList
         tags={partner?.tags}
         wrap
-        onAddTag={() => setShowEditPartnerTagsModal(true)}
+        onAddTag={() => setShowUpdatePartnerTagsModal(true)}
         mode="link"
       />
     </div>
