@@ -36,8 +36,8 @@ export const WorkspaceSchema = z
     plan: planSchema,
     planTier: z
       .number()
-      .nullable()
-      .describe("The tier of the workspace's plan."),
+      .describe("The tier of the workspace's plan.")
+      .default(1),
     planPeriod: z
       .enum(PlanPeriod)
       .nullish()
