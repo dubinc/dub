@@ -478,7 +478,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Notifications",
             icon: Bell,
-            href: `/${slug}/settings/notifications`,
+            href: "/account/settings/notifications",
             arrow: true,
           },
         ],
