@@ -1,5 +1,6 @@
 "use server";
 
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { recordLink } from "@/lib/tinybird";
@@ -87,24 +88,6 @@ export const updatePartnerTagsAction = authActionClient
       ]);
     });
 
-    const partnerLinksTinybirdInclude = {
-      ...includeTags,
-      programEnrollment: {
-        select: {
-          groupId: true,
-          programPartnerTags: {
-            select: {
-              partnerTag: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    } as const;
-
     // Sync updated partner tags to Tinybird for analytics (top_partner_tags)
     waitUntil(
       (async () => {
@@ -116,7 +99,10 @@ export const updatePartnerTagsAction = authActionClient
               programId,
               partnerId: { in: partnerIds },
             },
-            include: partnerLinksTinybirdInclude,
+            include: {
+              ...includeTags,
+              ...includeProgramEnrollment,
+            },
             orderBy: { id: "asc" },
             take: PARTNER_LINKS_TINYBIRD_BATCH_SIZE,
             ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
