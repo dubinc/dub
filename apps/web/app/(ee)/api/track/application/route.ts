@@ -175,7 +175,11 @@ async function trackVisitEvent({
           partnerId: session?.user?.defaultPartnerId,
           visitedAt: new Date(),
           country: requestContext.country,
-          metadata: requestContext,
+          metadata: {
+            ...requestContext,
+            url,
+            referrer,
+          },
         },
       },
     );

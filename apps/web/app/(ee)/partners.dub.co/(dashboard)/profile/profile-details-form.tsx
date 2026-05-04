@@ -342,7 +342,7 @@ function BasicInfoForm({
             })}
           />
         </label>
-        <label className="flex flex-col gap-1.5">
+        {/* <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-neutral-800">Username</span>
           <input
             type="text"
@@ -364,7 +364,7 @@ function BasicInfoForm({
             3–30 characters. Lowercase letters, numbers, hyphens, and
             underscores only.
           </p>
-        </label>
+        </label> */}
         <label className="flex flex-col">
           <span className="text-sm font-medium text-neutral-800">Country</span>
           <Controller

@@ -62,7 +62,7 @@ const SOLO_BANK_FEATURES: PayoutMethodFeature[] = [
     icon: CircleDollar,
     text: "Receive payouts directly in your bank account",
   },
-  { icon: Zap, text: "1-time no hassle setup" },
+  { icon: Zap, text: "Easy 1-time setup" },
 ];
 
 const SOLO_PAYPAL_FEATURES: PayoutMethodFeature[] = [
@@ -70,7 +70,7 @@ const SOLO_PAYPAL_FEATURES: PayoutMethodFeature[] = [
     icon: CircleDollar,
     text: "Receive payouts directly via PayPal",
   },
-  { icon: Zap, text: "1-time no hassle setup" },
+  { icon: Zap, text: "Easy 1-click setup" },
 ];
 
 export function getPayoutMethodFeaturesForSelector(

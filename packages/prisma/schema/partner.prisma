@@ -68,8 +68,8 @@ model Partner {
   trustedAt      DateTime?
 
   // miscellaneous fields
-  invoiceSettings  Json?
-  changeHistoryLog Json?
+  invoiceSettings     Json?
+  changeHistoryLog    Json?
   referredByPartnerId String?
 
   programs                   ProgramEnrollment[]

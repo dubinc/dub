@@ -39,7 +39,7 @@ model ProgramApplication {
 }
 
 model ProgramApplicationEvent {
-  id        String @id @default(cuid())
+  id        String  @id @default(cuid())
   programId String
 
   visitedAt   DateTime  @default(now())
@@ -58,7 +58,6 @@ model ProgramApplicationEvent {
 
   referredByPartner Partner?            @relation(fields: [referredByPartnerId], references: [id])
   application       ProgramApplication? @relation(fields: [programApplicationId], references: [id])
-  programEnrollment ProgramEnrollment?  @relation(fields: [programId, partnerId], references: [programId, partnerId])
 
   @@unique([programId, partnerId])
   @@index([programId, visitedAt])
