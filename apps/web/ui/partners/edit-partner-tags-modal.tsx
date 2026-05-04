@@ -438,11 +438,19 @@ function TagOption({
     <Command.Item
       key={tag.id}
       className={itemClassName}
-      onSelect={() => checkboxRef.current?.click()}
+      onSelect={() => {
+        if (isEditing) return;
+        checkboxRef.current?.click();
+      }}
       value={tag.name}
     >
       <div className="flex min-w-0 items-center gap-2">
-        <label className="pointer-events-none flex min-w-0 items-center gap-2">
+        <label
+          className={cn(
+            "flex min-w-0 items-center gap-2",
+            !isEditing && "pointer-events-none",
+          )}
+        >
           <Checkbox
             ref={checkboxRef}
             checked={checked}
@@ -457,6 +465,8 @@ function TagOption({
             <input
               value={editedTagName}
               onChange={(e) => setEditedTagName(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
               onBlur={() => handleSave()}
               onKeyDown={(e) => {
                 e.stopPropagation();
