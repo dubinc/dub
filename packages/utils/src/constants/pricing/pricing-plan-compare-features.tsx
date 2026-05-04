@@ -155,15 +155,6 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Unlimited partners",
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
         text: "Automated global payouts",
         href: "https://dub.co/help/article/partner-payouts",
       },
@@ -262,6 +253,27 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
         },
         text: "AI landing page generator",
         href: "https://dub.co/help/article/program-landing-page",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: ({ plan }) => (
+          <>
+            <strong>
+              {plan.limits.partners === 0
+                ? "No"
+                : plan.limits.partners === INFINITY_NUMBER
+                  ? "Unlimited"
+                  : nFormatter(plan.limits.partners)}
+            </strong>{" "}
+            partners
+          </>
+        ),
+        href: "https://dub.co/help/article/inviting-partners",
       },
       {
         check: {
@@ -514,32 +526,21 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
     href: "https://dub.co/contact/support",
     features: [
       {
-        text: ({ id }) => (
-          <>
-            <strong>
-              {
-                {
-                  free: "Basic support",
-                  pro: "Elevated support",
-                  business: "Priority support",
-                  advanced: "Priority via Slack",
-                  enterprise: "Priority with SLA",
-                }[id]
-              }
-            </strong>
-          </>
-        ),
+        text: ({ id }) =>
+          ({
+            free: "Basic support",
+            pro: "Elevated support",
+            business: "Priority support",
+            advanced: "Priority via Slack",
+            enterprise: "Priority with SLA",
+          })[id],
       },
       {
         check: {
           default: false,
           enterprise: true,
         },
-        text: () => (
-          <>
-            <strong>Dedicated</strong> success manager
-          </>
-        ),
+        text: "Dedicated success manager",
       },
     ],
   },

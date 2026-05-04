@@ -1,14 +1,12 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
-import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useStartPaidPlanModal } from "@/ui/modals/start-paid-plan-modal";
 import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
 import {
   AnimatedSizeContainer,
   Button,
-  buttonVariants,
   DynamicTooltipWrapper,
   Icon,
 } from "@dub/ui";
@@ -17,10 +15,10 @@ import {
   cn,
   getFirstAndLastDay,
   getNextPlan,
+  getPlanDetails,
   INFINITY_NUMBER,
   isWorkspaceBillingTrialActive,
   nFormatter,
-  TRIAL_PROGRAM_ENROLLMENT_LIMIT,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { ChevronRight } from "lucide-react";
@@ -43,8 +41,11 @@ function UsageInner() {
     linksLimit,
     payoutsUsage,
     payoutsLimit,
+    partnersUsage,
+    partnersLimit,
     billingCycleStart,
     plan,
+    planTier,
     slug,
     paymentFailedAt,
     loading,
@@ -54,11 +55,6 @@ function UsageInner() {
   } = useWorkspace({ swrOpts: { keepPreviousData: true } });
 
   const isTrial = isWorkspaceBillingTrialActive(trialEndsAt);
-
-  const { partnersCount } = usePartnersCount<number>({
-    ignoreParams: true,
-    enabled: Boolean(isTrial && defaultProgramId),
-  });
 
   const permissionsError = clientAccessCheck({
     action: "billing.write",
@@ -94,7 +90,11 @@ function UsageInner() {
 
   const [hovered, setHovered] = useState(false);
 
-  const nextPlan = getNextPlan(plan);
+  const currentPlanLimits = getPlanDetails({
+    plan: plan ?? "free",
+    planTier,
+  }).limits;
+  const nextPlanLimits = getNextPlan(plan)?.limits;
 
   // Warn the user if they're >= 90% of any limit
   const warnings = useMemo(
@@ -102,14 +102,14 @@ function UsageInner() {
       [
         [usage, usageLimit],
         [payoutsUsage, payoutsLimit],
-        [partnersCount, TRIAL_PROGRAM_ENROLLMENT_LIMIT],
+        [partnersUsage, partnersLimit],
       ].map(
         ([usage, limit]) =>
           usage !== undefined &&
           limit !== undefined &&
           usage / Math.max(0, usage, limit) >= 0.9,
       ),
-    [usage, usageLimit, payoutsUsage, payoutsLimit, partnersCount],
+    [usage, usageLimit, payoutsUsage, payoutsLimit, partnersUsage],
   );
 
   const warning = warnings.some((w) => w);
@@ -148,55 +148,56 @@ function UsageInner() {
           <div
             className={cn("mt-4 flex flex-col", isTrial ? "gap-3" : "gap-4")}
           >
-            {isTrial ? (
+            <UsageRow
+              icon={CursorRays}
+              label="Events"
+              usage={usage}
+              limit={usageLimit}
+              showNextPlan={hovered}
+              nextPlanLimit={
+                isTrial ? currentPlanLimits.clicks : nextPlanLimits.clicks
+              }
+              warning={warnings[0]}
+            />
+            {defaultProgramId ? (
               <>
-                <UsageRow
-                  icon={CursorRays}
-                  label="Events"
-                  usage={usage}
-                  limit={usageLimit}
-                  showNextPlan={false}
-                  nextPlanLimit={undefined}
-                  warning={warnings[0]}
-                />
                 <UsageRow
                   icon={MoneyBills2}
                   label="Payouts"
                   usage={payoutsUsage}
                   limit={payoutsLimit}
-                  showNextPlan={false}
-                  nextPlanLimit={undefined}
+                  showNextPlan={hovered}
+                  nextPlanLimit={
+                    isTrial ? currentPlanLimits.payouts : nextPlanLimits.payouts
+                  }
                   warning={warnings[1]}
                   valueInCents
                 />
                 <UsageRow
                   icon={Users}
                   label="Partners"
-                  usage={defaultProgramId ? partnersCount : 0}
-                  limit={TRIAL_PROGRAM_ENROLLMENT_LIMIT}
-                  showNextPlan={false}
-                  nextPlanLimit={undefined}
+                  usage={defaultProgramId ? partnersUsage : 0}
+                  limit={partnersLimit}
+                  showNextPlan={hovered}
+                  nextPlanLimit={
+                    isTrial
+                      ? currentPlanLimits.partners
+                      : nextPlanLimits.partners
+                  }
                   warning={warnings[2]}
                 />
               </>
             ) : (
               <>
                 <UsageRow
-                  icon={CursorRays}
-                  label="Events"
-                  usage={usage}
-                  limit={usageLimit}
-                  showNextPlan={hovered}
-                  nextPlanLimit={nextPlan?.limits.clicks}
-                  warning={warnings[0]}
-                />
-                <UsageRow
                   icon={Hyperlink}
                   label="Links"
                   usage={linksUsage}
                   limit={linksLimit}
                   showNextPlan={hovered}
-                  nextPlanLimit={nextPlan?.limits.links}
+                  nextPlanLimit={
+                    isTrial ? currentPlanLimits.links : nextPlanLimits.links
+                  }
                   warning={warnings[1]}
                 />
               </>
@@ -257,20 +258,18 @@ function UsageInner() {
               />
             </DynamicTooltipWrapper>
           ) : (warning || plan === "free") && plan !== "enterprise" ? (
-            <Link
-              href={`/${slug}/upgrade`}
-              className={cn(
-                buttonVariants(),
-                "mt-4 flex h-9 items-center justify-center rounded-md border px-4 text-sm",
-              )}
-              onMouseEnter={() => {
-                setHovered(true);
-              }}
-              onMouseLeave={() => {
-                setHovered(false);
-              }}
-            >
-              {plan === "free" ? "Get Dub Pro" : "Upgrade plan"}
+            <Link href={`/${slug}/upgrade`}>
+              <Button
+                text="Upgrade plan"
+                variant="primary"
+                className="mt-4 h-8 w-full rounded-lg"
+                onMouseEnter={() => {
+                  setHovered(true);
+                }}
+                onMouseLeave={() => {
+                  setHovered(false);
+                }}
+              />
             </Link>
           ) : null}
         </div>

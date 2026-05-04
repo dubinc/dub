@@ -35,7 +35,7 @@ export const PartnerStatusBadges = {
   },
   declined: {
     label: "Declined",
-    variant: "amber",
+    variant: "neutral",
     className: "text-amber-600 bg-amber-100",
     icon: EnvelopeAlert,
   },

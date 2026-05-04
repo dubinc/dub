@@ -2,6 +2,7 @@ import { editQueryString } from "@/lib/analytics/utils";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { ArrowRight, Link4, LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { COUNTRIES, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import Link from "next/link";
@@ -74,11 +75,7 @@ export function CountriesBlock() {
                 {country === "(direct)" ? (
                   <Link4 className="size-4" />
                 ) : (
-                  <img
-                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                    alt={`${country} flag`}
-                    className="size-4 shrink-0"
-                  />
+                  <CountryFlag countryCode={country} />
                 )}
                 <span className="min-w-0 truncate">
                   {COUNTRIES?.[country] ?? country}

@@ -1,9 +1,10 @@
+import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { triggerWorkflows } from "../../../cron/qstash-workflow";
-import { throwIfTrialProgramEnrollmentLimitExceeded } from "../../../partners/throw-if-trial-program-enrollment-exceeded";
+import { throwIfPartnersLimitExceeded } from "../../../partners/throw-if-partners-limit-exceeded";
 import { approvePartnerSchema } from "../../../zod/schemas/partners";
 import { trackActivityLog } from "../../activity-log/track-activity-log";
 import { DubApiError } from "../../errors";
@@ -37,6 +38,8 @@ export async function approvePartner({
             select: {
               id: true,
               trialEndsAt: true,
+              partnersUsage: true,
+              partnersLimit: true,
             },
           },
         },
@@ -51,11 +54,10 @@ export async function approvePartner({
     });
   }
 
-  if (programEnrollment.status !== "pending") {
+  if (!["pending", "rejected"].includes(programEnrollment.status)) {
     throw new DubApiError({
       code: "bad_request",
-      message:
-        "This enrollment cannot be approved because it is no longer pending.",
+      message: `This enrollment cannot be approved because it is already ${programEnrollment.status}.`,
     });
   }
 
@@ -78,11 +80,7 @@ export async function approvePartner({
   });
 
   await prisma.$transaction(async (tx) => {
-    await throwIfTrialProgramEnrollmentLimitExceeded({
-      programId,
-      trialEndsAt: program.workspace.trialEndsAt,
-      tx,
-    });
+    throwIfPartnersLimitExceeded(program.workspace);
 
     const programEnrollment = await tx.programEnrollment.update({
       where: {
@@ -115,6 +113,17 @@ export async function approvePartner({
         },
       });
     }
+
+    await tx.project.update({
+      where: {
+        id: program.workspace.id,
+      },
+      data: {
+        partnersUsage: {
+          increment: 1,
+        },
+      },
+    });
   });
 
   waitUntil(
@@ -132,6 +141,12 @@ export async function approvePartner({
             new: ProgramEnrollmentStatus.approved,
           },
         },
+      }),
+
+      trackApplicationEvents({
+        event: "approved",
+        programId,
+        partnerIds: [partnerId],
       }),
 
       triggerWorkflows({

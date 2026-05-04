@@ -69,17 +69,17 @@ function ShareEarningsModalInner({
   const [isLoading, setIsLoading] = useState(false);
   const [blob, setBlob] = useState<Blob | null>(null);
 
-  const imageUrl = useMemo(
-    () =>
-      `/api/og/partner-earnings?${new URLSearchParams({
-        programId,
-        background,
-        interval,
-        ...(start && { start: start.toISOString() }),
-        ...(end && { end: end.toISOString() }),
-      }).toString()}`,
-    [programId, background, interval, start, end],
-  );
+  const imageUrl = useMemo(() => {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return `/api/og/partner-earnings?${new URLSearchParams({
+      programId,
+      background,
+      interval,
+      timezone,
+      ...(start && { start: start.toISOString() }),
+      ...(end && { end: end.toISOString() }),
+    }).toString()}`;
+  }, [programId, background, interval, start, end]);
 
   useEffect(() => {
     if (!programId) return;

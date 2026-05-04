@@ -13,7 +13,7 @@ export default function OnboardingVerificationPage() {
         Connect payouts
       </h1>
       <p className="animate-slide-up-fade mt-1 text-center text-base text-neutral-500 [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
-        Connect your preferred payout method to receive payments.
+        Connect your payout method to receive earnings
       </p>
       <div className="animate-slide-up-fade relative mt-10 w-full [--offset:10px] [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
         <Suspense fallback={<PayoutSkeleton />}>

@@ -440,9 +440,11 @@ function CommissionsFilters() {
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
+    onToggleOperator,
+    onOpenFilter,
     setSearch,
-    setSelectedFilter,
   } = useCommissionFilters();
 
   return (
@@ -454,8 +456,9 @@ function CommissionsFilters() {
           activeFilters={activeFilters}
           onSelect={onSelect}
           onRemove={onRemove}
+          onOpenFilter={onOpenFilter}
           onSearchChange={setSearch}
-          onSelectedFilterChange={setSelectedFilter}
+          isAdvancedFilter
         />
         <SimpleDateRangePicker
           className="w-full sm:min-w-[200px] md:w-fit"
@@ -479,7 +482,10 @@ function CommissionsFilters() {
                 activeFilters={activeFilters}
                 onSelect={onSelect}
                 onRemove={onRemove}
+                onRemoveFilter={onRemoveFilter}
                 onRemoveAll={onRemoveAll}
+                onToggleOperator={onToggleOperator}
+                isAdvancedFilter
               />
             </div>
           )}

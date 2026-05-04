@@ -174,8 +174,9 @@ const saleCreatedTemplate = ({ data }: { data: SaleEventWebhookPayload }) => {
   const isNewSaleType = isFirstConversion({
     customer: {
       sales: customer.sales || 0,
-      linkId: null,
+      linkId: link.id,
     },
+    linkId: link.id,
   });
   const hrefToCustomerPage = `${APP_DOMAIN}/customers/${customer.id}`;
   const hrefToPartnerPage = `${APP_DOMAIN}/program/partners/${partner?.id}`;
@@ -375,7 +376,7 @@ const commissionCreatedTemplate = ({
   const hrefToLinkPage = link
     ? `${APP_DOMAIN}/links/${link.domain}/${link.key}`
     : null;
-  const hrefToCommission = `${APP_DOMAIN}/program/commissions?commissionId=${id}`;
+  const hrefToCommission = `${APP_DOMAIN}/program/commissions/${id}`;
 
   const quickLinks = [
     `<${hrefToCommission}|Commission>`,
@@ -531,7 +532,7 @@ const payoutConfirmedTemplate = ({
 }) => {
   const { id, amount, currency, partner, invoiceId } = data;
   const formattedAmount = currencyFormatter(amount, { currency });
-  const hrefToPayout = `${APP_DOMAIN}/program/payouts?payoutId=${id}`;
+  const hrefToPayout = `${APP_DOMAIN}/program/payouts/${id}`;
 
   return {
     blocks: [

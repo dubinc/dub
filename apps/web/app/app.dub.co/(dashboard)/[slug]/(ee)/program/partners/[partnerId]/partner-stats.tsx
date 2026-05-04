@@ -50,7 +50,7 @@ export function PartnerStats({
                 ? "-"
                 : undefined,
             href: partner?.id
-              ? `/${slug}/events?event=clicks&partnerId=${partner.id}&interval=1y`
+              ? `/${slug}/events?event=clicks&partnerId=${partner.id}&interval=all`
               : undefined,
           },
           {
@@ -63,7 +63,7 @@ export function PartnerStats({
                 ? "-"
                 : undefined,
             href: partner?.id
-              ? `/${slug}/events?event=leads&partnerId=${partner.id}&interval=1y`
+              ? `/${slug}/events?event=leads&partnerId=${partner.id}&interval=all`
               : undefined,
             lastAt: leadsLastAt,
           },
@@ -77,7 +77,7 @@ export function PartnerStats({
                 ? "-"
                 : undefined,
             href: partner?.id
-              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y&saleType=new`
+              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=all&saleType=new`
               : undefined,
             lastAt: conversionsLastAt,
           },
@@ -93,7 +93,7 @@ export function PartnerStats({
                 ? "-"
                 : undefined,
             href: partner?.id
-              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`
+              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=all`
               : undefined,
           },
           {
@@ -119,7 +119,7 @@ export function PartnerStats({
                 ? "-"
                 : undefined,
             href: partner?.id
-              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`
+              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=all`
               : undefined,
           },
         ].map(({ label, value, href, lastAt }) => {

@@ -126,6 +126,7 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
         },
         data: {
           status: "sent",
+          method: "paypal",
         },
       });
     } catch (error) {

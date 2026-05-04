@@ -91,6 +91,23 @@ export async function POST(req: Request) {
           "One or more links are not found. Skipping the export.",
         );
       }
+      if (linkId.sqlOperator === "NOT IN") {
+        // if using NOT IN operator, we need to include all links except the ones in the linkId.values
+        const finalIncludedLinkIds = links
+          .filter((link) => !linkId.values.includes(link.id))
+          .map((link) => link.id);
+
+        // early return if no links are left
+        if (finalIncludedLinkIds.length === 0) {
+          return logAndRespond("No links found. Skipping the export.");
+        }
+
+        parsedParams.linkId = {
+          operator: "IS",
+          sqlOperator: "IN",
+          values: finalIncludedLinkIds,
+        };
+      }
     } else if (domain && key) {
       const link = links.find(
         (link) =>

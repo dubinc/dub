@@ -46,7 +46,7 @@ module.exports = withPlausibleProxy({
       "@team-plain/typescript-sdk",
     ],
     serverActions: {
-      bodySizeLimit: "2mb",
+      bodySizeLimit: "4mb",
     },
   },
   webpack: (config, { webpack, isServer }) => {

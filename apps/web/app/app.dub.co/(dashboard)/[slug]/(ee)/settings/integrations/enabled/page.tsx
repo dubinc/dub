@@ -52,7 +52,14 @@ async function EnabledIntegrationsPageRSC({ slug }: { slug: string }) {
           },
         },
         include: {
-          user: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
         },
       },
     },

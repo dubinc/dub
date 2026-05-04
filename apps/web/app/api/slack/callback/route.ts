@@ -1,5 +1,6 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
+import { encrypt } from "@/lib/encryption";
 import { installIntegration } from "@/lib/integrations/install";
 import { slackOAuthProvider } from "@/lib/integrations/slack/oauth";
 import { SlackAuthToken } from "@/lib/integrations/types";
@@ -67,7 +68,7 @@ export const GET = async (req: Request) => {
       appId: token.app_id,
       botUserId: token.bot_user_id,
       scope: token.scope,
-      accessToken: token.access_token,
+      accessToken: encrypt(token.access_token),
       tokenType: token.token_type,
       authUser: token.authed_user,
       team: token.team,

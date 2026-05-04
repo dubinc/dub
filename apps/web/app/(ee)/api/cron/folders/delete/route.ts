@@ -39,6 +39,15 @@ export async function POST(req: Request) {
     });
 
     if (linksToUpdate.length === 0) {
+      await prisma.projectUsers.updateMany({
+        where: {
+          defaultFolderId: folderId,
+        },
+        data: {
+          defaultFolderId: null,
+        },
+      });
+
       await prisma.folder.delete({
         where: {
           id: folderId,

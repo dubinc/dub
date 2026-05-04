@@ -1,6 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { BlurImage, ExpandingArrow, STAGGER_CHILD_VARIANTS } from "@dub/ui";
 import { cn, OG_AVATAR_URL, smartTruncate } from "@dub/utils";
 import { COUNTRIES } from "@dub/utils/src/constants/countries";
@@ -200,11 +201,7 @@ const StatTable = ({
                 ) : (
                   <div className="flex items-center gap-2">
                     {title === "Top Countries" && (
-                      <img
-                        src={`https://hatscripts.github.io/circle-flags/flags/${item.toLowerCase()}.svg`}
-                        alt={COUNTRIES[item]}
-                        className="size-4"
-                      />
+                      <CountryFlag countryCode={item} />
                     )}
                     <div className="flex gap-0.5">
                       <p className="font-medium text-black">

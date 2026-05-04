@@ -9,6 +9,7 @@ import {
   ProgramApplicationFormDataWithValues,
   ProgramProps,
 } from "@/lib/types";
+import { useTrackApplyStart } from "@/ui/application-analytics";
 import { Button, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -42,6 +43,9 @@ export function ProgramApplicationForm({
   const { isMobile } = useMediaQuery();
   const router = useRouter();
   const { data: session } = useSession();
+  const trackApplyStart = useTrackApplyStart({
+    preview,
+  });
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -133,6 +137,7 @@ export function ProgramApplicationForm({
   return (
     <FormProvider {...form}>
       <form
+        onInputCapture={trackApplyStart}
         onSubmit={handleSubmit(async (data) => {
           const result = await executeAsync({
             ...data,

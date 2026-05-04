@@ -23,6 +23,11 @@ export const onboardPartnerAction = authUserActionClient
       where: {
         email: user.email,
       },
+      select: {
+        id: true,
+        country: true,
+        profileType: true,
+      },
     });
 
     const partnerId = existingPartner

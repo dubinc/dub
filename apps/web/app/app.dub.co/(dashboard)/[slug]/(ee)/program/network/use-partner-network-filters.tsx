@@ -1,4 +1,5 @@
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { PlatformType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import {
@@ -96,11 +97,7 @@ export function usePartnerNetworkFilters({
         icon: FlagWavy,
         label: "Partner country",
         getOptionIcon: (value) => (
-          <img
-            alt={value}
-            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
-            className="size-3.5 rounded-full"
-          />
+          <CountryFlag countryCode={value} className="size-3.5 rounded-full" />
         ),
         getOptionLabel: (value) => COUNTRIES[value],
         options:
