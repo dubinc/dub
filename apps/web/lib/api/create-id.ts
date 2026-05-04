@@ -32,7 +32,8 @@ const prefixes = [
   "dub_embed_", // dub embed
   "audit_", // audit log
   "import_", // import log
-  "grp_", // group
+  "grp_", // partner group
+  "ptag_", // partner tag
   "bnty_", // bounty
   "bnty_sub_", // bounty submission
   "wf_", // workflow

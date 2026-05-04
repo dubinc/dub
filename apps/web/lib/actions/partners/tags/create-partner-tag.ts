@@ -1,5 +1,6 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import {
   PartnerTagSchema,
@@ -38,6 +39,7 @@ export const createPartnerTagAction = authActionClient
     try {
       const partnerTag = await prisma.partnerTag.create({
         data: {
+          id: createId({ prefix: "ptag_" }),
           programId,
           name,
         },
