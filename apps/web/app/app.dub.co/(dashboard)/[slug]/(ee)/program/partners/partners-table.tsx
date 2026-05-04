@@ -70,7 +70,7 @@ import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { usePartnerFilters } from "./use-partner-filters";
@@ -281,6 +281,15 @@ export function PartnersTable() {
           },
         },
         {
+          id: "tags",
+          header: "Tag",
+          minSize: 120,
+          maxSize: 200,
+          cell: ({ row }) => (
+            <PartnerTagsCell partner={row.original} />
+          ),
+        },
+        {
           id: "createdAt",
           header: "Enrolled",
           cell: ({ row }) => (
@@ -294,22 +303,6 @@ export function PartnersTable() {
                 {formatDate(row.original.createdAt, { month: "short" })}
               </span>
             </TimestampTooltip>
-          ),
-        },
-        {
-          id: "tags",
-          header: "Tag",
-          minSize: 120,
-          maxSize: 200,
-          cell: ({ row }) => (
-            <PartnerTagsList
-              compact
-              tags={row.original.tags}
-              onAddTag={() => {
-                setPendingEditTagsPartners([row.original]);
-                setShowEditPartnerTagsModal(true);
-              }}
-            />
           ),
         },
         {
@@ -576,7 +569,7 @@ export function PartnersTable() {
         />
         <Button
           variant="secondary"
-          text="Edit tags"
+          text="Update tags"
           icon={<Tag className="size-3.5 shrink-0" />}
           className="h-7 w-fit rounded-lg px-2.5"
           onClick={() => {
@@ -879,7 +872,7 @@ function RowMenuButton({
 
                   <MenuItem
                     icon={Tag}
-                    label="Edit tags"
+                    label="Update tags"
                     onSelect={() => {
                       setShowEditPartnerTagsModal(true);
                       setIsOpen(false);
@@ -951,7 +944,7 @@ function RowMenuButton({
 
                     <MenuItem
                       icon={Tag}
-                      label="Edit tags"
+                      label="Update tags"
                       onSelect={() => {
                         setShowEditPartnerTagsModal(true);
                         setIsOpen(false);
@@ -1037,6 +1030,30 @@ function RowMenuButton({
     </>
   );
 }
+
+const PartnerTagsCell = memo(function PartnerTagsCell({
+  partner,
+}: {
+  partner: EnrolledPartnerProps;
+}) {
+  const { EditPartnerTagsModal, setShowEditPartnerTagsModal } =
+    useEditPartnerTagsModal({
+      partners: [partner],
+    });
+
+  return (
+    <>
+      <EditPartnerTagsModal />
+      <PartnerTagsList
+        compact
+        tags={partner.tags}
+        onAddTag={() => {
+          setShowEditPartnerTagsModal(true);
+        }}
+      />
+    </>
+  );
+});
 
 function MenuItem({
   icon: IconComp,
