@@ -15,15 +15,19 @@ export const updatePartnerTagAction = authActionClient
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     try {
-      await prisma.partnerTag.update({
+      const { count } = await prisma.partnerTag.updateMany({
         where: {
-          programId,
           id: partnerTagId,
+          programId,
         },
         data: {
           name,
         },
       });
+
+      if (count === 0) {
+        throw new Error("Partner tag not found.");
+      }
     } catch (e) {
       if (e.code === "P2002")
         throw new Error("A tag with that name already exists.");
