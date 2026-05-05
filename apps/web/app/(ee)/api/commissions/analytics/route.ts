@@ -108,16 +108,21 @@ function commissionSqlConditions({
       const list = Prisma.join(
         partnerTagFilter.values.map((v) => Prisma.sql`${v}`),
       );
-      const op =
-        partnerTagFilter.sqlOperator === "NOT IN"
-          ? Prisma.sql`NOT IN`
-          : Prisma.sql`IN`;
-      conditions.push(Prisma.sql`EXISTS (
-        SELECT 1 FROM ProgramPartnerTag ppt
-        WHERE ppt.programId = c.programId
-          AND ppt.partnerId = c.partnerId
-          AND ppt.partnerTagId ${op} (${list})
-      )`);
+      if (partnerTagFilter.sqlOperator === "NOT IN") {
+        conditions.push(Prisma.sql`NOT EXISTS (
+          SELECT 1 FROM ProgramPartnerTag ppt
+          WHERE ppt.programId = c.programId
+            AND ppt.partnerId = c.partnerId
+            AND ppt.partnerTagId IN (${list})
+        )`);
+      } else {
+        conditions.push(Prisma.sql`EXISTS (
+          SELECT 1 FROM ProgramPartnerTag ppt
+          WHERE ppt.programId = c.programId
+            AND ppt.partnerId = c.partnerId
+            AND ppt.partnerTagId IN (${list})
+        )`);
+      }
     }
   }
 
