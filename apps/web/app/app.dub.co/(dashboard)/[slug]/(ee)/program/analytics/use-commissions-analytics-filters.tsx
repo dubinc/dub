@@ -44,10 +44,17 @@ export function useCommissionsAnalyticsFilters(
   const { groups } = useGroups();
   const { partnerTags } = usePartnerTags();
 
+  const partnerTagCountQueryString = useMemo(() => {
+    if (!commissionsQueryString) return undefined;
+    const params = new URLSearchParams(commissionsQueryString);
+    params.delete("partnerTagId");
+    return params.toString();
+  }, [commissionsQueryString]);
+
   const { data: partnerTagRows } = useCommissionAnalytics({
     groupBy: "partnerTag",
-    queryString: commissionsQueryString,
-    enabled: !!commissionsQueryString,
+    queryString: partnerTagCountQueryString,
+    enabled: !!partnerTagCountQueryString,
   });
 
   const partnerTagCountMap = useMemo(() => {
