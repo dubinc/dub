@@ -105,10 +105,13 @@ export const POST = withWorkspace(
       const customer = await getDubCustomer(session.user.id);
 
       // Only apply trial if the customer is a:
+      // - on the free plan
       // - new Stripe customer
       // - no prior/existing trial on workspace
       const shouldApplyCheckoutTrial =
-        workspace.stripeId == null && workspace.trialEndsAt == null;
+        workspace.plan === "free" &&
+        workspace.stripeId == null &&
+        workspace.trialEndsAt == null;
 
       const stripeSession = await stripe.checkout.sessions.create({
         ...(workspace.stripeId
