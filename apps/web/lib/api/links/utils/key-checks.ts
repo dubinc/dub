@@ -41,7 +41,7 @@ export async function keyChecks({
     };
   }
 
-  if (isDubDomain(domain) && process.env.NEXT_PUBLIC_IS_DUB) {
+  if (isDubDomain(domain)) {
     if (domain === "dub.sh" || domain === "dub.link") {
       if (DEFAULT_REDIRECTS[key] || RESERVED_SLUGS.includes(key)) {
         return {

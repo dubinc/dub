@@ -179,7 +179,7 @@ export default function WorkspaceBillingUpgradePage() {
                   stripeId &&
                     isDowngradePlan({
                       currentPlan: currentPlan || "free",
-                      currentTier: currentPlanTier,
+                      currentTier: currentPlanTier ?? undefined,
                       newPlan: plan.name,
                       newTier: planTier,
                     }),

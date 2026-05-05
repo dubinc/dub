@@ -40,6 +40,11 @@ export const deleteProgramInviteAction = authActionClient
           program: true,
           partner: true,
           links: true,
+          programPartnerTags: {
+            include: {
+              partnerTag: true,
+            },
+          },
         },
       });
 
@@ -61,7 +66,15 @@ export const deleteProgramInviteAction = authActionClient
         },
       }),
 
-      bulkDeleteLinks(linksToDelete),
+      bulkDeleteLinks(
+        linksToDelete.map((link) => ({
+          ...link,
+          programEnrollment: {
+            groupId: programEnrollment.groupId,
+            programPartnerTags: programEnrollment.programPartnerTags,
+          },
+        })),
+      ),
 
       prisma.discoveredPartner.delete({
         where: {

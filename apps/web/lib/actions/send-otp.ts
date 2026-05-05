@@ -38,56 +38,52 @@ export const sendOtpAction = actionClient
       throw new Error("Too many requests. Please try again later.");
     }
 
-    if (email.includes("+") && isGenericEmail(email)) {
-      throw new Error(
-        "Email addresses with + are not allowed. Please use your work email instead.",
-      );
-    }
+    const isGenericEmailWithPlus = email.includes("+") && isGenericEmail(email);
 
-    const domain = email.split("@")[1];
+    const emailDomain = email.split("@")[1];
 
-    if (process.env.NEXT_PUBLIC_IS_DUB) {
-      const [isDisposable, emailDomainTerms] = await Promise.all([
-        redis.sismember("disposableEmailDomains", domain),
-        process.env.EDGE_CONFIG ? get("emailDomainTerms") : [],
+    const [isDisposable, emailDomainTerms] = await Promise.all([
+      redis.sismember("disposableEmailDomains", emailDomain),
+      process.env.EDGE_CONFIG ? get("emailDomainTerms") : [],
+    ]);
+
+    // Only build the regex if we have at least one term; otherwise set to null
+    const blacklistedEmailDomainTermsRegex =
+      emailDomainTerms && Array.isArray(emailDomainTerms)
+        ? new RegExp(
+            emailDomainTerms
+              .map((term: string) =>
+                term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+              ) // replace special characters with escape sequences
+              .join("|"),
+          )
+        : null;
+
+    // if any of the flags match, run one final edge case check, before throwing an error
+    if (
+      isGenericEmailWithPlus ||
+      isDisposable ||
+      (blacklistedEmailDomainTermsRegex &&
+        blacklistedEmailDomainTermsRegex.test(emailDomain))
+    ) {
+      // edge case: the user already has a partner account on Dub with this email address,
+      // or they have an existing application for a program, we can allow them to continue
+      const [isPartnerAccount, hasExistingApplications] = await Promise.all([
+        prisma.partner.findUnique({
+          where: {
+            email,
+          },
+        }),
+        prisma.programApplication.findFirst({
+          where: {
+            email,
+          },
+        }),
       ]);
-
-      // Only build the regex if we have at least one term; otherwise set to null
-      const blacklistedEmailDomainTermsRegex =
-        emailDomainTerms && Array.isArray(emailDomainTerms)
-          ? new RegExp(
-              emailDomainTerms
-                .map((term: string) =>
-                  term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-                ) // replace special characters with escape sequences
-                .join("|"),
-            )
-          : null;
-
-      if (
-        isDisposable ||
-        (blacklistedEmailDomainTermsRegex &&
-          blacklistedEmailDomainTermsRegex.test(domain))
-      ) {
-        // edge case: the user already has a partner account on Dub with this email address,
-        // or they have an existing application for a program, we can allow them to continue
-        const [isPartnerAccount, hasExistingApplications] = await Promise.all([
-          prisma.partner.findUnique({
-            where: {
-              email,
-            },
-          }),
-          prisma.programApplication.findFirst({
-            where: {
-              email,
-            },
-          }),
-        ]);
-        if (!isPartnerAccount && !hasExistingApplications) {
-          throw new Error(
-            "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at dub.co/support",
-          );
-        }
+      if (!isPartnerAccount && !hasExistingApplications) {
+        throw new Error(
+          "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at dub.co/support",
+        );
       }
     }
 

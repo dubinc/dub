@@ -4,11 +4,14 @@ import { HttpClient } from "../../utils/http";
 export const deleteBountyAndSubmissions = async ({
   http,
   bountyId,
+  query = {},
 }: {
   http: HttpClient;
   bountyId: string;
+  query?: Record<string, string>;
 }) => {
   await http.delete({
     path: `/e2e/bounties/${bountyId}`,
+    query,
   });
 };

@@ -24,6 +24,7 @@ export type PlanDetails = {
     payouts: number;
     domains: number;
     tags: number;
+    partnerTags: number;
     folders: number;
     groups: number;
     networkInvites: number;
@@ -142,6 +143,7 @@ export const PLANS: PlanDetails[] = [
       payouts: 0,
       domains: 3,
       tags: 5,
+      partnerTags: 0,
       folders: 0,
       groups: 0,
       networkInvites: 0,
@@ -166,6 +168,7 @@ export const PLANS: PlanDetails[] = [
       payouts: 0,
       domains: 10,
       tags: 25,
+      partnerTags: 0,
       folders: 3,
       groups: 0,
       networkInvites: 0,
@@ -256,6 +259,7 @@ export const PLANS: PlanDetails[] = [
       payouts: 2_500_00,
       domains: 100,
       tags: INFINITY_NUMBER,
+      partnerTags: 10,
       folders: 20,
       groups: 3,
       networkInvites: 0,
@@ -365,6 +369,7 @@ export const PLANS: PlanDetails[] = [
       payouts: 15_000_00,
       domains: 250,
       tags: INFINITY_NUMBER,
+      partnerTags: INFINITY_NUMBER,
       folders: 50,
       groups: INFINITY_NUMBER,
       networkInvites: 0,
@@ -483,6 +488,7 @@ export const PLANS: PlanDetails[] = [
       payouts: INFINITY_NUMBER,
       domains: 250,
       tags: INFINITY_NUMBER,
+      partnerTags: INFINITY_NUMBER,
       folders: INFINITY_NUMBER,
       groups: INFINITY_NUMBER,
       networkInvites: 20,

@@ -8,7 +8,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { DeviceSection } from "@/ui/analytics/device-section";
 import { LocationSection } from "@/ui/analytics/location-section";
-import { PartnerSection } from "@/ui/analytics/partner-section";
+import { PartnerSegmentsSection } from "@/ui/analytics/partner-segments-section";
 import { ReferrersUTMs } from "@/ui/analytics/referrers-utms";
 import { useAnalyticsFilters } from "@/ui/analytics/use-analytics-filters";
 import { useAnalyticsQuery } from "@/ui/analytics/use-analytics-query";
@@ -287,7 +287,7 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
           <ApplicationsAnalyticsCards stage={applicationsStage} />
         ) : (
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <PartnerSection />
+            <PartnerSegmentsSection />
             <ReferrersUTMs />
             <LocationSection />
             <DeviceSection />

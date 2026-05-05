@@ -7,7 +7,7 @@ TAGS "Dub Endpoints"
 NODE month_intervals
 SQL >
 
-    %
+%
         WITH
             toStartOfMonth(
                 toDateTime64({{ DateTime64(start, '2024-02-24 00:00:00.000') }}, 3),
@@ -32,7 +32,7 @@ SQL >
 NODE day_intervals
 SQL >
 
-    %
+%
     WITH
         toStartOfDay(
             toDateTime64({{ DateTime64(start, '2024-02-24 00:00:00.000') }}, 3),
@@ -58,7 +58,7 @@ SQL >
 NODE hour_intervals
 SQL >
 
-    %
+%
         WITH
             toStartOfHour(
                 toDateTime64({{ DateTime64(start, '2024-05-22 00:00:00.000') }}, 3),
@@ -80,73 +80,77 @@ SQL >
 NODE workspace_links
 SQL >
 
-    %
-    SELECT link_id
-    FROM dub_links_metadata_latest FINAL
-    WHERE
-        workspace_id
-        = {{
-            String(
-                workspaceId,
-                'cl7pj5kq4006835rbjlt2ofka',
-                description="The unique ID for the workspace",
-                required=True,
+%
+SELECT link_id
+FROM dub_links_metadata_latest FINAL
+WHERE
+    workspace_id
+    = {{
+        String(
+            workspaceId,
+            'cl7pj5kq4006835rbjlt2ofka',
+            description="The unique ID for the workspace",
+            required=True,
+        )
+    }}
+    AND deleted == 0
+    {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
+    {% if defined(partnerId) %}
+        {% if defined(partnerIdOperator) and String(partnerIdOperator) == 'NOT IN' %}
+            AND partner_id NOT IN {{ Array(partnerId, 'String') }}
+        {% else %} AND partner_id IN {{ Array(partnerId, 'String') }}
+        {% end %}
+    {% end %}
+    {% if defined(groupId) %}
+        {% if defined(groupIdOperator) and String(groupIdOperator) == 'NOT IN' %}
+            AND partner_group_id NOT IN {{ Array(groupId, 'String') }}
+        {% else %} AND partner_group_id IN {{ Array(groupId, 'String') }}
+        {% end %}
+    {% end %}
+    {% if defined(partnerTagId) %}
+        {% if defined(partnerTagIdOperator) and String(partnerTagIdOperator) == 'NOT IN' %}
+            AND length(
+                arrayFilter(x -> x NOT IN {{ Array(partnerTagId, 'String') }}, partner_tag_ids)
             )
-        }}
-        AND deleted == 0
-        {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
-        {% if defined(partnerId) %}
-            {% if defined(partnerIdOperator) and String(partnerIdOperator) == 'NOT IN' %}
-                AND partner_id NOT IN {{ Array(partnerId, 'String') }}
-            {% else %}
-                AND partner_id IN {{ Array(partnerId, 'String') }}
-            {% end %}
+            = length(partner_tag_ids)
+        {% else %} AND arrayIntersect(partner_tag_ids, {{ Array(partnerTagId, 'String') }}) != []
         {% end %}
-        {% if defined(groupId) %}
-            {% if defined(groupIdOperator) and String(groupIdOperator) == 'NOT IN' %}
-                AND partner_group_id NOT IN {{ Array(groupId, 'String') }}
-            {% else %}
-                AND partner_group_id IN {{ Array(groupId, 'String') }}
-            {% end %}
+    {% end %}
+    {% if defined(tenantId) %}
+        {% if defined(tenantIdOperator) and String(tenantIdOperator) == 'NOT IN' %}
+            AND tenant_id NOT IN {{ Array(tenantId, 'String') }}
+        {% else %} AND tenant_id IN {{ Array(tenantId, 'String') }}
         {% end %}
-        {% if defined(tenantId) %}
-            {% if defined(tenantIdOperator) and String(tenantIdOperator) == 'NOT IN' %}
-                AND tenant_id NOT IN {{ Array(tenantId, 'String') }}
-            {% else %}
-                AND tenant_id IN {{ Array(tenantId, 'String') }}
-            {% end %}
+    {% end %}
+    {% if defined(domain) %}
+        {% if defined(domainOperator) and String(domainOperator) == 'NOT IN' %}
+            AND domain NOT IN {{ Array(domain, 'String') }}
+        {% else %} AND domain IN {{ Array(domain, 'String') }}
         {% end %}
-        {% if defined(domain) %}
-            {% if defined(domainOperator) and String(domainOperator) == 'NOT IN' %}
-                AND domain NOT IN {{ Array(domain, 'String') }}
-            {% else %}
-                AND domain IN {{ Array(domain, 'String') }}
-            {% end %}
+    {% end %}
+    {% if defined(tagId) %}
+        {% if defined(tagIdOperator) and String(tagIdOperator) == 'NOT IN' %}
+            AND length(arrayFilter(x -> x NOT IN {{ Array(tagId, 'String') }}, tag_ids))
+            = length(tag_ids)
+        {% else %} AND arrayIntersect(tag_ids, {{ Array(tagId, 'String') }}) != []
         {% end %}
-        {% if defined(tagId) %}
-            {% if defined(tagIdOperator) and String(tagIdOperator) == 'NOT IN' %}
-                AND length(arrayFilter(x -> x NOT IN {{ Array(tagId, 'String') }}, tag_ids)) = length(tag_ids)
-            {% else %}
-                AND arrayIntersect(tag_ids, {{ Array(tagId, 'String') }}) != []
-            {% end %}
+    {% end %}
+    {% if defined(folderId) %}
+        {% if defined(folderIdOperator) and String(folderIdOperator) == 'NOT IN' %}
+            AND folder_id NOT IN {{ Array(folderId, 'String') }}
+        {% else %} AND folder_id IN {{ Array(folderId, 'String') }}
         {% end %}
-        {% if defined(folderId) %}
-            {% if defined(folderIdOperator) and String(folderIdOperator) == 'NOT IN' %}
-                AND folder_id NOT IN {{ Array(folderId, 'String') }}
-            {% else %}
-                AND folder_id IN {{ Array(folderId, 'String') }}
-            {% end %}
-        {% end %}
-        {% if defined(root) %}
-            {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
-        {% end %}
+    {% end %}
+    {% if defined(root) %}
+        {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
+    {% end %}
 
 
 
 NODE timeseries_clicks_data
 SQL >
 
-    %
+%
     SELECT
         {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
         {% elif granularity == "month" %}
@@ -289,7 +293,7 @@ SQL >
 NODE timeseries_clicks
 SQL >
 
-    %
+%
         SELECT formatDateTime(interval, '%FT%T.000%z') as groupByField, clicks
         FROM
             {% if granularity == "minute" %} minute_intervals
@@ -304,7 +308,7 @@ SQL >
 NODE timeseries_leads_data
 SQL >
 
-    %
+%
     SELECT
         {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
         {% elif granularity == "month" %}
@@ -479,7 +483,7 @@ SQL >
 NODE timeseries_leads
 SQL >
 
-    %
+%
         SELECT formatDateTime(interval, '%FT%T.000%z') as groupByField, leads
         FROM
             {% if granularity == "minute" %} minute_intervals
@@ -494,7 +498,7 @@ SQL >
 NODE first_sale_by_link_customer
 SQL >
 
-    %
+%
     SELECT workspace_id, link_id, customer_id, minMerge(first_sale_state) AS first_sale_ts
     FROM dub_first_sale_mv
     WHERE
@@ -514,7 +518,7 @@ SQL >
 NODE timeseries_sales_data
 SQL >
 
-    %
+%
     SELECT
         {% if granularity == "hour" %}
             toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
@@ -726,7 +730,7 @@ SQL >
 NODE timeseries_sales
 SQL >
 
-    %
+%
         SELECT formatDateTime(interval, '%FT%T.000%z') as groupByField, sales, amount, amount as saleAmount
         FROM
             {% if granularity == "minute" %} minute_intervals
@@ -751,7 +755,7 @@ SQL >
 NODE endpoint
 SQL >
 
-    %
+%
     SELECT *
     FROM
         {% if eventType == 'clicks' %} timeseries_clicks

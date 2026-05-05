@@ -7,73 +7,77 @@ TAGS "Dub Endpoints"
 NODE workspace_links
 SQL >
 
-    %
-    SELECT link_id
-    FROM dub_links_metadata_latest FINAL
-    WHERE
-        workspace_id
-        = {{
-            String(
-                workspaceId,
-                'cl7pj5kq4006835rbjlt2ofka',
-                description="The unique ID for the workspace",
-                required=True,
+%
+SELECT link_id
+FROM dub_links_metadata_latest FINAL
+WHERE
+    workspace_id
+    = {{
+        String(
+            workspaceId,
+            'cl7pj5kq4006835rbjlt2ofka',
+            description="The unique ID for the workspace",
+            required=True,
+        )
+    }}
+    AND deleted == 0
+    {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
+    {% if defined(partnerId) %}
+        {% if defined(partnerIdOperator) and String(partnerIdOperator) == 'NOT IN' %}
+            AND partner_id NOT IN {{ Array(partnerId, 'String') }}
+        {% else %} AND partner_id IN {{ Array(partnerId, 'String') }}
+        {% end %}
+    {% end %}
+    {% if defined(groupId) %}
+        {% if defined(groupIdOperator) and String(groupIdOperator) == 'NOT IN' %}
+            AND partner_group_id NOT IN {{ Array(groupId, 'String') }}
+        {% else %} AND partner_group_id IN {{ Array(groupId, 'String') }}
+        {% end %}
+    {% end %}
+    {% if defined(partnerTagId) %}
+        {% if defined(partnerTagIdOperator) and String(partnerTagIdOperator) == 'NOT IN' %}
+            AND length(
+                arrayFilter(x -> x NOT IN {{ Array(partnerTagId, 'String') }}, partner_tag_ids)
             )
-        }}
-        AND deleted == 0
-        {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
-        {% if defined(partnerId) %}
-            {% if defined(partnerIdOperator) and String(partnerIdOperator) == 'NOT IN' %}
-                AND partner_id NOT IN {{ Array(partnerId, 'String') }}
-            {% else %}
-                AND partner_id IN {{ Array(partnerId, 'String') }}
-            {% end %}
+            = length(partner_tag_ids)
+        {% else %} AND arrayIntersect(partner_tag_ids, {{ Array(partnerTagId, 'String') }}) != []
         {% end %}
-        {% if defined(groupId) %}
-            {% if defined(groupIdOperator) and String(groupIdOperator) == 'NOT IN' %}
-                AND partner_group_id NOT IN {{ Array(groupId, 'String') }}
-            {% else %}
-                AND partner_group_id IN {{ Array(groupId, 'String') }}
-            {% end %}
+    {% end %}
+    {% if defined(tenantId) %}
+        {% if defined(tenantIdOperator) and String(tenantIdOperator) == 'NOT IN' %}
+            AND tenant_id NOT IN {{ Array(tenantId, 'String') }}
+        {% else %} AND tenant_id IN {{ Array(tenantId, 'String') }}
         {% end %}
-        {% if defined(tenantId) %}
-            {% if defined(tenantIdOperator) and String(tenantIdOperator) == 'NOT IN' %}
-                AND tenant_id NOT IN {{ Array(tenantId, 'String') }}
-            {% else %}
-                AND tenant_id IN {{ Array(tenantId, 'String') }}
-            {% end %}
+    {% end %}
+    {% if defined(domain) %}
+        {% if defined(domainOperator) and String(domainOperator) == 'NOT IN' %}
+            AND domain NOT IN {{ Array(domain, 'String') }}
+        {% else %} AND domain IN {{ Array(domain, 'String') }}
         {% end %}
-        {% if defined(domain) %}
-            {% if defined(domainOperator) and String(domainOperator) == 'NOT IN' %}
-                AND domain NOT IN {{ Array(domain, 'String') }}
-            {% else %}
-                AND domain IN {{ Array(domain, 'String') }}
-            {% end %}
+    {% end %}
+    {% if defined(tagId) %}
+        {% if defined(tagIdOperator) and String(tagIdOperator) == 'NOT IN' %}
+            AND length(arrayFilter(x -> x NOT IN {{ Array(tagId, 'String') }}, tag_ids))
+            = length(tag_ids)
+        {% else %} AND arrayIntersect(tag_ids, {{ Array(tagId, 'String') }}) != []
         {% end %}
-        {% if defined(tagId) %}
-            {% if defined(tagIdOperator) and String(tagIdOperator) == 'NOT IN' %}
-                AND length(arrayFilter(x -> x NOT IN {{ Array(tagId, 'String') }}, tag_ids)) = length(tag_ids)
-            {% else %}
-                AND arrayIntersect(tag_ids, {{ Array(tagId, 'String') }}) != []
-            {% end %}
+    {% end %}
+    {% if defined(folderId) %}
+        {% if defined(folderIdOperator) and String(folderIdOperator) == 'NOT IN' %}
+            AND folder_id NOT IN {{ Array(folderId, 'String') }}
+        {% else %} AND folder_id IN {{ Array(folderId, 'String') }}
         {% end %}
-        {% if defined(folderId) %}
-            {% if defined(folderIdOperator) and String(folderIdOperator) == 'NOT IN' %}
-                AND folder_id NOT IN {{ Array(folderId, 'String') }}
-            {% else %}
-                AND folder_id IN {{ Array(folderId, 'String') }}
-            {% end %}
-        {% end %}
-        {% if defined(root) %}
-            {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
-        {% end %}
+    {% end %}
+    {% if defined(root) %}
+        {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
+    {% end %}
 
 
 
 NODE count_clicks
 SQL >
 
-    %
+%
     SELECT 'count' as groupByField, COUNT(*) as clicks
     FROM
         {% if defined(customerId) %} dub_click_events_id
@@ -95,7 +99,7 @@ SQL >
             {% else %}
                 AND link_id IN {{ Array(linkId, 'String') }}
             {% end %}
-        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
             tenantId
         ) or defined(folderId) or defined(domain) or defined(
             tagId
@@ -229,7 +233,7 @@ SQL >
 NODE count_leads
 SQL >
 
-    %
+%
     SELECT 'count' as groupByField, COUNT(*) as leads
     FROM dub_lead_events_mv
     WHERE
@@ -241,7 +245,7 @@ SQL >
             {% else %}
                 AND link_id IN {{ Array(linkId, 'String') }}
             {% end %}
-        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
             tenantId
         ) or defined(folderId) or defined(domain) or defined(
             tagId
@@ -392,7 +396,7 @@ SQL >
 NODE first_sale_by_link_customer
 SQL >
 
-    %
+%
     SELECT workspace_id, link_id, customer_id, minMerge(first_sale_state) AS first_sale_ts
     FROM dub_first_sale_mv
     WHERE
@@ -412,7 +416,7 @@ SQL >
 NODE count_sales
 SQL >
 
-    %
+%
     SELECT 'count' as groupByField, sales, amount, amount AS saleAmount
     FROM
     (
@@ -444,7 +448,7 @@ SQL >
                     {% else %}
                         AND se.link_id IN {{ Array(linkId, 'String') }}
                     {% end %}
-                {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+                {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
                     tenantId
                 ) or defined(folderId) or defined(domain) or defined(
                     tagId
@@ -600,7 +604,7 @@ SQL >
 NODE count_composite
 SQL >
 
-    %
+%
     SELECT 'count' as groupByField, clicks, leads, sales, amount, saleAmount
     FROM count_clicks, count_leads, count_sales
 
@@ -609,7 +613,7 @@ SQL >
 NODE endpoint
 SQL >
 
-    %
+%
     SELECT *
     FROM
         {% if eventType == 'clicks' %} count_clicks

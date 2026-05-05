@@ -42,6 +42,7 @@ model Project {
 
   domainsLimit        Int @default(3)
   tagsLimit           Int @default(5)
+  partnerTagsLimit    Int @default(0)
   foldersUsage        Int @default(0)
   foldersLimit        Int @default(0)
   partnersUsage       Int @default(0)
