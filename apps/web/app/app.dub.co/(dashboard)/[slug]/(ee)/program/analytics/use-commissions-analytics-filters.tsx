@@ -1,5 +1,6 @@
 "use client";
 
+import useCommissionAnalytics from "@/lib/swr/use-commission-analytics";
 import useGroups from "@/lib/swr/use-groups";
 import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import usePartners from "@/lib/swr/use-partners";
@@ -11,7 +12,12 @@ import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { CommissionType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { Sliders, Tag, Users, Users6 } from "@dub/ui/icons";
-import { capitalize, FilterOperator, parseFilterValue } from "@dub/utils";
+import {
+  capitalize,
+  FilterOperator,
+  nFormatter,
+  parseFilterValue,
+} from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -23,7 +29,7 @@ const COMMISSION_FILTER_KEYS = [
 ] as const;
 
 export function useCommissionsAnalyticsFilters(
-  _commissionsQueryString?: string,
+  commissionsQueryString?: string,
 ) {
   const { slug } = useWorkspace();
   const { searchParamsObj, queryParams } = useRouterStuff();
@@ -37,6 +43,18 @@ export function useCommissionsAnalyticsFilters(
   );
   const { groups } = useGroups();
   const { partnerTags } = usePartnerTags();
+
+  const { data: partnerTagRows } = useCommissionAnalytics({
+    groupBy: "partnerTag",
+    queryString: commissionsQueryString,
+    enabled: !!commissionsQueryString,
+  });
+
+  const partnerTagCountMap = useMemo(() => {
+    const map = new Map<string, number>();
+    partnerTagRows?.forEach((row) => map.set(row.key, row.count));
+    return map;
+  }, [partnerTagRows]);
 
   const filters = useMemo(
     () => [
@@ -72,6 +90,9 @@ export function useCommissionsAnalyticsFilters(
           partnerTags?.map((tag) => ({
             value: tag.id,
             label: tag.name,
+            right: partnerTagCountMap.has(tag.id)
+              ? nFormatter(partnerTagCountMap.get(tag.id)!, { full: true })
+              : undefined,
           })) ?? null,
       },
       {
@@ -85,7 +106,7 @@ export function useCommissionsAnalyticsFilters(
         })),
       },
     ],
-    [partners, groups, partnerTags, slug],
+    [partners, groups, partnerTags, partnerTagCountMap, slug],
   );
 
   const activeFilters = useMemo(() => {
