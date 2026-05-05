@@ -107,11 +107,8 @@ export const POST = withWorkspace(
       // Only apply trial if the customer is a:
       // - new Stripe customer
       // - no prior/existing trial on workspace
-      // - is coming from onboarding
       const shouldApplyCheckoutTrial =
-        workspace.stripeId == null &&
-        workspace.trialEndsAt == null &&
-        onboarding;
+        workspace.stripeId == null && workspace.trialEndsAt == null;
 
       const stripeSession = await stripe.checkout.sessions.create({
         ...(workspace.stripeId
