@@ -392,6 +392,8 @@ async function byPartnerTag({
       ? { ...rawTypeFilter, values: validTypeValues }
       : null;
 
+  const partnerTagFilter = parseFilterValue(partnerTagId);
+
   const conditions = commissionSqlConditions({
     programId,
     startDate,
@@ -402,6 +404,13 @@ async function byPartnerTag({
     groupIdParam: groupId,
     partnerTagIdParam: partnerTagId,
   });
+
+  if (partnerTagFilter?.sqlOperator === "IN") {
+    const list = Prisma.join(
+      partnerTagFilter.values.map((v) => Prisma.sql`${v}`),
+    );
+    conditions.push(Prisma.sql`ppt.partnerTagId IN (${list})`);
+  }
 
   const whereClause = Prisma.join(conditions, " AND ");
 
