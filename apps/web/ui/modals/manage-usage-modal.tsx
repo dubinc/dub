@@ -198,7 +198,7 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
                     : isDowngradeSuggested
                       ? "Downgrade"
                       : planPeriod && planPeriod !== period
-                        ? `Switch to ${period}`
+                        ? `Switch to ${suggestedPlan.name} ${capitalize(period)}`
                         : isEligibleForTrial
                           ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial`
                           : `Upgrade to ${suggestedPlan.name} ${capitalize(period)}`

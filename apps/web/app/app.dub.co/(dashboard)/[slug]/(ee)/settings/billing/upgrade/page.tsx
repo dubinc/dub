@@ -20,7 +20,6 @@ import {
   Users2,
 } from "@dub/ui";
 import {
-  BUSINESS_PLAN,
   capitalize,
   cn,
   DUB_TRIAL_PERIOD_DAYS,
@@ -91,20 +90,10 @@ export default function WorkspaceBillingUpgradePage() {
   const recommendedPlan = useMemo(() => {
     if (!eventsUsage || !linksUsage) return null;
 
-    const suggestedPlan = getSuggestedPlan({
+    return getSuggestedPlan({
       events: eventsUsage,
       links: linksUsage,
     });
-
-    // On the billing upgrade page, treat Business as the minimum recommendation.
-    if (suggestedPlan.plan.name === "Pro" && suggestedPlan.planTier === 1) {
-      return {
-        plan: BUSINESS_PLAN,
-        planTier: 1,
-      };
-    }
-
-    return suggestedPlan;
   }, [linksUsage, eventsUsage]);
 
   const plans: { plan: PlanDetails; planTier: number }[] = useMemo(
@@ -290,7 +279,7 @@ export default function WorkspaceBillingUpgradePage() {
                                   ? "Activate plan"
                                   : "Current plan"
                                 : isCurrentPlan
-                                  ? `Switch to ${period}`
+                                  ? `Switch to ${plan.name} ${capitalize(period)}`
                                   : isDowngrade
                                     ? "Downgrade"
                                     : isWorkspaceBillingTrialActive(trialEndsAt)
@@ -322,8 +311,8 @@ export default function WorkspaceBillingUpgradePage() {
             <div className="bg-bg-muted border-subtle absolute inset-x-0 -top-2.5 bottom-0 rounded-b-[12px] border" />
 
             <AdjustUsageRow
-              onLinksUsageChange={(value) => setLinksUsage(value)}
               onEventsUsageChange={(value) => setEventsUsage(value)}
+              onLinksUsageChange={(value) => setLinksUsage(value)}
             />
           </div>
 

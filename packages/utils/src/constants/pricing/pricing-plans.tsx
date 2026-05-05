@@ -620,17 +620,13 @@ export const isDowngradePlan = ({
 export const getSuggestedPlan = ({
   events,
   links,
-  suggestFree = false,
 }: {
   events?: number;
   links?: number;
-  suggestFree?: boolean;
 }): { plan: PlanDetails; planTier: number } => {
   let match: { plan: PlanDetails; planTier: number } | null = null;
 
   for (const p of PLANS) {
-    if (!suggestFree && p.price.monthly === 0) continue;
-
     const matchingTier = [
       1,
       ...Object.keys(p.tiers ?? {})
@@ -652,7 +648,7 @@ export const getSuggestedPlan = ({
     }
   }
 
-  return match ?? { plan: ENTERPRISE_PLAN, planTier: 1 };
+  return match ?? { plan: BUSINESS_PLAN, planTier: 1 };
 };
 
 export const isLegacyBusinessPlan = ({
