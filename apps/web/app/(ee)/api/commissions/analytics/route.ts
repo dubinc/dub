@@ -27,6 +27,12 @@ type CommissionGroupIdQueryRow = {
   count: bigint;
 };
 
+type CommissionPartnerTagQueryRow = {
+  partnerTagId: string | null;
+  earnings: bigint;
+  count: bigint;
+};
+
 const excludedStatuses = [
   CommissionStatus.duplicate,
   CommissionStatus.fraud,
@@ -41,6 +47,7 @@ function commissionSqlConditions({
   partnerFilter,
   typeFilter,
   groupIdParam,
+  partnerTagIdParam,
 }: {
   programId: string;
   startDate: Date;
@@ -49,6 +56,7 @@ function commissionSqlConditions({
   partnerFilter: ReturnType<typeof parseFilterValue>;
   typeFilter: ReturnType<typeof parseFilterValue> | null;
   groupIdParam: string | undefined;
+  partnerTagIdParam: string | undefined;
 }): Prisma.Sql[] {
   const conditions: Prisma.Sql[] = [
     Prisma.sql`c.programId = ${programId}`,
@@ -94,6 +102,25 @@ function commissionSqlConditions({
     }
   }
 
+  if (partnerTagIdParam) {
+    const partnerTagFilter = parseFilterValue(partnerTagIdParam);
+    if (partnerTagFilter) {
+      const list = Prisma.join(
+        partnerTagFilter.values.map((v) => Prisma.sql`${v}`),
+      );
+      const op =
+        partnerTagFilter.sqlOperator === "NOT IN"
+          ? Prisma.sql`NOT IN`
+          : Prisma.sql`IN`;
+      conditions.push(Prisma.sql`EXISTS (
+        SELECT 1 FROM ProgramPartnerTag ppt
+        WHERE ppt.programId = c.programId
+          AND ppt.partnerId = c.partnerId
+          AND ppt.partnerTagId ${op} (${list})
+      )`);
+    }
+  }
+
   return conditions;
 }
 
@@ -123,6 +150,10 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     return byGroupId({ programId, parsed, startDate, endDate });
   }
 
+  if (groupBy === "partnerTag") {
+    return byPartnerTag({ programId, parsed, startDate, endDate });
+  }
+
   if (groupBy === "partnerId") {
     return byPartnerId({ programId, parsed, startDate, endDate });
   }
@@ -141,9 +172,10 @@ async function byType({
   startDate: Date;
   endDate: Date;
 }) {
-  const { status, partnerId, groupId, type } = parsed;
+  const { status, partnerId, groupId, partnerTagId, type } = parsed;
   const partnerFilter = parseFilterValue(partnerId);
   const groupFilter = parseFilterValue(groupId);
+  const partnerTagFilter = parseFilterValue(partnerTagId);
 
   const rawTypeFilter = parseFilterValue(type);
   const validCommissionTypes = new Set(Object.values(CommissionType));
@@ -167,6 +199,21 @@ async function byType({
       ? { ...rawTypeFilter, values: validTypeValues }
       : null;
 
+  const programEnrollmentFilter = {
+    ...(groupFilter && {
+      groupId:
+        groupFilter.sqlOperator === "NOT IN"
+          ? { notIn: groupFilter.values }
+          : { in: groupFilter.values },
+    }),
+    ...(partnerTagFilter && {
+      programPartnerTags:
+        partnerTagFilter.sqlOperator === "NOT IN"
+          ? { none: { partnerTagId: { in: partnerTagFilter.values } } }
+          : { some: { partnerTagId: { in: partnerTagFilter.values } } },
+    }),
+  };
+
   const baseWhere: Prisma.CommissionWhereInput = {
     programId,
     createdAt: { gte: startDate, lt: endDate },
@@ -183,13 +230,8 @@ async function byType({
           ? { notIn: typeFilter.values }
           : { in: typeFilter.values },
     }),
-    ...(groupFilter && {
-      programEnrollment: {
-        groupId:
-          groupFilter.sqlOperator === "NOT IN"
-            ? { notIn: groupFilter.values }
-            : { in: groupFilter.values },
-      },
+    ...(Object.keys(programEnrollmentFilter).length > 0 && {
+      programEnrollment: programEnrollmentFilter,
     }),
   };
 
@@ -224,7 +266,7 @@ async function byGroupId({
   startDate: Date;
   endDate: Date;
 }) {
-  const { status, partnerId, groupId, type } = parsed;
+  const { status, partnerId, groupId, partnerTagId, type } = parsed;
   const partnerFilter = parseFilterValue(partnerId);
 
   const rawTypeFilter = parseFilterValue(type);
@@ -257,6 +299,7 @@ async function byGroupId({
     partnerFilter,
     typeFilter,
     groupIdParam: groupId,
+    partnerTagIdParam: partnerTagId,
   });
 
   const whereClause = Prisma.join(conditions, " AND ");
@@ -308,6 +351,92 @@ async function byGroupId({
   return NextResponse.json(commissionAnalyticsSchema.groupId.parse(result));
 }
 
+async function byPartnerTag({
+  programId,
+  parsed,
+  startDate,
+  endDate,
+}: {
+  programId: string;
+  parsed: CommissionAnalyticsQuery;
+  startDate: Date;
+  endDate: Date;
+}) {
+  const { status, partnerId, groupId, partnerTagId, type } = parsed;
+  const partnerFilter = parseFilterValue(partnerId);
+
+  const rawTypeFilter = parseFilterValue(type);
+  const validCommissionTypes = new Set(Object.values(CommissionType));
+
+  const validTypeValues = rawTypeFilter
+    ? (rawTypeFilter.values.filter((v) =>
+        validCommissionTypes.has(v as CommissionType),
+      ) as CommissionType[])
+    : [];
+
+  if (
+    rawTypeFilter?.sqlOperator === "IN" &&
+    rawTypeFilter.values.length > 0 &&
+    validTypeValues.length === 0
+  ) {
+    return NextResponse.json(commissionAnalyticsSchema.partnerTag.parse([]));
+  }
+
+  const typeFilter =
+    rawTypeFilter && validTypeValues.length > 0
+      ? { ...rawTypeFilter, values: validTypeValues }
+      : null;
+
+  const conditions = commissionSqlConditions({
+    programId,
+    startDate,
+    endDate,
+    status,
+    partnerFilter,
+    typeFilter,
+    groupIdParam: groupId,
+    partnerTagIdParam: partnerTagId,
+  });
+
+  const whereClause = Prisma.join(conditions, " AND ");
+
+  const rows = await prisma.$queryRaw<CommissionPartnerTagQueryRow[]>(
+    Prisma.sql`
+      SELECT
+        ppt.partnerTagId AS partnerTagId,
+        SUM(c.earnings) AS earnings,
+        COUNT(c.id) AS count
+      FROM Commission c
+      JOIN ProgramPartnerTag ppt
+        ON ppt.programId = c.programId
+       AND ppt.partnerId = c.partnerId
+      WHERE ${whereClause}
+      GROUP BY ppt.partnerTagId
+      ORDER BY earnings DESC`,
+  );
+
+  const partnerTagIds = rows.map((r) => r.partnerTagId!);
+
+  const partnerTags =
+    partnerTagIds.length > 0
+      ? await prisma.partnerTag.findMany({
+          where: { id: { in: partnerTagIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+
+  const partnerTagById = new Map(partnerTags.map((t) => [t.id, t]));
+
+  const result = rows.map((row) => ({
+    key: row.partnerTagId!,
+    label: partnerTagById.get(row.partnerTagId!)?.name ?? row.partnerTagId!,
+    earnings: Number(row.earnings),
+    count: Number(row.count),
+  }));
+
+  return NextResponse.json(commissionAnalyticsSchema.partnerTag.parse(result));
+}
+
 async function byPartnerId({
   programId,
   parsed,
@@ -319,9 +448,10 @@ async function byPartnerId({
   startDate: Date;
   endDate: Date;
 }) {
-  const { status, partnerId, groupId, type } = parsed;
+  const { status, partnerId, groupId, partnerTagId, type } = parsed;
   const partnerFilter = parseFilterValue(partnerId);
   const groupFilter = parseFilterValue(groupId);
+  const partnerTagFilter = parseFilterValue(partnerTagId);
 
   const rawTypeFilter = parseFilterValue(type);
   const validCommissionTypes = new Set(Object.values(CommissionType));
@@ -345,6 +475,21 @@ async function byPartnerId({
       ? { ...rawTypeFilter, values: validTypeValues }
       : null;
 
+  const programEnrollmentFilter = {
+    ...(groupFilter && {
+      groupId:
+        groupFilter.sqlOperator === "NOT IN"
+          ? { notIn: groupFilter.values }
+          : { in: groupFilter.values },
+    }),
+    ...(partnerTagFilter && {
+      programPartnerTags:
+        partnerTagFilter.sqlOperator === "NOT IN"
+          ? { none: { partnerTagId: { in: partnerTagFilter.values } } }
+          : { some: { partnerTagId: { in: partnerTagFilter.values } } },
+    }),
+  };
+
   const grouped = await prisma.commission.groupBy({
     by: ["partnerId"],
     where: {
@@ -363,13 +508,8 @@ async function byPartnerId({
             ? { notIn: typeFilter.values }
             : { in: typeFilter.values },
       }),
-      ...(groupFilter && {
-        programEnrollment: {
-          groupId:
-            groupFilter.sqlOperator === "NOT IN"
-              ? { notIn: groupFilter.values }
-              : { in: groupFilter.values },
-        },
+      ...(Object.keys(programEnrollmentFilter).length > 0 && {
+        programEnrollment: programEnrollmentFilter,
       }),
     },
     _sum: { earnings: true },
@@ -418,8 +558,17 @@ async function byTimeseries({
   programId: string;
   parsed: z.infer<typeof commissionAnalyticsQuerySchema>;
 }) {
-  const { start, end, interval, timezone, status, partnerId, groupId, type } =
-    parsed;
+  const {
+    start,
+    end,
+    interval,
+    timezone,
+    status,
+    partnerId,
+    groupId,
+    partnerTagId,
+    type,
+  } = parsed;
 
   const { startDate, endDate, granularity } = getStartEndDates({
     interval,
@@ -449,6 +598,7 @@ async function byTimeseries({
     partnerFilter,
     typeFilter,
     groupIdParam: groupId,
+    partnerTagIdParam: partnerTagId,
   });
 
   const whereClause = Prisma.join(conditions, " AND ");

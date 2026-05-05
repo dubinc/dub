@@ -1,6 +1,7 @@
 "use client";
 
 import useGroups from "@/lib/swr/use-groups";
+import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import usePartners from "@/lib/swr/use-partners";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
@@ -9,12 +10,17 @@ import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { CommissionType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
-import { Sliders, Users, Users6 } from "@dub/ui/icons";
+import { Sliders, Tag, Users, Users6 } from "@dub/ui/icons";
 import { capitalize, FilterOperator, parseFilterValue } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-const COMMISSION_FILTER_KEYS = ["partnerId", "groupId", "type"] as const;
+const COMMISSION_FILTER_KEYS = [
+  "partnerId",
+  "groupId",
+  "partnerTagId",
+  "type",
+] as const;
 
 export function useCommissionsAnalyticsFilters(
   _commissionsQueryString?: string,
@@ -30,6 +36,7 @@ export function useCommissionsAnalyticsFilters(
     selectedFilter === "partnerId" ? debouncedSearch : "",
   );
   const { groups } = useGroups();
+  const { partnerTags } = usePartnerTags();
 
   const filters = useMemo(
     () => [
@@ -58,6 +65,16 @@ export function useCommissionsAnalyticsFilters(
           })) ?? null,
       },
       {
+        key: "partnerTagId",
+        icon: Tag,
+        label: "Partner Tag",
+        options:
+          partnerTags?.map((tag) => ({
+            value: tag.id,
+            label: tag.name,
+          })) ?? null,
+      },
+      {
         key: "type",
         icon: Sliders,
         label: "Type",
@@ -68,7 +85,7 @@ export function useCommissionsAnalyticsFilters(
         })),
       },
     ],
-    [partners, groups, slug],
+    [partners, groups, partnerTags, slug],
   );
 
   const activeFilters = useMemo(() => {
@@ -90,6 +107,7 @@ export function useCommissionsAnalyticsFilters(
   }, [
     searchParamsObj.partnerId,
     searchParamsObj.groupId,
+    searchParamsObj.partnerTagId,
     searchParamsObj.type,
   ]);
 
