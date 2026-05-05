@@ -40,7 +40,7 @@ export const sendOtpAction = actionClient
 
     const isGenericEmailWithPlus = email.includes("+") && isGenericEmail(email);
 
-    const emailDomain = email.split("@")[1];
+    const emailDomain = (email.split("@")[1] ?? "").trim().toLowerCase();
 
     const [isDisposable, emailDomainTerms] = await Promise.all([
       redis.sismember("disposableEmailDomains", emailDomain),
@@ -51,7 +51,10 @@ export const sendOtpAction = actionClient
       emailDomainTerms && Array.isArray(emailDomainTerms)
         ? emailDomainTerms
             .map((term: string) =>
-              String(term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+              String(term)
+                .trim()
+                .toLowerCase()
+                .replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
             )
             .filter((term) => term.length > 0)
         : [];
