@@ -648,7 +648,7 @@ export const getSuggestedPlan = ({
     }
   }
 
-  return match ?? { plan: BUSINESS_PLAN, planTier: 1 };
+  return match ?? { plan: ENTERPRISE_PLAN, planTier: 1 };
 };
 
 export const isLegacyBusinessPlan = ({

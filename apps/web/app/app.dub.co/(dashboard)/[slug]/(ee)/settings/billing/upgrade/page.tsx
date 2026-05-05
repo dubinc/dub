@@ -187,7 +187,10 @@ export default function WorkspaceBillingUpgradePage() {
                     }),
                 );
 
-                const isEligibleForTrial = currentPlan === "free" && !stripeId;
+                const isEligibleForTrial =
+                  currentPlan === "free" &&
+                  stripeId == null &&
+                  trialEndsAt == null;
 
                 return (
                   <div

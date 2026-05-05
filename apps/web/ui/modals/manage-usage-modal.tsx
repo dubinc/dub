@@ -36,6 +36,7 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
     plan,
     planPeriod,
     planTier,
+    trialEndsAt,
     usageLimit,
     linksLimit,
   } = workspace;
@@ -95,7 +96,8 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
       newTier: suggestedPlanTier,
     });
 
-  const isEligibleForTrial = plan === "free" && !stripeId;
+  const isEligibleForTrial =
+    plan === "free" && stripeId == null && trialEndsAt == null;
 
   if (usageSteps.length < 2) return null;
 
