@@ -4,21 +4,11 @@ import { KeyboardShortcutProvider, TooltipProvider } from "@dub/ui";
 import PlausibleProvider from "next-plausible";
 import { ReactNode } from "react";
 import { Toaster } from "sonner";
-import { useOnboardingTrialVariant } from "./app.dub.co/(onboarding)/onboarding/use-onboarding-trial-variant";
 
 export default function RootProviders({ children }: { children: ReactNode }) {
-  const { isTrialVariant } = useOnboardingTrialVariant();
-
   return (
     <TooltipProvider>
-      <PlausibleProvider
-        enabled
-        init={{
-          customProperties: {
-            trialVariant: isTrialVariant ? "Trial" : "Control",
-          },
-        }}
-      >
+      <PlausibleProvider enabled>
         <KeyboardShortcutProvider>
           <Toaster className="pointer-events-auto" closeButton />
           {children}

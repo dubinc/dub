@@ -20,7 +20,10 @@ import {
   Users2,
 } from "@dub/ui";
 import {
+  BUSINESS_PLAN,
+  capitalize,
   cn,
+  DUB_TRIAL_PERIOD_DAYS,
   getSuggestedPlan,
   isDowngradePlan,
   isLegacyBusinessPlan,
@@ -88,10 +91,20 @@ export default function WorkspaceBillingUpgradePage() {
   const recommendedPlan = useMemo(() => {
     if (!eventsUsage || !linksUsage) return null;
 
-    return getSuggestedPlan({
+    const suggestedPlan = getSuggestedPlan({
       events: eventsUsage,
       links: linksUsage,
     });
+
+    // On the billing upgrade page, treat Business as the minimum recommendation.
+    if (suggestedPlan.plan.name === "Pro" && suggestedPlan.planTier === 1) {
+      return {
+        plan: BUSINESS_PLAN,
+        planTier: 1,
+      };
+    }
+
+    return suggestedPlan;
   }, [linksUsage, eventsUsage]);
 
   const plans: { plan: PlanDetails; planTier: number }[] = useMemo(
@@ -184,6 +197,8 @@ export default function WorkspaceBillingUpgradePage() {
                       newTier: planTier,
                     }),
                 );
+
+                const isEligibleForTrial = currentPlan === "free" && !stripeId;
 
                 return (
                   <div
@@ -280,7 +295,9 @@ export default function WorkspaceBillingUpgradePage() {
                                     ? "Downgrade"
                                     : isWorkspaceBillingTrialActive(trialEndsAt)
                                       ? "Switch trial"
-                                      : "Upgrade"
+                                      : isEligibleForTrial
+                                        ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial`
+                                        : `Upgrade to ${plan.name} ${capitalize(period)}`
                           }
                           variant={isDowngrade ? "secondary" : "primary"}
                           className="h-8 shadow-sm"

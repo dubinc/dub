@@ -15,14 +15,14 @@ const upgradePlanSchema = z.object({
     message: "Invalid baseUrl.",
   }),
   onboarding: booleanQuerySchema.nullish(),
-  isTrialVariant: booleanQuerySchema.nullish(),
 });
 
 // POST /api/workspaces/[idOrSlug]/billing/upgrade
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    let { plan, period, tier, baseUrl, onboarding, isTrialVariant } =
-      upgradePlanSchema.parse(await req.json());
+    let { plan, period, tier, baseUrl, onboarding } = upgradePlanSchema.parse(
+      await req.json(),
+    );
 
     const lookupKey =
       tier > 1 ? `${plan}${tier}_${period}` : `${plan}_${period}`;
@@ -108,12 +108,10 @@ export const POST = withWorkspace(
       // - new Stripe customer
       // - no prior/existing trial on workspace
       // - is coming from onboarding
-      // - is trial variant
       const shouldApplyCheckoutTrial =
         workspace.stripeId == null &&
         workspace.trialEndsAt == null &&
-        onboarding &&
-        isTrialVariant;
+        onboarding;
 
       const stripeSession = await stripe.checkout.sessions.create({
         ...(workspace.stripeId
