@@ -208,17 +208,16 @@ export const PATCH = withAdmin(
       workspaceId,
       previousStatus,
     } of bansForSideEffects) {
-      await resolveFraudGroups({
-        where: {
-          programId,
-          partnerId,
-        },
-        userId: reviewerUserId,
-        resolutionReason:
-          "Resolved automatically because Dub confirmed fraud (rejected enrollment).",
-      });
-
       postConfirmTasks.push(
+        resolveFraudGroups({
+          where: {
+            programId,
+            partnerId,
+          },
+          userId: reviewerUserId,
+          resolutionReason:
+            "Resolved automatically because Dub confirmed fraud (rejected enrollment).",
+        }),
         trackActivityLog({
           workspaceId,
           programId,
