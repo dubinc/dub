@@ -22,6 +22,15 @@ export const POST = withAdmin(
             program: true,
             links: true,
             groupId: true,
+            programPartnerTags: {
+              select: {
+                partnerTag: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

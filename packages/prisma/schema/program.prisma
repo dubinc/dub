@@ -91,6 +91,9 @@ model Program {
   fraudAlerts              FraudAlert[]
   referrals                PartnerReferral[]
 
+  partnerTags        PartnerTag[]
+  programPartnerTags ProgramPartnerTag[]
+
   @@index(workspaceId)
   @@index(addedToMarketplaceAt)
 }
@@ -154,6 +157,7 @@ model ProgramEnrollment {
   referrals         PartnerReferral[]
   fraudAlerts       FraudAlert[]
   discoveredPartner DiscoveredPartner?
+  programPartnerTags ProgramPartnerTag[]
 
   // unique constraints
   @@unique([partnerId, programId])

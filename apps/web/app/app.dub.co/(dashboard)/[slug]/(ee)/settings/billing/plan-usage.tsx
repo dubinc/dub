@@ -3,7 +3,7 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import useGroupsCount from "@/lib/swr/use-groups-count";
-import useTagsCount from "@/lib/swr/use-tags-count";
+import { useLinkTagsCount } from "@/lib/swr/use-link-tags-count";
 import { useUsageTimeseries } from "@/lib/swr/use-usage-timeseries";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
@@ -88,7 +88,7 @@ export default function PlanUsage() {
   const { StartPaidPlanModal, setShowStartPaidPlanModal } =
     useStartPaidPlanModal();
 
-  const { data: tags } = useTagsCount();
+  const { data: tags } = useLinkTagsCount();
   const { users } = useWorkspaceUsers();
 
   const { groupsCount } = useGroupsCount();
@@ -367,21 +367,21 @@ export default function PlanUsage() {
             )}
           >
             <UsageCategory
-              title="Custom Domains"
+              title="Custom domains"
               icon={Globe}
               usage={domains?.length}
               usageLimit={domainsLimit}
               href={`/${slug}/settings/domains`}
             />
             <UsageCategory
-              title="Folders"
+              title="Link folders"
               icon={Folder5}
               usage={foldersUsage}
               usageLimit={foldersLimit}
               href={`/${slug}/settings/library/folders`}
             />
             <UsageCategory
-              title="Tags"
+              title="Link tags"
               icon={Tag}
               usage={tags}
               usageLimit={tagsLimit}
@@ -404,7 +404,7 @@ export default function PlanUsage() {
               href={`/${slug}/program/partners`}
             />
             <UsageCategory
-              title="Partner Groups"
+              title="Partner groups"
               icon={Users6}
               usage={groupsCount ?? 0}
               usageLimit={groupsLimit}
@@ -416,7 +416,7 @@ export default function PlanUsage() {
               usage={payoutsUsage}
               usageLimit={payoutsLimit}
               unit="$"
-              href={`/${slug}/program/payouts`}
+              href={`/${slug}/program/payouts?status=pending`}
             />
             <UsageCategory
               title="Payout fees"

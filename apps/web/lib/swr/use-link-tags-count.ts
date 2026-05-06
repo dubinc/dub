@@ -6,7 +6,7 @@ import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getTagsCountQuerySchema.partial();
 
-export default function useTagsCount({
+export function useLinkTagsCount({
   query,
 }: { query?: z.infer<typeof partialQuerySchema> } = {}) {
   const { id: workspaceId } = useWorkspace();
