@@ -31,7 +31,9 @@ export const getLeadEventsWithCache = async ({
   }
 
   const cached = await Promise.all(
-    missingIds.map((id) => redis.get<LeadEventTB>(`leadCache:${id}`)),
+    missingIds.map((id) =>
+      redis.get<LeadEventTB>(`leadCache:${id}`).catch(() => null),
+    ),
   );
 
   const cachedEvents = cached.filter((e): e is LeadEventTB => e !== null);
