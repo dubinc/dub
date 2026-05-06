@@ -42,8 +42,9 @@ export const PATCH = withAdmin(
       return new Response("Fraud alert not found.", { status: 404 });
     }
 
+    const reviewedAt = new Date();
     const reviewData: Prisma.FraudAlertUpdateManyArgs["data"] = {
-      reviewedAt: new Date(),
+      reviewedAt,
       reviewNote: reviewNote || null,
       reviewedById: session.user.id,
     };
@@ -75,91 +76,138 @@ export const PATCH = withAdmin(
       });
     }
 
-    // Fetch all pending fraud alerts for this partner (for cross-program ban reporting)
-    const pendingFraudAlerts = await prisma.fraudAlert.findMany({
-      where: {
-        partnerId: fraudAlert.partnerId,
-        status: "pending",
-      },
-      select: {
-        id: true,
-        reason: true,
-        programEnrollment: {
-          select: {
-            programId: true,
-            partnerId: true,
-            status: true,
-            bannedReason: true,
-            bannedAt: true,
-          },
-        },
-      },
-    });
+    const reviewerUserId = session.user.id;
 
-    if (pendingFraudAlerts.length === 0) {
+    const { claimCount, confirmedAlerts, bansForSideEffects } =
+      await prisma.$transaction(async (tx) => {
+        const claim = await tx.fraudAlert.updateMany({
+          where: {
+            partnerId: fraudAlert.partnerId,
+            status: "pending",
+          },
+          data: {
+            status: "confirmed",
+            ...reviewData,
+          },
+        });
+
+        if (claim.count === 0) {
+          return {
+            claimCount: 0 as const,
+            confirmedAlerts: [],
+            bansForSideEffects: [],
+          };
+        }
+
+        const confirmedAlerts = await tx.fraudAlert.findMany({
+          where: {
+            partnerId: fraudAlert.partnerId,
+            status: "confirmed",
+            reviewedAt,
+            reviewedById: reviewerUserId,
+          },
+          select: {
+            id: true,
+            reason: true,
+            programEnrollment: {
+              select: {
+                programId: true,
+                partnerId: true,
+                status: true,
+                bannedReason: true,
+                bannedAt: true,
+              },
+            },
+          },
+        });
+
+        const bansForSideEffects: Array<{
+          programId: string;
+          partnerId: string;
+          workspaceId: string;
+          previousStatus: ProgramEnrollmentStatus;
+        }> = [];
+
+        const bannedRejectedKey = new Set<string>();
+
+        for (const fa of confirmedAlerts) {
+          const { programId, partnerId, status } = fa.programEnrollment;
+          if (status !== ProgramEnrollmentStatus.rejected) {
+            continue;
+          }
+          const key = `${programId}:${partnerId}`;
+          if (bannedRejectedKey.has(key)) {
+            continue;
+          }
+
+          const enrollment = await tx.programEnrollment.findUnique({
+            where: {
+              partnerId_programId: {
+                partnerId,
+                programId,
+              },
+            },
+            include: {
+              program: {
+                select: {
+                  workspaceId: true,
+                },
+              },
+            },
+          });
+
+          if (
+            !enrollment ||
+            enrollment.status !== ProgramEnrollmentStatus.rejected
+          ) {
+            continue;
+          }
+
+          bannedRejectedKey.add(key);
+
+          await tx.programEnrollment.update({
+            where: {
+              partnerId_programId: {
+                partnerId,
+                programId,
+              },
+            },
+            data: {
+              status: ProgramEnrollmentStatus.banned,
+              bannedAt: new Date(),
+              bannedReason: PartnerBannedReason.fraud,
+              clickRewardId: null,
+              leadRewardId: null,
+              saleRewardId: null,
+              discountId: null,
+            },
+          });
+
+          bansForSideEffects.push({
+            programId,
+            partnerId,
+            workspaceId: enrollment.program.workspaceId,
+            previousStatus: enrollment.status,
+          });
+        }
+
+        return { claimCount: claim.count, confirmedAlerts, bansForSideEffects };
+      });
+
+    if (claimCount === 0) {
       return new Response("Fraud alert has already been reviewed.", {
         status: 409,
       });
     }
 
-    const reviewerUserId = session.user.id;
     const postConfirmTasks: Promise<unknown>[] = [];
-    const bannedRejectedKey = new Set<string>();
 
-    for (const fa of pendingFraudAlerts) {
-      const { programId, partnerId, status } = fa.programEnrollment;
-      if (status !== ProgramEnrollmentStatus.rejected) {
-        continue;
-      }
-      const key = `${programId}:${partnerId}`;
-      if (bannedRejectedKey.has(key)) {
-        continue;
-      }
-      bannedRejectedKey.add(key);
-
-      const enrollment = await prisma.programEnrollment.findUnique({
-        where: {
-          partnerId_programId: {
-            partnerId,
-            programId,
-          },
-        },
-        include: {
-          program: {
-            select: {
-              workspaceId: true,
-            },
-          },
-        },
-      });
-
-      if (
-        !enrollment ||
-        enrollment.status !== ProgramEnrollmentStatus.rejected
-      ) {
-        continue;
-      }
-
-      const previousStatus = enrollment.status;
-
-      await prisma.programEnrollment.update({
-        where: {
-          partnerId_programId: {
-            partnerId,
-            programId,
-          },
-        },
-        data: {
-          status: ProgramEnrollmentStatus.banned,
-          bannedAt: new Date(),
-          bannedReason: PartnerBannedReason.fraud,
-          clickRewardId: null,
-          leadRewardId: null,
-          saleRewardId: null,
-          discountId: null,
-        },
-      });
-
+    for (const {
+      programId,
+      partnerId,
+      workspaceId,
+      previousStatus,
+    } of bansForSideEffects) {
       await resolveFraudGroups({
         where: {
           programId,
@@ -172,7 +220,7 @@ export const PATCH = withAdmin(
 
       postConfirmTasks.push(
         trackActivityLog({
-          workspaceId: enrollment.program.workspaceId,
+          workspaceId,
           programId,
           resourceType: "partner",
           resourceId: partnerId,
@@ -197,27 +245,22 @@ export const PATCH = withAdmin(
       );
     }
 
-    const { count } = await prisma.fraudAlert.updateMany({
-      where: {
-        id: {
-          in: pendingFraudAlerts.map((fa) => fa.id),
-        },
-        status: "pending",
-      },
-      data: {
-        status: "confirmed",
-        ...reviewData,
-      },
-    });
-
-    if (count === 0) {
-      return new Response("Fraud alert has already been reviewed.", {
-        status: 409,
-      });
+    const fraudReasonByEnrollmentKey = new Map<string, string>();
+    for (const fa of confirmedAlerts) {
+      const pk = `${fa.programEnrollment.programId}:${fa.programEnrollment.partnerId}`;
+      if (!fraudReasonByEnrollmentKey.has(pk)) {
+        fraudReasonByEnrollmentKey.set(pk, fa.reason);
+      }
     }
 
-    for (const { programEnrollment, reason } of pendingFraudAlerts) {
-      const { partnerId, programId } = programEnrollment;
+    const crossProgramSourceKeys = new Set(
+      bansForSideEffects.map((b) => `${b.programId}:${b.partnerId}`),
+    );
+
+    for (const key of crossProgramSourceKeys) {
+      const delimiter = key.indexOf(":");
+      const programId = key.slice(0, delimiter);
+      const partnerId = key.slice(delimiter + 1);
 
       const enrollment = await prisma.programEnrollment.findUnique({
         where: {
@@ -232,13 +275,17 @@ export const PATCH = withAdmin(
         },
       });
 
+      if (enrollment?.bannedReason == null || enrollment.bannedAt == null) {
+        continue;
+      }
+
       postConfirmTasks.push(
         reportCrossProgramBanToNetwork({
           partnerId,
           programId,
-          bannedReason: enrollment?.bannedReason ?? null,
-          bannedAt: enrollment?.bannedAt ?? null,
-          fraudAlertReason: reason,
+          bannedReason: enrollment.bannedReason,
+          bannedAt: enrollment.bannedAt,
+          fraudAlertReason: fraudReasonByEnrollmentKey.get(key) ?? "",
         }),
       );
     }

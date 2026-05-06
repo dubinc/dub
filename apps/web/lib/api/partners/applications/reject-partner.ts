@@ -128,6 +128,16 @@ export async function rejectPartner({
         discountId: null,
       },
     });
+
+    if (flagForFraud && flagForFraudReason) {
+      await tx.fraudAlert.create({
+        data: {
+          partnerId,
+          programId,
+          reason: flagForFraudReason,
+        },
+      });
+    }
   });
 
   const { partner, program } = programEnrollment;
@@ -187,16 +197,6 @@ export async function rejectPartner({
             canReapplyImmediately: allowImmediateReapply,
           }),
         }),
-
-      flagForFraud && flagForFraudReason
-        ? prisma.fraudAlert.create({
-            data: {
-              partnerId,
-              programId,
-              reason: flagForFraudReason,
-            },
-          })
-        : undefined,
     ]),
   );
 }

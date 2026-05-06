@@ -28,6 +28,7 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -68,6 +69,8 @@ export function RejectPartnerApplicationModal({
   const [allowImmediateReapply, setAllowImmediateReapply] = useState(false);
   const [flagForFraud, setFlagForFraud] = useState(false);
   const [flagForFraudReason, setFlagForFraudReason] = useState("");
+  const fraudReasonFieldId = useId();
+  const fraudReasonCounterId = useId();
 
   useEffect(() => {
     if (!showRejectPartnerApplicationModal) {
@@ -287,7 +290,15 @@ export function RejectPartnerApplicationModal({
               inert={!flagForFraud}
             >
               <div className="mt-1 p-px">
+                <label
+                  htmlFor={fraudReasonFieldId}
+                  className="mt-1.5 block text-sm font-medium text-neutral-900"
+                >
+                  Reason for fraud report
+                </label>
                 <textarea
+                  id={fraudReasonFieldId}
+                  aria-describedby={fraudReasonCounterId}
                   className={cn(
                     "mt-1.5 block w-full rounded-md border border-neutral-300 bg-white text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500 sm:text-sm",
                   )}
@@ -298,8 +309,22 @@ export function RejectPartnerApplicationModal({
                   onChange={(e) => setFlagForFraudReason(e.target.value)}
                   disabled={isPending}
                 />
-                <p className="mt-1 block text-right text-xs tabular-nums text-neutral-400">
-                  {flagForFraudReason.length}/{MAX_FRAUD_REASON_LENGTH}
+                <p
+                  id={fraudReasonCounterId}
+                  className="mt-1 block text-right text-xs tabular-nums text-neutral-400"
+                >
+                  <span className="sr-only">
+                    {flagForFraudReason.length} of {MAX_FRAUD_REASON_LENGTH}{" "}
+                    characters entered.{" "}
+                    {Math.max(
+                      0,
+                      MAX_FRAUD_REASON_LENGTH - flagForFraudReason.length,
+                    )}{" "}
+                    characters remaining.
+                  </span>
+                  <span aria-hidden="true">
+                    {flagForFraudReason.length}/{MAX_FRAUD_REASON_LENGTH}
+                  </span>
                 </p>
               </div>
             </motion.div>
