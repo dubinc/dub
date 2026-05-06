@@ -5,15 +5,49 @@ import type { DiscountProps, GroupProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { useDiscountSheet } from "@/ui/partners/discounts/add-edit-discount-sheet";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { Button } from "@dub/ui";
+import { Button, useRouterStuff } from "@dub/ui";
 import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { BadgePercent } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export const GroupDiscounts = () => {
   const { group, loading } = useGroup();
+  const { searchParams } = useRouterStuff();
+
+  const [discountSheetState, setDiscountSheetState] = useState<
+    { open: false; discountId: string | null } | { open: true; discountId: string }
+  >({ open: false, discountId: null });
+
+  useEffect(() => {
+    const discountId = searchParams.get("discountId");
+
+    if (discountId) {
+      setDiscountSheetState({ open: true, discountId });
+    } else {
+      setDiscountSheetState({ open: false, discountId: null });
+    }
+  }, [searchParams]);
+
+  const currentDiscount =
+    discountSheetState.discountId &&
+    group?.discount?.id === discountSheetState.discountId
+      ? group.discount
+      : undefined;
+  const isNewDiscount = discountSheetState.discountId === "new";
+  const { DiscountSheet, setIsOpen: setDiscountSheetOpen } = useDiscountSheet({
+    ...(currentDiscount && { discount: currentDiscount }),
+  });
+
+  useEffect(() => {
+    setDiscountSheetOpen(discountSheetState.open);
+  }, [discountSheetState.open, setDiscountSheetOpen]);
 
   return (
     <div>
+      {discountSheetState.discountId && (currentDiscount || isNewDiscount) && DiscountSheet}
+
       {loading || !group ? (
         <DiscountSkeleton />
       ) : (
@@ -30,57 +64,67 @@ const DiscountItem = ({
   discount?: DiscountProps | null;
   group: GroupProps;
 }) => {
-  const { DiscountSheet, setIsOpen } = useDiscountSheet({
-    ...(discount && { discount }),
-  });
+  const { slug } = useParams();
+  const { queryParams } = useRouterStuff();
+  const As = discount ? Link : "div";
 
   return (
-    <>
-      {DiscountSheet}
-      <div
-        className={cn(
-          "flex cursor-pointer flex-col gap-4 rounded-lg p-6 transition-all md:flex-row md:items-center",
-          discount && "border border-neutral-200 hover:border-neutral-300",
-          !discount && "bg-neutral-50 hover:bg-neutral-100",
-        )}
-        onClick={(e) => {
-          if (isClickOnInteractiveChild(e)) return;
-          setIsOpen(true);
-        }}
-      >
-        <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
-          <BadgePercent className="size-4 text-neutral-600" />
-        </div>
-        <div className="flex flex-1 flex-col justify-between gap-y-4 md:flex-row md:items-center">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-normal">
-              {discount ? (
-                <ProgramRewardDescription discount={discount} />
-              ) : (
-                <span className="text-sm font-normal text-neutral-600">
-                  No referral discount created
-                </span>
-              )}
-            </span>
-          </div>
-
-          <div className="flex flex-col-reverse items-center gap-2 md:flex-row">
-            {!discount && group.slug !== DEFAULT_PARTNER_GROUP.slug && (
-              <CopyDefaultDiscountButton />
+    <As
+      href={discount ? `/${slug}/program/groups/${group.slug}/discounts?discountId=${discount.id}` : ""}
+      scroll={false}
+      className={cn(
+        "flex cursor-pointer flex-col gap-4 rounded-lg p-6 transition-all md:flex-row md:items-center",
+        discount && "border border-neutral-200 hover:border-neutral-300",
+        !discount && "bg-neutral-50 hover:bg-neutral-100",
+      )}
+      onClick={(e) => {
+        if (isClickOnInteractiveChild(e)) return;
+        queryParams({
+          set: {
+            discountId: discount?.id ?? "new",
+          },
+          scroll: false,
+        });
+      }}
+    >
+      <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
+        <BadgePercent className="size-4 text-neutral-600" />
+      </div>
+      <div className="flex flex-1 flex-col justify-between gap-y-4 md:flex-row md:items-center">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-normal">
+            {discount ? (
+              <ProgramRewardDescription discount={discount} />
+            ) : (
+              <span className="text-sm font-normal text-neutral-600">
+                No referral discount created
+              </span>
             )}
-            <Button
-              text={discount ? "Edit" : "Create"}
-              variant={discount ? "secondary" : "primary"}
-              className="h-9 w-full rounded-lg md:w-fit"
-              onClick={(e) => {
-                e.preventDefault();
-                setIsOpen(true);
-              }}
-            />
-          </div>
+          </span>
+        </div>
+
+        <div className="flex flex-col-reverse items-center gap-2 md:flex-row">
+          {!discount && group.slug !== DEFAULT_PARTNER_GROUP.slug && (
+            <CopyDefaultDiscountButton />
+          )}
+          <Button
+            text={discount ? "Edit" : "Create"}
+            variant={discount ? "secondary" : "primary"}
+            className="h-9 w-full rounded-lg md:w-fit"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              queryParams({
+                set: {
+                  discountId: discount?.id ?? "new",
+                },
+                scroll: false,
+              });
+            }}
+          />
         </div>
       </div>
-    </>
+    </As>
   );
 };
 
