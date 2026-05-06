@@ -10,7 +10,7 @@ import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-i
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { recordSaleWithTimestamp } from "../tinybird";
-import { getLeadEvents } from "../tinybird/get-lead-events";
+import { getLeadEventsWithCache } from "../tinybird/get-lead-events";
 import { logImportError } from "../tinybird/log-import-error";
 import { LeadEventTB } from "../types";
 import { redis } from "../upstash";
@@ -89,9 +89,9 @@ export async function importCommissions(payload: FirstPromoterImportPayload) {
       },
     });
 
-    const customerLeadEvents = await getLeadEvents({
+    const customerLeadEvents = await getLeadEventsWithCache({
       customerIds: customersData.map(({ id }) => id),
-    }).then((res) => res.data);
+    });
 
     await Promise.allSettled(
       commissions.map((commission) =>

@@ -6,6 +6,7 @@ import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-i
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { recordClick, recordLeadWithTimestamp } from "../tinybird";
 import { logImportError } from "../tinybird/log-import-error";
+import { LeadEventTB } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { PartnerStackApi } from "./api";
@@ -296,13 +297,22 @@ async function createCustomer({
       },
     });
 
+    const leadEventData: LeadEventTB = {
+      ...clickEvent,
+      event_id: nanoid(16),
+      event_name: "Sign up",
+      customer_id: customerId,
+      metadata: "",
+    };
+
     await Promise.all([
       recordLeadWithTimestamp({
-        ...clickEvent,
-        event_id: nanoid(16),
-        event_name: "Sign up",
-        customer_id: customerId,
+        ...leadEventData,
         timestamp: new Date(customer.created_at).toISOString(),
+      }),
+
+      redis.set(`leadCache:${customerId}`, leadEventData, {
+        ex: 60 * 60 * 24,
       }),
 
       prisma.link.update({

@@ -6,6 +6,8 @@ import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-i
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { recordClick, recordLeadWithTimestamp } from "../tinybird";
 import { logImportError } from "../tinybird/log-import-error";
+import { LeadEventTB } from "../types";
+import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
@@ -252,13 +254,22 @@ async function createReferral({
       },
     });
 
+    const leadEventData: LeadEventTB = {
+      ...clickEvent,
+      event_id: nanoid(16),
+      event_name: "Sign up",
+      customer_id: customerId,
+      metadata: "",
+    };
+
     await Promise.allSettled([
       recordLeadWithTimestamp({
-        ...clickEvent,
-        event_id: nanoid(16),
-        event_name: "Sign up",
-        customer_id: customerId,
+        ...leadEventData,
         timestamp: new Date(customer.created_at).toISOString(),
+      }),
+
+      redis.set(`leadCache:${customerId}`, leadEventData, {
+        ex: 60 * 60 * 24,
       }),
 
       prisma.link.update({

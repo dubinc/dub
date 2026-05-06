@@ -9,7 +9,7 @@ import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
-import { getLeadEvents } from "../tinybird/get-lead-events";
+import { getLeadEventsWithCache } from "../tinybird/get-lead-events";
 import { logImportError } from "../tinybird/log-import-error";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
 import { LeadEventTB } from "../types";
@@ -68,9 +68,9 @@ export async function importCommissions(payload: RewardfulImportPayload) {
       },
     });
 
-    const customerLeadEvents = await getLeadEvents({
+    const customerLeadEvents = await getLeadEventsWithCache({
       customerIds: customersData.map((customer) => customer.id),
-    }).then((res) => res.data);
+    });
 
     await Promise.all(
       commissions.map((commission) =>
