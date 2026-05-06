@@ -179,10 +179,26 @@ SQL >
         {% if defined(linkId) %}
             {% if defined(linkIdOperator) and String(linkIdOperator) == 'NOT IN' %}
                 AND link_id NOT IN {{ Array(linkId, 'String') }}
+                {% if defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
+                    tenantId
+                ) or defined(folderId) or defined(domain) or defined(
+                    tagId
+                ) or defined(
+                    root
+                ) %} AND link_id IN (SELECT link_id FROM workspace_links)
+                {% end %}
             {% else %}
                 AND link_id IN {{ Array(linkId, 'String') }}
+                {% if defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
+                    tenantId
+                ) or defined(folderId) or defined(domain) or defined(
+                    tagId
+                ) or defined(
+                    root
+                ) %} AND link_id IN (SELECT link_id FROM workspace_links)
+                {% end %}
             {% end %}
-        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
             tenantId
         ) or defined(folderId) or defined(domain) or defined(
             tagId
@@ -327,10 +343,26 @@ SQL >
         {% if defined(linkId) %}
             {% if defined(linkIdOperator) and String(linkIdOperator) == 'NOT IN' %}
                 AND link_id NOT IN {{ Array(linkId, 'String') }}
+                {% if defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
+                    tenantId
+                ) or defined(folderId) or defined(domain) or defined(
+                    tagId
+                ) or defined(
+                    root
+                ) %} AND link_id IN (SELECT link_id FROM workspace_links)
+                {% end %}
             {% else %}
                 AND link_id IN {{ Array(linkId, 'String') }}
+                {% if defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
+                    tenantId
+                ) or defined(folderId) or defined(domain) or defined(
+                    tagId
+                ) or defined(
+                    root
+                ) %} AND link_id IN (SELECT link_id FROM workspace_links)
+                {% end %}
             {% end %}
-        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
             tenantId
         ) or defined(folderId) or defined(domain) or defined(
             tagId
@@ -570,10 +602,26 @@ SQL >
             {% if defined(linkId) %}
                 {% if defined(linkIdOperator) and String(linkIdOperator) == 'NOT IN' %}
                     AND se.link_id NOT IN {{ Array(linkId, 'String') }}
+                    {% if defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
+                        tenantId
+                    ) or defined(folderId) or defined(domain) or defined(
+                        tagId
+                    ) or defined(
+                        root
+                    ) %} AND se.link_id IN (SELECT link_id FROM workspace_links)
+                    {% end %}
                 {% else %}
                     AND se.link_id IN {{ Array(linkId, 'String') }}
+                    {% if defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
+                        tenantId
+                    ) or defined(folderId) or defined(domain) or defined(
+                        tagId
+                    ) or defined(
+                        root
+                    ) %} AND se.link_id IN (SELECT link_id FROM workspace_links)
+                    {% end %}
                 {% end %}
-            {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+            {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(partnerTagId) or defined(
                 tenantId
                 ) or defined(folderId) or defined(domain) or defined(
                     tagId
