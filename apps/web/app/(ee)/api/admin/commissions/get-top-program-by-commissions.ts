@@ -32,13 +32,18 @@ export async function getTopProgramsByCommissions({
         earnings: "desc",
       },
     },
-    take: 50,
+    take: 150,
   });
 
   const topPrograms = await prisma.program.findMany({
     where: {
       id: {
         in: programCommissions.map(({ programId }) => programId),
+      },
+      NOT: {
+        slug: {
+          endsWith: "-staging",
+        },
       },
     },
     include: {
@@ -66,7 +71,8 @@ export async function getTopProgramsByCommissions({
         fees: commissions * payoutFee,
       };
     })
-    .filter(Boolean);
+    .filter(Boolean)
+    .slice(0, 100);
 
   return topProgramsWithCommissions;
 }
