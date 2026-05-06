@@ -12,6 +12,7 @@ enum CommissionType {
   click
   lead
   sale
+  referral
   custom
 }
 

@@ -1,6 +1,7 @@
 import { EventType, RewardStructure } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
+import { referralRewardConfigSchema } from "./partner-referrals";
 import { centsSchema } from "./utils";
 
 export const COMMISSION_TYPES = [
@@ -199,6 +200,11 @@ export const REWARD_CONDITIONS: Record<
       },
     ],
   },
+
+  // Partner referral reward
+  referral: {
+    entities: [],
+  },
 };
 
 export const REWARD_CONDITION_ENTITIES = [
@@ -325,6 +331,7 @@ export const RewardSchema = z.object({
   amountInPercentage: decimalToNumber,
   maxDuration: z.number().nullish(),
   modifiers: z.any().nullish(), // TODO: Fix this
+  config: referralRewardConfigSchema.nullish(),
   updatedAt: z.coerce.date(),
 });
 
@@ -339,6 +346,7 @@ export const createOrUpdateRewardSchema = z.object({
   amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
   maxDuration: maxDurationSchema,
   modifiers: rewardConditionsArraySchema.nullish(),
+  config: referralRewardConfigSchema.nullish(),
   description: z.string().max(REWARD_DESCRIPTION_MAX_LENGTH).nullish(),
   tooltipDescription: z
     .string()
@@ -349,7 +357,7 @@ export const createOrUpdateRewardSchema = z.object({
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
   (data) => {
-    if (data.event !== EventType.sale) {
+    if (data.event === EventType.click || data.event === EventType.lead) {
       data.maxDuration = 0;
       data.type = "flat";
     }
@@ -375,6 +383,7 @@ export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   click: "clickRewardId",
   lead: "leadRewardId",
   sale: "saleRewardId",
+  referral: "referralRewardId",
 });
 
 export const CUSTOMER_SOURCES = ["tracked", "submitted", "trial"] as const;

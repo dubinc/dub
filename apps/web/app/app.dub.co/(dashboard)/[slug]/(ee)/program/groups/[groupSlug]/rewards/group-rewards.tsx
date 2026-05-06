@@ -33,6 +33,10 @@ const REWARD_EVENT_DESCRIPTIONS: Record<
     title: "Click reward",
     description: "Reward for traffic and reach",
   },
+  referral: {
+    title: "Referral reward",
+    description: "Reward when one partner refers another",
+  },
 };
 
 export function GroupRewards() {
@@ -54,9 +58,12 @@ export function GroupRewards() {
   }, [searchParams]);
 
   const rewards =
-    [group?.clickReward, group?.leadReward, group?.saleReward].filter(
-      Boolean,
-    ) ?? [];
+    [
+      group?.clickReward,
+      group?.leadReward,
+      group?.saleReward,
+      group?.referralReward,
+    ].filter(Boolean) ?? [];
 
   const currentReward = rewardSheetState.rewardId
     ? rewards.find((r) => r?.id === rewardSheetState.rewardId)
@@ -82,9 +89,9 @@ export function GroupRewards() {
       <div className="flex flex-col gap-6">
         {loading || !group ? (
           <>
-            <RewardSkeleton />
-            <RewardSkeleton />
-            <RewardSkeleton />
+            {Array.from({ length: 4 }).map((_, index) => (
+              <RewardSkeleton key={index} />
+            ))}
           </>
         ) : (
           <>
@@ -93,6 +100,11 @@ export function GroupRewards() {
             <RewardItem
               reward={group.clickReward}
               event="click"
+              group={group}
+            />
+            <RewardItem
+              reward={group.referralReward}
+              event="referral"
               group={group}
             />
           </>

@@ -1,4 +1,4 @@
-import { CursorRays, InvoiceDollar, UserPlus } from "@dub/ui/icons";
+import { CursorRays, InvoiceDollar, UserPlus, Users } from "@dub/ui/icons";
 
 export const REWARD_EVENTS = {
   click: {
@@ -21,6 +21,13 @@ export const REWARD_EVENTS = {
     event: "sale",
     shortcut: "S",
     eventName: "sale",
+  },
+  referral: {
+    icon: Users,
+    text: "Referral reward",
+    event: "referral",
+    shortcut: "R",
+    eventName: "referral",
   },
 } as const;
 
