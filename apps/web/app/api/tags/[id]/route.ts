@@ -1,11 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
-import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
-import { includeTags } from "@/lib/api/links/include-tags";
+import { markLinkTagDeleted } from "@/lib/api/tags/mark-link-tag-deleted";
 import { withWorkspace } from "@/lib/auth";
-import { recordLink } from "@/lib/tinybird";
 import { LinkTagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
 import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // PATCH /api/tags/[id] – update a tag for a workspace
@@ -62,54 +59,20 @@ export const PUT = PATCH;
 export const DELETE = withWorkspace(
   async ({ params, workspace }) => {
     const { id } = params;
-    try {
-      const response = await prisma.tag.delete({
-        where: {
-          id,
-          projectId: workspace.id,
-        },
-        include: {
-          links: {
-            select: {
-              link: {
-                include: {
-                  ...includeTags,
-                  ...includeProgramEnrollment,
-                },
-              },
-            },
-          },
-        },
+
+    const deleted = await markLinkTagDeleted({
+      tagId: id,
+      projectId: workspace.id,
+    });
+
+    if (!deleted) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Tag not found.",
       });
-
-      if (!response) {
-        throw new DubApiError({
-          code: "not_found",
-          message: "Tag not found.",
-        });
-      }
-
-      // update links metadata in tinybird after deleting a tag
-      waitUntil(
-        recordLink(
-          response.links.map(({ link }) => ({
-            ...link,
-            tags: link.tags.filter(({ tag }) => tag.id !== id),
-          })),
-        ),
-      );
-
-      return NextResponse.json({ id });
-    } catch (error) {
-      if (error.code === "P2025") {
-        throw new DubApiError({
-          code: "not_found",
-          message: "Tag not found.",
-        });
-      }
-
-      throw error;
     }
+
+    return NextResponse.json({ id });
   },
   {
     requiredPermissions: ["tags.write"],

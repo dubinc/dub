@@ -1,7 +1,7 @@
 import { transformLink } from "@/lib/api/links";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
-import { DUB_DOMAINS_ARRAY, LEGAL_USER_ID } from "@dub/utils";
+import { LEGAL_USER_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/admin/links
@@ -20,13 +20,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
 
   const response = await prisma.link.findMany({
     where: {
-      ...(domain
-        ? { domain }
-        : {
-            domain: {
-              in: DUB_DOMAINS_ARRAY,
-            },
-          }),
+      ...(domain && { domain }),
       ...(!search && {
         createdAt: {
           gte: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30), // 30 days ago

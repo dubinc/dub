@@ -3,6 +3,7 @@
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { triggerWorkflows } from "@/lib/cron/qstash-workflow";
 import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
@@ -150,6 +151,12 @@ export const bulkApprovePartnersAction = authActionClient
               },
             })),
           ),
+
+          trackApplicationEvents({
+            event: "approved",
+            programId: program.id,
+            partnerIds: updatedEnrollments.map(({ partnerId }) => partnerId),
+          }),
         ]);
       })(),
     );

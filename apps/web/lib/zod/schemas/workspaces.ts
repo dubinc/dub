@@ -36,8 +36,8 @@ export const WorkspaceSchema = z
     plan: planSchema,
     planTier: z
       .number()
-      .nullable()
-      .describe("The tier of the workspace's plan."),
+      .describe("The tier of the workspace's plan.")
+      .default(1),
     planPeriod: z
       .enum(PlanPeriod)
       .nullish()
@@ -110,6 +110,9 @@ export const WorkspaceSchema = z
       ),
     domainsLimit: z.number().describe("The domains limit of the workspace."),
     tagsLimit: z.number().describe("The tags limit of the workspace."),
+    partnerTagsLimit: z
+      .number()
+      .describe("The partner tags limit of the workspace."),
     foldersUsage: z.number().describe("The folders usage of the workspace."),
     foldersLimit: z.number().describe("The folders limit of the workspace."),
     partnersUsage: z.number().describe("The partners usage of the workspace."),

@@ -1,7 +1,7 @@
 "use client";
 
+import { useLinkTagsCount } from "@/lib/swr/use-link-tags-count";
 import useTags from "@/lib/swr/use-tags";
-import useTagsCount from "@/lib/swr/use-tags-count";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -40,7 +40,7 @@ export default function WorkspaceTagsClient() {
     },
     includeLinksCount: true,
   });
-  const { data: tagsCount } = useTagsCount({
+  const { data: tagsCount } = useLinkTagsCount({
     query: { search: search ?? "" },
   });
 

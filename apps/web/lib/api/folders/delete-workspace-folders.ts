@@ -39,6 +39,16 @@ export async function deleteWorkspaceFolders({
     return;
   }
 
+  await prisma.projectUsers.updateMany({
+    where: {
+      projectId: workspaceId,
+      defaultFolderId: { in: folders.map(({ id }) => id) },
+    },
+    data: {
+      defaultFolderId: null,
+    },
+  });
+
   return await Promise.all([
     ...folders.map(({ id }) =>
       queueFolderDeletion({

@@ -19,6 +19,7 @@ import {
   currencyFormatter,
   DUB_FOUNDING_DATE,
   fetcher,
+  getDomainWithoutWWW,
   OG_AVATAR_URL,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
@@ -41,6 +42,7 @@ function CommissionsPageClient() {
     programs: {
       id: string;
       name: string;
+      url: string;
       logo: string;
       commissions: number;
       fees: number;
@@ -187,7 +189,7 @@ function CommissionsPageClient() {
         id: "program",
         header: "Program",
         cell: ({ row }) => (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 text-sm font-medium">
             <img
               src={row.original.logo}
               alt={row.original.name}
@@ -195,7 +197,15 @@ function CommissionsPageClient() {
               height={20}
               className="size-4 rounded-full"
             />
-            <span className="text-sm font-medium">{row.original.name}</span>
+            <span className="text-sm font-medium">{row.original.name}</span>•
+            <a
+              className="text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-800"
+              href={row.original.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {getDomainWithoutWWW(row.original.url)}
+            </a>
           </div>
         ),
         meta: {

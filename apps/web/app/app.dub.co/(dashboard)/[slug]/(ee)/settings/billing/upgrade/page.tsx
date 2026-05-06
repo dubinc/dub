@@ -20,7 +20,9 @@ import {
   Users2,
 } from "@dub/ui";
 import {
+  capitalize,
   cn,
+  DUB_TRIAL_PERIOD_DAYS,
   getSuggestedPlan,
   isDowngradePlan,
   isLegacyBusinessPlan,
@@ -179,16 +181,20 @@ export default function WorkspaceBillingUpgradePage() {
                   stripeId &&
                     isDowngradePlan({
                       currentPlan: currentPlan || "free",
-                      currentTier: currentPlanTier,
+                      currentTier: currentPlanTier ?? undefined,
                       newPlan: plan.name,
                       newTier: planTier,
                     }),
                 );
 
+                const isEligibleForTrial =
+                  currentPlan === "free" &&
+                  stripeId == null &&
+                  trialEndsAt == null;
+
                 return (
                   <div
                     key={plan.name}
-                    data-testid={`billing-upgrade-column-${plan.name.toLowerCase()}`}
                     className={cn(
                       "relative top-0 flex h-full flex-col gap-6 bg-white p-5 lg:p-3 xl:p-5",
                       "max-lg:rounded-xl max-lg:border max-lg:border-neutral-200",
@@ -276,12 +282,14 @@ export default function WorkspaceBillingUpgradePage() {
                                   ? "Activate plan"
                                   : "Current plan"
                                 : isCurrentPlan
-                                  ? `Switch to ${period}`
+                                  ? `Switch to ${plan.name} ${capitalize(period)}`
                                   : isDowngrade
                                     ? "Downgrade"
                                     : isWorkspaceBillingTrialActive(trialEndsAt)
                                       ? "Switch trial"
-                                      : "Upgrade"
+                                      : isEligibleForTrial
+                                        ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial`
+                                        : `Upgrade to ${plan.name} ${capitalize(period)}`
                           }
                           variant={isDowngrade ? "secondary" : "primary"}
                           className="h-8 shadow-sm"
@@ -306,8 +314,8 @@ export default function WorkspaceBillingUpgradePage() {
             <div className="bg-bg-muted border-subtle absolute inset-x-0 -top-2.5 bottom-0 rounded-b-[12px] border" />
 
             <AdjustUsageRow
-              onLinksUsageChange={(value) => setLinksUsage(value)}
               onEventsUsageChange={(value) => setEventsUsage(value)}
+              onLinksUsageChange={(value) => setLinksUsage(value)}
             />
           </div>
 

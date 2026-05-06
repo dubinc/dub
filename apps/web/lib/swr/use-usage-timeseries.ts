@@ -47,10 +47,10 @@ export function useUsageTimeseries({
     };
   }, [searchParams, firstDay, lastDay]);
 
-  const groupBy: "folderId" | "domain" =
-    (["folderId", "domain"] as const).find(
+  const groupBy: "domain" | "folderId" =
+    (["domain", "folderId"] as const).find(
       (gb) => gb === searchParams.get("groupBy"),
-    ) ?? "folderId";
+    ) ?? "domain";
 
   const {
     data: usage,

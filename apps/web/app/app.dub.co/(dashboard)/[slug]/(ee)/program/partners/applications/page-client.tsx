@@ -169,7 +169,7 @@ export function ProgramPartnersApplicationsPageClient() {
     () => [
       {
         id: "partner",
-        header: "Applicant",
+        header: "Partner",
         enableHiding: false,
         minSize: 250,
         cell: ({ row }) => {

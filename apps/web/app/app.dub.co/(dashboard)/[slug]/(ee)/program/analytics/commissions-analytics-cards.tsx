@@ -1,9 +1,8 @@
 "use client";
 
-import useCommissionAnalytics, {
-  CommissionCategoryRow,
-} from "@/lib/swr/use-commission-analytics";
+import useCommissionAnalytics from "@/lib/swr/use-commission-analytics";
 import useGroups from "@/lib/swr/use-groups";
+import { CommissionCategoryRow } from "@/lib/types";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import { BarList } from "@/ui/analytics/bar-list";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";

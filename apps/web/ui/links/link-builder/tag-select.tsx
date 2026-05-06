@@ -1,5 +1,5 @@
+import { useLinkTagsCount } from "@/lib/swr/use-link-tags-count";
 import useTags from "@/lib/swr/use-tags";
-import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
@@ -43,7 +43,7 @@ export const TagSelect = memo(() => {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const { data: tagsCount } = useTagsCount();
+  const { data: tagsCount } = useLinkTagsCount();
   const useAsync = tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE;
 
   const { tags: availableTags, loading: loadingTags } = useTags({

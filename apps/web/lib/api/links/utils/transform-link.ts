@@ -24,7 +24,11 @@ export type ExpandedLink = Link & {
     DiscountProps,
     "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
   > | null;
-  programEnrollment?: Pick<ProgramEnrollmentProps, "groupId"> | null;
+  programEnrollment?:
+    | (Pick<ProgramEnrollmentProps, "groupId"> & {
+        programPartnerTags?: { partnerTagId: string }[] | null;
+      })
+    | null;
 };
 
 // Transform link with additional properties

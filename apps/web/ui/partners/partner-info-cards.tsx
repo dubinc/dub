@@ -41,12 +41,14 @@ import { PartnerAvatar } from "./partner-avatar";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { PartnerStarButton } from "./partner-star-button";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
+import { PartnerTagsList } from "./partner-tags-list";
 import {
   getPayoutMethodIconConfig,
   getPayoutMethodLabel,
 } from "./payouts/payout-method-config";
 import { ProgramRewardList } from "./program-reward-list";
 import { TrustedPartnerBadge } from "./trusted-partner-badge";
+import { useUpdatePartnerTagsModal } from "./update-partner-tags-modal";
 
 type PartnerInfoCardsProps = {
   showFraudIndicator?: boolean;
@@ -319,6 +321,7 @@ export function PartnerInfoCards({
                 );
               })}
           </div>
+          {isEnrolled && partner && <TagsList partner={partner} />}
 
           {partner && isEnrolled && showApplicationRiskAnalysis && (
             <PartnerApplicationRiskSummary partner={partner} />
@@ -438,6 +441,38 @@ export function PartnerInfoCards({
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function TagsList({ partner }: { partner: EnrolledPartnerExtendedProps }) {
+  const { UpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
+    useUpdatePartnerTagsModal({
+      partners: [partner],
+    });
+
+  return (
+    <div className="border-border-subtle flex flex-col border-t p-4">
+      <UpdatePartnerTagsModal />
+      <div className="mb-2 flex justify-between gap-2">
+        <span className="text-content-emphasis block text-xs font-semibold">
+          Tags
+        </span>
+
+        <button
+          type="button"
+          onClick={() => setShowUpdatePartnerTagsModal(true)}
+          className="text-content-subtle hover:text-content-default text-xs font-medium"
+        >
+          Manage
+        </button>
+      </div>
+      <PartnerTagsList
+        tags={partner?.tags}
+        wrap
+        onAddTag={() => setShowUpdatePartnerTagsModal(true)}
+        mode="link"
+      />
     </div>
   );
 }

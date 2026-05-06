@@ -1,0 +1,28 @@
+import { fetcher } from "@dub/utils";
+import useSWR from "swr";
+import * as z from "zod/v4";
+import { getTagsCountQuerySchema } from "../zod/schemas/tags";
+import useWorkspace from "./use-workspace";
+
+const partialQuerySchema = getTagsCountQuerySchema.partial();
+
+export function useLinkTagsCount({
+  query,
+}: { query?: z.infer<typeof partialQuerySchema> } = {}) {
+  const { id: workspaceId } = useWorkspace();
+
+  const { data, error } = useSWR<number>(
+    workspaceId &&
+      `/api/tags/count?${new URLSearchParams({ workspaceId, ...query } as Record<string, any>).toString()}`,
+    fetcher,
+    {
+      dedupingInterval: 60000,
+    },
+  );
+
+  return {
+    data,
+    loading: !error && data === undefined,
+    error,
+  };
+}

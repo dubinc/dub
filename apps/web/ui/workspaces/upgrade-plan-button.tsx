@@ -12,7 +12,6 @@ import {
   isWorkspaceBillingTrialActive,
   SELF_SERVE_PAID_PLANS,
 } from "@dub/utils";
-import { useOnboardingTrialVariant } from "app/app.dub.co/(onboarding)/onboarding/use-onboarding-trial-variant";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -44,7 +43,6 @@ export function UpgradePlanButton({
 
   const plausible = usePlausible();
   const product = searchParams.get("product");
-  const { isTrialVariant } = useOnboardingTrialVariant();
   const isTrialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const selectedPlan =
@@ -96,7 +94,6 @@ export function UpgradePlanButton({
             period,
             baseUrl: `${APP_DOMAIN}${pathname}${queryString.length > 0 ? `?${queryString}` : ""}`,
             onboarding: searchParams.get("workspace") ? "true" : "false",
-            isTrialVariant: isTrialVariant ? "true" : "false",
           }),
         },
       );
@@ -178,17 +175,16 @@ export function UpgradePlanButton({
       <StartPaidPlanModal />
       <SwitchTrialPlanModal />
       <Button
+        // these are the default text for onboarding plan selector
         text={
           !currentPlan
             ? "Loading..."
             : isCurrentPlan
               ? isTrialActive
                 ? "Activate plan"
-                : "Your current plan"
+                : "Current plan"
               : currentPlan === "free"
-                ? isTrialVariant
-                  ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
-                  : `Upgrade to ${selectedPlan.name} ${capitalize(period)}`
+                ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
                 : isTrialActive
                   ? `Switch trial to ${selectedPlan.name} ${capitalize(period)}`
                   : `Switch to ${selectedPlan.name} ${capitalize(period)}`

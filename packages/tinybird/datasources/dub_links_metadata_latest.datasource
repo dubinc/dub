@@ -12,6 +12,7 @@ SCHEMA >
     `partner_group_id` String,
     `folder_id` String,
     `tag_ids` Array(String),
+    `partner_tag_ids` Array(String) DEFAULT [],
     `tenant_id` String,
     `created_at` DateTime64(3),
     `deleted` UInt8

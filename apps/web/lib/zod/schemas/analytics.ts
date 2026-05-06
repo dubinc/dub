@@ -114,6 +114,15 @@ export const analyticsQuerySchema = z.object({
         "Examples: `folder_123`, `folder_123,folder_456`, `-folder_789`. " +
         "If not provided, return analytics for all links.",
     ),
+  partnerTagId: z
+    .string()
+    .optional()
+    .transform(parseFilterValue)
+    .describe(
+      "The partner tag ID(s) to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `ptag_123`, `ptag_123,ptag_456`, `-ptag_789`.",
+    ),
   groupId: z
     .string()
     .optional()
@@ -461,6 +470,14 @@ export const analyticsFilterTB = z.object({
       "The partner ID(s) to retrieve analytics for (with operator support).",
     ),
   partnerIdOperator: z.enum(["IN", "NOT IN"]).optional(),
+  partnerTagId: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe(
+      "The partner tag ID(s) to retrieve analytics for (with operator support).",
+    ),
+  partnerTagIdOperator: z.enum(["IN", "NOT IN"]).optional(),
   customerId: z.string().optional(),
   start: z.string(),
   end: z.string(),
