@@ -27,6 +27,7 @@ export const updateRewardAction = authActionClient
       description,
       tooltipDescription,
       modifiers,
+      config,
       rewardId,
     } = parsedInput;
 
@@ -65,6 +66,7 @@ export const updateRewardAction = authActionClient
         description: description || null,
         tooltipDescription: tooltipDescription || null,
         modifiers: modifiers === null ? Prisma.DbNull : modifiers,
+        config: config === null ? Prisma.DbNull : config,
         ...(type === "flat"
           ? {
               amountInCents,
@@ -80,6 +82,7 @@ export const updateRewardAction = authActionClient
         clickPartnerGroup: true,
         leadPartnerGroup: true,
         salePartnerGroup: true,
+        referralPartnerGroup: true,
       },
     });
 
@@ -88,6 +91,7 @@ export const updateRewardAction = authActionClient
       clickPartnerGroup,
       leadPartnerGroup,
       salePartnerGroup,
+      referralPartnerGroup,
       ...rewardMetadata
     } = updatedReward;
 
@@ -95,11 +99,15 @@ export const updateRewardAction = authActionClient
       clickPartnerGroup,
       leadPartnerGroup,
       salePartnerGroup,
+      referralPartnerGroup,
     ].some((group) => group?.slug === "default");
 
     // Determine the groupId from the partner group relation
     const partnerGroup =
-      clickPartnerGroup || leadPartnerGroup || salePartnerGroup;
+      clickPartnerGroup ||
+      leadPartnerGroup ||
+      salePartnerGroup ||
+      referralPartnerGroup;
 
     waitUntil(
       Promise.allSettled([

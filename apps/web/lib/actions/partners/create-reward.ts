@@ -31,6 +31,7 @@ export const createRewardAction = authActionClient
       description,
       tooltipDescription,
       modifiers,
+      config,
       groupId,
     } = parsedInput;
 
@@ -74,6 +75,7 @@ export const createRewardAction = authActionClient
           description: description || null,
           tooltipDescription: tooltipDescription || null,
           modifiers: modifiers || Prisma.DbNull,
+          config: config ?? Prisma.DbNull,
           ...(type === "flat"
             ? {
                 amountInCents,
