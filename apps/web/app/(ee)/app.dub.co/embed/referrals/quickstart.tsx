@@ -1,4 +1,5 @@
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import {
   Button,
   Carousel,
@@ -23,9 +24,10 @@ export function ReferralsEmbedQuickstart({
   setSelectedTab,
 }: {
   hasResources: boolean;
-  setSelectedTab: (tab: "Links" | "Resources") => void;
+  setSelectedTab: (tab: "Links" | "Resources" | "FAQ") => void;
 }) {
   const { program, group, links, earnings } = useReferralsEmbedData();
+  const programEmbedData = programEmbedSchema.parse(program.embedData);
 
   const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
@@ -99,26 +101,46 @@ export function ReferralsEmbedQuickstart({
         />
       ),
     },
-    {
-      title: "Receive earnings",
-      description:
-        "Connect payouts to get rewarded for the activity you drive, with earnings tracked automatically.",
-      illustration: <ConnectPayouts logo={group.logo ?? DUB_LOGO} />,
-      cta: (
-        <Button
-          className={payoutsDisabled ? "h-9 rounded-lg" : BUTTON_CLASSNAME}
-          disabledTooltip={
-            payoutsDisabled
-              ? "You will be able to withdraw your earnings once you have made at least one sale."
-              : undefined
-          }
-          onClick={() =>
-            window.open("https://partners.dub.co/payouts", "_blank")
-          }
-          text="Connect payouts"
-        />
-      ),
-    },
+    ...(programEmbedData?.hideEarnings
+      ? [
+          {
+            title: "Browse the FAQ",
+            description:
+              "Find answers about this program, how referrals are tracked, and what happens after you share your link.",
+            illustration: <FaqAccordionList />,
+            cta: (
+              <Button
+                className="h-9 rounded-lg"
+                text="View FAQs"
+                onClick={() => setSelectedTab("FAQ")}
+              />
+            ),
+          },
+        ]
+      : [
+          {
+            title: "Receive earnings",
+            description:
+              "Connect payouts to get rewarded for the activity you drive, with earnings tracked automatically.",
+            illustration: <ConnectPayouts logo={group.logo ?? DUB_LOGO} />,
+            cta: (
+              <Button
+                className={
+                  payoutsDisabled ? "h-9 rounded-lg" : BUTTON_CLASSNAME
+                }
+                disabledTooltip={
+                  payoutsDisabled
+                    ? "You will be able to withdraw your earnings once you have made at least one sale."
+                    : undefined
+                }
+                onClick={() =>
+                  window.open("https://partners.dub.co/payouts", "_blank")
+                }
+                text="Connect payouts"
+              />
+            ),
+          },
+        ]),
   ];
 
   return (
@@ -174,6 +196,146 @@ const BG_MUTED = "rgb(var(--bg-muted))";
 const BG_DEFAULT = "rgb(var(--bg-default))";
 const BORDER_SUBTLE = "rgb(var(--border-subtle))";
 const CONTENT_SUBTLE = "rgb(var(--content-subtle))";
+
+/** Accordion-style FAQ list illustration (matches 194×121 quickstart art). */
+const FaqAccordionList = () => (
+  <svg
+    width="194"
+    height="121"
+    viewBox="0 0 194 121"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-auto w-full"
+    aria-hidden
+  >
+    <rect width="194" height="121" fill={BG_MUTED} />
+    <rect
+      x="20.5"
+      y="11.5"
+      width="153"
+      height="98"
+      rx="10.5"
+      fill={BG_DEFAULT}
+      stroke={BORDER_SUBTLE}
+    />
+    {/* Expanded item — header */}
+    <rect x="28" y="19" width="138" height="18" rx="5" fill={BG_MUTED} />
+    <rect
+      x="36"
+      y="25.5"
+      width="72"
+      height="3"
+      rx="1.5"
+      fill={CONTENT_SUBTLE}
+      opacity={0.45}
+    />
+    <rect
+      x="36"
+      y="31"
+      width="48"
+      height="3"
+      rx="1.5"
+      fill={CONTENT_SUBTLE}
+      opacity={0.32}
+    />
+    {/* × — expanded (rotated +) */}
+    <path
+      d="M155.25 25.25l5.5 5.5M160.75 25.25l-5.5 5.5"
+      stroke={CONTENT_SUBTLE}
+      strokeWidth="1.25"
+      strokeLinecap="round"
+    />
+    {/* Expanded item — answer body */}
+    <rect
+      x="28"
+      y="39"
+      width="138"
+      height="22"
+      rx="5"
+      fill={BG_DEFAULT}
+      stroke={BORDER_SUBTLE}
+    />
+    <rect
+      x="36"
+      y="46"
+      width="98"
+      height="2.5"
+      rx="1.25"
+      fill={CONTENT_SUBTLE}
+      opacity={0.38}
+    />
+    <rect
+      x="36"
+      y="52"
+      width="76"
+      height="2.5"
+      rx="1.25"
+      fill={CONTENT_SUBTLE}
+      opacity={0.28}
+    />
+    <rect
+      x="36"
+      y="58"
+      width="56"
+      height="2.5"
+      rx="1.25"
+      fill={CONTENT_SUBTLE}
+      opacity={0.22}
+    />
+    {/* Collapsed row 2 */}
+    <rect
+      x="28"
+      y="65"
+      width="138"
+      height="17"
+      rx="5"
+      fill={BG_DEFAULT}
+      stroke={BORDER_SUBTLE}
+    />
+    <rect
+      x="36"
+      y="72"
+      width="68"
+      height="3"
+      rx="1.5"
+      fill={CONTENT_SUBTLE}
+      opacity={0.42}
+    />
+    {/* + — collapsed */}
+    <path
+      d="M155.25 73.5h5.5M158 71.25v5.5"
+      stroke={CONTENT_SUBTLE}
+      strokeWidth="1.25"
+      strokeLinecap="round"
+    />
+    {/* Collapsed row 3 */}
+    <rect
+      x="28"
+      y="86"
+      width="138"
+      height="17"
+      rx="5"
+      fill={BG_DEFAULT}
+      stroke={BORDER_SUBTLE}
+    />
+    <rect
+      x="36"
+      y="93"
+      width="58"
+      height="3"
+      rx="1.5"
+      fill={CONTENT_SUBTLE}
+      opacity={0.38}
+    />
+    {/* + — collapsed */}
+    <path
+      d="M155.25 94.5h5.5M158 92.25v5.5"
+      stroke={CONTENT_SUBTLE}
+      strokeWidth="1.25"
+      strokeLinecap="round"
+    />
+  </svg>
+);
 
 const ShareLink = () => {
   return (
