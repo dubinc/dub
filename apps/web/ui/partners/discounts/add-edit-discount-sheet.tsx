@@ -103,11 +103,9 @@ function DiscountSheetContent({
           : defaultValuesSource.amount,
       type: defaultValuesSource.type,
       maxDuration:
-        discountProvider === DiscountProvider.shopify
-          ? 0
-          : defaultValuesSource.maxDuration === null
-            ? Infinity
-            : defaultValuesSource.maxDuration,
+        defaultValuesSource.maxDuration === null
+          ? Infinity
+          : defaultValuesSource.maxDuration,
       couponId: defaultValuesSource.couponId || "",
       couponTestId: defaultValuesSource.couponTestId,
       autoProvision: Boolean(defaultValuesSource.autoProvisionEnabledAt),
@@ -283,21 +281,11 @@ function DiscountSheetContent({
                             ...rest,
                             onChange: (e: ChangeEvent<HTMLSelectElement>) => {
                               onProviderChange(e);
+                              setUseExistingCoupon(false);
+                              setUseStripeTestCouponId(false);
                               if (e.target.value === DiscountProvider.shopify) {
-                                setUseExistingCoupon(false);
-                                setUseStripeTestCouponId(false);
                                 setValue("couponId", "");
                                 setValue("couponTestId", "");
-                                setValue("maxDuration", 0);
-                              } else {
-                                setUseExistingCoupon(false);
-                                setUseStripeTestCouponId(false);
-                                setValue(
-                                  "maxDuration",
-                                  defaultValuesSource.maxDuration === null
-                                    ? Infinity
-                                    : defaultValuesSource.maxDuration,
-                                );
                               }
                             },
                           };
@@ -499,20 +487,16 @@ function DiscountSheetContent({
                           text: "one time",
                           value: "0",
                         },
-                        ...(provider === DiscountProvider.shopify
-                          ? []
-                          : [
-                              ...RECURRING_MAX_DURATIONS.filter(
-                                (v) => v !== 0,
-                              ).map((v) => ({
-                                text: `for ${v} ${pluralize("month", Number(v))}`,
-                                value: v.toString(),
-                              })),
-                              {
-                                text: "for the customer's lifetime",
-                                value: "Infinity",
-                              },
-                            ]),
+                        ...RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
+                          (v) => ({
+                            text: `for ${v} ${pluralize("month", Number(v))}`,
+                            value: v.toString(),
+                          }),
+                        ),
+                        {
+                          text: "for the customer's lifetime",
+                          value: "Infinity",
+                        },
                       ]}
                     />
                   </InlineBadgePopover>
