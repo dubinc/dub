@@ -253,7 +253,8 @@ export async function customerSubscriptionDeleted(
   }
 
   const owner = workspaceUsers[0];
-  if (owner.email && losesAdvancedFeatures) {
+
+  if (owner?.email && losesAdvancedFeatures) {
     await sendEmail({
       to: owner.email,
       subject: "Your Advanced plan features have been removed",
