@@ -470,6 +470,7 @@ function TagOption({
         toast.success("Partner tag updated successfully!");
         mutatePrefix("/api/partners");
         mutatePrefix("/api/partners/tags");
+        mutatePrefix("/api/partners/count");
       },
       onError: ({ error }) => {
         toast.error(parseActionError(error, "Failed to update partner tag"));

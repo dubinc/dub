@@ -28,7 +28,7 @@ type CommissionGroupIdQueryRow = {
 };
 
 type CommissionPartnerTagQueryRow = {
-  partnerTagId: string | null;
+  partnerTagId: string;
   earnings: bigint;
   count: bigint;
 };
@@ -402,14 +402,23 @@ async function byPartnerTag({
     partnerFilter,
     typeFilter,
     groupIdParam: groupId,
-    partnerTagIdParam: partnerTagId,
+    partnerTagIdParam: undefined,
   });
 
-  if (partnerTagFilter?.sqlOperator === "IN") {
+  if (partnerTagFilter) {
     const list = Prisma.join(
       partnerTagFilter.values.map((v) => Prisma.sql`${v}`),
     );
-    conditions.push(Prisma.sql`ppt.partnerTagId IN (${list})`);
+    if (partnerTagFilter.sqlOperator === "IN") {
+      conditions.push(Prisma.sql`ppt.partnerTagId IN (${list})`);
+    } else {
+      conditions.push(Prisma.sql`NOT EXISTS (
+        SELECT 1 FROM ProgramPartnerTag ppt_excl
+        WHERE ppt_excl.programId = c.programId
+          AND ppt_excl.partnerId = c.partnerId
+          AND ppt_excl.partnerTagId IN (${list})
+      )`);
+    }
   }
 
   const whereClause = Prisma.join(conditions, " AND ");
@@ -429,7 +438,7 @@ async function byPartnerTag({
       ORDER BY earnings DESC`,
   );
 
-  const partnerTagIds = rows.map((r) => r.partnerTagId!);
+  const partnerTagIds = rows.map((r) => r.partnerTagId);
 
   const partnerTags =
     partnerTagIds.length > 0
@@ -442,8 +451,8 @@ async function byPartnerTag({
   const partnerTagById = new Map(partnerTags.map((t) => [t.id, t]));
 
   const result = rows.map((row) => ({
-    key: row.partnerTagId!,
-    label: partnerTagById.get(row.partnerTagId!)?.name ?? row.partnerTagId!,
+    key: row.partnerTagId,
+    label: partnerTagById.get(row.partnerTagId)?.name ?? row.partnerTagId,
     earnings: Number(row.earnings),
     count: Number(row.count),
   }));

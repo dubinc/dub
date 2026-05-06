@@ -41,7 +41,32 @@ export function useCommissionFilters() {
   );
 
   const { groups } = useGroups();
+
+  const activePartnerTagIds = useMemo(
+    () =>
+      searchParamsObj.partnerTagId
+        ? searchParamsObj.partnerTagId
+            .replace(/^-/, "")
+            .split(",")
+            .filter(Boolean)
+        : undefined,
+    [searchParamsObj.partnerTagId],
+  );
+
   const { partnerTags } = usePartnerTags();
+  const { partnerTags: selectedPartnerTags } = usePartnerTags({
+    query: { ids: activePartnerTagIds },
+    enabled: !!activePartnerTagIds?.length,
+  });
+
+  const mergedPartnerTags = useMemo(() => {
+    if (!partnerTags) return null;
+    const baseIds = new Set(partnerTags.map((t) => t.id));
+    return [
+      ...partnerTags,
+      ...(selectedPartnerTags ?? []).filter((t) => !baseIds.has(t.id)),
+    ];
+  }, [partnerTags, selectedPartnerTags]);
 
   const filters = useMemo(
     () => [
@@ -92,7 +117,7 @@ export function useCommissionFilters() {
         icon: Tag,
         label: "Partner Tag",
         options:
-          partnerTags?.map((tag) => ({
+          mergedPartnerTags?.map((tag) => ({
             value: tag.id,
             label: tag.name,
           })) ?? null,
@@ -135,7 +160,7 @@ export function useCommissionFilters() {
         ),
       },
     ],
-    [commissionsCount, partners, customers, groups, partnerTags],
+    [commissionsCount, partners, customers, groups, mergedPartnerTags],
   );
 
   const activeFilters = useMemo(() => {
