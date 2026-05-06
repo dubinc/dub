@@ -1,26 +1,19 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
 import { useExportCommissionsModal } from "@/ui/modals/export-commissions-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
-  ChartLine,
   Download,
   IconMenu,
   Popover,
   Refresh2,
-  useRouterStuff,
 } from "@dub/ui";
-import Link from "next/link";
 import { useState } from "react";
 import { useCreateClawbackSheet } from "./create-clawback-sheet";
 
 export function CommissionsMenuPopover() {
   const [openPopover, setOpenPopover] = useState(false);
-  const { slug } = useWorkspace();
-  const { getQueryString } = useRouterStuff();
-
   const { createClawbackSheet, setIsOpen: setClawbackSheetOpen } =
     useCreateClawbackSheet({});
 
@@ -47,27 +40,6 @@ export function CommissionsMenuPopover() {
                   icon={<Refresh2 className="size-4" />}
                 />
               </button>
-              <Link
-                href={`/${slug}/program/analytics/commissions${getQueryString(
-                  undefined,
-                  {
-                    include: [
-                      "interval",
-                      "start",
-                      "end",
-                      "partnerId",
-                      "groupId",
-                      "type",
-                    ],
-                  },
-                )}`}
-                className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
-              >
-                <IconMenu
-                  text="View analytics"
-                  icon={<ChartLine className="size-4" />}
-                />
-              </Link>
             </div>
 
             <div className="border-t border-neutral-200" />

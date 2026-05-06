@@ -31,11 +31,15 @@ class FirstPromoterImporter {
     return await redis.del(`${CACHE_KEY_PREFIX}:${workspaceId}`);
   }
 
-  async queue(body: FirstPromoterImportPayload) {
+  async queue(
+    body: FirstPromoterImportPayload,
+    options?: { delay?: number },
+  ) {
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/firstpromoter`,
       body,
       contentBasedDeduplication: true,
+      ...(options?.delay != null && { delay: options.delay }),
     });
   }
 }

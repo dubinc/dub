@@ -21,6 +21,7 @@ import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
   Button,
+  ChartLine,
   EditColumnsButton,
   Filter,
   StatusBadge,
@@ -28,6 +29,7 @@ import {
   TimestampTooltip,
   Tooltip,
   useColumnVisibility,
+  useMediaQuery,
   usePagination,
   useRouterStuff,
   useTable,
@@ -40,6 +42,7 @@ import {
   formatDateTimeSmart,
   nFormatter,
 } from "@dub/utils";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
@@ -435,6 +438,9 @@ export function CommissionsTable() {
 }
 
 function CommissionsFilters() {
+  const { slug } = useWorkspace();
+  const { getQueryString } = useRouterStuff();
+  const { isMobile } = useMediaQuery();
   const {
     filters,
     activeFilters,
@@ -449,7 +455,7 @@ function CommissionsFilters() {
 
   return (
     <div>
-      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+      <div className="flex w-full flex-col items-center gap-2 min-[550px]:flex-row min-[550px]:items-center">
         <Filter.Select
           className="w-full md:w-fit"
           filters={filters}
@@ -460,10 +466,36 @@ function CommissionsFilters() {
           onSearchChange={setSearch}
           isAdvancedFilter
         />
-        <SimpleDateRangePicker
-          className="w-full sm:min-w-[200px] md:w-fit"
-          defaultInterval="all"
-        />
+        <div className="flex w-full grow items-center gap-2 md:w-auto">
+          <SimpleDateRangePicker
+            className="w-full min-w-0 sm:min-w-[200px] md:w-fit"
+            defaultInterval="all"
+          />
+          <div className="flex grow justify-end gap-2">
+            <Link
+              href={`/${slug}/program/analytics/commissions${getQueryString(
+                undefined,
+                {
+                  include: [
+                    "interval",
+                    "start",
+                    "end",
+                    "partnerId",
+                    "groupId",
+                    "type",
+                  ],
+                },
+              )}`}
+            >
+              <Button
+                variant="secondary"
+                className="w-fit"
+                icon={<ChartLine className="h-4 w-4 text-neutral-600" />}
+                text={isMobile ? undefined : "View Analytics"}
+              />
+            </Link>
+          </div>
+        </div>
       </div>
       <AnimatedSizeContainer height>
         <div>

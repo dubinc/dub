@@ -36,11 +36,15 @@ class PartnerStackImporter {
     return await redis.del(`${CACHE_KEY_PREFIX}:${workspaceId}`);
   }
 
-  async queue(body: z.infer<typeof partnerStackImportPayloadSchema>) {
+  async queue(
+    body: z.infer<typeof partnerStackImportPayloadSchema>,
+    options?: { delay?: number },
+  ) {
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/partnerstack`,
       body,
       contentBasedDeduplication: true,
+      ...(options?.delay != null && { delay: options.delay }),
     });
   }
 }

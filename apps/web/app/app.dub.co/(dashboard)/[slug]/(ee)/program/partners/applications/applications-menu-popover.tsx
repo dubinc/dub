@@ -7,12 +7,10 @@ import { useExportApplicationsModal } from "@/ui/modals/export-applications-moda
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
-  ChartLine,
   Download,
   IconMenu,
   Popover,
   useMediaQuery,
-  useRouterStuff,
   UserXmark,
 } from "@dub/ui";
 import Link from "next/link";
@@ -21,7 +19,6 @@ import { useState } from "react";
 export function ApplicationsMenuPopover() {
   const { slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
-  const { getQueryString } = useRouterStuff();
 
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -58,16 +55,6 @@ export function ApplicationsMenuPopover() {
                     icon={<UserXmark className="size-4" />}
                   />
                 </button>
-              </Link>
-              <Link
-                href={`/${workspaceSlug}/program/analytics/applications${getQueryString(undefined, { include: ["country"] })}`}
-                onClick={() => setOpenPopover(false)}
-                className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
-              >
-                <IconMenu
-                  text="View analytics"
-                  icon={<ChartLine className="size-4" />}
-                />
               </Link>
             </div>
 
