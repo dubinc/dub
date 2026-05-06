@@ -166,11 +166,14 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
     processedBatches++;
   }
 
-  await firstPromoterImporter.queue({
-    ...payload,
-    action: hasMore ? "import-customers" : "import-commissions",
-    page: hasMore ? currentPage : undefined,
-  });
+  await firstPromoterImporter.queue(
+    {
+      ...payload,
+      action: hasMore ? "import-customers" : "import-commissions",
+      page: hasMore ? currentPage : undefined,
+    },
+    !hasMore ? { delay: 5 * 60 } : undefined,
+  );
 }
 
 async function createCustomer({
