@@ -10,10 +10,10 @@ import {
   useTable,
 } from "@dub/ui";
 import {
-  currencyFormatter,
   fetcher,
   formatDate,
   formatDateTime,
+  rewardFormatter,
 } from "@dub/utils";
 import { motion } from "motion/react";
 import useSWR from "swr";
@@ -24,7 +24,10 @@ export function ReferralsEmbedEarnings() {
   const token = useEmbedToken();
   const {
     earnings: { totalCount: earningsCount },
+    programEmbedData,
   } = useReferralsEmbedData();
+
+  const rewardDisplayOptions = programEmbedData?.rewardDisplay ?? undefined;
 
   const { pagination, setPagination } = usePagination(
     REFERRALS_EMBED_EARNINGS_LIMIT,
@@ -66,7 +69,7 @@ export function ReferralsEmbedEarnings() {
         id: "amount",
         header: "Amount",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.amount);
+          return rewardFormatter(row.original.amount, rewardDisplayOptions);
         },
       },
       {
@@ -74,7 +77,7 @@ export function ReferralsEmbedEarnings() {
         header: "Earnings",
         accessorKey: "earnings",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings);
+          return rewardFormatter(row.original.earnings, rewardDisplayOptions);
         },
       },
       {

@@ -10,15 +10,19 @@ import {
   Users,
   useTable,
 } from "@dub/ui";
-import { currencyFormatter, fetcher } from "@dub/utils";
+import { fetcher, rewardFormatter } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { motion } from "motion/react";
 import useSWR from "swr";
 import * as z from "zod/v4";
 import { useEmbedToken } from "../../embed/use-embed-token";
+import { useReferralsEmbedData } from "./page-client";
 
 export function ReferralsEmbedLeaderboard() {
   const token = useEmbedToken();
+  const { programEmbedData } = useReferralsEmbedData();
+
+  const rewardDisplayOptions = programEmbedData?.rewardDisplay ?? undefined;
 
   const { data: partners, isLoading } = useSWR<
     z.infer<typeof LeaderboardPartnerSchema>[]
@@ -81,7 +85,7 @@ export function ReferralsEmbedLeaderboard() {
         id: "totalCommissions",
         header: "Earnings",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.totalCommissions);
+          return rewardFormatter(row.original.totalCommissions, rewardDisplayOptions);
         },
       },
     ],

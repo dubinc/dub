@@ -34,6 +34,7 @@ export * from "./punycode";
 export * from "./random-value";
 export * from "./regex-escape";
 export * from "./resize-image";
+export * from "./reward-formatter";
 export * from "./smart-truncate";
 export * from "./stable-sort";
 export * from "./text-fetcher";

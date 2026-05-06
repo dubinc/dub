@@ -10,11 +10,11 @@ import {
 } from "@dub/ui";
 import { ArrowTurnRight2, Pen2, Plus2 } from "@dub/ui/icons";
 import {
-  currencyFormatter,
   fetcher,
   getApexDomain,
   getPrettyUrl,
   nFormatter,
+  rewardFormatter,
 } from "@dub/utils";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
@@ -30,8 +30,10 @@ interface Props {
 
 export function ReferralsEmbedLinksList({ onCreateLink, onEditLink }: Props) {
   const token = useEmbedToken();
-  const { links, program, group } = useReferralsEmbedData();
+  const { links, program, group, programEmbedData } = useReferralsEmbedData();
   const [partnerLinks, setPartnerLinks] = useState<ReferralsEmbedLink[]>(links);
+
+  const rewardDisplayOptions = programEmbedData?.rewardDisplay ?? undefined;
 
   const { data: refreshedLinks, isLoading } = useSWR<ReferralsEmbedLink[]>(
     "/api/embed/referrals/links",
@@ -123,7 +125,7 @@ export function ReferralsEmbedLinksList({ onCreateLink, onEditLink }: Props) {
         header: "Sales",
         minSize: 80,
         maxSize: 100,
-        cell: ({ row }) => currencyFormatter(row.original.saleAmount),
+        cell: ({ row }) => rewardFormatter(row.original.saleAmount, rewardDisplayOptions),
       },
       {
         id: "actions",

@@ -1,10 +1,13 @@
 import { SSO_LOGIN_PROGRAMS } from "@/lib/auth/sso-login-programs";
 import { Button, InfoTooltip } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
+import { rewardFormatter } from "@dub/utils";
 import { useReferralsEmbedData } from "./page-client";
 
 export function ReferralsEmbedEarningsSummary() {
-  const { program, partner, earnings } = useReferralsEmbedData();
+  const { program, partner, earnings, programEmbedData } =
+    useReferralsEmbedData();
+
+  const rewardDisplayOptions = programEmbedData?.rewardDisplay ?? undefined;
 
   // for custom SSO login programs, we just redirect to the login page
   // so they can easily login with SSO instead of creating a new account
@@ -48,7 +51,7 @@ export function ReferralsEmbedEarningsSummary() {
           <div key={label} className="flex justify-between text-sm">
             <span className="text-content-subtle font-medium">{label}</span>
             <span className="text-content-default font-semibold">
-              {currencyFormatter(value)}
+              {rewardFormatter(value, rewardDisplayOptions)}
             </span>
           </div>
         ))}
