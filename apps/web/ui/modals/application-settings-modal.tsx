@@ -107,7 +107,7 @@ function ApplicationSettingsModal({
     <Modal
       showModal={showApplicationSettingsModal}
       setShowModal={setShowApplicationSettingsModal}
-      className="flex max-h-[calc(100dvh-64px)] flex-col sm:max-h-[min(90dvh,720px)]"
+      className="max-h-[calc(100dvh-64px)] sm:max-h-[min(90dvh,720px)]"
     >
       <div className="shrink-0 space-y-2 border-b border-neutral-200 p-4 sm:p-6">
         <h3 className="text-lg font-medium leading-none">
@@ -115,8 +115,8 @@ function ApplicationSettingsModal({
         </h3>
       </div>
 
-      <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
-        <div className="scrollbar-hide flex-1 overflow-y-auto">
+      <form onSubmit={onSubmit}>
+        <div>
           <div
             className={cn(
               "space-y-6 bg-neutral-50 p-4 sm:p-6",
