@@ -40,23 +40,28 @@ export const sendOtpAction = actionClient
 
     const isGenericEmailWithPlus = email.includes("+") && isGenericEmail(email);
 
-    const emailDomain = email.split("@")[1];
+    const emailDomain = (email.split("@")[1] ?? "").trim().toLowerCase();
 
     const [isDisposable, emailDomainTerms] = await Promise.all([
       redis.sismember("disposableEmailDomains", emailDomain),
       process.env.EDGE_CONFIG ? get("emailDomainTerms") : [],
     ]);
 
-    // Only build the regex if we have at least one term; otherwise set to null
-    const blacklistedEmailDomainTermsRegex =
+    const escapedDomainTerms =
       emailDomainTerms && Array.isArray(emailDomainTerms)
-        ? new RegExp(
-            emailDomainTerms
-              .map((term: string) =>
-                term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-              ) // replace special characters with escape sequences
-              .join("|"),
-          )
+        ? emailDomainTerms
+            .map((term: string) =>
+              String(term)
+                .trim()
+                .toLowerCase()
+                .replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+            )
+            .filter((term) => term.length > 0)
+        : [];
+
+    const blacklistedEmailDomainTermsRegex =
+      escapedDomainTerms.length > 0
+        ? new RegExp(escapedDomainTerms.join("|"))
         : null;
 
     // if any of the flags match, run one final edge case check, before throwing an error

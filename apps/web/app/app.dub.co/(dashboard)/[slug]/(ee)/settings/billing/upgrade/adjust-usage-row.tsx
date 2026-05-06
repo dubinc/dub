@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Grid, Slider } from "@dub/ui";
 import {
+  BUSINESS_PLAN,
   ENTERPRISE_PLAN,
   SELF_SERVE_PAID_PLANS,
   cn,
@@ -12,11 +13,11 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 export function AdjustUsageRow({
-  onLinksUsageChange,
   onEventsUsageChange,
+  onLinksUsageChange,
 }: {
-  onLinksUsageChange: (value: number) => void;
   onEventsUsageChange: (value: number) => void;
+  onLinksUsageChange: (value: number) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -101,6 +102,11 @@ function UsageSlider({
         return planDetails.limits[limitKey];
       }
     }
+
+    if (workspace.plan === "free") {
+      return BUSINESS_PLAN.limits[limitKey];
+    }
+
     const currentLimit = workspace[workspaceLimitKey];
     return usageSteps.reduce((prev, curr) =>
       Math.abs(curr - currentLimit) < Math.abs(prev - currentLimit)

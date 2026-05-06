@@ -20,7 +20,9 @@ import {
   Users2,
 } from "@dub/ui";
 import {
+  capitalize,
   cn,
+  DUB_TRIAL_PERIOD_DAYS,
   getSuggestedPlan,
   isDowngradePlan,
   isLegacyBusinessPlan,
@@ -185,6 +187,11 @@ export default function WorkspaceBillingUpgradePage() {
                     }),
                 );
 
+                const isEligibleForTrial =
+                  currentPlan === "free" &&
+                  stripeId == null &&
+                  trialEndsAt == null;
+
                 return (
                   <div
                     key={plan.name}
@@ -275,12 +282,14 @@ export default function WorkspaceBillingUpgradePage() {
                                   ? "Activate plan"
                                   : "Current plan"
                                 : isCurrentPlan
-                                  ? `Switch to ${period}`
+                                  ? `Switch to ${plan.name} ${capitalize(period)}`
                                   : isDowngrade
                                     ? "Downgrade"
                                     : isWorkspaceBillingTrialActive(trialEndsAt)
                                       ? "Switch trial"
-                                      : "Upgrade"
+                                      : isEligibleForTrial
+                                        ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial`
+                                        : `Upgrade to ${plan.name} ${capitalize(period)}`
                           }
                           variant={isDowngrade ? "secondary" : "primary"}
                           className="h-8 shadow-sm"
@@ -305,8 +314,8 @@ export default function WorkspaceBillingUpgradePage() {
             <div className="bg-bg-muted border-subtle absolute inset-x-0 -top-2.5 bottom-0 rounded-b-[12px] border" />
 
             <AdjustUsageRow
-              onLinksUsageChange={(value) => setLinksUsage(value)}
               onEventsUsageChange={(value) => setEventsUsage(value)}
+              onLinksUsageChange={(value) => setLinksUsage(value)}
             />
           </div>
 
