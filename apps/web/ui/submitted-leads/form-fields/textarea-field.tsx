@@ -1,4 +1,4 @@
-import { textareaFieldSchema } from "@/lib/zod/schemas/referral-form";
+import { textareaFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { cn } from "@dub/utils";
 import { useFormContext } from "react-hook-form";
 import * as z from "zod/v4";

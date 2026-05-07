@@ -1,17 +1,17 @@
-import { dateFieldSchema } from "@/lib/zod/schemas/referral-form";
+import { numberFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { cn } from "@dub/utils";
 import { useFormContext } from "react-hook-form";
 import * as z from "zod/v4";
 import { FormControl } from "./form-control";
 
-type DateFieldData = z.infer<typeof dateFieldSchema>;
+type NumberFieldData = z.infer<typeof numberFieldSchema>;
 
-export function DateField({
+export function NumberField({
   keyPath: keyPathProp,
   field,
 }: {
   keyPath?: string;
-  field: DateFieldData;
+  field: NumberFieldData;
 }) {
   const { register, getFieldState } = useFormContext<any>();
   const keyPath = keyPathProp || `formData.${field.key}`;
@@ -26,7 +26,7 @@ export function DateField({
       labelDir="auto"
     >
       <input
-        type="date"
+        type="number"
         className={cn(
           "mt-2 block w-full rounded-md text-sm focus:outline-none",
           error
@@ -35,6 +35,7 @@ export function DateField({
         )}
         {...register(keyPath, {
           required: field.required,
+          valueAsNumber: true,
         })}
       />
     </FormControl>

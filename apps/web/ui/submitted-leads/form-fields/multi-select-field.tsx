@@ -1,4 +1,4 @@
-import { multiSelectFieldSchema } from "@/lib/zod/schemas/referral-form";
+import { multiSelectFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { Checkbox } from "@dub/ui";
 import { Controller, useFormContext } from "react-hook-form";
 import * as z from "zod/v4";

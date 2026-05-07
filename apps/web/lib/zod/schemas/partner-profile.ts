@@ -28,7 +28,7 @@ import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
-import { referralFormDataSchema } from "./referral-form";
+import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema } from "./utils";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
@@ -283,7 +283,7 @@ export const partnerProfileSubmittedLeadSchema = z.object({
   company: z.string(),
   status: z.enum(SubmittedLeadStatus),
   customerId: z.string().nullable(),
-  formData: z.array(referralFormDataSchema).nullable().optional(),
+  formData: z.array(submittedLeadFormDataSchema).nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

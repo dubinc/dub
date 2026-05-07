@@ -1,5 +1,5 @@
 import { ActivityLogAction } from "@/lib/types";
-import { textFieldSchema } from "@/lib/zod/schemas/referral-form";
+import { textFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import * as z from "zod/v4";

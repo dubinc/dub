@@ -1,4 +1,4 @@
-import { formFieldSchema } from "@/lib/zod/schemas/referral-form";
+import { formFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import * as z from "zod/v4";
 import { CountryField } from "./country-field";
 import { DateField } from "./date-field";

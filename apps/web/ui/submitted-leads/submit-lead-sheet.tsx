@@ -2,7 +2,7 @@
 
 import { submitLeadAction } from "@/lib/submitted-leads/submit-lead-action";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
+import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
@@ -17,7 +17,7 @@ interface SubmitLeadSheetProps {
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   programId: string;
-  leadFormData: z.infer<typeof referralFormSchema>;
+  leadFormData: z.infer<typeof submittedLeadFormSchema>;
   onSuccess?: () => void;
 }
 
@@ -36,7 +36,7 @@ export function SubmitLeadSheet({
 
   const validatedFormData = useMemo(() => {
     try {
-      return referralFormSchema.parse(leadFormData);
+      return submittedLeadFormSchema.parse(leadFormData);
     } catch {
       return null;
     }
@@ -52,7 +52,7 @@ export function SubmitLeadSheet({
 
   const { executeAsync, isPending } = useAction(submitLeadAction, {
     onSuccess: async () => {
-      toast.success("Lead submitted successfully");
+      toast.success("Lead submitted successfully.");
       reset();
       onSuccess?.();
       setIsOpen(false);

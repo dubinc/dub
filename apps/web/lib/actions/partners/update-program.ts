@@ -3,7 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
+import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
@@ -16,7 +16,7 @@ import { throwIfNoPermission } from "../throw-if-no-permission";
 const schema = updateProgramSchema.partial().extend({
   workspaceId: z.string(),
   applyHoldingPeriodDaysToAllGroups: z.boolean().optional(),
-  referralFormData: referralFormSchema.optional(),
+  referralFormData: submittedLeadFormSchema.optional(),
 });
 
 export const updateProgramAction = authActionClient

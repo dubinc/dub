@@ -1,6 +1,6 @@
 import { ActivityLog, GroupProps, ProgramProps } from "@/lib/types";
 import { getResourceColorData, RAINBOW_CONIC_GRADIENT } from "@/ui/colors";
-import { SubmittedLeadStatusBadges } from "@/ui/referrals/submitted-lead-status-badges";
+import { SubmittedLeadStatusBadges } from "@/ui/submitted-leads/submitted-lead-status-badges";
 import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { Bolt, Tooltip } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";

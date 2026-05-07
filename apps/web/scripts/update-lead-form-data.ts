@@ -1,4 +1,4 @@
-import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
+import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { readFileSync } from "fs";
@@ -20,7 +20,7 @@ async function main() {
   // Validate JSON against schema
   let validatedData;
   try {
-    validatedData = referralFormSchema.parse(formData);
+    validatedData = submittedLeadFormSchema.parse(formData);
   } catch (error) {
     console.error("Validation failed:", error);
     process.exit(1);

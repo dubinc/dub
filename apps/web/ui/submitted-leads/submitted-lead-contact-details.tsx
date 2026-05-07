@@ -101,7 +101,7 @@ export function SubmittedLeadContactDetails({
 
         <div className="mt-4 border-t border-neutral-200 p-4">
           <div className="text-content-emphasis mb-2 text-base font-semibold">
-            Referral stage
+            Lead stage
           </div>
           {isInteractive ? (
             <SubmittedLeadStatusDropdown

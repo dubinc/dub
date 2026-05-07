@@ -1,8 +1,8 @@
 "use client";
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
-import { SubmitLeadSheet } from "@/ui/referrals/submit-lead-sheet";
+import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
+import { SubmitLeadSheet } from "@/ui/submitted-leads/submit-lead-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -80,8 +80,8 @@ export function PartnerProfileSubmittedLeadsEmptyState() {
       return null;
     }
     try {
-      return referralFormSchema.parse(leadFormDataRaw) as z.infer<
-        typeof referralFormSchema
+      return submittedLeadFormSchema.parse(leadFormDataRaw) as z.infer<
+        typeof submittedLeadFormSchema
       >;
     } catch {
       return null;

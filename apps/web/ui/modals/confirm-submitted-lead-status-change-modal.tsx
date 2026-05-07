@@ -8,7 +8,7 @@ import {
   SubmittedLeadProps,
   UpdateSubmittedLeadStatusPayload,
 } from "@/lib/types";
-import { SubmittedLeadStatusBadge } from "@/ui/referrals/submitted-lead-status-badge";
+import { SubmittedLeadStatusBadge } from "@/ui/submitted-leads/submitted-lead-status-badge";
 import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { AnimatedSizeContainer, Button, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";

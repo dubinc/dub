@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 interface SubmittedLeadPartnerDetailsProps {
-  referral: SubmittedLeadProps;
+  lead: SubmittedLeadProps;
 }
 
 export function SubmittedLeadPartnerDetails({
-  referral,
+  lead,
 }: SubmittedLeadPartnerDetailsProps) {
   const { slug } = useParams();
 
@@ -18,16 +18,16 @@ export function SubmittedLeadPartnerDetails({
         Partner
       </h3>
       <Link
-        href={`/${slug}/program/partners/${referral.partner.id}`}
+        href={`/${slug}/program/partners/${lead.partner.id}`}
         target="_blank"
         className="flex items-center gap-2 transition-opacity hover:opacity-80"
       >
         <PartnerAvatar
-          partner={referral.partner}
+          partner={lead.partner}
           className="size-5 border border-neutral-100"
         />
         <div className="text-content-emphasis cursor-alias text-sm font-semibold decoration-dotted hover:underline">
-          {referral.partner.name}
+          {lead.partner.name}
         </div>
       </Link>
     </div>

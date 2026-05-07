@@ -1,4 +1,4 @@
-import { countryFieldSchema } from "@/lib/zod/schemas/referral-form";
+import { countryFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { Controller, useFormContext } from "react-hook-form";
 import * as z from "zod/v4";

@@ -9,9 +9,9 @@ import { notifyPartnerLeadSubmitted } from "@/lib/submitted-leads/notify-partner
 import { SubmittedLeadFormDataField } from "@/lib/types";
 import {
   formFieldSchema,
-  referralFormSchema,
-  referralRequiredFieldsSchema,
-} from "@/lib/zod/schemas/referral-form";
+  submittedLeadFormSchema,
+  submittedLeadRequiredFieldsSchema,
+} from "@/lib/zod/schemas/submitted-lead-form";
 import { submitLeadSchema } from "@/lib/zod/schemas/submitted-leads";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -75,7 +75,7 @@ export const submitLeadAction = authPartnerActionClient
 
     // Make sure required fields are present
     const requiredFieldsResult =
-      referralRequiredFieldsSchema.safeParse(rawFormData);
+      submittedLeadRequiredFieldsSchema.safeParse(rawFormData);
 
     if (!requiredFieldsResult.success) {
       const firstError = requiredFieldsResult.error.issues[0];
@@ -92,7 +92,9 @@ export const submitLeadAction = authPartnerActionClient
 
     // Parse and get form schema fields to extract labels
     const parsedLeadFormData = programEnrollment.program.referralFormData
-      ? referralFormSchema.safeParse(programEnrollment.program.referralFormData)
+      ? submittedLeadFormSchema.safeParse(
+          programEnrollment.program.referralFormData,
+        )
       : null;
     const formSchemaFields =
       parsedLeadFormData?.success && parsedLeadFormData.data.fields

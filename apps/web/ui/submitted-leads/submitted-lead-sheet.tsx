@@ -12,26 +12,25 @@ import {
 } from "@dub/ui";
 import { Dispatch, SetStateAction, useState } from "react";
 import { ReferralActivitySection } from "../activity-logs/referral-activity-section";
-import { SubmittedLeadDetails } from "./submitted-lead-details";
 import { SubmittedLeadContactDetails } from "./submitted-lead-contact-details";
+import { SubmittedLeadDetails } from "./submitted-lead-details";
 import { SubmittedLeadPartnerDetails } from "./submitted-lead-partner-details";
 
 type SubmittedLeadSheetProps = {
-  referral: SubmittedLeadProps;
+  lead: SubmittedLeadProps;
   onNext?: () => void;
   onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 function SubmittedLeadSheetContent({
-  referral,
+  lead,
   onPrevious,
   onNext,
   setIsOpen,
 }: SubmittedLeadSheetProps) {
-  const [pendingStatus, setPendingStatus] = useState<SubmittedLeadStatus | null>(
-    null,
-  );
+  const [pendingStatus, setPendingStatus] =
+    useState<SubmittedLeadStatus | null>(null);
 
   const {
     ConfirmSubmittedLeadStatusChangeModal,
@@ -41,7 +40,7 @@ function SubmittedLeadSheetContent({
   });
 
   const hasPendingStatusChange =
-    pendingStatus !== null && pendingStatus !== referral.status;
+    pendingStatus !== null && pendingStatus !== lead.status;
 
   // right arrow key onNext
   useKeyboardShortcut(
@@ -75,12 +74,12 @@ function SubmittedLeadSheetContent({
   );
 
   const handleStatusChange = (newStatus: SubmittedLeadStatus) => {
-    setPendingStatus(newStatus === referral.status ? null : newStatus);
+    setPendingStatus(newStatus === lead.status ? null : newStatus);
   };
 
   const handleSaveStatusChange = () => {
     if (pendingStatus !== null) {
-      openConfirmSubmittedLeadStatusChangeModal(referral, pendingStatus);
+      openConfirmSubmittedLeadStatusChangeModal(lead, pendingStatus);
     }
   };
 
@@ -90,7 +89,7 @@ function SubmittedLeadSheetContent({
       <div className="flex size-full flex-col">
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
-            Partner referral
+            Submitted lead
           </Sheet.Title>
           <div className="flex items-center gap-4">
             <div className="flex items-center">
@@ -122,20 +121,20 @@ function SubmittedLeadSheetContent({
         </div>
 
         <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
-          {/* Left side - Referral details */}
+          {/* Left side - Lead details */}
           <div className="flex flex-col gap-6">
-            <SubmittedLeadDetails referral={{ formData: referral.formData }} />
-            <ReferralActivitySection referralId={referral.id} />
+            <SubmittedLeadDetails lead={{ formData: lead.formData }} />
+            <ReferralActivitySection leadId={lead.id} />
           </div>
 
           {/* Right side - Two cards */}
           <div className="@3xl/sheet:order-2 flex flex-col gap-4">
             <SubmittedLeadContactDetails
-              referral={referral}
-              selectedStatus={pendingStatus ?? referral.status}
+              lead={lead}
+              selectedStatus={pendingStatus ?? lead.status}
               onStatusChange={handleStatusChange}
             />
-            <SubmittedLeadPartnerDetails referral={referral} />
+            <SubmittedLeadPartnerDetails lead={lead} />
           </div>
         </div>
 
@@ -177,7 +176,7 @@ export function SubmittedLeadSheet({
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "referralId", scroll: false })}
+      onClose={() => queryParams({ del: "leadId", scroll: false })}
       nested={nested}
       contentProps={{
         // 540px - 1170px width based on viewport

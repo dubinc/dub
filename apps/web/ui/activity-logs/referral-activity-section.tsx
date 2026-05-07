@@ -6,17 +6,13 @@ import {
   ActivityFeedSkeleton,
 } from "@/ui/activity-logs/activity-feed";
 
-export function ReferralActivitySection({
-  referralId,
-}: {
-  referralId: string;
-}) {
+export function ReferralActivitySection({ leadId }: { leadId: string }) {
   const { activityLogs, loading, error } = useActivityLogs({
     query: {
       resourceType: "referral",
-      resourceId: referralId,
+      resourceId: leadId,
     },
-    enabled: !!referralId,
+    enabled: !!leadId,
   });
 
   const logs = activityLogs ?? [];

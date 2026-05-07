@@ -4,10 +4,10 @@ import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/const
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
 import { usePartnerSubmittedLeadsCount } from "@/lib/swr/use-partner-submitted-leads-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
+import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { SubmitLeadSheet } from "@/ui/referrals/submit-lead-sheet";
+import { SubmitLeadSheet } from "@/ui/submitted-leads/submit-lead-sheet";
 import { Button, InfoTooltip } from "@dub/ui";
 import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
@@ -45,8 +45,8 @@ export default function PartnerCustomersLayout({
       return null;
     }
     try {
-      return referralFormSchema.parse(leadFormDataRaw) as z.infer<
-        typeof referralFormSchema
+      return submittedLeadFormSchema.parse(leadFormDataRaw) as z.infer<
+        typeof submittedLeadFormSchema
       >;
     } catch {
       return null;
@@ -70,7 +70,7 @@ export default function PartnerCustomersLayout({
         label: "Leads",
         id: "leads",
         href: "leads",
-        info: "Shows your partners' submitted leads.",
+        info: "Shows your submitted leads.",
         count: leadsCount,
       },
     ];

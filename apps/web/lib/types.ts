@@ -169,7 +169,7 @@ import {
   ProgramEnrollmentSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
-import { referralFormDataSchema } from "./zod/schemas/referral-form";
+import { submittedLeadFormDataSchema } from "./zod/schemas/submitted-lead-form";
 import {
   CUSTOMER_SOURCES,
   rewardConditionsArraySchema,
@@ -864,7 +864,9 @@ export interface WorkflowContext {
 
 export type SubmittedLeadProps = z.infer<typeof submittedLeadSchema>;
 
-export type SubmittedLeadFormDataField = z.infer<typeof referralFormDataSchema>;
+export type SubmittedLeadFormDataField = z.infer<
+  typeof submittedLeadFormDataSchema
+>;
 
 export type UpdateSubmittedLeadStatusPayload = z.infer<
   typeof updateSubmittedLeadStatusSchema

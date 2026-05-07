@@ -4,11 +4,11 @@ import { usePartnerSubmittedLeads } from "@/lib/swr/use-partner-submitted-leads"
 import { usePartnerSubmittedLeadsCount } from "@/lib/swr/use-partner-submitted-leads-count";
 import { PartnerProfileSubmittedLeadsCountByStatus } from "@/lib/types";
 import { PartnerProfileSubmittedLead } from "@/lib/zod/schemas/partner-profile";
-import { PartnerProfileSubmittedLeadSheet } from "@/ui/referrals/partner-profile-submitted-lead-sheet";
-import { PartnerProfileSubmittedLeadsEmptyState } from "@/ui/referrals/partner-profile-submitted-leads-empty-state";
-import { SubmittedLeadStatusBadges } from "@/ui/referrals/submitted-lead-status-badges";
-import { getCompanyLogoUrl } from "@/ui/referrals/submitted-lead-utils";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { PartnerProfileSubmittedLeadSheet } from "@/ui/submitted-leads/partner-profile-submitted-lead-sheet";
+import { PartnerProfileSubmittedLeadsEmptyState } from "@/ui/submitted-leads/partner-profile-submitted-leads-empty-state";
+import { SubmittedLeadStatusBadges } from "@/ui/submitted-leads/submitted-lead-status-badges";
+import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
 import { SubmittedLeadStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
@@ -135,18 +135,18 @@ export default function PartnerSubmittedLeadsPage() {
           enableHiding: false,
           minSize: 250,
           cell: ({ row }: { row: Row<PartnerProfileSubmittedLead> }) => {
-            const referral = row.original;
-            const companyLogoUrl = getCompanyLogoUrl(referral.email);
+            const lead = row.original;
+            const companyLogoUrl = getCompanyLogoUrl(lead.email);
 
             return (
               <div className="flex items-center gap-2 truncate">
                 <img
-                  alt={referral.email}
-                  src={companyLogoUrl || `${OG_AVATAR_URL}${referral.id}`}
+                  alt={lead.email}
+                  src={companyLogoUrl || `${OG_AVATAR_URL}${lead.id}`}
                   className="size-5 shrink-0 rounded-full border border-neutral-200"
                 />
-                <span className="truncate" title={referral.email}>
-                  {referral.email}
+                <span className="truncate" title={lead.email}>
+                  {lead.email}
                 </span>
               </div>
             );

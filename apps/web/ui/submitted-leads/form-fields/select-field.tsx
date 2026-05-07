@@ -1,4 +1,4 @@
-import { selectFieldSchema } from "@/lib/zod/schemas/referral-form";
+import { selectFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { Combobox } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Controller, useFormContext } from "react-hook-form";

@@ -1,5 +1,5 @@
-import { SubmittedLeadStatusBadges } from "@/ui/referrals/submitted-lead-status-badges";
-import { getCompanyLogoUrl } from "@/ui/referrals/submitted-lead-utils";
+import { SubmittedLeadStatusBadges } from "@/ui/submitted-leads/submitted-lead-status-badges";
+import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
 import { sendEmail } from "@dub/email";
 import ReferralStatusUpdate from "@dub/email/templates/referral-status-update";
 import { prisma } from "@dub/prisma";

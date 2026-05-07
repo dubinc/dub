@@ -1,4 +1,4 @@
-import { getCompanyLogoUrl } from "@/ui/referrals/submitted-lead-utils";
+import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
 import { sendBatchEmail } from "@dub/email";
 import PartnerReferralSubmitted from "@dub/email/templates/partner-referral-submitted";
 import { prisma } from "@dub/prisma";
@@ -9,10 +9,7 @@ export async function notifyPartnerLeadSubmitted({
   program,
   partner,
 }: {
-  lead: Pick<
-    PartnerReferral,
-    "id" | "name" | "email" | "company" | "formData"
-  >;
+  lead: Pick<PartnerReferral, "id" | "name" | "email" | "company" | "formData">;
   program: Pick<Program, "workspaceId">;
   partner: Pick<Partner, "name" | "email" | "image">;
 }) {
@@ -45,9 +42,7 @@ export async function notifyPartnerLeadSubmitted({
   });
 
   // Parse formData from JSON
-  const formData = lead.formData as
-    | { label: string; value: unknown }[]
-    | null;
+  const formData = lead.formData as { label: string; value: unknown }[] | null;
 
   const emailsRes = await sendBatchEmail(
     workspaceUsers.map(({ user, project }) => ({

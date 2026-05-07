@@ -2,7 +2,7 @@ import { SubmittedLeadStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
-import { referralFormDataSchema } from "./referral-form";
+import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema } from "./utils";
 
 export const submittedLeadSchema = z.object({
@@ -13,7 +13,7 @@ export const submittedLeadSchema = z.object({
   email: z.email(),
   company: z.string(),
   status: z.enum(SubmittedLeadStatus),
-  formData: z.array(referralFormDataSchema).nullable().optional(),
+  formData: z.array(submittedLeadFormDataSchema).nullable().optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
   partner: PartnerSchema.pick({
@@ -68,7 +68,7 @@ export const updateSubmittedLeadSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.email("Invalid email address"),
   company: z.string().min(1, "Company is required"),
-  formData: z.array(referralFormDataSchema).nullable().optional(),
+  formData: z.array(submittedLeadFormDataSchema).nullable().optional(),
 });
 
 const baseSchema = z.object({

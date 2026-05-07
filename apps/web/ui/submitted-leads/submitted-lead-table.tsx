@@ -34,21 +34,21 @@ export function SubmittedLeadTable() {
   const { pagination, setPagination } = usePagination();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
-  const referralIdFromUrl = searchParams.get("referralId");
+  const leadIdFromUrl = searchParams.get("leadId");
 
   const [detailsSheetState, setDetailsSheetState] = useState<{
-    referralId: string | null;
+    leadId: string | null;
     open: boolean;
   }>({
-    referralId: referralIdFromUrl,
-    open: !!referralIdFromUrl,
+    leadId: leadIdFromUrl,
+    open: !!leadIdFromUrl,
   });
 
   const { data: leadsCount, error: countError } =
     useProgramSubmittedLeadsCount();
 
   const {
-    data: referrals,
+    data: leads,
     error,
     isLoading,
   } = useSWR<SubmittedLeadItem[]>(
@@ -61,14 +61,14 @@ export function SubmittedLeadTable() {
     },
   );
 
-  const referralsColumns = {
+  const leadsColumns = {
     all: ["lead", "company", "partner", "submitted", "status"],
     defaultVisible: ["lead", "company", "partner", "submitted", "status"],
   };
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "partner-referrals-table-columns",
-    referralsColumns,
+    "partner-submitted-leads-table-columns",
+    leadsColumns,
   );
 
   const columns = [
@@ -78,18 +78,18 @@ export function SubmittedLeadTable() {
       enableHiding: false,
       minSize: 250,
       cell: ({ row }: { row: Row<SubmittedLeadItem> }) => {
-        const referral = row.original;
-        const companyLogoUrl = getCompanyLogoUrl(referral.email);
+        const lead = row.original;
+        const companyLogoUrl = getCompanyLogoUrl(lead.email);
 
         return (
           <div className="flex items-center gap-2 truncate">
             <img
-              alt={referral.email}
-              src={companyLogoUrl || `${OG_AVATAR_URL}${referral.id}`}
+              alt={lead.email}
+              src={companyLogoUrl || `${OG_AVATAR_URL}${lead.id}`}
               className="size-5 shrink-0 rounded-full border border-neutral-200"
             />
-            <span className="truncate" title={referral.email}>
-              {referral.email}
+            <span className="truncate" title={lead.email}>
+              {lead.email}
             </span>
           </div>
         );
@@ -155,10 +155,10 @@ export function SubmittedLeadTable() {
         );
       },
     },
-  ].filter((c) => referralsColumns.all.includes(c.id));
+  ].filter((c) => leadsColumns.all.includes(c.id));
 
   const { table, ...tableProps } = useTable({
-    data: referrals || [],
+    data: leads || [],
     columns,
     pagination,
     onPaginationChange: setPagination,
@@ -166,91 +166,89 @@ export function SubmittedLeadTable() {
     onColumnVisibilityChange: setColumnVisibility,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (p) => `partner referral${p ? "s" : ""}`,
+    resourceName: (p) => `submitted lead${p ? "s" : ""}`,
     rowCount: leadsCount || 0,
     loading: isLoading,
-    error: error || countError ? "Failed to load referrals" : undefined,
+    error: error || countError ? "Failed to load submitted leads" : undefined,
     onRowClick: (row) => {
       queryParams({
-        set: { referralId: row.original.id },
+        set: { leadId: row.original.id },
         scroll: false,
       });
       setDetailsSheetState({
-        referralId: row.original.id,
+        leadId: row.original.id,
         open: true,
       });
     },
   });
 
-  const currentReferral = useMemo(() => {
-    if (!referrals || !detailsSheetState.referralId) return null;
-    return referrals.find((r) => r.id === detailsSheetState.referralId) || null;
-  }, [referrals, detailsSheetState.referralId]);
+  const currentLead = useMemo(() => {
+    if (!leads || !detailsSheetState.leadId) return null;
+    return leads.find((l) => l.id === detailsSheetState.leadId) || null;
+  }, [leads, detailsSheetState.leadId]);
 
-  const [previousReferralId, nextReferralId] = useMemo(() => {
-    if (!referrals || !detailsSheetState.referralId) return [null, null];
+  const [previousLeadId, nextLeadId] = useMemo(() => {
+    if (!leads || !detailsSheetState.leadId) return [null, null];
 
-    const currentIndex = referrals.findIndex(
-      ({ id }) => id === detailsSheetState.referralId,
+    const currentIndex = leads.findIndex(
+      ({ id }) => id === detailsSheetState.leadId,
     );
     if (currentIndex === -1) return [null, null];
 
     return [
-      currentIndex > 0 ? referrals[currentIndex - 1].id : null,
-      currentIndex < referrals.length - 1
-        ? referrals[currentIndex + 1].id
-        : null,
+      currentIndex > 0 ? leads[currentIndex - 1].id : null,
+      currentIndex < leads.length - 1 ? leads[currentIndex + 1].id : null,
     ];
-  }, [referrals, detailsSheetState.referralId]);
+  }, [leads, detailsSheetState.leadId]);
 
   // Sync state with URL params
   useEffect(() => {
-    const urlReferralId = searchParams.get("referralId");
-    if (urlReferralId && urlReferralId !== detailsSheetState.referralId) {
+    const urlLeadId = searchParams.get("leadId");
+    if (urlLeadId && urlLeadId !== detailsSheetState.leadId) {
       setDetailsSheetState({
-        referralId: urlReferralId,
+        leadId: urlLeadId,
         open: true,
       });
-    } else if (!urlReferralId && detailsSheetState.referralId) {
+    } else if (!urlLeadId && detailsSheetState.leadId) {
       setDetailsSheetState({
-        referralId: null,
+        leadId: null,
         open: false,
       });
     }
-  }, [searchParams, detailsSheetState.referralId]);
+  }, [searchParams, detailsSheetState.leadId]);
 
   return (
     <div className="flex flex-col gap-3">
-      {detailsSheetState.referralId && currentReferral && (
+      {detailsSheetState.leadId && currentLead && (
         <SubmittedLeadSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
-          referral={currentReferral}
+          lead={currentLead}
           onPrevious={
-            previousReferralId
+            previousLeadId
               ? () => {
                   queryParams({
-                    set: { referralId: previousReferralId },
+                    set: { leadId: previousLeadId },
                     scroll: false,
                   });
                   setDetailsSheetState({
-                    referralId: previousReferralId,
+                    leadId: previousLeadId,
                     open: true,
                   });
                 }
               : undefined
           }
           onNext={
-            nextReferralId
+            nextLeadId
               ? () => {
                   queryParams({
-                    set: { referralId: nextReferralId },
+                    set: { leadId: nextLeadId },
                     scroll: false,
                   });
                   setDetailsSheetState({
-                    referralId: nextReferralId,
+                    leadId: nextLeadId,
                     open: true,
                   });
                 }
@@ -261,7 +259,7 @@ export function SubmittedLeadTable() {
       <div>
         <SubmittedLeadFilters />
       </div>
-      {referrals?.length !== 0 ? (
+      {leads?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState

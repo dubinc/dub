@@ -22,9 +22,6 @@ export function SubmittedLeadDetails({ lead }: SubmittedLeadDetailsProps) {
   return (
     <div className="@3xl/sheet:order-1">
       <div className="border-border-subtle overflow-hidden rounded-xl border bg-white p-4">
-        <h3 className="text-content-emphasis mb-4 text-lg font-semibold">
-          Lead details
-        </h3>
         <div className="grid grid-cols-1 gap-4 text-sm text-neutral-600">
           {displayFormData?.map((field) => (
             <div key={field.key}>
