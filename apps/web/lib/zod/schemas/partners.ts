@@ -489,6 +489,7 @@ export const PartnerRewindSchema = z.object({
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
+  username: true,
   companyName: true,
   email: true,
   image: true,
@@ -1033,4 +1034,10 @@ export const partnerCrossProgramSummarySchema = z.object({
   totalPrograms: z.number(),
   activePrograms: z.number(),
   bannedPrograms: z.number(),
+});
+
+export const partnerReferralStatsSchema = z.object({
+  totalPartners: z.number(),
+  totalConversions: z.number(),
+  totalSaleAmount: z.number(),
 });
