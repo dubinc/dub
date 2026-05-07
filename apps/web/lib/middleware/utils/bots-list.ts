@@ -21,9 +21,7 @@ export const UA_BOTS = [
   "meta-webindexer", // Meta web indexer
   "thirdLandingPageFeInfra", // TikTok preloader (https://ads.tiktok.com/help/article/preloading-web-content)
   "WhatsApp", // WhatsApp crawler
-  // Googlebot/AdsBot are caught by "bot"/"fetch" above; a generic "google"
-  // would false-positive Instagram webview on Pixel ("Google/google" in UA)
-  "Mediapartners-Google", // Google AdSense crawler
+  "google", // Google crawler
   "baidu", // Baidu crawler
   "bing", // Bing crawler
   "msn", // MSN crawler
