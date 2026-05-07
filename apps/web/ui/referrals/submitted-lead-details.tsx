@@ -2,11 +2,11 @@ import { SubmittedLeadFormDataField, SubmittedLeadProps } from "@/lib/types";
 import { formatFormDataValue } from "./submitted-lead-utils";
 
 interface SubmittedLeadDetailsProps {
-  referral: Pick<SubmittedLeadProps, "formData">;
+  lead: Pick<SubmittedLeadProps, "formData">;
 }
 
-export function SubmittedLeadDetails({ referral }: SubmittedLeadDetailsProps) {
-  const formData = referral.formData as
+export function SubmittedLeadDetails({ lead }: SubmittedLeadDetailsProps) {
+  const formData = lead.formData as
     | SubmittedLeadFormDataField[]
     | null
     | undefined;
@@ -23,7 +23,7 @@ export function SubmittedLeadDetails({ referral }: SubmittedLeadDetailsProps) {
     <div className="@3xl/sheet:order-1">
       <div className="border-border-subtle overflow-hidden rounded-xl border bg-white p-4">
         <h3 className="text-content-emphasis mb-4 text-lg font-semibold">
-          Referral details
+          Lead details
         </h3>
         <div className="grid grid-cols-1 gap-4 text-sm text-neutral-600">
           {displayFormData?.map((field) => (

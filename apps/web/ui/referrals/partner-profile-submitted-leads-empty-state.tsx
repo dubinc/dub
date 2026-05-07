@@ -68,7 +68,7 @@ const EMPTY_STATE_CARDS = [
   },
 ];
 
-export function PartnerProfileReferralsEmptyState() {
+export function PartnerProfileSubmittedLeadsEmptyState() {
   const { programEnrollment } = useProgramEnrollment();
   const [showReferralSheet, setShowReferralSheet] = useState(false);
 
@@ -93,8 +93,8 @@ export function PartnerProfileReferralsEmptyState() {
       <AnimatedEmptyState
         title={
           submittedReferralsEnabled
-            ? "No referrals submitted"
-            : "Submitted referrals not offered"
+            ? "No leads submitted"
+            : "Submitted leads not offered"
         }
         description={
           submittedReferralsEnabled

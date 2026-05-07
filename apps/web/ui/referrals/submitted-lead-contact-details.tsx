@@ -12,7 +12,7 @@ import { SubmittedLeadStatusDropdown } from "./submitted-lead-status-dropdown";
 import { getCompanyLogoUrl } from "./submitted-lead-utils";
 
 interface SubmittedLeadContactDetailsProps {
-  referral: Pick<
+  lead: Pick<
     SubmittedLeadProps,
     "id" | "name" | "email" | "company" | "status"
   >;
@@ -22,13 +22,14 @@ interface SubmittedLeadContactDetailsProps {
 }
 
 export function SubmittedLeadContactDetails({
-  referral,
+  lead,
   mode = "interactive",
   selectedStatus,
   onStatusChange,
 }: SubmittedLeadContactDetailsProps) {
   const { EditSubmittedLeadModal, openEditSubmittedLeadModal } =
     useEditSubmittedLeadModal();
+
   const {
     ConfirmSubmittedLeadStatusChangeModal,
     openConfirmSubmittedLeadStatusChangeModal,
@@ -41,7 +42,7 @@ export function SubmittedLeadContactDetails({
     if (onStatusChange) {
       onStatusChange(newStatus);
     } else {
-      openConfirmSubmittedLeadStatusChangeModal(referral, newStatus);
+      openConfirmSubmittedLeadStatusChangeModal(lead, newStatus);
     }
   };
 
@@ -54,10 +55,9 @@ export function SubmittedLeadContactDetails({
           <div className="relative w-fit shrink-0">
             <img
               src={
-                getCompanyLogoUrl(referral.email) ||
-                `${OG_AVATAR_URL}${referral.id}`
+                getCompanyLogoUrl(lead.email) || `${OG_AVATAR_URL}${lead.id}`
               }
-              alt={referral.company}
+              alt={lead.company}
               className="size-10 rounded-full"
             />
           </div>
@@ -70,7 +70,7 @@ export function SubmittedLeadContactDetails({
               text="Edit"
               className="h-7 w-fit rounded-lg px-2"
               onClick={() =>
-                openEditSubmittedLeadModal(referral as SubmittedLeadProps)
+                openEditSubmittedLeadModal(lead as SubmittedLeadProps)
               }
             />
           )}
@@ -78,14 +78,14 @@ export function SubmittedLeadContactDetails({
 
         <div className="mt-2 px-4">
           <div className="text-content-emphasis text-base font-semibold">
-            {referral.name}
+            {lead.name}
           </div>
         </div>
 
         <div className="mt-2 flex flex-col gap-2 px-4">
           {[
-            { icon: Envelope, value: referral.email },
-            { icon: OfficeBuilding, value: referral.company },
+            { icon: Envelope, value: lead.email },
+            { icon: OfficeBuilding, value: lead.company },
           ].map(({ icon: Icon, value }, index) => (
             <div
               key={index}
@@ -105,12 +105,12 @@ export function SubmittedLeadContactDetails({
           </div>
           {isInteractive ? (
             <SubmittedLeadStatusDropdown
-              referral={referral as SubmittedLeadProps}
+              lead={lead as SubmittedLeadProps}
               selectedStatus={selectedStatus}
               onStatusChange={handleStatusChange}
             />
           ) : (
-            <SubmittedLeadStatusBadge status={referral.status} />
+            <SubmittedLeadStatusBadge status={lead.status} />
           )}
         </div>
       </div>

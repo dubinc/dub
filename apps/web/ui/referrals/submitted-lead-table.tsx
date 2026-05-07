@@ -265,7 +265,7 @@ export function SubmittedLeadTable() {
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
-          title="No referrals submitted"
+          title="No leads submitted"
           description="Allow partners to submit leads and track their progress through the sales process."
           learnMoreHref="https://dub.co/help/article/partner-rewards"
           cardContent={

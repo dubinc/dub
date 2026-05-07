@@ -8,19 +8,15 @@ import {
 } from "@/ui/activity-logs/activity-feed";
 import { ActivityLogProvider } from "@/ui/activity-logs/activity-log-context";
 
-export function PartnerReferralActivitySection({
-  referralId,
-}: {
-  referralId: string;
-}) {
+export function PartnerReferralActivitySection({ leadId }: { leadId: string }) {
   const { programEnrollment } = useProgramEnrollment();
 
   const { activityLogs, loading, error } = usePartnerActivityLogs({
     query: {
       resourceType: "referral",
-      resourceId: referralId,
+      resourceId: leadId,
     },
-    enabled: !!referralId,
+    enabled: !!leadId,
   });
 
   const logs = activityLogs ?? [];

@@ -9,24 +9,26 @@ import { useState } from "react";
 import { SubmittedLeadStatusBadges } from "./submitted-lead-status-badges";
 
 interface SubmittedLeadStatusDropdownProps {
-  referral: SubmittedLeadProps;
+  lead: SubmittedLeadProps;
   selectedStatus?: SubmittedLeadStatus;
   onStatusChange: (newStatus: SubmittedLeadStatus) => void;
 }
 
 export function SubmittedLeadStatusDropdown({
-  referral,
+  lead,
   selectedStatus,
   onStatusChange,
 }: SubmittedLeadStatusDropdownProps) {
   const [openStatusDropdown, setOpenStatusDropdown] = useState(false);
 
-  const displayStatus = selectedStatus ?? referral.status;
+  const displayStatus = selectedStatus ?? lead.status;
   const currentBadge = SubmittedLeadStatusBadges[displayStatus];
-  const allStatuses = Object.keys(SubmittedLeadStatusBadges) as SubmittedLeadStatus[];
+  const allStatuses = Object.keys(
+    SubmittedLeadStatusBadges,
+  ) as SubmittedLeadStatus[];
 
   const handleStatusChange = (newStatus: SubmittedLeadStatus) => {
-    if (newStatus !== referral.status) {
+    if (newStatus !== lead.status) {
       onStatusChange(newStatus);
     }
     setOpenStatusDropdown(false);

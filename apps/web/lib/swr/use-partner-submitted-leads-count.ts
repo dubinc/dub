@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 import * as z from "zod/v4";
 
-export default function usePartnerReferralsCount<T = number>({
+export default function usePartnerSubmittedLeadsCount<T = number>({
   query,
   ignoreParams,
   enabled = true,

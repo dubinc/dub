@@ -2,7 +2,7 @@
 
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
-import usePartnerReferralsCount from "@/lib/swr/use-partner-referrals-count";
+import usePartnerSubmittedLeadsCount from "@/lib/swr/use-partner-submitted-leads-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { PageContent } from "@/ui/layout/page-content";
@@ -29,7 +29,7 @@ export default function PartnerCustomersLayout({
     includeParams: [],
   });
 
-  const { data: referralsCount } = usePartnerReferralsCount<number>({
+  const { data: referralsCount } = usePartnerSubmittedLeadsCount<number>({
     ignoreParams: true,
   });
 

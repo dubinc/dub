@@ -1,11 +1,11 @@
 "use client";
 
 import usePartnerReferrals from "@/lib/swr/use-partner-referrals";
-import usePartnerReferralsCount from "@/lib/swr/use-partner-referrals-count";
+import usePartnerSubmittedLeadsCount from "@/lib/swr/use-partner-submitted-leads-count";
 import { PartnerProfileReferralsCountByStatus } from "@/lib/types";
 import { PartnerProfileSubmittedLead } from "@/lib/zod/schemas/partner-profile";
 import { PartnerProfileReferralSheet } from "@/ui/referrals/partner-profile-referral-sheet";
-import { PartnerProfileReferralsEmptyState } from "@/ui/referrals/partner-profile-referrals-empty-state";
+import { PartnerProfileSubmittedLeadsEmptyState } from "@/ui/referrals/partner-profile-submitted-leads-empty-state";
 import { SubmittedLeadStatusBadges } from "@/ui/referrals/submitted-lead-status-badges";
 import { getCompanyLogoUrl } from "@/ui/referrals/submitted-lead-utils";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -26,25 +26,25 @@ import { cn, formatDate, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 
-export default function PartnerCustomersReferralsPage() {
+export default function PartnerSubmittedLeadsPage() {
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
-  const referralIdFromUrl = searchParams.get("referralId");
+  const leadIdFromUrl = searchParams.get("leadId");
 
   const [detailsSheetState, setDetailsSheetState] = useState<{
-    referralId: string | null;
+    leadId: string | null;
     open: boolean;
   }>({
-    referralId: referralIdFromUrl,
-    open: !!referralIdFromUrl,
+    leadId: leadIdFromUrl,
+    open: !!leadIdFromUrl,
   });
 
   const { searchParamsObj } = useRouterStuff();
   const status = searchParamsObj.status as SubmittedLeadStatus | undefined;
   const search = searchParamsObj.search as string | undefined;
 
-  const { data: referralsCountByStatus } = usePartnerReferralsCount<
+  const { data: countByStatus } = usePartnerSubmittedLeadsCount<
     PartnerProfileReferralsCountByStatus[] | undefined
   >({
     query: {
@@ -52,15 +52,15 @@ export default function PartnerCustomersReferralsPage() {
     },
   });
 
-  const { data: totalReferralsCount, error: countError } =
-    usePartnerReferralsCount<number>({
+  const { data: totalCount, error: countError } =
+    usePartnerSubmittedLeadsCount<number>({
       query: {
         ...(status && { status }),
         ...(search && { search }),
       },
     });
 
-  const { data: referrals, error, isLoading } = usePartnerReferrals();
+  const { data: leads, error, isLoading } = usePartnerReferrals();
 
   const referralsColumns = {
     all: ["lead", "name", "company", "submitted", "status"],
@@ -79,7 +79,7 @@ export default function PartnerCustomersReferralsPage() {
         icon: CircleDotted,
         label: "Status",
         options:
-          referralsCountByStatus?.map(({ status, _count }) => {
+          countByStatus?.map(({ status, _count }) => {
             const badge = SubmittedLeadStatusBadges[status];
             const Icon = badge.icon;
 
@@ -101,7 +101,7 @@ export default function PartnerCustomersReferralsPage() {
         },
       },
     ],
-    [referralsCountByStatus],
+    [countByStatus],
   );
 
   const activeFilters = useMemo(() => {
@@ -218,7 +218,7 @@ export default function PartnerCustomersReferralsPage() {
   );
 
   const { table, ...tableProps } = useTable({
-    data: referrals || [],
+    data: leads || [],
     columns,
     pagination,
     onPaginationChange: setPagination,
@@ -226,91 +226,89 @@ export default function PartnerCustomersReferralsPage() {
     onColumnVisibilityChange: setColumnVisibility,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (p) => `referral${p ? "s" : ""}`,
-    rowCount: totalReferralsCount || 0,
+    resourceName: (p) => `lead${p ? "s" : ""}`,
+    rowCount: totalCount || 0,
     loading: isLoading,
-    error: error || countError ? "Failed to load referrals" : undefined,
+    error: error || countError ? "Failed to load submitted leads" : undefined,
     onRowClick: (row) => {
       queryParams({
-        set: { referralId: row.original.id },
+        set: { leadId: row.original.id },
         scroll: false,
       });
       setDetailsSheetState({
-        referralId: row.original.id,
+        leadId: row.original.id,
         open: true,
       });
     },
   });
 
-  const currentReferral = useMemo(() => {
-    if (!referrals || !detailsSheetState.referralId) return null;
-    return referrals.find((r) => r.id === detailsSheetState.referralId) || null;
-  }, [referrals, detailsSheetState.referralId]);
+  const currentLead = useMemo(() => {
+    if (!leads || !detailsSheetState.leadId) return null;
+    return leads.find((l) => l.id === detailsSheetState.leadId) || null;
+  }, [leads, detailsSheetState.leadId]);
 
-  const [previousReferralId, nextReferralId] = useMemo(() => {
-    if (!referrals || !detailsSheetState.referralId) return [null, null];
+  const [previousLeadId, nextLeadId] = useMemo(() => {
+    if (!leads || !detailsSheetState.leadId) return [null, null];
 
-    const currentIndex = referrals.findIndex(
-      ({ id }) => id === detailsSheetState.referralId,
+    const currentIndex = leads.findIndex(
+      ({ id }) => id === detailsSheetState.leadId,
     );
     if (currentIndex === -1) return [null, null];
 
     return [
-      currentIndex > 0 ? referrals[currentIndex - 1].id : null,
-      currentIndex < referrals.length - 1
-        ? referrals[currentIndex + 1].id
-        : null,
+      currentIndex > 0 ? leads[currentIndex - 1].id : null,
+      currentIndex < leads.length - 1 ? leads[currentIndex + 1].id : null,
     ];
-  }, [referrals, detailsSheetState.referralId]);
+  }, [leads, detailsSheetState.leadId]);
 
   // Sync state with URL params
   useEffect(() => {
-    const urlReferralId = searchParams.get("referralId");
-    if (urlReferralId && urlReferralId !== detailsSheetState.referralId) {
+    const urlLeadId = searchParams.get("leadId");
+    if (urlLeadId && urlLeadId !== detailsSheetState.leadId) {
       setDetailsSheetState({
-        referralId: urlReferralId,
+        leadId: urlLeadId,
         open: true,
       });
-    } else if (!urlReferralId && detailsSheetState.referralId) {
+    } else if (!urlLeadId && detailsSheetState.leadId) {
       setDetailsSheetState({
-        referralId: null,
+        leadId: null,
         open: false,
       });
     }
-  }, [searchParams, detailsSheetState.referralId]);
+  }, [searchParams, detailsSheetState.leadId]);
 
   return (
     <div className="flex flex-col gap-3">
-      {detailsSheetState.referralId && currentReferral && (
+      {detailsSheetState.leadId && currentLead && (
         <PartnerProfileReferralSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
-          referral={currentReferral}
+          lead={currentLead}
           onPrevious={
-            previousReferralId
+            previousLeadId
               ? () => {
                   queryParams({
-                    set: { referralId: previousReferralId },
+                    set: { leadId: previousLeadId },
                     scroll: false,
                   });
                   setDetailsSheetState({
-                    referralId: previousReferralId,
+                    leadId: previousLeadId,
                     open: true,
                   });
                 }
               : undefined
           }
           onNext={
-            nextReferralId
+            nextLeadId
               ? () => {
                   queryParams({
-                    set: { referralId: nextReferralId },
+                    set: { leadId: nextLeadId },
                     scroll: false,
                   });
                   setDetailsSheetState({
-                    referralId: nextReferralId,
+                    leadId: nextLeadId,
                     open: true,
                   });
                 }
@@ -348,10 +346,10 @@ export default function PartnerCustomersReferralsPage() {
           </div>
         </AnimatedSizeContainer>
       </div>
-      {referrals && referrals.length !== 0 ? (
+      {leads && leads.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : !isLoading ? (
-        <PartnerProfileReferralsEmptyState />
+        <PartnerProfileSubmittedLeadsEmptyState />
       ) : null}
     </div>
   );

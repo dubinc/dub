@@ -14,14 +14,14 @@ import { SubmittedLeadContactDetails } from "./submitted-lead-contact-details";
 import { SubmittedLeadDetails } from "./submitted-lead-details";
 
 type PartnerProfileReferralSheetProps = {
-  referral: PartnerProfileSubmittedLead;
+  lead: PartnerProfileSubmittedLead;
   onNext?: () => void;
   onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 function PartnerProfileReferralSheetContent({
-  referral,
+  lead,
   onPrevious,
   onNext,
 }: Omit<PartnerProfileReferralSheetProps, "setIsOpen">) {
@@ -51,7 +51,7 @@ function PartnerProfileReferralSheetContent({
     <div className="flex size-full flex-col">
       <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
         <Sheet.Title className="text-lg font-semibold">
-          Referral details
+          Lead details
         </Sheet.Title>
         <div className="flex items-center gap-4">
           <div className="flex items-center">
@@ -85,13 +85,13 @@ function PartnerProfileReferralSheetContent({
       <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-2 overflow-y-auto p-4 sm:gap-y-4 sm:p-6">
         {/* Left side - Referral details */}
         <div className="flex flex-col gap-6">
-          <SubmittedLeadDetails referral={{ formData: referral.formData }} />
-          <PartnerReferralActivitySection referralId={referral.id} />
+          <SubmittedLeadDetails lead={{ formData: lead.formData }} />
+          <PartnerReferralActivitySection leadId={lead.id} />
         </div>
 
         {/* Right side - Customer details */}
         <div className="@3xl/sheet:order-2 flex flex-col gap-2 sm:gap-4">
-          <SubmittedLeadContactDetails referral={referral} mode="readonly" />
+          <SubmittedLeadContactDetails lead={lead} mode="readonly" />
         </div>
       </div>
     </div>
