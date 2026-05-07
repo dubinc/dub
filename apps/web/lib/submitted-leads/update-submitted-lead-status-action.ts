@@ -3,21 +3,21 @@
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getSubmittedLeadOrThrow } from "@/lib/api/submitted-leads/get-submitted-lead-or-throw";
-import { markSubmittedLeadClosedWon } from "@/lib/api/submitted-leads/mark-submitted-lead-closed-won";
-import { markSubmittedLeadQualified } from "@/lib/api/submitted-leads/mark-submitted-lead-qualified";
-import { notifySubmittedLeadStatusUpdate } from "@/lib/api/submitted-leads/notify-submitted-lead-status-update";
 import {
   SUBMITTED_LEAD_STATUS_TO_ACTIVITY_ACTION,
   SUBMITTED_LEAD_STATUS_TRANSITIONS,
 } from "@/lib/submitted-leads/constants";
+import { getSubmittedLeadOrThrow } from "@/lib/submitted-leads/get-submitted-lead-or-throw";
+import { markSubmittedLeadClosedWon } from "@/lib/submitted-leads/mark-submitted-lead-closed-won";
+import { markSubmittedLeadQualified } from "@/lib/submitted-leads/mark-submitted-lead-qualified";
+import { notifySubmittedLeadStatusUpdate } from "@/lib/submitted-leads/notify-submitted-lead-status-update";
 import { SubmittedLeadWithCustomer } from "@/lib/types";
 import { updateSubmittedLeadStatusSchema } from "@/lib/zod/schemas/submitted-leads";
 import { prisma } from "@dub/prisma";
 import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { authActionClient } from "../safe-action";
-import { throwIfNoPermission } from "../throw-if-no-permission";
+import { authActionClient } from "../actions/safe-action";
+import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 
 export const updateSubmittedLeadStatusAction = authActionClient
   .inputSchema(updateSubmittedLeadStatusSchema)
@@ -109,7 +109,7 @@ export const updateSubmittedLeadStatusAction = authActionClient
             ? [
                 markSubmittedLeadClosedWon({
                   workspace,
-                  referral: updatedLead as SubmittedLeadWithCustomer,
+                  lead: updatedLead as SubmittedLeadWithCustomer,
                   saleAmount: parsedInput.saleAmount,
                   stripeCustomerId: parsedInput.stripeCustomerId ?? null,
                 }),

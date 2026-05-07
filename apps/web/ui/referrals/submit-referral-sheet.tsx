@@ -1,6 +1,6 @@
 "use client";
 
-import { submitLeadAction } from "@/lib/actions/referrals/submit-referral";
+import { submitLeadAction } from "@/lib/submitted-leads/submit-lead-action";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { X } from "@/ui/shared/icons";

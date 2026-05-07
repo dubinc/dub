@@ -4,8 +4,8 @@ import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { notifyPartnerReferralSubmitted } from "@/lib/api/referrals/notify-partner-referral-submitted";
 import { SUBMITTED_LEAD_FORM_REQUIRED_FIELD_KEYS } from "@/lib/submitted-leads/constants";
+import { notifyPartnerReferralSubmitted } from "@/lib/submitted-leads/notify-partner-referral-submitted";
 import { SubmittedLeadFormDataField } from "@/lib/types";
 import {
   formFieldSchema,
@@ -18,7 +18,7 @@ import { Prisma } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { authPartnerActionClient } from "../safe-action";
+import { authPartnerActionClient } from "../actions/safe-action";
 
 /**
  * Converts field values based on field type:

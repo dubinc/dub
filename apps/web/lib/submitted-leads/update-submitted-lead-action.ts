@@ -3,13 +3,13 @@
 import { getResourceDiff } from "@/lib/api/activity-log/get-resource-diff";
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getSubmittedLeadOrThrow } from "@/lib/api/submitted-leads/get-submitted-lead-or-throw";
+import { getSubmittedLeadOrThrow } from "@/lib/submitted-leads/get-submitted-lead-or-throw";
 import { updateSubmittedLeadSchema } from "@/lib/zod/schemas/submitted-leads";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { authActionClient } from "../safe-action";
-import { throwIfNoPermission } from "../throw-if-no-permission";
+import { authActionClient } from "../actions/safe-action";
+import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 
 // Update a submitted lead's details
 export const updateSubmittedLeadAction = authActionClient

@@ -1,6 +1,6 @@
 "use client";
 
-import { updateSubmittedLeadAction } from "@/lib/actions/submitted-leads/update-submitted-lead";
+import { updateSubmittedLeadAction } from "@/lib/submitted-leads/update-submitted-lead-action";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SubmittedLeadFormDataField, SubmittedLeadProps } from "@/lib/types";

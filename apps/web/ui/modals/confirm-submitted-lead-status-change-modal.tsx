@@ -1,7 +1,7 @@
 "use client";
 
-import { updateSubmittedLeadStatusAction } from "@/lib/actions/submitted-leads/update-submitted-lead-status";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import { updateSubmittedLeadStatusAction } from "@/lib/submitted-leads/update-submitted-lead-status-action";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
