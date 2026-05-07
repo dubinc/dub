@@ -333,6 +333,9 @@ function DubLinkSubdomainForm({
 
   const domain = `${slug}.dub.link`.toLowerCase();
   const debouncedDomain = `${debouncedSlug}.dub.link`.toLowerCase();
+  const hasValidatedSlug = slug === debouncedSlug;
+  const isAvailable = available === true && hasValidatedSlug;
+  const canClaim = isAvailable && Boolean(workspace.id);
 
   useEffect(() => {
     if (!debouncedSlug.trim()) {
@@ -343,44 +346,88 @@ function DubLinkSubdomainForm({
     setIsChecking(true);
     setAvailable(null);
 
-    fetch(`/api/domains/${encodeURIComponent(debouncedDomain)}/validate`)
+    const controller = new AbortController();
+
+    fetch(`/api/domains/${encodeURIComponent(debouncedDomain)}/validate`, {
+      signal: controller.signal,
+    })
       .then(async (res) => {
+        if (controller.signal.aborted) return;
+
         if (!res.ok) {
           setAvailable(false);
           return;
         }
 
         const data = await res.json();
-        setAvailable(data.status === "available");
+        if (!controller.signal.aborted) {
+          setAvailable(data.status === "available");
+        }
       })
-      .catch(() => setAvailable(false))
-      .finally(() => setIsChecking(false));
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
+        setAvailable(false);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsChecking(false);
+        }
+      });
+
+    return () => controller.abort();
   }, [debouncedSlug, debouncedDomain]);
 
   const claimDomain = async () => {
-    setIsSubmitting(true);
-
-    const res = await fetch(`/api/domains?workspaceId=${workspace.id}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ slug: domain }),
-    });
-
-    if (!res.ok) {
-      const { error } = await res.json();
-      toast.error(error.message);
-      setIsSubmitting(false);
+    if (!workspace.id) {
+      toast.error("Workspace is still loading. Please try again.");
       return;
     }
 
-    await Promise.all([
-      mutatePrefix("/api/domains"),
-      mutatePrefix("/api/links"),
-    ]);
-    toast.success("Successfully added domain!");
-    onSuccess(domain);
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch(`/api/domains?workspaceId=${workspace.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ slug: domain }),
+      });
+
+      if (!res.ok) {
+        let message = "Failed to add domain.";
+
+        try {
+          const data = await res.json();
+          const error = data?.error;
+
+          if (typeof error === "string") {
+            message = error;
+          } else if (typeof error?.message === "string") {
+            message = error.message;
+          } else if (typeof data?.message === "string") {
+            message = data.message;
+          }
+        } catch {
+          message = "Failed to add domain.";
+        }
+
+        toast.error(message);
+        return;
+      }
+
+      await Promise.all([
+        mutatePrefix("/api/domains"),
+        mutatePrefix("/api/links"),
+      ]);
+      toast.success("Successfully added domain!");
+      onSuccess(domain);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -388,7 +435,7 @@ function DubLinkSubdomainForm({
       onSubmit={async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        if (available) await claimDomain();
+        if (canClaim) await claimDomain();
       }}
     >
       <div className="flex flex-col gap-y-6 px-4 pt-6 text-left sm:px-6">
@@ -402,8 +449,10 @@ function DubLinkSubdomainForm({
               className={cn(
                 "-m-1 rounded-[0.625rem] p-1",
                 available === true
-                  ? "bg-green-100"
-                  : available === false
+                  ? hasValidatedSlug
+                    ? "bg-green-100"
+                    : "bg-neutral-100"
+                  : available === false && hasValidatedSlug
                     ? "bg-orange-100"
                     : "bg-neutral-100",
               )}
@@ -439,21 +488,21 @@ function DubLinkSubdomainForm({
               >
                 <div className="flex justify-between gap-3 px-2 pb-2 pt-3 text-sm text-neutral-700">
                   <p>
-                    {available === true ? (
+                    {isAvailable ? (
                       <>
                         <span className="font-semibold text-neutral-800">
                           {domain}
                         </span>{" "}
                         is available.
                       </>
-                    ) : available === false ? (
+                    ) : available === false && hasValidatedSlug ? (
                       <>
                         <span className="font-semibold text-neutral-800">
                           {domain}
                         </span>{" "}
                         is not available.
                       </>
-                    ) : slug.trim() ? (
+                    ) : slug.trim() && hasValidatedSlug ? (
                       <>
                         Checking availability for{" "}
                         <strong className="font-semibold">
@@ -464,9 +513,10 @@ function DubLinkSubdomainForm({
                       <>&nbsp;</>
                     )}
                   </p>
-                  {isChecking || (available === null && slug.trim()) ? (
+                  {(isChecking && hasValidatedSlug) ||
+                  (available === null && slug.trim() && hasValidatedSlug) ? (
                     <LoadingSpinner className="mr-0.5 mt-0.5 size-4 shrink-0" />
-                  ) : available ? (
+                  ) : isAvailable ? (
                     <CheckCircleFill className="size-5 shrink-0 text-green-500" />
                   ) : null}
                 </div>
@@ -487,7 +537,7 @@ function DubLinkSubdomainForm({
           type="submit"
           text="Claim domain"
           className="h-9 w-fit"
-          disabled={!available}
+          disabled={!canClaim}
           loading={isSubmitting}
         />
       </div>

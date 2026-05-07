@@ -38,7 +38,7 @@ export default async function Domain({
           </>
         )
       }
-      className="max-w-none [&_>div:first-of-type]:max-w-[640px]"
+      className="max-w-none [&>div:first-of-type]:max-w-[640px]"
     >
       <DefaultDomainSelector />
     </StepPage>
