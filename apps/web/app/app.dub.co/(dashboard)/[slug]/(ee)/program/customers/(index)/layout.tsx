@@ -29,7 +29,7 @@ export default function PartnerCustomersLayout({
     ? SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(defaultProgramId)
     : false;
 
-  const { data: referralsCount } = useProgramSubmittedLeadsCount<number>({
+  const { data: leadsCount } = useProgramSubmittedLeadsCount<number>({
     ignoreParams: true,
     enabled: isReferralEnabled,
   });
@@ -52,10 +52,10 @@ export default function PartnerCustomersLayout({
         id: "leads",
         href: "leads",
         info: "Shows your partners' submitted leads.",
-        count: referralsCount,
+        count: leadsCount,
       },
     ];
-  }, [isReferralEnabled, customersCount, referralsCount]);
+  }, [isReferralEnabled, customersCount, leadsCount]);
 
   return (
     <PageContent

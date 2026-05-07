@@ -44,7 +44,7 @@ export function SubmittedLeadTable() {
     open: !!referralIdFromUrl,
   });
 
-  const { data: referralsCount, error: countError } =
+  const { data: leadsCount, error: countError } =
     useProgramSubmittedLeadsCount();
 
   const {
@@ -167,7 +167,7 @@ export function SubmittedLeadTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner referral${p ? "s" : ""}`,
-    rowCount: referralsCount || 0,
+    rowCount: leadsCount || 0,
     loading: isLoading,
     error: error || countError ? "Failed to load referrals" : undefined,
     onRowClick: (row) => {

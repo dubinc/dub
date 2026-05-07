@@ -74,7 +74,7 @@ type SidebarNavData = {
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   pendingFraudEventsCount?: number;
-  pendingReferralsCount?: number;
+  pendingLeadsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
 };
@@ -124,7 +124,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     submittedBountiesCount,
     unreadMessagesCount,
     pendingFraudEventsCount,
-    pendingReferralsCount,
+    pendingLeadsCount,
     partnerNetworkEnabled,
   }) => ({
     title: "Partner Program",
@@ -211,10 +211,10 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Customers",
             icon: User as Icon,
             href: `/${slug}/program/customers`,
-            badge: pendingReferralsCount
-              ? pendingReferralsCount > 99
+            badge: pendingLeadsCount
+              ? pendingLeadsCount > 99
                 ? "99+"
-                : pendingReferralsCount
+                : pendingLeadsCount
               : undefined,
           },
           {
@@ -554,17 +554,15 @@ export function AppSidebarNav({
     ignoreParams: true,
   });
 
-  const { data: pendingReferralsCount } = useProgramSubmittedLeadsCount<number>(
-    {
-      query: { status: "pending" },
-      ignoreParams: true,
-      enabled: Boolean(
-        currentArea === "program" &&
-          defaultProgramId &&
-          SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
-      ),
-    },
-  );
+  const { data: pendingLeadsCount } = useProgramSubmittedLeadsCount<number>({
+    query: { status: "pending" },
+    ignoreParams: true,
+    enabled: Boolean(
+      currentArea === "program" &&
+        defaultProgramId &&
+        SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
+    ),
+  });
 
   const { canTrackConversions } = getPlanCapabilities(plan);
 
@@ -587,7 +585,7 @@ export function AppSidebarNav({
         submittedBountiesCount,
         unreadMessagesCount,
         pendingFraudEventsCount,
-        pendingReferralsCount,
+        pendingLeadsCount,
         showConversionGuides:
           canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
