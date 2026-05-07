@@ -1,4 +1,4 @@
-import { PartnerProfileReferral } from "@/lib/zod/schemas/partner-profile";
+import { PartnerProfileSubmittedLead } from "@/lib/zod/schemas/partner-profile";
 import { PartnerReferralActivitySection } from "@/ui/activity-logs/partner-referral-activity-section";
 import { X } from "@/ui/shared/icons";
 import {
@@ -14,7 +14,7 @@ import { SubmittedLeadContactDetails } from "./submitted-lead-contact-details";
 import { SubmittedLeadDetails } from "./submitted-lead-details";
 
 type PartnerProfileReferralSheetProps = {
-  referral: PartnerProfileReferral;
+  referral: PartnerProfileSubmittedLead;
   onNext?: () => void;
   onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;

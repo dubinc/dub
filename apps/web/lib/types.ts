@@ -6,7 +6,7 @@ import {
   partnerPayoutMethodSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
-  partnerReferralsCountByStatusSchema,
+  partnerSubmittedLeadsCountByStatusSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
@@ -541,7 +541,7 @@ export type PartnerPayoutMethodSetting = z.infer<
 >;
 
 export type PartnerProfileReferralsCountByStatus = z.infer<
-  typeof partnerReferralsCountByStatusSchema
+  typeof partnerSubmittedLeadsCountByStatusSchema
 >;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {

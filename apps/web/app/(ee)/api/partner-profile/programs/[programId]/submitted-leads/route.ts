@@ -1,8 +1,8 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
-  getPartnerReferralsQuerySchema,
-  partnerProfileReferralSchema,
+  getPartnerSubmittedLeadsQuerySchema,
+  partnerProfileSubmittedLeadSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -17,7 +17,7 @@ export const GET = withPartnerProfile(
       search,
       page = 1,
       pageSize,
-    } = getPartnerReferralsQuerySchema.parse(searchParams);
+    } = getPartnerSubmittedLeadsQuerySchema.parse(searchParams);
 
     const { program } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
@@ -48,6 +48,8 @@ export const GET = withPartnerProfile(
       },
     });
 
-    return NextResponse.json(z.array(partnerProfileReferralSchema).parse(lead));
+    return NextResponse.json(
+      z.array(partnerProfileSubmittedLeadSchema).parse(lead),
+    );
   },
 );

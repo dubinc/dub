@@ -1,4 +1,4 @@
-import { PartnerProfileReferral } from "@/lib/zod/schemas/partner-profile";
+import { PartnerProfileSubmittedLead } from "@/lib/zod/schemas/partner-profile";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
@@ -8,7 +8,7 @@ export default function usePartnerReferrals() {
   const { programSlug } = useParams<{ programSlug: string }>();
   const { getQueryString } = useRouterStuff();
 
-  const { data, isLoading, error } = useSWR<PartnerProfileReferral[]>(
+  const { data, isLoading, error } = useSWR<PartnerProfileSubmittedLead[]>(
     programSlug &&
       `/api/partner-profile/programs/${programSlug}/submitted-leads${getQueryString()}`,
     fetcher,

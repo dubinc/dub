@@ -1,8 +1,8 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
-  getPartnerReferralsCountQuerySchema,
-  partnerReferralsCountResponseSchema,
+  getPartnerSubmittedLeadsCountQuerySchema,
+  partnerSubmittedLeadsCountResponseSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { Prisma, SubmittedLeadStatus } from "@dub/prisma/client";
@@ -13,7 +13,7 @@ export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { programId } = params;
     const { status, search, groupBy } =
-      getPartnerReferralsCountQuerySchema.parse(searchParams);
+      getPartnerSubmittedLeadsCountQuerySchema.parse(searchParams);
 
     const { program } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
@@ -57,7 +57,9 @@ export const GET = withPartnerProfile(
         }
       });
 
-      return NextResponse.json(partnerReferralsCountResponseSchema.parse(data));
+      return NextResponse.json(
+        partnerSubmittedLeadsCountResponseSchema.parse(data),
+      );
     }
 
     // Get submitted lead count
@@ -65,6 +67,8 @@ export const GET = withPartnerProfile(
       where: commonWhere,
     });
 
-    return NextResponse.json(partnerReferralsCountResponseSchema.parse(count));
+    return NextResponse.json(
+      partnerSubmittedLeadsCountResponseSchema.parse(count),
+    );
   },
 );

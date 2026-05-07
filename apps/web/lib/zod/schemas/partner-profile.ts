@@ -276,7 +276,7 @@ export const getPartnerCustomersCountQuerySchema =
       groupBy: z.enum(["country", "linkId"]).optional(),
     });
 
-export const partnerProfileReferralSchema = z.object({
+export const partnerProfileSubmittedLeadSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.email(),
@@ -288,19 +288,19 @@ export const partnerProfileReferralSchema = z.object({
   updatedAt: z.date(),
 });
 
-export type PartnerProfileReferral = z.infer<
-  typeof partnerProfileReferralSchema
+export type PartnerProfileSubmittedLead = z.infer<
+  typeof partnerProfileSubmittedLeadSchema
 >;
 
-export const getPartnerReferralsQuerySchema = z
+export const getPartnerSubmittedLeadsQuerySchema = z
   .object({
     status: z.enum(SubmittedLeadStatus).optional(),
     search: z.string().optional(),
   })
   .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
-export const getPartnerReferralsCountQuerySchema =
-  getPartnerReferralsQuerySchema
+export const getPartnerSubmittedLeadsCountQuerySchema =
+  getPartnerSubmittedLeadsQuerySchema
     .omit({
       page: true,
       pageSize: true,
@@ -309,12 +309,12 @@ export const getPartnerReferralsCountQuerySchema =
       groupBy: z.enum(["status"]).optional(),
     });
 
-export const partnerReferralsCountByStatusSchema = z.object({
+export const partnerSubmittedLeadsCountByStatusSchema = z.object({
   status: z.enum(SubmittedLeadStatus),
   _count: z.number(),
 });
 
-export const partnerReferralsCountResponseSchema = z.union([
-  z.array(partnerReferralsCountByStatusSchema),
+export const partnerSubmittedLeadsCountResponseSchema = z.union([
+  z.array(partnerSubmittedLeadsCountByStatusSchema),
   z.number(),
 ]);

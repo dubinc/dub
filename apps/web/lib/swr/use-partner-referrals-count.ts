@@ -1,4 +1,4 @@
-import { getPartnerReferralsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
+import { getPartnerSubmittedLeadsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
@@ -10,7 +10,7 @@ export default function usePartnerReferralsCount<T = number>({
   ignoreParams,
   enabled = true,
 }: {
-  query?: Partial<z.infer<typeof getPartnerReferralsCountQuerySchema>>;
+  query?: Partial<z.infer<typeof getPartnerSubmittedLeadsCountQuerySchema>>;
   ignoreParams?: boolean;
   enabled?: boolean;
 } = {}) {
