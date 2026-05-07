@@ -8,7 +8,7 @@ import {
 const MAX_LINKS_PER_BATCH = 100;
 
 export async function deleteWorkspaceLinks(payload: DeleteWorkspacePayload) {
-  const { workspaceId, startingAfter } = payload;
+  const { workspaceId } = payload;
 
   const links = await prisma.link.findMany({
     where: {
@@ -17,12 +17,6 @@ export async function deleteWorkspaceLinks(payload: DeleteWorkspacePayload) {
     orderBy: {
       id: "asc",
     },
-    ...(startingAfter && {
-      skip: 1,
-      cursor: {
-        id: startingAfter,
-      },
-    }),
     take: MAX_LINKS_PER_BATCH,
   });
 
