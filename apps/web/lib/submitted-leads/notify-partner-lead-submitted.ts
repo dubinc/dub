@@ -1,6 +1,6 @@
 import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
 import { sendBatchEmail } from "@dub/email";
-import PartnerReferralSubmitted from "@dub/email/templates/partner-referral-submitted";
+import NewLeadSubmitted from "@dub/email/templates/partner-submitted-lead";
 import { prisma } from "@dub/prisma";
 import { Partner, PartnerReferral, Program } from "@dub/prisma/client";
 
@@ -49,12 +49,12 @@ export async function notifyPartnerLeadSubmitted({
       subject: "New partner lead submitted",
       variant: "notifications",
       to: user.email!,
-      react: PartnerReferralSubmitted({
+      react: NewLeadSubmitted({
         email: user.email!,
         workspace: {
           slug: project.slug,
         },
-        referral: {
+        lead: {
           id: lead.id,
           name: lead.name,
           email: lead.email,

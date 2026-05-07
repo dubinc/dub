@@ -14,12 +14,12 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function PartnerReferralSubmitted({
+export default function NewLeadSubmitted({
   email = "panic@thedis.co",
   workspace = {
     slug: "acme",
   },
-  referral = {
+  lead = {
     id: "ref_1234567890",
     name: "Jane Smith",
     email: "jane@example.com",
@@ -27,7 +27,7 @@ export default function PartnerReferralSubmitted({
     image: null,
     formData: [
       {
-        label: "How did you meet this referral?",
+        label: "How did you meet this lead?",
         value: "Met at a conference last month.",
       },
       {
@@ -44,7 +44,7 @@ export default function PartnerReferralSubmitted({
 }: {
   email: string;
   workspace: { slug: string };
-  referral: {
+  lead: {
     id: string;
     name: string;
     email: string;
@@ -58,14 +58,13 @@ export default function PartnerReferralSubmitted({
     image: string | null;
   };
 }) {
-  const referralUrl = `https://app.dub.co/${workspace.slug}/program/customers/referrals?referralId=${referral.id}`;
+  const leadUrl = `https://app.dub.co/${workspace.slug}/program/customers/leads?leadId=${lead.id}`;
 
   return (
     <Html>
       <Head />
       <Preview>
-        New partner referral from {referral.name} ({referral.email}) at{" "}
-        {referral.company}.
+        New lead from {lead.name} ({lead.email}) at {lead.company}.
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -75,13 +74,13 @@ export default function PartnerReferralSubmitted({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-800">
-              New partner referral
+              New lead
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You have a new partner referral to review, view the{" "}
+              You have a new lead to review, view the{" "}
               <Link
-                href={referralUrl}
+                href={leadUrl}
                 className="text-neutral-600 underline underline-offset-4"
               >
                 full details on Dub
@@ -94,18 +93,16 @@ export default function PartnerReferralSubmitted({
                 <Container className="w-full rounded-lg border border-solid border-neutral-100 bg-neutral-50 p-5">
                   <div>
                     <Img
-                      src={
-                        referral.image || `${OG_AVATAR_URL}${referral.email}`
-                      }
+                      src={lead.image || `${OG_AVATAR_URL}${lead.email}`}
                       width="48"
                       height="48"
-                      alt={referral.name}
+                      alt={lead.name}
                       className="rounded-full"
                     />
 
                     <div>
                       <Text className="m-0 mt-3 p-0 text-lg font-medium text-neutral-900">
-                        {referral.name}
+                        {lead.name}
                       </Text>
                       <table
                         cellPadding="0"
@@ -135,7 +132,7 @@ export default function PartnerReferralSubmitted({
                               color: "#737373",
                             }}
                           >
-                            {referral.email}
+                            {lead.email}
                           </td>
                         </tr>
                       </table>
@@ -167,7 +164,7 @@ export default function PartnerReferralSubmitted({
                               color: "#737373",
                             }}
                           >
-                            {referral.company}
+                            {lead.company}
                           </td>
                         </tr>
                       </table>
@@ -251,9 +248,9 @@ export default function PartnerReferralSubmitted({
                   </table>
                 </Container>
 
-                {referral.formData && referral.formData.length > 0 && (
+                {lead.formData && lead.formData.length > 0 && (
                   <Section className="px-4 pt-4">
-                    {referral.formData.map((field) => (
+                    {lead.formData.map((field) => (
                       <Section key={field.label} className="mb-4">
                         <Text className="m-0 mb-2 p-0 text-base font-medium text-neutral-900">
                           {field.label}
@@ -270,7 +267,7 @@ export default function PartnerReferralSubmitted({
 
             <Section className="mb-8 mt-8 text-center">
               <Link
-                href={referralUrl}
+                href={leadUrl}
                 className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm font-semibold leading-none text-white no-underline"
               >
                 Review on Dub

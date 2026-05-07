@@ -37,7 +37,7 @@ export const GET = withPartnerProfile(
         : {}),
     };
 
-    // Get referral count by status
+    // Get submitted lead count by status
     if (groupBy === "status") {
       const data = await prisma.submittedLead.groupBy({
         by: ["status"],

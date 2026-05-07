@@ -13,7 +13,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function ReferralStatusUpdate({
+export default function LeadStatusUpdated({
   partner = {
     name: "John Doe",
     email: "john@example.com",
@@ -22,7 +22,7 @@ export default function ReferralStatusUpdate({
     name: "Acme",
     slug: "acme",
   },
-  referral = {
+  lead = {
     name: "Jane Smith",
     email: "jane@example.com",
     company: "Acme Corp",
@@ -33,7 +33,7 @@ export default function ReferralStatusUpdate({
 }: {
   partner: { name: string; email: string };
   program: { name: string; slug: string };
-  referral: {
+  lead: {
     name: string;
     email: string;
     company: string;
@@ -46,7 +46,7 @@ export default function ReferralStatusUpdate({
     <Html>
       <Head />
       <Preview>
-        Your referral {referral.name} has been updated to {referral.status}.
+        Your submitted lead {lead.name} has been updated to {lead.status}.
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -56,13 +56,12 @@ export default function ReferralStatusUpdate({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-800">
-              Referral status update
+              Submitted lead status update
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Your submitted referral has changed to{" "}
-              <strong>{referral.status}</strong> by{" "}
-              <strong>{program.name}</strong>.
+              Your submitted lead has changed to <strong>{lead.status}</strong>{" "}
+              by <strong>{program.name}</strong>.
             </Text>
 
             {notes && (
@@ -81,18 +80,16 @@ export default function ReferralStatusUpdate({
                 <Container className="w-full rounded-lg border border-solid border-neutral-100 bg-neutral-50 p-6">
                   <div>
                     <Img
-                      src={
-                        referral.image || `${OG_AVATAR_URL}${referral.email}`
-                      }
+                      src={lead.image || `${OG_AVATAR_URL}${lead.email}`}
                       width="48"
                       height="48"
-                      alt={referral.name}
+                      alt={lead.name}
                       className="rounded-full"
                     />
 
                     <div>
                       <Text className="m-0 mt-3 p-0 text-lg font-medium text-neutral-900">
-                        {referral.name}
+                        {lead.name}
                       </Text>
                       <table
                         cellPadding="0"
@@ -122,7 +119,7 @@ export default function ReferralStatusUpdate({
                               color: "#737373",
                             }}
                           >
-                            {referral.email}
+                            {lead.email}
                           </td>
                         </tr>
                       </table>
@@ -154,7 +151,7 @@ export default function ReferralStatusUpdate({
                               color: "#737373",
                             }}
                           >
-                            {referral.company}
+                            {lead.company}
                           </td>
                         </tr>
                       </table>

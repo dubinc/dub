@@ -75,7 +75,7 @@ export const updateSubmittedLeadStatusAction = authActionClient
       (async () => {
         await Promise.allSettled([
           notifySubmittedLeadStatusUpdate({
-            referral: lead,
+            lead,
             notes,
           }),
 

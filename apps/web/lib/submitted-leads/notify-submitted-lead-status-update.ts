@@ -1,21 +1,21 @@
 import { SubmittedLeadStatusBadges } from "@/ui/submitted-leads/submitted-lead-status-badges";
 import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
 import { sendEmail } from "@dub/email";
-import ReferralStatusUpdate from "@dub/email/templates/referral-status-update";
+import LeadStatusUpdated from "@dub/email/templates/submitted-lead-status-update";
 import { prisma } from "@dub/prisma";
 import { PartnerReferral } from "@dub/prisma/client";
 
 export async function notifySubmittedLeadStatusUpdate({
-  referral,
+  lead,
   notes,
 }: {
-  referral: PartnerReferral;
+  lead: PartnerReferral;
   notes?: string | null;
 }) {
   const [program, partner] = await Promise.all([
     prisma.program.findUnique({
       where: {
-        id: referral.programId,
+        id: lead.programId,
       },
       select: {
         name: true,
@@ -25,7 +25,7 @@ export async function notifySubmittedLeadStatusUpdate({
 
     prisma.partner.findUnique({
       where: {
-        id: referral.partnerId,
+        id: lead.partnerId,
       },
       select: {
         name: true,
@@ -36,13 +36,13 @@ export async function notifySubmittedLeadStatusUpdate({
 
   if (!program || !partner) return;
 
-  const statusLabel = SubmittedLeadStatusBadges[referral.status].label;
+  const statusLabel = SubmittedLeadStatusBadges[lead.status].label;
 
   const emailRes = await sendEmail({
-    subject: `Your referral status has been updated to ${statusLabel}`,
+    subject: `Your submitted lead status has been updated to ${statusLabel}`,
     variant: "notifications",
     to: partner.email!,
-    react: ReferralStatusUpdate({
+    react: LeadStatusUpdated({
       partner: {
         name: partner.name,
         email: partner.email!,
@@ -51,11 +51,11 @@ export async function notifySubmittedLeadStatusUpdate({
         name: program.name,
         slug: program.slug,
       },
-      referral: {
-        name: referral.name,
-        email: referral.email,
-        company: referral.company,
-        image: getCompanyLogoUrl(referral.email),
+      lead: {
+        name: lead.name,
+        email: lead.email,
+        company: lead.company,
+        image: getCompanyLogoUrl(lead.email),
         status: statusLabel,
       },
       notes,
