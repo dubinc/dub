@@ -11,38 +11,38 @@ import { Dispatch, SetStateAction, useMemo } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
-import { ReferralForm } from "./referral-form";
+import { LeadForm } from "./lead-form";
 
-interface SubmitReferralSheetProps {
+interface SubmitLeadSheetProps {
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   programId: string;
-  referralFormData: z.infer<typeof referralFormSchema>;
+  leadFormData: z.infer<typeof referralFormSchema>;
   onSuccess?: () => void;
 }
 
-type ReferralFormData = {
+type LeadFormData = {
   formData: Record<string, any>;
 };
 
-export function SubmitReferralSheet({
+export function SubmitLeadSheet({
   isOpen,
   setIsOpen,
   programId,
-  referralFormData,
+  leadFormData,
   onSuccess,
-}: SubmitReferralSheetProps) {
+}: SubmitLeadSheetProps) {
   const { programSlug } = useParams<{ programSlug: string }>();
 
   const validatedFormData = useMemo(() => {
     try {
-      return referralFormSchema.parse(referralFormData);
+      return referralFormSchema.parse(leadFormData);
     } catch {
       return null;
     }
-  }, [referralFormData]);
+  }, [leadFormData]);
 
-  const form = useForm<ReferralFormData>({
+  const form = useForm<LeadFormData>({
     defaultValues: {
       formData: {},
     },
@@ -52,7 +52,7 @@ export function SubmitReferralSheet({
 
   const { executeAsync, isPending } = useAction(submitLeadAction, {
     onSuccess: async () => {
-      toast.success("Referral submitted successfully");
+      toast.success("Lead submitted successfully");
       reset();
       onSuccess?.();
       setIsOpen(false);
@@ -65,7 +65,7 @@ export function SubmitReferralSheet({
       }
     },
     onError: ({ error }) => {
-      const errorMessage = error.serverError || "Failed to submit referral";
+      const errorMessage = error.serverError || "Failed to submit lead";
       toast.error(errorMessage);
       setError("root.serverError", {
         message: errorMessage,
@@ -73,7 +73,7 @@ export function SubmitReferralSheet({
     },
   });
 
-  const onSubmit = async (data: ReferralFormData) => {
+  const onSubmit = async (data: LeadFormData) => {
     if (!validatedFormData) {
       return;
     }
@@ -111,7 +111,7 @@ export function SubmitReferralSheet({
           <div className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50">
             <div className="flex h-16 items-center justify-between px-6 py-4">
               <Sheet.Title className="text-lg font-semibold">
-                Submit Referral
+                Submit Lead
               </Sheet.Title>
               <Sheet.Close asChild>
                 <Button
@@ -125,7 +125,7 @@ export function SubmitReferralSheet({
 
           <div className="min-h-0 flex-1 overflow-y-auto">
             <div className="flex flex-col gap-6 p-5 sm:p-6">
-              <ReferralForm referralFormData={validatedFormData} />
+              <LeadForm leadFormData={validatedFormData} />
             </div>
           </div>
 
@@ -133,7 +133,7 @@ export function SubmitReferralSheet({
             <Button
               type="submit"
               variant="primary"
-              text="Submit Referral"
+              text="Submit Lead"
               loading={isPending}
             />
           </div>

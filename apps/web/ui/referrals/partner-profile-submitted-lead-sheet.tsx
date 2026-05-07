@@ -1,5 +1,5 @@
 import { PartnerProfileSubmittedLead } from "@/lib/zod/schemas/partner-profile";
-import { PartnerReferralActivitySection } from "@/ui/activity-logs/partner-referral-activity-section";
+import { PartnerSubmittedLeadActivitySection } from "@/ui/activity-logs/partner-submitted-lead-activity-section";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -13,18 +13,18 @@ import { Dispatch, SetStateAction } from "react";
 import { SubmittedLeadContactDetails } from "./submitted-lead-contact-details";
 import { SubmittedLeadDetails } from "./submitted-lead-details";
 
-type PartnerProfileReferralSheetProps = {
+type PartnerProfileSubmittedLeadSheetProps = {
   lead: PartnerProfileSubmittedLead;
   onNext?: () => void;
   onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-function PartnerProfileReferralSheetContent({
+function PartnerProfileSubmittedLeadSheetContent({
   lead,
   onPrevious,
   onNext,
-}: Omit<PartnerProfileReferralSheetProps, "setIsOpen">) {
+}: Omit<PartnerProfileSubmittedLeadSheetProps, "setIsOpen">) {
   // right arrow key onNext
   useKeyboardShortcut(
     "ArrowRight",
@@ -83,10 +83,10 @@ function PartnerProfileReferralSheetContent({
       </div>
 
       <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-2 overflow-y-auto p-4 sm:gap-y-4 sm:p-6">
-        {/* Left side - Referral details */}
+        {/* Left side - Lead details */}
         <div className="flex flex-col gap-6">
           <SubmittedLeadDetails lead={{ formData: lead.formData }} />
-          <PartnerReferralActivitySection leadId={lead.id} />
+          <PartnerSubmittedLeadActivitySection leadId={lead.id} />
         </div>
 
         {/* Right side - Customer details */}
@@ -98,11 +98,11 @@ function PartnerProfileReferralSheetContent({
   );
 }
 
-export function PartnerProfileReferralSheet({
+export function PartnerProfileSubmittedLeadSheet({
   isOpen,
   nested,
   ...rest
-}: PartnerProfileReferralSheetProps & {
+}: PartnerProfileSubmittedLeadSheetProps & {
   isOpen: boolean;
   nested?: boolean;
 }) {
@@ -111,14 +111,14 @@ export function PartnerProfileReferralSheet({
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "referralId", scroll: false })}
+      onClose={() => queryParams({ del: "leadId", scroll: false })}
       nested={nested}
       contentProps={{
         // 540px - 1170px width based on viewport
         className: "md:w-[max(min(calc(100vw-334px),1170px),540px)]",
       }}
     >
-      <PartnerProfileReferralSheetContent {...rest} />
+      <PartnerProfileSubmittedLeadSheetContent {...rest} />
     </Sheet>
   );
 }

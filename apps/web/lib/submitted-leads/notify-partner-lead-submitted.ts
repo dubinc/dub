@@ -4,12 +4,12 @@ import PartnerReferralSubmitted from "@dub/email/templates/partner-referral-subm
 import { prisma } from "@dub/prisma";
 import { Partner, PartnerReferral, Program } from "@dub/prisma/client";
 
-export async function notifyPartnerReferralSubmitted({
-  referral,
+export async function notifyPartnerLeadSubmitted({
+  lead,
   program,
   partner,
 }: {
-  referral: Pick<
+  lead: Pick<
     PartnerReferral,
     "id" | "name" | "email" | "company" | "formData"
   >;
@@ -45,13 +45,13 @@ export async function notifyPartnerReferralSubmitted({
   });
 
   // Parse formData from JSON
-  const formData = referral.formData as
+  const formData = lead.formData as
     | { label: string; value: unknown }[]
     | null;
 
   const emailsRes = await sendBatchEmail(
     workspaceUsers.map(({ user, project }) => ({
-      subject: "New partner referral submitted",
+      subject: "New partner lead submitted",
       variant: "notifications",
       to: user.email!,
       react: PartnerReferralSubmitted({
@@ -60,11 +60,11 @@ export async function notifyPartnerReferralSubmitted({
           slug: project.slug,
         },
         referral: {
-          id: referral.id,
-          name: referral.name,
-          email: referral.email,
-          company: referral.company,
-          image: getCompanyLogoUrl(referral.email),
+          id: lead.id,
+          name: lead.name,
+          email: lead.email,
+          company: lead.company,
+          image: getCompanyLogoUrl(lead.email),
           formData,
         },
         partner: {

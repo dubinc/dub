@@ -5,7 +5,7 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { SUBMITTED_LEAD_FORM_REQUIRED_FIELD_KEYS } from "@/lib/submitted-leads/constants";
-import { notifyPartnerReferralSubmitted } from "@/lib/submitted-leads/notify-partner-referral-submitted";
+import { notifyPartnerLeadSubmitted } from "@/lib/submitted-leads/notify-partner-lead-submitted";
 import { SubmittedLeadFormDataField } from "@/lib/types";
 import {
   formFieldSchema,
@@ -91,12 +91,12 @@ export const submitLeadAction = authPartnerActionClient
     const customFormData: SubmittedLeadFormDataField[] = [];
 
     // Parse and get form schema fields to extract labels
-    const parsedReferralFormData = programEnrollment.program.referralFormData
+    const parsedLeadFormData = programEnrollment.program.referralFormData
       ? referralFormSchema.safeParse(programEnrollment.program.referralFormData)
       : null;
     const formSchemaFields =
-      parsedReferralFormData?.success && parsedReferralFormData.data.fields
-        ? parsedReferralFormData.data.fields
+      parsedLeadFormData?.success && parsedLeadFormData.data.fields
+        ? parsedLeadFormData.data.fields
         : [];
 
     const fieldMap = new Map<string, z.infer<typeof formFieldSchema>>();
@@ -149,8 +149,8 @@ export const submitLeadAction = authPartnerActionClient
 
     waitUntil(
       Promise.allSettled([
-        notifyPartnerReferralSubmitted({
-          referral: submittedLead,
+        notifyPartnerLeadSubmitted({
+          lead: submittedLead,
           program: programEnrollment.program,
           partner: programEnrollment.partner,
         }),

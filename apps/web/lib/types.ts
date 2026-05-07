@@ -540,7 +540,7 @@ export type PartnerPayoutMethodSetting = z.infer<
   typeof partnerPayoutMethodSchema
 >;
 
-export type PartnerProfileReferralsCountByStatus = z.infer<
+export type PartnerProfileSubmittedLeadsCountByStatus = z.infer<
   typeof partnerSubmittedLeadsCountByStatusSchema
 >;
 

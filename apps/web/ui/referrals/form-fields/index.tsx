@@ -22,17 +22,17 @@ const FIELD_COMPONENTS: Record<
   phone: PhoneField,
 };
 
-interface ReferralFormFieldProps {
+interface LeadFormFieldProps {
   field: z.infer<typeof formFieldSchema>;
   keyPath?: string;
   inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
 }
 
-export const ReferralFormField = ({
+export const LeadFormField = ({
   field,
   keyPath,
   inputProps,
-}: ReferralFormFieldProps) => {
+}: LeadFormFieldProps) => {
   // Handle text fields specially to pass inputProps
   if (field.type === "text") {
     return (

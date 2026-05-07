@@ -1,10 +1,10 @@
 "use client";
 
-import usePartnerReferrals from "@/lib/swr/use-partner-referrals";
-import usePartnerSubmittedLeadsCount from "@/lib/swr/use-partner-submitted-leads-count";
-import { PartnerProfileReferralsCountByStatus } from "@/lib/types";
+import { usePartnerSubmittedLeads } from "@/lib/swr/use-partner-submitted-leads";
+import { usePartnerSubmittedLeadsCount } from "@/lib/swr/use-partner-submitted-leads-count";
+import { PartnerProfileSubmittedLeadsCountByStatus } from "@/lib/types";
 import { PartnerProfileSubmittedLead } from "@/lib/zod/schemas/partner-profile";
-import { PartnerProfileReferralSheet } from "@/ui/referrals/partner-profile-referral-sheet";
+import { PartnerProfileSubmittedLeadSheet } from "@/ui/referrals/partner-profile-submitted-lead-sheet";
 import { PartnerProfileSubmittedLeadsEmptyState } from "@/ui/referrals/partner-profile-submitted-leads-empty-state";
 import { SubmittedLeadStatusBadges } from "@/ui/referrals/submitted-lead-status-badges";
 import { getCompanyLogoUrl } from "@/ui/referrals/submitted-lead-utils";
@@ -45,7 +45,7 @@ export default function PartnerSubmittedLeadsPage() {
   const search = searchParamsObj.search as string | undefined;
 
   const { data: countByStatus } = usePartnerSubmittedLeadsCount<
-    PartnerProfileReferralsCountByStatus[] | undefined
+    PartnerProfileSubmittedLeadsCountByStatus[] | undefined
   >({
     query: {
       groupBy: "status",
@@ -60,16 +60,16 @@ export default function PartnerSubmittedLeadsPage() {
       },
     });
 
-  const { data: leads, error, isLoading } = usePartnerReferrals();
+  const { data: leads, error, isLoading } = usePartnerSubmittedLeads();
 
-  const referralsColumns = {
+  const leadsColumns = {
     all: ["lead", "name", "company", "submitted", "status"],
     defaultVisible: ["lead", "name", "company", "submitted", "status"],
   };
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "partner-profile-referrals-table-columns",
-    referralsColumns,
+    "partner-profile-leads-table-columns",
+    leadsColumns,
   );
 
   const filters = useMemo(
@@ -213,7 +213,7 @@ export default function PartnerSubmittedLeadsPage() {
             );
           },
         },
-      ].filter((c) => referralsColumns.all.includes(c.id)),
+      ].filter((c) => leadsColumns.all.includes(c.id)),
     [],
   );
 
@@ -280,7 +280,7 @@ export default function PartnerSubmittedLeadsPage() {
   return (
     <div className="flex flex-col gap-3">
       {detailsSheetState.leadId && currentLead && (
-        <PartnerProfileReferralSheet
+        <PartnerProfileSubmittedLeadSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)

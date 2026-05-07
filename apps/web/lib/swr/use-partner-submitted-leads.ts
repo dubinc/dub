@@ -4,7 +4,7 @@ import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 
-export default function usePartnerReferrals() {
+export function usePartnerSubmittedLeads() {
   const { programSlug } = useParams<{ programSlug: string }>();
   const { getQueryString } = useRouterStuff();
 

@@ -8,7 +8,7 @@ import {
 } from "@/ui/activity-logs/activity-feed";
 import { ActivityLogProvider } from "@/ui/activity-logs/activity-log-context";
 
-export function PartnerReferralActivitySection({ leadId }: { leadId: string }) {
+export function PartnerSubmittedLeadActivitySection({ leadId }: { leadId: string }) {
   const { programEnrollment } = useProgramEnrollment();
 
   const { activityLogs, loading, error } = usePartnerActivityLogs({

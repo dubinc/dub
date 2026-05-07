@@ -2,7 +2,7 @@
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
-import { SubmitReferralSheet } from "@/ui/referrals/submit-referral-sheet";
+import { SubmitLeadSheet } from "@/ui/referrals/submit-lead-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -70,44 +70,44 @@ const EMPTY_STATE_CARDS = [
 
 export function PartnerProfileSubmittedLeadsEmptyState() {
   const { programEnrollment } = useProgramEnrollment();
-  const [showReferralSheet, setShowReferralSheet] = useState(false);
+  const [showLeadSheet, setShowLeadSheet] = useState(false);
 
-  const referralFormDataRaw = programEnrollment?.program?.referralFormData;
-  const submittedReferralsEnabled = referralFormDataRaw !== null;
+  const leadFormDataRaw = programEnrollment?.program?.referralFormData;
+  const submittedLeadsEnabled = leadFormDataRaw !== null;
 
-  const referralFormData = useMemo(() => {
-    if (!referralFormDataRaw) {
+  const leadFormData = useMemo(() => {
+    if (!leadFormDataRaw) {
       return null;
     }
     try {
-      return referralFormSchema.parse(referralFormDataRaw) as z.infer<
+      return referralFormSchema.parse(leadFormDataRaw) as z.infer<
         typeof referralFormSchema
       >;
     } catch {
       return null;
     }
-  }, [referralFormDataRaw]);
+  }, [leadFormDataRaw]);
 
   return (
     <>
       <AnimatedEmptyState
         title={
-          submittedReferralsEnabled
+          submittedLeadsEnabled
             ? "No leads submitted"
             : "Submitted leads not offered"
         }
         description={
-          submittedReferralsEnabled
+          submittedLeadsEnabled
             ? "Submit leads and track their progress through the sales process."
             : "You can still earn from regular referrals using your links and codes."
         }
         learnMoreHref="https://dub.co/help/article/submitted-referrals"
         addButton={
-          submittedReferralsEnabled ? (
+          submittedLeadsEnabled ? (
             <Button
               type="button"
-              text="Submit referral"
-              onClick={() => setShowReferralSheet(true)}
+              text="Submit lead"
+              onClick={() => setShowLeadSheet(true)}
               className="h-9 rounded-lg"
             />
           ) : undefined
@@ -149,12 +149,12 @@ export function PartnerProfileSubmittedLeadsEmptyState() {
         cardContainerClassName="max-w-96"
         cardClassName="rounded-xl"
       />
-      {referralFormData && programEnrollment?.programId && (
-        <SubmitReferralSheet
-          isOpen={showReferralSheet}
-          setIsOpen={setShowReferralSheet}
+      {leadFormData && programEnrollment?.programId && (
+        <SubmitLeadSheet
+          isOpen={showLeadSheet}
+          setIsOpen={setShowLeadSheet}
           programId={programEnrollment.programId}
-          referralFormData={referralFormData}
+          leadFormData={leadFormData}
         />
       )}
     </>

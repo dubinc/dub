@@ -2,12 +2,12 @@
 
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
-import usePartnerSubmittedLeadsCount from "@/lib/swr/use-partner-submitted-leads-count";
+import { usePartnerSubmittedLeadsCount } from "@/lib/swr/use-partner-submitted-leads-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { SubmitReferralSheet } from "@/ui/referrals/submit-referral-sheet";
+import { SubmitLeadSheet } from "@/ui/referrals/submit-lead-sheet";
 import { Button, InfoTooltip } from "@dub/ui";
 import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
@@ -23,35 +23,35 @@ export default function PartnerCustomersLayout({
   const pathname = usePathname();
   const { programEnrollment } = useProgramEnrollment();
   const { programSlug } = useParams<{ programSlug: string }>();
-  const [showReferralSheet, setShowReferralSheet] = useState(false);
+  const [showLeadSheet, setShowLeadSheet] = useState(false);
 
   const { data: customersCount } = usePartnerCustomersCount<number>({
     includeParams: [],
   });
 
-  const { data: referralsCount } = usePartnerSubmittedLeadsCount<number>({
+  const { data: leadsCount } = usePartnerSubmittedLeadsCount<number>({
     ignoreParams: true,
   });
 
-  const referralFormDataRaw = programEnrollment?.program?.referralFormData;
+  const leadFormDataRaw = programEnrollment?.program?.referralFormData;
   const programId = programEnrollment?.programId;
 
   const isEnabled = programId
     ? SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(programId)
     : false;
 
-  const referralFormData = useMemo(() => {
-    if (!referralFormDataRaw) {
+  const leadFormData = useMemo(() => {
+    if (!leadFormDataRaw) {
       return null;
     }
     try {
-      return referralFormSchema.parse(referralFormDataRaw) as z.infer<
+      return referralFormSchema.parse(leadFormDataRaw) as z.infer<
         typeof referralFormSchema
       >;
     } catch {
       return null;
     }
-  }, [referralFormDataRaw]);
+  }, [leadFormDataRaw]);
 
   const tabs = useMemo(() => {
     if (!isEnabled) {
@@ -71,10 +71,10 @@ export default function PartnerCustomersLayout({
         id: "leads",
         href: "leads",
         info: "Shows your partners' submitted leads.",
-        count: referralsCount,
+        count: leadsCount,
       },
     ];
-  }, [isEnabled, customersCount, referralsCount]);
+  }, [isEnabled, customersCount, leadsCount]);
 
   return (
     <PageContent
@@ -85,26 +85,24 @@ export default function PartnerCustomersLayout({
             <Button
               text="Submit lead"
               className="h-9 w-fit rounded-lg"
-              disabled={!referralFormData}
+              disabled={!leadFormData}
               disabledTooltip={
-                referralFormData
-                  ? undefined
-                  : "Submitted leads are not offered."
+                leadFormData ? undefined : "Submitted leads are not offered."
               }
               onClick={() => {
-                setShowReferralSheet(true);
+                setShowLeadSheet(true);
               }}
             />
           )}
         </>
       }
     >
-      {isEnabled && referralFormData && programEnrollment?.programId && (
-        <SubmitReferralSheet
-          isOpen={showReferralSheet}
-          setIsOpen={setShowReferralSheet}
+      {isEnabled && leadFormData && programEnrollment?.programId && (
+        <SubmitLeadSheet
+          isOpen={showLeadSheet}
+          setIsOpen={setShowLeadSheet}
           programId={programEnrollment.programId}
-          referralFormData={referralFormData}
+          leadFormData={leadFormData}
         />
       )}
 

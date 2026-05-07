@@ -7,21 +7,21 @@ import {
 import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { useMemo } from "react";
 import * as z from "zod/v4";
-import { ReferralFormField } from "./form-fields";
+import { LeadFormField } from "./form-fields";
 
-export function ReferralForm({
-  referralFormData,
+export function LeadForm({
+  leadFormData,
 }: {
-  referralFormData: z.infer<typeof referralFormSchema>;
+  leadFormData: z.infer<typeof referralFormSchema>;
 }) {
   // Combine required fields with custom fields and sort by position
   const allFields = useMemo(() => {
-    const customFields = referralFormData.fields || [];
+    const customFields = leadFormData.fields || [];
 
     return [...SUBMITTED_LEAD_FORM_REQUIRED_FIELDS, ...customFields].sort(
       (a, b) => a.position - b.position,
     );
-  }, [referralFormData.fields]);
+  }, [leadFormData.fields]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -30,7 +30,7 @@ export function ReferralForm({
         const inputProps = SUBMITTED_LEAD_FORM_FIELD_INPUT_PROPS[field.key];
 
         return (
-          <ReferralFormField
+          <LeadFormField
             key={field.key}
             field={field}
             keyPath={keyPath}
