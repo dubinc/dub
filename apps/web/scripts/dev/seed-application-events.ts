@@ -25,10 +25,17 @@ const referralSources = [
 
 async function main() {
   const programId = "prog_1K2J9DRWPPJ2F1RX53N92TSGA";
+  const referredByPartnerIds = [
+    "pn_1K2J9DRWPPJ2F1RX53N92TSGG",
+    "pn_1K2J9DRWPPJ2F1RX53N92TSGH",
+  ];
 
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       programId,
+      partnerId: {
+        notIn: referredByPartnerIds,
+      },
     },
     orderBy: {
       createdAt: "asc",
@@ -80,6 +87,7 @@ async function main() {
         rejectedAt: isApproved ? null : decidedAt,
         referralSource: sample(referralSources),
         country: programEnrollment.partner.country ?? null,
+        referredByPartnerId: sample(referredByPartnerIds),
         // intentionally leaving: referredByPartnerId, programApplicationId
       };
     }),
