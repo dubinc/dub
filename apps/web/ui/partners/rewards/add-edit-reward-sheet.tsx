@@ -331,6 +331,8 @@ function RewardSheetContent({
   );
 
   const [showAdvancedUpsell, setShowAdvancedUpsell] = useState(false);
+  const showReferralUpsell =
+    event === "referral" && !getPlanCapabilities(plan).canCreateReferralReward;
 
   useEffect(() => {
     if (
@@ -344,7 +346,13 @@ function RewardSheetContent({
   }, [modifiers, plan]);
 
   const onSubmit = async (data: FormData) => {
-    if (!workspaceId || !defaultProgramId || showAdvancedUpsell || !group) {
+    if (
+      !workspaceId ||
+      !defaultProgramId ||
+      showAdvancedUpsell ||
+      showReferralUpsell ||
+      !group
+    ) {
       return;
     }
 
@@ -652,7 +660,14 @@ function RewardSheetContent({
                 amount == null || isDeleting || isCreating || isUpdating
               }
               disabledTooltip={
-                showAdvancedUpsell ? (
+                showReferralUpsell ? (
+                  <TooltipContent
+                    title="Referral rewards are only available on the Advanced plan and above."
+                    cta="Upgrade to Advanced"
+                    href={`/${workspaceSlug}/upgrade?showPartnersUpgradeModal=true`}
+                    target="_blank"
+                  />
+                ) : showAdvancedUpsell ? (
                   <TooltipContent
                     title="[Advanced reward structures](https://dub.co/help/article/partner-rewards#adding-reward-conditions) are only available on the Advanced plan and above."
                     cta="Upgrade to Advanced"

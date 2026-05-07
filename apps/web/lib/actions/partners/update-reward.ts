@@ -43,7 +43,14 @@ export const updateRewardAction = authActionClient
       programId,
     });
 
-    const { canUseAdvancedRewardLogic } = getPlanCapabilities(workspace.plan);
+    const { canUseAdvancedRewardLogic, canCreateReferralReward } =
+      getPlanCapabilities(workspace.plan);
+
+    if (reward.event === "referral" && !canCreateReferralReward) {
+      throw new Error(
+        "Referral rewards are only available on the Advanced plan and above.",
+      );
+    }
 
     if (modifiers && !canUseAdvancedRewardLogic) {
       throw new Error(

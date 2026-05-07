@@ -1,6 +1,8 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
+import useWorkspace from "@/lib/swr/use-workspace";
 import type { GroupProps, RewardProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { useRewardHistorySheet } from "@/ui/activity-logs/reward-history-sheet";
@@ -11,7 +13,12 @@ import {
   useRewardSheet,
 } from "@/ui/partners/rewards/add-edit-reward-sheet";
 import { EventType } from "@dub/prisma/client";
-import { Button, TimestampTooltip, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  TimestampTooltip,
+  TooltipContent,
+  useRouterStuff,
+} from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -145,7 +152,9 @@ const RewardItem = ({
   group: GroupProps;
 }) => {
   const { slug } = useParams();
+  const { plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
+  const { canCreateReferralReward } = getPlanCapabilities(plan);
 
   const { RewardSheet, setIsOpen } = useRewardSheet({
     event,
@@ -268,13 +277,24 @@ const RewardItem = ({
             />
           ) : (
             <div className="flex flex-col-reverse items-center gap-2 md:flex-row">
-              {group.slug !== DEFAULT_PARTNER_GROUP.slug && (
-                <CopyDefaultRewardButton event={event} />
-              )}
+              {group.slug !== DEFAULT_PARTNER_GROUP.slug &&
+                (event !== "referral" || canCreateReferralReward) && (
+                  <CopyDefaultRewardButton event={event} />
+                )}
               <Button
                 text="Create"
                 variant="primary"
                 className="h-9 w-full rounded-lg md:w-fit"
+                disabledTooltip={
+                  event === "referral" && !canCreateReferralReward ? (
+                    <TooltipContent
+                      title="Referral rewards are only available on the Advanced plan and above."
+                      cta="Upgrade to Advanced"
+                      href={`/${slug}/upgrade?showPartnersUpgradeModal=true`}
+                      target="_blank"
+                    />
+                  ) : undefined
+                }
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
