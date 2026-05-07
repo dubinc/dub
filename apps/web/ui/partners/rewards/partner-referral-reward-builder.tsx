@@ -44,17 +44,9 @@ export function PartnerReferralRewardBuilder() {
 
   const amount = type === "flat" ? amountInCents : amountInPercentage;
 
-  const trigger =
-    config && typeof config === "object" && "trigger" in config
-      ? (config.trigger as Trigger | undefined)
-      : undefined;
-
   const thresholdDollars =
-    config &&
-    typeof config === "object" &&
-    "thresholdInCents" in config &&
-    typeof config.thresholdInCents === "number"
-      ? config.thresholdInCents
+    config?.trigger === "commissionThreshold"
+      ? config.commissionsThresholdInCents
       : undefined;
 
   const triggerItems =
@@ -68,14 +60,17 @@ export function PartnerReferralRewardBuilder() {
         ? PARTNER_REFERRAL_PERCENTAGE_TRIGGERS
         : PARTNER_REFERRAL_FLAT_TRIGGERS;
 
-    if (trigger && (validTriggers as readonly Trigger[]).includes(trigger))
+    if (
+      config?.trigger &&
+      (validTriggers as readonly Trigger[]).includes(config?.trigger)
+    )
       return;
 
     const nextTrigger: Trigger =
       type === "percentage" ? "commissionEarned" : "partnerApproved";
 
     setValue("config", { trigger: nextTrigger }, { shouldDirty: true });
-  }, [setValue, trigger, type]);
+  }, [setValue, config?.trigger, type]);
 
   const amountText = useMemo(() => {
     if (amount == null || Number.isNaN(Number(amount))) return "amount";
@@ -88,7 +83,9 @@ export function PartnerReferralRewardBuilder() {
     });
   }, [amount, type]);
 
-  const triggerText = trigger ? PARTNER_REFERRAL_TRIGGER_LABELS[trigger] : "is";
+  const triggerText = config?.trigger
+    ? PARTNER_REFERRAL_TRIGGER_LABELS[config?.trigger]
+    : "is";
 
   const thresholdText =
     thresholdDollars != null && !Number.isNaN(Number(thresholdDollars))
@@ -119,14 +116,14 @@ export function PartnerReferralRewardBuilder() {
         <RewardAmountInput />
       </InlineBadgePopover>{" "}
       when referred partner{" "}
-      <InlineBadgePopover text={triggerText} invalid={!trigger}>
+      <InlineBadgePopover text={triggerText} invalid={!config?.trigger}>
         <InlineBadgePopoverMenu
-          selectedValue={trigger}
+          selectedValue={config?.trigger}
           onSelect={(value) => {
             if (value === "commissionThreshold") {
               setValue(
                 "config",
-                { trigger: value, thresholdInCents: 1 },
+                { trigger: value, commissionsThresholdInCents: 1 },
                 { shouldDirty: true },
               );
               return;
@@ -141,7 +138,7 @@ export function PartnerReferralRewardBuilder() {
           items={triggerItems}
         />
       </InlineBadgePopover>
-      {trigger === "commissionThreshold" && (
+      {config?.trigger === "commissionThreshold" && (
         <>
           {" "}
           <InlineBadgePopover text={thresholdText}>
@@ -197,17 +194,14 @@ function RewardAmountInput() {
   );
 }
 
-function ThresholdInput({}: {}) {
+function ThresholdInput() {
   const { register, setValue, watch } = useAddEditRewardForm();
   const { setIsOpen } = useContext(InlineBadgePopoverContext);
 
-  const value = watch("config") as any;
+  const config = watch("config");
   const thresholdDollars =
-    value &&
-    typeof value === "object" &&
-    "thresholdInCents" in value &&
-    typeof value.thresholdInCents === "number"
-      ? value.thresholdInCents
+    config?.trigger === "commissionThreshold"
+      ? config.commissionsThresholdInCents
       : undefined;
 
   return (
@@ -219,7 +213,7 @@ function ThresholdInput({}: {}) {
         className="block w-full rounded-md border-neutral-300 px-1.5 py-1 pl-4 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm"
         placeholder="1"
         defaultValue={thresholdDollars}
-        {...register("config.thresholdInCents" as any, {
+        {...register("config.commissionsThresholdInCents" as any, {
           required: true,
           setValueAs: (v: string) => (v === "" ? undefined : +v),
           min: 1,
@@ -236,7 +230,7 @@ function ThresholdInput({}: {}) {
         onBlur={(e) => {
           const next = Number((e.target as HTMLInputElement).value);
           if (!Number.isNaN(next) && next >= 1) {
-            setValue("config.thresholdInCents" as any, next, {
+            setValue("config.commissionsThresholdInCents" as any, next, {
               shouldDirty: true,
             });
           }

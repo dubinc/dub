@@ -12,6 +12,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardConditionsArray, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
+import type { ReferralRewardConfig } from "@/lib/zod/schemas/partner-referrals";
 import {
   createOrUpdateRewardSchema,
   REWARD_CONDITION_ATTRIBUTES,
@@ -62,6 +63,7 @@ import {
   InlineBadgePopoverRichTextArea,
 } from "../../shared/inline-badge-popover";
 import { RewardDiscountPartnersCard } from "../groups/reward-discount-partners-card";
+import { PartnerReferralRewardBuilder } from "./partner-referral-reward-builder";
 import { RewardIconSquare } from "./reward-icon-square";
 import { RewardPreviewCard } from "./reward-preview-card";
 import { REWARD_TYPES, RewardsLogic } from "./rewards-logic";
@@ -88,8 +90,48 @@ type FormData = z.infer<typeof formSchema>;
 
 export const useAddEditRewardForm = () => useFormContext<FormData>();
 
+function referralConfigFromApi(
+  config: ReferralRewardConfig | null | undefined,
+): ReferralRewardConfig | null {
+  if (!config) return null;
+
+  if (
+    config.trigger === "commissionThreshold" &&
+    typeof config.commissionsThresholdInCents === "number"
+  ) {
+    return {
+      ...config,
+      commissionsThresholdInCents: config.commissionsThresholdInCents / 100,
+    };
+  }
+
+  return config;
+}
+
+function referralConfigToApi(
+  config: ReferralRewardConfig | null | undefined,
+): ReferralRewardConfig | null {
+  if (!config) return null;
+
+  if (
+    config.trigger === "commissionThreshold" &&
+    typeof config.commissionsThresholdInCents === "number"
+  ) {
+    return {
+      ...config,
+      commissionsThresholdInCents: Math.round(
+        config.commissionsThresholdInCents * 100,
+      ),
+    };
+  }
+
+  return config;
+}
+
 export const getRewardPayload = ({ data }: { data: FormData }) => {
   let modifiers: RewardConditionsArray | null = null;
+  const config =
+    data.event === "referral" ? referralConfigToApi(data.config) : null;
 
   if (data.modifiers?.length) {
     modifiers = rewardConditionsArraySchema.parse(
@@ -144,6 +186,7 @@ export const getRewardPayload = ({ data }: { data: FormData }) => {
     maxDuration:
       Infinity === Number(data.maxDuration) ? null : data.maxDuration,
     modifiers,
+    config,
   };
 };
 
@@ -176,6 +219,7 @@ function RewardSheetContent({
           ? Infinity
           : defaultValuesSource.maxDuration
         : Infinity,
+      config: referralConfigFromApi(defaultValuesSource?.config),
       amountInCents:
         defaultValuesSource?.amountInCents != null
           ? defaultValuesSource.amountInCents / 100
@@ -379,86 +423,90 @@ function RewardSheetContent({
                 <div className="flex min-w-0 items-center justify-between">
                   <div className="flex min-w-0 items-center gap-2.5">
                     <RewardIconSquare icon={MoneyBills2} />
-                    <span className="leading-relaxed">
-                      Pay{" "}
-                      {selectedEvent === "sale" && (
-                        <>
-                          a{" "}
-                          <InlineBadgePopover text={capitalize(type)}>
-                            <InlineBadgePopoverMenu
-                              selectedValue={type}
-                              onSelect={(value) =>
-                                setValue("type", value as RewardStructure, {
-                                  shouldDirty: true,
+                    {selectedEvent === "referral" ? (
+                      <PartnerReferralRewardBuilder />
+                    ) : (
+                      <span className="leading-relaxed">
+                        Pay{" "}
+                        {selectedEvent === "sale" && (
+                          <>
+                            a{" "}
+                            <InlineBadgePopover text={capitalize(type)}>
+                              <InlineBadgePopoverMenu
+                                selectedValue={type}
+                                onSelect={(value) =>
+                                  setValue("type", value as RewardStructure, {
+                                    shouldDirty: true,
+                                  })
+                                }
+                                items={REWARD_TYPES}
+                              />
+                            </InlineBadgePopover>{" "}
+                            {type === "percentage" && "of "}
+                          </>
+                        )}
+                        <InlineBadgePopover
+                          text={
+                            amount != null && !isNaN(amount)
+                              ? constructRewardAmount({
+                                  type,
+                                  maxDuration,
+                                  amountInCents:
+                                    type === "flat" ? amount * 100 : undefined,
+                                  amountInPercentage:
+                                    type === "percentage" ? amount : undefined,
                                 })
+                              : "amount"
+                          }
+                          invalid={amount == null || isNaN(amount)}
+                        >
+                          <AmountInput />
+                        </InlineBadgePopover>{" "}
+                        per {selectedEvent}
+                        {selectedEvent === "sale" && (
+                          <>
+                            {" "}
+                            <InlineBadgePopover
+                              text={
+                                maxDuration === 0
+                                  ? "one time"
+                                  : maxDuration === Infinity
+                                    ? "for the customer's lifetime"
+                                    : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
                               }
-                              items={REWARD_TYPES}
-                            />
-                          </InlineBadgePopover>{" "}
-                          {type === "percentage" && "of "}
-                        </>
-                      )}
-                      <InlineBadgePopover
-                        text={
-                          amount != null && !isNaN(amount)
-                            ? constructRewardAmount({
-                                type,
-                                maxDuration,
-                                amountInCents:
-                                  type === "flat" ? amount * 100 : undefined,
-                                amountInPercentage:
-                                  type === "percentage" ? amount : undefined,
-                              })
-                            : "amount"
-                        }
-                        invalid={amount == null || isNaN(amount)}
-                      >
-                        <AmountInput />
-                      </InlineBadgePopover>{" "}
-                      per {selectedEvent}
-                      {selectedEvent === "sale" && (
-                        <>
-                          {" "}
-                          <InlineBadgePopover
-                            text={
-                              maxDuration === 0
-                                ? "one time"
-                                : maxDuration === Infinity
-                                  ? "for the customer's lifetime"
-                                  : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
-                            }
-                          >
-                            <InlineBadgePopoverMenu
-                              selectedValue={maxDuration?.toString()}
-                              onSelect={(value) =>
-                                setValue("maxDuration", Number(value), {
-                                  shouldDirty: true,
-                                })
-                              }
-                              items={[
-                                {
-                                  text: "one time",
-                                  value: "0",
-                                },
-                                ...RECURRING_MAX_DURATIONS.filter(
-                                  (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
-                                ).map((v) => ({
-                                  text: `for ${v} ${pluralize("month", Number(v))}`,
-                                  value: v.toString(),
-                                })),
-                                {
-                                  text: "for the customer's lifetime",
-                                  value: "Infinity",
-                                },
-                              ]}
-                            />
-                          </InlineBadgePopover>
-                        </>
-                      )}
-                      {modifiers?.length ? (
-                        <> for all other {selectedEvent}s</>
-                      ) : null}
-                    </span>
+                            >
+                              <InlineBadgePopoverMenu
+                                selectedValue={maxDuration?.toString()}
+                                onSelect={(value) =>
+                                  setValue("maxDuration", Number(value), {
+                                    shouldDirty: true,
+                                  })
+                                }
+                                items={[
+                                  {
+                                    text: "one time",
+                                    value: "0",
+                                  },
+                                  ...RECURRING_MAX_DURATIONS.filter(
+                                    (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
+                                  ).map((v) => ({
+                                    text: `for ${v} ${pluralize("month", Number(v))}`,
+                                    value: v.toString(),
+                                  })),
+                                  {
+                                    text: "for the customer's lifetime",
+                                    value: "Infinity",
+                                  },
+                                ]}
+                              />
+                            </InlineBadgePopover>
+                          </>
+                        )}
+                        {modifiers?.length ? (
+                          <> for all other {selectedEvent}s</>
+                        ) : null}
+                      </span>
+                    )}
                   </div>
                   <Tooltip
                     content={"Add a custom reward description"}
@@ -551,7 +599,11 @@ function RewardSheetContent({
                 </motion.div>
               </div>
             }
-            content={<RewardsLogic isDefaultReward={false} />}
+            content={
+              selectedEvent === "referral" ? null : (
+                <RewardsLogic isDefaultReward={false} />
+              )
+            }
           />
 
           <VerticalLine />
@@ -642,6 +694,12 @@ const REWARD_HELPER_CONTENT: Record<
     title: "Click rewards",
     description:
       "Reward for traffic and reach. Best for publishers and trusted partners only.",
+  },
+  referral: {
+    icon: UserPlus,
+    title: "Referral rewards",
+    description:
+      "Reward partners for referring other partners. Best for affiliate networks and partner-to-partner growth.",
   },
 };
 

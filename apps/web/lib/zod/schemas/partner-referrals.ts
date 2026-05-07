@@ -28,18 +28,17 @@ export const PARTNER_REFERRAL_TRIGGER_LABELS: Record<
 export const referralRewardConfigSchema = z
   .object({
     trigger: z.enum(PARTNER_REFERRAL_TRIGGER),
-    thresholdInCents: z.number().int().min(100).optional(),
+    commissionsThresholdInCents: z.number().int().min(100).optional(),
   })
   .superRefine((data, ctx) => {
     if (
       data.trigger === "commissionThreshold" &&
-      data.thresholdInCents == null
+      data.commissionsThresholdInCents == null
     ) {
       ctx.addIssue({
         code: "custom",
-        path: ["thresholdInCents"],
-        message:
-          "thresholdInCents is required when trigger is 'commissionThreshold'.",
+        path: ["commissionsThresholdInCents"],
+        message: "Please enter a commission threshold amount.",
       });
     }
   });
