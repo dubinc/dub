@@ -1,29 +1,72 @@
 import * as z from "zod/v4";
 
-export const PARTNER_REFERRAL_PERCENTAGE_TRIGGERS = [
-  "commissionEarned",
-  "saleRecorded",
-] as const;
+const PARTNER_REFERRAL_TRIGGER_CONFIG = {
+  percentage: {
+    commissionEarned: {
+      verb: "earns a commission",
+      basis: "referred partner's commission",
+    },
+    saleRecorded: {
+      verb: "makes a sale",
+      basis: "original sale amount",
+    },
+  },
+  flat: {
+    partnerApproved: {
+      verb: "is approved",
+    },
+    commissionThreshold: {
+      verb: "earns at least",
+    },
+  },
+} as const;
 
-export const PARTNER_REFERRAL_FLAT_TRIGGERS = [
-  "partnerApproved",
-  "commissionThreshold",
-] as const;
+type PartnerReferralPercentageTrigger =
+  keyof typeof PARTNER_REFERRAL_TRIGGER_CONFIG.percentage;
+
+type PartnerReferralFlatTrigger =
+  keyof typeof PARTNER_REFERRAL_TRIGGER_CONFIG.flat;
+
+type PartnerReferralTrigger =
+  | PartnerReferralPercentageTrigger
+  | PartnerReferralFlatTrigger;
+
+export const PARTNER_REFERRAL_PERCENTAGE_TRIGGERS = Object.keys(
+  PARTNER_REFERRAL_TRIGGER_CONFIG.percentage,
+) as readonly PartnerReferralPercentageTrigger[];
+
+export const PARTNER_REFERRAL_FLAT_TRIGGERS = Object.keys(
+  PARTNER_REFERRAL_TRIGGER_CONFIG.flat,
+) as readonly PartnerReferralFlatTrigger[];
 
 export const PARTNER_REFERRAL_TRIGGER = [
   ...PARTNER_REFERRAL_PERCENTAGE_TRIGGERS,
   ...PARTNER_REFERRAL_FLAT_TRIGGERS,
-] as const;
+] as readonly PartnerReferralTrigger[];
 
 export const PARTNER_REFERRAL_TRIGGER_LABELS: Record<
-  (typeof PARTNER_REFERRAL_TRIGGER)[number],
+  PartnerReferralTrigger,
   string
 > = {
-  commissionEarned: "earns a commission",
-  saleRecorded: "makes a sale",
-  partnerApproved: "is approved",
-  commissionThreshold: "earns at least",
-} as const;
+  ...Object.fromEntries(
+    Object.entries(PARTNER_REFERRAL_TRIGGER_CONFIG.percentage).map(
+      ([key, { verb }]) => [key, verb],
+    ),
+  ),
+  ...Object.fromEntries(
+    Object.entries(PARTNER_REFERRAL_TRIGGER_CONFIG.flat).map(
+      ([key, { verb }]) => [key, verb],
+    ),
+  ),
+} as Record<PartnerReferralTrigger, string>;
+
+export const PARTNER_REFERRAL_PERCENTAGE_BASIS_LABELS = Object.fromEntries(
+  Object.entries(PARTNER_REFERRAL_TRIGGER_CONFIG.percentage).map(
+    ([key, { basis }]) => [key, basis],
+  ),
+) as {
+  readonly [K in PartnerReferralPercentageTrigger]: string;
+};
 
 export const referralRewardConfigSchema = z
   .object({
