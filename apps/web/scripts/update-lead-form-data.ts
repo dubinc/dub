@@ -1,10 +1,11 @@
 import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { prisma } from "@dub/prisma";
+import { ACME_PROGRAM_ID } from "@dub/utils";
 import "dotenv-flow/config";
 import { readFileSync } from "fs";
 
 async function main() {
-  const programId = "prog_1K2J9DRWPPJ2F1RX53N92TSGA";
+  const programId = ACME_PROGRAM_ID;
   const jsonFilePath = "./scripts/lead-form-sample.json";
 
   // Read and parse JSON file
