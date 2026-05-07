@@ -39,8 +39,8 @@ export default function ProgramPartnerLinksPage() {
   return partner ? (
     <div className="grid gap-4">
       <PartnerLinks partner={partner} />
-      {partner.username && <PartnerReferralLink partner={partner} />}
       <PartnerDiscountCodes partner={partner} />
+      {partner.username && <PartnerReferralLink partner={partner} />}
     </div>
   ) : (
     <div className="flex justify-center py-16">
