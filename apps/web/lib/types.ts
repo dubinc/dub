@@ -169,7 +169,6 @@ import {
   ProgramEnrollmentSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
-import { submittedLeadFormDataSchema } from "./zod/schemas/submitted-lead-form";
 import {
   CUSTOMER_SOURCES,
   rewardConditionsArraySchema,
@@ -183,6 +182,7 @@ import {
   trackSaleResponseSchema,
 } from "./zod/schemas/sales";
 import { fraudEventContext } from "./zod/schemas/schemas";
+import { submittedLeadFormDataSchema } from "./zod/schemas/submitted-lead-form";
 import {
   submittedLeadSchema,
   updateSubmittedLeadStatusSchema,
