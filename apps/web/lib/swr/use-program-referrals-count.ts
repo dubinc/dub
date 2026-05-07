@@ -1,5 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { getPartnerReferralsCountQuerySchema } from "@/lib/zod/schemas/referrals";
+import { getSubmittedLeadsCountQuerySchema } from "@/lib/zod/schemas/submitted-leads";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
@@ -10,7 +10,7 @@ export function useProgramReferralsCount<T = number>({
   ignoreParams,
   enabled = true,
 }: {
-  query?: z.infer<typeof getPartnerReferralsCountQuerySchema>;
+  query?: z.infer<typeof getSubmittedLeadsCountQuerySchema>;
   ignoreParams?: boolean;
   enabled?: boolean;
 } = {}) {

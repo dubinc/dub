@@ -12,7 +12,7 @@ import {
   REFERRAL_STATUS_TRANSITIONS,
 } from "@/lib/referrals/constants";
 import { ReferralWithCustomer } from "@/lib/types";
-import { updateReferralStatusSchema } from "@/lib/zod/schemas/referrals";
+import { updateSubmittedLeadStatusSchema } from "@/lib/zod/schemas/submitted-leads";
 import { prisma } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -20,7 +20,7 @@ import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const updateReferralStatusAction = authActionClient
-  .inputSchema(updateReferralStatusSchema)
+  .inputSchema(updateSubmittedLeadStatusSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { referralId, status, notes } = parsedInput;

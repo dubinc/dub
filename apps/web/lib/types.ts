@@ -171,10 +171,6 @@ import {
 } from "./zod/schemas/programs";
 import { referralFormDataSchema } from "./zod/schemas/referral-form";
 import {
-  referralSchema,
-  updateReferralStatusSchema,
-} from "./zod/schemas/referrals";
-import {
   CUSTOMER_SOURCES,
   rewardConditionsArraySchema,
   rewardConditionSchema,
@@ -187,6 +183,10 @@ import {
   trackSaleResponseSchema,
 } from "./zod/schemas/sales";
 import { fraudEventContext } from "./zod/schemas/schemas";
+import {
+  submittedLeadSchema,
+  updateSubmittedLeadStatusSchema,
+} from "./zod/schemas/submitted-leads";
 import { tokenSchema } from "./zod/schemas/token";
 import { usageResponse } from "./zod/schemas/usage";
 import {
@@ -862,12 +862,12 @@ export interface WorkflowContext {
   };
 }
 
-export type ReferralProps = z.infer<typeof referralSchema>;
+export type ReferralProps = z.infer<typeof submittedLeadSchema>;
 
 export type ReferralFormDataField = z.infer<typeof referralFormDataSchema>;
 
 export type UpdateReferralStatusPayload = z.infer<
-  typeof updateReferralStatusSchema
+  typeof updateSubmittedLeadStatusSchema
 >;
 
 export type CustomerSource = (typeof CUSTOMER_SOURCES)[number];

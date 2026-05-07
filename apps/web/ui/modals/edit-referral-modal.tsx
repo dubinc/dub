@@ -4,7 +4,7 @@ import { updateReferralAction } from "@/lib/actions/referrals/update-referral";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ReferralFormDataField, ReferralProps } from "@/lib/types";
-import { updateReferralSchema } from "@/lib/zod/schemas/referrals";
+import { updateSubmittedLeadSchema } from "@/lib/zod/schemas/submitted-leads";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { COUNTRIES } from "@dub/utils";
@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import * as z from "zod/v4";
 
 type EditReferralFormData = Omit<
-  z.infer<typeof updateReferralSchema>,
+  z.infer<typeof updateSubmittedLeadSchema>,
   "workspaceId" | "referralId" | "formData"
 > & {
   formData: Record<string, unknown>;

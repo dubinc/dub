@@ -12,7 +12,7 @@ import {
   referralFormSchema,
   referralRequiredFieldsSchema,
 } from "@/lib/zod/schemas/referral-form";
-import { createPartnerReferralSchema } from "@/lib/zod/schemas/referrals";
+import { submitLeadSchema } from "@/lib/zod/schemas/submitted-leads";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
@@ -59,7 +59,7 @@ function convertFieldValue(
 
 // Create a partner referral
 export const submitReferralAction = authPartnerActionClient
-  .inputSchema(createPartnerReferralSchema)
+  .inputSchema(submitLeadSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner, user } = ctx;
     const { programId, formData: rawFormData } = parsedInput;

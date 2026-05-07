@@ -1,9 +1,9 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  getPartnerReferralsQuerySchema,
-  referralSchema,
-} from "@/lib/zod/schemas/referrals";
+  getSubmittedLeadsQuerySchema,
+  submittedLeadSchema,
+} from "@/lib/zod/schemas/submitted-leads";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { ReferralStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
@@ -20,7 +20,7 @@ export const GET = withWorkspace(
       search,
       page = 1,
       pageSize,
-    } = getPartnerReferralsQuerySchema.parse(searchParams);
+    } = getSubmittedLeadsQuerySchema.parse(searchParams);
 
     const partnerReferrals = await prisma.partnerReferral.findMany({
       where: {
@@ -59,7 +59,9 @@ export const GET = withWorkspace(
       },
     });
 
-    return NextResponse.json(z.array(referralSchema).parse(partnerReferrals));
+    return NextResponse.json(
+      z.array(submittedLeadSchema).parse(partnerReferrals),
+    );
   },
   {
     requiredPlan: [

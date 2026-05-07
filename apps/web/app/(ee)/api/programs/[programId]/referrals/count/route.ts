@@ -1,9 +1,9 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  getPartnerReferralsCountQuerySchema,
-  partnerReferralsCountResponseSchema,
-} from "@/lib/zod/schemas/referrals";
+  getSubmittedLeadsCountQuerySchema,
+  submittedLeadsCountResponseSchema,
+} from "@/lib/zod/schemas/submitted-leads";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { Prisma, ReferralStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
@@ -14,7 +14,7 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { partnerId, status, search, groupBy } =
-      getPartnerReferralsCountQuerySchema.parse(searchParams);
+      getSubmittedLeadsCountQuerySchema.parse(searchParams);
 
     const commonWhere: Prisma.PartnerReferralWhereInput = {
       programId,
@@ -58,7 +58,7 @@ export const GET = withWorkspace(
         }
       });
 
-      return NextResponse.json(partnerReferralsCountResponseSchema.parse(data));
+      return NextResponse.json(submittedLeadsCountResponseSchema.parse(data));
     }
 
     // Get referral count by partnerId
@@ -75,7 +75,7 @@ export const GET = withWorkspace(
         take: 10000,
       });
 
-      return NextResponse.json(partnerReferralsCountResponseSchema.parse(data));
+      return NextResponse.json(submittedLeadsCountResponseSchema.parse(data));
     }
 
     // Get referral count
@@ -83,7 +83,7 @@ export const GET = withWorkspace(
       where: commonWhere,
     });
 
-    return NextResponse.json(partnerReferralsCountResponseSchema.parse(count));
+    return NextResponse.json(submittedLeadsCountResponseSchema.parse(count));
   },
   {
     requiredPlan: [

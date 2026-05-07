@@ -4,7 +4,7 @@ import { getResourceDiff } from "@/lib/api/activity-log/get-resource-diff";
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
-import { updateReferralSchema } from "@/lib/zod/schemas/referrals";
+import { updateSubmittedLeadSchema } from "@/lib/zod/schemas/submitted-leads";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -13,7 +13,7 @@ import { throwIfNoPermission } from "../throw-if-no-permission";
 
 // Update a partner referral's details
 export const updateReferralAction = authActionClient
-  .inputSchema(updateReferralSchema)
+  .inputSchema(updateSubmittedLeadSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { referralId, name, email, company, formData } = parsedInput;

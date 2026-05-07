@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { referralSchema } from "@/lib/zod/schemas/referrals";
+import { submittedLeadSchema } from "@/lib/zod/schemas/submitted-leads";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -27,7 +27,7 @@ import { ReferralStatusBadges } from "./referral-status-badges";
 import { getCompanyLogoUrl } from "./referral-utils";
 import { useProgramReferralsFilters } from "./use-program-referral-filters";
 
-type PartnerReferralProps = z.infer<typeof referralSchema>;
+type PartnerReferralProps = z.infer<typeof submittedLeadSchema>;
 
 export function PartnerReferralTable() {
   const { getQueryString, queryParams, searchParams } = useRouterStuff();

@@ -2,9 +2,9 @@ import usePartners from "@/lib/swr/use-partners";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import {
-  partnerReferralsCountByPartnerIdSchema,
-  partnerReferralsCountByStatusSchema,
-} from "@/lib/zod/schemas/referrals";
+  submittedLeadsCountByPartnerSchema,
+  submittedLeadsCountByStatusSchema,
+} from "@/lib/zod/schemas/submitted-leads";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
 import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
@@ -28,7 +28,7 @@ export function useProgramReferralsFilters(
   );
 
   const { data: statusCount } = useProgramReferralsCount<
-    z.infer<typeof partnerReferralsCountByStatusSchema>[] | undefined
+    z.infer<typeof submittedLeadsCountByStatusSchema>[] | undefined
   >({
     query: {
       groupBy: "status",
@@ -36,7 +36,7 @@ export function useProgramReferralsFilters(
   });
 
   const { data: partnersCount } = useProgramReferralsCount<
-    z.infer<typeof partnerReferralsCountByPartnerIdSchema>[] | undefined
+    z.infer<typeof submittedLeadsCountByPartnerSchema>[] | undefined
   >({
     query: {
       groupBy: "partnerId",
