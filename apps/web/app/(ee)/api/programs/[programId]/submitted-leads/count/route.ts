@@ -5,10 +5,10 @@ import {
   submittedLeadsCountResponseSchema,
 } from "@/lib/zod/schemas/submitted-leads";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
-import { Prisma, ReferralStatus } from "@dub/prisma/client";
+import { Prisma, SubmittedLeadStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
-// GET /api/programs/[programId]/referrals/count - get the count of partner referrals for a program
+// GET /api/programs/[programId]/submitted-leads/count
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -16,7 +16,7 @@ export const GET = withWorkspace(
     const { partnerId, status, search, groupBy } =
       getSubmittedLeadsCountQuerySchema.parse(searchParams);
 
-    const commonWhere: Prisma.PartnerReferralWhereInput = {
+    const commonWhere: Prisma.SubmittedLeadWhereInput = {
       programId,
       ...(partnerId && groupBy !== "partnerId" && { partnerId }),
       ...(groupBy === "status"
@@ -25,7 +25,10 @@ export const GET = withWorkspace(
           ? { status }
           : {
               status: {
-                notIn: [ReferralStatus.unqualified, ReferralStatus.closedLost],
+                notIn: [
+                  SubmittedLeadStatus.unqualified,
+                  SubmittedLeadStatus.closedLost,
+                ],
               },
             }),
       ...(search
@@ -38,9 +41,9 @@ export const GET = withWorkspace(
         : {}),
     };
 
-    // Get referral count by status
+    // Get submitted leads count by status
     if (groupBy === "status") {
-      const data = await prisma.partnerReferral.groupBy({
+      const data = await prisma.submittedLead.groupBy({
         by: ["status"],
         where: commonWhere,
         _count: true,
@@ -52,7 +55,7 @@ export const GET = withWorkspace(
       });
 
       // Fill in missing statuses with zero counts
-      Object.values(ReferralStatus).forEach((status) => {
+      Object.values(SubmittedLeadStatus).forEach((status) => {
         if (!data.some((d) => d.status === status)) {
           data.push({ _count: 0, status });
         }
@@ -61,9 +64,9 @@ export const GET = withWorkspace(
       return NextResponse.json(submittedLeadsCountResponseSchema.parse(data));
     }
 
-    // Get referral count by partnerId
+    // Get submitted leads count by partnerId
     if (groupBy === "partnerId") {
-      const data = await prisma.partnerReferral.groupBy({
+      const data = await prisma.submittedLead.groupBy({
         by: ["partnerId"],
         where: commonWhere,
         _count: true,
@@ -78,8 +81,8 @@ export const GET = withWorkspace(
       return NextResponse.json(submittedLeadsCountResponseSchema.parse(data));
     }
 
-    // Get referral count
-    const count = await prisma.partnerReferral.count({
+    // Get submitted lead count
+    const count = await prisma.submittedLead.count({
       where: commonWhere,
     });
 

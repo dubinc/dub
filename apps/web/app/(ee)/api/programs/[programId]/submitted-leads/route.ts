@@ -5,11 +5,11 @@ import {
   submittedLeadSchema,
 } from "@/lib/zod/schemas/submitted-leads";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
-import { ReferralStatus } from "@dub/prisma/client";
+import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// GET /api/programs/[programId]/referrals - get all partner referrals for a program
+// GET /api/programs/[programId]/submitted-leads
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -22,7 +22,7 @@ export const GET = withWorkspace(
       pageSize,
     } = getSubmittedLeadsQuerySchema.parse(searchParams);
 
-    const partnerReferrals = await prisma.partnerReferral.findMany({
+    const submittedLeads = await prisma.submittedLead.findMany({
       where: {
         programId,
         ...(partnerId && { partnerId }),
@@ -30,7 +30,10 @@ export const GET = withWorkspace(
           ? { status }
           : {
               status: {
-                notIn: [ReferralStatus.unqualified, ReferralStatus.closedLost],
+                notIn: [
+                  SubmittedLeadStatus.unqualified,
+                  SubmittedLeadStatus.closedLost,
+                ],
               },
             }),
         ...(search
@@ -60,7 +63,7 @@ export const GET = withWorkspace(
     });
 
     return NextResponse.json(
-      z.array(submittedLeadSchema).parse(partnerReferrals),
+      z.array(submittedLeadSchema).parse(submittedLeads),
     );
   },
   {

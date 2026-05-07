@@ -87,7 +87,7 @@ function EditReferralModal({
   const { executeAsync, isPending } = useAction(updateReferralAction, {
     onSuccess: async () => {
       setShowModal(false);
-      await mutatePrefix(`/api/programs/${defaultProgramId}/referrals`);
+      await mutatePrefix(`/api/programs/${defaultProgramId}/submitted-leads`);
       toast.success("Referral updated successfully!");
     },
     onError({ error }) {

@@ -21,7 +21,7 @@ export function useProgramReferralsCount<T = number>({
     enabled &&
       workspaceId &&
       defaultProgramId &&
-      `/api/programs/${defaultProgramId}/referrals/count${getQueryString(
+      `/api/programs/${defaultProgramId}/submitted-leads/count${getQueryString(
         { workspaceId, ...query },
         {
           include: ignoreParams ? [] : ["partnerId", "status", "search"],

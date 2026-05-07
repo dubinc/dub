@@ -95,7 +95,7 @@ function ConfirmReferralStatusChangeModal({
       setShowModal(false);
       toast.success("Referral status updated successfully!");
       await mutatePrefix([
-        `/api/programs/${defaultProgramId}/referrals`,
+        `/api/programs/${defaultProgramId}/submitted-leads`,
         "/api/activity-logs",
       ]);
     },
