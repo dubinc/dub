@@ -2,7 +2,7 @@ import { prisma } from "@dub/prisma";
 import { Prisma, SubmittedLeadStatus } from "@dub/prisma/client";
 import "dotenv-flow/config";
 
-const BATCH_SIZE = 250;
+const BATCH_SIZE = 100;
 
 async function main() {
   let cursor: string | undefined;
@@ -12,8 +12,17 @@ async function main() {
   while (true) {
     const referrals = await prisma.partnerReferral.findMany({
       take: BATCH_SIZE,
-      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
-      orderBy: { id: "asc" },
+      ...(cursor
+        ? {
+            skip: 1,
+            cursor: {
+              id: cursor,
+            },
+          }
+        : {}),
+      orderBy: {
+        id: "asc",
+      },
     });
 
     if (referrals.length === 0) {
@@ -37,7 +46,6 @@ async function main() {
 
     const { count } = await prisma.submittedLead.createMany({
       data,
-      // Idempotent: subsequent runs won't re-insert existing IDs.
       skipDuplicates: true,
     });
 
