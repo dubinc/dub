@@ -11,10 +11,10 @@ import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import * as z from "zod/v4";
-import { useProgramReferralsCount } from "../../lib/swr/use-program-referrals-count";
-import { ReferralStatusBadges } from "./referral-status-badges";
+import { useProgramSubmittedLeadsCount } from "../../lib/swr/use-program-submitted-leads-count";
+import { SubmittedLeadStatusBadges } from "./submitted-lead-status-badges";
 
-export function useProgramReferralsFilters(
+export function useProgramSubmittedLeadFilters(
   extraSearchParams: Record<string, string>,
 ) {
   const [search, setSearch] = useState("");
@@ -27,7 +27,7 @@ export function useProgramReferralsFilters(
     selectedFilter === "partnerId" ? debouncedSearch : "",
   );
 
-  const { data: statusCount } = useProgramReferralsCount<
+  const { data: statusCount } = useProgramSubmittedLeadsCount<
     z.infer<typeof submittedLeadsCountByStatusSchema>[] | undefined
   >({
     query: {
@@ -35,7 +35,7 @@ export function useProgramReferralsFilters(
     },
   });
 
-  const { data: partnersCount } = useProgramReferralsCount<
+  const { data: partnersCount } = useProgramSubmittedLeadsCount<
     z.infer<typeof submittedLeadsCountByPartnerSchema>[] | undefined
   >({
     query: {
@@ -81,7 +81,7 @@ export function useProgramReferralsFilters(
         label: "Status",
         options:
           statusCount?.map(({ status, _count }) => {
-            const badge = ReferralStatusBadges[status];
+            const badge = SubmittedLeadStatusBadges[status];
             const Icon = badge.icon;
 
             return {

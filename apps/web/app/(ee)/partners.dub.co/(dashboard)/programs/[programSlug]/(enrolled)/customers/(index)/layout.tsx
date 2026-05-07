@@ -1,6 +1,6 @@
 "use client";
 
-import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
+import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
 import usePartnerReferralsCount from "@/lib/swr/use-partner-referrals-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -37,7 +37,7 @@ export default function PartnerCustomersLayout({
   const programId = programEnrollment?.programId;
 
   const isEnabled = programId
-    ? REFERRAL_ENABLED_PROGRAM_IDS.includes(programId)
+    ? SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(programId)
     : false;
 
   const referralFormData = useMemo(() => {
@@ -67,10 +67,10 @@ export default function PartnerCustomersLayout({
         count: customersCount,
       },
       {
-        label: "Submitted Referrals",
-        id: "invited",
-        href: "referrals",
-        info: "Shows your submitted referrals and their status.",
+        label: "Leads",
+        id: "leads",
+        href: "leads",
+        info: "Shows your partners' submitted leads.",
         count: referralsCount,
       },
     ];
@@ -83,13 +83,13 @@ export default function PartnerCustomersLayout({
         <>
           {isEnabled && (
             <Button
-              text="Submit referral"
+              text="Submit lead"
               className="h-9 w-fit rounded-lg"
               disabled={!referralFormData}
               disabledTooltip={
                 referralFormData
                   ? undefined
-                  : "Submitted referrals are not offered."
+                  : "Submitted leads are not offered."
               }
               onClick={() => {
                 setShowReferralSheet(true);

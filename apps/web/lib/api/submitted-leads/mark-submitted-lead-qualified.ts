@@ -3,26 +3,26 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
 import { prisma } from "@dub/prisma";
-import { PartnerReferral, Project } from "@dub/prisma/client";
+import { Project, SubmittedLead } from "@dub/prisma/client";
 import { pick } from "@dub/utils";
 
-interface MarkReferralQualifiedInput {
+interface MarkSubmittedLeadQualifiedInput {
   workspace: Pick<Project, "id" | "stripeConnectId" | "webhookEnabled">;
-  referral: PartnerReferral;
+  lead: SubmittedLead;
   externalId: string | null;
 }
 
-// Mark a partner referral as qualified
-export const markReferralQualified = async ({
+// Mark a submitted lead as qualified
+export const markSubmittedLeadQualified = async ({
   workspace,
-  referral,
+  lead,
   externalId,
-}: MarkReferralQualifiedInput) => {
+}: MarkSubmittedLeadQualifiedInput) => {
   // Find the default link for the partner
   const links = await prisma.link.findMany({
     where: {
-      programId: referral.programId,
-      partnerId: referral.partnerId,
+      programId: lead.programId,
+      partnerId: lead.partnerId,
     },
     orderBy: {
       partnerGroupDefaultLinkId: "asc",
@@ -35,7 +35,7 @@ export const markReferralQualified = async ({
 
   if (links.length === 0) {
     console.error(
-      `[markReferralQualified] No links found for partner ${referral.partnerId} in program ${referral.programId}`,
+      `[markSubmittedLeadQualified] No links found for partner ${lead.partnerId} in program ${lead.programId}`,
     );
     return;
   }
@@ -56,9 +56,9 @@ export const markReferralQualified = async ({
   const trackedLead = await trackLead({
     clickId: clickEvent.click_id,
     eventName: "Qualified Lead",
-    customerExternalId: externalId || referral.email,
-    customerName: referral.name,
-    customerEmail: referral.email,
+    customerExternalId: externalId || lead.email,
+    customerName: lead.name,
+    customerEmail: lead.email,
     mode: "wait",
     workspace: pick(workspace, ["id", "stripeConnectId", "webhookEnabled"]),
     source: "submitted",
@@ -73,9 +73,9 @@ export const markReferralQualified = async ({
     },
   });
 
-  await prisma.partnerReferral.update({
+  await prisma.submittedLead.update({
     where: {
-      id: referral.id,
+      id: lead.id,
     },
     data: {
       customerId: customer.id,

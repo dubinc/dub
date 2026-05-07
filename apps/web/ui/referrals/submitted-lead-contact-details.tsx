@@ -1,50 +1,54 @@
 "use client";
 
-import { ReferralProps } from "@/lib/types";
-import { useConfirmReferralStatusChangeModal } from "@/ui/modals/confirm-referral-status-change-modal";
-import { useEditReferralModal } from "@/ui/modals/edit-referral-modal";
-import { ReferralStatus } from "@dub/prisma/client";
+import { SubmittedLeadProps } from "@/lib/types";
+import { useConfirmSubmittedLeadStatusChangeModal } from "@/ui/modals/confirm-submitted-lead-status-change-modal";
+import { useEditSubmittedLeadModal } from "@/ui/modals/edit-submitted-lead-modal";
+import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { Button, Envelope, OfficeBuilding } from "@dub/ui";
 import { OG_AVATAR_URL } from "@dub/utils";
 import { Pencil } from "lucide-react";
-import { ReferralStatusBadge } from "./referral-status-badge";
-import { ReferralStatusDropdown } from "./referral-status-dropdown";
-import { getCompanyLogoUrl } from "./referral-utils";
+import { SubmittedLeadStatusBadge } from "./submitted-lead-status-badge";
+import { SubmittedLeadStatusDropdown } from "./submitted-lead-status-dropdown";
+import { getCompanyLogoUrl } from "./submitted-lead-utils";
 
-interface ReferralLeadDetailsProps {
-  referral: Pick<ReferralProps, "id" | "name" | "email" | "company" | "status">;
+interface SubmittedLeadContactDetailsProps {
+  referral: Pick<
+    SubmittedLeadProps,
+    "id" | "name" | "email" | "company" | "status"
+  >;
   mode?: "interactive" | "readonly";
-  selectedStatus?: ReferralStatus;
-  onStatusChange?: (newStatus: ReferralStatus) => void;
+  selectedStatus?: SubmittedLeadStatus;
+  onStatusChange?: (newStatus: SubmittedLeadStatus) => void;
 }
 
-export function ReferralLeadDetails({
+export function SubmittedLeadContactDetails({
   referral,
   mode = "interactive",
   selectedStatus,
   onStatusChange,
-}: ReferralLeadDetailsProps) {
-  const { EditReferralModal, openEditReferralModal } = useEditReferralModal();
+}: SubmittedLeadContactDetailsProps) {
+  const { EditSubmittedLeadModal, openEditSubmittedLeadModal } =
+    useEditSubmittedLeadModal();
   const {
-    ConfirmReferralStatusChangeModal,
-    openConfirmReferralStatusChangeModal,
-  } = useConfirmReferralStatusChangeModal();
+    ConfirmSubmittedLeadStatusChangeModal,
+    openConfirmSubmittedLeadStatusChangeModal,
+  } = useConfirmSubmittedLeadStatusChangeModal();
 
   const isInteractive = mode === "interactive";
   const isControlled = onStatusChange !== undefined;
 
-  const handleStatusChange = (newStatus: ReferralStatus) => {
+  const handleStatusChange = (newStatus: SubmittedLeadStatus) => {
     if (onStatusChange) {
       onStatusChange(newStatus);
     } else {
-      openConfirmReferralStatusChangeModal(referral, newStatus);
+      openConfirmSubmittedLeadStatusChangeModal(referral, newStatus);
     }
   };
 
   return (
     <>
-      {isInteractive && <EditReferralModal />}
-      {isInteractive && !isControlled && ConfirmReferralStatusChangeModal}
+      {isInteractive && <EditSubmittedLeadModal />}
+      {isInteractive && !isControlled && ConfirmSubmittedLeadStatusChangeModal}
       <div className="border-border-subtle overflow-hidden rounded-xl border bg-white">
         <div className="flex items-start justify-between px-4 pt-4">
           <div className="relative w-fit shrink-0">
@@ -65,7 +69,9 @@ export function ReferralLeadDetails({
               icon={<Pencil className="size-3.5" />}
               text="Edit"
               className="h-7 w-fit rounded-lg px-2"
-              onClick={() => openEditReferralModal(referral as ReferralProps)}
+              onClick={() =>
+                openEditSubmittedLeadModal(referral as SubmittedLeadProps)
+              }
             />
           )}
         </div>
@@ -98,13 +104,13 @@ export function ReferralLeadDetails({
             Referral stage
           </div>
           {isInteractive ? (
-            <ReferralStatusDropdown
-              referral={referral as ReferralProps}
+            <SubmittedLeadStatusDropdown
+              referral={referral as SubmittedLeadProps}
               selectedStatus={selectedStatus}
               onStatusChange={handleStatusChange}
             />
           ) : (
-            <ReferralStatusBadge status={referral.status} />
+            <SubmittedLeadStatusBadge status={referral.status} />
           )}
         </div>
       </div>

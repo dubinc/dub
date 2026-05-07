@@ -21,15 +21,15 @@ import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import * as z from "zod/v4";
-import { useProgramReferralsCount } from "../../lib/swr/use-program-referrals-count";
-import { ReferralSheet } from "./partner-referral-sheet";
-import { ReferralStatusBadges } from "./referral-status-badges";
-import { getCompanyLogoUrl } from "./referral-utils";
-import { useProgramReferralsFilters } from "./use-program-referral-filters";
+import { useProgramSubmittedLeadsCount } from "../../lib/swr/use-program-submitted-leads-count";
+import { SubmittedLeadSheet } from "./submitted-lead-sheet";
+import { SubmittedLeadStatusBadges } from "./submitted-lead-status-badges";
+import { getCompanyLogoUrl } from "./submitted-lead-utils";
+import { useProgramSubmittedLeadFilters } from "./use-program-submitted-lead-filters";
 
-type PartnerReferralProps = z.infer<typeof submittedLeadSchema>;
+type SubmittedLeadItem = z.infer<typeof submittedLeadSchema>;
 
-export function PartnerReferralTable() {
+export function SubmittedLeadTable() {
   const { getQueryString, queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
@@ -45,13 +45,13 @@ export function PartnerReferralTable() {
   });
 
   const { data: referralsCount, error: countError } =
-    useProgramReferralsCount();
+    useProgramSubmittedLeadsCount();
 
   const {
     data: referrals,
     error,
     isLoading,
-  } = useSWR<PartnerReferralProps[]>(
+  } = useSWR<SubmittedLeadItem[]>(
     `/api/programs/${defaultProgramId}/submitted-leads${getQueryString({
       workspaceId,
     })}`,
@@ -77,7 +77,7 @@ export function PartnerReferralTable() {
       header: "Lead",
       enableHiding: false,
       minSize: 250,
-      cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
+      cell: ({ row }: { row: Row<SubmittedLeadItem> }) => {
         const referral = row.original;
         const companyLogoUrl = getCompanyLogoUrl(referral.email);
 
@@ -100,7 +100,7 @@ export function PartnerReferralTable() {
       header: "Company",
       accessorKey: "company",
       minSize: 150,
-      cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
+      cell: ({ row }: { row: Row<SubmittedLeadItem> }) => {
         return (
           <span className="min-w-0 truncate" title={row.original.company}>
             {row.original.company}
@@ -112,7 +112,7 @@ export function PartnerReferralTable() {
       id: "partner",
       header: "Partner",
       minSize: 200,
-      cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
+      cell: ({ row }: { row: Row<SubmittedLeadItem> }) => {
         return (
           <PartnerRowItem
             partner={row.original.partner}
@@ -125,7 +125,7 @@ export function PartnerReferralTable() {
     {
       id: "submitted",
       header: "Submitted",
-      cell: ({ row }: { row: Row<PartnerReferralProps> }) => (
+      cell: ({ row }: { row: Row<SubmittedLeadItem> }) => (
         <TimestampTooltip
           timestamp={row.original.createdAt}
           rows={["local"]}
@@ -140,9 +140,9 @@ export function PartnerReferralTable() {
       id: "status",
       header: "Status",
       accessorKey: "status",
-      cell: ({ row }: { row: Row<PartnerReferralProps> }) => {
+      cell: ({ row }: { row: Row<SubmittedLeadItem> }) => {
         const status = row.original.status;
-        const badge = ReferralStatusBadges[status];
+        const badge = SubmittedLeadStatusBadges[status];
 
         return (
           <StatusBadge
@@ -222,7 +222,7 @@ export function PartnerReferralTable() {
   return (
     <div className="flex flex-col gap-3">
       {detailsSheetState.referralId && currentReferral && (
-        <ReferralSheet
+        <SubmittedLeadSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
@@ -259,7 +259,7 @@ export function PartnerReferralTable() {
         />
       )}
       <div>
-        <PartnerReferralFilters />
+        <SubmittedLeadFilters />
       </div>
       {referrals?.length !== 0 ? (
         <Table {...tableProps} table={table} />
@@ -279,7 +279,7 @@ export function PartnerReferralTable() {
   );
 }
 
-function PartnerReferralFilters() {
+function SubmittedLeadFilters() {
   const {
     filters,
     activeFilters,
@@ -288,7 +288,7 @@ function PartnerReferralFilters() {
     onRemoveAll,
     setSearch,
     setSelectedFilter,
-  } = useProgramReferralsFilters({});
+  } = useProgramSubmittedLeadFilters({});
 
   return (
     <>

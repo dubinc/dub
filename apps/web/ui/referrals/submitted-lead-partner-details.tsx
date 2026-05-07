@@ -1,15 +1,15 @@
-import { ReferralProps } from "@/lib/types";
+import { SubmittedLeadProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-interface ReferralPartnerDetailsProps {
-  referral: ReferralProps;
+interface SubmittedLeadPartnerDetailsProps {
+  referral: SubmittedLeadProps;
 }
 
-export function ReferralPartnerDetails({
+export function SubmittedLeadPartnerDetails({
   referral,
-}: ReferralPartnerDetailsProps) {
+}: SubmittedLeadPartnerDetailsProps) {
   const { slug } = useParams();
 
   return (

@@ -5,7 +5,7 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import * as z from "zod/v4";
 
-export function useProgramReferralsCount<T = number>({
+export function useProgramSubmittedLeadsCount<T = number>({
   query,
   ignoreParams,
   enabled = true,

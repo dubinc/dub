@@ -5,10 +5,10 @@ import {
   partnerReferralsCountResponseSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
-import { Prisma, ReferralStatus } from "@dub/prisma/client";
+import { Prisma, SubmittedLeadStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
-// GET /api/partner-profile/programs/[programId]/referrals/count - get the count of referrals for the current partner in a program
+// GET /api/partner-profile/programs/[programId]/submitted-leads/count
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { programId } = params;
@@ -23,7 +23,7 @@ export const GET = withPartnerProfile(
       },
     });
 
-    const commonWhere: Prisma.PartnerReferralWhereInput = {
+    const commonWhere: Prisma.SubmittedLeadWhereInput = {
       programId: program.id,
       partnerId: partner.id,
       ...(status && groupBy !== "status" && { status }),
@@ -39,7 +39,7 @@ export const GET = withPartnerProfile(
 
     // Get referral count by status
     if (groupBy === "status") {
-      const data = await prisma.partnerReferral.groupBy({
+      const data = await prisma.submittedLead.groupBy({
         by: ["status"],
         where: commonWhere,
         _count: true,
@@ -51,7 +51,7 @@ export const GET = withPartnerProfile(
       });
 
       // Fill in missing statuses with zero counts
-      Object.values(ReferralStatus).forEach((status) => {
+      Object.values(SubmittedLeadStatus).forEach((status) => {
         if (!data.some((d) => d.status === status)) {
           data.push({ _count: 0, status });
         }
@@ -60,8 +60,8 @@ export const GET = withPartnerProfile(
       return NextResponse.json(partnerReferralsCountResponseSchema.parse(data));
     }
 
-    // Get referral count
-    const count = await prisma.partnerReferral.count({
+    // Get submitted lead count
+    const count = await prisma.submittedLead.count({
       where: commonWhere,
     });
 

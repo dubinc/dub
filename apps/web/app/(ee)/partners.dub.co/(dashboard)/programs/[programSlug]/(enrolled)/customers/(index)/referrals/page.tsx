@@ -6,10 +6,10 @@ import { PartnerProfileReferralsCountByStatus } from "@/lib/types";
 import { PartnerProfileReferral } from "@/lib/zod/schemas/partner-profile";
 import { PartnerProfileReferralSheet } from "@/ui/referrals/partner-profile-referral-sheet";
 import { PartnerProfileReferralsEmptyState } from "@/ui/referrals/partner-profile-referrals-empty-state";
-import { ReferralStatusBadges } from "@/ui/referrals/referral-status-badges";
-import { getCompanyLogoUrl } from "@/ui/referrals/referral-utils";
+import { SubmittedLeadStatusBadges } from "@/ui/referrals/submitted-lead-status-badges";
+import { getCompanyLogoUrl } from "@/ui/referrals/submitted-lead-utils";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { ReferralStatus } from "@dub/prisma/client";
+import { SubmittedLeadStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Filter,
@@ -41,7 +41,7 @@ export default function PartnerCustomersReferralsPage() {
   });
 
   const { searchParamsObj } = useRouterStuff();
-  const status = searchParamsObj.status as ReferralStatus | undefined;
+  const status = searchParamsObj.status as SubmittedLeadStatus | undefined;
   const search = searchParamsObj.search as string | undefined;
 
   const { data: referralsCountByStatus } = usePartnerReferralsCount<
@@ -80,7 +80,7 @@ export default function PartnerCustomersReferralsPage() {
         label: "Status",
         options:
           referralsCountByStatus?.map(({ status, _count }) => {
-            const badge = ReferralStatusBadges[status];
+            const badge = SubmittedLeadStatusBadges[status];
             const Icon = badge.icon;
 
             return {
@@ -200,7 +200,7 @@ export default function PartnerCustomersReferralsPage() {
           accessorKey: "status",
           cell: ({ row }: { row: Row<PartnerProfileReferral> }) => {
             const status = row.original.status;
-            const badge = ReferralStatusBadges[status];
+            const badge = SubmittedLeadStatusBadges[status];
 
             return (
               <StatusBadge

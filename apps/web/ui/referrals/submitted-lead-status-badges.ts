@@ -1,8 +1,8 @@
-import { ReferralStatus } from "@dub/prisma/client";
+import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { CircleCheck, CircleHalfDottedClock, CircleXmark } from "@dub/ui/icons";
 
-export const ReferralStatusBadges: Record<
-  ReferralStatus,
+export const SubmittedLeadStatusBadges: Record<
+  SubmittedLeadStatus,
   {
     label: string;
     variant: "new" | "success" | "pending" | "error" | "neutral";

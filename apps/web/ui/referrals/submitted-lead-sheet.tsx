@@ -1,7 +1,7 @@
-import { ReferralProps } from "@/lib/types";
-import { useConfirmReferralStatusChangeModal } from "@/ui/modals/confirm-referral-status-change-modal";
+import { SubmittedLeadProps } from "@/lib/types";
+import { useConfirmSubmittedLeadStatusChangeModal } from "@/ui/modals/confirm-submitted-lead-status-change-modal";
 import { X } from "@/ui/shared/icons";
-import { ReferralStatus } from "@dub/prisma/client";
+import { SubmittedLeadStatus } from "@dub/prisma/client";
 import {
   Button,
   ChevronLeft,
@@ -12,31 +12,31 @@ import {
 } from "@dub/ui";
 import { Dispatch, SetStateAction, useState } from "react";
 import { ReferralActivitySection } from "../activity-logs/referral-activity-section";
-import { ReferralDetails } from "./referral-details";
-import { ReferralLeadDetails } from "./referral-lead-details";
-import { ReferralPartnerDetails } from "./referral-partner-details";
+import { SubmittedLeadDetails } from "./submitted-lead-details";
+import { SubmittedLeadContactDetails } from "./submitted-lead-contact-details";
+import { SubmittedLeadPartnerDetails } from "./submitted-lead-partner-details";
 
-type ReferralSheetProps = {
-  referral: ReferralProps;
+type SubmittedLeadSheetProps = {
+  referral: SubmittedLeadProps;
   onNext?: () => void;
   onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-function ReferralSheetContent({
+function SubmittedLeadSheetContent({
   referral,
   onPrevious,
   onNext,
   setIsOpen,
-}: ReferralSheetProps) {
-  const [pendingStatus, setPendingStatus] = useState<ReferralStatus | null>(
+}: SubmittedLeadSheetProps) {
+  const [pendingStatus, setPendingStatus] = useState<SubmittedLeadStatus | null>(
     null,
   );
 
   const {
-    ConfirmReferralStatusChangeModal,
-    openConfirmReferralStatusChangeModal,
-  } = useConfirmReferralStatusChangeModal({
+    ConfirmSubmittedLeadStatusChangeModal,
+    openConfirmSubmittedLeadStatusChangeModal,
+  } = useConfirmSubmittedLeadStatusChangeModal({
     onClose: () => setPendingStatus(null),
   });
 
@@ -74,19 +74,19 @@ function ReferralSheetContent({
     { sheet: true },
   );
 
-  const handleStatusChange = (newStatus: ReferralStatus) => {
+  const handleStatusChange = (newStatus: SubmittedLeadStatus) => {
     setPendingStatus(newStatus === referral.status ? null : newStatus);
   };
 
   const handleSaveStatusChange = () => {
     if (pendingStatus !== null) {
-      openConfirmReferralStatusChangeModal(referral, pendingStatus);
+      openConfirmSubmittedLeadStatusChangeModal(referral, pendingStatus);
     }
   };
 
   return (
     <>
-      {ConfirmReferralStatusChangeModal}
+      {ConfirmSubmittedLeadStatusChangeModal}
       <div className="flex size-full flex-col">
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
@@ -124,18 +124,18 @@ function ReferralSheetContent({
         <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
           {/* Left side - Referral details */}
           <div className="flex flex-col gap-6">
-            <ReferralDetails referral={{ formData: referral.formData }} />
+            <SubmittedLeadDetails referral={{ formData: referral.formData }} />
             <ReferralActivitySection referralId={referral.id} />
           </div>
 
           {/* Right side - Two cards */}
           <div className="@3xl/sheet:order-2 flex flex-col gap-4">
-            <ReferralLeadDetails
+            <SubmittedLeadContactDetails
               referral={referral}
               selectedStatus={pendingStatus ?? referral.status}
               onStatusChange={handleStatusChange}
             />
-            <ReferralPartnerDetails referral={referral} />
+            <SubmittedLeadPartnerDetails referral={referral} />
           </div>
         </div>
 
@@ -164,11 +164,11 @@ function ReferralSheetContent({
   );
 }
 
-export function ReferralSheet({
+export function SubmittedLeadSheet({
   isOpen,
   nested,
   ...rest
-}: ReferralSheetProps & {
+}: SubmittedLeadSheetProps & {
   isOpen: boolean;
   nested?: boolean;
 }) {
@@ -184,7 +184,7 @@ export function ReferralSheet({
         className: "md:w-[max(min(calc(100vw-334px),1170px),540px)]",
       }}
     >
-      <ReferralSheetContent {...rest} />
+      <SubmittedLeadSheetContent {...rest} />
     </Sheet>
   );
 }

@@ -1,4 +1,4 @@
-import { getCompanyLogoUrl } from "@/ui/referrals/referral-utils";
+import { getCompanyLogoUrl } from "@/ui/referrals/submitted-lead-utils";
 import { sendBatchEmail } from "@dub/email";
 import PartnerReferralSubmitted from "@dub/email/templates/partner-referral-submitted";
 import { prisma } from "@dub/prisma";

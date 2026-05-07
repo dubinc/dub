@@ -1,9 +1,9 @@
 "use client";
 
-import { updateReferralAction } from "@/lib/actions/referrals/update-referral";
+import { updateSubmittedLeadAction } from "@/lib/actions/submitted-leads/update-submitted-lead";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ReferralFormDataField, ReferralProps } from "@/lib/types";
+import { SubmittedLeadFormDataField, SubmittedLeadProps } from "@/lib/types";
 import { updateSubmittedLeadSchema } from "@/lib/zod/schemas/submitted-leads";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
@@ -14,21 +14,21 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
 
-type EditReferralFormData = Omit<
+type EditSubmittedLeadFormData = Omit<
   z.infer<typeof updateSubmittedLeadSchema>,
-  "workspaceId" | "referralId" | "formData"
+  "workspaceId" | "leadId" | "formData"
 > & {
   formData: Record<string, unknown>;
 };
 
-type EditReferralModalProps = {
+type EditSubmittedLeadModalProps = {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
-  referral: ReferralProps;
+  lead: SubmittedLeadProps;
 };
 
 function getInputTypeForField(
-  fieldType: ReferralFormDataField["type"],
+  fieldType: SubmittedLeadFormDataField["type"],
 ): string {
   if (fieldType === "number") return "number";
   if (fieldType === "phone") return "tel";
@@ -37,7 +37,7 @@ function getInputTypeForField(
 }
 
 function convertFormDataArrayToObject(
-  formData: ReferralFormDataField[] | null | undefined,
+  formData: SubmittedLeadFormDataField[] | null | undefined,
 ): Record<string, unknown> {
   if (!formData) return {};
 
@@ -47,15 +47,15 @@ function convertFormDataArrayToObject(
   }, {});
 }
 
-function EditReferralModal({
+function EditSubmittedLeadModal({
   showModal,
   setShowModal,
-  referral,
-}: EditReferralModalProps) {
+  lead,
+}: EditSubmittedLeadModalProps) {
   const { isMobile } = useMediaQuery();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
-  const customFormData = referral.formData ?? [];
+  const customFormData = lead.formData ?? [];
 
   const {
     register,
@@ -63,11 +63,11 @@ function EditReferralModal({
     handleSubmit,
     reset,
     formState: { isDirty },
-  } = useForm<EditReferralFormData>({
+  } = useForm<EditSubmittedLeadFormData>({
     defaultValues: {
-      name: referral.name || "",
-      email: referral.email || "",
-      company: referral.company || "",
+      name: lead.name || "",
+      email: lead.email || "",
+      company: lead.company || "",
       formData: convertFormDataArrayToObject(customFormData),
     },
   });
@@ -76,34 +76,34 @@ function EditReferralModal({
   useEffect(() => {
     if (showModal) {
       reset({
-        name: referral.name || "",
-        email: referral.email || "",
-        company: referral.company || "",
+        name: lead.name || "",
+        email: lead.email || "",
+        company: lead.company || "",
         formData: convertFormDataArrayToObject(customFormData),
       });
     }
-  }, [showModal, referral, reset, customFormData]);
+  }, [showModal, lead, reset, customFormData]);
 
-  const { executeAsync, isPending } = useAction(updateReferralAction, {
+  const { executeAsync, isPending } = useAction(updateSubmittedLeadAction, {
     onSuccess: async () => {
       setShowModal(false);
       await mutatePrefix(`/api/programs/${defaultProgramId}/submitted-leads`);
-      toast.success("Referral updated successfully!");
+      toast.success("Lead updated successfully!");
     },
     onError({ error }) {
-      toast.error(error.serverError || "Failed to update referral");
+      toast.error(error.serverError || "Failed to update lead");
     },
   });
 
-  const onSubmit = async (data: EditReferralFormData) => {
-    if (!workspaceId || !referral.id) {
+  const onSubmit = async (data: EditSubmittedLeadFormData) => {
+    if (!workspaceId || !lead.id) {
       return;
     }
 
-    const originalFormData = referral.formData ?? [];
+    const originalFormData = lead.formData ?? [];
 
     // Convert formData back to array format with preserved metadata
-    const updatedFormData: ReferralFormDataField[] = originalFormData.map(
+    const updatedFormData: SubmittedLeadFormDataField[] = originalFormData.map(
       (field) => ({
         ...field,
         value:
@@ -113,7 +113,7 @@ function EditReferralModal({
 
     await executeAsync({
       workspaceId,
-      referralId: referral.id,
+      leadId: lead.id,
       name: data.name,
       email: data.email,
       company: data.company,
@@ -124,7 +124,7 @@ function EditReferralModal({
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
       <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
-        <h3 className="text-lg font-medium">Edit referral</h3>
+        <h3 className="text-lg font-medium">Edit lead</h3>
       </div>
 
       <div className="bg-neutral-50">
@@ -286,35 +286,35 @@ function EditReferralModal({
   );
 }
 
-export function useEditReferralModal() {
-  const [referral, setReferral] = useState<ReferralProps | null>(null);
+export function useEditSubmittedLeadModal() {
+  const [lead, setLead] = useState<SubmittedLeadProps | null>(null);
 
-  function openEditReferralModal(referral: ReferralProps) {
-    setReferral(referral);
+  function openEditSubmittedLeadModal(lead: SubmittedLeadProps) {
+    setLead(lead);
   }
 
-  function closeEditReferralModal() {
-    setReferral(null);
+  function closeEditSubmittedLeadModal() {
+    setLead(null);
   }
 
-  function EditReferralModalWrapper() {
-    if (!referral) return null;
+  function EditSubmittedLeadModalWrapper() {
+    if (!lead) return null;
 
     return (
-      <EditReferralModal
-        referral={referral}
+      <EditSubmittedLeadModal
+        lead={lead}
         showModal
         setShowModal={(show) => {
-          if (!show) closeEditReferralModal();
+          if (!show) closeEditSubmittedLeadModal();
         }}
       />
     );
   }
 
   return {
-    openEditReferralModal,
-    closeEditReferralModal,
-    EditReferralModal: EditReferralModalWrapper,
-    isEditReferralModalOpen: referral !== null,
+    openEditSubmittedLeadModal,
+    closeEditSubmittedLeadModal,
+    EditSubmittedLeadModal: EditSubmittedLeadModalWrapper,
+    isEditSubmittedLeadModalOpen: lead !== null,
   };
 }

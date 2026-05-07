@@ -862,17 +862,17 @@ export interface WorkflowContext {
   };
 }
 
-export type ReferralProps = z.infer<typeof submittedLeadSchema>;
+export type SubmittedLeadProps = z.infer<typeof submittedLeadSchema>;
 
-export type ReferralFormDataField = z.infer<typeof referralFormDataSchema>;
+export type SubmittedLeadFormDataField = z.infer<typeof referralFormDataSchema>;
 
-export type UpdateReferralStatusPayload = z.infer<
+export type UpdateSubmittedLeadStatusPayload = z.infer<
   typeof updateSubmittedLeadStatusSchema
 >;
 
 export type CustomerSource = (typeof CUSTOMER_SOURCES)[number];
 
-export type ReferralWithCustomer = PartnerReferral & {
+export type SubmittedLeadWithCustomer = PartnerReferral & {
   customer: Customer | null;
 };
 

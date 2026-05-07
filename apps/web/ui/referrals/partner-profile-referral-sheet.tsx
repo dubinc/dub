@@ -10,8 +10,8 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Dispatch, SetStateAction } from "react";
-import { ReferralDetails } from "./referral-details";
-import { ReferralLeadDetails } from "./referral-lead-details";
+import { SubmittedLeadContactDetails } from "./submitted-lead-contact-details";
+import { SubmittedLeadDetails } from "./submitted-lead-details";
 
 type PartnerProfileReferralSheetProps = {
   referral: PartnerProfileReferral;
@@ -85,13 +85,13 @@ function PartnerProfileReferralSheetContent({
       <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-2 overflow-y-auto p-4 sm:gap-y-4 sm:p-6">
         {/* Left side - Referral details */}
         <div className="flex flex-col gap-6">
-          <ReferralDetails referral={{ formData: referral.formData }} />
+          <SubmittedLeadDetails referral={{ formData: referral.formData }} />
           <PartnerReferralActivitySection referralId={referral.id} />
         </div>
 
         {/* Right side - Customer details */}
         <div className="@3xl/sheet:order-2 flex flex-col gap-2 sm:gap-4">
-          <ReferralLeadDetails referral={referral} mode="readonly" />
+          <SubmittedLeadContactDetails referral={referral} mode="readonly" />
         </div>
       </div>
     </div>

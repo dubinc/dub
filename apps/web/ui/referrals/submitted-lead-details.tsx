@@ -1,13 +1,13 @@
-import { ReferralFormDataField, ReferralProps } from "@/lib/types";
-import { formatFormDataValue } from "./referral-utils";
+import { SubmittedLeadFormDataField, SubmittedLeadProps } from "@/lib/types";
+import { formatFormDataValue } from "./submitted-lead-utils";
 
-interface ReferralDetailsProps {
-  referral: Pick<ReferralProps, "formData">;
+interface SubmittedLeadDetailsProps {
+  referral: Pick<SubmittedLeadProps, "formData">;
 }
 
-export function ReferralDetails({ referral }: ReferralDetailsProps) {
+export function SubmittedLeadDetails({ referral }: SubmittedLeadDetailsProps) {
   const formData = referral.formData as
-    | ReferralFormDataField[]
+    | SubmittedLeadFormDataField[]
     | null
     | undefined;
 

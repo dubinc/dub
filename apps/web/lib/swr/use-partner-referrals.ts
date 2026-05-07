@@ -10,7 +10,7 @@ export default function usePartnerReferrals() {
 
   const { data, isLoading, error } = useSWR<PartnerProfileReferral[]>(
     programSlug &&
-      `/api/partner-profile/programs/${programSlug}/referrals${getQueryString()}`,
+      `/api/partner-profile/programs/${programSlug}/submitted-leads${getQueryString()}`,
     fetcher,
     {
       keepPreviousData: true,

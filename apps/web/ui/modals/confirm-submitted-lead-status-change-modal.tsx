@@ -1,12 +1,15 @@
 "use client";
 
-import { updateReferralStatusAction } from "@/lib/actions/referrals/update-referral-status";
+import { updateSubmittedLeadStatusAction } from "@/lib/actions/submitted-leads/update-submitted-lead-status";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ReferralProps, UpdateReferralStatusPayload } from "@/lib/types";
-import { ReferralStatusBadge } from "@/ui/referrals/referral-status-badge";
-import { ReferralStatus } from "@dub/prisma/client";
+import {
+  SubmittedLeadProps,
+  UpdateSubmittedLeadStatusPayload,
+} from "@/lib/types";
+import { SubmittedLeadStatusBadge } from "@/ui/referrals/submitted-lead-status-badge";
+import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { AnimatedSizeContainer, Button, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ArrowRight, ChevronDown } from "lucide-react";
@@ -28,12 +31,12 @@ type StatusChangeFormData = {
 type StatusConfig = {
   fields: StatusField[];
   buildPayload: (
-    base: { referralId: string; workspaceId: string; notes?: string },
+    base: { leadId: string; workspaceId: string; notes?: string },
     data: StatusChangeFormData,
-  ) => UpdateReferralStatusPayload;
+  ) => UpdateSubmittedLeadStatusPayload;
 };
 
-const STATUS_CONFIG: Record<ReferralStatus, StatusConfig> = {
+const STATUS_CONFIG: Record<SubmittedLeadStatus, StatusConfig> = {
   pending: {
     fields: [],
     buildPayload: (base) => ({ ...base, status: "pending" }),
@@ -73,36 +76,39 @@ const STATUS_CONFIG: Record<ReferralStatus, StatusConfig> = {
   },
 };
 
-type ConfirmReferralStatusChangeModalProps = {
+type ConfirmSubmittedLeadStatusChangeModalProps = {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
-  referral: Pick<ReferralProps, "id" | "status">;
-  newStatus: ReferralStatus;
+  lead: Pick<SubmittedLeadProps, "id" | "status">;
+  newStatus: SubmittedLeadStatus;
 };
 
-function ConfirmReferralStatusChangeModal({
+function ConfirmSubmittedLeadStatusChangeModal({
   showModal,
   setShowModal,
-  referral,
+  lead,
   newStatus,
-}: ConfirmReferralStatusChangeModalProps) {
+}: ConfirmSubmittedLeadStatusChangeModalProps) {
   const { isMobile } = useMediaQuery();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
-  const { executeAsync, isPending } = useAction(updateReferralStatusAction, {
-    onSuccess: async () => {
-      setShowModal(false);
-      toast.success("Referral status updated successfully!");
-      await mutatePrefix([
-        `/api/programs/${defaultProgramId}/submitted-leads`,
-        "/api/activity-logs",
-      ]);
+  const { executeAsync, isPending } = useAction(
+    updateSubmittedLeadStatusAction,
+    {
+      onSuccess: async () => {
+        setShowModal(false);
+        toast.success("Lead status updated successfully!");
+        await mutatePrefix([
+          `/api/programs/${defaultProgramId}/submitted-leads`,
+          "/api/activity-logs",
+        ]);
+      },
+      onError({ error }) {
+        toast.error(error.serverError || "Failed to update lead status");
+      },
     },
-    onError({ error }) {
-      toast.error(error.serverError || "Failed to update referral status");
-    },
-  });
+  );
 
   const {
     register,
@@ -135,12 +141,12 @@ function ConfirmReferralStatusChangeModal({
   const hasAdvancedSettings = visibleFields.has("stripeCustomerId");
 
   const onSubmit = async (data: StatusChangeFormData) => {
-    if (!workspaceId || !referral.id) return;
+    if (!workspaceId || !lead.id) return;
 
     const payload = config.buildPayload(
       {
         workspaceId,
-        referralId: referral.id,
+        leadId: lead.id,
         notes: data.notes || undefined,
       },
       data,
@@ -175,9 +181,12 @@ function ConfirmReferralStatusChangeModal({
                 }}
               />
               <div className="relative flex items-center justify-center gap-4">
-                <ReferralStatusBadge status={referral.status} className="h-7" />
+                <SubmittedLeadStatusBadge
+                  status={lead.status}
+                  className="h-7"
+                />
                 <ArrowRight className="size-4 text-neutral-400" />
-                <ReferralStatusBadge status={newStatus} className="h-7" />
+                <SubmittedLeadStatusBadge status={newStatus} className="h-7" />
               </div>
             </div>
 
@@ -200,8 +209,8 @@ function ConfirmReferralStatusChangeModal({
                   })}
                 />
                 <p className="text-content-subtle mt-1 text-xs">
-                  The customer's external ID. If not provided, the referral
-                  email will be used.
+                  The customer's external ID. If not provided, the lead email
+                  will be used.
                 </p>
               </div>
             )}
@@ -344,39 +353,39 @@ function ConfirmReferralStatusChangeModal({
   );
 }
 
-export function useConfirmReferralStatusChangeModal(options?: {
+export function useConfirmSubmittedLeadStatusChangeModal(options?: {
   onClose?: () => void;
 }) {
   const [state, setState] = useState<{
-    referral: Pick<ReferralProps, "id" | "status">;
-    newStatus: ReferralStatus;
+    lead: Pick<SubmittedLeadProps, "id" | "status">;
+    newStatus: SubmittedLeadStatus;
   } | null>(null);
 
-  function openConfirmReferralStatusChangeModal(
-    referral: Pick<ReferralProps, "id" | "status">,
-    newStatus: ReferralStatus,
+  function openConfirmSubmittedLeadStatusChangeModal(
+    lead: Pick<SubmittedLeadProps, "id" | "status">,
+    newStatus: SubmittedLeadStatus,
   ) {
-    setState({ referral, newStatus });
+    setState({ lead, newStatus });
   }
 
-  function closeConfirmReferralStatusChangeModal() {
+  function closeConfirmSubmittedLeadStatusChangeModal() {
     setState(null);
     options?.onClose?.();
   }
 
   return {
-    openConfirmReferralStatusChangeModal,
-    closeConfirmReferralStatusChangeModal,
-    ConfirmReferralStatusChangeModal: state ? (
-      <ConfirmReferralStatusChangeModal
-        referral={state.referral}
+    openConfirmSubmittedLeadStatusChangeModal,
+    closeConfirmSubmittedLeadStatusChangeModal,
+    ConfirmSubmittedLeadStatusChangeModal: state ? (
+      <ConfirmSubmittedLeadStatusChangeModal
+        lead={state.lead}
         newStatus={state.newStatus}
         showModal
         setShowModal={(show) => {
-          if (!show) closeConfirmReferralStatusChangeModal();
+          if (!show) closeConfirmSubmittedLeadStatusChangeModal();
         }}
       />
     ) : null,
-    isConfirmReferralStatusChangeModalOpen: state !== null,
+    isConfirmSubmittedLeadStatusChangeModalOpen: state !== null,
   };
 }

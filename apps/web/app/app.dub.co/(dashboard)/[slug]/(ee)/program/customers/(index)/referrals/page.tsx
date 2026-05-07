@@ -1,7 +1,7 @@
 "use client";
 
-import { PartnerReferralTable } from "@/ui/referrals/partner-referral-table";
+import { SubmittedLeadTable } from "@/ui/referrals/submitted-lead-table";
 
 export default function PartnerCustomersReferralsPage() {
-  return <PartnerReferralTable />;
+  return <SubmittedLeadTable />;
 }

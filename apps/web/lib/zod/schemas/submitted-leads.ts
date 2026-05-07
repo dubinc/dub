@@ -63,7 +63,7 @@ export const submitLeadSchema = z.object({
 });
 
 export const updateSubmittedLeadSchema = z.object({
-  referralId: z.string(),
+  leadId: z.string(),
   workspaceId: z.string(),
   name: z.string().min(1, "Name is required"),
   email: z.email("Invalid email address"),
@@ -72,7 +72,7 @@ export const updateSubmittedLeadSchema = z.object({
 });
 
 const baseSchema = z.object({
-  referralId: z.string(),
+  leadId: z.string(),
   workspaceId: z.string(),
   notes: z
     .string()

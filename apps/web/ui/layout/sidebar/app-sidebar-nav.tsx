@@ -1,7 +1,7 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
+import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
@@ -10,7 +10,7 @@ import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
-import { useProgramReferralsCount } from "@/lib/swr/use-program-referrals-count";
+import { useProgramSubmittedLeadsCount } from "@/lib/swr/use-program-submitted-leads-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { type Icon, useRouterStuff } from "@dub/ui";
 import {
@@ -554,15 +554,17 @@ export function AppSidebarNav({
     ignoreParams: true,
   });
 
-  const { data: pendingReferralsCount } = useProgramReferralsCount<number>({
-    query: { status: "pending" },
-    ignoreParams: true,
-    enabled: Boolean(
-      currentArea === "program" &&
-        defaultProgramId &&
-        REFERRAL_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
-    ),
-  });
+  const { data: pendingReferralsCount } = useProgramSubmittedLeadsCount<number>(
+    {
+      query: { status: "pending" },
+      ignoreParams: true,
+      enabled: Boolean(
+        currentArea === "program" &&
+          defaultProgramId &&
+          SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
+      ),
+    },
+  );
 
   const { canTrackConversions } = getPlanCapabilities(plan);
 

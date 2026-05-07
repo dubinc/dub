@@ -8,7 +8,7 @@ import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// GET /api/partner-profile/programs/[programId]/referrals - get all referrals for the current partner in a program
+// GET /api/partner-profile/programs/[programId]/submitted-leads
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { programId } = params;
@@ -27,7 +27,7 @@ export const GET = withPartnerProfile(
       },
     });
 
-    const referrals = await prisma.partnerReferral.findMany({
+    const lead = await prisma.submittedLead.findMany({
       where: {
         programId: program.id,
         partnerId: partner.id,
@@ -48,8 +48,6 @@ export const GET = withPartnerProfile(
       },
     });
 
-    return NextResponse.json(
-      z.array(partnerProfileReferralSchema).parse(referrals),
-    );
+    return NextResponse.json(z.array(partnerProfileReferralSchema).parse(lead));
   },
 );

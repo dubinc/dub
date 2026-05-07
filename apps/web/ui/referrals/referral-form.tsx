@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  REFERRAL_FORM_FIELD_INPUT_PROPS,
-  REFERRAL_FORM_REQUIRED_FIELDS,
-} from "@/lib/referrals/constants";
+  SUBMITTED_LEAD_FORM_FIELD_INPUT_PROPS,
+  SUBMITTED_LEAD_FORM_REQUIRED_FIELDS,
+} from "@/lib/submitted-leads/constants";
 import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { useMemo } from "react";
 import * as z from "zod/v4";
@@ -18,7 +18,7 @@ export function ReferralForm({
   const allFields = useMemo(() => {
     const customFields = referralFormData.fields || [];
 
-    return [...REFERRAL_FORM_REQUIRED_FIELDS, ...customFields].sort(
+    return [...SUBMITTED_LEAD_FORM_REQUIRED_FIELDS, ...customFields].sort(
       (a, b) => a.position - b.position,
     );
   }, [referralFormData.fields]);
@@ -27,7 +27,7 @@ export function ReferralForm({
     <div className="flex flex-col gap-5">
       {allFields.map((field) => {
         const keyPath = `formData.${field.key}`;
-        const inputProps = REFERRAL_FORM_FIELD_INPUT_PROPS[field.key];
+        const inputProps = SUBMITTED_LEAD_FORM_FIELD_INPUT_PROPS[field.key];
 
         return (
           <ReferralFormField

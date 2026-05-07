@@ -5,8 +5,8 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { notifyPartnerReferralSubmitted } from "@/lib/api/referrals/notify-partner-referral-submitted";
-import { REFERRAL_FORM_REQUIRED_FIELD_KEYS } from "@/lib/referrals/constants";
-import { ReferralFormDataField } from "@/lib/types";
+import { SUBMITTED_LEAD_FORM_REQUIRED_FIELD_KEYS } from "@/lib/submitted-leads/constants";
+import { SubmittedLeadFormDataField } from "@/lib/types";
 import {
   formFieldSchema,
   referralFormSchema,
@@ -57,8 +57,8 @@ function convertFieldValue(
   }
 }
 
-// Create a partner referral
-export const submitReferralAction = authPartnerActionClient
+// Submit a lead
+export const submitLeadAction = authPartnerActionClient
   .inputSchema(submitLeadSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner, user } = ctx;
@@ -88,7 +88,7 @@ export const submitReferralAction = authPartnerActionClient
     const { name, email, company } = requiredFieldsResult.data;
 
     // Parse custom fields from formData
-    const customFormData: ReferralFormDataField[] = [];
+    const customFormData: SubmittedLeadFormDataField[] = [];
 
     // Parse and get form schema fields to extract labels
     const parsedReferralFormData = programEnrollment.program.referralFormData
@@ -107,7 +107,7 @@ export const submitReferralAction = authPartnerActionClient
     // Process all fields in rawFormData except required ones
     for (const [key, value] of Object.entries(rawFormData)) {
       // Skip required fields
-      if (REFERRAL_FORM_REQUIRED_FIELD_KEYS.has(key)) {
+      if (SUBMITTED_LEAD_FORM_REQUIRED_FIELD_KEYS.has(key)) {
         continue;
       }
 
@@ -132,7 +132,7 @@ export const submitReferralAction = authPartnerActionClient
       });
     }
 
-    const referral = await prisma.partnerReferral.create({
+    const submittedLead = await prisma.submittedLead.create({
       data: {
         id: createId({ prefix: "ref_" }),
         programId,
@@ -150,7 +150,7 @@ export const submitReferralAction = authPartnerActionClient
     waitUntil(
       Promise.allSettled([
         notifyPartnerReferralSubmitted({
-          referral,
+          referral: submittedLead,
           program: programEnrollment.program,
           partner: programEnrollment.partner,
         }),
@@ -159,7 +159,7 @@ export const submitReferralAction = authPartnerActionClient
           workspaceId: programEnrollment.program.workspaceId,
           programId,
           resourceType: "referral",
-          resourceId: referral.id,
+          resourceId: submittedLead.id,
           userId: user.id,
           action: "referral.created",
         }),

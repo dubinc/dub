@@ -1,6 +1,6 @@
 "use client";
 
-import { submitReferralAction } from "@/lib/actions/referrals/submit-referral";
+import { submitLeadAction } from "@/lib/actions/referrals/submit-referral";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
 import { X } from "@/ui/shared/icons";
@@ -50,7 +50,7 @@ export function SubmitReferralSheet({
 
   const { handleSubmit, setError, reset } = form;
 
-  const { executeAsync, isPending } = useAction(submitReferralAction, {
+  const { executeAsync, isPending } = useAction(submitLeadAction, {
     onSuccess: async () => {
       toast.success("Referral submitted successfully");
       reset();
@@ -59,8 +59,8 @@ export function SubmitReferralSheet({
 
       if (programSlug) {
         await mutatePrefix([
-          `/api/partner-profile/programs/${programSlug}/referrals`,
-          `/api/partner-profile/programs/${programSlug}/referrals/count`,
+          `/api/partner-profile/programs/${programSlug}/submitted-leads`,
+          `/api/partner-profile/programs/${programSlug}/submitted-leads/count`,
         ]);
       }
     },

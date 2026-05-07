@@ -3,27 +3,27 @@
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
-import { markReferralClosedWon } from "@/lib/api/referrals/mark-referral-closed-won";
-import { markReferralQualified } from "@/lib/api/referrals/mark-referral-qualified";
-import { notifyReferralStatusUpdate } from "@/lib/api/referrals/notify-referral-status-update";
+import { getSubmittedLeadOrThrow } from "@/lib/api/submitted-leads/get-submitted-lead-or-throw";
+import { markSubmittedLeadClosedWon } from "@/lib/api/submitted-leads/mark-submitted-lead-closed-won";
+import { markSubmittedLeadQualified } from "@/lib/api/submitted-leads/mark-submitted-lead-qualified";
+import { notifySubmittedLeadStatusUpdate } from "@/lib/api/submitted-leads/notify-submitted-lead-status-update";
 import {
-  REFERRAL_STATUS_TO_ACTIVITY_ACTION,
-  REFERRAL_STATUS_TRANSITIONS,
-} from "@/lib/referrals/constants";
-import { ReferralWithCustomer } from "@/lib/types";
+  SUBMITTED_LEAD_STATUS_TO_ACTIVITY_ACTION,
+  SUBMITTED_LEAD_STATUS_TRANSITIONS,
+} from "@/lib/submitted-leads/constants";
+import { SubmittedLeadWithCustomer } from "@/lib/types";
 import { updateSubmittedLeadStatusSchema } from "@/lib/zod/schemas/submitted-leads";
 import { prisma } from "@dub/prisma";
-import { ReferralStatus } from "@dub/prisma/client";
+import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
-export const updateReferralStatusAction = authActionClient
+export const updateSubmittedLeadStatusAction = authActionClient
   .inputSchema(updateSubmittedLeadStatusSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { referralId, status, notes } = parsedInput;
+    const { leadId, status, notes } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -32,36 +32,36 @@ export const updateReferralStatusAction = authActionClient
       requiredRoles: ["owner", "member"],
     });
 
-    let referral = await getReferralOrThrow({
-      referralId,
+    const lead = await getSubmittedLeadOrThrow({
+      leadId,
       programId,
     });
 
-    if (!REFERRAL_STATUS_TRANSITIONS[referral.status].includes(status)) {
+    if (!SUBMITTED_LEAD_STATUS_TRANSITIONS[lead.status].includes(status)) {
       throw new DubApiError({
         code: "bad_request",
-        message: `Cannot transition from ${referral.status} to ${status}.`,
+        message: `Cannot transition from ${lead.status} to ${status}.`,
       });
     }
 
-    if (referral.status === status) {
+    if (lead.status === status) {
       throw new DubApiError({
         code: "bad_request",
-        message: "Referral is already in this status.",
+        message: "Lead is already in this status.",
       });
     }
 
-    if (status === ReferralStatus.closedWon && !referral.customer) {
+    if (status === SubmittedLeadStatus.closedWon && !lead.customer) {
       throw new DubApiError({
         code: "bad_request",
-        message: "This referral does not have a customer associated with it.",
+        message: "This lead does not have a customer associated with it.",
       });
     }
 
-    const updatedReferral = await prisma.partnerReferral.update({
+    const updatedLead = await prisma.submittedLead.update({
       where: {
-        id: referral.id,
-        status: referral.status,
+        id: lead.id,
+        status: lead.status,
       },
       data: {
         status,
@@ -74,8 +74,8 @@ export const updateReferralStatusAction = authActionClient
     waitUntil(
       (async () => {
         await Promise.allSettled([
-          notifyReferralStatusUpdate({
-            referral,
+          notifySubmittedLeadStatusUpdate({
+            referral: lead,
             notes,
           }),
 
@@ -83,33 +83,33 @@ export const updateReferralStatusAction = authActionClient
             workspaceId: workspace.id,
             programId,
             resourceType: "referral",
-            resourceId: referral.id,
+            resourceId: lead.id,
             userId: user.id,
-            action: REFERRAL_STATUS_TO_ACTIVITY_ACTION[status],
+            action: SUBMITTED_LEAD_STATUS_TO_ACTIVITY_ACTION[status],
             description: notes,
             changeSet: {
               status: {
-                old: referral.status,
-                new: updatedReferral.status,
+                old: lead.status,
+                new: updatedLead.status,
               },
             },
           }),
 
-          ...(status === ReferralStatus.qualified
+          ...(status === SubmittedLeadStatus.qualified
             ? [
-                markReferralQualified({
+                markSubmittedLeadQualified({
                   workspace,
-                  referral: updatedReferral,
+                  lead: updatedLead,
                   externalId: parsedInput.externalId ?? null,
                 }),
               ]
             : []),
 
-          ...(status === ReferralStatus.closedWon
+          ...(status === SubmittedLeadStatus.closedWon
             ? [
-                markReferralClosedWon({
+                markSubmittedLeadClosedWon({
                   workspace,
-                  referral: updatedReferral as ReferralWithCustomer,
+                  referral: updatedLead as SubmittedLeadWithCustomer,
                   saleAmount: parsedInput.saleAmount,
                   stripeCustomerId: parsedInput.stripeCustomerId ?? null,
                 }),

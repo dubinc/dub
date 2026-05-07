@@ -1,31 +1,31 @@
 "use client";
 
-import { ReferralProps } from "@/lib/types";
-import { ReferralStatus } from "@dub/prisma/client";
+import { SubmittedLeadProps } from "@/lib/types";
+import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Check, ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { ReferralStatusBadges } from "./referral-status-badges";
+import { SubmittedLeadStatusBadges } from "./submitted-lead-status-badges";
 
-interface ReferralStatusDropdownProps {
-  referral: ReferralProps;
-  selectedStatus?: ReferralStatus;
-  onStatusChange: (newStatus: ReferralStatus) => void;
+interface SubmittedLeadStatusDropdownProps {
+  referral: SubmittedLeadProps;
+  selectedStatus?: SubmittedLeadStatus;
+  onStatusChange: (newStatus: SubmittedLeadStatus) => void;
 }
 
-export function ReferralStatusDropdown({
+export function SubmittedLeadStatusDropdown({
   referral,
   selectedStatus,
   onStatusChange,
-}: ReferralStatusDropdownProps) {
+}: SubmittedLeadStatusDropdownProps) {
   const [openStatusDropdown, setOpenStatusDropdown] = useState(false);
 
   const displayStatus = selectedStatus ?? referral.status;
-  const currentBadge = ReferralStatusBadges[displayStatus];
-  const allStatuses = Object.keys(ReferralStatusBadges) as ReferralStatus[];
+  const currentBadge = SubmittedLeadStatusBadges[displayStatus];
+  const allStatuses = Object.keys(SubmittedLeadStatusBadges) as SubmittedLeadStatus[];
 
-  const handleStatusChange = (newStatus: ReferralStatus) => {
+  const handleStatusChange = (newStatus: SubmittedLeadStatus) => {
     if (newStatus !== referral.status) {
       onStatusChange(newStatus);
     }
@@ -40,7 +40,7 @@ export function ReferralStatusDropdown({
       content={
         <div className="w-full p-2">
           {allStatuses.map((status) => {
-            const badge = ReferralStatusBadges[status];
+            const badge = SubmittedLeadStatusBadges[status];
             const isSelected = status === displayStatus;
             return (
               <button

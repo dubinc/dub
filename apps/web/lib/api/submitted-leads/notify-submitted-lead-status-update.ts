@@ -1,11 +1,11 @@
-import { ReferralStatusBadges } from "@/ui/referrals/referral-status-badges";
-import { getCompanyLogoUrl } from "@/ui/referrals/referral-utils";
+import { SubmittedLeadStatusBadges } from "@/ui/referrals/submitted-lead-status-badges";
+import { getCompanyLogoUrl } from "@/ui/referrals/submitted-lead-utils";
 import { sendEmail } from "@dub/email";
 import ReferralStatusUpdate from "@dub/email/templates/referral-status-update";
 import { prisma } from "@dub/prisma";
 import { PartnerReferral } from "@dub/prisma/client";
 
-export async function notifyReferralStatusUpdate({
+export async function notifySubmittedLeadStatusUpdate({
   referral,
   notes,
 }: {
@@ -36,7 +36,7 @@ export async function notifyReferralStatusUpdate({
 
   if (!program || !partner) return;
 
-  const statusLabel = ReferralStatusBadges[referral.status].label;
+  const statusLabel = SubmittedLeadStatusBadges[referral.status].label;
 
   const emailRes = await sendEmail({
     subject: `Your referral status has been updated to ${statusLabel}`,

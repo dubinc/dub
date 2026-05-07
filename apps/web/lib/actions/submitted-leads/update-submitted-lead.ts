@@ -3,7 +3,7 @@
 import { getResourceDiff } from "@/lib/api/activity-log/get-resource-diff";
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getReferralOrThrow } from "@/lib/api/referrals/get-referral-or-throw";
+import { getSubmittedLeadOrThrow } from "@/lib/api/submitted-leads/get-submitted-lead-or-throw";
 import { updateSubmittedLeadSchema } from "@/lib/zod/schemas/submitted-leads";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -11,12 +11,12 @@ import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
-// Update a partner referral's details
-export const updateReferralAction = authActionClient
+// Update a submitted lead's details
+export const updateSubmittedLeadAction = authActionClient
   .inputSchema(updateSubmittedLeadSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { referralId, name, email, company, formData } = parsedInput;
+    const { leadId, name, email, company, formData } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -25,14 +25,14 @@ export const updateReferralAction = authActionClient
       requiredRoles: ["owner", "member"],
     });
 
-    const existingReferral = await getReferralOrThrow({
-      referralId,
+    const lead = await getSubmittedLeadOrThrow({
+      leadId,
       programId,
     });
 
-    const updatedReferral = await prisma.partnerReferral.update({
+    const updatedLead = await prisma.submittedLead.update({
       where: {
-        id: referralId,
+        id: leadId,
       },
       data: {
         name,
@@ -44,7 +44,7 @@ export const updateReferralAction = authActionClient
       },
     });
 
-    const diff = getResourceDiff(existingReferral, updatedReferral, {
+    const diff = getResourceDiff(lead, updatedLead, {
       fields: ["name", "email", "company"],
     });
 
@@ -54,7 +54,7 @@ export const updateReferralAction = authActionClient
           workspaceId: workspace.id,
           programId,
           resourceType: "referral",
-          resourceId: referralId,
+          resourceId: leadId,
           userId: user.id,
           action: "referral.updated",
           changeSet: diff,
