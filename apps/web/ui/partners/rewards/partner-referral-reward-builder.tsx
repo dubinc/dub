@@ -9,7 +9,7 @@ import {
   PARTNER_REFERRAL_TRIGGER_LABELS,
 } from "@/lib/zod/schemas/partner-referrals";
 import { RewardStructure } from "@dub/prisma/client";
-import { capitalize, cn, currencyFormatter } from "@dub/utils";
+import { cn, currencyFormatter } from "@dub/utils";
 import { useContext, useEffect, useMemo } from "react";
 import {
   InlineBadgePopover,
@@ -63,8 +63,9 @@ export function PartnerReferralRewardBuilder() {
     if (
       config?.trigger &&
       (validTriggers as readonly Trigger[]).includes(config?.trigger)
-    )
+    ) {
       return;
+    }
 
     const nextTrigger: Trigger =
       type === "percentage" ? "commissionEarned" : "partnerApproved";
@@ -97,15 +98,15 @@ export function PartnerReferralRewardBuilder() {
   return (
     <span className="leading-relaxed">
       Pay a{" "}
-      <InlineBadgePopover text={capitalize(type)}>
+      <InlineBadgePopover text={type}>
         <InlineBadgePopoverMenu
           selectedValue={type}
           onSelect={(value) =>
             setValue("type", value as RewardStructure, { shouldDirty: true })
           }
           items={[
-            { text: "Flat", value: "flat" },
-            { text: "Percentage", value: "percentage" },
+            { text: "percentage", value: "percentage" },
+            { text: "flat", value: "flat" },
           ]}
         />
       </InlineBadgePopover>{" "}
