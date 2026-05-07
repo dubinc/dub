@@ -94,6 +94,7 @@ import {
 import {
   CommissionDetailSchema,
   CommissionEnrichedSchema,
+  CommissionSchema,
 } from "./zod/schemas/commissions";
 import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
@@ -970,3 +971,5 @@ export type ApplicationAnalyticsByGroup = {
     (typeof applicationEventAnalyticsSchema)[K]
   >;
 };
+
+export type CommissionProps = z.infer<typeof CommissionSchema>;

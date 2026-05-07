@@ -1,5 +1,6 @@
+import { CommissionProps, CustomerProps } from "@/lib/types";
 import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
-import { capitalize } from "@dub/utils";
+import { capitalize, pluralize } from "@dub/utils";
 import * as z from "zod/v4";
 import { CommissionTypeIcon } from "./comission-type-icon";
 
@@ -15,3 +16,23 @@ export const CommissionTypeBadge = ({
     </div>
   );
 };
+
+export function getCommissionTypeLabel(
+  commission: Pick<CommissionProps, "type" | "quantity"> & {
+    customer?: Pick<CustomerProps, "email" | "name"> | null;
+  },
+) {
+  if (commission.type === "click") {
+    return `${commission.quantity} ${pluralize("click", commission.quantity)}`;
+  }
+
+  if (commission.customer) {
+    return `${commission.customer.email || commission.customer.name}`;
+  }
+
+  if (commission.type === "referral") {
+    return "Referral commission";
+  }
+
+  return "Custom commission";
+}
