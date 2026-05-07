@@ -1,15 +1,15 @@
 import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
 import { sendBatchEmail } from "@dub/email";
-import NewLeadSubmitted from "@dub/email/templates/partner-submitted-lead";
+import NewLeadSubmitted from "@dub/email/templates/new-lead-submitted";
 import { prisma } from "@dub/prisma";
-import { Partner, PartnerReferral, Program } from "@dub/prisma/client";
+import { Partner, Program, SubmittedLead } from "@dub/prisma/client";
 
 export async function notifyPartnerLeadSubmitted({
   lead,
   program,
   partner,
 }: {
-  lead: Pick<PartnerReferral, "id" | "name" | "email" | "company" | "formData">;
+  lead: Pick<SubmittedLead, "id" | "name" | "email" | "company" | "formData">;
   program: Pick<Program, "workspaceId">;
   partner: Pick<Partner, "name" | "email" | "image">;
 }) {

@@ -1,15 +1,15 @@
 import { SubmittedLeadStatusBadges } from "@/ui/submitted-leads/submitted-lead-status-badges";
 import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
 import { sendEmail } from "@dub/email";
-import LeadStatusUpdated from "@dub/email/templates/submitted-lead-status-update";
+import LeadStatusUpdated from "@dub/email/templates/lead-status-updated";
 import { prisma } from "@dub/prisma";
-import { PartnerReferral } from "@dub/prisma/client";
+import { SubmittedLead } from "@dub/prisma/client";
 
 export async function notifySubmittedLeadStatusUpdate({
   lead,
   notes,
 }: {
-  lead: PartnerReferral;
+  lead: SubmittedLead;
   notes?: string | null;
 }) {
   const [program, partner] = await Promise.all([

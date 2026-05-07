@@ -20,12 +20,12 @@ import {
   Link,
   PartnerGroup,
   PartnerPayoutMethod,
-  PartnerReferral,
   PartnerRole,
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,
   Project,
+  SubmittedLead,
   User,
   UtmTemplate,
   Webhook,
@@ -874,7 +874,7 @@ export type UpdateSubmittedLeadStatusPayload = z.infer<
 
 export type CustomerSource = (typeof CUSTOMER_SOURCES)[number];
 
-export type SubmittedLeadWithCustomer = PartnerReferral & {
+export type SubmittedLeadWithCustomer = SubmittedLead & {
   customer: Customer | null;
 };
 
