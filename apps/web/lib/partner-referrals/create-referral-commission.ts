@@ -7,27 +7,10 @@ import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { referralRewardConfigSchema } from "../partner-referrals/schemas";
 
 type CreateReferralCommissionProps = {
-  // referrerProgramEnrollment: Pick<ProgramEnrollment, "programId" | "partnerId">;
-  // referralReward: Reward;
-  // sourceCommission: Pick<
-  //   Commission,
-  //   | "id"
-  //   | "programId"
-  //   | "partnerId"
-  //   | "customerId"
-  //   | "earnings"
-  //   | "amount"
-  //   | "currency"
-  //   | "createdAt"
-  // >;
-
   sourceCommissionId: string;
 };
 
 export const createReferralCommission = async ({
-  // referrerProgramEnrollment: { programId, partnerId },
-  // referralReward,
-  // sourceCommission,
   sourceCommissionId,
 }: CreateReferralCommissionProps) => {
   const sourceCommission = await prisma.commission.findUnique({
@@ -249,7 +232,7 @@ export const createReferralCommission = async ({
   // TODO:
   // sendWorkspaceWebhook
   // sendPartnerPostback
-  // notifyPartnerCommission
+  // notifyPartnerCommission (only to partner)
   // executeWorkflows
 
   await Promise.allSettled([
