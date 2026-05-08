@@ -16,6 +16,10 @@ export async function customerSubscriptionUpdated(
     return `Invalid price ID in customer.subscription.updated event: ${priceId}`;
   }
 
+  if (!["active", "trialing"].includes(updatedSubscription.status)) {
+    return `Invalid updated subscription status "${updatedSubscription.status}" for subscription ${updatedSubscription.id}, skipping...`;
+  }
+
   const stripeId = updatedSubscription.customer.toString();
 
   const workspace = await prisma.project.findUnique({
@@ -57,12 +61,7 @@ export async function customerSubscriptionUpdated(
     subscription: updatedSubscription,
   });
 
-  const subscriptionCanceled =
-    (updatedSubscription.status === "active" ||
-      updatedSubscription.status === "trialing") &&
-    updatedSubscription.cancel_at_period_end;
-
-  if (subscriptionCanceled) {
+  if (updatedSubscription.cancel_at_period_end) {
     const owners = workspace.users.map(({ user }) => user);
     const cancelReason = updatedSubscription.cancellation_details?.feedback;
 

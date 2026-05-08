@@ -48,57 +48,54 @@ export const TruncatedList = memo(
     const truncate = useCallback(() => {
       if (!containerRef.current) return;
 
-      const childNodes = Array.from(
-        containerRef.current.children,
-      ) as HTMLElement[];
+      const container = containerRef.current;
+      const childNodes = Array.from(container.children) as HTMLElement[];
+      const tagItems = childNodes.slice(0, -1); // everything except the overflow slot
+      const overflowSlot = childNodes[childNodes.length - 1];
 
-      // Show all items except for the overflow indicator
-      childNodes.forEach((node) => {
-        node.hidden = Boolean(node.getAttribute("data-overflow-indicator"));
-      });
+      // 1. Show all tags, hide overflow chip
+      tagItems.forEach((n) => (n.hidden = false));
+      overflowSlot.hidden = true;
 
-      // No need to truncate if there's only one item
-      if (childNodes.length <= 2) {
-        setVisible(childNodes.length - 1);
+      if (tagItems.length === 0) {
+        setVisible(0);
         return;
       }
 
-      // Check if last item already fits
-      const lastElement = childNodes[childNodes.length - 2];
-      if (
-        contains(
-          containerRef.current.getBoundingClientRect(),
-          lastElement.getBoundingClientRect(),
-        )
-      ) {
-        setVisible(childNodes.length - 1);
+      // Force a synchronous layout reflow before measuring
+      void container.offsetWidth;
+
+      const containerRight = container.getBoundingClientRect().right;
+
+      // If the last tag fits, every earlier one does too (left-to-right layout)
+      const lastTagRight =
+        tagItems[tagItems.length - 1].getBoundingClientRect().right;
+
+      if (lastTagRight <= containerRight + 0.5) {
+        setVisible(tagItems.length);
         return;
       }
 
-      // Last item doesn't fit: show the overflow indicator
-      childNodes
-        .filter((node) => node.getAttribute("data-overflow-indicator"))
-        .forEach((node) => {
-          node.hidden = false;
-        });
+      // 2. At least one tag overflows — show the chip, then hide tags from the
+      //    right one-by-one until the chip itself fits inside the container.
+      overflowSlot.hidden = false;
 
-      // Find all non-overflow-indicator elements that don't fit
-      const elementsToHide = childNodes.filter(
-        (node) =>
-          containerRef.current &&
-          !node.getAttribute("data-overflow-indicator") &&
-          !contains(
-            containerRef.current.getBoundingClientRect(),
-            node.getBoundingClientRect(),
-          ),
-      );
+      let visibleCount = tagItems.length;
+      while (visibleCount > 0) {
+        // Reflow so getBoundingClientRect reflects the latest DOM state
+        void container.offsetWidth;
 
-      // Hide the elements that don't fit
-      elementsToHide.forEach((node) => {
-        node.hidden = true;
-      });
+        const chipRight = overflowSlot.getBoundingClientRect().right;
+        const currentContainerRight = container.getBoundingClientRect().right;
 
-      setVisible(childNodes.length - 1 - elementsToHide.length);
+        if (chipRight <= currentContainerRight + 0.5) break;
+
+        // Hide the rightmost still-visible tag
+        tagItems[visibleCount - 1].hidden = true;
+        visibleCount--;
+      }
+
+      setVisible(visibleCount);
     }, []);
 
     // Set up a resize observer
@@ -131,7 +128,7 @@ export const TruncatedList = memo(
           </ItemAs>
         ))}
 
-        <ItemAs hidden data-overflow-indicator>
+        <ItemAs className="shrink-0" data-overflow-indicator="">
           {overflowIndicator({
             visible,
             total: childNodes.length,
@@ -147,15 +144,6 @@ export const TruncatedList = memo(
     return prev === next;
   },
 );
-
-const contains = (parent: DOMRect, child: DOMRect) => {
-  return (
-    child.top >= parent.top &&
-    child.bottom <= parent.bottom &&
-    child.left >= parent.left &&
-    child.right <= parent.right
-  );
-};
 
 // https://github.com/facebook/react/issues/8669#issuecomment-531515508
 const circular = () => {

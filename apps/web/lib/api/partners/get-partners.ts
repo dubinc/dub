@@ -55,7 +55,9 @@ export async function getPartners(filters: PartnerFilters) {
     ...programEnrollment,
     id: partner.id,
     createdAt: new Date(programEnrollment.createdAt),
-    tags: partner.programPartnerTags.map(({ partnerTag }) => partnerTag),
+    tags: partner.programPartnerTags
+      .map(({ partnerTag }) => partnerTag)
+      .filter((t) => t.programId != null && t.programId === programId),
     links,
     netRevenue:
       toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -

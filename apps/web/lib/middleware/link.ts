@@ -30,6 +30,7 @@ import { detectBot } from "./utils/detect-bot";
 import { getFinalUrl } from "./utils/get-final-url";
 import { getIdentityHash } from "./utils/get-identity-hash";
 import { isAppsFlyerTrackingUrl } from "./utils/is-appsflyer-tracking-url";
+import { isGooglePlayStoreUrl } from "./utils/is-google-play-store-url";
 import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { isSupportedCustomURIScheme } from "./utils/is-supported-custom-uri-scheme";
@@ -497,6 +498,40 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         shouldCacheClickId,
       }),
     );
+
+    // if it's a Google Play Store URL (and skip_deeplink_preview is not set)
+    // we need to show the interstitial page + cache deep link click data
+    if (
+      isGooglePlayStoreUrl(android) &&
+      !req.nextUrl.searchParams.get("skip_deeplink_preview")
+    ) {
+      ev.waitUntil(
+        cacheDeepLinkClickData({
+          req,
+          clickId,
+          link: {
+            id: linkId,
+            domain,
+            key,
+            url, // pass the main destination URL to the cache (for deferred deep linking)
+          },
+        }),
+      );
+
+      // redirect to the deeplink interstitial splash page "DeepLinkPreviewPage"
+      return createResponseWithCookies(
+        NextResponse.redirect(
+          new URL(`/deeplink/${domain}${fullPath}`, APP_DOMAIN),
+          {
+            headers: {
+              ...DUB_HEADERS,
+              ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+            },
+          },
+        ),
+        cookieData,
+      );
+    }
 
     return createResponseWithCookies(
       NextResponse.redirect(finalUrl, {

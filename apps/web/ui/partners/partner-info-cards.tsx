@@ -48,7 +48,10 @@ import {
 } from "./payouts/payout-method-config";
 import { ProgramRewardList } from "./program-reward-list";
 import { TrustedPartnerBadge } from "./trusted-partner-badge";
-import { useUpdatePartnerTagsModal } from "./update-partner-tags-modal";
+import {
+  UpdatePartnerTagsModal,
+  useUpdatePartnerTagsModal,
+} from "./update-partner-tags-modal";
 
 type PartnerInfoCardsProps = {
   showFraudIndicator?: boolean;
@@ -446,14 +449,16 @@ export function PartnerInfoCards({
 }
 
 function TagsList({ partner }: { partner: EnrolledPartnerExtendedProps }) {
-  const { UpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
-    useUpdatePartnerTagsModal({
-      partners: [partner],
-    });
+  const { showUpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
+    useUpdatePartnerTagsModal();
 
   return (
     <div className="border-border-subtle flex flex-col border-t p-4">
-      <UpdatePartnerTagsModal />
+      <UpdatePartnerTagsModal
+        showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
+        setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
+        partners={[partner]}
+      />
       <div className="mb-2 flex justify-between gap-2">
         <span className="text-content-emphasis block text-xs font-semibold">
           Tags

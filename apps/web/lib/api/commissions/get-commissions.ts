@@ -31,6 +31,7 @@ export async function getCommissions(filters: CommissionsFilters) {
     customerId,
     payoutId,
     groupId,
+    partnerTagId,
     fraudEventGroupId,
     start,
     end,
@@ -93,6 +94,7 @@ export async function getCommissions(filters: CommissionsFilters) {
 
   const partnerFilter = parseFilterValue(partnerId);
   const groupFilter = parseFilterValue(groupId);
+  const partnerTagFilter = parseFilterValue(partnerTagId);
 
   const validCommissionTypes = new Set(Object.values(CommissionType));
   const rawTypeFilter = parseFilterValue(type);
@@ -137,6 +139,12 @@ export async function getCommissions(filters: CommissionsFilters) {
         groupFilter.sqlOperator === "NOT IN"
           ? { notIn: groupFilter.values }
           : { in: groupFilter.values },
+    }),
+    ...(partnerTagFilter && {
+      programPartnerTags:
+        partnerTagFilter.sqlOperator === "NOT IN"
+          ? { none: { partnerTagId: { in: partnerTagFilter.values } } }
+          : { some: { partnerTagId: { in: partnerTagFilter.values } } },
     }),
     ...(isHoldStatus && {
       fraudEventGroups: {
