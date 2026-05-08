@@ -5,6 +5,7 @@ import {
   IndustryInterest,
   MonthlyTraffic,
   PartnerBannedReason,
+  PartnerNetworkStatus,
   PartnerPayoutMethod,
   PartnerProfileType,
   PlatformType,
@@ -361,16 +362,7 @@ export const PartnerSchema = z
   .object({
     id: z.string().describe("The partner's unique ID on Dub."),
     name: z.string().max(190).describe("The partner's full legal name."),
-    companyName: z
-      .string()
-      .max(190)
-      .nullable()
-      .describe(
-        "If the partner profile type is a company, this is the partner's legal company name.",
-      ),
-    profileType: z
-      .enum(PartnerProfileType)
-      .describe("The partner's profile type on Dub."),
+    username: z.string().nullable().describe("The partner's unique username."),
     email: z
       .string()
       .max(190)
@@ -378,7 +370,6 @@ export const PartnerSchema = z
       .describe(
         "The partner's email address. Should be a unique value across Dub.",
       ),
-    username: z.string().nullable().describe("The partner's unique username."),
     image: z.string().nullable().describe("The partner's avatar image."),
     description: z
       .string()
@@ -389,6 +380,19 @@ export const PartnerSchema = z
       .string()
       .nullable()
       .describe("The partner's country (required for tax purposes)."),
+    companyName: z
+      .string()
+      .max(190)
+      .nullable()
+      .describe(
+        "If the partner profile type is a company, this is the partner's legal company name.",
+      ),
+    profileType: z
+      .enum(PartnerProfileType)
+      .describe("The partner's profile type on Dub."),
+    networkStatus: z
+      .enum(PartnerNetworkStatus)
+      .describe("The partner's network status on Dub."),
     defaultPayoutMethod: z
       .enum(PartnerPayoutMethod)
       .nullable()

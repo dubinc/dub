@@ -1,6 +1,7 @@
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import {
+  Button,
   CircleCheckFill,
   CircleDotted,
   ExpandingArrow,
@@ -10,6 +11,7 @@ import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { HTMLProps, useState } from "react";
+import { toast } from "sonner";
 
 export function NetworkApprovalGuide() {
   const { partner } = usePartnerProfile();
@@ -37,26 +39,41 @@ export function NetworkApprovalGuide() {
           setIsExpanded((e) => !e);
         }}
       >
-        <div className="flex select-none flex-col p-3">
-          <div className="flex items-center gap-1.5">
-            <h2 className="text-lg font-semibold">
-              Join the Dub Partner Network
-            </h2>
+        <div className="flex items-center justify-between p-3">
+          <div>
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-lg font-semibold">
+                Join the Dub Partner Network
+              </h2>
 
-            <div className="bg-bg-default/10 flex w-fit items-center gap-1.5 rounded-md px-2 py-1">
-              <ProgressCircle
-                progress={completedCount / totalCount}
-                className="text-green-500 [--track-color:#fff3]"
-              />
-              <span className="text-xs font-medium">
-                {completedCount} of {totalCount} tasks completed
-              </span>
+              <div className="bg-bg-default/10 flex w-fit items-center gap-1.5 rounded-md px-2 py-1">
+                <ProgressCircle
+                  progress={completedCount / totalCount}
+                  className="text-green-500 [--track-color:#fff3]"
+                />
+                <span className="text-xs font-medium">
+                  {completedCount} of {totalCount} tasks completed
+                </span>
+              </div>
             </div>
+            <p className="text-content-inverted/60 text-sm">
+              Complete the steps to join the Dub Partner Network and start
+              applying to programs in our network.
+            </p>
           </div>
-          <p className="text-content-inverted/60 text-base">
-            Complete the steps to join the Dub Partner Network and start
-            applying to programs in our network.
-          </p>
+          <Button
+            text="Submit Application"
+            onClick={() => {
+              toast.success("Application submitted successfully");
+            }}
+            disabledTooltip={
+              !isComplete
+                ? "Complete all tasks to submit application"
+                : undefined
+            }
+            variant="secondary"
+            className="w-fit"
+          />
         </div>
 
         <motion.div
