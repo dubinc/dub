@@ -17,11 +17,11 @@ const inputSchema = z.object({
 export const POST = withCron(async ({ rawBody }) => {
   const { sourceCommissionId } = inputSchema.parse(JSON.parse(rawBody));
 
-  const commission = await createReferralCommission({
+  const referralCommission = await createReferralCommission({
     sourceCommissionId,
   });
 
-  if (!commission) {
+  if (!referralCommission) {
     return logAndRespond(
       `Failed to create referral commission for source commission ${sourceCommissionId}.`,
       {
@@ -31,6 +31,6 @@ export const POST = withCron(async ({ rawBody }) => {
   }
 
   return logAndRespond(
-    `Referral commission ${commission.id} created successfully.`,
+    `Referral commission ${referralCommission.id} created successfully.`,
   );
 });
