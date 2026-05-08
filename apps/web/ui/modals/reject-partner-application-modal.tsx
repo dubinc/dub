@@ -290,12 +290,6 @@ export function RejectPartnerApplicationModal({
               inert={!flagForFraud}
             >
               <div className="mt-1 p-px">
-                <label
-                  htmlFor={fraudReasonFieldId}
-                  className="mt-1.5 block text-sm font-medium text-neutral-900"
-                >
-                  Reason for fraud report
-                </label>
                 <textarea
                   id={fraudReasonFieldId}
                   aria-describedby={fraudReasonCounterId}
