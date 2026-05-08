@@ -11,6 +11,7 @@ const sharedCommissionAnalyticsFilterSchema = analyticsQuerySchema
   })
   .extend({
     groupId: z.string().optional(),
+    partnerTagId: z.string().optional(),
     partnerId: z.string().optional(),
     type: z.string().optional(),
     status: z.enum(CommissionStatus).optional(),
@@ -19,7 +20,13 @@ const sharedCommissionAnalyticsFilterSchema = analyticsQuerySchema
 // Commission program analytics (workspace dashboard)
 export const commissionAnalyticsQuerySchema =
   sharedCommissionAnalyticsFilterSchema.extend({
-    groupBy: z.enum(["timeseries", "partnerId", "groupId", "type"]),
+    groupBy: z.enum([
+      "timeseries",
+      "partnerId",
+      "groupId",
+      "partnerTagId",
+      "type",
+    ]),
   });
 
 const commissionTotalsSchema = z.object({
@@ -49,6 +56,8 @@ export const commissionAnalyticsSchema = {
   type: z.array(commissionCategoryRowSchema),
 
   groupId: z.array(commissionCategoryRowSchema),
+
+  partnerTagId: z.array(commissionCategoryRowSchema),
 
   timeseries: z.array(commissionTimeseriesRowSchema),
 

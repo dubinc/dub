@@ -1,60 +1,82 @@
-import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
-import { IntervalOptions } from "@/lib/analytics/types";
 import type {
   CommissionAnalyticsByGroup,
   CommissionAnalyticsGroupBy,
+  CommissionAnalyticsQuery,
 } from "@/lib/types";
+import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useMemo } from "react";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
+
+export type CommissionAnalyticsFilterKey = Extract<
+  keyof CommissionAnalyticsQuery,
+  "partnerId" | "groupId" | "partnerTagId" | "type"
+>;
+
+interface UseCommissionAnalyticsProps<
+  G extends CommissionAnalyticsGroupBy,
+> extends Partial<Omit<CommissionAnalyticsQuery, "groupBy">> {
+  groupBy: G;
+  exclude?: CommissionAnalyticsFilterKey[];
+  enabled?: boolean;
+}
+
+function serializeCommissionAnalyticsFilters(
+  filters: Record<string, unknown>,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(filters)) {
+    if (v === undefined || v === null) continue;
+    out[k] = v instanceof Date ? v.toISOString() : String(v);
+  }
+  return out;
+}
 
 export default function useCommissionAnalytics<
   G extends CommissionAnalyticsGroupBy,
 >({
-  groupBy,
+  exclude,
   enabled = true,
-  queryString,
-  interval,
-  start,
-  end,
-}: {
-  groupBy: G;
-  enabled?: boolean;
-  /** Dashboard filters (workspaceId, dates, status, etc.) */
-  queryString?: string;
-  /** When `queryString` is omitted, build URL from workspace + interval or start/end */
-  interval?: IntervalOptions;
-  start?: Date;
-  end?: Date;
-}) {
+  ...filters
+}: UseCommissionAnalyticsProps<G>) {
   const { id: workspaceId } = useWorkspace();
+  const { getQueryString } = useRouterStuff();
 
-  const url = useMemo(() => {
-    if (!enabled) return null;
+  const serialized = serializeCommissionAnalyticsFilters(
+    filters as Record<string, unknown>,
+  );
 
-    let qs: string | null = null;
+  const querySuffix = getQueryString(
+    {
+      ...serialized,
+      ...(workspaceId ? { workspaceId } : {}),
+      timezone:
+        serialized.timezone ??
+        Intl.DateTimeFormat().resolvedOptions().timeZone,
+    },
+    {
+      exclude: [
+        "pageTab",
+        "tab",
+        "event",
+        "saleUnit",
+        "view",
+        "commissionUnit",
+        "page",
+        "pageSize",
+        "slug",
+        "folderId",
+        "customerId",
+        "programId",
+        ...(exclude ?? []),
+      ],
+    },
+  );
 
-    if (queryString !== undefined) {
-      qs = queryString || null;
-    } else if (workspaceId) {
-      const searchParams = new URLSearchParams({
-        ...(start && end
-          ? {
-              start: start.toISOString(),
-              end: end.toISOString(),
-            }
-          : { interval: interval ?? DUB_PARTNERS_ANALYTICS_INTERVAL }),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        workspaceId,
-      });
-      qs = searchParams.toString();
-    }
-
-    if (!qs) return null;
-
-    return `/api/commissions/analytics?groupBy=${groupBy}&${qs}`;
-  }, [enabled, queryString, workspaceId, groupBy, interval, start, end]);
+  const url =
+    workspaceId && enabled
+      ? `/api/commissions/analytics${querySuffix}`
+      : null;
 
   const { data, error, isLoading } = useSWR<CommissionAnalyticsByGroup[G]>(
     url,

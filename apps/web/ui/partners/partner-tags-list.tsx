@@ -5,7 +5,7 @@ import { cn } from "@dub/utils";
 import Link from "next/link";
 
 const tagPillClassName =
-  "bg-bg-inverted/5 text-content-default whitespace-nowrap min-w-0 select-none flex h-6 items-center rounded-md px-2 text-xs font-semibold hover:bg-bg-inverted/10";
+  "bg-bg-inverted/5 text-content-default whitespace-nowrap min-w-0 select-none inline-flex min-h-6 items-center rounded-md px-2 py-0.5 text-xs font-semibold leading-tight hover:bg-bg-inverted/10";
 
 export function PartnerTagsList({
   tags,
@@ -21,28 +21,37 @@ export function PartnerTagsList({
   mode?: "filter" | "link";
 }) {
   return tags?.length ? (
-    <TruncatedList
-      className={cn("flex items-center gap-2", wrap && "flex-wrap")}
-      overflowIndicator={({ visible, hidden }) => (
-        <Tooltip
-          content={
-            <div className="flex max-w-sm flex-wrap gap-1 p-2">
-              {tags.slice(visible).map((tag) => (
-                <TagButton key={tag.id} {...tag} mode={mode} />
-              ))}
+    wrap ? (
+      <div className="flex flex-wrap gap-2">
+        {tags.map((tag) => (
+          <TagButton key={tag.id} {...tag} truncate mode={mode} />
+        ))}
+      </div>
+    ) : (
+      <TruncatedList
+        itemProps={{ className: "shrink-0" }}
+        className="flex w-full min-w-0 items-center gap-2"
+        overflowIndicator={({ visible, hidden }) => (
+          <Tooltip
+            content={
+              <div className="flex max-w-sm flex-wrap gap-1 p-2">
+                {tags.slice(visible).map((tag) => (
+                  <TagButton key={tag.id} {...tag} mode={mode} />
+                ))}
+              </div>
+            }
+          >
+            <div className={cn(tagPillClassName, "cursor-default")}>
+              +{hidden}
             </div>
-          }
-        >
-          <div className={cn(tagPillClassName, "cursor-default")}>
-            +{hidden}
-          </div>
-        </Tooltip>
-      )}
-    >
-      {tags.map((tag) => (
-        <TagButton key={tag.id} {...tag} mode={mode} />
-      ))}
-    </TruncatedList>
+          </Tooltip>
+        )}
+      >
+        {tags.map((tag) => (
+          <TagButton key={tag.id} {...tag} mode={mode} />
+        ))}
+      </TruncatedList>
+    )
   ) : (
     <button
       type="button"
@@ -79,9 +88,16 @@ function TagButton({
   name,
   id,
   mode,
-}: PartnerTagProps & { mode?: "filter" | "link" }) {
+  truncate: allowTruncate,
+}: PartnerTagProps & { mode?: "filter" | "link"; truncate?: boolean }) {
   const { slug: workspaceSlug } = useWorkspace();
   const { queryParams } = useRouterStuff();
+
+  const pillClassName = cn(
+    tagPillClassName,
+    "active:bg-bg-inverted/15",
+    allowTruncate && "max-w-full",
+  );
 
   return mode === "filter" ? (
     <button
@@ -93,14 +109,14 @@ function TagButton({
           },
         });
       }}
-      className={cn(tagPillClassName, "active:bg-bg-inverted/15")}
+      className={pillClassName}
     >
       <span className="min-w-0 truncate">{name}</span>
     </button>
   ) : (
     <Link
       href={`/${workspaceSlug}/program/partners?partnerTagId=${id}`}
-      className={cn(tagPillClassName, "active:bg-bg-inverted/15")}
+      className={pillClassName}
     >
       <span className="min-w-0 truncate">{name}</span>
     </Link>

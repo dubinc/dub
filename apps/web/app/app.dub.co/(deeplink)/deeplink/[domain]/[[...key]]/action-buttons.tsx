@@ -1,16 +1,18 @@
 "use client";
 
 import { Link } from "@dub/prisma/client";
-import { Button, IOSAppStore, useCopyToClipboard } from "@dub/ui";
+import { AndroidLogo, Button, IOSAppStore, useCopyToClipboard } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import { getTranslations, Language } from "./translations";
 
 export function DeepLinkActionButtons({
   link,
   language,
+  platform,
 }: {
   link: Pick<Link, "shortLink">;
   language: Language;
+  platform: "ios" | "android";
 }) {
   const t = getTranslations(language);
   const searchParams = useSearchParams();
@@ -28,6 +30,8 @@ export function DeepLinkActionButtons({
     window.location.href = `${link.shortLink}?skip_deeplink_preview=1${searchParamsString ? `&${searchParamsString}` : ""}`;
   };
 
+  const Icon = platform === "android" ? AndroidLogo : IOSAppStore;
+
   return (
     <div className="flex flex-col items-center gap-4">
       <Button
@@ -35,7 +39,7 @@ export function DeepLinkActionButtons({
         className="h-12 w-full rounded-xl bg-neutral-900 text-white"
         variant="primary"
         onClick={() => handleClick({ withCopy: true })}
-        icon={<IOSAppStore className="size-6" />}
+        icon={<Icon className="size-6" />}
       />
 
       <button

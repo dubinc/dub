@@ -32,6 +32,7 @@ export function ProgramAnalyticsNav() {
         "end",
         "partnerId",
         "groupId",
+        "partnerTagId",
       ]}
     />
   );

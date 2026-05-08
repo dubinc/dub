@@ -37,7 +37,11 @@ async function handler(req: Request) {
           in: ["pending", "processing", "processed", "failed"],
         },
         programId: {
-          not: ACME_PROGRAM_ID,
+          notIn: [
+            ACME_PROGRAM_ID,
+            // programs that are in the migration process
+            "prog_1KPAZMF49X9A1WEWRBM55KZY7",
+          ],
         },
         partner: {
           payoutsEnabledAt: null,
