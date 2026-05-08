@@ -231,7 +231,12 @@ export function RejectPartnerApplicationModal({
           <div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-neutral-900">
+                <span
+                  className={cn(
+                    "text-sm font-medium text-neutral-900",
+                    flagForFraud && "text-neutral-400",
+                  )}
+                >
                   Allow partner to reapply immediately
                 </span>
                 <InfoTooltip content="This will skip the 30 day waiting period and allow the partner to resubmit another application." />

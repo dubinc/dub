@@ -123,16 +123,11 @@ function SheetContent({
   );
 
   const handleReview = async (action: "confirmed" | "dismissed") => {
-    const confirmMessage =
-      action === "dismissed"
-        ? "Are you sure you want to dismiss this fraud alert?"
-        : [
-            "Are you sure you want to confirm fraud for this alert?",
-            "",
-            "If their enrollment in a given program is still rejected, confirming will permanently ban them from that program.",
-          ].join("\n");
-
-    if (!window.confirm(confirmMessage)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to ${action.replace("ed", "")} this fraud alert?`,
+      )
+    ) {
       return;
     }
     setIsSubmitting(true);

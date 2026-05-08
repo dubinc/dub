@@ -12,13 +12,11 @@ export async function reportCrossProgramBanToNetwork({
   programId,
   bannedReason,
   bannedAt,
-  fraudAlertReason,
 }: {
   partnerId: string;
   programId: string; // The program that issued the ban
   bannedReason: PartnerBannedReason | null;
   bannedAt: Date | null;
-  fraudAlertReason?: string | null;
 }) {
   let affectedProgramEnrollments = await prisma.programEnrollment.findMany({
     where: {
@@ -66,7 +64,6 @@ export async function reportCrossProgramBanToNetwork({
       metadata: {
         bannedReason,
         bannedAt,
-        ...(fraudAlertReason ? { fraudAlertReason } : {}),
       },
     })),
   );
