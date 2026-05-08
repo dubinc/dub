@@ -45,7 +45,7 @@ export type CreatePartnerCommissionProps = {
   skipWorkflow?: boolean;
 };
 
-const constructWebhookPartner = (
+export const constructWebhookPartner = (
   programEnrollment: ProgramEnrollment & { partner: Partner; links: Link[] },
   {
     totalCommissions: totalCommissionsParam,

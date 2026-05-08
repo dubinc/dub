@@ -3,6 +3,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
+import { constructWebhookPartner } from "@/lib/partners/create-partner-commission";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
@@ -55,7 +56,7 @@ export async function createNewCustomer(event: Stripe.Event) {
   const customer = await prisma.customer.create({
     data: {
       id: createId({ prefix: "cus_" }),
-      name: stripeCustomer.name || generateRandomName(),
+      name: stripeCustomer.name || stripeCustomer.email || generateRandomName(),
       email: stripeCustomer.email,
       stripeCustomerId: stripeCustomer.id,
       projectConnectId: stripeAccountId,
@@ -145,34 +146,57 @@ export async function createNewCustomer(event: Stripe.Event) {
 
   // send workspace webhook
   waitUntil(
-    Promise.allSettled([
-      sendWorkspaceWebhook({
-        trigger: "lead.created",
-        workspace,
-        data: transformLeadEventData({
-          ...clickData,
-          eventName,
-          link: linkUpdated,
-          customer,
-          metadata: null,
-        }),
-      }),
-
-      ...(link.partnerId
-        ? [
-            sendPartnerPostback({
-              partnerId: link.partnerId,
-              event: "lead.created",
-              data: {
-                ...clickData,
-                eventName,
-                link: linkUpdated,
-                customer,
+    (async () => {
+      const programEnrollment =
+        link.programId && link.partnerId
+          ? await prisma.programEnrollment.findUnique({
+              where: {
+                partnerId_programId: {
+                  partnerId: link.partnerId,
+                  programId: link.programId,
+                },
               },
-            }),
-          ]
-        : []),
-    ]),
+              include: {
+                partner: true,
+                links: true,
+              },
+            })
+          : null;
+
+      const webhookPartner = programEnrollment
+        ? constructWebhookPartner(programEnrollment)
+        : undefined;
+
+      await Promise.allSettled([
+        sendWorkspaceWebhook({
+          trigger: "lead.created",
+          workspace,
+          data: transformLeadEventData({
+            ...clickData,
+            eventName,
+            link: linkUpdated,
+            customer,
+            partner: webhookPartner,
+            metadata: null,
+          }),
+        }),
+
+        ...(link.partnerId
+          ? [
+              sendPartnerPostback({
+                partnerId: link.partnerId,
+                event: "lead.created",
+                data: {
+                  ...clickData,
+                  eventName,
+                  link: linkUpdated,
+                  customer,
+                },
+              }),
+            ]
+          : []),
+      ]);
+    })(),
   );
 
   return {
