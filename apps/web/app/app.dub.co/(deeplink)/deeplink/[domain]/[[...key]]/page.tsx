@@ -5,11 +5,18 @@ import {
 import { deepViewDataSchema } from "@/lib/zod/schemas/deep-links";
 import { prisma } from "@dub/prisma";
 import { Grid, Wordmark } from "@dub/ui";
-import { ArrowRight, Copy, IOSAppStore, MobilePhone } from "@dub/ui/icons";
+import {
+  AndroidLogo,
+  ArrowRight,
+  Copy,
+  IOSAppStore,
+  MobilePhone,
+} from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { userAgent } from "next/server";
 import { DeepLinkActionButtons } from "./action-buttons";
 import { BrandLogoBadge } from "./brand-logo-badge";
 import { getLanguage, getTranslations } from "./translations";
@@ -26,6 +33,10 @@ export default async function DeepLinkPreviewPage(props: {
   const acceptLanguage = headersList.get("accept-language");
   const language = getLanguage(acceptLanguage);
   const t = getTranslations(language);
+
+  const ua = userAgent({ headers: headersList });
+  const platform: "ios" | "android" =
+    ua.os?.name === "Android" ? "android" : "ios";
 
   // Encode the key for case-sensitive domains before querying
   const encodedKey = encodeKeyIfCaseSensitive({
@@ -46,9 +57,11 @@ export default async function DeepLinkPreviewPage(props: {
       shortLink: true,
       url: true,
       ios: true,
+      android: true,
       shortDomain: {
         select: {
           appleAppSiteAssociation: true,
+          assetLinks: true,
           deepviewData: true,
         },
       },
@@ -62,10 +75,16 @@ export default async function DeepLinkPreviewPage(props: {
 
   const deepViewData = deepViewDataSchema.parse(link.shortDomain.deepviewData);
 
-  // if the link domain doesn't have an AASA file configured (or deepviewData is null)
-  // we skip the deep link preview and redirect to the link's URL
-  if (!link.shortDomain.appleAppSiteAssociation || !deepViewData) {
-    redirect(link.ios ?? link.url);
+  // if the domain isn't set up for deep linking on the user's platform, skip
+  // the preview and forward to the platform-specific URL (or the canonical URL)
+  if (platform === "android") {
+    if (!link.shortDomain.assetLinks || !deepViewData) {
+      redirect(link.android ?? link.url);
+    }
+  } else {
+    if (!link.shortDomain.appleAppSiteAssociation || !deepViewData) {
+      redirect(link.ios ?? link.url);
+    }
   }
 
   // decode the link if the domain is case sensitive
@@ -149,14 +168,22 @@ export default async function DeepLinkPreviewPage(props: {
                 <div className="flex items-center justify-center gap-3">
                   <Copy className="text-content-default size-6" />
                   <ArrowRight className="text-content-subtle size-3" />
-                  <IOSAppStore className="text-content-default size-6" />
+                  {platform === "android" ? (
+                    <AndroidLogo className="text-content-default size-6" />
+                  ) : (
+                    <IOSAppStore className="text-content-default size-6" />
+                  )}
                   <ArrowRight className="text-content-subtle size-3" />
                   <MobilePhone className="text-content-default size-6" />
                 </div>
               </div>
             </div>
 
-            <DeepLinkActionButtons link={link} language={language} />
+            <DeepLinkActionButtons
+              link={link}
+              language={language}
+              platform={platform}
+            />
           </div>
         </div>
       </main>

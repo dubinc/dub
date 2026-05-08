@@ -15,7 +15,8 @@ export interface RewardfulCampaign {
   affiliates: number;
   commission_amount_cents: number;
   minimum_payout_cents: number;
-  max_commission_period_months: number;
+  max_commission_period_months: number | null;
+  max_commissions: number | null;
   days_until_commissions_are_due: number;
   default: boolean;
   reward_type: "amount" | "percent";
