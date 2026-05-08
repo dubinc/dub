@@ -30,6 +30,7 @@ import {
 import { capitalize, pluralize } from "@dub/utils";
 import { ChevronDown, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export function CustomDomains() {
   const {
@@ -71,6 +72,28 @@ export function CustomDomains() {
     () => setShowRegisterDomainSuccessModal(searchParams.has("registered")),
     [searchParams],
   );
+
+  useEffect(() => {
+    if (searchParams.get("domain_connect") !== "callback") return;
+    const error = searchParams.get("error");
+    const errorDesc = searchParams.get("error_description");
+    if (error) {
+      toast.error(
+        errorDesc === "user_cancel"
+          ? "DNS setup was cancelled."
+          : "Your DNS provider returned an error. Try again or configure manually.",
+      );
+    } else {
+      toast.success(
+        "DNS changes submitted. Open the domain card to check verification status.",
+      );
+    }
+    queryParams({
+      del: ["domain_connect", "error", "error_description", "state"],
+      replace: true,
+      scroll: false,
+    });
+  }, [searchParams, queryParams]);
 
   const { error: permissionsError } = clientAccessCheck({
     action: "domains.write",
