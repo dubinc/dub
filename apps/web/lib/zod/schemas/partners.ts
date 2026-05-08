@@ -305,7 +305,7 @@ export const partnerPlatformSchema = z.object({
   views: z.bigint().default(BigInt(0)),
 });
 
-export const PartnerPartnerPlatformsSchema = z.object({
+export const OldPartnerPlatformsFields = z.object({
   website: z
     .string()
     .nullish()
@@ -332,7 +332,7 @@ export const PartnerPartnerPlatformsSchema = z.object({
     .describe("The partner's TikTok username (e.g. `johndoe`)."),
 });
 
-export const PartnerProfileSchema = z.object({
+export const PartnerProfileDetailsSchema = z.object({
   monthlyTraffic: z
     .enum(MonthlyTraffic)
     .nullable()
@@ -461,11 +461,11 @@ export const PartnerSchema = z
       .nullable()
       .describe("The date when the partner's identity was verified."),
   })
-  .extend(PartnerPartnerPlatformsSchema.shape)
-  .extend(PartnerProfileSchema.partial().shape);
+  .extend(OldPartnerPlatformsFields.shape)
+  .extend(PartnerProfileDetailsSchema.partial().shape);
 
 export const PartnerWithProfileSchema = PartnerSchema.extend(
-  PartnerProfileSchema.shape,
+  PartnerProfileDetailsSchema.shape,
 );
 
 export const PartnerRewindSchema = z.object({
@@ -576,7 +576,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
       ),
   })
   .extend(
-    PartnerPartnerPlatformsSchema.pick({
+    OldPartnerPlatformsFields.pick({
       website: true,
       youtube: true,
       twitter: true,
@@ -605,7 +605,7 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
       salesChannels: true,
     }).shape,
   )
-  .extend(PartnerPartnerPlatformsSchema.shape);
+  .extend(OldPartnerPlatformsFields.shape);
 
 export const WebhookPartnerSchema = PartnerSchema.pick({
   id: true,

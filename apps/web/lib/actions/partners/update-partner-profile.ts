@@ -8,7 +8,7 @@ import { stripe } from "@/lib/stripe";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
-  PartnerProfileSchema,
+  PartnerProfileDetailsSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Partner, PartnerProfileType } from "@dub/prisma/client";
@@ -62,7 +62,7 @@ const updatePartnerProfileSchema = z
     companyName: z.string().nullish(),
     username: usernameSchema,
   })
-  .extend(PartnerProfileSchema.partial().shape)
+  .extend(PartnerProfileDetailsSchema.partial().shape)
   .transform((data) => ({
     ...data,
     companyName: data.profileType === "individual" ? null : data.companyName,
@@ -173,12 +173,6 @@ export const updatePartnerProfileAction = authPartnerActionClient
               })),
             },
           }),
-        },
-        include: {
-          preferredEarningStructures: true,
-          salesChannels: true,
-          programs: true,
-          platforms: true,
         },
       });
 
