@@ -284,18 +284,26 @@ export async function processPayouts({
     type: "payouts",
   });
 
-  const qstashResponse = await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/process/updates`,
-    body: {
-      invoiceId: invoice.id,
-    },
-  });
+  const [payoutsJobResponse, referralsJobResponse] = await Promise.allSettled([
+    qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/process/updates`,
+      body: {
+        invoiceId: invoice.id,
+      },
+    }),
 
-  if (qstashResponse.messageId) {
-    console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
-  } else {
-    console.error("Error sending message to Qstash", qstashResponse);
-  }
+    qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/queue`,
+      body: {
+        invoiceId: invoice.id,
+      },
+    }),
+  ]);
+
+  console.log({
+    payoutsJobResponse,
+    referralsJobResponse,
+  });
 
   // should never happen, but just in case
   if (users.length === 0) {
