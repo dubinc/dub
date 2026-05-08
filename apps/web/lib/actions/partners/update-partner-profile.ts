@@ -3,6 +3,7 @@
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { qstash } from "@/lib/cron";
+import { isReservedUsername } from "@/lib/edge-config";
 import { storage } from "@/lib/storage";
 import { stripe } from "@/lib/stripe";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
@@ -19,54 +20,57 @@ import {
   nanoid,
   PARTNERS_DOMAIN,
   RESERVED_SLUGS,
+  validSlugRegex,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { uploadedImageSchema } from "../../zod/schemas/images";
 import { authPartnerActionClient } from "../safe-action";
 
-const USERNAME_REGEX = /^(?![_-])(?!.*[_-]{2})[a-z0-9_-]{3,30}(?<![_-])$/;
-
-// TODO: Add more reserved usernames
-const RESERVED_USERNAMES = [...RESERVED_SLUGS, "dub"];
-
-const usernameSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .pipe(
-    z
-      .string()
-      .min(3, "Username must be at least 3 characters")
-      .max(30, "Username must be at most 30 characters")
-      .regex(USERNAME_REGEX, "Invalid username format"),
-  )
-  .pipe(
-    z
-      .string()
-      .refine(
-        (v) => !RESERVED_USERNAMES.includes(v),
-        "This username is reserved",
-      ),
-  )
-  .nullish();
-
 const updatePartnerProfileSchema = z
   .object({
     name: z.string().trim().min(1, "Name is required").optional(),
     email: z.email().optional(),
+    username: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .min(3)
+      .max(100)
+      .refine(
+        async (v) => {
+          if (!v) return true;
+          if (!validSlugRegex.test(v) || RESERVED_SLUGS.includes(v))
+            return false;
+          if (await isReservedUsername(v)) return false;
+          return true;
+        },
+        { message: "Invalid username" },
+      )
+      .optional(),
     image: uploadedImageSchema.nullish(),
     description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
     profileType: z.enum(PartnerProfileType).optional(),
     companyName: z.string().nullish(),
-    username: usernameSchema,
   })
   .extend(PartnerProfileDetailsSchema.partial().shape)
   .transform((data) => ({
     ...data,
     companyName: data.profileType === "individual" ? null : data.companyName,
-  }));
+  }))
+  .refine(
+    (data) => {
+      if (data.profileType === "company") {
+        return !!data.companyName;
+      }
+
+      return true;
+    },
+    {
+      message: "Legal company name is required when profile type is 'company'.",
+    },
+  );
 
 // Update a partner profile
 export const updatePartnerProfileAction = authPartnerActionClient
@@ -93,12 +97,6 @@ export const updatePartnerProfileAction = authPartnerActionClient
       salesChannels,
       username,
     } = parsedInput;
-
-    if (
-      profileType === "company" &&
-      (companyName === undefined ? !partner.companyName : !companyName)
-    )
-      throw new Error("Legal company name is required.");
 
     await updatedComplianceFieldsChecks({
       partner,
