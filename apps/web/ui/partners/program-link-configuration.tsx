@@ -18,13 +18,21 @@ import {
   Wordmark,
 } from "@dub/ui";
 import { ArrowTurnRight2, ChevronRight, LoadingSpinner } from "@dub/ui/icons";
-import { cn, fetcher, getApexDomain, getPrettyUrl, truncate } from "@dub/utils";
+import {
+  cn,
+  fetcher,
+  getApexDomain,
+  getPrettyUrl,
+  isWorkspaceBillingTrialActive,
+  truncate,
+} from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
 import { useDebounce } from "use-debounce";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
+import { useRegisterDomainModal } from "../modals/register-domain-modal";
 
 type DomainProps = {
   domain: string | null;
@@ -131,9 +139,10 @@ export function ProgramLinkConfiguration({
 }
 
 function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
-  const { slug } = useWorkspace();
+  const { slug, trialEndsAt } = useWorkspace();
   const { allWorkspaceDomains: domains, loading: isLoadingDomains } =
     useDomains();
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const [state, setState] = useState<"idle" | "select">(
     domain ? "select" : "idle",
@@ -146,6 +155,15 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
         onDomainChange(domain.slug);
         setState("select");
       },
+    });
+
+  const { RegisterDomainModal, setShowRegisterDomainModal } =
+    useRegisterDomainModal({
+      onSuccess: (domain) => {
+        onDomainChange(domain);
+        setState("select");
+      },
+      setRegisteredParam: false,
     });
 
   const idleOptions = useMemo(
@@ -163,25 +181,38 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
         },
         loading: isLoadingDomains,
       },
-      {
-        icon: <Wordmark className="h-3 text-neutral-900" />,
-        title: "Use .dub.link subdomain",
-        badge: "Instant setup",
-        badgeClassName: "bg-bg-inverted/10 text-neutral-800",
-        description: "A fast way to launch. Switch to a custom domain later.",
-        onSelect: () => setShowSubdomainModal(true),
-      },
+      trialActive
+        ? {
+            icon: <Wordmark className="h-3 text-neutral-900" />,
+            title: "Use .dub.link subdomain",
+            badge: "Instant setup",
+            badgeClassName: "bg-bg-inverted/10 text-neutral-800",
+            description:
+              "A fast way to launch. Switch to a custom domain later.",
+            onSelect: () => setShowSubdomainModal(true),
+          }
+        : {
+            icon: "https://assets.dub.co/icons/crown.webp",
+            title: "Claim a free .link domain",
+            badge: "No setup",
+            badgeClassName: "bg-green-100 text-green-800",
+            description: "Free for one year with your paid account.",
+            onSelect: () => setShowRegisterDomainModal(true),
+          },
     ],
     [
       domains,
       isLoadingDomains,
+      trialActive,
       setShowAddEditDomainModal,
+      setShowRegisterDomainModal,
       setShowSubdomainModal,
     ],
   );
 
   return (
     <>
+      <RegisterDomainModal />
       <AddEditDomainModal />
       <Modal
         showModal={showSubdomainModal}
@@ -250,9 +281,17 @@ function DomainOnboarding({ domain, onDomainChange }: DomainProps) {
                       >
                         <div className="flex items-center gap-3">
                           <div className="bg-bg-inverted/5 flex size-10 items-center justify-center rounded-lg">
-                            <div className="transition-transform ease-out group-hover:scale-105">
-                              {option.icon}
-                            </div>
+                            {typeof option.icon === "string" ? (
+                              <img
+                                src={option.icon}
+                                alt=""
+                                className="size-7 object-contain transition-transform ease-out group-hover:scale-105"
+                              />
+                            ) : (
+                              <div className="transition-transform ease-out group-hover:scale-105">
+                                {option.icon}
+                              </div>
+                            )}
                           </div>
                           <div className="flex flex-col">
                             <div className="flex items-center gap-1">
@@ -548,7 +587,6 @@ function DubLinkSubdomainForm({
 function DomainOnboardingSelection({
   domain,
   onDomainChange,
-  onBack,
 }: DomainProps & { onBack: () => void }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -570,7 +608,7 @@ function DomainOnboardingSelection({
       />
 
       <p className="mt-2 text-xs font-normal text-neutral-500">
-        This domain will be used for your program’s referral links
+        This domain will be used for your program's referral links
       </p>
 
       <AnimatePresence>
