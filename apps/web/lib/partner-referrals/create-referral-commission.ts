@@ -1,5 +1,10 @@
 import { prisma } from "@dub/prisma";
-import { Commission, Prisma, Reward } from "@dub/prisma/client";
+import {
+  Commission,
+  Prisma,
+  ProgramEnrollment,
+  Reward,
+} from "@dub/prisma/client";
 import { currencyFormatter, log, prettyPrint } from "@dub/utils";
 import { differenceInMonths } from "date-fns";
 import { createId } from "../api/create-id";
@@ -7,15 +12,23 @@ import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { referralRewardConfigSchema } from "../partner-referrals/schemas";
 
 type CreateReferralCommissionProps = {
-  programId: string;
-  partnerId: string; // the referrer
+  referrerProgramEnrollment: Pick<ProgramEnrollment, "programId" | "partnerId">; // Referrer's program enrollment
   referralReward: Reward;
-  sourceCommission: Commission;
+  sourceCommission: Pick<
+    Commission,
+    | "id"
+    | "programId"
+    | "partnerId"
+    | "customerId"
+    | "earnings"
+    | "amount"
+    | "currency"
+    | "createdAt"
+  >;
 };
 
 export const createReferralCommission = async ({
-  programId,
-  partnerId,
+  referrerProgramEnrollment: { programId, partnerId },
   referralReward,
   sourceCommission,
 }: CreateReferralCommissionProps) => {
@@ -44,7 +57,7 @@ export const createReferralCommission = async ({
     const firstCommission = await prisma.commission.findFirst({
       where: {
         partnerId: sourceCommission.partnerId,
-        programId,
+        programId: sourceCommission.programId,
         type: "sale",
       },
       orderBy: {

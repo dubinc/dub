@@ -1,4 +1,5 @@
 import { withCron } from "@/lib/cron/with-cron";
+import { createReferralCommission } from "@/lib/partner-referrals/create-referral-commission";
 import { prisma } from "@dub/prisma";
 import { CommissionType } from "@dub/prisma/client";
 import * as z from "zod/v4";
@@ -7,7 +8,7 @@ import { logAndRespond } from "../../../utils";
 export const dynamic = "force-dynamic";
 
 const inputSchema = z.object({
-  commissionId: z
+  sourceCommissionId: z
     .string()
     .describe(
       "The ID of the commission to calculate a referral commission for.",
@@ -16,17 +17,16 @@ const inputSchema = z.object({
 
 // POST /api/cron/commissions/referrals/calculate
 export const POST = withCron(async ({ rawBody }) => {
-  const { commissionId } = inputSchema.parse(JSON.parse(rawBody));
+  const { sourceCommissionId } = inputSchema.parse(JSON.parse(rawBody));
 
-  const commission = await prisma.commission.findUnique({
+  const sourceCommission = await prisma.commission.findUnique({
     where: {
-      id: commissionId,
+      id: sourceCommissionId,
     },
-    select: {
-      programId: true,
-      type: true,
+    include: {
       programEnrollment: {
         select: {
+          programId: true,
           partnerId: true,
           applicationEvent: {
             select: {
@@ -38,44 +38,46 @@ export const POST = withCron(async ({ rawBody }) => {
     },
   });
 
-  if (!commission) {
-    return logAndRespond(`Commission ${commissionId} not found.`);
+  if (!sourceCommission) {
+    return logAndRespond(`Commission ${sourceCommissionId} not found.`);
   }
 
-  if (commission.type !== CommissionType.sale) {
+  if (sourceCommission.type !== CommissionType.sale) {
     return logAndRespond(
-      `Commission ${commissionId} is not a sale commission.`,
+      `Commission ${sourceCommissionId} is not a sale commission.`,
     );
   }
 
   const referredByPartnerId =
-    commission.programEnrollment?.applicationEvent?.referredByPartnerId;
+    sourceCommission.programEnrollment?.applicationEvent?.referredByPartnerId;
 
   if (!referredByPartnerId) {
     return logAndRespond(
-      `Commission ${commissionId} is not associated with a referred partner.`,
+      `Commission ${sourceCommissionId} is not associated with a referred partner.`,
     );
   }
 
-  const referrerEnrollment = await prisma.programEnrollment.findUnique({
+  const referrerProgramEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       partnerId_programId: {
         partnerId: referredByPartnerId,
-        programId: commission.programId,
+        programId: sourceCommission.programId,
       },
     },
     select: {
+      programId: true,
+      partnerId: true,
       referralReward: true,
     },
   });
 
-  if (!referrerEnrollment) {
+  if (!referrerProgramEnrollment) {
     return logAndRespond(
-      `Referrer partner ${referredByPartnerId} is not enrolled in program ${commission.programId}.`,
+      `Referrer partner ${referredByPartnerId} is not enrolled in program ${sourceCommission.programId}.`,
     );
   }
 
-  const referralReward = referrerEnrollment.referralReward;
+  const referralReward = referrerProgramEnrollment.referralReward;
 
   if (!referralReward) {
     return logAndRespond(
@@ -83,5 +85,22 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  return logAndRespond("OK");
+  const commission = await createReferralCommission({
+    referrerProgramEnrollment,
+    referralReward,
+    sourceCommission,
+  });
+
+  if (!commission) {
+    return logAndRespond(
+      `Failed to create referral commission for source commission ${sourceCommissionId} and referrer partner ${referredByPartnerId}.`,
+      {
+        status: 400,
+      },
+    );
+  }
+
+  return logAndRespond(
+    `Referral commission ${commission.id} created successfully.`,
+  );
 });
