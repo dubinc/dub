@@ -1,7 +1,7 @@
 "use client";
 
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
-import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
+import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
@@ -57,7 +57,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
 
   const checklistProgress = useMemo(() => {
     return partner
-      ? getPartnerProfileChecklistProgress({
+      ? getNetworkProfileChecklistProgress({
           partner,
         })
       : undefined;

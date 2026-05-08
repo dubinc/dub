@@ -8,7 +8,7 @@ import { markApplicationEventSubmitted } from "@/lib/application-events/update-a
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
+import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import {
   formatApplicationFormData,
@@ -185,7 +185,7 @@ export const createProgramApplicationAction = actionClient
       // for in-app applications from existing partners, we need to check
       // if the partner has an incomplete profile, if so we prompt them to complete it
       if (inAppApplication) {
-        const { isComplete } = getPartnerProfileChecklistProgress({
+        const { isComplete } = getNetworkProfileChecklistProgress({
           partner: {
             ...existingPartner,
             preferredEarningStructures:

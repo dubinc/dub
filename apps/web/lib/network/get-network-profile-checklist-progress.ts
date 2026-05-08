@@ -1,7 +1,7 @@
 import { PartnerProps } from "../types";
-import { getDiscoverabilityRequirements } from "./get-discoverability-requirements";
+import { getNetworkApprovalRequirements } from "./get-network-approval-requirements";
 
-export function getPartnerProfileChecklistProgress({
+export function getNetworkProfileChecklistProgress({
   partner,
 }: {
   partner: Pick<
@@ -14,7 +14,7 @@ export function getPartnerProfileChecklistProgress({
     | "platforms"
   >;
 }) {
-  const tasks = getDiscoverabilityRequirements({
+  const tasks = getNetworkApprovalRequirements({
     partner,
   });
 

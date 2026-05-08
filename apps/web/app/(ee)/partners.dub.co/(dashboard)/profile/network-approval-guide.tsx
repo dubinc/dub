@@ -1,6 +1,6 @@
+import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import {
-  Button,
-  ChevronUp,
   CircleCheckFill,
   CircleDotted,
   ExpandingArrow,
@@ -10,16 +10,18 @@ import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { HTMLProps, useState } from "react";
-import { usePartnerDiscoveryRequirements } from "./use-partner-discovery-requirements";
 
-export function ProfileDiscoveryGuide() {
-  const [isExpanded, setIsExpanded] = useState(false);
+export function NetworkApprovalGuide() {
+  const { partner } = usePartnerProfile();
 
-  const tasks = usePartnerDiscoveryRequirements();
+  if (!partner) return null;
 
-  if (!tasks) return null;
+  const { tasks, completedCount, totalCount, isComplete } =
+    getNetworkProfileChecklistProgress({
+      partner,
+    });
 
-  const completedTasks = tasks.filter(({ completed }) => completed);
+  const [isExpanded, setIsExpanded] = useState(isComplete ? false : true);
 
   return (
     <motion.div
@@ -35,39 +37,26 @@ export function ProfileDiscoveryGuide() {
           setIsExpanded((e) => !e);
         }}
       >
-        <div className="flex select-none flex-col px-3 pb-4 pt-1">
-          <div className="flex justify-between">
-            <div className="bg-bg-default/10 mb-4 flex w-fit items-center gap-1.5 rounded-md px-2 py-1">
+        <div className="flex select-none flex-col p-3">
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-lg font-semibold">
+              Join the Dub Partner Network
+            </h2>
+
+            <div className="bg-bg-default/10 flex w-fit items-center gap-1.5 rounded-md px-2 py-1">
               <ProgressCircle
-                progress={completedTasks.length / tasks.length}
+                progress={completedCount / totalCount}
                 className="text-green-500 [--track-color:#fff3]"
               />
               <span className="text-xs font-medium">
-                {completedTasks.length} of {tasks.length} tasks completed
+                {completedCount} of {totalCount} tasks completed
               </span>
             </div>
-            <Button
-              type="button"
-              onClick={() => setIsExpanded((e) => !e)}
-              variant="outline"
-              className="hover:bg-bg-default/10 size-9 p-0"
-              icon={
-                <ChevronUp
-                  className={cn(
-                    "text-content-inverted size-4 transition-transform duration-100",
-                    !isExpanded && "-scale-y-100",
-                  )}
-                />
-              }
-            />
           </div>
-          <div>
-            <h2 className="text-lg font-semibold">Complete your profile</h2>
-            <p className="text-content-inverted/60 text-base">
-              Finish these steps to improve your application approval rates and
-              receive more invitations from programs in our network.
-            </p>
-          </div>
+          <p className="text-content-inverted/60 text-base">
+            Complete the steps to join the Dub Partner Network and start
+            applying to programs in our network.
+          </p>
         </div>
 
         <motion.div

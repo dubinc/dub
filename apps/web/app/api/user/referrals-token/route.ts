@@ -4,7 +4,7 @@ import {
   partnerHasEarnedCommissions,
   partnerIsNotBanned,
   type ProgramEnrollmentsForDiscoverability,
-} from "@/lib/network/get-discoverability-requirements";
+} from "@/lib/network/get-network-approval-requirements";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
