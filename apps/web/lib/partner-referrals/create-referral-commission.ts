@@ -1,10 +1,5 @@
 import { prisma } from "@dub/prisma";
-import {
-  Commission,
-  Prisma,
-  ProgramEnrollment,
-  Reward,
-} from "@dub/prisma/client";
+import { Commission, CommissionType, Prisma } from "@dub/prisma/client";
 import { currencyFormatter, log, prettyPrint } from "@dub/utils";
 import { differenceInMonths } from "date-fns";
 import { createId } from "../api/create-id";
@@ -12,33 +7,108 @@ import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { referralRewardConfigSchema } from "../partner-referrals/schemas";
 
 type CreateReferralCommissionProps = {
-  referrerProgramEnrollment: Pick<ProgramEnrollment, "programId" | "partnerId">; // Referrer's program enrollment
-  referralReward: Reward;
-  sourceCommission: Pick<
-    Commission,
-    | "id"
-    | "programId"
-    | "partnerId"
-    | "customerId"
-    | "earnings"
-    | "amount"
-    | "currency"
-    | "createdAt"
-  >;
+  // referrerProgramEnrollment: Pick<ProgramEnrollment, "programId" | "partnerId">;
+  // referralReward: Reward;
+  // sourceCommission: Pick<
+  //   Commission,
+  //   | "id"
+  //   | "programId"
+  //   | "partnerId"
+  //   | "customerId"
+  //   | "earnings"
+  //   | "amount"
+  //   | "currency"
+  //   | "createdAt"
+  // >;
+
+  sourceCommissionId: string;
 };
 
-// type CommissionResponse = {
-//   commission?: Commission | null;
-//   shouldRetry: boolean;
-// };
-
 export const createReferralCommission = async ({
-  referrerProgramEnrollment: { programId, partnerId },
-  referralReward,
-  sourceCommission,
+  // referrerProgramEnrollment: { programId, partnerId },
+  // referralReward,
+  // sourceCommission,
+  sourceCommissionId,
 }: CreateReferralCommissionProps) => {
-  // flat triggers (partnerApproved / commissionThreshold) live in dedicated paths
-  // TODO: Fix this
+  const sourceCommission = await prisma.commission.findUnique({
+    where: {
+      id: sourceCommissionId,
+    },
+    include: {
+      programEnrollment: {
+        select: {
+          programId: true,
+          partnerId: true,
+          applicationEvent: {
+            select: {
+              referredByPartnerId: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!sourceCommission) {
+    console.log(`Source commission ${sourceCommissionId} not found.`);
+    return null;
+  }
+
+  if (sourceCommission.type !== CommissionType.sale) {
+    console.log(
+      `Source commission ${sourceCommissionId} is not a sale commission.`,
+    );
+    return null;
+  }
+
+  if (!["processed", "paid"].includes(sourceCommission.status)) {
+    console.log(
+      `Source commission ${sourceCommissionId} is not a processed or paid.`,
+    );
+    return null;
+  }
+
+  const referredByPartnerId =
+    sourceCommission.programEnrollment?.applicationEvent?.referredByPartnerId;
+
+  if (!referredByPartnerId) {
+    console.log(
+      `Source commission ${sourceCommissionId} is not associated with a referred partner.`,
+    );
+    return null;
+  }
+
+  const referrerProgramEnrollment = await prisma.programEnrollment.findUnique({
+    where: {
+      partnerId_programId: {
+        partnerId: referredByPartnerId,
+        programId: sourceCommission.programId,
+      },
+    },
+    select: {
+      programId: true,
+      partnerId: true,
+      referralReward: true,
+    },
+  });
+
+  if (!referrerProgramEnrollment) {
+    console.log(
+      `Referrer partner ${referredByPartnerId} is not enrolled in the program ${sourceCommission.programId}.`,
+    );
+    return null;
+  }
+
+  const { programId, partnerId, referralReward } = referrerProgramEnrollment;
+
+  if (!referralReward) {
+    console.log(
+      `Referrer partner ${referredByPartnerId} has no referral reward for the group.`,
+    );
+    return null;
+  }
+
+  // TODO: Fix this and support flat fee as well
   if (referralReward.type !== "percentage") {
     console.log(
       `Referral reward ${referralReward.id} is not a percentage reward.`,

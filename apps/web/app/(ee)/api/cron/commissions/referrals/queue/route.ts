@@ -144,7 +144,7 @@ export const POST = withCron(async ({ rawBody }) => {
   }
 
   // 4) Build the payload of referral-eligible commissions
-  const payload: { commissionId: string }[] = [];
+  const commissions: { sourceCommissionId: string }[] = [];
 
   for (const payout of payouts) {
     const referrerPartnerId =
@@ -160,24 +160,24 @@ export const POST = withCron(async ({ rawBody }) => {
       continue;
     }
 
-    const commissions = payout.commissions;
-
-    if (commissions.length === 0) {
+    if (payout.commissions.length === 0) {
       continue;
     }
 
-    payload.push(
-      ...commissions.map((commission) => ({ commissionId: commission.id })),
+    commissions.push(
+      ...payout.commissions.map(({ id }) => ({
+        sourceCommissionId: id,
+      })),
     );
   }
 
   await enqueueBatchJobs(
-    payload.map(({ commissionId }) => ({
+    commissions.map(({ sourceCommissionId }) => ({
       queueName: "calculate-referral-commissions",
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/calculate`,
-      deduplicationId: `calculate-referral-commissions-${commissionId}`,
+      deduplicationId: `calculate-referral-commissions-${sourceCommissionId}`,
       body: {
-        sourceCommissionId: commissionId,
+        sourceCommissionId,
       },
     })),
   );
