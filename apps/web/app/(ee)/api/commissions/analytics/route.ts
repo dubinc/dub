@@ -155,8 +155,8 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     return byGroupId({ programId, parsed, startDate, endDate });
   }
 
-  if (groupBy === "partnerTag") {
-    return byPartnerTag({ programId, parsed, startDate, endDate });
+  if (groupBy === "partnerTagId") {
+    return byPartnerTagIdId({ programId, parsed, startDate, endDate });
   }
 
   if (groupBy === "partnerId") {
@@ -356,7 +356,7 @@ async function byGroupId({
   return NextResponse.json(commissionAnalyticsSchema.groupId.parse(result));
 }
 
-async function byPartnerTag({
+async function byPartnerTagIdId({
   programId,
   parsed,
   startDate,
@@ -384,7 +384,7 @@ async function byPartnerTag({
     rawTypeFilter.values.length > 0 &&
     validTypeValues.length === 0
   ) {
-    return NextResponse.json(commissionAnalyticsSchema.partnerTag.parse([]));
+    return NextResponse.json(commissionAnalyticsSchema.partnerTagId.parse([]));
   }
 
   const typeFilter =
@@ -457,7 +457,9 @@ async function byPartnerTag({
     count: Number(row.count),
   }));
 
-  return NextResponse.json(commissionAnalyticsSchema.partnerTag.parse(result));
+  return NextResponse.json(
+    commissionAnalyticsSchema.partnerTagId.parse(result),
+  );
 }
 
 async function byPartnerId({

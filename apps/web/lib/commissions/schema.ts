@@ -24,7 +24,7 @@ export const commissionAnalyticsQuerySchema =
       "timeseries",
       "partnerId",
       "groupId",
-      "partnerTag",
+      "partnerTagId",
       "type",
     ]),
   });
@@ -57,7 +57,7 @@ export const commissionAnalyticsSchema = {
 
   groupId: z.array(commissionCategoryRowSchema),
 
-  partnerTag: z.array(commissionCategoryRowSchema),
+  partnerTagId: z.array(commissionCategoryRowSchema),
 
   timeseries: z.array(commissionTimeseriesRowSchema),
 

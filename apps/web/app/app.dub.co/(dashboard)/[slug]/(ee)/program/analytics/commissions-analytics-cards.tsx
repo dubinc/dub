@@ -25,6 +25,7 @@ import {
   useState,
 } from "react";
 import { CommissionStatusFilter } from "./commissions-status-selector";
+import { useCommissionsAnalyticsQuery } from "./use-commissions-analytics-query";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Pending",
@@ -40,7 +41,7 @@ const STATUS_ICONS: Record<string, React.ElementType> = {
   all: CircleDotted,
 };
 
-type CommissionsBarListTab = "type" | "groupId" | "partnerTag";
+type CommissionsBarListTab = "type" | "groupId" | "partnerTagId";
 
 function mapCommissionBarRow(
   item: CommissionCategoryRow,
@@ -54,7 +55,7 @@ function mapCommissionBarRow(
         type={item.key as "sale" | "custom" | "lead" | "click"}
       />
     );
-  } else if (tab === "partnerTag") {
+  } else if (tab === "partnerTagId") {
     icon = <Tag className="size-4 shrink-0 text-neutral-500" />;
   } else {
     icon = (
@@ -315,22 +316,18 @@ function CommissionBarPanel<T extends string>({
 }
 
 const LEFT_TABS: {
-  id: "groupId" | "partnerTag";
+  id: "groupId" | "partnerTagId";
   label: string;
   icon: React.ElementType;
 }[] = [
   { id: "groupId", label: "Partner Group", icon: Users6 },
-  { id: "partnerTag", label: "Partner Tag", icon: Tag },
+  { id: "partnerTagId", label: "Partner Tag", icon: Tag },
 ];
 
-export function CommissionsAnalyticsCards({
-  status,
-  queryString,
-}: {
-  status: CommissionStatusFilter;
-  queryString: string;
-}) {
-  const [leftTab, setLeftTab] = useState<"groupId" | "partnerTag">("groupId");
+export function CommissionsAnalyticsCards() {
+  const { status } = useCommissionsAnalyticsQuery();
+
+  const [leftTab, setLeftTab] = useState<"groupId" | "partnerTagId">("groupId");
 
   const groupFilter = useUrlListFilter("groupId");
   const partnerTagFilter = useUrlListFilter("partnerTagId");
@@ -344,17 +341,14 @@ export function CommissionsAnalyticsCards({
   }, [groups]);
 
   const { data: groupRows, isLoading: groupLoading } = useCommissionAnalytics({
-    queryString,
     groupBy: "groupId",
   });
   const { data: partnerTagRows, isLoading: partnerTagLoading } =
     useCommissionAnalytics({
-      queryString,
-      groupBy: "partnerTag",
-      enabled: leftTab === "partnerTag",
+      groupBy: "partnerTagId",
+      enabled: leftTab === "partnerTagId",
     });
   const { data: typeRows, isLoading: typeLoading } = useCommissionAnalytics({
-    queryString,
     groupBy: "type",
   });
 

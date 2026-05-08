@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "@dub/ui/charts";
-import { LoadingSpinner } from "@dub/ui/icons";
+import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { useId } from "react";
@@ -48,19 +48,18 @@ const STATUS_COLORS: Record<
 export function CommissionsAnalyticsChart({
   status,
   unit = "earnings",
-  queryString,
   interval,
   start,
   end,
 }: {
   status: CommissionStatusFilter;
   unit?: "earnings" | "count";
-  queryString: string;
   interval?: string;
   start?: Date;
   end?: Date;
 }) {
   const id = useId();
+  const { searchParams } = useRouterStuff();
   const color = STATUS_COLORS[status ?? "all"];
 
   const {
@@ -69,7 +68,6 @@ export function CommissionsAnalyticsChart({
     error,
   } = useCommissionAnalytics({
     groupBy: "timeseries",
-    queryString,
   });
 
   const chartData = data?.map((d) => ({
@@ -95,7 +93,7 @@ export function CommissionsAnalyticsChart({
 
   return (
     <TimeSeriesChart
-      key={`${status ?? "all"}-${unit}-${queryString}`}
+      key={`${status ?? "all"}-${unit}-${searchParams.toString()}`}
       data={chartData ?? []}
       series={[
         {
