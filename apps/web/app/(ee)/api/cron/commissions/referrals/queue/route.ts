@@ -1,4 +1,5 @@
 import { qstash } from "@/lib/cron";
+import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -14,7 +15,7 @@ const inputSchema = z.object({
   startingAfter: z.string().optional(),
 });
 
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 1;
 
 // POST /api/cron/commissions/referrals/queue
 export const POST = withCron(async ({ rawBody }) => {
@@ -62,9 +63,7 @@ export const POST = withCron(async ({ rawBody }) => {
   // 1. Find referral-eligible payouts for the invoice
   const payouts = await prisma.payout.findMany({
     where: {
-      programId: invoice.programId,
-      status: "processed",
-      // Find payouts from partners who are referred by another partner
+      invoiceId,
       programEnrollment: {
         applicationEvent: {
           referredByPartnerId: {
@@ -103,10 +102,6 @@ export const POST = withCron(async ({ rawBody }) => {
       cursor: { id: startingAfter },
     }),
   });
-
-  if (payouts.length === 0) {
-    return logAndRespond(`No more referral-eligible payouts for ${invoiceId}.`);
-  }
 
   const referredByPartnerIds = payouts
     .map(
@@ -176,18 +171,16 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  console.log("payload", payload);
-
-  // await enqueueBatchJobs(
-  //   payload.map(({ commissionId }) => ({
-  //     queueName: "calculate-referral-commissions",
-  //     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/calculate`,
-  //     deduplicationId: `calculate-referral-commissions-${commissionId}`,
-  //     body: {
-  //       commissionId,
-  //     },
-  //   })),
-  // );
+  await enqueueBatchJobs(
+    payload.map(({ commissionId }) => ({
+      queueName: "calculate-referral-commissions",
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/calculate`,
+      deduplicationId: `calculate-referral-commissions-${commissionId}`,
+      body: {
+        sourceCommissionId: commissionId,
+      },
+    })),
+  );
 
   if (payouts.length === BATCH_SIZE) {
     await qstash.publishJSON({

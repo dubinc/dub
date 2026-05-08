@@ -27,6 +27,11 @@ type CreateReferralCommissionProps = {
   >;
 };
 
+// type CommissionResponse = {
+//   commission?: Commission | null;
+//   shouldRetry: boolean;
+// };
+
 export const createReferralCommission = async ({
   referrerProgramEnrollment: { programId, partnerId },
   referralReward,
@@ -37,6 +42,22 @@ export const createReferralCommission = async ({
   if (referralReward.type !== "percentage") {
     console.log(
       `Referral reward ${referralReward.id} is not a percentage reward.`,
+    );
+    return null;
+  }
+
+  const existingReferralCommission = await prisma.commission.findUnique({
+    where: {
+      sourceCommissionId: sourceCommission.id,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (existingReferralCommission) {
+    console.log(
+      `Referral commission already exists for source commission ${sourceCommission.id}.`,
     );
     return null;
   }
