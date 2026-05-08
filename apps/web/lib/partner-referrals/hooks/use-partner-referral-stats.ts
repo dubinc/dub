@@ -1,10 +1,7 @@
-import { partnerReferralStatsSchema } from "@/lib/zod/schemas/partners";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { z } from "zod";
-import useWorkspace from "./use-workspace";
-
-type PartnerReferralStats = z.infer<typeof partnerReferralStatsSchema>;
+import useWorkspace from "../../swr/use-workspace";
+import { PartnerReferralStats } from "../types";
 
 export function usePartnerReferralStats({
   partnerId,

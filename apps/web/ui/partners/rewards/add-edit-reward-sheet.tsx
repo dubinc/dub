@@ -6,13 +6,13 @@ import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
 import { updateRewardAction } from "@/lib/actions/partners/update-reward";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import { ReferralRewardConfig } from "@/lib/partner-referrals/types";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardConditionsArray, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
-import type { ReferralRewardConfig } from "@/lib/zod/schemas/partner-referrals";
 import {
   createOrUpdateRewardSchema,
   REWARD_CONDITION_ATTRIBUTES,

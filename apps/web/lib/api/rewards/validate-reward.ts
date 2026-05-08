@@ -2,7 +2,7 @@ import {
   PARTNER_REFERRAL_FLAT_TRIGGERS,
   PARTNER_REFERRAL_PERCENTAGE_TRIGGERS,
   referralRewardConfigSchema,
-} from "@/lib/zod/schemas/partner-referrals";
+} from "@/lib/partner-referrals/schemas";
 import {
   createOrUpdateRewardSchema,
   rewardConditionsArraySchema,

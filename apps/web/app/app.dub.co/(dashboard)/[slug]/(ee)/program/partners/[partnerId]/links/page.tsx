@@ -1,10 +1,10 @@
 "use client";
 
+import { usePartnerReferralStats } from "@/lib/partner-referrals/hooks/use-partner-referral-stats";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import useGroup from "@/lib/swr/use-group";
 import usePartner from "@/lib/swr/use-partner";
-import { usePartnerReferralStats } from "@/lib/swr/use-partner-referral-stats";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {

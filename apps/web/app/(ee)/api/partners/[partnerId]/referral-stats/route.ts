@@ -1,7 +1,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { partnerReferralStatsSchema } from "@/lib/zod/schemas/partners";
+import { partnerReferralStatsSchema } from "@/lib/partner-referrals/schemas";
 import { prisma } from "@dub/prisma";
 import { toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";

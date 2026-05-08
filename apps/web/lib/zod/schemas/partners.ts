@@ -1035,9 +1035,3 @@ export const partnerCrossProgramSummarySchema = z.object({
   activePrograms: z.number(),
   bannedPrograms: z.number(),
 });
-
-export const partnerReferralStatsSchema = z.object({
-  totalPartners: z.number(),
-  totalConversions: z.number(),
-  totalSaleAmount: z.number(),
-});

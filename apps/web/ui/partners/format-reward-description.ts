@@ -1,9 +1,9 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { RewardProps } from "@/lib/types";
 import {
   PARTNER_REFERRAL_TRIGGER_LABELS,
   referralRewardConfigSchema,
-} from "@/lib/zod/schemas/partner-referrals";
+} from "@/lib/partner-referrals/schemas";
+import { RewardProps } from "@/lib/types";
 import { currencyFormatter } from "@dub/utils";
 
 export function formatRewardDescription(reward: RewardProps) {

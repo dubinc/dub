@@ -1,7 +1,7 @@
 import { EventType, RewardStructure } from "@dub/prisma/client";
 import * as z from "zod/v4";
+import { referralRewardConfigSchema } from "../../partner-referrals/schemas";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
-import { referralRewardConfigSchema } from "./partner-referrals";
 import { centsSchema } from "./utils";
 
 export const COMMISSION_TYPES = [

@@ -86,4 +86,8 @@ export const referralRewardConfigSchema = z
     }
   });
 
-export type ReferralRewardConfig = z.infer<typeof referralRewardConfigSchema>;
+export const partnerReferralStatsSchema = z.object({
+  totalPartners: z.number(),
+  totalConversions: z.number(),
+  totalSaleAmount: z.number(),
+});
