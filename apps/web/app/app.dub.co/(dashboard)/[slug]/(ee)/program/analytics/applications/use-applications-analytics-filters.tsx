@@ -11,6 +11,7 @@ import {
   nFormatter,
   parseFilterValue,
 } from "@dub/utils";
+import { useParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { ApplicationReferralSourceIcon } from "./application-referral-source-icon";
 import { useApplicationsAnalytics } from "./use-applications-analytics";
@@ -20,6 +21,7 @@ const FILTER_KEYS = ["partnerId", "country", "referralSource"] as const;
 
 export function useApplicationAnalyticsFilters() {
   const { slug } = useWorkspace();
+  const { tab } = useParams() as { tab?: string };
   const { stage } = useApplicationsAnalyticsQuery();
   const { searchParamsObj, queryParams } = useRouterStuff();
 
@@ -35,16 +37,19 @@ export function useApplicationAnalyticsFilters() {
   const { data: partners } = useApplicationsAnalytics({
     groupBy: "partnerId",
     exclude: ["partnerId"],
+    enabled: tab === "applications",
   });
 
   const { data: referralSources } = useApplicationsAnalytics({
     groupBy: "referralSource",
     exclude: ["referralSource"],
+    enabled: tab === "applications",
   });
 
   const { data: countries } = useApplicationsAnalytics({
     groupBy: "country",
     exclude: ["country"],
+    enabled: tab === "applications",
   });
 
   const filters = useMemo(

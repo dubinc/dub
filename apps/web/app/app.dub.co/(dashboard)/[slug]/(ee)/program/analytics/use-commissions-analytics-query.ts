@@ -35,6 +35,7 @@ export function useCommissionsAnalyticsQuery() {
       end,
       partnerId,
       groupId,
+      partnerTagId,
       type,
     } = searchParamsObj;
 
@@ -54,6 +55,7 @@ export function useCommissionsAnalyticsQuery() {
 
     if (partnerId) params.set("partnerId", partnerId);
     if (groupId) params.set("groupId", groupId);
+    if (partnerTagId) params.set("partnerTagId", partnerTagId);
     if (type) params.set("type", type);
 
     return params.toString();

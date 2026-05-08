@@ -482,6 +482,7 @@ function CommissionsFilters() {
                     "end",
                     "partnerId",
                     "groupId",
+                    "partnerTagId",
                     "type",
                   ],
                 },

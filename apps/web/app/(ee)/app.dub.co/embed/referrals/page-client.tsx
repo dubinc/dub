@@ -157,6 +157,9 @@ export function ReferralsEmbedPageClient({
 
   const programEmbedData = programEmbedSchema.parse(program.embedData);
 
+  const termsHref =
+    (programEmbedData?.customTermsUrl || program.termsUrl) ?? undefined;
+
   const hasResources =
     resources &&
     ["logos", "colors", "files"].some(
@@ -174,7 +177,7 @@ export function ReferralsEmbedPageClient({
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
       ...(activeBountiesCount > 0 ? ["Bounties"] : []),
-      "Earnings",
+      ...(!programEmbedData?.hideEarnings ? ["Earnings"] : []),
       ...(group.additionalLinks.length > 0 ? ["Links"] : []),
       ...(programEmbedData?.leaderboard?.mode === "disabled"
         ? []
@@ -248,9 +251,9 @@ export function ReferralsEmbedPageClient({
                 <span className="text-content-emphasis text-base font-semibold leading-none">
                   Rewards
                 </span>
-                {program.termsUrl && (
+                {termsHref && (
                   <a
-                    href={program.termsUrl}
+                    href={termsHref}
                     target="_blank"
                     className="text-content-subtle text-xs font-medium leading-none underline-offset-2 hover:underline"
                   >
@@ -261,8 +264,14 @@ export function ReferralsEmbedPageClient({
               <div className="text-content-emphasis relative mt-4 text-lg">
                 <ProgramRewardList rewards={rewards} discount={discount} />
                 <ProgramRewardTerms
-                  minPayoutAmount={program.minPayoutAmount}
-                  holdingPeriodDays={group.holdingPeriodDays ?? 0}
+                  minPayoutAmount={
+                    programEmbedData?.hideEarnings ? 0 : program.minPayoutAmount
+                  }
+                  holdingPeriodDays={
+                    programEmbedData?.hideEarnings
+                      ? 0
+                      : group.holdingPeriodDays ?? 0
+                  }
                 />
               </div>
             </div>
@@ -281,9 +290,18 @@ export function ReferralsEmbedPageClient({
               </div>
             )}
           </div>
-          <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
+          <div
+            className={cn(
+              "mt-4 grid gap-2 sm:h-32 sm:grid-cols-3",
+              programEmbedData?.hideEarnings
+                ? "sm:grid-cols-1"
+                : "sm:grid-cols-3",
+            )}
+          >
             <ReferralsEmbedActivity />
-            <ReferralsEmbedEarningsSummary />
+            {!programEmbedData?.hideEarnings && (
+              <ReferralsEmbedEarningsSummary />
+            )}
           </div>
           <div className="mt-4">
             <div className="border-border-subtle flex items-center border-b">
