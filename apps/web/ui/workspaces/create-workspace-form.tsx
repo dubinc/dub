@@ -202,7 +202,7 @@ export function CreateWorkspaceForm({
           <p className="block text-sm font-medium text-neutral-700">
             Workspace logo
           </p>
-          <div className="mt-1.5 flex items-center gap-5">
+          <div className="mt-1.5 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
             <Controller
               control={control}
               name="logo"
