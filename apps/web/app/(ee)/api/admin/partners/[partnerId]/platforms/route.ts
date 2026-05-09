@@ -4,22 +4,21 @@ import { withAdmin } from "@/lib/auth";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { prisma } from "@dub/prisma";
 import { PlatformType } from "@dub/prisma/client";
-import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const postSchema = z.object({
-  partnerId: z.string().trim().min(1),
   platform: z.enum(PlatformType),
   identifier: z.string().trim().min(1),
   postUrl: z.string().trim().url().optional(),
 });
 
-// POST /api/admin/partners/platforms
+// POST /api/admin/partners/[partnerId]/platforms
 export const POST = withAdmin(
-  async ({ req }) => {
+  async ({ req, params }) => {
+    const { partnerId } = params;
+
     const {
-      partnerId,
       platform,
       identifier: rawIdentifier,
       postUrl,
@@ -127,9 +126,6 @@ export const POST = withAdmin(
         lastCheckedAt: new Date(),
       },
     });
-
-    revalidatePath("/api/admin/partners");
-    revalidatePath("/api/admin/partners/platforms");
 
     return NextResponse.json({
       platform: {

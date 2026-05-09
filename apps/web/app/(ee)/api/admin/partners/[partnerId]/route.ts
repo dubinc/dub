@@ -2,13 +2,13 @@ import { withAdmin } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/admin/partners/[id]
+// GET /api/admin/partners/[partnerId]
 export const GET = withAdmin(async ({ params }) => {
-  const { id } = params;
+  const { partnerId } = params;
 
   const partner = await prisma.partner.findUnique({
     where: {
-      id,
+      id: partnerId,
     },
     select: {
       id: true,
@@ -29,7 +29,7 @@ export const GET = withAdmin(async ({ params }) => {
   const [programEnrollments, fraudAlerts, payouts] = await Promise.all([
     prisma.programEnrollment.findMany({
       where: {
-        partnerId: id,
+        partnerId,
         status: "banned",
       },
       include: {
@@ -48,7 +48,7 @@ export const GET = withAdmin(async ({ params }) => {
 
     prisma.fraudAlert.findMany({
       where: {
-        partnerId: id,
+        partnerId,
       },
       include: {
         program: {
@@ -66,7 +66,7 @@ export const GET = withAdmin(async ({ params }) => {
 
     prisma.payout.findMany({
       where: {
-        partnerId: id,
+        partnerId,
       },
       include: {
         program: {

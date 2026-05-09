@@ -51,7 +51,7 @@ function FraudAlertsPageClient() {
   } = useSWR<{
     fraudAlerts: FraudAlert[];
     total: number;
-  }>(`/api/admin/fraud-alerts${getQueryString()}`, fetcher, {
+  }>(`/api/admin/partners/fraud${getQueryString()}`, fetcher, {
     keepPreviousData: true,
   });
 
@@ -242,9 +242,7 @@ function FraudAlertsPageClient() {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-screen-xl flex-col gap-6 p-6">
-      <h1 className="text-2xl font-semibold text-neutral-900">Fraud Alerts</h1>
-
+    <>
       <div>
         <Filter.Select
           className="w-full md:w-fit"
@@ -285,6 +283,6 @@ function FraudAlertsPageClient() {
           await mutate();
         }}
       />
-    </div>
+    </>
   );
 }
