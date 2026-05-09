@@ -27,9 +27,5 @@ export function PartnersNavTabs() {
     [],
   );
 
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-neutral-100">
-      <PageNavTabs basePath="/partners" tabs={tabs} />
-    </div>
-  );
+  return <PageNavTabs basePath="/partners" tabs={tabs} />;
 }
