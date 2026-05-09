@@ -1,3 +1,4 @@
+import { submitNetworkProfileAction } from "@/lib/actions/partners/submit-network-profile";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
@@ -11,12 +12,28 @@ import {
 } from "@dub/ui";
 import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { motion } from "motion/react";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { HTMLProps, useState } from "react";
 import { toast } from "sonner";
 
+const NETWORK_STATUS_BADGE_VARIANT = {
+  submitted: {
+    variant: "pending",
+    label: "Pending approval",
+  },
+  rejected: {
+    variant: "error",
+    label: "Rejected",
+  },
+  approved: {
+    variant: "success",
+    label: "Approved",
+  },
+} as const;
+
 export function NetworkApprovalGuide() {
-  const { partner } = usePartnerProfile();
+  const { partner, mutate } = usePartnerProfile();
 
   if (!partner) return null;
 
@@ -27,13 +44,26 @@ export function NetworkApprovalGuide() {
 
   const [isExpanded, setIsExpanded] = useState(isComplete ? false : true);
 
+  const { executeAsync: submitNetworkProfile } = useAction(
+    submitNetworkProfileAction,
+    {
+      onSuccess: () => {
+        toast.success("Application submitted successfully");
+      },
+      onError: ({ error }) => {
+        toast.error(error.serverError);
+      },
+    },
+  );
+
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Submit application",
     description:
       "Are you sure you want to submit your Dub Network application for review? You won't be able to make changes to your application after submitting it.",
     confirmText: "Confirm submission",
-    onConfirm: () => {
-      toast.success("Application submitted successfully");
+    onConfirm: async () => {
+      await submitNetworkProfile();
+      await mutate();
     },
   });
 
@@ -71,7 +101,14 @@ export function NetworkApprovalGuide() {
                     </span>
                   </div>
                 ) : (
-                  <StatusBadge status={partner.networkStatus} />
+                  <StatusBadge
+                    variant={
+                      NETWORK_STATUS_BADGE_VARIANT[partner.networkStatus]
+                        .variant
+                    }
+                  >
+                    {NETWORK_STATUS_BADGE_VARIANT[partner.networkStatus].label}
+                  </StatusBadge>
                 )}
               </div>
               <p className="text-content-inverted/60 text-sm">
@@ -79,17 +116,19 @@ export function NetworkApprovalGuide() {
                 applying to programs in our network.
               </p>
             </div>
-            <Button
-              text="Submit application"
-              onClick={() => setShowConfirmModal(true)}
-              disabledTooltip={
-                !isComplete
-                  ? "Complete all tasks to submit application"
-                  : undefined
-              }
-              variant="secondary"
-              className="h-9 w-full md:w-fit"
-            />
+            {partner.networkStatus === "draft" && (
+              <Button
+                text="Submit application"
+                onClick={() => setShowConfirmModal(true)}
+                disabledTooltip={
+                  !isComplete
+                    ? "Complete all tasks to submit application"
+                    : undefined
+                }
+                variant="secondary"
+                className="h-9 w-full md:w-fit"
+              />
+            )}
           </div>
 
           <motion.div
