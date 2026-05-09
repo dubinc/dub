@@ -77,7 +77,7 @@ export function NetworkApprovalGuide() {
         className="overflow-hidden"
       >
         <div
-          className="text-content-inverted rounded-2xl bg-neutral-900 p-2"
+          className="text-content-inverted cursor-pointer rounded-2xl bg-neutral-900 p-2"
           onClick={(e) => {
             if (isClickOnInteractiveChild(e)) return;
             setIsExpanded((e) => !e);
@@ -102,6 +102,8 @@ export function NetworkApprovalGuide() {
                   </div>
                 ) : (
                   <StatusBadge
+                    className="dark"
+                    icon={null}
                     variant={
                       NETWORK_STATUS_BADGE_VARIANT[partner.networkStatus]
                         .variant
