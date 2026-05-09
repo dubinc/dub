@@ -208,7 +208,7 @@ export function Nav({
                     href={APP_DOMAIN}
                     className={cn(
                       buttonVariants({ variant: "primary" }),
-                      "flex h-8 items-center rounded-lg border px-4 text-sm",
+                      "flex h-8 items-center whitespace-nowrap rounded-lg border px-4 text-sm",
                       "dark:border-white dark:bg-white dark:text-black dark:hover:bg-neutral-50 dark:hover:ring-white/10",
                     )}
                   >
@@ -220,7 +220,7 @@ export function Nav({
                       href="https://app.dub.co/login"
                       className={cn(
                         buttonVariants({ variant: "secondary" }),
-                        "flex h-8 items-center rounded-lg border px-4 text-sm",
+                        "flex h-8 items-center whitespace-nowrap rounded-lg border px-4 text-sm",
                         "dark:border-white/10 dark:bg-black dark:text-white dark:hover:bg-neutral-900",
                       )}
                     >
@@ -230,7 +230,7 @@ export function Nav({
                       href="https://app.dub.co/register"
                       className={cn(
                         buttonVariants({ variant: "primary" }),
-                        "flex h-8 items-center rounded-lg border px-4 text-sm",
+                        "flex h-8 items-center whitespace-nowrap rounded-lg border px-4 text-sm",
                         "dark:border-white dark:bg-white dark:text-black dark:hover:bg-neutral-50 dark:hover:ring-white/10",
                       )}
                     >
