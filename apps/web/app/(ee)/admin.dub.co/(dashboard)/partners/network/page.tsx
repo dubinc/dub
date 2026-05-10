@@ -440,7 +440,11 @@ export default function NetworkApplicationsPage() {
           />
         )}
       </div>
-      <Table {...tableProps} table={table} />
+      <Table
+        {...tableProps}
+        table={table}
+        containerClassName="max-h-[calc(70dvh)] overflow-auto"
+      />
     </>
   );
 }

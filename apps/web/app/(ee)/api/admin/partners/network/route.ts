@@ -17,29 +17,33 @@ const querySchema = z
 
 // GET /api/admin/partners/network
 export const GET = withAdmin(async ({ searchParams }) => {
-  const { networkStatus, country, search, sortOrder, page, pageSize } =
-    querySchema.parse(searchParams);
-  const effectiveNetworkStatus = search
-    ? undefined
-    : networkStatus ?? "submitted";
+  const {
+    networkStatus: rawNetworkStatus,
+    country,
+    search,
+    sortOrder,
+    page,
+    pageSize,
+  } = querySchema.parse(searchParams);
+
+  const networkStatus = rawNetworkStatus ?? (search ? undefined : "submitted");
 
   const partners = await prisma.partner.findMany({
     where: {
-      ...(effectiveNetworkStatus && { networkStatus: effectiveNetworkStatus }),
+      ...(networkStatus && { networkStatus }),
       ...(country && { country }),
       ...(search && {
-        email: {
-          contains: search,
-        },
+        email: search,
       }),
     },
-    orderBy: {
-      [networkStatus === "submitted"
-        ? "submittedAt"
-        : networkStatus === "draft"
-          ? "updatedAt"
-          : "reviewedAt"]: sortOrder,
-    },
+    ...(networkStatus !== "draft"
+      ? {
+          orderBy: {
+            [networkStatus === "submitted" ? "submittedAt" : "reviewedAt"]:
+              sortOrder,
+          },
+        }
+      : {}),
     include: {
       platforms: true,
       industryInterests: true,
@@ -57,6 +61,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
     take: pageSize,
     skip: ((page ?? 1) - 1) * pageSize,
   });
+  console.timeEnd("getNetworkPartners");
 
   return NextResponse.json({
     partners: adminNetworkPartnerSchema.array().parse(

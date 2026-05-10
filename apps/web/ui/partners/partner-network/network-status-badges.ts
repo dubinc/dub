@@ -25,7 +25,7 @@ export const NetworkStatusBadges = {
     },
     label: "Submitted",
     variant: "new",
-    className: "bg-bg-attention text-content-attention",
+    className: "bg-bg-info text-content-info",
     icon: CircleHalfDottedCheck,
   },
   rejected: {
@@ -42,13 +42,13 @@ export const NetworkStatusBadges = {
   approved: {
     label: "Approved",
     variant: "success",
-    className: "text-green-600 bg-green-100",
+    className: "bg-bg-success text-content-success",
     icon: CircleCheck,
   },
   trusted: {
     label: "Trusted",
     variant: "success",
-    className: "text-green-600 bg-green-100",
+    className: "bg-bg-success text-content-success",
     icon: CircleCheck,
   },
 };

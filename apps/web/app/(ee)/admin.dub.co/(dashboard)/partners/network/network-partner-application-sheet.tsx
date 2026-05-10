@@ -10,6 +10,7 @@ import {
   Button,
   ChevronLeft,
   ChevronRight,
+  ScrollContainer,
   Sheet,
   StatusBadge,
   Trophy,
@@ -161,21 +162,24 @@ export function NetworkPartnerApplicationSheet({
         </div>
 
         <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
-          <div className="@3xl/sheet:order-2 space-y-4">
+          <div className="@3xl/sheet:order-2 @3xl/sheet:sticky @3xl/sheet:top-0 @3xl/sheet:self-start space-y-4">
             <PartnerInfoCards
               type="admin"
               partner={partner}
               showApplicationRiskAnalysis
             />
-            <NetworkPartnerChangeHistory
-              changeHistoryLog={partner.changeHistoryLog}
-            />
+            <ScrollContainer className="@3xl/sheet:max-h-[50dvh] @3xl/sheet:pr-1">
+              <NetworkPartnerChangeHistory
+                changeHistoryLog={partner.changeHistoryLog}
+              />
+            </ScrollContainer>
           </div>
           <div className="@3xl/sheet:order-1">
             <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
               <NetworkPartnerSheetTabs
                 currentTabId={currentTabId}
                 setCurrentTabId={setCurrentTabId}
+                programsCount={partner.programs.length}
               />
               <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
                 {currentTabId === "about" && (
@@ -184,7 +188,9 @@ export function NetworkPartnerApplicationSheet({
                   </div>
                 )}
                 {currentTabId === "programs" && (
-                  <NetworkPartnerProgramPerformance partner={partner} />
+                  <ScrollContainer className="@3xl/sheet:max-h-[72dvh]">
+                    <NetworkPartnerProgramPerformance partner={partner} />
+                  </ScrollContainer>
                 )}
               </div>
             </div>
@@ -219,9 +225,11 @@ export function NetworkPartnerApplicationSheet({
 function NetworkPartnerSheetTabs({
   currentTabId,
   setCurrentTabId,
+  programsCount,
 }: {
   currentTabId: "about" | "programs";
   setCurrentTabId: (tabId: "about" | "programs") => void;
+  programsCount: number;
 }) {
   const layoutGroupId = useId();
 
@@ -235,6 +243,7 @@ function NetworkPartnerSheetTabs({
       id: "programs" as const,
       label: "Programs",
       icon: Trophy,
+      badge: programsCount > 99 ? "99+" : programsCount,
     },
   ];
 
@@ -242,7 +251,7 @@ function NetworkPartnerSheetTabs({
     <div className="scrollbar-hide relative z-0 flex items-center gap-1 overflow-x-auto p-2">
       <LayoutGroup id={layoutGroupId}>
         <div className="relative z-0 inline-flex items-center gap-1">
-          {tabs.map(({ id, label, icon: Icon }) => {
+          {tabs.map(({ id, label, icon: Icon, badge }) => {
             const isSelected = id === currentTabId;
             return (
               <button
@@ -258,6 +267,11 @@ function NetworkPartnerSheetTabs({
               >
                 <Icon className="size-4" />
                 <span>{label}</span>
+                {badge && (
+                  <span className="rounded-md bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
+                    {badge}
+                  </span>
+                )}
                 {isSelected && (
                   <motion.div
                     layoutId={layoutGroupId}
@@ -279,18 +293,102 @@ function NetworkPartnerProgramPerformance({
 }: {
   partner: AdminNetworkPartner;
 }) {
+  const [selectedStatus, setSelectedStatus] = useState<
+    AdminNetworkPartner["programs"][number]["status"] | "all"
+  >("all");
+
+  const statusOrder = [
+    "approved",
+    "invited",
+    "pending",
+    "rejected",
+    "deactivated",
+    "banned",
+  ] as const;
+
+  const statusCounts = partner.programs.reduce(
+    (counts, program) => {
+      counts[program.status] = (counts[program.status] ?? 0) + 1;
+      return counts;
+    },
+    {} as Partial<
+      Record<AdminNetworkPartner["programs"][number]["status"], number>
+    >,
+  );
+
+  const statusSummary = statusOrder
+    .map((status) => ({
+      status,
+      count: statusCounts[status] ?? 0,
+    }))
+    .filter(({ count }) => count > 0);
+
+  const filteredPrograms =
+    selectedStatus === "all"
+      ? partner.programs
+      : partner.programs.filter((program) => program.status === selectedStatus);
+
   return (
     <div>
-      <h3 className="text-content-emphasis text-sm font-semibold">
-        Program performance
-      </h3>
+      <div
+        className={cn(
+          "flex justify-between",
+          statusSummary.length > 3
+            ? "flex-col items-start"
+            : "flex-row items-center",
+        )}
+      >
+        <h3 className="text-content-emphasis text-sm font-semibold">
+          Program performance
+        </h3>
+        {statusSummary.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={cn(
+                "rounded-md transition-opacity",
+                selectedStatus === "all" ? "opacity-100" : "opacity-60 hover:opacity-100",
+              )}
+              onClick={() => setSelectedStatus("all")}
+            >
+              <StatusBadge variant="neutral">All ({partner.programs.length})</StatusBadge>
+            </button>
+            {statusSummary.map(({ status, count }) => (
+              <button
+                key={status}
+                type="button"
+                className={cn(
+                  "rounded-md transition-opacity",
+                  selectedStatus === status
+                    ? "opacity-100"
+                    : "opacity-60 hover:opacity-100",
+                )}
+                onClick={() =>
+                  setSelectedStatus((current) =>
+                    current === status ? "all" : status,
+                  )
+                }
+              >
+                <StatusBadge variant={getProgramStatusVariant(status)}>
+                  {capitalize(status)} ({count})
+                </StatusBadge>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       {partner.programs.length === 0 ? (
         <p className="mt-3 text-sm text-neutral-500">
           This partner is not enrolled in any programs yet.
         </p>
       ) : (
-        <div className="mt-3 space-y-3">
-          {partner.programs.map((program) => (
+        <div
+          className={cn(
+            "space-y-3",
+            statusSummary.length > 0 ? "mt-4" : "mt-3",
+          )}
+        >
+          {filteredPrograms.map((program) => (
             <div
               key={`${partner.id}-${program.id}`}
               className="rounded-lg border border-neutral-200 p-3"
@@ -316,13 +414,13 @@ function NetworkPartnerProgramPerformance({
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-neutral-500">
                 <div>
-                  <p className="text-neutral-400">Sales</p>
+                  <p className="text-neutral-400">Total revenue</p>
                   <p className="mt-0.5 text-sm font-medium text-neutral-900">
                     {currencyFormatter(program.totalSaleAmount)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-neutral-400">Commissions</p>
+                  <p className="text-neutral-400">Total commissions</p>
                   <p className="mt-0.5 text-sm font-medium text-neutral-900">
                     {currencyFormatter(program.totalCommissions)}
                   </p>
@@ -330,6 +428,11 @@ function NetworkPartnerProgramPerformance({
               </div>
             </div>
           ))}
+          {filteredPrograms.length === 0 && (
+            <p className="text-sm text-neutral-500">
+              No programs match this status.
+            </p>
+          )}
         </div>
       )}
     </div>
