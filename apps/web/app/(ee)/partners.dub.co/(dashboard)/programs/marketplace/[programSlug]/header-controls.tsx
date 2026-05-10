@@ -67,13 +67,25 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
       : undefined;
   }, [partner]);
 
+  const { executeAsync: submitNetworkProfile } = useAction(
+    submitNetworkProfileAction,
+    {
+      onSuccess: () => {
+        toast.success("Application submitted successfully");
+      },
+      onError: ({ error }) => {
+        toast.error(error.serverError);
+      },
+    },
+  );
+
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Submit application",
     description:
       "Are you sure you want to submit your Dub Network application for review? You won't be able to make changes to your application after submitting it.",
     confirmText: "Confirm submission",
     onConfirm: async () => {
-      await submitNetworkProfileAction();
+      await submitNetworkProfile();
       await mutate();
     },
   });

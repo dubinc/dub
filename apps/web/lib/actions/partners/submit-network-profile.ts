@@ -3,6 +3,8 @@
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
+import { sendEmail } from "@dub/email";
+import NetworkPartnerApplicationSubmitted from "@dub/email/templates/network-partner-application-submitted";
 import { prisma } from "@dub/prisma";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -71,5 +73,17 @@ export const submitNetworkProfileAction = authPartnerActionClient.action(
         submittedAt: new Date(),
       },
     });
+
+    if (partner.email) {
+      await sendEmail({
+        to: partner.email,
+        subject: "Dub Partner Network application submitted",
+        variant: "notifications",
+        react: NetworkPartnerApplicationSubmitted({
+          name: partner.name,
+          email: partner.email,
+        }),
+      });
+    }
   },
 );

@@ -1,7 +1,11 @@
 import { withAdmin } from "@/lib/auth";
 import { updateAdminNetworkStatusSchema } from "@/lib/zod/schemas/admin";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
+import { sendEmail } from "@dub/email";
+import NetworkPartnerApplicationApproved from "@dub/email/templates/network-partner-application-approved";
+import NetworkPartnerApplicationRejected from "@dub/email/templates/network-partner-application-rejected";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // PATCH /api/admin/partners/[partnerId]/network-status
@@ -16,6 +20,8 @@ export const PATCH = withAdmin(
       },
       select: {
         id: true,
+        name: true,
+        email: true,
         networkStatus: true,
         changeHistoryLog: true,
       },
@@ -64,6 +70,29 @@ export const PATCH = withAdmin(
         networkStatus: true,
       },
     });
+
+    if (existingPartner.email && (status === "approved" || status === "rejected")) {
+      waitUntil(
+        sendEmail({
+          to: existingPartner.email,
+          subject:
+            status === "approved"
+              ? "Your Dub Partner Network application was approved"
+              : "Dub Partner Network application update",
+          variant: "notifications",
+          react:
+            status === "approved"
+              ? NetworkPartnerApplicationApproved({
+                  name: existingPartner.name,
+                  email: existingPartner.email,
+                })
+              : NetworkPartnerApplicationRejected({
+                  name: existingPartner.name,
+                  email: existingPartner.email,
+                }),
+        }),
+      );
+    }
 
     return NextResponse.json(updatedPartner);
   },

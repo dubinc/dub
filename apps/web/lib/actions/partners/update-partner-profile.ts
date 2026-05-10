@@ -31,23 +31,7 @@ const updatePartnerProfileSchema = z
   .object({
     name: z.string().trim().min(1, "Name is required").optional(),
     email: z.email().optional(),
-    username: z
-      .string()
-      .trim()
-      .toLowerCase()
-      .min(3)
-      .max(100)
-      .refine(
-        async (v) => {
-          if (!v) return true;
-          if (!validSlugRegex.test(v) || RESERVED_SLUGS.includes(v))
-            return false;
-          if (await isReservedUsername(v)) return false;
-          return true;
-        },
-        { message: "Invalid username" },
-      )
-      .optional(),
+    username: z.string().trim().toLowerCase().min(3).max(100).optional(),
     image: uploadedImageSchema.nullish(),
     description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
@@ -117,6 +101,12 @@ export const updatePartnerProfileAction = authPartnerActionClient
     }
 
     if (username && username !== partner.username) {
+      if (!validSlugRegex.test(username) || RESERVED_SLUGS.includes(username)) {
+        throw new Error("Invalid username");
+      }
+      if (await isReservedUsername(username)) {
+        throw new Error("Invalid username");
+      }
       const existingPartner = await prisma.partner.findUnique({
         where: {
           username,

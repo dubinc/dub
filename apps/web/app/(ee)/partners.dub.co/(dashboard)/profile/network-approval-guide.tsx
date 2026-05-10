@@ -41,12 +41,16 @@ const NETWORK_STATUS_BADGE_VARIANT = {
 export function NetworkApprovalGuide() {
   const { partner, mutate } = usePartnerProfile();
 
-  if (!partner) return null;
-
-  const { tasks, completedCount, totalCount, isComplete } =
-    getNetworkProfileChecklistProgress({
-      partner,
-    });
+  const { tasks, completedCount, totalCount, isComplete } = partner
+    ? getNetworkProfileChecklistProgress({
+        partner,
+      })
+    : {
+        tasks: [],
+        completedCount: 0,
+        totalCount: 0,
+        isComplete: false,
+      };
 
   const [isExpanded, setIsExpanded] = useState(isComplete ? false : true);
 
@@ -72,6 +76,8 @@ export function NetworkApprovalGuide() {
       await mutate();
     },
   });
+
+  if (!partner) return null;
 
   return (
     <>
