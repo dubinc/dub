@@ -1,13 +1,30 @@
 import { withAdmin } from "@/lib/auth";
 import { adminNetworkPartnerSchema } from "@/lib/zod/schemas/admin";
 import { prisma } from "@dub/prisma";
+import { PartnerNetworkStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+const querySchema = z.object({
+  networkStatus: z.enum(PartnerNetworkStatus).optional(),
+  country: z.string().optional(),
+  search: z.string().trim().min(1).optional(),
+});
 
 // GET /api/admin/partners/network
-export const GET = withAdmin(async () => {
+export const GET = withAdmin(async ({ searchParams }) => {
+  const { networkStatus, country, search } = querySchema.parse(searchParams);
+  const effectiveNetworkStatus = search ? undefined : (networkStatus ?? "submitted");
+
   const partners = await prisma.partner.findMany({
     where: {
-      networkStatus: "submitted",
+      ...(effectiveNetworkStatus && { networkStatus: effectiveNetworkStatus }),
+      ...(country && { country }),
+      ...(search && {
+        email: {
+          contains: search,
+        },
+      }),
     },
     orderBy: {
       updatedAt: "desc",

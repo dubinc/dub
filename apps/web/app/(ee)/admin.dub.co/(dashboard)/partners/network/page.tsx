@@ -2,12 +2,15 @@
 
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { AdminNetworkPartner } from "@/lib/types";
+import { NetworkStatusBadges } from "@/ui/partners/partner-network/network-status-badges";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { CountryFlag } from "@/ui/shared/country-flag";
-import { PlatformType } from "@dub/prisma/client";
-import { Table, useRouterStuff, useTable } from "@dub/ui";
-import { COUNTRIES, fetcher, formatDateTime } from "@dub/utils";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { PartnerNetworkStatus, PlatformType } from "@dub/prisma/client";
+import { Filter, StatusBadge, Table, useRouterStuff, useTable } from "@dub/ui";
+import { CircleDotted, FlagWavy } from "@dub/ui/icons";
+import { cn, COUNTRIES, fetcher } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { NetworkPartnerApplicationSheet } from "app/(ee)/admin.dub.co/(dashboard)/partners/network/network-partner-application-sheet";
 import { useEffect, useMemo, useState } from "react";
@@ -24,7 +27,8 @@ const SOCIAL_FIELDS = [
 ] as const;
 
 export default function NetworkApplicationsPage() {
-  const { queryParams, searchParams } = useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj, getQueryString } =
+    useRouterStuff();
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     { open: false; partnerId: null } | { open: true; partnerId: string }
@@ -32,11 +36,88 @@ export default function NetworkApplicationsPage() {
 
   const { data, isLoading, mutate } = useSWR<{
     partners: AdminNetworkPartner[];
-  }>("/api/admin/partners/network", fetcher, {
-    keepPreviousData: true,
-  });
+  }>(
+    `/api/admin/partners/network${getQueryString(undefined, {
+      exclude: ["partnerId"],
+    })}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
 
   const partners = data?.partners ?? [];
+  const statusFilterOptions = useMemo(
+    () =>
+      Object.values(PartnerNetworkStatus).map((status) => {
+        {
+          const { label, icon: Icon, className } = NetworkStatusBadges[status];
+          return {
+            value: status,
+            label,
+            icon: <Icon className={cn(className, "size-4 bg-transparent")} />,
+          };
+        }
+      }),
+    [partners],
+  );
+  const countryFilterOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          partners
+            .map((partner) => partner.country)
+            .filter((country): country is string => Boolean(country)),
+        ),
+      )
+        .filter((country) => COUNTRIES[country])
+        .sort((a, b) => COUNTRIES[a].localeCompare(COUNTRIES[b]))
+        .map((country) => ({
+          value: country,
+          label: COUNTRIES[country],
+        })),
+    [partners],
+  );
+  const filters = useMemo(
+    () => [
+      {
+        key: "networkStatus",
+        icon: CircleDotted,
+        label: "Network status",
+        singleSelect: true,
+        options: statusFilterOptions,
+      },
+      {
+        key: "country",
+        icon: FlagWavy,
+        label: "Country",
+        singleSelect: true,
+        getOptionIcon: (value: string) => <CountryFlag countryCode={value} />,
+        options: countryFilterOptions,
+      },
+    ],
+    [countryFilterOptions, statusFilterOptions],
+  );
+  const activeFilters = useMemo(() => {
+    const active = [] as { key: string; value: string }[];
+
+    if (searchParamsObj.networkStatus) {
+      active.push({
+        key: "networkStatus",
+        value: searchParamsObj.networkStatus,
+      });
+    }
+
+    if (searchParamsObj.country) {
+      active.push({
+        key: "country",
+        value: searchParamsObj.country,
+      });
+    }
+
+    return active;
+  }, [searchParamsObj.country, searchParamsObj.networkStatus]);
+
   const platformsMapByPartnerId = useMemo(() => {
     const map = new Map<
       string,
@@ -93,6 +174,27 @@ export default function NetworkApplicationsPage() {
         : null,
     ] as const;
   }, [detailsSheetState.partnerId, partners]);
+
+  const onSelectFilter = (key: string, value: unknown) => {
+    queryParams({
+      set: {
+        [key]: String(value),
+      },
+      del: "page",
+    });
+  };
+
+  const onRemoveFilter = (key: string) => {
+    queryParams({
+      del: [key, "page"],
+    });
+  };
+
+  const onRemoveAllFilters = () => {
+    queryParams({
+      del: ["networkStatus", "country", "page"],
+    });
+  };
 
   const handleReviewPartner = async (
     partner: AdminNetworkPartner,
@@ -161,6 +263,21 @@ export default function NetworkApplicationsPage() {
         ),
       },
       {
+        id: "networkStatus",
+        header: "Status",
+        minSize: 140,
+        cell: ({ row }: { row: Row<AdminNetworkPartner> }) => {
+          const networkStatusBadge =
+            NetworkStatusBadges[row.original.networkStatus];
+          const { label, icon } = networkStatusBadge;
+          return (
+            <StatusBadge variant={networkStatusBadge.variant} icon={icon}>
+              {label}
+            </StatusBadge>
+          );
+        },
+      },
+      {
         id: "location",
         header: "Location",
         minSize: 150,
@@ -190,11 +307,6 @@ export default function NetworkApplicationsPage() {
           );
         },
       })),
-      {
-        id: "createdAt",
-        header: "Applied",
-        accessorFn: (d: AdminNetworkPartner) => formatDateTime(d.createdAt),
-      },
     ],
     [platformsMapByPartnerId],
   );
@@ -210,9 +322,6 @@ export default function NetworkApplicationsPage() {
         scroll: false,
       }),
     loading: isLoading,
-    sortableColumns: ["createdAt"],
-    sortBy: "createdAt",
-    sortOrder: "desc",
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (plural) => `application${plural ? "s" : ""}`,
@@ -261,6 +370,30 @@ export default function NetworkApplicationsPage() {
           onReview={handleReviewPartner}
         />
       )}
+      <div className="mb-4 flex flex-col gap-3">
+        <div className="min-[550px] flex w-full flex-col gap-2 min-[550px]:flex-row min-[550px]:items-center min-[550px]:justify-between">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelectFilter}
+            onRemove={onRemoveFilter}
+          />
+          <SearchBoxPersisted
+            placeholder="Search by partner email"
+            inputClassName="w-full md:w-80"
+          />
+        </div>
+        {activeFilters.length > 0 && (
+          <Filter.List
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelectFilter}
+            onRemove={onRemoveFilter}
+            onRemoveAll={onRemoveAllFilters}
+          />
+        )}
+      </div>
       <Table {...tableProps} table={table} />
     </>
   );

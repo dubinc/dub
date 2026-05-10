@@ -53,6 +53,7 @@ export const adminNetworkPartnerSchema = EnrolledPartnerSchemaExtended.pick({
   preferredEarningStructures: true,
   salesChannels: true,
 }).extend({
+  networkStatus: PartnerSchema.shape.networkStatus,
   platforms: z.array(partnerPlatformSchema),
   programs: z.array(
     ProgramSchema.pick({

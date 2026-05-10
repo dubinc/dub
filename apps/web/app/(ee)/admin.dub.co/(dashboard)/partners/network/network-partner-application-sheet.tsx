@@ -15,7 +15,7 @@ import {
   useKeyboardShortcut,
   User,
 } from "@dub/ui";
-import { cn, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { capitalize, cn, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useId, useState } from "react";
@@ -278,7 +278,7 @@ function NetworkPartnerProgramPerformance({
                   </span>
                 </Link>
                 <StatusBadge variant={getProgramStatusVariant(program.status)}>
-                  {program.status}
+                  {capitalize(program.status)}
                 </StatusBadge>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-neutral-500">

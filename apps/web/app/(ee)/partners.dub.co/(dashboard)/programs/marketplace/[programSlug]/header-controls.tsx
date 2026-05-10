@@ -10,14 +10,9 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { NetworkProgramProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { NetworkStatusBadges } from "@/ui/partners/partner-network/network-status-badges";
 import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
-import {
-  Button,
-  CircleHalfDottedClock,
-  CircleXmark,
-  ProgressCircle,
-  useKeyboardShortcut,
-} from "@dub/ui";
+import { Button, ProgressCircle, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -51,27 +46,6 @@ export function MarketplaceProgramHeaderControls({
 
   return <ApplyButton program={program} />;
 }
-
-const NETWORK_STATUS_TOOLTIP_CONTENT = {
-  draft: {
-    title:
-      "Submit your application to join the Dub Partner Network. After approval, you can then apply to this program.",
-    cta: "Submit application",
-  },
-  submitted: {
-    title:
-      "Your Dub Partner Network application is under review. You'll be able to apply to this program once approved.",
-    cta: "Pending approval",
-    className: "bg-bg-attention text-content-attention",
-    icon: CircleHalfDottedClock,
-  },
-  rejected: {
-    title: "Your Dub Partner Network application was rejected.",
-    cta: "Rejected",
-    className: "bg-bg-error text-content-error",
-    icon: CircleXmark,
-  },
-};
 
 function ApplyButton({ program }: { program: NetworkProgramProps }) {
   const { programApplicationSheet, setIsOpen: setIsApplicationSheetOpen } =
@@ -149,17 +123,17 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
       </div>
     ) : partner && !["approved", "trusted"].includes(partner.networkStatus) ? (
       (() => {
-        const {
-          title,
-          cta,
-          className,
-          icon: Icon,
-        } = NETWORK_STATUS_TOOLTIP_CONTENT[partner.networkStatus];
+        const networkStatusBadge = NetworkStatusBadges[partner.networkStatus];
+        if (!("partnerTooltip" in networkStatusBadge)) {
+          return null;
+        }
+        const { partnerTooltip, icon: Icon, className } = networkStatusBadge;
+        const { content, cta } = partnerTooltip;
 
         return (
           <div className="max-w-xs space-y-2 p-4 text-center">
             <div className="text-content-default text-pretty text-sm leading-5">
-              {title}
+              {content}
             </div>
             {partner.networkStatus === "draft" ? (
               <Button
