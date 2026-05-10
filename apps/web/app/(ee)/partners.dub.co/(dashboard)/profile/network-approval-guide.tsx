@@ -4,8 +4,11 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import {
   Button,
+  CircleCheck,
   CircleCheckFill,
   CircleDotted,
+  CircleHalfDottedClock,
+  CircleXmark,
   ExpandingArrow,
   ProgressCircle,
   StatusBadge,
@@ -21,14 +24,17 @@ const NETWORK_STATUS_BADGE_VARIANT = {
   submitted: {
     variant: "pending",
     label: "Pending approval",
+    icon: CircleHalfDottedClock,
   },
   rejected: {
     variant: "error",
     label: "Rejected",
+    icon: CircleXmark,
   },
   approved: {
     variant: "success",
     label: "Approved",
+    icon: CircleCheck,
   },
 } as const;
 
@@ -101,16 +107,22 @@ export function NetworkApprovalGuide() {
                     </span>
                   </div>
                 ) : (
-                  <StatusBadge
-                    className="dark"
-                    icon={null}
-                    variant={
-                      NETWORK_STATUS_BADGE_VARIANT[partner.networkStatus]
-                        .variant
-                    }
-                  >
-                    {NETWORK_STATUS_BADGE_VARIANT[partner.networkStatus].label}
-                  </StatusBadge>
+                  (() => {
+                    const {
+                      variant,
+                      label,
+                      icon: Icon,
+                    } = NETWORK_STATUS_BADGE_VARIANT[partner.networkStatus];
+                    return (
+                      <StatusBadge
+                        className="dark"
+                        icon={Icon}
+                        variant={variant}
+                      >
+                        {label}
+                      </StatusBadge>
+                    );
+                  })()
                 )}
               </div>
               <p className="text-content-inverted/60 text-sm">

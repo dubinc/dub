@@ -1,7 +1,7 @@
 import { PartnerPlatformProps } from "@/lib/types";
 import { PlatformType } from "@dub/prisma/client";
 import { BadgeCheck2Fill, Tooltip } from "@dub/ui";
-import { getDomainWithoutWWW } from "@dub/utils";
+import { formatDateTimeSmart, getDomainWithoutWWW } from "@dub/utils";
 
 const PLATFORMS_WITH_AT: PlatformType[] = [
   "youtube",
@@ -14,7 +14,10 @@ export function PartnerSocialColumn({
   platform,
   platformName,
 }: {
-  platform: PartnerPlatformProps | null | undefined;
+  platform:
+    | Pick<PartnerPlatformProps, "identifier" | "verifiedAt">
+    | null
+    | undefined;
   platformName: PlatformType;
 }) {
   if (!platform?.identifier) {
@@ -35,7 +38,14 @@ export function PartnerSocialColumn({
         {value}
       </span>
       {verified && (
-        <Tooltip content="Verified" disableHoverableContent>
+        <Tooltip
+          content={
+            platform.verifiedAt
+              ? `Verified ${formatDateTimeSmart(platform.verifiedAt)}`
+              : "Verified"
+          }
+          disableHoverableContent
+        >
           <div>
             <BadgeCheck2Fill className="size-4 text-green-600" />
           </div>

@@ -1,5 +1,5 @@
 import { withAdmin } from "@/lib/auth";
-import { fraudAlertSchema } from "@/lib/zod/schemas/fraud";
+import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
 import { prisma } from "@dub/prisma";
 import { FraudAlertStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
@@ -72,7 +72,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
   ]);
 
   return NextResponse.json({
-    fraudAlerts: fraudAlertSchema.array().parse(fraudAlerts),
+    fraudAlerts: adminFraudAlertSchema.array().parse(fraudAlerts),
     total,
   });
 });

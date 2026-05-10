@@ -203,6 +203,12 @@ export const createProgramApplicationAction = actionClient
             "Please complete your partner profile to submit your application: https://partners.dub.co/profile",
           );
         }
+
+        if (!["approved", "trusted"].includes(existingPartner.networkStatus)) {
+          throw new Error(
+            "Your partner network profile is not approved. Please wait for it to be approved before applying to this program.",
+          );
+        }
       }
 
       return createApplicationAndEnrollment({

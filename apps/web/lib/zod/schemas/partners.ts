@@ -575,16 +575,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
         "Return On Ad Spend (ROAS) (`Total Revenue ÷ Total Commissions`)",
       ),
   })
-  .extend(
-    OldPartnerPlatformsFields.pick({
-      website: true,
-      youtube: true,
-      twitter: true,
-      linkedin: true,
-      instagram: true,
-      tiktok: true,
-    }).shape,
-  );
+  .extend(OldPartnerPlatformsFields.shape);
 
 export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   lastLeadAt: z.date().nullish(),
@@ -596,16 +587,14 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
     id: true,
     provider: true,
   }).nullish(),
-})
-  .extend(
-    PartnerSchema.pick({
-      monthlyTraffic: true,
-      industryInterests: true,
-      preferredEarningStructures: true,
-      salesChannels: true,
-    }).shape,
-  )
-  .extend(OldPartnerPlatformsFields.shape);
+}).extend(
+  PartnerSchema.pick({
+    monthlyTraffic: true,
+    industryInterests: true,
+    preferredEarningStructures: true,
+    salesChannels: true,
+  }).shape,
+);
 
 export const WebhookPartnerSchema = PartnerSchema.pick({
   id: true,
