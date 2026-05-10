@@ -1,5 +1,6 @@
 import { FraudAlertStatus, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
+import { partnerProfileChangeHistoryLogSchema } from "./partner-profile";
 import {
   EnrolledPartnerSchemaExtended,
   partnerPlatformSchema,
@@ -53,8 +54,11 @@ export const adminNetworkPartnerSchema = EnrolledPartnerSchemaExtended.pick({
   preferredEarningStructures: true,
   salesChannels: true,
 }).extend({
+  submittedAt: z.date().nullable(),
+  reviewedAt: z.date().nullable(),
   networkStatus: PartnerSchema.shape.networkStatus,
   platforms: z.array(partnerPlatformSchema),
+  changeHistoryLog: partnerProfileChangeHistoryLogSchema.nullable(),
   programs: z.array(
     ProgramSchema.pick({
       id: true,

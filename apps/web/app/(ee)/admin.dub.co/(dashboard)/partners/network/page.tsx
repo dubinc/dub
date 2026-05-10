@@ -8,9 +8,17 @@ import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PartnerNetworkStatus, PlatformType } from "@dub/prisma/client";
-import { Filter, StatusBadge, Table, useRouterStuff, useTable } from "@dub/ui";
+import {
+  Filter,
+  StatusBadge,
+  Table,
+  TimestampTooltip,
+  usePagination,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
 import { CircleDotted, FlagWavy } from "@dub/ui/icons";
-import { cn, COUNTRIES, fetcher } from "@dub/utils";
+import { cn, COUNTRIES, fetcher, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { NetworkPartnerApplicationSheet } from "app/(ee)/admin.dub.co/(dashboard)/partners/network/network-partner-application-sheet";
 import { useEffect, useMemo, useState } from "react";
@@ -263,6 +271,25 @@ export default function NetworkApplicationsPage() {
         ),
       },
       {
+        id: "submittedAt",
+        header: "Applied",
+        cell: ({ row }: { row: Row<AdminNetworkPartner> }) =>
+          row.original.submittedAt ? (
+            <TimestampTooltip
+              timestamp={row.original.submittedAt}
+              rows={["local", "utc", "unix"]}
+              side="right"
+              delayDuration={150}
+            >
+              <span>
+                {formatDate(row.original.submittedAt, { month: "short" })}
+              </span>
+            </TimestampTooltip>
+          ) : (
+            "-"
+          ),
+      },
+      {
         id: "networkStatus",
         header: "Status",
         minSize: 140,
@@ -311,6 +338,10 @@ export default function NetworkApplicationsPage() {
     [platformsMapByPartnerId],
   );
 
+  const sortBy = searchParams.get("sortBy") || "submittedAt";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+  const { pagination, setPagination } = usePagination();
+
   const { table, ...tableProps } = useTable<AdminNetworkPartner>({
     data: partners,
     columns,
@@ -322,6 +353,21 @@ export default function NetworkApplicationsPage() {
         scroll: false,
       }),
     loading: isLoading,
+    sortableColumns: ["submittedAt"],
+    sortBy,
+    sortOrder,
+    onSortChange: ({ sortBy, sortOrder }) =>
+      queryParams({
+        set: {
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
+        },
+        del: "page",
+        scroll: false,
+      }),
+
+    pagination,
+    onPaginationChange: setPagination,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (plural) => `application${plural ? "s" : ""}`,

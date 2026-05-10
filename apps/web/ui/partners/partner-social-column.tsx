@@ -1,7 +1,7 @@
 import { PartnerPlatformProps } from "@/lib/types";
 import { PlatformType } from "@dub/prisma/client";
-import { BadgeCheck2Fill, Tooltip } from "@dub/ui";
-import { formatDateTimeSmart, getDomainWithoutWWW } from "@dub/utils";
+import { BadgeCheck2Fill, TimestampTooltip } from "@dub/ui";
+import { getDomainWithoutWWW } from "@dub/utils";
 
 const PLATFORMS_WITH_AT: PlatformType[] = [
   "youtube",
@@ -38,18 +38,17 @@ export function PartnerSocialColumn({
         {value}
       </span>
       {verified && (
-        <Tooltip
-          content={
-            platform.verifiedAt
-              ? `Verified ${formatDateTimeSmart(platform.verifiedAt)}`
-              : "Verified"
-          }
-          disableHoverableContent
+        <TimestampTooltip
+          timestamp={platform.verifiedAt}
+          rows={["local", "utc", "unix"]}
+          side="top"
+          prefix="Verified"
+          delayDuration={150}
         >
           <div>
             <BadgeCheck2Fill className="size-4 text-green-600" />
           </div>
-        </Tooltip>
+        </TimestampTooltip>
       )}
     </div>
   );

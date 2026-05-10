@@ -68,6 +68,7 @@ export const submitNetworkProfileAction = authPartnerActionClient.action(
       data: {
         networkStatus: "submitted",
         changeHistoryLog: partnerChangeHistoryLog,
+        submittedAt: new Date(),
       },
     });
   },

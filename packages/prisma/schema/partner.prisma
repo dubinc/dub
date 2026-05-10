@@ -74,7 +74,8 @@ model Partner {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   discoverableAt   DateTime?
-  addedToNetworkAt DateTime?
+  submittedAt      DateTime?
+  reviewedAt       DateTime?
   trustedAt        DateTime?
 
   // miscellaneous fields
@@ -112,6 +113,8 @@ model Partner {
 
   @@index(country)
   @@index(networkStatus)
+  @@index(submittedAt)
+  @@index(reviewedAt)
   @@index(discoverableAt) // TODO: remove index once we fully migrate to networkStatus
   @@index(trustedAt) // TODO: remove index once we fully migrate to networkStatus
   @@index(payoutMethodHash)

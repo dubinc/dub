@@ -3,6 +3,7 @@
 import { AdminNetworkPartner } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerAbout } from "@/ui/partners/partner-about";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
 import { X } from "@/ui/shared/icons";
 import {
@@ -42,16 +43,32 @@ export function NetworkPartnerApplicationSheet({
     "about",
   );
 
+  const PartnerDetails = (
+    <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
+      <div className="flex items-center gap-4">
+        <PartnerAvatar partner={partner} className="size-10 bg-white" />
+        <div className="flex min-w-0 flex-col">
+          <h4 className="truncate text-sm font-medium text-neutral-900">
+            {partner.name}
+          </h4>
+          <p className="truncate text-xs text-neutral-500">{partner.email}</p>
+        </div>
+      </div>
+    </div>
+  );
+
   const {
     setShowConfirmModal: setShowApproveConfirm,
     confirmModal: approveModal,
   } = useConfirmModal({
     title: "Approve network application",
-    description: `Approve ${partner.name} for the Dub Partner Network?`,
+    description: PartnerDetails,
     confirmText: "Approve",
     onConfirm: async () => {
       await onReview(partner, "approved");
     },
+    confirmShortcut: "a",
+    confirmShortcutOptions: { sheet: true, modal: true },
   });
 
   const {
@@ -59,12 +76,14 @@ export function NetworkPartnerApplicationSheet({
     confirmModal: rejectModal,
   } = useConfirmModal({
     title: "Reject network application",
-    description: `Reject ${partner.name}'s network application?`,
+    description: PartnerDetails,
     confirmText: "Reject",
     confirmVariant: "danger",
     onConfirm: async () => {
       await onReview(partner, "rejected");
     },
+    confirmShortcut: "r",
+    confirmShortcutOptions: { sheet: true, modal: true },
   });
 
   useKeyboardShortcut(
@@ -86,6 +105,14 @@ export function NetworkPartnerApplicationSheet({
     },
     { sheet: true },
   );
+
+  useKeyboardShortcut("a", () => setShowApproveConfirm(true), {
+    sheet: true,
+  });
+
+  useKeyboardShortcut("r", () => setShowRejectConfirm(true), {
+    sheet: true,
+  });
 
   return (
     <Sheet
@@ -167,6 +194,7 @@ export function NetworkPartnerApplicationSheet({
               variant="secondary"
               text="Reject"
               className="w-fit shrink-0"
+              shortcut="R"
               onClick={() => setShowRejectConfirm(true)}
             />
             <Button
@@ -174,6 +202,7 @@ export function NetworkPartnerApplicationSheet({
               variant="primary"
               text="Approve"
               className="w-fit shrink-0"
+              shortcut="A"
               onClick={() => setShowApproveConfirm(true)}
             />
           </div>
