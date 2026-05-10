@@ -20,6 +20,7 @@ import { capitalize, cn, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useId, useState } from "react";
+import { NetworkPartnerChangeHistory } from "./network-partner-change-history";
 
 export function NetworkPartnerApplicationSheet({
   isOpen,
@@ -160,11 +161,14 @@ export function NetworkPartnerApplicationSheet({
         </div>
 
         <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
-          <div className="@3xl/sheet:order-2">
+          <div className="@3xl/sheet:order-2 space-y-4">
             <PartnerInfoCards
               type="admin"
               partner={partner}
               showApplicationRiskAnalysis
+            />
+            <NetworkPartnerChangeHistory
+              changeHistoryLog={partner.changeHistoryLog}
             />
           </div>
           <div className="@3xl/sheet:order-1">
