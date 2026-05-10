@@ -1,6 +1,7 @@
 "use client";
 
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
+import { submitNetworkProfileAction } from "@/lib/actions/partners/submit-network-profile";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { mutatePrefix } from "@/lib/swr/mutate";
@@ -8,8 +9,16 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { NetworkProgramProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
-import { Button, ProgressCircle, useKeyboardShortcut } from "@dub/ui";
+import {
+  Button,
+  CircleHalfDottedClock,
+  CircleXmark,
+  ProgressCircle,
+  useKeyboardShortcut,
+} from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -43,6 +52,27 @@ export function MarketplaceProgramHeaderControls({
   return <ApplyButton program={program} />;
 }
 
+const NETWORK_STATUS_TOOLTIP_CONTENT = {
+  draft: {
+    title:
+      "Submit your application to join the Dub Partner Network. After approval, you can then apply to this program.",
+    cta: "Submit application",
+  },
+  submitted: {
+    title:
+      "Your Dub Partner Network application is under review. You'll be able to apply to this program once approved.",
+    cta: "Pending approval",
+    className: "bg-bg-attention text-content-attention",
+    icon: CircleHalfDottedClock,
+  },
+  rejected: {
+    title: "Your Dub Partner Network application was rejected.",
+    cta: "Rejected",
+    className: "bg-bg-error text-content-error",
+    icon: CircleXmark,
+  },
+};
+
 function ApplyButton({ program }: { program: NetworkProgramProps }) {
   const { programApplicationSheet, setIsOpen: setIsApplicationSheetOpen } =
     useProgramApplicationSheet({
@@ -51,7 +81,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
       onSuccess: () => mutatePrefix("/api/network/programs"),
     });
 
-  const { partner } = usePartnerProfile();
+  const { partner, mutate } = usePartnerProfile();
 
   const { programEnrollment } = useProgramEnrollment();
 
@@ -62,6 +92,17 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
         })
       : undefined;
   }, [partner]);
+
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Submit application",
+    description:
+      "Are you sure you want to submit your Dub Network application for review? You won't be able to make changes to your application after submitting it.",
+    confirmText: "Confirm submission",
+    onConfirm: async () => {
+      await submitNetworkProfileAction();
+      await mutate();
+    },
+  });
 
   const { reason } = evaluateApplicationRequirements({
     applicationRequirements: program.applicationRequirements,
@@ -85,9 +126,10 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
       ) ? (
       `You were ${programEnrollment.status} from this program`
     ) : checklistProgress && !checklistProgress.isComplete ? (
-      <div className="max-w-xs p-4">
-        <div className="text-content-default text-sm leading-5">
-          Complete your partner profile to apply
+      <div className="max-w-xs p-3 text-center">
+        <div className="text-content-default text-pretty text-sm leading-5">
+          Complete your profile to join the Dub Partner Network. Once approved,
+          you can then apply to this program.
         </div>
         <Link
           href="/profile"
@@ -105,6 +147,41 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
           </span>
         </Link>
       </div>
+    ) : partner && !["approved", "trusted"].includes(partner.networkStatus) ? (
+      (() => {
+        const {
+          title,
+          cta,
+          className,
+          icon: Icon,
+        } = NETWORK_STATUS_TOOLTIP_CONTENT[partner.networkStatus];
+
+        return (
+          <div className="max-w-xs space-y-2 p-4 text-center">
+            <div className="text-content-default text-pretty text-sm leading-5">
+              {title}
+            </div>
+            {partner.networkStatus === "draft" ? (
+              <Button
+                className="p-2"
+                text={cta}
+                onClick={() => setShowConfirmModal(true)}
+              />
+            ) : (
+              <Link
+                href="/profile"
+                className={cn(
+                  "flex items-center justify-center gap-2 rounded-lg p-2",
+                  className,
+                )}
+              >
+                <Icon className="size-4 shrink-0" />
+                <span className="text-sm font-medium">{cta}</span>
+              </Link>
+            )}
+          </div>
+        );
+      })()
     ) : (
       requirementsNotMet
     );
@@ -115,6 +192,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
 
   return (
     <>
+      {confirmModal}
       {programApplicationSheet}
       <Button
         text="Apply"

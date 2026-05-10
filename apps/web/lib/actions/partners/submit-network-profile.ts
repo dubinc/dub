@@ -1,6 +1,7 @@
 "use server";
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
+import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { authPartnerActionClient } from "../safe-action";
@@ -17,6 +18,36 @@ export const submitNetworkProfileAction = authPartnerActionClient.action(
 
     if (partner.networkStatus !== "draft") {
       throw new Error("Partner network profile not in 'draft' status");
+    }
+
+    const partnerProfile = await prisma.partner.findUniqueOrThrow({
+      where: {
+        id: partner.id,
+      },
+      include: {
+        platforms: true,
+        preferredEarningStructures: true,
+        salesChannels: true,
+      },
+    });
+
+    const { isComplete } = getNetworkProfileChecklistProgress({
+      partner: {
+        ...partnerProfile,
+        preferredEarningStructures:
+          partnerProfile.preferredEarningStructures.map(
+            ({ preferredEarningStructure }) => preferredEarningStructure,
+          ),
+        salesChannels: partnerProfile.salesChannels.map(
+          ({ salesChannel }) => salesChannel,
+        ),
+      },
+    });
+
+    if (!isComplete) {
+      throw new Error(
+        "Please complete your partner profile to submit your application: https://partners.dub.co/profile",
+      );
     }
 
     const partnerChangeHistoryLog = partner.changeHistoryLog
