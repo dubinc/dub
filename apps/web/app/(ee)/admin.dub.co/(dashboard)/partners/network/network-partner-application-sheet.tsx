@@ -5,7 +5,10 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerAbout } from "@/ui/partners/partner-about";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { X } from "@/ui/shared/icons";
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import {
   Button,
   ChevronLeft,
@@ -16,12 +19,15 @@ import {
   Trophy,
   useKeyboardShortcut,
   User,
+  Users,
 } from "@dub/ui";
-import { capitalize, cn, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { cn, COUNTRIES, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useId, useState } from "react";
 import { NetworkPartnerChangeHistory } from "./network-partner-change-history";
+
+type NetworkPartnerSheetTabId = "about" | "programs" | "duplicates";
 
 export function NetworkPartnerApplicationSheet({
   isOpen,
@@ -41,9 +47,8 @@ export function NetworkPartnerApplicationSheet({
     status: "approved" | "rejected",
   ) => Promise<void>;
 }) {
-  const [currentTabId, setCurrentTabId] = useState<"about" | "programs">(
-    "about",
-  );
+  const [currentTabId, setCurrentTabId] =
+    useState<NetworkPartnerSheetTabId>("about");
 
   const PartnerDetails = (
     <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
@@ -180,6 +185,7 @@ export function NetworkPartnerApplicationSheet({
                 currentTabId={currentTabId}
                 setCurrentTabId={setCurrentTabId}
                 programsCount={partner.programs.length}
+                duplicatesCount={partner.duplicatePartnerAccounts.length}
               />
               <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
                 {currentTabId === "about" && (
@@ -192,6 +198,16 @@ export function NetworkPartnerApplicationSheet({
                     <NetworkPartnerProgramPerformance partner={partner} />
                   </ScrollContainer>
                 )}
+                {currentTabId === "duplicates" &&
+                  partner.duplicatePartnerAccounts.length > 0 && (
+                    <ScrollContainer className="@3xl/sheet:max-h-[72dvh]">
+                      <NetworkPartnerDuplicateAccounts
+                        duplicatePartnerAccounts={
+                          partner.duplicatePartnerAccounts
+                        }
+                      />
+                    </ScrollContainer>
+                  )}
               </div>
             </div>
           </div>
@@ -226,32 +242,51 @@ function NetworkPartnerSheetTabs({
   currentTabId,
   setCurrentTabId,
   programsCount,
+  duplicatesCount,
 }: {
-  currentTabId: "about" | "programs";
-  setCurrentTabId: (tabId: "about" | "programs") => void;
+  currentTabId: NetworkPartnerSheetTabId;
+  setCurrentTabId: (tabId: NetworkPartnerSheetTabId) => void;
   programsCount: number;
+  duplicatesCount: number;
 }) {
   const layoutGroupId = useId();
 
-  const tabs = [
+  const tabs: {
+    id: NetworkPartnerSheetTabId;
+    label: string;
+    icon: typeof User;
+    badge?: string | number;
+    badgeClassName?: string;
+  }[] = [
     {
-      id: "about" as const,
+      id: "about",
       label: "About",
       icon: User,
     },
     {
-      id: "programs" as const,
+      id: "programs",
       label: "Programs",
       icon: Trophy,
       badge: programsCount > 99 ? "99+" : programsCount,
     },
+    ...(duplicatesCount > 0
+      ? [
+          {
+            id: "duplicates" as const,
+            label: "Duplicates",
+            icon: Users,
+            badge: duplicatesCount > 99 ? "99+" : duplicatesCount,
+            badgeClassName: "bg-red-600 text-white",
+          },
+        ]
+      : []),
   ];
 
   return (
     <div className="scrollbar-hide relative z-0 flex items-center gap-1 overflow-x-auto p-2">
       <LayoutGroup id={layoutGroupId}>
         <div className="relative z-0 inline-flex items-center gap-1">
-          {tabs.map(({ id, label, icon: Icon, badge }) => {
+          {tabs.map(({ id, label, icon: Icon, badge, badgeClassName }) => {
             const isSelected = id === currentTabId;
             return (
               <button
@@ -268,7 +303,12 @@ function NetworkPartnerSheetTabs({
                 <Icon className="size-4" />
                 <span>{label}</span>
                 {badge && (
-                  <span className="rounded-md bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
+                  <span
+                    className={cn(
+                      "rounded-md bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white",
+                      badgeClassName,
+                    )}
+                  >
                     {badge}
                   </span>
                 )}
@@ -288,13 +328,67 @@ function NetworkPartnerSheetTabs({
   );
 }
 
+function NetworkPartnerDuplicateAccounts({
+  duplicatePartnerAccounts,
+}: {
+  duplicatePartnerAccounts: AdminNetworkPartner["duplicatePartnerAccounts"];
+}) {
+  return (
+    <div>
+      <h3 className="text-content-emphasis text-sm font-semibold">
+        Duplicate partner accounts
+      </h3>
+      <p className="mt-1 text-sm text-neutral-500">
+        These accounts likely match this applicant by email or profile details.
+      </p>
+
+      <div className="mt-4 space-y-3">
+        {duplicatePartnerAccounts.map((account) => (
+          <Link
+            key={account.id}
+            href={`/partners/network?partnerId=${account.id}&search=${encodeURIComponent(account.email ?? "")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group block rounded-lg border border-red-100 bg-red-50/40 p-3 transition-colors hover:border-red-200 hover:bg-red-50"
+          >
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+              <div className="flex min-w-0 items-center gap-3">
+                <PartnerAvatar partner={account} className="size-9 bg-white" />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-neutral-900 group-hover:underline">
+                    {account.name}
+                  </p>
+                  <p className="truncate text-xs text-neutral-600">
+                    {account.email || "No email"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex w-fit items-center gap-1.5 rounded-md border border-red-200 bg-white px-2.5 py-1">
+                {account.country && (
+                  <CountryFlag
+                    countryCode={account.country}
+                    className="size-3.5"
+                  />
+                )}
+                <p className="truncate text-sm font-medium text-neutral-900 group-hover:underline">
+                  {account.country ? COUNTRIES[account.country] : "Unknown"}
+                </p>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function NetworkPartnerProgramPerformance({
   partner,
 }: {
   partner: AdminNetworkPartner;
 }) {
   const [selectedStatus, setSelectedStatus] = useState<
-    AdminNetworkPartner["programs"][number]["status"] | "all"
+    ProgramEnrollmentStatus | "all"
   >("all");
 
   const statusOrder = [
@@ -311,9 +405,7 @@ function NetworkPartnerProgramPerformance({
       counts[program.status] = (counts[program.status] ?? 0) + 1;
       return counts;
     },
-    {} as Partial<
-      Record<AdminNetworkPartner["programs"][number]["status"], number>
-    >,
+    {} as Partial<Record<ProgramEnrollmentStatus, number>>,
   );
 
   const statusSummary = statusOrder
@@ -347,11 +439,15 @@ function NetworkPartnerProgramPerformance({
               type="button"
               className={cn(
                 "rounded-md transition-opacity",
-                selectedStatus === "all" ? "opacity-100" : "opacity-60 hover:opacity-100",
+                selectedStatus === "all"
+                  ? "opacity-100"
+                  : "opacity-60 hover:opacity-100",
               )}
               onClick={() => setSelectedStatus("all")}
             >
-              <StatusBadge variant="neutral">All ({partner.programs.length})</StatusBadge>
+              <StatusBadge variant="neutral">
+                All ({partner.programs.length})
+              </StatusBadge>
             </button>
             {statusSummary.map(({ status, count }) => (
               <button
@@ -369,8 +465,8 @@ function NetworkPartnerProgramPerformance({
                   )
                 }
               >
-                <StatusBadge variant={getProgramStatusVariant(status)}>
-                  {capitalize(status)} ({count})
+                <StatusBadge {...PartnerStatusBadges[status]}>
+                  {PartnerStatusBadges[status].label} ({count})
                 </StatusBadge>
               </button>
             ))}
@@ -408,8 +504,8 @@ function NetworkPartnerProgramPerformance({
                     {program.name}
                   </span>
                 </Link>
-                <StatusBadge variant={getProgramStatusVariant(program.status)}>
-                  {capitalize(program.status)}
+                <StatusBadge {...PartnerStatusBadges[program.status]}>
+                  {PartnerStatusBadges[program.status].label}
                 </StatusBadge>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-neutral-500">
@@ -437,22 +533,4 @@ function NetworkPartnerProgramPerformance({
       )}
     </div>
   );
-}
-
-function getProgramStatusVariant(
-  status: AdminNetworkPartner["programs"][number]["status"],
-) {
-  if (status === "approved" || status === "invited") {
-    return "success" as const;
-  }
-
-  if (status === "pending") {
-    return "pending" as const;
-  }
-
-  if (status === "banned" || status === "rejected") {
-    return "error" as const;
-  }
-
-  return "neutral" as const;
 }

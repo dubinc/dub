@@ -18,7 +18,13 @@ import {
   useTable,
 } from "@dub/ui";
 import { CircleDotted, FlagWavy } from "@dub/ui/icons";
-import { cn, COUNTRIES, fetcher, formatDate } from "@dub/utils";
+import {
+  cn,
+  COUNTRIES,
+  fetcher,
+  formatDate,
+  INFINITY_NUMBER,
+} from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { NetworkPartnerApplicationSheet } from "app/(ee)/admin.dub.co/(dashboard)/partners/network/network-partner-application-sheet";
 import { useEffect, useMemo, useState } from "react";
@@ -91,7 +97,7 @@ export default function NetworkApplicationsPage() {
       {
         key: "networkStatus",
         icon: CircleDotted,
-        label: "Network status",
+        label: "Status",
         singleSelect: true,
         options: statusFilterOptions,
       },
@@ -271,23 +277,20 @@ export default function NetworkApplicationsPage() {
         ),
       },
       {
-        id: "submittedAt",
-        header: "Applied",
-        cell: ({ row }: { row: Row<AdminNetworkPartner> }) =>
-          row.original.submittedAt ? (
-            <TimestampTooltip
-              timestamp={row.original.submittedAt}
-              rows={["local", "utc", "unix"]}
-              side="right"
-              delayDuration={150}
-            >
-              <span>
-                {formatDate(row.original.submittedAt, { month: "short" })}
-              </span>
-            </TimestampTooltip>
-          ) : (
-            "-"
-          ),
+        id: "createdAt",
+        header: "Joined",
+        cell: ({ row }: { row: Row<AdminNetworkPartner> }) => (
+          <TimestampTooltip
+            timestamp={row.original.createdAt}
+            rows={["local", "utc", "unix"]}
+            side="right"
+            delayDuration={150}
+          >
+            <span>
+              {formatDate(row.original.createdAt, { month: "short" })}
+            </span>
+          </TimestampTooltip>
+        ),
       },
       {
         id: "networkStatus",
@@ -338,7 +341,7 @@ export default function NetworkApplicationsPage() {
     [platformsMapByPartnerId],
   );
 
-  const sortBy = searchParams.get("sortBy") || "submittedAt";
+  const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
   const { pagination, setPagination } = usePagination();
 
@@ -353,7 +356,7 @@ export default function NetworkApplicationsPage() {
         scroll: false,
       }),
     loading: isLoading,
-    sortableColumns: ["submittedAt"],
+    sortableColumns: ["createdAt"],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -370,8 +373,8 @@ export default function NetworkApplicationsPage() {
     onPaginationChange: setPagination,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (plural) => `application${plural ? "s" : ""}`,
-    rowCount: partners.length,
+    resourceName: (plural) => `partner${plural ? "s" : ""}`,
+    rowCount: partners.length < 100 ? partners.length : INFINITY_NUMBER,
   });
 
   return (

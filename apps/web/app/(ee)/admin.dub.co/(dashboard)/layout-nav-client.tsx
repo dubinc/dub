@@ -29,7 +29,7 @@ const tabs = [
     label: "Payouts",
   },
   {
-    href: "/partners/trusted",
+    href: "/partners/network?networkStatus=submitted",
     label: "Partners",
   },
   {

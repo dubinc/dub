@@ -9,14 +9,14 @@ export function PartnersNavTabs() {
   const tabs = useMemo(
     () => [
       {
+        id: "network",
+        label: "Network Partners",
+        icon: GridIcon,
+      },
+      {
         id: "trusted",
         label: "Trusted Partners",
         icon: UserCheck,
-      },
-      {
-        id: "network",
-        label: "Network Applications",
-        icon: GridIcon,
       },
       {
         id: "fraud",

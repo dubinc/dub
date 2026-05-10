@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function AdminPartnersPage() {
-  redirect("/partners/trusted");
+  redirect("/partners/network?networkStatus=submitted");
 }

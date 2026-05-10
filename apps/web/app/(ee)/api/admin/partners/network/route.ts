@@ -17,16 +17,8 @@ const querySchema = z
 
 // GET /api/admin/partners/network
 export const GET = withAdmin(async ({ searchParams }) => {
-  const {
-    networkStatus: rawNetworkStatus,
-    country,
-    search,
-    sortOrder,
-    page,
-    pageSize,
-  } = querySchema.parse(searchParams);
-
-  const networkStatus = rawNetworkStatus ?? (search ? undefined : "submitted");
+  const { networkStatus, country, search, sortOrder, page, pageSize } =
+    querySchema.parse(searchParams);
 
   const partners = await prisma.partner.findMany({
     where: {
@@ -36,14 +28,6 @@ export const GET = withAdmin(async ({ searchParams }) => {
         email: search,
       }),
     },
-    ...(networkStatus !== "draft"
-      ? {
-          orderBy: {
-            [networkStatus === "submitted" ? "submittedAt" : "reviewedAt"]:
-              sortOrder,
-          },
-        }
-      : {}),
     include: {
       platforms: true,
       industryInterests: true,
@@ -58,10 +42,40 @@ export const GET = withAdmin(async ({ searchParams }) => {
         },
       },
     },
+    orderBy: { createdAt: sortOrder },
     take: pageSize,
     skip: ((page ?? 1) - 1) * pageSize,
   });
-  console.timeEnd("getNetworkPartners");
+
+  const duplicatePartnerAccounts = await prisma.partner.findMany({
+    where: {
+      OR: [
+        {
+          payoutMethodHash: {
+            in: partners
+              .filter((partner) => partner.payoutMethodHash !== null)
+              .map((partner) => partner.payoutMethodHash!),
+          },
+        },
+        {
+          cryptoWalletAddress: {
+            in: partners
+              .filter((partner) => partner.cryptoWalletAddress !== null)
+              .map((partner) => partner.cryptoWalletAddress!),
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      country: true,
+      payoutMethodHash: true,
+      cryptoWalletAddress: true,
+    },
+  });
 
   return NextResponse.json({
     partners: adminNetworkPartnerSchema.array().parse(
@@ -80,6 +94,12 @@ export const GET = withAdmin(async ({ searchParams }) => {
           ...program,
           ...program.program,
         })),
+        duplicatePartnerAccounts: duplicatePartnerAccounts.filter(
+          (account) =>
+            account.id !== partner.id &&
+            (account.payoutMethodHash === partner.payoutMethodHash ||
+              account.cryptoWalletAddress === partner.cryptoWalletAddress),
+        ),
       })),
     ),
   });

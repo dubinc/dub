@@ -72,6 +72,15 @@ export const adminNetworkPartnerSchema = EnrolledPartnerSchemaExtended.pick({
       totalCommissions: centsSchema,
     }),
   ),
+  duplicatePartnerAccounts: z.array(
+    PartnerSchema.pick({
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      country: true,
+    }),
+  ),
 });
 
 export const updateAdminNetworkStatusSchema = z.object({

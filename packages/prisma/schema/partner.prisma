@@ -113,8 +113,7 @@ model Partner {
 
   @@index(country)
   @@index(networkStatus)
-  @@index(submittedAt)
-  @@index(reviewedAt)
+  @@index(createdAt)
   @@index(discoverableAt) // TODO: remove index once we fully migrate to networkStatus
   @@index(trustedAt) // TODO: remove index once we fully migrate to networkStatus
   @@index(payoutMethodHash)
