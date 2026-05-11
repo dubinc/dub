@@ -198,6 +198,27 @@ export const createReferralCommission = async (
     return null;
   }
 
+  if (commissionData.deduplicationKey) {
+    const existingCommission = await prisma.commission.findUnique({
+      where: {
+        programId_deduplicationKey: {
+          programId,
+          deduplicationKey: commissionData.deduplicationKey,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existingCommission) {
+      console.log(
+        `Referral commission ${existingCommission.id} already exists for the deduplication key ${commissionData.deduplicationKey}.`,
+      );
+      return null;
+    }
+  }
+
   let commission: Commission;
 
   try {

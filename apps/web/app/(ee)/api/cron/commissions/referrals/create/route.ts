@@ -16,10 +16,8 @@ export const POST = withCron(async ({ rawBody }) => {
 
   const referralCommission = await createReferralCommission(inputParsed);
 
-  if (!referralCommission) {
-    return logAndRespond(`Failed to create referral commission.`, {
-      status: 400,
-    });
+  if (referralCommission === null) {
+    return logAndRespond("Referral commission creation skipped.");
   }
 
   return logAndRespond(
