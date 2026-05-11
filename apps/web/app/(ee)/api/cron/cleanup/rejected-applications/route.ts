@@ -32,9 +32,6 @@ export async function POST(req: Request) {
             commissions: {
               none: {},
             },
-            messages: {
-              none: {},
-            },
           },
           take: 250,
         });
