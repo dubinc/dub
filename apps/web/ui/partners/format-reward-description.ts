@@ -1,6 +1,8 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import {
-  PARTNER_REFERRAL_TRIGGER_LABELS,
+  PARTNER_REFERRAL_PERCENTAGE_PREVIEW_BASIS_LABELS,
+  PARTNER_REFERRAL_PERCENTAGE_TRIGGERS,
+  PartnerReferralPercentageTrigger,
   referralRewardConfigSchema,
 } from "@/lib/partner-referrals/schemas";
 import { RewardProps } from "@/lib/types";
@@ -43,23 +45,71 @@ export function formatRewardDescription(reward: RewardProps) {
 
 function formatReferralRewardDescription(reward: RewardProps) {
   const rewardAmount = constructRewardAmount(reward);
+  const parsed = referralRewardConfigSchema.safeParse(reward.config);
+  const config = parsed.success ? parsed.data : undefined;
 
-  const config = referralRewardConfigSchema.safeParse(reward.config).data;
-
-  const triggerLabel = config
-    ? PARTNER_REFERRAL_TRIGGER_LABELS[config.trigger]
-    : "is";
+  if (!config) {
+    const duration = formatReferralDuration(reward.maxDuration);
+    return ["Earn", rewardAmount, "per", "referral", duration]
+      .filter(Boolean)
+      .join(" ");
+  }
 
   if (
-    config?.trigger === "commissionThreshold" &&
+    reward.type === "percentage" &&
+    (PARTNER_REFERRAL_PERCENTAGE_TRIGGERS as readonly string[]).includes(
+      config.trigger,
+    )
+  ) {
+    const basis =
+      PARTNER_REFERRAL_PERCENTAGE_PREVIEW_BASIS_LABELS[
+        config.trigger as PartnerReferralPercentageTrigger
+      ];
+    const duration = formatReferralDuration(reward.maxDuration);
+    return ["Earn", rewardAmount, "per", basis, duration]
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  if (
+    reward.type === "flat" &&
+    config.trigger === "commissionThreshold" &&
     config.commissionsThresholdInCents != null
   ) {
     const threshold = currencyFormatter(config.commissionsThresholdInCents, {
       trailingZeroDisplay: "stripIfInteger",
     });
 
-    return `Earn ${rewardAmount} when the referred partner ${triggerLabel} ${threshold} in commissions`;
+    return `Earn ${rewardAmount} when the referred partner earns at least ${threshold} in commissions`;
   }
 
-  return `Earn ${rewardAmount} when the referred partner ${triggerLabel}`;
+  if (reward.type === "flat" && config.trigger === "partnerApproved") {
+    return `Earn ${rewardAmount} when the referred partner is approved into the program`;
+  }
+
+  const duration = formatReferralDuration(reward.maxDuration);
+  return ["Earn", rewardAmount, "per", "referral", duration]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function formatReferralDuration(maxDuration: number | null | undefined) {
+  if (maxDuration === null) {
+    return "for the customer's lifetime";
+  }
+
+  if (maxDuration === 0) {
+    return "one time";
+  }
+
+  if (maxDuration && maxDuration > 1) {
+    if (maxDuration % 12 === 0) {
+      const years = maxDuration / 12;
+      return `for ${years} year${years > 1 ? "s" : ""}`;
+    }
+
+    return `for ${maxDuration} months`;
+  }
+
+  return "";
 }
