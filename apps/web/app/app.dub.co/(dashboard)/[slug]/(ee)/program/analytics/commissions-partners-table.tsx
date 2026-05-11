@@ -18,11 +18,7 @@ import { PartnerAnalyticsFilterCell } from "./partner-analytics-filter-cell";
 
 const PAGE_SIZE = 10;
 
-export function CommissionsPartnersTable({
-  queryString,
-}: {
-  queryString: string;
-}) {
+export function CommissionsPartnersTable() {
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination(PAGE_SIZE);
 
@@ -77,7 +73,6 @@ export function CommissionsPartnersTable({
     isLoading,
     error,
   } = useCommissionAnalytics({
-    queryString,
     groupBy: "partnerId",
   });
 

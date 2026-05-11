@@ -290,16 +290,17 @@ export function usePartnerFilters(
                     ({ status }) => !["pending", "rejected"].includes(status),
                   )
                   ?.map(({ status, _count }) => {
-                    const Icon = PartnerStatusBadges[status].icon;
+                    const {
+                      label,
+                      icon: Icon,
+                      className,
+                    } = PartnerStatusBadges[status];
                     return {
                       value: status,
-                      label: PartnerStatusBadges[status].label,
+                      label,
                       icon: (
                         <Icon
-                          className={cn(
-                            PartnerStatusBadges[status].className,
-                            "size-4 bg-transparent",
-                          )}
+                          className={cn(className, "size-4 bg-transparent")}
                         />
                       ),
                       right: nFormatter(_count || 0, { full: true }),

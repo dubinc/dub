@@ -53,11 +53,16 @@ type UpdatePartnerTagsModalProps = {
 
 function UpdatePartnerTagsModalContent({
   setShowUpdatePartnerTagsModal,
+  showUpdatePartnerTagsModal,
   partners,
 }: UpdatePartnerTagsModalProps) {
   const { id: workspaceId } = useWorkspace();
 
+  const wasModalOpenRef = useRef(false);
   const [search, setSearch] = useState("");
+  /** Tag definition was deleted this visit (server already updated); enables Save to finish & close. */
+  const [hasDeletedPartnerTagThisSession, setHasDeletedPartnerTagThisSession] =
+    useState(false);
   const [debouncedSearch] = useDebounce(search, 500);
 
   const { partnerTagsCount } = usePartnerTagsCount();
@@ -93,6 +98,19 @@ function UpdatePartnerTagsModalContent({
     added: [],
     removed: [],
   });
+
+  useEffect(() => {
+    if (showUpdatePartnerTagsModal) {
+      if (!wasModalOpenRef.current) {
+        setSelectionState({ added: [], removed: [] });
+        setHasDeletedPartnerTagThisSession(false);
+        setSearch("");
+      }
+      wasModalOpenRef.current = true;
+    } else {
+      wasModalOpenRef.current = false;
+    }
+  }, [showUpdatePartnerTagsModal]);
 
   const tagOptions = useMemo(() => {
     if (!availableTags) return undefined;
@@ -146,6 +164,14 @@ function UpdatePartnerTagsModalContent({
       });
   }, [partners, availableTags, selectionState]);
 
+  const clearDeletedTagFromSelection = useCallback((tagId: string) => {
+    setSelectionState((s) => ({
+      added: s.added.filter((t) => t.id !== tagId),
+      removed: s.removed.filter((t) => t.id !== tagId),
+    }));
+    setHasDeletedPartnerTagThisSession(true);
+  }, []);
+
   const { executeAsync: updatePartnerTags, isPending } = useAction(
     updateProgramPartnerTagsAction,
     {
@@ -164,13 +190,34 @@ function UpdatePartnerTagsModalContent({
   const handleSave = useCallback(async () => {
     if (!workspaceId) return;
 
-    await updatePartnerTags({
-      workspaceId,
-      partnerIds: partners.map(({ id }) => id),
-      addTagIds: selectionState.added.map(({ id }) => id),
-      removeTagIds: selectionState.removed.map(({ id }) => id),
-    });
-  }, [workspaceId, partners, updatePartnerTags, selectionState]);
+    const addTagIds = selectionState.added.map(({ id }) => id);
+    const removeTagIds = selectionState.removed.map(({ id }) => id);
+
+    if (addTagIds.length > 0 || removeTagIds.length > 0) {
+      await updatePartnerTags({
+        workspaceId,
+        partnerIds: partners.map(({ id }) => id),
+        addTagIds,
+        removeTagIds,
+      });
+      return;
+    }
+
+    if (hasDeletedPartnerTagThisSession) {
+      setShowUpdatePartnerTagsModal(false);
+      setHasDeletedPartnerTagThisSession(false);
+      await mutatePrefix("/api/partners");
+      await mutatePrefix("/api/partners/tags");
+      await mutatePrefix("/api/partners/count");
+    }
+  }, [
+    workspaceId,
+    partners,
+    updatePartnerTags,
+    selectionState,
+    hasDeletedPartnerTagThisSession,
+    setShowUpdatePartnerTagsModal,
+  ]);
 
   const { executeAsync: createPartnerTag, isPending: isCreatingPartnerTag } =
     useAction(createPartnerTagAction, {
@@ -238,6 +285,7 @@ function UpdatePartnerTagsModalContent({
                         partnerCounts?.find((pc) => pc.partnerTagId === tag.id)
                           ?._count ?? 0
                       }
+                      onTagDeleted={clearDeletedTagFromSelection}
                       checked={tag.checkedState}
                       onCheckedChange={(checked) => {
                         setSelectionState(({ added, removed }) => ({
@@ -356,7 +404,9 @@ function UpdatePartnerTagsModalContent({
             loading={isPending}
             text="Save"
             disabled={
-              !selectionState.added.length && !selectionState.removed.length
+              !selectionState.added.length &&
+              !selectionState.removed.length &&
+              !hasDeletedPartnerTagThisSession
             }
             className="h-8 w-fit px-3"
           />
@@ -366,7 +416,7 @@ function UpdatePartnerTagsModalContent({
   );
 }
 
-function UpdatePartnerTagsModal(props: UpdatePartnerTagsModalProps) {
+export function UpdatePartnerTagsModal(props: UpdatePartnerTagsModalProps) {
   return (
     <Modal
       showModal={props.showUpdatePartnerTagsModal}
@@ -383,20 +433,24 @@ function TagOption({
   partnerCount,
   checked,
   onCheckedChange,
+  onTagDeleted,
 }: {
   tag: PartnerTagProps;
   partnerCount: number;
   checked: boolean | "indeterminate";
   onCheckedChange: (checked: boolean | "indeterminate") => void;
+  onTagDeleted?: (tagId: string) => void;
 }) {
   const { id: workspaceId } = useWorkspace();
 
   const { executeAsync: deletePartnerTag, isPending: isDeletingPartnerTag } =
     useAction(deletePartnerTagAction, {
-      onSuccess: () => {
+      onSuccess: async () => {
         toast.success("Partner tag deleted successfully!");
-        mutatePrefix("/api/partners");
-        mutatePrefix("/api/partners/tags");
+        onTagDeleted?.(tag.id);
+        await mutatePrefix("/api/partners");
+        await mutatePrefix("/api/partners/tags");
+        await mutatePrefix("/api/partners/count");
       },
       onError: ({ error }) => {
         toast.error(parseActionError(error, "Failed to delete partner tag"));
@@ -416,6 +470,7 @@ function TagOption({
         toast.success("Partner tag updated successfully!");
         mutatePrefix("/api/partners");
         mutatePrefix("/api/partners/tags");
+        mutatePrefix("/api/partners/count");
       },
       onError: ({ error }) => {
         toast.error(parseActionError(error, "Failed to update partner tag"));
@@ -553,27 +608,15 @@ function TagOption({
   );
 }
 
-export function useUpdatePartnerTagsModal({
-  partners,
-}: Pick<UpdatePartnerTagsModalProps, "partners">) {
+export function useUpdatePartnerTagsModal() {
   const [showUpdatePartnerTagsModal, setShowUpdatePartnerTagsModal] =
     useState(false);
 
-  const UpdatePartnerTagsModalCallback = useCallback(() => {
-    return (
-      <UpdatePartnerTagsModal
-        showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
-        setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
-        partners={partners}
-      />
-    );
-  }, [showUpdatePartnerTagsModal, setShowUpdatePartnerTagsModal, partners]);
-
   return useMemo(
     () => ({
+      showUpdatePartnerTagsModal,
       setShowUpdatePartnerTagsModal,
-      UpdatePartnerTagsModal: UpdatePartnerTagsModalCallback,
     }),
-    [setShowUpdatePartnerTagsModal, UpdatePartnerTagsModalCallback],
+    [showUpdatePartnerTagsModal, setShowUpdatePartnerTagsModal],
   );
 }

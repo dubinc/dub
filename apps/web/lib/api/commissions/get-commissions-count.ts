@@ -25,6 +25,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     payoutId,
     customerId,
     groupId,
+    partnerTagId,
     fraudEventGroupId,
     start,
     end,
@@ -71,6 +72,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       };
 
   const groupFilter = parseFilterValue(groupId);
+  const partnerTagFilter = parseFilterValue(partnerTagId);
 
   const programEnrollmentFilter = {
     ...(groupFilter && {
@@ -78,6 +80,12 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
         groupFilter.sqlOperator === "NOT IN"
           ? { notIn: groupFilter.values }
           : { in: groupFilter.values },
+    }),
+    ...(partnerTagFilter && {
+      programPartnerTags:
+        partnerTagFilter.sqlOperator === "NOT IN"
+          ? { none: { partnerTagId: { in: partnerTagFilter.values } } }
+          : { some: { partnerTagId: { in: partnerTagFilter.values } } },
     }),
     ...(isHoldStatus && {
       fraudEventGroups: {

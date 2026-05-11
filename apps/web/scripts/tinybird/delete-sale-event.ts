@@ -2,7 +2,7 @@ import "dotenv-flow/config";
 
 // update tinybird sale event
 async function main() {
-  const deleteCondition = "event_id = 'PBsBVOHgVrBcs68F'";
+  const deleteCondition = "link_id = 'link_xxx' AND amount = 0";
 
   //  delete data from tinybird
   const deleteRes = await Promise.allSettled([
@@ -12,10 +12,6 @@ async function main() {
     }),
     deleteData({
       dataSource: "dub_sale_events_mv",
-      deleteCondition,
-    }),
-    deleteData({
-      dataSource: "dub_sale_events_id",
       deleteCondition,
     }),
   ]);

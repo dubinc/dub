@@ -7,7 +7,7 @@ import {
   Lock,
 } from "@dub/ui/icons";
 
-export const BOUNTY_SUBMISSION_STATUS_BADGES = {
+export const BountySubmissionStatusBadges = {
   notSubmitted: {
     label: "Not submitted",
     variant: "neutral",
@@ -23,13 +23,13 @@ export const BOUNTY_SUBMISSION_STATUS_BADGES = {
   draft: {
     label: "In progress",
     variant: "pending",
-    icon: CircleHalfDottedCheck,
+    icon: CircleHalfDottedClock,
     iconClassName: "text-orange-600",
   },
   submitted: {
     label: "Submitted",
     variant: "new",
-    icon: CircleHalfDottedClock,
+    icon: CircleHalfDottedCheck,
     iconClassName: "text-blue-600",
   },
   approved: {

@@ -75,6 +75,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
       minimum_payout_cents,
       commission_percent,
       max_commission_period_months,
+      max_commissions,
       days_until_commissions_are_due,
       reward_type,
     } = campaign;
@@ -142,7 +143,12 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
             },
           },
           event: EventType.sale,
-          maxDuration: max_commission_period_months,
+          // if max_commissions is 1 OR max_commission_period_months is 0,
+          // map to Dub's maxDuration = 0 ("for the first sale").
+          maxDuration:
+            max_commissions === 1 || max_commission_period_months === 0
+              ? 0
+              : max_commission_period_months,
           type:
             reward_type === "amount"
               ? RewardStructure.flat

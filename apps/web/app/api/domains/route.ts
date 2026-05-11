@@ -207,6 +207,9 @@ export const POST = withWorkspace(
             slug: slug,
             projectId: workspace.id,
             primary: totalDomains === 0,
+            ...(slug.endsWith(".dub.link") && {
+              verified: true,
+            }),
             ...(placeholder && { placeholder }),
             expiredUrl,
             notFoundUrl,

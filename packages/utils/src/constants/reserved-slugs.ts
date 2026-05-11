@@ -5,6 +5,7 @@
  */
 
 export const RESERVED_SLUGS = [
+  "dub",
   "va",
   "static",
   "stats",
