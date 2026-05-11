@@ -144,7 +144,7 @@ export const createReferralCommission = async (
       customerId: sourceCommission.customerId,
       currency: sourceCommission.currency,
       sourceCommissionId: sourceCommission.id,
-      deduplicationKey: `${trigger}:${sourceCommission.id}`,
+      deduplicationKey: `referral:${trigger}:${sourceCommission.id}`,
     };
   }
 
@@ -153,7 +153,7 @@ export const createReferralCommission = async (
     commissionData = {
       ...commissionData,
       earnings: referralReward.amountInCents ?? 0,
-      deduplicationKey: `${trigger}:${partnerId}`,
+      deduplicationKey: `referral:${trigger}:${partnerId}`,
     };
   }
 
@@ -182,7 +182,7 @@ export const createReferralCommission = async (
     commissionData = {
       ...commissionData,
       earnings: referralReward.amountInCents ?? 0,
-      deduplicationKey: `${trigger}:${partnerId}`,
+      deduplicationKey: `referral:${trigger}:${partnerId}`,
     };
   }
 
@@ -198,6 +198,7 @@ export const createReferralCommission = async (
     return null;
   }
 
+  // Check if the commission already exists using the deduplication key
   if (commissionData.deduplicationKey) {
     const existingCommission = await prisma.commission.findUnique({
       where: {
@@ -226,6 +227,18 @@ export const createReferralCommission = async (
       data: commissionData,
     });
   } catch (error) {
+    // Don't retry on unique constraint violation – the commission already exists
+    // (likely a race between the dedup check and the create)
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      console.log(
+        `Referral commission already exists for deduplication key ${commissionData.deduplicationKey}, skipping creation.`,
+      );
+      return null;
+    }
+
     console.error("Error creating referral commission", error);
 
     await log({
@@ -234,7 +247,7 @@ export const createReferralCommission = async (
       mention: true,
     });
 
-    return null;
+    throw error;
   }
 
   const program = await prisma.program.findUniqueOrThrow({
