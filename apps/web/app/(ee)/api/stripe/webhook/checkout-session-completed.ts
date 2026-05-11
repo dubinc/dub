@@ -5,17 +5,14 @@ import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache"
 import { tokenCache } from "@/lib/auth/token-cache";
 import { wouldGainPartnerAccess } from "@/lib/plans/has-partner-access";
 import { stripe } from "@/lib/stripe";
-import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
-import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
-import { Program, User } from "@dub/prisma/client";
+import { User } from "@dub/prisma/client";
 import {
   getPlanAndTierFromPriceId,
   getWorkspaceLimitsForStripeSubscriptionStatus,
-  isWorkspaceBillingTrialActive,
   log,
 } from "@dub/utils";
 import Stripe from "stripe";
@@ -140,7 +137,7 @@ export async function checkoutSessionCompleted(
   }));
 
   await Promise.allSettled([
-    completeOnboarding({ users, workspaceId }),
+    completeOnboarding({ users, workspaceId, subscription }),
     // if workspace had a program from before and is upgrading to an eligible plan, reactivate it
     updatedWorkspace.defaultProgramId &&
       wouldGainPartnerAccess({
@@ -148,41 +145,26 @@ export async function checkoutSessionCompleted(
         newPlan: updatedWorkspace.plan,
       }) &&
       reactivateProgram(updatedWorkspace.defaultProgramId),
-    // If trial + no program (Links trial), send TrialStartedEmail – for program trial we send it in create-program.ts
-    // else, we send Upgrade thank you email
-    // TODO: Only send TrialStartedEmail once we remove the trial feature flag
-    isWorkspaceBillingTrialActive(trialEndsAt) &&
-    !updatedWorkspace.store?.["programOnboarding"]
-      ? sendBatchEmail(
-          users.map((user) => ({
-            to: user.email as string,
-            replyTo: "steven.tey@dub.co",
-            subject: "Welcome to your 14-day Dub trial",
-            react: TrialStartedEmail({
-              email: user.email as string,
-              plan: plan.name,
-              workspace: {
-                slug: updatedWorkspace.slug,
-                logo: updatedWorkspace.logo,
-                name: updatedWorkspace.name,
-              },
-            }),
-            variant: "marketing",
-          })),
-        )
-      : sendBatchEmail(
-          users.map((user) => ({
-            to: user.email as string,
-            replyTo: "steven.tey@dub.co",
-            subject: `Thank you for upgrading to Dub ${plan.name}!`,
-            react: UpgradeEmail({
-              name: user.name,
-              email: user.email as string,
-              plan: plan.name,
-            }),
-            variant: "marketing",
-          })),
-        ),
+    // If no programOnboarding data (Links trial), send TrialStartedEmail
+    // For program trial we send it in create-program.ts
+    !updatedWorkspace.store?.["programOnboarding"] &&
+      sendBatchEmail(
+        users.map((user) => ({
+          to: user.email as string,
+          replyTo: "steven.tey@dub.co",
+          subject: "Welcome to your 14-day Dub trial",
+          react: TrialStartedEmail({
+            email: user.email as string,
+            plan: plan.name,
+            workspace: {
+              slug: updatedWorkspace.slug,
+              logo: updatedWorkspace.logo,
+              name: updatedWorkspace.name,
+            },
+          }),
+          variant: "marketing",
+        })),
+      ),
     // expire tokens cache
     tokenCache.expireMany({
       hashedKeys: updatedWorkspace.restrictedTokens.map(
@@ -195,21 +177,19 @@ export async function checkoutSessionCompleted(
 }
 
 async function completeOnboarding({
-  users,
   workspaceId,
+  users,
+  subscription,
 }: {
-  users: Pick<User, "id" | "email">[];
   workspaceId: string;
+  users: Pick<User, "id" | "email">[];
+  subscription: Pick<Stripe.Subscription, "status">;
 }) {
-  const workspace = (await prisma.project.findUnique({
+  const workspace = await prisma.project.findUnique({
     where: {
       id: workspaceId,
     },
-    include: {
-      users: true,
-      programs: true,
-    },
-  })) as unknown as (WorkspaceProps & { programs: Program[] }) | null;
+  });
 
   if (!workspace) {
     console.error(
@@ -227,8 +207,7 @@ async function completeOnboarding({
 
     // Create program based on programOnboarding data
     users.length > 0 &&
-      workspace.programs.length === 0 &&
-      workspace.store?.programOnboarding &&
+      workspace.store?.["programOnboarding"] &&
       createProgram({
         workspace,
         user: users[0],
@@ -237,8 +216,8 @@ async function completeOnboarding({
         return;
       }),
 
-    // Claim saved domain (only if not on trial)
-    !isWorkspaceBillingTrialActive(workspace.trialEndsAt) &&
+    // Claim saved domain (only if subscription is active)
+    subscription.status === "active" &&
       (async () => {
         // Register saved domain
         const data = await redis.get<{ domain: string; userId: string }>(
