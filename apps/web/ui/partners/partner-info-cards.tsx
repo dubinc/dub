@@ -146,7 +146,7 @@ export function PartnerInfoCards({
       {
         id: "createdAt",
         icon: <Users className="size-3.5" />,
-        text: `${"status" in partner && partner.status === "pending" ? "Applied" : "Partner since"} ${formatDate(partner.createdAt)}`,
+        text: `${"status" in partner && partner.status === "pending" ? "Applied" : "Partner since"} ${formatDateTimeSmart(partner.createdAt)}`,
         timestamp: partner.createdAt,
       },
       {
