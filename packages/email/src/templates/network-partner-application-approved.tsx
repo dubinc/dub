@@ -77,10 +77,9 @@ export default function NetworkPartnerApplicationApproved({
               </Link>
             </Section>
 
-            <Footer
-              email={email}
-              notificationSettingsUrl="https://partners.dub.co/profile/notifications"
-            />
+            <Section className="mx-auto max-w-[400px] text-center">
+              <Footer email={email} />
+            </Section>
           </Container>
         </Body>
       </Tailwind>

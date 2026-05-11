@@ -206,7 +206,7 @@ export default function NetworkApplicationsPage() {
 
   const handleReviewPartner = async (
     partner: AdminNetworkPartner,
-    status: "approved" | "rejected",
+    status: "approved" | "rejected" | "draft",
   ) => {
     const currentIndex = partners.findIndex(({ id }) => id === partner.id);
     const fallbackPartnerId =
@@ -233,7 +233,9 @@ export default function NetworkApplicationsPage() {
       toast.success(
         status === "approved"
           ? "Partner approved for the network."
-          : "Partner rejected from the network.",
+          : status === "draft"
+            ? "Network profile reverted to draft."
+            : "Partner rejected from the network.",
       );
 
       await mutate();

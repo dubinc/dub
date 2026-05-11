@@ -113,7 +113,6 @@ model Partner {
   @@index(country)
   @@index(networkStatus)
   @@index(createdAt)
-  @@index(trustedAt) // TODO: remove index once we fully migrate to networkStatus
   @@index(payoutMethodHash)
   @@index(cryptoWalletAddress)
   @@index(identityVerifiedAt)

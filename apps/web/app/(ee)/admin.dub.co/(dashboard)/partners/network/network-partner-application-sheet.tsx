@@ -18,8 +18,8 @@ import {
   StatusBadge,
   Trophy,
   useKeyboardShortcut,
-  useRouterStuff,
   User,
+  useRouterStuff,
   Users,
 } from "@dub/ui";
 import { cn, COUNTRIES, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
@@ -29,6 +29,24 @@ import { useId, useState } from "react";
 import { NetworkPartnerChangeHistory } from "./network-partner-change-history";
 
 type NetworkPartnerSheetTabId = "about" | "programs" | "duplicates";
+
+function isDirectDraftToApprovedNetworkApproval(
+  partner: AdminNetworkPartner,
+): boolean {
+  if (partner.networkStatus !== "approved") {
+    return false;
+  }
+
+  const networkLogs = (partner.changeHistoryLog ?? []).filter(
+    (entry) => entry.field === "networkStatus",
+  );
+
+  return (
+    networkLogs.length === 1 &&
+    networkLogs[0].from === "draft" &&
+    networkLogs[0].to === "approved"
+  );
+}
 
 export function NetworkPartnerApplicationSheet({
   isOpen,
@@ -45,12 +63,15 @@ export function NetworkPartnerApplicationSheet({
   onNext?: () => void;
   onReview: (
     partner: AdminNetworkPartner,
-    status: "approved" | "rejected",
+    status: "approved" | "rejected" | "draft",
   ) => Promise<void>;
 }) {
   const [currentTabId, setCurrentTabId] =
     useState<NetworkPartnerSheetTabId>("about");
   const { queryParams } = useRouterStuff();
+
+  const showRevertToDraftInsteadOfReject =
+    isDirectDraftToApprovedNetworkApproval(partner);
 
   const PartnerDetails = (
     <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
@@ -95,6 +116,21 @@ export function NetworkPartnerApplicationSheet({
     confirmShortcutOptions: { sheet: true, modal: true },
   });
 
+  const {
+    setShowConfirmModal: setShowRevertToDraftConfirm,
+    confirmModal: revertToDraftModal,
+  } = useConfirmModal({
+    title: "Revert network profile to draft",
+    description: PartnerDetails,
+    confirmText: "Revert to draft",
+    confirmVariant: "danger",
+    onConfirm: async () => {
+      await onReview(partner, "draft");
+    },
+    confirmShortcut: "r",
+    confirmShortcutOptions: { sheet: true, modal: true },
+  });
+
   useKeyboardShortcut(
     "ArrowRight",
     () => {
@@ -122,7 +158,14 @@ export function NetworkPartnerApplicationSheet({
 
   useKeyboardShortcut("r", () => setShowRejectConfirm(true), {
     sheet: true,
-    enabled: !["rejected", "trusted"].includes(partner.networkStatus),
+    enabled:
+      !showRevertToDraftInsteadOfReject &&
+      !["rejected", "trusted"].includes(partner.networkStatus),
+  });
+
+  useKeyboardShortcut("r", () => setShowRevertToDraftConfirm(true), {
+    sheet: true,
+    enabled: showRevertToDraftInsteadOfReject,
   });
 
   return (
@@ -136,6 +179,7 @@ export function NetworkPartnerApplicationSheet({
     >
       {approveModal}
       {rejectModal}
+      {revertToDraftModal}
 
       <div className="flex size-full flex-col">
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
@@ -220,19 +264,30 @@ export function NetworkPartnerApplicationSheet({
 
         <div className="shrink-0 border-t border-neutral-200 p-5">
           <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              text="Reject"
-              className="w-fit shrink-0"
-              shortcut="R"
-              onClick={() => setShowRejectConfirm(true)}
-              disabledTooltip={
-                ["rejected", "trusted"].includes(partner.networkStatus)
-                  ? `Cannot reject a ${partner.networkStatus} partner.`
-                  : undefined
-              }
-            />
+            {showRevertToDraftInsteadOfReject ? (
+              <Button
+                type="button"
+                variant="secondary"
+                text="Revert to draft"
+                className="w-fit shrink-0"
+                shortcut="R"
+                onClick={() => setShowRevertToDraftConfirm(true)}
+              />
+            ) : (
+              <Button
+                type="button"
+                variant="secondary"
+                text="Reject"
+                className="w-fit shrink-0"
+                shortcut="R"
+                onClick={() => setShowRejectConfirm(true)}
+                disabledTooltip={
+                  ["rejected", "trusted"].includes(partner.networkStatus)
+                    ? `Cannot reject a ${partner.networkStatus} partner.`
+                    : undefined
+                }
+              />
+            )}
             <Button
               type="button"
               variant="primary"
@@ -282,7 +337,12 @@ function NetworkPartnerSheetTabs({
       id: "programs",
       label: "Programs",
       icon: Trophy,
-      badge: programsCount > 99 ? "99+" : programsCount,
+      badge:
+        programsCount === 0
+          ? undefined
+          : programsCount > 99
+            ? "99+"
+            : programsCount,
     },
     ...(duplicatesCount > 0
       ? [
