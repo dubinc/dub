@@ -49,9 +49,7 @@ function settingsHostFromTxtRecords(records: string[][]): string | null {
         h.includes("domainconnect") ||
         h.includes("vercel") ||
         h.includes("cloudflare"),
-    ) ??
-    candidates[0] ??
-    null
+    ) ?? null
   );
 }
 
@@ -111,7 +109,11 @@ export async function discoverDomainConnectIfEligible(
   apexDomain: string,
   status: string,
 ): Promise<DomainConnectDiscovery | null> {
-  if (!process.env.DOMAIN_CONNECT_PRIVATE_KEY?.trim() || !process.env.DOMAIN_CONNECT_KEY_HOST?.trim()) return null;
+  if (
+    !process.env.DOMAIN_CONNECT_PRIVATE_KEY?.trim() ||
+    !process.env.DOMAIN_CONNECT_KEY_HOST?.trim()
+  )
+    return null;
   if (status !== "Pending Verification" && status !== "Invalid Configuration")
     return null;
   return discoverDomainConnect(apexDomain);

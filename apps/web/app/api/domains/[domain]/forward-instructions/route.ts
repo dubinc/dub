@@ -6,6 +6,7 @@ import {
   DUB_CUSTOM_DOMAIN_A_RECORD,
   DUB_CUSTOM_DOMAIN_CNAME,
 } from "@/lib/domain-connect/constants";
+import { ratelimit } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import DomainDnsInstructions from "@dub/email/templates/domain-dns-instructions";
 import { getApexDomain, getSubdomain } from "@dub/utils";
@@ -27,6 +28,16 @@ export const POST = withWorkspace(
     });
 
     const { email, recordType } = bodySchema.parse(await req.json());
+
+    const { success } = await ratelimit(10, "1 h").limit(
+      `forward-dns-instructions:${workspace.id}`,
+    );
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "Don't DDoS me pls 🥺",
+      });
+    }
 
     const records: { type: string; name: string; value: string }[] = [];
 

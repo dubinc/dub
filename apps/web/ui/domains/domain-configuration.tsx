@@ -66,6 +66,20 @@ export default function DomainConfiguration({
         return;
       }
       if (json?.applyUrl) {
+        try {
+          const url = new URL(json.applyUrl as string);
+          const allowedOrigins = [
+            "https://vercel.com",
+            "https://dash.cloudflare.com",
+          ];
+          if (!allowedOrigins.includes(url.origin)) {
+            toast.error("Invalid redirect URL from server.");
+            return;
+          }
+        } catch {
+          toast.error("Invalid redirect URL from server.");
+          return;
+        }
         window.location.assign(json.applyUrl as string);
         return;
       }

@@ -77,6 +77,18 @@ export const POST = withWorkspace(
       });
     }
 
+    const allowedSyncUXOrigins = [
+      "https://vercel.com",
+      "https://dash.cloudflare.com",
+    ];
+    const syncUXOrigin = new URL(discovery.urlSyncUX).origin;
+    if (!allowedSyncUXOrigins.includes(syncUXOrigin)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Invalid Domain Connect provider URL.",
+      });
+    }
+
     const subdomain = getSubdomain(
       domainJson.name?.toLowerCase() ?? domain,
       domainJson.apexName?.toLowerCase() ?? apex,
