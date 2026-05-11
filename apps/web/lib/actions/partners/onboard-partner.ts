@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { submitNetworkApplicationEvent } from "@/lib/application-events/submit-network-application-event";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -71,7 +72,7 @@ export const onboardPartnerAction = authUserActionClient
       },
     };
 
-    await Promise.all([
+    const [updatedPartner] = await Promise.all([
       existingPartner
         ? prisma.partner.update({
             where: {
@@ -98,8 +99,15 @@ export const onboardPartnerAction = authUserActionClient
         }),
     ]);
 
-    // Complete any outstanding program application
-    waitUntil(completeProgramApplications(user.email));
+    waitUntil(
+      Promise.allSettled([
+        // Complete any outstanding program application
+        completeProgramApplications(user.email),
+
+        // Mark the application event as submitted for the network program
+        submitNetworkApplicationEvent(updatedPartner),
+      ]),
+    );
 
     // if the user doesn't have an image, set the uploaded image as the user's image
     if (!user.image && image) {

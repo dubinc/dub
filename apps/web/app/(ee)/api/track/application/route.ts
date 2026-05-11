@@ -22,9 +22,10 @@ import {
   getSearchParams,
   LOCALHOST_GEO_DATA,
   LOCALHOST_IP,
+  NETWORK_PROGRAM_ID,
 } from "@dub/utils";
 import { NETWORK_PROGRAM_SLUG } from "@dub/utils/src";
-import { geolocation, ipAddress } from "@vercel/functions";
+import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";
 
@@ -156,6 +157,27 @@ async function trackVisitEvent({
         `Partner not found for username ${searchParams.via}. Not setting referredByPartnerId.`,
       );
     }
+  }
+
+  // If the program is the network program and the referredByPartner is not enrolled, enroll them in the network program
+  if (referredByPartner && program.id === NETWORK_PROGRAM_ID) {
+    waitUntil(
+      prisma.programEnrollment.upsert({
+        where: {
+          partnerId_programId: {
+            partnerId: referredByPartner.id,
+            programId: NETWORK_PROGRAM_ID,
+          },
+        },
+        create: {
+          id: createId({ prefix: "pge_" }),
+          partnerId: referredByPartner.id,
+          programId: NETWORK_PROGRAM_ID,
+          status: "approved",
+        },
+        update: {},
+      }),
+    );
   }
 
   const session = await getSession();
@@ -292,7 +314,7 @@ async function getRequestContext(req: NextRequest) {
 //   - https://partners.dub.co/{programSlug}
 //   - https://partners.dub.co/programs/{programSlug}/apply
 //   - https://partners.dub.co/programs/marketplace/{programSlug}
-//   - https://partners.dub.co/register (platform-level signup → network program)
+//   - https://partners.dub.co/register (platform-level signup -> network program)
 function identityProgramSlug(url: string) {
   try {
     const urlObj = new URL(url);
