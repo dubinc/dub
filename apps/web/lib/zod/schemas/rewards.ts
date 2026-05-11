@@ -331,7 +331,7 @@ export const RewardSchema = z.object({
   amountInPercentage: decimalToNumber,
   maxDuration: z.number().nullish(),
   modifiers: z.any().nullish(), // TODO: Fix this
-  config: referralRewardConfigSchema.nullish(),
+  config: z.any().nullish(),
   updatedAt: z.coerce.date(),
 });
 
