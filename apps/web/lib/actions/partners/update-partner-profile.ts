@@ -53,6 +53,7 @@ const updatePartnerProfileSchema = z
     },
     {
       message: "Legal company name is required when profile type is 'company'.",
+      path: ["companyName"],
     },
   );
 

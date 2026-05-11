@@ -420,7 +420,7 @@ export default function NetworkApplicationsPage() {
         />
       )}
       <div className="mb-4 flex flex-col gap-3">
-        <div className="min-[550px] flex w-full flex-col gap-2 min-[550px]:flex-row min-[550px]:items-center min-[550px]:justify-between">
+        <div className="flex w-full flex-col gap-2 min-[550px]:flex-row min-[550px]:items-center min-[550px]:justify-between">
           <Filter.Select
             className="w-full md:w-fit"
             filters={filters}

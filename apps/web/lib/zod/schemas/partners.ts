@@ -431,16 +431,6 @@ export const PartnerSchema = z
     createdAt: z
       .date()
       .describe("The date when the partner was created on Dub."),
-    discoverableAt: z
-      .date()
-      .nullable()
-      .describe("The date when the partner was added to the partner network."),
-    trustedAt: z
-      .date()
-      .nullable()
-      .describe(
-        "The date when the partner received the trusted badge in the partner network.",
-      ),
     identityVerificationStatus: z
       .enum(IdentityVerificationStatus)
       .nullable()
@@ -486,16 +476,16 @@ export const PartnerRewindSchema = z.object({
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
-  companyName: true,
   email: true,
   image: true,
   description: true,
   country: true,
+  companyName: true,
+  networkStatus: true,
   defaultPayoutMethod: true,
   paypalEmail: true,
   stripeConnectId: true,
   payoutsEnabledAt: true,
-  trustedAt: true,
   identityVerifiedAt: true,
 })
   .extend(
@@ -575,7 +565,13 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
         "Return On Ad Spend (ROAS) (`Total Revenue ÷ Total Commissions`)",
       ),
   })
-  .extend(OldPartnerPlatformsFields.shape);
+  .extend(OldPartnerPlatformsFields.shape)
+  .extend({
+    trustedAt: z.null().meta({
+      deprecated: true,
+      description: "DEPRECATED: Use `networkStatus` instead.",
+    }),
+  });
 
 export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   lastLeadAt: z.date().nullish(),

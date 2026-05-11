@@ -1,4 +1,5 @@
 import { withAdmin } from "@/lib/auth";
+import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -69,7 +70,9 @@ export const POST = withAdmin(
         : { email: partnerIdOrEmail },
       select: {
         id: true,
+        networkStatus: true,
         trustedAt: true,
+        changeHistoryLog: true,
       },
     });
 
@@ -83,12 +86,26 @@ export const POST = withAdmin(
       });
     }
 
+    const partnerChangeHistoryLog = partner.changeHistoryLog
+      ? partnerProfileChangeHistoryLogSchema.parse(partner.changeHistoryLog)
+      : [];
+
+    const trustedAt = new Date();
+    partnerChangeHistoryLog.push({
+      field: "networkStatus",
+      from: partner.networkStatus,
+      to: "trusted",
+      changedAt: trustedAt,
+    });
+
     const updatedPartner = await prisma.partner.update({
       where: {
         id: partner.id,
       },
       data: {
-        trustedAt: new Date(),
+        networkStatus: "trusted",
+        trustedAt,
+        changeHistoryLog: partnerChangeHistoryLog,
       },
       select: {
         id: true,
@@ -117,16 +134,36 @@ export const DELETE = withAdmin(
 
     const partner = await prisma.partner.findUnique({
       where: { id: partnerId },
-      select: { id: true, trustedAt: true },
+      select: {
+        id: true,
+        networkStatus: true,
+        trustedAt: true,
+        changeHistoryLog: true,
+      },
     });
 
     if (!partner) {
       return new Response("Partner not found.", { status: 404 });
     }
 
+    const partnerChangeHistoryLog = partner.changeHistoryLog
+      ? partnerProfileChangeHistoryLogSchema.parse(partner.changeHistoryLog)
+      : [];
+
+    partnerChangeHistoryLog.push({
+      field: "networkStatus",
+      from: partner.networkStatus,
+      to: "approved",
+      changedAt: new Date(),
+    });
+
     await prisma.partner.update({
       where: { id: partner.id },
-      data: { trustedAt: null },
+      data: {
+        networkStatus: "approved",
+        trustedAt: null,
+        changeHistoryLog: partnerChangeHistoryLog,
+      },
     });
 
     return NextResponse.json({ success: true });

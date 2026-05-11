@@ -47,7 +47,6 @@ export const adminNetworkPartnerSchema = EnrolledPartnerSchemaExtended.pick({
   paypalEmail: true,
   stripeConnectId: true,
   payoutsEnabledAt: true,
-  trustedAt: true,
   identityVerifiedAt: true,
   monthlyTraffic: true,
   industryInterests: true,

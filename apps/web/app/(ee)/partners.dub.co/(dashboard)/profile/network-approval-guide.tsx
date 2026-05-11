@@ -114,6 +114,9 @@ export function NetworkApprovalGuide() {
                   </div>
                 ) : (
                   (() => {
+                    if (partner.networkStatus === "trusted") {
+                      partner.networkStatus = "approved";
+                    }
                     const {
                       variant,
                       label,
