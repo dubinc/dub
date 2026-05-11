@@ -22,6 +22,12 @@ function providerKindFromId(
   return null;
 }
 
+const ALLOWED_SETTINGS_HOST_SUFFIXES = [
+  "domainconnect.org",
+  ".vercel.com",
+  ".cloudflare.com",
+];
+
 function settingsHostFromTxtRecords(records: string[][]): string | null {
   const candidates = records
     .map((chunks) =>
@@ -44,11 +50,10 @@ function settingsHostFromTxtRecords(records: string[][]): string | null {
     );
 
   return (
-    candidates.find(
-      (h) =>
-        h.includes("domainconnect") ||
-        h.includes("vercel") ||
-        h.includes("cloudflare"),
+    candidates.find((h) =>
+      ALLOWED_SETTINGS_HOST_SUFFIXES.some(
+        (suffix) => h === suffix.replace(/^\./, "") || h.endsWith(suffix),
+      ),
     ) ?? null
   );
 }
