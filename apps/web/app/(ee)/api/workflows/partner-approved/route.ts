@@ -5,6 +5,7 @@ import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { createWorkflowLogger } from "@/lib/cron/qstash-workflow-logger";
 import { generateDiscountCodeForPartner } from "@/lib/discounts/generate-discount-code-for-partner";
+import { createReferralCommission } from "@/lib/partner-referrals/create-referral-commission";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { PlanProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -347,6 +348,20 @@ export const { POST } = serve<Payload>(
           programId,
           partnerId,
         },
+      });
+    });
+
+    // Step 7: Create referral commission if enabled
+    await context.run("create-referral-commission", async () => {
+      logger.info({
+        message:
+          "Started executing workflow step 'create-referral-commission'.",
+        data: input,
+      });
+
+      await createReferralCommission({
+        partnerId,
+        programId,
       });
     });
   },

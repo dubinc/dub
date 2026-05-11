@@ -1,6 +1,7 @@
 import { qstash } from "@/lib/cron";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
+import { referralRewardConfigSchema } from "@/lib/partner-referrals/schemas";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { CommissionType } from "@dub/prisma/client";
@@ -74,6 +75,7 @@ export const POST = withCron(async ({ rawBody }) => {
     },
     select: {
       id: true,
+      programId: true,
       partnerId: true,
       programEnrollment: {
         select: {
@@ -144,7 +146,10 @@ export const POST = withCron(async ({ rawBody }) => {
   }
 
   // 4) Build the payload of referral-eligible commissions
-  const commissions: { sourceCommissionId: string }[] = [];
+  const payloads: (
+    | { sourceCommissionId: string; deduplicationId: string }
+    | { programId: string; partnerId: string; deduplicationId: string }
+  )[] = [];
 
   for (const payout of payouts) {
     const referrerPartnerId =
@@ -156,29 +161,35 @@ export const POST = withCron(async ({ rawBody }) => {
 
     const referralRewardId = referrerPartnerToReward.get(referrerPartnerId);
 
-    if (!referralRewardId) {
+    if (!referralRewardId || payout.commissions.length === 0) {
       continue;
     }
 
-    if (payout.commissions.length === 0) {
+    const { trigger } = referralRewardConfigSchema.parse(referralRewardId);
+
+    if (trigger === "commissionThreshold") {
+      payloads.push({
+        programId: payout.programId,
+        partnerId: payout.partnerId,
+        deduplicationId: `${invoiceId}-${payout.programId}-${payout.partnerId}`,
+      });
       continue;
     }
 
-    commissions.push(
+    payloads.push(
       ...payout.commissions.map(({ id }) => ({
         sourceCommissionId: id,
+        deduplicationId: id,
       })),
     );
   }
 
   await enqueueBatchJobs(
-    commissions.map(({ sourceCommissionId }) => ({
+    payloads.map((payload) => ({
       queueName: "create-referral-commissions",
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/create`,
-      deduplicationId: `create-referral-commissions-${sourceCommissionId}`,
-      body: {
-        sourceCommissionId,
-      },
+      deduplicationId: `create-referral-commissions-${payload.deduplicationId}`,
+      body: payload,
     })),
   );
 

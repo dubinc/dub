@@ -5,29 +5,21 @@ import { logAndRespond } from "../../../utils";
 
 export const dynamic = "force-dynamic";
 
-const inputSchema = z.object({
-  sourceCommissionId: z
-    .string()
-    .describe(
-      "The ID of the commission to calculate a referral commission for.",
-    ),
-});
+const inputSchema = z.union([
+  z.object({ sourceCommissionId: z.string() }),
+  z.object({ programId: z.string(), partnerId: z.string() }),
+]);
 
 // POST /api/cron/commissions/referrals/create
 export const POST = withCron(async ({ rawBody }) => {
-  const { sourceCommissionId } = inputSchema.parse(JSON.parse(rawBody));
+  const inputParsed = inputSchema.parse(JSON.parse(rawBody));
 
-  const referralCommission = await createReferralCommission({
-    sourceCommissionId,
-  });
+  const referralCommission = await createReferralCommission(inputParsed);
 
   if (!referralCommission) {
-    return logAndRespond(
-      `Failed to create referral commission for source commission ${sourceCommissionId}.`,
-      {
-        status: 400,
-      },
-    );
+    return logAndRespond(`Failed to create referral commission.`, {
+      status: 400,
+    });
   }
 
   return logAndRespond(

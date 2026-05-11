@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import { Commission, CommissionType, Prisma } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { differenceInMonths } from "date-fns";
+import { triggerAggregateDueCommissionsCronJob } from "../actions/partners/trigger-aggregate-due-commissions";
 import { createId } from "../api/create-id";
 import { notifyPartnerCommission } from "../api/partners/notify-partner-commission";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
@@ -15,10 +16,6 @@ type CreateReferralCommissionProps =
   | { sourceCommissionId: string; partnerId?: never; programId?: never }
   | { sourceCommissionId?: never; partnerId: string; programId: string };
 
-// 1 - both percentage
-// 2 - flat: threashold
-// 3 - flat: partner is approved
-
 export const createReferralCommission = async (
   props: CreateReferralCommissionProps,
 ) => {
@@ -28,7 +25,8 @@ export const createReferralCommission = async (
     return null;
   }
 
-  const { sourceCommission, programId, referredByPartnerId } = context;
+  const { sourceCommission, programId, partnerId, referredByPartnerId } =
+    context;
 
   const referrerProgramEnrollment = await prisma.programEnrollment.findUnique({
     where: {
@@ -77,13 +75,14 @@ export const createReferralCommission = async (
     quantity: 1,
     earnings: 0,
     programId,
+    sourcePartnerId: partnerId,
     partnerId: referredByPartnerId,
     rewardId: referralReward.id,
   };
 
   const { trigger } = rewardConfig.data;
 
-  // When reward is based on commission
+  // When reward is based on commission earned or sale recorded
   if (
     sourceCommission &&
     (trigger === "commissionEarned" || trigger === "saleRecorded")
@@ -109,8 +108,8 @@ export const createReferralCommission = async (
     if (typeof referralReward.maxDuration === "number") {
       const firstCommission = await prisma.commission.findFirst({
         where: {
-          partnerId: sourceCommission.partnerId,
-          programId: sourceCommission.programId,
+          partnerId,
+          programId,
           type: "sale",
         },
         orderBy: {
@@ -132,14 +131,14 @@ export const createReferralCommission = async (
           subscriptionDurationMonths > 0
         ) {
           console.log(
-            `Referrer ${referredByPartnerId} reached max duration (first-sale only) for referred partner ${sourceCommission.partnerId} for the customer ${sourceCommission.customerId}.`,
+            `Referrer ${referredByPartnerId} reached max duration (first-sale only) for referred partner ${partnerId} for the customer ${sourceCommission.customerId}.`,
           );
           return null;
         }
 
         if (subscriptionDurationMonths >= referralReward.maxDuration) {
           console.log(
-            `Referrer ${referredByPartnerId} reached max duration (${referralReward.maxDuration} months) for referred partner ${sourceCommission.partnerId} for the customer ${sourceCommission.customerId}.`,
+            `Referrer ${referredByPartnerId} reached max duration (${referralReward.maxDuration} months) for referred partner ${partnerId} for the customer ${sourceCommission.customerId}.`,
           );
           return null;
         }
@@ -161,18 +160,43 @@ export const createReferralCommission = async (
       customerId: sourceCommission.customerId,
       currency: sourceCommission.currency,
       sourceCommissionId: sourceCommission.id,
-      sourcePartnerId: sourceCommission.partnerId,
     };
   }
 
   // When reward is based on partner approval
   else if (trigger === "partnerApproved") {
-    commissionData.earnings = referralReward.amountInCents ?? 0;
+    commissionData = {
+      ...commissionData,
+      earnings: referralReward.amountInCents ?? 0,
+    };
   }
 
   // When reward is based on commission threshold reached
   else if (trigger === "commissionThreshold") {
-    // TODO: Implement partner metrics updated logic
+    const {
+      _sum: { earnings: totalCommissionsEarned },
+    } = await prisma.commission.aggregate({
+      where: {
+        partnerId,
+        programId,
+        type: "sale",
+      },
+      _sum: {
+        earnings: true,
+      },
+    });
+
+    if ((totalCommissionsEarned ?? 0) < (referralReward.amountInCents ?? 0)) {
+      console.log(
+        `Referrer ${referredByPartnerId} has not reached the commission threshold for referred partner ${partnerId}.`,
+      );
+      return null;
+    }
+
+    commissionData = {
+      ...commissionData,
+      earnings: referralReward.amountInCents ?? 0,
+    };
   }
 
   if (commissionData.earnings === 0) {
@@ -257,13 +281,17 @@ export const createReferralCommission = async (
       group: referrerProgramEnrollment.partnerGroup ?? program.groups[0],
       isFirstCommission: true,
     }),
+
+    triggerAggregateDueCommissionsCronJob(programId),
   ]);
+
+  return commission;
 };
 
 async function resolveReferralContext(props: CreateReferralCommissionProps) {
-  // Percentage referral reward
   if (props.sourceCommissionId) {
-    const sourceCommissionId = props.sourceCommissionId;
+    const { sourceCommissionId } = props;
+
     const sourceCommission = await prisma.commission.findUnique({
       where: {
         id: sourceCommissionId,
@@ -316,17 +344,19 @@ async function resolveReferralContext(props: CreateReferralCommissionProps) {
     return {
       sourceCommission,
       programId: sourceCommission.programId,
+      partnerId: sourceCommission.partnerId,
       referredByPartnerId,
     };
   }
 
-  // partnerApproved referral reward
   if (props.partnerId && props.programId) {
+    const { partnerId, programId } = props;
+
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: {
         partnerId_programId: {
-          partnerId: props.partnerId,
-          programId: props.programId,
+          partnerId,
+          programId,
         },
       },
       select: {
@@ -343,14 +373,14 @@ async function resolveReferralContext(props: CreateReferralCommissionProps) {
 
     if (!programEnrollment) {
       console.log(
-        `Partner ${props.partnerId} is not enrolled in the program ${props.programId}.`,
+        `Partner ${partnerId} is not enrolled in the program ${programId}.`,
       );
       return null;
     }
 
     if (programEnrollment.status !== "approved") {
       console.log(
-        `Partner ${props.partnerId} is not approved in the program ${props.programId}.`,
+        `Partner ${partnerId} is not approved in the program ${programId}.`,
       );
       return null;
     }
@@ -360,14 +390,15 @@ async function resolveReferralContext(props: CreateReferralCommissionProps) {
 
     if (!referredByPartnerId) {
       console.log(
-        `Referrer partner ${props.partnerId} is not associated with a referred partner.`,
+        `Referrer partner ${partnerId} is not associated with a referred partner.`,
       );
       return null;
     }
 
     return {
       sourceCommission: null,
-      programId: programEnrollment.programId,
+      programId,
+      partnerId,
       referredByPartnerId,
     };
   }
