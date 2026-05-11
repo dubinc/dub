@@ -168,25 +168,32 @@ async function trackVisitEvent({
   }
 
   // If the program is the network program and the referredByPartner is not enrolled, enroll them in the network program
-  if (referredByPartner && program.id === NETWORK_PROGRAM_ID) {
-    waitUntil(
-      prisma.programEnrollment.upsert({
-        where: {
-          partnerId_programId: {
+
+  waitUntil(
+    (async () => {
+      if (referredByPartner && program.id === NETWORK_PROGRAM_ID) {
+        await prisma.programEnrollment.upsert({
+          where: {
+            partnerId_programId: {
+              partnerId: referredByPartner.id,
+              programId: NETWORK_PROGRAM_ID,
+            },
+          },
+          create: {
+            id: createId({ prefix: "pge_" }),
             partnerId: referredByPartner.id,
             programId: NETWORK_PROGRAM_ID,
+            status: "approved",
           },
-        },
-        create: {
-          id: createId({ prefix: "pge_" }),
-          partnerId: referredByPartner.id,
-          programId: NETWORK_PROGRAM_ID,
-          status: "approved",
-        },
-        update: {},
-      }),
-    );
-  }
+          update: {},
+        });
+
+        console.log(
+          `Enrolled partner ${referredByPartner.id} in network program ${NETWORK_PROGRAM_ID}.`,
+        );
+      }
+    })(),
+  );
 
   const session = await getSession();
   const requestContext = await getRequestContext(req);
