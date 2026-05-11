@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
-import { Commission, CommissionType, Prisma } from "@dub/prisma/client";
-import { log } from "@dub/utils";
+import { Commission, CommissionType, Prisma, Reward } from "@dub/prisma/client";
+import { currencyFormatter, log } from "@dub/utils";
 import { differenceInMonths } from "date-fns";
 import { triggerAggregateDueCommissionsCronJob } from "../actions/partners/trigger-aggregate-due-commissions";
 import { createId } from "../api/create-id";
@@ -220,6 +220,11 @@ export const createReferralCommission = async (
     }
   }
 
+  commissionData.description = generateCommissionDescription({
+    referralReward,
+    sourceCommission,
+  });
+
   let commission: Commission;
 
   try {
@@ -307,6 +312,53 @@ export const createReferralCommission = async (
 
   return commission;
 };
+
+function generateCommissionDescription({
+  referralReward,
+  sourceCommission,
+}: {
+  referralReward: Reward;
+  sourceCommission: Pick<Commission, "earnings" | "amount" | "currency"> | null;
+}) {
+  const { trigger } = referralRewardConfigSchema.parse(referralReward.config);
+  const amountInPercentage = Number(referralReward.amountInPercentage ?? 0);
+
+  if (trigger === "commissionEarned" && sourceCommission) {
+    const formattedCommission = currencyFormatter(sourceCommission.earnings, {
+      currency: "usd",
+      trailingZeroDisplay: "stripIfInteger",
+    });
+
+    return `Earned ${amountInPercentage}% of referred partner's ${formattedCommission} commission.`;
+  }
+
+  if (trigger === "saleRecorded" && sourceCommission) {
+    const formattedSale = currencyFormatter(sourceCommission.amount, {
+      currency: "usd",
+      trailingZeroDisplay: "stripIfInteger",
+    });
+
+    return `Earned ${amountInPercentage}% of referred partner's ${formattedSale} sale amount.`;
+  }
+
+  if (trigger === "partnerApproved") {
+    return "Earned for referring a new partner.";
+  }
+
+  if (trigger === "commissionThreshold") {
+    const formattedThreshold = currencyFormatter(
+      referralReward.amountInCents ?? 0,
+      {
+        currency: "usd",
+        trailingZeroDisplay: "stripIfInteger",
+      },
+    );
+
+    return `Earned for referred partner reaching ${formattedThreshold} in commissions.`;
+  }
+
+  return null;
+}
 
 async function resolveReferralContext(props: CreateReferralCommissionProps) {
   if (props.sourceCommissionId) {
