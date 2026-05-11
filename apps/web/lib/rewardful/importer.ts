@@ -34,10 +34,7 @@ class RewardfulImporter {
     return await redis.del(`${CACHE_KEY_PREFIX}:${workspaceId}`);
   }
 
-  async queue(
-    body: RewardfulImportPayload,
-    options?: { delay?: number },
-  ) {
+  async queue(body: RewardfulImportPayload, options?: { delay?: number }) {
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/rewardful`,
       body,
