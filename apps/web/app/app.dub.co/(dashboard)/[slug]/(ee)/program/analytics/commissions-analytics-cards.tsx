@@ -7,15 +7,25 @@ import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinne
 import { BarList } from "@/ui/analytics/bar-list";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { Modal, useRouterStuff } from "@dub/ui";
+import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import {
   CircleCheck,
   CircleDotted,
   CircleHalfDottedClock,
+  Tag,
+  Users6,
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { ReactNode, useCallback, useMemo, useState } from "react";
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import { CommissionStatusFilter } from "./commissions-status-selector";
+import { useCommissionsAnalyticsQuery } from "./use-commissions-analytics-query";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Pending",
@@ -31,23 +41,29 @@ const STATUS_ICONS: Record<string, React.ElementType> = {
   all: CircleDotted,
 };
 
-type CommissionsBarListTab = "type" | "groupId";
+type CommissionsBarListTab = "type" | "groupId" | "partnerTagId";
 
 function mapCommissionBarRow(
   item: CommissionCategoryRow,
   tab: CommissionsBarListTab,
   groupColorMap: Map<string, { color: string | null }>,
 ) {
-  const icon =
-    tab === "type" ? (
+  let icon: ReactNode;
+  if (tab === "type") {
+    icon = (
       <CommissionTypeIcon
         type={item.key as "sale" | "custom" | "lead" | "click"}
       />
-    ) : (
+    );
+  } else if (tab === "partnerTagId") {
+    icon = <Tag className="size-4 shrink-0 text-neutral-500" />;
+  } else {
+    icon = (
       <GroupColorCircle
         group={{ color: groupColorMap.get(item.key)?.color ?? null }}
       />
     );
+  }
 
   return {
     icon,
@@ -103,9 +119,12 @@ function useUrlListFilter(paramKey: string) {
   };
 }
 
-function CommissionAnalyticsCardShell({
+function CommissionAnalyticsCardShell<T extends string>({
   status,
   title,
+  tabs,
+  selectedTabId,
+  onSelectTab,
   dataLength,
   expandLimit,
   isFilterActive,
@@ -114,6 +133,9 @@ function CommissionAnalyticsCardShell({
 }: {
   status: CommissionStatusFilter;
   title: string;
+  tabs?: { id: T; label: string; icon: React.ElementType }[];
+  selectedTabId?: T;
+  onSelectTab?: Dispatch<SetStateAction<T>> | ((tabId: T) => void);
   dataLength?: number;
   expandLimit: number;
   isFilterActive?: boolean;
@@ -127,6 +149,10 @@ function CommissionAnalyticsCardShell({
   const showViewAll = (dataLength ?? 0) > expandLimit;
   const statusKey = status ?? "all";
   const StatusIcon = STATUS_ICONS[statusKey];
+  const activeTitle =
+    (tabs && selectedTabId
+      ? tabs.find((t) => t.id === selectedTabId)?.label
+      : undefined) ?? title;
 
   return (
     <>
@@ -136,7 +162,7 @@ function CommissionAnalyticsCardShell({
         className="max-w-lg px-0"
       >
         <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
-          <h1 className="text-lg font-semibold">{title}</h1>
+          <h1 className="text-lg font-semibold">{activeTitle}</h1>
           <div className="flex items-center gap-1 text-neutral-500">
             <StatusIcon className="h-4 w-4" />
             <p className="text-xs uppercase">{STATUS_LABELS[statusKey]}</p>
@@ -147,7 +173,15 @@ function CommissionAnalyticsCardShell({
 
       <div className="group relative z-0 h-[400px] overflow-hidden rounded-lg border border-neutral-200 bg-white sm:rounded-xl">
         <div className="flex items-center justify-between border-b border-neutral-200 px-4">
-          <p className="py-3 text-sm font-medium text-neutral-900">{title}</p>
+          {tabs && selectedTabId && onSelectTab ? (
+            <TabSelect
+              options={tabs}
+              selected={selectedTabId}
+              onSelect={onSelectTab}
+            />
+          ) : (
+            <p className="py-3 text-sm font-medium text-neutral-900">{title}</p>
+          )}
           <div className="flex items-center gap-1 pr-2 text-neutral-500">
             <StatusIcon className="hidden h-4 w-4 sm:block" />
             <p className="text-xs uppercase">{STATUS_LABELS[statusKey]}</p>
@@ -200,10 +234,13 @@ const BAR_LIST_SHARED = {
   filterHoverClass: "bg-white border border-neutral-200",
 };
 
-function CommissionBarPanel({
+function CommissionBarPanel<T extends string>({
   status,
   title,
   tab,
+  tabs,
+  selectedTabId,
+  onSelectTab,
   filter,
   rawItems,
   loading,
@@ -214,6 +251,9 @@ function CommissionBarPanel({
   status: CommissionStatusFilter;
   title: string;
   tab: CommissionsBarListTab;
+  tabs?: { id: T; label: string; icon: React.ElementType }[];
+  selectedTabId?: T;
+  onSelectTab?: Dispatch<SetStateAction<T>> | ((tabId: T) => void);
   filter: ReturnType<typeof useUrlListFilter>;
   rawItems: CommissionCategoryRow[] | undefined;
   loading: boolean;
@@ -234,6 +274,9 @@ function CommissionBarPanel({
     <CommissionAnalyticsCardShell
       status={status}
       title={title}
+      tabs={tabs}
+      selectedTabId={selectedTabId}
+      onSelectTab={onSelectTab}
       dataLength={data.length}
       expandLimit={EXPAND_LIMIT}
       isFilterActive={filter.isFilterActive}
@@ -272,14 +315,22 @@ function CommissionBarPanel({
   );
 }
 
-export function CommissionsAnalyticsCards({
-  status,
-  queryString,
-}: {
-  status: CommissionStatusFilter;
-  queryString: string;
-}) {
+const LEFT_TABS: {
+  id: "groupId" | "partnerTagId";
+  label: string;
+  icon: React.ElementType;
+}[] = [
+  { id: "groupId", label: "Partner Group", icon: Users6 },
+  { id: "partnerTagId", label: "Partner Tag", icon: Tag },
+];
+
+export function CommissionsAnalyticsCards() {
+  const { status } = useCommissionsAnalyticsQuery();
+
+  const [leftTab, setLeftTab] = useState<"groupId" | "partnerTagId">("groupId");
+
   const groupFilter = useUrlListFilter("groupId");
+  const partnerTagFilter = useUrlListFilter("partnerTagId");
   const typeFilter = useUrlListFilter("type");
 
   const { groups } = useGroups();
@@ -290,23 +341,35 @@ export function CommissionsAnalyticsCards({
   }, [groups]);
 
   const { data: groupRows, isLoading: groupLoading } = useCommissionAnalytics({
-    queryString,
     groupBy: "groupId",
   });
+  const { data: partnerTagRows, isLoading: partnerTagLoading } =
+    useCommissionAnalytics({
+      groupBy: "partnerTagId",
+      enabled: leftTab === "partnerTagId",
+    });
   const { data: typeRows, isLoading: typeLoading } = useCommissionAnalytics({
-    queryString,
     groupBy: "type",
   });
+
+  const activeLeftFilter =
+    leftTab === "groupId" ? groupFilter : partnerTagFilter;
+  const activeLeftRows = leftTab === "groupId" ? groupRows : partnerTagRows;
+  const activeLeftLoading =
+    leftTab === "groupId" ? groupLoading : partnerTagLoading;
 
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
       <CommissionBarPanel
         status={status}
         title="Partner Group"
-        tab="groupId"
-        filter={groupFilter}
-        rawItems={groupRows}
-        loading={groupLoading}
+        tab={leftTab}
+        tabs={LEFT_TABS}
+        selectedTabId={leftTab}
+        onSelectTab={setLeftTab}
+        filter={activeLeftFilter}
+        rawItems={activeLeftRows}
+        loading={activeLeftLoading}
         groupColorMap={groupColorMap}
         barBackground="bg-orange-100"
         hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"

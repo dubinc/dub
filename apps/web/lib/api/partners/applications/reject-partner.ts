@@ -24,9 +24,26 @@ export async function rejectPartner({
   rejectionReason,
   rejectionNote,
   allowImmediateReapply,
+  flagForFraud,
+  flagForFraudReason,
   userId,
 }: RejectPartnerInput) {
   const programId = getDefaultProgramIdOrThrow(workspace);
+
+  if (flagForFraud && allowImmediateReapply) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "Cannot flag for fraud when allowing the partner to reapply immediately.",
+    });
+  }
+
+  if (flagForFraud && (!flagForFraudReason || !flagForFraudReason.trim())) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Fraud reason is required when flagging for fraud.",
+    });
+  }
 
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
@@ -111,6 +128,16 @@ export async function rejectPartner({
         discountId: null,
       },
     });
+
+    if (flagForFraud && flagForFraudReason) {
+      await tx.fraudAlert.create({
+        data: {
+          partnerId,
+          programId,
+          reason: flagForFraudReason,
+        },
+      });
+    }
   });
 
   const { partner, program } = programEnrollment;

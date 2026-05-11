@@ -32,7 +32,7 @@ export const partnerIsNotBanned = (
   return programEnrollments.every((pe) => pe.status !== "banned");
 };
 
-export function getDiscoverabilityRequirements({
+export function getNetworkApprovalRequirements({
   partner,
 }: {
   partner: Pick<

@@ -75,7 +75,7 @@ export const NetworkPartnerSchema = PartnerSchema.pick({
   image: true,
   description: true,
   createdAt: true,
-  trustedAt: true,
+  networkStatus: true,
   monthlyTraffic: true,
   preferredEarningStructures: true,
   salesChannels: true,

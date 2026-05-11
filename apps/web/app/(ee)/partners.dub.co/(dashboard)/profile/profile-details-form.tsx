@@ -258,7 +258,7 @@ function BasicInfoForm({
 
         await executeAsync({
           ...data,
-          username: data.username?.trim() ? data.username : null,
+          username: data.username || undefined,
           image: imageChanged ? data.image : null,
         });
       })}

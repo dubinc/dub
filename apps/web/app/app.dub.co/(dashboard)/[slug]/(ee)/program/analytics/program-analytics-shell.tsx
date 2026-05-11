@@ -35,7 +35,6 @@ import {
   ProgramAnalyticsTabId,
 } from "./program-analytics-nav";
 import { useCommissionsAnalyticsFilters } from "./use-commissions-analytics-filters";
-import { useCommissionsAnalyticsQuery } from "./use-commissions-analytics-query";
 
 export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
   const { isMobile } = useMediaQuery();
@@ -49,11 +48,7 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
       ? (tab as ProgramAnalyticsTabId)
       : "performance";
 
-  const { queryString: commissionsQueryString, status: commissionStatus } =
-    useCommissionsAnalyticsQuery();
-
-  const { stage: applicationsStage, view: applicationsView } =
-    useApplicationsAnalyticsQuery();
+  const { stage: applicationsStage } = useApplicationsAnalyticsQuery();
 
   const { start, end, interval, selectedTab, saleUnit, view } = useMemo(() => {
     const { event, ...rest } = searchParamsObj;
@@ -121,7 +116,7 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
     onToggleOperator: commOnToggleOperator,
     onOpenFilter: commOnOpenFilter,
     setSearch: commSetSearch,
-  } = useCommissionsAnalyticsFilters(commissionsQueryString);
+  } = useCommissionsAnalyticsFilters();
 
   const {
     filters: applicationsFilters,
@@ -199,7 +194,7 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
                   <Link
                     href={
                       pageTab === "commissions"
-                        ? `/${slug}/program/commissions${getQueryString({}, { include: ["interval", "start", "end", "partnerId", "groupId", "type"] })}`
+                        ? `/${slug}/program/commissions${getQueryString({}, { include: ["interval", "start", "end", "partnerId", "groupId", "partnerTagId", "type"] })}`
                         : pageTab === "applications"
                           ? `/${slug}/program/partners/applications`
                           : `/${slug}/events${getQueryString({ folderId: program?.defaultFolderId, event: selectedTab, interval })}`
@@ -279,10 +274,7 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
         </div>
 
         {pageTab === "commissions" ? (
-          <CommissionsAnalyticsCards
-            status={commissionStatus}
-            queryString={commissionsQueryString}
-          />
+          <CommissionsAnalyticsCards />
         ) : pageTab === "applications" ? (
           <ApplicationsAnalyticsCards stage={applicationsStage} />
         ) : (

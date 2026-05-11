@@ -4,7 +4,7 @@ import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { usePartnerApplicationRisks } from "@/lib/swr/use-partner-application-risks";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerExtendedProps, FraudSeverity } from "@/lib/types";
+import { FraudSeverity } from "@/lib/types";
 import { Button, ShieldKeyhole } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
@@ -15,7 +15,9 @@ import { usePartnerApplicationRiskSummaryModal } from "./partner-application-ris
 import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
 
 interface PartnerApplicationRiskSummaryProps {
-  partner: EnrolledPartnerExtendedProps;
+  partner: {
+    id: string;
+  };
 }
 
 // Displays the risk analysis for a partner application
