@@ -9,7 +9,7 @@ const querySchema = z.object({
   partnerId: z.string().min(1),
 });
 
-// GET /api/programs/[programId]/applications/history?partnerId= — applications for this program + partner email
+// GET /api/partners/applications/history?partnerId= — historical applications for this partner
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
   const { partnerId } = querySchema.parse(searchParams);
