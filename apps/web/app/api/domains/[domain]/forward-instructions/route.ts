@@ -50,7 +50,11 @@ export const POST = withWorkspace(
     );
 
     if (recordType === "A") {
-      records.push({ type: "A", name: "@", value: DUB_CUSTOM_DOMAIN_A_RECORD });
+      records.push({
+        type: "A",
+        name: subdomain ?? "@",
+        value: DUB_CUSTOM_DOMAIN_A_RECORD,
+      });
     } else {
       records.push({
         type: "CNAME",
