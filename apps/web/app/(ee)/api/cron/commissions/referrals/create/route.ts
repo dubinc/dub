@@ -13,7 +13,7 @@ const inputSchema = z.object({
     ),
 });
 
-// POST /api/cron/commissions/referrals/calculate
+// POST /api/cron/commissions/referrals/create
 export const POST = withCron(async ({ rawBody }) => {
   const { sourceCommissionId } = inputSchema.parse(JSON.parse(rawBody));
 

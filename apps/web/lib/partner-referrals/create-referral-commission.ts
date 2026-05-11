@@ -37,6 +37,7 @@ export const createReferralCommission = async ({
     return null;
   }
 
+  // We only support referral commissions for sale commissions currently
   if (sourceCommission.type !== CommissionType.sale) {
     console.log(
       `Source commission ${sourceCommissionId} is not a sale commission.`,

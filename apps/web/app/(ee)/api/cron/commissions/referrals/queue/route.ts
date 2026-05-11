@@ -173,9 +173,9 @@ export const POST = withCron(async ({ rawBody }) => {
 
   await enqueueBatchJobs(
     commissions.map(({ sourceCommissionId }) => ({
-      queueName: "calculate-referral-commissions",
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/calculate`,
-      deduplicationId: `calculate-referral-commissions-${sourceCommissionId}`,
+      queueName: "create-referral-commissions",
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/create`,
+      deduplicationId: `create-referral-commissions-${sourceCommissionId}`,
       body: {
         sourceCommissionId,
       },
