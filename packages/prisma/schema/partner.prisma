@@ -8,6 +8,14 @@ enum PartnerProfileType {
   company
 }
 
+enum PartnerNetworkStatus {
+  draft
+  submitted
+  approved
+  rejected
+  trusted
+}
+
 enum MonthlyTraffic {
   ZeroToOneThousand
   OneThousandToTenThousand
@@ -35,15 +43,16 @@ enum IdentityVerificationStatus {
 }
 
 model Partner {
-  id          String             @id @default(cuid())
-  name        String
-  username    String?            @unique
-  companyName String?
-  profileType PartnerProfileType @default(individual)
-  email       String?            @unique
-  image       String?            @db.Text
-  description String?            @db.Text
-  country     String?
+  id            String               @id @default(cuid())
+  name          String
+  username      String?              @unique
+  email         String?              @unique
+  image         String?              @db.Text
+  description   String?              @db.Text
+  country       String?
+  companyName   String?
+  profileType   PartnerProfileType   @default(individual)
+  networkStatus PartnerNetworkStatus @default(draft)
 
   // identity verification fields
   identityVerificationStatus IdentityVerificationStatus?
@@ -62,10 +71,11 @@ model Partner {
   cryptoWalletAddress          String?
 
   // timestamp fields
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  discoverableAt DateTime?
-  trustedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  submittedAt      DateTime?
+  reviewedAt       DateTime?
+  trustedAt        DateTime?
 
   // miscellaneous fields
   invoiceSettings     Json?
@@ -101,8 +111,8 @@ model Partner {
   referredApplications       ProgramApplicationEvent[]
 
   @@index(country)
-  @@index(discoverableAt)
-  @@index(trustedAt)
+  @@index(networkStatus)
+  @@index(createdAt)
   @@index(payoutMethodHash)
   @@index(cryptoWalletAddress)
   @@index(identityVerifiedAt)

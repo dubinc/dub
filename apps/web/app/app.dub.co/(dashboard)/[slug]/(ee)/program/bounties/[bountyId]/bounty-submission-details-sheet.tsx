@@ -1,8 +1,8 @@
 "use client";
 
+import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
@@ -251,14 +251,13 @@ function BountySubmissionDetailsSheetContent({
                   value: (
                     <StatusBadge
                       variant={
-                        BOUNTY_SUBMISSION_STATUS_BADGES[submission.status]
-                          .variant
+                        BountySubmissionStatusBadges[submission.status].variant
                       }
                       icon={
-                        BOUNTY_SUBMISSION_STATUS_BADGES[submission.status].icon
+                        BountySubmissionStatusBadges[submission.status].icon
                       }
                     >
-                      {BOUNTY_SUBMISSION_STATUS_BADGES[submission.status].label}
+                      {BountySubmissionStatusBadges[submission.status].label}
                     </StatusBadge>
                   ),
                 },

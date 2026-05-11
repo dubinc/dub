@@ -761,51 +761,32 @@ function RowMenuButton({
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
-              {row.original.status === "invited" ? (
+              {["invited", "declined"].includes(row.original.status) ? (
                 <Command.Group className="grid gap-px p-1.5">
-                  <MenuItem
-                    icon={Users6}
-                    label="Change group"
-                    onSelect={() => {
-                      setShowChangeGroupModal(true);
-                      setIsOpen(false);
-                    }}
-                  />
-
-                  <MenuItem
-                    icon={Tag}
-                    label="Update tags"
-                    onSelect={() => {
-                      setShowUpdatePartnerTagsModal(true);
-                      setIsOpen(false);
-                    }}
-                  />
-
-                  <MenuItem
-                    icon={
-                      isResendingInvite ? LoadingSpinner : EnvelopeArrowRight
-                    }
-                    label="Resend invite"
-                    onSelect={async () => {
-                      if (row.original.status !== "invited") {
-                        return;
+                  {row.original.status === "invited" && (
+                    <MenuItem
+                      icon={
+                        isResendingInvite ? LoadingSpinner : EnvelopeArrowRight
                       }
+                      label="Resend invite"
+                      onSelect={async () => {
+                        if (row.original.status !== "invited") {
+                          return;
+                        }
 
-                      await resendInvite({
-                        workspaceId,
-                        partnerId: row.original.id,
-                      });
-                    }}
-                  />
+                        await resendInvite({
+                          workspaceId,
+                          partnerId: row.original.id,
+                        });
+                      }}
+                    />
+                  )}
 
                   <MenuItem
                     icon={isDeletingInvite ? LoadingSpinner : Trash}
                     label="Delete invite"
                     variant="danger"
                     onSelect={async () => {
-                      if (row.original.status !== "invited") {
-                        return;
-                      }
                       if (
                         !window.confirm(
                           "Are you sure you want to delete this invite? This action cannot be undone.",

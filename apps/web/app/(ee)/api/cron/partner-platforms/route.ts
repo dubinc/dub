@@ -51,10 +51,10 @@ export const POST = withCron(async ({ rawBody }) => {
           lastCheckedAt: null,
         },
       ],
-      // only check partners that are discoverable in the partner network
+      // only check partners that are approved or trusted
       partner: {
-        discoverableAt: {
-          not: null,
+        networkStatus: {
+          in: ["approved", "trusted"],
         },
       },
     },

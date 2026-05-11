@@ -1,6 +1,6 @@
 "use client";
 
-import { fraudAlertSchema } from "@/lib/zod/schemas/fraud";
+import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { FraudAlertStatus } from "@dub/prisma/client";
 import {
@@ -19,7 +19,7 @@ import useSWR from "swr";
 import * as z from "zod/v4";
 import { ReviewFraudAlertSheet } from "./review-fraud-alert-sheet";
 
-type FraudAlert = z.infer<typeof fraudAlertSchema>;
+type AdminFraudAlert = z.infer<typeof adminFraudAlertSchema>;
 
 const FRAUD_ALERT_STATUS_BADGES: Record<
   FraudAlertStatus,
@@ -42,23 +42,25 @@ function FraudAlertsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
   const { status, programId } = searchParamsObj;
 
-  const [selectedAlert, setSelectedAlert] = useState<FraudAlert | null>(null);
+  const [selectedAlert, setSelectedAlert] = useState<AdminFraudAlert | null>(
+    null,
+  );
 
   const {
     data: { fraudAlerts, total } = {},
     isLoading,
     mutate,
   } = useSWR<{
-    fraudAlerts: FraudAlert[];
+    fraudAlerts: AdminFraudAlert[];
     total: number;
-  }>(`/api/admin/fraud-alerts${getQueryString()}`, fetcher, {
+  }>(`/api/admin/partners/fraud${getQueryString()}`, fetcher, {
     keepPreviousData: true,
   });
 
   // Extract unique programs from fraud alerts for filter options
   const programs = useMemo(() => {
     if (!fraudAlerts) return [];
-    const programMap = new Map<string, FraudAlert["program"]>();
+    const programMap = new Map<string, AdminFraudAlert["program"]>();
 
     fraudAlerts.forEach((alert) => {
       if (!programMap.has(alert.program.id)) {
@@ -242,9 +244,7 @@ function FraudAlertsPageClient() {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-screen-xl flex-col gap-6 p-6">
-      <h1 className="text-2xl font-semibold text-neutral-900">Fraud Alerts</h1>
-
+    <>
       <div>
         <Filter.Select
           className="w-full md:w-fit"
@@ -285,6 +285,6 @@ function FraudAlertsPageClient() {
           await mutate();
         }}
       />
-    </div>
+    </>
   );
 }
