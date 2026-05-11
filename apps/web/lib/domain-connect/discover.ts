@@ -36,7 +36,12 @@ function settingsHostFromTxtRecords(records: string[][]): string | null {
         .split("/")[0]
         .toLowerCase(),
     )
-    .filter((h) => h.includes(".") && /^[a-z0-9.-]+$/.test(h));
+    .filter(
+      (h) =>
+        h.includes(".") &&
+        /^[a-z0-9.-]+$/.test(h) &&
+        !/^\d+\.\d+\.\d+\.\d+$/.test(h),
+    );
 
   return (
     candidates.find(
@@ -74,6 +79,7 @@ export async function discoverDomainConnect(
   try {
     res = await fetch(settingsUrl, {
       headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(3000),
     });
   } catch {
     return null;
