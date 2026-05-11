@@ -1,4 +1,3 @@
-import { getConfigResponse } from "@/lib/api/domains/get-config-response";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
 import { DubApiError } from "@/lib/api/errors";
@@ -31,10 +30,7 @@ export const POST = withWorkspace(
 
     const records: { type: string; name: string; value: string }[] = [];
 
-    const [domainJson] = await Promise.all([
-      getDomainResponse(domain),
-      getConfigResponse(domain),
-    ]);
+    const domainJson = await getDomainResponse(domain);
 
     if (domainJson?.error) {
       throw new DubApiError({
@@ -74,11 +70,10 @@ export const POST = withWorkspace(
         : txtHostFqdn === apex
           ? "@"
           : txtHostFqdn;
-      records.push({
-        type: "TXT",
-        name: txtHost,
-        value: txtVerification.value ?? "",
-      });
+      const txtValue = txtVerification.value?.trim() ?? "";
+      if ((txtHost || txtHost === "@") && txtValue) {
+        records.push({ type: "TXT", name: txtHost, value: txtValue });
+      }
     }
 
     await sendEmail({
