@@ -3,13 +3,11 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { DEFAULT_DC_SERVICE_APEX, DEFAULT_DC_SERVICE_SUBDOMAIN } from "@/lib/domain-connect/constants";
-import { discoverDomainConnect } from "@/lib/domain-connect/discover";
 import {
-  getDomainConnectKeyHost,
-  getDomainConnectPrivateKeyPem,
-  isDomainConnectEnabled,
-} from "@/lib/domain-connect/env";
+  DEFAULT_DC_SERVICE_APEX,
+  DEFAULT_DC_SERVICE_SUBDOMAIN,
+} from "@/lib/domain-connect/constants";
+import { discoverDomainConnect } from "@/lib/domain-connect/discover";
 import { buildSignedApplyUrl } from "@/lib/domain-connect/sign-apply-url";
 import { APP_DOMAIN, getApexDomain, getSubdomain } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -23,15 +21,11 @@ const bodySchema = z.object({
 // POST /api/domains/[domain]/domain-connect/apply
 export const POST = withWorkspace(
   async ({ req, workspace, params }) => {
-    if (!isDomainConnectEnabled()) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Domain Connect is not enabled.",
-      });
-    }
+    const privateKeyPem =
+      process.env.DOMAIN_CONNECT_PRIVATE_KEY?.trim().replace(/\\n/g, "\n") ||
+      null;
+    const keyHost = process.env.DOMAIN_CONNECT_KEY_HOST?.trim() || null;
 
-    const privateKeyPem = getDomainConnectPrivateKeyPem();
-    const keyHost = getDomainConnectKeyHost();
     if (!privateKeyPem || !keyHost) {
       throw new DubApiError({
         code: "internal_server_error",
@@ -88,7 +82,9 @@ export const POST = withWorkspace(
       domainJson.apexName?.toLowerCase() ?? apex,
     );
     const isApex = body.recordType === "A" || !subdomain;
-    const serviceId = isApex ? DEFAULT_DC_SERVICE_APEX : DEFAULT_DC_SERVICE_SUBDOMAIN;
+    const serviceId = isApex
+      ? DEFAULT_DC_SERVICE_APEX
+      : DEFAULT_DC_SERVICE_SUBDOMAIN;
 
     const returnPath =
       body.returnTo &&
