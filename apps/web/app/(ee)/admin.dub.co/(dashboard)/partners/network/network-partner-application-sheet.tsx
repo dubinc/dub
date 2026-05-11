@@ -18,6 +18,7 @@ import {
   StatusBadge,
   Trophy,
   useKeyboardShortcut,
+  useRouterStuff,
   User,
   Users,
 } from "@dub/ui";
@@ -49,6 +50,7 @@ export function NetworkPartnerApplicationSheet({
 }) {
   const [currentTabId, setCurrentTabId] =
     useState<NetworkPartnerSheetTabId>("about");
+  const { queryParams } = useRouterStuff();
 
   const PartnerDetails = (
     <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
@@ -127,6 +129,7 @@ export function NetworkPartnerApplicationSheet({
     <Sheet
       open={isOpen}
       onOpenChange={setIsOpen}
+      onClose={() => queryParams({ del: "partnerId", scroll: false })}
       contentProps={{
         className: "md:w-[max(min(calc(100vw-334px),1170px),540px)]",
       }}

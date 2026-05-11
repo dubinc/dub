@@ -39,7 +39,8 @@ export default function NetworkApplicationsPage() {
     useRouterStuff();
 
   const [detailsSheetState, setDetailsSheetState] = useState<
-    { open: false; partnerId: null } | { open: true; partnerId: string }
+    | { open: false; partnerId: string | null }
+    | { open: true; partnerId: string }
   >({ open: false, partnerId: null });
 
   const {
@@ -399,15 +400,7 @@ export default function NetworkApplicationsPage() {
               : undefined
           }
           setIsOpen={(open) => {
-            if (!open) {
-              setDetailsSheetState({ open: false, partnerId: null });
-              queryParams({ del: "partnerId", scroll: false });
-            } else if (detailsSheetState.partnerId) {
-              setDetailsSheetState({
-                open: true,
-                partnerId: detailsSheetState.partnerId,
-              });
-            }
+            setDetailsSheetState((state) => ({ ...state, open }) as any);
           }}
           onReview={handleReviewPartner}
         />
