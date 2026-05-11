@@ -4,7 +4,7 @@ import { getNetworkApprovalRequirements } from "./get-network-approval-requireme
 export function getNetworkProfileChecklistProgress({
   partner,
 }: {
-  partner: Pick<
+  partner?: Pick<
     PartnerProps,
     | "image"
     | "description"
@@ -14,6 +14,15 @@ export function getNetworkProfileChecklistProgress({
     | "platforms"
   >;
 }) {
+  if (!partner) {
+    return {
+      tasks: [],
+      completedCount: 0,
+      totalCount: 0,
+      isComplete: false,
+    };
+  }
+
   const tasks = getNetworkApprovalRequirements({
     partner,
   });

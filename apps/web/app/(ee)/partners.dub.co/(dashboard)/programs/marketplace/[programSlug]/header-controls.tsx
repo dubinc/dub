@@ -17,7 +17,7 @@ import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ReactNode, useMemo } from "react";
+import { ReactNode } from "react";
 import { toast } from "sonner";
 
 export function MarketplaceProgramHeaderControls({
@@ -59,13 +59,10 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
 
   const { programEnrollment } = useProgramEnrollment();
 
-  const checklistProgress = useMemo(() => {
-    return partner
-      ? getNetworkProfileChecklistProgress({
-          partner,
-        })
-      : undefined;
-  }, [partner]);
+  const { completedCount, totalCount, isComplete } =
+    getNetworkProfileChecklistProgress({
+      partner,
+    });
 
   const { executeAsync: submitNetworkProfile } = useAction(
     submitNetworkProfileAction,
@@ -111,7 +108,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
         programEnrollment.status,
       ) ? (
       `You were ${programEnrollment.status} from this program`
-    ) : checklistProgress && !checklistProgress.isComplete ? (
+    ) : !isComplete ? (
       <div className="max-w-xs p-3 text-center">
         <div className="text-content-default text-pretty text-sm leading-5">
           Complete your profile to join the Dub Partner Network. Once approved,
@@ -122,14 +119,11 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
           className="bg-bg-subtle mt-3 flex items-center justify-center gap-2 rounded-lg px-2.5 py-1.5"
         >
           <ProgressCircle
-            progress={
-              checklistProgress.completedCount / checklistProgress.totalCount
-            }
+            progress={completedCount / totalCount}
             className="text-green-500"
           />
           <span className="text-content-default text-sm font-medium">
-            {checklistProgress.completedCount} of {checklistProgress.totalCount}{" "}
-            tasks completed
+            {completedCount} of {totalCount} tasks completed
           </span>
         </Link>
       </div>

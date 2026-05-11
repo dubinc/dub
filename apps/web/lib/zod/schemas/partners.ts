@@ -567,7 +567,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   })
   .extend(OldPartnerPlatformsFields.shape)
   .extend({
-    trustedAt: z.null().meta({
+    trustedAt: z.date().nullish().meta({
       deprecated: true,
       description: "DEPRECATED: Use `networkStatus` instead.",
     }),

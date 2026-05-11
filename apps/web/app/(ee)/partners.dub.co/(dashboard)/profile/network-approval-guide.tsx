@@ -41,16 +41,10 @@ const NETWORK_STATUS_BADGE_VARIANT = {
 export function NetworkApprovalGuide() {
   const { partner, mutate } = usePartnerProfile();
 
-  const { tasks, completedCount, totalCount, isComplete } = partner
-    ? getNetworkProfileChecklistProgress({
-        partner,
-      })
-    : {
-        tasks: [],
-        completedCount: 0,
-        totalCount: 0,
-        isComplete: false,
-      };
+  const { tasks, completedCount, totalCount, isComplete } =
+    getNetworkProfileChecklistProgress({
+      partner,
+    });
 
   const [isExpanded, setIsExpanded] = useState(isComplete ? false : true);
 
@@ -102,7 +96,7 @@ export function NetworkApprovalGuide() {
                   Join the Dub Partner Network
                 </h2>
 
-                {partner.networkStatus === "draft" ? (
+                {partner.networkStatus === "draft" || !isComplete ? (
                   <div className="bg-bg-default/10 flex w-fit items-center gap-1.5 rounded-md px-2 py-1">
                     <ProgressCircle
                       progress={completedCount / totalCount}
