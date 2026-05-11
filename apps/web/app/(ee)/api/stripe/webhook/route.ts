@@ -83,8 +83,10 @@ export const POST = async (req: Request) => {
       message: `Stripe webhook failed (${event.type}). Error: ${error.message}`,
       type: "errors",
     });
+    // Return 200 so Stripe does not retry on business-logic failures.
+    // Signature/construction errors (above) still return 400, which is correct.
     return new Response(`Webhook error: ${error.message}`, {
-      status: 400,
+      status: 200,
     });
   }
 
