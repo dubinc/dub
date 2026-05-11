@@ -36,6 +36,7 @@ model Commission {
   userId             String? // user who created the manual commission
   sourceCommissionId String? // only for referral commissions (id of the source commission)
   sourcePartnerId    String? // only for referral commissions (id of the source partner)
+  deduplicationKey   String? // scenario-specific deduplication key
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 
@@ -50,7 +51,7 @@ model Commission {
   user              User?             @relation(fields: [userId], references: [id])
 
   @@unique([invoiceId, programId])
-  @@unique(sourceCommissionId)
+  @@unique([programId, deduplicationKey])
   @@index([earnings, programId, partnerId, status]) // old index
   @@index([programId, partnerId]) // for programEnrollment relation (used in cron/payouts/aggregate-due-commissions)
   @@index([programId, status, createdAt, amount, earnings]) // for program/commissions (scoped by programId)

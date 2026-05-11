@@ -12,7 +12,7 @@ export const CommissionTypeBadge = ({
   return (
     <div className="flex items-center gap-1.5">
       <CommissionTypeIcon type={type} />
-      {capitalize(type)}
+      {type === "referral" ? "Partner referral" : capitalize(type)}
     </div>
   );
 };
@@ -31,7 +31,7 @@ export function getCommissionTypeLabel(
   }
 
   if (commission.type === "referral") {
-    return "Referral commission";
+    return "Partner referral";
   }
 
   return "Custom commission";

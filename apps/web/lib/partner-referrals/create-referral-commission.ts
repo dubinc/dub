@@ -87,22 +87,6 @@ export const createReferralCommission = async (
     sourceCommission &&
     (trigger === "commissionEarned" || trigger === "saleRecorded")
   ) {
-    const existingReferralCommission = await prisma.commission.findUnique({
-      where: {
-        sourceCommissionId: sourceCommission.id,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (existingReferralCommission) {
-      console.log(
-        `Referral commission already exists for source commission ${sourceCommission.id}.`,
-      );
-      return null;
-    }
-
     const amountInPercentage = Number(referralReward.amountInPercentage ?? 0);
 
     if (typeof referralReward.maxDuration === "number") {
@@ -160,6 +144,7 @@ export const createReferralCommission = async (
       customerId: sourceCommission.customerId,
       currency: sourceCommission.currency,
       sourceCommissionId: sourceCommission.id,
+      deduplicationKey: `${trigger}:${sourceCommission.id}`,
     };
   }
 
@@ -168,6 +153,7 @@ export const createReferralCommission = async (
     commissionData = {
       ...commissionData,
       earnings: referralReward.amountInCents ?? 0,
+      deduplicationKey: `${trigger}:${partnerId}`,
     };
   }
 
@@ -196,7 +182,16 @@ export const createReferralCommission = async (
     commissionData = {
       ...commissionData,
       earnings: referralReward.amountInCents ?? 0,
+      deduplicationKey: `${trigger}:${partnerId}`,
     };
+  }
+
+  // When reward is based on unknown trigger
+  else {
+    console.log(
+      `Invalid trigger ${trigger} for referral reward ${referralReward.id}.`,
+    );
+    return null;
   }
 
   if (commissionData.earnings === 0) {
@@ -210,16 +205,6 @@ export const createReferralCommission = async (
       data: commissionData,
     });
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      console.log(
-        `Referral commission already exists for source commission ${sourceCommission?.id} and referrer ${referredByPartnerId}, skipping...`,
-      );
-      return null;
-    }
-
     console.error("Error creating referral commission", error);
 
     await log({
@@ -260,6 +245,7 @@ export const createReferralCommission = async (
       data: CommissionWebhookSchema.parse({
         ...commission,
         partner: constructWebhookPartner(referrerProgramEnrollment),
+        link: null,
       }),
     }),
 

@@ -88,6 +88,20 @@ export function PartnerReferralRewardBuilder() {
     setValue("config", { trigger: nextTrigger }, { shouldDirty: true });
   }, [setValue, config?.trigger, type]);
 
+  // Flat triggers (partnerApproved, commissionThreshold) don't support
+  // maxDuration, so clear it whenever a flat trigger is active.
+  useEffect(() => {
+    if (
+      config?.trigger &&
+      (PARTNER_REFERRAL_FLAT_TRIGGERS as readonly Trigger[]).includes(
+        config.trigger,
+      ) &&
+      maxDuration !== null
+    ) {
+      setValue("maxDuration", null, { shouldDirty: true });
+    }
+  }, [setValue, config?.trigger, maxDuration]);
+
   const amountText = useMemo(() => {
     if (amount == null || Number.isNaN(Number(amount))) return "amount";
 

@@ -4,7 +4,7 @@ import { withCron } from "@/lib/cron/with-cron";
 import { referralRewardConfigSchema } from "@/lib/partner-referrals/schemas";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { CommissionType } from "@dub/prisma/client";
+import { CommissionType, Reward } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";
@@ -125,7 +125,7 @@ export const POST = withCron(async ({ rawBody }) => {
     },
     select: {
       partnerId: true,
-      referralRewardId: true,
+      referralReward: true,
     },
   });
 
@@ -135,14 +135,14 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const referrerPartnerToReward = new Map<string, string>();
+  const referrerPartnerToReward = new Map<string, Reward>();
 
-  for (const { partnerId, referralRewardId } of referrerEnrollments) {
-    if (!referralRewardId) {
+  for (const { partnerId, referralReward } of referrerEnrollments) {
+    if (!referralReward) {
       continue;
     }
 
-    referrerPartnerToReward.set(partnerId, referralRewardId);
+    referrerPartnerToReward.set(partnerId, referralReward);
   }
 
   // 4) Build the payload of referral-eligible commissions
@@ -159,13 +159,13 @@ export const POST = withCron(async ({ rawBody }) => {
       continue;
     }
 
-    const referralRewardId = referrerPartnerToReward.get(referrerPartnerId);
+    const referralReward = referrerPartnerToReward.get(referrerPartnerId);
 
-    if (!referralRewardId || payout.commissions.length === 0) {
+    if (!referralReward || payout.commissions.length === 0) {
       continue;
     }
 
-    const { trigger } = referralRewardConfigSchema.parse(referralRewardId);
+    const { trigger } = referralRewardConfigSchema.parse(referralReward.config);
 
     if (trigger === "commissionThreshold") {
       payloads.push({
@@ -185,10 +185,10 @@ export const POST = withCron(async ({ rawBody }) => {
   }
 
   await enqueueBatchJobs(
-    payloads.map((payload) => ({
+    payloads.map(({ deduplicationId, ...payload }) => ({
       queueName: "create-referral-commissions",
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/create`,
-      deduplicationId: `create-referral-commissions-${payload.deduplicationId}`,
+      deduplicationId: `create-referral-commissions-${deduplicationId}`,
       body: payload,
     })),
   );
