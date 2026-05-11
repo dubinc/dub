@@ -23,6 +23,7 @@ import {
   LOCALHOST_GEO_DATA,
   LOCALHOST_IP,
 } from "@dub/utils";
+import { NETWORK_PROGRAM_SLUG } from "@dub/utils/src";
 import { geolocation, ipAddress } from "@vercel/functions";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";
@@ -291,6 +292,7 @@ async function getRequestContext(req: NextRequest) {
 //   - https://partners.dub.co/{programSlug}
 //   - https://partners.dub.co/programs/{programSlug}/apply
 //   - https://partners.dub.co/programs/marketplace/{programSlug}
+//   - https://partners.dub.co/register (platform-level signup → network program)
 function identityProgramSlug(url: string) {
   try {
     const urlObj = new URL(url);
@@ -298,6 +300,11 @@ function identityProgramSlug(url: string) {
 
     if (parts.length === 0) {
       return { programSlug: null, isMarketplace: false };
+    }
+
+    // Platform-level /register page is associated with the network program
+    if (parts[0] === "register") {
+      return { programSlug: NETWORK_PROGRAM_SLUG, isMarketplace: false };
     }
 
     const isMarketplace = parts[0] === "programs" && parts[1] === "marketplace";
