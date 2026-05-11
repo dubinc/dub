@@ -78,6 +78,13 @@ export const POST = withAdmin(async ({ req }) => {
     );
   }
 
+  if (!registered.renewalFee || registered.renewalFee <= 0) {
+    return NextResponse.json(
+      { error: `Domain "${normalized}" has no valid renewal fee configured.` },
+      { status: 400 },
+    );
+  }
+
   const invoice = await prisma.$transaction(async (tx) => {
     const totalInvoices = await tx.invoice.count({
       where: {

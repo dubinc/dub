@@ -48,8 +48,8 @@ export default function AdminPage() {
         <p className="text-sm text-neutral-500">
           Create a new domain-renewal invoice and charge the workspace default
           payment method. On success, Stripe webhooks extend Dub expiry and
-          re-enable Dynadot auto-renew. If the name is already expired at the
-          Dynadot, you may still need to renew it in the dashboard.
+          re-enable Dynadot auto-renew. If the domain has already expired at
+          Dynadot, you may still need to renew it in the Dynadot dashboard.
         </p>
         <RenewDomain />
       </div>
