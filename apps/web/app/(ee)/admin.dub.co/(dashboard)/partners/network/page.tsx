@@ -18,13 +18,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { CircleDotted, FlagWavy } from "@dub/ui/icons";
-import {
-  cn,
-  COUNTRIES,
-  fetcher,
-  formatDate,
-  INFINITY_NUMBER,
-} from "@dub/utils";
+import { cn, COUNTRIES, fetcher, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { NetworkPartnerApplicationSheet } from "app/(ee)/admin.dub.co/(dashboard)/partners/network/network-partner-application-sheet";
 import { useEffect, useMemo, useState } from "react";
@@ -48,9 +42,11 @@ export default function NetworkApplicationsPage() {
     { open: false; partnerId: null } | { open: true; partnerId: string }
   >({ open: false, partnerId: null });
 
-  const { data, isLoading, mutate } = useSWR<{
-    partners: AdminNetworkPartner[];
-  }>(
+  const {
+    data: partners = [],
+    isLoading,
+    mutate,
+  } = useSWR<AdminNetworkPartner[]>(
     `/api/admin/partners/network${getQueryString(undefined, {
       exclude: ["partnerId"],
     })}`,
@@ -60,7 +56,18 @@ export default function NetworkApplicationsPage() {
     },
   );
 
-  const partners = data?.partners ?? [];
+  const { data: partnersCount } = useSWR<{
+    count: number;
+  }>(
+    `/api/admin/partners/network/count${getQueryString(undefined, {
+      exclude: ["partnerId"],
+    })}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
   const statusFilterOptions = useMemo(
     () =>
       Object.values(PartnerNetworkStatus).map((status) => {
@@ -73,23 +80,6 @@ export default function NetworkApplicationsPage() {
           };
         }
       }),
-    [partners],
-  );
-  const countryFilterOptions = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          partners
-            .map((partner) => partner.country)
-            .filter((country): country is string => Boolean(country)),
-        ),
-      )
-        .filter((country) => COUNTRIES[country])
-        .sort((a, b) => COUNTRIES[a].localeCompare(COUNTRIES[b]))
-        .map((country) => ({
-          value: country,
-          label: COUNTRIES[country],
-        })),
     [partners],
   );
   const filters = useMemo(
@@ -107,10 +97,13 @@ export default function NetworkApplicationsPage() {
         label: "Country",
         singleSelect: true,
         getOptionIcon: (value: string) => <CountryFlag countryCode={value} />,
-        options: countryFilterOptions,
+        options: Object.entries(COUNTRIES).map(([key, value]) => ({
+          value: key,
+          label: value,
+        })),
       },
     ],
-    [countryFilterOptions, statusFilterOptions],
+    [statusFilterOptions],
   );
   const activeFilters = useMemo(() => {
     const active = [] as { key: string; value: string }[];
@@ -374,7 +367,7 @@ export default function NetworkApplicationsPage() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (plural) => `partner${plural ? "s" : ""}`,
-    rowCount: partners.length < 100 ? partners.length : INFINITY_NUMBER,
+    rowCount: partnersCount?.count ?? 0,
   });
 
   return (

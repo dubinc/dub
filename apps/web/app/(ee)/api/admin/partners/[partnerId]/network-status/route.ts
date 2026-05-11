@@ -1,5 +1,4 @@
 import { withAdmin } from "@/lib/auth";
-import { updateAdminNetworkStatusSchema } from "@/lib/zod/schemas/admin";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import { sendEmail } from "@dub/email";
 import NetworkPartnerApplicationApproved from "@dub/email/templates/network-partner-application-approved";
@@ -7,6 +6,11 @@ import NetworkPartnerApplicationRejected from "@dub/email/templates/network-part
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+const updateAdminNetworkStatusSchema = z.object({
+  status: z.enum(["approved", "rejected"]),
+});
 
 // PATCH /api/admin/partners/[partnerId]/network-status
 export const PATCH = withAdmin(
@@ -71,7 +75,10 @@ export const PATCH = withAdmin(
       },
     });
 
-    if (existingPartner.email && (status === "approved" || status === "rejected")) {
+    if (
+      existingPartner.email &&
+      (status === "approved" || status === "rejected")
+    ) {
       waitUntil(
         sendEmail({
           to: existingPartner.email,

@@ -1,24 +1,15 @@
 import { withAdmin } from "@/lib/auth";
-import { adminNetworkPartnerSchema } from "@/lib/zod/schemas/admin";
-import { getPaginationQuerySchema } from "@/lib/zod/schemas/misc";
+import {
+  adminNetworkPartnerQuerySchema,
+  adminNetworkPartnerSchema,
+} from "@/lib/zod/schemas/admin";
 import { prisma } from "@dub/prisma";
-import { PartnerNetworkStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
-
-const querySchema = z
-  .object({
-    networkStatus: z.enum(PartnerNetworkStatus).optional(),
-    country: z.string().optional(),
-    search: z.string().trim().min(1).optional(),
-    sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
-  })
-  .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
 // GET /api/admin/partners/network
 export const GET = withAdmin(async ({ searchParams }) => {
   const { networkStatus, country, search, sortOrder, page, pageSize } =
-    querySchema.parse(searchParams);
+    adminNetworkPartnerQuerySchema.parse(searchParams);
 
   const partners = await prisma.partner.findMany({
     where: {
@@ -77,8 +68,8 @@ export const GET = withAdmin(async ({ searchParams }) => {
     },
   });
 
-  return NextResponse.json({
-    partners: adminNetworkPartnerSchema.array().parse(
+  return NextResponse.json(
+    adminNetworkPartnerSchema.array().parse(
       partners.map((partner) => ({
         ...partner,
         industryInterests: partner.industryInterests.map(
@@ -97,10 +88,12 @@ export const GET = withAdmin(async ({ searchParams }) => {
         duplicatePartnerAccounts: duplicatePartnerAccounts.filter(
           (account) =>
             account.id !== partner.id &&
-            (account.payoutMethodHash === partner.payoutMethodHash ||
-              account.cryptoWalletAddress === partner.cryptoWalletAddress),
+            ((partner.payoutMethodHash &&
+              partner.payoutMethodHash === account.payoutMethodHash) ||
+              (partner.cryptoWalletAddress &&
+                partner.cryptoWalletAddress === account.cryptoWalletAddress)),
         ),
       })),
     ),
-  });
+  );
 });

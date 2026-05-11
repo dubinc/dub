@@ -115,10 +115,12 @@ export function NetworkPartnerApplicationSheet({
 
   useKeyboardShortcut("a", () => setShowApproveConfirm(true), {
     sheet: true,
+    enabled: !["rejected", "trusted"].includes(partner.networkStatus),
   });
 
   useKeyboardShortcut("r", () => setShowRejectConfirm(true), {
     sheet: true,
+    enabled: !["approved", "trusted"].includes(partner.networkStatus),
   });
 
   return (
@@ -222,6 +224,11 @@ export function NetworkPartnerApplicationSheet({
               className="w-fit shrink-0"
               shortcut="R"
               onClick={() => setShowRejectConfirm(true)}
+              disabledTooltip={
+                ["rejected", "trusted"].includes(partner.networkStatus)
+                  ? `Cannot reject a ${partner.networkStatus} partner.`
+                  : undefined
+              }
             />
             <Button
               type="button"
@@ -230,6 +237,11 @@ export function NetworkPartnerApplicationSheet({
               className="w-fit shrink-0"
               shortcut="A"
               onClick={() => setShowApproveConfirm(true)}
+              disabledTooltip={
+                ["approved", "trusted"].includes(partner.networkStatus)
+                  ? `Cannot approve a ${partner.networkStatus} partner.`
+                  : undefined
+              }
             />
           </div>
         </div>

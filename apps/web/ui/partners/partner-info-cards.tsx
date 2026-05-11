@@ -223,7 +223,9 @@ export function PartnerInfoCards({
                 ) : (
                   <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
                 )}
-                {partner?.trustedAt && <TrustedPartnerBadge />}
+                {partner?.networkStatus === "trusted" && (
+                  <TrustedPartnerBadge />
+                )}
               </div>
 
               <div className="flex items-center gap-2">

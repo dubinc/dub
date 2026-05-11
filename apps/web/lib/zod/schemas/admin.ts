@@ -1,5 +1,10 @@
-import { FraudAlertStatus, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import {
+  FraudAlertStatus,
+  PartnerNetworkStatus,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
 import * as z from "zod/v4";
+import { getPaginationQuerySchema } from "./misc";
 import { partnerProfileChangeHistoryLogSchema } from "./partner-profile";
 import {
   EnrolledPartnerSchemaExtended,
@@ -82,6 +87,11 @@ export const adminNetworkPartnerSchema = EnrolledPartnerSchemaExtended.pick({
   ),
 });
 
-export const updateAdminNetworkStatusSchema = z.object({
-  status: z.enum(["approved", "rejected"]),
-});
+export const adminNetworkPartnerQuerySchema = z
+  .object({
+    networkStatus: z.enum(PartnerNetworkStatus).optional(),
+    country: z.string().optional(),
+    search: z.string().trim().min(1).optional(),
+    sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
+  })
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
