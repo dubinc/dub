@@ -65,14 +65,22 @@ export const POST = withAxiom(async (req) => {
       });
     }
 
-    const program = await prisma.program.findUnique({
-      where: {
-        slug: programSlug.toLowerCase(),
-      },
-      select: {
-        id: true,
-      },
-    });
+    let program: Pick<Program, "id"> | null = null;
+
+    if (programSlug === NETWORK_PROGRAM_SLUG) {
+      program = {
+        id: NETWORK_PROGRAM_ID,
+      };
+    } else {
+      program = await prisma.program.findUnique({
+        where: {
+          slug: programSlug.toLowerCase(),
+        },
+        select: {
+          id: true,
+        },
+      });
+    }
 
     if (!program) {
       throw new DubApiError({
