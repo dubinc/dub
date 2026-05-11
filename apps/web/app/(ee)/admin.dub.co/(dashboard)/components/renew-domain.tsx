@@ -10,29 +10,61 @@ export function RenewDomain() {
     <div className="flex flex-col space-y-5">
       <form
         action={async (data) => {
-          const res = await fetch("/api/admin/renew-domain", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              domain: data.get("domain"),
-            }),
-          });
-          const json = await res.json();
-          if (!res.ok) {
-            toast.error(json.error ?? "Request failed");
-            return;
+          try {
+            const res = await fetch("/api/admin/renew-domain", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                domain: data.get("domain"),
+              }),
+            });
+
+            const text = await res.text();
+            let payload: Record<string, unknown> = {};
+            try {
+              payload = text ? (JSON.parse(text) as Record<string, unknown>) : {};
+            } catch {
+              payload = {};
+            }
+
+            if (!res.ok) {
+              toast.error(
+                typeof payload.error === "string"
+                  ? payload.error
+                  : text.trim().slice(0, 200) || "Request failed",
+              );
+              return;
+            }
+
+            const message =
+              typeof payload.message === "string"
+                ? payload.message
+                : "Renewal initiated";
+            const invoiceId =
+              typeof payload.invoiceId === "string"
+                ? payload.invoiceId
+                : undefined;
+            const paymentIntentStatus =
+              typeof payload.paymentIntentStatus === "string"
+                ? payload.paymentIntentStatus
+                : undefined;
+
+            toast.success(message, {
+              description: invoiceId
+                ? `Invoice: ${invoiceId}${
+                    paymentIntentStatus
+                      ? ` · Payment status: ${paymentIntentStatus}`
+                      : ""
+                  }`
+                : undefined,
+            });
+          } catch {
+            toast.error(
+              "Could not reach the server or complete renewal. Check your connection and try again.",
+            );
           }
-          toast.success(json.message ?? "Renewal initiated", {
-            description: json.invoiceId
-              ? `Invoice: ${json.invoiceId}${
-                  json.paymentIntentStatus
-                    ? ` · Payment status: ${json.paymentIntentStatus}`
-                    : ""
-                }`
-              : undefined,
-          });
         }}
       >
         <Form />

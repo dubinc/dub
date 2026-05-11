@@ -44,33 +44,6 @@ export const POST = withAdmin(async ({ req }) => {
     );
   }
 
-  const pendingInvoices = await prisma.invoice.findMany({
-    where: {
-      workspaceId: registered.projectId,
-      type: "domainRenewal",
-      status: "processing",
-    },
-    select: {
-      id: true,
-      registeredDomains: true,
-    },
-  });
-
-  const hasPendingForSlug = pendingInvoices.some((inv) => {
-    const slugs = inv.registeredDomains as string[] | null;
-    return Array.isArray(slugs) && slugs.includes(normalized);
-  });
-
-  if (hasPendingForSlug) {
-    return NextResponse.json(
-      {
-        error:
-          "A domain renewal charge is already processing for this domain. Wait for it to complete or fail before retrying.",
-      },
-      { status: 409 },
-    );
-  }
-
   if (!registered.project.stripeId) {
     return NextResponse.json(
       { error: "Workspace has no Stripe customer; add billing first." },
@@ -85,7 +58,30 @@ export const POST = withAdmin(async ({ req }) => {
     );
   }
 
-  const invoice = await prisma.$transaction(async (tx) => {
+  const outcome = await prisma.$transaction(async (tx) => {
+    const pendingInvoices = await tx.invoice.findMany({
+      where: {
+        workspaceId: registered.projectId,
+        type: "domainRenewal",
+        status: "processing",
+      },
+      select: {
+        registeredDomains: true,
+      },
+    });
+
+    const hasPendingForSlug = pendingInvoices.some((inv) => {
+      const slugs = inv.registeredDomains as string[] | null;
+      return (
+        Array.isArray(slugs) &&
+        (slugs.includes(registered.slug) || slugs.includes(normalized))
+      );
+    });
+
+    if (hasPendingForSlug) {
+      return { ok: false as const };
+    }
+
     const totalInvoices = await tx.invoice.count({
       where: {
         workspaceId: registered.projectId,
@@ -95,7 +91,7 @@ export const POST = withAdmin(async ({ req }) => {
     const invoiceNumber = `${registered.project.invoicePrefix}-${paddedNumber}`;
     const renewalFee = registered.renewalFee;
 
-    return tx.invoice.create({
+    const invoice = await tx.invoice.create({
       data: {
         id: createId({ prefix: "inv_" }),
         workspaceId: registered.projectId,
@@ -106,7 +102,21 @@ export const POST = withAdmin(async ({ req }) => {
         registeredDomains: [registered.slug],
       },
     });
+
+    return { ok: true as const, invoice };
   });
+
+  if (!outcome.ok) {
+    return NextResponse.json(
+      {
+        error:
+          "A domain renewal charge is already processing for this domain. Wait for it to complete or fail before retrying.",
+      },
+      { status: 409 },
+    );
+  }
+
+  const invoice = outcome.invoice;
 
   const { paymentIntent } = await createPaymentIntent({
     stripeId: registered.project.stripeId!,
@@ -153,9 +163,6 @@ export const POST = withAdmin(async ({ req }) => {
       "Payment initiated. If the payment is not yet succeeded, the customer may need to complete authentication; Stripe webhooks will update the invoice.",
     invoiceId: invoice.id,
     paymentIntentStatus: status,
-    ...(paymentIntent.client_secret
-      ? { paymentIntentClientSecret: paymentIntent.client_secret }
-      : {}),
   });
 });
 
