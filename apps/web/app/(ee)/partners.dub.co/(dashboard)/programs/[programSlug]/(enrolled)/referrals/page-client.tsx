@@ -136,7 +136,7 @@ export function PartnerReferralsPageClient() {
           headerTooltip: "Total commission earned from this partner.",
         },
         cell: ({ row }: { row: Row<ReferredPartnerProps> }) =>
-          currencyFormatter(row.original.programEnrollment.earnings / 100, {
+          currencyFormatter(row.original.programEnrollment.earnings, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),
