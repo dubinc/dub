@@ -1,5 +1,6 @@
 "use client";
 
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { Category } from "@dub/prisma/client";
 import {
   Button,
@@ -8,7 +9,9 @@ import {
   LoadingSpinner,
   Modal,
   PenWriting,
+  useMediaQuery,
 } from "@dub/ui";
+import { Xmark } from "@dub/ui/icons";
 import { cn, fetcher, getDomainWithoutWWW, OG_AVATAR_URL } from "@dub/utils";
 import {
   ProgramCategoriesList,
@@ -34,11 +37,9 @@ type MarketplaceProgram = {
 };
 
 export default function AdminProgramsPage() {
-  const { data, isLoading } = useSWR<{ programs: MarketplaceProgram[] }>(
-    "/api/admin/programs",
-    fetcher,
-    { keepPreviousData: true },
-  );
+  const { data, isLoading, mutate } = useSWR<{
+    programs: MarketplaceProgram[];
+  }>("/api/admin/programs", fetcher, { keepPreviousData: true });
 
   const [programs, setPrograms] = useState<MarketplaceProgram[]>([]);
   const [rankedOrderIds, setRankedOrderIds] = useState<string[]>([]);
@@ -51,6 +52,11 @@ export default function AdminProgramsPage() {
   >(null);
   const [editingDescriptionProgramId, setEditingDescriptionProgramId] =
     useState<string | null>(null);
+  const [programToDelete, setProgramToDelete] =
+    useState<MarketplaceProgram | null>(null);
+  const [showAddProgramModal, setShowAddProgramModal] = useState(false);
+  const [newProgramSlug, setNewProgramSlug] = useState("");
+  const [isAddingProgram, setIsAddingProgram] = useState(false);
   const [descriptionDraft, setDescriptionDraft] = useState("");
   const [isSavingCategories, setIsSavingCategories] = useState(false);
   const [isSavingDescription, setIsSavingDescription] = useState(false);
@@ -219,9 +225,43 @@ export default function AdminProgramsPage() {
   const editingDescriptionProgram = editingDescriptionProgramId
     ? programsById[editingDescriptionProgramId]
     : null;
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Remove marketplace program",
+    description: programToDelete ? (
+      <>
+        Remove{" "}
+        <span className="font-medium text-neutral-900">
+          {programToDelete.name}
+        </span>{" "}
+        from marketplace listings?
+      </>
+    ) : null,
+    confirmText: "Remove",
+    confirmVariant: "danger",
+    cancelText: "Cancel",
+    onCancel: () => setProgramToDelete(null),
+    onConfirm: async () => {
+      if (!programToDelete) return;
+
+      const res = await fetch(`/api/admin/programs/${programToDelete.id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const message = await res.text();
+        toast.error(message || "Failed to remove program.");
+        throw new Error(message);
+      }
+
+      await mutate();
+      toast.success("Program removed from marketplace.");
+      setProgramToDelete(null);
+    },
+  });
 
   return (
     <>
+      {confirmModal}
       <UpdateProgramCategoriesModal
         showModal={!!editingCategoriesProgram}
         setShowModal={(next) => {
@@ -274,13 +314,47 @@ export default function AdminProgramsPage() {
           }
         }}
       />
+      <AddProgramModal
+        showModal={showAddProgramModal}
+        setShowModal={setShowAddProgramModal}
+        programSlug={newProgramSlug}
+        setProgramSlug={setNewProgramSlug}
+        isLoading={isAddingProgram}
+        onAdd={async () => {
+          if (!newProgramSlug.trim()) return;
+
+          setIsAddingProgram(true);
+          const res = await fetch("/api/admin/programs", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              programSlug: newProgramSlug.trim(),
+            }),
+          });
+
+          if (!res.ok) {
+            setIsAddingProgram(false);
+            toast.error((await res.text()) || "Failed to add program.");
+            return;
+          }
+
+          await mutate();
+          setIsAddingProgram(false);
+          setShowAddProgramModal(false);
+          setNewProgramSlug("");
+          toast.success("Program added to marketplace.");
+        }}
+      />
 
       <div className="mx-auto flex w-full max-w-screen-xl flex-col gap-4 p-6 pb-28">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-xl font-semibold text-neutral-900">Programs</h1>
-          <p className="text-sm text-neutral-600">
-            Manage marketplace ranking, categories, and listing descriptions.
-          </p>
+        <div className="flex justify-end">
+          <Button
+            text="Add program"
+            className="h-8 w-fit"
+            onClick={() => setShowAddProgramModal(true)}
+          />
         </div>
 
         <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
@@ -295,12 +369,13 @@ export default function AdminProgramsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <div className="min-w-[980px]">
-                <div className="grid grid-cols-[80px_minmax(320px,1fr)_300px_minmax(260px,1fr)] items-center gap-3 border-b border-neutral-200 bg-neutral-50 px-4 py-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
+              <div className="min-w-[1010px]">
+                <div className="grid grid-cols-[80px_minmax(320px,1fr)_300px_minmax(260px,1fr)_24px] items-center gap-3 border-b border-neutral-200 bg-neutral-50 px-4 py-2 text-xs font-medium uppercase tracking-wide text-neutral-500">
                   <div>Position</div>
                   <div>Program</div>
                   <div>Categories</div>
                   <div className="pl-1">Description</div>
+                  <div />
                 </div>
                 <Reorder.Group
                   axis="y"
@@ -319,6 +394,10 @@ export default function AdminProgramsPage() {
                       onEditDescription={() => {
                         setEditingDescriptionProgramId(program.id);
                         setDescriptionDraft(program.description || "");
+                      }}
+                      onDelete={() => {
+                        setProgramToDelete(program);
+                        setShowConfirmModal(true);
                       }}
                     />
                   ))}
@@ -361,17 +440,19 @@ function ProgramRow({
   index,
   onEditCategories,
   onEditDescription,
+  onDelete,
 }: {
   program: MarketplaceProgram;
   index: number;
   onEditCategories: () => void;
   onEditDescription: () => void;
+  onDelete: () => void;
 }) {
   const dragControls = useDragControls();
   const positionLabel = `${index + 1}`;
 
   const content = (
-    <div className="grid grid-cols-[80px_minmax(320px,1fr)_300px_minmax(260px,1fr)] items-center gap-3 px-4 py-2.5">
+    <div className="grid grid-cols-[80px_minmax(320px,1fr)_300px_minmax(260px,1fr)_24px] items-center gap-3 px-4 py-2.5">
       <div className="flex items-center gap-1.5 text-sm font-medium tabular-nums text-neutral-700">
         <button
           type="button"
@@ -437,6 +518,21 @@ function ProgramRow({
           {program.description?.trim() || "Add description"}
         </span>
       </button>
+      <button
+        type="button"
+        aria-label={`Remove ${program.name} from marketplace`}
+        className={cn(
+          "w-fit shrink-0 rounded-md p-2 text-neutral-400 transition-colors",
+          "hover:bg-neutral-100 hover:text-neutral-700",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2",
+        )}
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+      >
+        <Xmark className="size-4" />
+      </button>
     </div>
   );
 
@@ -448,6 +544,78 @@ function ProgramRow({
     >
       {content}
     </Reorder.Item>
+  );
+}
+
+function AddProgramModal({
+  showModal,
+  setShowModal,
+  programSlug,
+  setProgramSlug,
+  isLoading,
+  onAdd,
+}: {
+  showModal: boolean;
+  setShowModal: Dispatch<SetStateAction<boolean>>;
+  programSlug: string;
+  setProgramSlug: Dispatch<SetStateAction<string>>;
+  isLoading: boolean;
+  onAdd: () => Promise<void>;
+}) {
+  const { isMobile } = useMediaQuery();
+
+  return (
+    <Modal
+      showModal={showModal}
+      setShowModal={setShowModal}
+      className="max-w-md"
+    >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!programSlug.trim()) return;
+          onAdd();
+        }}
+      >
+        <div className="border-b border-neutral-200 p-4 sm:p-6">
+          <h3 className="text-lg font-medium leading-none">Add program</h3>
+        </div>
+        <div className="p-4 sm:p-6">
+          <label className="space-y-1.5">
+            <span className="text-sm font-medium text-neutral-800">
+              Program slug
+            </span>
+            <input
+              type="text"
+              value={programSlug}
+              onChange={(e) => setProgramSlug(e.target.value)}
+              placeholder="example-program"
+              autoFocus={!isMobile}
+              className={cn(
+                "w-full rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900",
+                "placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+              )}
+            />
+          </label>
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-4 py-4 sm:px-6">
+          <Button
+            type="button"
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+            onClick={() => setShowModal(false)}
+          />
+          <Button
+            type="submit"
+            text="Add program"
+            className="h-8 w-fit px-3"
+            loading={isLoading}
+            disabled={!programSlug.trim()}
+          />
+        </div>
+      </form>
+    </Modal>
   );
 }
 

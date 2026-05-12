@@ -77,3 +77,40 @@ export const PATCH = withAdmin(
     requiredRoles: ["owner"],
   },
 );
+
+// DELETE /api/admin/programs/[programId]
+export const DELETE = withAdmin(
+  async ({ params }) => {
+    const { programId } = params;
+
+    const program = await prisma.program.findUnique({
+      where: {
+        id: programId,
+      },
+      select: {
+        id: true,
+        addedToMarketplaceAt: true,
+      },
+    });
+
+    if (!program || !program.addedToMarketplaceAt) {
+      return new Response("Program not found in marketplace.", { status: 404 });
+    }
+
+    await prisma.program.update({
+      where: {
+        id: programId,
+      },
+      data: {
+        addedToMarketplaceAt: null,
+        featuredOnMarketplaceAt: null,
+        marketplaceRanking: 2147483647,
+      },
+    });
+
+    return NextResponse.json({ ok: true });
+  },
+  {
+    requiredRoles: ["owner"],
+  },
+);

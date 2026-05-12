@@ -13,7 +13,14 @@ import {
   TruncatedList,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 const categoryPillClassName =
   "bg-bg-inverted/5 text-content-default whitespace-nowrap min-w-0 select-none inline-flex min-h-6 items-center rounded-md px-2 py-0.5 text-xs font-semibold leading-tight hover:bg-bg-inverted/10";
@@ -97,13 +104,33 @@ export function UpdateProgramCategoriesModal({
   programName,
 }: UpdateProgramCategoriesModalProps) {
   const [draftCategories, setDraftCategories] = useState<Category[]>([]);
+  const [search, setSearch] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!showModal) return;
     setDraftCategories(selectedCategories);
+    setSearch("");
+
+    // autoFocus is unreliable in some modal/portal mounts
+    setTimeout(() => searchInputRef.current?.focus(), 10);
   }, [showModal, selectedCategories]);
 
   const draftSet = useMemo(() => new Set(draftCategories), [draftCategories]);
+  const filteredCategories = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+    if (!normalizedSearch) return PROGRAM_CATEGORIES;
+
+    return PROGRAM_CATEGORIES.filter(({ id, label }) => {
+      const fallbackLabel = id.replaceAll("_", " ");
+      return (
+        label.toLowerCase().includes(normalizedSearch) ||
+        id.toLowerCase().includes(normalizedSearch) ||
+        fallbackLabel.toLowerCase().includes(normalizedSearch)
+      );
+    });
+  }, [search]);
+
   const hasChanges = useMemo(() => {
     if (draftCategories.length !== selectedCategories.length) return true;
     return draftCategories.some((category) => !selectedCategories.includes(category));
@@ -116,8 +143,26 @@ export function UpdateProgramCategoriesModal({
         <p className="mt-1 text-sm text-neutral-500">{programName}</p>
       </div>
 
-      <div className="max-h-[60vh] space-y-1 overflow-y-auto p-4 sm:p-6">
-        {PROGRAM_CATEGORIES.map(({ id, label, icon: Icon }) => {
+      <div className="space-y-3 p-4 sm:p-6">
+        <input
+          ref={searchInputRef}
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search categories..."
+          className={cn(
+            "w-full rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900",
+            "placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+          )}
+        />
+
+        <div className="max-h-[52vh] space-y-1 overflow-y-auto">
+          {filteredCategories.length === 0 ? (
+            <div className="py-6 text-center text-sm text-neutral-500">
+              No categories found.
+            </div>
+          ) : (
+            filteredCategories.map(({ id, label, icon: Icon }) => {
           const isChecked = draftSet.has(id);
           const maxReached =
             !isChecked && draftCategories.length >= MAX_PROGRAM_CATEGORIES;
@@ -139,7 +184,9 @@ export function UpdateProgramCategoriesModal({
                 checked={isChecked}
                 onCheckedChange={(checked) => {
                   if (!checked) {
-                    setDraftCategories((prev) => prev.filter((category) => category !== id));
+                    setDraftCategories((prev) =>
+                      prev.filter((category) => category !== id),
+                    );
                     return;
                   }
                   if (maxReached) return;
@@ -148,7 +195,9 @@ export function UpdateProgramCategoriesModal({
               />
             </label>
           );
-        })}
+            })
+          )}
+        </div>
       </div>
 
       <div className="flex items-center justify-between border-t border-neutral-200 px-4 py-4 sm:px-6">
