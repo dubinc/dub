@@ -6,7 +6,9 @@ import { CountryFlag } from "@/ui/shared/country-flag";
 import { StatusBadge, TimestampTooltip } from "@dub/ui";
 import { capitalize, COUNTRIES, formatDate } from "@dub/utils";
 
-type PartnerChangeLogEntry = NonNullable<AdminNetworkPartner["changeHistoryLog"]>[number];
+type PartnerChangeLogEntry = NonNullable<
+  AdminNetworkPartner["changeHistoryLog"]
+>[number];
 
 const FIELD_LABELS: Record<PartnerChangeLogEntry["field"], string> = {
   country: "Country",
@@ -73,10 +75,7 @@ function renderChangeValue(
     );
   }
 
-  const label =
-    value === null
-      ? "Not set"
-      : capitalize(value);
+  const label = value === null ? "Not set" : capitalize(value);
 
   return (
     <span className="inline-flex items-center rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs font-medium text-neutral-700">

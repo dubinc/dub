@@ -103,81 +103,73 @@ export function ProgramSidebar({
 
   const [justApplied, setJustApplied] = useState(false);
 
-  const applyDisabledTooltip: ReactNode = justApplied
-    ? undefined
-    : programEnrollment?.status === "pending"
-      ? "Your application is under review"
-      : programEnrollment?.status &&
-          ["banned", "rejected", "deactivated"].includes(
-            programEnrollment.status,
-          )
-        ? `You were ${programEnrollment.status} from this program`
-        : programEnrollment
-          ? undefined
-          : !isComplete
-            ? (
-                <div className="max-w-xs p-3 text-center">
-                  <div className="text-content-default text-pretty text-sm leading-5">
-                    Complete your profile to join the Dub Partner Network. Once
-                    approved, you can then apply to this program.
-                  </div>
-                  <Link
-                    href="/profile"
-                    className="bg-bg-subtle mt-3 flex items-center justify-center gap-2 rounded-lg px-2.5 py-1.5"
-                  >
-                    <ProgressCircle
-                      progress={completedCount / totalCount}
-                      className="text-green-500"
-                    />
-                    <span className="text-content-default text-sm font-medium">
-                      {completedCount} of {totalCount} tasks completed
-                    </span>
-                  </Link>
-                </div>
-              )
-            : partner && !["approved", "trusted"].includes(partner.networkStatus)
-              ? (() => {
-                  const networkStatusBadge =
-                    NetworkStatusBadges[partner.networkStatus];
-                  if (!("partnerTooltip" in networkStatusBadge)) {
-                    return null;
-                  }
-                  const {
-                    partnerTooltip,
-                    icon: Icon,
-                    className,
-                  } = networkStatusBadge;
-                  const { content, cta } = partnerTooltip;
+  const applyDisabledTooltip: ReactNode =
+    justApplied ? undefined : programEnrollment?.status === "pending" ? (
+      "Your application is under review"
+    ) : programEnrollment?.status &&
+      ["banned", "rejected", "deactivated"].includes(
+        programEnrollment.status,
+      ) ? (
+      `You were ${programEnrollment.status} from this program`
+    ) : programEnrollment ? undefined : !isComplete ? (
+      <div className="max-w-xs p-3 text-center">
+        <div className="text-content-default text-pretty text-sm leading-5">
+          Complete your profile to join the Dub Partner Network. Once approved,
+          you can then apply to this program.
+        </div>
+        <Link
+          href="/profile"
+          className="bg-bg-subtle mt-3 flex items-center justify-center gap-2 rounded-lg px-2.5 py-1.5"
+        >
+          <ProgressCircle
+            progress={completedCount / totalCount}
+            className="text-green-500"
+          />
+          <span className="text-content-default text-sm font-medium">
+            {completedCount} of {totalCount} tasks completed
+          </span>
+        </Link>
+      </div>
+    ) : partner && !["approved", "trusted"].includes(partner.networkStatus) ? (
+      (() => {
+        const networkStatusBadge = NetworkStatusBadges[partner.networkStatus];
+        if (!("partnerTooltip" in networkStatusBadge)) {
+          return null;
+        }
+        const { partnerTooltip, icon: Icon, className } = networkStatusBadge;
+        const { content, cta } = partnerTooltip;
 
-                  return (
-                    <div className="max-w-xs space-y-2 p-4 text-center">
-                      <div className="text-content-default text-pretty text-sm leading-5">
-                        {content}
-                      </div>
-                      {partner.networkStatus === "draft" ? (
-                        <Button
-                          className="p-2"
-                          text={cta}
-                          onClick={() => setShowConfirmModal(true)}
-                        />
-                      ) : (
-                        <Link
-                          href="/profile"
-                          className={cn(
-                            "flex items-center justify-center gap-2 rounded-lg p-2",
-                            "ctaClassName" in partnerTooltip
-                              ? partnerTooltip.ctaClassName
-                              : className,
-                          )}
-                        >
-                          <Icon className="size-4 shrink-0" />
-                          <span className="text-sm font-medium">{cta}</span>
-                        </Link>
-                      )}
-                    </div>
-                  );
-                })()
-              : requirementsNotMet;
+        return (
+          <div className="max-w-xs space-y-2 p-4 text-center">
+            <div className="text-content-default text-pretty text-sm leading-5">
+              {content}
+            </div>
+            {partner.networkStatus === "draft" ? (
+              <Button
+                className="p-2"
+                text={cta}
+                onClick={() => setShowConfirmModal(true)}
+              />
+            ) : (
+              <Link
+                href="/profile"
+                className={cn(
+                  "flex items-center justify-center gap-2 rounded-lg p-2",
+                  "ctaClassName" in partnerTooltip
+                    ? partnerTooltip.ctaClassName
+                    : className,
+                )}
+              >
+                <Icon className="size-4 shrink-0" />
+                <span className="text-sm font-medium">{cta}</span>
+              </Link>
+            )}
+          </div>
+        );
+      })()
+    ) : (
+      requirementsNotMet
+    );
 
   const statusBadge = programEnrollment
     ? {
@@ -278,8 +270,7 @@ export function ProgramSidebar({
         text={buttonText}
         icon={justApplied ? <CircleCheck className="size-4" /> : undefined}
         disabled={
-          !applyDisabledTooltip &&
-          (!!programEnrollment || justApplied)
+          !applyDisabledTooltip && (!!programEnrollment || justApplied)
             ? true
             : undefined
         }
