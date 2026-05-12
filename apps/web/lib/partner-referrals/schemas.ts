@@ -30,7 +30,6 @@ export const partnerReferralStatsSchema = z.object({
   totalSaleAmount: z.number(),
 });
 
-// Response shape for a partner referred by the current partner
 export const referredPartnerSchema = z.object({
   id: z.string(),
   email: z.string(),
@@ -42,7 +41,6 @@ export const referredPartnerSchema = z.object({
   }),
 });
 
-// Query params for the referred partners list endpoint
 export const getReferredPartnersQuerySchema = z
   .object({
     country: z.enum(Object.keys(COUNTRIES)).optional(),
@@ -50,7 +48,6 @@ export const getReferredPartnersQuerySchema = z
   })
   .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
-// Query params for the referred partners count endpoint
 export const getReferredPartnersCountQuerySchema =
   getReferredPartnersQuerySchema
     .omit({
