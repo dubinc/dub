@@ -260,11 +260,11 @@ class StorageClient {
         response = await fetchWithTimeout(proxyUrl.toString());
       } catch (error) {
         await this.assertSafeUrl(url);
-        response = await fetch(url);
+        response = await fetch(url, { redirect: "error" });
       }
     } else {
       await this.assertSafeUrl(url);
-      response = await fetch(url);
+      response = await fetch(url, { redirect: "error" });
     }
     if (!response.ok) {
       throw new Error(`Failed to fetch URL: ${response.statusText}`);
