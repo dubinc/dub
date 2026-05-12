@@ -147,10 +147,9 @@ export async function bulkDeletePartners({
     // Delete the messages
     const deletedMessages = await prisma.message.deleteMany({
       where: {
-        programEnrollment: {
-          id: {
-            in: programEnrollmentIds,
-          },
+        programId: ACME_PROGRAM_ID,
+        partnerId: {
+          in: partnerIds,
         },
       },
     });

@@ -53,16 +53,16 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         groups: {
           some: {
             slug: DEFAULT_PARTNER_GROUP.slug,
-            ...(rewardType.includes("sale") && {
+            ...(rewardType === "sale" && {
               saleRewardId: { not: null },
             }),
-            ...(rewardType.includes("lead") && {
+            ...(rewardType === "lead" && {
               leadRewardId: { not: null },
             }),
-            ...(rewardType.includes("click") && {
+            ...(rewardType === "click" && {
               clickRewardId: { not: null },
             }),
-            ...(rewardType.includes("discount") && {
+            ...(rewardType === "discount" && {
               discountId: { not: null },
             }),
           },

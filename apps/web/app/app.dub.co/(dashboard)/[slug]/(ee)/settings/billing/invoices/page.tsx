@@ -65,7 +65,7 @@ export default function WorkspaceInvoices() {
       }
     >
       <PageWidthWrapper>
-        <div className="rounded-xl border border-neutral-200 bg-white">
+        <div className="mb-10 rounded-xl border border-neutral-200 bg-white">
           <TabSelect
             className="px-4 md:px-5"
             options={INVOICE_TYPES}

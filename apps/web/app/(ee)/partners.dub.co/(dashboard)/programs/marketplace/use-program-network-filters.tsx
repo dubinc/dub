@@ -72,7 +72,6 @@ export function useProgramNetworkFilters() {
     () => [
       {
         key: "rewardType",
-        multiple: true,
         icon: Gift,
         label: "Reward type",
         options: Object.entries(REWARD_TYPES).map(
@@ -136,74 +135,42 @@ export function useProgramNetworkFilters() {
     [categoriesCount, rewardTypesCount, statusCount],
   );
 
-  const multiFilters = useMemo(
-    () => ({
-      rewardType: searchParamsObj.rewardType?.split(",").filter(Boolean) ?? [],
-    }),
-    [searchParamsObj],
-  ) as Record<string, string[]>;
-
   const activeFilters = useMemo(() => {
-    const { category, status } = searchParamsObj;
+    const { rewardType, category, status } = searchParamsObj;
 
     return [
-      ...Object.entries(multiFilters)
-        .map(([key, value]) => ({ key, value }))
-        .filter(({ value }) => value.length > 0),
-
+      ...(rewardType ? [{ key: "rewardType", value: rewardType }] : []),
       ...(category ? [{ key: "category", value: category }] : []),
       ...(status ? [{ key: "status", value: status }] : []),
     ];
-  }, [searchParamsObj, multiFilters]);
+  }, [searchParamsObj]);
 
   const onSelect = useCallback(
     (key: string, value: any) =>
       queryParams({
-        set: Object.keys(multiFilters).includes(key)
-          ? {
-              [key]: multiFilters[key].concat(value).join(","),
-            }
-          : {
-              [key]: value,
-            },
+        set: {
+          [key]: value,
+        },
         del: "page",
       }),
-    [queryParams, multiFilters],
+    [queryParams],
   );
 
   const onRemove = useCallback(
-    (key: string, value: any) => {
-      if (
-        Object.keys(multiFilters).includes(key) &&
-        !(multiFilters[key].length === 1 && multiFilters[key][0] === value)
-      ) {
-        queryParams({
-          set: {
-            [key]: multiFilters[key].filter((id) => id !== value).join(","),
-          },
-          del: "page",
-        });
-      } else {
-        queryParams({
-          del: [key, "page"],
-        });
-      }
+    (key: string) => {
+      queryParams({
+        del: [key, "page"],
+      });
     },
-    [queryParams, multiFilters],
+    [queryParams],
   );
 
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: [
-          ...Object.keys(multiFilters),
-          "category",
-          "status",
-          "search",
-          "page",
-        ],
+        del: ["rewardType", "category", "status", "search", "page"],
       }),
-    [queryParams, multiFilters],
+    [queryParams],
   );
 
   const isFiltered = Boolean(

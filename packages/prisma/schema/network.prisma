@@ -10,7 +10,7 @@ enum Category {
   Education
   Health
   Consumer
-  // Prediction_Markets
+  Support
 }
 
 model ProgramCategory {

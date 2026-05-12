@@ -193,12 +193,9 @@ export const createWorkspaceSchema = z.object({
     .max(48, "Slug must be less than 48 characters")
     .transform((v) => slugify(v))
     .refine((v) => validSlugRegex.test(v), { message: "Invalid slug format" })
-    .refine(
-      async (v) => !(RESERVED_SLUGS.includes(v) || DEFAULT_REDIRECTS[v]),
-      {
-        message: "Cannot use reserved slugs",
-      },
-    ),
+    .refine((v) => !(RESERVED_SLUGS.includes(v) || DEFAULT_REDIRECTS[v]), {
+      message: "Cannot use reserved slugs",
+    }),
   logo: z
     .union([uploadedImageSchema, googleUserContentUrlSchema])
     .transform((v) => v || null)

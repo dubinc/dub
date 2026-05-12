@@ -28,10 +28,6 @@ export async function POST(req: Request) {
             updatedAt: {
               lt: subDays(new Date(), 90),
             },
-            // only delete if there are no messages (e.g. prior network messages)
-            messages: {
-              none: {},
-            },
           },
           take: 250,
         });

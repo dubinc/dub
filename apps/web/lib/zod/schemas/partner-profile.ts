@@ -5,6 +5,7 @@ import {
 import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/constants/partner-profile";
 import {
   CommissionType,
+  PartnerNetworkStatus,
   PartnerPayoutMethod,
   PartnerProfileType,
   PartnerRole,
@@ -209,6 +210,12 @@ export const partnerProfileChangeHistoryLogSchema = z.array(
       field: z.literal("profileType"),
       from: z.enum(PartnerProfileType),
       to: z.enum(PartnerProfileType),
+      changedAt: z.coerce.date(),
+    }),
+    z.object({
+      field: z.literal("networkStatus"),
+      from: z.enum(PartnerNetworkStatus),
+      to: z.enum(PartnerNetworkStatus),
       changedAt: z.coerce.date(),
     }),
   ]),

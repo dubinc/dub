@@ -1,4 +1,4 @@
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
+import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
 import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
@@ -87,7 +87,7 @@ export function useBountySubmissionFilters({
                 label,
                 icon: Icon,
                 iconClassName,
-              } = BOUNTY_SUBMISSION_STATUS_BADGES[status];
+              } = BountySubmissionStatusBadges[status];
               return {
                 value: status,
                 label,
