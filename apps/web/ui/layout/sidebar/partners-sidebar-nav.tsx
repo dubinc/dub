@@ -85,6 +85,14 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     active: pathname.startsWith("/messages"),
     badge: unreadMessagesCount ? Math.min(9, unreadMessagesCount) : undefined,
   },
+  {
+    name: "Referrals",
+    description:
+      "Refer other partners to Dub Partners and track who joined through your link.",
+    icon: Nodes4,
+    href: "/referrals",
+    active: pathname.startsWith("/referrals"),
+  },
 ];
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
@@ -330,7 +338,9 @@ export function PartnersSidebarNav({
       ? "userSettings"
       : pathname.startsWith("/profile")
         ? "profile"
-        : ["/payouts", "/messages"].some((p) => pathname.startsWith(p))
+        : ["/payouts", "/messages", "/referrals"].some((p) =>
+              pathname.startsWith(p),
+            )
           ? null
           : isEnrolledProgramPage
             ? "program"

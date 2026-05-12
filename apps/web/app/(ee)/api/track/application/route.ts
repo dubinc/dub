@@ -25,7 +25,7 @@ import {
   NETWORK_PROGRAM_ID,
 } from "@dub/utils";
 import { NETWORK_PROGRAM_SLUG } from "@dub/utils/src";
-import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
+import { geolocation, ipAddress } from "@vercel/functions";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";
 
@@ -166,34 +166,6 @@ async function trackVisitEvent({
       );
     }
   }
-
-  // If the program is the network program and the referredByPartner is not enrolled, enroll them in the network program
-
-  waitUntil(
-    (async () => {
-      if (referredByPartner && program.id === NETWORK_PROGRAM_ID) {
-        await prisma.programEnrollment.upsert({
-          where: {
-            partnerId_programId: {
-              partnerId: referredByPartner.id,
-              programId: NETWORK_PROGRAM_ID,
-            },
-          },
-          create: {
-            id: createId({ prefix: "pge_" }),
-            partnerId: referredByPartner.id,
-            programId: NETWORK_PROGRAM_ID,
-            status: "approved",
-          },
-          update: {},
-        });
-
-        console.log(
-          `Enrolled partner ${referredByPartner.id} in network program ${NETWORK_PROGRAM_ID}.`,
-        );
-      }
-    })(),
-  );
 
   const session = await getSession();
   const requestContext = await getRequestContext(req);

@@ -38,6 +38,18 @@ export async function submitNetworkApplicationEvent(
       return;
     }
 
+    if (applicationEvent.referredByPartnerId) {
+      await prisma.partner.update({
+        where: {
+          id: partner.id,
+          referredByPartnerId: null,
+        },
+        data: {
+          referredByPartnerId: applicationEvent.referredByPartnerId,
+        },
+      });
+    }
+
     await prisma.customer.create({
       data: {
         id: createId({ prefix: "cus_" }),

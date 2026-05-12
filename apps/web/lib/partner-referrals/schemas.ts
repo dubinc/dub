@@ -60,3 +60,28 @@ export const getReferredPartnersCountQuerySchema =
     .extend({
       groupBy: z.enum(["country", "status"]).optional(),
     });
+
+// Dub Partner Network referrals
+export const networkReferralSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  country: z.string().nullable(),
+  createdAt: z.date(),
+  earnings: centsSchemaWithDefault,
+});
+
+export const getNetworkReferralsQuerySchema = z
+  .object({
+    country: z.enum(Object.keys(COUNTRIES)).optional(),
+  })
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
+
+export const getNetworkReferralsCountQuerySchema =
+  getNetworkReferralsQuerySchema
+    .omit({
+      page: true,
+      pageSize: true,
+    })
+    .extend({
+      groupBy: z.enum(["country"]).optional(),
+    });
