@@ -30,6 +30,9 @@ export const partnerReferralStatsSchema = z.object({
   totalSaleAmount: z.number(),
 });
 
+// TODO:
+// We're repeating the program vs network schema, needs some cleanup
+
 export const referredPartnerSchema = z.object({
   id: z.string(),
   email: z.string(),

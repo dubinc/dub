@@ -70,7 +70,7 @@ export const createReferralCommission = async (
 
   let commissionData: Prisma.CommissionUncheckedCreateInput = {
     id: createId({ prefix: "cm_" }),
-    type: "referral",
+    type: CommissionType.referral,
     amount: 0,
     quantity: 1,
     earnings: 0,

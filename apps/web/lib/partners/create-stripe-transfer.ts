@@ -10,10 +10,19 @@ import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-fo
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { currencyFormatter, pluralize } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  currencyFormatter,
+  pluralize,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { qstash } from "../cron";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
 import { markPayoutsAsProcessed } from "../payouts/mark-payouts-as-processed";
+
+const createReferralCommissionsQueue = qstash.queue({
+  queueName: "create-referral-commissions",
+});
 
 export const createStripeTransfer = async ({
   partnerId,
@@ -243,11 +252,20 @@ export const createStripeTransfer = async ({
   ]);
 
   waitUntil(
-    trackCommissionStatusUpdatesByProgram({
-      commissions,
-      payouts: allPayouts,
-      newStatus: "paid",
-    }),
+    Promise.allSettled([
+      trackCommissionStatusUpdatesByProgram({
+        commissions,
+        payouts: allPayouts,
+        newStatus: "paid",
+      }),
+
+      createReferralCommissionsQueue.enqueueJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/queue`,
+        body: {
+          payoutIds,
+        },
+      }),
+    ]),
   );
 
   if (partner.email) {

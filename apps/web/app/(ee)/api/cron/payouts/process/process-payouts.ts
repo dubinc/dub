@@ -284,26 +284,14 @@ export async function processPayouts({
     type: "payouts",
   });
 
-  const [payoutsJobResponse, referralsJobResponse] = await Promise.allSettled([
-    qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/process/updates`,
-      body: {
-        invoiceId: invoice.id,
-      },
-    }),
-
-    qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/queue`,
-      body: {
-        invoiceId: invoice.id,
-      },
-    }),
-  ]);
-
-  console.log({
-    payoutsJobResponse,
-    referralsJobResponse,
+  const payoutsJobResponse = await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/process/updates`,
+    body: {
+      invoiceId: invoice.id,
+    },
   });
+
+  console.log(payoutsJobResponse);
 
   // should never happen, but just in case
   if (users.length === 0) {
