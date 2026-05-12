@@ -212,8 +212,7 @@ function RewardSheetContent({
   const form = useForm<FormData>({
     defaultValues: {
       event,
-      type:
-        defaultValuesSource?.type || (event === "sale" ? "percentage" : "flat"),
+      type: defaultValuesSource?.type || "percentage",
       maxDuration: defaultValuesSource
         ? defaultValuesSource.maxDuration === null
           ? Infinity

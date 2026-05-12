@@ -89,7 +89,8 @@ export function PartnerReferralRewardBuilder() {
   }, [setValue, config?.trigger, type]);
 
   // Flat triggers (partnerApproved, commissionThreshold) don't support
-  // maxDuration, so clear it whenever a flat trigger is active.
+  // maxDuration, so clear it whenever a flat trigger is active. When switching
+  // back to a percentage trigger, restore maxDuration if it was cleared.
   useEffect(() => {
     if (
       config?.trigger &&
@@ -99,6 +100,17 @@ export function PartnerReferralRewardBuilder() {
       maxDuration !== null
     ) {
       setValue("maxDuration", null, { shouldDirty: true });
+      return;
+    }
+
+    if (
+      config?.trigger &&
+      (PARTNER_REFERRAL_PERCENTAGE_TRIGGERS as readonly Trigger[]).includes(
+        config.trigger,
+      ) &&
+      maxDuration === null
+    ) {
+      setValue("maxDuration", Infinity, { shouldDirty: true });
     }
   }, [setValue, config?.trigger, maxDuration]);
 

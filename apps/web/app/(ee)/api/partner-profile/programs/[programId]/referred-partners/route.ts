@@ -96,13 +96,12 @@ export const GET = withPartnerProfile(
 
     const result = enrollments.map((enrollment) => ({
       id: enrollment.partner.id,
-      name: enrollment.partner.name,
-      image: enrollment.partner.image,
       email: obfuscateCustomerEmail(enrollment.partner.email ?? ""),
       country: enrollment.partner.country,
-      status: enrollment.status,
-      earnings: commissionsMap.get(enrollment.partner.id) ?? 0,
-      createdAt: enrollment.createdAt,
+      programEnrollment: {
+        ...enrollment,
+        earnings: commissionsMap.get(enrollment.partner.id) ?? 0,
+      },
     }));
 
     return NextResponse.json(z.array(referredPartnerSchema).parse(result));

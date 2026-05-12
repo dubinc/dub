@@ -3,16 +3,17 @@
 import { useReferredPartnerFilters } from "@/lib/partner-referrals/hooks/use-referred-partner-filters";
 import { useReferredPartners } from "@/lib/partner-referrals/hooks/use-referred-partners";
 import { useReferredPartnersCount } from "@/lib/partner-referrals/hooks/use-referred-partners-count";
+import { ReferredPartnerProps } from "@/lib/partner-referrals/types";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import {
   AnimatedSizeContainer,
-  Avatar,
   Button,
   CopyButton,
   Filter,
@@ -24,6 +25,7 @@ import {
 } from "@dub/ui";
 import { Users6 } from "@dub/ui/icons";
 import { COUNTRIES, currencyFormatter, formatDate } from "@dub/utils";
+import { Row } from "@tanstack/react-table";
 import { notFound, useParams } from "next/navigation";
 import { useMemo } from "react";
 
@@ -36,9 +38,10 @@ export function PartnerReferralsPageClient() {
     notFound();
   }
 
+  const { data: referredPartners, isLoading, error } = useReferredPartners();
+
   const { data: referredPartnersCount, error: countError } =
     useReferredPartnersCount();
-  const { data: referredPartners, isLoading, error } = useReferredPartners();
 
   const { pagination, setPagination } = usePagination(100);
 
@@ -63,31 +66,56 @@ export function PartnerReferralsPageClient() {
         header: "Partner",
         enableHiding: false,
         minSize: 250,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<ReferredPartnerProps> }) => {
           return (
-            <div className="flex items-center gap-3">
-              <Avatar
-                imageUrl={row.original.image}
-                identifier={row.original.name}
-                className="size-6"
-              />
-              <div className="flex flex-col">
-                <span className="text-content-emphasis text-sm font-medium">
-                  {row.original.name}
-                </span>
-                <span className="text-content-subtle text-xs">
-                  {row.original.email}
-                </span>
-              </div>
-            </div>
+            <PartnerRowItem
+              partner={{
+                ...row.original,
+                name: row.original.email,
+                image: null,
+              }}
+              showPermalink={false}
+            />
           );
         },
+      },
+      {
+        id: "status",
+        header: "Status",
+        minSize: 120,
+        cell: ({ row }: { row: Row<ReferredPartnerProps> }) => {
+          const badge =
+            PartnerStatusBadges[row.original.programEnrollment.status];
+          return (
+            <StatusBadge icon={null} variant={badge.variant}>
+              {badge.label}
+            </StatusBadge>
+          );
+        },
+      },
+      {
+        id: "createdAt",
+        header: "Enrolled",
+        cell: ({ row }: { row: Row<ReferredPartnerProps> }) => (
+          <TimestampTooltip
+            timestamp={row.original.programEnrollment.createdAt}
+            rows={["local"]}
+            side="left"
+            delayDuration={150}
+          >
+            <span>
+              {formatDate(row.original.programEnrollment.createdAt, {
+                month: "short",
+              })}
+            </span>
+          </TimestampTooltip>
+        ),
       },
       {
         id: "country",
         header: "Country",
         minSize: 150,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<ReferredPartnerProps> }) => {
           const country = row.original.country;
           return (
             <div className="flex items-center gap-2">
@@ -100,43 +128,14 @@ export function PartnerReferralsPageClient() {
         },
       },
       {
-        id: "status",
-        header: "Status",
-        minSize: 120,
-        cell: ({ row }) => {
-          const badge = PartnerStatusBadges[row.original.status];
-          return (
-            <StatusBadge icon={null} variant={badge.variant}>
-              {badge.label}
-            </StatusBadge>
-          );
-        },
-      },
-      {
         id: "earnings",
         header: "Earnings",
         minSize: 120,
-        cell: ({ row }) =>
-          currencyFormatter(row.original.earnings / 100, {
+        cell: ({ row }: { row: Row<ReferredPartnerProps> }) =>
+          currencyFormatter(row.original.programEnrollment.earnings / 100, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),
-      },
-      {
-        id: "createdAt",
-        header: "Referred",
-        cell: ({ row }) => (
-          <TimestampTooltip
-            timestamp={row.original.createdAt}
-            rows={["local"]}
-            side="left"
-            delayDuration={150}
-          >
-            <span>
-              {formatDate(row.original.createdAt, { month: "short" })}
-            </span>
-          </TimestampTooltip>
-        ),
       },
     ],
     [],

@@ -2,6 +2,7 @@ import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "../zod/schemas/misc";
+import { centsSchemaWithDefault } from "../zod/schemas/utils";
 
 const PARTNER_REFERRAL_TRIGGER_CONFIG = {
   percentage: {
@@ -13,7 +14,7 @@ const PARTNER_REFERRAL_TRIGGER_CONFIG = {
     saleRecorded: {
       verb: "makes a sale",
       basis: "original sale amount",
-      previewBasis: "original sale earnings",
+      previewBasis: "original sale amount",
     },
   },
   flat: {
@@ -110,13 +111,13 @@ export const partnerReferralStatsSchema = z.object({
 // Response shape for a partner referred by the current partner
 export const referredPartnerSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  image: z.string().nullable(),
   email: z.string(),
   country: z.string().nullable(),
-  status: z.enum(ProgramEnrollmentStatus),
-  earnings: z.number(),
-  createdAt: z.date(),
+  programEnrollment: z.object({
+    createdAt: z.date(),
+    status: z.enum(ProgramEnrollmentStatus),
+    earnings: centsSchemaWithDefault,
+  }),
 });
 
 // Query params for the referred partners list endpoint

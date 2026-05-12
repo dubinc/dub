@@ -2,8 +2,8 @@ import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
-import { Globe, UserCheck } from "@dub/ui/icons";
-import { COUNTRIES, nFormatter } from "@dub/utils";
+import { CircleDotted, Globe } from "@dub/ui/icons";
+import { cn, COUNTRIES, nFormatter } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useReferredPartnersCount } from "./use-referred-partners-count";
 
@@ -53,14 +53,23 @@ export function useReferredPartnerFilters() {
       },
       {
         key: "status",
-        icon: UserCheck,
+        icon: CircleDotted,
         label: "Status",
         options:
-          statusesCount?.map(({ status, _count }) => ({
-            value: status,
-            label: PartnerStatusBadges[status]?.label || status,
-            right: nFormatter(_count, { full: true }),
-          })) ?? null,
+          statusesCount?.map(({ status, _count }) => {
+            const {
+              label,
+              icon: Icon,
+              className,
+            } = PartnerStatusBadges[status];
+
+            return {
+              value: status,
+              label,
+              icon: <Icon className={cn(className, "size-4 bg-transparent")} />,
+              right: nFormatter(_count, { full: true }),
+            };
+          }) ?? null,
       },
     ],
     [countriesCount, statusesCount],
