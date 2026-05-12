@@ -1,3 +1,4 @@
+import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { withPartnerProfile } from "@/lib/auth/partner";
@@ -8,6 +9,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { CommissionType } from "@dub/prisma/client";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -20,6 +22,24 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         "You must be approved in the Dub Partner Network to view referrals.",
     });
   }
+
+  waitUntil(
+    prisma.programEnrollment.upsert({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId: NETWORK_PROGRAM_ID,
+        },
+      },
+      create: {
+        id: createId({ prefix: "pge_" }),
+        partnerId: partner.id,
+        programId: NETWORK_PROGRAM_ID,
+        status: "approved",
+      },
+      update: {},
+    }),
+  );
 
   const {
     country,
@@ -34,7 +54,6 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     },
     select: {
       id: true,
-      name: true,
       email: true,
       country: true,
       createdAt: true,

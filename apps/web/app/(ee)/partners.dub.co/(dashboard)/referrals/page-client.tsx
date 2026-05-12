@@ -1,6 +1,5 @@
 "use client";
 
-import { enrollInNetworkProgramAction } from "@/lib/partner-referrals/enroll-in-network-program";
 import { useNetworkReferralFilters } from "@/lib/partner-referrals/hooks/use-network-referral-filters";
 import { useNetworkReferrals } from "@/lib/partner-referrals/hooks/use-network-referrals";
 import { useNetworkReferralsCount } from "@/lib/partner-referrals/hooks/use-network-referrals-count";
@@ -29,9 +28,8 @@ import {
   formatDate,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
-import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { toast } from "sonner";
 
 export function NetworkReferralsPageClient() {
@@ -66,19 +64,6 @@ export function NetworkReferralsPageClient() {
     setSelectedFilter,
   } = useNetworkReferralFilters({ enabled: isEligible });
 
-  const enrollOnceRef = useRef(false);
-  const { executeAsync: enrollInNetworkProgram } = useAction(
-    enrollInNetworkProgramAction,
-  );
-
-  useEffect(() => {
-    if (!isEligible || enrollOnceRef.current) {
-      return;
-    }
-    enrollOnceRef.current = true;
-    void enrollInNetworkProgram();
-  }, [isEligible, enrollInNetworkProgram]);
-
   const referralLink =
     partner?.username && isEligible
       ? `${PARTNERS_DOMAIN}/register?via=${partner.username}`
@@ -94,8 +79,8 @@ export function NetworkReferralsPageClient() {
         cell: ({ row }: { row: Row<NetworkReferralProps> }) => (
           <PartnerRowItem
             partner={{
-              id: row.original.id,
-              name: "",
+              ...row.original,
+              name: row.original.email,
               image: null,
             }}
             showPermalink={false}
