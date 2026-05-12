@@ -25,10 +25,7 @@ const referralSources = [
 
 async function main() {
   const programId = "prog_1K2J9DRWPPJ2F1RX53N92TSGA";
-  const referredByPartnerIds = [
-    "pn_1K2J9DRWPPJ2F1RX53N92TSGG",
-    // "pn_1K2J9DRWPPJ2F1RX53N92TSGH",
-  ];
+  const referredByPartnerIds = ["pn_1K2J9DRWPPJ2F1RX53N92TSGH"];
 
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
@@ -48,7 +45,7 @@ async function main() {
         },
       },
     },
-    take: 10,
+    take: 2,
   });
 
   if (programEnrollments.length === 0) {

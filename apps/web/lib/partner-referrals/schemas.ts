@@ -97,6 +97,7 @@ export const referralRewardConfigSchema = z
     }
   });
 
+// Stats from referred partners
 export const partnerReferralStatsSchema = z.object({
   totalPartners: z.number(),
   totalConversions: z.number(),
