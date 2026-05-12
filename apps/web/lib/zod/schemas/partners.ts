@@ -5,6 +5,7 @@ import {
   IndustryInterest,
   MonthlyTraffic,
   PartnerBannedReason,
+  PartnerNetworkStatus,
   PartnerPayoutMethod,
   PartnerProfileType,
   PlatformType,
@@ -482,6 +483,7 @@ export const PartnerRewindSchema = z.object({
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
+  username: true,
   email: true,
   image: true,
   description: true,
