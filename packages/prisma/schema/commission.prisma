@@ -34,9 +34,9 @@ model Commission {
   currency           String           @default("usd")
   status             CommissionStatus @default(pending)
   userId             String? // user who created the manual commission
-  sourceCommissionId String? // only for referral commissions (id of the source commission)
-  sourcePartnerId    String? // only for referral commissions (id of the source partner)
-  deduplicationKey   String? // scenario-specific deduplication key
+  sourceCommissionId String?
+  sourcePartnerId    String?
+  deduplicationKey   String?
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
 
