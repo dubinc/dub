@@ -15,7 +15,7 @@ import { CountryFlag } from "@/ui/shared/country-flag";
 import {
   AnimatedSizeContainer,
   Button,
-  CopyButton,
+  Copy,
   Filter,
   StatusBadge,
   Table,
@@ -28,6 +28,7 @@ import { COUNTRIES, currencyFormatter, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { notFound, useParams } from "next/navigation";
 import { useMemo } from "react";
+import { toast } from "sonner";
 
 export function PartnerReferralsPageClient() {
   const { programSlug } = useParams<{ programSlug: string }>();
@@ -131,6 +132,9 @@ export function PartnerReferralsPageClient() {
         id: "earnings",
         header: "Earnings",
         minSize: 120,
+        meta: {
+          headerTooltip: "Total commission earned from this partner.",
+        },
         cell: ({ row }: { row: Row<ReferredPartnerProps> }) =>
           currencyFormatter(row.original.programEnrollment.earnings / 100, {
             minimumFractionDigits: 2,
@@ -160,16 +164,7 @@ export function PartnerReferralsPageClient() {
   });
 
   return (
-    <PageContent
-      title="Referred partners"
-      controls={
-        referralLink && (
-          <CopyButton value={referralLink} variant="neutral" className="h-9">
-            <span className="text-sm">Copy referral link</span>
-          </CopyButton>
-        )
-      }
-    >
+    <PageContent title="Referred partners">
       <PageWidthWrapper className="flex flex-col gap-3 pb-10">
         <div className="flex flex-col gap-4">
           <div>
@@ -182,6 +177,18 @@ export function PartnerReferralsPageClient() {
                 onRemove={onRemove}
                 onSelectedFilterChange={setSelectedFilter}
               />
+              {referralLink && (
+                <Button
+                  variant="primary"
+                  text="Copy link"
+                  icon={<Copy className="size-4" />}
+                  className="h-9 w-fit"
+                  onClick={() => {
+                    navigator.clipboard.writeText(referralLink);
+                    toast.success("Copied referral link to clipboard!");
+                  }}
+                />
+              )}
             </div>
             <AnimatedSizeContainer height>
               <div>
