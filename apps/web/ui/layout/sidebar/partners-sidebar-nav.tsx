@@ -22,6 +22,7 @@ import {
   Trophy,
   UserCheck,
   Users2,
+  Users6,
   Webhook,
 } from "@dub/ui/icons";
 import { useParams, usePathname } from "next/navigation";
@@ -44,6 +45,7 @@ type SidebarNavData = {
   unreadMessagesCount?: number;
   programBountiesCount?: number;
   showDetailedAnalytics?: boolean;
+  hasReferralReward?: boolean;
   postbacksEnabled?: boolean;
 };
 
@@ -177,6 +179,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     queryString,
     programBountiesCount,
     showDetailedAnalytics,
+    hasReferralReward,
   }) => ({
     title: (
       <div className="mb-3">
@@ -234,6 +237,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                   name: "Customers",
                   icon: User as Icon,
                   href: `/programs/${programSlug}/customers` as `/${string}`,
+                  locked: isUnapproved,
+                },
+              ]
+            : []),
+          ...(hasReferralReward
+            ? [
+                {
+                  name: "Referred partners",
+                  icon: Users6 as Icon,
+                  href: `/programs/${programSlug}/referred-partners` as `/${string}`,
                   locked: isUnapproved,
                 },
               ]
@@ -310,6 +323,8 @@ export function PartnersSidebarNav({
     enabled: isEnrolledProgramPage,
   });
 
+  const hasReferralReward = !!programEnrollment?.referralRewardId;
+
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
@@ -365,6 +380,7 @@ export function PartnersSidebarNav({
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
         showDetailedAnalytics,
+        hasReferralReward,
         postbacksEnabled: partner?.featureFlags?.postbacks,
       }}
       toolContent={toolContent}

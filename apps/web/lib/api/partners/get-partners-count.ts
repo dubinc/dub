@@ -20,8 +20,6 @@ type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
 export async function getPartnersCount<T>(
   filters: PartnersCountFilters,
 ): Promise<T> {
-  // const {
-
   const { groupBy, programId, ...enrollmentFilters } = filters;
   const enrollmentBase = { ...enrollmentFilters, programId };
 

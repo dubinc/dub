@@ -1,4 +1,7 @@
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { COUNTRIES } from "@dub/utils";
 import * as z from "zod/v4";
+import { getPaginationQuerySchema } from "../zod/schemas/misc";
 
 const PARTNER_REFERRAL_TRIGGER_CONFIG = {
   percentage: {
@@ -103,3 +106,34 @@ export const partnerReferralStatsSchema = z.object({
   totalConversions: z.number(),
   totalSaleAmount: z.number(),
 });
+
+// Response shape for a partner referred by the current partner
+export const referredPartnerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  image: z.string().nullable(),
+  email: z.string(),
+  country: z.string().nullable(),
+  status: z.enum(ProgramEnrollmentStatus),
+  earnings: z.number(),
+  createdAt: z.date(),
+});
+
+// Query params for the referred partners list endpoint
+export const getReferredPartnersQuerySchema = z
+  .object({
+    country: z.enum(Object.keys(COUNTRIES)).optional(),
+    status: z.enum(ProgramEnrollmentStatus).optional(),
+  })
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
+
+// Query params for the referred partners count endpoint
+export const getReferredPartnersCountQuerySchema =
+  getReferredPartnersQuerySchema
+    .omit({
+      page: true,
+      pageSize: true,
+    })
+    .extend({
+      groupBy: z.enum(["country", "status"]).optional(),
+    });

@@ -162,6 +162,7 @@ export const ProgramEnrollmentSchema = z.object({
   clickRewardId: z.string().nullish(),
   leadRewardId: z.string().nullish(),
   saleRewardId: z.string().nullish(),
+  referralRewardId: z.string().nullish(),
   discount: DiscountSchema.nullish(),
   discountId: z.string().nullish(),
   applicationId: z
