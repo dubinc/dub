@@ -1,7 +1,7 @@
 import { constructDiscountAmount } from "@/lib/api/sales/construct-discount-amount";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import {
-  PARTNER_REFERRAL_PERCENTAGE_PREVIEW_BASIS_LABELS,
+  PARTNER_REFERRAL_PERCENTAGE_BASIS_LABELS,
   PARTNER_REFERRAL_PERCENTAGE_TRIGGERS,
   PartnerReferralPercentageTrigger,
 } from "@/lib/partner-referrals/constants";
@@ -205,7 +205,7 @@ function ReferralRewardDescription({
     )
   ) {
     const basis =
-      PARTNER_REFERRAL_PERCENTAGE_PREVIEW_BASIS_LABELS[
+      PARTNER_REFERRAL_PERCENTAGE_BASIS_LABELS[
         config.trigger as PartnerReferralPercentageTrigger
       ];
 

@@ -1,6 +1,6 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import {
-  PARTNER_REFERRAL_PERCENTAGE_PREVIEW_BASIS_LABELS,
+  PARTNER_REFERRAL_PERCENTAGE_BASIS_LABELS,
   PARTNER_REFERRAL_PERCENTAGE_TRIGGERS,
   PartnerReferralPercentageTrigger,
 } from "@/lib/partner-referrals/constants";
@@ -62,7 +62,7 @@ function formatReferralRewardDescription(reward: RewardProps) {
     )
   ) {
     const basis =
-      PARTNER_REFERRAL_PERCENTAGE_PREVIEW_BASIS_LABELS[
+      PARTNER_REFERRAL_PERCENTAGE_BASIS_LABELS[
         config.trigger as PartnerReferralPercentageTrigger
       ];
     const duration = formatReferralDuration(reward.maxDuration);

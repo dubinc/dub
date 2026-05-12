@@ -8,12 +8,10 @@ const PARTNER_REFERRAL_TRIGGER_CONFIG = {
     commissionEarned: {
       verb: "earns a commission",
       basis: "referred partner's commission",
-      previewBasis: "referred partner's commission earnings",
     },
     saleRecorded: {
       verb: "makes a sale",
       basis: "original sale amount",
-      previewBasis: "original sale amount",
     },
   },
   flat: {
@@ -72,12 +70,3 @@ export const PARTNER_REFERRAL_PERCENTAGE_BASIS_LABELS = Object.fromEntries(
 ) as {
   readonly [K in PartnerReferralPercentageTrigger]: string;
 };
-
-export const PARTNER_REFERRAL_PERCENTAGE_PREVIEW_BASIS_LABELS =
-  Object.fromEntries(
-    Object.entries(PARTNER_REFERRAL_TRIGGER_CONFIG.percentage).map(
-      ([key, { previewBasis }]) => [key, previewBasis],
-    ),
-  ) as {
-    readonly [K in PartnerReferralPercentageTrigger]: string;
-  };
