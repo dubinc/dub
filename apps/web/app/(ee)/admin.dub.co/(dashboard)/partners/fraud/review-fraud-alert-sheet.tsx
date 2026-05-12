@@ -2,7 +2,7 @@
 
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
 import { PartnerPlatformProps } from "@/lib/types";
-import { fraudAlertSchema } from "@/lib/zod/schemas/fraud";
+import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
 import {
   MAX_FRAUD_REASON_LENGTH,
   PartnerSchema,
@@ -39,7 +39,7 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import * as z from "zod/v4";
 
-type FraudAlert = z.infer<typeof fraudAlertSchema>;
+type AdminFraudAlert = z.infer<typeof adminFraudAlertSchema>;
 
 type ProgramInfo = Pick<z.infer<typeof ProgramSchema>, "id" | "name" | "logo">;
 
@@ -51,7 +51,7 @@ type PartnerDetail = z.infer<typeof PartnerSchema> & {
   > & {
     program: ProgramInfo;
   })[];
-  fraudAlerts: FraudAlert[];
+  fraudAlerts: AdminFraudAlert[];
   payouts: (z.infer<typeof PayoutSchema> & {
     program: ProgramInfo;
   })[];
@@ -81,7 +81,7 @@ export function ReviewFraudAlertSheet({
   setIsOpen,
   onReviewed,
 }: {
-  alert: FraudAlert | null;
+  alert: AdminFraudAlert | null;
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   onReviewed: () => Promise<void>;
@@ -110,7 +110,7 @@ function SheetContent({
   setIsOpen,
   onReviewed,
 }: {
-  fraudAlert: FraudAlert;
+  fraudAlert: AdminFraudAlert;
   setIsOpen: (open: boolean) => void;
   onReviewed: () => Promise<void>;
 }) {

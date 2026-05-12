@@ -311,7 +311,7 @@ export const partnerPlatformSchema = z.object({
   views: z.bigint().default(BigInt(0)),
 });
 
-export const PartnerPartnerPlatformsSchema = z.object({
+export const OldPartnerPlatformsFields = z.object({
   website: z
     .string()
     .nullish()
@@ -338,7 +338,7 @@ export const PartnerPartnerPlatformsSchema = z.object({
     .describe("The partner's TikTok username (e.g. `johndoe`)."),
 });
 
-export const PartnerProfileSchema = z.object({
+export const PartnerProfileDetailsSchema = z.object({
   monthlyTraffic: z
     .enum(MonthlyTraffic)
     .nullable()
@@ -368,16 +368,7 @@ export const PartnerSchema = z
   .object({
     id: z.string().describe("The partner's unique ID on Dub."),
     name: z.string().max(190).describe("The partner's full legal name."),
-    companyName: z
-      .string()
-      .max(190)
-      .nullable()
-      .describe(
-        "If the partner profile type is a company, this is the partner's legal company name.",
-      ),
-    profileType: z
-      .enum(PartnerProfileType)
-      .describe("The partner's profile type on Dub."),
+    username: z.string().nullable().describe("The partner's unique username."),
     email: z
       .string()
       .max(190)
@@ -385,7 +376,6 @@ export const PartnerSchema = z
       .describe(
         "The partner's email address. Should be a unique value across Dub.",
       ),
-    username: z.string().nullable().describe("The partner's unique username."),
     image: z.string().nullable().describe("The partner's avatar image."),
     description: z
       .string()
@@ -396,6 +386,19 @@ export const PartnerSchema = z
       .string()
       .nullable()
       .describe("The partner's country (required for tax purposes)."),
+    companyName: z
+      .string()
+      .max(190)
+      .nullable()
+      .describe(
+        "If the partner profile type is a company, this is the partner's legal company name.",
+      ),
+    profileType: z
+      .enum(PartnerProfileType)
+      .describe("The partner's profile type on Dub."),
+    networkStatus: z
+      .enum(PartnerNetworkStatus)
+      .describe("The partner's network status on Dub."),
     defaultPayoutMethod: z
       .enum(PartnerPayoutMethod)
       .nullable()
@@ -434,16 +437,6 @@ export const PartnerSchema = z
     createdAt: z
       .date()
       .describe("The date when the partner was created on Dub."),
-    discoverableAt: z
-      .date()
-      .nullable()
-      .describe("The date when the partner was added to the partner network."),
-    trustedAt: z
-      .date()
-      .nullable()
-      .describe(
-        "The date when the partner received the trusted badge in the partner network.",
-      ),
     identityVerificationStatus: z
       .enum(IdentityVerificationStatus)
       .nullable()
@@ -464,11 +457,11 @@ export const PartnerSchema = z
       .nullable()
       .describe("The date when the partner's identity was verified."),
   })
-  .extend(PartnerPartnerPlatformsSchema.shape)
-  .extend(PartnerProfileSchema.partial().shape);
+  .extend(OldPartnerPlatformsFields.shape)
+  .extend(PartnerProfileDetailsSchema.partial().shape);
 
 export const PartnerWithProfileSchema = PartnerSchema.extend(
-  PartnerProfileSchema.shape,
+  PartnerProfileDetailsSchema.shape,
 );
 
 export const PartnerRewindSchema = z.object({
@@ -489,17 +482,16 @@ export const PartnerRewindSchema = z.object({
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
-  username: true,
-  companyName: true,
   email: true,
   image: true,
   description: true,
   country: true,
+  companyName: true,
+  networkStatus: true,
   defaultPayoutMethod: true,
   paypalEmail: true,
   stripeConnectId: true,
   payoutsEnabledAt: true,
-  trustedAt: true,
   identityVerifiedAt: true,
 })
   .extend(
@@ -579,16 +571,13 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
         "Return On Ad Spend (ROAS) (`Total Revenue ÷ Total Commissions`)",
       ),
   })
-  .extend(
-    PartnerPartnerPlatformsSchema.pick({
-      website: true,
-      youtube: true,
-      twitter: true,
-      linkedin: true,
-      instagram: true,
-      tiktok: true,
-    }).shape,
-  );
+  .extend(OldPartnerPlatformsFields.shape)
+  .extend({
+    trustedAt: z.date().nullish().meta({
+      deprecated: true,
+      description: "DEPRECATED: Use `networkStatus` instead.",
+    }),
+  });
 
 export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   lastLeadAt: z.date().nullish(),
@@ -600,16 +589,14 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
     id: true,
     provider: true,
   }).nullish(),
-})
-  .extend(
-    PartnerSchema.pick({
-      monthlyTraffic: true,
-      industryInterests: true,
-      preferredEarningStructures: true,
-      salesChannels: true,
-    }).shape,
-  )
-  .extend(PartnerPartnerPlatformsSchema.shape);
+}).extend(
+  PartnerSchema.pick({
+    monthlyTraffic: true,
+    industryInterests: true,
+    preferredEarningStructures: true,
+    salesChannels: true,
+  }).shape,
+);
 
 export const WebhookPartnerSchema = PartnerSchema.pick({
   id: true,

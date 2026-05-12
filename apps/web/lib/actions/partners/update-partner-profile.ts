@@ -3,12 +3,13 @@
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { qstash } from "@/lib/cron";
+import { isReservedUsername } from "@/lib/edge-config";
 import { storage } from "@/lib/storage";
 import { stripe } from "@/lib/stripe";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
-  PartnerProfileSchema,
+  PartnerProfileDetailsSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Partner, PartnerProfileType } from "@dub/prisma/client";
@@ -19,54 +20,42 @@ import {
   nanoid,
   PARTNERS_DOMAIN,
   RESERVED_SLUGS,
+  validSlugRegex,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { uploadedImageSchema } from "../../zod/schemas/images";
 import { authPartnerActionClient } from "../safe-action";
 
-const USERNAME_REGEX = /^(?![_-])(?!.*[_-]{2})[a-z0-9_-]{3,30}(?<![_-])$/;
-
-// TODO: Add more reserved usernames
-const RESERVED_USERNAMES = [...RESERVED_SLUGS, "dub"];
-
-const usernameSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .pipe(
-    z
-      .string()
-      .min(3, "Username must be at least 3 characters")
-      .max(30, "Username must be at most 30 characters")
-      .regex(USERNAME_REGEX, "Invalid username format"),
-  )
-  .pipe(
-    z
-      .string()
-      .refine(
-        (v) => !RESERVED_USERNAMES.includes(v),
-        "This username is reserved",
-      ),
-  )
-  .nullish();
-
 const updatePartnerProfileSchema = z
   .object({
     name: z.string().trim().min(1, "Name is required").optional(),
     email: z.email().optional(),
+    username: z.string().trim().toLowerCase().min(3).max(100).optional(),
     image: uploadedImageSchema.nullish(),
     description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
     profileType: z.enum(PartnerProfileType).optional(),
     companyName: z.string().nullish(),
-    username: usernameSchema,
   })
-  .extend(PartnerProfileSchema.partial().shape)
+  .extend(PartnerProfileDetailsSchema.partial().shape)
   .transform((data) => ({
     ...data,
     companyName: data.profileType === "individual" ? null : data.companyName,
-  }));
+  }))
+  .refine(
+    (data) => {
+      if (data.profileType === "company") {
+        return !!data.companyName;
+      }
+
+      return true;
+    },
+    {
+      message: "Legal company name is required when profile type is 'company'.",
+      path: ["companyName"],
+    },
+  );
 
 // Update a partner profile
 export const updatePartnerProfileAction = authPartnerActionClient
@@ -94,12 +83,6 @@ export const updatePartnerProfileAction = authPartnerActionClient
       username,
     } = parsedInput;
 
-    if (
-      profileType === "company" &&
-      (companyName === undefined ? !partner.companyName : !companyName)
-    )
-      throw new Error("Legal company name is required.");
-
     await updatedComplianceFieldsChecks({
       partner,
       input: parsedInput,
@@ -119,6 +102,12 @@ export const updatePartnerProfileAction = authPartnerActionClient
     }
 
     if (username && username !== partner.username) {
+      if (!validSlugRegex.test(username) || RESERVED_SLUGS.includes(username)) {
+        throw new Error("Invalid username");
+      }
+      if (await isReservedUsername(username)) {
+        throw new Error("Invalid username");
+      }
       const existingPartner = await prisma.partner.findUnique({
         where: {
           username,
@@ -173,12 +162,6 @@ export const updatePartnerProfileAction = authPartnerActionClient
               })),
             },
           }),
-        },
-        include: {
-          preferredEarningStructures: true,
-          salesChannels: true,
-          programs: true,
-          platforms: true,
         },
       });
 

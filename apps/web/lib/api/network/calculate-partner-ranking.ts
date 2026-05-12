@@ -18,7 +18,7 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  * Scoring Breakdown (0-65+ points):
  *
  * 1. Trusted Partner Bonus (200 points): Top priority boost
- *    - Partners with trustedAt IS NOT NULL get 200 bonus points
+ *    - Partners with networkStatus = "trusted" get 200 bonus points
  *    - This ensures trusted partners appear at the very top
  *
  * 2. Similarity Score (0-50 points): Performance in similar programs
@@ -49,7 +49,7 @@ export async function calculatePartnerRanking({
   similarPrograms = [],
 }: PartnerRankingParams) {
   const conditions: Prisma.Sql[] = [
-    Prisma.sql`p.discoverableAt IS NOT NULL`,
+    Prisma.sql`p.networkStatus IN ("approved", "trusted")`,
     Prisma.sql`COALESCE(pe.clickToConversionRate, 0) < 1`,
     Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`,
     Prisma.sql`enrolled.id IS NULL`,
@@ -131,7 +131,7 @@ export async function calculatePartnerRanking({
   // This dramatically reduces the dataset from 1.5M to 5,000 before expensive joins
   const buildDiscoverablePartnersFilter = (alias: string) => {
     const conditions: Prisma.Sql[] = [
-      Prisma.sql`${Prisma.raw(alias)}.discoverableAt IS NOT NULL`,
+      Prisma.sql`${Prisma.raw(alias)}.networkStatus IN ("approved", "trusted")`,
     ];
 
     if (partnerIds && partnerIds.length > 0) {
@@ -239,13 +239,13 @@ export async function calculatePartnerRanking({
       ${hasProfileCheck} as hasProfile,
 
       -- FINAL SCORE (0-765+ points): Similarity-based ranking for discovery
-      -- Trusted partners (trustedAt IS NOT NULL) get 200 bonus points to rank at the top
+      -- Trusted partners (networkStatus = "trusted") get 200 bonus points to rank at the top
       -- Partners with profiles get 500 bonus points to ensure they rank above those without profiles
       (
         -- Profile bonus: 500 points for partners with platforms (ensures they rank above those without)
         CASE WHEN ${hasProfileCheck} THEN 500 ELSE 0 END +
-        -- Trusted partner bonus: 200 points for partners with trustedAt set
-        CASE WHEN p.trustedAt IS NOT NULL THEN 200 ELSE 0 END +
+        -- Trusted partner bonus: 200 points for partners with networkStatus = "trusted"
+        CASE WHEN p.networkStatus = "trusted" THEN 200 ELSE 0 END +
         COALESCE(similarProgramMetrics.similarityScore, 0) +
         COALESCE(similarProgramMetrics.programMatchScore, 0)
       ) as finalScore

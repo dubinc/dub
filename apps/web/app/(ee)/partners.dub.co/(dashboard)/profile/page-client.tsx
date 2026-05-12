@@ -9,21 +9,14 @@ import { useMergePartnerAccountsModal } from "@/ui/partners/merge-accounts/merge
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, Popover, Users2 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { AboutYouForm } from "./about-you-form";
 import { HowYouWorkForm } from "./how-you-work-form";
+import { NetworkApprovalGuide } from "./network-approval-guide";
 import { ProfileDetailsForm } from "./profile-details-form";
-import { ProfileDiscoveryGuide } from "./profile-discovery-guide";
-import { usePartnerDiscoveryRequirements } from "./use-partner-discovery-requirements";
 
 export function ProfileSettingsPageClient() {
   const { partner } = usePartnerProfile();
-  const tasks = usePartnerDiscoveryRequirements();
-
-  const allTasksCompleted = useMemo(
-    () => tasks?.every(({ completed }) => completed) ?? false,
-    [tasks],
-  );
 
   const { MergePartnerAccountsModal, setShowMergePartnerAccountsModal } =
     useMergePartnerAccountsModal();
@@ -44,7 +37,7 @@ export function ProfileSettingsPageClient() {
     >
       <MergePartnerAccountsModal />
       <PageWidthWrapper className="mb-20 flex flex-col gap-6">
-        {partner && !allTasksCompleted && <ProfileDiscoveryGuide />}
+        {partner && <NetworkApprovalGuide />}
         <ProfileDetailsForm
           partner={partner}
           setShowMergePartnerAccountsModal={setShowMergePartnerAccountsModal}

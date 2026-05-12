@@ -153,7 +153,6 @@ model ProgramEnrollment {
   discountCodes      DiscountCode[]
   commissions        Commission[]
   payouts            Payout[]
-  messages           Message[]
   fraudEventGroups   FraudEventGroup[]
   referrals          PartnerReferral[]
   fraudAlerts        FraudAlert[]

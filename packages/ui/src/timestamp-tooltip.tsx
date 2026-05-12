@@ -13,6 +13,7 @@ export type TimestampTooltipProps = {
   timestamp: Date | string | number | null | undefined;
   rows?: ("local" | "utc" | "unix")[];
   interactive?: boolean;
+  prefix?: string;
   className?: string;
 } & Omit<TooltipProps, "content">;
 
@@ -29,6 +30,7 @@ export function TimestampTooltip({
   timestamp,
   rows,
   interactive = true,
+  prefix,
   ...tooltipProps
 }: TimestampTooltipProps) {
   if (!timestamp || new Date(timestamp).toString() === "Invalid Date")
@@ -41,6 +43,7 @@ export function TimestampTooltip({
           timestamp={timestamp}
           rows={rows}
           interactive={interactive}
+          prefix={prefix}
         />
       }
       disableHoverableContent={!interactive}
@@ -53,7 +56,11 @@ function TimestampTooltipContent({
   timestamp,
   rows = ["local", "utc"],
   interactive,
-}: Pick<TimestampTooltipProps, "timestamp" | "rows" | "interactive">) {
+  prefix,
+}: Pick<
+  TimestampTooltipProps,
+  "timestamp" | "rows" | "interactive" | "prefix"
+>) {
   if (!timestamp)
     throw new Error("Falsy timestamp not permitted in TimestampTooltipContent");
 
@@ -145,7 +152,10 @@ function TimestampTooltipContent({
   return (
     <div className="flex max-w-[360px] flex-col gap-2 px-2.5 py-2 text-left text-xs">
       {diff > 0 && (
-        <span className="text-content-subtle cursor-default">{relative}</span>
+        <span className="text-content-subtle cursor-default">
+          {prefix ? `${prefix} ` : ""}
+          {relative}
+        </span>
       )}
       <table>
         <tbody>

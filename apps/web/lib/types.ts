@@ -68,6 +68,7 @@ import {
   fieldDiffSchema,
   getActivityLogsQuerySchema,
 } from "./zod/schemas/activity-log";
+import { adminNetworkPartnerSchema } from "./zod/schemas/admin";
 import {
   BountyListSchema,
   bountyPerformanceConditionSchema,
@@ -552,6 +553,8 @@ export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
 export type PartnerApplicationProps = z.infer<typeof PartnerApplicationSchema>;
 
 export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
+
+export type AdminNetworkPartner = z.infer<typeof adminNetworkPartnerSchema>;
 
 export type PartnerConversionScore = z.infer<
   typeof PartnerConversionScoreSchema
