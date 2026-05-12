@@ -180,6 +180,7 @@ export * from "./msg";
 export * from "./msgs";
 export * from "./msgs-dotted";
 export * from "./msgs-fill";
+export * from "./nodes-4";
 export * from "./note";
 export * from "./office-building";
 export * from "./page2";

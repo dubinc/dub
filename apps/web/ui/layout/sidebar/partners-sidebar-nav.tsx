@@ -16,13 +16,13 @@ import {
   GridIcon,
   MoneyBills2,
   Msgs,
+  Nodes4,
   ShieldCheck,
   Shop,
   SquareUserSparkle2,
   Trophy,
   UserCheck,
   Users2,
-  Users6,
   Webhook,
 } from "@dub/ui/icons";
 import { useParams, usePathname } from "next/navigation";
@@ -244,9 +244,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           ...(hasReferralReward
             ? [
                 {
-                  name: "Referred partners",
-                  icon: Users6 as Icon,
-                  href: `/programs/${programSlug}/referred-partners` as `/${string}`,
+                  name: "Referred Partners",
+                  icon: Nodes4 as Icon,
+                  href: `/programs/${programSlug}/referrals` as `/${string}`,
                   locked: isUnapproved,
                 },
               ]
