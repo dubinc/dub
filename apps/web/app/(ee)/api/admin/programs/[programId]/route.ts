@@ -8,7 +8,10 @@ import * as z from "zod/v4";
 const updateProgramSchema = z
   .object({
     description: z.string().trim().max(4000).nullable().optional(),
-    categories: z.array(z.enum(Category)).max(MAX_PROGRAM_CATEGORIES).optional(),
+    categories: z
+      .array(z.enum(Category))
+      .max(MAX_PROGRAM_CATEGORIES)
+      .optional(),
   })
   .refine(
     (data) => data.description !== undefined || data.categories !== undefined,
@@ -21,7 +24,9 @@ const updateProgramSchema = z
 export const PATCH = withAdmin(
   async ({ params, req }) => {
     const { programId } = params;
-    const parsed = updateProgramSchema.parse(await req.json());
+    const { description, categories } = updateProgramSchema.parse(
+      await req.json(),
+    );
 
     const program = await prisma.program.findUnique({
       where: {
@@ -37,41 +42,21 @@ export const PATCH = withAdmin(
       return new Response("Program not found in marketplace.", { status: 404 });
     }
 
-    const updateData: {
-      description?: string | null;
-      categories?: {
-        deleteMany: { programId: string };
-        createMany: {
-          data: { category: Category }[];
-          skipDuplicates: true;
-        };
-      };
-    } = {};
-
-    if (parsed.description !== undefined) {
-      updateData.description = parsed.description?.length
-        ? parsed.description
-        : null;
-    }
-
-    if (parsed.categories !== undefined) {
-      const uniqueCategories = [...new Set(parsed.categories)];
-      updateData.categories = {
-        deleteMany: {
-          programId,
-        },
-        createMany: {
-          data: uniqueCategories.map((category) => ({ category })),
-          skipDuplicates: true,
-        },
-      };
-    }
-
     const updatedProgram = await prisma.program.update({
       where: {
         id: programId,
       },
-      data: updateData,
+      data: {
+        ...(description !== undefined && {
+          description: description?.trim().length ? description : null,
+        }),
+        ...(categories && {
+          categories: {
+            deleteMany: {},
+            create: categories.map((category) => ({ category })),
+          },
+        }),
+      },
       select: {
         id: true,
         description: true,

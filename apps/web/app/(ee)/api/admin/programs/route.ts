@@ -3,17 +3,6 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-const reorderProgramsSchema = z.object({
-  updates: z
-    .array(
-      z.object({
-        programId: z.string().trim().min(1),
-        marketplaceRanking: z.number().int().positive(),
-      }),
-    )
-    .min(1),
-});
-
 // GET /api/admin/programs
 export const GET = withAdmin(async () => {
   const programs = await prisma.program.findMany({
@@ -48,12 +37,21 @@ export const GET = withAdmin(async () => {
   });
 });
 
+const reorderProgramsSchema = z.object({
+  updates: z
+    .array(
+      z.object({
+        programId: z.string().trim().min(1),
+        marketplaceRanking: z.number().int().positive(),
+      }),
+    )
+    .min(1),
+});
+
 // PATCH /api/admin/programs
 export const PATCH = withAdmin(
   async ({ req }) => {
     const { updates } = reorderProgramsSchema.parse(await req.json());
-
-    const MAX_MARKETPLACE_RANKING = 2147483647;
     const uniqueUpdates = [
       ...new Map(updates.map((update) => [update.programId, update])).values(),
     ];
@@ -73,13 +71,12 @@ export const PATCH = withAdmin(
       },
     });
 
-    const programById = new Map(programs.map((program) => [program.id, program]));
-    const updatesToApply = uniqueUpdates.filter(({ programId }) => {
-      const program = programById.get(programId);
-      return (
-        !!program && program.marketplaceRanking !== MAX_MARKETPLACE_RANKING
-      );
-    });
+    const programById = new Map(
+      programs.map((program) => [program.id, program]),
+    );
+    const updatesToApply = uniqueUpdates.filter(({ programId }) =>
+      programById.has(programId),
+    );
 
     await prisma.$transaction(
       updatesToApply.map(({ programId, marketplaceRanking }) =>

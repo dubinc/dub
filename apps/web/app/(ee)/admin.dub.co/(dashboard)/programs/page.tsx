@@ -1,9 +1,5 @@
 "use client";
 
-import {
-  ProgramCategoriesList,
-  UpdateProgramCategoriesModal,
-} from "@/ui/partners/program-categories-list";
 import { Category } from "@dub/prisma/client";
 import {
   Button,
@@ -14,6 +10,10 @@ import {
   PenWriting,
 } from "@dub/ui";
 import { cn, fetcher, getDomainWithoutWWW, OG_AVATAR_URL } from "@dub/utils";
+import {
+  ProgramCategoriesList,
+  UpdateProgramCategoriesModal,
+} from "app/(ee)/admin.dub.co/(dashboard)/programs/program-categories-list";
 import { Reorder, useDragControls } from "motion/react";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -59,12 +59,7 @@ export default function AdminProgramsPage() {
     if (!data?.programs) return;
 
     setPrograms(data.programs);
-
-    const nextRankedOrder = data.programs
-      .filter(
-        (program) => program.marketplaceRanking !== MAX_MARKETPLACE_RANKING,
-      )
-      .map((program) => program.id);
+    const nextRankedOrder = data.programs.map((program) => program.id);
 
     setRankedOrderIds(nextRankedOrder);
     setInitialRankedOrderIds(nextRankedOrder);
@@ -86,20 +81,60 @@ export default function AdminProgramsPage() {
     [rankedOrderIds, programsById],
   );
 
-  const unrankedPrograms = useMemo(
-    () =>
-      programs.filter(
-        (program) => program.marketplaceRanking === MAX_MARKETPLACE_RANKING,
-      ),
-    [programs],
-  );
-
   const hasOrderChanges = useMemo(() => {
     if (rankedOrderIds.length !== initialRankedOrderIds.length) return true;
     return rankedOrderIds.some(
       (id, index) => id !== initialRankedOrderIds[index],
     );
   }, [rankedOrderIds, initialRankedOrderIds]);
+
+  const rankingChanges = useMemo(() => {
+    const originalRankedProgramIds = new Set(
+      programs
+        .filter(
+          (program) => program.marketplaceRanking !== MAX_MARKETPLACE_RANKING,
+        )
+        .map((program) => program.id),
+    );
+
+    const rankedInCurrentOrder: string[] = [];
+    let seenOriginalRankedProgram = false;
+
+    for (let index = rankedOrderIds.length - 1; index >= 0; index--) {
+      const programId = rankedOrderIds[index]!;
+      const isOriginalRankedProgram = originalRankedProgramIds.has(programId);
+      if (isOriginalRankedProgram) {
+        seenOriginalRankedProgram = true;
+      }
+      if (seenOriginalRankedProgram) {
+        rankedInCurrentOrder.push(programId);
+      }
+    }
+
+    rankedInCurrentOrder.reverse();
+
+    const rankingByProgramId = new Map(
+      rankedInCurrentOrder.map((programId, index) => [programId, index + 1]),
+    );
+
+    const updates = rankedOrderIds
+      .map((programId) => {
+        const originalProgram = programsById[programId];
+        if (!originalProgram) return null;
+
+        const marketplaceRanking =
+          rankingByProgramId.get(programId) ?? MAX_MARKETPLACE_RANKING;
+
+        return originalProgram.marketplaceRanking !== marketplaceRanking
+          ? { programId, marketplaceRanking }
+          : null;
+      })
+      .filter(Boolean) as { programId: string; marketplaceRanking: number }[];
+
+    return {
+      updates,
+    };
+  }, [programs, rankedOrderIds, programsById]);
 
   const updateProgram = async (
     programId: string,
@@ -140,15 +175,7 @@ export default function AdminProgramsPage() {
   };
 
   const saveOrderChanges = async () => {
-    const updates = rankedOrderIds
-      .map((programId, index) => ({
-        programId,
-        marketplaceRanking: index + 1,
-      }))
-      .filter(({ programId, marketplaceRanking }) => {
-        const originalProgram = programsById[programId];
-        return originalProgram?.marketplaceRanking !== marketplaceRanking;
-      });
+    const { updates } = rankingChanges;
 
     if (updates.length === 0) {
       setInitialRankedOrderIds(rankedOrderIds);
@@ -286,7 +313,6 @@ export default function AdminProgramsPage() {
                       key={program.id}
                       program={program}
                       index={index}
-                      draggable
                       onEditCategories={() =>
                         setEditingCategoriesProgramId(program.id)
                       }
@@ -297,31 +323,6 @@ export default function AdminProgramsPage() {
                     />
                   ))}
                 </Reorder.Group>
-
-                {unrankedPrograms.length > 0 && (
-                  <div className="border-t border-dashed border-neutral-200">
-                    <div className="px-5 py-3 text-xs font-medium uppercase tracking-wide text-neutral-500">
-                      Unranked marketplace listings
-                    </div>
-                    <div className="divide-y divide-neutral-200">
-                      {unrankedPrograms.map((program) => (
-                        <ProgramRow
-                          key={program.id}
-                          program={program}
-                          index={-1}
-                          draggable={false}
-                          onEditCategories={() =>
-                            setEditingCategoriesProgramId(program.id)
-                          }
-                          onEditDescription={() => {
-                            setEditingDescriptionProgramId(program.id);
-                            setDescriptionDraft(program.description || "");
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -358,34 +359,30 @@ export default function AdminProgramsPage() {
 function ProgramRow({
   program,
   index,
-  draggable,
   onEditCategories,
   onEditDescription,
 }: {
   program: MarketplaceProgram;
   index: number;
-  draggable: boolean;
   onEditCategories: () => void;
   onEditDescription: () => void;
 }) {
   const dragControls = useDragControls();
-  const positionLabel = draggable ? `${index + 1}` : "—";
+  const positionLabel = `${index + 1}`;
 
   const content = (
     <div className="grid grid-cols-[80px_minmax(320px,1fr)_300px_minmax(260px,1fr)] items-center gap-3 px-4 py-2.5">
       <div className="flex items-center gap-1.5 text-sm font-medium tabular-nums text-neutral-700">
-        {draggable && (
-          <button
-            type="button"
-            className="cursor-grab rounded-md p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 active:cursor-grabbing"
-            onPointerDown={(e) => dragControls.start(e)}
-            aria-label={`Reorder ${program.name}`}
-          >
-            <GripDotsVertical className="size-4" />
-          </button>
-        )}
+        <button
+          type="button"
+          className="cursor-grab rounded-md p-1 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700 active:cursor-grabbing"
+          onPointerDown={(e) => dragControls.start(e)}
+          aria-label={`Reorder ${program.name}`}
+        >
+          <GripDotsVertical className="size-4" />
+        </button>
         {positionLabel}
-        {draggable && index <= 2 && (
+        {index <= 2 && (
           <CrownSmall
             className={cn("size-4", {
               "text-amber-400": index === 0,
@@ -442,10 +439,6 @@ function ProgramRow({
       </button>
     </div>
   );
-
-  if (!draggable) {
-    return content;
-  }
 
   return (
     <Reorder.Item

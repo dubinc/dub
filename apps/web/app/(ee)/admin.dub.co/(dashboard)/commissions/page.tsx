@@ -279,7 +279,7 @@ function CommissionsPageClient() {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-screen-xl flex-col gap-3 p-6">
+    <div className="mx-auto grid w-full max-w-screen-xl gap-5 p-3 lg:px-10">
       <div className="flex flex-col gap-3 md:flex-row md:items-center">
         <Filter.Select
           className="w-full md:w-fit"
