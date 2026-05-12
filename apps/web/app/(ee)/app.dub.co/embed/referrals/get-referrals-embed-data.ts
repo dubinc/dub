@@ -5,7 +5,6 @@ import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
-import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { Reward } from "@dub/prisma/client";
 import { notFound } from "next/navigation";
@@ -123,7 +122,7 @@ export const getReferralsEmbedData = async (token: string) => {
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
     rewards: [clickReward, leadReward, saleReward]
       .filter((r): r is Reward => r !== null)
-      .map((r) => RewardSchema.parse(serializeReward(r))),
+      .map((r) => serializeReward(r)),
     discount,
     earnings: {
       upcoming: commissions.reduce((acc, c) => {

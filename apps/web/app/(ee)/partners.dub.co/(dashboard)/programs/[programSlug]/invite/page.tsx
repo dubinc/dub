@@ -2,7 +2,6 @@ import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getSession } from "@/lib/auth";
 import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
-import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
@@ -69,7 +68,7 @@ export default async function ProgramInvitePage(props: {
 
   const rewards = [clickReward, leadReward, saleReward]
     .filter((r) => r !== null)
-    .map((r) => RewardSchema.parse(serializeReward(r as Reward)));
+    .map((r) => serializeReward(r as Reward));
 
   const bounties = await getGroupBountySummaries({
     programId: program.id,
