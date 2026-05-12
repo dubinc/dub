@@ -44,7 +44,7 @@ export const POST = withCron(async ({ rawBody }) => {
       },
       commissions: {
         where: {
-          type: CommissionType.referral,
+          type: CommissionType.sale,
         },
         select: {
           id: true,
@@ -57,8 +57,10 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`Payout ${payoutId} not found.`);
   }
 
-  if (payout.status !== "sent") {
-    return logAndRespond(`Payout ${payoutId} is not sent.`);
+  if (!["sent", "completed"].includes(payout.status)) {
+    return logAndRespond(
+      `Payout ${payoutId} is not in a valid status to create referrals.`,
+    );
   }
 
   const { programId, partner, programEnrollment, commissions } = payout;
@@ -80,9 +82,6 @@ export const POST = withCron(async ({ rawBody }) => {
         referralReward: true,
       },
     });
-
-    // TODO:
-    // Check the partner status
 
     if (!referrerEnrollment) {
       return logAndRespond(

@@ -16,13 +16,9 @@ import {
   pluralize,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { qstash } from "../cron";
+import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
 import { markPayoutsAsProcessed } from "../payouts/mark-payouts-as-processed";
-
-const createReferralCommissionsQueue = qstash.queue({
-  queueName: "create-referral-commissions",
-});
 
 export const createStripeTransfer = async ({
   partnerId,
@@ -259,12 +255,15 @@ export const createStripeTransfer = async ({
         newStatus: "paid",
       }),
 
-      createReferralCommissionsQueue.enqueueJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/queue`,
-        body: {
-          payoutIds,
-        },
-      }),
+      enqueueBatchJobs(
+        payoutIds.map((payoutId) => ({
+          queueName: "create-referral-commissions",
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/queue`,
+          body: {
+            payoutId,
+          },
+        })),
+      ),
     ]),
   );
 
