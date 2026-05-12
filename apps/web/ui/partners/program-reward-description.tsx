@@ -4,8 +4,8 @@ import {
   PARTNER_REFERRAL_PERCENTAGE_PREVIEW_BASIS_LABELS,
   PARTNER_REFERRAL_PERCENTAGE_TRIGGERS,
   PartnerReferralPercentageTrigger,
-  referralRewardConfigSchema,
-} from "@/lib/partner-referrals/schemas";
+} from "@/lib/partner-referrals/constants";
+import { referralRewardConfigSchema } from "@/lib/partner-referrals/schemas";
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { cn, currencyFormatter } from "@dub/utils";
 import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";

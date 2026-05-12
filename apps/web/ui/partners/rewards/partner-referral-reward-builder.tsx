@@ -8,7 +8,7 @@ import {
   PARTNER_REFERRAL_PERCENTAGE_TRIGGERS,
   PARTNER_REFERRAL_TRIGGER,
   PARTNER_REFERRAL_TRIGGER_LABELS,
-} from "@/lib/partner-referrals/schemas";
+} from "@/lib/partner-referrals/constants";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { RewardStructure } from "@dub/prisma/client";
 import { capitalize, cn, currencyFormatter, pluralize } from "@dub/utils";
