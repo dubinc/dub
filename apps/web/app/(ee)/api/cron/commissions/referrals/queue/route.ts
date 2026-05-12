@@ -1,12 +1,10 @@
-import { createId } from "@/lib/api/create-id";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
-import { NETWORK_BONUS_REWARD } from "@/lib/partner-referrals/constants";
+import { createNetworkReferralCommission } from "@/lib/partner-referrals/create-network-referral-commission";
 import { referralRewardConfigSchema } from "@/lib/partner-referrals/schemas";
 import { prisma } from "@dub/prisma";
 import { CommissionType } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, NETWORK_PROGRAM_ID } from "@dub/utils";
-import { differenceInMonths } from "date-fns";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";
 
@@ -134,66 +132,19 @@ export const POST = withCron(async ({ rawBody }) => {
 
   // Fallback to network level bonus
   if (partner.referredByPartnerId) {
-    const referrerEnrollment = await prisma.programEnrollment.findUnique({
-      where: {
-        partnerId_programId: {
-          programId: NETWORK_PROGRAM_ID,
-          partnerId: partner.referredByPartnerId,
-        },
-      },
-      select: {
-        id: true,
-      },
+    const commission = await createNetworkReferralCommission({
+      payout,
+      partner,
     });
 
-    if (!referrerEnrollment) {
+    if (commission) {
       return logAndRespond(
-        `Referrer partner ${partner.referredByPartnerId} is not enrolled in network program.`,
+        `Created network referral commission for payout ${payout.id}.`,
       );
     }
-
-    const firstCommission = await prisma.commission.findFirst({
-      where: {
-        programId: NETWORK_PROGRAM_ID,
-        partnerId: partner.referredByPartnerId,
-        sourcePartnerId: partner.id,
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-      select: {
-        createdAt: true,
-      },
-    });
-
-    if (firstCommission) {
-      const durationMonths = differenceInMonths(
-        new Date(),
-        firstCommission.createdAt,
-      );
-
-      if (durationMonths >= NETWORK_BONUS_REWARD.maxDuration) {
-        return logAndRespond(
-          `Referrer partner ${partner.referredByPartnerId} has reached max duration for network bonus.`,
-        );
-      }
-    }
-
-    await prisma.commission.create({
-      data: {
-        id: createId({ prefix: "cm_" }),
-        programId: NETWORK_PROGRAM_ID,
-        partnerId: partner.referredByPartnerId,
-        sourcePartnerId: partner.id,
-        type: CommissionType.referral,
-        amount: 0,
-        quantity: 1,
-        earnings:
-          NETWORK_BONUS_REWARD.amountInPercentage * 0.01 * payout.amount,
-        deduplicationKey: `referral:network:${payout.id}`,
-      },
-    });
   }
 
-  return logAndRespond("OK");
+  return logAndRespond(
+    `No referral commission created for payout ${payout.id}.`,
+  );
 });

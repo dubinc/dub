@@ -244,10 +244,10 @@ export const createReferralCommission = async (
       return null;
     }
 
-    console.error("Error creating referral commission", error);
+    console.error("Error creating referral commission", error, commissionData);
 
     await log({
-      message: `Error creating referral commission - ${error.message}`,
+      message: `[createReferralCommission] Error creating referral commission - ${error.message}`,
       type: "errors",
       mention: true,
     });
