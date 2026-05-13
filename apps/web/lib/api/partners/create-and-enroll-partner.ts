@@ -152,6 +152,7 @@ export const createAndEnrollPartner = async ({
         clickRewardId: group.clickRewardId,
         leadRewardId: group.leadRewardId,
         saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
         discountId: group.discountId,
         ...(enrolledAt && {
           createdAt: enrolledAt,
