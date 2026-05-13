@@ -80,7 +80,7 @@ export const LEGAL_USER_ID = "clqei1lgc0000vsnzi01pbf47";
 
 export const R2_URL = process.env.STORAGE_BASE_URL || "https://dubassets.com";
 
-// Network program
+// Network program (TODO: Update this)
 export const NETWORK_WORKSPACE_ID = "cl7pj5kq4006835rbjlt2ofka";
 export const NETWORK_PROGRAM_ID = "prog_1K7Y2RGFC4BKZQQZAZEEK9MVE";
 export const NETWORK_PROGRAM_SLUG = "network";

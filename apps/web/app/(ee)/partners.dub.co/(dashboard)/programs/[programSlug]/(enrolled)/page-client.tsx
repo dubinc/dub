@@ -808,8 +808,8 @@ function RewardListItem({
         {title}
       </h3>
 
-      <div className="overflow-hidden rounded-[10px] border border-neutral-200 bg-neutral-50">
-        <div className="space-y-2 border-b border-neutral-200 bg-white p-3">
+      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
+        <div className="space-y-2 rounded-b-xl border-b border-neutral-200 bg-white p-3">
           {rewards.map((reward) => {
             const RewardIcon = reward.icon;
 
@@ -832,7 +832,7 @@ function RewardListItem({
             <div className="rounded-full border border-neutral-200 p-1">
               <LinkLogo
                 apexDomain={link.apexDomain}
-                className="size-7 shrink-0 rounded-full border border-black/10 sm:size-7"
+                className="size-4.5 sm:size-4.5 shrink-0 rounded-full border border-black/10"
                 imageProps={{ width: 18, height: 18 }}
               />
             </div>

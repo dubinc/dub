@@ -5,6 +5,7 @@ import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processe
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 
 export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
   const payouts = await prisma.payout.findMany({
@@ -63,8 +64,8 @@ export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
 
   console.log(`Updated ${updatedPayouts.count} payouts to "sent" status`);
 
-  try {
-    await Promise.allSettled([
+  waitUntil(
+    Promise.allSettled([
       queueBatchEmail<typeof PartnerPayoutProcessed>(
         payouts.map((payout) => ({
           variant: "notifications",
@@ -88,6 +89,6 @@ export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
           },
         })),
       ),
-    ]);
-  } catch {}
+    ]),
+  );
 }
