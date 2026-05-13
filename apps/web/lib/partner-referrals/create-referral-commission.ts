@@ -80,7 +80,7 @@ export const createReferralCommission = async (
     rewardId: referralReward.id,
   };
 
-  const { trigger } = rewardConfig.data;
+  const { trigger, commissionsThresholdInCents } = rewardConfig.data;
 
   // When reward is based on commission earned or sale recorded
   if (
@@ -172,7 +172,7 @@ export const createReferralCommission = async (
       },
     });
 
-    if ((totalCommissionsEarned ?? 0) < (referralReward.amountInCents ?? 0)) {
+    if ((totalCommissionsEarned ?? 0) < (commissionsThresholdInCents ?? 0)) {
       console.log(
         `Referrer ${referredByPartnerId} has not reached the commission threshold for referred partner ${partnerId}.`,
       );

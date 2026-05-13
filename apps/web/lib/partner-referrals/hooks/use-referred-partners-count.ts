@@ -19,6 +19,7 @@ export function useReferredPartnersCount<T = number>({
 
   const { data, error } = useSWR<T>(
     enabled &&
+      programSlug &&
       `/api/partner-profile/programs/${programSlug}/referred-partners/count${getQueryString(
         query,
         {

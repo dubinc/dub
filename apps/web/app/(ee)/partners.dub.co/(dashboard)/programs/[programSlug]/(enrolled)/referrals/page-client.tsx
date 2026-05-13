@@ -20,6 +20,7 @@ import {
   StatusBadge,
   Table,
   TimestampTooltip,
+  useCopyToClipboard,
   usePagination,
   useTable,
 } from "@dub/ui";
@@ -60,6 +61,15 @@ export function PartnerReferralsPageClient() {
     ? `https://partners.dub.co/${programSlug}/apply?via=${partner.username}`
     : null;
 
+  const [, copyToClipboard] = useCopyToClipboard();
+
+  const copyReferralLink = () => {
+    if (!referralLink) return;
+    toast.promise(copyToClipboard(referralLink), {
+      success: "Copied referral link to clipboard!",
+    });
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -72,7 +82,7 @@ export function PartnerReferralsPageClient() {
             <PartnerRowItem
               partner={{
                 ...row.original,
-                name: row.original.email,
+                name: row.original.email ?? "",
                 image: null,
               }}
               showPermalink={false}
@@ -183,10 +193,7 @@ export function PartnerReferralsPageClient() {
                   text="Copy link"
                   icon={<Copy className="size-4" />}
                   className="h-9 w-fit"
-                  onClick={() => {
-                    navigator.clipboard.writeText(referralLink);
-                    toast.success("Copied referral link to clipboard!");
-                  }}
+                  onClick={copyReferralLink}
                 />
               )}
             </div>
@@ -231,9 +238,7 @@ export function PartnerReferralsPageClient() {
                 referralLink ? (
                   <Button
                     text="Copy referral link"
-                    onClick={() => {
-                      navigator.clipboard.writeText(referralLink);
-                    }}
+                    onClick={copyReferralLink}
                   />
                 ) : undefined
               }

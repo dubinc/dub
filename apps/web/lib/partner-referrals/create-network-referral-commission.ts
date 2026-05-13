@@ -66,6 +66,10 @@ export const createNetworkReferralCommission = async ({
     }
   }
 
+  const earnings = Math.round(
+    NETWORK_REFERRAL_REWARD.amountInPercentage * 0.01 * payout.amount,
+  );
+
   const commissionData: Prisma.CommissionUncheckedCreateInput = {
     id: createId({ prefix: "cm_" }),
     programId: NETWORK_PROGRAM_ID,
@@ -74,7 +78,7 @@ export const createNetworkReferralCommission = async ({
     type: CommissionType.referral,
     amount: 0,
     quantity: 1,
-    earnings: NETWORK_REFERRAL_REWARD.amountInPercentage * 0.01 * payout.amount,
+    earnings,
     deduplicationKey: `referral:network:${payout.id}`,
   };
 

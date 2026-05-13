@@ -26,13 +26,24 @@ export function getCommissionTypeLabel(
     return `${commission.quantity} ${pluralize("click", commission.quantity)}`;
   }
 
-  if (commission.customer) {
-    return `${commission.customer.email || commission.customer.name}`;
+  if (
+    (commission.type === "lead" || commission.type === "sale") &&
+    commission.customer
+  ) {
+    const customerLabel = commission.customer.email ?? commission.customer.name;
+
+    if (customerLabel) {
+      return customerLabel;
+    }
   }
 
   if (commission.type === "referral") {
     return "Partner referral";
   }
 
-  return "Custom commission";
+  if (commission.type === "custom") {
+    return "Custom commission";
+  }
+
+  return "-";
 }

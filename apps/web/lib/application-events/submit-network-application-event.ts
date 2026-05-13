@@ -17,37 +17,41 @@ export async function submitNetworkApplicationEvent(
       return;
     }
 
-    const applicationEvent = await prisma.programApplicationEvent.update({
-      where: {
-        id: applicationEventId,
-        programId: NETWORK_PROGRAM_ID,
-        submittedAt: null,
-      },
-      data: {
-        submittedAt: new Date(),
-        partnerId: partner.id,
-      },
-      select: {
-        referredByPartnerId: true,
-        country: true,
-        visitedAt: true,
-      },
-    });
+    const applicationEvent = await prisma.programApplicationEvent
+      .update({
+        where: {
+          id: applicationEventId,
+          programId: NETWORK_PROGRAM_ID,
+          submittedAt: null,
+        },
+        data: {
+          submittedAt: new Date(),
+          partnerId: partner.id,
+        },
+        select: {
+          referredByPartnerId: true,
+          country: true,
+          visitedAt: true,
+        },
+      })
+      .catch(() => null);
 
     if (!applicationEvent || !applicationEvent.referredByPartnerId) {
       return;
     }
 
     if (applicationEvent.referredByPartnerId) {
-      await prisma.partner.update({
-        where: {
-          id: partner.id,
-          referredByPartnerId: null,
-        },
-        data: {
-          referredByPartnerId: applicationEvent.referredByPartnerId,
-        },
-      });
+      await prisma.partner
+        .update({
+          where: {
+            id: partner.id,
+            referredByPartnerId: null,
+          },
+          data: {
+            referredByPartnerId: applicationEvent.referredByPartnerId,
+          },
+        })
+        .catch(() => null);
     }
 
     await prisma.customer.create({
