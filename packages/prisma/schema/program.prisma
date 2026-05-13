@@ -89,9 +89,9 @@ model Program {
   fraudEventGroups         FraudEventGroup[]
   sourceFraudEvents        FraudEvent[]              @relation("SourceFraudEvents")
   fraudAlerts              FraudAlert[]
-  referrals                PartnerReferral[]
   partnerTags              PartnerTag[]
   programPartnerTags       ProgramPartnerTag[]
+  submittedLeads           SubmittedLead[]
 
   @@index(workspaceId)
   @@index(addedToMarketplaceAt)
@@ -154,11 +154,11 @@ model ProgramEnrollment {
   commissions        Commission[]
   payouts            Payout[]
   fraudEventGroups   FraudEventGroup[]
-  referrals          PartnerReferral[]
   fraudAlerts        FraudAlert[]
   discoveredPartner  DiscoveredPartner?
   programPartnerTags ProgramPartnerTag[]
   applicationEvent   ProgramApplicationEvent?
+  submittedLeads     SubmittedLead[]
 
   // unique constraints
   @@unique([partnerId, programId])
