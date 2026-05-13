@@ -11,7 +11,6 @@ import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-tim
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import {
@@ -19,6 +18,7 @@ import {
   ProgramRewardList,
 } from "@/ui/partners/program-reward-list";
 import { ProgramRewardModifiersTooltip } from "@/ui/partners/program-reward-modifiers-tooltip";
+import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   Button,
@@ -704,7 +704,7 @@ function RewardList() {
             rewards={[
               ...standardRewards.map((reward) => ({
                 id: reward.id,
-                icon: REWARD_EVENTS[reward.event].icon,
+                icon: REWARD_EVENT_ICON[reward.event],
                 text: (
                   <>
                     {reward.description || generateRewardDescription(reward)}
@@ -744,7 +744,7 @@ function RewardList() {
             isDeactivated={isDeactivated}
             rewards={referralRewards.map((reward) => ({
               id: reward.id,
-              icon: REWARD_EVENTS.referral.icon,
+              icon: REWARD_EVENT_ICON.referral,
               text: (
                 <>
                   {reward.description ||

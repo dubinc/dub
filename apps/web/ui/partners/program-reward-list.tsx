@@ -8,9 +8,9 @@ import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PropsWithChildren } from "react";
-import { REWARD_EVENTS } from "./constants";
 import { formatDiscountDescription } from "./format-discount-description";
 import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
+import { REWARD_EVENT_ICON } from "./rewards/reward-event-icon";
 
 export function ProgramRewardList({
   rewards,
@@ -62,7 +62,7 @@ export function ProgramRewardList({
       {sortedFilteredRewards.map((reward) => (
         <Item
           key={reward.id}
-          icon={REWARD_EVENTS[reward.event].icon}
+          icon={REWARD_EVENT_ICON[reward.event]}
           iconClassName={iconClassName}
         >
           {reward.description || (

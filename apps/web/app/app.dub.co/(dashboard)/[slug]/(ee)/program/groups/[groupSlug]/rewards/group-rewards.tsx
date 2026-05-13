@@ -6,12 +6,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import type { GroupProps, RewardProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { useRewardHistorySheet } from "@/ui/activity-logs/reward-history-sheet";
-import { REWARD_EVENTS } from "@/ui/partners/constants";
+import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import {
   RewardSheet,
   useRewardSheet,
 } from "@/ui/partners/rewards/add-edit-reward-sheet";
+import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
 import { EventType } from "@dub/prisma/client";
 import {
   Button,
@@ -41,7 +42,7 @@ const REWARD_EVENT_DESCRIPTIONS: Record<
     description: "Reward for traffic and reach",
   },
   referral: {
-    title: "Referral reward",
+    title: "Partner referral reward",
     description: "Reward when partners refer more partners",
   },
 };
@@ -158,6 +159,8 @@ const RewardItem = ({
   const { plan } = useWorkspace();
   const { queryParams } = useRouterStuff();
   const { canCreateReferralReward } = getPlanCapabilities(plan);
+  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
+    usePartnersUpgradeModal();
 
   const { RewardSheet, setIsOpen } = useRewardSheet({
     event,
@@ -173,11 +176,12 @@ const RewardItem = ({
     reward: reward ?? null,
   });
 
-  const Icon = REWARD_EVENTS[event].icon;
+  const Icon = REWARD_EVENT_ICON[event];
   const As = reward ? Link : "div";
 
   return (
     <>
+      {partnersUpgradeModal}
       {RewardSheet}
       {rewardHistorySheet}
       <As
@@ -293,8 +297,7 @@ const RewardItem = ({
                     <TooltipContent
                       title="Referral rewards are only available on the Advanced plan and above."
                       cta="Upgrade to Advanced"
-                      href={`/${slug}/upgrade?showPartnersUpgradeModal=true`}
-                      target="_blank"
+                      onClick={() => setShowPartnersUpgradeModal(true)}
                     />
                   ) : undefined
                 }

@@ -1,10 +1,10 @@
 import { DiscountProps, RewardProps } from "@/lib/types";
-import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { Gift, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import * as HoverCard from "@radix-ui/react-hover-card";
+import { REWARD_EVENT_ICON } from "../rewards/reward-event-icon";
 import { ProgramRewardIcon } from "./program-reward-icon";
 
 type RewardItem = {
@@ -43,7 +43,7 @@ export function ProgramRewardsDisplay({
     rewards.forEach((reward) => {
       items.push({
         id: reward.id,
-        icon: REWARD_EVENTS[reward.event].icon,
+        icon: REWARD_EVENT_ICON[reward.event],
         description: formatRewardDescription(reward),
         onClick: onRewardClick ? () => onRewardClick(reward) : undefined,
       });
