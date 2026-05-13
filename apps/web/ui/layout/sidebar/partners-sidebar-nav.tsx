@@ -17,6 +17,7 @@ import {
   GridIcon,
   MoneyBills2,
   Msgs,
+  Nodes4,
   ShieldCheck,
   Shop,
   SquareUserSparkle2,
@@ -48,6 +49,7 @@ type SidebarNavData = {
   programBountiesCount?: number;
   showDetailedAnalytics?: boolean;
   postbacksEnabled?: boolean;
+  hasReferralReward?: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
@@ -180,6 +182,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     queryString,
     programBountiesCount,
     showDetailedAnalytics,
+    hasReferralReward,
   }) => ({
     title: (
       <div className="mb-3">
@@ -237,6 +240,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                   name: "Customers",
                   icon: User as Icon,
                   href: `/programs/${programSlug}/customers` as `/${string}`,
+                  locked: isUnapproved,
+                },
+              ]
+            : []),
+          ...(hasReferralReward
+            ? [
+                {
+                  name: "Referred Partners",
+                  icon: Nodes4 as Icon,
+                  href: `/programs/${programSlug}/referrals` as `/${string}`,
                   locked: isUnapproved,
                 },
               ]
@@ -387,6 +400,7 @@ export function PartnersSidebarNav({
         programBountiesCount: bountiesCount.active,
         showDetailedAnalytics,
         postbacksEnabled: partner?.featureFlags?.postbacks,
+        hasReferralReward: !!programEnrollment?.referralRewardId,
       }}
       toolContent={composedToolContent}
       newsContent={newsContent}

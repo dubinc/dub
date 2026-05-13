@@ -5,20 +5,26 @@ import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
-import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { HeroBackground } from "@/ui/partners/hero-background";
-import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
-import { ProgramRewardList } from "@/ui/partners/program-reward-list";
-import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
+import { REWARD_EVENTS } from "@/ui/partners/constants";
+import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import {
+  generateRewardDescription,
+  ProgramRewardList,
+} from "@/ui/partners/program-reward-list";
+import { ProgramRewardModifiersTooltip } from "@/ui/partners/program-reward-modifiers-tooltip";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
-  Button,
   buttonVariants,
-  StatusBadge,
+  Gift,
+  Icon,
+  LinkLogo,
   Tooltip,
   useCopyToClipboard,
   useRouterStuff,
@@ -39,7 +45,14 @@ import {
   ReferredVia,
   UserPlus,
 } from "@dub/ui/icons";
-import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
+import {
+  cn,
+  currencyFormatter,
+  getApexDomain,
+  getPrettyUrl,
+  nFormatter,
+  PARTNERS_DOMAIN,
+} from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
 import { endOfDay, startOfDay } from "date-fns";
@@ -49,6 +62,7 @@ import { useParams } from "next/navigation";
 import {
   createContext,
   CSSProperties,
+  ReactNode,
   useContext,
   useId,
   useMemo,
@@ -77,7 +91,6 @@ export function PartnerProgramOverviewPageClient() {
   );
 
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
-  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const {
     start,
@@ -90,19 +103,10 @@ export function PartnerProgramOverviewPageClient() {
   };
 
   const program = programEnrollment?.program;
-  const defaultProgramLink = programEnrollment?.links?.[0];
 
   if (!program) {
     return null;
   }
-
-  const partnerLink = constructPartnerLink({
-    group: programEnrollment.group,
-    link: defaultProgramLink,
-  });
-
-  const hasPartnerLink = Boolean(partnerLink);
-  const isDeactivated = programEnrollment?.status === "deactivated";
 
   return (
     <PageWidthWrapper className="pb-10">
@@ -121,119 +125,7 @@ export function PartnerProgramOverviewPageClient() {
               }}
               className="overflow-hidden"
             >
-              <div
-                className={cn(
-                  "relative z-0 mb-4 flex flex-col overflow-hidden rounded-xl border border-neutral-200 p-4 sm:mb-5 md:p-6",
-                  isDeactivated && "opacity-80",
-                )}
-              >
-                {program && (
-                  <HeroBackground
-                    logo={programEnrollment.group?.logo}
-                    color={programEnrollment.group?.brandColor}
-                  />
-                )}
-
-                <span className="text-base font-semibold text-neutral-800">
-                  Referral link
-                </span>
-                <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 md:max-w-[50%]">
-                  <input
-                    type="text"
-                    readOnly
-                    value={
-                      hasPartnerLink ? getPrettyUrl(partnerLink) : "No link yet"
-                    }
-                    disabled={isDeactivated}
-                    className={cn(
-                      "border-border-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500",
-                      hasPartnerLink
-                        ? "text-content-default"
-                        : "text-content-subtle",
-                      isDeactivated && "text-content-subtle cursor-default",
-                    )}
-                  />
-                  {isDeactivated ? (
-                    (() => {
-                      const deactivatedBadge = PartnerStatusBadges.deactivated;
-                      return (
-                        <StatusBadge
-                          variant={deactivatedBadge.variant}
-                          icon={deactivatedBadge.icon}
-                          className="xs:w-fit absolute right-4 top-1/2 -translate-y-1/2 px-1.5 py-0.5"
-                        >
-                          {deactivatedBadge.label}
-                        </StatusBadge>
-                      );
-                    })()
-                  ) : hasPartnerLink ? (
-                    <Button
-                      icon={
-                        <div className="relative size-4">
-                          <div
-                            className={cn(
-                              "absolute inset-0 transition-[transform,opacity]",
-                              copied && "translate-y-1 opacity-0",
-                            )}
-                          >
-                            <Copy className="size-4" />
-                          </div>
-                          <div
-                            className={cn(
-                              "absolute inset-0 transition-[transform,opacity]",
-                              !copied && "translate-y-1 opacity-0",
-                            )}
-                          >
-                            <Check className="size-4" />
-                          </div>
-                        </div>
-                      }
-                      text={copied ? "Copied link" : "Copy link"}
-                      className="xs:w-fit"
-                      onClick={() => {
-                        copyToClipboard(partnerLink);
-                      }}
-                    />
-                  ) : (
-                    <Link
-                      href={`/programs/${programSlug}/links`}
-                      className={cn(
-                        buttonVariants({ variant: "primary" }),
-                        "xs:w-fit inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-medium",
-                      )}
-                    >
-                      Create link
-                    </Link>
-                  )}
-                </div>
-
-                {programEnrollment.group?.linkStructure === "query" &&
-                  defaultProgramLink && (
-                    <QueryLinkStructureHelpText link={defaultProgramLink} />
-                  )}
-
-                <span className="mt-12 text-base font-semibold text-neutral-800">
-                  Rewards
-                </span>
-                <div className="relative mt-2 text-lg text-neutral-900 md:max-w-[50%]">
-                  {programEnrollment?.rewards ? (
-                    <>
-                      <ProgramRewardList
-                        rewards={programEnrollment.rewards}
-                        discount={programEnrollment.discount}
-                      />
-                      <ProgramRewardTerms
-                        minPayoutAmount={program.minPayoutAmount}
-                        holdingPeriodDays={
-                          programEnrollment.group?.holdingPeriodDays ?? 0
-                        }
-                      />
-                    </>
-                  ) : (
-                    <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
-                  )}
-                </div>
-              </div>
+              <RewardList />
             </motion.div>
           )}
         </AnimatePresence>
@@ -675,6 +567,236 @@ function ViewMoreButton({ href }: { href: string }) {
         >
           View more
         </Link>
+      </div>
+    </div>
+  );
+}
+
+function RewardList() {
+  const { programEnrollment } = useProgramEnrollment();
+  const { partner } = usePartnerProfile();
+  const { programSlug } = useParams<{ programSlug: string }>();
+
+  if (!programEnrollment) {
+    return null;
+  }
+
+  const eligibleRewards = (programEnrollment.rewards ?? []).filter(
+    (r) => getRewardAmount(r) >= 0,
+  );
+  const standardRewards = eligibleRewards.filter(
+    (reward) =>
+      reward.event === "click" ||
+      reward.event === "lead" ||
+      reward.event === "sale",
+  );
+  const referralRewards = eligibleRewards.filter(
+    (reward) => reward.event === "referral",
+  );
+
+  const discount = programEnrollment.discount ?? null;
+  const showReferralRewardCard = referralRewards.length > 0;
+
+  const hasPrimaryCardContent = standardRewards.length > 0 || discount != null;
+
+  if (!hasPrimaryCardContent && !showReferralRewardCard) {
+    return (
+      <ProgramRewardList
+        rewards={programEnrollment.rewards ?? []}
+        discount={programEnrollment.discount ?? null}
+      />
+    );
+  }
+
+  const defaultProgramLink = programEnrollment.links?.[0];
+  const partnerLink = constructPartnerLink({
+    group: programEnrollment.group,
+    link: defaultProgramLink,
+  });
+  const hasPartnerLink = Boolean(partnerLink);
+  const isDeactivated = programEnrollment.status === "deactivated";
+
+  const partnerReferralApplyLink =
+    partner?.username != null
+      ? `${PARTNERS_DOMAIN}/${programSlug}/apply?via=${partner.username}`
+      : "";
+
+  const hasPartnerReferralLink = partnerReferralApplyLink.length > 0;
+
+  return (
+    <>
+      {hasPrimaryCardContent && (
+        <RewardListItem
+          title="Referrals"
+          isDeactivated={isDeactivated}
+          rewards={[
+            ...standardRewards.map((reward) => ({
+              id: reward.id,
+              icon: REWARD_EVENTS[reward.event].icon,
+              text: (
+                <>
+                  {reward.description || generateRewardDescription(reward)}
+                  {(!!reward.modifiers?.length ||
+                    Boolean(reward.tooltipDescription)) && (
+                    <>
+                      {" "}
+                      <ProgramRewardModifiersTooltip reward={reward} />
+                    </>
+                  )}
+                </>
+              ),
+            })),
+            ...(discount
+              ? [
+                  {
+                    id: "discount",
+                    icon: Gift,
+                    text: formatDiscountDescription(discount),
+                  },
+                ]
+              : []),
+          ]}
+          link={{
+            displayText: hasPartnerLink
+              ? getPrettyUrl(partnerLink)
+              : "No link yet",
+            copyValue: partnerLink,
+            apexDomain: hasPartnerLink ? getApexDomain(partnerLink) : null,
+          }}
+        />
+      )}
+
+      {showReferralRewardCard && (
+        <RewardListItem
+          title="Referred Partner"
+          isDeactivated={isDeactivated}
+          rewards={referralRewards.map((reward) => ({
+            id: reward.id,
+            icon: REWARD_EVENTS.referral.icon,
+            text: (
+              <>
+                {reward.description ||
+                  formatRewardDescription(reward).replace(/^Earn\s+/i, "")}
+              </>
+            ),
+            afterText: (
+              <span className="inline-flex h-4 shrink-0 items-center justify-center rounded-md bg-blue-100 px-1 text-xs font-semibold leading-4 text-blue-600">
+                New
+              </span>
+            ),
+          }))}
+          link={{
+            displayText: hasPartnerReferralLink
+              ? getPrettyUrl(partnerReferralApplyLink)
+              : "Set a username in your profile to get a link",
+            copyValue: partnerReferralApplyLink,
+            apexDomain: hasPartnerReferralLink
+              ? getApexDomain(partnerReferralApplyLink)
+              : null,
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+function RewardListItem({
+  title,
+  rewards,
+  link,
+  isDeactivated,
+}: {
+  title: string;
+  rewards: {
+    id: string;
+    text: ReactNode;
+    icon: Icon;
+    afterText?: ReactNode;
+  }[];
+  link: {
+    displayText: string;
+    copyValue: string;
+    apexDomain?: string | null;
+  };
+  isDeactivated?: boolean;
+}) {
+  const [copied, copyToClipboard] = useCopyToClipboard();
+  const copyDisabled =
+    isDeactivated || !link.copyValue || link.copyValue.length === 0;
+
+  return (
+    <div
+      className={cn(
+        "mb-4 flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-4 sm:mb-5",
+        isDeactivated && "opacity-80",
+      )}
+    >
+      <h3 className="text-base font-semibold tracking-tight text-neutral-900">
+        {title}
+      </h3>
+
+      <div className="overflow-hidden rounded-[10px] border border-neutral-200 bg-neutral-50">
+        <div className="space-y-2 border-b border-neutral-200 bg-white p-3">
+          {rewards.map((reward) => {
+            const RewardIcon = reward.icon;
+
+            return (
+              <div key={reward.id} className="flex items-center gap-2.5">
+                <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+                  <RewardIcon className="size-4 text-neutral-800" />
+                </div>
+                <div className="text-content-default flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0 text-sm font-semibold leading-5 tracking-tight">
+                  {reward.text}
+                  {reward.afterText}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-between gap-3 bg-neutral-50 py-1.5 pl-3 pr-1.5">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">
+            <LinkLogo
+              apexDomain={link.apexDomain}
+              className="size-7 shrink-0 rounded-full border border-black/10 sm:size-7"
+              imageProps={{ width: 18, height: 18 }}
+            />
+            <p className="text-content-subtle min-w-0 truncate text-sm font-medium leading-5 tracking-tight">
+              {link.displayText}
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={copyDisabled}
+            onClick={() => {
+              if (!copyDisabled) {
+                copyToClipboard(link.copyValue);
+              }
+            }}
+            className={cn(
+              "bg-bg-inverted text-content-inverted flex h-8 shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-opacity",
+              copyDisabled
+                ? "cursor-not-allowed opacity-40"
+                : "hover:opacity-90",
+            )}
+          >
+            <span className="relative size-4">
+              <Copy
+                className={cn(
+                  "absolute inset-0 size-4 transition-[transform,opacity]",
+                  copied && "translate-y-1 opacity-0",
+                )}
+              />
+              <Check
+                className={cn(
+                  "absolute inset-0 size-4 transition-[transform,opacity]",
+                  !copied && "translate-y-1 opacity-0",
+                )}
+              />
+            </span>
+            {copied ? "Copied" : "Copy"}
+          </button>
+        </div>
       </div>
     </div>
   );

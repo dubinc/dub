@@ -48,6 +48,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         clickReward: true,
         leadReward: true,
         saleReward: true,
+        referralReward: true,
         discount: true,
       }),
     },
