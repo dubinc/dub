@@ -26,7 +26,7 @@ import { cn, formatDate, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 
-export default function PartnerSubmittedLeadsPage() {
+export default function PartnerProgramSubmittedLeadsPage() {
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 

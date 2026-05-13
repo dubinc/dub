@@ -15,7 +15,7 @@ import { useParams, usePathname } from "next/navigation";
 import { CSSProperties, ReactNode, useMemo, useState } from "react";
 import * as z from "zod/v4";
 
-export default function PartnerCustomersLayout({
+export default function PartnerProgramCustomersLayout({
   children,
 }: {
   children: ReactNode;
