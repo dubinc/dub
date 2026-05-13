@@ -15,10 +15,10 @@ export const GET = withPartnerProfile(
       getActivityLogsQuerySchema.parse(searchParams);
 
     // Limit to submitted lead for now
-    if (resourceType !== "referral") {
+    if (resourceType !== "submittedLead") {
       throw new DubApiError({
         code: "bad_request",
-        message: "Resource type must be referral.",
+        message: "Resource type must be submitted lead.",
       });
     }
 
@@ -29,24 +29,22 @@ export const GET = withPartnerProfile(
     });
 
     // Check if the resource is a referral and belongs to the program and partner
-    if (resourceType === "referral") {
-      const lead = await prisma.submittedLead.findUnique({
-        where: {
-          id: resourceId,
-          programId: programEnrollment.programId,
-          partnerId: partner.id,
-        },
-        select: {
-          id: true,
-        },
-      });
+    const lead = await prisma.submittedLead.findUnique({
+      where: {
+        id: resourceId,
+        programId: programEnrollment.programId,
+        partnerId: partner.id,
+      },
+      select: {
+        id: true,
+      },
+    });
 
-      if (!lead) {
-        throw new DubApiError({
-          code: "not_found",
-          message: "Submitted lead not found.",
-        });
-      }
+    if (!lead) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Submitted lead not found.",
+      });
     }
 
     const activityLogs = await prisma.activityLog.findMany({

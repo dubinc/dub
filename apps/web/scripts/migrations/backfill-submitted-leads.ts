@@ -30,8 +30,8 @@ async function main() {
     }
 
     const data: Prisma.SubmittedLeadCreateManyInput[] = referrals.map((r) => ({
-      // Preserve IDs so historical references (e.g. ActivityLog.resourceId) remain valid.
-      id: r.id,
+      // Preserve IDs (but change prefix) so historical references (e.g. ActivityLog.resourceId) remain valid.
+      id: r.id.replace("ref_", "sbl_"),
       programId: r.programId,
       partnerId: r.partnerId,
       customerId: r.customerId,

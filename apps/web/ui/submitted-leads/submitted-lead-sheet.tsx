@@ -11,7 +11,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Dispatch, SetStateAction, useState } from "react";
-import { ReferralActivitySection } from "../activity-logs/referral-activity-section";
+import { SubmittedLeadActivitySection } from "../activity-logs/submitted-lead-activity-section";
 import { SubmittedLeadContactDetails } from "./submitted-lead-contact-details";
 import { SubmittedLeadDetails } from "./submitted-lead-details";
 import { SubmittedLeadPartnerDetails } from "./submitted-lead-partner-details";
@@ -124,7 +124,7 @@ function SubmittedLeadSheetContent({
           {/* Left side - Lead details */}
           <div className="flex flex-col gap-6">
             <SubmittedLeadDetails lead={{ formData: lead.formData }} />
-            <ReferralActivitySection leadId={lead.id} />
+            <SubmittedLeadActivitySection leadId={lead.id} />
           </div>
 
           {/* Right side - Two cards */}

@@ -136,7 +136,7 @@ export const submitLeadAction = authPartnerActionClient
 
     const submittedLead = await prisma.submittedLead.create({
       data: {
-        id: createId({ prefix: "ref_" }),
+        id: createId({ prefix: "sbl_" }),
         programId,
         partnerId: partner.id,
         name,
@@ -160,10 +160,10 @@ export const submitLeadAction = authPartnerActionClient
         trackActivityLog({
           workspaceId: programEnrollment.program.workspaceId,
           programId,
-          resourceType: "referral",
+          resourceType: "submittedLead",
           resourceId: submittedLead.id,
           userId: user.id,
-          action: "referral.created",
+          action: "submittedLead.created",
         }),
       ]),
     );

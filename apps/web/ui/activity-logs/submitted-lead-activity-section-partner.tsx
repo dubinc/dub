@@ -1,21 +1,30 @@
 "use client";
 
-import { useActivityLogs } from "@/lib/swr/use-activity-logs";
+import { usePartnerActivityLogs } from "@/lib/swr/use-partner-activity-logs";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
   ActivityFeed,
   ActivityFeedSkeleton,
 } from "@/ui/activity-logs/activity-feed";
+import { ActivityLogProvider } from "@/ui/activity-logs/activity-log-context";
 
-export function ReferralActivitySection({ leadId }: { leadId: string }) {
-  const { activityLogs, loading, error } = useActivityLogs({
+export function SubmittedLeadActivitySectionPartner({
+  leadId,
+}: {
+  leadId: string;
+}) {
+  const { programEnrollment } = useProgramEnrollment();
+
+  const { activityLogs, loading, error } = usePartnerActivityLogs({
     query: {
-      resourceType: "referral",
+      resourceType: "submittedLead",
       resourceId: leadId,
     },
     enabled: !!leadId,
   });
 
   const logs = activityLogs ?? [];
+  const program = programEnrollment?.program;
 
   if (logs.length === 0 && !loading && !error) {
     return null;
@@ -36,7 +45,9 @@ export function ReferralActivitySection({ leadId }: { leadId: string }) {
           Failed to load activity. Please try again.
         </p>
       ) : (
-        <ActivityFeed logs={logs} resourceType="referral" />
+        <ActivityLogProvider program={program} view="partner">
+          <ActivityFeed logs={logs} resourceType="submittedLead" />
+        </ActivityLogProvider>
       )}
     </section>
   );

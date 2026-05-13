@@ -59,13 +59,13 @@ export const SUBMITTED_LEAD_STATUS_TO_ACTIVITY_ACTION: Record<
   SubmittedLeadStatus,
   ActivityLogAction
 > = {
-  [SubmittedLeadStatus.pending]: "referral.created",
-  [SubmittedLeadStatus.qualified]: "referral.qualified",
-  [SubmittedLeadStatus.meeting]: "referral.meeting",
-  [SubmittedLeadStatus.negotiation]: "referral.negotiation",
-  [SubmittedLeadStatus.unqualified]: "referral.unqualified",
-  [SubmittedLeadStatus.closedWon]: "referral.closedWon",
-  [SubmittedLeadStatus.closedLost]: "referral.closedLost",
+  [SubmittedLeadStatus.pending]: "submittedLead.created",
+  [SubmittedLeadStatus.qualified]: "submittedLead.qualified",
+  [SubmittedLeadStatus.meeting]: "submittedLead.meeting",
+  [SubmittedLeadStatus.negotiation]: "submittedLead.negotiation",
+  [SubmittedLeadStatus.unqualified]: "submittedLead.unqualified",
+  [SubmittedLeadStatus.closedWon]: "submittedLead.closedWon",
+  [SubmittedLeadStatus.closedLost]: "submittedLead.closedLost",
 };
 
 export const SUBMITTED_LEAD_STATUS_TRANSITIONS: Record<

@@ -1,7 +1,7 @@
 import { ActivityLog, ActivityLogResourceType } from "@/lib/types";
 import { PartnerGroupActivityItem } from "@/ui/activity-logs/partner-group-activity-item";
-import { ReferralActivityItem } from "@/ui/activity-logs/referral-activity-item";
 import { RewardActivityItem } from "@/ui/activity-logs/reward-activity-item";
+import { SubmittedLeadActivityItem } from "@/ui/activity-logs/submitted-lead-activity-item";
 import { ComponentType } from "react";
 
 const ACTIVITY_ITEM_MAP: Record<
@@ -9,7 +9,7 @@ const ACTIVITY_ITEM_MAP: Record<
   ComponentType<{ log: ActivityLog; isLast?: boolean }>
 > = {
   partner: PartnerGroupActivityItem,
-  referral: ReferralActivityItem,
+  submittedLead: SubmittedLeadActivityItem,
   clickReward: RewardActivityItem,
   leadReward: RewardActivityItem,
   saleReward: RewardActivityItem,

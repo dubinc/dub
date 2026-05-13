@@ -12,11 +12,13 @@ function Label({ children }: { children: ReactNode }) {
   );
 }
 
-interface ReferralCreatedRendererProps {
+interface SubmittedLeadCreatedRendererProps {
   log: ActivityLog;
 }
 
-export function ReferralCreatedRenderer({ log }: ReferralCreatedRendererProps) {
+export function SubmittedLeadCreatedRenderer({
+  log,
+}: SubmittedLeadCreatedRendererProps) {
   const { view } = useActivityLogContext();
 
   return view === "partner" ? (

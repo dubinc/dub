@@ -122,7 +122,7 @@ export function ActorChip({ log }: ActorChipProps) {
   return <SystemChip />;
 }
 
-export function ReferralStatusPill({
+export function SubmittedLeadStatusPill({
   status,
 }: {
   status: SubmittedLeadStatus;

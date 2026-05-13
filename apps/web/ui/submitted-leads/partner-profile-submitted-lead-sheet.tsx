@@ -1,5 +1,5 @@
 import { PartnerProfileSubmittedLead } from "@/lib/zod/schemas/partner-profile";
-import { PartnerSubmittedLeadActivitySection } from "@/ui/activity-logs/partner-submitted-lead-activity-section";
+import { SubmittedLeadActivitySectionPartner } from "@/ui/activity-logs/submitted-lead-activity-section-partner";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -86,7 +86,7 @@ function PartnerProfileSubmittedLeadSheetContent({
         {/* Left side - Lead details */}
         <div className="flex flex-col gap-6">
           <SubmittedLeadDetails lead={{ formData: lead.formData }} />
-          <PartnerSubmittedLeadActivitySection leadId={lead.id} />
+          <SubmittedLeadActivitySectionPartner leadId={lead.id} />
         </div>
 
         {/* Right side - Customer details */}

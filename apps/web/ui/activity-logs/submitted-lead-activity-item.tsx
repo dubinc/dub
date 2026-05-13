@@ -7,15 +7,15 @@ import {
   getActivityLogRenderer,
 } from "./activity-log-registry";
 
-interface ReferralActivityItemProps {
+interface SubmittedLeadActivityItemProps {
   log: ActivityLog;
   isLast?: boolean;
 }
 
-export function ReferralActivityItem({
+export function SubmittedLeadActivityItem({
   log,
   isLast = false,
-}: ReferralActivityItemProps) {
+}: SubmittedLeadActivityItemProps) {
   const icon = getActivityLogIcon(log);
   const Renderer = getActivityLogRenderer(log.action);
 

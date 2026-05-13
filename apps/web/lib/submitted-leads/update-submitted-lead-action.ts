@@ -53,10 +53,10 @@ export const updateSubmittedLeadAction = authActionClient
         trackActivityLog({
           workspaceId: workspace.id,
           programId,
-          resourceType: "referral",
+          resourceType: "submittedLead",
           resourceId: leadId,
           userId: user.id,
-          action: "referral.updated",
+          action: "submittedLead.updated",
           changeSet: diff,
         }),
       );

@@ -3,7 +3,7 @@
 import { ActivityLog } from "@/lib/types";
 import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { ReactNode } from "react";
-import { ActorChip, ReferralStatusPill } from "../activity-entry-chips";
+import { ActorChip, SubmittedLeadStatusPill } from "../activity-entry-chips";
 
 interface StatusChangeSet {
   old: SubmittedLeadStatus | null;
@@ -16,7 +16,11 @@ function Label({ children }: { children: ReactNode }) {
   );
 }
 
-export function ReferralStatusChangedRenderer({ log }: { log: ActivityLog }) {
+export function SubmittedLeadStatusChangedRenderer({
+  log,
+}: {
+  log: ActivityLog;
+}) {
   const statusChange = log.changeSet?.status as StatusChangeSet | undefined;
   const status = statusChange?.new ?? null;
 
@@ -27,7 +31,7 @@ export function ReferralStatusChangedRenderer({ log }: { log: ActivityLog }) {
   return (
     <>
       <Label>Lead</Label>
-      <ReferralStatusPill status={status} />
+      <SubmittedLeadStatusPill status={status} />
       <Label>by</Label>
       <ActorChip log={log} />
     </>
