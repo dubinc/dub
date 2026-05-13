@@ -284,14 +284,18 @@ export async function processPayouts({
     type: "payouts",
   });
 
-  const payoutsJobResponse = await qstash.publishJSON({
+  const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/process/updates`,
     body: {
       invoiceId: invoice.id,
     },
   });
 
-  console.log(payoutsJobResponse);
+  if (qstashResponse.messageId) {
+    console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
+  } else {
+    console.error("Error sending message to Qstash", qstashResponse);
+  }
 
   // should never happen, but just in case
   if (users.length === 0) {
