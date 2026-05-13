@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { generatePartnerUsername } from "@/lib/api/partners/generate-partner-username";
 import { submitNetworkApplicationEvent } from "@/lib/application-events/submit-network-application-event";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
@@ -26,6 +27,7 @@ export const onboardPartnerAction = authUserActionClient
       },
       select: {
         id: true,
+        username: true,
         country: true,
         profileType: true,
       },
@@ -44,10 +46,18 @@ export const onboardPartnerAction = authUserActionClient
           .then(({ url }) => url)
       : undefined;
 
+    const username = existingPartner?.username
+      ? undefined
+      : await generatePartnerUsername({
+          name,
+          email: user.email,
+        });
+
     // country, profileType, and companyName cannot be changed once set
     const payload: Prisma.PartnerCreateInput = {
       name: name || user.email,
       email: user.email,
+      ...(username && { username }),
       // can only update these fields if it's not already set (else you need to update under profile settings)
       ...(existingPartner?.country ? {} : { country }),
       ...(existingPartner?.profileType ? {} : { profileType }),
