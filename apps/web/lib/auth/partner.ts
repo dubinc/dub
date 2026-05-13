@@ -80,7 +80,10 @@ export const withPartnerProfile = (
 
         if (
           programIdParam &&
-          [NETWORK_PROGRAM_ID, NETWORK_PROGRAM_SLUG].includes(programIdParam)
+          [
+            NETWORK_PROGRAM_ID.toLowerCase(),
+            NETWORK_PROGRAM_SLUG.toLowerCase(),
+          ].includes(programIdParam)
         ) {
           throw new DubApiError({
             code: "not_found",
