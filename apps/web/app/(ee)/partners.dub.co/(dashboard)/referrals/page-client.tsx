@@ -617,7 +617,7 @@ function ReferralsPromoCard() {
         </p>
         <p className="text-sm font-normal text-neutral-200">
           Bring on other partners to the Dub network, and earn from their
-          activity for up to {NETWORK_REFERRAL_REWARD.maxDuration}-months.{" "}
+          activity for up to {NETWORK_REFERRAL_REWARD.maxDuration} months.{" "}
           <Link
             href="https://dub.co/docs/partners/quickstart"
             target="_blank"
