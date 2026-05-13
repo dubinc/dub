@@ -21,6 +21,7 @@ import {
   TimestampTooltip,
   Tooltip,
   useCopyToClipboard,
+  useMediaQuery,
   usePagination,
   useTable,
 } from "@dub/ui";
@@ -231,6 +232,7 @@ function ReferralLinkLocked() {
 function ReferralLink() {
   const { profileReady, isEligible, referralLink } = useNetworkReferralAccess();
   const [, copyToClipboard] = useCopyToClipboard();
+  const { isMobile } = useMediaQuery();
 
   const copyReferralLink = () => {
     if (!referralLink) return;
@@ -257,13 +259,13 @@ function ReferralLink() {
         Referral link
       </p>
       <div className="rounded-xl border border-neutral-200 p-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative flex shrink-0 items-center">
-              <div className="absolute inset-0 h-9 w-9 rounded-full border border-neutral-200 sm:h-10 sm:w-10">
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            <div className="relative flex size-9 shrink-0 items-center justify-center sm:size-10">
+              <div className="absolute inset-0 rounded-full border border-neutral-200">
                 <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
               </div>
-              <div className="relative z-10 p-2">
+              <div className="relative z-10 flex items-center justify-center">
                 <LinkLogo
                   apexDomain={getApexDomain(referralLink)}
                   className="size-4 sm:size-6"
@@ -273,16 +275,17 @@ function ReferralLink() {
                 />
               </div>
             </div>
-            <span className="text-content-default text-sm font-semibold">
+            <span className="text-content-default min-w-0 truncate text-sm font-semibold">
               {referralLink}
             </span>
           </div>
           <Button
-            text="Copy link"
+            text={isMobile ? undefined : "Copy link"}
             variant="primary"
             icon={<Copy className="size-4" />}
-            className="w-fit"
+            className="w-fit shrink-0"
             onClick={copyReferralLink}
+            aria-label="Copy referral link"
           />
         </div>
       </div>
@@ -609,11 +612,13 @@ export function NetworkReferralsPageClient() {
         <div className="rounded-xl bg-neutral-100 p-4">
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(268px,22rem)] lg:items-stretch">
-              <div className="flex min-h-0 flex-col gap-4">
+              <div className="order-2 flex min-h-0 flex-col gap-4 lg:order-1">
                 <ReferralsStats />
                 <ReferralLink />
               </div>
-              <ReferralsPromoCard />
+              <div className="order-1 lg:order-2">
+                <ReferralsPromoCard />
+              </div>
             </div>
             <ReferralRewards />
           </div>
