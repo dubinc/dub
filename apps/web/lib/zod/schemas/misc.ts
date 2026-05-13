@@ -82,7 +82,7 @@ export const getCursorPaginationQuerySchema = ({
 
 export const maxDurationSchema = z.coerce
   .number()
-  .refine((val) => RECURRING_MAX_DURATIONS.includes(val), {
-    message: `Max duration must be ${RECURRING_MAX_DURATIONS.join(", ")}`,
-  })
+  .int({ message: "Max duration must be an integer." })
+  .nonnegative({ message: "Max duration must be 0 or greater." })
+  .max(9999, { message: "Max duration must be 9999 months or less." })
   .nullish();

@@ -96,6 +96,7 @@ type MenuItem<T> = {
   text: string;
   value: T;
   onSelect?: () => void;
+  preventClose?: boolean;
 };
 
 export function InlineBadgePopoverMenu<T extends any>({
@@ -113,8 +114,13 @@ export function InlineBadgePopoverMenu<T extends any>({
 
   const isMultiSelect = Array.isArray(selectedValue);
 
+  const commandRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
+
+  useEffect(() => {
+    if (!search) commandRef.current?.focus();
+  }, []);
 
   const sortedItems = useMemo(
     () =>
@@ -144,7 +150,7 @@ export function InlineBadgePopoverMenu<T extends any>({
   }, [isOpen, sortedItems]);
 
   return (
-    <Command loop className="focus:outline-none">
+    <Command ref={commandRef} loop tabIndex={-1} className="focus:outline-none">
       {search && (
         <div className="-mx-1 -mt-1 mb-1 flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
           <Command.Input
@@ -161,14 +167,14 @@ export function InlineBadgePopoverMenu<T extends any>({
             onScroll={updateScrollProgress}
           >
             {displayedItems.map(
-              ({ icon, text, value, onSelect: itemOnSelect }) => (
+              ({ icon, text, value, onSelect: itemOnSelect, preventClose }) => (
                 <Command.Item
                   key={text}
                   value={`${text} ${value}`}
                   onSelect={() => {
                     itemOnSelect?.();
                     onSelect?.(value);
-                    !isMultiSelect && setIsOpen(false);
+                    !isMultiSelect && !preventClose && setIsOpen(false);
                   }}
                   className="flex cursor-pointer items-center justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100"
                 >
