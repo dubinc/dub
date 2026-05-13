@@ -1,7 +1,7 @@
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
 import { createNetworkReferralCommission } from "@/lib/partner-referrals/create-network-referral-commission";
-import { referralRewardConfigSchema } from "@/lib/partner-referrals/schemas";
+import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { CommissionType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";

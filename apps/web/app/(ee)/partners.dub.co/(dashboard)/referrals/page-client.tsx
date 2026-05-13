@@ -1,6 +1,5 @@
 "use client";
 
-import { useNetworkReferralFilters } from "@/lib/partner-referrals/hooks/use-network-referral-filters";
 import { useNetworkReferrals } from "@/lib/partner-referrals/hooks/use-network-referrals";
 import { useNetworkReferralsCount } from "@/lib/partner-referrals/hooks/use-network-referrals-count";
 import { NetworkReferralProps } from "@/lib/partner-referrals/types";
@@ -11,10 +10,8 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import {
-  AnimatedSizeContainer,
   Button,
   Copy,
-  Filter,
   Table,
   TimestampTooltip,
   usePagination,
@@ -54,16 +51,6 @@ export function NetworkReferralsPageClient() {
 
   const { pagination, setPagination } = usePagination(100);
 
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    isFiltered,
-    setSelectedFilter,
-  } = useNetworkReferralFilters({ enabled: isEligible });
-
   const referralLink =
     partner?.username && isEligible
       ? `${PARTNERS_DOMAIN}/register?via=${partner.username}`
@@ -80,7 +67,7 @@ export function NetworkReferralsPageClient() {
           <PartnerRowItem
             partner={{
               ...row.original,
-              name: row.original.email,
+              name: row.original.email ?? "",
               image: null,
             }}
             showPermalink={false}
@@ -193,61 +180,27 @@ export function NetworkReferralsPageClient() {
     <PageContent title="Referrals">
       <PageWidthWrapper className="flex flex-col gap-3 pb-10">
         <div className="flex flex-col gap-4">
-          <div>
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <Filter.Select
-                className="w-full md:w-fit"
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-                onSelectedFilterChange={setSelectedFilter}
+          {referralLink && (
+            <div className="flex justify-end">
+              <Button
+                variant="primary"
+                text="Copy link"
+                icon={<Copy className="size-4" />}
+                className="h-9 w-fit"
+                onClick={() => {
+                  navigator.clipboard.writeText(referralLink);
+                  toast.success("Copied referral link to clipboard!");
+                }}
               />
-
-              {referralLink && (
-                <Button
-                  variant="primary"
-                  text="Copy link"
-                  icon={<Copy className="size-4" />}
-                  className="h-9 w-fit"
-                  onClick={() => {
-                    navigator.clipboard.writeText(referralLink);
-                    toast.success("Copied referral link to clipboard!");
-                  }}
-                />
-              )}
             </div>
-            <AnimatedSizeContainer height>
-              <div>
-                {activeFilters.length > 0 && (
-                  <div className="pt-3">
-                    <Filter.List
-                      filters={filters}
-                      activeFilters={activeFilters}
-                      onSelect={onSelect}
-                      onRemove={onRemove}
-                      onRemoveAll={onRemoveAll}
-                    />
-                  </div>
-                )}
-              </div>
-            </AnimatedSizeContainer>
-          </div>
+          )}
 
           {referredPartners?.length !== 0 ? (
             <Table {...tableProps} table={table} />
           ) : (
             <AnimatedEmptyState
-              title={
-                isFiltered
-                  ? "No referred partners found"
-                  : "No referred partners yet"
-              }
-              description={
-                isFiltered
-                  ? "No referred partners found for the selected filters. Adjust your filters to refine your search results."
-                  : "Share your referral link to invite other partners to join Dub Partners. When they sign up through your link, they'll appear here."
-              }
+              title="No referred partners yet"
+              description="Share your referral link to invite other partners to join Dub Partners. When they sign up through your link, they'll appear here."
               cardContent={() => (
                 <>
                   <Users6 className="size-4 text-neutral-700" />

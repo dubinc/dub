@@ -4,8 +4,8 @@ import {
   PARTNER_REFERRAL_PERCENTAGE_TRIGGERS,
   PartnerReferralPercentageTrigger,
 } from "@/lib/partner-referrals/constants";
-import { referralRewardConfigSchema } from "@/lib/partner-referrals/schemas";
 import { RewardProps } from "@/lib/types";
+import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { currencyFormatter } from "@dub/utils";
 
 export function formatRewardDescription(reward: RewardProps) {

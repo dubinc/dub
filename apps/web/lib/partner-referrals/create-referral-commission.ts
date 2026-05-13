@@ -1,3 +1,4 @@
+import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { Commission, CommissionType, Prisma, Reward } from "@dub/prisma/client";
 import { currencyFormatter, log } from "@dub/utils";
@@ -6,7 +7,6 @@ import { triggerAggregateDueCommissionsCronJob } from "../actions/partners/trigg
 import { createId } from "../api/create-id";
 import { notifyPartnerCommission } from "../api/partners/notify-partner-commission";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
-import { referralRewardConfigSchema } from "../partner-referrals/schemas";
 import { constructWebhookPartner } from "../partners/constuct-webhook-partner";
 import { sendPartnerPostback } from "../postback/send-partner-postback";
 import { sendWorkspaceWebhook } from "../webhook/publish";

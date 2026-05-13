@@ -41,16 +41,12 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     }),
   );
 
-  const {
-    country,
-    page = 1,
-    pageSize,
-  } = getNetworkReferralsQuerySchema.parse(searchParams);
+  const { page = 1, pageSize } =
+    getNetworkReferralsQuerySchema.parse(searchParams);
 
   const referredPartners = await prisma.partner.findMany({
     where: {
       referredByPartnerId: partner.id,
-      ...(country && { country }),
     },
     select: {
       id: true,

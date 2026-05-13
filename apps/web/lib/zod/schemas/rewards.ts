@@ -1,6 +1,6 @@
+import { PARTNER_REFERRAL_TRIGGER } from "@/lib/partner-referrals/constants";
 import { EventType, RewardStructure } from "@dub/prisma/client";
 import * as z from "zod/v4";
-import { referralRewardConfigSchema } from "../../partner-referrals/schemas";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 import { centsSchema } from "./utils";
 
@@ -337,6 +337,24 @@ export const RewardSchema = z.object({
 
 export const REWARD_DESCRIPTION_MAX_LENGTH = 100;
 export const REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH = 2000;
+
+export const referralRewardConfigSchema = z
+  .object({
+    trigger: z.enum(PARTNER_REFERRAL_TRIGGER),
+    commissionsThresholdInCents: z.number().int().min(100).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      data.trigger === "commissionThreshold" &&
+      data.commissionsThresholdInCents == null
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["commissionsThresholdInCents"],
+        message: "Please enter a commission threshold amount.",
+      });
+    }
+  });
 
 export const createOrUpdateRewardSchema = z.object({
   workspaceId: z.string(),
