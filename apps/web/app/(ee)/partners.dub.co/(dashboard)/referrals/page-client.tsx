@@ -10,13 +10,13 @@ import { NetworkReferralProps } from "@/lib/partner-referrals/types";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import {
   Button,
   Copy,
+  LinkLogo,
   Table,
   TimestampTooltip,
   Tooltip,
@@ -30,13 +30,45 @@ import {
   PARTNERS_DOMAIN,
   currencyFormatter,
   formatDate,
+  getApexDomain,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { HelpCircle } from "lucide-react";
-import Link from "next/link";
 import { ComponentType, ReactNode, useMemo } from "react";
 import { toast } from "sonner";
-import { NetworkReferralsPromoCard } from "./network-referrals-promo-card";
+
+// TODO:
+// 1 - loading state
+// 2 - Empty state
+// 3 - Not accessible
+// 4 - Mobile UI
+
+function ReferralsStatItem({
+  label,
+  tooltipContent,
+  children,
+}: {
+  label: ReactNode;
+  tooltipContent: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1 p-4">
+      <div className="flex items-center gap-1">
+        <span className="text-content-default text-sm font-medium">
+          {label}
+        </span>
+        <Tooltip content={tooltipContent} side="top">
+          <HelpCircle className="size-3.5 text-neutral-500" />
+        </Tooltip>
+      </div>
+
+      <span className="text-content-emphasis text-3xl font-medium tabular-nums">
+        {children}
+      </span>
+    </div>
+  );
+}
 
 function ReferralsStats() {
   const {
@@ -48,58 +80,23 @@ function ReferralsStats() {
   });
 
   return (
-    <div className="grid grid-cols-2 divide-x divide-neutral-200 border-b border-neutral-200">
-      <div className="flex flex-col gap-2 p-3 sm:gap-3 sm:p-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium leading-3 text-neutral-500 sm:text-sm">
-            Partners
-          </span>
-          <Tooltip
-            content="Partners who joined Dub Partners using your referral link."
-            side="top"
-          >
-            <div>
-              <HelpCircle className="size-3.5 text-neutral-500" />
-            </div>
-          </Tooltip>
-        </div>
-        {statsLoading && !stats ? (
-          <div className="h-7 w-12 animate-pulse rounded bg-neutral-200 sm:h-8 sm:w-16" />
-        ) : (
-          <span className="text-xl font-semibold tabular-nums text-neutral-900 sm:text-2xl">
-            {statsError ? "—" : stats?.count ?? 0}
-          </span>
-        )}
-      </div>
+    <div className="grid grid-cols-2 divide-x divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
+      <ReferralsStatItem
+        label="Partners"
+        tooltipContent="Partners who joined Dub Partners using your referral link."
+      >
+        {stats?.count}
+      </ReferralsStatItem>
 
-      <div className="flex flex-col gap-2 p-3 sm:gap-3 sm:p-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium leading-3 text-neutral-500 sm:text-sm">
-            Your earnings
-          </span>
-          <Tooltip
-            content="Total referral commission earned from the Dub Partner Network program."
-            side="top"
-          >
-            <div>
-              <HelpCircle className="size-3.5 text-neutral-500" />
-            </div>
-          </Tooltip>
-        </div>
-
-        {statsLoading && !stats ? (
-          <div className="h-7 w-20 animate-pulse rounded bg-neutral-200 sm:h-8 sm:w-28" />
-        ) : (
-          <span className="text-xl font-semibold tabular-nums text-neutral-900 sm:text-2xl">
-            {statsError
-              ? "—"
-              : currencyFormatter(stats?.totalEarnings ?? 0, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-          </span>
-        )}
-      </div>
+      <ReferralsStatItem
+        label="Your earnings"
+        tooltipContent="Total commission earned from your referrals."
+      >
+        {currencyFormatter(stats?.totalEarnings ?? 0, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}
+      </ReferralsStatItem>
     </div>
   );
 }
@@ -119,44 +116,44 @@ function ReferralLink() {
     });
   };
 
-  if (!referralLink) {
+  if (!referralLink || !partner) {
     return null;
   }
 
   return (
-    <div className="border-b border-neutral-200 px-3 py-3 sm:px-4 sm:py-4">
-      <p className="mb-2 text-sm font-medium text-neutral-900">Referral link</p>
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-3">
-        <div className="relative min-h-[52px] flex-1">
-          <div className="flex h-full min-h-[52px] items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 py-2 pl-3 pr-14 sm:pr-3">
-            <PartnerAvatar
-              partner={{
-                id: partner?.id,
-                name: partner?.name,
-                email: partner?.email,
-                image: partner?.image,
-              }}
-              className="size-8 shrink-0"
-            />
-            <span className="min-w-0 truncate text-sm text-neutral-800">
+    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+      <p className="text-content-default mb-2 text-sm font-semibold">
+        Referral link
+      </p>
+      <div className="rounded-xl border border-neutral-200 p-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative flex shrink-0 items-center">
+              <div className="absolute inset-0 h-9 w-9 rounded-full border border-neutral-200 sm:h-10 sm:w-10">
+                <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
+              </div>
+              <div className="relative z-10 p-2">
+                <LinkLogo
+                  apexDomain={getApexDomain(referralLink)}
+                  className="size-4 sm:size-6"
+                  imageProps={{
+                    loading: "lazy",
+                  }}
+                />
+              </div>
+            </div>
+            <span className="text-content-default text-sm font-semibold">
               {referralLink}
             </span>
           </div>
           <Button
+            text="Copy link"
             variant="primary"
             icon={<Copy className="size-4" />}
-            className="absolute right-1.5 top-1/2 size-9 shrink-0 -translate-y-1/2 p-0 sm:hidden"
+            className="w-fit"
             onClick={copyReferralLink}
-            aria-label="Copy referral link"
           />
         </div>
-        <Button
-          variant="primary"
-          text="Copy link"
-          icon={<Copy className="size-4" />}
-          className="hidden h-9 shrink-0 px-4 sm:flex"
-          onClick={copyReferralLink}
-        />
       </div>
     </div>
   );
@@ -171,9 +168,9 @@ function ReferralRewardListItem(props: {
   return (
     <li className="flex gap-2.5">
       <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-neutral-100">
-        <Icon className="size-4 text-neutral-700" />
+        <Icon className="size-4 text-neutral-800" />
       </span>
-      <span className="text-sm leading-5 text-neutral-600">
+      <span className="text-content-default text-sm font-medium">
         {props.children}
       </span>
     </li>
@@ -181,45 +178,26 @@ function ReferralRewardListItem(props: {
 }
 
 function ReferralRewards() {
-  const rewardItems = [
-    {
-      id: "network-commission",
-      icon: UserArrowRight,
-      content: (
-        <>
+  return (
+    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+      <p className="text-content-default mb-2 text-sm font-semibold">
+        Referral Rewards
+      </p>
+      <ul className="flex flex-col gap-2">
+        <ReferralRewardListItem icon={UserArrowRight}>
           You get {NETWORK_BONUS_REWARD.amountInPercentage}% of your
           referees&apos; payout fees for the first{" "}
           {NETWORK_BONUS_REWARD.maxDuration} months.
-        </>
-      ),
-    },
-    {
-      id: "swag-threshold",
-      icon: Gift,
-      content: (
-        <>
+        </ReferralRewardListItem>
+
+        <ReferralRewardListItem icon={Gift}>
           Unlock premium Dub swag once you cross{" "}
           {currencyFormatter(NETWORK_REFERRAL_SWAG_THRESHOLD_CENTS, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
           })}{" "}
           in referral bonus earnings.
-        </>
-      ),
-    },
-  ] as const;
-
-  return (
-    <div className="px-3 py-3 sm:px-4 sm:py-4">
-      <p className="mb-3 text-sm font-medium text-neutral-900">
-        Referral Rewards
-      </p>
-      <ul className="flex flex-col gap-3">
-        {rewardItems.map((item) => (
-          <ReferralRewardListItem key={item.id} icon={item.icon}>
-            {item.content}
-          </ReferralRewardListItem>
-        ))}
+        </ReferralRewardListItem>
       </ul>
     </div>
   );
@@ -382,54 +360,55 @@ export function NetworkReferralsPageClient() {
     partner?.networkStatus === "approved" ||
     partner?.networkStatus === "trusted";
 
-  if (partnerLoading) {
-    return (
-      <PageContent title="Referrals">
-        <PageWidthWrapper className="pb-10">
-          <div className="h-64 animate-pulse rounded-lg bg-neutral-100" />
-        </PageWidthWrapper>
-      </PageContent>
-    );
-  }
+  // if (partnerLoading) {
+  //   return (
+  //     <PageContent title="Referrals">
+  //       <PageWidthWrapper className="pb-10">
+  //         <div className="h-64 animate-pulse rounded-lg bg-neutral-100" />
+  //       </PageWidthWrapper>
+  //     </PageContent>
+  //   );
+  // }
 
-  if (!isEligible) {
-    return (
-      <PageContent title="Referrals">
-        <PageWidthWrapper className="flex flex-col gap-3 pb-10">
-          <div className="text-content-inverted overflow-hidden rounded-2xl bg-neutral-900 p-6">
-            <h2 className="text-lg font-semibold">
-              Join the Dub Partner Network
-            </h2>
-            <p className="text-content-inverted/60 mt-2 text-sm">
-              Complete your Dub Partner Network application and get approved to
-              refer other partners to Dub and track them here.
-            </p>
-            <div className="mt-4">
-              <Link href="/profile">
-                <Button variant="primary" text="Apply to the network" />
-              </Link>
-            </div>
-          </div>
-        </PageWidthWrapper>
-      </PageContent>
-    );
-  }
+  // if (!isEligible) {
+  //   return (
+  //     <PageContent title="Referrals">
+  //       <PageWidthWrapper className="flex flex-col gap-3 pb-10">
+  //         <div className="text-content-inverted overflow-hidden rounded-2xl bg-neutral-900 p-6">
+  //           <h2 className="text-lg font-semibold">
+  //             Join the Dub Partner Network
+  //           </h2>
+  //           <p className="text-content-inverted/60 mt-2 text-sm">
+  //             Complete your Dub Partner Network application and get approved to
+  //             refer other partners to Dub and track them here.
+  //           </p>
+  //           <div className="mt-4">
+  //             <Link href="/profile">
+  //               <Button variant="primary" text="Apply to the network" />
+  //             </Link>
+  //           </div>
+  //         </div>
+  //       </PageWidthWrapper>
+  //     </PageContent>
+  //   );
+  // }
 
   return (
     <PageContent title="Referrals">
       <PageWidthWrapper className="flex flex-col gap-6 pb-10">
-        <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-          <div className="grid grid-cols-1 gap-6 p-4 sm:p-4 lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start lg:gap-6 lg:p-4">
-            <NetworkReferralsPromoCard className="lg:col-start-2 lg:row-start-1" />
-            <div className="flex min-w-0 flex-col lg:col-start-1 lg:row-start-1">
-              <ReferralsStats />
-              <ReferralLink />
-              <ReferralRewards />
-            </div>
+        <div className="rounded-xl bg-neutral-100 p-4">
+          <div className="flex flex-col gap-4">
+            <ReferralsStats />
+            <ReferralLink />
+            <ReferralRewards />
           </div>
         </div>
         <ReferredPartners />
       </PageWidthWrapper>
     </PageContent>
   );
+}
+
+{
+  /* <NetworkReferralsPromoCard className="lg:col-start-2 lg:row-start-1" /> */
 }
