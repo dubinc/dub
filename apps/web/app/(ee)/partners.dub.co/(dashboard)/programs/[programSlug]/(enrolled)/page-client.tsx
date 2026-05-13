@@ -126,7 +126,9 @@ export function PartnerProgramOverviewPageClient() {
               }}
               className="overflow-hidden"
             >
-              <RewardList />
+              <div className="mb-10">
+                <RewardList />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
