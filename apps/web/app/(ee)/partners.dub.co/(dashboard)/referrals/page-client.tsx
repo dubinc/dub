@@ -156,7 +156,7 @@ function ReferralsStatItem({
         </Tooltip>
       </div>
 
-      <div className="flex items-end">
+      <div className="flex items-end gap-3">
         <span className="text-content-emphasis whitespace-nowrap text-3xl font-medium tabular-nums">
           {isLoading ? (
             <span
@@ -205,7 +205,7 @@ function ReferralsStats() {
   return (
     <div className="grid grid-cols-2 divide-x divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
       <ReferralsStatItem
-        label="Partners"
+        label="Referred partners"
         tooltipContent="Partners who joined Dub Partners using your referral link."
         isLoading={partnerLoading || statsLoading}
         chartData={partnersChartData}
@@ -219,10 +219,7 @@ function ReferralsStats() {
         isLoading={partnerLoading || statsLoading}
         chartData={earningsChartData}
       >
-        {currencyFormatter(stats?.totalEarnings ?? 0, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}
+        {currencyFormatter(stats?.totalEarnings ?? 0)}
       </ReferralsStatItem>
     </div>
   );
@@ -535,81 +532,52 @@ function ReferredPartners() {
 }
 
 function ReferralsPromoCard() {
+  const cards = [
+    {
+      containerClassName:
+        "absolute left-[calc(50%-122px)] top-[-36px] flex h-[156px] w-[236px] items-center justify-center sm:left-[8px] sm:translate-x-0 lg:left-[8px]",
+      transform: "rotate(-14deg) scaleY(0.99) skewX(7deg)",
+    },
+    {
+      containerClassName:
+        "absolute left-[calc(50%-60px)] top-[-20px] flex h-[125px] w-[220px] items-center justify-center sm:left-[68px] sm:translate-x-0 lg:left-[68px]",
+      transform: "rotate(-3.38deg) scaleY(0.99) skewX(7deg)",
+    },
+    {
+      containerClassName:
+        "absolute left-[calc(50%+12px)] top-[-30px] flex h-[161px] w-[207px] items-center justify-center sm:left-[151px] sm:translate-x-0 lg:left-[151px]",
+      transform: "rotate(13.59deg) scaleY(0.99) skewX(7deg)",
+    },
+  ] as const;
+
+  const cardShadow =
+    "-53px 97px 31px rgba(0,0,0,0.01), -34px 62px 28px rgba(0,0,0,0.06), -19px 35px 24px rgba(0,0,0,0.19), -8px 16px 18px rgba(0,0,0,0.32), -2px 4px 10px rgba(0,0,0,0.37)";
+
   return (
     <div className="relative isolate flex min-h-[280px] w-full flex-col justify-end overflow-hidden rounded-xl bg-neutral-800 p-5 lg:h-full lg:min-h-0">
       <div
         className="pointer-events-none absolute inset-0 overflow-visible"
         aria-hidden
       >
-        <div className="absolute left-[calc(50%-122px)] top-[-36px] flex h-[156px] w-[236px] items-center justify-center sm:left-[8px] sm:translate-x-0 lg:left-[8px]">
-          <div
-            className="flex-none origin-center"
-            style={{ transform: "rotate(-14deg) scaleY(0.99) skewX(7deg)" }}
-          >
-            <div
-              className="relative h-[115px] w-[199px] overflow-hidden rounded-[6px]"
-              style={{
-                boxShadow:
-                  "-53px 97px 31px rgba(0,0,0,0.01), -34px 62px 28px rgba(0,0,0,0.06), -19px 35px 24px rgba(0,0,0,0.19), -8px 16px 18px rgba(0,0,0,0.32), -2px 4px 10px rgba(0,0,0,0.37)",
-              }}
-            >
-              <Image
-                src="https://assets.dub.co/partners/network-referral-card.png"
-                alt=""
-                width={398}
-                height={230}
-                className="size-full object-cover"
-                loading="lazy"
-              />
+        {cards.map(({ containerClassName, transform }, idx) => (
+          <div key={idx} className={containerClassName}>
+            <div className="flex-none origin-center" style={{ transform }}>
+              <div
+                className="relative h-[115px] w-[199px] overflow-hidden rounded-[6px]"
+                style={{ boxShadow: cardShadow }}
+              >
+                <Image
+                  src="https://assets.dub.co/misc/network-referral-card.png"
+                  alt=""
+                  width={398}
+                  height={230}
+                  className="size-full object-cover"
+                  loading="lazy"
+                />
+              </div>
             </div>
           </div>
-        </div>
-        <div className="absolute left-[calc(50%-60px)] top-[-20px] flex h-[125px] w-[220px] items-center justify-center sm:left-[68px] sm:translate-x-0 lg:left-[68px]">
-          <div
-            className="flex-none origin-center"
-            style={{ transform: "rotate(-3.38deg) scaleY(0.99) skewX(7deg)" }}
-          >
-            <div
-              className="relative h-[115px] w-[199px] overflow-hidden rounded-[6px]"
-              style={{
-                boxShadow:
-                  "-53px 97px 31px rgba(0,0,0,0.01), -34px 62px 28px rgba(0,0,0,0.06), -19px 35px 24px rgba(0,0,0,0.19), -8px 16px 18px rgba(0,0,0,0.32), -2px 4px 10px rgba(0,0,0,0.37)",
-              }}
-            >
-              <Image
-                src="https://assets.dub.co/partners/network-referral-card.png"
-                alt=""
-                width={398}
-                height={230}
-                className="size-full object-cover"
-                loading="lazy"
-              />
-            </div>
-          </div>
-        </div>
-        <div className="absolute left-[calc(50%+12px)] top-[-30px] flex h-[161px] w-[207px] items-center justify-center sm:left-[151px] sm:translate-x-0 lg:left-[151px]">
-          <div
-            className="flex-none origin-center"
-            style={{ transform: "rotate(13.59deg) scaleY(0.99) skewX(7deg)" }}
-          >
-            <div
-              className="relative h-[115px] w-[199px] overflow-hidden rounded-[6px]"
-              style={{
-                boxShadow:
-                  "-53px 97px 31px rgba(0,0,0,0.01), -34px 62px 28px rgba(0,0,0,0.06), -19px 35px 24px rgba(0,0,0,0.19), -8px 16px 18px rgba(0,0,0,0.32), -2px 4px 10px rgba(0,0,0,0.37)",
-              }}
-            >
-              <Image
-                src="https://assets.dub.co/partners/network-referral-card.png"
-                alt=""
-                width={398}
-                height={230}
-                className="size-full object-cover"
-                loading="lazy"
-              />
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
       <div className="relative z-[1] mt-auto space-y-2 pt-[88px] sm:pt-[84px]">
         <p className="text-base font-semibold text-white">

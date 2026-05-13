@@ -162,6 +162,7 @@ export const PATCH = withWorkspace(
           clickReward: true,
           leadReward: true,
           saleReward: true,
+          referralReward: true,
           discount: true,
         },
       }),

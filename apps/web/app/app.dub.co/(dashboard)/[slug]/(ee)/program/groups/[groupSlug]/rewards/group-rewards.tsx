@@ -179,6 +179,8 @@ const RewardItem = ({
   const Icon = REWARD_EVENT_ICON[event];
   const As = reward ? Link : "div";
 
+  const lastUpdatedDate = finalActivityLogDate ?? reward?.updatedAt;
+
   return (
     <>
       {partnersUpgradeModal}
@@ -214,16 +216,16 @@ const RewardItem = ({
 
                 <div className="flex items-center gap-1 text-xs font-medium text-neutral-500">
                   <span>Last updated </span>
-                  {!finalActivityLogDate ? (
+                  {!lastUpdatedDate ? (
                     <div className="h-3 w-16 animate-pulse rounded bg-neutral-100" />
                   ) : (
                     <TimestampTooltip
-                      timestamp={finalActivityLogDate ?? reward.updatedAt}
+                      timestamp={lastUpdatedDate}
                       side="left"
                       rows={["local", "utc", "unix"]}
                     >
                       <span>
-                        {formatDate(finalActivityLogDate, {
+                        {formatDate(lastUpdatedDate, {
                           month: "short",
                           day: "numeric",
                           year: "numeric",
