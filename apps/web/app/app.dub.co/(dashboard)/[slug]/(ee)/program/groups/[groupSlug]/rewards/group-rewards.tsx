@@ -109,6 +109,9 @@ export function GroupRewards() {
               event="click"
               group={group}
             />
+
+            <hr className="border-neutral-200" />
+
             <RewardItem
               reward={group.referralReward}
               event="referral"
