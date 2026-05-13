@@ -829,12 +829,14 @@ function RewardListItem({
 
         <div className="flex items-center justify-between gap-3 bg-neutral-50 py-1.5 pl-3 pr-1.5">
           <div className="flex min-w-0 flex-1 items-center gap-2.5">
-            <LinkLogo
-              apexDomain={link.apexDomain}
-              className="size-7 shrink-0 rounded-full border border-black/10 sm:size-7"
-              imageProps={{ width: 18, height: 18 }}
-            />
-            <p className="text-content-subtle min-w-0 truncate text-sm font-medium leading-5 tracking-tight">
+            <div className="rounded-full border border-neutral-200 p-1">
+              <LinkLogo
+                apexDomain={link.apexDomain}
+                className="size-7 shrink-0 rounded-full border border-black/10 sm:size-7"
+                imageProps={{ width: 18, height: 18 }}
+              />
+            </div>
+            <p className="min-w-0 truncate text-sm font-medium -tracking-wider text-neutral-600">
               {link.displayText}
             </p>
           </div>
