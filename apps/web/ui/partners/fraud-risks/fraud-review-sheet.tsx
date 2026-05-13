@@ -399,7 +399,7 @@ export function FraudReviewSheet({
 
     // Clear the groupId from URL when closing
     if (!open) {
-      queryParams({ del: "groupId", scroll: false });
+      queryParams({ del: "groupId" });
     }
   };
 

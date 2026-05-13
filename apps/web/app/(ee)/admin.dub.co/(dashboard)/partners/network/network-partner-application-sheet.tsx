@@ -172,7 +172,7 @@ export function NetworkPartnerApplicationSheet({
     <Sheet
       open={isOpen}
       onOpenChange={setIsOpen}
-      onClose={() => queryParams({ del: "partnerId", scroll: false })}
+      onClose={() => queryParams({ del: "partnerId" })}
       contentProps={{
         className: "md:w-[max(min(calc(100vw-334px),1170px),540px)]",
       }}

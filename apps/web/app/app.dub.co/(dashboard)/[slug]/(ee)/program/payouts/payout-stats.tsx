@@ -68,7 +68,6 @@ export function PayoutStats() {
         set: {
           confirmPayouts: "true",
         },
-        scroll: false,
       });
     }
   });
@@ -92,7 +91,6 @@ export function PayoutStats() {
                   set: {
                     confirmPayouts: "true",
                   },
-                  scroll: false,
                 });
               }}
               disabled={eligiblePayoutsLoading || confirmButtonDisabled}

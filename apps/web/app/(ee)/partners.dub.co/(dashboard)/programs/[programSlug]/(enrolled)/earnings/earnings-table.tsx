@@ -276,7 +276,6 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
             ...(sortOrder && { sortOrder }),
           },
           del: "page",
-          scroll: false,
         }),
       enableColumnResizing: true,
     }),

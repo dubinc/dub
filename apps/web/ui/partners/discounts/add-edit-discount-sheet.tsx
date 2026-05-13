@@ -651,7 +651,7 @@ export function DiscountSheet({
       open={isOpen}
       onOpenChange={rest.setIsOpen}
       nested={nested}
-      onClose={() => queryParams({ del: "discountId", scroll: false })}
+      onClose={() => queryParams({ del: "discountId" })}
     >
       <DiscountSheetContent {...rest} />
     </Sheet>

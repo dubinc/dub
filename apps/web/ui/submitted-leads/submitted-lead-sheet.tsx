@@ -176,7 +176,7 @@ export function SubmittedLeadSheet({
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "leadId", scroll: false })}
+      onClose={() => queryParams({ del: "leadId" })}
       nested={nested}
       contentProps={{
         // 540px - 1170px width based on viewport

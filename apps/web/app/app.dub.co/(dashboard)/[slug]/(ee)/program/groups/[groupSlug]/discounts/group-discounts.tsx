@@ -90,7 +90,6 @@ const DiscountItem = ({
           set: {
             discountId: discount?.id ?? "new",
           },
-          scroll: false,
         });
       }}
     >
@@ -125,7 +124,6 @@ const DiscountItem = ({
                 set: {
                   discountId: discount?.id ?? "new",
                 },
-                scroll: false,
               });
             }}
           />

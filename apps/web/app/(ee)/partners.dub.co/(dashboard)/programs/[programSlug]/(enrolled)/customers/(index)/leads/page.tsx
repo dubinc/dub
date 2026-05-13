@@ -233,7 +233,6 @@ export default function PartnerProgramSubmittedLeadsPage() {
     onRowClick: (row) => {
       queryParams({
         set: { leadId: row.original.id },
-        scroll: false,
       });
       setDetailsSheetState({
         leadId: row.original.id,
@@ -291,7 +290,6 @@ export default function PartnerProgramSubmittedLeadsPage() {
               ? () => {
                   queryParams({
                     set: { leadId: previousLeadId },
-                    scroll: false,
                   });
                   setDetailsSheetState({
                     leadId: previousLeadId,
@@ -305,7 +303,6 @@ export default function PartnerProgramSubmittedLeadsPage() {
               ? () => {
                   queryParams({
                     set: { leadId: nextLeadId },
-                    scroll: false,
                   });
                   setDetailsSheetState({
                     leadId: nextLeadId,
