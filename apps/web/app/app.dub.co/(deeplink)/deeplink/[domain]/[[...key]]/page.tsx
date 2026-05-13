@@ -95,6 +95,21 @@ export default async function DeepLinkPreviewPage(props: {
     redirect(`https://${domain}`);
   }
 
+  let androidPackageName: string | null = null;
+  if (platform === "android" && Array.isArray(link.shortDomain.assetLinks)) {
+    for (const entry of link.shortDomain.assetLinks as Array<{
+      target?: { namespace?: string; package_name?: string };
+    }>) {
+      if (
+        entry?.target?.namespace === "android_app" &&
+        typeof entry.target.package_name === "string"
+      ) {
+        androidPackageName = entry.target.package_name;
+        break;
+      }
+    }
+  }
+
   return (
     <>
       {domain === "pliab.ly" && (
@@ -183,6 +198,7 @@ export default async function DeepLinkPreviewPage(props: {
               link={link}
               language={language}
               platform={platform}
+              androidPackageName={androidPackageName}
             />
           </div>
         </div>
