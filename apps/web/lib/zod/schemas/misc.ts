@@ -2,7 +2,7 @@ import { plans } from "@/lib/types";
 import { WorkspaceRole } from "@dub/prisma/client";
 import * as z from "zod/v4";
 
-export const RECURRING_MAX_DURATIONS = [0, 1, 3, 6, 12, 18, 24, 36, 48];
+export const RECURRING_MAX_DURATIONS = [0, 1, 3, 6, 12, 24];
 
 export const planSchema = z.enum(plans).describe("The plan of the workspace.");
 

@@ -16,7 +16,6 @@ import { X } from "@/ui/shared/icons";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
-  InlineBadgePopoverInput,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
@@ -628,47 +627,53 @@ function DurationPopoverContent({
         >
           ← Presets
         </button>
-        <InlineBadgePopoverInput
-          type="number"
-          min="0"
-          max="9999"
-          step="1"
-          autoFocus
-          placeholder="e.g. 24"
-          value={customDurationInput}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => {
-            const raw = e.target.value;
-            const parsed = parseInt(raw, 10);
-            const clamped = Math.min(parsed, 9999);
-            const display = isNaN(parsed) ? raw : clamped.toString();
-            setCustomDurationInput(display);
-            if (!isNaN(parsed) && parsed >= 0) {
-              setValue("maxDuration", clamped, { shouldDirty: true });
-            }
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              e.nativeEvent.stopImmediatePropagation();
-              e.preventDefault();
-              setShowCustomInput(false);
-              return;
-            }
-            if (e.key === "Backspace" && customDurationInput === "") {
-              setShowCustomInput(false);
-              return;
-            }
-            if (e.key === "Enter") {
-              e.preventDefault();
-              if (customDurationInput === "0") {
-                setValue("maxDuration", 0, { shouldDirty: true });
-                setCustomDurationInput("");
+        <label className="flex w-full rounded-md border border-neutral-300 shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500 sm:w-32">
+          <input
+            type="number"
+            min="0"
+            max="9999"
+            step="1"
+            autoFocus
+            placeholder="e.g. 24"
+            value={customDurationInput}
+            className="block min-w-0 grow rounded-md border-none py-1 pl-1.5 pr-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              const raw = e.target.value;
+              const parsed = parseInt(raw, 10);
+              const clamped = Math.min(parsed, 9999);
+              const display = isNaN(parsed) ? raw : clamped.toString();
+              setCustomDurationInput(display);
+              if (!isNaN(parsed) && parsed >= 0) {
+                setValue("maxDuration", clamped, { shouldDirty: true });
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.nativeEvent.stopImmediatePropagation();
+                e.preventDefault();
                 setShowCustomInput(false);
                 return;
               }
-              setIsOpen(false);
-            }
-          }}
-        />
+              if (e.key === "Backspace" && customDurationInput === "") {
+                setShowCustomInput(false);
+                return;
+              }
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (customDurationInput === "0") {
+                  setValue("maxDuration", 0, { shouldDirty: true });
+                  setCustomDurationInput("");
+                  setShowCustomInput(false);
+                  return;
+                }
+                setIsOpen(false);
+              }
+            }}
+          />
+          <span className="flex shrink-0 items-center pr-1.5 text-sm text-neutral-400">
+            months
+          </span>
+        </label>
       </div>
     );
   }
@@ -690,8 +695,8 @@ function DurationPopoverContent({
           text: `for ${v} ${pluralize("month", Number(v))}`,
           value: v.toString(),
         })),
-        { text: "for custom months", value: "custom", preventClose: true },
         { text: "for the customer's lifetime", value: "Infinity" },
+        { text: "custom", value: "custom", preventClose: true },
       ]}
     />
   );
