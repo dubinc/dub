@@ -6,6 +6,7 @@ import {
 } from "@/lib/partner-referrals/constants";
 import { useNetworkReferrals } from "@/lib/partner-referrals/hooks/use-network-referrals";
 import { useNetworkReferralsStats } from "@/lib/partner-referrals/hooks/use-network-referrals-stats";
+import { useNetworkReferralsTimeseries } from "@/lib/partner-referrals/hooks/use-network-referrals-timeseries";
 import { NetworkReferralProps } from "@/lib/partner-referrals/types";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PageContent } from "@/ui/layout/page-content";
@@ -17,6 +18,7 @@ import {
   Button,
   Copy,
   LinkLogo,
+  MiniAreaChart,
   Table,
   TimestampTooltip,
   Tooltip,
@@ -135,11 +137,13 @@ function ReferralsStatItem({
   tooltipContent,
   children,
   isLoading,
+  chartData,
 }: {
   label: ReactNode;
   tooltipContent: string;
   children: ReactNode;
   isLoading: boolean;
+  chartData?: { date: Date; value: number }[] | null;
 }) {
   return (
     <div className="flex flex-col gap-1 p-4">
@@ -152,16 +156,23 @@ function ReferralsStatItem({
         </Tooltip>
       </div>
 
-      <span className="text-content-emphasis text-3xl font-medium tabular-nums">
-        {isLoading ? (
-          <span
-            aria-hidden="true"
-            className="mt-0.5 block h-8 w-[4.75rem] animate-pulse rounded-md bg-neutral-200"
-          />
-        ) : (
-          children
+      <div className="flex items-end">
+        <span className="text-content-emphasis whitespace-nowrap text-3xl font-medium tabular-nums">
+          {isLoading ? (
+            <span
+              aria-hidden="true"
+              className="mt-0.5 block h-8 w-[4.75rem] animate-pulse rounded-md bg-neutral-200"
+            />
+          ) : (
+            children
+          )}
+        </span>
+        {chartData && chartData.length > 0 && (
+          <div className="relative hidden h-10 flex-1 sm:block">
+            <MiniAreaChart data={chartData} padding={{ top: 8, bottom: 8 }} />
+          </div>
         )}
-      </span>
+      </div>
     </div>
   );
 }
@@ -177,12 +188,27 @@ function ReferralsStats() {
     enabled: profileReady && isEligible,
   });
 
+  const { data: timeseries } = useNetworkReferralsTimeseries({
+    enabled: profileReady && isEligible,
+  });
+
+  const partnersChartData = (timeseries || [])?.map((d) => ({
+    date: new Date(d.start),
+    value: d.partners,
+  }));
+
+  const earningsChartData = (timeseries || [])?.map((d) => ({
+    date: new Date(d.start),
+    value: d.earnings,
+  }));
+
   return (
     <div className="grid grid-cols-2 divide-x divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
       <ReferralsStatItem
         label="Partners"
         tooltipContent="Partners who joined Dub Partners using your referral link."
         isLoading={partnerLoading || statsLoading}
+        chartData={partnersChartData}
       >
         {stats?.count ?? 0}
       </ReferralsStatItem>
@@ -191,6 +217,7 @@ function ReferralsStats() {
         label="Your earnings"
         tooltipContent="Total commission earned from your referrals."
         isLoading={partnerLoading || statsLoading}
+        chartData={earningsChartData}
       >
         {currencyFormatter(stats?.totalEarnings ?? 0, {
           minimumFractionDigits: 2,

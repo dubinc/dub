@@ -3,6 +3,7 @@ import { referralRewardConfigSchema } from "../zod/schemas/rewards";
 import {
   networkReferralSchema,
   networkReferralsStatsSchema,
+  networkReferralsTimeseriesSchema,
   partnerReferralStatsSchema,
   referredPartnerSchema,
 } from "./schemas";
@@ -16,3 +17,7 @@ export type ReferredPartnerProps = z.infer<typeof referredPartnerSchema>;
 export type NetworkReferralProps = z.infer<typeof networkReferralSchema>;
 
 export type NetworkReferralsStats = z.infer<typeof networkReferralsStatsSchema>;
+
+export type NetworkReferralsTimeseries = z.infer<
+  typeof networkReferralsTimeseriesSchema
+>;

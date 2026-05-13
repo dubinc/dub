@@ -61,3 +61,9 @@ export const networkReferralsStatsSchema = z.object({
   count: z.number().int().nonnegative(),
   totalEarnings: z.number().int(),
 });
+
+export const networkReferralsTimeseriesSchema = z.object({
+  start: z.string(),
+  partners: z.number().int().nonnegative(),
+  earnings: z.number().int(),
+});
