@@ -10,7 +10,7 @@ export function useReferredPartners() {
 
   const { data, isLoading, error } = useSWR<ReferredPartnerProps[]>(
     programSlug &&
-      `/api/partner-profile/programs/${programSlug}/referred-partners${getQueryString()}`,
+      `/api/partner-profile/programs/${programSlug}/referrals${getQueryString()}`,
     fetcher,
     {
       keepPreviousData: true,

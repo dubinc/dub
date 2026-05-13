@@ -6,10 +6,7 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
-// TODO:
-// Rename this to /referrals/count after merging #3869
-
-// GET /api/partner-profile/programs/:programId/referred-partners/count
+// GET /api/partner-profile/programs/:programId/referrals/count
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { programId } = params;

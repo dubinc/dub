@@ -11,10 +11,7 @@ import { CommissionType } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// TODO:
-// Rename this to /referrals after merging #3869
-
-// GET /api/partner-profile/programs/:programId/referred-partners
+// GET /api/partner-profile/programs/:programId/referrals
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { programId } = params;
