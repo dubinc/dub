@@ -13,10 +13,10 @@ import {
   ColorPalette2,
   Gauge6,
   Gear2,
+  Gift,
   GridIcon,
   MoneyBills2,
   Msgs,
-  Nodes4,
   ShieldCheck,
   Shop,
   SquareUserSparkle2,
@@ -25,6 +25,8 @@ import {
   Users2,
   Webhook,
 } from "@dub/ui/icons";
+import { cn } from "@dub/utils";
+import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import { CursorRays } from "./icons/cursor-rays";
@@ -45,7 +47,6 @@ type SidebarNavData = {
   unreadMessagesCount?: number;
   programBountiesCount?: number;
   showDetailedAnalytics?: boolean;
-  hasReferralReward?: boolean;
   postbacksEnabled?: boolean;
 };
 
@@ -84,14 +85,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     href: "/messages",
     active: pathname.startsWith("/messages"),
     badge: unreadMessagesCount ? Math.min(9, unreadMessagesCount) : undefined,
-  },
-  {
-    name: "Referrals",
-    description:
-      "Refer other partners to Dub Partners and track who joined through your link.",
-    icon: Nodes4,
-    href: "/referrals",
-    active: pathname.startsWith("/referrals"),
   },
 ];
 
@@ -187,7 +180,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     queryString,
     programBountiesCount,
     showDetailedAnalytics,
-    hasReferralReward,
   }) => ({
     title: (
       <div className="mb-3">
@@ -245,16 +237,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                   name: "Customers",
                   icon: User as Icon,
                   href: `/programs/${programSlug}/customers` as `/${string}`,
-                  locked: isUnapproved,
-                },
-              ]
-            : []),
-          ...(hasReferralReward
-            ? [
-                {
-                  name: "Referred Partners",
-                  icon: Nodes4 as Icon,
-                  href: `/programs/${programSlug}/referrals` as `/${string}`,
                   locked: isUnapproved,
                 },
               ]
@@ -331,16 +313,12 @@ export function PartnersSidebarNav({
     enabled: isEnrolledProgramPage,
   });
 
-  const hasReferralReward = !!programEnrollment?.referralRewardId;
-
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
       : pathname.startsWith("/profile")
         ? "profile"
-        : ["/payouts", "/messages", "/referrals"].some((p) =>
-              pathname.startsWith(p),
-            )
+        : ["/payouts", "/messages"].some((p) => pathname.startsWith(p))
           ? null
           : isEnrolledProgramPage
             ? "program"
@@ -376,6 +354,24 @@ export function PartnersSidebarNav({
 
   const { partner } = usePartnerProfile();
 
+  const referralsActive =
+    pathname === "/referrals" || pathname.startsWith("/referrals/");
+
+  const composedToolContent = (
+    <div className="flex flex-col items-center gap-3">
+      <Link
+        href="/referrals"
+        className={cn(
+          "text-content-default flex size-11 shrink-0 items-center justify-center rounded-lg",
+          referralsActive ? "bg-white" : "hover:bg-bg-inverted/5",
+        )}
+      >
+        <Gift className="size-5" />
+      </Link>
+      {toolContent}
+    </div>
+  );
+
   return (
     <SidebarNav
       groups={NAV_GROUPS}
@@ -390,10 +386,9 @@ export function PartnersSidebarNav({
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
         showDetailedAnalytics,
-        hasReferralReward,
         postbacksEnabled: partner?.featureFlags?.postbacks,
       }}
-      toolContent={toolContent}
+      toolContent={composedToolContent}
       newsContent={newsContent}
       bottom={
         isEnrolledProgramPage ? (

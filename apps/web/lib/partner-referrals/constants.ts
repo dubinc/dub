@@ -1,8 +1,3 @@
-export const NETWORK_BONUS_REWARD = {
-  amountInPercentage: 50,
-  maxDuration: 12,
-} as const;
-
 const PARTNER_REFERRAL_TRIGGER_CONFIG = {
   percentage: {
     commissionEarned: {
@@ -70,3 +65,10 @@ export const PARTNER_REFERRAL_PERCENTAGE_BASIS_LABELS = Object.fromEntries(
 ) as {
   readonly [K in PartnerReferralPercentageTrigger]: string;
 };
+
+export const NETWORK_BONUS_REWARD = {
+  amountInPercentage: 50,
+  maxDuration: 12,
+} as const;
+
+export const NETWORK_REFERRAL_SWAG_THRESHOLD_CENTS = 500_000;
