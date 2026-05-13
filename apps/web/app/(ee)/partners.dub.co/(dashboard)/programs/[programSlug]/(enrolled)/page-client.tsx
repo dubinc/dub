@@ -21,6 +21,7 @@ import {
 import { ProgramRewardModifiersTooltip } from "@/ui/partners/program-reward-modifiers-tooltip";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
+  Button,
   buttonVariants,
   Gift,
   Icon,
@@ -572,6 +573,67 @@ function ViewMoreButton({ href }: { href: string }) {
   );
 }
 
+function RewardsTermsList() {
+  const { programEnrollment } = useProgramEnrollment();
+
+  if (!programEnrollment) {
+    return null;
+  }
+
+  const minPayoutAmount = programEnrollment.program.minPayoutAmount ?? 0;
+  const holdingPeriodDays = programEnrollment.group?.holdingPeriodDays ?? 0;
+
+  const items = [
+    ...(minPayoutAmount > 0
+      ? [
+          {
+            label: "Minimum payout",
+            value: currencyFormatter(minPayoutAmount, {
+              trailingZeroDisplay: "stripIfInteger",
+            }),
+            href: "https://dub.co/help/article/commissions-payouts#what-does-minimum-payout-amount-mean",
+          },
+        ]
+      : []),
+    ...(holdingPeriodDays > 0
+      ? [
+          {
+            label: "holding period",
+            value: `${holdingPeriodDays} day`,
+            href: "https://dub.co/help/article/commissions-payouts#what-does-holding-period-mean",
+          },
+        ]
+      : []),
+  ];
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="text-content-subtle flex flex-wrap items-center gap-x-1 text-xs">
+      {items.map((item, idx) => (
+        <span key={item.label} className="inline-flex items-center gap-1">
+          <span>
+            <span className="text-content-emphasis font-semibold">
+              {item.value}
+            </span>{" "}
+            <a
+              href={item.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-dotted underline-offset-2"
+            >
+              {item.label}
+            </a>
+          </span>
+          {idx < items.length - 1 && <span>•</span>}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function RewardList() {
   const { programEnrollment } = useProgramEnrollment();
   const { partner } = usePartnerProfile();
@@ -624,79 +686,88 @@ function RewardList() {
   const hasPartnerReferralLink = partnerReferralApplyLink.length > 0;
 
   return (
-    <>
-      {hasPrimaryCardContent && (
-        <RewardListItem
-          title="Referrals"
-          isDeactivated={isDeactivated}
-          rewards={[
-            ...standardRewards.map((reward) => ({
+    <div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <h2 className="text-base font-semibold tracking-tight text-neutral-900">
+          Rewards
+        </h2>
+        <RewardsTermsList />
+      </div>
+
+      <div className="flex flex-col gap-2 rounded-xl bg-neutral-100 p-2">
+        {hasPrimaryCardContent && (
+          <RewardListItem
+            title="Referrals"
+            isDeactivated={isDeactivated}
+            rewards={[
+              ...standardRewards.map((reward) => ({
+                id: reward.id,
+                icon: REWARD_EVENTS[reward.event].icon,
+                text: (
+                  <>
+                    {reward.description || generateRewardDescription(reward)}
+                    {(!!reward.modifiers?.length ||
+                      Boolean(reward.tooltipDescription)) && (
+                      <>
+                        {" "}
+                        <ProgramRewardModifiersTooltip reward={reward} />
+                      </>
+                    )}
+                  </>
+                ),
+              })),
+              ...(discount
+                ? [
+                    {
+                      id: "discount",
+                      icon: Gift,
+                      text: formatDiscountDescription(discount),
+                    },
+                  ]
+                : []),
+            ]}
+            link={{
+              displayText: hasPartnerLink
+                ? getPrettyUrl(partnerLink)
+                : "No link yet",
+              copyValue: partnerLink,
+              apexDomain: hasPartnerLink ? getApexDomain(partnerLink) : null,
+            }}
+          />
+        )}
+
+        {showReferralRewardCard && (
+          <RewardListItem
+            title="Referred Partner"
+            isDeactivated={isDeactivated}
+            rewards={referralRewards.map((reward) => ({
               id: reward.id,
-              icon: REWARD_EVENTS[reward.event].icon,
+              icon: REWARD_EVENTS.referral.icon,
               text: (
                 <>
-                  {reward.description || generateRewardDescription(reward)}
-                  {(!!reward.modifiers?.length ||
-                    Boolean(reward.tooltipDescription)) && (
-                    <>
-                      {" "}
-                      <ProgramRewardModifiersTooltip reward={reward} />
-                    </>
-                  )}
+                  {reward.description ||
+                    formatRewardDescription(reward).replace(/^Earn\s+/i, "")}
                 </>
               ),
-            })),
-            ...(discount
-              ? [
-                  {
-                    id: "discount",
-                    icon: Gift,
-                    text: formatDiscountDescription(discount),
-                  },
-                ]
-              : []),
-          ]}
-          link={{
-            displayText: hasPartnerLink
-              ? getPrettyUrl(partnerLink)
-              : "No link yet",
-            copyValue: partnerLink,
-            apexDomain: hasPartnerLink ? getApexDomain(partnerLink) : null,
-          }}
-        />
-      )}
-
-      {showReferralRewardCard && (
-        <RewardListItem
-          title="Referred Partner"
-          isDeactivated={isDeactivated}
-          rewards={referralRewards.map((reward) => ({
-            id: reward.id,
-            icon: REWARD_EVENTS.referral.icon,
-            text: (
-              <>
-                {reward.description ||
-                  formatRewardDescription(reward).replace(/^Earn\s+/i, "")}
-              </>
-            ),
-            afterText: (
-              <span className="inline-flex h-4 shrink-0 items-center justify-center rounded-md bg-blue-100 px-1 text-xs font-semibold leading-4 text-blue-600">
-                New
-              </span>
-            ),
-          }))}
-          link={{
-            displayText: hasPartnerReferralLink
-              ? getPrettyUrl(partnerReferralApplyLink)
-              : "Set a username in your profile to get a link",
-            copyValue: partnerReferralApplyLink,
-            apexDomain: hasPartnerReferralLink
-              ? getApexDomain(partnerReferralApplyLink)
-              : null,
-          }}
-        />
-      )}
-    </>
+              afterText: (
+                <span className="inline-flex h-4 shrink-0 items-center justify-center rounded-md bg-blue-100 px-1 text-xs font-semibold leading-4 text-blue-600">
+                  New
+                </span>
+              ),
+            }))}
+            link={{
+              displayText: hasPartnerReferralLink
+                ? getPrettyUrl(partnerReferralApplyLink)
+                : "Set a username in your profile to get a link",
+              copyValue: partnerReferralApplyLink,
+              apexDomain: hasPartnerReferralLink
+                ? getApexDomain(partnerReferralApplyLink)
+                : null,
+            }}
+          />
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -727,11 +798,11 @@ function RewardListItem({
   return (
     <div
       className={cn(
-        "mb-4 flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-4 sm:mb-5",
+        "flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-4",
         isDeactivated && "opacity-80",
       )}
     >
-      <h3 className="text-base font-semibold tracking-tight text-neutral-900">
+      <h3 className="text-base font-semibold tracking-tight text-neutral-800">
         {title}
       </h3>
 
@@ -765,37 +836,34 @@ function RewardListItem({
               {link.displayText}
             </p>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="primary"
             disabled={copyDisabled}
             onClick={() => {
-              if (!copyDisabled) {
-                copyToClipboard(link.copyValue);
-              }
+              copyToClipboard(link.copyValue);
             }}
             className={cn(
-              "bg-bg-inverted text-content-inverted flex h-8 shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-opacity",
-              copyDisabled
-                ? "cursor-not-allowed opacity-40"
-                : "hover:opacity-90",
+              "h-8 w-auto shrink-0 px-3 transition-opacity",
+              !copyDisabled && "hover:opacity-90",
             )}
-          >
-            <span className="relative size-4">
-              <Copy
-                className={cn(
-                  "absolute inset-0 size-4 transition-[transform,opacity]",
-                  copied && "translate-y-1 opacity-0",
-                )}
-              />
-              <Check
-                className={cn(
-                  "absolute inset-0 size-4 transition-[transform,opacity]",
-                  !copied && "translate-y-1 opacity-0",
-                )}
-              />
-            </span>
-            {copied ? "Copied" : "Copy"}
-          </button>
+            icon={
+              <span className="relative size-4">
+                <Copy
+                  className={cn(
+                    "absolute inset-0 size-4 transition-[transform,opacity]",
+                    copied && "translate-y-1 opacity-0",
+                  )}
+                />
+                <Check
+                  className={cn(
+                    "absolute inset-0 size-4 transition-[transform,opacity]",
+                    !copied && "translate-y-1 opacity-0",
+                  )}
+                />
+              </span>
+            }
+            text={copied ? "Copied" : "Copy"}
+          />
         </div>
       </div>
     </div>
