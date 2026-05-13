@@ -60,6 +60,24 @@ function useNetworkReferralAccess() {
   };
 }
 
+const REFERRALS_EMPTY_STATE_CARD_PARTNERS = [
+  {
+    name: "Derek Forbes",
+    index: 0,
+    earningsCents: 124_500,
+  },
+  {
+    name: "Lauren Anderson",
+    index: 1,
+    earningsCents: 89_200,
+  },
+  {
+    name: "Elias Weber",
+    index: 4,
+    earningsCents: 210_000,
+  },
+] as const;
+
 function ReferralsEmptyState({
   title,
   description,
@@ -69,30 +87,15 @@ function ReferralsEmptyState({
   description: ReactNode;
   button?: ReactNode;
 }) {
-  const partners = [
-    {
-      name: "Derek Forbes",
-      index: 0,
-      earningsCents: 124_500,
-    },
-    {
-      name: "Lauren Anderson",
-      index: 1,
-      earningsCents: 89_200,
-    },
-    {
-      name: "Elias Weber",
-      index: 4,
-      earningsCents: 210_000,
-    },
-  ] as const;
-
   return (
     <AnimatedEmptyState
       title={title}
       description={description}
       cardContent={(idx) => {
-        const partner = partners[idx % partners.length];
+        const partner =
+          REFERRALS_EMPTY_STATE_CARD_PARTNERS[
+            idx % REFERRALS_EMPTY_STATE_CARD_PARTNERS.length
+          ];
 
         return (
           <div className="flex min-w-0 flex-1 items-center gap-2">
