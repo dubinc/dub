@@ -1,8 +1,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { DiscountCodeProps } from "@/lib/types";
-import { Button, Modal, useMediaQuery } from "@dub/ui";
-import { Tag } from "@dub/ui/icons";
+import { Button, DiscountCode, Modal, useMediaQuery } from "@dub/ui";
 import { FormEvent } from "react";
 import { toast } from "sonner";
 
@@ -47,7 +46,7 @@ export const DeleteDiscountCodeModal = ({
             </div>
 
             <div className="relative flex h-7 w-fit items-center gap-1.5 rounded-lg bg-green-100 px-2 py-0">
-              <Tag className="size-3 text-green-700" strokeWidth={1.5} />
+              <DiscountCode className="size-3 text-green-700" />
               <div className="text-xs font-medium text-green-700">
                 {discountCode.code}
               </div>

@@ -18,9 +18,9 @@ import { DiscountProvider } from "@dub/prisma/client";
 import {
   Button,
   CopyButton,
+  DiscountCode,
   LoadingSpinner,
   Table,
-  Tag,
   TooltipContent,
   useTable,
 } from "@dub/ui";
@@ -328,7 +328,7 @@ const PartnerDiscountCodes = ({
         </div>
       ) : !error && (!discountCodes || discountCodes.length === 0) ? (
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 py-6">
-          <Tag className="mb-2 size-6 text-neutral-900" />
+          <DiscountCode className="mb-2 size-6 text-neutral-900" />
           <h3 className="text-content-emphasis text-sm font-semibold leading-5">
             No codes created
           </h3>
