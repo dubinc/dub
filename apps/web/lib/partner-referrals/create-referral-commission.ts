@@ -225,7 +225,6 @@ export const createReferralCommission = async (
 
   commissionData.description = generateCommissionDescription({
     referralReward,
-    sourceCommission,
   });
 
   let commission: Commission;
@@ -320,19 +319,17 @@ export const createReferralCommission = async (
 
 function generateCommissionDescription({
   referralReward,
-  sourceCommission,
 }: {
   referralReward: Reward;
-  sourceCommission: Pick<Commission, "earnings"> | null;
 }) {
   const { trigger } = referralRewardConfigSchema.parse(referralReward.config);
   const amountInPercentage = Number(referralReward.amountInPercentage ?? 0);
 
-  if (trigger === "commissionEarned" && sourceCommission) {
+  if (trigger === "commissionEarned") {
     return `Earned ${amountInPercentage}% of referred partner's sale commission.`;
   }
 
-  if (trigger === "saleRecorded" && sourceCommission) {
+  if (trigger === "saleRecorded") {
     return `Earned ${amountInPercentage}% of referred partner's sale amount.`;
   }
 
