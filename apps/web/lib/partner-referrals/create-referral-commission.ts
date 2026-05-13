@@ -1,7 +1,7 @@
 import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { Commission, CommissionType, Prisma, Reward } from "@dub/prisma/client";
-import { currencyFormatter, log } from "@dub/utils";
+import { currencyFormatter, log, NETWORK_PROGRAM_ID } from "@dub/utils";
 import { differenceInMonths } from "date-fns";
 import { triggerAggregateDueCommissionsCronJob } from "../actions/partners/trigger-aggregate-due-commissions";
 import { createId } from "../api/create-id";
@@ -13,8 +13,8 @@ import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 
 type CreateReferralCommissionProps =
-  | { sourceCommissionId: string; partnerId?: never; programId?: never }
-  | { sourceCommissionId?: never; partnerId: string; programId: string };
+  | { sourceCommissionId: string; partnerId?: never; programId?: never } // Based on a source commission
+  | { sourceCommissionId?: never; partnerId: string; programId: string }; // Based on partner approval and commission threshold
 
 export const createReferralCommission = async (
   props: CreateReferralCommissionProps,
@@ -27,6 +27,10 @@ export const createReferralCommission = async (
 
   const { sourceCommission, programId, partnerId, referredByPartnerId } =
     context;
+
+  if (programId === NETWORK_PROGRAM_ID) {
+    return null;
+  }
 
   const referrerProgramEnrollment = await prisma.programEnrollment.findUnique({
     where: {
@@ -231,6 +235,8 @@ export const createReferralCommission = async (
     commission = await prisma.commission.create({
       data: commissionData,
     });
+
+    console.log("Referral commission created", commission);
   } catch (error) {
     // Don't retry on unique constraint violation – the commission already exists
     // (likely a race between the dedup check and the create)

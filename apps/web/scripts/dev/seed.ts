@@ -37,6 +37,7 @@ type Workspace = Pick<
   | "usersLimit"
   | "aiLimit"
   | "groupsLimit"
+  | "partnersLimit"
   | "defaultProgramId"
   | "invoicePrefix"
   | "conversionEnabled"

@@ -4,7 +4,7 @@ import { createNetworkReferralCommission } from "@/lib/partner-referrals/create-
 import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { CommissionType } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, NETWORK_PROGRAM_ID } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";
 
@@ -55,6 +55,12 @@ export const POST = withCron(async ({ rawBody }) => {
 
   if (!payout) {
     return logAndRespond(`Payout ${payoutId} not found.`);
+  }
+
+  if (payout.programId === NETWORK_PROGRAM_ID) {
+    return logAndRespond(
+      `Payout ${payoutId} is from Network program. Skipping...`,
+    );
   }
 
   if (!["sent", "completed"].includes(payout.status)) {

@@ -1,12 +1,18 @@
 import { prisma } from "@dub/prisma";
-import { CommissionType, Partner, Payout, Prisma } from "@dub/prisma/client";
+import {
+  Commission,
+  CommissionType,
+  Partner,
+  Payout,
+  Prisma,
+} from "@dub/prisma/client";
 import { log, NETWORK_PROGRAM_ID } from "@dub/utils";
 import { differenceInMonths } from "date-fns";
 import { createId } from "../api/create-id";
 import { NETWORK_REFERRAL_REWARD } from "./constants";
 
 type CreateNetworkReferralCommissionProps = {
-  payout: Pick<Payout, "id" | "amount">;
+  payout: Pick<Payout, "id" | "amount" | "programId">;
   partner: Pick<Partner, "id" | "referredByPartnerId">;
 };
 
@@ -16,6 +22,10 @@ export const createNetworkReferralCommission = async ({
 }: CreateNetworkReferralCommissionProps) => {
   if (!partner.referredByPartnerId) {
     console.error(`Partner ${partner.id} has no referredByPartnerId.`);
+    return;
+  }
+
+  if (payout.programId === NETWORK_PROGRAM_ID) {
     return;
   }
 
@@ -82,12 +92,14 @@ export const createNetworkReferralCommission = async ({
     deduplicationKey: `referral:network:${payout.id}`,
   };
 
+  let commission: Commission | null = null;
+
   try {
-    await prisma.commission.create({
+    commission = await prisma.commission.create({
       data: commissionData,
     });
 
-    return commissionData;
+    console.log("Network referral commission created", commission);
   } catch (error) {
     // Don't retry on unique constraint violation – the commission already exists
     // (likely a race between the dedup check and the create)
@@ -115,4 +127,6 @@ export const createNetworkReferralCommission = async ({
 
     throw error;
   }
+
+  return commission;
 };

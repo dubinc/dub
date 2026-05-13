@@ -15,6 +15,7 @@
     "usersLimit": 100,
     "aiLimit": 100,
     "groupsLimit": 100,
+    "partnersLimit": 100,
     "defaultProgramId": "prog_CYCu7IMAapjkRpTnr8F1azjN",
     "invoicePrefix": "ACME",
     "conversionEnabled": true,
