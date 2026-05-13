@@ -126,7 +126,7 @@ export function PartnerReferralRewardBuilder() {
   }, [amount, type]);
 
   const triggerText = useMemo(() => {
-    if (!config?.trigger) return "is";
+    if (!config?.trigger) return "event";
 
     if (type === "percentage") {
       if (

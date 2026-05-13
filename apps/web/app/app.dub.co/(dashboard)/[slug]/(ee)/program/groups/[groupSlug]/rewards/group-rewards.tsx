@@ -42,7 +42,7 @@ const REWARD_EVENT_DESCRIPTIONS: Record<
   },
   referral: {
     title: "Referral reward",
-    description: "Reward when one partner refers another",
+    description: "Reward when partners refer more partners",
   },
 };
 
