@@ -3,7 +3,7 @@ import { CommissionType, Partner, Payout, Prisma } from "@dub/prisma/client";
 import { log, NETWORK_PROGRAM_ID } from "@dub/utils";
 import { differenceInMonths } from "date-fns";
 import { createId } from "../api/create-id";
-import { NETWORK_BONUS_REWARD } from "./constants";
+import { NETWORK_REFERRAL_REWARD } from "./constants";
 
 type CreateNetworkReferralCommissionProps = {
   payout: Pick<Payout, "id" | "amount">;
@@ -58,7 +58,7 @@ export const createNetworkReferralCommission = async ({
       firstCommission.createdAt,
     );
 
-    if (durationMonths >= NETWORK_BONUS_REWARD.maxDuration) {
+    if (durationMonths >= NETWORK_REFERRAL_REWARD.maxDuration) {
       console.log(
         `Referrer partner ${partner.referredByPartnerId} has reached max duration for network bonus.`,
       );
@@ -74,7 +74,7 @@ export const createNetworkReferralCommission = async ({
     type: CommissionType.referral,
     amount: 0,
     quantity: 1,
-    earnings: NETWORK_BONUS_REWARD.amountInPercentage * 0.01 * payout.amount,
+    earnings: NETWORK_REFERRAL_REWARD.amountInPercentage * 0.01 * payout.amount,
     deduplicationKey: `referral:network:${payout.id}`,
   };
 

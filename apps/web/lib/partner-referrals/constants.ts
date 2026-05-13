@@ -66,9 +66,9 @@ export const PARTNER_REFERRAL_PERCENTAGE_BASIS_LABELS = Object.fromEntries(
   readonly [K in PartnerReferralPercentageTrigger]: string;
 };
 
-export const NETWORK_BONUS_REWARD = {
+export const NETWORK_REFERRAL_REWARD = {
   amountInPercentage: 50,
-  maxDuration: 12,
+  maxDuration: 6,
 } as const;
 
-export const NETWORK_REFERRAL_SWAG_THRESHOLD_CENTS = 500_000;
+export const NETWORK_REFERRAL_SWAG_THRESHOLD_CENTS = 1000_000;
