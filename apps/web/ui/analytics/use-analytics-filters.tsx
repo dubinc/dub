@@ -222,13 +222,7 @@ export function useAnalyticsFilters({
     VALID_ANALYTICS_FILTERS.forEach((filter) => {
       // Skip special cases we handled above
       if (
-        [
-          "key",
-          "tagId",
-          "partnerTagId",
-          "root",
-          "customerId",
-        ].includes(filter)
+        ["key", "tagId", "partnerTagId", "root", "customerId"].includes(filter)
       )
         return;
       // Also skip date range filters and qr

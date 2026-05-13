@@ -107,8 +107,8 @@ model Partner {
   fraudAlerts                FraudAlert[]
   partnerRewinds             PartnerRewind[]
   platforms                  PartnerPlatform[]
-  referrals                  PartnerReferral[]
   referredApplications       ProgramApplicationEvent[]
+  submittedLeads             SubmittedLead[]
 
   @@index(country)
   @@index(networkStatus)

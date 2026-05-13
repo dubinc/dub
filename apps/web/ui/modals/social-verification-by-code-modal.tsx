@@ -34,7 +34,7 @@ const PLATFORM_INFO: Record<
     name: "YouTube",
     title: "Edit your YouTube channel",
     instruction:
-      "Navigate to your channel settings and add the 6 digit code above to your channel description temporarily.",
+      "Navigate to your channel settings and add the 6 digit code above to your channel description temporarily. If you have an English description, add it there.",
     openLabel: "Open channel",
     verifyTitle: "Verify account",
     verifyDescription:
