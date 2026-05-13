@@ -630,7 +630,7 @@ function DurationPopoverContent({
         </button>
         <InlineBadgePopoverInput
           type="number"
-          min="1"
+          min="0"
           max="9999"
           step="1"
           autoFocus
@@ -642,7 +642,7 @@ function DurationPopoverContent({
             const clamped = Math.min(parsed, 9999);
             const display = isNaN(parsed) ? raw : clamped.toString();
             setCustomDurationInput(display);
-            if (!isNaN(parsed) && parsed > 0) {
+            if (!isNaN(parsed) && parsed >= 0) {
               setValue("maxDuration", clamped, { shouldDirty: true });
             }
           }}
@@ -659,6 +659,12 @@ function DurationPopoverContent({
             }
             if (e.key === "Enter") {
               e.preventDefault();
+              if (customDurationInput === "0") {
+                setValue("maxDuration", 0, { shouldDirty: true });
+                setCustomDurationInput("");
+                setShowCustomInput(false);
+                return;
+              }
               setIsOpen(false);
             }
           }}
