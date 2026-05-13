@@ -27,10 +27,10 @@ import {
 import { Gift, UserArrowRight } from "@dub/ui/icons";
 import {
   COUNTRIES,
-  PARTNERS_DOMAIN,
   currencyFormatter,
   formatDate,
   getApexDomain,
+  PARTNERS_DOMAIN,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { HelpCircle, Lock } from "lucide-react";
@@ -38,6 +38,27 @@ import Image from "next/image";
 import Link from "next/link";
 import { ComponentType, ReactNode, useMemo } from "react";
 import { toast } from "sonner";
+
+function useNetworkReferralAccess() {
+  const { partner, loading } = usePartnerProfile();
+
+  const profileReady = !loading && !!partner;
+  const isEligible =
+    partner?.networkStatus === "approved" ||
+    partner?.networkStatus === "trusted";
+
+  const referralLink = partner?.username
+    ? `${PARTNERS_DOMAIN}/register?via=${partner.username}`
+    : null;
+
+  return {
+    partner,
+    loading,
+    profileReady,
+    isEligible,
+    referralLink,
+  };
+}
 
 const REFERRALS_EMPTY_STATE_CARD_PARTNERS = [
   {
@@ -145,12 +166,11 @@ function ReferralsStatItem({
 }
 
 function ReferralsStats() {
-  const { partner, loading: partnerLoading } = usePartnerProfile();
-
-  const profileReady = !partnerLoading && !!partner;
-  const isEligible =
-    partner?.networkStatus === "approved" ||
-    partner?.networkStatus === "trusted";
+  const {
+    loading: partnerLoading,
+    profileReady,
+    isEligible,
+  } = useNetworkReferralAccess();
 
   const { data: stats, isLoading: statsLoading } = useNetworkReferralsStats({
     enabled: profileReady && isEligible,
@@ -209,17 +229,8 @@ function ReferralLinkLocked() {
 }
 
 function ReferralLink() {
-  const { partner, loading: partnerLoading } = usePartnerProfile();
+  const { profileReady, isEligible, referralLink } = useNetworkReferralAccess();
   const [, copyToClipboard] = useCopyToClipboard();
-
-  const profileReady = !partnerLoading && !!partner;
-  const isEligible =
-    partner?.networkStatus === "approved" ||
-    partner?.networkStatus === "trusted";
-
-  const referralLink = partner?.username
-    ? `${PARTNERS_DOMAIN}/register?via=${partner.username}`
-    : null;
 
   const copyReferralLink = () => {
     if (!referralLink) return;
@@ -324,12 +335,12 @@ function ReferralRewards() {
 }
 
 function ReferredPartners() {
-  const { partner, loading: partnerLoading } = usePartnerProfile();
-
-  const profileReady = !partnerLoading && !!partner;
-  const isEligible =
-    partner?.networkStatus === "approved" ||
-    partner?.networkStatus === "trusted";
+  const {
+    loading: partnerLoading,
+    profileReady,
+    isEligible,
+    referralLink,
+  } = useNetworkReferralAccess();
 
   const {
     data: referredPartners,
@@ -340,10 +351,6 @@ function ReferredPartners() {
   });
 
   const [, copyToClipboard] = useCopyToClipboard();
-
-  const referralLink = partner?.username
-    ? `${PARTNERS_DOMAIN}/register?via=${partner.username}`
-    : null;
 
   const copyReferralLink = () => {
     if (!referralLink) return;
