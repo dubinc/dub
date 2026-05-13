@@ -32,8 +32,8 @@ export const createNetworkReferralCommission = async ({
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       partnerId_programId: {
-        programId: NETWORK_PROGRAM_ID,
         partnerId: partner.referredByPartnerId,
+        programId: NETWORK_PROGRAM_ID,
       },
     },
     select: {
