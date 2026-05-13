@@ -47,7 +47,8 @@ export const networkReferralSchema = PartnerSchema.pick({
   country: true,
   createdAt: true,
 }).extend({
-  earnings: centsSchemaWithDefault,
+  totalEarnings: centsSchemaWithDefault,
+  activeProgramsCount: z.number().int().nonnegative(),
 });
 
 export const getNetworkReferralsQuerySchema = z.object({}).extend(

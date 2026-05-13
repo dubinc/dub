@@ -6,6 +6,7 @@ import {
   getNetworkReferralsQuerySchema,
   networkReferralSchema,
 } from "@/lib/partner-referrals/schemas";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { CommissionType } from "@dub/prisma/client";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
@@ -62,22 +63,41 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   });
 
   const commissionsMap = new Map<string, number>();
+  const activeProgramsCountMap = new Map<string, number>();
 
   if (referredPartners.length > 0) {
-    const commissions = await prisma.commission.groupBy({
-      by: ["sourcePartnerId"],
-      where: {
-        partnerId: partner.id,
-        programId: NETWORK_PROGRAM_ID,
-        type: CommissionType.referral,
-        sourcePartnerId: {
-          in: referredPartners.map((p) => p.id),
+    const [commissions, programEnrollments] = await Promise.all([
+      prisma.commission.groupBy({
+        by: ["sourcePartnerId"],
+        where: {
+          partnerId: partner.id,
+          programId: NETWORK_PROGRAM_ID,
+          type: CommissionType.referral,
+          sourcePartnerId: {
+            in: referredPartners.map((p) => p.id),
+          },
         },
-      },
-      _sum: {
-        earnings: true,
-      },
-    });
+        _sum: {
+          earnings: true,
+        },
+      }),
+
+      prisma.programEnrollment.groupBy({
+        by: ["partnerId"],
+        where: {
+          partnerId: {
+            in: referredPartners.map((p) => p.id),
+          },
+          programId: {
+            not: NETWORK_PROGRAM_ID,
+          },
+          status: {
+            in: ACTIVE_ENROLLMENT_STATUSES,
+          },
+        },
+        _count: true,
+      }),
+    ]);
 
     for (const commission of commissions) {
       if (commission.sourcePartnerId) {
@@ -87,6 +107,12 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         );
       }
     }
+
+    for (const count of programEnrollments) {
+      if (count.partnerId) {
+        activeProgramsCountMap.set(count.partnerId, count._count);
+      }
+    }
   }
 
   const result = referredPartners.map((p) => ({
@@ -94,7 +120,8 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     email: obfuscateCustomerEmail(p.email ?? ""),
     country: p.country,
     createdAt: p.createdAt,
-    earnings: commissionsMap.get(p.id) ?? 0,
+    totalEarnings: commissionsMap.get(p.id) ?? 0,
+    activeProgramsCount: activeProgramsCountMap.get(p.id) ?? 0,
   }));
 
   return NextResponse.json(z.array(networkReferralSchema).parse(result));

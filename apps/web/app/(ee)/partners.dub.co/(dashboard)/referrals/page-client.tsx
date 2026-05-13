@@ -75,24 +75,8 @@ export function NetworkReferralsPageClient() {
         ),
       },
       {
-        id: "country",
-        header: "Country",
-        minSize: 150,
-        cell: ({ row }: { row: Row<NetworkReferralProps> }) => {
-          const country = row.original.country;
-          return (
-            <div className="flex items-center gap-2">
-              {country && <CountryFlag countryCode={country} />}
-              <span className="min-w-0 truncate">
-                {(country ? COUNTRIES[country] : null) ?? "-"}
-              </span>
-            </div>
-          );
-        },
-      },
-      {
         id: "createdAt",
-        header: "Signed up",
+        header: "Joined",
         cell: ({ row }: { row: Row<NetworkReferralProps> }) => (
           <TimestampTooltip
             timestamp={row.original.createdAt}
@@ -109,14 +93,39 @@ export function NetworkReferralsPageClient() {
         ),
       },
       {
-        id: "earnings",
-        header: "Earnings",
+        id: "country",
+        header: "Country",
+        minSize: 150,
+        cell: ({ row }: { row: Row<NetworkReferralProps> }) => {
+          const country = row.original.country;
+
+          return (
+            <div className="flex items-center gap-2">
+              {country && <CountryFlag countryCode={country} />}
+              <span className="min-w-0 truncate">
+                {(country ? COUNTRIES[country] : null) ?? "-"}
+              </span>
+            </div>
+          );
+        },
+      },
+      {
+        id: "activeProgramsCount",
+        header: "Active programs",
+        minSize: 150,
+        cell: ({ row }: { row: Row<NetworkReferralProps> }) => {
+          return row.original.activeProgramsCount;
+        },
+      },
+      {
+        id: "totalEarnings",
+        header: "Your earnings",
         minSize: 120,
         meta: {
           headerTooltip: "Total commission earned from this partner.",
         },
         cell: ({ row }: { row: Row<NetworkReferralProps> }) =>
-          currencyFormatter(row.original.earnings / 100, {
+          currencyFormatter(row.original.totalEarnings, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           }),
