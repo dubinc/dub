@@ -94,11 +94,11 @@ export const createReferralCommission = async (
     const amountInPercentage = Number(referralReward.amountInPercentage ?? 0);
 
     if (typeof referralReward.maxDuration === "number") {
-      const firstCommission = await prisma.commission.findFirst({
+      const firstReferralCommission = await prisma.commission.findFirst({
         where: {
-          partnerId,
-          programId,
-          type: "sale",
+          partnerId: referredByPartnerId,
+          customerId: sourceCommission.customerId,
+          type: "referral",
         },
         orderBy: {
           createdAt: "asc",
@@ -108,22 +108,21 @@ export const createReferralCommission = async (
         },
       });
 
-      if (firstCommission) {
+      if (firstReferralCommission) {
         const subscriptionDurationMonths = differenceInMonths(
           sourceCommission.createdAt,
-          firstCommission.createdAt,
+          firstReferralCommission.createdAt,
         );
 
-        if (
-          referralReward.maxDuration === 0 &&
-          subscriptionDurationMonths > 0
-        ) {
+        // One-time
+        if (referralReward.maxDuration === 0) {
           console.log(
             `Referrer ${referredByPartnerId} reached max duration (first-sale only) for referred partner ${partnerId} for the customer ${sourceCommission.customerId}.`,
           );
           return null;
         }
 
+        // Recurring
         if (subscriptionDurationMonths >= referralReward.maxDuration) {
           console.log(
             `Referrer ${referredByPartnerId} reached max duration (${referralReward.maxDuration} months) for referred partner ${partnerId} for the customer ${sourceCommission.customerId}.`,
@@ -324,27 +323,17 @@ function generateCommissionDescription({
   sourceCommission,
 }: {
   referralReward: Reward;
-  sourceCommission: Pick<Commission, "earnings" | "amount" | "currency"> | null;
+  sourceCommission: Pick<Commission, "earnings"> | null;
 }) {
   const { trigger } = referralRewardConfigSchema.parse(referralReward.config);
   const amountInPercentage = Number(referralReward.amountInPercentage ?? 0);
 
   if (trigger === "commissionEarned" && sourceCommission) {
-    const formattedCommission = currencyFormatter(sourceCommission.earnings, {
-      currency: "usd",
-      trailingZeroDisplay: "stripIfInteger",
-    });
-
-    return `Earned ${amountInPercentage}% of referred partner's ${formattedCommission} commission.`;
+    return `Earned ${amountInPercentage}% of referred partner's sale commission.`;
   }
 
   if (trigger === "saleRecorded" && sourceCommission) {
-    const formattedSale = currencyFormatter(sourceCommission.amount, {
-      currency: "usd",
-      trailingZeroDisplay: "stripIfInteger",
-    });
-
-    return `Earned ${amountInPercentage}% of referred partner's ${formattedSale} sale amount.`;
+    return `Earned ${amountInPercentage}% of referred partner's sale amount.`;
   }
 
   if (trigger === "partnerApproved") {
