@@ -63,27 +63,31 @@ export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
 
   console.log(`Updated ${updatedPayouts.count} payouts to "sent" status`);
 
-  await queueBatchEmail<typeof PartnerPayoutProcessed>(
-    payouts.map((payout) => ({
-      variant: "notifications",
-      to: payout.partner.email!,
-      subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
-      templateName: "PartnerPayoutProcessed",
-      templateProps: {
-        email: payout.partner.email!,
-        program: payout.program,
-        payout,
-      },
-    })),
-  );
+  try {
+    await Promise.allSettled([
+      queueBatchEmail<typeof PartnerPayoutProcessed>(
+        payouts.map((payout) => ({
+          variant: "notifications",
+          to: payout.partner.email!,
+          subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
+          templateName: "PartnerPayoutProcessed",
+          templateProps: {
+            email: payout.partner.email!,
+            program: payout.program,
+            payout,
+          },
+        })),
+      ),
 
-  await enqueueBatchJobs(
-    payouts.map((payout) => ({
-      queueName: "create-referral-commissions",
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/queue`,
-      body: {
-        payoutId: payout.id,
-      },
-    })),
-  );
+      enqueueBatchJobs(
+        payouts.map((payout) => ({
+          queueName: "create-referral-commissions",
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/queue`,
+          body: {
+            payoutId: payout.id,
+          },
+        })),
+      ),
+    ]);
+  } catch {}
 }
