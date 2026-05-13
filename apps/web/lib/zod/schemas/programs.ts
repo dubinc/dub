@@ -21,8 +21,8 @@ import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
 import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
 import { programInviteEmailDataSchema } from "./program-invite-email";
-import { referralFormSchema } from "./referral-form";
 import { RewardSchema } from "./rewards";
+import { submittedLeadFormSchema } from "./submitted-lead-form";
 import { UserSchema } from "./users";
 import { centsSchemaWithDefault, parseDateSchema } from "./utils";
 
@@ -107,7 +107,7 @@ export const updateProgramSchema = z.object({
   helpUrl: z.httpUrl().max(500).nullish(),
   termsUrl: z.httpUrl().max(500).nullish(),
   messagingEnabledAt: z.coerce.date().nullish(),
-  referralFormData: referralFormSchema.nullish(),
+  referralFormData: submittedLeadFormSchema.nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
@@ -194,7 +194,7 @@ export const ProgramEnrollmentSchema = z.object({
   }).nullish(),
   customerDataSharingEnabledAt: z.date().nullable(),
   groupMoveDisabledAt: z.date().nullable(),
-  referralFormData: referralFormSchema.nullish(),
+  referralFormData: submittedLeadFormSchema.nullish(),
   application: ProgramEnrollmentApplicationSchema.nullish().describe(
     "Linked program application, including review outcome when applicable.",
   ),

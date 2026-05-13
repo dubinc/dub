@@ -1,15 +1,6 @@
 import "dotenv-flow/config";
-import * as z from "zod/v4";
-import { tb } from "../../lib/tinybird/client";
+import { getSaleEvent } from "../../lib/tinybird/get-sale-event";
 import { recordSaleWithTimestamp } from "../../lib/tinybird/record-sale";
-
-const getSaleEvent = tb.buildPipe({
-  pipe: "get_sale_event",
-  parameters: z.object({
-    eventId: z.string(),
-  }),
-  data: z.any(),
-});
 
 // update tinybird sale event
 async function main() {

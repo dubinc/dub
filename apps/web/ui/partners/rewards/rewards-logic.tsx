@@ -2,7 +2,7 @@
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
+import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
@@ -427,7 +427,9 @@ function ConditionLogic({
                         (attribute) =>
                           attribute.id !== "source" ||
                           (program &&
-                            REFERRAL_ENABLED_PROGRAM_IDS.includes(program.id)),
+                            SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(
+                              program.id,
+                            )),
                       )
                       .map((attribute) => ({
                         text: attribute.label,
