@@ -107,7 +107,12 @@ function resolveConditionFieldValue({
   return undefined;
 }
 
-const METADATA_TEXT_OPS = new Set<string>(["starts_with", "ends_with"]);
+const METADATA_TEXT_OPS = new Set<string>([
+  "starts_with",
+  "ends_with",
+  "in",
+  "not_in",
+]);
 
 const METADATA_NUMERIC_ORDER_OPS = new Set<string>([
   "greater_than",
@@ -116,12 +121,7 @@ const METADATA_NUMERIC_ORDER_OPS = new Set<string>([
   "less_than_or_equal",
 ]);
 
-const METADATA_EQUALS_OR_LIST_OPS = new Set<string>([
-  "equals_to",
-  "not_equals",
-  "in",
-  "not_in",
-]);
+const METADATA_EQUALS_OPS = new Set<string>(["equals_to", "not_equals"]);
 
 function parseMetadataNumeric(raw: unknown): number | undefined {
   if (raw == null) {
@@ -137,7 +137,7 @@ function parseMetadataNumeric(raw: unknown): number | undefined {
     return Number(raw);
   }
   if (typeof raw === "boolean") {
-    return Number(raw);
+    return undefined;
   }
   const n = Number(raw);
   return Number.isNaN(n) ? undefined : n;
@@ -158,13 +158,27 @@ function prepareMetadataFieldValue(
   if (METADATA_TEXT_OPS.has(op)) return metadataRawToString(raw);
 
   const ordering = METADATA_NUMERIC_ORDER_OPS.has(op);
-  const equalsOrList = METADATA_EQUALS_OR_LIST_OPS.has(op);
-  if (!ordering && !equalsOrList) return undefined;
+  const equalsOrNot = METADATA_EQUALS_OPS.has(op);
+  if (!ordering && !equalsOrNot) return undefined;
 
   const numeric = parseMetadataNumeric(raw);
   if (ordering) return numeric;
 
   return numeric !== undefined ? numeric : metadataRawToString(raw);
+}
+
+function fieldContainsSubstring(
+  fieldValue: string | number | string[] | number[],
+  needle: unknown,
+): boolean {
+  if (needle === undefined || needle === null) {
+    return false;
+  }
+  const n = String(needle).trim();
+  if (n === "") {
+    return false;
+  }
+  return String(fieldValue).includes(n);
 }
 
 const evaluateCondition = ({
@@ -196,19 +210,9 @@ const evaluateCondition = ({
       }
       return false;
     case "in":
-      if (Array.isArray(condition.value)) {
-        return (condition.value as (string | number)[]).includes(
-          fieldValue as string | number,
-        );
-      }
-      return false;
+      return fieldContainsSubstring(fieldValue, condition.value);
     case "not_in":
-      if (Array.isArray(condition.value)) {
-        return !(condition.value as (string | number)[]).includes(
-          fieldValue as string | number,
-        );
-      }
-      return true;
+      return !fieldContainsSubstring(fieldValue, condition.value);
     case "greater_than":
       return Number(fieldValue) > Number(condition.value);
     case "greater_than_or_equal":

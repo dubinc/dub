@@ -233,6 +233,8 @@ export const REWARD_CONDITION_ATTRIBUTE_IDS = [
   ...new Set(REWARD_CONDITION_ATTRIBUTES.map(({ id }) => id)),
 ];
 
+export const REWARD_METADATA_CONDITION_ENTITIES = ["lead", "sale"] as const;
+
 export const CONDITION_OPERATORS = [
   "equals_to",
   "not_equals",
@@ -276,8 +278,8 @@ export const CONDITION_OPERATOR_LABELS = {
   not_equals: "is not",
   starts_with: "starts with",
   ends_with: "ends with",
-  in: "is one of",
-  not_in: "is not one of",
+  in: "contains",
+  not_in: "does not contain",
   greater_than: "is greater than",
   greater_than_or_equal: "is greater than or equal to",
   less_than: "is less than",
@@ -304,9 +306,33 @@ export const rewardConditionSchema = z
     metadataField: z.string().optional(),
   })
   .superRefine((data, ctx) => {
+    if (data.operator === "in" || data.operator === "not_in") {
+      if (typeof data.value !== "string") {
+        ctx.addIssue({
+          code: "custom",
+          message:
+            "Contains and does not contain conditions require a text value.",
+          path: ["value"],
+        });
+      }
+    }
+
     if (data.attribute !== "metadata") {
       return;
     }
+
+    const metadataEntities =
+      REWARD_METADATA_CONDITION_ENTITIES as readonly string[];
+    if (!metadataEntities.includes(data.entity)) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "Metadata is only valid for lead and sale reward condition entities.",
+        path: ["entity"],
+      });
+      return;
+    }
+
     const key = data.metadataField?.trim() ?? "";
     if (!key) {
       ctx.addIssue({

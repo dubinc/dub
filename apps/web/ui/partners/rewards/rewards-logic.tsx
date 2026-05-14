@@ -54,7 +54,6 @@ import {
   InlineBadgePopoverAmountInput,
   InlineBadgePopoverContext,
   InlineBadgePopoverInput,
-  InlineBadgePopoverInputs,
   InlineBadgePopoverMenu,
 } from "../../shared/inline-badge-popover";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
@@ -227,7 +226,13 @@ const formatValue = (
   value: string | number | string[] | number[] | undefined,
   attribute?: Pick<RewardConditionEntityAttribute, "type" | "options">,
   metadataOperator?: (typeof CONDITION_OPERATORS)[number],
+  operator?: (typeof CONDITION_OPERATORS)[number],
 ) => {
+  if (operator === "in" || operator === "not_in") {
+    if (value === "" || value === undefined) return "Value";
+    return truncate(String(value), 20);
+  }
+
   if (
     metadataOperator &&
     METADATA_NUMBER_CONDITION_OPERATORS.includes(metadataOperator)
@@ -397,8 +402,8 @@ function ConditionLogic({
       }[entity.id] ?? User
     : ArrowTurnRight2;
 
-  const isArrayValue =
-    condition.operator && ["in", "not_in"].includes(condition.operator);
+  const isContainsOperator =
+    condition.operator === "in" || condition.operator === "not_in";
 
   const [displayProductLabel, setDisplayProductLabel] = useState(false);
 
@@ -589,9 +594,7 @@ function ConditionLogic({
                               ...condition,
                               operator: value,
                               ...(["in", "not_in"].includes(value)
-                                ? !Array.isArray(condition.value)
-                                  ? { value: [] }
-                                  : null
+                                ? { value: "" }
                                 : metadataNumeric
                                   ? typeof condition.value !== "number"
                                     ? { value: "" }
@@ -617,11 +620,9 @@ function ConditionLogic({
                               ...condition,
                               operator:
                                 value as (typeof CONDITION_OPERATORS)[number],
-                              // Update value to array / string / number if needed
+                              // Reset value shape when operator changes
                               ...(["in", "not_in"].includes(value)
-                                ? !Array.isArray(condition.value)
-                                  ? { value: [] }
-                                  : null
+                                ? { value: "" }
                                 : ["number", "currency"].includes(attributeType)
                                   ? typeof condition.value !== "number"
                                     ? { value: "" }
@@ -685,17 +686,20 @@ function ConditionLogic({
                           condition.value,
                           attribute,
                           isMetadataCondition ? condition.operator : undefined,
+                          condition.operator,
                         )}
                         invalid={
-                          Array.isArray(condition.value)
-                            ? condition.value.filter(Boolean).length === 0
-                            : isMetadataNumeric
-                              ? condition.value === "" ||
-                                isNaN(Number(condition.value))
-                              : ["number", "currency"].includes(attributeType)
+                          isContainsOperator
+                            ? String(condition.value ?? "").trim() === ""
+                            : Array.isArray(condition.value)
+                              ? condition.value.filter(Boolean).length === 0
+                              : isMetadataNumeric
                                 ? condition.value === "" ||
                                   isNaN(Number(condition.value))
-                                : !condition.value
+                                : ["number", "currency"].includes(attributeType)
+                                  ? condition.value === "" ||
+                                    isNaN(Number(condition.value))
+                                  : !condition.value
                         }
                         buttonClassName={cn(
                           condition.attribute === "productId" &&
@@ -703,13 +707,13 @@ function ConditionLogic({
                         )}
                       >
                         {/* Country selection */}
-                        {condition.attribute === "country" ? (
+                        {condition.attribute === "country" &&
+                        !isContainsOperator ? (
                           // Country selector
                           <InlineBadgePopoverMenu
                             search
                             selectedValue={
-                              (condition.value as string[] | undefined) ??
-                              (isArrayValue ? [] : undefined)
+                              condition.value as string | undefined
                             }
                             items={Object.entries(COUNTRIES).map(
                               ([key, name]) => ({
@@ -726,30 +730,16 @@ function ConditionLogic({
                             onSelect={(value) => {
                               setValue(conditionKey, {
                                 ...condition,
-                                value: isArrayValue
-                                  ? Array.isArray(condition.value)
-                                    ? (condition.value as string[]).includes(
-                                        value,
-                                      )
-                                      ? (condition.value.filter(
-                                          (v) => v !== value,
-                                        ) as string[])
-                                      : ([
-                                          ...condition.value,
-                                          value,
-                                        ] as string[])
-                                    : [value]
-                                  : value,
+                                value,
                               });
                             }}
                           />
-                        ) : attribute?.options ? (
+                        ) : attribute?.options && !isContainsOperator ? (
                           // Select option selector
                           <InlineBadgePopoverMenu
                             search={attribute.options.length > 4}
                             selectedValue={
-                              (condition.value as string[] | undefined) ??
-                              (isArrayValue ? [] : undefined)
+                              condition.value as string | undefined
                             }
                             items={attribute.options.map(({ id, label }) => ({
                               text: label,
@@ -758,39 +748,16 @@ function ConditionLogic({
                             onSelect={(value) => {
                               setValue(conditionKey, {
                                 ...condition,
-                                value: isArrayValue
-                                  ? Array.isArray(condition.value)
-                                    ? (condition.value as string[]).includes(
-                                        value,
-                                      )
-                                      ? (condition.value.filter(
-                                          (v) => v !== value,
-                                        ) as string[])
-                                      : ([
-                                          ...condition.value,
-                                          value,
-                                        ] as string[])
-                                    : [value]
-                                  : value,
+                                value,
                               });
                             }}
                           />
-                        ) : isArrayValue ? (
-                          // String array input
-                          <InlineBadgePopoverInputs
-                            values={
-                              condition.value
-                                ? Array.isArray(condition.value)
-                                  ? condition.value.map(String)
-                                  : [condition.value.toString()]
-                                : [""]
-                            }
-                            onChange={(values) => {
-                              setValue(conditionKey, {
-                                ...condition,
-                                value: values,
-                              });
-                            }}
+                        ) : isContainsOperator ? (
+                          <InlineBadgePopoverInput
+                            placeholder="Substring to match"
+                            {...register(`${conditionKey}.value`, {
+                              required: true,
+                            })}
                           />
                         ) : ["number", "currency"].includes(attributeType) ||
                           isMetadataNumeric ? (

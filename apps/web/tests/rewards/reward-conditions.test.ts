@@ -476,8 +476,8 @@ describe("evaluateRewardConditions", () => {
       });
     });
 
-    describe("in", () => {
-      test("should match when value is in array", () => {
+    describe("in (contains substring)", () => {
+      test("should match when field contains the substring", () => {
         const conditions = [
           {
             operator: "AND" as const,
@@ -487,7 +487,7 @@ describe("evaluateRewardConditions", () => {
                 entity: "customer" as const,
                 attribute: "country" as const,
                 operator: "in" as const,
-                value: ["US", "CA", "UK"],
+                value: "CA",
               },
             ],
           },
@@ -507,7 +507,34 @@ describe("evaluateRewardConditions", () => {
         expect(result).toEqual(conditions[0]);
       });
 
-      test("should not match when value is not in array", () => {
+      test("should match when scalar substring is contained in the field", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "in" as const,
+                value: "plan",
+              },
+            ],
+          },
+        ];
+
+        const context: RewardContext = {
+          sale: {
+            productId: "premium-plan",
+          },
+        };
+
+        expect(evaluateRewardConditions({ conditions, context })).toEqual(
+          conditions[0],
+        );
+      });
+
+      test("should not match when field does not contain the substring", () => {
         const conditions = [
           {
             operator: "AND" as const,
@@ -517,7 +544,7 @@ describe("evaluateRewardConditions", () => {
                 entity: "customer" as const,
                 attribute: "country" as const,
                 operator: "in" as const,
-                value: ["US", "CA", "UK"],
+                value: "US",
               },
             ],
           },
@@ -538,8 +565,8 @@ describe("evaluateRewardConditions", () => {
       });
     });
 
-    describe("not_in", () => {
-      test("should match when value is not in array", () => {
+    describe("not_in (does not contain substring)", () => {
+      test("should match when field does not contain the substring", () => {
         const conditions = [
           {
             operator: "AND" as const,
@@ -549,7 +576,7 @@ describe("evaluateRewardConditions", () => {
                 entity: "customer" as const,
                 attribute: "country" as const,
                 operator: "not_in" as const,
-                value: ["US", "CA", "UK"],
+                value: "US",
               },
             ],
           },
@@ -569,7 +596,7 @@ describe("evaluateRewardConditions", () => {
         expect(result).toEqual(conditions[0]);
       });
 
-      test("should not match when value is in array", () => {
+      test("should not match when field contains the substring", () => {
         const conditions = [
           {
             operator: "AND" as const,
@@ -579,7 +606,7 @@ describe("evaluateRewardConditions", () => {
                 entity: "customer" as const,
                 attribute: "country" as const,
                 operator: "not_in" as const,
-                value: ["US", "CA", "UK"],
+                value: "US",
               },
             ],
           },
@@ -1568,7 +1595,7 @@ describe("evaluateRewardConditions", () => {
       expect(result).toEqual(conditions[0]); // Should return the US condition
     });
 
-    test("should match partner country with multiple countries", () => {
+    test("should match partner country when field contains the substring", () => {
       const conditions = [
         {
           operator: "AND" as const,
@@ -1579,7 +1606,7 @@ describe("evaluateRewardConditions", () => {
               entity: "partner" as const,
               attribute: "country" as const,
               operator: "in" as const,
-              value: ["US", "CA", "UK"],
+              value: "CA",
             },
           ],
         },
@@ -1596,7 +1623,7 @@ describe("evaluateRewardConditions", () => {
         context,
       });
 
-      expect(result).toEqual(conditions[0]); // Should match CA
+      expect(result).toEqual(conditions[0]);
     });
 
     test("should not match when partner country does not match", () => {
@@ -1929,7 +1956,7 @@ describe("evaluateRewardConditions", () => {
       );
     });
 
-    test("matches sale metadata in", () => {
+    test("matches sale metadata contains substring", () => {
       const conditions = [
         {
           operator: "AND" as const,
@@ -1941,7 +1968,7 @@ describe("evaluateRewardConditions", () => {
               attribute: "metadata" as const,
               metadataField: "tier",
               operator: "in" as const,
-              value: ["gold", "platinum"],
+              value: "gold",
             },
           ],
         },
@@ -1958,7 +1985,7 @@ describe("evaluateRewardConditions", () => {
       );
     });
 
-    test("matches sale metadata in when metadata is numeric and list values are numbers", () => {
+    test("matches sale metadata contains when metadata is numeric (substring on string form)", () => {
       const conditions = [
         {
           operator: "AND" as const,
@@ -1970,7 +1997,7 @@ describe("evaluateRewardConditions", () => {
               attribute: "metadata" as const,
               metadataField: "tier",
               operator: "in" as const,
-              value: [1, 2, 3],
+              value: "2",
             },
           ],
         },
@@ -2157,6 +2184,68 @@ describe("rewardConditionSchema", () => {
         operator: "equals_to",
         value: "x",
         metadataField: "plan",
+      }).success,
+    ).toBe(true);
+
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "sale",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+        metadataField: "plan",
+      }).success,
+    ).toBe(true);
+  });
+
+  test("rejects metadata attribute for entities other than lead and sale", () => {
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "customer",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+        metadataField: "plan",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "partner",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+        metadataField: "plan",
+      }).success,
+    ).toBe(false);
+  });
+
+  test("rejects contains / does not contain when value is not a string", () => {
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "customer",
+        attribute: "country",
+        operator: "in",
+        value: ["US", "CA"],
+      }).success,
+    ).toBe(false);
+
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "sale",
+        attribute: "metadata",
+        operator: "in",
+        value: 2,
+        metadataField: "tier",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "customer",
+        attribute: "country",
+        operator: "in",
+        value: "US",
       }).success,
     ).toBe(true);
   });
