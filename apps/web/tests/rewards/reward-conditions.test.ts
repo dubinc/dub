@@ -1869,4 +1869,196 @@ describe("evaluateRewardConditions", () => {
       expect(result).toBeNull();
     });
   });
+
+  describe("metadata conditions (lead / sale)", () => {
+    test("matches lead metadata equals_to", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 100,
+          conditions: [
+            {
+              entity: "lead" as const,
+              attribute: "metadata" as const,
+              metadataField: "plan",
+              operator: "equals_to" as const,
+              value: "pro",
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        lead: { metadata: { plan: "pro" } },
+      };
+
+      expect(evaluateRewardConditions({ conditions, context })).toEqual(
+        conditions[0],
+      );
+    });
+
+    test("matches sale metadata greater_than for string number", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 200,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "seats",
+              operator: "greater_than" as const,
+              value: 5,
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        sale: {
+          amount: 1000,
+          metadata: { seats: "10" },
+        },
+      };
+
+      expect(evaluateRewardConditions({ conditions, context })).toEqual(
+        conditions[0],
+      );
+    });
+
+    test("matches sale metadata in", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 300,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "tier",
+              operator: "in" as const,
+              value: ["gold", "platinum"],
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        sale: {
+          metadata: { tier: "gold" },
+        },
+      };
+
+      expect(evaluateRewardConditions({ conditions, context })).toEqual(
+        conditions[0],
+      );
+    });
+
+    test("returns null when metadata key is missing", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 100,
+          conditions: [
+            {
+              entity: "lead" as const,
+              attribute: "metadata" as const,
+              metadataField: "missing",
+              operator: "equals_to" as const,
+              value: "x",
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        lead: { metadata: { plan: "pro" } },
+      };
+
+      expect(evaluateRewardConditions({ conditions, context })).toBeNull();
+    });
+
+    test("returns null when metadataField is empty", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 100,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "  ",
+              operator: "equals_to" as const,
+              value: "a",
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        sale: { metadata: { tier: "a" } },
+      };
+
+      expect(evaluateRewardConditions({ conditions, context })).toBeNull();
+    });
+
+    test("returns null when metadata value is null (numeric operator)", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 100,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "seats",
+              operator: "greater_than" as const,
+              value: 0,
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        sale: {
+          metadata: { seats: null },
+        },
+      };
+
+      expect(evaluateRewardConditions({ conditions, context })).toBeNull();
+    });
+
+    test("returns null when metadata value is empty string (numeric operator)", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 100,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "seats",
+              operator: "greater_than" as const,
+              value: 0,
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        sale: {
+          metadata: { seats: "" },
+        },
+      };
+
+      expect(evaluateRewardConditions({ conditions, context })).toBeNull();
+    });
+  });
 });

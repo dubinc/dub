@@ -22,15 +22,7 @@ export const evaluateRewardConditions = ({
   for (const conditionGroup of conditions) {
     // Evaluate each condition in the group
     const conditionResults = conditionGroup.conditions.map((condition) => {
-      let fieldValue = undefined;
-
-      if (condition.entity === "customer") {
-        fieldValue = context.customer?.[condition.attribute];
-      } else if (condition.entity === "sale") {
-        fieldValue = context.sale?.[condition.attribute];
-      } else if (condition.entity === "partner") {
-        fieldValue = context.partner?.[condition.attribute];
-      }
+      const fieldValue = resolveConditionFieldValue({ condition, context });
 
       if (fieldValue === undefined) {
         return false;
@@ -74,6 +66,102 @@ export const evaluateRewardConditions = ({
       }),
   )[0];
 };
+
+function resolveConditionFieldValue({
+  condition,
+  context,
+}: {
+  condition: RewardCondition;
+  context: RewardContext;
+}): string | number | string[] | number[] | undefined {
+  if (condition.attribute === "metadata") {
+    const metaKey = condition.metadataField?.trim() ?? "";
+    if (!metaKey) return undefined;
+
+    if (condition.entity === "lead") {
+      const raw = context.lead?.metadata?.[metaKey];
+      return prepareMetadataFieldValue(raw, condition);
+    }
+
+    if (condition.entity === "sale") {
+      const raw = context.sale?.metadata?.[metaKey];
+      return prepareMetadataFieldValue(raw, condition);
+    }
+
+    return undefined;
+  }
+
+  if (condition.entity === "customer") {
+    return context.customer?.[condition.attribute];
+  }
+  if (condition.entity === "sale") {
+    return context.sale?.[condition.attribute];
+  }
+  if (condition.entity === "partner") {
+    return context.partner?.[condition.attribute];
+  }
+  if (condition.entity === "lead") {
+    return undefined;
+  }
+
+  return undefined;
+}
+
+function prepareMetadataFieldValue(
+  raw: unknown,
+  condition: RewardCondition,
+): string | number | string[] | number[] | undefined {
+  if (raw == null) {
+    return undefined;
+  }
+  const op = condition.operator;
+
+  const textOperators = [
+    "equals_to",
+    "not_equals",
+    "starts_with",
+    "ends_with",
+    "in",
+    "not_in",
+  ];
+  const numberOperators = [
+    "greater_than",
+    "greater_than_or_equal",
+    "less_than",
+    "less_than_or_equal",
+  ];
+
+  if (numberOperators.includes(op)) {
+    if (typeof raw === "number" && !Number.isNaN(raw)) {
+      return raw;
+    }
+
+    if (
+      typeof raw === "string" &&
+      raw.trim() !== "" &&
+      !Number.isNaN(Number(raw))
+    ) {
+      return Number(raw);
+    }
+
+    if (typeof raw === "boolean") {
+      return Number(raw);
+    }
+
+    if (typeof raw === "string" && raw.trim() === "") {
+      return undefined;
+    }
+
+    const n = Number(raw);
+    return Number.isNaN(n) ? undefined : n;
+  }
+
+  if (textOperators.includes(op)) {
+    return typeof raw === "string" ? raw : String(raw);
+  }
+
+  return undefined;
+}
 
 const evaluateCondition = ({
   condition,

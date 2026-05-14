@@ -305,6 +305,13 @@ export const trackLead = async ({
                   country: customer.country,
                   source,
                 },
+                ...(metadata != null
+                  ? {
+                      lead: {
+                        metadata: metadata as Record<string, unknown>,
+                      },
+                    }
+                  : {}),
               },
             });
 

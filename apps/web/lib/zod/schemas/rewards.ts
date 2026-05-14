@@ -417,11 +417,18 @@ export const rewardContextSchema = z.object({
     })
     .optional(),
 
+  lead: z
+    .object({
+      metadata: z.record(z.string(), z.unknown()).optional(),
+    })
+    .optional(),
+
   sale: z
     .object({
       productId: z.string().nullish(),
       amount: z.number().nullish(),
       type: z.enum(["new", "recurring"]).nullish(),
+      metadata: z.record(z.string(), z.unknown()).optional(),
     })
     .optional(),
 
