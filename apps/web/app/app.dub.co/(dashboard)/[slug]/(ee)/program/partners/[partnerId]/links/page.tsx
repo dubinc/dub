@@ -41,7 +41,7 @@ export default function ProgramPartnerLinksPage() {
     <div className="grid gap-4">
       <PartnerLinks partner={partner} />
       <PartnerDiscountCodes partner={partner} />
-      {partner.username && <PartnerReferralLink partner={partner} />}
+      <PartnerReferralLink partner={partner} />
     </div>
   ) : (
     <div className="flex justify-center py-16">
@@ -262,7 +262,11 @@ const PartnerReferralLink = ({
     scrollWrapperClassName: "min-h-[40px]",
     loading: loadingReferral || !program,
     error: referralError ? "Failed to load partner referral data" : undefined,
-  } as any);
+  });
+
+  if (!partner?.referralRewardId) {
+    return null;
+  }
 
   return (
     <>
