@@ -5,7 +5,7 @@ import { NETWORK_PROGRAM_ID, NETWORK_WORKSPACE_ID } from "@dub/utils";
 import { cookies } from "next/headers";
 import { getApplicationEventCookieName } from "./utils";
 
-export async function submitNetworkApplicationEvent(
+export async function markApplicationEventSubmittedNetwork(
   partner: Pick<Partner, "id" | "name" | "email" | "country">,
 ) {
   try {
