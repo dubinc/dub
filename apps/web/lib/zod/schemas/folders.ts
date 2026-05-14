@@ -61,6 +61,5 @@ export const updateFolderSchema = z.object({
   description: createFolderSchema.shape.description.optional(),
   accessLevel: folderAccessLevelSchema
     .nullish()
-    .optional()
     .describe("The access level of the folder within the workspace."),
 });
