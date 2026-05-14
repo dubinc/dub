@@ -14,7 +14,6 @@ import {
   ProgramEnrollmentStatus,
   SalesChannel,
 } from "@dub/prisma/client";
-import { COUNTRY_CODES } from "@dub/utils";
 import * as z from "zod/v4";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
@@ -746,12 +745,12 @@ export const onboardPartnerSchema = createPartnerSchema
   .omit({
     username: true,
     email: true,
+    country: true,
     linkProps: true,
   })
   .extend({
     name: z.string().min(1, "Name is required"),
     image: partnerImageSchema,
-    country: z.enum(COUNTRY_CODES),
     profileType: z.enum(PartnerProfileType).default("individual"),
     companyName: z.string().nullish(),
   })

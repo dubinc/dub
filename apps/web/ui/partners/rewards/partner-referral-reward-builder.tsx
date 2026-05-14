@@ -83,7 +83,7 @@ export function PartnerReferralRewardBuilder() {
     }
 
     const nextTrigger: Trigger =
-      type === "percentage" ? "commissionEarned" : "partnerApproved";
+      type === "percentage" ? "saleRecorded" : "partnerApproved";
 
     setValue("config", { trigger: nextTrigger }, { shouldDirty: true });
   }, [setValue, config?.trigger, type]);
@@ -136,7 +136,7 @@ export function PartnerReferralRewardBuilder() {
         return PARTNER_REFERRAL_PERCENTAGE_BASIS_LABELS[config.trigger];
       }
 
-      return PARTNER_REFERRAL_PERCENTAGE_BASIS_LABELS.commissionEarned;
+      return PARTNER_REFERRAL_PERCENTAGE_BASIS_LABELS.saleRecorded;
     }
 
     return PARTNER_REFERRAL_TRIGGER_LABELS[config.trigger];

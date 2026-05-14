@@ -6,6 +6,7 @@ import {
 } from "@/lib/partner-referrals/constants";
 import { RewardProps } from "@/lib/types";
 import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
+import { currencyFormatter } from "@dub/utils";
 
 export function formatRewardDescription(
   reward: RewardProps,
@@ -90,8 +91,20 @@ function formatReferralRewardDescription(
       .join(" ");
   }
 
-  if (reward.type === "flat") {
-    return `${includeEarnPrefix ? "Earn " : ""}${rewardAmount} per referred partner`;
+  if (
+    reward.type === "flat" &&
+    config.trigger === "commissionThreshold" &&
+    config.commissionsThresholdInCents != null
+  ) {
+    const threshold = currencyFormatter(config.commissionsThresholdInCents, {
+      trailingZeroDisplay: "stripIfInteger",
+    });
+
+    return `${includeEarnPrefix ? "Earn " : ""}${rewardAmount} when the referred partner earns at least ${threshold} in commissions`;
+  }
+
+  if (reward.type === "flat" && config.trigger === "partnerApproved") {
+    return `${includeEarnPrefix ? "Earn " : ""}${rewardAmount} when the referred partner is approved into the program`;
   }
 
   const duration = formatReferralDuration(reward.maxDuration);

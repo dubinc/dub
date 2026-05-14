@@ -10,6 +10,7 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { headers } from "next/headers";
 import { authUserActionClient } from "../safe-action";
 
 // Onboard a new partner:
@@ -19,7 +20,7 @@ export const onboardPartnerAction = authUserActionClient
   .inputSchema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
-    const { name, image, country, description, profileType } = parsedInput;
+    const { name, image, description, profileType, companyName } = parsedInput;
 
     const existingPartner = await prisma.partner.findUnique({
       where: {
@@ -30,6 +31,7 @@ export const onboardPartnerAction = authUserActionClient
         username: true,
         country: true,
         profileType: true,
+        companyName: true,
       },
     });
 
@@ -53,7 +55,9 @@ export const onboardPartnerAction = authUserActionClient
           email: user.email,
         });
 
-    // country, profileType, and companyName cannot be changed once set
+    const headerList = await headers();
+    const country = headerList.get("x-vercel-ip-country");
+
     const payload: Prisma.PartnerCreateInput = {
       name: name || user.email,
       email: user.email,
@@ -61,6 +65,7 @@ export const onboardPartnerAction = authUserActionClient
       // can only update these fields if it's not already set (else you need to update under profile settings)
       ...(existingPartner?.country ? {} : { country }),
       ...(existingPartner?.profileType ? {} : { profileType }),
+      ...(existingPartner?.companyName ? {} : { companyName }),
       ...(description && { description }),
       image: imageUrl,
       users: {

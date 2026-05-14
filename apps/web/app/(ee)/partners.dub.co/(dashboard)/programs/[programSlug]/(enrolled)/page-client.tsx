@@ -15,7 +15,6 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
-import { PartnerReferralRewardConfigTooltip } from "@/ui/partners/partner-referral-reward-config-tooltip";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramRewardModifiersTooltip } from "@/ui/partners/program-reward-modifiers-tooltip";
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
@@ -732,14 +731,7 @@ function RewardList() {
           rewards={referralRewards.map((reward) => ({
             id: reward.id,
             icon: REWARD_EVENT_ICON.referral,
-            text: (
-              <>
-                {formatRewardDescription(reward)}
-                {reward.config && (
-                  <PartnerReferralRewardConfigTooltip config={reward.config} />
-                )}
-              </>
-            ),
+            text: formatRewardDescription(reward),
             badge: (
               <span className="inline-flex h-4 shrink-0 items-center justify-center rounded-md bg-blue-100 px-1 text-xs font-semibold leading-4 tracking-tight text-blue-600">
                 New
