@@ -176,6 +176,7 @@ export function trackRewardActivityLog({
         "maxDuration",
         "description",
         "tooltipDescription",
+        "config",
       ],
     });
 
