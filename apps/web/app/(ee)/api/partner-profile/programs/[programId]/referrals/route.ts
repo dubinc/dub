@@ -70,6 +70,7 @@ export const GET = withPartnerProfile(
       const commissions = await prisma.commission.groupBy({
         by: ["sourcePartnerId"],
         where: {
+          programId: programEnrollment.programId,
           partnerId: partner.id,
           type: CommissionType.referral,
           sourcePartnerId: {

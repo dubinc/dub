@@ -40,19 +40,17 @@ export async function markApplicationEventSubmittedNetwork(
       return;
     }
 
-    if (applicationEvent.referredByPartnerId) {
-      await prisma.partner
-        .update({
-          where: {
-            id: partner.id,
-            referredByPartnerId: null,
-          },
-          data: {
-            referredByPartnerId: applicationEvent.referredByPartnerId,
-          },
-        })
-        .catch(() => null);
-    }
+    await prisma.partner
+      .update({
+        where: {
+          id: partner.id,
+          referredByPartnerId: null,
+        },
+        data: {
+          referredByPartnerId: applicationEvent.referredByPartnerId,
+        },
+      })
+      .catch(() => null);
 
     await prisma.customer.create({
       data: {

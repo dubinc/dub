@@ -21,7 +21,7 @@ export const GET = withPartnerProfile(
 
     if (!programEnrollment.referralRewardId) {
       throw new DubApiError({
-        code: "not_found",
+        code: "forbidden",
         message: "Referral rewards are not enabled for the partner's group.",
       });
     }
