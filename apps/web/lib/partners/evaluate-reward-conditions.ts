@@ -107,60 +107,64 @@ function resolveConditionFieldValue({
   return undefined;
 }
 
+const METADATA_TEXT_OPS = new Set<string>(["starts_with", "ends_with"]);
+
+const METADATA_NUMERIC_ORDER_OPS = new Set<string>([
+  "greater_than",
+  "greater_than_or_equal",
+  "less_than",
+  "less_than_or_equal",
+]);
+
+const METADATA_EQUALS_OR_LIST_OPS = new Set<string>([
+  "equals_to",
+  "not_equals",
+  "in",
+  "not_in",
+]);
+
+function parseMetadataNumeric(raw: unknown): number | undefined {
+  if (raw == null) {
+    return undefined;
+  }
+  if (typeof raw === "number" && !Number.isNaN(raw)) {
+    return raw;
+  }
+  if (typeof raw === "string") {
+    if (raw.trim() === "" || Number.isNaN(Number(raw))) {
+      return undefined;
+    }
+    return Number(raw);
+  }
+  if (typeof raw === "boolean") {
+    return Number(raw);
+  }
+  const n = Number(raw);
+  return Number.isNaN(n) ? undefined : n;
+}
+
+function metadataRawToString(raw: unknown): string {
+  return typeof raw === "string" ? raw : String(raw);
+}
+
 function prepareMetadataFieldValue(
   raw: unknown,
   condition: RewardCondition,
 ): string | number | string[] | number[] | undefined {
-  if (raw == null) {
-    return undefined;
-  }
+  if (raw == null) return undefined;
+
   const op = condition.operator;
 
-  const textOperators = [
-    "equals_to",
-    "not_equals",
-    "starts_with",
-    "ends_with",
-    "in",
-    "not_in",
-  ];
-  const numberOperators = [
-    "greater_than",
-    "greater_than_or_equal",
-    "less_than",
-    "less_than_or_equal",
-  ];
+  if (METADATA_TEXT_OPS.has(op)) return metadataRawToString(raw);
 
-  if (numberOperators.includes(op)) {
-    if (typeof raw === "number" && !Number.isNaN(raw)) {
-      return raw;
-    }
+  const ordering = METADATA_NUMERIC_ORDER_OPS.has(op);
+  const equalsOrList = METADATA_EQUALS_OR_LIST_OPS.has(op);
+  if (!ordering && !equalsOrList) return undefined;
 
-    if (
-      typeof raw === "string" &&
-      raw.trim() !== "" &&
-      !Number.isNaN(Number(raw))
-    ) {
-      return Number(raw);
-    }
+  const numeric = parseMetadataNumeric(raw);
+  if (ordering) return numeric;
 
-    if (typeof raw === "boolean") {
-      return Number(raw);
-    }
-
-    if (typeof raw === "string" && raw.trim() === "") {
-      return undefined;
-    }
-
-    const n = Number(raw);
-    return Number.isNaN(n) ? undefined : n;
-  }
-
-  if (textOperators.includes(op)) {
-    return typeof raw === "string" ? raw : String(raw);
-  }
-
-  return undefined;
+  return numeric !== undefined ? numeric : metadataRawToString(raw);
 }
 
 const evaluateCondition = ({

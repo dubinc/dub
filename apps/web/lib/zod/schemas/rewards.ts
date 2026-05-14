@@ -225,14 +225,12 @@ export const REWARD_CONDITION_ENTITIES = [
   ),
 ];
 
-export const REWARD_CONDITION_ATTRIBUTES = [
-  ...new Map(
-    Object.values(REWARD_CONDITIONS)
-      .flatMap(({ entities }) =>
-        entities.flatMap(({ attributes }) => attributes),
-      )
-      .map((attr) => [attr.id, attr] as const),
-  ).values(),
+export const REWARD_CONDITION_ATTRIBUTES = Object.values(
+  REWARD_CONDITIONS,
+).flatMap(({ entities }) => entities.flatMap(({ attributes }) => attributes));
+
+export const REWARD_CONDITION_ATTRIBUTE_IDS = [
+  ...new Set(REWARD_CONDITION_ATTRIBUTES.map(({ id }) => id)),
 ];
 
 export const CONDITION_OPERATORS = [
@@ -286,26 +284,38 @@ export const CONDITION_OPERATOR_LABELS = {
   less_than_or_equal: "is less than or equal to",
 } as const;
 
-export const rewardConditionSchema = z.object({
-  entity: z.enum(
-    REWARD_CONDITION_ENTITIES.map(({ id }) => id) as [string, ...string[]],
-  ),
-  attribute: z.enum(
-    REWARD_CONDITION_ATTRIBUTES.map(({ id }) => id) as [string, ...string[]],
-  ),
-  operator: z.enum(CONDITION_OPERATORS),
-  value: z.union([
-    z.string(),
-    z.number(),
-    z.array(z.string()),
-    z.array(z.number()),
-  ]),
-  label: z
-    .string()
-    .nullish()
-    .describe("Product name used for display purposes in the UI."),
-  metadataField: z.string().optional(),
-});
+export const rewardConditionSchema = z
+  .object({
+    entity: z.enum(
+      REWARD_CONDITION_ENTITIES.map(({ id }) => id) as [string, ...string[]],
+    ),
+    attribute: z.enum(REWARD_CONDITION_ATTRIBUTE_IDS as [string, ...string[]]),
+    operator: z.enum(CONDITION_OPERATORS),
+    value: z.union([
+      z.string(),
+      z.number(),
+      z.array(z.string()),
+      z.array(z.number()),
+    ]),
+    label: z
+      .string()
+      .nullish()
+      .describe("Product name used for display purposes in the UI."),
+    metadataField: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.attribute !== "metadata") {
+      return;
+    }
+    const key = data.metadataField?.trim() ?? "";
+    if (!key) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Metadata field name is required when attribute is Metadata.",
+        path: ["metadataField"],
+      });
+    }
+  });
 
 export const PERCENTAGE_REWARD_AMOUNT_SCHEMA = z
   .number()

@@ -1,5 +1,6 @@
 import { evaluateRewardConditions } from "@/lib/partners/evaluate-reward-conditions";
 import { RewardContext } from "@/lib/types";
+import { rewardConditionSchema } from "@/lib/zod/schemas/rewards";
 import { describe, expect, test } from "vitest";
 
 describe("evaluateRewardConditions", () => {
@@ -1957,6 +1958,71 @@ describe("evaluateRewardConditions", () => {
       );
     });
 
+    test("matches sale metadata in when metadata is numeric and list values are numbers", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 400,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "tier",
+              operator: "in" as const,
+              value: [1, 2, 3],
+            },
+          ],
+        },
+      ];
+
+      const contextNumeric: RewardContext = {
+        sale: { metadata: { tier: 2 } },
+      };
+      const contextStringNumeric: RewardContext = {
+        sale: { metadata: { tier: "2" } },
+      };
+
+      expect(
+        evaluateRewardConditions({ conditions, context: contextNumeric }),
+      ).toEqual(conditions[0]);
+      expect(
+        evaluateRewardConditions({ conditions, context: contextStringNumeric }),
+      ).toEqual(conditions[0]);
+    });
+
+    test("matches sale metadata equals_to when metadata is number and condition value is number", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 500,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "seats",
+              operator: "equals_to" as const,
+              value: 42,
+            },
+          ],
+        },
+      ];
+
+      expect(
+        evaluateRewardConditions({
+          conditions,
+          context: { sale: { metadata: { seats: 42 } } },
+        }),
+      ).toEqual(conditions[0]);
+      expect(
+        evaluateRewardConditions({
+          conditions,
+          context: { sale: { metadata: { seats: "42" } } },
+        }),
+      ).toEqual(conditions[0]);
+    });
+
     test("returns null when metadata key is missing", () => {
       const conditions = [
         {
@@ -2060,5 +2126,49 @@ describe("evaluateRewardConditions", () => {
 
       expect(evaluateRewardConditions({ conditions, context })).toBeNull();
     });
+  });
+});
+
+describe("rewardConditionSchema", () => {
+  test("rejects metadata attribute when metadataField is missing or only whitespace", () => {
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "lead",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "lead",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+        metadataField: "  ",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "lead",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+        metadataField: "plan",
+      }).success,
+    ).toBe(true);
+  });
+
+  test("allows non-metadata attributes without metadataField", () => {
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "customer",
+        attribute: "country",
+        operator: "equals_to",
+        value: "US",
+      }).success,
+    ).toBe(true);
   });
 });
