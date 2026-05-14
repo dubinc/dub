@@ -663,14 +663,14 @@ function RewardSheetContent({
                   <TooltipContent
                     title="Referral rewards are only available on the Advanced plan and above."
                     cta="Upgrade to Advanced"
-                    href={`/${workspaceSlug}/upgrade?showPartnersUpgradeModal=true`}
+                    href={`/${workspaceSlug}/upgrade?plan=advanced&showPartnersUpgradeModal=true`}
                     target="_blank"
                   />
                 ) : showAdvancedUpsell ? (
                   <TooltipContent
                     title="[Advanced reward structures](https://dub.co/help/article/partner-rewards#adding-reward-conditions) are only available on the Advanced plan and above."
                     cta="Upgrade to Advanced"
-                    href={`/${workspaceSlug}/upgrade?showPartnersUpgradeModal=true`}
+                    href={`/${workspaceSlug}/upgrade?plan=advanced&showPartnersUpgradeModal=true`}
                     target="_blank"
                   />
                 ) : undefined
@@ -701,19 +701,19 @@ const REWARD_HELPER_CONTENT: Record<
     icon: UserPlus,
     title: "Lead rewards",
     description:
-      "Reward for sign ups or demos. Best for B2B, demos, waitlists, or longer sales cycles.",
+      "Reward for sign ups or demos. Best for B2B, demos, waitlists, or products with longer sales cycles.",
   },
   click: {
     icon: CursorRays,
     title: "Click rewards",
     description:
-      "Reward for traffic and reach. Best for publishers and trusted partners only.",
+      "Reward for traffic and reach. Best for publishers with high DR sites and trusted partners only.",
   },
   referral: {
     icon: UserPlus,
     title: "Referral rewards",
     description:
-      "Reward partners for referring other partners. Best for affiliate networks and partner-to-partner growth.",
+      "Reward partners for referring other partners. Best for driving partner growth to your program.",
   },
 };
 

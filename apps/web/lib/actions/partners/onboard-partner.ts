@@ -2,7 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { generatePartnerUsername } from "@/lib/api/partners/generate-partner-username";
-import { submitNetworkApplicationEvent } from "@/lib/application-events/submit-network-application-event";
+import { markApplicationEventSubmittedNetwork } from "@/lib/application-events/mark-application-event-submitted-network";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -114,8 +114,8 @@ export const onboardPartnerAction = authUserActionClient
         // Complete any outstanding program application
         completeProgramApplications(user.email),
 
-        // Mark the application event as submitted for the network program
-        submitNetworkApplicationEvent(updatedPartner),
+        // Mark the application event as submitted for the `network` program
+        markApplicationEventSubmittedNetwork(updatedPartner),
       ]),
     );
 

@@ -369,7 +369,10 @@ export const PartnerSchema = z
   .object({
     id: z.string().describe("The partner's unique ID on Dub."),
     name: z.string().max(190).describe("The partner's full legal name."),
-    username: z.string().nullable().describe("The partner's unique username."),
+    username: z
+      .string()
+      .nullable()
+      .describe("The partner's unique username on Dub."),
     email: z
       .string()
       .max(190)

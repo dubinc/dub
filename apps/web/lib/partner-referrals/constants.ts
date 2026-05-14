@@ -1,12 +1,12 @@
 const PARTNER_REFERRAL_TRIGGER_CONFIG = {
   percentage: {
-    commissionEarned: {
-      verb: "earns a commission",
-      basis: "referred partner's commission",
-    },
     saleRecorded: {
       verb: "makes a sale",
       basis: "original sale amount",
+    },
+    commissionEarned: {
+      verb: "earns a commission",
+      basis: "referred partner's commission",
     },
   },
   flat: {

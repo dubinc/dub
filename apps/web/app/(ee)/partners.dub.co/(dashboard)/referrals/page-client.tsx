@@ -17,7 +17,6 @@ import { CountryFlag } from "@/ui/shared/country-flag";
 import {
   Button,
   Copy,
-  LinkLogo,
   MiniAreaChart,
   Table,
   TimestampTooltip,
@@ -31,12 +30,13 @@ import { Gift, UserArrowRight } from "@dub/ui/icons";
 import {
   COUNTRIES,
   currencyFormatter,
+  DUB_LOGO,
   formatDate,
-  getApexDomain,
+  getPrettyUrl,
   PARTNERS_DOMAIN,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
-import { HelpCircle, Lock } from "lucide-react";
+import { Check, HelpCircle, Lock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { ComponentType, ReactNode, useMemo } from "react";
@@ -146,7 +146,7 @@ function ReferralsStatItem({
   chartData?: { date: Date; value: number }[] | null;
 }) {
   return (
-    <div className="flex flex-col gap-1 p-4">
+    <div className="flex flex-col gap-1 p-4 pr-0">
       <div className="flex items-center gap-1">
         <span className="text-content-default text-sm font-medium">
           {label}
@@ -156,7 +156,7 @@ function ReferralsStatItem({
         </Tooltip>
       </div>
 
-      <div className="flex items-end">
+      <div className="flex items-end gap-4">
         <span className="text-content-emphasis whitespace-nowrap text-3xl font-medium tabular-nums">
           {isLoading ? (
             <span
@@ -168,7 +168,7 @@ function ReferralsStatItem({
           )}
         </span>
         {chartData && chartData.length > 0 && (
-          <div className="relative hidden h-10 flex-1 sm:block">
+          <div className="relative h-10 flex-1">
             <MiniAreaChart data={chartData} padding={{ top: 8, bottom: 8 }} />
           </div>
         )}
@@ -205,7 +205,7 @@ function ReferralsStats() {
   return (
     <div className="grid grid-cols-2 divide-x divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
       <ReferralsStatItem
-        label="Partners"
+        label="Referred partners"
         tooltipContent="Partners who joined Dub Partners using your referral link."
         isLoading={partnerLoading || statsLoading}
         chartData={partnersChartData}
@@ -220,8 +220,7 @@ function ReferralsStats() {
         chartData={earningsChartData}
       >
         {currencyFormatter(stats?.totalEarnings ?? 0, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
+          trailingZeroDisplay: "stripIfInteger",
         })}
       </ReferralsStatItem>
     </div>
@@ -258,7 +257,7 @@ function ReferralLinkLocked() {
 
 function ReferralLink() {
   const { profileReady, isEligible, referralLink } = useNetworkReferralAccess();
-  const [, copyToClipboard] = useCopyToClipboard();
+  const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
 
   const copyReferralLink = () => {
@@ -287,30 +286,32 @@ function ReferralLink() {
       </p>
       <div className="rounded-xl border border-neutral-200 p-2">
         <div className="flex min-w-0 items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <div className="relative flex size-9 shrink-0 items-center justify-center sm:size-10">
               <div className="absolute inset-0 rounded-full border border-neutral-200">
                 <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
               </div>
-              <div className="relative z-10 flex items-center justify-center">
-                <LinkLogo
-                  apexDomain={getApexDomain(referralLink)}
-                  className="size-4 sm:size-6"
-                  imageProps={{
-                    loading: "lazy",
-                  }}
-                />
-              </div>
+              <img
+                src={DUB_LOGO}
+                alt="Dub Partners"
+                className="relative z-10 size-6 shrink-0 rounded-full"
+              />
             </div>
             <span className="text-content-default min-w-0 truncate text-sm font-semibold">
-              {referralLink}
+              {getPrettyUrl(referralLink)}
             </span>
           </div>
           <Button
             text={isMobile ? undefined : "Copy link"}
             variant="primary"
-            icon={<Copy className="size-4" />}
-            className="w-fit shrink-0"
+            icon={
+              copied ? (
+                <Check className="size-4" />
+              ) : (
+                <Copy className="size-4" />
+              )
+            }
+            className="h-9 w-fit shrink-0"
             onClick={copyReferralLink}
             aria-label="Copy referral link"
           />
@@ -380,7 +381,7 @@ function ReferredPartners() {
     enabled: profileReady && isEligible,
   });
 
-  const [, copyToClipboard] = useCopyToClipboard();
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const copyReferralLink = () => {
     if (!referralLink) return;
@@ -524,7 +525,13 @@ function ReferredPartners() {
         button={
           <Button
             text="Copy link"
-            icon={<Copy className="size-4" />}
+            icon={
+              copied ? (
+                <Check className="size-4" />
+              ) : (
+                <Copy className="size-4" />
+              )
+            }
             onClick={copyReferralLink}
             className="h-9"
           />
@@ -535,81 +542,52 @@ function ReferredPartners() {
 }
 
 function ReferralsPromoCard() {
+  const cards = [
+    {
+      containerClassName:
+        "absolute left-[calc(50%-122px)] top-[-36px] flex h-[156px] w-[236px] items-center justify-center sm:left-[8px] sm:translate-x-0 lg:left-[8px]",
+      transform: "rotate(-14deg) scaleY(0.99) skewX(7deg)",
+    },
+    {
+      containerClassName:
+        "absolute left-[calc(50%-60px)] top-[-20px] flex h-[125px] w-[220px] items-center justify-center sm:left-[68px] sm:translate-x-0 lg:left-[68px]",
+      transform: "rotate(-3.38deg) scaleY(0.99) skewX(7deg)",
+    },
+    {
+      containerClassName:
+        "absolute left-[calc(50%+12px)] top-[-30px] flex h-[161px] w-[207px] items-center justify-center sm:left-[151px] sm:translate-x-0 lg:left-[151px]",
+      transform: "rotate(13.59deg) scaleY(0.99) skewX(7deg)",
+    },
+  ] as const;
+
+  const cardShadow =
+    "-53px 97px 31px rgba(0,0,0,0.01), -34px 62px 28px rgba(0,0,0,0.06), -19px 35px 24px rgba(0,0,0,0.19), -8px 16px 18px rgba(0,0,0,0.32), -2px 4px 10px rgba(0,0,0,0.37)";
+
   return (
     <div className="relative isolate flex min-h-[280px] w-full flex-col justify-end overflow-hidden rounded-xl bg-neutral-800 p-5 lg:h-full lg:min-h-0">
       <div
         className="pointer-events-none absolute inset-0 overflow-visible"
         aria-hidden
       >
-        <div className="absolute left-[calc(50%-122px)] top-[-36px] flex h-[156px] w-[236px] items-center justify-center sm:left-[8px] sm:translate-x-0 lg:left-[8px]">
-          <div
-            className="flex-none origin-center"
-            style={{ transform: "rotate(-14deg) scaleY(0.99) skewX(7deg)" }}
-          >
-            <div
-              className="relative h-[115px] w-[199px] overflow-hidden rounded-[6px]"
-              style={{
-                boxShadow:
-                  "-53px 97px 31px rgba(0,0,0,0.01), -34px 62px 28px rgba(0,0,0,0.06), -19px 35px 24px rgba(0,0,0,0.19), -8px 16px 18px rgba(0,0,0,0.32), -2px 4px 10px rgba(0,0,0,0.37)",
-              }}
-            >
-              <Image
-                src="https://assets.dub.co/partners/network-referral-card.png"
-                alt=""
-                width={398}
-                height={230}
-                className="size-full object-cover"
-                loading="lazy"
-              />
+        {cards.map(({ containerClassName, transform }, idx) => (
+          <div key={idx} className={containerClassName}>
+            <div className="flex-none origin-center" style={{ transform }}>
+              <div
+                className="relative h-[115px] w-[199px] overflow-hidden rounded-[6px]"
+                style={{ boxShadow: cardShadow }}
+              >
+                <Image
+                  src="https://assets.dub.co/misc/network-referral-card.png"
+                  alt=""
+                  width={398}
+                  height={230}
+                  className="size-full object-cover"
+                  loading="lazy"
+                />
+              </div>
             </div>
           </div>
-        </div>
-        <div className="absolute left-[calc(50%-60px)] top-[-20px] flex h-[125px] w-[220px] items-center justify-center sm:left-[68px] sm:translate-x-0 lg:left-[68px]">
-          <div
-            className="flex-none origin-center"
-            style={{ transform: "rotate(-3.38deg) scaleY(0.99) skewX(7deg)" }}
-          >
-            <div
-              className="relative h-[115px] w-[199px] overflow-hidden rounded-[6px]"
-              style={{
-                boxShadow:
-                  "-53px 97px 31px rgba(0,0,0,0.01), -34px 62px 28px rgba(0,0,0,0.06), -19px 35px 24px rgba(0,0,0,0.19), -8px 16px 18px rgba(0,0,0,0.32), -2px 4px 10px rgba(0,0,0,0.37)",
-              }}
-            >
-              <Image
-                src="https://assets.dub.co/partners/network-referral-card.png"
-                alt=""
-                width={398}
-                height={230}
-                className="size-full object-cover"
-                loading="lazy"
-              />
-            </div>
-          </div>
-        </div>
-        <div className="absolute left-[calc(50%+12px)] top-[-30px] flex h-[161px] w-[207px] items-center justify-center sm:left-[151px] sm:translate-x-0 lg:left-[151px]">
-          <div
-            className="flex-none origin-center"
-            style={{ transform: "rotate(13.59deg) scaleY(0.99) skewX(7deg)" }}
-          >
-            <div
-              className="relative h-[115px] w-[199px] overflow-hidden rounded-[6px]"
-              style={{
-                boxShadow:
-                  "-53px 97px 31px rgba(0,0,0,0.01), -34px 62px 28px rgba(0,0,0,0.06), -19px 35px 24px rgba(0,0,0,0.19), -8px 16px 18px rgba(0,0,0,0.32), -2px 4px 10px rgba(0,0,0,0.37)",
-              }}
-            >
-              <Image
-                src="https://assets.dub.co/partners/network-referral-card.png"
-                alt=""
-                width={398}
-                height={230}
-                className="size-full object-cover"
-                loading="lazy"
-              />
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
       <div className="relative z-[1] mt-auto space-y-2 pt-[88px] sm:pt-[84px]">
         <p className="text-base font-semibold text-white">

@@ -3,7 +3,6 @@ import { prisma } from "@dub/prisma";
 import { Commission, CommissionType, Prisma, Reward } from "@dub/prisma/client";
 import { currencyFormatter, log, NETWORK_PROGRAM_ID } from "@dub/utils";
 import { differenceInMonths } from "date-fns";
-import { triggerAggregateDueCommissionsCronJob } from "../actions/partners/trigger-aggregate-due-commissions";
 import { createId } from "../api/create-id";
 import { notifyPartnerCommission } from "../api/partners/notify-partner-commission";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
@@ -147,7 +146,7 @@ export const createReferralCommission = async (
       customerId: sourceCommission.customerId,
       currency: sourceCommission.currency,
       sourceCommissionId: sourceCommission.id,
-      deduplicationKey: `referral:${trigger}:${sourceCommission.id}`,
+      invoiceId: `referral:${trigger}:${sourceCommission.id}`,
     };
   }
 
@@ -156,7 +155,7 @@ export const createReferralCommission = async (
     commissionData = {
       ...commissionData,
       earnings: referralReward.amountInCents ?? 0,
-      deduplicationKey: `referral:${trigger}:${partnerId}`,
+      invoiceId: `referral:${trigger}:${partnerId}`,
     };
   }
 
@@ -185,7 +184,7 @@ export const createReferralCommission = async (
     commissionData = {
       ...commissionData,
       earnings: referralReward.amountInCents ?? 0,
-      deduplicationKey: `referral:${trigger}:${partnerId}`,
+      invoiceId: `referral:${trigger}:${partnerId}`,
     };
   }
 
@@ -201,13 +200,13 @@ export const createReferralCommission = async (
     return null;
   }
 
-  // Check if the commission already exists using the deduplication key
-  if (commissionData.deduplicationKey) {
+  // Check if the commission already exists using the invoiceId
+  if (commissionData.invoiceId) {
     const existingCommission = await prisma.commission.findUnique({
       where: {
-        programId_deduplicationKey: {
+        invoiceId_programId: {
+          invoiceId: commissionData.invoiceId,
           programId,
-          deduplicationKey: commissionData.deduplicationKey,
         },
       },
       select: {
@@ -217,7 +216,7 @@ export const createReferralCommission = async (
 
     if (existingCommission) {
       console.log(
-        `Referral commission ${existingCommission.id} already exists for the deduplication key ${commissionData.deduplicationKey}.`,
+        `Referral commission ${existingCommission.id} already exists for the invoiceId ${commissionData.invoiceId}.`,
       );
       return null;
     }
@@ -243,7 +242,7 @@ export const createReferralCommission = async (
       error.code === "P2002"
     ) {
       console.log(
-        `Referral commission already exists for deduplication key ${commissionData.deduplicationKey}, skipping creation.`,
+        `Referral commission already exists for invoiceId ${commissionData.invoiceId}, skipping creation.`,
       );
       return null;
     }
@@ -308,10 +307,7 @@ export const createReferralCommission = async (
       program,
       commission,
       group: referrerProgramEnrollment.partnerGroup ?? program.groups[0],
-      isFirstCommission: true,
     }),
-
-    triggerAggregateDueCommissionsCronJob(programId),
   ]);
 
   return commission;
@@ -338,8 +334,12 @@ function generateCommissionDescription({
   }
 
   if (trigger === "commissionThreshold") {
+    const { commissionsThresholdInCents } = referralRewardConfigSchema.parse(
+      referralReward.config,
+    );
+
     const formattedThreshold = currencyFormatter(
-      referralReward.amountInCents ?? 0,
+      commissionsThresholdInCents ?? 0,
       {
         currency: "usd",
         trailingZeroDisplay: "stripIfInteger",

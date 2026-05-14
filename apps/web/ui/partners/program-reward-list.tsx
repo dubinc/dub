@@ -8,9 +8,9 @@ import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PropsWithChildren } from "react";
-import { REWARD_EVENTS } from "./constants";
 import { formatDiscountDescription } from "./format-discount-description";
 import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
+import { REWARD_EVENT_ICON } from "./rewards/reward-event-icon";
 
 export function ProgramRewardList({
   rewards,
@@ -62,7 +62,7 @@ export function ProgramRewardList({
       {sortedFilteredRewards.map((reward) => (
         <Item
           key={reward.id}
-          icon={REWARD_EVENTS[reward.event].icon}
+          icon={REWARD_EVENT_ICON[reward.event]}
           iconClassName={iconClassName}
         >
           {reward.description || (
@@ -128,29 +128,3 @@ const Item = ({
     </li>
   );
 };
-
-export function generateRewardDescription(reward: RewardProps) {
-  if (reward.description) {
-    return reward.description;
-  }
-
-  const amount = constructRewardAmount(reward);
-  const eventPart =
-    reward.event === "sale" && reward.maxDuration === 0
-      ? "for the first sale"
-      : `per ${reward.event}`;
-
-  let result = `${amount} ${eventPart}`;
-
-  if (reward.maxDuration === null) {
-    result += " for the customer's lifetime";
-  } else if (reward.maxDuration && reward.maxDuration > 1) {
-    const durationText =
-      reward.maxDuration % 12 === 0
-        ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
-        : `${reward.maxDuration} months`;
-    result += ` for ${durationText}`;
-  }
-
-  return result;
-}

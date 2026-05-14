@@ -244,16 +244,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 },
               ]
             : []),
-          ...(hasReferralReward
-            ? [
-                {
-                  name: "Referred Partners",
-                  icon: Nodes4 as Icon,
-                  href: `/programs/${programSlug}/referrals` as `/${string}`,
-                  locked: isUnapproved,
-                },
-              ]
-            : []),
         ],
       },
       {
@@ -269,6 +259,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 : programBountiesCount || undefined,
             locked: isUnapproved,
           },
+          ...(hasReferralReward
+            ? [
+                {
+                  name: "Partner Referrals",
+                  icon: Nodes4 as Icon,
+                  href: `/programs/${programSlug}/referrals` as `/${string}`,
+                  locked: isUnapproved,
+                },
+              ]
+            : []),
           {
             name: "Resources",
             icon: ColorPalette2,

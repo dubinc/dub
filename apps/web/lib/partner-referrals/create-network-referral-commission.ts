@@ -89,7 +89,7 @@ export const createNetworkReferralCommission = async ({
     amount: 0,
     quantity: 1,
     earnings,
-    deduplicationKey: `referral:network:${payout.id}`,
+    invoiceId: `referral:network:${payout.id}`,
   };
 
   let commission: Commission | null = null;
@@ -108,7 +108,7 @@ export const createNetworkReferralCommission = async ({
       error.code === "P2002"
     ) {
       console.log(
-        `Referral commission already exists for deduplication key ${commissionData.deduplicationKey}, skipping creation.`,
+        `Referral commission already exists for invoiceId ${commissionData.invoiceId}, skipping creation.`,
       );
       return null;
     }

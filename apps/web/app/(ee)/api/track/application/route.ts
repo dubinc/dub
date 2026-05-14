@@ -23,8 +23,8 @@ import {
   LOCALHOST_GEO_DATA,
   LOCALHOST_IP,
   NETWORK_PROGRAM_ID,
+  NETWORK_PROGRAM_SLUG,
 } from "@dub/utils";
-import { NETWORK_PROGRAM_SLUG } from "@dub/utils/src";
 import { geolocation, ipAddress } from "@vercel/functions";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";
