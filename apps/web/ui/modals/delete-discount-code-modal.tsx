@@ -46,7 +46,10 @@ export const DeleteDiscountCodeModal = ({
             </div>
 
             <div className="relative flex h-7 w-fit items-center gap-1.5 rounded-lg bg-green-100 px-2 py-0">
-              <DiscountCode className="size-3 text-green-700" />
+              <DiscountCode
+                className="size-3 text-green-700"
+                strokeWidth={1.5}
+              />
               <div className="text-xs font-medium text-green-700">
                 {discountCode.code}
               </div>
