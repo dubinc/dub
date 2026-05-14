@@ -14,8 +14,8 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { PartnerReferralRewardConfigTooltip } from "@/ui/partners/partner-referral-reward-config-tooltip";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
-import { generateRewardDescription } from "@/ui/partners/program-reward-list";
 import { ProgramRewardModifiersTooltip } from "@/ui/partners/program-reward-modifiers-tooltip";
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -673,91 +673,82 @@ function RewardList() {
   const partnerReferralApplyLink = `${PARTNERS_DOMAIN}/${programSlug}/apply${partner?.username ? `?via=${partner.username}` : ""}`;
 
   return (
-    <div>
+    <div className="flex flex-col gap-2 rounded-xl bg-neutral-100 p-2">
+      <RewardListItem
+        title={showReferralRewardCard ? "Customer referral rewards" : "Rewards"}
+        titleRight={<RewardsTermsList />}
+        isDeactivated={isDeactivated}
+        rewards={[
+          ...standardRewards.map((reward) => ({
+            id: reward.id,
+            icon: REWARD_EVENT_ICON[reward.event],
+            text: (
+              <>
+                {formatRewardDescription(reward, { includeEarnPrefix: false })}
+                {(!!reward.modifiers?.length ||
+                  Boolean(reward.tooltipDescription)) && (
+                  <>
+                    {" "}
+                    <ProgramRewardModifiersTooltip reward={reward} />
+                  </>
+                )}
+              </>
+            ),
+          })),
+          ...(discount
+            ? [
+                {
+                  id: "discount",
+                  icon: Gift,
+                  text: formatDiscountDescription(discount),
+                },
+              ]
+            : []),
+        ]}
+        link={{
+          displayText: hasPartnerLink
+            ? getPrettyUrl(partnerLink)
+            : "No link yet",
+          copyValue: partnerLink,
+          apexDomain: defaultProgramLink
+            ? getApexDomain(defaultProgramLink.url)
+            : null,
+        }}
+        queryLinkHelpTextLink={
+          hasPartnerLink && programEnrollment.group?.linkStructure === "query"
+            ? defaultProgramLink
+            : undefined
+        }
+      />
+
       {showReferralRewardCard && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-          <h2 className="text-base font-semibold tracking-tight text-neutral-900">
-            Rewards
-          </h2>
-          <RewardsTermsList />
-        </div>
-      )}
-
-      <div className="flex flex-col gap-2 rounded-xl bg-neutral-100 p-2">
         <RewardListItem
-          title={showReferralRewardCard ? "Customer referrals" : "Rewards"}
-          titleRight={showReferralRewardCard ? undefined : <RewardsTermsList />}
+          title="Partner referral rewards"
           isDeactivated={isDeactivated}
-          rewards={[
-            ...standardRewards.map((reward) => ({
-              id: reward.id,
-              icon: REWARD_EVENT_ICON[reward.event],
-              text: (
-                <>
-                  {reward.description || generateRewardDescription(reward)}
-                  {(!!reward.modifiers?.length ||
-                    Boolean(reward.tooltipDescription)) && (
-                    <>
-                      {" "}
-                      <ProgramRewardModifiersTooltip reward={reward} />
-                    </>
-                  )}
-                </>
-              ),
-            })),
-            ...(discount
-              ? [
-                  {
-                    id: "discount",
-                    icon: Gift,
-                    text: formatDiscountDescription(discount),
-                  },
-                ]
-              : []),
-          ]}
+          rewards={referralRewards.map((reward) => ({
+            id: reward.id,
+            icon: REWARD_EVENT_ICON.referral,
+            text: (
+              <>
+                {formatRewardDescription(reward)}
+                {reward.config && (
+                  <PartnerReferralRewardConfigTooltip config={reward.config} />
+                )}
+              </>
+            ),
+            badge: (
+              <span className="inline-flex h-4 shrink-0 items-center justify-center rounded-md bg-blue-100 px-1 text-xs font-semibold leading-4 text-blue-600">
+                New
+              </span>
+            ),
+          }))}
           link={{
-            displayText: hasPartnerLink
-              ? getPrettyUrl(partnerLink)
-              : "No link yet",
-            copyValue: partnerLink,
-            apexDomain: defaultProgramLink
-              ? getApexDomain(defaultProgramLink.url)
-              : null,
+            displayText: getPrettyUrl(partnerReferralApplyLink),
+            copyValue: partnerReferralApplyLink,
+            apexDomain: "dub.co",
           }}
-          queryLinkHelpTextLink={
-            hasPartnerLink && programEnrollment.group?.linkStructure === "query"
-              ? defaultProgramLink
-              : undefined
-          }
         />
-
-        {showReferralRewardCard && (
-          <RewardListItem
-            title="Partner referrals"
-            isDeactivated={isDeactivated}
-            rewards={referralRewards.map((reward) => ({
-              id: reward.id,
-              icon: REWARD_EVENT_ICON.referral,
-              text: (
-                <>
-                  {reward.description ||
-                    formatRewardDescription(reward).replace(/^Earn\s+/i, "")}
-                </>
-              ),
-              badge: (
-                <span className="inline-flex h-4 shrink-0 items-center justify-center rounded-md bg-blue-100 px-1 text-xs font-semibold leading-4 text-blue-600">
-                  New
-                </span>
-              ),
-            }))}
-            link={{
-              displayText: getPrettyUrl(partnerReferralApplyLink),
-              copyValue: partnerReferralApplyLink,
-              apexDomain: "dub.co",
-            }}
-          />
-        )}
-      </div>
+      )}
     </div>
   );
 }
@@ -770,7 +761,7 @@ function RewardListItem({
   queryLinkHelpTextLink,
   isDeactivated,
 }: {
-  title?: string;
+  title: string;
   titleRight?: ReactNode;
   rewards: {
     id: string;
@@ -802,14 +793,12 @@ function RewardListItem({
         isDeactivated && "opacity-80",
       )}
     >
-      {title && (
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold tracking-tight text-neutral-800">
-            {title}
-          </h3>
-          {titleRight}
-        </div>
-      )}
+      <div className="flex items-center justify-between">
+        <h3 className="text-base font-semibold tracking-tight text-neutral-800">
+          {title}
+        </h3>
+        {titleRight}
+      </div>
 
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
         {rewards.length > 0 ? (

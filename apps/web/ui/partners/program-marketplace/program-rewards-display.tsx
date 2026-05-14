@@ -44,7 +44,9 @@ export function ProgramRewardsDisplay({
       items.push({
         id: reward.id,
         icon: REWARD_EVENT_ICON[reward.event],
-        description: formatRewardDescription(reward),
+        description: formatRewardDescription(reward, {
+          includeEarnPrefix: false,
+        }),
         onClick: onRewardClick ? () => onRewardClick(reward) : undefined,
       });
     });

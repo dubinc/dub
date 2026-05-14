@@ -128,29 +128,3 @@ const Item = ({
     </li>
   );
 };
-
-export function generateRewardDescription(reward: RewardProps) {
-  if (reward.description) {
-    return reward.description;
-  }
-
-  const amount = constructRewardAmount(reward);
-  const eventPart =
-    reward.event === "sale" && reward.maxDuration === 0
-      ? "for the first sale"
-      : `per ${reward.event}`;
-
-  let result = `${amount} ${eventPart}`;
-
-  if (reward.maxDuration === null) {
-    result += " for the customer's lifetime";
-  } else if (reward.maxDuration && reward.maxDuration > 1) {
-    const durationText =
-      reward.maxDuration % 12 === 0
-        ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
-        : `${reward.maxDuration} months`;
-    result += ` for ${durationText}`;
-  }
-
-  return result;
-}
