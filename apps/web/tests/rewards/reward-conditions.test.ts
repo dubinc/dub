@@ -476,8 +476,8 @@ describe("evaluateRewardConditions", () => {
       });
     });
 
-    describe("in (contains substring)", () => {
-      test("should match when field contains the substring", () => {
+    describe("in", () => {
+      test("should match when value is in array", () => {
         const conditions = [
           {
             operator: "AND" as const,
@@ -487,7 +487,7 @@ describe("evaluateRewardConditions", () => {
                 entity: "customer" as const,
                 attribute: "country" as const,
                 operator: "in" as const,
-                value: "CA",
+                value: ["US", "CA", "UK"],
               },
             ],
           },
@@ -507,34 +507,7 @@ describe("evaluateRewardConditions", () => {
         expect(result).toEqual(conditions[0]);
       });
 
-      test("should match when scalar substring is contained in the field", () => {
-        const conditions = [
-          {
-            operator: "AND" as const,
-            amountInCents: 5000,
-            conditions: [
-              {
-                entity: "sale" as const,
-                attribute: "productId" as const,
-                operator: "in" as const,
-                value: "plan",
-              },
-            ],
-          },
-        ];
-
-        const context: RewardContext = {
-          sale: {
-            productId: "premium-plan",
-          },
-        };
-
-        expect(evaluateRewardConditions({ conditions, context })).toEqual(
-          conditions[0],
-        );
-      });
-
-      test("should not match when field does not contain the substring", () => {
+      test("should not match when value is not in array", () => {
         const conditions = [
           {
             operator: "AND" as const,
@@ -544,7 +517,7 @@ describe("evaluateRewardConditions", () => {
                 entity: "customer" as const,
                 attribute: "country" as const,
                 operator: "in" as const,
-                value: "US",
+                value: ["US", "CA", "UK"],
               },
             ],
           },
@@ -565,8 +538,8 @@ describe("evaluateRewardConditions", () => {
       });
     });
 
-    describe("not_in (does not contain substring)", () => {
-      test("should match when field does not contain the substring", () => {
+    describe("not_in", () => {
+      test("should match when value is not in array", () => {
         const conditions = [
           {
             operator: "AND" as const,
@@ -576,7 +549,7 @@ describe("evaluateRewardConditions", () => {
                 entity: "customer" as const,
                 attribute: "country" as const,
                 operator: "not_in" as const,
-                value: "US",
+                value: ["US", "CA", "UK"],
               },
             ],
           },
@@ -596,7 +569,7 @@ describe("evaluateRewardConditions", () => {
         expect(result).toEqual(conditions[0]);
       });
 
-      test("should not match when field contains the substring", () => {
+      test("should not match when value is in array", () => {
         const conditions = [
           {
             operator: "AND" as const,
@@ -606,7 +579,7 @@ describe("evaluateRewardConditions", () => {
                 entity: "customer" as const,
                 attribute: "country" as const,
                 operator: "not_in" as const,
-                value: "US",
+                value: ["US", "CA", "UK"],
               },
             ],
           },
@@ -1595,7 +1568,7 @@ describe("evaluateRewardConditions", () => {
       expect(result).toEqual(conditions[0]); // Should return the US condition
     });
 
-    test("should match partner country when field contains the substring", () => {
+    test("should match partner country with multiple countries", () => {
       const conditions = [
         {
           operator: "AND" as const,
@@ -1606,7 +1579,7 @@ describe("evaluateRewardConditions", () => {
               entity: "partner" as const,
               attribute: "country" as const,
               operator: "in" as const,
-              value: "CA",
+              value: ["US", "CA", "UK"],
             },
           ],
         },
@@ -1956,68 +1929,6 @@ describe("evaluateRewardConditions", () => {
       );
     });
 
-    test("matches sale metadata contains substring", () => {
-      const conditions = [
-        {
-          operator: "AND" as const,
-          type: "flat" as const,
-          amountInCents: 300,
-          conditions: [
-            {
-              entity: "sale" as const,
-              attribute: "metadata" as const,
-              metadataField: "tier",
-              operator: "in" as const,
-              value: "gold",
-            },
-          ],
-        },
-      ];
-
-      const context: RewardContext = {
-        sale: {
-          metadata: { tier: "gold" },
-        },
-      };
-
-      expect(evaluateRewardConditions({ conditions, context })).toEqual(
-        conditions[0],
-      );
-    });
-
-    test("matches sale metadata contains when metadata is numeric (substring on string form)", () => {
-      const conditions = [
-        {
-          operator: "AND" as const,
-          type: "flat" as const,
-          amountInCents: 400,
-          conditions: [
-            {
-              entity: "sale" as const,
-              attribute: "metadata" as const,
-              metadataField: "tier",
-              operator: "in" as const,
-              value: "2",
-            },
-          ],
-        },
-      ];
-
-      const contextNumeric: RewardContext = {
-        sale: { metadata: { tier: 2 } },
-      };
-      const contextStringNumeric: RewardContext = {
-        sale: { metadata: { tier: "2" } },
-      };
-
-      expect(
-        evaluateRewardConditions({ conditions, context: contextNumeric }),
-      ).toEqual(conditions[0]);
-      expect(
-        evaluateRewardConditions({ conditions, context: contextStringNumeric }),
-      ).toEqual(conditions[0]);
-    });
-
     test("matches sale metadata equals_to when metadata is number and condition value is number", () => {
       const conditions = [
         {
@@ -2048,6 +1959,67 @@ describe("evaluateRewardConditions", () => {
           context: { sale: { metadata: { seats: "42" } } },
         }),
       ).toEqual(conditions[0]);
+    });
+
+    test("equals_to uses string comparison when condition.value is a string", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 200,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "tier",
+              operator: "equals_to" as const,
+              value: "gold",
+            },
+          ],
+        },
+      ];
+
+      // metadata value is the string "gold" — should match
+      expect(
+        evaluateRewardConditions({
+          conditions,
+          context: { sale: { metadata: { tier: "gold" } } },
+        }),
+      ).toEqual(conditions[0]);
+
+      // metadata value is numeric "42" but condition.value is string "42" — should match
+      const numericStringConditions = [
+        {
+          operator: "AND" as const,
+          type: "flat" as const,
+          amountInCents: 200,
+          conditions: [
+            {
+              entity: "sale" as const,
+              attribute: "metadata" as const,
+              metadataField: "tier",
+              operator: "equals_to" as const,
+              value: "42",
+            },
+          ],
+        },
+      ];
+
+      expect(
+        evaluateRewardConditions({
+          conditions: numericStringConditions,
+          context: { sale: { metadata: { tier: "42" } } },
+        }),
+      ).toEqual(numericStringConditions[0]);
+
+      // metadata value is number 42 and condition.value is string "42" — SHOULD match
+      // because we stringify the metadata before comparing when condition.value is a string
+      expect(
+        evaluateRewardConditions({
+          conditions: numericStringConditions,
+          context: { sale: { metadata: { tier: 42 } } },
+        }),
+      ).toEqual(numericStringConditions[0]);
     });
 
     test("returns null when metadata key is missing", () => {
@@ -2220,7 +2192,7 @@ describe("rewardConditionSchema", () => {
     ).toBe(false);
   });
 
-  test("rejects contains / does not contain when value is not a string", () => {
+  test("allows is one of / is not one of with string arrays", () => {
     expect(
       rewardConditionSchema.safeParse({
         entity: "customer",
@@ -2228,24 +2200,14 @@ describe("rewardConditionSchema", () => {
         operator: "in",
         value: ["US", "CA"],
       }).success,
-    ).toBe(false);
-
-    expect(
-      rewardConditionSchema.safeParse({
-        entity: "sale",
-        attribute: "metadata",
-        operator: "in",
-        value: 2,
-        metadataField: "tier",
-      }).success,
-    ).toBe(false);
+    ).toBe(true);
 
     expect(
       rewardConditionSchema.safeParse({
         entity: "customer",
         attribute: "country",
-        operator: "in",
-        value: "US",
+        operator: "not_in",
+        value: ["US", "CA"],
       }).success,
     ).toBe(true);
   });

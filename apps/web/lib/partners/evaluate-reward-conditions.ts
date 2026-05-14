@@ -164,21 +164,12 @@ function prepareMetadataFieldValue(
   const numeric = parseMetadataNumeric(raw);
   if (ordering) return numeric;
 
-  return numeric !== undefined ? numeric : metadataRawToString(raw);
-}
-
-function fieldContainsSubstring(
-  fieldValue: string | number | string[] | number[],
-  needle: unknown,
-): boolean {
-  if (needle === undefined || needle === null) {
-    return false;
+  // For equals_to / not_equals, match the coercion to condition.value's type
+  // so that strict === in evaluateCondition sees the same type on both sides.
+  if (typeof condition.value === "number") {
+    return numeric !== undefined ? numeric : metadataRawToString(raw);
   }
-  const n = String(needle).trim();
-  if (n === "") {
-    return false;
-  }
-  return String(fieldValue).includes(n);
+  return metadataRawToString(raw);
 }
 
 const evaluateCondition = ({
@@ -210,9 +201,19 @@ const evaluateCondition = ({
       }
       return false;
     case "in":
-      return fieldContainsSubstring(fieldValue, condition.value);
+      if (Array.isArray(condition.value)) {
+        return (condition.value as (string | number)[]).includes(
+          fieldValue as string | number,
+        );
+      }
+      return false;
     case "not_in":
-      return !fieldContainsSubstring(fieldValue, condition.value);
+      if (Array.isArray(condition.value)) {
+        return !(condition.value as (string | number)[]).includes(
+          fieldValue as string | number,
+        );
+      }
+      return true;
     case "greater_than":
       return Number(fieldValue) > Number(condition.value);
     case "greater_than_or_equal":

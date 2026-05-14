@@ -54,6 +54,7 @@ import {
   InlineBadgePopoverAmountInput,
   InlineBadgePopoverContext,
   InlineBadgePopoverInput,
+  InlineBadgePopoverInputs,
   InlineBadgePopoverMenu,
 } from "../../shared/inline-badge-popover";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
@@ -226,13 +227,7 @@ const formatValue = (
   value: string | number | string[] | number[] | undefined,
   attribute?: Pick<RewardConditionEntityAttribute, "type" | "options">,
   metadataOperator?: (typeof CONDITION_OPERATORS)[number],
-  operator?: (typeof CONDITION_OPERATORS)[number],
 ) => {
-  if (operator === "in" || operator === "not_in") {
-    if (value === "" || value === undefined) return "Value";
-    return truncate(String(value), 20);
-  }
-
   if (
     metadataOperator &&
     METADATA_NUMBER_CONDITION_OPERATORS.includes(metadataOperator)
@@ -402,7 +397,7 @@ function ConditionLogic({
       }[entity.id] ?? User
     : ArrowTurnRight2;
 
-  const isContainsOperator =
+  const isArrayValue =
     condition.operator === "in" || condition.operator === "not_in";
 
   const [displayProductLabel, setDisplayProductLabel] = useState(false);
@@ -594,7 +589,7 @@ function ConditionLogic({
                               ...condition,
                               operator: value,
                               ...(["in", "not_in"].includes(value)
-                                ? { value: "" }
+                                ? { value: [] }
                                 : metadataNumeric
                                   ? typeof condition.value !== "number"
                                     ? { value: "" }
@@ -622,7 +617,7 @@ function ConditionLogic({
                                 value as (typeof CONDITION_OPERATORS)[number],
                               // Reset value shape when operator changes
                               ...(["in", "not_in"].includes(value)
-                                ? { value: "" }
+                                ? { value: [] }
                                 : ["number", "currency"].includes(attributeType)
                                   ? typeof condition.value !== "number"
                                     ? { value: "" }
@@ -686,29 +681,25 @@ function ConditionLogic({
                           condition.value,
                           attribute,
                           isMetadataCondition ? condition.operator : undefined,
-                          condition.operator,
                         )}
                         invalid={
-                          isContainsOperator
-                            ? String(condition.value ?? "").trim() === ""
-                            : Array.isArray(condition.value)
-                              ? condition.value.filter(Boolean).length === 0
-                              : isMetadataNumeric
+                          Array.isArray(condition.value)
+                            ? condition.value.filter(Boolean).length === 0
+                            : isMetadataNumeric
+                              ? condition.value === "" ||
+                                isNaN(Number(condition.value))
+                              : ["number", "currency"].includes(attributeType)
                                 ? condition.value === "" ||
                                   isNaN(Number(condition.value))
-                                : ["number", "currency"].includes(attributeType)
-                                  ? condition.value === "" ||
-                                    isNaN(Number(condition.value))
-                                  : !condition.value
+                                : !condition.value
                         }
                         buttonClassName={cn(
                           condition.attribute === "productId" &&
                             "rounded-r-none",
                         )}
                       >
-                        {/* Country selection */}
-                        {condition.attribute === "country" &&
-                        !isContainsOperator ? (
+                        {/* Country selection (single value only) */}
+                        {condition.attribute === "country" && !isArrayValue ? (
                           // Country selector
                           <InlineBadgePopoverMenu
                             search
@@ -734,7 +725,7 @@ function ConditionLogic({
                               });
                             }}
                           />
-                        ) : attribute?.options && !isContainsOperator ? (
+                        ) : attribute?.options && !isArrayValue ? (
                           // Select option selector
                           <InlineBadgePopoverMenu
                             search={attribute.options.length > 4}
@@ -752,12 +743,20 @@ function ConditionLogic({
                               });
                             }}
                           />
-                        ) : isContainsOperator ? (
-                          <InlineBadgePopoverInput
-                            placeholder="Substring to match"
-                            {...register(`${conditionKey}.value`, {
-                              required: true,
-                            })}
+                        ) : isArrayValue ? (
+                          // Multi-value list input for is one of / is not one of
+                          <InlineBadgePopoverInputs
+                            values={
+                              Array.isArray(condition.value)
+                                ? (condition.value as string[])
+                                : []
+                            }
+                            onChange={(values) => {
+                              setValue(conditionKey, {
+                                ...condition,
+                                value: values,
+                              });
+                            }}
                           />
                         ) : ["number", "currency"].includes(attributeType) ||
                           isMetadataNumeric ? (

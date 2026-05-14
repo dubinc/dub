@@ -271,15 +271,21 @@ export const METADATA_NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[n
   ["greater_than", "greater_than_or_equal", "less_than", "less_than_or_equal"];
 
 export const METADATA_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
-  [...STRING_CONDITION_OPERATORS, ...METADATA_NUMBER_CONDITION_OPERATORS];
+  [
+    "equals_to",
+    "not_equals",
+    "starts_with",
+    "ends_with",
+    ...METADATA_NUMBER_CONDITION_OPERATORS,
+  ];
 
 export const CONDITION_OPERATOR_LABELS = {
   equals_to: "is",
   not_equals: "is not",
   starts_with: "starts with",
   ends_with: "ends with",
-  in: "contains",
-  not_in: "does not contain",
+  in: "is one of",
+  not_in: "is not one of",
   greater_than: "is greater than",
   greater_than_or_equal: "is greater than or equal to",
   less_than: "is less than",
@@ -306,17 +312,6 @@ export const rewardConditionSchema = z
     metadataField: z.string().optional(),
   })
   .superRefine((data, ctx) => {
-    if (data.operator === "in" || data.operator === "not_in") {
-      if (typeof data.value !== "string") {
-        ctx.addIssue({
-          code: "custom",
-          message:
-            "Contains and does not contain conditions require a text value.",
-          path: ["value"],
-        });
-      }
-    }
-
     if (data.attribute !== "metadata") {
       return;
     }
