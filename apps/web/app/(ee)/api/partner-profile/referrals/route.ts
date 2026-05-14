@@ -48,10 +48,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         update: {},
       })
       .then((res) => {
-        console.log(
-          "Program enrollment upserted",
-          JSON.stringify(res, null, 2),
-        );
+        console.log("Program enrollment upserted:", res.id);
       }),
   );
 

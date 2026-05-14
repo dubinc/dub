@@ -190,7 +190,7 @@ const RewardItem = ({
         href={
           reward
             ? `/${slug}/program/groups/${group.slug}/rewards?rewardId=${reward.id}`
-            : ""
+            : "#"
         }
         scroll={false}
         className={cn(

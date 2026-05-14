@@ -17,7 +17,6 @@ import { CountryFlag } from "@/ui/shared/country-flag";
 import {
   Button,
   Copy,
-  LinkLogo,
   MiniAreaChart,
   Table,
   TimestampTooltip,
@@ -31,12 +30,13 @@ import { Gift, UserArrowRight } from "@dub/ui/icons";
 import {
   COUNTRIES,
   currencyFormatter,
+  DUB_LOGO,
   formatDate,
-  getApexDomain,
+  getPrettyUrl,
   PARTNERS_DOMAIN,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
-import { HelpCircle, Lock } from "lucide-react";
+import { Check, HelpCircle, Lock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { ComponentType, ReactNode, useMemo } from "react";
@@ -168,7 +168,7 @@ function ReferralsStatItem({
           )}
         </span>
         {chartData && chartData.length > 0 && (
-          <div className="relative hidden h-10 flex-1 sm:block">
+          <div className="relative h-10 flex-1">
             <MiniAreaChart data={chartData} padding={{ top: 8, bottom: 8 }} />
           </div>
         )}
@@ -257,7 +257,7 @@ function ReferralLinkLocked() {
 
 function ReferralLink() {
   const { profileReady, isEligible, referralLink } = useNetworkReferralAccess();
-  const [, copyToClipboard] = useCopyToClipboard();
+  const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
 
   const copyReferralLink = () => {
@@ -286,30 +286,32 @@ function ReferralLink() {
       </p>
       <div className="rounded-xl border border-neutral-200 p-2">
         <div className="flex min-w-0 items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <div className="relative flex size-9 shrink-0 items-center justify-center sm:size-10">
               <div className="absolute inset-0 rounded-full border border-neutral-200">
                 <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
               </div>
-              <div className="relative z-10 flex items-center justify-center">
-                <LinkLogo
-                  apexDomain={getApexDomain(referralLink)}
-                  className="size-4 sm:size-6"
-                  imageProps={{
-                    loading: "lazy",
-                  }}
-                />
-              </div>
+              <img
+                src={DUB_LOGO}
+                alt="Dub Partners"
+                className="relative z-10 size-6 shrink-0 rounded-full"
+              />
             </div>
             <span className="text-content-default min-w-0 truncate text-sm font-semibold">
-              {referralLink}
+              {getPrettyUrl(referralLink)}
             </span>
           </div>
           <Button
             text={isMobile ? undefined : "Copy link"}
             variant="primary"
-            icon={<Copy className="size-4" />}
-            className="w-fit shrink-0"
+            icon={
+              copied ? (
+                <Check className="size-4" />
+              ) : (
+                <Copy className="size-4" />
+              )
+            }
+            className="h-9 w-fit shrink-0"
             onClick={copyReferralLink}
             aria-label="Copy referral link"
           />
@@ -379,7 +381,7 @@ function ReferredPartners() {
     enabled: profileReady && isEligible,
   });
 
-  const [, copyToClipboard] = useCopyToClipboard();
+  const [copied, copyToClipboard] = useCopyToClipboard();
 
   const copyReferralLink = () => {
     if (!referralLink) return;
@@ -523,7 +525,13 @@ function ReferredPartners() {
         button={
           <Button
             text="Copy link"
-            icon={<Copy className="size-4" />}
+            icon={
+              copied ? (
+                <Check className="size-4" />
+              ) : (
+                <Copy className="size-4" />
+              )
+            }
             onClick={copyReferralLink}
             className="h-9"
           />
