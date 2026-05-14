@@ -8,17 +8,29 @@ import { NextResponse } from "next/server";
 // POST /api/admin/slack-support-invite — manually send a Slack Connect invite on behalf of a workspace.
 // Pass channelId when the channel already exists (name_taken) and you know the ID.
 export const POST = withAdmin(async ({ req }) => {
-  const { email, workspaceSlug, channelId } = await req.json();
+  const {
+    email,
+    emails: emailsBody,
+    workspaceSlug,
+    channelId,
+  } = await req.json();
 
-  if (!email || !workspaceSlug) {
+  const emails =
+    Array.isArray(emailsBody) && emailsBody.length > 0
+      ? emailsBody
+      : typeof email === "string" && email.trim()
+        ? [email.trim()]
+        : [];
+
+  if (emails.length === 0 || !workspaceSlug) {
     return NextResponse.json(
-      { error: "email and workspaceSlug are required" },
+      { error: "email (or emails) and workspaceSlug are required" },
       { status: 400 },
     );
   }
 
   const { inviteId, nameTaken } = await inviteToSlackSupportChannel({
-    email,
+    emails,
     workspaceSlug,
     channelId: channelId || undefined,
   });

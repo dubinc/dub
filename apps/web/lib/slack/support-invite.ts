@@ -102,21 +102,21 @@ async function createSharedCustomerChannel({
 
 async function sendSlackConnectInvite({
   channelId,
-  email,
+  emails,
 }: {
   channelId: string;
-  email: string;
+  emails: string[];
 }): Promise<string> {
   const slack = getSlackClient();
   await inviteInternalSupportMembersToChannel({ channelId });
 
   const { invite_id: inviteId } = await slack.conversations.inviteShared({
     channel: channelId,
-    emails: [email],
+    emails,
   });
 
   console.log(
-    `[slack] sent Slack Connect invite to ${email} for channel ${channelId}`,
+    `[slack] sent Slack Connect invite to ${emails.join(", ")} for channel ${channelId}`,
   );
 
   return inviteId!;
@@ -124,10 +124,10 @@ async function sendSlackConnectInvite({
 
 export async function requestSlackConnectSupportInvite({
   workspaceSlug,
-  email,
+  emails,
 }: {
   workspaceSlug: string;
-  email: string;
+  emails: string[];
 }): Promise<{ inviteId: string }> {
   const result = await createSharedCustomerChannel({ workspaceSlug });
 
@@ -141,7 +141,7 @@ export async function requestSlackConnectSupportInvite({
 
   const inviteId = await sendSlackConnectInvite({
     channelId: result.channelId,
-    email,
+    emails,
   });
 
   return {
@@ -150,11 +150,11 @@ export async function requestSlackConnectSupportInvite({
 }
 
 export async function inviteToSlackSupportChannel({
-  email,
+  emails,
   workspaceSlug,
   channelId,
 }: {
-  email: string;
+  emails: string[];
   workspaceSlug: string;
   channelId?: string;
 }): Promise<
@@ -180,7 +180,7 @@ export async function inviteToSlackSupportChannel({
 
   const inviteId = await sendSlackConnectInvite({
     channelId: resolvedChannelId,
-    email,
+    emails,
   });
 
   return {
