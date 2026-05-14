@@ -21,7 +21,7 @@ export const COMMISSION_TYPES = [
 export type RewardConditionEntityAttribute = {
   id: string;
   label: string;
-  type: "string" | "enum" | "number" | "currency" | "date";
+  type: "string" | "enum" | "number" | "currency" | "date" | "metadata";
   options?: {
     id: string;
     label: string;
@@ -29,9 +29,21 @@ export type RewardConditionEntityAttribute = {
 };
 
 export type RewardConditionEntity = {
-  id: "partner" | "customer" | "sale";
+  id: "partner" | "customer" | "sale" | "lead";
   label: string;
   attributes: RewardConditionEntityAttribute[];
+};
+
+const LEAD_ENTITY: RewardConditionEntity = {
+  id: "lead",
+  label: "Lead",
+  attributes: [
+    {
+      id: "metadata",
+      label: "Metadata",
+      type: "metadata",
+    },
+  ],
 };
 
 const PARTNER_ENTITY: RewardConditionEntity = {
@@ -123,6 +135,7 @@ export const REWARD_CONDITIONS: Record<
         ],
       },
       PARTNER_ENTITY,
+      LEAD_ENTITY,
     ],
   },
 
@@ -195,6 +208,11 @@ export const REWARD_CONDITIONS: Record<
               },
             ],
           },
+          {
+            id: "metadata",
+            label: "Metadata",
+            type: "metadata",
+          },
         ],
       },
     ],
@@ -208,11 +226,13 @@ export const REWARD_CONDITION_ENTITIES = [
 ];
 
 export const REWARD_CONDITION_ATTRIBUTES = [
-  ...new Set(
-    Object.values(REWARD_CONDITIONS).flatMap(({ entities }) =>
-      entities.flatMap(({ attributes }) => attributes),
-    ),
-  ),
+  ...new Map(
+    Object.values(REWARD_CONDITIONS)
+      .flatMap(({ entities }) =>
+        entities.flatMap(({ attributes }) => attributes),
+      )
+      .map((attr) => [attr.id, attr] as const),
+  ).values(),
 ];
 
 export const CONDITION_OPERATORS = [
@@ -247,6 +267,12 @@ export const NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] 
 export const DATE_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
   ["greater_than", "greater_than_or_equal", "less_than", "less_than_or_equal"];
 
+export const METADATA_NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+  ["greater_than", "greater_than_or_equal", "less_than", "less_than_or_equal"];
+
+export const METADATA_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+  [...STRING_CONDITION_OPERATORS, ...METADATA_NUMBER_CONDITION_OPERATORS];
+
 export const CONDITION_OPERATOR_LABELS = {
   equals_to: "is",
   not_equals: "is not",
@@ -278,6 +304,7 @@ export const rewardConditionSchema = z.object({
     .string()
     .nullish()
     .describe("Product name used for display purposes in the UI."),
+  metadataField: z.string().optional(),
 });
 
 export const PERCENTAGE_REWARD_AMOUNT_SCHEMA = z
