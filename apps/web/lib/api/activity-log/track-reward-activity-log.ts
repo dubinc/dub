@@ -25,6 +25,7 @@ function toRewardActivitySnapshot(reward: RewardProps) {
     description: reward.description ?? null,
     tooltipDescription: reward.tooltipDescription ?? null,
     modifiers: reward.modifiers ?? null,
+    config: reward.config ?? null,
   };
 }
 
