@@ -53,6 +53,7 @@ const COMPARE_FEATURE_ICONS: Record<
 };
 
 export default function WorkspaceBillingUpgradePage() {
+  const searchParams = useSearchParams();
   const {
     slug,
     role,
@@ -70,14 +71,19 @@ export default function WorkspaceBillingUpgradePage() {
   });
 
   const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
+
+  const planPeriod = searchParams.get("planPeriod") ?? "";
   const [period, setPeriod] = useState<"monthly" | "yearly">(
-    currentPlanPeriod === "yearly" ? "yearly" : "monthly",
+    ["monthly", "yearly"].includes(planPeriod)
+      ? (planPeriod as "monthly" | "yearly")
+      : currentPlanPeriod === "yearly"
+        ? "yearly"
+        : "monthly",
   );
 
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
     usePartnersUpgradeModal();
 
-  const searchParams = useSearchParams();
   useEffect(() => {
     if (searchParams.get("showPartnersUpgradeModal")) {
       setShowPartnersUpgradeModal(true);
