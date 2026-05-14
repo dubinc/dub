@@ -1,6 +1,7 @@
 "use client";
 
-import { usePartnerReferralStats } from "@/lib/partner-referrals/hooks/use-partner-referral-stats";
+import { usePartnerReferral } from "@/lib/partner-referrals/hooks/use-partner-referral";
+import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import useGroup from "@/lib/swr/use-group";
@@ -188,28 +189,29 @@ const PartnerReferralLink = ({
   partner: EnrolledPartnerProps;
 }) => {
   const { program } = useProgram();
-  const { referralStats } = usePartnerReferralStats({
+  const { referral } = usePartnerReferral({
     partnerId: partner.id,
   });
 
-  const referralLink = program
-    ? `https://partners.dub.co/${program.slug}/apply?via=${partner.username}`
-    : null;
+  const referralLink = constructPartnerReferralLink({
+    partner,
+    program,
+  });
 
   const data = useMemo(() => {
-    if (!referralLink || !referralStats) {
+    if (!referralLink || !referral?.stats) {
       return [];
     }
 
     return [
       {
         link: referralLink,
-        totalPartners: referralStats.totalPartners,
-        totalConversions: referralStats.totalConversions,
-        totalSaleAmount: referralStats.totalSaleAmount,
+        totalPartners: referral.stats.totalPartners,
+        totalConversions: referral.stats.totalConversions,
+        totalSaleAmount: referral.stats.totalSaleAmount,
       },
     ];
-  }, [referralLink, referralStats]);
+  }, [referralLink, referral]);
 
   const table = useTable({
     data,
@@ -254,7 +256,7 @@ const PartnerReferralLink = ({
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    loading: !referralStats || !program,
+    loading: !referral || !program,
   } as any);
 
   return (

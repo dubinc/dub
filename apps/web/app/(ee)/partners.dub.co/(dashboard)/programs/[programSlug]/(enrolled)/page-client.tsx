@@ -614,23 +614,23 @@ function RewardsTermsList() {
   }
 
   return (
-    <div className="text-content-subtle flex flex-wrap items-center gap-x-1 text-xs">
+    <div className="flex flex-wrap items-center gap-x-1.5 text-xs">
       {items.map((item, idx) => (
-        <span key={item.label} className="inline-flex items-center gap-1">
+        <span key={item.label} className="inline-flex items-center gap-1.5">
           <span>
-            <span className="text-content-emphasis font-semibold">
-              {item.value}
-            </span>{" "}
+            <span className="font-semibold text-neutral-600">{item.value}</span>{" "}
             <a
               href={item.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="underline decoration-dotted underline-offset-2"
+              className="font-medium text-neutral-500 underline decoration-dotted underline-offset-2"
             >
               {item.label}
             </a>
           </span>
-          {idx < items.length - 1 && <span>•</span>}
+          {idx < items.length - 1 && (
+            <span className="font-semibold text-neutral-600">•</span>
+          )}
         </span>
       ))}
     </div>
@@ -640,7 +640,6 @@ function RewardsTermsList() {
 function RewardList() {
   const { programEnrollment } = useProgramEnrollment();
   const { partner } = usePartnerProfile();
-  const { programSlug } = useParams<{ programSlug: string }>();
 
   if (!programEnrollment) {
     return null;
@@ -649,12 +648,14 @@ function RewardList() {
   const eligibleRewards = (programEnrollment.rewards ?? []).filter(
     (r) => getRewardAmount(r) >= 0,
   );
+
   const standardRewards = eligibleRewards.filter(
     (reward) =>
       reward.event === "click" ||
       reward.event === "lead" ||
       reward.event === "sale",
   );
+
   const referralRewards = eligibleRewards.filter(
     (reward) => reward.event === "referral",
   );
@@ -740,7 +741,7 @@ function RewardList() {
               </>
             ),
             badge: (
-              <span className="inline-flex h-4 shrink-0 items-center justify-center rounded-md bg-blue-100 px-1 text-xs font-semibold leading-4 text-blue-600">
+              <span className="inline-flex h-4 shrink-0 items-center justify-center rounded-md bg-blue-100 px-1 text-xs font-semibold leading-4 tracking-tight text-blue-600">
                 New
               </span>
             ),
@@ -804,52 +805,17 @@ function RewardListItem({
       </div>
 
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
-        {rewards.length > 0 ? (
-          <div className="space-y-2 rounded-b-xl border-b border-neutral-200 bg-white p-3">
-            {rewards.map((reward) => {
-              const RewardIcon = reward.icon;
-
-              return (
-                <div key={reward.id} className="flex items-center gap-2.5">
-                  <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
-                    <RewardIcon className="size-4 text-neutral-800" />
-                  </div>
-                  <div className="text-content-default flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0 text-sm font-semibold leading-5 tracking-tight">
-                    {reward.text}
-                    {reward.badge}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="flex items-center justify-between rounded-b-xl border-b border-neutral-200 bg-white px-4 py-3">
-            <p className="text-content-subtle text-sm">
-              You are not eligible for any rewards at this time.
-            </p>
-
-            {programSlug && (
-              <Link href={`/messages/${programSlug}`}>
-                <Button
-                  variant="secondary"
-                  text="Contact program"
-                  className="h-8 rounded-lg px-3"
-                />
-              </Link>
-            )}
-          </div>
-        )}
-
-        <div className="bg-neutral-50 py-1.5 pl-3 pr-1.5">
+        <div className="bg-neutral-50 px-3 py-2.5">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              <div className="rounded-full border border-neutral-200 p-1">
+            <div className="flex min-w-0 flex-1 items-center gap-2.5">
+              <div className="shrink-0 rounded-full border border-neutral-200 bg-white p-1">
                 <LinkLogo
                   apexDomain={link.apexDomain}
-                  className="size-4.5 sm:size-4.5 shrink-0 rounded-full border border-black/10"
+                  className="size-4.5 sm:size-4.5 shrink-0 rounded-full"
                   imageProps={{ width: 18, height: 18 }}
                 />
               </div>
+
               <CopyText
                 value={link.displayText}
                 className="min-w-0 truncate text-sm font-medium -tracking-wider text-neutral-600"
@@ -904,6 +870,42 @@ function RewardListItem({
             )}
           </div>
         </div>
+
+        {rewards.length > 0 ? (
+          <div className="space-y-2 rounded-t-xl border-t border-neutral-200 bg-white p-3">
+            {rewards.map((reward) => {
+              const RewardIcon = reward.icon;
+
+              return (
+                <div key={reward.id} className="flex items-center gap-2.5">
+                  <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+                    <RewardIcon className="size-4 text-neutral-800" />
+                  </div>
+                  <div className="text-content-default flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-0 text-sm font-semibold leading-5 tracking-tight">
+                    {reward.text}
+                    {reward.badge}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="flex items-center justify-between rounded-t-xl border-t border-neutral-200 bg-white px-4 py-3">
+            <p className="text-content-subtle text-sm">
+              You are not eligible for any rewards at this time.
+            </p>
+
+            {programSlug && (
+              <Link href={`/messages/${programSlug}`}>
+                <Button
+                  variant="secondary"
+                  text="Contact program"
+                  className="h-8 rounded-lg px-3"
+                />
+              </Link>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

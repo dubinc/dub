@@ -1,24 +1,24 @@
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import useWorkspace from "../../swr/use-workspace";
-import { PartnerReferralStats } from "../types";
+import { PartnerReferral } from "../types";
 
-export function usePartnerReferralStats({
+export function usePartnerReferral({
   partnerId,
 }: {
   partnerId: string | null | undefined;
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { data, isLoading, error } = useSWR<PartnerReferralStats>(
+  const { data, isLoading, error } = useSWR<PartnerReferral>(
     partnerId && workspaceId
-      ? `/api/partners/${partnerId}/referral-stats?workspaceId=${workspaceId}`
+      ? `/api/partners/${partnerId}/referral?workspaceId=${workspaceId}`
       : null,
     fetcher,
   );
 
   return {
-    referralStats: data,
+    referral: data,
     loading: isLoading,
     error,
   };

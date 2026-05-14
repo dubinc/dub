@@ -4,13 +4,13 @@ import {
   networkReferralSchema,
   networkReferralsStatsSchema,
   networkReferralsTimeseriesSchema,
-  partnerReferralStatsSchema,
+  partnerReferralSchema,
   referredPartnerSchema,
 } from "./schemas";
 
 export type ReferralRewardConfig = z.infer<typeof referralRewardConfigSchema>;
 
-export type PartnerReferralStats = z.infer<typeof partnerReferralStatsSchema>;
+export type PartnerReferral = z.infer<typeof partnerReferralSchema>;
 
 export type ReferredPartnerProps = z.infer<typeof referredPartnerSchema>;
 

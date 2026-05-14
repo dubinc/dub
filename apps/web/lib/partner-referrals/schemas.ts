@@ -5,11 +5,17 @@ import { getPaginationQuerySchema } from "../zod/schemas/misc";
 import { PartnerSchema } from "../zod/schemas/partners";
 import { centsSchemaWithDefault } from "../zod/schemas/utils";
 
-// Stats from referred partners
-export const partnerReferralStatsSchema = z.object({
-  totalPartners: z.number(),
-  totalConversions: z.number(),
-  totalSaleAmount: z.number(),
+export const partnerReferralSchema = z.object({
+  referredBy: PartnerSchema.pick({
+    id: true,
+    name: true,
+    image: true,
+  }).nullable(),
+  stats: z.object({
+    totalPartners: z.number(),
+    totalConversions: z.number(),
+    totalSaleAmount: z.number(),
+  }),
 });
 
 export const referredPartnerSchema = PartnerSchema.pick({
