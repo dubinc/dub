@@ -1,6 +1,5 @@
 import { withAdmin } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { stripe } from "@/lib/stripe";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, COUNTRIES } from "@dub/utils";
@@ -145,16 +144,16 @@ export const PATCH = withAdmin(async ({ params, req }) => {
     );
   }
 
-  if (partner.stripeConnectId) {
-    await stripe.accounts.del(partner.stripeConnectId);
-  }
-
   await prisma.partner.update({
     where: {
       id: partner.id,
     },
     data: {
-      stripeConnectId: null,
+      country,
+      stripeConnectId: null, // reset stripe connect account
+      payoutsEnabledAt: null,
+      defaultPayoutMethod: null,
+      payoutMethodHash: null,
       changeHistoryLog: partnerChangeHistoryLog,
     },
   });

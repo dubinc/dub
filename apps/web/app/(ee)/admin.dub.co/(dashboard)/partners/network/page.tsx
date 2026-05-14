@@ -258,6 +258,32 @@ export default function NetworkApplicationsPage() {
     }
   };
 
+  const handleUpdatePartnerCountry = async (
+    partner: AdminNetworkPartner,
+    country: string,
+  ) => {
+    try {
+      const response = await fetch(`/api/admin/partners/${partner.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ country }),
+      });
+
+      if (!response.ok) {
+        throw new Error((await response.text()) || "Failed to update country.");
+      }
+
+      toast.success(`Partner country updated to ${COUNTRIES[country]}.`);
+      await mutate();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to update country.";
+      toast.error(message);
+    }
+  };
+
   const columns = useMemo(
     () => [
       {
@@ -405,6 +431,7 @@ export default function NetworkApplicationsPage() {
             setDetailsSheetState((state) => ({ ...state, open }) as any);
           }}
           onReview={handleReviewPartner}
+          onUpdateCountry={handleUpdatePartnerCountry}
         />
       )}
       <div className="mb-4 flex flex-col gap-3">
