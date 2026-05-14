@@ -2,6 +2,9 @@ import { PARTNERS_DOMAIN } from "@dub/utils";
 import { PartnerProps, ProgramProps } from "../types";
 
 // Construct the program or Dub Network referral link
+// Examples are
+// https://partners.dub.co/register?via=johndoe
+// https://partners.dub.co/acme/apply?via=johndoe
 export const constructPartnerReferralLink = ({
   partner,
   program,
