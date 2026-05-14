@@ -6,7 +6,7 @@ import {
   Payout,
   Prisma,
 } from "@dub/prisma/client";
-import { log, NETWORK_PROGRAM_ID } from "@dub/utils";
+import { currencyFormatter, log, NETWORK_PROGRAM_ID } from "@dub/utils";
 import { differenceInMonths } from "date-fns";
 import { createId } from "../api/create-id";
 import { NETWORK_REFERRAL_REWARD } from "./constants";
@@ -90,6 +90,7 @@ export const createNetworkReferralCommission = async ({
     quantity: 1,
     earnings,
     invoiceId: `referral:network:${payout.id}`,
+    description: `Earned ${NETWORK_REFERRAL_REWARD.amountInPercentage}% commission on the referred partner's ${currencyFormatter(payout.amount)} payout.`,
   };
 
   let commission: Commission | null = null;
@@ -103,10 +104,7 @@ export const createNetworkReferralCommission = async ({
   } catch (error) {
     // Don't retry on unique constraint violation – the commission already exists
     // (likely a race between the dedup check and the create)
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
+    if (error.code === "P2002") {
       console.log(
         `Referral commission already exists for invoiceId ${commissionData.invoiceId}, skipping creation.`,
       );
