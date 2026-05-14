@@ -4,6 +4,7 @@ import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
+import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
@@ -53,7 +54,6 @@ import {
   getApexDomain,
   getPrettyUrl,
   nFormatter,
-  PARTNERS_DOMAIN,
 } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
@@ -670,7 +670,10 @@ function RewardList() {
   const hasPartnerLink = Boolean(partnerLink);
   const isDeactivated = programEnrollment.status === "deactivated";
 
-  const partnerReferralApplyLink = `${PARTNERS_DOMAIN}/${programSlug}/apply${partner?.username ? `?via=${partner.username}` : ""}`;
+  const partnerReferralApplyLink = constructPartnerReferralLink({
+    partner,
+    program: programEnrollment.program,
+  });
 
   return (
     <div className="flex flex-col gap-2 rounded-xl bg-neutral-100 p-2">

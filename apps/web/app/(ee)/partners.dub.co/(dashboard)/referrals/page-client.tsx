@@ -8,6 +8,7 @@ import { useNetworkReferrals } from "@/lib/partner-referrals/hooks/use-network-r
 import { useNetworkReferralsStats } from "@/lib/partner-referrals/hooks/use-network-referrals-stats";
 import { useNetworkReferralsTimeseries } from "@/lib/partner-referrals/hooks/use-network-referrals-timeseries";
 import { NetworkReferralProps } from "@/lib/partner-referrals/types";
+import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -33,7 +34,6 @@ import {
   DUB_LOGO,
   formatDate,
   getPrettyUrl,
-  PARTNERS_DOMAIN,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Check, HelpCircle, Lock } from "lucide-react";
@@ -50,9 +50,9 @@ function useNetworkReferralAccess() {
     partner?.networkStatus === "approved" ||
     partner?.networkStatus === "trusted";
 
-  const referralLink = partner?.username
-    ? `${PARTNERS_DOMAIN}/register?via=${partner.username}`
-    : null;
+  const referralLink = constructPartnerReferralLink({
+    partner,
+  });
 
   return {
     partner,

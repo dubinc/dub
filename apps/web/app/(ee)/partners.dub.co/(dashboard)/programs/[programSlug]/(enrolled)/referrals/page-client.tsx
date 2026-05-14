@@ -4,6 +4,7 @@ import { useReferredPartnerFilters } from "@/lib/partner-referrals/hooks/use-ref
 import { useReferredPartners } from "@/lib/partner-referrals/hooks/use-referred-partners";
 import { useReferredPartnersCount } from "@/lib/partner-referrals/hooks/use-referred-partners-count";
 import { ReferredPartnerProps } from "@/lib/partner-referrals/types";
+import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PageContent } from "@/ui/layout/page-content";
@@ -27,12 +28,11 @@ import {
 import { Users6 } from "@dub/ui/icons";
 import { COUNTRIES, currencyFormatter, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
-import { notFound, useParams } from "next/navigation";
+import { notFound } from "next/navigation";
 import { useMemo } from "react";
 import { toast } from "sonner";
 
 export function PartnerReferralsPageClient() {
-  const { programSlug } = useParams<{ programSlug: string }>();
   const { programEnrollment } = useProgramEnrollment();
   const { partner } = usePartnerProfile();
 
@@ -57,9 +57,10 @@ export function PartnerReferralsPageClient() {
     setSelectedFilter,
   } = useReferredPartnerFilters();
 
-  const referralLink = partner?.username
-    ? `https://partners.dub.co/${programSlug}/apply?via=${partner.username}`
-    : null;
+  const referralLink = constructPartnerReferralLink({
+    partner,
+    program: programEnrollment?.program,
+  });
 
   const [, copyToClipboard] = useCopyToClipboard();
 
