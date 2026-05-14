@@ -17,8 +17,8 @@ export async function markApplicationEventSubmittedNetwork(
       return;
     }
 
-    const applicationEvent = await prisma.programApplicationEvent
-      .update({
+    await prisma.$transaction(async (tx) => {
+      const applicationEvent = await tx.programApplicationEvent.update({
         where: {
           id: applicationEventId,
           programId: NETWORK_PROGRAM_ID,
@@ -33,15 +33,13 @@ export async function markApplicationEventSubmittedNetwork(
           country: true,
           visitedAt: true,
         },
-      })
-      .catch(() => null);
+      });
 
-    if (!applicationEvent || !applicationEvent.referredByPartnerId) {
-      return;
-    }
+      if (!applicationEvent.referredByPartnerId) {
+        return;
+      }
 
-    await prisma.partner
-      .update({
+      await tx.partner.update({
         where: {
           id: partner.id,
           referredByPartnerId: null,
@@ -49,19 +47,19 @@ export async function markApplicationEventSubmittedNetwork(
         data: {
           referredByPartnerId: applicationEvent.referredByPartnerId,
         },
-      })
-      .catch(() => null);
+      });
 
-    await prisma.customer.create({
-      data: {
-        id: createId({ prefix: "cus_" }),
-        projectId: NETWORK_WORKSPACE_ID,
-        programId: NETWORK_PROGRAM_ID,
-        partnerId: applicationEvent.referredByPartnerId,
-        name: partner.name,
-        email: partner.email,
-        country: partner.country,
-      },
+      await tx.customer.create({
+        data: {
+          id: createId({ prefix: "cus_" }),
+          projectId: NETWORK_WORKSPACE_ID,
+          programId: NETWORK_PROGRAM_ID,
+          partnerId: applicationEvent.referredByPartnerId,
+          name: partner.name,
+          email: partner.email,
+          country: partner.country,
+        },
+      });
     });
   } catch (error) {}
 }

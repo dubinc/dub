@@ -12,7 +12,10 @@ export const constructPartnerReferralLink = ({
   partner: Pick<PartnerProps, "username"> | undefined;
   program?: Pick<ProgramProps, "slug">;
 }) => {
-  const viaQuery = partner?.username ? `?via=${partner.username}` : "";
+  const viaQuery = partner?.username
+    ? `?via=${encodeURIComponent(partner.username)}`
+    : "";
+
   const path = program ? `/${program.slug}/apply` : "/register";
 
   return `${PARTNERS_DOMAIN}${path}${viaQuery}`;
