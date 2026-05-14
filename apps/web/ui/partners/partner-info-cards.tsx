@@ -284,10 +284,12 @@ export function PartnerInfoCards({
               .filter(({ text }) => text !== null)
               .map(({ id, icon, text, timestamp, wrapper: RowWrapper }) => {
                 const rowInner = (
-                  <div className="text-content-subtle flex items-center gap-1">
+                  <div className="text-content-subtle flex items-start gap-1">
                     {text !== undefined ? (
                       <>
-                        {icon}
+                        <span className="flex h-4 shrink-0 items-center">
+                          {icon}
+                        </span>
                         <span className="text-xs font-medium">{text}</span>
                       </>
                     ) : (
