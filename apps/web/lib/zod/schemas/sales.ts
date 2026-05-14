@@ -38,7 +38,15 @@ export const trackSaleRequestSchema = z.object({
     )
     .meta({ example: "Invoice paid" }),
   paymentProcessor: z
-    .enum(["stripe", "shopify", "polar", "paddle", "revenuecat", "custom"])
+    .enum([
+      "stripe",
+      "shopify",
+      "polar",
+      "paddle",
+      "apple",
+      "revenuecat",
+      "custom",
+    ])
     .default("custom")
     .describe("The payment processor via which the sale was made."),
   invoiceId: z

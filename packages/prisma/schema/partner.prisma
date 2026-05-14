@@ -107,13 +107,12 @@ model Partner {
   fraudAlerts                FraudAlert[]
   partnerRewinds             PartnerRewind[]
   platforms                  PartnerPlatform[]
-  referrals                  PartnerReferral[]
   referredApplications       ProgramApplicationEvent[]
+  submittedLeads             SubmittedLead[]
 
   @@index(country)
   @@index(networkStatus)
   @@index(createdAt)
-  @@index(trustedAt) // TODO: remove index once we fully migrate to networkStatus
   @@index(payoutMethodHash)
   @@index(cryptoWalletAddress)
   @@index(identityVerifiedAt)

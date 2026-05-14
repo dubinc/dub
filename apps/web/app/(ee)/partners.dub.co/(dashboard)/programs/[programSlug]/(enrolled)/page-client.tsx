@@ -67,7 +67,7 @@ const ProgramOverviewContext = createContext<{
   interval: DUB_PARTNERS_ANALYTICS_INTERVAL,
 });
 
-export default function ProgramPageClient() {
+export function PartnerProgramOverviewPageClient() {
   const { getQueryString, searchParamsObj } = useRouterStuff();
   const { programSlug } = useParams();
 

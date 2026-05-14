@@ -32,7 +32,7 @@ model Customer {
   programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
   commissions       Commission[]
   fraudEvents       FraudEvent[]
-  referrals         PartnerReferral[]
+  submittedLeads    SubmittedLead[]
 
   @@unique([projectId, externalId])
   @@unique([projectConnectId, externalId])

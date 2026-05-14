@@ -2,27 +2,18 @@ import * as z from "zod/v4";
 import { UserSchema } from "./users";
 
 export const activityLogResourceTypeSchema = z.enum([
-  "referral",
   "partner",
   "commission",
   "clickReward",
   "saleReward",
   "leadReward",
+  "submittedLead",
 ]);
 
 export const activityLogActionSchema = z.enum([
-  "referral.created",
-  "referral.updated",
-  "referral.qualified",
-  "referral.meeting",
-  "referral.negotiation",
-  "referral.unqualified",
-  "referral.closedWon",
-  "referral.closedLost",
-
-  "partner_application.approved",
-  "partner_application.rejected",
-  "partner.groupChanged", // TODO: change to partner.group_updated
+  "partner_application.approved", // TODO: change to partnerApplication.approved
+  "partner_application.rejected", // TODO: change to partnerApplication.rejected
+  "partner.groupChanged",
   "partner.banned",
   "partner.unbanned",
   "partner.deactivated",
@@ -38,6 +29,15 @@ export const activityLogActionSchema = z.enum([
   "reward.conditionAdded",
   "reward.conditionRemoved",
   "reward.conditionUpdated",
+
+  "submittedLead.created",
+  "submittedLead.updated",
+  "submittedLead.qualified",
+  "submittedLead.meeting",
+  "submittedLead.negotiation",
+  "submittedLead.unqualified",
+  "submittedLead.closedWon",
+  "submittedLead.closedLost",
 ]);
 
 export const getActivityLogsQuerySchema = z.object({

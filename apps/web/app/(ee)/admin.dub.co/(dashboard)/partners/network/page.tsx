@@ -39,7 +39,8 @@ export default function NetworkApplicationsPage() {
     useRouterStuff();
 
   const [detailsSheetState, setDetailsSheetState] = useState<
-    { open: false; partnerId: null } | { open: true; partnerId: string }
+    | { open: false; partnerId: string | null }
+    | { open: true; partnerId: string }
   >({ open: false, partnerId: null });
 
   const {
@@ -205,7 +206,7 @@ export default function NetworkApplicationsPage() {
 
   const handleReviewPartner = async (
     partner: AdminNetworkPartner,
-    status: "approved" | "rejected",
+    status: "approved" | "rejected" | "draft",
   ) => {
     const currentIndex = partners.findIndex(({ id }) => id === partner.id);
     const fallbackPartnerId =
@@ -232,7 +233,9 @@ export default function NetworkApplicationsPage() {
       toast.success(
         status === "approved"
           ? "Partner approved for the network."
-          : "Partner rejected from the network.",
+          : status === "draft"
+            ? "Network profile reverted to draft."
+            : "Partner rejected from the network.",
       );
 
       await mutate();
@@ -399,15 +402,7 @@ export default function NetworkApplicationsPage() {
               : undefined
           }
           setIsOpen={(open) => {
-            if (!open) {
-              setDetailsSheetState({ open: false, partnerId: null });
-              queryParams({ del: "partnerId", scroll: false });
-            } else if (detailsSheetState.partnerId) {
-              setDetailsSheetState({
-                open: true,
-                partnerId: detailsSheetState.partnerId,
-              });
-            }
+            setDetailsSheetState((state) => ({ ...state, open }) as any);
           }}
           onReview={handleReviewPartner}
         />
