@@ -237,10 +237,7 @@ export const createReferralCommission = async (
   } catch (error) {
     // Don't retry on unique constraint violation – the commission already exists
     // (likely a race between the dedup check and the create)
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
+    if (error.code === "P2002") {
       console.log(
         `Referral commission already exists for invoiceId ${commissionData.invoiceId}, skipping creation.`,
       );
