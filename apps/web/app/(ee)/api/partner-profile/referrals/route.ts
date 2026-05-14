@@ -10,6 +10,10 @@ import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { CommissionType } from "@dub/prisma/client";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
+import {
+  NETWORK_PROGRAM_DEFAULT_GROUP_ID,
+  NETWORK_PROGRAM_DEFAULT_SALE_REWARD_ID,
+} from "@dub/utils/src/constants/main";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -25,21 +29,30 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   }
 
   waitUntil(
-    prisma.programEnrollment.upsert({
-      where: {
-        partnerId_programId: {
+    prisma.programEnrollment
+      .upsert({
+        where: {
+          partnerId_programId: {
+            partnerId: partner.id,
+            programId: NETWORK_PROGRAM_ID,
+          },
+        },
+        create: {
+          id: createId({ prefix: "pge_" }),
           partnerId: partner.id,
           programId: NETWORK_PROGRAM_ID,
+          status: "approved",
+          groupId: NETWORK_PROGRAM_DEFAULT_GROUP_ID,
+          saleRewardId: NETWORK_PROGRAM_DEFAULT_SALE_REWARD_ID,
         },
-      },
-      create: {
-        id: createId({ prefix: "pge_" }),
-        partnerId: partner.id,
-        programId: NETWORK_PROGRAM_ID,
-        status: "approved",
-      },
-      update: {},
-    }),
+        update: {},
+      })
+      .then((res) => {
+        console.log(
+          "Program enrollment upserted",
+          JSON.stringify(res, null, 2),
+        );
+      }),
   );
 
   const { page = 1, pageSize } =

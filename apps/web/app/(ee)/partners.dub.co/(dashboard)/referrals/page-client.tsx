@@ -146,7 +146,7 @@ function ReferralsStatItem({
   chartData?: { date: Date; value: number }[] | null;
 }) {
   return (
-    <div className="flex flex-col gap-1 p-4">
+    <div className="flex flex-col gap-1 p-4 pr-0">
       <div className="flex items-center gap-1">
         <span className="text-content-default text-sm font-medium">
           {label}
@@ -156,7 +156,7 @@ function ReferralsStatItem({
         </Tooltip>
       </div>
 
-      <div className="flex items-end gap-3">
+      <div className="flex items-end gap-4">
         <span className="text-content-emphasis whitespace-nowrap text-3xl font-medium tabular-nums">
           {isLoading ? (
             <span
@@ -219,7 +219,9 @@ function ReferralsStats() {
         isLoading={partnerLoading || statsLoading}
         chartData={earningsChartData}
       >
-        {currencyFormatter(stats?.totalEarnings ?? 0)}
+        {currencyFormatter(stats?.totalEarnings ?? 0, {
+          trailingZeroDisplay: "stripIfInteger",
+        })}
       </ReferralsStatItem>
     </div>
   );
