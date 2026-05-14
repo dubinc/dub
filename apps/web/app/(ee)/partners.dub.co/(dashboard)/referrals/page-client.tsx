@@ -18,6 +18,7 @@ import { CountryFlag } from "@/ui/shared/country-flag";
 import {
   Button,
   Copy,
+  CopyText,
   MiniAreaChart,
   Table,
   TimestampTooltip,
@@ -297,9 +298,12 @@ function ReferralLink() {
                 className="relative z-10 size-6 shrink-0 rounded-full"
               />
             </div>
-            <span className="text-content-default min-w-0 truncate text-sm font-semibold">
+            <CopyText
+              className="text-content-default min-w-0 truncate text-sm font-semibold"
+              value={referralLink}
+            >
               {getPrettyUrl(referralLink)}
-            </span>
+            </CopyText>
           </div>
           <Button
             text={isMobile ? undefined : "Copy link"}
