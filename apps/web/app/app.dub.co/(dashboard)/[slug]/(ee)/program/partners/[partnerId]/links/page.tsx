@@ -188,7 +188,11 @@ const PartnerReferralLink = ({
 }: {
   partner: EnrolledPartnerProps;
 }) => {
-  const { program } = useProgram();
+  const {
+    program,
+    loading: loadingProgram,
+    error: errorProgram,
+  } = useProgram();
   const {
     referral,
     loading: loadingReferral,
@@ -260,8 +264,11 @@ const PartnerReferralLink = ({
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
-    loading: loadingReferral || !program,
-    error: referralError ? "Failed to load partner referral data" : undefined,
+    loading: loadingReferral || loadingProgram,
+    error:
+      referralError || errorProgram
+        ? "Failed to load partner referral data"
+        : undefined,
   });
 
   if (!partner?.referralRewardId) {
