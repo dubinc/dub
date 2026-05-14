@@ -601,7 +601,7 @@ function RewardsTermsList() {
       ? [
           {
             label: "holding period",
-            value: `${holdingPeriodDays} day`,
+            value: `${holdingPeriodDays}-day`,
             href: "https://dub.co/help/article/commissions-payouts#what-does-holding-period-mean",
           },
         ]

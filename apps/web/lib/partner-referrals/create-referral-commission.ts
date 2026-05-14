@@ -307,7 +307,6 @@ export const createReferralCommission = async (
       program,
       commission,
       group: referrerProgramEnrollment.partnerGroup ?? program.groups[0],
-      isFirstCommission: true,
     }),
   ]);
 
@@ -335,8 +334,12 @@ function generateCommissionDescription({
   }
 
   if (trigger === "commissionThreshold") {
+    const { commissionsThresholdInCents } = referralRewardConfigSchema.parse(
+      referralReward.config,
+    );
+
     const formattedThreshold = currencyFormatter(
-      referralReward.amountInCents ?? 0,
+      commissionsThresholdInCents ?? 0,
       {
         currency: "usd",
         trailingZeroDisplay: "stripIfInteger",
