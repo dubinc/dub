@@ -198,6 +198,7 @@ export const trackSale = async ({
       },
     });
 
+    // STEP
     if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
       // persist customer avatar to R2 if it's not already stored
       waitUntil(
@@ -296,6 +297,7 @@ const _trackLead = async ({
         }),
 
         // Update link leads count + lastLeadAt date
+        // STEP
         prisma.link.update({
           where: {
             id: leadEventData.link_id,
@@ -310,6 +312,7 @@ const _trackLead = async ({
         }),
 
         // Update workspace events usage
+        // STEP
         prisma.project.update({
           where: {
             id: workspace.id,
@@ -323,6 +326,7 @@ const _trackLead = async ({
       ]);
 
       // Create partner commission and execute workflows
+      // STEP
       if (link.programId && link.partnerId && customer) {
         await Promise.allSettled([
           executeWorkflows({
@@ -348,6 +352,7 @@ const _trackLead = async ({
         ]);
       }
 
+      // STEP
       await Promise.allSettled([
         sendWorkspaceWebhook({
           trigger: "lead.created",
@@ -450,6 +455,7 @@ const _trackSale = async ({
         }),
 
         // Update link conversions, sales, and saleAmount
+        // STEP
         prisma.link.update({
           where: {
             id: saleData.link_id,
@@ -472,6 +478,7 @@ const _trackSale = async ({
         }),
 
         // Update workspace events usage
+        // STEP
         prisma.project.update({
           where: {
             id: workspace.id,
@@ -489,6 +496,7 @@ const _trackSale = async ({
         | undefined = undefined;
 
       // Create partner commission and execute workflows
+      // STEP
       if (link.programId && link.partnerId) {
         createdCommission = await createPartnerCommission({
           event: "sale",
@@ -516,6 +524,7 @@ const _trackSale = async ({
 
         const { webhookPartner, programEnrollment } = createdCommission;
 
+        // STEP
         await Promise.allSettled([
           executeWorkflows({
             trigger: "partnerMetricsUpdated",
@@ -555,6 +564,7 @@ const _trackSale = async ({
         ]);
       }
 
+      // STEP
       await Promise.allSettled([
         sendWorkspaceWebhook({
           trigger: "sale.created",
@@ -586,6 +596,7 @@ const _trackSale = async ({
       ]);
 
       // Update customer stats + program/partner associations
+      // STEP
       await prisma.customer.update({
         where: {
           id: customer.id,

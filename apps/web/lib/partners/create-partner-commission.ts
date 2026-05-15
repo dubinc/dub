@@ -45,7 +45,7 @@ export type CreatePartnerCommissionProps = {
   skipWorkflow?: boolean;
 };
 
-const constructWebhookPartner = (
+export const constructWebhookPartner = (
   programEnrollment: ProgramEnrollment & { partner: Partner; links: Link[] },
   {
     totalCommissions: totalCommissionsParam,
@@ -53,6 +53,7 @@ const constructWebhookPartner = (
 ) => {
   const totalCommissions =
     totalCommissionsParam ?? toCentsNumber(programEnrollment.totalCommissions);
+
   return {
     ...programEnrollment.partner,
     groupId: programEnrollment.groupId,
