@@ -1,5 +1,6 @@
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { Client } from "@upstash/workflow";
+import { getErrorMessage } from "../api/errors";
 
 const client = new Client({
   token: process.env.QSTASH_TOKEN || "",
@@ -8,7 +9,7 @@ const client = new Client({
 const WORKFLOW_RETRIES = 3;
 const WORKFLOW_PARALLELISM = 20;
 
-type WorkflowIds = "partner-approved";
+type WorkflowIds = "partner-approved" | "sale-tracked";
 
 interface QStashWorkflow {
   workflowId: WorkflowIds;
@@ -16,7 +17,7 @@ interface QStashWorkflow {
 }
 
 // Run workflows
-export async function triggerWorkflows(
+export async function triggerQStashWorkflow(
   input: QStashWorkflow | QStashWorkflow[],
 ) {
   try {
@@ -34,26 +35,19 @@ export async function triggerWorkflows(
       })),
     );
 
-    if (process.env.NODE_ENV === "development") {
-      console.debug("[Upstash] Workflows triggered", {
-        count: workflows.length,
-        ids: workflows.map((w) => w.workflowId),
-        results,
-      });
-    }
+    console.debug("[triggerQStashWorkflow] Workflows triggered", results);
 
     return results;
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : JSON.stringify(error);
+    const message = getErrorMessage(error);
 
-    console.error("[Upstash] Failed to trigger workflows", {
+    console.error("[triggerQStashWorkflow] Failed to trigger workflows", {
       error: message,
       input,
     });
 
     await log({
-      message: `[Upstash] Failed to trigger QStash workflows. ${message}`,
+      message: `[triggerQStashWorkflow] Failed to trigger QStash workflows. ${message}`,
       type: "errors",
     });
 

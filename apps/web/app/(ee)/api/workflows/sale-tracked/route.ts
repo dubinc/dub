@@ -57,7 +57,6 @@ export const { POST } = serve<Input>(
     });
 
     // Step 2:  Create partner commission
-
     if (link.programId && link.partnerId) {
       await context.run("create-commission", async () => {
         await stepCreateCommission({
@@ -82,6 +81,14 @@ export const { POST } = serve<Input>(
         link,
       });
     });
+
+    // Step 5: Execute workflow
+    await context.run("execute-workflow", async () => {
+      await stepExecuteWorkflow({
+        ...input,
+        link,
+      });
+    });
   },
   {
     initialPayloadParser: (input) => inputSchema.parse(JSON.parse(input)),
@@ -90,7 +97,6 @@ export const { POST } = serve<Input>(
 
 // TODO:
 // Make sure individual steps are idempotent
-// Step : Execute workflows (?)
 
 async function stepUpdateStats({ saleEvent, link }: StepFunctionProps) {
   const {
@@ -304,6 +310,24 @@ async function stepSendWebhooks({ saleEvent, link }: StepFunctionProps) {
 async function stepRunFraudDetection({ saleEvent, link }: StepFunctionProps) {
   // TODO:
   // Run detectAndRecordFraudEvent
+}
+
+async function stepExecuteWorkflow({ saleEvent, link }: StepFunctionProps) {
+  // executeWorkflows({
+  //   trigger: "partnerMetricsUpdated",
+  //   reason: "sale",
+  //   identity: {
+  //     workspaceId: workspace.id,
+  //     programId: link.programId,
+  //     partnerId: link.partnerId,
+  //   },
+  //   metrics: {
+  //     current: {
+  //       saleAmount: saleData.amount,
+  //       conversions: firstConversionFlag ? 1 : 0,
+  //     },
+  //   },
+  // }),
 }
 
 function parseMetadata(metadata: string): Record<string, string> {
