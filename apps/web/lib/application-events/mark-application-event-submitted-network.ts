@@ -27,6 +27,9 @@ export async function markApplicationEventSubmittedNetwork(
     const applicationEventId = cookieStore.get(cookieName)?.value;
 
     if (!applicationEventId) {
+      console.log(
+        `No application event ID found for network program + new partner ${partner.id}, skipping...`,
+      );
       return;
     }
 
@@ -68,7 +71,6 @@ export async function markApplicationEventSubmittedNetwork(
         await tx.partner.update({
           where: {
             id: partner.id,
-            referredByPartnerId: null,
           },
           data: {
             referredByPartnerId: applicationEvent.referredByPartnerId,
@@ -107,7 +109,7 @@ export async function markApplicationEventSubmittedNetwork(
       return;
     }
 
-    const metadata = JSON.parse(applicationEvent.metadata as string);
+    const metadata = applicationEvent.metadata as Record<string, string>;
     const click_id = nanoid(16);
 
     // convert stored metadata values to dub_click_events DS schema
@@ -179,5 +181,10 @@ export async function markApplicationEventSubmittedNetwork(
       programId: networkPartnerLink.programId!,
       eventType: "lead",
     });
-  } catch (error) {}
+  } catch (error) {
+    console.error(
+      `Error marking application event submitted for new partner ${partner.id}:`,
+      error,
+    );
+  }
 }
