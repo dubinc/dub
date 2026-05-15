@@ -443,6 +443,7 @@ export function Table<T>({
   className,
   containerClassName,
   scrollWrapperClassName,
+  showScrollOverflowGradient = false,
   emptyWrapperClassName,
   thClassName,
   tdClassName,
@@ -468,6 +469,10 @@ export function Table<T>({
     }
   }
   const scrollWrapperRef = useRef<HTMLDivElement>(null);
+  const [scrollOverflow, setScrollOverflow] = useState({
+    left: false,
+    right: false,
+  });
   const utilityColumnWidths = new Map(
     visibleColumns.map((column) => [column.id, column.getSize()]),
   );
@@ -476,10 +481,65 @@ export function Table<T>({
 
   const As = paginationAllRowsHref ? Link : "span";
 
+  useEffect(() => {
+    if (!showScrollOverflowGradient) return;
+
+    const scrollWrapper = scrollWrapperRef.current;
+    if (!scrollWrapper) return;
+
+    const updateScrollOverflow = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollWrapper;
+      const tableWidth =
+        scrollWrapper.querySelector("table")?.getBoundingClientRect().width ??
+        scrollWidth;
+      const overflowWidth = Math.max(scrollWidth, Math.ceil(tableWidth));
+
+      const nextScrollOverflow = {
+        left: scrollLeft > 0,
+        right: scrollLeft + clientWidth < overflowWidth - 1,
+      };
+
+      setScrollOverflow((currentScrollOverflow) =>
+        currentScrollOverflow.left === nextScrollOverflow.left &&
+        currentScrollOverflow.right === nextScrollOverflow.right
+          ? currentScrollOverflow
+          : nextScrollOverflow,
+      );
+    };
+
+    updateScrollOverflow();
+    const animationFrame = requestAnimationFrame(updateScrollOverflow);
+
+    scrollWrapper.addEventListener("scroll", updateScrollOverflow, {
+      passive: true,
+    });
+
+    const resizeObserver = new ResizeObserver(updateScrollOverflow);
+    resizeObserver.observe(scrollWrapper);
+
+    if (scrollWrapper.firstElementChild) {
+      resizeObserver.observe(scrollWrapper.firstElementChild);
+    }
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      scrollWrapper.removeEventListener("scroll", updateScrollOverflow);
+      resizeObserver.disconnect();
+    };
+  }, [
+    data,
+    loading,
+    error,
+    children,
+    showScrollOverflowGradient,
+    visibleColumns.length,
+  ]);
+
   return (
     <div
       className={cn(
         "border-border-subtle bg-bg-default relative z-0 rounded-xl border",
+        showScrollOverflowGradient && "min-w-0 max-w-full overflow-hidden",
         containerClassName,
       )}
     >
@@ -497,6 +557,7 @@ export function Table<T>({
             ref={scrollWrapperRef}
             className={cn(
               "relative min-h-[400px] overflow-x-auto rounded-[inherit]",
+              showScrollOverflowGradient && "w-full max-w-full",
               scrollWrapperClassName,
             )}
           >
@@ -789,6 +850,24 @@ export function Table<T>({
             </table>
             {children}
           </div>
+          {showScrollOverflowGradient && (
+            <>
+              <div
+                aria-hidden
+                className={cn(
+                  "from-bg-default pointer-events-none absolute inset-y-0 left-0 z-10 w-12 rounded-l-[inherit] bg-gradient-to-r to-transparent transition-opacity",
+                  scrollOverflow.left ? "opacity-100" : "opacity-0",
+                )}
+              />
+              <div
+                aria-hidden
+                className={cn(
+                  "from-bg-default pointer-events-none absolute inset-y-0 right-0 z-10 w-12 rounded-r-[inherit] bg-gradient-to-l to-transparent transition-opacity",
+                  scrollOverflow.right ? "opacity-100" : "opacity-0",
+                )}
+              />
+            </>
+          )}
         </>
       ) : (
         <div

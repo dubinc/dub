@@ -173,7 +173,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
           onClick={() => setShowAddPartnerLinkModal(true)}
         />
       </div>
-      <Table {...table} />
+      <Table {...table} showScrollOverflowGradient />
       <AddPartnerLinkModal />
     </>
   );

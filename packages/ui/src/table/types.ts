@@ -64,6 +64,7 @@ type BaseTableProps<T> = {
   className?: string;
   containerClassName?: string;
   scrollWrapperClassName?: string;
+  showScrollOverflowGradient?: boolean;
   emptyWrapperClassName?: string;
   thClassName?: string | ((columnId: string) => string);
   tdClassName?: string | ((columnId: string, row: Row<T>) => string);
