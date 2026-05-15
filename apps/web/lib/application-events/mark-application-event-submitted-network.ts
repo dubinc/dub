@@ -1,21 +1,13 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
 import { Partner } from "@dub/prisma/client";
-import {
-  getDomainWithoutWWW,
-  nanoid,
-  NETWORK_PROGRAM_ID,
-  NETWORK_WORKSPACE_ID,
-} from "@dub/utils";
+import { nanoid, NETWORK_PROGRAM_ID, NETWORK_WORKSPACE_ID } from "@dub/utils";
 import { randomInt } from "crypto";
 import { addSeconds } from "date-fns";
 import { cookies } from "next/headers";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { recordLead } from "../tinybird";
-import {
-  recordClickZod,
-  recordClickZodSchema,
-} from "../tinybird/record-click-zod";
+import { recordClickZodSchema } from "../tinybird/record-click-zod";
 import { getApplicationEventCookieName } from "./utils";
 
 export async function markApplicationEventSubmittedNetwork(
@@ -109,29 +101,7 @@ export async function markApplicationEventSubmittedNetwork(
       return;
     }
 
-    const metadata = applicationEvent.metadata as Record<string, string>;
-    const click_id = nanoid(16);
-
-    // convert stored metadata values to dub_click_events DS schema
-    const generatedClickEvent = recordClickZodSchema.parse({
-      ...metadata,
-      timestamp: applicationEvent.visitedAt.toISOString(),
-      identity_hash: partner.id,
-      click_id,
-      workspace_id: NETWORK_WORKSPACE_ID,
-      link_id: networkPartnerLink.id,
-      domain: networkPartnerLink.domain,
-      key: networkPartnerLink.key,
-      ...(metadata.referrer
-        ? {
-            referer: getDomainWithoutWWW(metadata.referrer),
-            referer_url: metadata.referrer,
-          }
-        : {}),
-    });
-
-    await recordClickZod(generatedClickEvent);
-    console.log(`Tracked click event with click_id: ${click_id}`);
+    const metadata = recordClickZodSchema.parse(applicationEvent.metadata);
 
     const customer = await prisma.customer.create({
       data: {
@@ -145,14 +115,18 @@ export async function markApplicationEventSubmittedNetwork(
         linkId: networkPartnerLink.id,
         programId: NETWORK_PROGRAM_ID,
         partnerId: applicationEvent.referredByPartnerId,
-        clickId: click_id,
+        clickId: metadata.click_id,
         clickedAt: applicationEvent.visitedAt,
       },
     });
     console.log(`Tracked customer with id: ${customer.id}`);
 
     await recordLead({
-      ...generatedClickEvent,
+      ...metadata,
+      workspace_id: NETWORK_WORKSPACE_ID,
+      link_id: networkPartnerLink.id,
+      domain: networkPartnerLink.domain,
+      key: networkPartnerLink.key,
       event_id: nanoid(16),
       event_name: "New partner signup",
       customer_id: customer.id,

@@ -1,6 +1,7 @@
 import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getIP } from "@/lib/api/utils/get-ip";
 import {
@@ -12,6 +13,10 @@ import { getSession } from "@/lib/auth";
 import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
+import {
+  recordClickZod,
+  recordClickZodSchema,
+} from "@/lib/tinybird/record-click-zod";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { Partner, Program } from "@dub/prisma/client";
@@ -22,10 +27,12 @@ import {
   getSearchParams,
   LOCALHOST_GEO_DATA,
   LOCALHOST_IP,
+  nanoid,
   NETWORK_PROGRAM_ID,
   NETWORK_PROGRAM_SLUG,
+  NETWORK_WORKSPACE_ID,
 } from "@dub/utils";
-import { geolocation, ipAddress } from "@vercel/functions";
+import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";
 
@@ -168,7 +175,7 @@ async function trackVisitEvent({
   }
 
   const session = await getSession();
-  const requestContext = await getRequestContext(req);
+  const requestContext = await getRequestContext(req, { referrer, url });
 
   try {
     const programApplicationEvent = await prisma.programApplicationEvent.create(
@@ -185,11 +192,7 @@ async function trackVisitEvent({
           partnerId: session?.user?.defaultPartnerId,
           visitedAt: new Date(),
           country: requestContext.country,
-          metadata: {
-            ...requestContext,
-            url,
-            referrer,
-          },
+          metadata: requestContext,
         },
       },
     );
@@ -207,7 +210,65 @@ async function trackVisitEvent({
       sameSite: "lax",
       path: "/",
     });
-  } catch {}
+  } catch (e) {
+    console.error(`Error tracking "visit" event for program ${program.id}`, e);
+  }
+
+  // for network program application events, track the click event
+  if (program.id === NETWORK_PROGRAM_ID && referredByPartner) {
+    waitUntil(
+      (async () => {
+        const networkPartnerLink = await prisma.link.findFirst({
+          where: {
+            programId: NETWORK_PROGRAM_ID,
+            partnerId: referredByPartner.id,
+          },
+        });
+
+        if (!networkPartnerLink) {
+          console.log(
+            `No network partner link found for partner ${referredByPartner.id}, skipping...`,
+          );
+          return;
+        }
+
+        // add additional click event data to the request context
+        const generatedClickEvent = recordClickZodSchema.parse({
+          ...requestContext,
+          timestamp: new Date().toISOString(),
+          workspace_id: NETWORK_WORKSPACE_ID,
+          link_id: networkPartnerLink.id,
+          domain: networkPartnerLink.domain,
+          key: networkPartnerLink.key,
+        });
+
+        await recordClickZod(generatedClickEvent);
+        console.log(
+          `Tracked click event for network partner ${referredByPartner.id}`,
+        );
+
+        await prisma.link.update({
+          where: {
+            id: networkPartnerLink.id,
+          },
+          data: {
+            clicks: { increment: 1 },
+            lastClicked: new Date(),
+          },
+        });
+        console.log(
+          `Updated link ${networkPartnerLink.id} to ${networkPartnerLink.clicks + 1} clicks`,
+        );
+
+        await syncPartnerLinksStats({
+          partnerId: referredByPartner.id,
+          programId: NETWORK_PROGRAM_ID,
+          eventType: "click",
+        });
+        console.log(`Synced click stats for partner ${referredByPartner.id}`);
+      })(),
+    );
+  }
 }
 
 // Track the "start" event
@@ -250,10 +311,14 @@ async function trackStartEvent({
 }
 
 // Get the request context
-async function getRequestContext(req: NextRequest) {
+async function getRequestContext(
+  req: NextRequest,
+  { referrer, url }: { referrer: string | null | undefined; url: string },
+) {
   const isVercel = process.env.VERCEL === "1";
 
-  const identityHash = await getIdentityHash(req);
+  const click_id = nanoid(16);
+  const identity_hash = await getIdentityHash(req);
   const ua = userAgent(req);
 
   const ip = isVercel ? ipAddress(req) : LOCALHOST_IP;
@@ -270,7 +335,13 @@ async function getRequestContext(req: NextRequest) {
   const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
   return {
-    identityHash,
+    identity_hash,
+    click_id,
+    url,
+    ip:
+      typeof ip === "string" && ip.trim().length > 0 && !isEuCountry
+        ? ip
+        : undefined,
     continent,
     country: geo.country,
     region,
@@ -289,10 +360,8 @@ async function getRequestContext(req: NextRequest) {
     os_version: ua.os.version,
     cpu_architecture: ua.cpu?.architecture,
     ua: ua.ua,
-    ip:
-      typeof ip === "string" && ip.trim().length > 0 && !isEuCountry
-        ? ip
-        : undefined,
+    referer: referrer ? getDomainWithoutWWW(referrer) || "direct" : "direct",
+    referer_url: referrer || "direct",
   };
 }
 
