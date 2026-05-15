@@ -1596,7 +1596,7 @@ describe("evaluateRewardConditions", () => {
         context,
       });
 
-      expect(result).toEqual(conditions[0]);
+      expect(result).toEqual(conditions[0]); // Should match CA
     });
 
     test("should not match when partner country does not match", () => {

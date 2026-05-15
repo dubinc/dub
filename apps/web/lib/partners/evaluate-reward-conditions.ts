@@ -107,12 +107,7 @@ function resolveConditionFieldValue({
   return undefined;
 }
 
-const METADATA_TEXT_OPS = new Set<string>([
-  "starts_with",
-  "ends_with",
-  "in",
-  "not_in",
-]);
+const METADATA_TEXT_OPS = new Set<string>(["starts_with", "ends_with"]);
 
 const METADATA_NUMERIC_ORDER_OPS = new Set<string>([
   "greater_than",
