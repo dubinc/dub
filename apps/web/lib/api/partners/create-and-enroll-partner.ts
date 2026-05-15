@@ -13,6 +13,7 @@ import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { createPartnerDefaultLinks } from "./create-partner-default-links";
+import { generatePartnerUsername } from "./generate-partner-username";
 import { throwIfExistingTenantEnrollmentExists } from "./throw-if-existing-tenant-id-exists";
 
 interface CreateAndEnrollPartnerInput {
@@ -171,6 +172,10 @@ export const createAndEnrollPartner = async ({
       id: createId({ prefix: "pn_" }),
       name: partner.name || partner.email,
       email: partner.email,
+      username: await generatePartnerUsername({
+        email: partner.email,
+        name: partner.name,
+      }),
       image: partner.image && !isStored(partner.image) ? null : partner.image,
       country: partner.country,
       description: partner.description,

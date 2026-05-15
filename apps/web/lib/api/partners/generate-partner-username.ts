@@ -1,45 +1,21 @@
 import { prisma } from "@dub/prisma";
-import { nanoid, RESERVED_SLUGS } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 
-export function derivePartnerUsername({
-  name,
-  email,
-}: {
-  name: string;
-  email: string | null;
-}) {
-  let username = "";
-
-  if (name) {
-    username = slugify(name);
-  } else if (email) {
-    username = slugify(email.split("@")[0]);
-  } else {
-    username = nanoid(8).toLowerCase();
-  }
-
-  if (RESERVED_SLUGS.includes(username)) {
-    return `${username}-${nanoid(4).toLowerCase()}`;
-  }
-
-  return username;
-}
-
 export async function generatePartnerUsername({
-  name,
   email,
+  name,
 }: {
-  name: string;
-  email: string | null;
+  email: string;
+  name?: string | null;
 }) {
-  let username = derivePartnerUsername({
-    name,
-    email,
-  });
+  const slugifiedBase = name ? slugify(name) : slugify(email.split("@")[0]);
+  let username = `${slugifiedBase}-${nanoid(4).toLowerCase()}`;
+  const maxRetries = 3;
+  let retries = 0;
 
-  while (true) {
-    const partner = await prisma.partner.findUnique({
+  while (retries <= maxRetries) {
+    const existingPartner = await prisma.partner.findUnique({
       where: {
         username,
       },
@@ -48,10 +24,15 @@ export async function generatePartnerUsername({
       },
     });
 
-    if (!partner) {
+    if (!existingPartner) {
       return username;
     }
 
-    username = `${username}-${nanoid(4).toLowerCase()}`;
+    if (retries === maxRetries) {
+      return null;
+    }
+
+    username = `${slugifiedBase}-${nanoid(4).toLowerCase()}`;
+    retries++;
   }
 }
