@@ -132,18 +132,6 @@ export const PATCH = withAdmin(async ({ params, req }) => {
     changedAt: new Date(),
   });
 
-  // if there was an existing veriff session, trigger a country change verification
-  if (partner.veriffSessionId) {
-    waitUntil(
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/verify-country-change`,
-        body: {
-          partnerId: partner.id,
-        },
-      }),
-    );
-  }
-
   await prisma.partner.update({
     where: {
       id: partner.id,
@@ -157,6 +145,18 @@ export const PATCH = withAdmin(async ({ params, req }) => {
       changeHistoryLog: partnerChangeHistoryLog,
     },
   });
+
+  // if there was an existing veriff session, trigger a country change verification
+  if (partner.veriffSessionId) {
+    waitUntil(
+      qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/verify-country-change`,
+        body: {
+          partnerId: partner.id,
+        },
+      }),
+    );
+  }
 
   return NextResponse.json({ success: true });
 });

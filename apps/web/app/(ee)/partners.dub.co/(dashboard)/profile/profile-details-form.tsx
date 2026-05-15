@@ -339,6 +339,8 @@ function BasicInfoForm({
               autoCorrect="off"
               spellCheck={false}
               pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              minLength={3}
+              maxLength={30}
               {...register("username")}
             />
           </div>

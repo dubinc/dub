@@ -589,7 +589,7 @@ function RewardsTermsList() {
     ...(minPayoutAmount > 0
       ? [
           {
-            label: "Minimum payout",
+            label: "minimum payout",
             value: currencyFormatter(minPayoutAmount, {
               trailingZeroDisplay: "stripIfInteger",
             }),
@@ -809,7 +809,7 @@ function RewardListItem({
               </div>
 
               <CopyText
-                value={link.displayText}
+                value={link.copyValue}
                 className="min-w-0 truncate text-sm font-medium -tracking-wider text-neutral-600"
               >
                 {link.displayText}
