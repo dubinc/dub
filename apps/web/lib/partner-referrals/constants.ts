@@ -66,6 +66,7 @@ export const PARTNER_REFERRAL_PERCENTAGE_BASIS_LABELS = Object.fromEntries(
   readonly [K in PartnerReferralPercentageTrigger]: string;
 };
 
+// TODO: refactor to pull from programEnrollment.saleReward
 export const NETWORK_REFERRAL_REWARD = {
   amountInPercentage: 50,
   maxDuration: 6,

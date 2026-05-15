@@ -17,6 +17,8 @@ import { differenceInMonths } from "date-fns";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
+import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
+import { determinePartnerReward } from "../partners/determine-partner-reward";
 import { getLeadEvent, recordSale } from "../tinybird";
 import { LeadEventTB } from "../types";
 import { NETWORK_REFERRAL_REWARD } from "./constants";
@@ -46,14 +48,28 @@ export const createNetworkReferralCommission = async ({
         programId: NETWORK_PROGRAM_ID,
       },
     },
-    select: {
-      id: true,
+    include: {
+      partner: true,
+      links: true,
+      saleReward: true,
     },
   });
 
   if (!programEnrollment) {
     console.log(
       `Referrer partner ${partner.referredByPartnerId} is not enrolled in network program.`,
+    );
+    return;
+  }
+
+  const reward = determinePartnerReward({
+    event: "sale",
+    programEnrollment,
+  });
+
+  if (!reward) {
+    console.log(
+      `Referrer partner ${partner.referredByPartnerId} has no eligible reward for the network program.`,
     );
     return;
   }
@@ -86,9 +102,13 @@ export const createNetworkReferralCommission = async ({
     }
   }
 
-  const earnings = Math.round(
-    NETWORK_REFERRAL_REWARD.amountInPercentage * 0.01 * payout.amount,
-  );
+  const earnings = calculateSaleEarnings({
+    reward,
+    sale: {
+      amount: payout.amount,
+      quantity: 1,
+    },
+  });
 
   const customer = await prisma.customer.findUnique({
     where: {
@@ -116,7 +136,7 @@ export const createNetworkReferralCommission = async ({
     customerId: customer?.id,
     linkId: customer?.link?.id,
     invoiceId,
-    description: `Earned ${NETWORK_REFERRAL_REWARD.amountInPercentage}% commission on the referred partner's ${currencyFormatter(payout.amount)} payout.`,
+    description: `Earned ${reward.amountInPercentage}% commission on the referred partner's ${currencyFormatter(payout.amount)} payout.`,
   };
 
   let commission: Commission | null = null;

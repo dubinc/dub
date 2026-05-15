@@ -64,111 +64,120 @@ export async function markApplicationEventSubmittedNetwork(
         },
       });
 
-      if (!applicationEvent.referredByPartnerId) {
-        return;
+      if (applicationEvent.referredByPartnerId) {
+        await tx.partner.update({
+          where: {
+            id: partner.id,
+            referredByPartnerId: null,
+          },
+          data: {
+            referredByPartnerId: applicationEvent.referredByPartnerId,
+          },
+        });
       }
-
-      await tx.partner.update({
-        where: {
-          id: partner.id,
-          referredByPartnerId: null,
-        },
-        data: {
-          referredByPartnerId: applicationEvent.referredByPartnerId,
-        },
-      });
     });
 
-    // if the application event has a referred by partner ID and metadata, record the click and lead event
-    if (applicationEvent.referredByPartnerId && applicationEvent.metadata) {
-      const networkPartnerLink = await prisma.link.findFirst({
-        where: {
-          programId: NETWORK_PROGRAM_ID,
-          partnerId: applicationEvent.referredByPartnerId,
-          partnerGroupDefaultLinkId: {
-            not: null,
-          },
-        },
-      });
-      if (!networkPartnerLink) {
-        console.log(
-          `No network partner link found for partner ${applicationEvent.referredByPartnerId}, skipping...`,
-        );
-        return;
-      }
-
-      const metadata = JSON.parse(applicationEvent.metadata as string);
-      const click_id = nanoid(16);
-
-      // convert stored metadata values to dub_click_events DS schema
-      const generatedClickEvent = recordClickZodSchema.parse({
-        ...metadata,
-        timestamp: applicationEvent.visitedAt.toISOString(),
-        identity_hash: partner.id,
-        click_id,
-        workspace_id: NETWORK_WORKSPACE_ID,
-        link_id: networkPartnerLink.id,
-        domain: networkPartnerLink.domain,
-        key: networkPartnerLink.key,
-        ...(metadata.referrer
-          ? {
-              referer: getDomainWithoutWWW(metadata.referrer),
-              referer_url: metadata.referrer,
-            }
-          : {}),
-      });
-
-      await recordClickZod(generatedClickEvent);
-      console.log(`Tracked click event with click_id: ${click_id}`);
-
-      const customer = await prisma.customer.create({
-        data: {
-          id: createId({ prefix: "cus_" }),
-          name: partner.name,
-          email: partner.email,
-          avatar: partner.image,
-          externalId: partner.id,
-          country: partner.country,
-          projectId: NETWORK_WORKSPACE_ID,
-          linkId: networkPartnerLink.id,
-          programId: NETWORK_PROGRAM_ID,
-          partnerId: applicationEvent.referredByPartnerId,
-          clickId: click_id,
-          clickedAt: applicationEvent.visitedAt,
-        },
-      });
-      console.log(`Tracked customer with id: ${customer.id}`);
-
-      await recordLead({
-        ...generatedClickEvent,
-        event_id: nanoid(16),
-        event_name: "New partner signup",
-        customer_id: customer.id,
-      });
-      console.log(`Tracked lead event with event_id: ${nanoid(16)}`);
-
-      await prisma.link.update({
-        where: {
-          id: networkPartnerLink.id,
-        },
-        data: {
-          clicks: {
-            increment: 1,
-          },
-          lastClicked: applicationEvent.visitedAt,
-          leads: {
-            increment: 1,
-          },
-          lastLeadAt: new Date(),
-        },
-      });
-      console.log(`Updated stats for link ${networkPartnerLink.id}`);
-
-      await syncPartnerLinksStats({
-        partnerId: networkPartnerLink.partnerId!,
-        programId: networkPartnerLink.programId!,
-        eventType: "lead",
-      });
+    if (!applicationEvent.referredByPartnerId) {
+      console.log(
+        `No referredByPartnerId found for new partner ${partner.id}, skipping...`,
+      );
+      return;
     }
+
+    if (!applicationEvent.metadata) {
+      console.log(
+        `No application event metadata found for new partner ${partner.id}, skipping...`,
+      );
+      return;
+    }
+
+    const networkPartnerLink = await prisma.link.findFirst({
+      where: {
+        programId: NETWORK_PROGRAM_ID,
+        partnerId: applicationEvent.referredByPartnerId,
+        partnerGroupDefaultLinkId: {
+          not: null,
+        },
+      },
+    });
+    if (!networkPartnerLink) {
+      console.log(
+        `No network partner link found for partner ${applicationEvent.referredByPartnerId}, skipping...`,
+      );
+      return;
+    }
+
+    const metadata = JSON.parse(applicationEvent.metadata as string);
+    const click_id = nanoid(16);
+
+    // convert stored metadata values to dub_click_events DS schema
+    const generatedClickEvent = recordClickZodSchema.parse({
+      ...metadata,
+      timestamp: applicationEvent.visitedAt.toISOString(),
+      identity_hash: partner.id,
+      click_id,
+      workspace_id: NETWORK_WORKSPACE_ID,
+      link_id: networkPartnerLink.id,
+      domain: networkPartnerLink.domain,
+      key: networkPartnerLink.key,
+      ...(metadata.referrer
+        ? {
+            referer: getDomainWithoutWWW(metadata.referrer),
+            referer_url: metadata.referrer,
+          }
+        : {}),
+    });
+
+    await recordClickZod(generatedClickEvent);
+    console.log(`Tracked click event with click_id: ${click_id}`);
+
+    const customer = await prisma.customer.create({
+      data: {
+        id: createId({ prefix: "cus_" }),
+        name: partner.name,
+        email: partner.email,
+        avatar: partner.image,
+        externalId: partner.id,
+        country: partner.country,
+        projectId: NETWORK_WORKSPACE_ID,
+        linkId: networkPartnerLink.id,
+        programId: NETWORK_PROGRAM_ID,
+        partnerId: applicationEvent.referredByPartnerId,
+        clickId: click_id,
+        clickedAt: applicationEvent.visitedAt,
+      },
+    });
+    console.log(`Tracked customer with id: ${customer.id}`);
+
+    await recordLead({
+      ...generatedClickEvent,
+      event_id: nanoid(16),
+      event_name: "New partner signup",
+      customer_id: customer.id,
+    });
+    console.log(`Tracked lead event with event_id: ${nanoid(16)}`);
+
+    await prisma.link.update({
+      where: {
+        id: networkPartnerLink.id,
+      },
+      data: {
+        clicks: {
+          increment: 1,
+        },
+        lastClicked: applicationEvent.visitedAt,
+        leads: {
+          increment: 1,
+        },
+        lastLeadAt: new Date(),
+      },
+    });
+    console.log(`Updated stats for link ${networkPartnerLink.id}`);
+
+    await syncPartnerLinksStats({
+      partnerId: networkPartnerLink.partnerId!,
+      programId: networkPartnerLink.programId!,
+      eventType: "lead",
+    });
   } catch (error) {}
 }

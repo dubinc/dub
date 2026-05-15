@@ -52,7 +52,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       .then(async (res) => {
         console.log("Program enrollment upserted:", res.id);
         // if program enrollment is created in the last 1 min, most likely it's a new partner
-        if (res.createdAt < new Date(Date.now() - 1 * 60 * 1000)) {
+        if (res.createdAt > new Date(Date.now() - 1 * 60 * 1000)) {
           console.log(
             "Program enrollment created in the last 1 min, most likely it's a new partner",
           );
