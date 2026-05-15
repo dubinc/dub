@@ -324,6 +324,15 @@ export const rewardConditionBaseSchema = z.object({
 
 export const rewardConditionSchema = rewardConditionBaseSchema.superRefine(
   (data, ctx) => {
+    if (data.entity === "lead" && data.attribute !== "metadata") {
+      ctx.addIssue({
+        code: "custom",
+        message: "Lead conditions only support the Metadata attribute.",
+        path: ["attribute"],
+      });
+      return;
+    }
+
     if (data.attribute !== "metadata") {
       return;
     }

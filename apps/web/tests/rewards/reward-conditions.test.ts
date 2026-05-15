@@ -598,6 +598,50 @@ describe("evaluateRewardConditions", () => {
 
         expect(result).toBe(null);
       });
+
+      test("should not match when condition value is an empty array", () => {
+        expect(
+          evaluateRewardConditions({
+            conditions: [
+              {
+                operator: "AND" as const,
+                amountInCents: 5000,
+                conditions: [
+                  {
+                    entity: "customer" as const,
+                    attribute: "country" as const,
+                    operator: "not_in" as const,
+                    value: [],
+                  },
+                ],
+              },
+            ],
+            context: { customer: { country: "FR" } },
+          }),
+        ).toBe(null);
+      });
+
+      test("should not match when condition value is not an array", () => {
+        expect(
+          evaluateRewardConditions({
+            conditions: [
+              {
+                operator: "AND" as const,
+                amountInCents: 5000,
+                conditions: [
+                  {
+                    entity: "customer" as const,
+                    attribute: "country" as const,
+                    operator: "not_in" as const,
+                    value: "US",
+                  },
+                ],
+              },
+            ],
+            context: { customer: { country: "FR" } },
+          }),
+        ).toBe(null);
+      });
     });
 
     describe("contains", () => {
@@ -722,6 +766,30 @@ describe("evaluateRewardConditions", () => {
           }),
         ).toBe(null);
       });
+
+      test("should not match when needle is empty string", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "not_contains" as const,
+                value: "  ",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "any-value" } },
+          }),
+        ).toBe(null);
+      });
     });
 
     describe("starts_with", () => {
@@ -784,6 +852,30 @@ describe("evaluateRewardConditions", () => {
 
         expect(result).toBe(null);
       });
+
+      test("should not match when value is empty string", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "starts_with" as const,
+                value: "",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "any-value" } },
+          }),
+        ).toBe(null);
+      });
     });
 
     describe("ends_with", () => {
@@ -815,6 +907,28 @@ describe("evaluateRewardConditions", () => {
         });
 
         expect(result).toEqual(conditions[0]);
+      });
+
+      test("should not match when value is empty string", () => {
+        expect(
+          evaluateRewardConditions({
+            conditions: [
+              {
+                operator: "AND" as const,
+                amountInCents: 5000,
+                conditions: [
+                  {
+                    entity: "sale" as const,
+                    attribute: "productId" as const,
+                    operator: "ends_with" as const,
+                    value: "",
+                  },
+                ],
+              },
+            ],
+            context: { sale: { productId: "any-value" } },
+          }),
+        ).toBe(null);
       });
 
       test("should not match when string does not end with value", () => {
@@ -2332,6 +2446,27 @@ describe("rewardConditionSchema", () => {
         attribute: "country",
         operator: "not_in",
         value: ["US", "CA"],
+      }).success,
+    ).toBe(true);
+  });
+
+  test("rejects non-metadata attribute for lead entity", () => {
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "lead",
+        attribute: "country",
+        operator: "equals_to",
+        value: "US",
+      }).success,
+    ).toBe(false);
+
+    expect(
+      rewardConditionSchema.safeParse({
+        entity: "lead",
+        attribute: "metadata",
+        operator: "equals_to",
+        value: "x",
+        metadataField: "plan",
       }).success,
     ).toBe(true);
   });

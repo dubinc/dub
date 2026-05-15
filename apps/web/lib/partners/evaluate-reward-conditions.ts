@@ -187,7 +187,8 @@ const evaluateCondition = ({
     case "starts_with":
       if (
         typeof fieldValue === "string" &&
-        typeof condition.value === "string"
+        typeof condition.value === "string" &&
+        condition.value !== ""
       ) {
         return fieldValue.startsWith(condition.value);
       }
@@ -195,7 +196,8 @@ const evaluateCondition = ({
     case "ends_with":
       if (
         typeof fieldValue === "string" &&
-        typeof condition.value === "string"
+        typeof condition.value === "string" &&
+        condition.value !== ""
       ) {
         return fieldValue.endsWith(condition.value);
       }
@@ -209,7 +211,7 @@ const evaluateCondition = ({
     case "not_contains": {
       if (typeof condition.value !== "string") return false;
       const needle = condition.value.trim();
-      if (needle === "") return true;
+      if (needle === "") return false;
       return !String(fieldValue).includes(needle);
     }
     case "in":
@@ -220,12 +222,12 @@ const evaluateCondition = ({
       }
       return false;
     case "not_in":
-      if (Array.isArray(condition.value)) {
+      if (Array.isArray(condition.value) && condition.value.length > 0) {
         return !(condition.value as (string | number)[]).includes(
           fieldValue as string | number,
         );
       }
-      return true;
+      return false;
     case "greater_than":
       return Number(fieldValue) > Number(condition.value);
     case "greater_than_or_equal":
