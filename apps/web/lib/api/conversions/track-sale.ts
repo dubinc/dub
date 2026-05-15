@@ -422,7 +422,7 @@ const _trackSale = async ({
     amount = convertedAmount;
   }
 
-  const saleData = {
+  const saleEvent = {
     ...leadEventData,
     workspace_id: leadEventData.workspace_id || workspace.id, // in case for some reason the lead event doesn't have workspace_id
     event_id: nanoid(16),
@@ -435,17 +435,21 @@ const _trackSale = async ({
     metadata: metadata ? JSON.stringify(metadata) : "",
   };
 
-  await recordSale({
-    ...saleData,
-    timestamp: undefined,
-  });
+  waitUntil(
+    Promise.allSettled([
+      recordSale({
+        ...saleEvent,
+        timestamp: undefined,
+      }),
 
-  await triggerQStashWorkflow({
-    workflowId: "sale-tracked",
-    body: {
-      saleEvent: saleData,
-    },
-  });
+      triggerQStashWorkflow({
+        workflowId: "sale-tracked",
+        body: {
+          saleEvent,
+        },
+      }),
+    ]),
+  );
 
   const trackSaleResponse = trackSaleResponseSchema.parse({
     eventName,

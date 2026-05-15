@@ -16,9 +16,7 @@ import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
 
 const inputSchema = z.object({
-  saleEvent: saleEventSchemaTB.extend({
-    timestamp: z.string(),
-  }),
+  saleEvent: saleEventSchemaTB,
 });
 
 type Input = z.infer<typeof inputSchema>;

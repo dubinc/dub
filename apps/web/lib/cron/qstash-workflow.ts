@@ -1,12 +1,12 @@
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { logger } from "@/lib/axiom/server";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Client } from "@upstash/workflow";
-import { getErrorMessage } from "../api/errors";
 
 const client = new Client({
   token: process.env.QSTASH_TOKEN || "",
 });
 
-const WORKFLOW_RETRIES = 3;
+const WORKFLOW_RETRIES = 5;
 const WORKFLOW_PARALLELISM = 20;
 
 type WorkflowIds = "partner-approved" | "sale-tracked";
@@ -20,37 +20,97 @@ interface QStashWorkflow {
 export async function triggerQStashWorkflow(
   input: QStashWorkflow | QStashWorkflow[],
 ) {
-  try {
-    const workflows = Array.isArray(input) ? input : [input];
+  const workflows = Array.isArray(input) ? input : [input];
+  const maxRetries = 3;
 
-    const results = await client.trigger(
-      workflows.map((workflow) => ({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowId}`,
-        body: workflow.body,
-        retries: WORKFLOW_RETRIES,
-        flowControl: {
-          key: workflow.workflowId,
-          parallelism: WORKFLOW_PARALLELISM,
-        },
-      })),
-    );
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await client.trigger(
+        workflows.map((workflow) => ({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowId}`,
+          body: workflow.body,
+          retries: WORKFLOW_RETRIES,
+          flowControl: {
+            key: workflow.workflowId,
+            parallelism: WORKFLOW_PARALLELISM,
+          },
+        })),
+      );
 
-    console.debug("[triggerQStashWorkflow] Workflows triggered", results);
+      for (const [index, workflow] of workflows.entries()) {
+        logger.info("workflow.triggered", {
+          service: "qstash-workflow",
+          event: "workflow.triggered",
+          status: "success",
+          workflowId: workflow.workflowId,
+          workflowRunId: response[index]?.workflowRunId,
+          correlation: getWorkflowCorrelation(
+            workflow.workflowId,
+            workflow.body,
+          ),
+        });
+      }
 
-    return results;
-  } catch (error) {
-    const message = getErrorMessage(error);
+      await logger.flush();
 
-    console.error("[triggerQStashWorkflow] Failed to trigger workflows", {
-      error: message,
-      input,
-    });
+      return response;
+    } catch (error) {
+      console.log("error", error);
 
-    await log({
-      message: `[triggerQStashWorkflow] Failed to trigger QStash workflows. ${message}`,
-      type: "errors",
-    });
+      if (attempt < maxRetries) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 1000 * Math.pow(2, attempt)),
+        );
+        continue;
+      }
 
-    return null;
+      for (const workflow of workflows) {
+        logger.error("workflow.trigger_failed", {
+          service: "qstash-workflow",
+          event: "workflow.trigger_failed",
+          status: "error",
+          workflowId: workflow.workflowId,
+          errorName: error instanceof Error ? error.name : undefined,
+          errorStack: error instanceof Error ? error.stack : undefined,
+          correlation: getWorkflowCorrelation(
+            workflow.workflowId,
+            workflow.body,
+          ),
+        });
+      }
+
+      await logger.flush();
+
+      return null;
+    }
+  }
+}
+
+function getWorkflowCorrelation(
+  workflowId: WorkflowIds,
+  body?: Record<string, unknown>,
+) {
+  if (!body) return {};
+
+  switch (workflowId) {
+    case "partner-approved":
+      return {
+        programId: body.programId,
+        partnerId: body.partnerId,
+        userId: body.userId,
+      };
+
+    case "sale-tracked": {
+      const saleEvent = body.saleEvent as Record<string, unknown> | undefined;
+
+      return {
+        linkId: saleEvent?.link_id,
+        customerId: saleEvent?.customer_id,
+        eventId: saleEvent?.event_id,
+      };
+    }
+
+    default:
+      return {};
   }
 }
