@@ -18,7 +18,6 @@ test.describe("Partner onboarding", () => {
     ).toBeVisible();
     await expect(page.locator('input[name="name"]').first()).toBeVisible();
     await expect(page.getByText("Profile image")).toBeVisible();
-    await expect(page.getByLabel("Country")).toBeVisible();
     await expect(page.getByText("About you")).toBeVisible();
     await expect(page.getByText("Profile Type")).toBeVisible();
     await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
@@ -28,28 +27,9 @@ test.describe("Partner onboarding", () => {
     await page.goto("/onboarding");
 
     const nameInput = page.locator('input[name="name"]').first();
-    const countryField = page.getByLabel("Country");
-    const searchCountriesInput = page.getByPlaceholder("Search countries...");
     const continueButton = page.getByRole("button", { name: "Continue" });
-    const acknowledgeButton = page.getByRole("button", {
-      name: "I acknowledge",
-    });
 
     await nameInput.fill("E2E Onboarding Test");
-    await countryField.click();
-
-    if (
-      await acknowledgeButton.isVisible({ timeout: 2000 }).catch(() => false)
-    ) {
-      await acknowledgeButton.click();
-    }
-
-    await expect(searchCountriesInput).toBeVisible({
-      timeout: 5000,
-    });
-    await searchCountriesInput.fill("United States");
-    await page.getByText("United States", { exact: true }).first().click();
-
     await continueButton.click();
 
     await page.waitForURL(/\/onboarding\/platforms/);
@@ -66,30 +46,12 @@ test.describe("Partner onboarding", () => {
     await page.goto("/onboarding");
 
     const nameInput = page.locator('input[name="name"]').first();
-    const countryField = page.getByLabel("Country");
-    const searchCountriesInput = page.getByPlaceholder("Search countries...");
     const continueButton = page.getByRole("button", { name: "Continue" });
     const skipLink = page.getByRole("link", {
       name: "I'll complete this later",
     });
-    const acknowledgeButton = page.getByRole("button", {
-      name: "I acknowledge",
-    });
 
     await nameInput.fill("E2E Onboarding Test");
-    await countryField.click();
-
-    if (
-      await acknowledgeButton.isVisible({ timeout: 2000 }).catch(() => false)
-    ) {
-      await acknowledgeButton.click();
-    }
-
-    await expect(searchCountriesInput).toBeVisible({
-      timeout: 5000,
-    });
-    await searchCountriesInput.fill("United States");
-    await page.getByText("United States", { exact: true }).first().click();
     await continueButton.click();
     await page.waitForURL(/\/onboarding\/platforms/);
 
