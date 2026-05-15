@@ -50,6 +50,12 @@ export const POST = withCron(async ({ rawBody }) => {
           id: true,
         },
       },
+      invoice: {
+        select: {
+          amount: true,
+          fee: true,
+        },
+      },
     },
   });
 
@@ -138,8 +144,9 @@ export const POST = withCron(async ({ rawBody }) => {
   // Fallback to network level bonus
   if (partner.referredByPartnerId) {
     const commission = await createNetworkReferralCommission({
-      payout,
       partner,
+      payout,
+      invoice: payout.invoice,
     });
 
     if (commission) {

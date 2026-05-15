@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import {
   Commission,
   CommissionType,
+  Invoice,
   Partner,
   Payout,
   Prisma,
@@ -24,22 +25,34 @@ import { LeadEventTB } from "../types";
 import { NETWORK_REFERRAL_REWARD } from "./constants";
 
 type CreateNetworkReferralCommissionProps = {
-  payout: Pick<Payout, "id" | "amount" | "programId">;
   partner: Pick<Partner, "id" | "referredByPartnerId">;
+  payout: Pick<Payout, "id" | "amount" | "programId">;
+  invoice: Pick<Invoice, "amount" | "fee"> | null;
 };
 
 export const createNetworkReferralCommission = async ({
-  payout,
   partner,
+  invoice,
+  payout,
 }: CreateNetworkReferralCommissionProps) => {
   if (!partner.referredByPartnerId) {
-    console.error(`Partner ${partner.id} has no referredByPartnerId.`);
+    console.error(
+      `Partner ${partner.id} has no referredByPartnerId, skipping...`,
+    );
     return;
   }
 
   if (payout.programId === NETWORK_PROGRAM_ID) {
+    console.error(`Payout ${payout.id} is from Network program, skipping...`);
     return;
   }
+
+  const effectiveFeePercentage = invoice
+    ? // if the invoice is provided, use the fee percentage from the invoice (but cap it at 3%)
+      Math.min(invoice.fee / invoice.amount, 0.03)
+    : 0.03; // default to 3% if no invoice is provided (should never happen)
+
+  const payoutFeeEarned = Math.floor(payout.amount * effectiveFeePercentage);
 
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
@@ -105,7 +118,7 @@ export const createNetworkReferralCommission = async ({
   const earnings = calculateSaleEarnings({
     reward,
     sale: {
-      amount: payout.amount,
+      amount: payoutFeeEarned,
       quantity: 1,
     },
   });
@@ -136,7 +149,7 @@ export const createNetworkReferralCommission = async ({
     customerId: customer?.id,
     linkId: customer?.link?.id,
     invoiceId,
-    description: `Earned ${reward.amountInPercentage}% commission on the referred partner's ${currencyFormatter(payout.amount)} payout.`,
+    description: `Earned ${reward.amountInPercentage}% commission on the referred partner's ${currencyFormatter(payoutFeeEarned)} payout fee.`,
   };
 
   let commission: Commission | null = null;
@@ -181,10 +194,10 @@ export const createNetworkReferralCommission = async ({
       const saleData = {
         ...leadEventData,
         event_id: nanoid(16),
-        event_name: "Partner payout sent",
+        event_name: "Partner payout fee",
         customer_id: customer.id,
         payment_processor: "dub",
-        amount: payout.amount,
+        amount: payoutFeeEarned,
         currency: "usd",
         invoice_id: invoiceId,
       };
@@ -216,7 +229,7 @@ export const createNetworkReferralCommission = async ({
               increment: 1,
             },
             saleAmount: {
-              increment: payout.amount,
+              increment: payoutFeeEarned,
             },
           },
         }),
@@ -230,7 +243,7 @@ export const createNetworkReferralCommission = async ({
               increment: 1,
             },
             saleAmount: {
-              increment: payout.amount,
+              increment: payoutFeeEarned,
             },
             firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
           },
