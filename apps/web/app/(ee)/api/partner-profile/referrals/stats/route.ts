@@ -35,10 +35,10 @@ export const GET = withPartnerProfile(async ({ partner }) => {
     }),
   ]);
 
-  const body = networkReferralsStatsSchema.parse({
+  const response = networkReferralsStatsSchema.parse({
     count,
     totalEarnings: earningsAggregate._sum.earnings ?? 0,
   });
 
-  return NextResponse.json(body);
+  return NextResponse.json(response);
 });
