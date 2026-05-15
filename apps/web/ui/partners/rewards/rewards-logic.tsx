@@ -13,6 +13,7 @@ import {
   ENUM_CONDITION_OPERATORS,
   METADATA_CONDITION_OPERATORS,
   METADATA_NUMBER_CONDITION_OPERATORS,
+  METADATA_TEXT_CONDITION_OPERATORS,
   NUMBER_CONDITION_OPERATORS,
   REWARD_CONDITIONS,
   RewardConditionEntityAttribute,
@@ -330,7 +331,7 @@ function MetadataConditionOperatorMenu({
             Text fields
           </div>
           <div className="mx-1 flex flex-col gap-1">
-            {STRING_CONDITION_OPERATORS.map(renderItem)}
+            {METADATA_TEXT_CONDITION_OPERATORS.map(renderItem)}
           </div>
           <div
             className="bg-border-subtle mt-1 h-px w-full min-w-0 shrink-0"
@@ -399,6 +400,9 @@ function ConditionLogic({
 
   const isArrayValue =
     condition.operator === "in" || condition.operator === "not_in";
+
+  const isContainsOperator =
+    condition.operator === "contains" || condition.operator === "not_contains";
 
   const [displayProductLabel, setDisplayProductLabel] = useState(false);
 
@@ -590,14 +594,16 @@ function ConditionLogic({
                               operator: value,
                               ...(["in", "not_in"].includes(value)
                                 ? { value: [] }
-                                : metadataNumeric
-                                  ? typeof condition.value !== "number"
-                                    ? { value: "" }
-                                    : null
-                                  : typeof condition.value !== "string" &&
-                                      !Array.isArray(condition.value)
-                                    ? { value: "" }
-                                    : null),
+                                : ["contains", "not_contains"].includes(value)
+                                  ? { value: "" }
+                                  : metadataNumeric
+                                    ? typeof condition.value !== "number"
+                                      ? { value: "" }
+                                      : null
+                                    : typeof condition.value !== "string" &&
+                                        !Array.isArray(condition.value)
+                                      ? { value: "" }
+                                      : null),
                             },
                             {
                               shouldDirty: true,
@@ -683,15 +689,17 @@ function ConditionLogic({
                           isMetadataCondition ? condition.operator : undefined,
                         )}
                         invalid={
-                          Array.isArray(condition.value)
-                            ? condition.value.filter(Boolean).length === 0
-                            : isMetadataNumeric
-                              ? condition.value === "" ||
-                                isNaN(Number(condition.value))
-                              : ["number", "currency"].includes(attributeType)
+                          isContainsOperator
+                            ? String(condition.value ?? "").trim() === ""
+                            : Array.isArray(condition.value)
+                              ? condition.value.filter(Boolean).length === 0
+                              : isMetadataNumeric
                                 ? condition.value === "" ||
                                   isNaN(Number(condition.value))
-                                : !condition.value
+                                : ["number", "currency"].includes(attributeType)
+                                  ? condition.value === "" ||
+                                    isNaN(Number(condition.value))
+                                  : !condition.value
                         }
                         buttonClassName={cn(
                           condition.attribute === "productId" &&
@@ -742,6 +750,13 @@ function ConditionLogic({
                                 value,
                               });
                             }}
+                          />
+                        ) : isContainsOperator ? (
+                          <InlineBadgePopoverInput
+                            placeholder="Substring to match"
+                            {...register(`${conditionKey}.value`, {
+                              required: true,
+                            })}
                           />
                         ) : isArrayValue ? (
                           // Multi-value list input for is one of / is not one of

@@ -600,6 +600,130 @@ describe("evaluateRewardConditions", () => {
       });
     });
 
+    describe("contains", () => {
+      test("should match when field contains the substring", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "contains" as const,
+                value: "plan",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "premium-plan" } },
+          }),
+        ).toEqual(conditions[0]);
+      });
+
+      test("should not match when field does not contain the substring", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "contains" as const,
+                value: "plan",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "basic-tier" } },
+          }),
+        ).toBe(null);
+      });
+
+      test("should not match when needle is empty string", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "contains" as const,
+                value: "  ",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "any-value" } },
+          }),
+        ).toBe(null);
+      });
+    });
+
+    describe("not_contains", () => {
+      test("should match when field does not contain the substring", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "not_contains" as const,
+                value: "plan",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "basic-tier" } },
+          }),
+        ).toEqual(conditions[0]);
+      });
+
+      test("should not match when field contains the substring", () => {
+        const conditions = [
+          {
+            operator: "AND" as const,
+            amountInCents: 5000,
+            conditions: [
+              {
+                entity: "sale" as const,
+                attribute: "productId" as const,
+                operator: "not_contains" as const,
+                value: "plan",
+              },
+            ],
+          },
+        ];
+
+        expect(
+          evaluateRewardConditions({
+            conditions,
+            context: { sale: { productId: "premium-plan" } },
+          }),
+        ).toBe(null);
+      });
+    });
+
     describe("starts_with", () => {
       test("should match when string starts with value", () => {
         const conditions = [

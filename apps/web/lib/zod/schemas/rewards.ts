@@ -240,6 +240,8 @@ export const CONDITION_OPERATORS = [
   "not_equals",
   "starts_with",
   "ends_with",
+  "contains",
+  "not_contains",
   "in",
   "not_in",
   "greater_than",
@@ -270,12 +272,19 @@ export const DATE_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
 export const METADATA_NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
   ["greater_than", "greater_than_or_equal", "less_than", "less_than_or_equal"];
 
-export const METADATA_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+export const METADATA_TEXT_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
   [
     "equals_to",
     "not_equals",
     "starts_with",
     "ends_with",
+    "contains",
+    "not_contains",
+  ];
+
+export const METADATA_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+  [
+    ...METADATA_TEXT_CONDITION_OPERATORS,
     ...METADATA_NUMBER_CONDITION_OPERATORS,
   ];
 
@@ -284,6 +293,8 @@ export const CONDITION_OPERATOR_LABELS = {
   not_equals: "is not",
   starts_with: "starts with",
   ends_with: "ends with",
+  contains: "contains",
+  not_contains: "does not contain",
   in: "is one of",
   not_in: "is not one of",
   greater_than: "is greater than",
@@ -292,26 +303,27 @@ export const CONDITION_OPERATOR_LABELS = {
   less_than_or_equal: "is less than or equal to",
 } as const;
 
-export const rewardConditionSchema = z
-  .object({
-    entity: z.enum(
-      REWARD_CONDITION_ENTITIES.map(({ id }) => id) as [string, ...string[]],
-    ),
-    attribute: z.enum(REWARD_CONDITION_ATTRIBUTE_IDS as [string, ...string[]]),
-    operator: z.enum(CONDITION_OPERATORS),
-    value: z.union([
-      z.string(),
-      z.number(),
-      z.array(z.string()),
-      z.array(z.number()),
-    ]),
-    label: z
-      .string()
-      .nullish()
-      .describe("Product name used for display purposes in the UI."),
-    metadataField: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
+export const rewardConditionBaseSchema = z.object({
+  entity: z.enum(
+    REWARD_CONDITION_ENTITIES.map(({ id }) => id) as [string, ...string[]],
+  ),
+  attribute: z.enum(REWARD_CONDITION_ATTRIBUTE_IDS as [string, ...string[]]),
+  operator: z.enum(CONDITION_OPERATORS),
+  value: z.union([
+    z.string(),
+    z.number(),
+    z.array(z.string()),
+    z.array(z.number()),
+  ]),
+  label: z
+    .string()
+    .nullish()
+    .describe("Product name used for display purposes in the UI."),
+  metadataField: z.string().optional(),
+});
+
+export const rewardConditionSchema = rewardConditionBaseSchema.superRefine(
+  (data, ctx) => {
     if (data.attribute !== "metadata") {
       return;
     }
@@ -336,7 +348,8 @@ export const rewardConditionSchema = z
         path: ["metadataField"],
       });
     }
-  });
+  },
+);
 
 export const PERCENTAGE_REWARD_AMOUNT_SCHEMA = z
   .number()

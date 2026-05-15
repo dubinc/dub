@@ -107,7 +107,12 @@ function resolveConditionFieldValue({
   return undefined;
 }
 
-const METADATA_TEXT_OPS = new Set<string>(["starts_with", "ends_with"]);
+const METADATA_TEXT_OPS = new Set<string>([
+  "starts_with",
+  "ends_with",
+  "contains",
+  "not_contains",
+]);
 
 const METADATA_NUMERIC_ORDER_OPS = new Set<string>([
   "greater_than",
@@ -195,6 +200,18 @@ const evaluateCondition = ({
         return fieldValue.endsWith(condition.value);
       }
       return false;
+    case "contains": {
+      if (typeof condition.value !== "string") return false;
+      const needle = condition.value.trim();
+      if (needle === "") return false;
+      return String(fieldValue).includes(needle);
+    }
+    case "not_contains": {
+      if (typeof condition.value !== "string") return false;
+      const needle = condition.value.trim();
+      if (needle === "") return true;
+      return !String(fieldValue).includes(needle);
+    }
     case "in":
       if (Array.isArray(condition.value)) {
         return (condition.value as (string | number)[]).includes(
