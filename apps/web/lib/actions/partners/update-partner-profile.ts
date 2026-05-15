@@ -115,9 +115,11 @@ export const updatePartnerProfileAction = authPartnerActionClient
       if (!validSlugRegex.test(username) || RESERVED_SLUGS.includes(username)) {
         throw new Error("Invalid username");
       }
+
       if (await isReservedUsername(username)) {
         throw new Error("Invalid username");
       }
+
       const existingPartner = await prisma.partner.findUnique({
         where: {
           username,

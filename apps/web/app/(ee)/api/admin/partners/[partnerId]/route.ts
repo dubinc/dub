@@ -110,7 +110,15 @@ export const PATCH = withAdmin(async ({ params, req }) => {
   const { country } = adminUpdatePartnerSchema.parse(await req.json());
 
   const partner = await prisma.partner.findUnique({
-    where: { id: partnerId },
+    where: {
+      id: partnerId,
+    },
+    select: {
+      id: true,
+      country: true,
+      changeHistoryLog: true,
+      veriffSessionId: true,
+    },
   });
 
   if (!partner) {

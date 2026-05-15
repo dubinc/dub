@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { isCI, isLocalDev } from "@/lib/api/environment";
 import { generatePartnerUsername } from "@/lib/api/partners/generate-partner-username";
 import { markApplicationEventSubmittedNetwork } from "@/lib/application-events/mark-application-event-submitted-network";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
@@ -56,7 +57,9 @@ export const onboardPartnerAction = authUserActionClient
         });
 
     const headerList = await headers();
-    const country = headerList.get("x-vercel-ip-country");
+    const country =
+      headerList.get("x-vercel-ip-country") ??
+      (isLocalDev || isCI ? "US" : undefined);
 
     const payload: Prisma.PartnerCreateInput = {
       name: name || user.email,

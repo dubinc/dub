@@ -109,6 +109,7 @@ export function OnboardingForm({
   return (
     <form
       ref={formRef}
+      method="post"
       onSubmit={handleSubmit(async (data) => await executeAsync(data))}
       className="flex w-full flex-col gap-6 text-left"
     >
