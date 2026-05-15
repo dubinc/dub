@@ -150,7 +150,7 @@ export async function approvePartner({
       }),
 
       triggerQStashWorkflow({
-        workflowId: "partner-approved",
+        workflowType: "partner-approved",
         body: {
           programId,
           partnerId,

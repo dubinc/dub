@@ -443,7 +443,7 @@ const _trackSale = async ({
       }),
 
       triggerQStashWorkflow({
-        workflowId: "sale-tracked",
+        workflowType: "sale-tracked",
         body: {
           saleEvent,
         },

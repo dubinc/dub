@@ -9,10 +9,10 @@ const client = new Client({
 const WORKFLOW_RETRIES = 5;
 const WORKFLOW_PARALLELISM = 20;
 
-type WorkflowIds = "partner-approved" | "sale-tracked";
+type WorkflowType = "partner-approved" | "sale-tracked";
 
 interface QStashWorkflow {
-  workflowId: WorkflowIds;
+  workflowType: WorkflowType;
   body?: Record<string, unknown>;
 }
 
@@ -27,11 +27,12 @@ export async function triggerQStashWorkflow(
     try {
       const response = await client.trigger(
         workflows.map((workflow) => ({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowId}`,
+          url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowType}`,
           body: workflow.body,
+          label: workflow.workflowType,
           retries: WORKFLOW_RETRIES,
           flowControl: {
-            key: workflow.workflowId,
+            key: workflow.workflowType,
             parallelism: WORKFLOW_PARALLELISM,
           },
         })),
@@ -42,10 +43,10 @@ export async function triggerQStashWorkflow(
           service: "qstash-workflow",
           event: "workflow.triggered",
           status: "success",
-          workflowId: workflow.workflowId,
+          workflowType: workflow.workflowType,
           workflowRunId: response[index]?.workflowRunId,
           correlation: getWorkflowCorrelation(
-            workflow.workflowId,
+            workflow.workflowType,
             workflow.body,
           ),
         });
@@ -55,7 +56,7 @@ export async function triggerQStashWorkflow(
 
       return response;
     } catch (error) {
-      console.log("error", error);
+      console.error("QStash workflow trigger failed", { error, workflows });
 
       if (attempt < maxRetries) {
         await new Promise((resolve) =>
@@ -69,11 +70,11 @@ export async function triggerQStashWorkflow(
           service: "qstash-workflow",
           event: "workflow.trigger_failed",
           status: "error",
-          workflowId: workflow.workflowId,
+          workflowType: workflow.workflowType,
           errorName: error instanceof Error ? error.name : undefined,
           errorStack: error instanceof Error ? error.stack : undefined,
           correlation: getWorkflowCorrelation(
-            workflow.workflowId,
+            workflow.workflowType,
             workflow.body,
           ),
         });
@@ -87,19 +88,12 @@ export async function triggerQStashWorkflow(
 }
 
 function getWorkflowCorrelation(
-  workflowId: WorkflowIds,
+  workflowType: WorkflowType,
   body?: Record<string, unknown>,
 ) {
   if (!body) return {};
 
-  switch (workflowId) {
-    case "partner-approved":
-      return {
-        programId: body.programId,
-        partnerId: body.partnerId,
-        userId: body.userId,
-      };
-
+  switch (workflowType) {
     case "sale-tracked": {
       const saleEvent = body.saleEvent as Record<string, unknown> | undefined;
 
@@ -109,6 +103,13 @@ function getWorkflowCorrelation(
         eventId: saleEvent?.event_id,
       };
     }
+
+    case "partner-approved":
+      return {
+        programId: body.programId,
+        partnerId: body.partnerId,
+        userId: body.userId,
+      };
 
     default:
       return {};
