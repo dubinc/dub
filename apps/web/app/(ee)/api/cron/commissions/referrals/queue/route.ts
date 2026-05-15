@@ -146,7 +146,6 @@ export const POST = withCron(async ({ rawBody }) => {
     const commission = await createNetworkReferralCommission({
       partner,
       payout,
-      invoice: payout.invoice,
     });
 
     if (commission) {

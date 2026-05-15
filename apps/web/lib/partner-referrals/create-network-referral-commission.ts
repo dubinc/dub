@@ -2,7 +2,6 @@ import { prisma } from "@dub/prisma";
 import {
   Commission,
   CommissionType,
-  Invoice,
   Partner,
   Payout,
   Prisma,
@@ -27,32 +26,25 @@ import { NETWORK_REFERRAL_REWARD } from "./constants";
 type CreateNetworkReferralCommissionProps = {
   partner: Pick<Partner, "id" | "referredByPartnerId">;
   payout: Pick<Payout, "id" | "amount" | "programId">;
-  invoice: Pick<Invoice, "amount" | "fee"> | null;
 };
 
 export const createNetworkReferralCommission = async ({
   partner,
-  invoice,
   payout,
 }: CreateNetworkReferralCommissionProps) => {
   if (!partner.referredByPartnerId) {
     console.error(
       `Partner ${partner.id} has no referredByPartnerId, skipping...`,
     );
-    return;
+    return null;
   }
 
   if (payout.programId === NETWORK_PROGRAM_ID) {
     console.error(`Payout ${payout.id} is from Network program, skipping...`);
-    return;
+    return null;
   }
 
-  const effectiveFeePercentage = invoice
-    ? // if the invoice is provided, use the fee percentage from the invoice (but cap it at 3%)
-      Math.min(invoice.fee / invoice.amount, 0.03)
-    : 0.03; // default to 3% if no invoice is provided (should never happen)
-
-  const payoutFeeEarned = Math.floor(payout.amount * effectiveFeePercentage);
+  const payoutFeeEarned = Math.floor(payout.amount * 0.03); // assumes 3% average payout fee for all payouts
 
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
@@ -72,56 +64,8 @@ export const createNetworkReferralCommission = async ({
     console.log(
       `Referrer partner ${partner.referredByPartnerId} is not enrolled in network program.`,
     );
-    return;
+    return null;
   }
-
-  const reward = determinePartnerReward({
-    event: "sale",
-    programEnrollment,
-  });
-
-  if (!reward) {
-    console.log(
-      `Referrer partner ${partner.referredByPartnerId} has no eligible reward for the network program.`,
-    );
-    return;
-  }
-
-  const firstCommission = await prisma.commission.findFirst({
-    where: {
-      programId: NETWORK_PROGRAM_ID,
-      partnerId: partner.referredByPartnerId,
-      sourcePartnerId: partner.id,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-    select: {
-      createdAt: true,
-    },
-  });
-
-  if (firstCommission) {
-    const durationMonths = differenceInMonths(
-      new Date(),
-      firstCommission.createdAt,
-    );
-
-    if (durationMonths >= NETWORK_REFERRAL_REWARD.maxDuration) {
-      console.log(
-        `Referrer partner ${partner.referredByPartnerId} has reached max duration for network bonus.`,
-      );
-      return;
-    }
-  }
-
-  const earnings = calculateSaleEarnings({
-    reward,
-    sale: {
-      amount: payoutFeeEarned,
-      quantity: 1,
-    },
-  });
 
   const customer = await prisma.customer.findUnique({
     where: {
@@ -136,54 +80,6 @@ export const createNetworkReferralCommission = async ({
   });
 
   const invoiceId = `referral:network:${payout.id}`;
-
-  const commissionData: Prisma.CommissionUncheckedCreateInput = {
-    id: createId({ prefix: "cm_" }),
-    programId: NETWORK_PROGRAM_ID,
-    partnerId: partner.referredByPartnerId,
-    sourcePartnerId: partner.id,
-    type: CommissionType.referral,
-    amount: 0,
-    quantity: 1,
-    earnings,
-    customerId: customer?.id,
-    linkId: customer?.link?.id,
-    invoiceId,
-    description: `Earned ${reward.amountInPercentage}% commission on the referred partner's ${currencyFormatter(payoutFeeEarned)} payout fee.`,
-  };
-
-  let commission: Commission | null = null;
-
-  try {
-    commission = await prisma.commission.create({
-      data: commissionData,
-    });
-
-    console.log("Network referral commission created", commission);
-  } catch (error) {
-    // Don't retry on unique constraint violation – the commission already exists
-    // (likely a race between the dedup check and the create)
-    if (error.code === "P2002") {
-      console.log(
-        `Referral commission already exists for invoiceId ${commissionData.invoiceId}, skipping creation.`,
-      );
-      return null;
-    }
-
-    console.error(
-      "Error creating network referral commission",
-      error,
-      commissionData,
-    );
-
-    await log({
-      message: `[createNetworkReferralCommission] Error creating referral commission - ${error.message}`,
-      type: "errors",
-      mention: true,
-    });
-
-    throw error;
-  }
 
   if (customer?.link) {
     const leadEventData = (await getLeadEvent({
@@ -261,6 +157,102 @@ export const createNetworkReferralCommission = async ({
   } else {
     // should never happen, but just in case
     console.error(`No customer found for partner ${partner.id}.`);
+  }
+
+  const reward = determinePartnerReward({
+    event: "sale",
+    programEnrollment,
+  });
+
+  if (!reward) {
+    console.log(
+      `Referrer partner ${partner.referredByPartnerId} has no eligible reward for the network program.`,
+    );
+    return null;
+  }
+
+  const firstCommission = await prisma.commission.findFirst({
+    where: {
+      programId: NETWORK_PROGRAM_ID,
+      partnerId: partner.referredByPartnerId,
+      sourcePartnerId: partner.id,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+    select: {
+      createdAt: true,
+    },
+  });
+
+  if (firstCommission) {
+    const durationMonths = differenceInMonths(
+      new Date(),
+      firstCommission.createdAt,
+    );
+
+    if (durationMonths >= NETWORK_REFERRAL_REWARD.maxDuration) {
+      console.log(
+        `Referrer partner ${partner.referredByPartnerId} has reached max duration for network bonus.`,
+      );
+      return null;
+    }
+  }
+
+  const earnings = calculateSaleEarnings({
+    reward,
+    sale: {
+      amount: payoutFeeEarned,
+      quantity: 1,
+    },
+  });
+
+  const commissionData: Prisma.CommissionUncheckedCreateInput = {
+    id: createId({ prefix: "cm_" }),
+    programId: NETWORK_PROGRAM_ID,
+    partnerId: partner.referredByPartnerId,
+    sourcePartnerId: partner.id,
+    type: CommissionType.referral,
+    amount: 0,
+    quantity: 1,
+    earnings,
+    customerId: customer?.id,
+    linkId: customer?.link?.id,
+    invoiceId,
+    description: `Earned ${reward.amountInPercentage}% commission on the referred partner's ${currencyFormatter(payoutFeeEarned)} payout fee.`,
+  };
+
+  let commission: Commission | null = null;
+
+  try {
+    commission = await prisma.commission.create({
+      data: commissionData,
+    });
+
+    console.log("Network referral commission created", commission);
+  } catch (error) {
+    // Don't retry on unique constraint violation – the commission already exists
+    // (likely a race between the dedup check and the create)
+    if (error.code === "P2002") {
+      console.log(
+        `Referral commission already exists for invoiceId ${commissionData.invoiceId}, skipping creation.`,
+      );
+      return null;
+    }
+
+    console.error(
+      "Error creating network referral commission",
+      error,
+      commissionData,
+    );
+
+    await log({
+      message: `[createNetworkReferralCommission] Error creating referral commission - ${error.message}`,
+      type: "errors",
+      mention: true,
+    });
+
+    throw error;
   }
 
   return commission;
