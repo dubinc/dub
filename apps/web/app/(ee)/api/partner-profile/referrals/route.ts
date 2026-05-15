@@ -2,6 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { triggerWorkflows } from "@/lib/cron/qstash-workflow";
 import {
   getNetworkReferralsQuerySchema,
   networkReferralSchema,
@@ -9,10 +10,11 @@ import {
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { CommissionType } from "@dub/prisma/client";
-import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import {
   NETWORK_PROGRAM_DEFAULT_GROUP_ID,
   NETWORK_PROGRAM_DEFAULT_SALE_REWARD_ID,
+  NETWORK_PROGRAM_ID,
+  NETWORK_USER_ID,
 } from "@dub/utils/src/constants/main";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -47,8 +49,22 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         },
         update: {},
       })
-      .then((res) => {
+      .then(async (res) => {
         console.log("Program enrollment upserted:", res.id);
+        // if program enrollment is created in the last 1 min, most likely it's a new partner
+        if (res.createdAt < new Date(Date.now() - 1 * 60 * 1000)) {
+          console.log(
+            "Program enrollment created in the last 1 min, most likely it's a new partner",
+          );
+          await triggerWorkflows({
+            workflowId: "partner-approved",
+            body: {
+              programId: NETWORK_PROGRAM_ID,
+              partnerId: partner.id,
+              userId: NETWORK_USER_ID,
+            },
+          });
+        }
       }),
   );
 

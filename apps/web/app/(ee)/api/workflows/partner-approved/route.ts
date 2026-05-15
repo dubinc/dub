@@ -14,6 +14,7 @@ import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
+import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
 
@@ -121,6 +122,13 @@ export const { POST } = serve<Payload>(
         }
       }
 
+      if (partnerGroupDefaultLinks.length === 0) {
+        logger.error({
+          message: `Already created default links for partner ${partnerId}.`,
+        });
+        return;
+      }
+
       // Find the workspace
       const workspace = await prisma.project.findUniqueOrThrow({
         where: {
@@ -167,6 +175,11 @@ export const { POST } = serve<Payload>(
 
       return;
     });
+
+    // for network program, only need to create default links
+    if (program.id === NETWORK_PROGRAM_ID) {
+      return;
+    }
 
     // Step 2: Auto-provision discount code if enabled
     await context.run("create-discount-codes", async () => {
