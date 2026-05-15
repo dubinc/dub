@@ -6,9 +6,19 @@ import {
   Payout,
   Prisma,
 } from "@dub/prisma/client";
-import { currencyFormatter, log, NETWORK_PROGRAM_ID } from "@dub/utils";
+import {
+  currencyFormatter,
+  log,
+  nanoid,
+  NETWORK_PROGRAM_ID,
+  NETWORK_WORKSPACE_ID,
+} from "@dub/utils";
 import { differenceInMonths } from "date-fns";
+import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
+import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
+import { getLeadEvent, recordSale } from "../tinybird";
+import { LeadEventTB } from "../types";
 import { NETWORK_REFERRAL_REWARD } from "./constants";
 
 type CreateNetworkReferralCommissionProps = {
@@ -80,6 +90,20 @@ export const createNetworkReferralCommission = async ({
     NETWORK_REFERRAL_REWARD.amountInPercentage * 0.01 * payout.amount,
   );
 
+  const customer = await prisma.customer.findUnique({
+    where: {
+      projectId_externalId: {
+        projectId: NETWORK_WORKSPACE_ID,
+        externalId: partner.id,
+      },
+    },
+    include: {
+      link: true,
+    },
+  });
+
+  const invoiceId = `referral:network:${payout.id}`;
+
   const commissionData: Prisma.CommissionUncheckedCreateInput = {
     id: createId({ prefix: "cm_" }),
     programId: NETWORK_PROGRAM_ID,
@@ -89,7 +113,9 @@ export const createNetworkReferralCommission = async ({
     amount: 0,
     quantity: 1,
     earnings,
-    invoiceId: `referral:network:${payout.id}`,
+    customerId: customer?.id,
+    linkId: customer?.link?.id,
+    invoiceId,
     description: `Earned ${NETWORK_REFERRAL_REWARD.amountInPercentage}% commission on the referred partner's ${currencyFormatter(payout.amount)} payout.`,
   };
 
@@ -124,6 +150,84 @@ export const createNetworkReferralCommission = async ({
     });
 
     throw error;
+  }
+
+  if (customer?.link) {
+    const leadEventData = (await getLeadEvent({
+      customerId: customer.id,
+    })) as LeadEventTB | null;
+
+    if (leadEventData) {
+      const saleData = {
+        ...leadEventData,
+        event_id: nanoid(16),
+        event_name: "Partner payout sent",
+        customer_id: customer.id,
+        payment_processor: "dub",
+        amount: payout.amount,
+        currency: "usd",
+        invoice_id: invoiceId,
+      };
+
+      const firstConversionFlag = isFirstConversion({
+        customer,
+        linkId: saleData.link_id,
+      });
+
+      await Promise.allSettled([
+        recordSale({
+          ...saleData,
+          timestamp: undefined,
+        }),
+
+        // Update link conversions, sales, and saleAmount
+        prisma.link.update({
+          where: {
+            id: saleData.link_id,
+          },
+          data: {
+            ...(firstConversionFlag && {
+              conversions: {
+                increment: 1,
+              },
+              lastConversionAt: new Date(),
+            }),
+            sales: {
+              increment: 1,
+            },
+            saleAmount: {
+              increment: payout.amount,
+            },
+          },
+        }),
+
+        prisma.customer.update({
+          where: {
+            id: customer.id,
+          },
+          data: {
+            sales: {
+              increment: 1,
+            },
+            saleAmount: {
+              increment: payout.amount,
+            },
+            firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
+          },
+        }),
+      ]);
+      await syncPartnerLinksStats({
+        partnerId: partner.referredByPartnerId,
+        programId: NETWORK_PROGRAM_ID,
+        eventType: "sale",
+      });
+    } else {
+      // should never happen, but just in case
+      console.error(`No lead event data found for customer ${customer.id}.`);
+    }
+  } else {
+    // should never happen, but just in case
+    console.error(`No customer found for partner ${partner.id}.`);
   }
 
   return commission;

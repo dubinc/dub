@@ -38,6 +38,16 @@ export async function markApplicationEventSubmittedNetwork(
     });
 
     if (!applicationEvent) {
+      console.log(
+        `No application event found for new partner ${partner.id}, skipping...`,
+      );
+      return;
+    }
+
+    if (applicationEvent.submittedAt) {
+      console.log(
+        `Application event already submitted for new partner ${partner.id}, skipping...`,
+      );
       return;
     }
 
