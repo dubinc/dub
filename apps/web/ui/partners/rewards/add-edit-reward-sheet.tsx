@@ -494,7 +494,7 @@ function RewardSheetContent({
                                   })
                                 }
                                 presetDurations={RECURRING_MAX_DURATIONS.filter(
-                                  (v) => v !== 0 && v !== 1,
+                                  (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
                                 )}
                               />
                             </InlineBadgePopover>

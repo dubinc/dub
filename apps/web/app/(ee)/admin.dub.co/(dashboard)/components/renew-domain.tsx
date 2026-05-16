@@ -11,13 +11,25 @@ export function RenewDomain() {
       <form
         action={async (data) => {
           try {
+            const domain = data.get("domain")?.toString().trim();
+
+            if (!domain) {
+              toast.error("Please enter a domain.");
+              return;
+            }
+
+            const confirmed = window.confirm(
+              `Are you sure you want to renew ${domain}?`,
+            );
+            if (!confirmed) return;
+
             const res = await fetch("/api/admin/renew-domain", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                domain: data.get("domain"),
+                domain,
               }),
             });
 
