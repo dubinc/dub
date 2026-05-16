@@ -45,6 +45,7 @@ export const trackSaleRequestSchema = z.object({
       "paddle",
       "apple",
       "revenuecat",
+      "dub",
       "custom",
     ])
     .default("custom")

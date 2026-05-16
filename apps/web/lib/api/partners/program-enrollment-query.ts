@@ -211,6 +211,7 @@ export function buildProgramEnrollmentWhereForList(
     search,
     email,
     partnerTagId,
+    referredByPartnerId,
     partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
@@ -275,6 +276,11 @@ export function buildProgramEnrollmentWhereForList(
         : status,
     ...(groupIdWhere ?? {}),
     ...(hasPartnerWhere ? { partner: partnerWhere } : {}),
+    ...(referredByPartnerId && {
+      applicationEvent: {
+        referredByPartnerId,
+      },
+    }),
     ...metricWhere,
   };
 }

@@ -41,7 +41,7 @@ export default function NewCommissionAlertPartner({
     holdingPeriodDays: number;
   };
   commission: {
-    type: "click" | "lead" | "sale" | "custom";
+    type: "click" | "lead" | "sale" | "custom" | "referral";
     amount: number;
     earnings: number;
   };

@@ -4,14 +4,7 @@ import {
   PROGRAM_CATEGORIES_MAP,
 } from "@/lib/network/program-categories";
 import { Category } from "@dub/prisma/client";
-import {
-  Button,
-  Checkbox,
-  Modal,
-  Tag,
-  Tooltip,
-  TruncatedList,
-} from "@dub/ui";
+import { Button, Checkbox, Modal, Tag, Tooltip, TruncatedList } from "@dub/ui";
 import { cn } from "@dub/utils";
 import {
   Dispatch,
@@ -133,11 +126,17 @@ export function UpdateProgramCategoriesModal({
 
   const hasChanges = useMemo(() => {
     if (draftCategories.length !== selectedCategories.length) return true;
-    return draftCategories.some((category) => !selectedCategories.includes(category));
+    return draftCategories.some(
+      (category) => !selectedCategories.includes(category),
+    );
   }, [draftCategories, selectedCategories]);
 
   return (
-    <Modal showModal={showModal} setShowModal={setShowModal} className="sm:max-w-lg">
+    <Modal
+      showModal={showModal}
+      setShowModal={setShowModal}
+      className="sm:max-w-lg"
+    >
       <div className="border-b border-neutral-200 p-4 sm:p-6">
         <h3 className="text-lg font-medium leading-none">Program categories</h3>
         <p className="mt-1 text-sm text-neutral-500">{programName}</p>
@@ -163,38 +162,40 @@ export function UpdateProgramCategoriesModal({
             </div>
           ) : (
             filteredCategories.map(({ id, label, icon: Icon }) => {
-          const isChecked = draftSet.has(id);
-          const maxReached =
-            !isChecked && draftCategories.length >= MAX_PROGRAM_CATEGORIES;
+              const isChecked = draftSet.has(id);
+              const maxReached =
+                !isChecked && draftCategories.length >= MAX_PROGRAM_CATEGORIES;
 
-          return (
-            <label
-              key={id}
-              className={cn(
-                "flex cursor-pointer items-center justify-between rounded-lg border border-neutral-200 px-3 py-2.5",
-                "transition-colors hover:bg-neutral-50",
-                maxReached && "cursor-not-allowed opacity-60",
-              )}
-            >
-              <div className="flex items-center gap-2">
-                <Icon className="size-4 text-neutral-600" />
-                <span className="text-sm font-medium text-neutral-800">{label}</span>
-              </div>
-              <Checkbox
-                checked={isChecked}
-                onCheckedChange={(checked) => {
-                  if (!checked) {
-                    setDraftCategories((prev) =>
-                      prev.filter((category) => category !== id),
-                    );
-                    return;
-                  }
-                  if (maxReached) return;
-                  setDraftCategories((prev) => [...prev, id]);
-                }}
-              />
-            </label>
-          );
+              return (
+                <label
+                  key={id}
+                  className={cn(
+                    "flex cursor-pointer items-center justify-between rounded-lg border border-neutral-200 px-3 py-2.5",
+                    "transition-colors hover:bg-neutral-50",
+                    maxReached && "cursor-not-allowed opacity-60",
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon className="size-4 text-neutral-600" />
+                    <span className="text-sm font-medium text-neutral-800">
+                      {label}
+                    </span>
+                  </div>
+                  <Checkbox
+                    checked={isChecked}
+                    onCheckedChange={(checked) => {
+                      if (!checked) {
+                        setDraftCategories((prev) =>
+                          prev.filter((category) => category !== id),
+                        );
+                        return;
+                      }
+                      if (maxReached) return;
+                      setDraftCategories((prev) => [...prev, id]);
+                    }}
+                  />
+                </label>
+              );
             })
           )}
         </div>

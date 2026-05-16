@@ -11,7 +11,10 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
-import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
+import {
+  CommissionTypeBadge,
+  getCommissionTypeLabel,
+} from "@/ui/partners/commission-type-badge";
 import { useEditCommissionModal } from "@/ui/partners/edit-commission-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
@@ -151,11 +154,7 @@ function CommissionDetailsContent({
                   </Link>
                 ) : (
                   <span className="min-w-0 max-w-[13rem] truncate text-xs font-medium text-neutral-700">
-                    {row.original.type === "click"
-                      ? `${row.original.quantity} ${pluralize("click", row.original.quantity)}`
-                      : customer
-                        ? customer.email || customer.name
-                        : "Custom commission"}
+                    {getCommissionTypeLabel(row.original)}
                   </span>
                 )}
                 <span className="text-xs text-neutral-500">

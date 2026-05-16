@@ -9,7 +9,10 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
-import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
+import {
+  CommissionTypeBadge,
+  getCommissionTypeLabel,
+} from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
@@ -36,7 +39,6 @@ import {
   formatDateTime,
   formatDateTimeSmart,
   OG_AVATAR_URL,
-  pluralize,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { addBusinessDays, addMinutes } from "date-fns";
@@ -285,11 +287,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
             <div className="flex flex-col">
               <span className="text-sm text-neutral-700">
-                {row.original.type === "click"
-                  ? `${row.original.quantity} ${pluralize("click", row.original.quantity)}`
-                  : row.original.customer
-                    ? row.original.customer.email || row.original.customer.name
-                    : "Custom commission"}
+                {getCommissionTypeLabel(row.original)}
               </span>
               <span className="text-xs text-neutral-500">
                 {formatDateTime(row.original.createdAt)}
