@@ -35,7 +35,7 @@ export default function ProgramPartnerLinksPage() {
   const { partner, error } = usePartner({ partnerId });
 
   return partner ? (
-    <div className="grid gap-4">
+    <div className="grid min-w-0 gap-4">
       <PartnerLinks partner={partner} />
       <PartnerDiscountCodes partner={partner} />
     </div>
@@ -70,6 +70,9 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
       {
         id: "shortLink",
         header: "Link",
+        meta: {
+          disableTruncate: true,
+        },
         cell: ({ row }) => {
           const partnerLink = constructPartnerLink({
             group: group ?? undefined,
@@ -157,7 +160,8 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-[40px]",
+    containerClassName: "w-full max-w-full overflow-hidden",
+    scrollWrapperClassName: "min-h-[40px] max-w-full",
   } as any);
 
   return (
@@ -173,7 +177,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
           onClick={() => setShowAddPartnerLinkModal(true)}
         />
       </div>
-      <Table {...table} showScrollOverflowGradient />
+      <Table {...table} />
       <AddPartnerLinkModal />
     </>
   );
