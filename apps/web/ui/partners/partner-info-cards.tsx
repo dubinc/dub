@@ -1,3 +1,4 @@
+import { usePartnerReferral } from "@/lib/partner-referrals/hooks/use-partner-referral";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -20,7 +21,12 @@ import {
   TimestampTooltip,
   Trophy,
 } from "@dub/ui";
-import { TriangleWarning, Users, VerifiedBadge } from "@dub/ui/icons";
+import {
+  TriangleWarning,
+  UserArrowRight,
+  Users,
+  VerifiedBadge,
+} from "@dub/ui/icons";
 import {
   COUNTRIES,
   fetcher,
@@ -73,7 +79,7 @@ type PartnerInfoCardsProps = {
 type BasicField = {
   id: string;
   icon: React.ReactElement;
-  text: string | null | undefined;
+  text: ReactNode | null | undefined;
   /** When set, the row is wrapped in TimestampTooltip (local / UTC / unix). */
   timestamp?: Date | string | number;
   /** Optional outer wrapper (e.g. ConversionScoreTooltip) around the row content. */
@@ -119,6 +125,10 @@ export function PartnerInfoCards({
       : null,
     fetcher,
   );
+
+  const { referral, loading: loadingReferral } = usePartnerReferral({
+    partnerId: partner?.id,
+  });
 
   let basicFields: BasicField[] = [
     {
@@ -183,6 +193,31 @@ export function PartnerInfoCards({
               ...(partner.identityVerifiedAt
                 ? { timestamp: partner.identityVerifiedAt }
                 : {}),
+            },
+          ]
+        : []),
+
+      // Referred by
+      ...(referral && referral.referredBy
+        ? [
+            {
+              id: "referredBy",
+              icon: <UserArrowRight className="size-3.5 shrink-0" />,
+              text: (
+                <span className="flex min-w-0 items-center gap-1">
+                  Referred by
+                  <Link
+                    href={`/${workspaceSlug}/program/partners/${referral.referredBy.id}`}
+                    className="inline-flex min-w-0 max-w-full cursor-alias items-center gap-1 rounded decoration-dotted underline-offset-2 hover:underline"
+                  >
+                    <PartnerAvatar
+                      partner={referral.referredBy}
+                      className="size-3.5"
+                    />
+                    <span className="truncate">{referral.referredBy.name}</span>
+                  </Link>
+                </span>
+              ),
             },
           ]
         : []),

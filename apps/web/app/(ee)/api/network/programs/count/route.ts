@@ -29,10 +29,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         ${
           rewardType && groupBy !== "rewardType"
             ? Prisma.sql`
-              AND ${Prisma.join(
-                rewardType.map((type) => rewardTypeMap[type]),
-                " AND ",
-              )}`
+              AND ${rewardTypeMap[rewardType]}`
             : Prisma.sql``
         }
     )

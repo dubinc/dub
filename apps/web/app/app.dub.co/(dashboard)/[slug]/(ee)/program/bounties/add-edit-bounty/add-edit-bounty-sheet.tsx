@@ -549,7 +549,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                   <TooltipContent
                     title="[Social metrics bounties](https://dub.co/help/article/program-bounties#social-metrics-bounties) are only available on the Advanced plan and above."
                     cta="Upgrade to Advanced"
-                    href={`/${workspaceSlug}/upgrade?showPartnersUpgradeModal=true`}
+                    href={`/${workspaceSlug}/upgrade?plan=advanced&showPartnersUpgradeModal=true`}
                     target="_blank"
                   />
                 ) : (

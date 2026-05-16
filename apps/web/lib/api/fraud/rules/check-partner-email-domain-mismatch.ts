@@ -1,4 +1,5 @@
 import { PartnerProps } from "@/lib/types";
+import { getDomainWithoutWWW } from "@dub/utils";
 
 function normalizeDomain(domain: string) {
   return domain
@@ -27,14 +28,11 @@ export function checkPartnerEmailDomainMismatch(
   }
 
   const emailDomain = normalizeDomain(emailParts[1]);
-  let websiteDomain: string;
+  const websiteDomain = getDomainWithoutWWW(website.identifier);
 
-  try {
-    const websiteUrl = new URL(website.identifier);
-    websiteDomain = normalizeDomain(websiteUrl.hostname);
-  } catch (error) {
+  if (!websiteDomain) {
     return false;
   }
 
-  return emailDomain !== websiteDomain;
+  return emailDomain !== websiteDomain.toLowerCase();
 }

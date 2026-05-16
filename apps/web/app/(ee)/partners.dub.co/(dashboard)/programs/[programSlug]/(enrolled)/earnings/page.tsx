@@ -3,7 +3,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { EarningsCompositeChart } from "./earnings-composite-chart";
 import { EarningsTablePartner } from "./earnings-table";
 
-export default function ProgramEarning() {
+export default function PartnerProgramEarningsPage() {
   return (
     <PageContent title="Earnings">
       <PageWidthWrapper className="flex flex-col gap-5 pb-10">

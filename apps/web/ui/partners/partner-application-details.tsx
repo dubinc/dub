@@ -98,7 +98,7 @@ export function PartnerApplicationDetails({
   const { data: historyData, isLoading: historyLoading } =
     useSWR<ApplicationHistoryResponse>(
       program && workspaceId && partnerId
-        ? `/api/programs/${program.id}/applications/history?partnerId=${encodeURIComponent(partnerId)}&workspaceId=${workspaceId}`
+        ? `/api/partners/applications/history?partnerId=${encodeURIComponent(partnerId)}&workspaceId=${workspaceId}`
         : null,
       fetcher,
     );
@@ -139,7 +139,7 @@ export function PartnerApplicationDetails({
     program &&
     workspaceId &&
     resolvedApplicationId &&
-    `/api/programs/${program.id}/applications/${resolvedApplicationId}?workspaceId=${workspaceId}`;
+    `/api/partners/applications/${resolvedApplicationId}?workspaceId=${workspaceId}`;
 
   const { data: application, isLoading: applicationLoading } =
     useSWR<ProgramApplication>(applicationKey, fetcher);
@@ -292,7 +292,11 @@ export function PartnerApplicationDetails({
             ))}
           </div>
           <PartnerApplicationReviewOutcome application={application} />
-          <PartnerApplicationReviewFooter reviewedAt={application.reviewedAt} />
+          {historyItems.length > 1 ? (
+            <PartnerApplicationReviewFooter
+              reviewedAt={application.reviewedAt}
+            />
+          ) : null}
         </>
       )}
     </div>

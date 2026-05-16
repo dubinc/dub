@@ -175,21 +175,26 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               id: "country",
               header: "Country",
               accessorKey: "customer.country",
-              cell: ({ getValue }) => (
-                <div
-                  className="flex items-center gap-3"
-                  title={COUNTRIES[getValue()] ?? getValue()}
-                >
-                  {getValue() ? (
-                    <CountryFlag countryCode={getValue()} />
-                  ) : (
-                    <Globe className="size-4 shrink-0" />
-                  )}
-                  <span className="truncate">
-                    {COUNTRIES[getValue()] || getValue() || "-"}
-                  </span>
-                </div>
-              ),
+              cell: ({ row }) => {
+                if (!row.original.customer) return "-";
+                const country = row.original.customer.country;
+
+                return (
+                  <div
+                    className="flex items-center gap-3"
+                    title={country ? COUNTRIES[country] ?? country : undefined}
+                  >
+                    {country ? (
+                      <CountryFlag countryCode={country} />
+                    ) : (
+                      <Globe className="size-4 shrink-0" />
+                    )}
+                    <span className="truncate">
+                      {(country ? COUNTRIES[country] || country : null) ?? "-"}
+                    </span>
+                  </div>
+                );
+              },
             },
           ]),
       {

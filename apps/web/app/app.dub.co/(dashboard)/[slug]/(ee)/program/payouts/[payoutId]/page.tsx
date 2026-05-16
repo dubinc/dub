@@ -16,7 +16,10 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ActivityEvent } from "@/ui/partners/activity-event";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
-import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
+import {
+  CommissionTypeBadge,
+  getCommissionTypeLabel,
+} from "@/ui/partners/commission-type-badge";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
@@ -43,7 +46,6 @@ import {
   fetcher,
   formatDateTime,
   formatDateTimeSmart,
-  pluralize,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import Link from "next/link";
@@ -334,9 +336,7 @@ function PayoutDetailsContent({
                 </Link>
               ) : (
                 <span className="max-w-xs truncate text-sm text-neutral-700">
-                  {row.original.type === "click"
-                    ? `${row.original.quantity} ${pluralize("click", row.original.quantity)}`
-                    : "Custom commission"}
+                  {getCommissionTypeLabel(row.original)}
                 </span>
               )}
               <span className="text-xs text-neutral-500">
