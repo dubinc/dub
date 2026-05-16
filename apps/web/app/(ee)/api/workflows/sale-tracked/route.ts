@@ -1,5 +1,7 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import {
   constructWebhookPartner,
   createPartnerCommission,
@@ -10,7 +12,8 @@ import { transformSaleEventData } from "@/lib/webhook/transform";
 import { WebhookPartnerSchema } from "@/lib/zod/schemas/partners";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
-import { Link } from "@dub/prisma/client";
+import { Customer, Link } from "@dub/prisma/client";
+import { pick } from "@dub/utils";
 import { WorkflowNonRetryableError } from "@upstash/workflow";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
@@ -23,13 +26,18 @@ type Input = z.infer<typeof inputSchema>;
 
 type StepFunctionProps = Input & {
   link: Pick<Link, "id" | "programId" | "partnerId">;
+  customer: Customer;
 };
+
+// TODO:
+// Make sure individual steps are idempotent
+// Flow control -> by customerId?
 
 // POST /api/workflows/sale-tracked
 export const { POST } = serve<Input>(
   async (context) => {
     const input = context.requestPayload;
-    const { link_id: linkId } = input.saleEvent;
+    const { link_id: linkId, customer_id: customerId } = input.saleEvent;
 
     const link = await prisma.link.findUnique({
       where: {
@@ -46,13 +54,27 @@ export const { POST } = serve<Input>(
       throw new WorkflowNonRetryableError(`Link ${linkId} not found.`);
     }
 
-    // Step 1:  Sync link stats, customer stats, workspace usage, and program/partner associations
-    await context.run("update-stats", async () => {
-      await stepUpdateStats({
-        ...input,
-        link,
-      });
+    const customer = await prisma.customer.findUnique({
+      where: {
+        id: customerId,
+      },
     });
+
+    if (!customer) {
+      throw new WorkflowNonRetryableError(`Customer ${customerId} not found.`);
+    }
+
+    // Step 1:  Sync link stats, customer stats, workspace usage, and program/partner associations
+    const { isFirstConversion } = await context.run(
+      "update-stats",
+      async () => {
+        return await stepUpdateStats({
+          ...input,
+          link,
+          customer,
+        });
+      },
+    );
 
     // Step 2:  Create partner commission
     if (link.programId && link.partnerId) {
@@ -60,6 +82,7 @@ export const { POST } = serve<Input>(
         await stepCreateCommission({
           ...input,
           link,
+          customer,
         });
       });
     }
@@ -69,55 +92,45 @@ export const { POST } = serve<Input>(
       await stepSendWebhooks({
         ...input,
         link,
+        customer,
       });
     });
 
     // Step 4: Run fraud detection
-    await context.run("run-fraud-detection", async () => {
-      await stepRunFraudDetection({
-        ...input,
-        link,
+    if (link.programId && link.partnerId) {
+      await context.run("run-fraud-detection", async () => {
+        await stepRunFraudDetection({
+          ...input,
+          link,
+          customer,
+          isFirstConversion,
+        });
       });
-    });
+    }
 
     // Step 5: Execute workflow
-    await context.run("execute-workflow", async () => {
-      await stepExecuteWorkflow({
-        ...input,
-        link,
+    if (link.programId && link.partnerId) {
+      await context.run("execute-workflow", async () => {
+        await stepExecuteWorkflow({
+          ...input,
+          link,
+          customer,
+          isFirstConversion,
+        });
       });
-    });
+    }
   },
   {
     initialPayloadParser: (input) => inputSchema.parse(JSON.parse(input)),
   },
 );
 
-// TODO:
-// Make sure individual steps are idempotent
-
-async function stepUpdateStats({ saleEvent, link }: StepFunctionProps) {
-  const {
-    workspace_id: workspaceId,
-    customer_id: customerId,
-    amount,
-  } = saleEvent;
-
-  // TODO:
-  // Use transaction (?)
-  // Check firstConversionFlag working correctly
-
-  const customer = await prisma.customer.findUniqueOrThrow({
-    where: {
-      id: customerId,
-    },
-    select: {
-      id: true,
-      sales: true,
-      linkId: true,
-      firstSaleAt: true,
-    },
-  });
+async function stepUpdateStats({
+  saleEvent,
+  link,
+  customer,
+}: StepFunctionProps) {
+  const { workspace_id: workspaceId, amount } = saleEvent;
 
   const firstConversionFlag = isFirstConversion({
     customer,
@@ -183,9 +196,19 @@ async function stepUpdateStats({ saleEvent, link }: StepFunctionProps) {
       eventType: "sale",
     });
   }
+
+  // Return value is persisted with the step so replays after later steps do not re-derive a
+  // stale firstConversionFlag from the customer row.
+  return {
+    isFirstConversion: firstConversionFlag,
+  };
 }
 
-async function stepCreateCommission({ saleEvent, link }: StepFunctionProps) {
+async function stepCreateCommission({
+  saleEvent,
+  link,
+  customer,
+}: StepFunctionProps) {
   if (!link.programId || !link.partnerId) {
     return;
   }
@@ -193,29 +216,18 @@ async function stepCreateCommission({ saleEvent, link }: StepFunctionProps) {
   const {
     invoice_id: invoiceId,
     event_id: eventId,
-    customer_id: customerId,
     currency,
     amount,
   } = saleEvent;
 
   const metadata = parseMetadata(saleEvent.metadata);
 
-  const customer = await prisma.customer.findUniqueOrThrow({
-    where: {
-      id: customerId,
-    },
-    select: {
-      country: true,
-      createdAt: true,
-    },
-  });
-
   await createPartnerCommission({
     event: "sale",
     programId: link.programId,
     partnerId: link.partnerId,
     linkId: link.id,
-    customerId,
+    customerId: customer.id,
     eventId,
     amount,
     quantity: 1,
@@ -235,28 +247,28 @@ async function stepCreateCommission({ saleEvent, link }: StepFunctionProps) {
   });
 }
 
-async function stepSendWebhooks({ saleEvent, link }: StepFunctionProps) {
-  const { customer_id: customerId } = saleEvent;
+async function stepSendWebhooks({
+  saleEvent,
+  link,
+  customer,
+}: StepFunctionProps) {
+  const { workspace_id: workspaceId } = saleEvent;
 
   let webhookPartner: z.infer<typeof WebhookPartnerSchema> | undefined;
 
-  const { project: workspace, ...customer } =
-    await prisma.customer.findUniqueOrThrow({
-      where: {
-        id: customerId,
-      },
-      select: {
-        country: true,
-        createdAt: true,
-        clickedAt: true,
-        project: {
-          select: {
-            id: true,
-            webhookEnabled: true,
-          },
-        },
-      },
-    });
+  const workspace = await prisma.project.findUnique({
+    where: {
+      id: workspaceId,
+    },
+    select: {
+      id: true,
+      webhookEnabled: true,
+    },
+  });
+
+  if (!workspace) {
+    return;
+  }
 
   // Find the partner for the program's link
   if (link.programId && link.partnerId) {
@@ -305,27 +317,83 @@ async function stepSendWebhooks({ saleEvent, link }: StepFunctionProps) {
   }
 }
 
-async function stepRunFraudDetection({ saleEvent, link }: StepFunctionProps) {
-  // TODO:
-  // Run detectAndRecordFraudEvent
+async function stepRunFraudDetection({
+  saleEvent,
+  link,
+  customer,
+  isFirstConversion,
+}: StepFunctionProps & { isFirstConversion: boolean }) {
+  if (!link.programId || !link.partnerId) {
+    return;
+  }
+
+  const programEnrollment = await prisma.programEnrollment.findUnique({
+    where: {
+      partnerId_programId: {
+        partnerId: link.partnerId,
+        programId: link.programId,
+      },
+    },
+    select: {
+      status: true,
+      partner: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  if (!programEnrollment) {
+    return;
+  }
+
+  const { partner } = programEnrollment;
+
+  await detectAndRecordFraudEvent({
+    program: { id: link.programId },
+    partner: pick(partner, ["id", "email", "name"]),
+    programEnrollment: pick(programEnrollment, ["status"]),
+    link: pick(link, ["id"]),
+    click: pick(saleEvent, ["url", "referer"]),
+    event: { id: saleEvent.event_id },
+    customer: {
+      ...pick(customer, ["id", "email", "name"]),
+      isFirstConversion,
+    },
+  });
 }
 
-async function stepExecuteWorkflow({ saleEvent, link }: StepFunctionProps) {
-  // executeWorkflows({
-  //   trigger: "partnerMetricsUpdated",
-  //   reason: "sale",
-  //   identity: {
-  //     workspaceId: workspace.id,
-  //     programId: link.programId,
-  //     partnerId: link.partnerId,
-  //   },
-  //   metrics: {
-  //     current: {
-  //       saleAmount: saleData.amount,
-  //       conversions: firstConversionFlag ? 1 : 0,
-  //     },
-  //   },
-  // }),
+async function stepExecuteWorkflow({
+  saleEvent,
+  link,
+  isFirstConversion,
+}: StepFunctionProps & {
+  isFirstConversion: boolean;
+}) {
+  if (!link.programId || !link.partnerId) {
+    return;
+  }
+
+  const { workspace_id: workspaceId } = saleEvent;
+
+  await executeWorkflows({
+    trigger: "partnerMetricsUpdated",
+    reason: "sale",
+    identity: {
+      workspaceId,
+      programId: link.programId,
+      partnerId: link.partnerId,
+    },
+    metrics: {
+      current: {
+        saleAmount: saleEvent.amount,
+        conversions: isFirstConversion ? 1 : 0,
+      },
+    },
+  });
 }
 
 function parseMetadata(metadata: string): Record<string, string> {
@@ -335,6 +403,3 @@ function parseMetadata(metadata: string): Record<string, string> {
     return {};
   }
 }
-
-// Return value is persisted with the step so replays after later steps do not re-derive a
-// stale firstConversionFlag from the customer row.
