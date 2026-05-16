@@ -335,3 +335,6 @@ function parseMetadata(metadata: string): Record<string, string> {
     return {};
   }
 }
+
+// Return value is persisted with the step so replays after later steps do not re-derive a
+// stale firstConversionFlag from the customer row.
