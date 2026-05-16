@@ -51,7 +51,7 @@ export const setRenewOption = async ({
     );
   } catch (error) {
     await log({
-      message: `Failed to set renew option for ${domain}: ${error.message}`,
+      message: `Failed to set renew option for ${domain}: ${error instanceof Error ? error.message : String(error)}`,
       type: "errors",
       mention: true,
     });
