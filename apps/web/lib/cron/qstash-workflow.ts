@@ -87,7 +87,7 @@ export async function triggerQStashWorkflow(
   }
 }
 
-function getWorkflowCorrelation(
+export function getWorkflowCorrelation(
   workflowType: WorkflowType,
   body?: Record<string, unknown>,
 ) {

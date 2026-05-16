@@ -2,6 +2,8 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { logger } from "@/lib/axiom/server";
+import { getWorkflowCorrelation } from "@/lib/cron/qstash-workflow";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
@@ -23,12 +25,11 @@ const inputSchema = z.object({
 type Input = z.infer<typeof inputSchema>;
 
 type StepFunctionProps = Input & {
-  link: Pick<Link, "id" | "programId" | "partnerId">;
+  link: Link;
   customer: Customer;
 };
 
 // TODO:
-// Make sure individual steps are idempotent
 // Flow control -> by customerId?
 
 // POST /api/workflows/sale-tracked
@@ -40,11 +41,6 @@ export const { POST } = serve<Input>(
     const link = await prisma.link.findUnique({
       where: {
         id: linkId,
-      },
-      select: {
-        id: true,
-        programId: true,
-        partnerId: true,
       },
     });
 
@@ -120,6 +116,29 @@ export const { POST } = serve<Input>(
   },
   {
     initialPayloadParser: (input) => inputSchema.parse(JSON.parse(input)),
+    failureFunction: async ({
+      context,
+      failStatus,
+      failResponse,
+      failHeaders,
+    }) => {
+      logger.error("workflow.failed", {
+        service: "qstash-workflow",
+        event: "workflow.failed",
+        status: "error",
+        workflowType: "sale-tracked",
+        workflowRunId: context.workflowRunId,
+        failStatus,
+        failResponse,
+        failHeaders,
+        correlation: getWorkflowCorrelation(
+          "sale-tracked",
+          context.requestPayload as Record<string, unknown>,
+        ),
+      });
+
+      await logger.flush();
+    },
   },
 );
 
@@ -271,7 +290,7 @@ async function stepSendWebhooks({
   }
 
   // Find the partner for the program's link
-  if (link.programId && link.partnerId) {
+  if (workspace.webhookEnabled && link.programId && link.partnerId) {
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: {
         partnerId_programId: {
@@ -288,20 +307,20 @@ async function stepSendWebhooks({
     if (programEnrollment) {
       webhookPartner = constructWebhookPartner(programEnrollment);
     }
-  }
 
-  await sendWorkspaceWebhook({
-    trigger: "sale.created",
-    data: transformSaleEventData({
-      ...saleEvent,
-      clickedAt: customer.clickedAt || customer.createdAt,
-      link,
-      customer,
-      partner: webhookPartner,
-      metadata: parseMetadata(saleEvent.metadata),
-    }),
-    workspace,
-  });
+    await sendWorkspaceWebhook({
+      trigger: "sale.created",
+      data: transformSaleEventData({
+        ...saleEvent,
+        clickedAt: customer.clickedAt || customer.createdAt,
+        link,
+        customer,
+        partner: webhookPartner,
+        metadata: parseMetadata(saleEvent.metadata),
+      }),
+      workspace,
+    });
+  }
 
   if (link.programId && link.partnerId) {
     sendPartnerPostback({
