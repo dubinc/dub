@@ -12,10 +12,10 @@ import { DiscountProps } from "@/lib/types";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { Shopify } from "@/ui/guides/icons/shopify";
+import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
 import {
   InlineBadgePopover,
-  InlineBadgePopoverContext,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
@@ -30,7 +30,6 @@ import {
   PropsWithChildren,
   ReactNode,
   SetStateAction,
-  useContext,
   useRef,
   useState,
 } from "react";
@@ -82,19 +81,6 @@ function DiscountSheetContent({
   const [useStripeTestCouponId, setUseStripeTestCouponId] = useState(
     Boolean(discount?.couponTestId),
   );
-
-  const initialMaxDuration =
-    discount?.maxDuration ?? defaultDiscountValues?.maxDuration;
-  const [customDurationInput, setCustomDurationInput] = useState<string>(() => {
-    if (
-      initialMaxDuration !== null &&
-      initialMaxDuration !== undefined &&
-      !RECURRING_MAX_DURATIONS.includes(initialMaxDuration)
-    ) {
-      return initialMaxDuration.toString();
-    }
-    return "";
-  });
 
   const discountProvider =
     discount?.provider ??
@@ -317,7 +303,7 @@ function DiscountSheetContent({
                   </div>
 
                   {!discount && provider === DiscountProvider.stripe && (
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 p-px lg:grid-cols-2">
                       {COUPON_CREATION_OPTIONS.map(
                         ({ label, description, useExisting }) => {
                           const isSelected = useExistingCoupon === useExisting;
@@ -496,8 +482,11 @@ function DiscountSheetContent({
                     disabled={!!discount}
                   >
                     <DurationPopoverContent
-                      customDurationInput={customDurationInput}
-                      setCustomDurationInput={setCustomDurationInput}
+                      value={Number(maxDuration)}
+                      onChange={(value) =>
+                        setValue("maxDuration", value, { shouldDirty: true })
+                      }
+                      presetDurations={RECURRING_MAX_DURATIONS}
                     />
                   </InlineBadgePopover>
                 </span>
@@ -597,110 +586,6 @@ function DiscountSheetCard({
 const VerticalLine = () => (
   <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
 );
-
-function DurationPopoverContent({
-  customDurationInput,
-  setCustomDurationInput,
-}: {
-  customDurationInput: string;
-  setCustomDurationInput: (v: string) => void;
-}) {
-  const { watch, setValue } = useAddEditDiscountForm();
-  const { setIsOpen } = useContext(InlineBadgePopoverContext);
-  const maxDuration = watch("maxDuration");
-  const [showCustomInput, setShowCustomInput] = useState(
-    customDurationInput !== "",
-  );
-
-  const isPresetValue =
-    maxDuration === 0 ||
-    maxDuration === Infinity ||
-    RECURRING_MAX_DURATIONS.includes(Number(maxDuration));
-
-  if (showCustomInput) {
-    return (
-      <div className="flex flex-col gap-1.5 p-1">
-        <button
-          type="button"
-          onClick={() => setShowCustomInput(false)}
-          className="flex items-center gap-1 rounded px-0.5 text-xs text-neutral-500 transition-colors hover:text-neutral-700"
-        >
-          ← Presets
-        </button>
-        <label className="flex w-full rounded-md border border-neutral-300 shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500 sm:w-32">
-          <input
-            type="number"
-            min="0"
-            max="9999"
-            step="1"
-            autoFocus
-            placeholder="e.g. 24"
-            value={customDurationInput}
-            className="block min-w-0 grow rounded-md border-none py-1 pl-1.5 pr-0 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
-            onChange={(e: ChangeEvent<HTMLInputElement>) => {
-              const raw = e.target.value;
-              const parsed = parseInt(raw, 10);
-              const clamped = Math.min(parsed, 9999);
-              const display = isNaN(parsed) ? raw : clamped.toString();
-              setCustomDurationInput(display);
-              if (!isNaN(parsed) && parsed >= 0) {
-                setValue("maxDuration", clamped, { shouldDirty: true });
-              }
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                e.nativeEvent.stopImmediatePropagation();
-                e.preventDefault();
-                setShowCustomInput(false);
-                return;
-              }
-              if (e.key === "Backspace" && customDurationInput === "") {
-                setShowCustomInput(false);
-                return;
-              }
-              if (e.key === "Enter") {
-                e.preventDefault();
-                if (customDurationInput === "0") {
-                  setValue("maxDuration", 0, { shouldDirty: true });
-                  setCustomDurationInput("");
-                  setShowCustomInput(false);
-                  return;
-                }
-                setIsOpen(false);
-              }
-            }}
-          />
-          <span className="flex shrink-0 items-center pr-1.5 text-sm text-neutral-400">
-            months
-          </span>
-        </label>
-      </div>
-    );
-  }
-
-  return (
-    <InlineBadgePopoverMenu
-      selectedValue={isPresetValue ? maxDuration?.toString() : undefined}
-      onSelect={(value) => {
-        if (value === "custom") {
-          setShowCustomInput(true);
-          return;
-        }
-        setValue("maxDuration", Number(value), { shouldDirty: true });
-        setCustomDurationInput("");
-      }}
-      items={[
-        { text: "one time", value: "0" },
-        ...RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map((v) => ({
-          text: `for ${v} ${pluralize("month", Number(v))}`,
-          value: v.toString(),
-        })),
-        { text: "for the customer's lifetime", value: "Infinity" },
-        { text: "custom", value: "custom", preventClose: true },
-      ]}
-    />
-  );
-}
 
 function AmountInput({ disabled }: { disabled?: boolean }) {
   const { watch, register } = useAddEditDiscountForm();
