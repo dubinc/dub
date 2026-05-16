@@ -89,7 +89,10 @@ async function handler(req: Request) {
             ? {
                 OR: [
                   {
-                    type: "custom", // includes manual commissions + clawbacks
+                    type: {
+                      // includes manual + referral commissions + clawbacks
+                      in: ["custom", "referral"],
+                    },
                   },
                   {
                     createdAt: {

@@ -1,11 +1,12 @@
 "use server";
 
+import { DubApiError } from "@/lib/api/errors";
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { qstash } from "@/lib/cron";
 import { isReservedUsername } from "@/lib/edge-config";
 import { storage } from "@/lib/storage";
-import { stripe } from "@/lib/stripe";
+import { ratelimit } from "@/lib/upstash";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
@@ -15,7 +16,6 @@ import { prisma } from "@dub/prisma";
 import { Partner, PartnerProfileType } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
-  COUNTRIES,
   deepEqual,
   nanoid,
   PARTNERS_DOMAIN,
@@ -34,7 +34,6 @@ const updatePartnerProfileSchema = z
     username: z.string().trim().toLowerCase().min(3).max(100).optional(),
     image: uploadedImageSchema.nullish(),
     description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
-    country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
     profileType: z.enum(PartnerProfileType).optional(),
     companyName: z.string().nullish(),
   })
@@ -73,7 +72,6 @@ export const updatePartnerProfileAction = authPartnerActionClient
       email: newEmail,
       image,
       description,
-      country,
       profileType,
       companyName,
       monthlyTraffic,
@@ -102,12 +100,26 @@ export const updatePartnerProfileAction = authPartnerActionClient
     }
 
     if (username && username !== partner.username) {
+      const { success } = await ratelimit(5, "1 h").limit(
+        `partner-profile:username-update:${partner.id}`,
+      );
+
+      if (!success) {
+        throw new DubApiError({
+          code: "rate_limit_exceeded",
+          message:
+            "You've updated your username too many times. Please try again later.",
+        });
+      }
+
       if (!validSlugRegex.test(username) || RESERVED_SLUGS.includes(username)) {
         throw new Error("Invalid username");
       }
+
       if (await isReservedUsername(username)) {
         throw new Error("Invalid username");
       }
+
       const existingPartner = await prisma.partner.findUnique({
         where: {
           username,
@@ -132,7 +144,6 @@ export const updatePartnerProfileAction = authPartnerActionClient
           description,
           ...(imageUrl && { image: imageUrl }),
           username,
-          country,
           profileType,
           companyName,
           monthlyTraffic,
@@ -235,48 +246,17 @@ const updatedComplianceFieldsChecks = async ({
   partner: Partner;
   input: z.infer<typeof updatePartnerProfileSchema>;
 }) => {
-  const countryChanged =
-    input.country !== undefined &&
-    partner.country?.toLowerCase() !== input.country?.toLowerCase();
-
   const profileTypeChanged =
     input.profileType !== undefined &&
     partner.profileType.toLowerCase() !== input.profileType.toLowerCase();
 
-  if (!countryChanged && !profileTypeChanged) {
+  if (!profileTypeChanged) {
     return;
-  }
-
-  if (partner.payoutsEnabledAt) {
-    throw new Error(
-      "Since you've already connected your bank account for payouts, you cannot change your country or profile type. Please contact support to update those fields.",
-    );
   }
 
   const partnerChangeHistoryLog = partner.changeHistoryLog
     ? partnerProfileChangeHistoryLogSchema.parse(partner.changeHistoryLog)
     : [];
-
-  if (countryChanged) {
-    partnerChangeHistoryLog.push({
-      field: "country",
-      from: partner.country as string,
-      to: input.country as string,
-      changedAt: new Date(),
-    });
-
-    // if there was an existing veriff session, trigger a country change verification
-    if (partner.veriffSessionId) {
-      waitUntil(
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/verify-country-change`,
-          body: {
-            partnerId: partner.id,
-          },
-        }),
-      );
-    }
-  }
 
   if (profileTypeChanged) {
     partnerChangeHistoryLog.push({
@@ -287,16 +267,11 @@ const updatedComplianceFieldsChecks = async ({
     });
   }
 
-  if (partner.stripeConnectId) {
-    await stripe.accounts.del(partner.stripeConnectId);
-  }
-
   await prisma.partner.update({
     where: {
       id: partner.id,
     },
     data: {
-      stripeConnectId: null,
       changeHistoryLog: partnerChangeHistoryLog,
     },
   });

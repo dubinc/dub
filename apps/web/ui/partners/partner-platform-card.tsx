@@ -7,7 +7,7 @@ import {
   Trash,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { PropsWithChildren } from "react";
+import { MouseEventHandler, PropsWithChildren } from "react";
 
 export function PartnerPlatformCard({
   icon: Icon,
@@ -17,6 +17,8 @@ export function PartnerPlatformCard({
   info,
   href,
   onRemove,
+  onVerify,
+  isVerifying = false,
 }: {
   icon: Icon;
   prefix?: string;
@@ -25,7 +27,15 @@ export function PartnerPlatformCard({
   info?: string[];
   href?: string;
   onRemove?: () => void;
+  onVerify?: () => void;
+  isVerifying?: boolean;
 }) {
+  const onVerifyClick: MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onVerify?.();
+  };
+
   return (
     <Container
       href={href}
@@ -59,19 +69,25 @@ export function PartnerPlatformCard({
           )}
         </div>
       </div>
-      {href ? (
-        <ArrowUpRight className="text-content-subtle mr-1 size-4 -translate-x-0.5 translate-y-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100" />
+      {onVerify && !verified ? (
+        <Button
+          variant="outline"
+          text="Verify"
+          className="h-8 w-fit px-2.5 text-xs"
+          loading={isVerifying}
+          onClick={onVerifyClick}
+        />
+      ) : onRemove ? (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            icon={<Trash className="size-4" />}
+            className="text-content-subtle hover:text-content-default size-8 p-0"
+            onClick={onRemove}
+          />
+        </div>
       ) : (
-        onRemove && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              icon={<Trash className="size-4" />}
-              className="text-content-subtle hover:text-content-default size-8 p-0"
-              onClick={onRemove}
-            />
-          </div>
-        )
+        <ArrowUpRight className="text-content-subtle mr-1 size-4 -translate-x-0.5 translate-y-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100" />
       )}
     </Container>
   );

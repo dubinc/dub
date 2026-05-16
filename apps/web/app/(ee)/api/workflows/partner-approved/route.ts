@@ -5,6 +5,7 @@ import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { createWorkflowLogger } from "@/lib/cron/qstash-workflow-logger";
 import { generateDiscountCodeForPartner } from "@/lib/discounts/generate-discount-code-for-partner";
+import { createReferralCommission } from "@/lib/partner-referrals/create-referral-commission";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { PlanProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -13,6 +14,7 @@ import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
+import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
 
@@ -120,6 +122,13 @@ export const { POST } = serve<Payload>(
         }
       }
 
+      if (partnerGroupDefaultLinks.length === 0) {
+        logger.error({
+          message: `Already created default links for partner ${partnerId}.`,
+        });
+        return;
+      }
+
       // Find the workspace
       const workspace = await prisma.project.findUniqueOrThrow({
         where: {
@@ -166,6 +175,11 @@ export const { POST } = serve<Payload>(
 
       return;
     });
+
+    // for network program, only need to create default links
+    if (program.id === NETWORK_PROGRAM_ID) {
+      return;
+    }
 
     // Step 2: Auto-provision discount code if enabled
     await context.run("create-discount-codes", async () => {
@@ -347,6 +361,20 @@ export const { POST } = serve<Payload>(
           programId,
           partnerId,
         },
+      });
+    });
+
+    // Step 7: Create referral commission if enabled
+    await context.run("create-referral-commission", async () => {
+      logger.info({
+        message:
+          "Started executing workflow step 'create-referral-commission'.",
+        data: input,
+      });
+
+      await createReferralCommission({
+        partnerId,
+        programId,
       });
     });
   },

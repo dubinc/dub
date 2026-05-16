@@ -186,6 +186,7 @@ async function createPartnerAndLinks({
       clickRewardId: group.clickRewardId,
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
+      referralRewardId: group.referralRewardId,
       discountId: group.discountId,
     },
     update: {

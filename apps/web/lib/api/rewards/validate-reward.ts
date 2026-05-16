@@ -1,5 +1,10 @@
 import {
+  PARTNER_REFERRAL_FLAT_TRIGGERS,
+  PARTNER_REFERRAL_PERCENTAGE_TRIGGERS,
+} from "@/lib/partner-referrals/constants";
+import {
   createOrUpdateRewardSchema,
+  referralRewardConfigSchema,
   rewardConditionsArraySchema,
 } from "@/lib/zod/schemas/rewards";
 import * as z from "zod/v4";
@@ -61,6 +66,83 @@ export function validateReward(
         message:
           "amountInPercentage must be provided when type is 'percentage'.",
       });
+    }
+  }
+
+  if (reward.event === "referral") {
+    if (reward.modifiers != null) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Reward modifiers are not allowed for referral rewards.",
+      });
+    }
+
+    const parsedConfig = referralRewardConfigSchema.safeParse(reward.config);
+
+    if (!parsedConfig.success) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "config must be provided for referral rewards.",
+      });
+    }
+
+    if (reward.type === "percentage") {
+      if (reward.amountInPercentage == null) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "amountInPercentage must be provided when type is 'percentage'.",
+        });
+      }
+
+      if (reward.amountInCents != null) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "amountInCents is not allowed when type is 'percentage'.",
+        });
+      }
+
+      if (
+        !PARTNER_REFERRAL_PERCENTAGE_TRIGGERS.includes(
+          parsedConfig.data.trigger as any,
+        )
+      ) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `config.trigger must be one of: ${PARTNER_REFERRAL_PERCENTAGE_TRIGGERS.join(
+            ", ",
+          )} for percentage rewards.`,
+        });
+      }
+    }
+
+    if (reward.type === "flat") {
+      if (reward.amountInCents == null) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "amountInCents must be provided when type is 'flat'.",
+        });
+      }
+
+      if (reward.amountInPercentage != null) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "amountInPercentage is not allowed when type is 'flat'.",
+        });
+      }
+
+      if (
+        !PARTNER_REFERRAL_FLAT_TRIGGERS.includes(
+          parsedConfig.data.trigger as any,
+        )
+      ) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `config.trigger must be one of: ${PARTNER_REFERRAL_FLAT_TRIGGERS.join(
+            ", ",
+          )} for flat rewards.`,
+        });
+      }
     }
   }
 
