@@ -8,6 +8,7 @@ export async function triggerAggregateDueCommissionsCronJob(programId: string) {
       programId,
     },
   });
+
   console.log(
     `Triggered aggregate due commissions cron job for program ${programId}: ${prettyPrint(qstashResponse)}`,
   );

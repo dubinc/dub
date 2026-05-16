@@ -83,16 +83,23 @@ export async function getEarningsForPartner(
       // fallback to a random name if the customer doesn't have an email
       const customerEmail =
         e.customer?.email || e.customer?.name || generateRandomName();
+
+      // For referral commissions, the customer belongs to the referred partner,
+      // not the partner fetching their earnings — so hide the customer details.
+      const belongsToSamePartner = e.customer?.partnerId === partnerId;
+
       return {
         ...e,
-        customer: e.customer
-          ? {
-              ...e.customer,
-              email: customerDataSharingEnabledAt
-                ? customerEmail
-                : obfuscateCustomerEmail(customerEmail),
-              country: e.customer?.country,
-            }
+        customer: belongsToSamePartner
+          ? e.customer
+            ? {
+                ...e.customer,
+                email: customerDataSharingEnabledAt
+                  ? customerEmail
+                  : obfuscateCustomerEmail(customerEmail),
+                country: e.customer?.country,
+              }
+            : null
           : null,
       };
     }),
