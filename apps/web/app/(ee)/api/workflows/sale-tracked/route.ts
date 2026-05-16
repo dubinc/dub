@@ -106,7 +106,7 @@ export const { POST } = serve<Input>(
       });
     }
 
-    // Step 5: Execute workflow
+    // Step 5: Execute Dub workflow
     if (link.programId && link.partnerId) {
       await context.run("execute-workflow", async () => {
         await stepExecuteWorkflow({
@@ -135,57 +135,59 @@ async function stepUpdateStats({
     linkId: link.id,
   });
 
-  await prisma.link.update({
-    where: {
-      id: link.id,
-    },
-    data: {
-      sales: {
-        increment: 1,
+  await prisma.$transaction([
+    prisma.project.update({
+      where: {
+        id: workspaceId,
       },
-      saleAmount: {
-        increment: amount,
-      },
-      ...(firstConversionFlag && {
-        conversions: {
+      data: {
+        usage: {
           increment: 1,
         },
-        lastConversionAt: new Date(),
-      }),
-    },
-  });
+      },
+    }),
 
-  await prisma.project.update({
-    where: {
-      id: workspaceId,
-    },
-    data: {
-      usage: {
-        increment: 1,
+    prisma.link.update({
+      where: {
+        id: link.id,
       },
-    },
-  });
+      data: {
+        sales: {
+          increment: 1,
+        },
+        saleAmount: {
+          increment: amount,
+        },
+        ...(firstConversionFlag && {
+          conversions: {
+            increment: 1,
+          },
+          lastConversionAt: new Date(),
+        }),
+      },
+    }),
 
-  await prisma.customer.update({
-    where: {
-      id: customer.id,
-    },
-    data: {
-      ...(link.programId && {
-        programId: link.programId,
-      }),
-      ...(link.partnerId && {
-        partnerId: link.partnerId,
-      }),
-      sales: {
-        increment: 1,
+    prisma.customer.update({
+      where: {
+        id: customer.id,
       },
-      saleAmount: {
-        increment: amount,
+      data: {
+        ...(link.programId && {
+          programId: link.programId,
+        }),
+        ...(link.partnerId && {
+          partnerId: link.partnerId,
+        }),
+        sales: {
+          increment: 1,
+        },
+        saleAmount: {
+          increment: amount,
+        },
+        firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
       },
-      firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
-    },
-  });
+    }),
+  ]);
 
   if (link.programId && link.partnerId) {
     await syncPartnerLinksStats({
