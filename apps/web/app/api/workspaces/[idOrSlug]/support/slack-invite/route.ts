@@ -1,13 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { SLACK_SUPPORT_INVITE_MAX_EMAILS } from "@/lib/constants/misc";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { requestSlackConnectSupportInvite } from "@/lib/slack/support-invite";
 import { ratelimit } from "@/lib/upstash";
 import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
-
-const SLACK_SUPPORT_INVITE_MAX_EMAILS = 10;
 
 const slackSupportInviteBodySchema = z.object({
   emails: z.array(z.email()).min(1).max(SLACK_SUPPORT_INVITE_MAX_EMAILS),
@@ -97,12 +96,12 @@ export const POST = withWorkspace(
       });
     }
 
-    const { inviteId } = await requestSlackConnectSupportInvite({
+    const { inviteIds } = await requestSlackConnectSupportInvite({
       workspaceSlug: workspace.slug,
       emails,
     });
 
-    return NextResponse.json({ inviteId });
+    return NextResponse.json({ inviteIds });
   },
   {
     requiredPlan: ["advanced", "enterprise"],

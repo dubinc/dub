@@ -102,21 +102,23 @@ async function createSharedCustomerChannel({
 
 async function sendSlackConnectInvite({
   channelId,
-  emails,
+  email,
 }: {
   channelId: string;
-  emails: string[];
+  email: string;
 }): Promise<string> {
   const slack = getSlackClient();
   await inviteInternalSupportMembersToChannel({ channelId });
 
+  // you can only invite one email at a time to a shared channel
+  // see: https://docs.slack.dev/reference/methods/conversations.inviteShared/
   const { invite_id: inviteId } = await slack.conversations.inviteShared({
     channel: channelId,
-    emails,
+    emails: [email],
   });
 
   console.log(
-    `[slack] sent Slack Connect invite to ${emails.join(", ")} for channel ${channelId}`,
+    `[slack] sent Slack Connect invite to ${email} for channel ${channelId}`,
   );
 
   return inviteId!;
@@ -128,7 +130,7 @@ export async function requestSlackConnectSupportInvite({
 }: {
   workspaceSlug: string;
   emails: string[];
-}): Promise<{ inviteId: string }> {
+}): Promise<{ inviteIds: string[] }> {
   const result = await createSharedCustomerChannel({ workspaceSlug });
 
   if ("nameTaken" in result) {
@@ -139,13 +141,17 @@ export async function requestSlackConnectSupportInvite({
     });
   }
 
-  const inviteId = await sendSlackConnectInvite({
-    channelId: result.channelId,
-    emails,
-  });
+  const inviteIds: string[] = [];
+  for (const email of emails) {
+    const inviteId = await sendSlackConnectInvite({
+      channelId: result.channelId,
+      email,
+    });
+    inviteIds.push(inviteId);
+  }
 
   return {
-    inviteId,
+    inviteIds,
   };
 }
 
@@ -158,8 +164,8 @@ export async function inviteToSlackSupportChannel({
   workspaceSlug: string;
   channelId?: string;
 }): Promise<
-  | { inviteId: string; nameTaken?: never }
-  | { nameTaken: true; inviteId?: never }
+  | { inviteIds: string[]; nameTaken?: never }
+  | { nameTaken: true; inviteIds?: never }
 > {
   if (!process.env.DUB_SLACK_ASSISTANT_BOT_TOKEN) {
     throw new DubApiError({
@@ -178,12 +184,16 @@ export async function inviteToSlackSupportChannel({
     resolvedChannelId = result.channelId;
   }
 
-  const inviteId = await sendSlackConnectInvite({
-    channelId: resolvedChannelId,
-    emails,
-  });
+  const inviteIds: string[] = [];
+  for (const email of emails) {
+    const inviteId = await sendSlackConnectInvite({
+      channelId: resolvedChannelId,
+      email,
+    });
+    inviteIds.push(inviteId);
+  }
 
   return {
-    inviteId,
+    inviteIds,
   };
 }

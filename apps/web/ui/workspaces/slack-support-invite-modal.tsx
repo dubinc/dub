@@ -1,11 +1,13 @@
 "use client";
 
+import { SLACK_SUPPORT_INVITE_MAX_EMAILS } from "@/lib/constants/misc";
 import {
   Button,
   Modal,
   MultiValueInput,
   type MultiValueInputRef,
 } from "@dub/ui";
+import { pluralize } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import {
   type Dispatch,
@@ -139,7 +141,9 @@ export function SlackSupportInviteModal({
                 />
               </div>
               <p className="text-content-muted mt-2 text-xs">
-                Separate multiple emails with commas, or paste a list.
+                Separate multiple emails with commas, or paste a list (max{" "}
+                {pluralize("email", SLACK_SUPPORT_INVITE_MAX_EMAILS)} per
+                request).
               </p>
             </label>
           </>

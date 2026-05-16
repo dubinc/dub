@@ -29,7 +29,7 @@ export const POST = withAdmin(async ({ req }) => {
     );
   }
 
-  const { inviteId, nameTaken } = await inviteToSlackSupportChannel({
+  const { inviteIds, nameTaken } = await inviteToSlackSupportChannel({
     emails,
     workspaceSlug,
     channelId: channelId || undefined,
@@ -45,5 +45,5 @@ export const POST = withAdmin(async ({ req }) => {
     );
   }
 
-  return NextResponse.json({ success: true, inviteId });
+  return NextResponse.json({ success: true, inviteIds });
 });
