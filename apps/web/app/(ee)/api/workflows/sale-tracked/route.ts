@@ -2,10 +2,8 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import {
-  constructWebhookPartner,
-  createPartnerCommission,
-} from "@/lib/partners/create-partner-commission";
+import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
