@@ -10,6 +10,7 @@ import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { WebhookPartnerSchema } from "@/lib/zod/schemas/partners";
+import { CUSTOMER_SOURCES } from "@/lib/zod/schemas/rewards";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
 import { Customer, Link } from "@dub/prisma/client";
@@ -20,6 +21,7 @@ import * as z from "zod/v4";
 
 const inputSchema = z.object({
   saleEvent: saleEventSchemaTB,
+  source: z.enum(CUSTOMER_SOURCES),
 });
 
 type Input = z.infer<typeof inputSchema>;
@@ -227,6 +229,7 @@ async function stepCreateCommission({
   saleEvent,
   link,
   customer,
+  source,
 }: StepFunctionProps) {
   if (!link.programId || !link.partnerId) {
     return;
@@ -256,7 +259,7 @@ async function stepCreateCommission({
       customer: {
         country: customer.country,
         signupDate: customer.createdAt,
-        source: "tracked",
+        source,
       },
       sale: {
         productId: metadata?.productId,

@@ -193,7 +193,6 @@ export const trackSale = async ({
       },
     });
 
-    // STEP
     if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
       // persist customer avatar to R2 if it's not already stored
       waitUntil(
@@ -292,7 +291,6 @@ const _trackLead = async ({
         }),
 
         // Update link leads count + lastLeadAt date
-        // STEP
         prisma.link.update({
           where: {
             id: leadEventData.link_id,
@@ -307,7 +305,6 @@ const _trackLead = async ({
         }),
 
         // Update workspace events usage
-        // STEP
         prisma.project.update({
           where: {
             id: workspace.id,
@@ -321,7 +318,6 @@ const _trackLead = async ({
       ]);
 
       // Create partner commission and execute workflows
-      // STEP
       if (link.programId && link.partnerId && customer) {
         await Promise.allSettled([
           executeWorkflows({
@@ -347,7 +343,6 @@ const _trackLead = async ({
         ]);
       }
 
-      // STEP
       await Promise.allSettled([
         sendWorkspaceWebhook({
           trigger: "lead.created",
@@ -446,6 +441,7 @@ const _trackSale = async ({
         workflowType: "sale-tracked",
         body: {
           saleEvent,
+          source,
         },
       }),
     ]),
