@@ -112,7 +112,7 @@ export const { POST } = serve<Input>(
       }
 
       if (partnerGroupDefaultLinks.length === 0) {
-        logger.error({
+        console.error({
           message: `Already created default links for partner ${partnerId}.`,
         });
         return;
@@ -303,12 +303,6 @@ export const { POST } = serve<Input>(
 
     // Step 7: Create referral commission if enabled
     await context.run("create-referral-commission", async () => {
-      logger.info({
-        message:
-          "Started executing workflow step 'create-referral-commission'.",
-        data: input,
-      });
-
       await createReferralCommission({
         partnerId,
         programId,
