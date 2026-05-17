@@ -174,6 +174,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                       >
                         <Button
                           text="Contact us"
+                          variant="secondary"
                           className="h-10 rounded-lg shadow-sm"
                         />
                       </a>
