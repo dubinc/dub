@@ -8,10 +8,18 @@ import {
   InlineBadgePopoverMenu,
 } from "./inline-badge-popover";
 
+type DurationPopoverContentProps = {
+  value: number | undefined;
+  onChange: (value: number) => void;
+  presetDurations: number[];
+  partnerReferralReward?: boolean;
+};
+
 export function DurationPopoverContent({
   value,
   onChange,
   presetDurations,
+  partnerReferralReward,
 }: DurationPopoverContentProps) {
   const { isOpen, setIsOpen } = useContext(InlineBadgePopoverContext);
   const [customDurationInput, setCustomDurationInput] = useState<string>(() => {
@@ -132,22 +140,19 @@ export function DurationPopoverContent({
         setCustomDurationInput("");
       }}
       items={[
-        { text: "one time", value: "0" },
+        ...(!partnerReferralReward ? [{ text: "one time", value: "0" }] : []),
         ...presetDurations
           .filter((duration) => duration !== 0)
           .map((duration) => ({
             text: `for ${duration} ${pluralize("month", Number(duration))}`,
             value: duration.toString(),
           })),
-        { text: "for the customer's lifetime", value: "Infinity" },
+        {
+          text: `for the ${partnerReferralReward ? "referred partner's" : "customer's"} lifetime`,
+          value: "Infinity",
+        },
         { text: "custom", value: "custom", preventClose: true },
       ]}
     />
   );
 }
-
-type DurationPopoverContentProps = {
-  value: number | undefined;
-  onChange: (value: number) => void;
-  presetDurations: number[];
-};

@@ -121,7 +121,7 @@ function formatReferralRewardDescription(
 
 function formatReferralDuration(maxDuration: number | null | undefined) {
   if (maxDuration === null) {
-    return "for the customer's lifetime";
+    return "for the referred partner's lifetime";
   }
 
   if (maxDuration === 0) {
