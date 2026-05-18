@@ -26,13 +26,10 @@ const inputSchema = z.object({
 
 type Input = z.infer<typeof inputSchema>;
 
-type StepFunctionProps = Input & {
+type StepFunctionInput = Input & {
   link: Link;
   customer: Customer;
 };
-
-// TODO:
-// Flow control -> by customerId?
 
 // POST /api/workflows/sale-tracked
 export const { POST } = serve<Input>(
@@ -149,7 +146,7 @@ async function stepUpdateStats({
   saleEvent,
   link,
   customer,
-}: StepFunctionProps) {
+}: StepFunctionInput) {
   const { workspace_id: workspaceId, amount } = saleEvent;
 
   const firstConversionFlag = isFirstConversion({
@@ -231,7 +228,7 @@ async function stepCreateCommission({
   link,
   customer,
   source,
-}: StepFunctionProps) {
+}: StepFunctionInput) {
   if (!link.programId || !link.partnerId) {
     return;
   }
@@ -274,7 +271,7 @@ async function stepSendWebhooks({
   saleEvent,
   link,
   customer,
-}: StepFunctionProps) {
+}: StepFunctionInput) {
   const { workspace_id: workspaceId } = saleEvent;
 
   let webhookPartner: z.infer<typeof WebhookPartnerSchema> | undefined;
@@ -345,7 +342,7 @@ async function stepRunFraudDetection({
   link,
   customer,
   isFirstConversion,
-}: StepFunctionProps & { isFirstConversion: boolean }) {
+}: StepFunctionInput & { isFirstConversion: boolean }) {
   if (!link.programId || !link.partnerId) {
     return;
   }
@@ -393,7 +390,7 @@ async function stepExecuteWorkflow({
   saleEvent,
   link,
   isFirstConversion,
-}: StepFunctionProps & {
+}: StepFunctionInput & {
   isFirstConversion: boolean;
 }) {
   if (!link.programId || !link.partnerId) {
