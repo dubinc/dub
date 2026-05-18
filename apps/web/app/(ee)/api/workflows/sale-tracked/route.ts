@@ -69,18 +69,7 @@ export const { POST } = serve<Input>(
       },
     );
 
-    // Step 2:  Create partner commission
-    if (link.programId && link.partnerId) {
-      await context.run("create-commission", async () => {
-        await stepCreateCommission({
-          ...input,
-          link,
-          customer,
-        });
-      });
-    }
-
-    // Step 3: Send webhooks
+    // Step 2: Send webhooks
     await context.run("send-webhooks", async () => {
       await stepSendWebhooks({
         ...input,
@@ -89,8 +78,17 @@ export const { POST } = serve<Input>(
       });
     });
 
-    // Step 4: Run fraud detection
     if (link.programId && link.partnerId) {
+      // Step 3:  Create partner commission
+      await context.run("create-commission", async () => {
+        await stepCreateCommission({
+          ...input,
+          link,
+          customer,
+        });
+      });
+
+      // Step 4: Run fraud detection
       await context.run("run-fraud-detection", async () => {
         await stepRunFraudDetection({
           ...input,
@@ -99,10 +97,8 @@ export const { POST } = serve<Input>(
           isFirstConversion,
         });
       });
-    }
 
-    // Step 5: Execute Dub workflow
-    if (link.programId && link.partnerId) {
+      // Step 5: Execute Dub workflow
       await context.run("execute-dub-workflow", async () => {
         await stepExecuteWorkflow({
           ...input,
