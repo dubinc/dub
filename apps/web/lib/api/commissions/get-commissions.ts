@@ -13,9 +13,10 @@ import { buildPaginationQuery } from "../pagination";
 
 type CommissionsFilters = Omit<
   z.infer<typeof getCommissionsQuerySchema>,
-  "type"
+  "type" | "status"
 > & {
   type?: string;
+  status?: string;
   programId: string;
   isHoldStatus?: boolean;
   fraudEventGroupId?: string;
@@ -119,10 +120,35 @@ export async function getCommissions(filters: CommissionsFilters) {
         }
       : null;
 
+  const validCommissionStatuses = new Set(Object.values(CommissionStatus));
+  const rawStatusFilter = parseFilterValue(status);
+  if (
+    rawStatusFilter?.sqlOperator === "IN" &&
+    !rawStatusFilter.values.some((v) =>
+      validCommissionStatuses.has(v as CommissionStatus),
+    )
+  ) {
+    return [];
+  }
+  const statusValueFilter =
+    rawStatusFilter &&
+    rawStatusFilter.values.some((v) =>
+      validCommissionStatuses.has(v as CommissionStatus),
+    )
+      ? {
+          ...rawStatusFilter,
+          values: rawStatusFilter.values.filter((v) =>
+            validCommissionStatuses.has(v as CommissionStatus),
+          ) as CommissionStatus[],
+        }
+      : null;
+
   const statusFilter = isHoldStatus
     ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
-    : status
-      ? status
+    : statusValueFilter
+      ? statusValueFilter.sqlOperator === "NOT IN"
+        ? { notIn: statusValueFilter.values }
+        : { in: statusValueFilter.values }
       : customerId || partnerFilter || typeFilter
         ? undefined
         : {
