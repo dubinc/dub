@@ -8,6 +8,7 @@ import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
 import PartnerGroupChanged from "@dub/email/templates/partner-group-changed";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
+import PartnerRewardsUpdated from "@dub/email/templates/partner-rewards-updated";
 import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
 import UnresolvedFraudEventsSummary from "@dub/email/templates/unresolved-fraud-events-summary";
 
@@ -22,6 +23,7 @@ export const EMAIL_TEMPLATES_MAP = {
   ProgramPayoutThankYou,
   UnresolvedFraudEventsSummary,
   PartnerGroupChanged,
+  PartnerRewardsUpdated,
 
   // special broadcast emails
   // DubPartnerRewind,

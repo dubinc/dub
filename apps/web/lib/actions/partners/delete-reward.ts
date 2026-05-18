@@ -3,7 +3,9 @@
 import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
+import { getRewardEmailSnapshot } from "@/lib/api/partners/notify-partners-reward-changed";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { queueRewardEnrollmentSync } from "@/lib/api/rewards/queue-reward-enrollment-sync";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -35,6 +37,7 @@ export const deleteRewardAction = authActionClient
     });
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+    const rewardSnapshot = getRewardEmailSnapshot(reward);
 
     const partnerGroup = await prisma.$transaction(async (tx) => {
       const group = await tx.partnerGroup.update({
@@ -47,22 +50,25 @@ export const deleteRewardAction = authActionClient
         },
       });
 
-      await tx.programEnrollment.updateMany({
-        where: {
-          [rewardIdColumn]: reward.id,
-        },
-        data: {
-          [rewardIdColumn]: null,
-        },
-      });
-
-      await tx.reward.delete({
+      await tx.reward.update({
         where: {
           id: reward.id,
+        },
+        data: {
+          programId: null,
         },
       });
 
       return group;
+    });
+
+    await queueRewardEnrollmentSync({
+      action: "delete",
+      rewardId: reward.id,
+      groupId: partnerGroup.id,
+      programId,
+      event: reward.event,
+      rewardSnapshot,
     });
 
     waitUntil(
