@@ -1,4 +1,5 @@
-import IdentityVerificationAnnouncement from "@dub/email/templates/broadcasts/identity-verification-announcement";
+import { generateUnsubscribeToken } from "@/lib/email/unsubscribe-token";
+import DubLaunchWeekDay1 from "@dub/email/templates/broadcasts/launch-week-day-1";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
@@ -9,18 +10,21 @@ async function main() {
     const usersToNotify = await prisma.user.findMany({
       where: {
         sentMail: false,
-        partners: {
+        projects: {
           some: {
-            partner: {
-              identityVerifiedAt: null,
-              payouts: {
-                some: {
-                  status: "completed",
-                  amount: {
-                    gt: 10000,
+            project: {
+              OR: [
+                {
+                  defaultProgramId: {
+                    not: null,
                   },
                 },
-              },
+                {
+                  plan: {
+                    not: "free",
+                  },
+                },
+              ],
             },
           },
         },
@@ -36,13 +40,14 @@ async function main() {
     }
     console.log(`Found ${usersToNotify.length} users to notify`);
 
-    const res = await queueBatchEmail<typeof IdentityVerificationAnnouncement>(
+    const res = await queueBatchEmail<typeof DubLaunchWeekDay1>(
       usersToNotify.map((user) => ({
         to: user.email!,
-        subject: "Action Required: Verify your identity on Dub",
-        templateName: "IdentityVerificationAnnouncement",
+        subject: "Dub Launch Week Day 1: Introducing Partner Referrals",
+        templateName: "DubLaunchWeekDay1",
         templateProps: {
           email: user.email!,
+          unsubscribeUrl: `https://app.dub.co/unsubscribe/${generateUnsubscribeToken(user.email!)}`,
         },
       })),
     );
