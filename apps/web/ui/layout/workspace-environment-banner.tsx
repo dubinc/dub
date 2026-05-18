@@ -26,7 +26,7 @@ export function WorkspaceEnvironmentBanner() {
       initial={{ transform: "translateY(-100%)" }}
       animate={{ transform: "translateY(0)" }}
       className={cn(
-        "fixed left-0 right-0 top-0 z-50 flex h-8 items-center justify-between gap-4 overflow-hidden bg-amber-200 px-4 py-1.5 text-neutral-800",
+        "fixed left-0 right-0 top-0 z-50 flex items-center justify-between gap-4 overflow-hidden bg-amber-200 px-4 py-1.5 text-neutral-800",
       )}
     >
       <div className="flex min-w-0 shrink-0 items-center gap-2">
@@ -51,7 +51,7 @@ export function WorkspaceEnvironmentBanner() {
       {liveWorkspace ? (
         <Link
           href={`/${liveWorkspace.slug}`}
-          className="bg-bg-inverted text-content-inverted shrink-0 rounded-md px-2.5 py-1.5 text-sm font-medium"
+          className="bg-bg-inverted text-content-inverted shrink-0 rounded-md p-2 text-xs font-medium"
         >
           Exit staging
         </Link>
