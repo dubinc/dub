@@ -103,5 +103,15 @@ export async function getSocialProfile({
     }
   }
 
-  return socialProfile;
+  const { platformId, description, avatarUrl, posts, subscribers, views } =
+    socialProfile;
+
+  return {
+    platformId,
+    description,
+    avatarUrl,
+    subscribers: subscribers === BigInt(0) ? undefined : subscribers,
+    posts: posts === BigInt(0) ? undefined : posts,
+    views: views === BigInt(0) ? undefined : views,
+  };
 }
