@@ -1,9 +1,9 @@
-import { generateUnsubscribeToken } from "@/lib/email/unsubscribe-token";
 import DubLaunchWeekDay1 from "@dub/email/templates/broadcasts/launch-week-day-1";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";
+import { generateUnsubscribeToken } from "../lib/email/unsubscribe-token";
 
 async function main() {
   while (true) {
@@ -31,6 +31,9 @@ async function main() {
         email: {
           not: null,
         },
+        notificationPreferences: {
+          dubPartners: true,
+        },
       },
       take: 10000,
     });
@@ -43,6 +46,7 @@ async function main() {
     const res = await queueBatchEmail<typeof DubLaunchWeekDay1>(
       usersToNotify.map((user) => ({
         to: user.email!,
+        variant: "marketing",
         subject: "Dub Launch Week Day 1: Introducing Partner Referrals",
         templateName: "DubLaunchWeekDay1",
         templateProps: {
