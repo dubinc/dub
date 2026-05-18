@@ -3,9 +3,9 @@ import { AppSidebarNav } from "@/ui/layout/sidebar/app-sidebar-nav";
 import { HelpButton } from "@/ui/layout/sidebar/help-button";
 import { NewsRSC } from "@/ui/layout/sidebar/news-rsc";
 import { ReferButton } from "@/ui/layout/sidebar/refer-button";
-import { StagingWorkspaceBanner } from "@/ui/layout/staging-workspace-banner";
 import Toolbar from "@/ui/layout/toolbar/toolbar";
 import { UpgradeBanner } from "@/ui/layout/upgrade-banner";
+import { WorkspaceEnvironmentBanner } from "@/ui/layout/workspace-environment-banner";
 import { constructMetadata } from "@dub/utils";
 import { ReactNode } from "react";
 
@@ -16,7 +16,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
   return (
     <>
       <div className="min-h-screen w-full bg-white">
-        <StagingWorkspaceBanner />
+        <WorkspaceEnvironmentBanner />
         <UpgradeBanner />
         <MainNav
           sidebar={AppSidebarNav}
