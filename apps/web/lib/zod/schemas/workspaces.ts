@@ -1,5 +1,9 @@
 import { workspaceSiteVisitTrackingSettingsFieldSchema } from "@/lib/sitemaps/site-visit-tracking";
-import { PlanPeriod, WorkspaceRole } from "@dub/prisma/client";
+import {
+  PlanPeriod,
+  WorkspaceEnvironment,
+  WorkspaceRole,
+} from "@dub/prisma/client";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
@@ -180,6 +184,7 @@ export const WorkspaceSchema = z
       .meta({ example: ["dub.sh"] }),
     ssoEmailDomain: z.string().nullable(),
     ssoEnforcedAt: z.date().nullable(),
+    environment: z.enum(WorkspaceEnvironment).nullable(),
   })
   .meta({
     title: "Workspace",
