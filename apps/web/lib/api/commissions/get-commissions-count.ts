@@ -65,11 +65,15 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
 
   const validCommissionStatuses = new Set(Object.values(CommissionStatus));
   const rawStatusFilter = parseFilterValue(status);
-  const statusValueFilter =
-    rawStatusFilter &&
-    rawStatusFilter.values.some((v) =>
+  const hasValidRequestedStatus =
+    rawStatusFilter?.values.some((v) =>
       validCommissionStatuses.has(v as CommissionStatus),
-    )
+    ) ?? false;
+  const isInvalidInStatusFilter =
+    rawStatusFilter?.sqlOperator === "IN" && !hasValidRequestedStatus;
+
+  const statusValueFilter =
+    rawStatusFilter && hasValidRequestedStatus
       ? {
           ...rawStatusFilter,
           values: rawStatusFilter.values.filter((v) =>
@@ -80,17 +84,19 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
 
   const statusFilter = isHoldStatus
     ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
-    : statusValueFilter
-      ? statusValueFilter.sqlOperator === "NOT IN"
-        ? { notIn: statusValueFilter.values }
-        : { in: statusValueFilter.values }
-      : {
-          notIn: [
-            CommissionStatus.duplicate,
-            CommissionStatus.fraud,
-            CommissionStatus.canceled,
-          ],
-        };
+    : isInvalidInStatusFilter
+      ? { in: [] as CommissionStatus[] }
+      : statusValueFilter
+        ? statusValueFilter.sqlOperator === "NOT IN"
+          ? { notIn: statusValueFilter.values }
+          : { in: statusValueFilter.values }
+        : {
+            notIn: [
+              CommissionStatus.duplicate,
+              CommissionStatus.fraud,
+              CommissionStatus.canceled,
+            ],
+          };
 
   const groupFilter = parseFilterValue(groupId);
   const partnerTagFilter = parseFilterValue(partnerTagId);
