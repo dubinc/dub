@@ -1,5 +1,6 @@
 "use client";
 
+import { useDashboardBannerVisible } from "@/lib/hooks/use-dashboard-banner-visible";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { Crown } from "@dub/ui";
@@ -12,14 +13,6 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import ManageSubscriptionButton from "../workspaces/manage-subscription-button";
 
-export function useUpgradeBannerVisible() {
-  const { exceededEvents, exceededLinks, exceededPayouts, paymentFailedAt } =
-    useWorkspace();
-
-  const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
-  return needsUpgrade || !!paymentFailedAt;
-}
-
 export function UpgradeBanner() {
   const { slug, exceededEvents, exceededLinks, exceededPayouts, trialEndsAt } =
     useWorkspace();
@@ -27,15 +20,19 @@ export function UpgradeBanner() {
     useTrialLimitActivateModal();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
   const overageLimitResource = getTrialLimitResourceForOverageBanner({
     exceededEvents: Boolean(exceededEvents),
     exceededLinks: Boolean(exceededLinks),
     exceededPayouts: Boolean(exceededPayouts),
   });
 
-  const isVisible = useUpgradeBannerVisible();
-  if (!isVisible) return null;
+  const { isUpgradeBannerVisible } = useDashboardBannerVisible();
+
+  if (!isUpgradeBannerVisible) {
+    return null;
+  }
+
+  const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
 
   return (
     <>

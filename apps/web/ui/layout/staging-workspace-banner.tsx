@@ -1,20 +1,19 @@
 "use client";
 
+import { useDashboardBannerVisible } from "@/lib/hooks/use-dashboard-banner-visible";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
-import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { Cube } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { motion } from "motion/react";
 import Link from "next/link";
 
 export function StagingWorkspaceBanner() {
+  const { id } = useWorkspace();
   const { workspaces } = useWorkspaces();
-  const { id, environment } = useWorkspace();
+  const { isStagingBannerVisible } = useDashboardBannerVisible();
 
-  const isVisible = environment === WorkspaceEnvironment.staging;
-
-  if (!isVisible) {
+  if (!isStagingBannerVisible) {
     return null;
   }
 
@@ -27,7 +26,7 @@ export function StagingWorkspaceBanner() {
       initial={{ transform: "translateY(-100%)" }}
       animate={{ transform: "translateY(0)" }}
       className={cn(
-        "fixed left-0 right-0 z-50 flex items-center justify-between gap-4 overflow-hidden bg-amber-200 px-4 py-1.5 text-neutral-900",
+        "fixed left-0 right-0 top-0 z-50 flex h-12 items-center justify-between gap-4 overflow-hidden bg-amber-200 px-4 text-neutral-900",
       )}
     >
       <div className="flex min-w-0 shrink-0 items-center gap-2">
