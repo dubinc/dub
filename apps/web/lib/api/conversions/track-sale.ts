@@ -431,20 +431,20 @@ const _trackSale = async ({
   };
 
   waitUntil(
-    Promise.allSettled([
-      recordSale({
+    (async () => {
+      await recordSale({
         ...saleEvent,
         timestamp: undefined,
-      }),
+      });
 
-      triggerQStashWorkflow({
+      await triggerQStashWorkflow({
         workflowType: "sale-tracked",
         body: {
           saleEvent,
           source,
         },
-      }),
-    ]),
+      });
+    })(),
   );
 
   const trackSaleResponse = trackSaleResponseSchema.parse({

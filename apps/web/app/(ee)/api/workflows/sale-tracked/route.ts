@@ -3,7 +3,7 @@ import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-e
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
-import { getWorkflowCorrelation } from "@/lib/cron/qstash-workflow";
+import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
@@ -124,19 +124,20 @@ export const { POST } = serve<Input>(
       failResponse,
       failHeaders,
     }) => {
+      const { correlation } = getWorkflowConfig({
+        workflowType: "partner-approved",
+        body: context.requestPayload,
+      });
+
       logger.error("workflow.failed", {
-        service: "qstash-workflow",
+        service: "qstash",
         event: "workflow.failed",
-        status: "error",
         workflowType: "sale-tracked",
         workflowRunId: context.workflowRunId,
         failStatus,
         failResponse,
         failHeaders,
-        correlation: getWorkflowCorrelation(
-          "sale-tracked",
-          context.requestPayload as Record<string, unknown>,
-        ),
+        correlation,
       });
 
       await logger.flush();
@@ -310,23 +311,23 @@ async function stepSendWebhooks({
     if (programEnrollment) {
       webhookPartner = constructWebhookPartner(programEnrollment);
     }
-
-    await sendWorkspaceWebhook({
-      trigger: "sale.created",
-      data: transformSaleEventData({
-        ...saleEvent,
-        clickedAt: customer.clickedAt || customer.createdAt,
-        link,
-        customer,
-        partner: webhookPartner,
-        metadata: parseMetadata(saleEvent.metadata),
-      }),
-      workspace,
-    });
   }
 
+  await sendWorkspaceWebhook({
+    trigger: "sale.created",
+    data: transformSaleEventData({
+      ...saleEvent,
+      clickedAt: customer.clickedAt || customer.createdAt,
+      link,
+      customer,
+      partner: webhookPartner,
+      metadata: parseMetadata(saleEvent.metadata),
+    }),
+    workspace,
+  });
+
   if (link.programId && link.partnerId) {
-    sendPartnerPostback({
+    await sendPartnerPostback({
       partnerId: link.partnerId,
       event: "sale.created",
       data: {

@@ -1,19 +1,17 @@
 import { logger } from "@/lib/axiom/server";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { FlowControl } from "@upstash/qstash";
 import { Client } from "@upstash/workflow";
 
 const client = new Client({
   token: process.env.QSTASH_TOKEN || "",
 });
 
-const WORKFLOW_RETRIES = 5;
-const WORKFLOW_PARALLELISM = 20;
-
 type WorkflowType = "partner-approved" | "sale-tracked";
 
 interface QStashWorkflow {
   workflowType: WorkflowType;
-  body?: Record<string, unknown>;
+  body: Record<string, unknown>;
 }
 
 // Run workflows
@@ -26,33 +24,18 @@ export async function triggerQStashWorkflow(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const response = await client.trigger(
-        workflows.map((workflow) => ({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowType}`,
-          body: workflow.body,
-          label: workflow.workflowType,
-          retries: WORKFLOW_RETRIES,
-          flowControl: {
-            key: workflow.workflowType,
-            parallelism: WORKFLOW_PARALLELISM,
-          },
-        })),
+        workflows.map((workflow) => {
+          const { flowControl } = getWorkflowConfig(workflow);
+
+          return {
+            url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowType}`,
+            body: workflow.body,
+            label: workflow.workflowType,
+            retries: 5,
+            flowControl,
+          };
+        }),
       );
-
-      for (const [index, workflow] of workflows.entries()) {
-        logger.info("workflow.triggered", {
-          service: "qstash-workflow",
-          event: "workflow.triggered",
-          status: "success",
-          workflowType: workflow.workflowType,
-          workflowRunId: response[index]?.workflowRunId,
-          correlation: getWorkflowCorrelation(
-            workflow.workflowType,
-            workflow.body,
-          ),
-        });
-      }
-
-      await logger.flush();
 
       return response;
     } catch (error) {
@@ -66,17 +49,15 @@ export async function triggerQStashWorkflow(
       }
 
       for (const workflow of workflows) {
+        const { correlation } = getWorkflowConfig(workflow);
+
         logger.error("workflow.trigger_failed", {
-          service: "qstash-workflow",
+          service: "qstash",
           event: "workflow.trigger_failed",
-          status: "error",
           workflowType: workflow.workflowType,
           errorName: error instanceof Error ? error.name : undefined,
           errorStack: error instanceof Error ? error.stack : undefined,
-          correlation: getWorkflowCorrelation(
-            workflow.workflowType,
-            workflow.body,
-          ),
+          correlation,
         });
       }
 
@@ -87,31 +68,45 @@ export async function triggerQStashWorkflow(
   }
 }
 
-export function getWorkflowCorrelation(
-  workflowType: WorkflowType,
-  body?: Record<string, unknown>,
-) {
-  if (!body) return {};
-
+export function getWorkflowConfig({ workflowType, body }: QStashWorkflow): {
+  correlation: Record<string, unknown>;
+  flowControl: FlowControl;
+} {
   switch (workflowType) {
     case "sale-tracked": {
-      const saleEvent = body.saleEvent as Record<string, unknown> | undefined;
+      const saleEvent = body.saleEvent as Record<string, string>;
 
       return {
-        linkId: saleEvent?.link_id,
-        customerId: saleEvent?.customer_id,
-        eventId: saleEvent?.event_id,
+        correlation: {
+          linkId: saleEvent.link_id,
+          eventId: saleEvent.event_id,
+          customerId: saleEvent.customer_id,
+        },
+
+        // Limit the number of concurrent workflow runs for a given customer
+        flowControl: {
+          key: `${workflowType}:${saleEvent.customer_id}`,
+          parallelism: 1,
+        },
       };
     }
 
     case "partner-approved":
       return {
-        programId: body.programId,
-        partnerId: body.partnerId,
-        userId: body.userId,
+        correlation: {
+          programId: body.programId,
+          partnerId: body.partnerId,
+          userId: body.userId,
+        },
+
+        // Limit the number of concurrent workflow runs for a given program
+        flowControl: {
+          key: `${workflowType}:${body.programId}`,
+          parallelism: 10,
+        },
       };
 
     default:
-      return {};
+      throw new Error(`Invalid workflow type: ${workflowType}`);
   }
 }

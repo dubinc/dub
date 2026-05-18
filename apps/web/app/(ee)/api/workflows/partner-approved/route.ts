@@ -2,7 +2,9 @@ import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-def
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { logger } from "@/lib/axiom/server";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
+import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { generateDiscountCodeForPartner } from "@/lib/discounts/generate-discount-code-for-partner";
 import { createReferralCommission } from "@/lib/partner-referrals/create-referral-commission";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
@@ -310,8 +312,30 @@ export const { POST } = serve<Input>(
     });
   },
   {
-    initialPayloadParser: (requestPayload) => {
-      return inputSchema.parse(JSON.parse(requestPayload));
+    initialPayloadParser: (input) => inputSchema.parse(JSON.parse(input)),
+    failureFunction: async ({
+      context,
+      failStatus,
+      failResponse,
+      failHeaders,
+    }) => {
+      const { correlation } = getWorkflowConfig({
+        workflowType: "partner-approved",
+        body: context.requestPayload,
+      });
+
+      logger.error("workflow.failed", {
+        service: "qstash",
+        event: "workflow.failed",
+        workflowType: "sale-tracked",
+        workflowRunId: context.workflowRunId,
+        failStatus,
+        failResponse,
+        failHeaders,
+        correlation,
+      });
+
+      await logger.flush();
     },
   },
 );
