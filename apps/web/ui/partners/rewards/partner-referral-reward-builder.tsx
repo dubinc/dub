@@ -18,6 +18,7 @@ import {
   InlineBadgePopoverContext,
   InlineBadgePopoverMenu,
 } from "../../shared/inline-badge-popover";
+import { DurationPopoverContent } from "../../shared/duration-popover-content";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 
 type Trigger = (typeof PARTNER_REFERRAL_TRIGGER)[number];
@@ -33,21 +34,6 @@ const FLAT_TRIGGER_ITEMS = PARTNER_REFERRAL_FLAT_TRIGGERS.map((trigger) => ({
   text: PARTNER_REFERRAL_TRIGGER_LABELS[trigger],
   value: trigger,
 }));
-
-const MAX_DURATION_MENU_ITEMS = [
-  {
-    text: "one time",
-    value: "0",
-  },
-  ...RECURRING_MAX_DURATIONS.filter((v) => v !== 0 && v !== 1).map((v) => ({
-    text: `for ${v} ${pluralize("month", Number(v))}`,
-    value: v.toString(),
-  })),
-  {
-    text: "for the customer's lifetime",
-    value: "Infinity",
-  },
-];
 
 export function PartnerReferralRewardBuilder() {
   const { watch, setValue } = useAddEditRewardForm();
@@ -152,6 +138,9 @@ export function PartnerReferralRewardBuilder() {
   const maxDurationText = useMemo(() => {
     if (maxDuration === 0) return "one time";
     if (maxDuration === Infinity) return "for the customer's lifetime";
+    if (maxDuration == null || Number.isNaN(Number(maxDuration))) {
+      return "for the customer's lifetime";
+    }
     return `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`;
   }, [maxDuration]);
 
@@ -194,14 +183,16 @@ export function PartnerReferralRewardBuilder() {
             />
           </InlineBadgePopover>{" "}
           <InlineBadgePopover text={maxDurationText}>
-            <InlineBadgePopoverMenu
-              selectedValue={maxDuration?.toString()}
-              onSelect={(value) =>
-                setValue("maxDuration", Number(value), {
+            <DurationPopoverContent
+              value={maxDuration ?? Infinity}
+              onChange={(value) =>
+                setValue("maxDuration", value, {
                   shouldDirty: true,
                 })
               }
-              items={MAX_DURATION_MENU_ITEMS}
+              presetDurations={RECURRING_MAX_DURATIONS.filter(
+                (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
+              )}
             />
           </InlineBadgePopover>
         </>

@@ -1,4 +1,5 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CursorRays, Hyperlink, Modal, Slider, ToggleGroup } from "@dub/ui";
 import {
@@ -11,6 +12,7 @@ import {
   isDowngradePlan,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   Dispatch,
@@ -28,18 +30,10 @@ type ManageUsageModalProps = {
 };
 
 function ManageUsageModalContent({ type }: ManageUsageModalProps) {
+  const { data: session } = useSession();
   const workspace = useWorkspace();
-  const {
-    slug,
-    role,
-    stripeId,
-    plan,
-    planPeriod,
-    planTier,
-    trialEndsAt,
-    usageLimit,
-    linksLimit,
-  } = workspace;
+  const { slug, role, plan, planPeriod, planTier, usageLimit, linksLimit } =
+    workspace;
 
   const { error: permissionsError } = clientAccessCheck({
     action: "billing.write",
@@ -82,7 +76,7 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
     },
   );
 
-  const isCurrentPlanSuggested =
+  const isCurrentPlanAndPeriod =
     plan === suggestedPlan.name.toLowerCase() &&
     planPeriod === period &&
     suggestedPlanTier === (planTier ?? 1);
@@ -95,9 +89,6 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
       currentTier: planTier ?? 1,
       newTier: suggestedPlanTier,
     });
-
-  const isEligibleForTrial =
-    plan === "free" && stripeId == null && trialEndsAt == null;
 
   if (usageSteps.length < 2) return null;
 
@@ -192,16 +183,16 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
                 plan={suggestedPlan.name.toLowerCase()}
                 tier={suggestedPlanTier}
                 period={period}
-                disabled={isCurrentPlanSuggested}
+                disabled={isCurrentPlanAndPeriod}
                 disabledTooltip={permissionsError || undefined}
                 text={
-                  isCurrentPlanSuggested
+                  isCurrentPlanAndPeriod
                     ? "Current plan"
                     : isDowngradeSuggested
                       ? "Downgrade"
                       : planPeriod && planPeriod !== period
                         ? `Switch to ${suggestedPlan.name} ${capitalize(period)}`
-                        : isEligibleForTrial
+                        : isEligibleForTrial({ workspace, session })
                           ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial`
                           : `Upgrade to ${suggestedPlan.name} ${capitalize(period)}`
                 }

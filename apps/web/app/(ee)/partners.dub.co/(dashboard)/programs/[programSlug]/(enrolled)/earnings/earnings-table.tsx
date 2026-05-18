@@ -1,6 +1,7 @@
 "use client";
 
 import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
 import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
@@ -10,6 +11,7 @@ import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
+import { CommissionType } from "@dub/prisma/client";
 import {
   CopyText,
   LinkLogo,
@@ -43,6 +45,7 @@ type ColumnMeta = {
 
 export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { programSlug } = useParams();
+  const { partner } = usePartnerProfile();
   const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
@@ -109,26 +112,39 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
           filterParams: ({ row }) =>
             row.original.link ? { linkId: row.original.link.id } : null,
         },
-        cell: ({ row }) =>
-          row.original.link ? (
+        cell: ({ row }) => {
+          const referralLink = row.original.link
+            ? {
+                apexDomain: getApexDomain(row.original.link.url),
+                shortLink: row.original.link.shortLink,
+              }
+            : row.original.type === CommissionType.referral && partner?.username
+              ? {
+                  apexDomain: "dub.co",
+                  shortLink: `https://partners.dub.co/${programSlug}/apply?via=${partner.username}`,
+                }
+              : null;
+
+          if (!referralLink) return "-";
+
+          return (
             <div className="flex items-center gap-3">
               <LinkLogo
-                apexDomain={getApexDomain(row.original.link.url)}
+                apexDomain={referralLink.apexDomain}
                 className="size-4 shrink-0 sm:size-4"
               />
               <CopyText
-                value={row.original.link.shortLink}
+                value={referralLink.shortLink}
                 successMessage="Copied link to clipboard!"
                 className="truncate"
               >
-                <span className="truncate" title={row.original.link.shortLink}>
-                  {getPrettyUrl(row.original.link.shortLink)}
+                <span className="truncate" title={referralLink.shortLink}>
+                  {getPrettyUrl(referralLink.shortLink)}
                 </span>
               </CopyText>
             </div>
-          ) : (
-            "-"
-          ),
+          );
+        },
         size: 250,
       },
       {
