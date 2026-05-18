@@ -9,9 +9,11 @@ import {
 import { parseFilterValue } from "@dub/utils";
 import * as z from "zod/v4";
 
-type CommissionsCountFilters = z.infer<
-  typeof getCommissionsCountQuerySchema
+type CommissionsCountFilters = Omit<
+  z.infer<typeof getCommissionsCountQuerySchema>,
+  "status"
 > & {
+  status?: string;
   programId: string;
   isHoldStatus?: boolean;
   fraudEventGroupId?: string;
@@ -61,15 +63,34 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     timezone,
   });
 
+  const validCommissionStatuses = new Set(Object.values(CommissionStatus));
+  const rawStatusFilter = parseFilterValue(status);
+  const statusValueFilter =
+    rawStatusFilter &&
+    rawStatusFilter.values.some((v) =>
+      validCommissionStatuses.has(v as CommissionStatus),
+    )
+      ? {
+          ...rawStatusFilter,
+          values: rawStatusFilter.values.filter((v) =>
+            validCommissionStatuses.has(v as CommissionStatus),
+          ) as CommissionStatus[],
+        }
+      : null;
+
   const statusFilter = isHoldStatus
     ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
-    : status ?? {
-        notIn: [
-          CommissionStatus.duplicate,
-          CommissionStatus.fraud,
-          CommissionStatus.canceled,
-        ],
-      };
+    : statusValueFilter
+      ? statusValueFilter.sqlOperator === "NOT IN"
+        ? { notIn: statusValueFilter.values }
+        : { in: statusValueFilter.values }
+      : {
+          notIn: [
+            CommissionStatus.duplicate,
+            CommissionStatus.fraud,
+            CommissionStatus.canceled,
+          ],
+        };
 
   const groupFilter = parseFilterValue(groupId);
   const partnerTagFilter = parseFilterValue(partnerTagId);
