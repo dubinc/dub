@@ -107,6 +107,12 @@ export function getWorkflowConfig({ workflowType, body }: QStashWorkflow): {
       };
 
     default:
-      throw new Error(`Invalid workflow type: ${workflowType}`);
+      return {
+        correlation: {},
+        flowControl: {
+          key: workflowType,
+          parallelism: 10,
+        },
+      };
   }
 }

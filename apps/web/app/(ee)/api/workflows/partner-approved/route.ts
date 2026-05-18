@@ -327,7 +327,7 @@ export const { POST } = serve<Input>(
       logger.error("workflow.failed", {
         service: "qstash",
         event: "workflow.failed",
-        workflowType: "sale-tracked",
+        workflowType: "partner-approved",
         workflowRunId: context.workflowRunId,
         failStatus,
         failResponse,
