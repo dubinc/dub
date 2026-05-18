@@ -11,10 +11,12 @@ export function ApplyHeader({
   group,
   showLogin = true,
   showApply = true,
+  hasBanner = false,
 }: {
   group: Pick<PartnerGroup, "logo" | "wordmark">;
   showLogin?: boolean;
   showApply?: boolean;
+  hasBanner?: boolean;
 }) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
@@ -27,9 +29,10 @@ export function ApplyHeader({
 
   return (
     <header
-      className={
-        "sticky top-0 z-10 mx-px flex items-center justify-between bg-white/90 px-6 py-4 backdrop-blur-sm"
-      }
+      className={cn(
+        "sticky z-10 mx-px flex items-center justify-between bg-white/90 px-6 py-4 backdrop-blur-sm",
+        hasBanner ? "top-12" : "top-0",
+      )}
     >
       {/* Bottom border when scrolled */}
       <div

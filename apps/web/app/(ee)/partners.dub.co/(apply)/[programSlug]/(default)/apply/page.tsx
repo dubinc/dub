@@ -2,9 +2,11 @@ import { getProgram } from "@/lib/fetchers/get-program";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programApplicationFormSchema } from "@/lib/zod/schemas/program-application-form";
 import { ApplicationAnalytics } from "@/ui/application-analytics";
+import { ProgramEnvironmentBanner } from "@/ui/layout/program-environment-banner";
 import { ApplicationFormHero } from "@/ui/partners/groups/design/application-form/application-hero-preview";
 import { ProgramApplicationForm } from "@/ui/partners/groups/design/application-form/program-application-form";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyHeader } from "../header";
@@ -40,6 +42,8 @@ export default async function ApplicationPage(props: {
   const applicationFormData = programApplicationFormSchema.parse(
     program.group.applicationFormData || {},
   );
+  const isStaging =
+    program.workspace.environment === WorkspaceEnvironment.staging;
 
   return (
     <div
@@ -51,7 +55,12 @@ export default async function ApplicationPage(props: {
         } as CSSProperties
       }
     >
-      <ApplyHeader group={program.group} showApply={false} />
+      <ProgramEnvironmentBanner environment={program.workspace.environment} />
+      <ApplyHeader
+        group={program.group}
+        showApply={false}
+        hasBanner={isStaging}
+      />
       <ApplicationAnalytics />
       <div className="p-6">
         {/* Hero section */}
