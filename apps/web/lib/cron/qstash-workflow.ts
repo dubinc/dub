@@ -1,7 +1,5 @@
 import { logger } from "@/lib/axiom/server";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import slugify from "@sindresorhus/slugify";
-import { FlowControl } from "@upstash/qstash";
 import { Client } from "@upstash/workflow";
 
 const client = new Client({
@@ -25,17 +23,16 @@ export async function triggerQStashWorkflow(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const response = await client.trigger(
-        workflows.map((workflow) => {
-          const { flowControl } = getWorkflowConfig(workflow);
-
-          return {
-            url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowType}`,
-            body: workflow.body,
-            label: workflow.workflowType,
-            retries: 5,
-            flowControl,
-          };
-        }),
+        workflows.map((workflow) => ({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowType}`,
+          body: workflow.body,
+          label: workflow.workflowType,
+          retries: 5,
+          flowControl: {
+            key: workflow.workflowType,
+            parallelism: 15,
+          },
+        })),
       );
 
       return response;
@@ -71,9 +68,17 @@ export async function triggerQStashWorkflow(
 
 export function getWorkflowConfig({ workflowType, body }: QStashWorkflow): {
   correlation: Record<string, unknown>;
-  flowControl: FlowControl;
 } {
   switch (workflowType) {
+    case "partner-approved":
+      return {
+        correlation: {
+          programId: body.programId,
+          partnerId: body.partnerId,
+          userId: body.userId,
+        },
+      };
+
     case "sale-tracked": {
       const saleEvent = body.saleEvent as Record<string, string>;
 
@@ -83,37 +88,12 @@ export function getWorkflowConfig({ workflowType, body }: QStashWorkflow): {
           eventId: saleEvent.event_id,
           customerId: saleEvent.customer_id,
         },
-
-        // Limit the number of concurrent workflow runs for a given customer
-        flowControl: {
-          key: slugify(`${workflowType}:${saleEvent.customer_id}`),
-          parallelism: 1,
-        },
       };
     }
-
-    case "partner-approved":
-      return {
-        correlation: {
-          programId: body.programId,
-          partnerId: body.partnerId,
-          userId: body.userId,
-        },
-
-        // Limit the number of concurrent workflow runs for a given program
-        flowControl: {
-          key: slugify(`${workflowType}:${body.programId}`),
-          parallelism: 10,
-        },
-      };
 
     default:
       return {
         correlation: {},
-        flowControl: {
-          key: workflowType,
-          parallelism: 10,
-        },
       };
   }
 }

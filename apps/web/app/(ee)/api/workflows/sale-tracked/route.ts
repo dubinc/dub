@@ -122,7 +122,7 @@ export const { POST } = serve<Input>(
       failHeaders,
     }) => {
       const { correlation } = getWorkflowConfig({
-        workflowType: "partner-approved",
+        workflowType: "sale-tracked",
         body: context.requestPayload,
       });
 
@@ -416,10 +416,10 @@ async function stepExecuteWorkflow({
   });
 }
 
-function parseMetadata(metadata: string): Record<string, string> {
+function parseMetadata(metadata: string) {
   try {
-    return JSON.parse(metadata ?? {});
+    return JSON.parse(metadata);
   } catch (error) {
-    return {};
+    return null;
   }
 }
