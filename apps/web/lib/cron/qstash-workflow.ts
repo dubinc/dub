@@ -1,5 +1,6 @@
 import { logger } from "@/lib/axiom/server";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import slugify from "@sindresorhus/slugify";
 import { FlowControl } from "@upstash/qstash";
 import { Client } from "@upstash/workflow";
 
@@ -85,7 +86,7 @@ export function getWorkflowConfig({ workflowType, body }: QStashWorkflow): {
 
         // Limit the number of concurrent workflow runs for a given customer
         flowControl: {
-          key: `${workflowType}:${saleEvent.customer_id}`,
+          key: slugify(`${workflowType}:${saleEvent.customer_id}`),
           parallelism: 1,
         },
       };
@@ -101,7 +102,7 @@ export function getWorkflowConfig({ workflowType, body }: QStashWorkflow): {
 
         // Limit the number of concurrent workflow runs for a given program
         flowControl: {
-          key: `${workflowType}:${body.programId}`,
+          key: slugify(`${workflowType}:${body.programId}`),
           parallelism: 10,
         },
       };
