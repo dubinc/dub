@@ -79,6 +79,12 @@ export default function NewCommissionAlertPartner({
                 Congratulations! Someone{" "}
                 {commission.type === "lead" ? (
                   "signed up"
+                ) : commission.type === "referral" ? (
+                  <>
+                    joined{" "}
+                    <strong className="text-black">{program.name}</strong>'s
+                    partner program via your partner referral link.
+                  </>
                 ) : (
                   <>
                     made a{" "}
@@ -87,24 +93,29 @@ export default function NewCommissionAlertPartner({
                     </strong>{" "}
                     purchase
                   </>
-                )}{" "}
-                on <strong className="text-black">{program.name}</strong>
-                {shortLink ? (
+                )}
+                {commission.type !== "referral" && (
                   <>
                     {" "}
-                    using your referral link (
-                    <a
-                      href={shortLink}
-                      className="text-semibold font-medium text-black underline"
-                    >
-                      {getPrettyUrl(shortLink)}
-                    </a>
-                    )
+                    on <strong className="text-black">{program.name}</strong>
+                    {shortLink ? (
+                      <>
+                        {" "}
+                        using your referral link (
+                        <a
+                          href={shortLink}
+                          className="text-semibold font-medium text-black underline"
+                        >
+                          {getPrettyUrl(shortLink)}
+                        </a>
+                        )
+                      </>
+                    ) : (
+                      ""
+                    )}
+                    .
                   </>
-                ) : (
-                  ""
                 )}
-                .
               </Text>
             )}
 

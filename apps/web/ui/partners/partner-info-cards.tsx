@@ -126,7 +126,7 @@ export function PartnerInfoCards({
     fetcher,
   );
 
-  const { referral, loading: loadingReferral } = usePartnerReferral({
+  const { referral } = usePartnerReferral({
     partnerId: partner?.id,
   });
 

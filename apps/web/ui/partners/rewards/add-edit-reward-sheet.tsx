@@ -22,6 +22,7 @@ import {
   rewardConditionSchema,
   rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
+import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
 import { EventType, RewardStructure } from "@dub/prisma/client";
 import {
@@ -485,29 +486,16 @@ function RewardSheetContent({
                                     : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
                               }
                             >
-                              <InlineBadgePopoverMenu
-                                selectedValue={maxDuration?.toString()}
-                                onSelect={(value) =>
-                                  setValue("maxDuration", Number(value), {
+                              <DurationPopoverContent
+                                value={Number(maxDuration)}
+                                onChange={(value) =>
+                                  setValue("maxDuration", value, {
                                     shouldDirty: true,
                                   })
                                 }
-                                items={[
-                                  {
-                                    text: "one time",
-                                    value: "0",
-                                  },
-                                  ...RECURRING_MAX_DURATIONS.filter(
-                                    (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
-                                  ).map((v) => ({
-                                    text: `for ${v} ${pluralize("month", Number(v))}`,
-                                    value: v.toString(),
-                                  })),
-                                  {
-                                    text: "for the customer's lifetime",
-                                    value: "Infinity",
-                                  },
-                                ]}
+                                presetDurations={RECURRING_MAX_DURATIONS.filter(
+                                  (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
+                                )}
                               />
                             </InlineBadgePopover>
                           </>
