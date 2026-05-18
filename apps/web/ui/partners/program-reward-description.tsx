@@ -159,7 +159,7 @@ function ReferralRewardDescription({
           {" "}
           for the{" "}
           <strong className={cn("font-semibold", periodClassName)}>
-            customer's lifetime
+            referred partner's lifetime
           </strong>
         </>
       );
