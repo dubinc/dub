@@ -95,7 +95,7 @@ export const createReferralCommission = async (
     if (typeof referralReward.maxDuration === "number") {
       const referredPartnerFirstCommission = await prisma.commission.findFirst({
         where: {
-          partnerId: referredByPartnerId,
+          partnerId,
           programId,
         },
         orderBy: {
