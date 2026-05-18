@@ -106,7 +106,7 @@ export const { POST } = serve<Input>(
 
     // Step 5: Execute Dub workflow
     if (link.programId && link.partnerId) {
-      await context.run("execute-workflow", async () => {
+      await context.run("execute-dub-workflow", async () => {
         await stepExecuteWorkflow({
           ...input,
           link,
