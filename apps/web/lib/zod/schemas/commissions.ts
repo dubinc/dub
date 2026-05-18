@@ -393,7 +393,7 @@ export const COMMISSION_EXPORT_COLUMNS = [
     id: "stripeCustomerId",
     label: "Stripe customer ID",
     type: "string",
-    default: true,
+    default: false,
   },
 ] as const;
 
