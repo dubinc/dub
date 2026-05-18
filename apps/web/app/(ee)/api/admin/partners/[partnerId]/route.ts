@@ -146,11 +146,15 @@ export const PATCH = withAdmin(async ({ params, req }) => {
     },
     data: {
       country,
-      stripeConnectId: null, // reset stripe connect account
-      payoutsEnabledAt: null,
-      defaultPayoutMethod: null,
-      payoutMethodHash: null,
       changeHistoryLog: partnerChangeHistoryLog,
+      // reset all payout fields
+      defaultPayoutMethod: null,
+      payoutsEnabledAt: null,
+      paypalEmail: null,
+      stripeConnectId: null,
+      stripeRecipientId: null,
+      payoutMethodHash: null,
+      cryptoWalletAddress: null,
     },
   });
 

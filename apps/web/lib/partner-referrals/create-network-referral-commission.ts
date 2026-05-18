@@ -7,6 +7,7 @@ import {
   Prisma,
 } from "@dub/prisma/client";
 import {
+  ACME_PROGRAM_ID,
   currencyFormatter,
   log,
   nanoid,
@@ -39,8 +40,10 @@ export const createNetworkReferralCommission = async ({
     return null;
   }
 
-  if (payout.programId === NETWORK_PROGRAM_ID) {
-    console.error(`Payout ${payout.id} is from Network program, skipping...`);
+  if ([NETWORK_PROGRAM_ID, ACME_PROGRAM_ID].includes(payout.programId)) {
+    console.error(
+      `Payout ${payout.id} is from Network or Acme program, skipping...`,
+    );
     return null;
   }
 
