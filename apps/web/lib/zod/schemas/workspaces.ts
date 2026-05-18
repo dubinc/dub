@@ -185,6 +185,7 @@ export const WorkspaceSchema = z
     ssoEmailDomain: z.string().nullable(),
     ssoEnforcedAt: z.date().nullable(),
     environment: z.enum(WorkspaceEnvironment).nullable(),
+    stagingWorkspaceId: z.string().nullable(),
   })
   .meta({
     title: "Workspace",

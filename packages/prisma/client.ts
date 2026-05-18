@@ -39,5 +39,6 @@ export {
   SubmittedLeadStatus,
   WebhookReceiver,
   WorkflowTrigger,
+  WorkspaceEnvironment,
   WorkspaceRole,
 } from "@prisma/client";

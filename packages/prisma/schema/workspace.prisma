@@ -32,7 +32,6 @@ model Project {
 
   environment        WorkspaceEnvironment @default(live)
   stagingWorkspaceId String?              @unique
-  sandboxId          String?              @unique
 
   stripeConnectId String? @unique // for Stripe Integration
   shopifyStoreId  String? @unique // for Shopify Integration

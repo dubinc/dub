@@ -1,5 +1,6 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { generateRandomString } from "../utils/generate-random-string";
 import { createWorkspaceId } from "./create-workspace-id";
@@ -56,6 +57,7 @@ export async function createStagingWorkspace(workspaceId: string) {
         name: `${workspace.name} [STAGING]`,
         slug: `${workspace.slug}-staging`,
         logo: workspace.logo,
+        environment: WorkspaceEnvironment.staging,
         plan: workspace.plan,
         billingCycleStart: new Date().getDate(),
         invoicePrefix: generateRandomString(8),
@@ -78,19 +80,32 @@ export async function createStagingWorkspace(workspaceId: string) {
   ]);
 
   // Copy the users to the staging workspace
-  const { users } = workspace;
+  if (workspace.users.length > 0) {
+    await prisma.$transaction(async (tx) => {
+      await tx.projectUsers.createMany({
+        skipDuplicates: true,
+        data: workspace.users.map((user) => ({
+          projectId: stagingWorkspaceId,
+          role: user.role,
+          userId: user.userId,
+        })),
+      });
 
-  if (users.length > 0) {
-    await prisma.projectUsers.createMany({
-      data: users.map((user) => ({
-        projectId: stagingWorkspaceId,
-        role: user.role,
-        userId: user.userId,
-        notificationPreference: {
-          create: {},
+      const workspaceUsers = await tx.projectUsers.findMany({
+        where: {
+          projectId: stagingWorkspaceId,
         },
-      })),
-      skipDuplicates: true,
+        select: {
+          id: true,
+        },
+      });
+
+      await tx.notificationPreference.createMany({
+        skipDuplicates: true,
+        data: workspaceUsers.map((user) => ({
+          projectUserId: user.id,
+        })),
+      });
     });
   }
 }
