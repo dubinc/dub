@@ -66,8 +66,11 @@ export default function PartnerApplicationApproved({
     <Html>
       <Head />
       <Preview>
-        Your application to join {program.name}'s partner program has been
-        approved!
+        {rewards && rewards.length > 0
+          ? `Rewards: ${rewards.map((reward) => reward.label).join(", ")}`
+          : bounties && bounties.length > 0
+            ? `Bounties: ${bounties.map((bounty) => bounty.label).join(", ")}`
+            : `Your application to join ${program.name}'s partner program has been approved!`}
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">

@@ -4,13 +4,11 @@ import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerProps } from "@/lib/types";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import {
   PartnerPlatformsForm,
   usePartnerPlatformsForm,
 } from "@/ui/partners/partner-platforms-form";
-import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
 import { CustomToast } from "@/ui/shared/custom-toast";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PartnerProfileType } from "@dub/prisma/client";
@@ -25,14 +23,7 @@ import {
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
-import {
-  Dispatch,
-  RefObject,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { Dispatch, RefObject, SetStateAction, useEffect, useRef } from "react";
 import {
   Controller,
   FormProvider,
@@ -79,27 +70,12 @@ export function ProfileDetailsForm({
   });
   const partnerPlatformsForm = usePartnerPlatformsForm({ partner });
 
-  const {
-    setShowConfirmModal: setShowStripeConfirmModal,
-    confirmModal: stripeConfirmModal,
-  } = useConfirmModal({
-    title: "Confirm profile update",
-    description:
-      "Updating your country or profile type will reset your Stripe account, which will require you to restart the payout connection process. Are you sure you want to continue?",
-    confirmText: "Continue",
-    onConfirm: () => {
-      basicInfoFormRef.current?.requestSubmit();
-      partnerPlatformsFormRef.current?.requestSubmit();
-    },
-  });
-
   const { payoutsCount } = usePartnerPayoutsCount({
     status: "completed",
   });
 
   return (
     <div className="border-border-subtle divide-border-subtle flex flex-col divide-y rounded-lg border">
-      {stripeConfirmModal}
       <div className="px-6 py-8">
         <h3 className="text-content-emphasis text-lg font-semibold leading-7">
           Profile details
@@ -119,11 +95,22 @@ export function ProfileDetailsForm({
             partner={partner}
             formRef={basicInfoFormRef}
             disabled={disabled}
+            onSubmitAction={() => basicInfoFormRef.current?.requestSubmit()}
           />
         </FormProvider>
       </SettingsRow>
 
-      {(payoutsCount?.[0]?.amount ?? 0) > 10000 && (
+      <div className="flex items-center justify-end bg-neutral-50 px-6 py-4">
+        <Button
+          text="Save changes"
+          className="h-8 w-fit px-2.5"
+          disabled={disabled}
+          loading={basicInfoForm.formState.isSubmitting}
+          onClick={() => basicInfoFormRef.current?.requestSubmit()}
+        />
+      </div>
+
+      {["approved", "trusted"].includes(partner?.networkStatus ?? "") && (
         <SettingsRow
           id="identity-verification"
           heading="Identity verification"
@@ -149,29 +136,15 @@ export function ProfileDetailsForm({
         />
       </SettingsRow>
 
-      <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-4">
+      <div className="flex items-center justify-end rounded-b-lg bg-neutral-50 px-6 py-4">
         <Button
           text="Save changes"
           className="h-8 w-fit px-2.5"
           disabled={disabled}
-          loading={
-            basicInfoForm.formState.isSubmitting ||
-            partnerPlatformsForm.formState.isSubmitting
-          }
+          loading={partnerPlatformsForm.formState.isSubmitting}
           onClick={() => {
             if (disabled) return;
-
-            if (
-              partner?.stripeConnectId &&
-              (basicInfoForm.formState.dirtyFields.country ||
-                basicInfoForm.formState.dirtyFields.profileType ||
-                basicInfoForm.formState.dirtyFields.companyName)
-            ) {
-              setShowStripeConfirmModal(true);
-            } else {
-              basicInfoFormRef.current?.requestSubmit();
-              partnerPlatformsFormRef.current?.requestSubmit();
-            }
+            partnerPlatformsFormRef.current?.requestSubmit();
           }}
         />
       </div>
@@ -183,10 +156,12 @@ function BasicInfoForm({
   partner,
   formRef,
   disabled,
+  onSubmitAction,
 }: {
   partner?: PartnerProps;
   formRef: RefObject<HTMLFormElement | null>;
   disabled: boolean;
+  onSubmitAction: () => void;
 }) {
   const {
     register,
@@ -207,8 +182,6 @@ function BasicInfoForm({
   }, [isSubmitSuccessful, reset, getValues]);
 
   const { profileType } = watch();
-  const [isCountryComboboxOpen, setIsCountryComboboxOpen] = useState(false);
-  const countryChangeWarning = useCountryChangeWarningModal();
 
   const { executeAsync } = useAction(updatePartnerProfileAction, {
     onSuccess: async ({ data }) => {
@@ -244,15 +217,18 @@ function BasicInfoForm({
     },
   });
 
-  const shouldShowCountryChangeWarning =
-    !disabled &&
-    !partner?.payoutsEnabledAt &&
-    !!partner?.country &&
-    !countryChangeWarning.isAcknowledged;
-
   return (
     <form
       ref={formRef}
+      onKeyDown={(e) => {
+        if (e.key !== "Enter") return;
+
+        const target = e.target as HTMLElement;
+        if (target.tagName !== "INPUT") return;
+
+        e.preventDefault();
+        onSubmitAction();
+      }}
       onSubmit={handleSubmit(async (data) => {
         const imageChanged = data.image !== partner?.image;
 
@@ -263,7 +239,6 @@ function BasicInfoForm({
         });
       })}
     >
-      {countryChangeWarning.modal}
       <div className="flex flex-col gap-6">
         <label>
           <div className="flex items-center gap-5">
@@ -342,29 +317,39 @@ function BasicInfoForm({
             })}
           />
         </label>
-        {/* <label className="flex flex-col gap-1.5">
+
+        <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-neutral-800">Username</span>
-          <input
-            type="text"
-            disabled={disabled}
-            className={cn(
-              "block w-full rounded-md focus:outline-none sm:text-sm",
-              disabled && "cursor-not-allowed bg-neutral-50 text-neutral-400",
-              errors.username
-                ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-            )}
-            placeholder={partner?.email?.split("@")[0] ?? ""}
-            autoCapitalize="off"
-            autoCorrect="off"
-            spellCheck={false}
-            {...register("username")}
-          />
+          <div className="relative w-full">
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-neutral-400">
+              @
+            </span>
+            <input
+              type="text"
+              disabled={disabled}
+              className={cn(
+                "block w-full rounded-md pl-7 focus:outline-none sm:text-sm",
+                disabled && "cursor-not-allowed bg-neutral-50 text-neutral-400",
+                errors.username
+                  ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+              )}
+              placeholder={partner?.email?.split("@")[0] ?? ""}
+              autoCapitalize="off"
+              autoCorrect="off"
+              spellCheck={false}
+              pattern="^[a-z0-9]+(?:-[a-z0-9]+)*$"
+              minLength={3}
+              maxLength={30}
+              {...register("username")}
+            />
+          </div>
           <p className="text-xs text-neutral-500">
             3–30 characters. Lowercase letters, numbers, hyphens, and
             underscores only.
           </p>
-        </label> */}
+        </label>
+
         <label className="flex flex-col">
           <span className="text-sm font-medium text-neutral-800">Country</span>
           <Controller
@@ -375,34 +360,13 @@ function BasicInfoForm({
               <CountryCombobox
                 value={field.value || ""}
                 onChange={field.onChange}
-                error={errors.country ? true : false}
-                open={isCountryComboboxOpen}
-                onOpenChange={(open) => {
-                  if (!open) {
-                    setIsCountryComboboxOpen(false);
-                    return;
-                  }
-
-                  if (shouldShowCountryChangeWarning) {
-                    countryChangeWarning.acknowledgeAndContinue(() => {
-                      setIsCountryComboboxOpen(true);
-                    });
-                    return;
-                  }
-
-                  setIsCountryComboboxOpen(true);
-                }}
                 disabledTooltip={
-                  disabled ? (
-                    "You don't have permission to update this field"
-                  ) : partner?.payoutsEnabledAt ? (
-                    <TooltipContent
-                      title="Since you've already connected your bank account for payouts, you cannot change your profile country."
-                      cta="Contact support"
-                      href="https://dub.co/support"
-                      target="_blank"
-                    />
-                  ) : undefined
+                  <TooltipContent
+                    title="Your profile country is based on your current location and cannot be changed. If you need to update your country, please contact support."
+                    cta="Contact support"
+                    href="https://dub.co/support"
+                    target="_blank"
+                  />
                 }
               />
             )}
@@ -415,16 +379,9 @@ function BasicInfoForm({
           </span>
           <DynamicTooltipWrapper
             tooltipProps={{
-              content: disabled ? (
-                "You don't have permission to update this field"
-              ) : partner?.payoutsEnabledAt ? (
-                <TooltipContent
-                  title="Since you've already connected your bank account for payouts, you cannot change your profile type."
-                  cta="Contact support"
-                  href="https://dub.co/support"
-                  target="_blank"
-                />
-              ) : undefined,
+              content: disabled
+                ? "You don't have permission to update this field"
+                : undefined,
             }}
           >
             <LayoutGroup>
@@ -442,19 +399,17 @@ function BasicInfoForm({
                   ]}
                   selected={profileType}
                   selectAction={(option: "individual" | "company") => {
-                    if (!disabled && !partner?.payoutsEnabledAt) {
+                    if (!disabled) {
                       setValue("profileType", option);
                     }
                   }}
                   className={cn(
                     "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
-                    (disabled || partner?.payoutsEnabledAt) &&
-                      "cursor-not-allowed",
+                    disabled && "cursor-not-allowed",
                   )}
                   optionClassName={cn(
                     "h-9 flex items-center justify-center rounded-lg flex-1",
-                    (disabled || partner?.payoutsEnabledAt) &&
-                      "pointer-events-none text-neutral-400",
+                    disabled && "pointer-events-none text-neutral-400",
                   )}
                   indicatorClassName="bg-white"
                 />

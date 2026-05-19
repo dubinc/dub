@@ -7,6 +7,10 @@ export default async function ProgramCustomerPage({
   params: Promise<{ slug: string; customerId: string }>;
 }) {
   const { slug, customerId } = await params;
+  if (customerId === "referrals") {
+    redirect(`/${slug}/program/customers/leads`);
+  }
+
   redirect(`/${slug}/program/customers/${customerId}/sales`);
 
   return null;

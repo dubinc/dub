@@ -162,6 +162,7 @@ export const PATCH = withWorkspace(
           clickReward: true,
           leadReward: true,
           saleReward: true,
+          referralReward: true,
           discount: true,
         },
       }),
@@ -341,6 +342,7 @@ export const DELETE = withWorkspace(
       group.clickRewardId,
       group.leadRewardId,
       group.saleRewardId,
+      group.referralRewardId,
     ].filter(Boolean) as string[];
 
     if (groupRewardIds.length > 0) {

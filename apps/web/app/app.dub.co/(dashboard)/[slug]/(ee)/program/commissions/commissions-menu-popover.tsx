@@ -2,13 +2,7 @@
 
 import { useExportCommissionsModal } from "@/ui/modals/export-commissions-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import {
-  Button,
-  Download,
-  IconMenu,
-  Popover,
-  Refresh2,
-} from "@dub/ui";
+import { Button, Download, IconMenu, Popover, Refresh2 } from "@dub/ui";
 import { useState } from "react";
 import { useCreateClawbackSheet } from "./create-clawback-sheet";
 

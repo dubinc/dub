@@ -4,6 +4,7 @@ const DEFAULT_REWARD_EVENT_ORDER = [
   EventType.click,
   EventType.lead,
   EventType.sale,
+  EventType.referral,
 ] as const;
 
 export function sortRewardsByEventOrder<T extends Pick<Reward, "event">>(

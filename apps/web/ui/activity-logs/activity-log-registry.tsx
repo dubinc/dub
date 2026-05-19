@@ -10,9 +10,9 @@ import {
 import { CircleMinus, CirclePlusIcon } from "lucide-react";
 import { ComponentType, ReactNode } from "react";
 import { PartnerGroupChangedRenderer } from "./action-renderers/partner-group-changed-renderer";
-import { ReferralCreatedRenderer } from "./action-renderers/referral-created-renderer";
-import { ReferralStatusChangedRenderer } from "./action-renderers/referral-status-changed-renderer";
 import { RewardActivityRenderer } from "./action-renderers/reward-activity-renderer";
+import { SubmittedLeadCreatedRenderer } from "./action-renderers/submitted-lead-created-renderer";
+import { SubmittedLeadStatusChangedRenderer } from "./action-renderers/submitted-lead-status-changed-renderer";
 
 export type ActorType = "USER" | "SYSTEM";
 
@@ -27,13 +27,13 @@ const ACTIVITY_LOG_ICONS: Partial<
 > = {
   "partner.groupChanged": UserArrowRight,
 
-  "referral.created": FileSend,
-  "referral.qualified": UserClock,
-  "referral.meeting": UserClock,
-  "referral.negotiation": UserClock,
-  "referral.unqualified": UserClock,
-  "referral.closedWon": UserClock,
-  "referral.closedLost": UserClock,
+  "submittedLead.created": FileSend,
+  "submittedLead.qualified": UserClock,
+  "submittedLead.meeting": UserClock,
+  "submittedLead.negotiation": UserClock,
+  "submittedLead.unqualified": UserClock,
+  "submittedLead.closedWon": UserClock,
+  "submittedLead.closedLost": UserClock,
 
   "reward.created": MoneyBill2,
   "reward.updated": Pen2,
@@ -52,21 +52,21 @@ const ACTIVITY_LOG_REGISTRY: Array<{
     renderer: PartnerGroupChangedRenderer,
   },
   {
-    action: "referral.created",
-    renderer: ReferralCreatedRenderer,
+    action: "submittedLead.created",
+    renderer: SubmittedLeadCreatedRenderer,
   },
   ...(
     [
-      "referral.qualified",
-      "referral.meeting",
-      "referral.negotiation",
-      "referral.unqualified",
-      "referral.closedWon",
-      "referral.closedLost",
+      "submittedLead.qualified",
+      "submittedLead.meeting",
+      "submittedLead.negotiation",
+      "submittedLead.unqualified",
+      "submittedLead.closedWon",
+      "submittedLead.closedLost",
     ] as const
   ).map((action) => ({
     action,
-    renderer: ReferralStatusChangedRenderer,
+    renderer: SubmittedLeadStatusChangedRenderer,
   })),
   ...(
     [

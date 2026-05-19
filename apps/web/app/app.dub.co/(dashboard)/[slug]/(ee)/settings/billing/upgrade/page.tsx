@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -34,6 +35,7 @@ import {
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "motion/react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
@@ -53,6 +55,9 @@ const COMPARE_FEATURE_ICONS: Record<
 };
 
 export default function WorkspaceBillingUpgradePage() {
+  const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  const workspace = useWorkspace();
   const {
     slug,
     role,
@@ -62,7 +67,7 @@ export default function WorkspaceBillingUpgradePage() {
     stripeId,
     partnersLimit,
     trialEndsAt,
-  } = useWorkspace();
+  } = workspace;
 
   const { error: permissionsError } = clientAccessCheck({
     action: "billing.write",
@@ -70,14 +75,19 @@ export default function WorkspaceBillingUpgradePage() {
   });
 
   const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
+
+  const planPeriod = searchParams.get("planPeriod") ?? "";
   const [period, setPeriod] = useState<"monthly" | "yearly">(
-    currentPlanPeriod === "yearly" ? "yearly" : "monthly",
+    ["monthly", "yearly"].includes(planPeriod)
+      ? (planPeriod as "monthly" | "yearly")
+      : currentPlanPeriod === "yearly"
+        ? "yearly"
+        : "monthly",
   );
 
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
     usePartnersUpgradeModal();
 
-  const searchParams = useSearchParams();
   useEffect(() => {
     if (searchParams.get("showPartnersUpgradeModal")) {
       setShowPartnersUpgradeModal(true);
@@ -187,11 +197,6 @@ export default function WorkspaceBillingUpgradePage() {
                     }),
                 );
 
-                const isEligibleForTrial =
-                  currentPlan === "free" &&
-                  stripeId == null &&
-                  trialEndsAt == null;
-
                 return (
                   <div
                     key={plan.name}
@@ -276,7 +281,7 @@ export default function WorkspaceBillingUpgradePage() {
                           disabledTooltip={permissionsError || undefined}
                           text={
                             currentPlan === "enterprise"
-                              ? "Contact support"
+                              ? "Contact us"
                               : isCurrentPlanAndPeriod
                                 ? isWorkspaceBillingTrialActive(trialEndsAt)
                                   ? "Activate plan"
@@ -287,7 +292,10 @@ export default function WorkspaceBillingUpgradePage() {
                                     ? "Downgrade"
                                     : isWorkspaceBillingTrialActive(trialEndsAt)
                                       ? "Switch trial"
-                                      : isEligibleForTrial
+                                      : isEligibleForTrial({
+                                            workspace,
+                                            session,
+                                          })
                                         ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial`
                                         : `Upgrade to ${plan.name} ${capitalize(period)}`
                           }
