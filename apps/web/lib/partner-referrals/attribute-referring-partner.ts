@@ -24,14 +24,14 @@ export const attributeReferringPartnerAction = authActionClient
       requiredRoles: ["owner", "member"],
     });
 
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
     if (referredByPartnerId === partnerId) {
       throw new DubApiError({
         code: "bad_request",
         message: "A partner cannot refer themselves.",
       });
     }
-
-    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const [programEnrollment, referringProgramEnrollment] = await Promise.all([
       getProgramEnrollmentOrThrow({
