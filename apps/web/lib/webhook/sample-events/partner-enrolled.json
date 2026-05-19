@@ -1,6 +1,7 @@
 {
   "id": "pn_1K9BZE1K285BSTX4W6MPKXJFZ",
   "name": "Matthew Hayden",
+  "username": "matthew-hayden",
   "email": "matthew@example.com",
   "image": null,
   "country": "MR",
@@ -30,6 +31,7 @@
   "clickRewardId": null,
   "leadRewardId": null,
   "saleRewardId": "rw_1KEC01MXCW9RK7PQMCTZQCPB3",
+  "referralRewardId": null,
   "discountId": "disc_1KEC01MXC5H50XQMSN83VCW65",
   "bannedAt": null,
   "bannedReason": null,

@@ -1,3 +1,4 @@
+import { PARTNER_REFERRAL_TRIGGER } from "@/lib/partner-referrals/constants";
 import { EventType, RewardStructure } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
@@ -199,6 +200,11 @@ export const REWARD_CONDITIONS: Record<
       },
     ],
   },
+
+  // Partner referral reward
+  referral: {
+    entities: [],
+  },
 };
 
 export const REWARD_CONDITION_ENTITIES = [
@@ -325,11 +331,30 @@ export const RewardSchema = z.object({
   amountInPercentage: decimalToNumber,
   maxDuration: z.number().nullish(),
   modifiers: z.any().nullish(), // TODO: Fix this
+  config: z.any().nullish(),
   updatedAt: z.coerce.date(),
 });
 
 export const REWARD_DESCRIPTION_MAX_LENGTH = 100;
 export const REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH = 2000;
+
+export const referralRewardConfigSchema = z
+  .object({
+    trigger: z.enum(PARTNER_REFERRAL_TRIGGER),
+    commissionsThresholdInCents: z.number().int().min(100).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      data.trigger === "commissionThreshold" &&
+      data.commissionsThresholdInCents == null
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["commissionsThresholdInCents"],
+        message: "Please enter a commission threshold amount.",
+      });
+    }
+  });
 
 export const createOrUpdateRewardSchema = z.object({
   workspaceId: z.string(),
@@ -339,6 +364,7 @@ export const createOrUpdateRewardSchema = z.object({
   amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
   maxDuration: maxDurationSchema,
   modifiers: rewardConditionsArraySchema.nullish(),
+  config: referralRewardConfigSchema.nullish(),
   description: z.string().max(REWARD_DESCRIPTION_MAX_LENGTH).nullish(),
   tooltipDescription: z
     .string()
@@ -349,7 +375,7 @@ export const createOrUpdateRewardSchema = z.object({
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
   (data) => {
-    if (data.event !== EventType.sale) {
+    if (data.event === EventType.click || data.event === EventType.lead) {
       data.maxDuration = 0;
       data.type = "flat";
     }
@@ -375,6 +401,7 @@ export const REWARD_EVENT_COLUMN_MAPPING = Object.freeze({
   click: "clickRewardId",
   lead: "leadRewardId",
   sale: "saleRewardId",
+  referral: "referralRewardId",
 });
 
 export const CUSTOMER_SOURCES = ["tracked", "submitted", "trial"] as const;

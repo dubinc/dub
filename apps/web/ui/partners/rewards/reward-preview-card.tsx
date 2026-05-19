@@ -5,12 +5,12 @@ import { cn, nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useWatch } from "react-hook-form";
-import { REWARD_EVENTS } from "../constants";
 import { ProgramRewardDescription } from "../program-reward-description";
 import {
   getRewardPayload,
   useAddEditRewardForm,
 } from "./add-edit-reward-sheet";
+import { REWARD_EVENT_ICON } from "./reward-event-icon";
 import { getRewardQuality, RewardQualityIndicator } from "./reward-quality";
 
 export function RewardPreviewCard() {
@@ -25,7 +25,7 @@ export function RewardPreviewCard() {
     return null;
   }
 
-  const Icon = REWARD_EVENTS[reward.event].icon;
+  const Icon = REWARD_EVENT_ICON[reward.event];
   const type = data.type ?? reward.type;
   const hasConditions = !!data.modifiers?.length;
   const quality = getRewardQuality({

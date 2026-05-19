@@ -1,31 +1,38 @@
-import IdentityVerificationAnnouncement from "@dub/email/templates/broadcasts/identity-verification-announcement";
+import DubLaunchWeekDay2 from "@dub/email/templates/broadcasts/launch-week-day-2";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";
+import { generateUnsubscribeToken } from "../lib/email/unsubscribe-token";
 
 async function main() {
   while (true) {
     const usersToNotify = await prisma.user.findMany({
       where: {
         sentMail: false,
-        partners: {
+        projects: {
           some: {
-            partner: {
-              identityVerifiedAt: null,
-              payouts: {
-                some: {
-                  status: "completed",
-                  amount: {
-                    gt: 10000,
+            project: {
+              OR: [
+                {
+                  defaultProgramId: {
+                    not: null,
                   },
                 },
-              },
+                {
+                  plan: {
+                    not: "free",
+                  },
+                },
+              ],
             },
           },
         },
         email: {
           not: null,
+        },
+        notificationPreferences: {
+          dubPartners: true,
         },
       },
       take: 10000,
@@ -36,13 +43,15 @@ async function main() {
     }
     console.log(`Found ${usersToNotify.length} users to notify`);
 
-    const res = await queueBatchEmail<typeof IdentityVerificationAnnouncement>(
+    const res = await queueBatchEmail<typeof DubLaunchWeekDay2>(
       usersToNotify.map((user) => ({
         to: user.email!,
-        subject: "Action Required: Verify your identity on Dub",
-        templateName: "IdentityVerificationAnnouncement",
+        variant: "marketing",
+        subject: "Dub Launch Week Day 2: Introducing Partner Tags",
+        templateName: "DubLaunchWeekDay2",
         templateProps: {
           email: user.email!,
+          unsubscribeUrl: `https://app.dub.co/unsubscribe/${generateUnsubscribeToken(user.email!)}`,
         },
       })),
     );

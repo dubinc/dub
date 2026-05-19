@@ -116,6 +116,7 @@ model Partner {
   @@index(payoutMethodHash)
   @@index(cryptoWalletAddress)
   @@index(identityVerifiedAt)
+  @@index(referredByPartnerId)
   @@fulltext([email, name, companyName]) // For full-text search
 }
 

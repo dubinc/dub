@@ -180,7 +180,10 @@ function CommissionAnalyticsCardShell<T extends string>({
               onSelect={onSelectTab}
             />
           ) : (
-            <p className="py-3 text-sm font-medium text-neutral-900">{title}</p>
+            <TabSelect
+              options={[{ id: "single", label: title }]}
+              selected="single"
+            />
           )}
           <div className="flex items-center gap-1 pr-2 text-neutral-500">
             <StatusIcon className="hidden h-4 w-4 sm:block" />

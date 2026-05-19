@@ -96,6 +96,7 @@ export const executeMoveGroupWorkflow = async ({
       clickRewardId: true,
       leadRewardId: true,
       saleRewardId: true,
+      referralRewardId: true,
       discountId: true,
     },
   });

@@ -1,6 +1,6 @@
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
-import { REWARD_EVENTS } from "@/ui/partners/constants";
+import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Gift, Suitcase } from "@dub/ui/icons";
 import { capitalize, cn, nFormatter } from "@dub/utils";
@@ -9,15 +9,15 @@ import { ProgramNetworkStatusBadges } from "./program-status-badge";
 
 const REWARD_TYPES = {
   sale: {
-    icon: REWARD_EVENTS.sale.icon,
+    icon: REWARD_EVENT_ICON.sale,
     label: "Sale reward (CPS)",
   },
   lead: {
-    icon: REWARD_EVENTS.lead.icon,
+    icon: REWARD_EVENT_ICON.lead,
     label: "Lead reward (CPL)",
   },
   click: {
-    icon: REWARD_EVENTS.click.icon,
+    icon: REWARD_EVENT_ICON.click,
     label: "Click reward (CPC)",
   },
   discount: {

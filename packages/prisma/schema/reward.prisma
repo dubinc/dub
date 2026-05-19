@@ -2,6 +2,7 @@ enum EventType {
   click
   lead
   sale
+  referral
 }
 
 enum RewardStructure {
@@ -20,17 +21,20 @@ model Reward {
   amountInPercentage Decimal?        @db.Decimal(5, 2)
   maxDuration        Int? // in months (0 -> not recurring, null -> infinite)
   modifiers          Json?           @db.Json
+  config             Json?           @db.Json
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 
-  program           Program             @relation(fields: [programId], references: [id])
-  clickEnrollments  ProgramEnrollment[] @relation("ClickRewardEnrollments")
-  leadEnrollments   ProgramEnrollment[] @relation("LeadRewardEnrollments")
-  saleEnrollments   ProgramEnrollment[] @relation("SaleRewardEnrollments")
-  clickPartnerGroup PartnerGroup?       @relation("ClickReward")
-  leadPartnerGroup  PartnerGroup?       @relation("LeadReward")
-  salePartnerGroup  PartnerGroup?       @relation("SaleReward")
-  commissions       Commission[]
+  program              Program             @relation(fields: [programId], references: [id])
+  clickEnrollments     ProgramEnrollment[] @relation("ClickRewardEnrollments")
+  leadEnrollments      ProgramEnrollment[] @relation("LeadRewardEnrollments")
+  saleEnrollments      ProgramEnrollment[] @relation("SaleRewardEnrollments")
+  referralEnrollments  ProgramEnrollment[] @relation("ReferralRewardEnrollments")
+  clickPartnerGroup    PartnerGroup?       @relation("ClickReward")
+  leadPartnerGroup     PartnerGroup?       @relation("LeadReward")
+  salePartnerGroup     PartnerGroup?       @relation("SaleReward")
+  referralPartnerGroup PartnerGroup?       @relation("ReferralReward")
+  commissions          Commission[]
 
   @@index([programId, event])
   @@index(event) // used in aggregate-clicks cron job

@@ -98,17 +98,18 @@ model Program {
 }
 
 model ProgramEnrollment {
-  id            String                  @id @default(cuid())
-  partnerId     String
-  programId     String
-  tenantId      String?
-  groupId       String?
-  applicationId String?                 @unique
-  clickRewardId String?
-  leadRewardId  String?
-  saleRewardId  String?
-  discountId    String?
-  status        ProgramEnrollmentStatus @default(pending)
+  id               String                  @id @default(cuid())
+  partnerId        String
+  programId        String
+  tenantId         String?
+  groupId          String?
+  applicationId    String?                 @unique
+  clickRewardId    String?
+  leadRewardId     String?
+  saleRewardId     String?
+  referralRewardId String?
+  discountId       String?
+  status           ProgramEnrollmentStatus @default(pending)
 
   // partner stats
   totalClicks      Int    @default(0) // total clicks
@@ -137,16 +138,17 @@ model ProgramEnrollment {
   bannedAt                     DateTime?
   bannedReason                 PartnerBannedReason?
 
-  partner            Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  program            Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  partner            Partner                  @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  program            Program                  @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   links              Link[]
   customers          Customer[]
-  partnerGroup       PartnerGroup?       @relation(fields: [groupId], references: [id])
-  application        ProgramApplication? @relation(fields: [applicationId], references: [id])
-  clickReward        Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
-  leadReward         Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
-  saleReward         Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
-  discount           Discount?           @relation(fields: [discountId], references: [id])
+  partnerGroup       PartnerGroup?            @relation(fields: [groupId], references: [id])
+  application        ProgramApplication?      @relation(fields: [applicationId], references: [id])
+  clickReward        Reward?                  @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
+  leadReward         Reward?                  @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
+  saleReward         Reward?                  @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  referralReward     Reward?                  @relation("ReferralRewardEnrollments", fields: [referralRewardId], references: [id])
+  discount           Discount?                @relation(fields: [discountId], references: [id])
   bountySubmissions  BountySubmission[]
   discountCodes      DiscountCode[]
   commissions        Commission[]
@@ -155,6 +157,7 @@ model ProgramEnrollment {
   fraudAlerts        FraudAlert[]
   discoveredPartner  DiscoveredPartner?
   programPartnerTags ProgramPartnerTag[]
+  applicationEvent   ProgramApplicationEvent?
   submittedLeads     SubmittedLead[]
 
   // unique constraints
@@ -179,5 +182,6 @@ model ProgramEnrollment {
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)
+  @@index(referralRewardId)
   @@index(discountId)
 }
