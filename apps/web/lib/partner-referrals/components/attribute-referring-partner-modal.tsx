@@ -88,7 +88,7 @@ function AttributeReferringPartnerModal({
         <Markdown className="text-sm font-normal leading-5 text-neutral-600">
           Attribute this partner to the partner who referred them and generate
           eligible referral rewards. [Learn
-          more](https://dub.co/help/article/referring-partners)
+          more](https://dub.co/help/article/partner-referrals)
         </Markdown>
 
         <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
