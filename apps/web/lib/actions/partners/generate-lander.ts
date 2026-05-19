@@ -62,7 +62,12 @@ export const generateLanderAction = authActionClient
 
     const group = program.groups[0];
     const discount = group.discount;
-    const rewards = [group.clickReward, group.leadReward, group.saleReward]
+    const rewards = [
+      group.clickReward,
+      group.leadReward,
+      group.saleReward,
+      group.referralReward,
+    ]
       .filter((r): r is Reward => r !== null)
       .map(serializeReward);
 

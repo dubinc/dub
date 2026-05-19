@@ -8,7 +8,7 @@ const REWARD_ICONS: Record<EventType, string> = {
   click: "https://assets.dub.co/email-assets/icons/cursor-rays.png",
   lead: "https://assets.dub.co/email-assets/icons/user-plus.png",
   sale: "https://assets.dub.co/email-assets/icons/invoice-dollar.png",
-  referral: "https://assets.dub.co/cms/nodes-4.png",
+  referral: "https://assets.dub.co/email-assets/icons/nodes-4.png",
 };
 
 const BOUNTY_ICONS: Record<BountyType, string> = {
