@@ -12,6 +12,7 @@ import { DiscountProps } from "@/lib/types";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { Shopify } from "@/ui/guides/icons/shopify";
+import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
 import {
   InlineBadgePopover,
@@ -302,7 +303,7 @@ function DiscountSheetContent({
                   </div>
 
                   {!discount && provider === DiscountProvider.stripe && (
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 p-px lg:grid-cols-2">
                       {COUPON_CREATION_OPTIONS.map(
                         ({ label, description, useExisting }) => {
                           const isSelected = useExistingCoupon === useExisting;
@@ -480,29 +481,12 @@ function DiscountSheetContent({
                     }
                     disabled={!!discount}
                   >
-                    <InlineBadgePopoverMenu
-                      selectedValue={maxDuration?.toString()}
-                      onSelect={(value) =>
-                        setValue("maxDuration", Number(value), {
-                          shouldDirty: true,
-                        })
+                    <DurationPopoverContent
+                      value={Number(maxDuration)}
+                      onChange={(value) =>
+                        setValue("maxDuration", value, { shouldDirty: true })
                       }
-                      items={[
-                        {
-                          text: "one time",
-                          value: "0",
-                        },
-                        ...RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
-                          (v) => ({
-                            text: `for ${v} ${pluralize("month", Number(v))}`,
-                            value: v.toString(),
-                          }),
-                        ),
-                        {
-                          text: "for the customer's lifetime",
-                          value: "Infinity",
-                        },
-                      ]}
+                      presetDurations={RECURRING_MAX_DURATIONS}
                     />
                   </InlineBadgePopover>
                 </span>

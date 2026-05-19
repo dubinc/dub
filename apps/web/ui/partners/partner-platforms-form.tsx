@@ -128,11 +128,17 @@ export const PartnerPlatformsForm = forwardRef<
 
     const { executeAsync } = useAction(updatePartnerPlatformsAction, {
       onSuccess: async () => {
+        toast.success(
+          "Successfully updated your websites and social accounts.",
+        );
         await mutate("/api/partner-profile");
       },
       onError: ({ error }) => {
         toast.error(
-          parseActionError(error, "Failed to update partner platforms"),
+          parseActionError(
+            error,
+            "Failed to update your websites and social accounts.",
+          ),
         );
 
         reset(form.getValues(), { keepErrors: true });

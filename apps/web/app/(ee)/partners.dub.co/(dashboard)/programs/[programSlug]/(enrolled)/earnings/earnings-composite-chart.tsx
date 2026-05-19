@@ -39,6 +39,8 @@ const EVENT_TYPE_LINE_COLORS = {
   sale: "text-teal-500",
   lead: "text-purple-500",
   click: "text-blue-500",
+  referral: "text-orange-500",
+  custom: "text-gray-500",
 };
 
 const MAX_LINES = LINE_COLORS.length;

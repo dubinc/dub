@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { ACME_PROGRAM_ID } from "@dub/utils";
 import "dotenv-flow/config";
 
 const randomDateBetween = (start: Date, end: Date) => {
@@ -24,11 +25,15 @@ const referralSources = [
 ] as const;
 
 async function main() {
-  const programId = "prog_1K2J9DRWPPJ2F1RX53N92TSGA";
+  const programId = ACME_PROGRAM_ID;
+  const referredByPartnerIds = ["pn_1K2J9DRWPPJ2F1RX53N92TSGH"];
 
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       programId,
+      partnerId: {
+        notIn: referredByPartnerIds,
+      },
     },
     orderBy: {
       createdAt: "asc",
@@ -41,7 +46,7 @@ async function main() {
         },
       },
     },
-    take: 10,
+    take: 1,
   });
 
   if (programEnrollments.length === 0) {
@@ -80,7 +85,7 @@ async function main() {
         rejectedAt: isApproved ? null : decidedAt,
         referralSource: sample(referralSources),
         country: programEnrollment.partner.country ?? null,
-        // intentionally leaving: referredByPartnerId, programApplicationId
+        referredByPartnerId: sample(referredByPartnerIds),
       };
     }),
     skipDuplicates: true,

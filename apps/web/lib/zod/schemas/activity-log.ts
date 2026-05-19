@@ -7,6 +7,7 @@ export const activityLogResourceTypeSchema = z.enum([
   "clickReward",
   "saleReward",
   "leadReward",
+  "referralReward",
   "submittedLead",
 ]);
 
@@ -65,4 +66,5 @@ export const REWARD_EVENT_TO_RESOURCE_TYPE = {
   click: "clickReward",
   sale: "saleReward",
   lead: "leadReward",
+  referral: "referralReward",
 } as const;

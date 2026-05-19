@@ -7,13 +7,14 @@ import { FolderType, FolderUserRole } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 
-const workspaceFolderAccess = z
-  .enum(
-    Object.keys(FOLDER_WORKSPACE_ACCESS) as [
-      FolderAccessLevel,
-      ...FolderAccessLevel[],
-    ],
-  )
+const folderAccessLevelSchema = z.enum(
+  Object.keys(FOLDER_WORKSPACE_ACCESS) as [
+    FolderAccessLevel,
+    ...FolderAccessLevel[],
+  ],
+);
+
+const workspaceFolderAccess = folderAccessLevelSchema
   .nullish()
   .default(null)
   .describe("The access level of the folder within the workspace.");
@@ -55,4 +56,10 @@ export const listFoldersQuerySchema = z
   })
   .extend(getPaginationQuerySchema({ pageSize: FOLDERS_MAX_PAGE_SIZE }));
 
-export const updateFolderSchema = createFolderSchema.partial();
+export const updateFolderSchema = z.object({
+  name: createFolderSchema.shape.name.optional(),
+  description: createFolderSchema.shape.description.optional(),
+  accessLevel: folderAccessLevelSchema
+    .nullish()
+    .describe("The access level of the folder within the workspace."),
+});

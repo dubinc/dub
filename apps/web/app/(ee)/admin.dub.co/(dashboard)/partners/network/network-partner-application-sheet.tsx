@@ -2,6 +2,7 @@
 
 import { AdminNetworkPartner } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { PartnerAbout } from "@/ui/partners/partner-about";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
@@ -25,7 +26,7 @@ import {
 import { cn, COUNTRIES, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { NetworkPartnerChangeHistory } from "./network-partner-change-history";
 
 type NetworkPartnerSheetTabId = "about" | "programs" | "duplicates";
@@ -55,6 +56,7 @@ export function NetworkPartnerApplicationSheet({
   onPrevious,
   onNext,
   onReview,
+  onUpdateCountry,
 }: {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
@@ -65,13 +67,38 @@ export function NetworkPartnerApplicationSheet({
     partner: AdminNetworkPartner,
     status: "approved" | "rejected" | "draft",
   ) => Promise<void>;
+  onUpdateCountry: (
+    partner: AdminNetworkPartner,
+    country: string,
+  ) => Promise<void>;
 }) {
   const [currentTabId, setCurrentTabId] =
     useState<NetworkPartnerSheetTabId>("about");
+  const [selectedCountry, setSelectedCountry] = useState(partner.country ?? "");
+  const [isUpdatingCountry, setIsUpdatingCountry] = useState(false);
   const { queryParams } = useRouterStuff();
 
   const showRevertToDraftInsteadOfReject =
     isDirectDraftToApprovedNetworkApproval(partner);
+  const isCountryChanged =
+    selectedCountry.length > 0 && selectedCountry !== partner.country;
+
+  useEffect(() => {
+    setSelectedCountry(partner.country ?? "");
+  }, [partner.country, partner.id]);
+
+  const handleUpdateCountry = async () => {
+    if (!isCountryChanged || isUpdatingCountry) {
+      return;
+    }
+
+    setIsUpdatingCountry(true);
+    try {
+      await onUpdateCountry(partner, selectedCountry);
+    } finally {
+      setIsUpdatingCountry(false);
+    }
+  };
 
   const PartnerDetails = (
     <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
@@ -131,6 +158,35 @@ export function NetworkPartnerApplicationSheet({
     confirmShortcutOptions: { sheet: true, modal: true },
   });
 
+  const {
+    setShowConfirmModal: setShowUpdateCountryConfirm,
+    confirmModal: updateCountryModal,
+  } = useConfirmModal({
+    title: "Update partner country",
+    description: (
+      <div className="space-y-2">
+        <p className="text-sm text-neutral-600">
+          Change country from{" "}
+          <span className="font-medium text-neutral-900">
+            {partner.country ? COUNTRIES[partner.country] : "Unknown"}
+          </span>{" "}
+          to{" "}
+          <span className="font-medium text-neutral-900">
+            {selectedCountry ? COUNTRIES[selectedCountry] : "Unknown"}
+          </span>
+          ?
+        </p>
+        <p className="text-xs text-neutral-500">
+          This will reset the connected Stripe account and payout settings.
+        </p>
+      </div>
+    ),
+    confirmText: "Update country",
+    onConfirm: async () => {
+      await handleUpdateCountry();
+    },
+  });
+
   useKeyboardShortcut(
     "ArrowRight",
     () => {
@@ -180,6 +236,7 @@ export function NetworkPartnerApplicationSheet({
       {approveModal}
       {rejectModal}
       {revertToDraftModal}
+      {updateCountryModal}
 
       <div className="flex size-full flex-col">
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
@@ -222,11 +279,34 @@ export function NetworkPartnerApplicationSheet({
               partner={partner}
               showApplicationRiskAnalysis
             />
-            <ScrollContainer className="@3xl/sheet:max-h-[50dvh] @3xl/sheet:pr-1">
+            <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+              <h3 className="text-sm font-medium text-neutral-900">Country</h3>
+              <p className="mt-1 text-xs text-neutral-500">
+                Updating country clears connected Stripe account and may trigger
+                reverification.
+              </p>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-start">
+                <div className="min-w-0 grow">
+                  <CountryCombobox
+                    value={selectedCountry}
+                    onChange={setSelectedCountry}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  text="Update"
+                  className="w-full shrink-0 sm:mt-1.5 sm:w-fit"
+                  loading={isUpdatingCountry}
+                  onClick={() => setShowUpdateCountryConfirm(true)}
+                  disabled={!isCountryChanged || isUpdatingCountry}
+                />
+              </div>
+            </div>
+            <div className="@3xl/sheet:max-h-[50dvh] @3xl/sheet:overflow-y-auto @3xl/sheet:pr-1 overflow-x-hidden">
               <NetworkPartnerChangeHistory
                 changeHistoryLog={partner.changeHistoryLog}
               />
-            </ScrollContainer>
+            </div>
           </div>
           <div className="@3xl/sheet:order-1">
             <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
