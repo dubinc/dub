@@ -3,7 +3,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
-import { constructWebhookPartner } from "@/lib/partners/create-partner-commission";
+import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
@@ -149,18 +149,26 @@ export async function createNewCustomer(event: Stripe.Event) {
     (async () => {
       const programEnrollment =
         link.programId && link.partnerId
-          ? await prisma.programEnrollment.findUnique({
-              where: {
-                partnerId_programId: {
-                  partnerId: link.partnerId,
-                  programId: link.programId,
+          ? await prisma.programEnrollment
+              .findUnique({
+                where: {
+                  partnerId_programId: {
+                    partnerId: link.partnerId,
+                    programId: link.programId,
+                  },
                 },
-              },
-              include: {
-                partner: true,
-                links: true,
-              },
-            })
+                include: {
+                  partner: true,
+                  links: true,
+                },
+              })
+              .catch((error) => {
+                console.error(
+                  "Failed to load program enrollment for lead webhook partner context",
+                  error,
+                );
+                return null;
+              })
           : null;
 
       const webhookPartner = programEnrollment
