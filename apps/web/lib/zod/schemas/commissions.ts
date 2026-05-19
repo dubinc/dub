@@ -389,6 +389,12 @@ export const COMMISSION_EXPORT_COLUMNS = [
     type: "string",
     default: false,
   },
+  {
+    id: "stripeCustomerId",
+    label: "Stripe customer ID",
+    type: "string",
+    default: false,
+  },
 ] as const;
 
 type CommissionExportColumnId =
