@@ -164,7 +164,7 @@ export const updateRewardAction = authActionClient
             action: "updated",
             effectiveAt: updatedReward.updatedAt,
             reward: serializeReward(rewardMetadata),
-            idempotencyKey: `reward-sync-${rewardId}-updated`,
+            idempotencyKey: `reward-sync-${rewardId}-updated-${updatedReward.updatedAt.getTime()}`,
           }),
       ]),
     );

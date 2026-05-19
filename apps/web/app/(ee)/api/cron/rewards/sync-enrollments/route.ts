@@ -132,17 +132,20 @@ export async function POST(req: Request) {
           },
         });
       } catch (error) {
-        await log({
-          message: `Failed to hard delete reward ${rewardId}: ${error.message}`,
-          type: "errors",
-        });
+        // treat already-deleted reward as success so retries can resend the notification
+        if (error.code !== "P2025") {
+          await log({
+            message: `Failed to hard delete reward ${rewardId}: ${error.message}`,
+            type: "errors",
+          });
 
-        return logAndRespond(
-          `Finished syncing enrollments for reward ${rewardId}, but hard delete failed.`,
-          {
-            logLevel: "error",
-          },
-        );
+          return logAndRespond(
+            `Finished syncing enrollments for reward ${rewardId}, but hard delete failed.`,
+            {
+              logLevel: "error",
+            },
+          );
+        }
       }
 
       await notifyPartnersRewardChanged({
