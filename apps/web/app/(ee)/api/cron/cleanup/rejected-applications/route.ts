@@ -26,7 +26,7 @@ export async function POST(req: Request) {
           where: {
             status: "rejected",
             updatedAt: {
-              lt: subDays(new Date(), 10),
+              lt: subDays(new Date(), 30),
             },
             // only delete if there are no commissions or messages
             commissions: {
