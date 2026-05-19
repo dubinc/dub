@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
@@ -46,7 +47,7 @@ function AttributeReferringPartnerModal({
         setShowModal(false);
       },
       onError({ error }) {
-        toast.error(error.serverError);
+        toast.error(parseActionError(error));
       },
     },
   );
@@ -135,7 +136,7 @@ function AttributeReferringPartnerModal({
           onClick={onSubmit}
           variant="primary"
           text="Attribute partner"
-          disabled={!referredByPartnerId}
+          disabled={!workspaceId || !referredByPartnerId || isPending}
           loading={isPending}
           className="h-8 w-fit px-3"
         />
