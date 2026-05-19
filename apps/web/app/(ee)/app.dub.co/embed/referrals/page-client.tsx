@@ -524,7 +524,7 @@ function ReferralLinkDisplay({ onSelectTab }) {
       </div>
 
       {partnerLink && group.linkStructure === "query" && (
-        <QueryLinkStructureHelpText link={selectedLink} />
+        <QueryLinkStructureHelpText link={selectedLink} className="mt-1.5" />
       )}
     </>
   );

@@ -89,6 +89,7 @@ export const POST = withCron(async ({ rawBody }) => {
         clickRewardId: null,
         leadRewardId: null,
         saleRewardId: null,
+        referralRewardId: null,
         discountId: null,
       },
     });

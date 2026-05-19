@@ -6,9 +6,9 @@ import { DiscountProps, RewardProps } from "@/lib/types";
 import { Gift, Tooltip } from "@dub/ui";
 import { HelpCircle } from "lucide-react";
 import { memo } from "react";
-import { REWARD_EVENTS } from "./constants";
 import { formatDiscountDescription } from "./format-discount-description";
 import { ProgramRewardModifiersTooltipContent } from "./program-reward-modifiers-tooltip";
+import { REWARD_EVENT_ICON } from "./rewards/reward-event-icon";
 
 interface ProgramRewardsPanelProps {
   rewards: RewardProps[];
@@ -36,7 +36,7 @@ export const ProgramRewardsPanel = memo(
 
     const rewardItems = [
       ...sortedFilteredRewards.map((reward) => ({
-        icon: REWARD_EVENTS[reward.event].icon,
+        icon: REWARD_EVENT_ICON[reward.event],
         label: reward.description || (
           <>
             {constructRewardAmount(reward)}{" "}

@@ -13,9 +13,9 @@ export const GET = withAdmin(async ({ searchParams }) => {
     where: {
       ...(networkStatus && { networkStatus }),
       ...(country && { country }),
-      ...(search && {
-        email: search,
-      }),
+      ...(search && search.startsWith("pn_")
+        ? { id: search }
+        : { email: search }),
     },
   });
 

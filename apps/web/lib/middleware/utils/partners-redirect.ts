@@ -22,6 +22,7 @@ const PARTNERS_PROGRAM_REDIRECTS = {
   "hundred-health": "hundred",
   "gitroom-short": "postiz",
   "getviktor-com": "getviktor",
+  heynavii: "navii",
 };
 
 export const partnersProgramRedirects = (path: string) => {
