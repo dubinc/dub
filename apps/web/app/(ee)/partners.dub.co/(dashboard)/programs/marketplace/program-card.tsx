@@ -6,7 +6,11 @@ import { OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
 import { ProgramStatusBadge } from "./program-status-badge";
 
-export function ProgramCard({ program }: { program: NetworkProgramProps }) {
+export function MarketplaceProgramCard({
+  program,
+}: {
+  program: NetworkProgramProps;
+}) {
   const { queryParams } = useRouterStuff();
 
   return (
@@ -118,7 +122,7 @@ export function ProgramCard({ program }: { program: NetworkProgramProps }) {
   );
 }
 
-export function ProgramCardSkeleton() {
+export function MarketplaceProgramCardSkeleton() {
   return (
     <div className="border-border-subtle rounded-xl border bg-white p-6">
       <div className="flex justify-between gap-4">
