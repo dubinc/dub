@@ -64,6 +64,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
           clickRewardId: null,
           leadRewardId: null,
           saleRewardId: null,
+          referralRewardId: null,
           discountId: null,
         },
       });

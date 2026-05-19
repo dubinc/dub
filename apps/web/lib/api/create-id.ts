@@ -43,7 +43,7 @@ const prefixes = [
   "fr_", // fraud rule
   "fre_", // fraud event
   "frg_", // fraud event group
-  "ref_", // referral
+  "sbl_", // submitted lead
   "pb_", // partner postback
   "req_", // api request log
 ] as const;

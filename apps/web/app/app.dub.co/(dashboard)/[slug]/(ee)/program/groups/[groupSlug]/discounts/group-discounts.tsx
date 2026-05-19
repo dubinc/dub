@@ -17,7 +17,8 @@ export const GroupDiscounts = () => {
   const { searchParams } = useRouterStuff();
 
   const [discountSheetState, setDiscountSheetState] = useState<
-    { open: false; discountId: string | null } | { open: true; discountId: string }
+    | { open: false; discountId: string | null }
+    | { open: true; discountId: string }
   >({ open: false, discountId: null });
 
   useEffect(() => {
@@ -46,7 +47,9 @@ export const GroupDiscounts = () => {
 
   return (
     <div>
-      {discountSheetState.discountId && (currentDiscount || isNewDiscount) && DiscountSheet}
+      {discountSheetState.discountId &&
+        (currentDiscount || isNewDiscount) &&
+        DiscountSheet}
 
       {loading || !group ? (
         <DiscountSkeleton />
@@ -70,7 +73,11 @@ const DiscountItem = ({
 
   return (
     <As
-      href={discount ? `/${slug}/program/groups/${group.slug}/discounts?discountId=${discount.id}` : ""}
+      href={
+        discount
+          ? `/${slug}/program/groups/${group.slug}/discounts?discountId=${discount.id}`
+          : ""
+      }
       scroll={false}
       className={cn(
         "flex cursor-pointer flex-col gap-4 rounded-lg p-6 transition-all md:flex-row md:items-center",

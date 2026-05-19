@@ -14,7 +14,6 @@ import {
   ProgramEnrollmentStatus,
   SalesChannel,
 } from "@dub/prisma/client";
-import { COUNTRY_CODES } from "@dub/utils";
 import * as z from "zod/v4";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
@@ -208,6 +207,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
     .optional(),
   groupId: z.union([z.string(), z.array(z.string())]).optional(),
   country: z.union([z.string(), z.array(z.string())]).optional(),
+  referredByPartnerId: z.string().optional(),
   includePartnerPlatforms: booleanQuerySchema.optional(),
   // metric range query fields (TODO: Add to public API once we finalize the syntax)
   totalClicksMin: z.coerce
@@ -290,7 +290,13 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
   })
   .extend({
     groupBy: z
-      .enum(["status", "country", "groupId", "partnerTagId"])
+      .enum([
+        "status",
+        "country",
+        "groupId",
+        "partnerTagId",
+        "referredByPartnerId",
+      ])
       .optional(),
   });
 
@@ -362,7 +368,10 @@ export const PartnerSchema = z
   .object({
     id: z.string().describe("The partner's unique ID on Dub."),
     name: z.string().max(190).describe("The partner's full legal name."),
-    username: z.string().nullable().describe("The partner's unique username."),
+    username: z
+      .string()
+      .nullable()
+      .describe("The partner's unique username on Dub."),
     email: z
       .string()
       .max(190)
@@ -476,6 +485,7 @@ export const PartnerRewindSchema = z.object({
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
+  username: true,
   email: true,
   image: true,
   description: true,
@@ -735,12 +745,12 @@ export const onboardPartnerSchema = createPartnerSchema
   .omit({
     username: true,
     email: true,
+    country: true,
     linkProps: true,
   })
   .extend({
     name: z.string().min(1, "Name is required"),
     image: partnerImageSchema,
-    country: z.enum(COUNTRY_CODES),
     profileType: z.enum(PartnerProfileType).default("individual"),
     companyName: z.string().nullish(),
   })

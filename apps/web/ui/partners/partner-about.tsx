@@ -16,6 +16,7 @@ export function PartnerAbout({
 }: {
   partner?: Pick<
     EnrolledPartnerExtendedProps,
+    | "id"
     | "description"
     | "industryInterests"
     | "salesChannels"
@@ -46,7 +47,7 @@ export function PartnerAbout({
         </h3>
         <PartnerPlatformSummary
           platforms={partner.platforms}
-          showLabels={false}
+          partnerId={partner.id}
           className="gap-y-2"
         />
       </div>

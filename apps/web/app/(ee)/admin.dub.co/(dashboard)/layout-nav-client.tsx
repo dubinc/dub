@@ -33,6 +33,10 @@ const tabs = [
     label: "Partners",
   },
   {
+    href: "/programs",
+    label: "Programs",
+  },
+  {
     href: "/revenue",
     label: "Revenue",
   },

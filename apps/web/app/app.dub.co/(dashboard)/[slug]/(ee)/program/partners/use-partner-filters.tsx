@@ -1,9 +1,10 @@
 import useGroups from "@/lib/swr/use-groups";
 import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { usePartnerTagsCount } from "@/lib/swr/use-partner-tags-count";
+import usePartners from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PartnerTagProps } from "@/lib/types";
+import { EnrolledPartnerProps, PartnerTagProps } from "@/lib/types";
 import { PARTNER_TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-tags";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -18,6 +19,7 @@ import {
   MarketingTarget,
   MoneyBills2,
   Tag,
+  UserArrowLeft,
   UserPlus,
   Users6,
 } from "@dub/ui/icons";
@@ -27,6 +29,7 @@ import {
   COUNTRIES,
   currencyFormatter,
   nFormatter,
+  OG_AVATAR_URL,
   parseFilterValue,
   type FilterOperator,
   type ParsedFilter,
@@ -34,7 +37,7 @@ import {
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-const SINGLE_VALUE_FILTER_KEYS = ["status"] as const;
+const SINGLE_VALUE_FILTER_KEYS = ["status", "referredByPartnerId"] as const;
 const MULTI_VALUE_FILTER_KEYS = ["partnerTagId", "groupId", "country"] as const;
 
 function buildMultiValueParam(
@@ -144,6 +147,7 @@ export type PartnerFilterKey =
   | "partnerTagId"
   | "status"
   | "country"
+  | "referredByPartnerId"
   | (typeof PARTNER_METRIC_RANGE)[number]["filterKey"];
 
 export function usePartnerFilters(
@@ -153,6 +157,7 @@ export function usePartnerFilters(
     "partnerTagId",
     "status",
     "country",
+    "referredByPartnerId",
     "totalClicks",
     "totalLeads",
     "totalConversions",
@@ -226,6 +231,32 @@ export function usePartnerFilters(
     ...cohortParams,
     enabled: enabledFilters.includes("groupId"),
   });
+
+  const { partnersCount: referredByCount } = usePartnersCount<
+    | {
+        referredByPartnerId: string;
+        _count: number;
+      }[]
+    | undefined
+  >({
+    groupBy: "referredByPartnerId",
+    status,
+    ...cohortParams,
+    enabled: enabledFilters.includes("referredByPartnerId"),
+  });
+
+  const { referredByPartners } = useReferredByPartnerFilterOptions({
+    search: selectedFilter === "referredByPartnerId" ? debouncedSearch : "",
+    enabled: enabledFilters.includes("referredByPartnerId"),
+  });
+
+  const referredByCountMap = useMemo(
+    () =>
+      new Map(
+        referredByCount?.map((r) => [r.referredByPartnerId, r._count]) ?? [],
+      ),
+    [referredByCount],
+  );
 
   const filters = useMemo(
     () => [
@@ -315,13 +346,6 @@ export function usePartnerFilters(
               key: "country",
               icon: FlagWavy,
               label: "Location",
-              separatorAfter: PARTNER_METRIC_RANGE.some((m) =>
-                enabledFilters.includes(m.filterKey),
-              ),
-              getOptionIcon: (value: string) => (
-                <CountryFlag countryCode={value} />
-              ),
-              getOptionLabel: (value: string) => COUNTRIES[value],
               options:
                 countriesCount
                   ?.filter(({ country }) => COUNTRIES[country])
@@ -330,6 +354,41 @@ export function usePartnerFilters(
                     label: COUNTRIES[country],
                     right: nFormatter(_count, { full: true }),
                   })) ?? [],
+              getOptionIcon: (value: string) => (
+                <CountryFlag countryCode={value} />
+              ),
+              getOptionLabel: (value: string) => COUNTRIES[value],
+            },
+          ]
+        : []),
+      ...(enabledFilters.includes("referredByPartnerId")
+        ? [
+            {
+              key: "referredByPartnerId",
+              icon: UserArrowLeft,
+              label: "Referred by",
+              shouldFilter: false,
+              separatorAfter: PARTNER_METRIC_RANGE.some((m) =>
+                enabledFilters.includes(m.filterKey),
+              ),
+              options:
+                referredByPartners?.map(({ id, name, image }) => {
+                  const count = referredByCountMap.get(id);
+                  return {
+                    value: id,
+                    label: name,
+                    icon: (
+                      <img
+                        src={image || `${OG_AVATAR_URL}${id}`}
+                        alt={`${name} avatar`}
+                        className="size-4 rounded-full"
+                      />
+                    ),
+                    ...(count !== undefined && {
+                      right: nFormatter(count, { full: true }),
+                    }),
+                  };
+                }) ?? null,
             },
           ]
         : []),
@@ -386,6 +445,8 @@ export function usePartnerFilters(
       partnerTagsAsync,
       statusCount,
       countriesCount,
+      referredByPartners,
+      referredByCountMap,
     ],
   );
 
@@ -554,6 +615,7 @@ export function usePartnerFilters(
           "country",
           "groupId",
           "partnerTagId",
+          "referredByPartnerId",
           "search",
           "totalClicksMin",
           "totalClicksMax",
@@ -696,4 +758,54 @@ function usePartnerTagFilterOptions({
   ]);
 
   return { partnerTags: tagsResult, partnerTagsAsync: useAsync };
+}
+
+function useReferredByPartnerFilterOptions({
+  search,
+  enabled = true,
+}: {
+  search: string;
+  enabled?: boolean;
+}) {
+  const { searchParamsObj } = useRouterStuff();
+
+  const { partners, loading: partnersLoading } = usePartners({
+    query: { search },
+    enabled,
+  });
+
+  const { partners: selectedPartners } = usePartners({
+    query: {
+      partnerIds: searchParamsObj.referredByPartnerId
+        ? [searchParamsObj.referredByPartnerId]
+        : undefined,
+    },
+    enabled: enabled && !!searchParamsObj.referredByPartnerId,
+  });
+
+  const result = useMemo(() => {
+    if (
+      partnersLoading ||
+      (searchParamsObj.referredByPartnerId &&
+        ![...(selectedPartners ?? []), ...(partners ?? [])].some(
+          (p) => p.id === searchParamsObj.referredByPartnerId,
+        ))
+    ) {
+      return null;
+    }
+
+    return [
+      ...(partners ?? []),
+      ...(selectedPartners
+        ?.filter((sp) => !partners?.some((p) => p.id === sp.id))
+        ?.map((sp) => ({ ...sp, hideDuringSearch: true })) ?? []),
+    ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[];
+  }, [
+    partnersLoading,
+    partners,
+    selectedPartners,
+    searchParamsObj.referredByPartnerId,
+  ]);
+
+  return { referredByPartners: result };
 }

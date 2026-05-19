@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
             clickReward: true,
             saleReward: true,
             leadReward: true,
+            referralReward: true,
           },
         },
       },

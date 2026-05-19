@@ -20,8 +20,6 @@ type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
 export async function getPartnersCount<T>(
   filters: PartnersCountFilters,
 ): Promise<T> {
-  // const {
-
   const { groupBy, programId, ...enrollmentFilters } = filters;
   const enrollmentBase = { ...enrollmentFilters, programId };
 
@@ -204,6 +202,41 @@ export async function getPartnersCount<T>(
     });
 
     return partners as T;
+  }
+
+  if (groupBy === "referredByPartnerId") {
+    const results = await prisma.programApplicationEvent.groupBy({
+      by: ["referredByPartnerId"],
+      where: {
+        programId,
+        referredByPartnerId: {
+          not: null,
+        },
+        programEnrollment: {
+          ...enrollmentScope,
+          ...(groupIdWhere ?? {}),
+          status:
+            status === "approved_invited"
+              ? {
+                  in: ["approved", "invited"],
+                }
+              : status,
+          partner: partnerWhereWithCountry,
+          ...enrollmentMetricWhere,
+        },
+      },
+      _count: true,
+      orderBy: {
+        _count: {
+          referredByPartnerId: "desc",
+        },
+      },
+    });
+
+    return results.map((row) => ({
+      referredByPartnerId: row.referredByPartnerId,
+      _count: row._count,
+    })) as T;
   }
 
   // Get absolute count of partners

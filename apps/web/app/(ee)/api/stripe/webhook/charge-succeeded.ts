@@ -5,7 +5,7 @@ import DomainRenewed from "@dub/email/templates/domain-renewed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
-import { addDays } from "date-fns";
+import { addDays, startOfDay } from "date-fns";
 import Stripe from "stripe";
 
 export async function chargeSucceeded(event: Stripe.ChargeSucceededEvent) {
@@ -120,7 +120,11 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
     return `No domains found for invoice ${invoice.id}, skipping...`;
   }
 
-  const newExpiresAt = addDays(domains[0].expiresAt, 365);
+  const earliestExpiresAt = domains[0].expiresAt;
+  const todayStart = startOfDay(new Date());
+  const renewalBase =
+    earliestExpiresAt > todayStart ? earliestExpiresAt : todayStart;
+  const newExpiresAt = addDays(renewalBase, 365);
 
   await prisma.registeredDomain.updateMany({
     where: {

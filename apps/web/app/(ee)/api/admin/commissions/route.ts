@@ -1,5 +1,6 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withAdmin } from "@/lib/auth";
+import { adminCommissionsDataSchema } from "@/lib/zod/schemas/admin";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { DUB_FOUNDING_DATE } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
@@ -45,8 +46,10 @@ export const GET = withAdmin(async ({ searchParams }) => {
     }),
   ]);
 
-  return NextResponse.json({
-    programs,
-    timeseries,
-  });
+  return NextResponse.json(
+    adminCommissionsDataSchema.parse({
+      programs,
+      timeseries,
+    }),
+  );
 });

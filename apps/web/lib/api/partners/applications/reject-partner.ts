@@ -125,6 +125,7 @@ export async function rejectPartner({
         clickRewardId: null,
         leadRewardId: null,
         saleRewardId: null,
+        referralRewardId: null,
         discountId: null,
       },
     });
