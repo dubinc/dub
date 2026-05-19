@@ -401,6 +401,7 @@ export function PartnerInfoCards({
                         group.clickReward,
                         group.leadReward,
                         group.saleReward,
+                        group.referralReward,
                       ].filter((r): r is RewardProps => r !== null)}
                       discount={group.discount}
                       variant="plain"
