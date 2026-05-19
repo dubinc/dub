@@ -3,6 +3,7 @@
 import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { getStripe } from "@/lib/stripe/client";
+import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, ButtonProps } from "@dub/ui";
 import {
@@ -12,7 +13,7 @@ import {
   isWorkspaceBillingTrialActive,
   SELF_SERVE_PAID_PLANS,
 } from "@dub/utils";
-import { useOnboardingTrialVariant } from "app/app.dub.co/(onboarding)/onboarding/use-onboarding-trial-variant";
+import { useSession } from "next-auth/react";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -33,6 +34,9 @@ export function UpgradePlanButton({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
+
+  const workspace = useWorkspace();
   const {
     slug: workspaceSlug,
     plan: currentPlan,
@@ -40,11 +44,10 @@ export function UpgradePlanButton({
     stripeId,
     defaultProgramId,
     trialEndsAt,
-  } = useWorkspace();
+  } = workspace;
 
   const plausible = usePlausible();
   const product = searchParams.get("product");
-  const { isTrialVariant } = useOnboardingTrialVariant();
   const isTrialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const selectedPlan =
@@ -56,7 +59,7 @@ export function UpgradePlanButton({
 
   const queryString = searchParams.toString();
 
-  const isCurrentPlan =
+  const isCurrentPlanAndPeriod =
     currentPlan === selectedPlan.name.toLowerCase() &&
     period === currentPlanPeriod;
 
@@ -96,7 +99,6 @@ export function UpgradePlanButton({
             period,
             baseUrl: `${APP_DOMAIN}${pathname}${queryString.length > 0 ? `?${queryString}` : ""}`,
             onboarding: searchParams.get("workspace") ? "true" : "false",
-            isTrialVariant: isTrialVariant ? "true" : "false",
           }),
         },
       );
@@ -145,7 +147,7 @@ export function UpgradePlanButton({
     useStartPaidPlanModal();
 
   const isSwitchingTrialPlan =
-    isTrialActive && !isCurrentPlan && currentPlan !== "free";
+    isTrialActive && !isCurrentPlanAndPeriod && currentPlan !== "free";
 
   const { SwitchTrialPlanModal, setShowSwitchTrialPlanModal } =
     useSwitchTrialPlanModal({
@@ -156,7 +158,7 @@ export function UpgradePlanButton({
     });
 
   const handleClick = () => {
-    if (isCurrentPlan && isTrialActive) {
+    if (isCurrentPlanAndPeriod && isTrialActive) {
       setShowStartPaidPlanModal(true);
       return;
     }
@@ -178,23 +180,20 @@ export function UpgradePlanButton({
       <StartPaidPlanModal />
       <SwitchTrialPlanModal />
       <Button
+        // these are the default text for onboarding plan selector
         text={
           !currentPlan
             ? "Loading..."
-            : isCurrentPlan
+            : isCurrentPlanAndPeriod
               ? isTrialActive
                 ? "Activate plan"
-                : "Your current plan"
-              : currentPlan === "free"
-                ? isTrialVariant
-                  ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
-                  : `Upgrade to ${selectedPlan.name} ${capitalize(period)}`
-                : isTrialActive
-                  ? `Switch trial to ${selectedPlan.name} ${capitalize(period)}`
-                  : `Switch to ${selectedPlan.name} ${capitalize(period)}`
+                : "Current plan"
+              : isEligibleForTrial({ workspace, session })
+                ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
+                : `Upgrade to ${selectedPlan.name} ${capitalize(period)}`
         }
         loading={clicked || !currentPlan}
-        disabled={!workspaceSlug || (isCurrentPlan && !isTrialActive)}
+        disabled={!workspaceSlug || (isCurrentPlanAndPeriod && !isTrialActive)}
         onClick={handleClick}
         {...rest}
       />

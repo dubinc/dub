@@ -123,6 +123,7 @@ export async function customerSubscriptionDeleted(
       domainsLimit: FREE_PLAN.limits.domains!,
       aiLimit: FREE_PLAN.limits.ai!,
       tagsLimit: FREE_PLAN.limits.tags!,
+      partnerTagsLimit: FREE_PLAN.limits.partnerTags!,
       foldersLimit: FREE_PLAN.limits.folders!,
       groupsLimit: FREE_PLAN.limits.groups!,
       networkInvitesLimit: FREE_PLAN.limits.networkInvites!,
@@ -165,18 +166,19 @@ export async function customerSubscriptionDeleted(
         url: "",
       })),
     ),
-    // Log the deletion
-    log({
-      message:
-        ":cry: Workspace *`" +
-        workspace.slug +
-        "`* deleted their *`" +
-        capitalize(workspace.plan) +
-        "`* subscription" +
-        (isBlacklistedCancellation ? " (blacklisted / banned)" : ""),
-      type: "cron",
-      mention: true,
-    }),
+    // Log the deletion (only for non trial subscriptions)
+    !workspace.trialEndsAt &&
+      log({
+        message:
+          ":cry: Workspace *`" +
+          workspace.slug +
+          "`* deleted their *`" +
+          capitalize(workspace.plan) +
+          "`* subscription" +
+          (isBlacklistedCancellation ? " (blacklisted / banned)" : ""),
+        type: "cron",
+        mention: true,
+      }),
 
     // Don't send feedback if the user was blacklisted / banned
     !isBlacklistedCancellation &&
@@ -252,7 +254,8 @@ export async function customerSubscriptionDeleted(
   }
 
   const owner = workspaceUsers[0];
-  if (owner.email && losesAdvancedFeatures) {
+
+  if (owner?.email && losesAdvancedFeatures) {
     await sendEmail({
       to: owner.email,
       subject: "Your Advanced plan features have been removed",

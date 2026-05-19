@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDubAdminRole, withWorkspace } from "@/lib/auth";
 import { getDubCustomer } from "@/lib/dub";
 import { stripe } from "@/lib/stripe";
+import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
 import { APP_DOMAIN, DUB_TRIAL_PERIOD_DAYS } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -15,14 +16,14 @@ const upgradePlanSchema = z.object({
     message: "Invalid baseUrl.",
   }),
   onboarding: booleanQuerySchema.nullish(),
-  isTrialVariant: booleanQuerySchema.nullish(),
 });
 
 // POST /api/workspaces/[idOrSlug]/billing/upgrade
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    let { plan, period, tier, baseUrl, onboarding, isTrialVariant } =
-      upgradePlanSchema.parse(await req.json());
+    let { plan, period, tier, baseUrl, onboarding } = upgradePlanSchema.parse(
+      await req.json(),
+    );
 
     const lookupKey =
       tier > 1 ? `${plan}${tier}_${period}` : `${plan}_${period}`;
@@ -104,17 +105,6 @@ export const POST = withWorkspace(
     } else {
       const customer = await getDubCustomer(session.user.id);
 
-      // Only apply trial if the customer is a:
-      // - new Stripe customer
-      // - no prior/existing trial on workspace
-      // - is coming from onboarding
-      // - is trial variant
-      const shouldApplyCheckoutTrial =
-        workspace.stripeId == null &&
-        workspace.trialEndsAt == null &&
-        onboarding &&
-        isTrialVariant;
-
       const stripeSession = await stripe.checkout.sessions.create({
         ...(workspace.stripeId
           ? {
@@ -154,7 +144,7 @@ export const POST = withWorkspace(
           enabled: true,
         },
         mode: "subscription",
-        ...(shouldApplyCheckoutTrial
+        ...(isEligibleForTrial({ workspace, session })
           ? {
               subscription_data: {
                 trial_period_days: DUB_TRIAL_PERIOD_DAYS,

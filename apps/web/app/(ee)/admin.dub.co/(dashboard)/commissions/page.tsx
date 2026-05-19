@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
+import { adminCommissionsDataSchema } from "@/lib/zod/schemas/admin";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -8,22 +9,25 @@ import {
   CrownSmall,
   Filter,
   Table,
+  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { GridIcon } from "@dub/ui/icons";
+import { GridIcon, Shop } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
   DUB_FOUNDING_DATE,
   fetcher,
+  getDomainWithoutWWW,
   OG_AVATAR_URL,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { Fragment, Suspense, useCallback, useMemo } from "react";
 import useSWR from "swr";
+import * as z from "zod/v4";
 
 export default function CommissionsPage() {
   return (
@@ -33,31 +37,22 @@ export default function CommissionsPage() {
   );
 }
 
+type AdminCommissionsData = z.infer<typeof adminCommissionsDataSchema>;
+
 function CommissionsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
   const { interval, start, end, programId } = searchParamsObj;
 
-  const { data: { programs, timeseries } = {}, isLoading } = useSWR<{
-    programs: {
-      id: string;
-      name: string;
-      logo: string;
-      commissions: number;
-      fees: number;
-    }[];
-    timeseries: {
-      start: Date;
-      commissions: number;
-    }[];
-  }>(
-    `/api/admin/commissions${getQueryString({
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    })}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  const { data: { programs, timeseries } = {}, isLoading } =
+    useSWR<AdminCommissionsData>(
+      `/api/admin/commissions${getQueryString({
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      })}`,
+      fetcher,
+      {
+        keepPreviousData: true,
+      },
+    );
 
   // Filter configuration
   const filters = useMemo(
@@ -187,7 +182,7 @@ function CommissionsPageClient() {
         id: "program",
         header: "Program",
         cell: ({ row }) => (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 text-sm font-medium">
             <img
               src={row.original.logo}
               alt={row.original.name}
@@ -195,7 +190,53 @@ function CommissionsPageClient() {
               height={20}
               className="size-4 rounded-full"
             />
-            <span className="text-sm font-medium">{row.original.name}</span>
+            <span className="text-sm font-medium">{row.original.name}</span>•
+            <a
+              className="text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-800"
+              href={row.original.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {getDomainWithoutWWW(row.original.url)}
+            </a>
+            {row.original.addedToMarketplaceAt && (
+              <Tooltip
+                content={
+                  <div className="max-w-[220px] px-3 py-2.5 text-center">
+                    <p className="text-sm font-medium text-neutral-900">
+                      Dub Marketplace
+                    </p>
+                    <p className="mt-1 text-xs leading-snug text-neutral-500">
+                      Listed since{" "}
+                      {new Intl.DateTimeFormat("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      }).format(new Date(row.original.addedToMarketplaceAt))}
+                    </p>
+                    <p className="mt-2 text-xs font-medium text-teal-700">
+                      Click to open listing ↗
+                    </p>
+                  </div>
+                }
+              >
+                <a
+                  href={`https://partners.dub.co/programs/marketplace/${row.original.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    "ml-1 inline-flex size-6 shrink-0 items-center justify-center rounded-md",
+                    "border border-teal-200/90 bg-gradient-to-br from-white to-teal-50/90",
+                    "text-teal-700 shadow-sm ring-1 ring-inset ring-white",
+                    "transition-[box-shadow,transform] duration-150 hover:shadow-md active:scale-[0.97]",
+                    "outline-none focus-visible:ring-2 focus-visible:ring-teal-400/35 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+                  )}
+                  aria-label={`View ${row.original.name} on Dub Marketplace (opens in new tab)`}
+                >
+                  <Shop className="size-3.5 shrink-0" aria-hidden />
+                </a>
+              </Tooltip>
+            )}
           </div>
         ),
         meta: {
@@ -238,7 +279,7 @@ function CommissionsPageClient() {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-screen-xl flex-col gap-3 p-6">
+    <div className="mx-auto grid w-full max-w-screen-xl gap-5 p-3 lg:px-10">
       <div className="flex flex-col gap-3 md:flex-row md:items-center">
         <Filter.Select
           className="w-full md:w-fit"

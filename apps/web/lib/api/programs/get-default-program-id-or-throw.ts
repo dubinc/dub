@@ -1,10 +1,11 @@
-import { WorkspaceProps } from "@/lib/types";
+import { WorkspaceWithUsers } from "@/lib/types";
 import { DubApiError } from "../errors";
 
 export const getDefaultProgramIdOrThrow = (
-  workspace: Pick<WorkspaceProps, "defaultProgramId">,
+  workspace: WorkspaceWithUsers | { defaultProgramId?: string | null },
 ) => {
-  const programId = workspace.defaultProgramId;
+  const programId = (workspace as { defaultProgramId?: string | null })
+    .defaultProgramId;
 
   if (!programId) {
     throw new DubApiError({

@@ -22,12 +22,14 @@ import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
+  ChartLine,
   EditColumnsButton,
   Filter,
   MenuItem,
   Popover,
   Table,
   useColumnVisibility,
+  useMediaQuery,
   usePagination,
   useRouterStuff,
   useTable,
@@ -36,6 +38,7 @@ import { Dots, UserCheck, Users, UserXmark } from "@dub/ui/icons";
 import { COUNTRIES, fetcher, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { usePartnerFilters } from "../use-partner-filters";
@@ -63,9 +66,10 @@ const applicationsColumns = {
 };
 
 export function ProgramPartnersApplicationsPageClient() {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { queryParams, searchParams, searchParamsObj, getQueryString } =
     useRouterStuff();
+  const { isMobile } = useMediaQuery();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
@@ -452,7 +456,7 @@ export function ProgramPartnersApplicationsPageClient() {
       <BulkRejectPartnersModal />
 
       <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex w-full flex-col items-center gap-2 min-[550px]:flex-row min-[550px]:items-center">
           <Filter.Select
             className="w-full md:w-fit"
             filters={filters}
@@ -460,10 +464,29 @@ export function ProgramPartnersApplicationsPageClient() {
             onSelect={onSelect}
             onRemove={onRemove}
           />
-          <SearchBoxPersisted
-            placeholder="Search by name, email, or company"
-            inputClassName="md:w-80"
-          />
+          <div className="flex w-full grow items-center gap-2 md:w-auto">
+            <div className="min-w-0 flex-1">
+              <SearchBoxPersisted
+                placeholder="Search by name, email, or company"
+                inputClassName="w-full md:w-80"
+              />
+            </div>
+            <div className="flex shrink-0 justify-end gap-2">
+              <Link
+                href={`/${slug}/program/analytics/applications${getQueryString(
+                  undefined,
+                  { include: ["country"] },
+                )}`}
+              >
+                <Button
+                  variant="secondary"
+                  className="w-fit"
+                  icon={<ChartLine className="h-4 w-4 text-neutral-600" />}
+                  text={isMobile ? undefined : "View Analytics"}
+                />
+              </Link>
+            </div>
+          </div>
         </div>
         <AnimatedSizeContainer height>
           <div>

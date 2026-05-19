@@ -46,7 +46,7 @@ export function partnerNetworkListingParts(
 
   return {
     listingPartnerBase: {
-      discoverableAt: { not: null },
+      networkStatus: { in: ["approved", "trusted"] },
       ...(params.partnerIds && {
         id: { in: params.partnerIds },
       }),

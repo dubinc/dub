@@ -9,7 +9,7 @@ import { Prisma } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
 
 const ACTIONS_WITHOUT_CHANGE_SET: ActivityLogAction[] = [
-  "referral.created",
+  "submittedLead.created",
   "reward.created",
   "reward.deleted",
 ];

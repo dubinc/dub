@@ -7,7 +7,7 @@ import {
 const MAX_FOLDERS_PER_BATCH = 100;
 
 export async function deleteWorkspaceFolders(payload: DeleteWorkspacePayload) {
-  const { workspaceId, startingAfter } = payload;
+  const { workspaceId } = payload;
 
   const folders = await prisma.folder.findMany({
     where: {
@@ -16,12 +16,6 @@ export async function deleteWorkspaceFolders(payload: DeleteWorkspacePayload) {
     orderBy: {
       id: "asc",
     },
-    ...(startingAfter && {
-      skip: 1,
-      cursor: {
-        id: startingAfter,
-      },
-    }),
     take: MAX_FOLDERS_PER_BATCH,
   });
 

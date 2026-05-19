@@ -15,8 +15,14 @@ export const rejectPartnerApplicationAction = authActionClient
   .inputSchema(inputSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId, rejectionReason, rejectionNote, allowImmediateReapply } =
-      parsedInput;
+    const {
+      partnerId,
+      rejectionReason,
+      rejectionNote,
+      allowImmediateReapply,
+      flagForFraud,
+      flagForFraudReason,
+    } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -29,6 +35,8 @@ export const rejectPartnerApplicationAction = authActionClient
       rejectionReason,
       rejectionNote,
       allowImmediateReapply,
+      flagForFraud,
+      flagForFraudReason,
       userId: user.id,
     });
   });

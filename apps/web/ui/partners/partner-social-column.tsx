@@ -1,6 +1,6 @@
 import { PartnerPlatformProps } from "@/lib/types";
 import { PlatformType } from "@dub/prisma/client";
-import { BadgeCheck2Fill, Tooltip } from "@dub/ui";
+import { BadgeCheck2Fill, TimestampTooltip } from "@dub/ui";
 import { getDomainWithoutWWW } from "@dub/utils";
 
 const PLATFORMS_WITH_AT: PlatformType[] = [
@@ -14,7 +14,10 @@ export function PartnerSocialColumn({
   platform,
   platformName,
 }: {
-  platform: PartnerPlatformProps | null | undefined;
+  platform:
+    | Pick<PartnerPlatformProps, "identifier" | "verifiedAt">
+    | null
+    | undefined;
   platformName: PlatformType;
 }) {
   if (!platform?.identifier) {
@@ -35,11 +38,17 @@ export function PartnerSocialColumn({
         {value}
       </span>
       {verified && (
-        <Tooltip content="Verified" disableHoverableContent>
+        <TimestampTooltip
+          timestamp={platform.verifiedAt}
+          rows={["local", "utc", "unix"]}
+          side="top"
+          prefix="Verified"
+          delayDuration={150}
+        >
           <div>
             <BadgeCheck2Fill className="size-4 text-green-600" />
           </div>
-        </Tooltip>
+        </TimestampTooltip>
       )}
     </div>
   );

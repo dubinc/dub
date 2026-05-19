@@ -22,6 +22,7 @@ export const getNetworkProgram = cache(async ({ slug }: { slug: string }) => {
           clickReward: true,
           leadReward: true,
           saleReward: true,
+          referralReward: true,
           discount: true,
         },
       },

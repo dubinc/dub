@@ -299,6 +299,27 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
       {
         check: {
           default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: ({ plan }) => (
+          <>
+            <strong>
+              {plan.limits.partnerTags === 0
+                ? "No"
+                : plan.limits.partnerTags === INFINITY_NUMBER
+                  ? "Unlimited"
+                  : nFormatter(plan.limits.partnerTags)}
+            </strong>{" "}
+            partner tags
+          </>
+        ),
+        href: "https://dub.co/help/article/partner-groups",
+      },
+      {
+        check: {
+          default: false,
           advanced: true,
           enterprise: true,
         },

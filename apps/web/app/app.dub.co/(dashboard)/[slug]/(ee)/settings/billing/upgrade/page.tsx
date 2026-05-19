@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -20,7 +21,9 @@ import {
   Users2,
 } from "@dub/ui";
 import {
+  capitalize,
   cn,
+  DUB_TRIAL_PERIOD_DAYS,
   getSuggestedPlan,
   isDowngradePlan,
   isLegacyBusinessPlan,
@@ -32,6 +35,7 @@ import {
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "motion/react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
@@ -51,6 +55,9 @@ const COMPARE_FEATURE_ICONS: Record<
 };
 
 export default function WorkspaceBillingUpgradePage() {
+  const searchParams = useSearchParams();
+  const { data: session } = useSession();
+  const workspace = useWorkspace();
   const {
     slug,
     role,
@@ -60,7 +67,7 @@ export default function WorkspaceBillingUpgradePage() {
     stripeId,
     partnersLimit,
     trialEndsAt,
-  } = useWorkspace();
+  } = workspace;
 
   const { error: permissionsError } = clientAccessCheck({
     action: "billing.write",
@@ -68,14 +75,19 @@ export default function WorkspaceBillingUpgradePage() {
   });
 
   const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
+
+  const planPeriod = searchParams.get("planPeriod") ?? "";
   const [period, setPeriod] = useState<"monthly" | "yearly">(
-    currentPlanPeriod === "yearly" ? "yearly" : "monthly",
+    ["monthly", "yearly"].includes(planPeriod)
+      ? (planPeriod as "monthly" | "yearly")
+      : currentPlanPeriod === "yearly"
+        ? "yearly"
+        : "monthly",
   );
 
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
     usePartnersUpgradeModal();
 
-  const searchParams = useSearchParams();
   useEffect(() => {
     if (searchParams.get("showPartnersUpgradeModal")) {
       setShowPartnersUpgradeModal(true);
@@ -179,7 +191,7 @@ export default function WorkspaceBillingUpgradePage() {
                   stripeId &&
                     isDowngradePlan({
                       currentPlan: currentPlan || "free",
-                      currentTier: currentPlanTier,
+                      currentTier: currentPlanTier ?? undefined,
                       newPlan: plan.name,
                       newTier: planTier,
                     }),
@@ -269,18 +281,23 @@ export default function WorkspaceBillingUpgradePage() {
                           disabledTooltip={permissionsError || undefined}
                           text={
                             currentPlan === "enterprise"
-                              ? "Contact support"
+                              ? "Contact us"
                               : isCurrentPlanAndPeriod
                                 ? isWorkspaceBillingTrialActive(trialEndsAt)
                                   ? "Activate plan"
                                   : "Current plan"
                                 : isCurrentPlan
-                                  ? `Switch to ${period}`
+                                  ? `Switch to ${plan.name} ${capitalize(period)}`
                                   : isDowngrade
                                     ? "Downgrade"
                                     : isWorkspaceBillingTrialActive(trialEndsAt)
                                       ? "Switch trial"
-                                      : "Upgrade"
+                                      : isEligibleForTrial({
+                                            workspace,
+                                            session,
+                                          })
+                                        ? `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial`
+                                        : `Upgrade to ${plan.name} ${capitalize(period)}`
                           }
                           variant={isDowngrade ? "secondary" : "primary"}
                           className="h-8 shadow-sm"
@@ -305,8 +322,8 @@ export default function WorkspaceBillingUpgradePage() {
             <div className="bg-bg-muted border-subtle absolute inset-x-0 -top-2.5 bottom-0 rounded-b-[12px] border" />
 
             <AdjustUsageRow
-              onLinksUsageChange={(value) => setLinksUsage(value)}
               onEventsUsageChange={(value) => setEventsUsage(value)}
+              onLinksUsageChange={(value) => setLinksUsage(value)}
             />
           </div>
 

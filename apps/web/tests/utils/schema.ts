@@ -89,6 +89,7 @@ export const expectedWorkspace: Partial<Project> = {
   payoutsLimit: expect.any(Number),
   domainsLimit: expect.any(Number),
   tagsLimit: expect.any(Number),
+  partnerTagsLimit: expect.any(Number),
   usersLimit: expect.any(Number),
 
   createdAt: expect.any(String),

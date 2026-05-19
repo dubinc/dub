@@ -132,7 +132,7 @@ export function NetworkPartnerCard({
             ) : (
               <div className="size-16 animate-pulse rounded-full bg-neutral-200" />
             )}
-            {partner?.trustedAt && <TrustedPartnerBadge />}
+            {partner?.networkStatus === "trusted" && <TrustedPartnerBadge />}
           </div>
 
           {partner && onToggleStarred && (

@@ -67,6 +67,7 @@ export async function POST(req: Request) {
           select: {
             programId: true,
             tenantId: true,
+            status: true,
           },
         },
         users: {
@@ -262,8 +263,24 @@ export async function POST(req: Request) {
         const targetEnrollment = targetPartnerEnrollments.find(
           ({ programId }) => programId === sourceEnrollment.programId,
         );
+
         await prisma.$transaction(async (tx) => {
-          // delete old source enrollment
+          if (
+            targetEnrollment &&
+            sourceEnrollment.status === "approved" &&
+            ["pending", "invited"].includes(targetEnrollment.status)
+          ) {
+            await tx.programEnrollment.update({
+              where: {
+                partnerId_programId: {
+                  partnerId: targetPartnerId,
+                  programId: sourceEnrollment.programId,
+                },
+              },
+              data: { status: "approved" },
+            });
+          }
+
           await tx.programEnrollment.delete({
             where: {
               partnerId_programId: {

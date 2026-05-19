@@ -107,6 +107,7 @@ export async function updateWorkspacePlan({
           domainsLimit: limits.domains,
           aiLimit: limits.ai,
           tagsLimit: limits.tags,
+          partnerTagsLimit: limits.partnerTags,
           foldersLimit: limits.folders,
           groupsLimit: limits.groups,
           networkInvitesLimit: limits.networkInvites,

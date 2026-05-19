@@ -59,14 +59,13 @@ function CommissionsTab() {
           <CommissionsAnalyticsChart
             status={commissionStatus}
             unit={commissionUnit}
-            queryString={commissionsQueryString}
             interval={commissionsInterval}
             start={commissionsStart}
             end={commissionsEnd}
           />
         </div>
       </div>
-      <CommissionsPartnersTable queryString={commissionsQueryString} />
+      <CommissionsPartnersTable />
     </>
   );
 }

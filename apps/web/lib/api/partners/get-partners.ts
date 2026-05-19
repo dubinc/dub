@@ -7,6 +7,9 @@ import { buildProgramEnrollmentWhereForList } from "./program-enrollment-query";
 type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
   programId: string;
   includeGroupName?: boolean;
+  partnerTagIdOperator?: "IN" | "NOT IN";
+  groupIdOperator?: "IN" | "NOT IN";
+  countryOperator?: "IN" | "NOT IN";
 };
 
 export async function getPartners(filters: PartnerFilters) {
@@ -29,6 +32,14 @@ export async function getPartners(filters: PartnerFilters) {
     include: {
       partner: {
         include: {
+          programPartnerTags: {
+            where: {
+              programId,
+            },
+            include: {
+              partnerTag: true,
+            },
+          },
           platforms: true,
         },
       },
@@ -57,6 +68,9 @@ export async function getPartners(filters: PartnerFilters) {
       id: partner.id,
       createdAt: new Date(programEnrollment.createdAt),
       ...(includeGroupName && { group: partnerGroup?.name ?? "" }),
+      tags: partner.programPartnerTags
+        .map(({ partnerTag }) => partnerTag)
+        .filter((t) => t.programId != null && t.programId === programId),
       links,
       netRevenue:
         toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -

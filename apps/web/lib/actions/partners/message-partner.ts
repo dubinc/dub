@@ -42,14 +42,14 @@ export const messagePartnerAction = authActionClient
       });
     }
 
-    // Make sure partner is either discoverable, enrolled in the program, or already has a message with the program
+    // Make sure partner is either approved or trusted in the partner network, enrolled in the program, or already has a message with the program
     const { _count, programs } = await prisma.partner.findFirstOrThrow({
       where: {
         id: partnerId,
         OR: [
           {
-            discoverableAt: {
-              not: null,
+            networkStatus: {
+              in: ["approved", "trusted"],
             },
           },
           {
