@@ -10,16 +10,17 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const isHoldStatus = searchParams.status === "hold";
   const {
-    status: rawStatus,
+    status: _status,
     fraudEventGroupId,
     ...restSearchParams
   } = searchParams;
 
-  const parsedParams = getCommissionsCountQuerySchema.parse(restSearchParams);
+  const parsedParams = getCommissionsCountQuerySchema.parse(
+    isHoldStatus ? restSearchParams : searchParams,
+  );
 
   const counts = await getCommissionsCount({
     ...parsedParams,
-    ...(!isHoldStatus && rawStatus && { status: rawStatus }),
     programId,
     isHoldStatus,
     ...(fraudEventGroupId && { fraudEventGroupId }),
