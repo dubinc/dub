@@ -12,8 +12,8 @@ const PAYOUT_METHOD_PRIORITY: PartnerPayoutMethod[] = [
 
 /**
  * Computes payoutsEnabledAt and defaultPayoutMethod based on currently active
- * payout methods. The default is always selected from priority order:
- * stablecoin > connect > paypal.
+ * payout methods. Preserves the partner's existing default when it is still
+ * active; otherwise falls back to priority order: stablecoin > connect > paypal.
  */
 export async function recomputePartnerPayoutState(
   partner: Pick<
@@ -74,7 +74,11 @@ export async function recomputePartnerPayoutState(
     }
   });
 
-  const defaultPayoutMethod = activePayoutMethods[0] ?? null;
+  const defaultPayoutMethod =
+    partner.defaultPayoutMethod &&
+    activePayoutMethods.includes(partner.defaultPayoutMethod)
+      ? partner.defaultPayoutMethod
+      : activePayoutMethods[0] ?? null;
   let payoutsEnabledAt: Date | null = null;
 
   if (defaultPayoutMethod) {

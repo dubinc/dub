@@ -229,6 +229,10 @@ export const partnerPayoutMethodSchema = z.object({
   identifier: z.string().nullable(),
 });
 
+export const setDefaultPayoutMethodSchema = z.object({
+  type: z.enum(PartnerPayoutMethod),
+});
+
 export const partnerProfilePayoutsQuerySchema = payoutsQuerySchema.extend({
   programId: z.string().optional(),
   sortBy: payoutsQuerySchema.shape.sortBy.default("initiatedAt"),
