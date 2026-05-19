@@ -5,9 +5,13 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { PartnerSelector } from "@/ui/partners/partner-selector";
+import {
+  PartnerSelector,
+  SelectedPartner,
+} from "@/ui/partners/partner-selector";
 import { Markdown } from "@/ui/shared/markdown";
 import { Button, Modal, Switch } from "@dub/ui";
+import { currencyFormatter } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -28,13 +32,14 @@ function AttributeReferringPartnerModal({
   setShowModal: Dispatch<SetStateAction<boolean>>;
   partner: Pick<
     EnrolledPartnerProps,
-    "id" | "name" | "email" | "image" | "groupId"
+    "id" | "name" | "email" | "image" | "groupId" | "totalCommissions"
   >;
 }) {
   const { id: workspaceId } = useWorkspace();
-  const [referredByPartnerId, setReferredByPartnerId] = useState<string | null>(
-    null,
-  );
+
+  const [referredByPartner, setReferredByPartner] =
+    useState<SelectedPartner | null>(null);
+
   const [createCommissionsForPastEvents, setCreateCommissionsForPastEvents] =
     useState(false);
 
@@ -53,19 +58,19 @@ function AttributeReferringPartnerModal({
   );
 
   const onSubmit = useCallback(async () => {
-    if (!workspaceId || !referredByPartnerId) return;
+    if (!workspaceId || !referredByPartner?.id) return;
 
     await executeAsync({
       workspaceId,
       partnerId: partner.id,
-      referredByPartnerId,
+      referredByPartnerId: referredByPartner?.id,
       createCommissionsForPastEvents,
     });
   }, [
     executeAsync,
     workspaceId,
     partner.id,
-    referredByPartnerId,
+    referredByPartner?.id,
     createCommissionsForPastEvents,
   ]);
 
@@ -104,22 +109,49 @@ function AttributeReferringPartnerModal({
           </label>
           <div className="mt-1.5">
             <PartnerSelector
-              selectedPartnerId={referredByPartnerId}
-              setSelectedPartnerId={setReferredByPartnerId}
+              selectedPartnerId={referredByPartner?.id || null}
+              setSelectedPartnerId={() => {}}
+              onSelectedPartner={setReferredByPartner}
             />
           </div>
         </div>
 
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
             <Switch
               checked={createCommissionsForPastEvents}
               fn={setCreateCommissionsForPastEvents}
+              disabled={
+                !referredByPartner?.id ||
+                partner.id === referredByPartner?.id ||
+                partner.totalCommissions === 0
+              }
             />
 
-            <span className="text-sm font-medium text-neutral-800">
-              Create commissions for eligible past events
-            </span>
+            <div className="-mt-0.5 space-y-1">
+              <p className="text-sm font-medium text-neutral-800">
+                Create commissions for eligible past events
+              </p>
+
+              {createCommissionsForPastEvents && (
+                <p className="text-content-subtle text-sm">
+                  This will generate partner referral commissions for{" "}
+                  <span className="font-semibold text-neutral-900">
+                    {referredByPartner?.name}
+                  </span>{" "}
+                  based on all of{" "}
+                  <span className="font-semibold text-neutral-900">
+                    {partner.name}
+                  </span>
+                  's historical commissions (
+                  <span className="font-semibold text-neutral-900">
+                    Total:
+                    {currencyFormatter(partner.totalCommissions)}
+                  </span>
+                  )
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -136,7 +168,12 @@ function AttributeReferringPartnerModal({
           onClick={onSubmit}
           variant="primary"
           text="Attribute partner"
-          disabled={!workspaceId || !referredByPartnerId || isPending}
+          disabled={
+            !workspaceId ||
+            !referredByPartner?.id ||
+            isPending ||
+            partner.id === referredByPartner?.id
+          }
           loading={isPending}
           className="h-8 w-fit px-3"
         />
@@ -150,7 +187,7 @@ export function useAttributeReferringPartnerModal({
 }: {
   partner: Pick<
     EnrolledPartnerProps,
-    "id" | "name" | "email" | "image" | "groupId"
+    "id" | "name" | "email" | "image" | "groupId" | "totalCommissions"
   >;
 }) {
   const [showModal, setShowModal] = useState(false);

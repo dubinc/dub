@@ -504,7 +504,7 @@ function ReferredByPartner({
 }) {
   const { slug } = useWorkspace();
 
-  const { referral, loading } = usePartnerReferral({
+  const { referral, loading, error } = usePartnerReferral({
     partnerId: partner?.id,
   });
 
@@ -512,6 +512,10 @@ function ReferredByPartner({
     AttributeReferringPartnerModal,
     setShowAttributeReferringPartnerModal,
   } = useAttributeReferringPartnerModal({ partner });
+
+  if (error) {
+    return null;
+  }
 
   if (loading) {
     return (
