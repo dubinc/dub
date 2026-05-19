@@ -72,14 +72,6 @@ export const attributeReferringPartnerAction = authActionClient
       }),
     ]);
 
-    if (programEnrollment.status !== "approved") {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "Only approved partners can be attributed a referring partner.",
-      });
-    }
-
     if (referringProgramEnrollment.status !== "approved") {
       throw new DubApiError({
         code: "bad_request",
@@ -105,30 +97,41 @@ export const attributeReferringPartnerAction = authActionClient
     const baseDate =
       programEnrollment.application?.createdAt ?? programEnrollment.createdAt;
 
-    await prisma.programApplicationEvent.upsert({
-      where: {
-        programId_partnerId: {
+    try {
+      await prisma.programApplicationEvent.upsert({
+        where: {
+          programId_partnerId: {
+            programId,
+            partnerId,
+          },
+          referredByPartnerId: null,
+        },
+        update: {
+          referredByPartnerId,
+        },
+        create: {
+          id: createId({ prefix: "pga_evt_" }),
           programId,
           partnerId,
+          referredByPartnerId,
+          referralSource: "manual",
+          country: referringProgramEnrollment.partner.country,
+          visitedAt: subMinutes(baseDate, 30),
+          startedAt: subMinutes(baseDate, 5),
+          submittedAt: subMinutes(baseDate, 1),
+          approvedAt: programEnrollment.createdAt,
         },
-        referredByPartnerId: null,
-      },
-      update: {
-        referredByPartnerId,
-      },
-      create: {
-        id: createId({ prefix: "pga_evt_" }),
-        programId,
-        partnerId,
-        referredByPartnerId,
-        referralSource: "manual",
-        country: referringProgramEnrollment.partner.country,
-        visitedAt: subMinutes(baseDate, 30),
-        startedAt: subMinutes(baseDate, 5),
-        submittedAt: subMinutes(baseDate, 1),
-        approvedAt: programEnrollment.createdAt,
-      },
-    });
+      });
+    } catch (error) {
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: "This partner already has a referring partner.",
+        });
+      }
+
+      throw error;
+    }
 
     if (
       createCommissionsForPastEvents &&
@@ -153,7 +156,6 @@ export const attributeReferringPartnerAction = authActionClient
           correlation: {
             programId,
             partnerId,
-            referredByPartnerId,
           },
         });
 
