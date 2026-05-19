@@ -5,10 +5,11 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { subHours, subMinutes } from "date-fns";
+import { subMinutes } from "date-fns";
 import { authActionClient } from "../actions/safe-action";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 import { createId } from "../api/create-id";
+import { logger } from "../axiom/server";
 import { qstash } from "../cron";
 import { attributeReferringPartnerSchema } from "./schemas";
 
@@ -126,8 +127,8 @@ export const attributeReferringPartnerAction = authActionClient
         referredByPartnerId,
         referralSource: "manual",
         country: referringProgramEnrollment.partner.country,
-        visitedAt: subHours(baseDate, 1),
-        startedAt: baseDate,
+        visitedAt: subMinutes(baseDate, 30),
+        startedAt: subMinutes(baseDate, 5),
         submittedAt: subMinutes(baseDate, 1),
         approvedAt: programEnrollment.createdAt,
       },
@@ -137,13 +138,30 @@ export const attributeReferringPartnerAction = authActionClient
       createCommissionsForPastEvents &&
       referringProgramEnrollment.referralReward
     ) {
-      await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/backfill`,
-        body: {
-          programId,
-          partnerId,
-          referredByPartnerId,
-        },
-      });
+      try {
+        await qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/backfill`,
+          body: {
+            programId,
+            partnerId,
+            referredByPartnerId,
+          },
+        });
+      } catch (error) {
+        logger.error("publishJSON.failed", {
+          service: "qstash",
+          event: "publishJSON.failed",
+          url: `/api/cron/commissions/referrals/backfill`,
+          errorName: error instanceof Error ? error.name : undefined,
+          errorStack: error instanceof Error ? error.stack : undefined,
+          correlation: {
+            programId,
+            partnerId,
+            referredByPartnerId,
+          },
+        });
+
+        await logger.flush();
+      }
     }
   });
