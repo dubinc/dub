@@ -195,11 +195,15 @@ export function PartnerInfoCards({
         : []),
 
       // Referred by
-      {
-        id: "referredBy",
-        icon: <UserArrowRight className="size-3.5 shrink-0" />,
-        text: <ReferredByPartner partner={partner} />,
-      },
+      ...(type === "enrolled"
+        ? [
+            {
+              id: "referredBy",
+              icon: <UserArrowRight className="size-3.5 shrink-0" />,
+              text: <ReferredByPartner partner={partner} />,
+            },
+          ]
+        : []),
     ]);
   }
 
@@ -498,7 +502,7 @@ function ReferredByPartner({
 }: {
   partner: Pick<
     EnrolledPartnerExtendedProps,
-    "id" | "name" | "image" | "email" | "groupId"
+    "id" | "name" | "image" | "email" | "groupId" | "totalCommissions"
   >;
 }) {
   const { slug } = useWorkspace();
