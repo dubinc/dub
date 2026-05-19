@@ -94,16 +94,12 @@ export const attributeReferringPartnerAction = authActionClient
       });
     }
 
-    if (
-      referringProgramEnrollment.applicationEvent?.referredByPartnerId ===
-      partnerId
-    ) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "This referral relationship is not allowed because it would create a referral loop.",
-      });
-    }
+    await throwIfReferralLoop({
+      programId,
+      partnerId,
+      initialReferrerId:
+        referringProgramEnrollment.applicationEvent?.referredByPartnerId,
+    });
 
     // Attribute the referring partner to the application
     const baseDate =
@@ -165,3 +161,49 @@ export const attributeReferringPartnerAction = authActionClient
       }
     }
   });
+
+async function throwIfReferralLoop({
+  programId,
+  partnerId,
+  initialReferrerId,
+}: {
+  programId: string;
+  partnerId: string;
+  initialReferrerId: string | null | undefined;
+}) {
+  const visited = new Set<string>();
+  let currentReferrerId = initialReferrerId;
+
+  while (currentReferrerId) {
+    if (currentReferrerId === partnerId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "This referral relationship is not allowed because it would create a referral loop.",
+      });
+    }
+
+    // Malformed data: ancestor chain already cycles (e.g. A→B→A) without
+    // including partnerId — stop walking instead of looping forever.
+    // Should never happen in practice
+    if (visited.has(currentReferrerId)) {
+      break;
+    }
+
+    visited.add(currentReferrerId);
+
+    const applicationEvent = await prisma.programApplicationEvent.findUnique({
+      where: {
+        programId_partnerId: {
+          programId,
+          partnerId: currentReferrerId,
+        },
+      },
+      select: {
+        referredByPartnerId: true,
+      },
+    });
+
+    currentReferrerId = applicationEvent?.referredByPartnerId ?? null;
+  }
+}
