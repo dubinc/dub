@@ -39,7 +39,8 @@ export default function NetworkApplicationsPage() {
     useRouterStuff();
 
   const [detailsSheetState, setDetailsSheetState] = useState<
-    { open: false; partnerId: null } | { open: true; partnerId: string }
+    | { open: false; partnerId: string | null }
+    | { open: true; partnerId: string }
   >({ open: false, partnerId: null });
 
   const {
@@ -125,6 +126,21 @@ export default function NetworkApplicationsPage() {
     return active;
   }, [searchParamsObj.country, searchParamsObj.networkStatus]);
 
+  const onSearchChange = (value: string) => {
+    const search = value.trim();
+    const hasActiveFilters =
+      Boolean(searchParamsObj.networkStatus) || Boolean(searchParamsObj.country);
+
+    if (!search || !hasActiveFilters) {
+      return;
+    }
+
+    queryParams({
+      del: ["networkStatus", "country", "page"],
+      scroll: false,
+    });
+  };
+
   const platformsMapByPartnerId = useMemo(() => {
     const map = new Map<
       string,
@@ -205,7 +221,7 @@ export default function NetworkApplicationsPage() {
 
   const handleReviewPartner = async (
     partner: AdminNetworkPartner,
-    status: "approved" | "rejected",
+    status: "approved" | "rejected" | "draft",
   ) => {
     const currentIndex = partners.findIndex(({ id }) => id === partner.id);
     const fallbackPartnerId =
@@ -232,7 +248,9 @@ export default function NetworkApplicationsPage() {
       toast.success(
         status === "approved"
           ? "Partner approved for the network."
-          : "Partner rejected from the network.",
+          : status === "draft"
+            ? "Network profile reverted to draft."
+            : "Partner rejected from the network.",
       );
 
       await mutate();
@@ -252,6 +270,32 @@ export default function NetworkApplicationsPage() {
       toast.error(
         error instanceof Error ? error.message : "Failed to review partner.",
       );
+    }
+  };
+
+  const handleUpdatePartnerCountry = async (
+    partner: AdminNetworkPartner,
+    country: string,
+  ) => {
+    try {
+      const response = await fetch(`/api/admin/partners/${partner.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ country }),
+      });
+
+      if (!response.ok) {
+        throw new Error((await response.text()) || "Failed to update country.");
+      }
+
+      toast.success(`Partner country updated to ${COUNTRIES[country]}.`);
+      await mutate();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to update country.";
+      toast.error(message);
     }
   };
 
@@ -399,17 +443,10 @@ export default function NetworkApplicationsPage() {
               : undefined
           }
           setIsOpen={(open) => {
-            if (!open) {
-              setDetailsSheetState({ open: false, partnerId: null });
-              queryParams({ del: "partnerId", scroll: false });
-            } else if (detailsSheetState.partnerId) {
-              setDetailsSheetState({
-                open: true,
-                partnerId: detailsSheetState.partnerId,
-              });
-            }
+            setDetailsSheetState((state) => ({ ...state, open }) as any);
           }}
           onReview={handleReviewPartner}
+          onUpdateCountry={handleUpdatePartnerCountry}
         />
       )}
       <div className="mb-4 flex flex-col gap-3">
@@ -422,8 +459,9 @@ export default function NetworkApplicationsPage() {
             onRemove={onRemoveFilter}
           />
           <SearchBoxPersisted
-            placeholder="Search by partner email"
+            placeholder="Search by partner email or ID"
             inputClassName="w-full md:w-80"
+            onChange={onSearchChange}
           />
         </div>
         {activeFilters.length > 0 && (

@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDubAdminRole, withWorkspace } from "@/lib/auth";
 import { getDubCustomer } from "@/lib/dub";
 import { stripe } from "@/lib/stripe";
+import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
 import { APP_DOMAIN, DUB_TRIAL_PERIOD_DAYS } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -104,15 +105,6 @@ export const POST = withWorkspace(
     } else {
       const customer = await getDubCustomer(session.user.id);
 
-      // Only apply trial if the customer is a:
-      // - on the free plan
-      // - new Stripe customer
-      // - no prior/existing trial on workspace
-      const shouldApplyCheckoutTrial =
-        workspace.plan === "free" &&
-        workspace.stripeId == null &&
-        workspace.trialEndsAt == null;
-
       const stripeSession = await stripe.checkout.sessions.create({
         ...(workspace.stripeId
           ? {
@@ -152,7 +144,7 @@ export const POST = withWorkspace(
           enabled: true,
         },
         mode: "subscription",
-        ...(shouldApplyCheckoutTrial
+        ...(isEligibleForTrial({ workspace, session })
           ? {
               subscription_data: {
                 trial_period_days: DUB_TRIAL_PERIOD_DAYS,

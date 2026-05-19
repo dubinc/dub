@@ -8,9 +8,7 @@ import * as z from "zod/v4";
 export const GET = withAdmin(async () => {
   const partners = await prisma.partner.findMany({
     where: {
-      trustedAt: {
-        not: null,
-      },
+      networkStatus: "trusted",
     },
     orderBy: {
       trustedAt: "desc",

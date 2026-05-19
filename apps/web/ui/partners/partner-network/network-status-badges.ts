@@ -22,6 +22,7 @@ export const NetworkStatusBadges = {
       content:
         "Your Dub Partner Network application is under review. You'll be able to apply to this program once approved.",
       cta: "Pending approval",
+      ctaClassName: "bg-bg-attention text-content-attention",
     },
     label: "Submitted",
     variant: "new",

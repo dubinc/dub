@@ -34,7 +34,9 @@ export const deleteProgramInviteAction = authActionClient
             partnerId,
             programId,
           },
-          status: "invited", // can only delete invited enrollments
+          status: {
+            in: ["invited", "declined"],
+          },
         },
         include: {
           program: true,

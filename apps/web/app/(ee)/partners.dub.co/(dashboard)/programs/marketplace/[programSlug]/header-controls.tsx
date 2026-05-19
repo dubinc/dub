@@ -152,7 +152,9 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
                 href="/profile"
                 className={cn(
                   "flex items-center justify-center gap-2 rounded-lg p-2",
-                  className,
+                  "ctaClassName" in partnerTooltip
+                    ? partnerTooltip.ctaClassName
+                    : className,
                 )}
               >
                 <Icon className="size-4 shrink-0" />

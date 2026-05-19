@@ -48,6 +48,7 @@ export async function bulkReactivatePartners({
       clickRewardId: true,
       leadRewardId: true,
       saleRewardId: true,
+      referralRewardId: true,
       discountId: true,
     },
   });
@@ -120,6 +121,7 @@ export async function bulkReactivatePartners({
         clickRewardId: group.clickRewardId,
         leadRewardId: group.leadRewardId,
         saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
         discountId: group.discountId,
       },
     });

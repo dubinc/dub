@@ -54,6 +54,7 @@ export function formatCommissionsForExport(
       customerName: commission.customer?.name || "",
       customerEmail: commission.customer?.email || "",
       customerExternalId: commission.customer?.externalId || "",
+      stripeCustomerId: commission.customer?.stripeCustomerId || "",
       partnerName: commission.partner?.name || "",
       partnerEmail: commission.partner?.email || "",
       partnerTenantId: commission.programEnrollment?.tenantId || "",

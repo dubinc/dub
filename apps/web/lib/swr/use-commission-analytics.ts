@@ -13,9 +13,8 @@ export type CommissionAnalyticsFilterKey = Extract<
   "partnerId" | "groupId" | "partnerTagId" | "type"
 >;
 
-interface UseCommissionAnalyticsProps<
-  G extends CommissionAnalyticsGroupBy,
-> extends Partial<Omit<CommissionAnalyticsQuery, "groupBy">> {
+interface UseCommissionAnalyticsProps<G extends CommissionAnalyticsGroupBy>
+  extends Partial<Omit<CommissionAnalyticsQuery, "groupBy">> {
   groupBy: G;
   exclude?: CommissionAnalyticsFilterKey[];
   enabled?: boolean;
@@ -34,11 +33,7 @@ function serializeCommissionAnalyticsFilters(
 
 export default function useCommissionAnalytics<
   G extends CommissionAnalyticsGroupBy,
->({
-  exclude,
-  enabled = true,
-  ...filters
-}: UseCommissionAnalyticsProps<G>) {
+>({ exclude, enabled = true, ...filters }: UseCommissionAnalyticsProps<G>) {
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
@@ -51,8 +46,7 @@ export default function useCommissionAnalytics<
       ...serialized,
       ...(workspaceId ? { workspaceId } : {}),
       timezone:
-        serialized.timezone ??
-        Intl.DateTimeFormat().resolvedOptions().timeZone,
+        serialized.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
     },
     {
       exclude: [
@@ -74,9 +68,7 @@ export default function useCommissionAnalytics<
   );
 
   const url =
-    workspaceId && enabled
-      ? `/api/commissions/analytics${querySuffix}`
-      : null;
+    workspaceId && enabled ? `/api/commissions/analytics${querySuffix}` : null;
 
   const { data, error, isLoading } = useSWR<CommissionAnalyticsByGroup[G]>(
     url,

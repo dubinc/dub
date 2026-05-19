@@ -1,13 +1,13 @@
 "use client";
 
-import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
+import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import usePartnerCustomersCount from "@/lib/swr/use-partner-customers-count";
-import usePartnerReferralsCount from "@/lib/swr/use-partner-referrals-count";
+import { usePartnerSubmittedLeadsCount } from "@/lib/swr/use-partner-submitted-leads-count";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
+import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { SubmitReferralSheet } from "@/ui/referrals/submit-referral-sheet";
+import { SubmitLeadSheet } from "@/ui/submitted-leads/submit-lead-sheet";
 import { Button, InfoTooltip } from "@dub/ui";
 import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
@@ -15,7 +15,7 @@ import { useParams, usePathname } from "next/navigation";
 import { CSSProperties, ReactNode, useMemo, useState } from "react";
 import * as z from "zod/v4";
 
-export default function PartnerCustomersLayout({
+export default function PartnerProgramCustomersLayout({
   children,
 }: {
   children: ReactNode;
@@ -23,35 +23,35 @@ export default function PartnerCustomersLayout({
   const pathname = usePathname();
   const { programEnrollment } = useProgramEnrollment();
   const { programSlug } = useParams<{ programSlug: string }>();
-  const [showReferralSheet, setShowReferralSheet] = useState(false);
+  const [showLeadSheet, setShowLeadSheet] = useState(false);
 
   const { data: customersCount } = usePartnerCustomersCount<number>({
     includeParams: [],
   });
 
-  const { data: referralsCount } = usePartnerReferralsCount<number>({
+  const { data: leadsCount } = usePartnerSubmittedLeadsCount<number>({
     ignoreParams: true,
   });
 
-  const referralFormDataRaw = programEnrollment?.program?.referralFormData;
+  const leadFormDataRaw = programEnrollment?.program?.referralFormData;
   const programId = programEnrollment?.programId;
 
   const isEnabled = programId
-    ? REFERRAL_ENABLED_PROGRAM_IDS.includes(programId)
+    ? SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(programId)
     : false;
 
-  const referralFormData = useMemo(() => {
-    if (!referralFormDataRaw) {
+  const leadFormData = useMemo(() => {
+    if (!leadFormDataRaw) {
       return null;
     }
     try {
-      return referralFormSchema.parse(referralFormDataRaw) as z.infer<
-        typeof referralFormSchema
+      return submittedLeadFormSchema.parse(leadFormDataRaw) as z.infer<
+        typeof submittedLeadFormSchema
       >;
     } catch {
       return null;
     }
-  }, [referralFormDataRaw]);
+  }, [leadFormDataRaw]);
 
   const tabs = useMemo(() => {
     if (!isEnabled) {
@@ -67,14 +67,14 @@ export default function PartnerCustomersLayout({
         count: customersCount,
       },
       {
-        label: "Submitted Referrals",
-        id: "invited",
-        href: "referrals",
-        info: "Shows your submitted referrals and their status.",
-        count: referralsCount,
+        label: "Submitted leads",
+        id: "leads",
+        href: "leads",
+        info: "Shows your submitted leads.",
+        count: leadsCount,
       },
     ];
-  }, [isEnabled, customersCount, referralsCount]);
+  }, [isEnabled, customersCount, leadsCount]);
 
   return (
     <PageContent
@@ -83,28 +83,26 @@ export default function PartnerCustomersLayout({
         <>
           {isEnabled && (
             <Button
-              text="Submit referral"
+              text="Submit lead"
               className="h-9 w-fit rounded-lg"
-              disabled={!referralFormData}
+              disabled={!leadFormData}
               disabledTooltip={
-                referralFormData
-                  ? undefined
-                  : "Submitted referrals are not offered."
+                leadFormData ? undefined : "Submitted leads are not offered."
               }
               onClick={() => {
-                setShowReferralSheet(true);
+                setShowLeadSheet(true);
               }}
             />
           )}
         </>
       }
     >
-      {isEnabled && referralFormData && programEnrollment?.programId && (
-        <SubmitReferralSheet
-          isOpen={showReferralSheet}
-          setIsOpen={setShowReferralSheet}
+      {isEnabled && leadFormData && programEnrollment?.programId && (
+        <SubmitLeadSheet
+          isOpen={showLeadSheet}
+          setIsOpen={setShowLeadSheet}
           programId={programEnrollment.programId}
-          referralFormData={referralFormData}
+          leadFormData={leadFormData}
         />
       )}
 

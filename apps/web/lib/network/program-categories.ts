@@ -5,6 +5,7 @@ import {
   CircleHalfDottedClock,
   Code,
   CreditCard,
+  Headset,
   Heart,
   Icon,
   MarketingTarget,
@@ -73,6 +74,11 @@ export const PROGRAM_CATEGORIES: {
     id: Category.Consumer,
     label: "Consumer",
     icon: User,
+  },
+  {
+    id: Category.Support,
+    label: "Support",
+    icon: Headset,
   },
 ];
 

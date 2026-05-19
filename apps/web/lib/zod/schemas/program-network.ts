@@ -32,20 +32,10 @@ export const NetworkProgramExtendedSchema = NetworkProgramSchema.extend({
 
 export const PROGRAM_NETWORK_MAX_PAGE_SIZE = 100;
 
-const rewardTypes = ["sale", "lead", "click", "discount"] as const;
-const rewardTypeSchema = z.enum(rewardTypes);
-
 export const getNetworkProgramsQuerySchema = z
   .object({
     category: z.enum(Category).optional(),
-    rewardType: z
-      .union([z.string(), z.array(rewardTypeSchema)])
-      .transform((v) =>
-        Array.isArray(v)
-          ? v
-          : v.split(",").filter((v) => rewardTypes.includes(v as any)),
-      )
-      .optional(),
+    rewardType: z.enum(["sale", "lead", "click", "discount"]).optional(),
     status: z.preprocess(
       (v) => (v === "null" ? null : v),
       z.enum(ProgramEnrollmentStatus).nullish(),
