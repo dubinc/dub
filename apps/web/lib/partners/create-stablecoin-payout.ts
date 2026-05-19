@@ -4,7 +4,11 @@ import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-fo
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { PartnerPayoutMethod, Prisma } from "@dub/prisma/client";
-import { currencyFormatter, prettyPrint } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  currencyFormatter,
+  prettyPrint,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
@@ -12,6 +16,7 @@ import {
   MIN_WITHDRAWAL_AMOUNT_CENTS,
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "../constants/payouts";
+import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
 import { markPayoutsAsProcessed } from "../payouts/mark-payouts-as-processed";
 import { createStripeOutboundPayment } from "../stripe/create-stripe-outbound-payment";
@@ -276,11 +281,23 @@ export const createStablecoinPayout = async ({
   ]);
 
   waitUntil(
-    trackCommissionStatusUpdatesByProgram({
-      commissions,
-      payouts: allPayouts,
-      newStatus: "paid",
-    }),
+    Promise.allSettled([
+      trackCommissionStatusUpdatesByProgram({
+        commissions,
+        payouts: allPayouts,
+        newStatus: "paid",
+      }),
+
+      enqueueBatchJobs(
+        payoutIds.map((payoutId) => ({
+          queueName: "create-referral-commissions",
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/queue`,
+          body: {
+            payoutId,
+          },
+        })),
+      ),
+    ]),
   );
 
   if (!partner.email) {

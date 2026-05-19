@@ -16,9 +16,7 @@ interface QueryResult {
   partnerTagIds: string | string[] | null;
 }
 
-function parsePartnerTagIds(
-  value: QueryResult["partnerTagIds"],
-): string[] {
+function parsePartnerTagIds(value: QueryResult["partnerTagIds"]): string[] {
   if (value == null) return [];
   if (Array.isArray(value)) {
     return value.filter(

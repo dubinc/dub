@@ -58,10 +58,12 @@ export default function DomainClaimed({
             </Section>
             <Text className="text-sm leading-6 text-black">
               Once the domain is fully provisioned, you can start creating links
-              with it. This process can take up to 1 hour.
+              with it. This process is usually completed within 1 hour, but can
+              sometimes take up to 12 hours (for the DNS records and SSL certs
+              to fully propagate).
             </Text>
             <Text className="text-sm leading-6 text-black">
-              If your domain is not active after 1 hour, please reply to this
+              If your domain is not active after 12 hours, please reply to this
               email and we will look into it.
             </Text>
             <Footer email={email} />

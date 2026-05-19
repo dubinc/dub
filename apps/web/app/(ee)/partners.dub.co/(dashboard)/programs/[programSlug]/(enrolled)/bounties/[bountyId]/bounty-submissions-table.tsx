@@ -1,10 +1,10 @@
 "use client";
 
+import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
 import {
   type SubmissionPeriod,
   getSubmissionPeriods,
 } from "@/lib/bounty/periods";
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { useBountySubmissionDetailsSheet } from "@/ui/partners/bounties/bounty-submission-details-sheet";
@@ -56,7 +56,7 @@ export function BountySubmissionsTable({
               }: {
                 row: { original: SubmissionPeriod<PartnerBountySubmission> };
               }) => {
-                const config = BOUNTY_SUBMISSION_STATUS_BADGES[original.status];
+                const config = BountySubmissionStatusBadges[original.status];
                 const label =
                   original.status === "submitted"
                     ? "Pending review"
@@ -89,7 +89,7 @@ export function BountySubmissionsTable({
         minSize: 120,
         size: 160,
         cell: ({ row: { original } }) => {
-          const config = BOUNTY_SUBMISSION_STATUS_BADGES[original.status];
+          const config = BountySubmissionStatusBadges[original.status];
           if (!config) return null;
           const label =
             original.status === "submitted" ? "Pending review" : config.label;

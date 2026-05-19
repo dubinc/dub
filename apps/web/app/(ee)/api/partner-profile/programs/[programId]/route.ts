@@ -16,6 +16,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       clickReward: true,
       leadReward: true,
       saleReward: true,
+      referralReward: true,
       discount: true,
       partnerGroup: true,
       application: {
@@ -32,6 +33,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     programEnrollment.clickReward,
     programEnrollment.leadReward,
     programEnrollment.saleReward,
+    programEnrollment.referralReward,
   ].filter((r): r is Reward => r !== null);
 
   return NextResponse.json(

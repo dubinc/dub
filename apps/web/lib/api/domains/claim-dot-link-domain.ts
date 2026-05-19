@@ -1,10 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { createLink } from "@/lib/api/links";
 import { registerDomain } from "@/lib/dynadot/register-domain";
-import { WorkspaceWithUsers } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
 import DomainClaimed from "@dub/email/templates/domain-claimed";
 import { prisma } from "@dub/prisma";
+import { Project } from "@dub/prisma/client";
 import { DEFAULT_LINK_PROPS, isWorkspaceBillingTrialActive } from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import { waitUntil } from "@vercel/functions";
@@ -19,7 +19,10 @@ export async function claimDotLinkDomain({
   skipWorkspaceChecks = false,
 }: {
   domain: string;
-  workspace: WorkspaceWithUsers;
+  workspace: Pick<
+    Project,
+    "id" | "slug" | "plan" | "stripeId" | "trialEndsAt" | "dotLinkClaimed"
+  >;
   userId: string;
   skipWorkspaceChecks?: boolean; // when used in /api/domains/register
 }) {
@@ -163,7 +166,7 @@ export const sendDomainClaimedEmails = async ({
   workspace,
   domain,
 }: {
-  workspace: Pick<WorkspaceWithUsers, "id" | "slug">;
+  workspace: Pick<Project, "id" | "slug">;
   domain: string;
 }) => {
   const workspaceWithOwner = await prisma.project.findUniqueOrThrow({

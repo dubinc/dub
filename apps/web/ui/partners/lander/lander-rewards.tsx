@@ -10,9 +10,9 @@ import {
 import { Gift, Heart, Icon, Trophy } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
-import { REWARD_EVENTS } from "../constants";
 import { formatDiscountDescription } from "../format-discount-description";
 import { ProgramRewardModifiersTooltip } from "../program-reward-modifiers-tooltip";
+import { REWARD_EVENT_ICON } from "../rewards/reward-event-icon";
 
 const MAX_VISIBLE_BOUNTIES = 3;
 
@@ -62,7 +62,7 @@ export function LanderRewards({
           </h2>
           <ul className="mt-2 flex flex-col gap-2 text-sm font-medium tracking-[-0.02em] text-neutral-600">
             {sortedFilteredRewards.map((reward) => (
-              <Item key={reward.id} icon={REWARD_EVENTS[reward.event].icon}>
+              <Item key={reward.id} icon={REWARD_EVENT_ICON[reward.event]}>
                 {reward.description || (
                   <>
                     {constructRewardAmount(reward)}{" "}

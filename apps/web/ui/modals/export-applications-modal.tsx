@@ -51,7 +51,7 @@ function ExportApplicationsModal({
 
     try {
       const response = await fetch(
-        `/api/programs/${program.id}/applications/export?${new URLSearchParams({
+        `/api/partners/applications/export?${new URLSearchParams({
           workspaceId: workspaceId,
           ...(data.columns.length
             ? { columns: data.columns.join(",") }
