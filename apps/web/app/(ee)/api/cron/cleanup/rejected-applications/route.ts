@@ -43,16 +43,33 @@ export async function POST(req: Request) {
         break;
       }
 
-      const deletedRes = await prisma.programEnrollment.deleteMany({
-        where: {
-          id: {
-            in: rejectedProgramEnrollments.map(({ id }) => id),
+      // Delete the program application events
+      const deletedProgramApplicationEvents =
+        await prisma.programApplicationEvent.deleteMany({
+          where: {
+            programEnrollment: {
+              id: {
+                in: rejectedProgramEnrollments.map(({ id }) => id),
+              },
+            },
           },
-        },
-      });
+        });
 
       console.log(
-        `Deleted ${deletedRes.count} rejected programEnrollments that are older than 30 days`,
+        `Deleted ${deletedProgramApplicationEvents.count} program application events.`,
+      );
+
+      const deletedProgramEnrollments =
+        await prisma.programEnrollment.deleteMany({
+          where: {
+            id: {
+              in: rejectedProgramEnrollments.map(({ id }) => id),
+            },
+          },
+        });
+
+      console.log(
+        `Deleted ${deletedProgramEnrollments.count} rejected programEnrollments that are older than 30 days`,
       );
     }
 
