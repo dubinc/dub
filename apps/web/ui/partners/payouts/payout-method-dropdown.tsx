@@ -33,21 +33,24 @@ export function PayoutMethodDropdown() {
     mutate: mutatePayoutSettings,
   } = usePartnerPayoutSettings();
 
-  const {
-    executeAsync: setDefaultPayoutMethod,
-    isExecuting: isSetDefaultPending,
-  } = useAction(setDefaultPayoutMethodAction, {
-    onSuccess: async () => {
-      toast.success("Default payout method updated.");
-      await Promise.all([
-        mutatePayoutSettings(),
-        mutatePrefix("/api/partner-profile"),
-      ]);
+  const [pendingDefaultType, setPendingDefaultType] =
+    useState<PartnerPayoutMethod | null>(null);
+
+  const { executeAsync: setDefaultPayoutMethod } = useAction(
+    setDefaultPayoutMethodAction,
+    {
+      onSuccess: async () => {
+        toast.success("Default payout method updated.");
+        await Promise.all([
+          mutatePayoutSettings(),
+          mutatePrefix("/api/partner-profile"),
+        ]);
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
     },
-    onError({ error }) {
-      toast.error(error.serverError);
-    },
-  });
+  );
 
   const payoutMethods =
     !payoutMethodsData || !Array.isArray(payoutMethodsData)
@@ -66,7 +69,12 @@ export function PayoutMethodDropdown() {
 
   const handleSetDefault = useCallback(
     async (type: PartnerPayoutMethod) => {
-      await setDefaultPayoutMethod({ type });
+      setPendingDefaultType(type);
+      try {
+        await setDefaultPayoutMethod({ type });
+      } finally {
+        setPendingDefaultType(null);
+      }
     },
     [setDefaultPayoutMethod],
   );
@@ -99,7 +107,7 @@ export function PayoutMethodDropdown() {
                       onAction={handleAction}
                       onSetDefault={handleSetDefault}
                       isActionPending={isPending}
-                      isSetDefaultPending={isSetDefaultPending}
+                      pendingDefaultType={pendingDefaultType}
                     />
                   ))}
                 </div>
@@ -135,13 +143,13 @@ function PayoutMethodItem({
   onAction,
   onSetDefault,
   isActionPending,
-  isSetDefaultPending,
+  pendingDefaultType,
 }: {
   method: PartnerPayoutMethodSetting;
   onAction: (type: PartnerPayoutMethod, isManage: boolean) => void;
   onSetDefault: (type: PartnerPayoutMethod) => void;
   isActionPending: boolean;
-  isSetDefaultPending: boolean;
+  pendingDefaultType: PartnerPayoutMethod | null;
 }) {
   const { partner } = usePartnerProfile();
   const { Icon, wrapperClass } = getPayoutMethodIconConfig(method.type);
@@ -167,7 +175,7 @@ function PayoutMethodItem({
             <PayoutMethodStatusBadge
               method={method}
               onSetDefault={onSetDefault}
-              isSetDefaultPending={isSetDefaultPending}
+              pendingDefaultType={pendingDefaultType}
               payoutsDisabled={payoutsDisabled}
             />
           </div>
@@ -191,14 +199,15 @@ function PayoutMethodItem({
 function PayoutMethodStatusBadge({
   method,
   onSetDefault,
-  isSetDefaultPending,
+  pendingDefaultType,
   payoutsDisabled,
 }: {
   method: PartnerPayoutMethodSetting;
   onSetDefault: (type: PartnerPayoutMethod) => void;
-  isSetDefaultPending: boolean;
+  pendingDefaultType: PartnerPayoutMethod | null;
   payoutsDisabled: boolean;
 }) {
+  const isSettingDefault = pendingDefaultType === method.type;
   const { partner } = usePartnerProfile();
 
   if (!partner?.payoutsEnabledAt) {
@@ -222,14 +231,14 @@ function PayoutMethodStatusBadge({
       <button
         type="button"
         onClick={() => onSetDefault(method.type)}
-        disabled={isSetDefaultPending}
+        disabled={isSettingDefault}
         className={cn(
           "rounded-md border border-neutral-200 bg-white px-1.5 py-0.5 text-[0.7rem] font-medium leading-none text-neutral-600",
           "cursor-pointer transition-colors hover:bg-neutral-50",
           "disabled:cursor-not-allowed disabled:opacity-50",
         )}
       >
-        {isSetDefaultPending ? "Setting..." : "Set as default"}
+        {isSettingDefault ? "Setting..." : "Set as default"}
       </button>
     );
   }

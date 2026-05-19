@@ -17,6 +17,10 @@ export const setDefaultPayoutMethodAction = authPartnerActionClient
       permission: "payout_settings.update",
     });
 
+    if (!partner.payoutsEnabledAt) {
+      throw new Error("Payout settings are currently restricted.");
+    }
+
     const payoutMethods = await getPartnerPayoutMethods(partner);
     const method = payoutMethods.find((m) => m.type === type);
 
