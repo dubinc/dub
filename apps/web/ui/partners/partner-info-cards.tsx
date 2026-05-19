@@ -195,7 +195,7 @@ export function PartnerInfoCards({
         : []),
 
       // Referred by
-      ...(type === "enrolled"
+      ...(isEnrolled
         ? [
             {
               id: "referredBy",
@@ -545,22 +545,17 @@ function ReferredByPartner({
     );
   }
 
-  // No referring partner
-  if (!referral?.referredBy) {
-    return (
-      <>
-        <AttributeReferringPartnerModal />
-        <button
-          type="button"
-          onClick={() => setShowAttributeReferringPartnerModal(true)}
-          aria-label="Attribute referring partner"
-          className="bg-bg-inverted/5 text-content-default hover:bg-bg-inverted/10 inline-flex h-6 min-h-6 min-w-0 select-none items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium"
-        >
-          Attribute referring partner
-        </button>
-      </>
-    );
-  }
-
-  return null;
+  return (
+    <>
+      <AttributeReferringPartnerModal />
+      <button
+        type="button"
+        onClick={() => setShowAttributeReferringPartnerModal(true)}
+        aria-label="Attribute referring partner"
+        className="bg-bg-inverted/5 text-content-default hover:bg-bg-inverted/10 inline-flex h-6 min-h-6 min-w-0 select-none items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium"
+      >
+        Attribute referring partner
+      </button>
+    </>
+  );
 }
