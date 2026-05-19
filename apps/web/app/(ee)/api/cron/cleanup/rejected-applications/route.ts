@@ -24,14 +24,14 @@ export async function POST(req: Request) {
       const rejectedProgramEnrollments =
         await prisma.programEnrollment.findMany({
           where: {
-            //status: "rejected",
+            status: "rejected",
             updatedAt: {
               lt: subDays(new Date(), 10),
             },
             // only delete if there are no commissions or messages
-            // commissions: {
-            //   none: {},
-            // },
+            commissions: {
+              none: {},
+            },
           },
           take: 250,
         });
