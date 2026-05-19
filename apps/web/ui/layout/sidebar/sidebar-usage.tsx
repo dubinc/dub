@@ -327,6 +327,7 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
                       ? {
                           style: "currency",
                           currency: "USD",
+                          // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                           trailingZeroDisplay: "stripIfInteger",
                         }
                       : undefined
