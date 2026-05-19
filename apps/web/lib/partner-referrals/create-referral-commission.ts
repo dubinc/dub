@@ -28,6 +28,9 @@ export const createReferralCommission = async (
     context;
 
   if (programId === NETWORK_PROGRAM_ID) {
+    console.log(
+      `Skipping referral commission creation for network program ${programId}...`,
+    );
     return null;
   }
 

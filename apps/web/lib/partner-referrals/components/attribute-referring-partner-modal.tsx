@@ -74,6 +74,14 @@ function AttributeReferringPartnerModal({
     createCommissionsForPastEvents,
   ]);
 
+  const disabledTooltip = !referredByPartner?.id
+    ? "Please select a referring partner first."
+    : partner.id === referredByPartner?.id
+      ? "You cannot attribute a partner to themselves."
+      : partner.totalCommissions === 0
+        ? "This partner has no eligible commissions."
+        : undefined;
+
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
       <div className="border-b border-neutral-200 p-4 sm:p-6">
@@ -121,11 +129,7 @@ function AttributeReferringPartnerModal({
             <Switch
               checked={createCommissionsForPastEvents}
               fn={setCreateCommissionsForPastEvents}
-              disabled={
-                !referredByPartner?.id ||
-                partner.id === referredByPartner?.id ||
-                partner.totalCommissions === 0
-              }
+              disabledTooltip={disabledTooltip}
             />
 
             <div className="-mt-0.5 space-y-1">
@@ -168,13 +172,8 @@ function AttributeReferringPartnerModal({
           onClick={onSubmit}
           variant="primary"
           text="Attribute partner"
-          disabled={
-            !workspaceId ||
-            !referredByPartner?.id ||
-            isPending ||
-            partner.id === referredByPartner?.id
-          }
           loading={isPending}
+          disabledTooltip={disabledTooltip}
           className="h-8 w-fit px-3"
         />
       </div>

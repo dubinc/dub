@@ -524,7 +524,7 @@ function ReferredByPartner({
   if (loading) {
     return (
       <span className="flex min-w-0 items-center gap-1">
-        <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+        <div className="h-5 w-24 animate-pulse rounded bg-neutral-200" />
       </span>
     );
   }
