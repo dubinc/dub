@@ -537,11 +537,7 @@ function ReferredByPartner({
   }
 
   // No referring partner
-  if (
-    !referral?.referredBy &&
-    "status" in partner &&
-    partner.status === "approved"
-  ) {
+  if (!referral?.referredBy) {
     return (
       <>
         <AttributeReferringPartnerModal />
