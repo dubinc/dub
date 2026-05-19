@@ -17,14 +17,17 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const isHoldStatus = searchParams.status === "hold";
   const {
-    status: rawStatus,
+    status: _status,
     fraudEventGroupId,
     type: rawType,
     ...restSearchParams
   } = searchParams;
 
-  let { partnerId, tenantId, ...filters } =
-    getCommissionsQuerySchema.parse(restSearchParams);
+  let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema.parse(
+    isHoldStatus
+      ? restSearchParams
+      : { ...restSearchParams, status: searchParams.status },
+  );
 
   if (tenantId && !partnerId) {
     const partner = await prisma.programEnrollment.findUnique({
@@ -51,9 +54,8 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const commissions = await getCommissions({
     ...filters,
-    // Pass raw type/status strings (may be comma-separated) for multi-value handling
+    // Pass raw type string (may be comma-separated) for multi-value handling
     ...(rawType && { type: rawType }),
-    ...(!isHoldStatus && rawStatus && { status: rawStatus }),
     partnerId,
     programId,
     isHoldStatus,
