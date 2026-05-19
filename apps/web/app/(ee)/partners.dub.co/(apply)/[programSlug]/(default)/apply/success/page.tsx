@@ -1,5 +1,6 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { ProgramEnvironmentBanner } from "@/ui/layout/program-environment-banner";
 import { prisma } from "@dub/prisma";
 import { Logo } from "@dub/ui";
 import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
@@ -48,9 +49,7 @@ export default async function SuccessPage(props: {
 
   const { applicationId, enrollmentId } = searchParams;
 
-  const params = await props.params;
-
-  const { programSlug, groupSlug } = params;
+  const { programSlug, groupSlug } = await props.params;
 
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
@@ -93,6 +92,7 @@ export default async function SuccessPage(props: {
         } as CSSProperties
       }
     >
+      <ProgramEnvironmentBanner environment={program.workspace.environment} />
       <ApplyHeader group={program.group} showLogin={false} showApply={false} />
       <div className="p-6">
         <div className="grid grid-cols-1 gap-5 sm:pt-20">

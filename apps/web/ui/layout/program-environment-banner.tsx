@@ -14,7 +14,7 @@ export function ProgramEnvironmentBanner({
   return (
     <div
       className={cn(
-        "fixed left-0 right-0 top-0 z-50 flex h-8 items-center justify-between gap-4 overflow-hidden bg-amber-200 px-4 py-1.5 text-neutral-800",
+        "fixed left-0 right-0 top-0 z-50 flex h-12 items-center justify-between gap-4 overflow-hidden bg-amber-200 px-6 text-neutral-800",
       )}
     >
       <div className="flex shrink-0 items-center gap-2">

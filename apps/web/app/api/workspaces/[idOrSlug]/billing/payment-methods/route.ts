@@ -19,6 +19,20 @@ const addPaymentMethodSchema = z.object({
 // GET /api/workspaces/[idOrSlug]/billing/payment-methods - get all payment methods
 export const GET = withWorkspace(
   async ({ workspace }) => {
+    // send a demo value
+    if (workspace.environment !== "live") {
+      return NextResponse.json([
+        {
+          id: "pm_sandbox_card",
+          type: "card",
+          card: {
+            brand: "[DEMO] mastercard",
+            last4: "1234",
+          },
+        },
+      ]);
+    }
+
     if (!workspace.stripeId) {
       return NextResponse.json([]);
     }

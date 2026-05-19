@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
+import { mockSandboxPayoutCompletion } from "@/lib/sandbox/sandbox-payout";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
@@ -89,16 +90,29 @@ export async function POST(req: Request) {
       });
     }
 
-    await processPayouts({
-      program,
-      workspace,
-      invoice,
-      userId,
-      paymentMethodId,
-      cutoffPeriod,
-      selectedPayoutIds,
-      excludedPayoutIds,
-    });
+    if (workspace.environment === "live") {
+      await processPayouts({
+        program,
+        workspace,
+        invoice,
+        userId,
+        paymentMethodId,
+        cutoffPeriod,
+        selectedPayoutIds,
+        excludedPayoutIds,
+      });
+    } else {
+      await mockSandboxPayoutCompletion({
+        workspace,
+        program,
+        invoice,
+        userId,
+        paymentMethodId,
+        cutoffPeriod,
+        selectedPayoutIds,
+        excludedPayoutIds,
+      });
+    }
 
     return logAndRespond(`Processed payouts for program ${program.name}.`);
   } catch (error) {
