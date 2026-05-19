@@ -216,7 +216,11 @@ class StorageClient {
   }
 
   private async assertSafeUrl(url: string): Promise<void> {
-    const { hostname } = new URL(url);
+    const { hostname, protocol } = new URL(url);
+
+    if (protocol !== "http:" && protocol !== "https:") {
+      throw new Error("Only http and https URLs are allowed.");
+    }
 
     let address: string;
     if (isIP(hostname) !== 0) {
@@ -226,7 +230,11 @@ class StorageClient {
       address = result.address;
     }
 
-    const parts = address.split(".").map(Number);
+    const addr = address.toLowerCase();
+    const mappedIPv4 = addr.startsWith("::ffff:");
+    const parts = (mappedIPv4 ? addr.slice("::ffff:".length) : address)
+      .split(".")
+      .map(Number);
     const isPrivateIPv4 =
       parts.length === 4 &&
       (parts[0] === 127 || // loopback 127.0.0.0/8
@@ -236,9 +244,10 @@ class StorageClient {
         (parts[0] === 169 && parts[1] === 254) || // link-local 169.254.0.0/16
         parts[0] === 0); // unspecified 0.0.0.0/8
 
-    const addr = address.toLowerCase();
     const isPrivateIPv6 =
       addr === "::1" || // loopback
+      addr === "::" || // unspecified
+      mappedIPv4 || // IPv4-mapped IPv6, e.g. ::ffff:127.0.0.1
       addr.startsWith("fc") || // unique local fc00::/7
       addr.startsWith("fd") || // unique local fc00::/7
       /^fe[89ab]/.test(addr); // link-local fe80::/10
