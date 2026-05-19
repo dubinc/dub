@@ -178,6 +178,21 @@ export async function bulkDeletePartners({
     });
     console.log(`Deleted ${deletedActivityLogs.count} activity logs`);
 
+    // Delete the program application events
+    const deletedProgramApplicationEvents =
+      await prisma.programApplicationEvent.deleteMany({
+        where: {
+          programId: ACME_PROGRAM_ID,
+          partnerId: {
+            in: partnerIds,
+          },
+        },
+      });
+    console.log(
+      `Deleted ${deletedProgramApplicationEvents.count} program application events`,
+    );
+
+    // Delete the program enrollments
     const deletedProgramEnrollments = await prisma.programEnrollment.deleteMany(
       {
         where: {

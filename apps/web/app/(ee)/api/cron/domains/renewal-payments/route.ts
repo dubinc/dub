@@ -140,7 +140,7 @@ export async function GET(req: Request) {
         stripeId: workspace.stripeId!,
         amount: invoice.total,
         invoiceId: invoice.id,
-        statementDescriptor: "Dub",
+        statementDescriptor: "DUB.CO DOMAIN RENEWAL",
         description: `Domain renewal invoice (${invoice.id})`,
         idempotencyKey: `${invoice.id}-${invoice.failedAttempts}`,
       });

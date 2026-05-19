@@ -4,7 +4,12 @@ import { PartnerBetaFeatures, PartnerProps } from "@/lib/types";
 import { flattenVeriffMetadata } from "@/lib/veriff/veriff-metadata";
 import { prisma } from "@dub/prisma";
 import { PartnerUser } from "@dub/prisma/client";
-import { getSearchParams, PARTNERS_DOMAIN } from "@dub/utils";
+import {
+  getSearchParams,
+  NETWORK_PROGRAM_ID,
+  NETWORK_PROGRAM_SLUG,
+  PARTNERS_DOMAIN,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { getPartnerFeatureFlags } from "../edge-config";
@@ -70,6 +75,22 @@ export const withPartnerProfile = (
       let responseHeaders = new Headers();
 
       try {
+        // Restrict access to the network program
+        const programIdParam = params.programId?.toLowerCase();
+
+        if (
+          programIdParam &&
+          [
+            NETWORK_PROGRAM_ID.toLowerCase(),
+            NETWORK_PROGRAM_SLUG.toLowerCase(),
+          ].includes(programIdParam)
+        ) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "Program not found.",
+          });
+        }
+
         const authorizationHeader = requestHeaders.get("Authorization");
         if (authorizationHeader) {
           if (!authorizationHeader.startsWith("Bearer ")) {

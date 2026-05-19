@@ -51,8 +51,9 @@ export const generateLanderAction = authActionClient
           },
           include: {
             clickReward: true,
-            saleReward: true,
             leadReward: true,
+            saleReward: true,
+            referralReward: true,
             discount: true,
           },
         },

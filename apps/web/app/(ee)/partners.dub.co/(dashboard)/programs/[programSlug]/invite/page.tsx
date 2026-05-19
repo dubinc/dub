@@ -37,9 +37,10 @@ export default async function ProgramInvitePage(props: {
         },
         include: {
           partnerGroup: true,
-          saleReward: true,
-          leadReward: true,
           clickReward: true,
+          leadReward: true,
+          saleReward: true,
+          referralReward: true,
           discount: true,
         },
       },

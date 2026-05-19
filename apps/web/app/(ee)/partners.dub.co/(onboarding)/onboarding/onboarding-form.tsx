@@ -7,15 +7,12 @@ import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
   onboardPartnerSchema,
 } from "@/lib/zod/schemas/partners";
-import { CountryCombobox } from "@/ui/partners/country-combobox";
-import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Partner } from "@dub/prisma/client";
 import {
   Button,
   FileUpload,
   ToggleGroup,
-  TooltipContent,
   useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
@@ -40,7 +37,6 @@ export function OnboardingForm({
       Partner,
       | "name"
       | "description"
-      | "country"
       | "image"
       | "profileType"
       | "companyName"
@@ -52,9 +48,7 @@ export function OnboardingForm({
   const searchParams = useSearchParams();
   const { isMobile } = useMediaQuery();
   const [accountCreated, setAccountCreated] = useState(false);
-  const [isCountryComboboxOpen, setIsCountryComboboxOpen] = useState(false);
   const { data: session, update: refreshSession } = useSession();
-  const countryChangeWarning = useCountryChangeWarningModal();
 
   const {
     register,
@@ -68,7 +62,6 @@ export function OnboardingForm({
     defaultValues: {
       name: partner?.name ?? undefined,
       description: partner?.description ?? undefined,
-      country: partner?.country ?? undefined,
       image: partner?.image ?? undefined,
       profileType: partner?.profileType ?? "individual",
       companyName: partner?.companyName ?? undefined,
@@ -116,10 +109,10 @@ export function OnboardingForm({
   return (
     <form
       ref={formRef}
+      method="post"
       onSubmit={handleSubmit(async (data) => await executeAsync(data))}
       className="flex w-full flex-col gap-6 text-left"
     >
-      {countryChangeWarning.modal}
       <label>
         <span className="text-sm font-medium text-neutral-800">Name</span>
         <input
@@ -168,50 +161,6 @@ export function OnboardingForm({
             <p className="mt-0.5 text-xs text-neutral-500">Max 2 MB</p>
           </div>
         </div>
-      </label>
-
-      <label>
-        <span className="text-sm font-medium text-neutral-800">Country</span>
-        <Controller
-          control={control}
-          name="country"
-          rules={{ required: true }}
-          render={({ field }) => (
-            <CountryCombobox
-              {...field}
-              error={errors.country ? true : false}
-              open={isCountryComboboxOpen}
-              onOpenChange={(open) => {
-                if (!open) {
-                  setIsCountryComboboxOpen(false);
-                  return;
-                }
-
-                const shouldShowCountryChangeWarning =
-                  !partner?.payoutsEnabledAt;
-
-                if (shouldShowCountryChangeWarning) {
-                  countryChangeWarning.acknowledgeAndContinue(() => {
-                    setIsCountryComboboxOpen(true);
-                  });
-                  return;
-                }
-
-                setIsCountryComboboxOpen(true);
-              }}
-              disabledTooltip={
-                partner?.payoutsEnabledAt ? (
-                  <TooltipContent
-                    title="Since you've already connected your bank account for payouts, you cannot change your profile country."
-                    cta="Contact support"
-                    href="https://dub.co/support"
-                    target="_blank"
-                  />
-                ) : undefined
-              }
-            />
-          )}
-        />
       </label>
 
       <label>

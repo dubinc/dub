@@ -1,11 +1,13 @@
 import { CopyText } from "@dub/ui";
-import { getDomainWithoutWWW } from "@dub/utils";
+import { cn, getDomainWithoutWWW } from "@dub/utils";
 import { PartnerProfileLinkProps } from "../types";
 
 export const QueryLinkStructureHelpText = ({
   link,
+  className,
 }: {
   link?: Pick<PartnerProfileLinkProps, "key" | "url" | "shortLink">;
+  className?: string;
 }) => {
   if (!link) {
     return null;
@@ -13,7 +15,7 @@ export const QueryLinkStructureHelpText = ({
 
   const appendValue = `?via=${link.key}`;
   return (
-    <p className="mt-1.5 text-xs text-neutral-500">
+    <p className={cn("text-xs text-neutral-500", className)}>
       Link to any page on{" "}
       <a
         href={link.url}
