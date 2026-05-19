@@ -1,10 +1,8 @@
 "use client";
 
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerSelector } from "@/ui/partners/partner-selector";
 import { Markdown } from "@/ui/shared/markdown";
@@ -38,12 +36,6 @@ function AttributeReferringPartnerModal({
   );
   const [createCommissionsForPastEvents, setCreateCommissionsForPastEvents] =
     useState(false);
-
-  const { group } = useGroup({
-    groupIdOrSlug: partner.groupId || DEFAULT_PARTNER_GROUP.slug,
-  });
-
-  const showCommissionToggle = group?.referralReward?.type === "percentage";
 
   const { executeAsync, isPending } = useAction(
     attributeReferringPartnerAction,
@@ -117,7 +109,7 @@ function AttributeReferringPartnerModal({
           </div>
         </div>
 
-        {showCommissionToggle && (
+        <div>
           <div className="flex items-center gap-3">
             <Switch
               checked={createCommissionsForPastEvents}
@@ -128,7 +120,7 @@ function AttributeReferringPartnerModal({
               Create commissions for eligible past events
             </span>
           </div>
-        )}
+        </div>
       </div>
 
       <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-4 py-4">
