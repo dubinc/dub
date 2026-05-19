@@ -22,14 +22,6 @@ export function PartnerPlatformSummary({
     Partial<Record<PartnerPlatformProps["type"], boolean>>
   >({});
 
-  if (!platforms || platforms.length === 0) {
-    return (
-      <div className={cn("text-sm italic text-neutral-400", className)}>
-        No platforms connected
-      </div>
-    );
-  }
-
   const fieldByType = useMemo(
     () =>
       ({
@@ -45,6 +37,14 @@ export function PartnerPlatformSummary({
       >,
     [],
   );
+
+  if (!platforms || platforms.length === 0) {
+    return (
+      <div className={cn("text-sm italic text-neutral-400", className)}>
+        No platforms connected
+      </div>
+    );
+  }
 
   const fieldData = (Object.keys(fieldByType) as PartnerPlatformProps["type"][])
     .map((type) => {
