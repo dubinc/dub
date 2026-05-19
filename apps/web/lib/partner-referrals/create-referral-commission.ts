@@ -376,9 +376,9 @@ async function resolveReferralContext(props: CreateReferralCommissionProps) {
       return null;
     }
 
-    if (!["processed", "paid"].includes(sourceCommission.status)) {
+    if (!["pending", "processed", "paid"].includes(sourceCommission.status)) {
       console.log(
-        `Source commission ${sourceCommissionId} is not a processed or paid.`,
+        `Source commission ${sourceCommissionId} is not pending, processed or paid.`,
       );
       return null;
     }
