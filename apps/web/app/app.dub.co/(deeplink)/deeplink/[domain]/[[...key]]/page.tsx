@@ -95,16 +95,21 @@ export default async function DeepLinkPreviewPage(props: {
     redirect(`https://${domain}`);
   }
 
+  const ANDROID_PACKAGE_NAME_REGEX =
+    /^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/;
+
   let androidPackageName: string | null = null;
   if (platform === "android" && Array.isArray(link.shortDomain.assetLinks)) {
     for (const entry of link.shortDomain.assetLinks as Array<{
       target?: { namespace?: string; package_name?: string };
     }>) {
+      const candidate = entry?.target?.package_name;
       if (
         entry?.target?.namespace === "android_app" &&
-        typeof entry.target.package_name === "string"
+        typeof candidate === "string" &&
+        ANDROID_PACKAGE_NAME_REGEX.test(candidate)
       ) {
-        androidPackageName = entry.target.package_name;
+        androidPackageName = candidate;
         break;
       }
     }
