@@ -24,6 +24,7 @@ const PARTNERS_PROGRAM_REDIRECTS = {
   "getviktor-com": "viktor",
   getviktor: "viktor",
   heynavii: "navii",
+  galaxyai: "magica",
 };
 
 export const partnersProgramRedirects = (path: string) => {
