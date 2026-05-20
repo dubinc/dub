@@ -923,18 +923,21 @@ export const rejectPartnerSchema = z
       .describe(
         "Additional details about the rejection. This will be shared with the partner via email.",
       ),
-    allowImmediateReapply: z
-      .boolean()
-      .optional()
-      .default(false)
+    reapplicationTimeframe: z
+      .enum(["instant", "standard", "never"])
+      .default("standard")
       .describe(
-        "When true, pending enrollment is removed so the partner can submit a new application immediately.",
+        "The mode for reapplying for the program. `instant`: The partner can reapply immediately. `standard`: The partner can reapply after 30 days. `never`: The partner can never reapply for the program. Defaults to `standard` if undefined.",
       ),
+    allowImmediateReapply: z.boolean().optional().default(false).meta({
+      deprecated: true,
+      description: "Deprecated: Use `reapplicationTimeframe` instead.",
+    }),
     flagForFraud: z
       .boolean()
       .optional()
       .describe(
-        "Whether to flag the partner for fraud review by the Dub team. Cannot be combined with allowImmediateReapply.",
+        "Whether to flag the partner for fraud review by the Dub team. Cannot be combined with `reapplicationTimeframe: instant`.",
       ),
     flagForFraudReason: z
       .string()
@@ -949,7 +952,11 @@ export const rejectPartnerSchema = z
       ),
   })
   .superRefine((data, ctx) => {
-    if (data.allowImmediateReapply && data.flagForFraud) {
+    const reapplicationTimeframe = data.allowImmediateReapply
+      ? "instant"
+      : data.reapplicationTimeframe;
+
+    if (reapplicationTimeframe === "instant" && data.flagForFraud) {
       ctx.addIssue({
         code: "custom",
         message:

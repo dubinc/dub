@@ -97,6 +97,12 @@ model Program {
   @@index(addedToMarketplaceAt)
 }
 
+enum ReapplicationTimeframe {
+  instant
+  standard
+  never
+}
+
 model ProgramEnrollment {
   id               String                  @id @default(cuid())
   partnerId        String
@@ -131,12 +137,13 @@ model ProgramEnrollment {
   daysSinceLastConversion Int? // days since lastConversionAt
   consistencyScore        Int? // based on daysSinceLastConversion
 
-  createdAt                    DateTime             @default(now())
-  updatedAt                    DateTime             @updatedAt
+  createdAt                    DateTime               @default(now())
+  updatedAt                    DateTime               @updatedAt
   customerDataSharingEnabledAt DateTime?
   groupMoveDisabledAt          DateTime?
   bannedAt                     DateTime?
   bannedReason                 PartnerBannedReason?
+  reapplicationTimeframe       ReapplicationTimeframe @default(standard)
 
   partner            Partner                  @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program            Program                  @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
@@ -179,6 +186,7 @@ model ProgramEnrollment {
   // other indexes
   @@index([programId, groupId])
   @@index([groupId, status])
+  @@index(status)
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)
