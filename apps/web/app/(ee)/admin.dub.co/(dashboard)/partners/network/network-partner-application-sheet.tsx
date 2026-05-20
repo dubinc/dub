@@ -28,6 +28,7 @@ import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { NetworkPartnerChangeHistory } from "./network-partner-change-history";
+import { NetworkRequestIdentityVerification } from "./request-identity-verification";
 
 type NetworkPartnerSheetTabId = "about" | "programs" | "duplicates";
 
@@ -306,6 +307,9 @@ export function NetworkPartnerApplicationSheet({
               <NetworkPartnerChangeHistory
                 changeHistoryLog={partner.changeHistoryLog}
               />
+            </div>
+            <div className="@3xl/sheet:max-h-[50dvh] @3xl/sheet:overflow-y-auto @3xl/sheet:pr-1 overflow-x-hidden">
+              <NetworkRequestIdentityVerification partner={partner} />
             </div>
           </div>
           <div className="@3xl/sheet:order-1">
