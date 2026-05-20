@@ -12,7 +12,7 @@ import {
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceEnvironment, WorkspaceRole } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -133,6 +133,7 @@ export const DELETE = withWorkspace(
           role: true,
           user: {
             select: {
+              id: true,
               isMachine: true,
               defaultWorkspace: true,
             },
@@ -155,6 +156,17 @@ export const DELETE = withWorkspace(
       });
     }
 
+    if (
+      workspace.environment === WorkspaceEnvironment.staging &&
+      !projectUser.user.isMachine
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "This action is not available in a staging workspace. Use the live workspace instead.",
+      });
+    }
+
     // If there is only one owner and the user is an owner and the user is trying to remove themselves
     if (
       totalOwners === 1 &&
@@ -168,7 +180,7 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const [response] = await Promise.allSettled([
+    await Promise.allSettled([
       // Remove the user from the workspace
       prisma.projectUsers.delete({
         where: {
@@ -202,9 +214,7 @@ export const DELETE = withWorkspace(
     waitUntil(
       removeMemberFromStaging({
         workspace,
-        user: {
-          id: userId,
-        },
+        user: projectUser.user,
       }),
     );
 
@@ -217,9 +227,6 @@ export const DELETE = withWorkspace(
       });
     }
 
-    return NextResponse.json(response);
-  },
-  {
-    rejectStagingWorkspace: true,
+    return NextResponse.json({});
   },
 );

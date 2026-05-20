@@ -1,97 +1,93 @@
 import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { Project, WorkspaceRole } from "@dub/prisma/client";
+
+// We don't sync the machine user from the live workspace to the staging workspace
 
 export async function addMemberToStaging({
-  liveWorkspaceId,
-  userId,
-  role,
+  workspace,
+  user,
 }: {
-  liveWorkspaceId: string;
-  userId: string;
-  role: WorkspaceRole;
+  workspace: Pick<Project, "stagingWorkspaceId">;
+  user: { id: string; role: WorkspaceRole };
 }) {
-  const liveWorkspace = await prisma.project.findUnique({
-    where: {
-      id: liveWorkspaceId,
-    },
-    select: {
-      stagingWorkspaceId: true,
-    },
-  });
-
-  if (!liveWorkspace?.stagingWorkspaceId) return;
+  if (!workspace.stagingWorkspaceId) {
+    return;
+  }
 
   try {
     await prisma.projectUsers.create({
       data: {
-        projectId: liveWorkspace.stagingWorkspaceId,
-        userId,
-        role,
+        projectId: workspace.stagingWorkspaceId,
+        userId: user.id,
+        role: user.role,
         notificationPreference: {
           create: {},
         },
       },
     });
-  } catch (e) {
-    // P2002: unique constraint violation — user already exists in staging
-    if ((e as any)?.code === "P2002") return;
-    throw e;
+  } catch (error) {
+    console.error("[addMemberToStaging]", error);
+  }
+}
+
+export async function updateMemberRoleInStaging({
+  workspace,
+  user,
+}: {
+  workspace: Pick<Project, "stagingWorkspaceId">;
+  user: { id: string; role: WorkspaceRole };
+}) {
+  if (!workspace.stagingWorkspaceId) {
+    return;
+  }
+
+  try {
+    await prisma.projectUsers.update({
+      where: {
+        userId_projectId: {
+          userId: user.id,
+          projectId: workspace.stagingWorkspaceId,
+        },
+      },
+      data: {
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("[updateMemberRoleInStaging]", error);
   }
 }
 
 export async function removeMemberFromStaging({
-  liveWorkspaceId,
-  userId,
+  workspace,
+  user,
 }: {
-  liveWorkspaceId: string;
-  userId: string;
+  workspace: Pick<Project, "stagingWorkspaceId">;
+  user: { id: string; isMachine: boolean };
 }) {
-  const liveWorkspace = await prisma.project.findUnique({
-    where: {
-      id: liveWorkspaceId,
-    },
-    select: {
-      stagingWorkspaceId: true,
-    },
-  });
+  if (!workspace.stagingWorkspaceId || user.isMachine) {
+    return;
+  }
 
-  if (!liveWorkspace?.stagingWorkspaceId) return;
+  try {
+    await Promise.allSettled([
+      prisma.projectUsers.delete({
+        where: {
+          userId_projectId: {
+            userId: user.id,
+            projectId: workspace.stagingWorkspaceId,
+          },
+        },
+      }),
 
-  await prisma.projectUsers.deleteMany({
-    where: {
-      projectId: liveWorkspace.stagingWorkspaceId,
-      userId,
-    },
-  });
-}
-
-export async function updateMemberRoleInStaging({
-  liveWorkspaceId,
-  userId,
-  role,
-}: {
-  liveWorkspaceId: string;
-  userId: string;
-  role: WorkspaceRole;
-}) {
-  const liveWorkspace = await prisma.project.findUnique({
-    where: {
-      id: liveWorkspaceId,
-    },
-    select: {
-      stagingWorkspaceId: true,
-    },
-  });
-
-  if (!liveWorkspace?.stagingWorkspaceId) return;
-
-  await prisma.projectUsers.updateMany({
-    where: {
-      projectId: liveWorkspace.stagingWorkspaceId,
-      userId,
-    },
-    data: {
-      role,
-    },
-  });
+      prisma.restrictedToken.deleteMany({
+        where: {
+          projectId: workspace.stagingWorkspaceId,
+          userId: user.id,
+        },
+      }),
+    ]);
+  } catch (error) {
+    console.error("[removeMemberFromStaging]", error);
+  }
 }

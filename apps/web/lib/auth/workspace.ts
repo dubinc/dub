@@ -467,7 +467,7 @@ export const withWorkspace = (
           workspace.environment === WorkspaceEnvironment.staging
         ) {
           throw new DubApiError({
-            code: "bad_request",
+            code: "forbidden",
             message:
               "This action is not available in a staging workspace. Use the live workspace instead.",
           });
