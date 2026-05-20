@@ -90,15 +90,15 @@ export const copyRewardToLiveAction = authActionClient
         data: {
           id: createId({ prefix: "rw_" }),
           programId: targetGroup.programId,
-          event: reward.event,
-          type: reward.type,
-          maxDuration: reward.maxDuration,
           description: reward.description,
           tooltipDescription: reward.tooltipDescription,
-          modifiers: reward.modifiers ?? undefined,
-          config: reward.config ?? undefined,
+          event: reward.event,
+          type: reward.type,
           amountInCents: reward.amountInCents,
           amountInPercentage: reward.amountInPercentage,
+          maxDuration: reward.maxDuration,
+          modifiers: reward.modifiers ?? undefined,
+          config: reward.config ?? undefined,
         },
       });
 

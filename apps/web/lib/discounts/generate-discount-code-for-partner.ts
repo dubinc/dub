@@ -40,6 +40,7 @@ export async function generateDiscountCodeForPartner({
       id: true,
       stripeConnectId: true,
       shopifyStoreId: true,
+      environment: true,
     },
   });
 

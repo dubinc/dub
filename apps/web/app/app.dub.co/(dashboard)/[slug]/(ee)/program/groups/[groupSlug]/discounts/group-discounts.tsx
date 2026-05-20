@@ -1,10 +1,13 @@
 "use client";
 
+import { useCopyDiscountToLiveModal } from "@/lib/sandbox/copy-discount-to-live-modal";
 import useGroup from "@/lib/swr/use-group";
+import useWorkspace from "@/lib/swr/use-workspace";
 import type { DiscountProps, GroupProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { useDiscountSheet } from "@/ui/partners/discounts/add-edit-discount-sheet";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { Button, useRouterStuff } from "@dub/ui";
 import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { BadgePercent } from "lucide-react";
@@ -68,70 +71,93 @@ const DiscountItem = ({
   group: GroupProps;
 }) => {
   const { slug } = useParams();
+  const { environment } = useWorkspace();
   const { queryParams } = useRouterStuff();
+  const { openCopyDiscountToLiveModal, CopyDiscountToLiveModal } =
+    useCopyDiscountToLiveModal();
   const As = discount ? Link : "div";
 
   return (
-    <As
-      href={
-        discount
-          ? `/${slug}/program/groups/${group.slug}/discounts?discountId=${discount.id}`
-          : ""
-      }
-      scroll={false}
-      className={cn(
-        "flex cursor-pointer flex-col gap-4 rounded-lg p-6 transition-all md:flex-row md:items-center",
-        discount && "border border-neutral-200 hover:border-neutral-300",
-        !discount && "bg-neutral-50 hover:bg-neutral-100",
+    <>
+      {discount && environment === WorkspaceEnvironment.staging && (
+        <CopyDiscountToLiveModal />
       )}
-      onClick={(e) => {
-        if (isClickOnInteractiveChild(e)) return;
-        queryParams({
-          set: {
-            discountId: discount?.id ?? "new",
-          },
-          scroll: false,
-        });
-      }}
-    >
-      <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
-        <BadgePercent className="size-4 text-neutral-600" />
-      </div>
-      <div className="flex flex-1 flex-col justify-between gap-y-4 md:flex-row md:items-center">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-normal">
-            {discount ? (
-              <ProgramRewardDescription discount={discount} />
-            ) : (
-              <span className="text-sm font-normal text-neutral-600">
-                No referral discount created
-              </span>
-            )}
-          </span>
+      <As
+        href={
+          discount
+            ? `/${slug}/program/groups/${group.slug}/discounts?discountId=${discount.id}`
+            : ""
+        }
+        scroll={false}
+        className={cn(
+          "flex cursor-pointer flex-col gap-4 rounded-lg p-6 transition-all md:flex-row md:items-center",
+          discount && "border border-neutral-200 hover:border-neutral-300",
+          !discount && "bg-neutral-50 hover:bg-neutral-100",
+        )}
+        onClick={(e) => {
+          e.preventDefault();
+          if (isClickOnInteractiveChild(e)) return;
+          queryParams({
+            set: {
+              discountId: discount?.id ?? "new",
+            },
+            scroll: false,
+          });
+        }}
+      >
+        <div className="flex size-10 items-center justify-center rounded-full border border-neutral-200 bg-white">
+          <BadgePercent className="size-4 text-neutral-600" />
         </div>
+        <div className="flex flex-1 flex-col justify-between gap-y-4 md:flex-row md:items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-normal">
+              {discount ? (
+                <ProgramRewardDescription discount={discount} />
+              ) : (
+                <span className="text-sm font-normal text-neutral-600">
+                  No referral discount created
+                </span>
+              )}
+            </span>
+          </div>
 
-        <div className="flex flex-col-reverse items-center gap-2 md:flex-row">
-          {!discount && group.slug !== DEFAULT_PARTNER_GROUP.slug && (
-            <CopyDefaultDiscountButton />
-          )}
-          <Button
-            text={discount ? "Edit" : "Create"}
-            variant={discount ? "secondary" : "primary"}
-            className="h-9 w-full rounded-lg md:w-fit"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              queryParams({
-                set: {
-                  discountId: discount?.id ?? "new",
-                },
-                scroll: false,
-              });
-            }}
-          />
+          <div className="flex flex-col-reverse items-center gap-2 md:flex-row">
+            {!discount && group.slug !== DEFAULT_PARTNER_GROUP.slug && (
+              <CopyDefaultDiscountButton />
+            )}
+
+            {discount && environment === WorkspaceEnvironment.staging && (
+              <Button
+                text="Copy to live"
+                variant="secondary"
+                className="h-9 w-full rounded-lg md:w-fit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openCopyDiscountToLiveModal(discount);
+                }}
+              />
+            )}
+
+            <Button
+              text={discount ? "Edit" : "Create"}
+              variant={discount ? "secondary" : "primary"}
+              className="h-9 w-full rounded-lg md:w-fit"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                queryParams({
+                  set: {
+                    discountId: discount?.id ?? "new",
+                  },
+                  scroll: false,
+                });
+              }}
+            />
+          </div>
         </div>
-      </div>
-    </As>
+      </As>
+    </>
   );
 };
 

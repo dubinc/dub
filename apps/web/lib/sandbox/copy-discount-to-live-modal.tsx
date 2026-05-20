@@ -1,26 +1,27 @@
 "use client";
 
-import { parseActionError } from "@/lib/actions/parse-action-errors";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
-import type { GroupProps, RewardProps } from "@/lib/types";
+import type { DiscountProps, GroupProps } from "@/lib/types";
+import { ERROR_MAP } from "@/ui/partners/constants";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
+import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Button, Combobox, type ComboboxOption, Modal } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { copyRewardToLiveAction } from "./copy-reward-to-live";
+import { copyDiscountToLiveAction } from "./copy-discount-to-live";
 
-function CopyRewardToLiveModal({
+function CopyDiscountToLiveModal({
   showModal,
   setShowModal,
-  reward,
+  discount,
 }: {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
-  reward: RewardProps;
+  discount: DiscountProps;
 }) {
   const [selectedGroup, setSelectedGroup] = useState<ComboboxOption | null>(
     null,
@@ -48,14 +49,35 @@ function CopyRewardToLiveModal({
     icon: <GroupColorCircle group={group} />,
   }));
 
-  const { executeAsync, isPending } = useAction(copyRewardToLiveAction, {
+  const { executeAsync, isPending } = useAction(copyDiscountToLiveAction, {
     onSuccess: () => {
       setShowModal(false);
       setSelectedGroup(null);
-      toast.success("Reward copied to live program!");
+      toast.success("Discount copied to live program!");
     },
     onError({ error }) {
-      toast.error(parseActionError(error, "Failed to copy reward to live"));
+      if (error.serverError) {
+        const code = Object.keys(ERROR_MAP).find((key) =>
+          error.serverError!.startsWith(key),
+        );
+
+        if (code) {
+          const { title, ctaLabel, ctaUrl } = ERROR_MAP[code];
+          const message = error.serverError!.replace(`${code}: `, "");
+
+          toast.custom(() => (
+            <UpgradeRequiredToast
+              title={title}
+              message={message}
+              ctaLabel={ctaLabel}
+              ctaUrl={ctaUrl}
+            />
+          ));
+          return;
+        }
+      }
+
+      toast.error(error.serverError);
     },
   });
 
@@ -65,7 +87,7 @@ function CopyRewardToLiveModal({
 
     await executeAsync({
       workspaceId,
-      rewardId: reward.id,
+      discountId: discount.id,
       targetGroupId: selectedGroup.value,
     });
   };
@@ -73,7 +95,7 @@ function CopyRewardToLiveModal({
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
       <div className="border-b border-neutral-200 px-4 py-4 sm:px-6">
-        <h3 className="text-lg font-medium">Copy reward to live group</h3>
+        <h3 className="text-lg font-medium">Copy discount to live group</h3>
       </div>
 
       <div className="bg-neutral-50">
@@ -108,7 +130,7 @@ function CopyRewardToLiveModal({
             </Combobox>
 
             <p className="text-xs font-normal text-neutral-500">
-              Select a group with no {reward.event} reward set up
+              Select a group with no discount set up
             </p>
           </div>
 
@@ -137,36 +159,36 @@ function CopyRewardToLiveModal({
   );
 }
 
-export function useCopyRewardToLiveModal() {
-  const [reward, setReward] = useState<RewardProps | null>(null);
+export function useCopyDiscountToLiveModal() {
+  const [discount, setDiscount] = useState<DiscountProps | null>(null);
 
-  const openCopyRewardToLiveModal = useCallback((reward: RewardProps) => {
-    setReward(reward);
+  const openCopyDiscountToLiveModal = useCallback((discount: DiscountProps) => {
+    setDiscount(discount);
   }, []);
 
-  const closeCopyRewardToLiveModal = useCallback(() => {
-    setReward(null);
+  const closeCopyDiscountToLiveModal = useCallback(() => {
+    setDiscount(null);
   }, []);
 
-  const CopyRewardToLiveModalCallback = useCallback(() => {
-    if (!reward) return null;
+  const CopyDiscountToLiveModalCallback = useCallback(() => {
+    if (!discount) return null;
 
     return (
-      <CopyRewardToLiveModal
-        reward={reward}
+      <CopyDiscountToLiveModal
+        discount={discount}
         showModal
         setShowModal={(show) => {
-          if (!show) closeCopyRewardToLiveModal();
+          if (!show) closeCopyDiscountToLiveModal();
         }}
       />
     );
-  }, [reward, closeCopyRewardToLiveModal]);
+  }, [discount, closeCopyDiscountToLiveModal]);
 
   return useMemo(
     () => ({
-      openCopyRewardToLiveModal,
-      CopyRewardToLiveModal: CopyRewardToLiveModalCallback,
+      openCopyDiscountToLiveModal,
+      CopyDiscountToLiveModal: CopyDiscountToLiveModalCallback,
     }),
-    [openCopyRewardToLiveModal, CopyRewardToLiveModalCallback],
+    [openCopyDiscountToLiveModal, CopyDiscountToLiveModalCallback],
   );
 }
