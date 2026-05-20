@@ -28,7 +28,8 @@ export async function POST(req: Request) {
             updatedAt: {
               lt: subDays(new Date(), 30),
             },
-            // only delete if there are no commissions or messages
+            reapplicationTimeframe: "standard",
+            // only delete if there are no commissions
             commissions: {
               none: {},
             },
