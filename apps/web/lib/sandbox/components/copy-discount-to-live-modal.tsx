@@ -12,7 +12,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { copyDiscountToLiveAction } from "./copy-discount-to-live";
+import { copyDiscountToLiveAction } from "../copy-discount-to-live";
 
 function CopyDiscountToLiveModal({
   showModal,

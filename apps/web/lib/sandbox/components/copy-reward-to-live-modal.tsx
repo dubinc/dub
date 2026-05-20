@@ -11,7 +11,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { copyRewardToLiveAction } from "./copy-reward-to-live";
+import { copyRewardToLiveAction } from "../copy-reward-to-live";
 
 function CopyRewardToLiveModal({
   showModal,

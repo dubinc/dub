@@ -3,8 +3,10 @@ import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan"
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { withSession } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { addMemberToStaging } from "@/lib/sandbox/sync-member-to-staging";
 import { PlanProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // POST /api/workspaces/[idOrSlug]/invites/accept – accept a workspace invite
@@ -34,7 +36,7 @@ export const POST = withSession(async ({ session, params }) => {
     });
   }
 
-  const workspace = await prisma.$transaction(async (tx) => {
+  const { workspace, workspaceUser } = await prisma.$transaction(async (tx) => {
     const existingMembership = await tx.projectUsers.findFirst({
       where: {
         userId: session.user.id,
@@ -58,6 +60,7 @@ export const POST = withSession(async ({ session, params }) => {
         slug: true,
         plan: true,
         usersLimit: true,
+        stagingWorkspaceId: true,
         _count: {
           select: {
             users: {
@@ -88,7 +91,7 @@ export const POST = withSession(async ({ session, params }) => {
       plan: workspace.plan,
     });
 
-    await tx.projectUsers.create({
+    const workspaceUser = await tx.projectUsers.create({
       data: {
         userId: session.user.id,
         role: invite.role,
@@ -109,7 +112,10 @@ export const POST = withSession(async ({ session, params }) => {
       },
     });
 
-    return workspace;
+    return {
+      workspace,
+      workspaceUser,
+    };
   });
 
   // Update default workspace
@@ -128,6 +134,16 @@ export const POST = withSession(async ({ session, params }) => {
     userId: session.user.id,
     step: "completed",
   });
+
+  waitUntil(
+    addMemberToStaging({
+      workspace,
+      user: {
+        id: workspaceUser.userId,
+        role: workspaceUser.role,
+      },
+    }),
+  );
 
   return NextResponse.json({ message: "Invite accepted." });
 });

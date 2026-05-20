@@ -4,11 +4,16 @@ import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan"
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import {
+  removeMemberFromStaging,
+  updateMemberRoleInStaging,
+} from "@/lib/sandbox/sync-member-to-staging";
+import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
 import { WorkspaceRole } from "@dub/prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -66,7 +71,7 @@ export const PATCH = withWorkspace(
       plan: workspace.plan,
     });
 
-    const response = await prisma.projectUsers.update({
+    const workspaceUser = await prisma.projectUsers.update({
       where: {
         userId_projectId: {
           projectId: workspace.id,
@@ -80,10 +85,22 @@ export const PATCH = withWorkspace(
         role,
       },
     });
-    return NextResponse.json(response);
+
+    waitUntil(
+      updateMemberRoleInStaging({
+        workspace,
+        user: {
+          id: workspaceUser.userId,
+          role: workspaceUser.role,
+        },
+      }),
+    );
+
+    return NextResponse.json(workspaceUser);
   },
   {
     requiredPermissions: ["workspaces.write"],
+    rejectStagingWorkspace: true,
   },
 );
 
@@ -182,6 +199,15 @@ export const DELETE = withWorkspace(
         }),
     ]);
 
+    waitUntil(
+      removeMemberFromStaging({
+        workspace,
+        user: {
+          id: userId,
+        },
+      }),
+    );
+
     // delete the user if it's a machine user
     if (projectUser.user.isMachine) {
       await prisma.user.delete({
@@ -192,5 +218,8 @@ export const DELETE = withWorkspace(
     }
 
     return NextResponse.json(response);
+  },
+  {
+    rejectStagingWorkspace: true,
   },
 );

@@ -2,7 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceEnvironment, WorkspaceRole } from "@dub/prisma/client";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
@@ -71,11 +71,13 @@ export const withWorkspace = (
     requiredPermissions = [],
     requiredRoles = [],
     featureFlag, // if the action needs a specific feature flag
+    rejectStagingWorkspace = false,
   }: {
     requiredPlan?: Array<PlanProps>;
     requiredPermissions?: PermissionAction[];
     requiredRoles?: WorkspaceRole[];
     featureFlag?: BetaFeatures;
+    rejectStagingWorkspace?: boolean;
   } = {},
 ) => {
   return withAxiomBodyLog(
@@ -457,6 +459,17 @@ export const withWorkspace = (
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Need higher plan.",
+          });
+        }
+
+        if (
+          rejectStagingWorkspace &&
+          workspace.environment === WorkspaceEnvironment.staging
+        ) {
+          throw new DubApiError({
+            code: "bad_request",
+            message:
+              "This action is not available in a staging workspace. Use the live workspace instead.",
           });
         }
 

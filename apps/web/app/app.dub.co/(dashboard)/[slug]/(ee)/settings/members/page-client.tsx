@@ -15,7 +15,7 @@ import { useRemoveWorkspaceUserModal } from "@/ui/modals/remove-workspace-user-m
 import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceEnvironment, WorkspaceRole } from "@dub/prisma/client";
 import {
   Button,
   Filter,
@@ -50,7 +50,8 @@ export function WorkspaceMembersClient() {
 
   const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
 
-  const { role, plan } = useWorkspace();
+  const { role, plan, environment } = useWorkspace();
+  const isStaging = environment === WorkspaceEnvironment.staging;
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
 
@@ -142,7 +143,9 @@ export function WorkspaceMembersClient() {
     return filters;
   }, [status, roleFilter]);
 
-  useKeyboardShortcut("m", () => setShowInviteWorkspaceUserModal(true));
+  useKeyboardShortcut("m", () => {
+    if (!isStaging) setShowInviteWorkspaceUserModal(true);
+  });
 
   const columns = useMemo<ColumnDef<WorkspaceUserProps>[]>(
     () => [
@@ -262,6 +265,7 @@ export function WorkspaceMembersClient() {
                 clientAccessCheck({
                   action: "workspaces.write",
                   role,
+                  environment,
                   customPermissionDescription: "invite new teammates",
                 }).error || undefined
               }
@@ -275,6 +279,7 @@ export function WorkspaceMembersClient() {
                 clientAccessCheck({
                   action: "workspaces.write",
                   role,
+                  environment,
                   customPermissionDescription: "generate invite links",
                 }).error || undefined
               }
@@ -337,7 +342,8 @@ function RoleCell({
   isCurrentUser: boolean;
   isCurrentUserOwner: boolean;
 }) {
-  const { plan } = useWorkspace();
+  const { plan, environment } = useWorkspace();
+  const isStaging = environment === WorkspaceEnvironment.staging;
   const [role, setRole] = useState<WorkspaceRole>(user.role);
 
   useEffect(() => {
@@ -366,8 +372,9 @@ function RoleCell({
     });
 
   const isDisabled =
-    !isCurrentUserOwner || // Only owners can change roles
-    isCurrentUser; // Can't change your own role
+    isStaging ||
+    !isCurrentUserOwner ||
+    isCurrentUser;
 
   return (
     <>
@@ -387,11 +394,13 @@ function RoleCell({
           setShowWorkspaceUserRoleModal(true);
         }}
         title={
-          !isCurrentUserOwner
-            ? "Only owners can change member roles"
-            : isCurrentUser
-              ? "You cannot change your own role"
-              : undefined
+          isStaging
+            ? "Roles are managed from the live workspace"
+            : !isCurrentUserOwner
+              ? "Only owners can change member roles"
+              : isCurrentUser
+                ? "You cannot change your own role"
+                : undefined
         }
       >
         {WORKSPACE_ROLES.map(({ value, label }) => {
@@ -419,6 +428,8 @@ function RowMenuButton({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
+  const { environment } = useWorkspace();
+  const isStaging = environment === WorkspaceEnvironment.staging;
 
   const user = row.original;
   const searchParams = useSearchParams();
@@ -440,6 +451,11 @@ function RowMenuButton({
     });
 
   const isCurrentUser = session?.user?.email === user.email;
+
+  // In staging, only show menu for self (leave workspace)
+  if (isStaging && !isCurrentUser) {
+    return null;
+  }
 
   // Only show menu if user is owner OR they're removing themselves
   if (!isCurrentUserOwner && !isCurrentUser) {
