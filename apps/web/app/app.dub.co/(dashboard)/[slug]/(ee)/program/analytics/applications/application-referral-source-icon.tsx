@@ -1,5 +1,5 @@
 import { ReferrerIcon } from "@/ui/analytics/referrer-icon";
-import { Globe, Shop } from "@dub/ui/icons";
+import { Globe, Shop, UserArrowRight } from "@dub/ui/icons";
 
 export function ApplicationReferralSourceIcon({
   referralSource,
@@ -11,6 +11,8 @@ export function ApplicationReferralSourceIcon({
       return <Shop />;
     case "direct":
       return <Globe />;
+    case "manual":
+      return <UserArrowRight />;
     default:
       return <ReferrerIcon display={referralSource} />;
   }
