@@ -78,9 +78,7 @@ function AttributeReferringPartnerModal({
     ? "Please select a referring partner first."
     : partner.id === referredByPartner?.id
       ? "You cannot attribute a partner to themselves."
-      : partner.totalCommissions === 0
-        ? "This partner has no eligible commissions."
-        : undefined;
+      : undefined;
 
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
