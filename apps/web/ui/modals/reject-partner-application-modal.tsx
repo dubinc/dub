@@ -255,19 +255,19 @@ export function RejectPartnerApplicationModal({
               Reapplication timeframe
             </label>
             <ToggleGroup
-              className="mt-1.5 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-100 p-1"
+              className={cn(
+                "mt-1.5 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-100 p-1",
+                flagForFraud && "pointer-events-none opacity-60",
+              )}
               optionClassName="h-8 flex flex-1 items-center justify-center rounded-md text-sm normal-case"
               indicatorClassName="bg-white"
               options={[...REAPPLICATION_TIMEFRAME_OPTIONS]}
               selected={reapplicationTimeframe}
               selectAction={(value) => {
-                if (isPending) {
+                if (isPending || flagForFraud) {
                   return;
                 }
                 const timeframe = value as "instant" | "standard" | "never";
-                if (timeframe === "instant" && flagForFraud) {
-                  return;
-                }
                 setReapplicationTimeframe(timeframe);
                 if (timeframe === "instant") {
                   setFlagForFraud(false);
@@ -298,9 +298,7 @@ export function RejectPartnerApplicationModal({
                 }
                 fn={(checked: boolean) => {
                   setFlagForFraud(checked);
-                  if (checked) {
-                    setReapplicationTimeframe("standard");
-                  }
+                  setReapplicationTimeframe(checked ? "never" : "standard");
                 }}
               />
             </div>
