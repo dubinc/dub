@@ -2,8 +2,8 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
 import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { nanoid, TRIAL_LIMITS } from "@dub/utils";
-import { generateRandomString } from "../utils/generate-random-string";
-import { createWorkspaceId } from "./create-workspace-id";
+import { generateRandomString } from "../api/utils/generate-random-string";
+import { createWorkspaceId } from "../api/workspaces/create-workspace-id";
 
 export async function createStagingWorkspace(workspaceId: string) {
   const workspace = await prisma.project.findUnique({

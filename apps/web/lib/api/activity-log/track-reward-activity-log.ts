@@ -123,7 +123,7 @@ function buildModifierChangeSetEntries(
   return logs;
 }
 
-export function trackRewardActivityLog({
+export async function trackRewardActivityLog({
   old: oldReward,
   new: newReward,
   ...baseInput
@@ -143,7 +143,7 @@ export function trackRewardActivityLog({
       serializeReward(newReward as Reward),
     );
 
-    return trackActivityLog({
+    return await trackActivityLog({
       ...baseInput,
       resourceType,
       action: "reward.created",
@@ -226,5 +226,5 @@ export function trackRewardActivityLog({
     }),
   );
 
-  return trackActivityLog(finalActivityLogs);
+  return await trackActivityLog(finalActivityLogs);
 }
