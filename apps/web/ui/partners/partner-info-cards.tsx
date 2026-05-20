@@ -1,5 +1,6 @@
 import { useAttributeReferringPartnerModal } from "@/lib/partner-referrals/components/attribute-referring-partner-modal";
 import { usePartnerReferral } from "@/lib/partner-referrals/hooks/use-partner-referral";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -97,7 +98,9 @@ export function PartnerInfoCards({
   showFraudIndicator = true,
   showApplicationRiskAnalysis = false,
 }: PartnerInfoCardsProps) {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
+
+  const { canCreateReferralReward } = getPlanCapabilities(plan);
 
   const isEnrolled = type === "enrolled" || type === undefined;
   const isNetwork = type === "network";
@@ -195,7 +198,7 @@ export function PartnerInfoCards({
         : []),
 
       // Referred by
-      ...(isEnrolled
+      ...(isEnrolled && canCreateReferralReward
         ? [
             {
               id: "referredBy",
@@ -524,7 +527,9 @@ function ReferredByPartner({
   if (loading) {
     return (
       <span className="flex min-w-0 items-center gap-1">
-        <div className="h-5 w-24 animate-pulse rounded bg-neutral-200" />
+        <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
+        <div className="size-4 animate-pulse rounded-full bg-neutral-200" />
+        <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
       </span>
     );
   }
@@ -552,7 +557,7 @@ function ReferredByPartner({
         type="button"
         onClick={() => setShowAttributeReferringPartnerModal(true)}
         aria-label="Attribute referring partner"
-        className="bg-bg-inverted/5 text-content-default hover:bg-bg-inverted/10 inline-flex h-6 min-h-6 min-w-0 select-none items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium"
+        className="bg-bg-inverted/5 text-content-default hover:bg-bg-inverted/10 -my-0.5 inline-flex h-5 min-w-0 select-none items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium transition-all"
       >
         Attribute referring partner
       </button>
