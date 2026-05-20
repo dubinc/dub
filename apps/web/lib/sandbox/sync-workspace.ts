@@ -91,3 +91,29 @@ export async function removeMemberFromStaging({
     console.error("[removeMemberFromStaging]", error);
   }
 }
+
+export async function syncWorkspaceSettings(
+  workspace: Pick<
+    Project,
+    "id" | "stagingWorkspaceId" | "name" | "slug" | "logo"
+  >,
+) {
+  if (!workspace.stagingWorkspaceId) {
+    return;
+  }
+
+  try {
+    await prisma.project.update({
+      where: {
+        id: workspace.stagingWorkspaceId,
+      },
+      data: {
+        logo: workspace.logo,
+        name: `${workspace.name} (Staging)`,
+        slug: `${workspace.slug}-staging`,
+      },
+    });
+  } catch (error) {
+    console.error("[syncWorkspaceSettings]", error);
+  }
+}

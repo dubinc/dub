@@ -7,17 +7,28 @@ export const clientAccessCheck = ({
   role,
   customPermissionDescription,
   environment,
+  stagingBehavior,
 }: {
   action: PermissionAction;
   role: WorkspaceRole;
   customPermissionDescription?: string;
   environment?: WorkspaceEnvironment | null;
+  stagingBehavior?: "blocked" | "live-only";
 }) => {
   if (environment === WorkspaceEnvironment.staging) {
-    return {
-      allowed: false,
-      error: "This setting is managed from the live workspace.",
-    };
+    switch (stagingBehavior) {
+      case "blocked":
+        return {
+          allowed: false,
+          error: "This action is not available in staging workspaces.",
+        };
+
+      case "live-only":
+        return {
+          allowed: false,
+          error: "This setting must be managed from the live workspace.",
+        };
+    }
   }
 
   const permission = ROLE_PERMISSIONS.find((p) => p.action === action)!;
@@ -27,7 +38,7 @@ export const clientAccessCheck = ({
   if (allowed) {
     return {
       allowed,
-      error: false,
+      error: undefined,
     };
   }
 

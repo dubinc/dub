@@ -26,7 +26,7 @@ export async function createSandboxWorkspace({
   await prisma.project.create({
     data: {
       id: workspaceId,
-      name: `${workspace.name} [SANDBOX]`,
+      name: `${workspace.name} (Sandbox)`,
       slug: `${workspace.slug}-sandbox`,
       environment: WorkspaceEnvironment.sandbox,
       plan: workspace.plan,

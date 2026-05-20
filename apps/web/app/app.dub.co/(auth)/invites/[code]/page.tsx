@@ -1,6 +1,6 @@
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { getSession } from "@/lib/auth";
-import { addMemberToStaging } from "@/lib/sandbox/sync-member-to-staging";
+import { addMemberToStaging } from "@/lib/sandbox/sync-workspace";
 import EmptyState from "@/ui/shared/empty-state";
 import { prisma } from "@dub/prisma";
 import { LoadingSpinner } from "@dub/ui";

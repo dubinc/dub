@@ -6,7 +6,7 @@ import { generateRandomName } from "@/lib/names";
 import {
   removeMemberFromStaging,
   updateMemberRoleInStaging,
-} from "@/lib/sandbox/sync-member-to-staging";
+} from "@/lib/sandbox/sync-workspace";
 import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,

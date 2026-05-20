@@ -51,7 +51,7 @@ export async function createStagingWorkspace(workspaceId: string) {
     prisma.project.create({
       data: {
         id: stagingWorkspaceId,
-        name: `${workspace.name} [STAGING]`,
+        name: `${workspace.name} (Staging)`,
         slug: `${workspace.slug}-staging`,
         logo: workspace.logo,
         environment: WorkspaceEnvironment.staging,

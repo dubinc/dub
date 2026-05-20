@@ -3,7 +3,7 @@ import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan"
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { withSession } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
-import { addMemberToStaging } from "@/lib/sandbox/sync-member-to-staging";
+import { addMemberToStaging } from "@/lib/sandbox/sync-workspace";
 import { PlanProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";

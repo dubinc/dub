@@ -7,6 +7,7 @@ import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
+import { syncWorkspaceSettings } from "@/lib/sandbox/sync-workspace";
 import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
 import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
@@ -95,6 +96,17 @@ export const PATCH = withWorkspace(
       enforceSAML,
       siteVisitTrackingSettings,
     } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
+
+    if (
+      workspace.environment === WorkspaceEnvironment.staging &&
+      (name || slug || logo)
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "This action is not available in a staging workspace. Use the live workspace instead.",
+      });
+    }
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
       throw new DubApiError({
@@ -262,6 +274,8 @@ export const PATCH = withWorkspace(
               });
             }
           }
+
+          await syncWorkspaceSettings(updatedWorkspace);
         })(),
       );
 
