@@ -30,7 +30,8 @@ export const attributeReferringPartnerAction = authActionClient
     if (referredByPartnerId === partnerId) {
       throw new DubApiError({
         code: "bad_request",
-        message: "A partner cannot refer themselves.",
+        message:
+          "A partner cannot be attributed to themselves as a referring partner.",
       });
     }
 
@@ -75,14 +76,15 @@ export const attributeReferringPartnerAction = authActionClient
     if (referringProgramEnrollment.status !== "approved") {
       throw new DubApiError({
         code: "bad_request",
-        message: "The referring partner is not approved.",
+        message: "The referring partner is not enrolled in the program.",
       });
     }
 
     if (programEnrollment.applicationEvent?.referredByPartnerId) {
       throw new DubApiError({
         code: "bad_request",
-        message: "This partner already has a referring partner.",
+        message:
+          "This partner has already been attributed to another referring partner.",
       });
     }
 
