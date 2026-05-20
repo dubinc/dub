@@ -1,7 +1,7 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
 import { WorkspaceEnvironment } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { nanoid, TRIAL_LIMITS } from "@dub/utils";
 import { generateRandomString } from "../utils/generate-random-string";
 import { createWorkspaceId } from "./create-workspace-id";
 
@@ -44,9 +44,6 @@ export async function createStagingWorkspace(workspaceId: string) {
     return;
   }
 
-  // TODO:
-  // Add the limit
-
   const stagingWorkspaceId = createWorkspaceId();
 
   await prisma.$transaction([
@@ -62,6 +59,18 @@ export async function createStagingWorkspace(workspaceId: string) {
         billingCycleStart: new Date().getDate(),
         invoicePrefix: generateRandomString(8),
         inviteCode: nanoid(24),
+        usageLimit: TRIAL_LIMITS.clicks,
+        linksLimit: TRIAL_LIMITS.links,
+        domainsLimit: TRIAL_LIMITS.domains,
+        aiLimit: TRIAL_LIMITS.ai,
+        tagsLimit: TRIAL_LIMITS.tags,
+        foldersLimit: TRIAL_LIMITS.folders,
+        usersLimit: TRIAL_LIMITS.users,
+        partnersLimit: TRIAL_LIMITS.partners,
+        payoutsLimit: TRIAL_LIMITS.payouts,
+        partnerTagsLimit: TRIAL_LIMITS.partnerTags,
+        groupsLimit: TRIAL_LIMITS.groups,
+        networkInvitesLimit: TRIAL_LIMITS.networkInvites,
         defaultDomains: {
           create: {},
         },

@@ -3,7 +3,7 @@ import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folde
 import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
-import { createStagingWorkspace } from "@/lib/api/workspaces/staging-workspace";
+import { createStagingWorkspace } from "@/lib/api/workspaces/create-staging-workspace";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
