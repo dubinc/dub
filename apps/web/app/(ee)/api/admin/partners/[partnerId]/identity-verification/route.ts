@@ -34,13 +34,15 @@ export const POST = withAdmin(
     if (partner.identityVerificationStatus) {
       switch (partner.identityVerificationStatus) {
         case "approved":
-          throw new Error(
+          return new Response(
             "This partner's identity is already verified. No further action is required.",
+            { status: 400 },
           );
         case "submitted":
         case "review":
-          throw new Error(
-            "A verification attempt is already in progress. Please wait for it to complete or resubmit.",
+          return new Response(
+            "A verification attempt is already in progress.",
+            { status: 400 },
           );
       }
     }
