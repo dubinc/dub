@@ -194,8 +194,11 @@ export const getPartnersQuerySchema = z
 
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
   status: z
-    .enum(ProgramEnrollmentStatus)
-    .or(z.enum(["approved_invited"]))
+    .union([
+      z.enum(ProgramEnrollmentStatus),
+      z.enum(["approved_invited"]),
+      z.array(z.enum(ProgramEnrollmentStatus).or(z.enum(["approved_invited"]))),
+    ])
     .optional(),
   partnerIds: z
     .union([z.string(), z.array(z.string())])
@@ -207,7 +210,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
     .optional(),
   groupId: z.union([z.string(), z.array(z.string())]).optional(),
   country: z.union([z.string(), z.array(z.string())]).optional(),
-  referredByPartnerId: z.string().optional(),
+  referredByPartnerId: z.union([z.string(), z.array(z.string())]).optional(),
   includePartnerPlatforms: booleanQuerySchema.optional(),
   // metric range query fields (TODO: Add to public API once we finalize the syntax)
   totalClicksMin: z.coerce
