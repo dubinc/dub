@@ -82,11 +82,14 @@ export async function importCustomers(payload: RewardfulImportPayload) {
     processedBatches++;
   }
 
-  await rewardfulImporter.queue({
-    ...payload,
-    page: hasMore ? currentPage : undefined,
-    action: hasMore ? "import-customers" : "import-commissions",
-  });
+  await rewardfulImporter.queue(
+    {
+      ...payload,
+      page: hasMore ? currentPage : undefined,
+      action: hasMore ? "import-customers" : "import-commissions",
+    },
+    !hasMore ? { delay: 5 * 60 } : undefined,
+  );
 }
 
 // Create individual referral entries

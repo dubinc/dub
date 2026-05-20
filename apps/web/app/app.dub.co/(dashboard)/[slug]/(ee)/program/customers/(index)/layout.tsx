@@ -1,8 +1,8 @@
 "use client";
 
-import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
+import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import useCustomersCount from "@/lib/swr/use-customers-count";
-import { useProgramReferralsCount } from "@/lib/swr/use-program-referrals-count";
+import { useProgramSubmittedLeadsCount } from "@/lib/swr/use-program-submitted-leads-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExportCustomersButton } from "@/ui/customers/export-customers-button";
 import { PageContent } from "@/ui/layout/page-content";
@@ -26,10 +26,10 @@ export default function PartnerCustomersLayout({
   });
 
   const isReferralEnabled = defaultProgramId
-    ? REFERRAL_ENABLED_PROGRAM_IDS.includes(defaultProgramId)
+    ? SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(defaultProgramId)
     : false;
 
-  const { data: referralsCount } = useProgramReferralsCount<number>({
+  const { data: leadsCount } = useProgramSubmittedLeadsCount<number>({
     ignoreParams: true,
     enabled: isReferralEnabled,
   });
@@ -48,14 +48,14 @@ export default function PartnerCustomersLayout({
         count: customersCount,
       },
       {
-        label: "Partner Referrals",
-        id: "invited",
-        href: "referrals",
-        info: "Shows your partners' submitted referrals.",
-        count: referralsCount,
+        label: "Submitted leads",
+        id: "leads",
+        href: "leads",
+        info: "Shows your partners' submitted leads.",
+        count: leadsCount,
       },
     ];
-  }, [isReferralEnabled, customersCount, referralsCount]);
+  }, [isReferralEnabled, customersCount, leadsCount]);
 
   return (
     <PageContent

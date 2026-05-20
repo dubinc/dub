@@ -127,6 +127,14 @@ export const getCommissionsQuerySchema = z
           "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
           "Examples: `group_abc`, `group_abc,group_xyz`, `-group_abc`.",
       ),
+    partnerTagId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of commissions by the associated partner tag. " +
+          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+          "Examples: `ptag_abc`, `ptag_abc,ptag_xyz`, `-ptag_abc`.",
+      ),
     invoiceId: z
       .string()
       .optional()
@@ -378,6 +386,12 @@ export const COMMISSION_EXPORT_COLUMNS = [
   {
     id: "customerExternalId",
     label: "Customer external ID",
+    type: "string",
+    default: false,
+  },
+  {
+    id: "stripeCustomerId",
+    label: "Stripe customer ID",
     type: "string",
     default: false,
   },

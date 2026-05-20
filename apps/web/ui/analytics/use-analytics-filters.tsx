@@ -222,20 +222,13 @@ export function useAnalyticsFilters({
     VALID_ANALYTICS_FILTERS.forEach((filter) => {
       // Skip special cases we handled above
       if (
-        [
-          "domain",
-          "key",
-          "tagId",
-          "partnerTagId",
-          "root",
-          "customerId",
-        ].includes(filter)
+        ["key", "tagId", "partnerTagId", "root", "customerId"].includes(filter)
       )
         return;
       // Also skip date range filters and qr
       if (["interval", "start", "end", "qr"].includes(filter)) return;
-      // Skip domain if we're showing a specific link (domain + key) without linkId
-      if (filter === "domain" && domain && key && !params.linkId) return;
+      // Skip domain when domain+key identify a specific link (link chip / linkId handles that)
+      if (filter === "domain" && domain && key) return;
 
       const value =
         params[filter] ||

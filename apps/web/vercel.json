@@ -46,7 +46,7 @@
     },
     {
       "path": "/api/cron/trigger-withdrawal",
-      "schedule": "0 0,12 * * *"
+      "schedule": "0 1,13 * * *"
     },
     {
       "path": "/api/cron/trigger-backup",

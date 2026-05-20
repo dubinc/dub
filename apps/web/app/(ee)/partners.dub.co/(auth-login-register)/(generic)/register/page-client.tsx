@@ -1,6 +1,7 @@
 "use client";
 
 import { emailSchema } from "@/lib/zod/schemas/auth";
+import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import {
   RegisterProvider,
@@ -36,6 +37,7 @@ export default function RegisterPageClient({
       }
       lockEmail={searchEmailResult.success || lockEmail}
     >
+      <ApplicationAnalytics />
       <RegisterFlow program={program} />
     </RegisterProvider>
   );

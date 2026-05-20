@@ -141,11 +141,14 @@ export async function importCustomers(payload: ToltImportPayload) {
     startingAfter = customers[customers.length - 1].id;
   }
 
-  await toltImporter.queue({
-    ...payload,
-    startingAfter: hasMore ? startingAfter : undefined,
-    action: hasMore ? "import-customers" : "import-commissions",
-  });
+  await toltImporter.queue(
+    {
+      ...payload,
+      startingAfter: hasMore ? startingAfter : undefined,
+      action: hasMore ? "import-customers" : "import-commissions",
+    },
+    !hasMore ? { delay: 5 * 60 } : undefined,
+  );
 }
 
 // Create individual customer entries

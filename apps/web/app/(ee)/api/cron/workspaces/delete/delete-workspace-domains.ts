@@ -8,7 +8,7 @@ import {
 const MAX_DOMAINS_PER_BATCH = 10;
 
 export async function deleteWorkspaceDomains(payload: DeleteWorkspacePayload) {
-  const { workspaceId, startingAfter } = payload;
+  const { workspaceId } = payload;
 
   const domains = await prisma.domain.findMany({
     where: {
@@ -17,12 +17,6 @@ export async function deleteWorkspaceDomains(payload: DeleteWorkspacePayload) {
     orderBy: {
       id: "asc",
     },
-    ...(startingAfter && {
-      skip: 1,
-      cursor: {
-        id: startingAfter,
-      },
-    }),
     take: MAX_DOMAINS_PER_BATCH,
   });
 

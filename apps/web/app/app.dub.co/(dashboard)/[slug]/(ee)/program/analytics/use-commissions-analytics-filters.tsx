@@ -1,35 +1,95 @@
 "use client";
 
+import useCommissionAnalytics from "@/lib/swr/use-commission-analytics";
 import useGroups from "@/lib/swr/use-groups";
-import usePartners from "@/lib/swr/use-partners";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { GroupProps } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { CommissionType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
-import { Sliders, Users, Users6 } from "@dub/ui/icons";
-import { capitalize, FilterOperator, parseFilterValue } from "@dub/utils";
+import { Sliders, Tag, Users, Users6 } from "@dub/ui/icons";
+import {
+  currencyFormatter,
+  FilterOperator,
+  nFormatter,
+  parseFilterValue,
+} from "@dub/utils";
+import { useParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-const COMMISSION_FILTER_KEYS = ["partnerId", "groupId", "type"] as const;
+const FILTER_KEYS = ["partnerId", "groupId", "partnerTagId", "type"] as const;
 
-export function useCommissionsAnalyticsFilters(
-  _commissionsQueryString?: string,
+type CategoryRow = { earnings: number; count: number };
+type PartnerRow = { earnings: number; commissionCount: number };
+
+function metricValue(
+  commissionUnit: string | undefined,
+  row: CategoryRow | PartnerRow,
 ) {
+  if (commissionUnit === "count") {
+    return "commissionCount" in row ? row.commissionCount : row.count;
+  }
+  return row.earnings;
+}
+
+function formatMetricRight(
+  commissionUnit: string | undefined,
+  row: CategoryRow | PartnerRow,
+) {
+  return commissionUnit === "count"
+    ? nFormatter(metricValue(commissionUnit, row), { full: true })
+    : currencyFormatter(row.earnings);
+}
+
+export function useCommissionsAnalyticsFilters() {
   const { slug } = useWorkspace();
+  const { tab } = useParams() as { tab?: string };
   const { searchParamsObj, queryParams } = useRouterStuff();
+  const commissionUnit = searchParamsObj.commissionUnit;
+
+  const filtersTabEnabled = tab === "commissions";
 
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const { partners } = usePartnerFilterOptions(
-    selectedFilter === "partnerId" ? debouncedSearch : "",
-  );
-  const { groups } = useGroups();
+  const { groups: programGroups } = useGroups();
+
+  const groupById = useMemo(() => {
+    const map = new Map<string, GroupProps>();
+    programGroups?.forEach((g) => map.set(g.id, g));
+    return map;
+  }, [programGroups]);
+
+  const { data: partners } = useCommissionAnalytics({
+    groupBy: "partnerId",
+    exclude: ["partnerId"],
+    enabled: filtersTabEnabled,
+  });
+
+  const { data: groups } = useCommissionAnalytics({
+    groupBy: "groupId",
+    exclude: ["groupId"],
+    enabled: filtersTabEnabled,
+  });
+
+  const { data: partnerTags } = useCommissionAnalytics({
+    groupBy: "partnerTagId",
+    exclude: ["partnerTagId"],
+    enabled: filtersTabEnabled,
+  });
+
+  const { data: types } = useCommissionAnalytics({
+    groupBy: "type",
+    exclude: ["type"],
+    enabled: filtersTabEnabled,
+  });
+
+  const partnerSearch =
+    selectedFilter === "partnerId" ? debouncedSearch.trim().toLowerCase() : "";
 
   const filters = useMemo(
     () => [
@@ -39,36 +99,89 @@ export function useCommissionsAnalyticsFilters(
         label: "Partner",
         shouldFilter: false,
         options:
-          partners?.map((partner) => ({
-            value: partner.id,
-            label: partner.name,
-            icon: <PartnerAvatar partner={partner} className="size-4" />,
-          })) ?? null,
+          partners
+            ?.filter((row) => metricValue(commissionUnit, row) > 0)
+            .filter(
+              (row) =>
+                !partnerSearch ||
+                row.name.toLowerCase().includes(partnerSearch),
+            )
+            .map((row) => ({
+              value: row.partnerId,
+              label: row.name,
+              icon: (
+                <PartnerAvatar
+                  partner={{
+                    id: row.partnerId,
+                    name: row.name,
+                    image: row.image,
+                  }}
+                  className="size-4"
+                />
+              ),
+              right: formatMetricRight(commissionUnit, row),
+            })) ?? [],
       },
       {
         key: "groupId",
         icon: Users6,
         label: "Partner Group",
         options:
-          groups?.map((group) => ({
-            value: group.id,
-            label: group.name,
-            icon: <GroupColorCircle group={group} />,
-            permalink: `/${slug}/program/groups/${group.slug}/rewards`,
-          })) ?? null,
+          groups
+            ?.filter((row) => metricValue(commissionUnit, row) > 0)
+            .map((row) => {
+              const group = groupById.get(row.key);
+              return {
+                value: row.key,
+                label: row.label,
+                icon: (
+                  <GroupColorCircle group={{ color: group?.color ?? null }} />
+                ),
+                permalink: group
+                  ? `/${slug}/program/groups/${group.slug}/rewards`
+                  : undefined,
+                right: formatMetricRight(commissionUnit, row),
+              };
+            }) ?? [],
+      },
+      {
+        key: "partnerTagId",
+        icon: Tag,
+        label: "Partner Tag",
+        options:
+          partnerTags
+            ?.filter((row) => metricValue(commissionUnit, row) > 0)
+            .map((row) => ({
+              value: row.key,
+              label: row.label,
+              right: formatMetricRight(commissionUnit, row),
+            })) ?? [],
       },
       {
         key: "type",
         icon: Sliders,
         label: "Type",
-        options: Object.values(CommissionType).map((type) => ({
-          value: type,
-          label: capitalize(type) as string,
-          icon: <CommissionTypeIcon type={type} />,
-        })),
+        options:
+          types
+            ?.filter((row) => metricValue(commissionUnit, row) > 0)
+            .map((row) => ({
+              value: row.key,
+              label: row.label,
+              icon: <CommissionTypeIcon type={row.key as CommissionType} />,
+              right: formatMetricRight(commissionUnit, row),
+            })) ?? [],
       },
     ],
-    [partners, groups, slug],
+    [
+      partners,
+      groups,
+      partnerTags,
+      types,
+      commissionUnit,
+      partnerSearch,
+      groupById,
+      slug,
+    ],
   );
 
   const activeFilters = useMemo(() => {
@@ -78,7 +191,7 @@ export function useCommissionsAnalyticsFilters(
       values: string[];
     }[] = [];
 
-    for (const key of COMMISSION_FILTER_KEYS) {
+    for (const key of FILTER_KEYS) {
       const raw = searchParamsObj[key];
       if (!raw) continue;
       const parsed = parseFilterValue(raw);
@@ -90,6 +203,7 @@ export function useCommissionsAnalyticsFilters(
   }, [
     searchParamsObj.partnerId,
     searchParamsObj.groupId,
+    searchParamsObj.partnerTagId,
     searchParamsObj.type,
   ]);
 
@@ -146,8 +260,7 @@ export function useCommissionsAnalyticsFilters(
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        // Include customerId for backwards compat in case it's still in the URL
-        del: [...COMMISSION_FILTER_KEYS, "customerId", "page"],
+        del: [...FILTER_KEYS, "customerId", "page"],
         scroll: false,
       }),
     [queryParams],
@@ -183,31 +296,5 @@ export function useCommissionsAnalyticsFilters(
     onToggleOperator,
     onOpenFilter,
     setSearch,
-  };
-}
-
-function usePartnerFilterOptions(search: string) {
-  const { searchParamsObj } = useRouterStuff();
-
-  const { partners, loading: partnersLoading } = usePartners({
-    query: { search, sortBy: "totalCommissions", sortOrder: "desc" },
-  });
-  const { partners: selectedPartners } = usePartners({
-    query: {
-      partnerIds: searchParamsObj.partnerId
-        ? searchParamsObj.partnerId.replace(/^-/, "").split(",").filter(Boolean)
-        : undefined,
-    },
-  });
-
-  return {
-    partners: partnersLoading
-      ? null
-      : ([
-          ...(partners ?? []),
-          ...(selectedPartners
-            ?.filter((sp) => !partners?.some((p) => p.id === sp.id))
-            ?.map((sp) => ({ ...sp, hideDuringSearch: true })) ?? []),
-        ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]),
   };
 }

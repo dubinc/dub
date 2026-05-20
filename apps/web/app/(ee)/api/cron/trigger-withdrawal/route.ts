@@ -8,7 +8,7 @@ import { logAndRespond } from "../utils";
 export const dynamic = "force-dynamic";
 
 // This route is used to trigger withdrawal from Stripe (since we're using manual payouts)
-// Runs twice a day at midnight and noon UTC (0 0 * * * and 0 12 * * *)
+// Runs twice a day at 1AM and 1PM UTC (0 1,13 * * *)
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);

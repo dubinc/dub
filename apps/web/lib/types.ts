@@ -6,7 +6,7 @@ import {
   partnerPayoutMethodSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
-  partnerReferralsCountByStatusSchema,
+  partnerSubmittedLeadsCountByStatusSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
@@ -20,12 +20,12 @@ import {
   Link,
   PartnerGroup,
   PartnerPayoutMethod,
-  PartnerReferral,
   PartnerRole,
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,
   Project,
+  SubmittedLead,
   User,
   UtmTemplate,
   Webhook,
@@ -68,6 +68,7 @@ import {
   fieldDiffSchema,
   getActivityLogsQuerySchema,
 } from "./zod/schemas/activity-log";
+import { adminNetworkPartnerSchema } from "./zod/schemas/admin";
 import {
   BountyListSchema,
   bountyPerformanceConditionSchema,
@@ -94,6 +95,7 @@ import {
 import {
   CommissionDetailSchema,
   CommissionEnrichedSchema,
+  CommissionSchema,
 } from "./zod/schemas/commissions";
 import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
@@ -169,11 +171,6 @@ import {
   ProgramEnrollmentSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
-import { referralFormDataSchema } from "./zod/schemas/referral-form";
-import {
-  referralSchema,
-  updateReferralStatusSchema,
-} from "./zod/schemas/referrals";
 import {
   CUSTOMER_SOURCES,
   rewardConditionsArraySchema,
@@ -187,6 +184,11 @@ import {
   trackSaleResponseSchema,
 } from "./zod/schemas/sales";
 import { fraudEventContext } from "./zod/schemas/schemas";
+import { submittedLeadFormDataSchema } from "./zod/schemas/submitted-lead-form";
+import {
+  submittedLeadSchema,
+  updateSubmittedLeadStatusSchema,
+} from "./zod/schemas/submitted-leads";
 import { tokenSchema } from "./zod/schemas/token";
 import { usageResponse } from "./zod/schemas/usage";
 import {
@@ -540,8 +542,8 @@ export type PartnerPayoutMethodSetting = z.infer<
   typeof partnerPayoutMethodSchema
 >;
 
-export type PartnerProfileReferralsCountByStatus = z.infer<
-  typeof partnerReferralsCountByStatusSchema
+export type PartnerProfileSubmittedLeadsCountByStatus = z.infer<
+  typeof partnerSubmittedLeadsCountByStatusSchema
 >;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
@@ -551,6 +553,8 @@ export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema> & {
 export type PartnerApplicationProps = z.infer<typeof PartnerApplicationSchema>;
 
 export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
+
+export type AdminNetworkPartner = z.infer<typeof adminNetworkPartnerSchema>;
 
 export type PartnerConversionScore = z.infer<
   typeof PartnerConversionScoreSchema
@@ -862,17 +866,19 @@ export interface WorkflowContext {
   };
 }
 
-export type ReferralProps = z.infer<typeof referralSchema>;
+export type SubmittedLeadProps = z.infer<typeof submittedLeadSchema>;
 
-export type ReferralFormDataField = z.infer<typeof referralFormDataSchema>;
+export type SubmittedLeadFormDataField = z.infer<
+  typeof submittedLeadFormDataSchema
+>;
 
-export type UpdateReferralStatusPayload = z.infer<
-  typeof updateReferralStatusSchema
+export type UpdateSubmittedLeadStatusPayload = z.infer<
+  typeof updateSubmittedLeadStatusSchema
 >;
 
 export type CustomerSource = (typeof CUSTOMER_SOURCES)[number];
 
-export type ReferralWithCustomer = PartnerReferral & {
+export type SubmittedLeadWithCustomer = SubmittedLead & {
   customer: Customer | null;
 };
 
@@ -970,3 +976,5 @@ export type ApplicationAnalyticsByGroup = {
     (typeof applicationEventAnalyticsSchema)[K]
   >;
 };
+
+export type CommissionProps = z.infer<typeof CommissionSchema>;

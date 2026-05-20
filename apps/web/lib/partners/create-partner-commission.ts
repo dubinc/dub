@@ -3,9 +3,6 @@ import {
   Commission,
   CommissionStatus,
   CommissionType,
-  Link,
-  Partner,
-  ProgramEnrollment,
 } from "@dub/prisma/client";
 import { currencyFormatter, log, prettyPrint, toCentsNumber } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -24,7 +21,7 @@ import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { rewardConditionsArraySchema } from "../zod/schemas/rewards";
-import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
+import { constructWebhookPartner } from "./constuct-webhook-partner";
 import { determinePartnerReward } from "./determine-partner-reward";
 import { getRewardAmount } from "./get-reward-amount";
 
@@ -49,22 +46,6 @@ export type CreatePartnerCommissionProps = {
 type RewardWithProduct = {
   reward: RewardProps;
   sale: { amount: number; quantity: number };
-};
-
-const constructWebhookPartner = (
-  programEnrollment: ProgramEnrollment & { partner: Partner; links: Link[] },
-  {
-    totalCommissions: totalCommissionsParam,
-  }: { totalCommissions?: number } = {},
-) => {
-  const totalCommissions =
-    totalCommissionsParam ?? toCentsNumber(programEnrollment.totalCommissions);
-  return {
-    ...programEnrollment.partner,
-    groupId: programEnrollment.groupId,
-    ...aggregatePartnerLinksStats(programEnrollment.links),
-    totalCommissions,
-  };
 };
 
 export const createPartnerCommission = async ({

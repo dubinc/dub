@@ -7,8 +7,14 @@ import { NextResponse } from "next/server";
 // POST /api/partners/applications/reject – Reject a pending partner application
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
-    const { partnerId, rejectionReason, rejectionNote, allowImmediateReapply } =
-      rejectPartnerSchema.parse(await parseRequestBody(req));
+    const {
+      partnerId,
+      rejectionReason,
+      rejectionNote,
+      allowImmediateReapply,
+      flagForFraud,
+      flagForFraudReason,
+    } = rejectPartnerSchema.parse(await parseRequestBody(req));
 
     await rejectPartner({
       workspace,
@@ -16,6 +22,8 @@ export const POST = withWorkspace(
       rejectionReason,
       rejectionNote,
       allowImmediateReapply,
+      flagForFraud,
+      flagForFraudReason,
       userId: session.user.id,
     });
 

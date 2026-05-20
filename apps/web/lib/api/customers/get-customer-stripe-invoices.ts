@@ -137,7 +137,11 @@ export async function getCustomerStripeInvoices({
   const stripeCustomerInvoices = invoices.map((invoice) =>
     StripeCustomerInvoiceSchema.parse({
       id: invoice.id,
-      amount: invoice.amount_paid,
+      amount:
+        invoice.amount_paid === invoice.total &&
+        invoice.total_excluding_tax != null
+          ? invoice.total_excluding_tax
+          : invoice.amount_paid,
       createdAt: new Date(invoice.created * 1000),
       refunded: processInvoice(invoice).refunded,
       dubCommissionId: invoiceIdCommissionIdMap[invoice.id],

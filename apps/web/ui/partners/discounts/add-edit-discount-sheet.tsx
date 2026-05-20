@@ -11,6 +11,8 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountProps } from "@/lib/types";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
+import { Shopify } from "@/ui/guides/icons/shopify";
+import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
 import {
   InlineBadgePopover,
@@ -18,7 +20,7 @@ import {
 } from "@/ui/shared/inline-badge-popover";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { DiscountProvider } from "@dub/prisma/client";
-import { Button, InfoTooltip, Sheet, Switch } from "@dub/ui";
+import { Button, InfoTooltip, Sheet, Switch, useRouterStuff } from "@dub/ui";
 import { CircleCheckFill, StripeIcon, Tag } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -103,11 +105,9 @@ function DiscountSheetContent({
           : defaultValuesSource.amount,
       type: defaultValuesSource.type,
       maxDuration:
-        discountProvider === DiscountProvider.shopify
-          ? 0
-          : defaultValuesSource.maxDuration === null
-            ? Infinity
-            : defaultValuesSource.maxDuration,
+        defaultValuesSource.maxDuration === null
+          ? Infinity
+          : defaultValuesSource.maxDuration,
       couponId: defaultValuesSource.couponId || "",
       couponTestId: defaultValuesSource.couponTestId,
       autoProvision: Boolean(defaultValuesSource.autoProvisionEnabledAt),
@@ -283,21 +283,11 @@ function DiscountSheetContent({
                             ...rest,
                             onChange: (e: ChangeEvent<HTMLSelectElement>) => {
                               onProviderChange(e);
+                              setUseExistingCoupon(false);
+                              setUseStripeTestCouponId(false);
                               if (e.target.value === DiscountProvider.shopify) {
-                                setUseExistingCoupon(false);
-                                setUseStripeTestCouponId(false);
                                 setValue("couponId", "");
                                 setValue("couponTestId", "");
-                                setValue("maxDuration", 0);
-                              } else {
-                                setUseExistingCoupon(false);
-                                setUseStripeTestCouponId(false);
-                                setValue(
-                                  "maxDuration",
-                                  defaultValuesSource.maxDuration === null
-                                    ? Infinity
-                                    : defaultValuesSource.maxDuration,
-                                );
                               }
                             },
                           };
@@ -313,7 +303,7 @@ function DiscountSheetContent({
                   </div>
 
                   {!discount && provider === DiscountProvider.stripe && (
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-3 p-px lg:grid-cols-2">
                       {COUPON_CREATION_OPTIONS.map(
                         ({ label, description, useExisting }) => {
                           const isSelected = useExistingCoupon === useExisting;
@@ -436,7 +426,11 @@ function DiscountSheetContent({
             )}
             title={
               <>
-                <StripeIcon className="size-7" />
+                {provider === DiscountProvider.shopify ? (
+                  <Shopify className="h-7 w-auto" />
+                ) : (
+                  <StripeIcon className="size-7" />
+                )}
                 <span className="leading-relaxed">
                   Discount a{" "}
                   <InlineBadgePopover
@@ -487,33 +481,12 @@ function DiscountSheetContent({
                     }
                     disabled={!!discount}
                   >
-                    <InlineBadgePopoverMenu
-                      selectedValue={maxDuration?.toString()}
-                      onSelect={(value) =>
-                        setValue("maxDuration", Number(value), {
-                          shouldDirty: true,
-                        })
+                    <DurationPopoverContent
+                      value={Number(maxDuration)}
+                      onChange={(value) =>
+                        setValue("maxDuration", value, { shouldDirty: true })
                       }
-                      items={[
-                        {
-                          text: "one time",
-                          value: "0",
-                        },
-                        ...(provider === DiscountProvider.shopify
-                          ? []
-                          : [
-                              ...RECURRING_MAX_DURATIONS.filter(
-                                (v) => v !== 0,
-                              ).map((v) => ({
-                                text: `for ${v} ${pluralize("month", Number(v))}`,
-                                value: v.toString(),
-                              })),
-                              {
-                                text: "for the customer's lifetime",
-                                value: "Infinity",
-                              },
-                            ]),
-                      ]}
+                      presetDurations={RECURRING_MAX_DURATIONS}
                     />
                   </InlineBadgePopover>
                 </span>
@@ -655,8 +628,15 @@ export function DiscountSheet({
   isOpen: boolean;
   nested?: boolean;
 }) {
+  const { queryParams } = useRouterStuff();
+
   return (
-    <Sheet open={isOpen} onOpenChange={rest.setIsOpen} nested={nested}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={rest.setIsOpen}
+      nested={nested}
+      onClose={() => queryParams({ del: "discountId", scroll: false })}
+    >
       <DiscountSheetContent {...rest} />
     </Sheet>
   );

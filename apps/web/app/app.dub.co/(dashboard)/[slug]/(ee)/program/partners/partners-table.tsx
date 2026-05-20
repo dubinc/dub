@@ -22,7 +22,10 @@ import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { PartnerTagsList } from "@/ui/partners/partner-tags-list";
-import { useUpdatePartnerTagsModal } from "@/ui/partners/update-partner-tags-modal";
+import {
+  UpdatePartnerTagsModal,
+  useUpdatePartnerTagsModal,
+} from "@/ui/partners/update-partner-tags-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { ThreeDots } from "@/ui/shared/icons";
@@ -685,10 +688,8 @@ function RowMenuButton({
     partners: [row.original],
   });
 
-  const { UpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
-    useUpdatePartnerTagsModal({
-      partners: [row.original],
-    });
+  const { showUpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
+    useUpdatePartnerTagsModal();
 
   const { ArchivePartnerModal, setShowArchivePartnerModal } =
     useArchivePartnerModal({
@@ -744,7 +745,11 @@ function RowMenuButton({
   return (
     <>
       <ChangeGroupModal />
-      <UpdatePartnerTagsModal />
+      <UpdatePartnerTagsModal
+        showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
+        setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
+        partners={[row.original]}
+      />
       <ArchivePartnerModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
@@ -756,51 +761,32 @@ function RowMenuButton({
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
-              {row.original.status === "invited" ? (
+              {["invited", "declined"].includes(row.original.status) ? (
                 <Command.Group className="grid gap-px p-1.5">
-                  <MenuItem
-                    icon={Users6}
-                    label="Change group"
-                    onSelect={() => {
-                      setShowChangeGroupModal(true);
-                      setIsOpen(false);
-                    }}
-                  />
-
-                  <MenuItem
-                    icon={Tag}
-                    label="Update tags"
-                    onSelect={() => {
-                      setShowUpdatePartnerTagsModal(true);
-                      setIsOpen(false);
-                    }}
-                  />
-
-                  <MenuItem
-                    icon={
-                      isResendingInvite ? LoadingSpinner : EnvelopeArrowRight
-                    }
-                    label="Resend invite"
-                    onSelect={async () => {
-                      if (row.original.status !== "invited") {
-                        return;
+                  {row.original.status === "invited" && (
+                    <MenuItem
+                      icon={
+                        isResendingInvite ? LoadingSpinner : EnvelopeArrowRight
                       }
+                      label="Resend invite"
+                      onSelect={async () => {
+                        if (row.original.status !== "invited") {
+                          return;
+                        }
 
-                      await resendInvite({
-                        workspaceId,
-                        partnerId: row.original.id,
-                      });
-                    }}
-                  />
+                        await resendInvite({
+                          workspaceId,
+                          partnerId: row.original.id,
+                        });
+                      }}
+                    />
+                  )}
 
                   <MenuItem
                     icon={isDeletingInvite ? LoadingSpinner : Trash}
                     label="Delete invite"
                     variant="danger"
                     onSelect={async () => {
-                      if (row.original.status !== "invited") {
-                        return;
-                      }
                       if (
                         !window.confirm(
                           "Are you sure you want to delete this invite? This action cannot be undone.",
@@ -933,14 +919,16 @@ const PartnerTagsCell = memo(function PartnerTagsCell({
 }: {
   partner: EnrolledPartnerProps;
 }) {
-  const { UpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
-    useUpdatePartnerTagsModal({
-      partners: [partner],
-    });
+  const { showUpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
+    useUpdatePartnerTagsModal();
 
   return (
     <>
-      <UpdatePartnerTagsModal />
+      <UpdatePartnerTagsModal
+        showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
+        setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
+        partners={[partner]}
+      />
       <PartnerTagsList
         compact
         tags={partner.tags}
@@ -978,10 +966,8 @@ const PartnersBulkActionsBar = memo(function PartnersBulkActionsBar({
   const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
     partners: pendingChangeGroupPartners,
   });
-  const { UpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
-    useUpdatePartnerTagsModal({
-      partners: pendingEditTagsPartners,
-    });
+  const { showUpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
+    useUpdatePartnerTagsModal();
 
   const { BulkArchivePartnersModal, setShowBulkArchivePartnersModal } =
     useBulkArchivePartnersModal({
@@ -1008,7 +994,11 @@ const PartnersBulkActionsBar = memo(function PartnersBulkActionsBar({
   return (
     <>
       <ChangeGroupModal />
-      <UpdatePartnerTagsModal />
+      <UpdatePartnerTagsModal
+        showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
+        setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
+        partners={pendingEditTagsPartners}
+      />
       <BulkArchivePartnersModal />
       <BulkDeactivatePartnersModal />
       <BulkBanPartnersModal />

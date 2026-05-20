@@ -3,7 +3,7 @@ import { getPaginationQuerySchema } from "./misc";
 import {
   EnrolledPartnerSchema,
   getPartnersQuerySchema,
-  PartnerPartnerPlatformsSchema,
+  OldPartnerPlatformsFields,
   PARTNERS_MAX_PAGE_SIZE,
 } from "./partners";
 import { ProgramEnrollmentSchema } from "./programs";
@@ -26,16 +26,7 @@ export const PartnerApplicationSchema = z.object({
         status: true,
       }).shape,
     )
-    .extend(
-      PartnerPartnerPlatformsSchema.pick({
-        website: true,
-        youtube: true,
-        twitter: true,
-        linkedin: true,
-        instagram: true,
-        tiktok: true,
-      }).shape,
-    ),
+    .extend(OldPartnerPlatformsFields.shape),
   applicationFormData: z
     .array(
       z.object({

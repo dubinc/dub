@@ -2,7 +2,7 @@
 
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
+import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
@@ -230,7 +230,7 @@ export function BountySubmissionsTable() {
               header: "Status",
               cell: ({ row }) => {
                 const badge = row.original
-                  ? BOUNTY_SUBMISSION_STATUS_BADGES[row.original.status]
+                  ? BountySubmissionStatusBadges[row.original.status]
                   : null;
 
                 return badge ? (

@@ -1,6 +1,7 @@
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useCustomers from "@/lib/swr/use-customers";
 import useGroups from "@/lib/swr/use-groups";
+import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import usePartners from "@/lib/swr/use-partners";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
@@ -11,7 +12,7 @@ import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { CommissionType } from "@dub/prisma/client";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { Sliders, User, Users, Users6 } from "@dub/ui/icons";
+import { Sliders, Tag, User, Users, Users6 } from "@dub/ui/icons";
 import {
   capitalize,
   cn,
@@ -40,6 +41,32 @@ export function useCommissionFilters() {
   );
 
   const { groups } = useGroups();
+
+  const activePartnerTagIds = useMemo(
+    () =>
+      searchParamsObj.partnerTagId
+        ? searchParamsObj.partnerTagId
+            .replace(/^-/, "")
+            .split(",")
+            .filter(Boolean)
+        : undefined,
+    [searchParamsObj.partnerTagId],
+  );
+
+  const { partnerTags } = usePartnerTags();
+  const { partnerTags: selectedPartnerTags } = usePartnerTags({
+    query: { ids: activePartnerTagIds },
+    enabled: !!activePartnerTagIds?.length,
+  });
+
+  const mergedPartnerTags = useMemo(() => {
+    if (!partnerTags) return null;
+    const baseIds = new Set(partnerTags.map((t) => t.id));
+    return [
+      ...partnerTags,
+      ...(selectedPartnerTags ?? []).filter((t) => !baseIds.has(t.id)),
+    ];
+  }, [partnerTags, selectedPartnerTags]);
 
   const filters = useMemo(
     () => [
@@ -86,6 +113,16 @@ export function useCommissionFilters() {
           }) ?? null,
       },
       {
+        key: "partnerTagId",
+        icon: Tag,
+        label: "Partner Tag",
+        options:
+          mergedPartnerTags?.map((tag) => ({
+            value: tag.id,
+            label: tag.name,
+          })) ?? null,
+      },
+      {
         key: "type",
         icon: Sliders,
         label: "Type",
@@ -99,6 +136,7 @@ export function useCommissionFilters() {
         key: "status",
         icon: CircleDotted,
         label: "Status",
+        singleSelect: true,
         options: Object.entries(CommissionStatusBadges).map(
           ([value, { label }]) => {
             const Icon = CommissionStatusBadges[value].icon;
@@ -123,7 +161,7 @@ export function useCommissionFilters() {
         ),
       },
     ],
-    [commissionsCount, partners, customers, groups],
+    [commissionsCount, partners, customers, groups, mergedPartnerTags],
   );
 
   const activeFilters = useMemo(() => {
@@ -139,6 +177,7 @@ export function useCommissionFilters() {
       "type",
       "payoutId",
       "groupId",
+      "partnerTagId",
     ] as const;
     for (const key of keys) {
       const raw = searchParamsObj[key];
@@ -155,12 +194,16 @@ export function useCommissionFilters() {
     searchParamsObj.type,
     searchParamsObj.payoutId,
     searchParamsObj.groupId,
+    searchParamsObj.partnerTagId,
   ]);
 
   const onSelect = useCallback(
     (key: string, value: string) => {
       const currentParam = searchParamsObj[key];
-      if (!currentParam) {
+      const filterDef = filters.find((f) => f.key === key);
+      const isSingleSelect = filterDef?.singleSelect;
+
+      if (!currentParam || isSingleSelect) {
         queryParams({ set: { [key]: value }, del: "page" });
         return;
       }
@@ -173,7 +216,7 @@ export function useCommissionFilters() {
         queryParams({ set: { [key]: newParam }, del: "page" });
       }
     },
-    [searchParamsObj, queryParams],
+    [searchParamsObj, queryParams, filters],
   );
 
   const onRemove = useCallback(
@@ -212,6 +255,7 @@ export function useCommissionFilters() {
           "customerId",
           "payoutId",
           "groupId",
+          "partnerTagId",
           "type",
         ],
       }),

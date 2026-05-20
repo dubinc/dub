@@ -175,11 +175,14 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
     currentStartingAfter = customers[customers.length - 1].key;
   }
 
-  await partnerStackImporter.queue({
-    ...payload,
-    startingAfter: hasMore ? currentStartingAfter : undefined,
-    action: hasMore ? "import-customers" : "import-commissions",
-  });
+  await partnerStackImporter.queue(
+    {
+      ...payload,
+      startingAfter: hasMore ? currentStartingAfter : undefined,
+      action: hasMore ? "import-customers" : "import-commissions",
+    },
+    !hasMore ? { delay: 5 * 60 } : undefined,
+  );
 
   if (!hasMore) {
     await redis.del(`${PARTNER_IDS_KEY_PREFIX}:${programId}`);

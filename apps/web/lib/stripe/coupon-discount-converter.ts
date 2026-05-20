@@ -31,7 +31,6 @@ export function dubDiscountToStripeCoupon(
   }
 
   const stripeCouponData: Stripe.CouponCreateParams = {
-    currency: "usd",
     duration,
     ...(duration === "repeating" &&
       durationInMonths && {
@@ -39,7 +38,8 @@ export function dubDiscountToStripeCoupon(
       }),
     ...(discount.type === "percentage"
       ? { percent_off: discount.amount }
-      : { amount_off: discount.amount }),
+      : // `currency` is required if amount_off is passed: https://docs.stripe.com/api/coupons/create#create_coupon-currency
+        { amount_off: discount.amount, currency: "usd" }),
     ...(discount.name && { name: discount.name }),
   };
 
