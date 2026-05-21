@@ -6,7 +6,7 @@ enum PlanPeriod {
 }
 
 enum WorkspaceEnvironment {
-  live
+  production
   staging
   sandbox
 }
@@ -30,7 +30,7 @@ model Project {
   paymentFailedAt        DateTime?
   invoicePrefix          String?     @unique // prefix used to generate unique invoice numbers (for Dub Payouts)
 
-  environment        WorkspaceEnvironment @default(live)
+  environment        WorkspaceEnvironment @default(production)
   stagingWorkspaceId String?              @unique
 
   stripeConnectId String? @unique // for Stripe Integration

@@ -3,6 +3,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { mockSandboxPayoutCompletion } from "@/lib/sandbox/sandbox-payout";
 import { prisma } from "@dub/prisma";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -90,7 +91,7 @@ export async function POST(req: Request) {
       });
     }
 
-    if (workspace.environment === "live") {
+    if (workspace.environment === WorkspaceEnvironment.production) {
       await processPayouts({
         program,
         workspace,

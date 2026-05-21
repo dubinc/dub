@@ -100,10 +100,10 @@ export const PATCH = withSession(async ({ req, session }) => {
       });
     }
 
-    if (workspaceUser.project.environment !== WorkspaceEnvironment.live) {
+    if (workspaceUser.project.environment !== WorkspaceEnvironment.production) {
       throw new DubApiError({
         code: "bad_request",
-        message: `You can only set your default workspace to a live workspace.`,
+        message: `You can only set your default workspace to a production workspace.`,
       });
     }
   }

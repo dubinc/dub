@@ -7,6 +7,7 @@ import {
   PAYMENT_METHOD_TYPES,
 } from "@/lib/constants/payouts";
 import { stripe } from "@/lib/stripe";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -20,7 +21,7 @@ const addPaymentMethodSchema = z.object({
 export const GET = withWorkspace(
   async ({ workspace }) => {
     // send a demo value
-    if (workspace.environment !== "live") {
+    if (workspace.environment !== WorkspaceEnvironment.production) {
       return NextResponse.json([
         {
           id: "pm_sandbox_card",

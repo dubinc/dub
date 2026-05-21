@@ -20,7 +20,7 @@ import { stripe } from "@/lib/stripe";
 import { checkPaymentMethodMandate } from "@/lib/stripe/check-payment-method-mandate";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { prisma } from "@dub/prisma";
-import { PaymentMethod } from "@dub/prisma/client";
+import { PaymentMethod, WorkspaceEnvironment } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -150,7 +150,7 @@ export const confirmPayoutsAction = authActionClient
 
     let paymentMethod: PaymentMethod | null = null;
 
-    if (workspace.environment === "live") {
+    if (workspace.environment === WorkspaceEnvironment.production) {
       if (!workspace.stripeId) {
         throw new Error("Workspace does not have a valid Stripe ID.");
       }

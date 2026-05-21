@@ -64,7 +64,7 @@ export default function UpdateDefaultWorkspace() {
           <WorkspaceSelector
             selectedWorkspace={selectedWorkspace || ""}
             setSelectedWorkspace={setSelectedWorkspace}
-            environments={[WorkspaceEnvironment.live]}
+            environments={[WorkspaceEnvironment.production]}
             showAddWorkspaceButton={false}
           />
         </div>

@@ -41,7 +41,7 @@ export function WorkspaceEnvironmentSwitcher({
 
   // Switch to staging
   else if (
-    currentWorkspace.environment === WorkspaceEnvironment.live &&
+    currentWorkspace.environment === WorkspaceEnvironment.production &&
     currentWorkspace.stagingWorkspaceId
   ) {
     targetWorkspace = workspaces.find(

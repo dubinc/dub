@@ -70,7 +70,7 @@ export const copyRewardToLiveAction = authActionClient
       requiredRoles: ["owner", "member"],
     });
 
-    if (targetWorkspace.environment !== WorkspaceEnvironment.live) {
+    if (targetWorkspace.environment !== WorkspaceEnvironment.production) {
       throw new Error("Reward can only be copied to a live program.");
     }
 
