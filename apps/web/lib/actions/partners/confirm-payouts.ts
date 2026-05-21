@@ -16,11 +16,12 @@ import {
 import { qstash } from "@/lib/cron";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
+import { mockPaymentProvider } from "@/lib/sandbox/mock-payment-provider";
 import { stripe } from "@/lib/stripe";
 import { checkPaymentMethodMandate } from "@/lib/stripe/check-payment-method-mandate";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { prisma } from "@dub/prisma";
-import { PaymentMethod, WorkspaceEnvironment } from "@dub/prisma/client";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -63,6 +64,9 @@ export const confirmPayoutsAction = authActionClient
       total,
     } = parsedInput;
 
+    const isProductionWorkspace =
+      workspace.environment === WorkspaceEnvironment.production;
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const program = await getProgramOrThrow({
@@ -74,6 +78,10 @@ export const confirmPayoutsAction = authActionClient
       role: workspace.role,
       requiredPermissions: ["payouts.write"],
     });
+
+    if (isProductionWorkspace && !workspace.stripeId) {
+      throw new Error("Workspace does not have a valid Stripe ID.");
+    }
 
     if (fastSettlement && !workspace.fastDirectDebitPayouts) {
       throw new Error(
@@ -148,49 +156,45 @@ export const confirmPayoutsAction = authActionClient
       }
     }
 
-    let paymentMethod: PaymentMethod | null = null;
+    const paymentMethod = isProductionWorkspace
+      ? await stripe.paymentMethods.retrieve(paymentMethodId)
+      : await mockPaymentProvider.retrievePaymentMethod(paymentMethodId);
 
-    if (workspace.environment === WorkspaceEnvironment.production) {
-      if (!workspace.stripeId) {
-        throw new Error("Workspace does not have a valid Stripe ID.");
-      }
+    if (
+      isProductionWorkspace &&
+      paymentMethod.customer !== workspace.stripeId
+    ) {
+      throw new Error("Invalid payout method.");
+    }
 
-      const stripPaymentMethod =
-        await stripe.paymentMethods.retrieve(paymentMethodId);
+    if (!PAYMENT_METHOD_TYPES.includes(paymentMethod.type)) {
+      throw new Error(
+        `We only support ${PAYMENT_METHOD_TYPES.join(
+          ", ",
+        )} for now. Please update your payout method to one of these.`,
+      );
+    }
 
-      if (stripPaymentMethod.customer !== workspace.stripeId) {
-        throw new Error("Invalid payout method.");
-      }
+    if (fastSettlement && paymentMethod.type !== "us_bank_account") {
+      throw new Error("Fast settlement is only supported for ACH payment.");
+    }
 
-      if (!PAYMENT_METHOD_TYPES.includes(stripPaymentMethod.type)) {
+    // if it's a direct debit payment method, we need to check to make sure mandate is valid
+    if (
+      isProductionWorkspace &&
+      DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
+    ) {
+      const mandate = await checkPaymentMethodMandate({
+        paymentMethodId,
+      });
+
+      if (!mandate) {
+        // if mandate is not valid, remove the payment method
+        await stripe.paymentMethods.detach(paymentMethodId);
         throw new Error(
-          `We only support ${PAYMENT_METHOD_TYPES.join(
-            ", ",
-          )} for now. Please update your payout method to one of these.`,
+          "No active mandate found for this bank account. Please set up a new bank account for payouts under your billing settings page.",
         );
       }
-
-      if (fastSettlement && stripPaymentMethod.type !== "us_bank_account") {
-        throw new Error("Fast settlement is only supported for ACH payment.");
-      }
-
-      // if it's a direct debit payment method, we need to check to make sure mandate is valid
-      if (DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(stripPaymentMethod.type)) {
-        const mandate = await checkPaymentMethodMandate({
-          paymentMethodId,
-        });
-
-        if (!mandate) {
-          // if mandate is not valid, remove the payment method
-          await stripe.paymentMethods.detach(paymentMethodId);
-          throw new Error(
-            "No active mandate found for this bank account. Please set up a new bank account for payouts under your billing settings page.",
-          );
-        }
-      }
-
-      paymentMethod =
-        STRIPE_PAYMENT_METHOD_NORMALIZATION[stripPaymentMethod.type];
     }
 
     const invoice = await prisma.$transaction(async (tx) => {
@@ -216,7 +220,9 @@ export const confirmPayoutsAction = authActionClient
           amount,
           fee,
           total,
-          paymentMethod: fastSettlement ? "ach_fast" : paymentMethod,
+          paymentMethod: fastSettlement
+            ? "ach_fast"
+            : STRIPE_PAYMENT_METHOD_NORMALIZATION[paymentMethod.type],
           payoutMode: program.payoutMode,
         },
       });

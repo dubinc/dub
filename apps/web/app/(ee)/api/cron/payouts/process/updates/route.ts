@@ -80,7 +80,9 @@ export async function POST(req: Request) {
         };
       }),
     );
-    console.log(JSON.stringify({ auditLogResponse }, null, 2));
+
+    // TODO
+    // Add banner to the email
 
     const invoice = payouts[0].invoice;
     const internalPayouts = payouts.filter(
