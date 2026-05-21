@@ -1,0 +1,68 @@
+import { createStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
+import { prisma } from "@dub/prisma";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
+import "dotenv-flow/config";
+
+const BATCH_SIZE = 50;
+
+async function main() {
+  let totalProcessed = 0;
+  let totalCreated = 0;
+  let totalFailed = 0;
+
+  // TODO:
+  // We should skip workspaces where the staging workspace was created manually.
+
+  while (true) {
+    const workspaces = await prisma.project.findMany({
+      where: {
+        environment: WorkspaceEnvironment.production,
+        stagingWorkspaceId: null,
+        plan: {
+          notIn: ["free", "pro"],
+        },
+      },
+      select: {
+        id: true,
+        slug: true,
+        plan: true,
+      },
+      take: BATCH_SIZE,
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    if (workspaces.length === 0) {
+      break;
+    }
+
+    for (const workspace of workspaces) {
+      try {
+        await createStagingWorkspace(workspace.id);
+        totalCreated++;
+        console.log(`Created staging workspace for ${workspace.slug}`);
+      } catch (error) {
+        totalFailed++;
+        console.error(
+          `Failed to create staging workspace for ${workspace.slug} (${workspace.id}):`,
+          error,
+        );
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
+    totalProcessed += workspaces.length;
+
+    console.log(
+      `Processed batch of ${workspaces.length} workspaces (processed=${totalProcessed}, created=${totalCreated}, failed=${totalFailed})`,
+    );
+  }
+
+  console.log(
+    `Done creating staging workspaces (processed=${totalProcessed}, created=${totalCreated}, failed=${totalFailed})`,
+  );
+}
+
+main();

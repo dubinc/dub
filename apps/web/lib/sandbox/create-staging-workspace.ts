@@ -47,7 +47,6 @@ export async function createStagingWorkspace(workspaceId: string) {
   const stagingWorkspaceId = createWorkspaceId();
 
   await prisma.$transaction([
-    // Create a staging workspace
     prisma.project.create({
       data: {
         id: stagingWorkspaceId,
@@ -76,7 +75,6 @@ export async function createStagingWorkspace(workspaceId: string) {
       },
     }),
 
-    // Update live to point to the staging workspace
     prisma.project.update({
       where: {
         id: workspace.id,
