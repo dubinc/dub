@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const auditLogResponse = await recordAuditLog(
+    await recordAuditLog(
       payouts.map(({ program, partner, invoice, ...payout }) => {
         return {
           workspaceId: program.workspaceId,
@@ -81,13 +81,11 @@ export async function POST(req: Request) {
       }),
     );
 
-    // TODO
-    // Add banner to the email
-
     const invoice = payouts[0].invoice;
     const internalPayouts = payouts.filter(
       (payout) => payout.mode === "internal",
     );
+
     if (
       invoice &&
       invoice.paymentMethod !== "card" &&

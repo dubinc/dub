@@ -4,8 +4,10 @@ import {
   STABLECOIN_PAYOUT_FIXED_FEE_CENTS,
 } from "@/lib/constants/payouts";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { mockPayoutCompletion } from "@/lib/sandbox/mock-payout-completion";
 import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
 import { prisma } from "@dub/prisma";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -45,6 +47,15 @@ export async function POST(req: Request) {
             },
           },
         },
+        program: {
+          select: {
+            workspace: {
+              select: {
+                environment: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -57,6 +68,15 @@ export async function POST(req: Request) {
         `No payouts found with status 'processing' for invoice ${invoiceId}, skipping...`,
       );
     }
+
+    if (!invoice.program || !invoice.program.workspace) {
+      return logAndRespond(
+        `Invoice ${invoiceId} has no program or workspace, skipping...`,
+      );
+    }
+
+    const isProductionWorkspace =
+      invoice.program.workspace.environment === WorkspaceEnvironment.production;
 
     // Set the method for each payout in the invoice to the corresponding partner's default payout method
     await prisma.$executeRaw`
@@ -91,7 +111,7 @@ export async function POST(req: Request) {
       (_sum.amount ?? 0) + _count.id * STABLECOIN_PAYOUT_FIXED_FEE_CENTS;
 
     // Send money to Financial Account to handle stablecoin payouts
-    if (stablecoinFundingAmount > 0) {
+    if (isProductionWorkspace && stablecoinFundingAmount > 0) {
       const { nextAction } = await scheduleDelayedStablecoinPayouts(invoice);
 
       if (nextAction === "executeNow") {
@@ -116,12 +136,28 @@ export async function POST(req: Request) {
     }
 
     await Promise.allSettled([
-      // Queue Stripe payouts
-      queueStripePayouts(invoice, skipStablecoinPayouts),
-      // Send PayPal payouts
-      sendPaypalPayouts(invoice),
+      ...(isProductionWorkspace
+        ? [
+            // Queue Stripe payouts
+            queueStripePayouts(invoice, skipStablecoinPayouts),
+
+            // Send PayPal payouts
+            sendPaypalPayouts(invoice),
+          ]
+        : []),
+
       // Queue external payouts
       queueExternalPayouts(invoice),
+
+      // Mock sandbox payouts
+      ...(!isProductionWorkspace
+        ? [
+            mockPayoutCompletion({
+              invoice,
+              workspace: invoice.program.workspace,
+            }),
+          ]
+        : []),
     ]);
 
     return logAndRespond(

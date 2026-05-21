@@ -27,6 +27,7 @@ import {
   nFormatter,
   pluralize,
 } from "@dub/utils";
+import { addMinutes } from "date-fns";
 
 const nonUsdPaymentMethodTypes = {
   sepa_debit: "eur",
@@ -305,6 +306,34 @@ export async function processPayouts({
     console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
   } else {
     console.error("Error sending message to Qstash", qstashResponse);
+  }
+
+  // Non-production workspaces skip the Stripe payment intent above.
+  // Simulate that flow here with a 2-minute delay so
+  // sandbox payouts behave like a settled ACH charge.
+  if (!isProductionWorkspace) {
+    await prisma.invoice.update({
+      where: {
+        id: invoice.id,
+      },
+      data: {
+        status: "completed",
+        paidAt: addMinutes(new Date(), 2),
+      },
+    });
+
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
+      method: "POST",
+      delay: 2 * 60,
+      flowControl: {
+        key: invoice.id,
+        rate: 1,
+      },
+      body: {
+        invoiceId: invoice.id,
+      },
+    });
   }
 
   // should never happen, but just in case
