@@ -28,7 +28,7 @@ export function ProgramEnvironmentBanner({
       </div>
 
       <p className="text-sm font-medium">
-        No real money or payouts in {capitalize(environment)}
+        No real money or payouts in {environment}
       </p>
     </div>
   );

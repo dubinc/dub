@@ -47,7 +47,7 @@ export function WorkspaceEnvironmentBanner() {
       </div>
 
       <p className="hidden min-w-0 flex-1 text-center text-sm font-medium sm:block">
-        No real money or payouts in staging.{" "}
+        No real money or payouts in {environment}.{" "}
         <a
           href="https://dub.co/docs"
           target="_blank"

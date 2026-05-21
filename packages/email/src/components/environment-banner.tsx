@@ -15,8 +15,8 @@ export function EnvironmentBanner({
   return (
     <Section
       className={cn(
-        "mb-4 rounded-lg px-4 py-3",
-        environment === "staging" ? "bg-amber-100" : "bg-blue-200",
+        "mb-4 rounded-lg px-4 py-2",
+        environment === "staging" ? "bg-amber-200" : "bg-blue-200",
       )}
     >
       <Row>
@@ -40,7 +40,7 @@ export function EnvironmentBanner({
         </Column>
         <Column valign="middle" align="right">
           <Text className="m-0 text-right text-sm font-medium text-neutral-800">
-            No real money or payouts in {capitalize(environment)}.
+            No real money or payouts in {environment}.
           </Text>
         </Column>
       </Row>
