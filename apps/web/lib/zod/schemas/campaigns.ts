@@ -14,6 +14,7 @@ export const EMAIL_TEMPLATE_VARIABLES = [
   "PartnerName",
   "PartnerEmail",
   "PartnerLink",
+  "PartnerReferralLink",
 ] as const;
 
 export const CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG: Record<

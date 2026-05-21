@@ -66,4 +66,18 @@ describe("interpolateEmailTemplate", () => {
       }),
     ).toBe("Hi &lt;script&gt;alert(1)&lt;/script&gt;");
   });
+
+  it("renders PartnerReferralLink as a clickable anchor for https URLs", () => {
+    expect(
+      interpolateEmailTemplate({
+        text: "Refer partners: {{PartnerReferralLink}}",
+        variables: {
+          PartnerReferralLink:
+            "https://partners.dub.co/acme/apply?via=johndoe-a1b2",
+        },
+      }),
+    ).toBe(
+      'Refer partners: <a href="https://partners.dub.co/acme/apply?via=johndoe-a1b2" target="_blank" rel="noopener noreferrer">https://partners.dub.co/acme/apply?via=johndoe-a1b2</a>',
+    );
+  });
 });
