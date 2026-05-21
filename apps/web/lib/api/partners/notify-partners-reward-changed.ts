@@ -5,7 +5,6 @@ import { formatRewardDescription } from "@/ui/partners/format-reward-description
 import { REWARD_EVENT_DESCRIPTIONS } from "@/ui/partners/rewards/reward-event-descriptions";
 import type PartnerRewardsUpdated from "@dub/email/templates/partner-rewards-updated";
 import { prisma } from "@dub/prisma";
-import { getPartnerUsers } from "./get-partner-users";
 
 const REWARD_ICONS: Record<RewardProps["event"], string> = {
   click: "https://assets.dub.co/email-assets/icons/cursor-rays.png",
@@ -48,44 +47,43 @@ export async function notifyPartnersRewardChanged({
   const snapshot =
     rewardSnapshot ?? (reward ? getRewardEmailSnapshot(reward) : null);
 
-  if (!snapshot) return;
+  if (!snapshot) {
+    console.log(`No snapshot found for reward ${reward?.id}.`);
+    return;
+  }
 
-  const [program, enrollments] = await Promise.all([
-    prisma.program.findUnique({
-      where: {
-        id: programId,
+  const program = await prisma.program.findUnique({
+    where: {
+      id: programId,
+    },
+    include: {
+      partners: {
+        where: {
+          groupId,
+          partner: {
+            email: {
+              not: null,
+            },
+          },
+        },
+        include: {
+          partner: true,
+        },
       },
-      select: {
-        name: true,
-        logo: true,
-        slug: true,
-        supportEmail: true,
-      },
-    }),
-
-    prisma.programEnrollment.findMany({
-      where: {
-        groupId,
-        programId,
-      },
-      select: {
-        partnerId: true,
-      },
-    }),
-  ]);
-  if (!program) return;
-
-  const partnerIds = enrollments.map(({ partnerId }) => partnerId);
-  if (partnerIds.length === 0) return;
-
-  const partnerUsers = await getPartnerUsers({
-    partnerIds,
+    },
   });
-  if (partnerUsers.length === 0) return;
+  if (!program) {
+    console.log(
+      `No program with partners found for program ${programId} and group ${groupId}.`,
+    );
+    return;
+  }
+
+  const partnersToNotify = program.partners.map(({ partner }) => partner);
 
   await queueBatchEmail<typeof PartnerRewardsUpdated>(
-    partnerUsers.map(({ partner, user }) => ({
-      to: user.email!,
+    partnersToNotify.map((partner) => ({
+      to: partner.email!,
       subject: `Your rewards for ${program.name} have been updated`,
       variant: "notifications",
       templateName: "PartnerRewardsUpdated",
@@ -98,7 +96,7 @@ export async function notifyPartnersRewardChanged({
         },
         partner: {
           name: partner.name,
-          email: user.email!,
+          email: partner.email!,
         },
         effectiveAt,
         changes: [

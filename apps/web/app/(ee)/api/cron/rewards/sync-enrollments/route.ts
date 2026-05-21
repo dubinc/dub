@@ -9,7 +9,7 @@ import { CRON_BATCH_SIZE } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
-import { EventType } from "@dub/prisma/client";
+import { EventType, Prisma } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -50,13 +50,11 @@ export async function POST(req: Request) {
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
 
-    const enrollmentWhere =
+    const enrollmentWhere: Prisma.ProgramEnrollmentWhereInput =
       action === "create"
         ? {
             groupId,
-            NOT: {
-              [rewardIdColumn]: rewardId,
-            },
+            [rewardIdColumn]: null,
           }
         : {
             [rewardIdColumn]: rewardId,
@@ -80,8 +78,12 @@ export async function POST(req: Request) {
       },
     });
 
+    console.log(
+      `Found ${programEnrollments.length} enrollments to ${action} ${event} reward ${rewardId}.`,
+    );
+
     if (programEnrollments.length > 0) {
-      await prisma.programEnrollment.updateMany({
+      const updatedEnrollments = await prisma.programEnrollment.updateMany({
         where: {
           id: {
             in: programEnrollments.map(({ id }) => id),
@@ -91,6 +93,10 @@ export async function POST(req: Request) {
           [rewardIdColumn]: action === "create" ? rewardId : null,
         },
       });
+
+      console.log(
+        `Updated ${updatedEnrollments.count} enrollments to ${action} ${event} reward ${rewardId}.`,
+      );
     }
 
     const remainingEnrollments = await prisma.programEnrollment.count({
@@ -112,7 +118,7 @@ export async function POST(req: Request) {
         programId,
         event,
         startAfterProgramEnrollmentId:
-          programEnrollments[programEnrollments.length - 1]?.id,
+          programEnrollments[programEnrollments.length - 1].id,
         rewardSnapshot: rewardSnapshot as RewardSnapshot | undefined,
       });
 
