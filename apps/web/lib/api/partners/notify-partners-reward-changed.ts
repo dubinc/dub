@@ -86,7 +86,7 @@ export async function notifyPartnersRewardChanged({
   await queueBatchEmail<typeof PartnerRewardsUpdated>(
     partnerUsers.map(({ partner, user }) => ({
       to: user.email!,
-      subject: "Your rewards have updated",
+      subject: `Your rewards for ${program.name} have been updated`,
       variant: "notifications",
       templateName: "PartnerRewardsUpdated",
       templateProps: {
