@@ -86,7 +86,7 @@ export default function UploadLogo() {
             text="Save changes"
             loading={uploading}
             disabled={!image || logo === image || Boolean(error)}
-            disabledTooltip={error}
+            disabledTooltip={error || undefined}
           />
         </div>
       </div>

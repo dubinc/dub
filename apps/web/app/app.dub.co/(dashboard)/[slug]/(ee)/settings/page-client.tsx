@@ -37,7 +37,7 @@ export default function WorkspaceSettingsClient() {
           maxLength: 32,
         }}
         helpText="Max 32 characters."
-        disabledTooltip={error}
+        disabledTooltip={error || undefined}
         handleSubmit={(updateData) =>
           fetch(`/api/workspaces/${id}`, {
             method: "PATCH",
@@ -70,7 +70,7 @@ export default function WorkspaceSettingsClient() {
           maxLength: 48,
         }}
         helpText="Only lowercase letters, numbers, and dashes. Max 48 characters."
-        disabledTooltip={error}
+        disabledTooltip={error || undefined}
         handleSubmit={(data) =>
           fetch(`/api/workspaces/${id}`, {
             method: "PATCH",

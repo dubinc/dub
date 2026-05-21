@@ -49,7 +49,7 @@ export default function DeleteWorkspace() {
             text="Delete Workspace"
             variant="danger"
             onClick={() => setShowDeleteWorkspaceModal(true)}
-            disabledTooltip={error}
+            disabledTooltip={error || undefined}
           />
         </div>
       </div>

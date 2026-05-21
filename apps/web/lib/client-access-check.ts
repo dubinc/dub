@@ -38,7 +38,7 @@ export const clientAccessCheck = ({
   if (allowed) {
     return {
       allowed,
-      error: undefined,
+      error: false,
     };
   }
 
