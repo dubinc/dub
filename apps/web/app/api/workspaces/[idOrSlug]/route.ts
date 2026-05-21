@@ -104,7 +104,7 @@ export const PATCH = withWorkspace(
       throw new DubApiError({
         code: "forbidden",
         message:
-          "This action is not available in a staging workspace. Use the live workspace instead.",
+          "This action is not available in a staging workspace. Use the production workspace instead.",
       });
     }
 

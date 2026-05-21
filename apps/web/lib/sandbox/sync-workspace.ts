@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { Project, WorkspaceRole } from "@dub/prisma/client";
 
-// We don't sync the machine user from the live workspace to the staging workspace
+// We don't sync the machine user from the production workspace to the staging workspace
 
 export async function addMemberToStaging({
   workspace,

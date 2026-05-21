@@ -249,7 +249,7 @@ export function WorkspaceMembersClient() {
     role,
     environment,
     customPermissionDescription: "invite new teammates",
-    stagingBehavior: "live-only",
+    stagingBehavior: "production-only",
   });
 
   const { error: generateInviteLinksError } = clientAccessCheck({
@@ -257,7 +257,7 @@ export function WorkspaceMembersClient() {
     role,
     environment,
     customPermissionDescription: "generate invite links",
-    stagingBehavior: "live-only",
+    stagingBehavior: "production-only",
   });
 
   return (
@@ -394,7 +394,7 @@ function RoleCell({
         }}
         title={
           isStaging
-            ? "Roles are managed from the live workspace"
+            ? "Roles are managed from the production workspace"
             : !isCurrentUserOwner
               ? "Only owners can change member roles"
               : isCurrentUser

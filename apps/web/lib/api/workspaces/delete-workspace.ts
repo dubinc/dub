@@ -73,25 +73,16 @@ export async function deleteWorkspace(
   ]);
 
   waitUntil(
-    Promise.allSettled([
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/delete`,
-        body: {
-          workspaceId: workspace.id,
-        },
+    Promise.allSettled(
+      workspaces.map((workspace) => {
+        return qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/delete`,
+          body: {
+            workspaceId: workspace.id,
+          },
+        });
       }),
-
-      ...(stagingWorkspace
-        ? [
-            qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/delete`,
-              body: {
-                workspaceId: stagingWorkspace.id,
-              },
-            }),
-          ]
-        : []),
-    ]),
+    ),
   );
 }
 

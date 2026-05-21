@@ -20,7 +20,7 @@ export default function UploadLogo() {
     action: "workspaces.write",
     role,
     environment,
-    stagingBehavior: "live-only",
+    stagingBehavior: "production-only",
   });
 
   return (

@@ -13,7 +13,7 @@ export const clientAccessCheck = ({
   role: WorkspaceRole;
   customPermissionDescription?: string;
   environment?: WorkspaceEnvironment | null;
-  stagingBehavior?: "blocked" | "live-only";
+  stagingBehavior?: "blocked" | "production-only";
 }) => {
   if (environment === WorkspaceEnvironment.staging) {
     switch (stagingBehavior) {
@@ -23,10 +23,10 @@ export const clientAccessCheck = ({
           error: "This action is not available in staging workspaces.",
         };
 
-      case "live-only":
+      case "production-only":
         return {
           allowed: false,
-          error: "This setting must be managed from the live workspace.",
+          error: "This setting must be managed from the production workspace.",
         };
     }
   }
