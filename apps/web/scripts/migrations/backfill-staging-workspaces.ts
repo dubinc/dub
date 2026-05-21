@@ -12,6 +12,7 @@ async function main() {
 
   // TODO:
   // We should skip workspaces where the staging workspace was created manually.
+  // SELECT * FROM Project where plan not in ("free", "pro") and slug LIKE '%-staging';
 
   while (true) {
     const workspaces = await prisma.project.findMany({
