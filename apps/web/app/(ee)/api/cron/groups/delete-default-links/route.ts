@@ -51,6 +51,13 @@ export async function POST(req: Request) {
 
       await bulkDeleteLinks(linksToDelete);
 
+      // if linksToDelete is less than MAX_LINKS_PER_BATCH, we've deleted all the links
+      if (linksToDelete.length < MAX_LINKS_PER_BATCH) {
+        return logAndRespond(
+          `Finished deleting all default links for partner group default link ${partnerGroupDefaultLinkId}.`,
+        );
+      }
+
       const deleteDefaultLinksJob = await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/delete-default-links`,
         body: {

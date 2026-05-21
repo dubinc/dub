@@ -198,17 +198,6 @@ export const DELETE = withWorkspace(
 
     const defaultLinkId = group.partnerGroupDefaultLinks[0].id;
 
-    // soft delete the default link by setting the groupId to null
-    await prisma.partnerGroupDefaultLink.update({
-      where: {
-        id: defaultLinkId,
-      },
-      data: {
-        groupId: null,
-      },
-    });
-    console.log(`Soft deleted default link ${defaultLinkId}`);
-
     const deleteDefaultLinksJob = await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/delete-default-links`,
       body: {
@@ -219,6 +208,17 @@ export const DELETE = withWorkspace(
     console.log(
       `Scheduled delete-default-links job for partner group default link ${defaultLinkId}: ${prettyPrint(deleteDefaultLinksJob)}`,
     );
+
+    // soft delete the default link by setting the groupId to null
+    await prisma.partnerGroupDefaultLink.update({
+      where: {
+        id: defaultLinkId,
+      },
+      data: {
+        groupId: null,
+      },
+    });
+    console.log(`Soft deleted default link ${defaultLinkId}`);
 
     return NextResponse.json({
       id: defaultLinkId,
