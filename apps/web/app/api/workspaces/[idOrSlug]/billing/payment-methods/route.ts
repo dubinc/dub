@@ -20,7 +20,6 @@ const addPaymentMethodSchema = z.object({
 // GET /api/workspaces/[idOrSlug]/billing/payment-methods - get all payment methods
 export const GET = withWorkspace(
   async ({ workspace }) => {
-    // send a demo value
     if (workspace.environment !== WorkspaceEnvironment.production) {
       return NextResponse.json([
         {
