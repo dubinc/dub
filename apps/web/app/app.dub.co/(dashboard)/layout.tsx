@@ -1,3 +1,4 @@
+import { WorkspaceEnvironmentBanner } from "@/lib/sandbox/components/workspace-environment-banner";
 import { MainNav } from "@/ui/layout/main-nav";
 import { AppSidebarNav } from "@/ui/layout/sidebar/app-sidebar-nav";
 import { HelpButton } from "@/ui/layout/sidebar/help-button";
@@ -5,7 +6,6 @@ import { NewsRSC } from "@/ui/layout/sidebar/news-rsc";
 import { ReferButton } from "@/ui/layout/sidebar/refer-button";
 import Toolbar from "@/ui/layout/toolbar/toolbar";
 import { UpgradeBanner } from "@/ui/layout/upgrade-banner";
-import { WorkspaceEnvironmentBanner } from "@/lib/sandbox/components/workspace-environment-banner";
 import { constructMetadata } from "@dub/utils";
 import { ReactNode } from "react";
 

@@ -1,3 +1,12 @@
+export const SANDBOX_PAYMENT_METHOD = {
+  id: "pm_sandbox_card",
+  type: "card",
+  card: {
+    brand: "[DEMO] mastercard",
+    last4: "1234",
+  },
+} as const;
+
 class MockPaymentProvider {
   async retrievePaymentMethod(id: string) {
     return Promise.resolve({

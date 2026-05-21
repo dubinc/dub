@@ -6,6 +6,7 @@ import {
   DIRECT_DEBIT_PAYMENT_TYPES_INFO,
   PAYMENT_METHOD_TYPES,
 } from "@/lib/constants/payouts";
+import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
 import { stripe } from "@/lib/stripe";
 import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { APP_DOMAIN } from "@dub/utils";
@@ -21,16 +22,7 @@ const addPaymentMethodSchema = z.object({
 export const GET = withWorkspace(
   async ({ workspace }) => {
     if (workspace.environment !== WorkspaceEnvironment.production) {
-      return NextResponse.json([
-        {
-          id: "pm_sandbox_card",
-          type: "card",
-          card: {
-            brand: "[DEMO] mastercard",
-            last4: "1234",
-          },
-        },
-      ]);
+      return NextResponse.json([SANDBOX_PAYMENT_METHOD]);
     }
 
     if (!workspace.stripeId) {

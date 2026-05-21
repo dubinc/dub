@@ -38,7 +38,15 @@ export async function POST(req: Request) {
         invoiceId,
       },
       include: {
-        program: true,
+        program: {
+          include: {
+            workspace: {
+              select: {
+                environment: true,
+              },
+            },
+          },
+        },
         partner: true,
         invoice: true,
       },
@@ -99,6 +107,7 @@ export async function POST(req: Request) {
           replyTo: payout.program.supportEmail || "noreply",
           react: PartnerPayoutConfirmed({
             email: payout.partner.email!,
+            worksapce: payout.program.workspace,
             program: {
               id: payout.program.id,
               name: payout.program.name,

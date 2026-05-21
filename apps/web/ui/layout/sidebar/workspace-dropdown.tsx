@@ -1,5 +1,6 @@
 "use client";
 
+import { WorkspaceEnvironmentSwitcher } from "@/lib/sandbox/components/workspace-environment-switcher";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
@@ -20,7 +21,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { WorkspaceEnvironmentSwitcher } from "@/lib/sandbox/components/workspace-environment-switcher";
 
 export function WorkspaceDropdown() {
   const { workspaces } = useWorkspaces();
@@ -166,8 +166,8 @@ function WorkspaceList({
   const current = workspaces.find((w) => w.slug === selected.slug);
   const activeSlug =
     current?.environment === WorkspaceEnvironment.staging
-      ? (workspaces.find((w) => w.stagingWorkspaceId === current.id)?.slug ??
-        selected.slug)
+      ? workspaces.find((w) => w.stagingWorkspaceId === current.id)?.slug ??
+        selected.slug
       : selected.slug;
 
   return (
