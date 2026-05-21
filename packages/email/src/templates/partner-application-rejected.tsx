@@ -14,6 +14,8 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
+type ReapplicationTimeframe = "instant" | "standard" | "never";
+
 export default function PartnerApplicationRejected({
   partner = {
     name: "John",
@@ -26,7 +28,7 @@ export default function PartnerApplicationRejected({
   },
   rejectionReason,
   additionalNotes,
-  canReapplyImmediately = false,
+  reapplicationTimeframe = "standard",
 }: {
   partner: {
     name: string;
@@ -39,7 +41,7 @@ export default function PartnerApplicationRejected({
   };
   rejectionReason?: string | null;
   additionalNotes?: string | null;
-  canReapplyImmediately?: boolean;
+  reapplicationTimeframe?: ReapplicationTimeframe;
 }) {
   const reason = rejectionReason?.trim();
   const notes = additionalNotes?.trim();
@@ -48,7 +50,7 @@ export default function PartnerApplicationRejected({
     <Html>
       <Head />
       <Preview>
-        {canReapplyImmediately
+        {reapplicationTimeframe === "instant"
           ? `Program status update — you can submit a new application to ${program.name}`
           : `Program status update — your application to join ${program.name} was not approved`}
       </Preview>
@@ -72,18 +74,14 @@ export default function PartnerApplicationRejected({
             <Text className="text-sm leading-6 text-neutral-600">
               After reviewing your application, we&apos;ve decided not to
               approve you at this time.
-              {canReapplyImmediately ? (
-                <>
-                  {" "}
-                  You&apos;re welcome to submit a new application whenever
-                  you&apos;re ready.
-                </>
-              ) : (
-                <> You will be able to re-apply in 30 days.</>
-              )}
+              {reapplicationTimeframe === "instant"
+                ? " You can submit a new application whenever you're ready."
+                : reapplicationTimeframe === "standard"
+                  ? " You will be able to re-apply in 30 days."
+                  : null}
             </Text>
 
-            {canReapplyImmediately ? (
+            {reapplicationTimeframe === "instant" ? (
               <Section className="my-8 mt-8">
                 <Link
                   href={`${PARTNERS_DOMAIN}/apply/${program.slug}`}
@@ -110,7 +108,7 @@ export default function PartnerApplicationRejected({
               </Text>
             ) : null}
 
-            {canReapplyImmediately ? null : (
+            {reapplicationTimeframe === "instant" ? null : (
               <Text className="text-sm leading-6 text-neutral-600">
                 {program.supportEmail ? (
                   <>
