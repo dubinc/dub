@@ -80,7 +80,7 @@ export async function mockPayoutCompletion({
         },
       },
       data: {
-        status: "sent",
+        status: "completed",
         paidAt: new Date(),
       },
     }),
