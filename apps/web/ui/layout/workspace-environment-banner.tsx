@@ -3,17 +3,19 @@
 import { useDashboardBannerVisible } from "@/lib/hooks/use-dashboard-banner-visible";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
-import { Cube } from "@dub/ui/icons";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
+import { IsolatedCube } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { capitalize } from "@dub/utils/src";
 import { motion } from "motion/react";
 import Link from "next/link";
 
 export function WorkspaceEnvironmentBanner() {
-  const { id } = useWorkspace();
+  const { id, environment } = useWorkspace();
   const { workspaces } = useWorkspaces();
-  const { isStagingBannerVisible } = useDashboardBannerVisible();
+  const { isEnvironmentBannerVisible } = useDashboardBannerVisible();
 
-  if (!isStagingBannerVisible) {
+  if (!isEnvironmentBannerVisible) {
     return null;
   }
 
@@ -26,13 +28,16 @@ export function WorkspaceEnvironmentBanner() {
       initial={{ transform: "translateY(-100%)" }}
       animate={{ transform: "translateY(0)" }}
       className={cn(
-        "fixed left-0 right-0 top-0 z-30 flex h-12 items-center justify-between gap-4 overflow-hidden bg-amber-200 px-6 text-neutral-800",
+        "fixed left-0 right-0 top-0 z-30 flex h-12 items-center justify-between gap-4 overflow-hidden px-6 text-neutral-800",
+        environment === WorkspaceEnvironment.staging
+          ? "bg-amber-200"
+          : "bg-blue-200",
       )}
     >
       <div className="flex min-w-0 shrink-0 items-center gap-2">
-        <Cube className="size-4 shrink-0" />
+        <IsolatedCube className="size-4 shrink-0" />
         <span className="truncate text-sm font-semibold">
-          Staging workspace
+          {capitalize(environment)} workspace
         </span>
       </div>
 

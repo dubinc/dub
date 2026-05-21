@@ -15,14 +15,14 @@ export function useDashboardBannerVisible() {
   const isUpgradeBannerVisible =
     exceededEvents || exceededLinks || exceededPayouts || !!paymentFailedAt;
 
-  const isStagingBannerVisible =
-    environment === WorkspaceEnvironment.staging && !isUpgradeBannerVisible;
+  const isEnvironmentBannerVisible =
+    environment !== WorkspaceEnvironment.production && !isUpgradeBannerVisible;
 
-  const hasBanner = isUpgradeBannerVisible || isStagingBannerVisible;
+  const hasBanner = isUpgradeBannerVisible || isEnvironmentBannerVisible;
 
   return {
     isUpgradeBannerVisible,
-    isStagingBannerVisible,
+    isEnvironmentBannerVisible,
     hasBanner,
   };
 }
