@@ -39,8 +39,8 @@ export default async function ApplyPage(props: {
   }
 
   const landerData = programLanderSchema.parse(program.group.landerData || {});
-  const isStaging =
-    program.workspace.environment === WorkspaceEnvironment.staging;
+  const isNonProduction =
+    program.workspace.environment !== WorkspaceEnvironment.production;
 
   return (
     <div
@@ -53,7 +53,7 @@ export default async function ApplyPage(props: {
       }
     >
       <ProgramEnvironmentBanner environment={program.workspace.environment} />
-      <ApplyHeader group={program.group} hasBanner={isStaging} />
+      <ApplyHeader group={program.group} hasBanner={isNonProduction} />
       <ApplicationAnalytics />
       <div className="p-6">
         <LanderHero program={program} landerData={landerData} />

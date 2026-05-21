@@ -42,8 +42,9 @@ export default async function ApplicationPage(props: {
   const applicationFormData = programApplicationFormSchema.parse(
     program.group.applicationFormData || {},
   );
-  const isStaging =
-    program.workspace.environment === WorkspaceEnvironment.staging;
+
+  const isNonProduction =
+    program.workspace.environment !== WorkspaceEnvironment.production;
 
   return (
     <div
@@ -59,7 +60,7 @@ export default async function ApplicationPage(props: {
       <ApplyHeader
         group={program.group}
         showApply={false}
-        hasBanner={isStaging}
+        hasBanner={isNonProduction}
       />
       <ApplicationAnalytics />
       <div className="p-6">
