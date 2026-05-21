@@ -36,7 +36,9 @@ export function RenewDomain() {
             const text = await res.text();
             let payload: Record<string, unknown> = {};
             try {
-              payload = text ? (JSON.parse(text) as Record<string, unknown>) : {};
+              payload = text
+                ? (JSON.parse(text) as Record<string, unknown>)
+                : {};
             } catch {
               payload = {};
             }

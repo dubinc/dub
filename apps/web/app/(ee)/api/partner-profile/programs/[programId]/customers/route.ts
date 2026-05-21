@@ -92,15 +92,12 @@ export const GET = withPartnerProfile(
 
     // Map customers with their data
     const customersWithData = customers.map((customer) => {
-      const firstSaleAt =
-        customer.commissions[0]?.createdAt ?? customer.firstSaleAt;
-
       return PartnerProfileCustomerSchema.extend({
         ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
       }).parse({
         ...transformCustomer({
           ...customer,
-          firstSaleAt,
+          firstSaleAt: customer.commissions[0]?.createdAt ?? null,
           email: customer.email
             ? customerDataSharingEnabledAt
               ? customer.email
