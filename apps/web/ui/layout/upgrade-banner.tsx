@@ -20,6 +20,7 @@ export function UpgradeBanner() {
     useTrialLimitActivateModal();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
+  const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
   const overageLimitResource = getTrialLimitResourceForOverageBanner({
     exceededEvents: Boolean(exceededEvents),
     exceededLinks: Boolean(exceededLinks),
@@ -31,8 +32,6 @@ export function UpgradeBanner() {
   if (!isUpgradeBannerVisible) {
     return null;
   }
-
-  const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
 
   return (
     <>
