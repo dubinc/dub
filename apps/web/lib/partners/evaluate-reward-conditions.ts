@@ -4,6 +4,10 @@ import {
   RewardConditionsArray,
   RewardContext,
 } from "../types";
+import {
+  METADATA_NUMBER_CONDITION_OPERATORS,
+  METADATA_TEXT_CONDITION_OPERATORS,
+} from "../zod/schemas/rewards";
 import { getRewardAmount } from "./get-reward-amount";
 
 export const evaluateRewardConditions = ({
@@ -107,22 +111,6 @@ function resolveConditionFieldValue({
   return undefined;
 }
 
-const METADATA_TEXT_OPS = new Set<string>([
-  "starts_with",
-  "ends_with",
-  "contains",
-  "not_contains",
-]);
-
-const METADATA_NUMERIC_ORDER_OPS = new Set<string>([
-  "greater_than",
-  "greater_than_or_equal",
-  "less_than",
-  "less_than_or_equal",
-]);
-
-const METADATA_EQUALS_OPS = new Set<string>(["equals_to", "not_equals"]);
-
 function parseMetadataNumeric(raw: unknown): number | undefined {
   if (raw == null) {
     return undefined;
@@ -154,11 +142,13 @@ function prepareMetadataFieldValue(
   if (raw == null) return undefined;
 
   const op = condition.operator;
+  const equalsOrNot = op === "equals_to" || op === "not_equals";
 
-  if (METADATA_TEXT_OPS.has(op)) return metadataRawToString(raw);
+  if (METADATA_TEXT_CONDITION_OPERATORS.includes(op) && !equalsOrNot) {
+    return metadataRawToString(raw);
+  }
 
-  const ordering = METADATA_NUMERIC_ORDER_OPS.has(op);
-  const equalsOrNot = METADATA_EQUALS_OPS.has(op);
+  const ordering = METADATA_NUMBER_CONDITION_OPERATORS.includes(op);
   if (!ordering && !equalsOrNot) return undefined;
 
   const numeric = parseMetadataNumeric(raw);
