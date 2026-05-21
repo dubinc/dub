@@ -19,6 +19,10 @@ export interface QueueRewardEnrollmentSyncProps {
   delay?: number;
 }
 
+const queue = qstash.queue({
+  queueName: "reward-enrollment-sync",
+});
+
 export async function queueRewardEnrollmentSync({
   action,
   rewardId,
@@ -29,7 +33,7 @@ export async function queueRewardEnrollmentSync({
   rewardSnapshot,
   delay,
 }: QueueRewardEnrollmentSyncProps) {
-  return await qstash.publishJSON({
+  return await queue.enqueueJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/rewards/sync-enrollments`,
     method: "POST",
     ...(delay && { delay }),
