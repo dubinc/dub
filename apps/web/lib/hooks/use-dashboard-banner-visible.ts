@@ -10,6 +10,7 @@ export function useDashboardBannerVisible() {
     exceededPayouts,
     paymentFailedAt,
     environment,
+    loading,
   } = useWorkspace();
 
   const isUpgradeBannerVisible =
@@ -18,7 +19,8 @@ export function useDashboardBannerVisible() {
   const isEnvironmentBannerVisible =
     environment !== WorkspaceEnvironment.production && !isUpgradeBannerVisible;
 
-  const hasBanner = isUpgradeBannerVisible || isEnvironmentBannerVisible;
+  const hasBanner =
+    (isUpgradeBannerVisible || isEnvironmentBannerVisible) && !loading;
 
   return {
     isUpgradeBannerVisible,
