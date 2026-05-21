@@ -19,7 +19,7 @@ export default function WorkspaceSettingsClient() {
     action: "workspaces.write",
     role,
     environment,
-    stagingBehavior: "blocked",
+    stagingBehavior: "production-only",
   });
 
   const { update } = useSession();

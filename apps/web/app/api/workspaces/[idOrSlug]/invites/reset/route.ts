@@ -1,10 +1,13 @@
 import { withWorkspace } from "@/lib/auth";
+import { throwIfStagingWorkspace } from "@/lib/sandbox/throw-if-staging-workspace";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const POST = withWorkspace(
   async ({ workspace }) => {
+    throwIfStagingWorkspace(workspace);
+
     const response = await prisma.project.update({
       where: {
         id: workspace.id,
@@ -18,6 +21,5 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.write"],
-    rejectStagingWorkspace: true,
   },
 );

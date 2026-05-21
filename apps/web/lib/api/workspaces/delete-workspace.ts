@@ -28,9 +28,6 @@ export async function deleteWorkspace(
         select: {
           id: true,
           slug: true,
-          logo: true,
-          stripeId: true,
-          stagingWorkspaceId: true,
         },
       })
     : null;

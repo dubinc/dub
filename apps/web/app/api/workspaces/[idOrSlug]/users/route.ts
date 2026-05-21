@@ -7,12 +7,13 @@ import {
   removeMemberFromStaging,
   updateMemberRoleInStaging,
 } from "@/lib/sandbox/sync-workspace";
+import { throwIfStagingWorkspace } from "@/lib/sandbox/throw-if-staging-workspace";
 import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
-import { WorkspaceEnvironment, WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -64,6 +65,8 @@ const updateRoleSchema = z.object({
 // PATCH /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
+    throwIfStagingWorkspace(workspace);
+
     const { userId, role } = updateRoleSchema.parse(await req.json());
 
     assertRoleAllowedForPlan({
@@ -100,7 +103,6 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.write"],
-    rejectStagingWorkspace: true,
   },
 );
 
@@ -156,16 +158,9 @@ export const DELETE = withWorkspace(
       });
     }
 
-    if (
-      workspace.environment === WorkspaceEnvironment.staging &&
-      !projectUser.user.isMachine
-    ) {
-      throw new DubApiError({
-        code: "forbidden",
-        message:
-          "This action is not available in a staging workspace. Use the production workspace instead.",
-      });
-    }
+    throwIfStagingWorkspace(workspace, {
+      when: !projectUser.user.isMachine,
+    });
 
     // If there is only one owner and the user is an owner and the user is trying to remove themselves
     if (

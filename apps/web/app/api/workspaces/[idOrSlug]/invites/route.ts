@@ -3,6 +3,7 @@ import { inviteUser } from "@/lib/api/users";
 import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { throwIfStagingWorkspace } from "@/lib/sandbox/throw-if-staging-workspace";
 import { ratelimit, redis } from "@/lib/upstash";
 import { inviteTeammatesSchema } from "@/lib/zod/schemas/invites";
 import {
@@ -48,6 +49,8 @@ export const GET = withWorkspace(
 // POST /api/workspaces/[idOrSlug]/invites – invite a teammate
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
+    throwIfStagingWorkspace(workspace);
+
     const { teammates } = inviteTeammatesSchema.parse(await req.json());
 
     for (const teammate of teammates) {
@@ -168,7 +171,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.write"],
-    rejectStagingWorkspace: true,
   },
 );
 
@@ -180,6 +182,8 @@ const updateInviteRoleSchema = z.object({
 // PATCH /api/workspaces/[idOrSlug]/invites - update an invite's role
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
+    throwIfStagingWorkspace(workspace);
+
     const { email, role } = updateInviteRoleSchema.parse(await req.json());
 
     assertRoleAllowedForPlan({
@@ -219,13 +223,14 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.write"],
-    rejectStagingWorkspace: true,
   },
 );
 
 // DELETE /api/workspaces/[idOrSlug]/invites – delete a pending invite
 export const DELETE = withWorkspace(
   async ({ searchParams, workspace }) => {
+    throwIfStagingWorkspace(workspace);
+
     const { email } = z
       .object({
         email: z.email(),
@@ -245,6 +250,5 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPermissions: ["workspaces.write"],
-    rejectStagingWorkspace: true,
   },
 );

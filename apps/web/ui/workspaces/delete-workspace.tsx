@@ -16,7 +16,7 @@ export default function DeleteWorkspace() {
     action: "workspaces.write",
     role,
     environment,
-    stagingBehavior: "blocked",
+    stagingBehavior: "production-only",
   });
 
   return (
