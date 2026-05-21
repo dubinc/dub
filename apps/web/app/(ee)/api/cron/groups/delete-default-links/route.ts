@@ -51,26 +51,22 @@ export async function POST(req: Request) {
 
       await bulkDeleteLinks(linksToDelete);
 
-      // if linksToDelete is less than MAX_LINKS_PER_BATCH, we've deleted all the links
-      if (linksToDelete.length < MAX_LINKS_PER_BATCH) {
+      // if linksToDelete is equals to MAX_LINKS_PER_BATCH, there might be more links to delete, so schedule another job to delete the remaining links
+      if (linksToDelete.length === MAX_LINKS_PER_BATCH) {
+        const deleteDefaultLinksJob = await qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/delete-default-links`,
+          body: {
+            partnerGroupDefaultLinkId,
+          },
+        });
+
         return logAndRespond(
-          `Finished deleting all default links for partner group default link ${partnerGroupDefaultLinkId}.`,
+          `Scheduled delete-default-links job for partner group default link ${partnerGroupDefaultLinkId}: ${prettyPrint(deleteDefaultLinksJob)}`,
         );
       }
-
-      const deleteDefaultLinksJob = await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/delete-default-links`,
-        body: {
-          partnerGroupDefaultLinkId,
-        },
-      });
-
-      return logAndRespond(
-        `Scheduled delete-default-links job for partner group default link ${partnerGroupDefaultLinkId}: ${prettyPrint(deleteDefaultLinksJob)}`,
-      );
     }
 
-    // no more links left, remove the partner group default link id from any remaining links (with activity)
+    // no more links with activity left, remove the partner group default link id from any remaining links (that have no activity)
     let batch = 0;
     const BATCH_LIMIT = 20;
     while (batch < BATCH_LIMIT) {
