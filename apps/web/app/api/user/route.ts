@@ -4,6 +4,7 @@ import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { storage } from "@/lib/storage";
 import { uploadedImageSchema } from "@/lib/zod/schemas/images";
 import { prisma } from "@dub/prisma";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
 import {
   APP_DOMAIN,
   APP_HOSTNAMES,
@@ -83,12 +84,26 @@ export const PATCH = withSession(async ({ req, session }) => {
           slug: defaultWorkspace,
         },
       },
+      select: {
+        project: {
+          select: {
+            environment: true,
+          },
+        },
+      },
     });
 
     if (!workspaceUser) {
       throw new DubApiError({
         code: "forbidden",
         message: `You don't have access to the workspace ${defaultWorkspace}.`,
+      });
+    }
+
+    if (workspaceUser.project.environment !== WorkspaceEnvironment.live) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `You can only set your default workspace to a live workspace.`,
       });
     }
   }

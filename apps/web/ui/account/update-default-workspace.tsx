@@ -1,6 +1,7 @@
 "use client";
 
 import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { Button } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -63,6 +64,8 @@ export default function UpdateDefaultWorkspace() {
           <WorkspaceSelector
             selectedWorkspace={selectedWorkspace || ""}
             setSelectedWorkspace={setSelectedWorkspace}
+            environments={[WorkspaceEnvironment.live]}
+            showAddWorkspaceButton={false}
           />
         </div>
       </div>
