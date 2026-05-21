@@ -51,7 +51,6 @@ export function WorkspaceMembersClient() {
   const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
 
   const { role, plan, environment } = useWorkspace();
-  const isStaging = environment === WorkspaceEnvironment.staging;
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
 
@@ -91,6 +90,7 @@ export function WorkspaceMembersClient() {
   }, [plan]);
 
   const isCurrentUserOwner = role === "owner";
+  const isStaging = environment === WorkspaceEnvironment.staging;
 
   const filters = useMemo(
     () => [
@@ -244,6 +244,22 @@ export function WorkspaceMembersClient() {
     });
   };
 
+  const { error: inviteNewTeammatesError } = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    environment,
+    customPermissionDescription: "invite new teammates",
+    stagingBehavior: "live-only",
+  });
+
+  const { error: generateInviteLinksError } = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    environment,
+    customPermissionDescription: "generate invite links",
+    stagingBehavior: "live-only",
+  });
+
   return (
     <>
       <InviteWorkspaceUserModal />
@@ -261,28 +277,14 @@ export function WorkspaceMembersClient() {
               onClick={() => setShowInviteWorkspaceUserModal(true)}
               className="h-9 w-fit"
               shortcut="M"
-              disabledTooltip={
-                clientAccessCheck({
-                  action: "workspaces.write",
-                  role,
-                  environment,
-                  customPermissionDescription: "invite new teammates",
-                }).error || undefined
-              }
+              disabledTooltip={inviteNewTeammatesError}
             />
             <Button
               icon={<LinkIcon className="h-4 w-4 text-neutral-800" />}
               variant="secondary"
               onClick={() => setShowInviteCodeModal(true)}
               className="h-9 space-x-0"
-              disabledTooltip={
-                clientAccessCheck({
-                  action: "workspaces.write",
-                  role,
-                  environment,
-                  customPermissionDescription: "generate invite links",
-                }).error || undefined
-              }
+              disabledTooltip={generateInviteLinksError}
             />
           </div>
         }
@@ -371,10 +373,7 @@ function RoleCell({
       role,
     });
 
-  const isDisabled =
-    isStaging ||
-    !isCurrentUserOwner ||
-    isCurrentUser;
+  const isDisabled = isStaging || !isCurrentUserOwner || isCurrentUser;
 
   return (
     <>

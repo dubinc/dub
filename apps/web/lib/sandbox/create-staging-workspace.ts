@@ -1,7 +1,7 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
 import { WorkspaceEnvironment } from "@dub/prisma/client";
-import { nanoid, TRIAL_LIMITS } from "@dub/utils";
+import { TRIAL_LIMITS } from "@dub/utils";
 import { generateRandomString } from "../api/utils/generate-random-string";
 import { createWorkspaceId } from "../api/workspaces/create-workspace-id";
 
@@ -58,7 +58,6 @@ export async function createStagingWorkspace(workspaceId: string) {
         plan: workspace.plan,
         billingCycleStart: new Date().getDate(),
         invoicePrefix: generateRandomString(8),
-        inviteCode: nanoid(24),
         usageLimit: TRIAL_LIMITS.clicks,
         linksLimit: TRIAL_LIMITS.links,
         domainsLimit: TRIAL_LIMITS.domains,
