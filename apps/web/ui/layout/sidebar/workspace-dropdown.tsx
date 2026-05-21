@@ -163,6 +163,13 @@ function WorkspaceList({
     [link, programId, pathname, selected.slug],
   );
 
+  const current = workspaces.find((w) => w.slug === selected.slug);
+  const activeSlug =
+    current?.environment === WorkspaceEnvironment.staging
+      ? (workspaces.find((w) => w.stagingWorkspaceId === current.id)?.slug ??
+        selected.slug)
+      : selected.slug;
+
   return (
     <div className="relative w-full">
       <div
@@ -243,7 +250,7 @@ function WorkspaceList({
                   workspace.environment !== WorkspaceEnvironment.staging,
               )
               .map(({ id, name, slug, logo }) => {
-                const isActive = selected.slug === slug;
+                const isActive = activeSlug === slug;
                 return (
                   <Link
                     key={slug}
@@ -268,7 +275,7 @@ function WorkspaceList({
                     <span className="block truncate text-base leading-5 text-neutral-900 sm:max-w-[140px] sm:text-sm">
                       {name}
                     </span>
-                    {selected.slug === slug ? (
+                    {activeSlug === slug ? (
                       <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
                         <Check2 className="size-4" aria-hidden="true" />
                       </span>
