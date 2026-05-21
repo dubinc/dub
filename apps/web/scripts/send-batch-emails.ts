@@ -1,4 +1,4 @@
-import DubLaunchWeekDay3 from "@dub/email/templates/broadcasts/launch-week-day-3";
+import DubLaunchWeekDay4 from "@dub/email/templates/broadcasts/launch-week-day-4";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
@@ -43,12 +43,12 @@ async function main() {
     }
     console.log(`Found ${usersToNotify.length} users to notify`);
 
-    const res = await queueBatchEmail<typeof DubLaunchWeekDay3>(
+    const res = await queueBatchEmail<typeof DubLaunchWeekDay4>(
       usersToNotify.map((user) => ({
         to: user.email!,
         variant: "marketing",
-        subject: "Dub Launch Week Day 3: Introducing Commission Analytics",
-        templateName: "DubLaunchWeekDay3",
+        subject: "Dub Launch Week Day 4: Introducing the Dub MCP Server",
+        templateName: "DubLaunchWeekDay4",
         templateProps: {
           email: user.email!,
           unsubscribeUrl: `https://app.dub.co/unsubscribe/${generateUnsubscribeToken(user.email!)}`,
