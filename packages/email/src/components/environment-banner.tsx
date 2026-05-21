@@ -1,10 +1,7 @@
 import { capitalize } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { Column, Img, Row, Section, Text } from "@react-email/components";
-import { WorkspaceEnvironment } from "src/types";
-
-const ISOLATED_CUBE_ICON =
-  "https://assets.dub.co/misc/icons/nucleo/isolated-cube.png";
+import { WorkspaceEnvironment } from "../types";
 
 export function EnvironmentBanner({
   environment = "production",
@@ -27,7 +24,7 @@ export function EnvironmentBanner({
           <Row>
             <Column className="w-[20px]" valign="middle">
               <Img
-                src={ISOLATED_CUBE_ICON}
+                src="https://assets.dub.co/icons/isolated-cube.png"
                 width="16"
                 height="16"
                 alt=""
