@@ -508,6 +508,9 @@ export async function checkoutSessionCompleted(
         sale: {
           productId,
           amount: saleData.amount,
+          ...(charge.metadata && Object.keys(charge.metadata).length > 0
+            ? { metadata: charge.metadata }
+            : {}),
         },
       },
     });

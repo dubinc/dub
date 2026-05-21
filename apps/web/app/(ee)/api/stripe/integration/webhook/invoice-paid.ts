@@ -244,6 +244,12 @@ export async function invoicePaid(
     | undefined = undefined;
 
   if (link.programId && link.partnerId) {
+    const saleMetadata = {
+      ...invoice.parent?.subscription_details?.metadata,
+      ...invoice.lines.data[0]?.metadata,
+      ...invoice.metadata,
+    };
+
     createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
@@ -263,6 +269,9 @@ export async function invoicePaid(
         sale: {
           productId: invoice.lines.data[0]?.pricing?.price_details?.product,
           amount: saleData.amount,
+          ...(Object.keys(saleMetadata).length > 0
+            ? { metadata: saleMetadata }
+            : {}),
         },
       },
     });
