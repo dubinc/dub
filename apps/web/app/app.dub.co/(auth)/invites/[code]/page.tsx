@@ -101,7 +101,7 @@ async function VerifyInvite({ code }: { code: string }) {
       userId: session.user.id,
       projectId: workspace.id,
       notificationPreference: {
-        create: {},
+        create: {}, // by default, users are opted in to all notifications
       },
     },
   });
