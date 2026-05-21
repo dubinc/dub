@@ -19,7 +19,7 @@ import {
   WorkspaceSchemaExtended,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
-import { Prisma, WorkspaceEnvironment } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -311,12 +311,7 @@ export const DELETE = withWorkspace(
       });
     }
 
-    if (workspace.environment === WorkspaceEnvironment.staging) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "You cannot delete a staging workspace.",
-      });
-    }
+    throwIfStagingWorkspace(workspace);
 
     await deleteWorkspace(workspace);
 
