@@ -373,7 +373,10 @@ function RoleCell({
       role,
     });
 
-  const isDisabled = isStaging || !isCurrentUserOwner || isCurrentUser;
+  // Only owners can change roles
+  // Can't change your own role
+  // Can't change roles in staging workspaces
+  const isDisabled = !isCurrentUserOwner || isCurrentUser || isStaging;
 
   return (
     <>
