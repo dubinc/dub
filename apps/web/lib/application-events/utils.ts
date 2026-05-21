@@ -18,5 +18,6 @@ export const STAGE_VALUE_KEY: Record<
 export const getReferralSourceDisplayValue = (referralSource: string) => {
   if (referralSource === "marketplace") return "Dub Program Marketplace";
   if (referralSource === "direct") return "Direct application";
+  if (referralSource === "manual") return "Manual attribution";
   return referralSource;
 };

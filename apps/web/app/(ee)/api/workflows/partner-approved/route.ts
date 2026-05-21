@@ -224,7 +224,7 @@ export const { POST } = serve<Input>(
         partnerUsers.map(({ user }) => ({
           variant: "notifications",
           to: user.email!,
-          subject: `Your application to join ${program.name} partner program has been approved!`,
+          subject: `Your application to ${program.name} has been approved!`,
           replyTo: program.supportEmail || "noreply",
           react: PartnerApplicationApproved({
             program: {

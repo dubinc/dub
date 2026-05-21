@@ -76,7 +76,7 @@ export default function IntegrationPageClient({
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { id: workspaceId, slug, plan, role } = useWorkspace();
+  const { id: workspaceId, slug, plan, role, stripeConnectId } = useWorkspace();
 
   const permissionsError = clientAccessCheck({
     action: "integrations.write",
@@ -210,7 +210,7 @@ export default function IntegrationPageClient({
                       <TooltipContent
                         title="You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
                         cta="Go to Stripe"
-                        href="https://dashboard.stripe.com/settings/apps/dub.co"
+                        href={`https://dashboard.stripe.com/${stripeConnectId}/apps/installed/dub.co`}
                         target="_blank"
                       />
                     ) : (
@@ -386,6 +386,19 @@ export default function IntegrationPageClient({
                 {stripeConnectionBannerConfig.title}
               </span>
             </div>
+            {stripeConnectId && (
+              <a
+                href={`https://dashboard.stripe.com/${stripeConnectId}/apps/installed/dub.co`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  "font-mono text-xs opacity-75 transition-opacity hover:opacity-100",
+                  stripeConnectionBannerConfig.caption,
+                )}
+              >
+                {stripeConnectId}
+              </a>
+            )}
           </div>
         )}
       </div>

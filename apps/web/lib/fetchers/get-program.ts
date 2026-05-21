@@ -62,7 +62,12 @@ export const getProgram = cache(
       groupId: group.id,
     });
 
-    const rewards = [group.clickReward, group.leadReward, group.saleReward]
+    const rewards = [
+      group.clickReward,
+      group.leadReward,
+      group.saleReward,
+      group.referralReward,
+    ]
       .filter((r) => r !== null)
       .map((r) => serializeReward(r as Reward));
 

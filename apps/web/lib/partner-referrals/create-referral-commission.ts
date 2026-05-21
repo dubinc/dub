@@ -28,6 +28,9 @@ export const createReferralCommission = async (
     context;
 
   if (programId === NETWORK_PROGRAM_ID) {
+    console.log(
+      `Skipping referral commission creation for network program ${programId}...`,
+    );
     return null;
   }
 
@@ -93,11 +96,10 @@ export const createReferralCommission = async (
     const amountInPercentage = Number(referralReward.amountInPercentage ?? 0);
 
     if (typeof referralReward.maxDuration === "number") {
-      const firstReferralCommission = await prisma.commission.findFirst({
+      const referredPartnerFirstCommission = await prisma.commission.findFirst({
         where: {
-          partnerId: referredByPartnerId,
-          customerId: sourceCommission.customerId,
-          type: "referral",
+          partnerId,
+          programId,
         },
         orderBy: {
           createdAt: "asc",
@@ -107,22 +109,14 @@ export const createReferralCommission = async (
         },
       });
 
-      if (firstReferralCommission) {
-        const subscriptionDurationMonths = differenceInMonths(
+      if (referredPartnerFirstCommission) {
+        const monthsSinceFirstCommission = differenceInMonths(
           sourceCommission.createdAt,
-          firstReferralCommission.createdAt,
+          referredPartnerFirstCommission.createdAt,
         );
 
-        // One-time
-        if (referralReward.maxDuration === 0) {
-          console.log(
-            `Referrer ${referredByPartnerId} reached max duration (first-sale only) for referred partner ${partnerId} for the customer ${sourceCommission.customerId}.`,
-          );
-          return null;
-        }
-
         // Recurring
-        if (subscriptionDurationMonths >= referralReward.maxDuration) {
+        if (monthsSinceFirstCommission >= referralReward.maxDuration) {
           console.log(
             `Referrer ${referredByPartnerId} reached max duration (${referralReward.maxDuration} months) for referred partner ${partnerId} for the customer ${sourceCommission.customerId}.`,
           );
@@ -385,9 +379,9 @@ async function resolveReferralContext(props: CreateReferralCommissionProps) {
       return null;
     }
 
-    if (!["processed", "paid"].includes(sourceCommission.status)) {
+    if (!["pending", "processed", "paid"].includes(sourceCommission.status)) {
       console.log(
-        `Source commission ${sourceCommissionId} is not a processed or paid.`,
+        `Source commission ${sourceCommissionId} is not pending, processed or paid.`,
       );
       return null;
     }

@@ -13,12 +13,12 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { RewardStructure } from "@dub/prisma/client";
 import { capitalize, cn, currencyFormatter, pluralize } from "@dub/utils";
 import { useContext, useEffect, useMemo } from "react";
+import { DurationPopoverContent } from "../../shared/duration-popover-content";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
   InlineBadgePopoverMenu,
 } from "../../shared/inline-badge-popover";
-import { DurationPopoverContent } from "../../shared/duration-popover-content";
 import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 
 type Trigger = (typeof PARTNER_REFERRAL_TRIGGER)[number];
@@ -137,9 +137,9 @@ export function PartnerReferralRewardBuilder() {
 
   const maxDurationText = useMemo(() => {
     if (maxDuration === 0) return "one time";
-    if (maxDuration === Infinity) return "for the customer's lifetime";
+    if (maxDuration === Infinity) return "for the referred partner's lifetime";
     if (maxDuration == null || Number.isNaN(Number(maxDuration))) {
-      return "for the customer's lifetime";
+      return "for the referred partner's lifetime";
     }
     return `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`;
   }, [maxDuration]);
@@ -159,7 +159,7 @@ export function PartnerReferralRewardBuilder() {
           ]}
         />
       </InlineBadgePopover>{" "}
-      of{" "}
+      {type === "percentage" && "of "}
       <InlineBadgePopover
         text={amountText}
         invalid={amount == null || Number.isNaN(Number(amount))}
@@ -193,6 +193,7 @@ export function PartnerReferralRewardBuilder() {
               presetDurations={RECURRING_MAX_DURATIONS.filter(
                 (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
               )}
+              partnerReferralReward
             />
           </InlineBadgePopover>
         </>
