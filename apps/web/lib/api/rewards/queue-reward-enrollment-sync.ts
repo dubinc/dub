@@ -16,12 +16,7 @@ export interface QueueRewardEnrollmentSyncProps {
   event: EventType;
   startAfterProgramEnrollmentId?: string;
   rewardSnapshot?: RewardSnapshot;
-  delay?: number;
 }
-
-const queue = qstash.queue({
-  queueName: "reward-enrollment-sync",
-});
 
 export async function queueRewardEnrollmentSync({
   action,
@@ -31,12 +26,15 @@ export async function queueRewardEnrollmentSync({
   event,
   startAfterProgramEnrollmentId,
   rewardSnapshot,
-  delay,
 }: QueueRewardEnrollmentSyncProps) {
-  return await queue.enqueueJSON({
+  return await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/rewards/sync-enrollments`,
     method: "POST",
-    ...(delay && { delay }),
+    // set a flow control key to ensure that only one job is running for a given group at a time
+    flowControl: {
+      key: groupId,
+      rate: 1,
+    },
     body: {
       action,
       rewardId,

@@ -114,7 +114,6 @@ export async function POST(req: Request) {
         startAfterProgramEnrollmentId:
           programEnrollments[programEnrollments.length - 1]?.id,
         rewardSnapshot: rewardSnapshot as RewardSnapshot | undefined,
-        delay: 2,
       });
 
       return logAndRespond(
