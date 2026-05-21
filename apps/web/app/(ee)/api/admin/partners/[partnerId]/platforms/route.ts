@@ -44,9 +44,9 @@ export const POST = withAdmin(
 
     let verifiedData: {
       platformId: string | null;
-      subscribers: bigint;
-      posts: bigint;
-      views: bigint;
+      subscribers: bigint | undefined;
+      posts: bigint | undefined;
+      views: bigint | undefined;
       avatarUrl: string | null;
       metadata?: Record<string, string | number>;
     } = {
