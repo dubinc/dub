@@ -3,7 +3,11 @@ import { sendEmail } from "@dub/email";
 import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-force-withdrawal";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
-import { PartnerPayoutMethod, Prisma } from "@dub/prisma/client";
+import {
+  PartnerPayoutMethod,
+  Prisma,
+  WorkspaceEnvironment,
+} from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,
@@ -79,6 +83,11 @@ export const createStablecoinPayout = async ({
           method: {
             in: [PartnerPayoutMethod.stablecoin, PartnerPayoutMethod.connect],
           },
+          program: {
+            workspace: {
+              environment: WorkspaceEnvironment.production,
+            },
+          },
         },
         orderBy: {
           id: "asc",
@@ -94,6 +103,11 @@ export const createStablecoinPayout = async ({
               stripePayoutId: null,
               method: "stablecoin",
               invoiceId,
+              program: {
+                workspace: {
+                  environment: WorkspaceEnvironment.production,
+                },
+              },
             },
             orderBy: {
               id: "asc",

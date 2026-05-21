@@ -3,7 +3,7 @@ import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
-import { Invoice } from "@dub/prisma/client";
+import { Invoice, WorkspaceEnvironment } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 
@@ -20,6 +20,11 @@ export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
         },
         paypalEmail: {
           not: null,
+        },
+      },
+      program: {
+        workspace: {
+          environment: WorkspaceEnvironment.production,
         },
       },
     },

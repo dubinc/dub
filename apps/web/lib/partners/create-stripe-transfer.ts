@@ -9,7 +9,7 @@ import { sendEmail } from "@dub/email";
 import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-force-withdrawal";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, WorkspaceEnvironment } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,
@@ -69,18 +69,29 @@ export const createStripeTransfer = async ({
           status: "processed",
           stripeTransferId: null,
           method: "connect",
+          program: {
+            workspace: {
+              environment: WorkspaceEnvironment.production,
+            },
+          },
         },
         orderBy: {
           id: "asc",
         },
         include: commonInclude,
       }),
+
       prisma.payout.findMany({
         where: {
           partnerId: partner.id,
           invoiceId,
           status: "processing",
           method: "connect",
+          program: {
+            workspace: {
+              environment: WorkspaceEnvironment.production,
+            },
+          },
         },
         orderBy: {
           id: "asc",
