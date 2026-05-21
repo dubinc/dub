@@ -11,11 +11,16 @@ import { motion } from "motion/react";
 import Link from "next/link";
 
 export function WorkspaceEnvironmentBanner() {
-  const { id, environment } = useWorkspace();
-  const { workspaces } = useWorkspaces();
+  const { id, environment, loading: loadingWorkspace } = useWorkspace();
+  const { workspaces, loading: loadingWorkspaces } = useWorkspaces();
   const { isEnvironmentBannerVisible } = useDashboardBannerVisible();
 
-  if (!isEnvironmentBannerVisible) {
+  if (
+    !isEnvironmentBannerVisible ||
+    environment === WorkspaceEnvironment.production ||
+    loadingWorkspace ||
+    loadingWorkspaces
+  ) {
     return null;
   }
 

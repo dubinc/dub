@@ -20,7 +20,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { WorkspaceEnvironmentSwitcher } from "./workspace-environment-switcher";
+import { WorkspaceEnvironmentSwitcher } from "@/lib/sandbox/components/workspace-environment-switcher";
 
 export function WorkspaceDropdown() {
   const { workspaces } = useWorkspaces();

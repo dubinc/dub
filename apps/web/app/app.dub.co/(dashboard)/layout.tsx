@@ -5,7 +5,7 @@ import { NewsRSC } from "@/ui/layout/sidebar/news-rsc";
 import { ReferButton } from "@/ui/layout/sidebar/refer-button";
 import Toolbar from "@/ui/layout/toolbar/toolbar";
 import { UpgradeBanner } from "@/ui/layout/upgrade-banner";
-import { WorkspaceEnvironmentBanner } from "@/ui/layout/workspace-environment-banner";
+import { WorkspaceEnvironmentBanner } from "@/lib/sandbox/components/workspace-environment-banner";
 import { constructMetadata } from "@dub/utils";
 import { ReactNode } from "react";
 

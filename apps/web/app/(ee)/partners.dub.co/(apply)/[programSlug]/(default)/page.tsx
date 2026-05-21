@@ -2,7 +2,7 @@ import { getProgram } from "@/lib/fetchers/get-program";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { ApplicationAnalytics } from "@/ui/application-analytics";
-import { ProgramEnvironmentBanner } from "@/ui/layout/program-environment-banner";
+import { ProgramEnvironmentBanner } from "@/lib/sandbox/components/program-environment-banner";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
