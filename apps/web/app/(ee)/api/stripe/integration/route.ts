@@ -4,7 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@dub/prisma";
 import { WorkspaceEnvironment } from "@dub/prisma/client";
-import { STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { capitalize, STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -35,13 +35,11 @@ export const PATCH = withWorkspace(
 
     if (
       stripeMode === "live" &&
-      (workspace.environment === WorkspaceEnvironment.staging ||
-        workspace.environment === WorkspaceEnvironment.sandbox)
+      workspace.environment !== WorkspaceEnvironment.production
     ) {
       throw new DubApiError({
         code: "bad_request",
-        message:
-          "Live Stripe mode cannot be used in staging or sandbox workspaces.",
+        message: `Live Stripe mode cannot be used in ${capitalize(workspace.environment)} workspaces.`,
       });
     }
 
