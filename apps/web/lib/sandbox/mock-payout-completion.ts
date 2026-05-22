@@ -55,6 +55,15 @@ export async function mockPayoutCompletion({
     return;
   }
 
+  const program = payouts[0].program;
+
+  if (program.workspace.environment === WorkspaceEnvironment.production) {
+    console.error(
+      `Skipping the payout completion for production workspace ${program.workspaceId}.`,
+    );
+    return;
+  }
+
   const payoutIds = payouts.map((p) => p.id);
 
   const commissions = await prisma.commission.findMany({

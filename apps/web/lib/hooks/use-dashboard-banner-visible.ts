@@ -15,11 +15,12 @@ export function useDashboardBannerVisible() {
 
   const isProductionWorkspace = environment === WorkspaceEnvironment.production;
 
-  // Only visible in production workspaces
+  // Visible in production workspaces
   const isUpgradeBannerVisible =
     (exceededEvents || exceededLinks || exceededPayouts || !!paymentFailedAt) &&
     isProductionWorkspace;
 
+  // Visible in non-production workspaces
   const isEnvironmentBannerVisible = !isProductionWorkspace;
 
   const hasBanner =
