@@ -4,6 +4,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
 import ProgramApplicationReminder from "@dub/email/templates/program-application-reminder";
 import { prisma } from "@dub/prisma";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils/src/constants";
 
 // POST - /api/cron/program-application-reminder
@@ -21,6 +22,11 @@ export async function POST(req: Request) {
         // Only send reminders for applications that were created less than 3 days ago
         createdAt: {
           gt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        },
+        program: {
+          workspace: {
+            environment: WorkspaceEnvironment.production,
+          },
         },
       },
       include: {
