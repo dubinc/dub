@@ -105,8 +105,9 @@ export default function DubLaunchWeekDay5({
               Dub.
             </Text>
             <Text className="mx-0 mb-4 mt-0 text-sm leading-6 text-neutral-600">
-              When a partner you referred starts earning on Dub, you'll earn 50%
-              of their payout fees for up to 12 months.
+              When a partner you referred starts receiving payouts from the
+              programs they work with, you'll earn 50% of their payout fees for
+              up to 12 months.
             </Text>
             <Link
               href="https://ship.dub.co/network-referral"
