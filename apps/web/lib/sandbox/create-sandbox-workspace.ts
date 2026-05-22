@@ -1,6 +1,6 @@
 import { PlanProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { WorkspaceEnvironment, WorkspaceRole } from "@dub/prisma/client";
+import { User, WorkspaceEnvironment, WorkspaceRole } from "@dub/prisma/client";
 import { nanoid, TRIAL_LIMITS } from "@dub/utils";
 import { generateRandomString } from "../api/utils/generate-random-string";
 import { createWorkspaceId } from "../api/workspaces/create-workspace-id";
@@ -21,6 +21,29 @@ export async function createSandboxWorkspace({
   workspace,
   users,
 }: CreateSandboxWorkspaceProps) {
+  let usersFound: Pick<User, "id" | "email">[] = [];
+
+  if (users.length > 0) {
+    usersFound = await prisma.user.findMany({
+      where: {
+        email: {
+          in: users.map((user) => user.email),
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+
+    if (usersFound.length === 0) {
+      console.error(
+        "No users found. Please ensure the users exist in the database.",
+      );
+      return;
+    }
+  }
+
   const workspaceId = createWorkspaceId();
 
   await prisma.project.create({
@@ -51,50 +74,35 @@ export async function createSandboxWorkspace({
     },
   });
 
-  if (users.length > 0) {
-    const usersFound = await prisma.user.findMany({
+  const usersWithRoles = usersFound.map((user) => ({
+    id: user.id,
+    role: users.find((u) => u.email === user.email)?.role ?? "member",
+  }));
+
+  await prisma.$transaction(async (tx) => {
+    await tx.projectUsers.createMany({
+      skipDuplicates: true,
+      data: usersWithRoles.map((user) => ({
+        projectId: workspaceId,
+        userId: user.id,
+        role: user.role,
+      })),
+    });
+
+    const workspaceUsers = await tx.projectUsers.findMany({
       where: {
-        email: {
-          in: users.map((user) => user.email),
-        },
+        projectId: workspaceId,
+      },
+      select: {
+        id: true,
       },
     });
 
-    if (usersFound.length === 0) {
-      console.error("No users found.");
-      return;
-    }
-
-    const usersWithRoles = usersFound.map((user) => ({
-      id: user.id,
-      role: users.find((u) => u.email === user.email)?.role ?? "member",
-    }));
-
-    await prisma.$transaction(async (tx) => {
-      await tx.projectUsers.createMany({
-        skipDuplicates: true,
-        data: usersWithRoles.map((user) => ({
-          projectId: workspaceId,
-          userId: user.id,
-          role: user.role,
-        })),
-      });
-
-      const workspaceUsers = await tx.projectUsers.findMany({
-        where: {
-          projectId: workspaceId,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      await tx.notificationPreference.createMany({
-        skipDuplicates: true,
-        data: workspaceUsers.map((user) => ({
-          projectUserId: user.id,
-        })),
-      });
+    await tx.notificationPreference.createMany({
+      skipDuplicates: true,
+      data: workspaceUsers.map((user) => ({
+        projectUserId: user.id,
+      })),
     });
-  }
+  });
 }

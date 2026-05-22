@@ -22,8 +22,15 @@ export async function createStagingWorkspace(workspaceId: string) {
 
   if (!workspace) {
     console.error(
-      "Failed to find workspace in createStagingWorkspace",
+      "Failed to find workspace in createStagingWorkspace.",
       workspaceId,
+    );
+    return;
+  }
+
+  if (workspace.environment !== WorkspaceEnvironment.production) {
+    console.error(
+      `Skipping staging creation for non-production workspace ${workspace.id}.`,
     );
     return;
   }

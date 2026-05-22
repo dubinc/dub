@@ -22,6 +22,11 @@ async function main() {
         plan: {
           notIn: ["free", "pro"],
         },
+        slug: {
+          not: {
+            endsWith: "-staging",
+          },
+        },
       },
       select: {
         id: true,

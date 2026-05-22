@@ -88,10 +88,6 @@ export const copyRewardToLiveAction = authActionClient
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
-    if (targetGroup[rewardIdColumn]) {
-      throw new Error(`The target group already has a ${reward.event} reward.`);
-    }
-
     const newReward = await prisma.$transaction(async (tx) => {
       const newReward = await tx.reward.create({
         data: {
@@ -109,14 +105,22 @@ export const copyRewardToLiveAction = authActionClient
         },
       });
 
-      await tx.partnerGroup.update({
+      const { count } = await tx.partnerGroup.updateMany({
         where: {
           id: targetGroupId,
+          [rewardIdColumn]: null,
         },
         data: {
           [rewardIdColumn]: newReward.id,
         },
       });
+
+      // This will revert the transaction if the target group already has a reward
+      if (count === 0) {
+        throw new Error(
+          `The target group already has a ${reward.event} reward.`,
+        );
+      }
 
       await tx.programEnrollment.updateMany({
         where: {
