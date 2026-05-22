@@ -55,7 +55,7 @@ function CopyRewardToLiveModal({
       toast.success("Reward copied to live program!");
     },
     onError({ error }) {
-      toast.error(parseActionError(error, "Failed to copy reward to live"));
+      toast.error(parseActionError(error, "Failed to copy reward to live."));
     },
   });
 

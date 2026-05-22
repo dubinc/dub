@@ -77,7 +77,7 @@ function CopyDiscountToLiveModal({
         }
       }
 
-      toast.error(error.serverError);
+      toast.error(error.serverError ?? "Failed to copy discount to live.");
     },
   });
 

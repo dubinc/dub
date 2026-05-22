@@ -2,6 +2,7 @@ import { getProgram } from "@/lib/fetchers/get-program";
 import { ProgramEnvironmentBanner } from "@/lib/sandbox/components/program-environment-banner";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { Logo } from "@dub/ui";
 import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
 import { OG_AVATAR_URL } from "@dub/utils";
@@ -81,6 +82,8 @@ export default async function SuccessPage(props: {
     : null;
 
   const hasPartnerProfile = !!enrollmentId;
+  const isNonProduction =
+    program.workspace.environment !== WorkspaceEnvironment.production;
 
   return (
     <div
@@ -93,7 +96,12 @@ export default async function SuccessPage(props: {
       }
     >
       <ProgramEnvironmentBanner environment={program.workspace.environment} />
-      <ApplyHeader group={program.group} showLogin={false} showApply={false} />
+      <ApplyHeader
+        group={program.group}
+        showLogin={false}
+        showApply={false}
+        hasBanner={isNonProduction}
+      />
       <div className="p-6">
         <div className="grid grid-cols-1 gap-5 sm:pt-20">
           <span className="w-fit rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">

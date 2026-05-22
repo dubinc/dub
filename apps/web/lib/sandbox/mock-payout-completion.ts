@@ -73,6 +73,17 @@ export async function mockPayoutCompletion({
   });
 
   await prisma.$transaction([
+    prisma.commission.updateMany({
+      where: {
+        payoutId: {
+          in: payoutIds,
+        },
+      },
+      data: {
+        status: "paid",
+      },
+    }),
+
     prisma.payout.updateMany({
       where: {
         id: {
@@ -85,14 +96,13 @@ export async function mockPayoutCompletion({
       },
     }),
 
-    prisma.commission.updateMany({
+    prisma.invoice.update({
       where: {
-        payoutId: {
-          in: payoutIds,
-        },
+        id: invoice.id,
       },
       data: {
-        status: "paid",
+        status: "completed",
+        paidAt: new Date(),
       },
     }),
   ]);

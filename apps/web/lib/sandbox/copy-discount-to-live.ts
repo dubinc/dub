@@ -47,6 +47,7 @@ export const copyDiscountToLiveAction = authActionClient
                   environment: true,
                   stripeConnectId: true,
                   shopifyStoreId: true,
+                  stagingWorkspaceId: true,
                   users: {
                     where: {
                       userId: user.id,
@@ -65,9 +66,17 @@ export const copyDiscountToLiveAction = authActionClient
 
     const { workspace: targetWorkspace } = targetProgram;
 
+    if (targetWorkspace.stagingWorkspaceId !== workspace.id) {
+      throw new Error(
+        "Target program is not linked to this staging workspace.",
+      );
+    }
+
     // Check user has access in the target program
     if (targetWorkspace.users.length === 0) {
-      throw new Error("You are not allowed to copy a reward to this program.");
+      throw new Error(
+        "You are not allowed to copy a discount to this program.",
+      );
     }
 
     throwIfNoPermission({
@@ -76,7 +85,7 @@ export const copyDiscountToLiveAction = authActionClient
     });
 
     if (targetWorkspace.environment !== WorkspaceEnvironment.production) {
-      throw new Error("Reward can only be copied to a live program.");
+      throw new Error("Discount can only be copied to a live program.");
     }
 
     const discount = await getDiscountOrThrow({

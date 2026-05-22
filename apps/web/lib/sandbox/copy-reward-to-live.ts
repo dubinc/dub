@@ -42,6 +42,7 @@ export const copyRewardToLiveAction = authActionClient
                 select: {
                   id: true,
                   environment: true,
+                  stagingWorkspaceId: true,
                   users: {
                     where: {
                       userId: user.id,
@@ -59,6 +60,12 @@ export const copyRewardToLiveAction = authActionClient
       });
 
     const { workspace: targetWorkspace } = targetProgram;
+
+    if (targetWorkspace.stagingWorkspaceId !== workspace.id) {
+      throw new Error(
+        "Target program is not linked to this staging workspace.",
+      );
+    }
 
     // Check user has access in the target program
     if (targetWorkspace.users.length === 0) {

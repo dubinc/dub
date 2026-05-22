@@ -13,11 +13,14 @@ export function useDashboardBannerVisible() {
     loading,
   } = useWorkspace();
 
-  const isUpgradeBannerVisible =
-    exceededEvents || exceededLinks || exceededPayouts || !!paymentFailedAt;
+  const isProductionWorkspace = environment === WorkspaceEnvironment.production;
 
-  const isEnvironmentBannerVisible =
-    environment !== WorkspaceEnvironment.production && !isUpgradeBannerVisible;
+  // Only visible in production workspaces
+  const isUpgradeBannerVisible =
+    (exceededEvents || exceededLinks || exceededPayouts || !!paymentFailedAt) &&
+    isProductionWorkspace;
+
+  const isEnvironmentBannerVisible = !isProductionWorkspace;
 
   const hasBanner =
     (isUpgradeBannerVisible || isEnvironmentBannerVisible) && !loading;

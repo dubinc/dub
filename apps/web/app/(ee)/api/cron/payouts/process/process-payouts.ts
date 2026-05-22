@@ -27,7 +27,6 @@ import {
   nFormatter,
   pluralize,
 } from "@dub/utils";
-import { addMinutes } from "date-fns";
 
 const nonUsdPaymentMethodTypes = {
   sepa_debit: "eur",
@@ -312,16 +311,6 @@ export async function processPayouts({
   // Simulate that flow here with a 2-minute delay so
   // sandbox payouts behave like a settled ACH charge.
   if (!isProductionWorkspace) {
-    await prisma.invoice.update({
-      where: {
-        id: invoice.id,
-      },
-      data: {
-        status: "completed",
-        paidAt: addMinutes(new Date(), 2),
-      },
-    });
-
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
       method: "POST",
