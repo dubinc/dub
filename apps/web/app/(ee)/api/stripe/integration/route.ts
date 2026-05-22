@@ -3,6 +3,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@dub/prisma";
+import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -29,6 +30,18 @@ export const PATCH = withWorkspace(
       throw new DubApiError({
         code: "forbidden",
         message: "You are not authorized to update the Stripe integration.",
+      });
+    }
+
+    if (
+      stripeMode === "live" &&
+      (workspace.environment === WorkspaceEnvironment.staging ||
+        workspace.environment === WorkspaceEnvironment.sandbox)
+    ) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Live Stripe mode cannot be used in staging or sandbox workspaces.",
       });
     }
 
