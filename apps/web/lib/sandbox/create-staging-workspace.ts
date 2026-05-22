@@ -53,8 +53,8 @@ export async function createStagingWorkspace(workspaceId: string) {
 
   const stagingWorkspaceId = createWorkspaceId();
 
-  await prisma.$transaction([
-    prisma.project.create({
+  await prisma.$transaction(async (tx) => {
+    await tx.project.create({
       data: {
         id: stagingWorkspaceId,
         name: `${workspace.name} (Staging)`,
@@ -80,17 +80,24 @@ export async function createStagingWorkspace(workspaceId: string) {
           create: {},
         },
       },
-    }),
+    });
 
-    prisma.project.update({
+    const { count } = await tx.project.updateMany({
       where: {
         id: workspace.id,
+        stagingWorkspaceId: null,
       },
       data: {
         stagingWorkspaceId,
       },
-    }),
-  ]);
+    });
+
+    if (count === 0) {
+      throw new Error(
+        `Staging workspace already exist for the workspace ${workspace.id}`,
+      );
+    }
+  });
 
   // Copy the users to the staging workspace
   if (workspace.users.length > 0) {

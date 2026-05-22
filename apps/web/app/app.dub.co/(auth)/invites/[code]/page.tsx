@@ -118,15 +118,15 @@ async function VerifyInvite({ code }: { code: string }) {
     });
   }
 
-  after(
-    addMemberToStaging({
+  after(async () => {
+    await addMemberToStaging({
       workspace,
       user: {
         id: workspaceUser.userId,
         role: workspaceUser.role,
       },
-    }),
-  );
+    });
+  });
 
   // Complete onboarding just in case
   await onboardingStepCache.set({

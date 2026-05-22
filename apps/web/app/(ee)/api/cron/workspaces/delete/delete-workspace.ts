@@ -42,11 +42,18 @@ export async function deleteWorkspace(payload: DeleteWorkspacePayload) {
   }
 
   // Delete workspace logo if it's a custom logo stored in R2
-  if (
-    workspace.logo &&
-    workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`)
-  ) {
-    await storage.delete({ key: workspace.logo.replace(`${R2_URL}/`, "") });
+  try {
+    if (
+      workspace.logo &&
+      workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`)
+    ) {
+      await storage.delete({ key: workspace.logo.replace(`${R2_URL}/`, "") });
+    }
+  } catch (error) {
+    console.error(
+      `Failed to delete logo for workspace ${workspace.id}. Continuing deletion.`,
+      error,
+    );
   }
 
   await prisma.project.delete({
