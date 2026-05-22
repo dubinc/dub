@@ -9,7 +9,11 @@ export default function PartnerDashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <MainNav toolContent={<HelpButton />} sidebar={PartnersSidebarNav}>
+    <MainNav
+      toolContent={<HelpButton />}
+      sidebar={PartnersSidebarNav}
+      hasBanner={false}
+    >
       <PartnerProfileAuth>{children}</PartnerProfileAuth>
     </MainNav>
   );
