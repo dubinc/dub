@@ -10,6 +10,7 @@ import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
 import { stripe } from "@/lib/stripe";
 import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { APP_DOMAIN } from "@dub/utils";
+import { capitalize } from "@dub/utils/src";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import * as z from "zod/v4";
@@ -62,6 +63,13 @@ export const POST = withWorkspace(
       throw new DubApiError({
         code: "bad_request",
         message: "Workspace does not have a Stripe ID.",
+      });
+    }
+
+    if (workspace.environment !== WorkspaceEnvironment.production) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `You can't add a payment methods to the ${capitalize(workspace.environment)} workspace.`,
       });
     }
 

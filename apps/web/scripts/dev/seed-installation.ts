@@ -1,6 +1,7 @@
+import "dotenv-flow/config";
+
 import { prisma } from "@dub/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
-import "dotenv-flow/config";
 
 async function main() {
   await prisma.installedIntegration.create({

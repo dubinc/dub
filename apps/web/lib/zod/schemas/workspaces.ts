@@ -184,7 +184,7 @@ export const WorkspaceSchema = z
       .meta({ example: ["dub.sh"] }),
     ssoEmailDomain: z.string().nullable(),
     ssoEnforcedAt: z.date().nullable(),
-    environment: z.enum(WorkspaceEnvironment).nullable(),
+    environment: z.enum(WorkspaceEnvironment),
     stagingWorkspaceId: z.string().nullable(),
   })
   .meta({
