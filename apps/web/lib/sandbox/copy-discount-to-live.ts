@@ -93,10 +93,6 @@ export const copyDiscountToLiveAction = authActionClient
       programId,
     });
 
-    if (targetGroup.discountId) {
-      throw new Error("The target group already has a discount.");
-    }
-
     const discountProvider = getDiscountProvider(discount.provider);
 
     await discountProvider.assertDiscountIntegrationAvailable({
@@ -134,14 +130,22 @@ export const copyDiscountToLiveAction = authActionClient
         },
       });
 
-      await tx.partnerGroup.update({
+      // updateMany (not update) so we only attach when discountId is null and can
+      // detect a concurrent copy via count === 0 without a Prisma not-found error
+      const { count } = await tx.partnerGroup.updateMany({
         where: {
           id: targetGroupId,
+          discountId: null,
         },
         data: {
           discountId: newDiscount.id,
         },
       });
+
+      // This will revert the transaction if the target group already has a discount
+      if (count === 0) {
+        throw new Error("The target group already has a discount.");
+      }
 
       await tx.programEnrollment.updateMany({
         where: {
