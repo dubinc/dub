@@ -2,7 +2,7 @@
 
 import { WorkspaceProps } from "@/lib/types";
 import { WorkspaceEnvironment } from "@dub/prisma/client";
-import { Cube } from "@dub/ui/icons";
+import { IsolatedCube } from "@dub/ui/icons";
 import Link from "next/link";
 
 const buttonClassName =
@@ -67,7 +67,7 @@ export function WorkspaceEnvironmentSwitcher({
       className={buttonClassName}
       onClick={onNavigate}
     >
-      <Cube className="text-content-emphasis size-4" />
+      <IsolatedCube className="text-content-emphasis size-4" />
       <span className="block truncate text-sm">{label}</span>
     </Link>
   );
