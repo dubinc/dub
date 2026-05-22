@@ -50,6 +50,7 @@ export const deleteRewardAction = authActionClient
         },
       });
 
+      // soft delete reward, we will hard delete it in the cron job
       await tx.reward.update({
         where: {
           id: reward.id,
