@@ -9,23 +9,28 @@ import { cn } from "@dub/utils";
 import { capitalize } from "@dub/utils/src";
 import { motion } from "motion/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function WorkspaceEnvironmentBanner() {
-  const { id, environment, loading: loadingWorkspace } = useWorkspace();
+  const pathname = usePathname();
+  const { loading: loadingWorkspace, ...currentWorkspace } = useWorkspace();
   const { workspaces, loading: loadingWorkspaces } = useWorkspaces();
   const { isEnvironmentBannerVisible } = useDashboardBannerVisible();
 
   if (
     !isEnvironmentBannerVisible ||
-    environment === WorkspaceEnvironment.production ||
+    currentWorkspace.environment === WorkspaceEnvironment.production ||
     loadingWorkspace ||
-    loadingWorkspaces
+    loadingWorkspaces ||
+    !currentWorkspace.slug
   ) {
     return null;
   }
 
-  const liveWorkspace = id
-    ? workspaces?.find((workspace) => workspace.stagingWorkspaceId === id)
+  const liveWorkspace = currentWorkspace.id
+    ? workspaces?.find(
+        (workspace) => workspace.stagingWorkspaceId === currentWorkspace.id,
+      )
     : undefined;
 
   return (
@@ -34,7 +39,7 @@ export function WorkspaceEnvironmentBanner() {
       animate={{ transform: "translateY(0)" }}
       className={cn(
         "fixed left-0 right-0 top-0 z-30 flex h-12 items-center justify-between gap-4 overflow-hidden px-6 text-neutral-800",
-        environment === WorkspaceEnvironment.staging
+        currentWorkspace.environment === WorkspaceEnvironment.staging
           ? "bg-amber-200"
           : "bg-blue-200",
       )}
@@ -42,12 +47,12 @@ export function WorkspaceEnvironmentBanner() {
       <div className="flex min-w-0 shrink-0 items-center gap-2">
         <IsolatedCube className="size-4 shrink-0" />
         <span className="truncate text-sm font-semibold">
-          {capitalize(environment)} workspace
+          {capitalize(currentWorkspace.environment)} workspace
         </span>
       </div>
 
       <p className="hidden min-w-0 flex-1 text-center text-sm font-medium sm:block">
-        No real money or payouts in {environment}.{" "}
+        No real money or payouts in {currentWorkspace.environment}.{" "}
         <a
           href="https://dub.co/docs"
           target="_blank"
@@ -60,7 +65,7 @@ export function WorkspaceEnvironmentBanner() {
 
       {liveWorkspace ? (
         <Link
-          href={`/${liveWorkspace.slug}`}
+          href={pathname.replace(currentWorkspace.slug, liveWorkspace.slug)}
           className="bg-bg-inverted text-content-inverted shrink-0 rounded-md p-2 text-xs font-medium"
         >
           Exit staging
