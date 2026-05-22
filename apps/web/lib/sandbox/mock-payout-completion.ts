@@ -2,10 +2,8 @@ import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { Invoice, Project, WorkspaceEnvironment } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, currencyFormatter } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
+import { currencyFormatter } from "@dub/utils";
 import { trackCommissionStatusUpdatesByProgram } from "../api/commissions/track-commission-update-activity-log";
-import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 
 interface MockPayoutCompletionParams {
   invoice: Invoice;
@@ -116,25 +114,11 @@ export async function mockPayoutCompletion({
     }),
   ]);
 
-  waitUntil(
-    Promise.allSettled([
-      trackCommissionStatusUpdatesByProgram({
-        commissions,
-        payouts,
-        newStatus: "paid",
-      }),
-
-      enqueueBatchJobs(
-        payoutIds.map((payoutId) => ({
-          queueName: "create-referral-commissions",
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/queue`,
-          body: {
-            payoutId,
-          },
-        })),
-      ),
-    ]),
-  );
+  await trackCommissionStatusUpdatesByProgram({
+    commissions,
+    payouts,
+    newStatus: "paid",
+  });
 
   // Group partner -> payouts so we send only one email per partner when there are multiple payouts
   const partnerPayouts = payouts.reduce(
