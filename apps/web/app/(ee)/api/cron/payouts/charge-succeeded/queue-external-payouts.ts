@@ -133,7 +133,7 @@ export async function queueExternalPayouts(
       templateName: "PartnerPayoutConfirmed",
       templateProps: {
         email: payout.partner.email!,
-        worksapce: program.workspace,
+        workspace: program.workspace,
         program: {
           id: program.id,
           name: program.name,

@@ -24,7 +24,7 @@ import {
 
 export default function PartnerPayoutProcessed({
   email = "panic@thedis.co",
-  worksapce = {
+  workspace = {
     environment: "production",
   },
   program = {
@@ -40,7 +40,7 @@ export default function PartnerPayoutProcessed({
   },
 }: {
   email: string;
-  worksapce?: {
+  workspace?: {
     environment: WorkspaceEnvironment;
   };
   program: {
@@ -164,7 +164,7 @@ export default function PartnerPayoutProcessed({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <EnvironmentBanner environment={worksapce.environment} />
+            <EnvironmentBanner environment={workspace.environment} />
             <Section className="mt-8">
               <Img
                 src={program.logo || "https://assets.dub.co/wordmark.png"}

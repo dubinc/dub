@@ -148,7 +148,7 @@ export async function mockPayoutCompletion({
           subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${program.name}`,
           react: PartnerPayoutProcessed({
             email: partner.email!,
-            worksapce: program.workspace,
+            workspace: program.workspace,
             program,
             payout,
           }),

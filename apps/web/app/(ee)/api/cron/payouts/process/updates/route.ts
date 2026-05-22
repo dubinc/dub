@@ -107,7 +107,7 @@ export async function POST(req: Request) {
           replyTo: payout.program.supportEmail || "noreply",
           react: PartnerPayoutConfirmed({
             email: payout.partner.email!,
-            worksapce: payout.program.workspace,
+            workspace: payout.program.workspace,
             program: {
               id: payout.program.id,
               name: payout.program.name,
