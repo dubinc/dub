@@ -51,7 +51,7 @@ export function IsolatedCube(props: SVGProps<SVGSVGElement>) {
       </g>
       <defs>
         <clipPath id="clip0_53779_199300">
-          <rect width={16} height={16} fill="white" />
+          <rect width={18} height={18} fill="white" />
         </clipPath>
       </defs>
     </svg>
