@@ -4,6 +4,7 @@ import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { qstash } from "@/lib/cron";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
@@ -11,7 +12,6 @@ import {
   wouldLosePartnerAccess,
 } from "@/lib/plans/has-partner-access";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
-import { createStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
 import {
   getSubscriptionCancellationFields,
   getSubscriptionTrialEndsAt,
@@ -23,6 +23,7 @@ import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-down
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
 import {
+  APP_DOMAIN_WITH_NGROK,
   getPlanAndTierFromPriceId,
   getWorkspaceLimitsForStripeSubscriptionStatus,
 } from "@dub/utils";
@@ -250,8 +251,13 @@ export async function updateWorkspacePlan({
         newPlan: newPlanName,
       })
     ) {
-      await createStagingWorkspace(workspace.id);
-      console.log(`Created staging workspace for workspace ${workspace.id}.`);
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/create-staging`,
+        deduplicationId: `create-staging-workspace:${workspace.id}`,
+        body: {
+          workspaceId: workspace.id,
+        },
+      });
     }
 
     const workspaceOwners =
