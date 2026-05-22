@@ -9,7 +9,7 @@ import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
 import { sendEmail } from "@dub/email";
 import APIKeyCreated from "@dub/email/templates/api-key-created";
 import { prisma } from "@dub/prisma";
-import { Prisma, User } from "@dub/prisma/client";
+import { Prisma, User, WorkspaceEnvironment } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -97,11 +97,15 @@ export const POST = withWorkspace(
       });
     }
 
-    // Create token
-    const token = `dub_${nanoid(24)}`;
+    const tokenPrefix =
+      workspace.environment === WorkspaceEnvironment.production
+        ? "dub_"
+        : "dub_test_";
+    const token = `${tokenPrefix}${nanoid(24)}`;
     const hashedKey = await hashToken(token);
     const partialKey = `${token.slice(0, 3)}...${token.slice(-4)}`;
 
+    // Create token
     await prisma.$transaction(
       async (tx) => {
         const totalTokens = await tx.restrictedToken.count({
