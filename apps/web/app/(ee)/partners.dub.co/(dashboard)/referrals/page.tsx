@@ -644,7 +644,7 @@ function NetworkReferralsPromoCard() {
           Dub Network Referral Bonus
         </p>
         <p className="text-sm font-normal text-neutral-200">
-          Bring on other partners to the Dub network, and earn from their
+          Bring on other partners to the Dub Network, and earn from their
           activity for up to {NETWORK_REFERRAL_REWARD.maxDuration} months.{" "}
           <Link
             href="https://dub.co/help/article/network-referral-bonus"
