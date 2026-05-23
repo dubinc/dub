@@ -1,4 +1,4 @@
-import { DUB_WORDMARK, formatDateTime } from "@dub/utils";
+import { capitalize, DUB_WORDMARK, formatDateTime } from "@dub/utils";
 import {
   Body,
   Column,
@@ -17,15 +17,11 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-type RewardChangeAction = "added" | "updated" | "removed";
-
-const ACTION_LABELS: Record<RewardChangeAction, string> = {
-  added: "Added",
-  updated: "Updated",
-  removed: "Removed",
+const REWARD_EVENT_TO_EMAIL_ACTION = {
+  "reward-created": "added",
+  "reward-updated": "updated",
+  "reward-deleted": "removed",
 };
-
-const ACTION_ORDER: RewardChangeAction[] = ["added", "updated", "removed"];
 
 export default function PartnerRewardsUpdated({
   program = {
@@ -38,15 +34,12 @@ export default function PartnerRewardsUpdated({
     name: "John Doe",
     email: "panic@thedis.co",
   },
+  rewardSnapshot = {
+    description: "30% per sale for the customers lifetime",
+    icon: "https://assets.dub.co/email-assets/icons/invoice-dollar.png",
+  },
   effectiveAt = new Date("2026-01-02T20:32:00.000Z"),
-  changes = [
-    {
-      action: "added" as RewardChangeAction,
-      title: "Sale reward",
-      description: "30% per sale for the customers lifetime",
-      icon: "https://assets.dub.co/email-assets/icons/invoice-dollar.png",
-    },
-  ],
+  action = "reward-created",
 }: {
   program: {
     name: string;
@@ -58,22 +51,16 @@ export default function PartnerRewardsUpdated({
     name: string;
     email: string;
   };
-  effectiveAt: Date | string;
-  changes: {
-    action: RewardChangeAction;
-    title: string;
+  rewardSnapshot: {
     description: string;
     icon: string;
-  }[];
+  };
+  effectiveAt: Date | string;
+  action: "reward-created" | "reward-updated" | "reward-deleted";
 }) {
   const formattedEffectiveAt = formatDateTime(effectiveAt, {
     timeZoneName: "short",
   });
-
-  const changesByAction = ACTION_ORDER.map((action) => ({
-    action,
-    items: changes.filter((change) => change.action === action),
-  })).filter(({ items }) => items.length > 0);
 
   return (
     <Html>
@@ -102,34 +89,24 @@ export default function PartnerRewardsUpdated({
               program:
             </Text>
 
-            {Boolean(changes.length) && (
-              <Section className="my-4 rounded-xl border border-solid border-neutral-200 bg-neutral-50 px-5 py-4">
-                {changesByAction.map(({ action, items }, index) => (
-                  <Section key={action}>
-                    <Text
-                      className={`mb-0 text-base font-semibold text-black ${index > 0 ? "mt-5" : "mt-0"}`}
-                    >
-                      {ACTION_LABELS[action]}
+            <Section className="my-4 rounded-xl border border-solid border-neutral-200 bg-neutral-50 px-5 py-4">
+              <Section>
+                <Text className="mb-0 mt-0 text-base font-semibold text-black">
+                  {capitalize(REWARD_EVENT_TO_EMAIL_ACTION[action])}
+                </Text>
+
+                <Row className="mb-0 mt-2">
+                  <Column className="align-center">
+                    <Img src={rewardSnapshot.icon} height="16" alt="" />
+                  </Column>
+                  <Column className="w-full pl-2">
+                    <Text className="my-0 text-sm font-medium text-neutral-600">
+                      {rewardSnapshot.description}
                     </Text>
-                    {items.map((change) => (
-                      <Row
-                        key={`${change.action}-${change.title}`}
-                        className="mb-0 mt-2"
-                      >
-                        <Column className="align-center">
-                          <Img src={change.icon} height="16" alt="" />
-                        </Column>
-                        <Column className="w-full pl-2">
-                          <Text className="my-0 text-sm font-medium text-neutral-600">
-                            {change.description}
-                          </Text>
-                        </Column>
-                      </Row>
-                    ))}
-                  </Section>
-                ))}
+                  </Column>
+                </Row>
               </Section>
-            )}
+            </Section>
 
             <Text className="text-sm leading-6 text-neutral-600">
               This update is in effect as of{" "}

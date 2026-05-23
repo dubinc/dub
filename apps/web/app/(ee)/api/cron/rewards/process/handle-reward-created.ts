@@ -17,7 +17,6 @@ export async function handleRewardCreated({
   reward: Pick<Reward, "id" | "event">;
 }) {
   const { occurredAt, rewardSnapshot } = payload;
-
   const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
   while (true) {
