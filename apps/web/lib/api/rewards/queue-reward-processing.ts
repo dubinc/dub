@@ -40,7 +40,7 @@ export async function queueRewardProcessing({ event, payload }: RewardJob) {
       // set a flow control key to ensure that only one job is running for a given group at a time
       flowControl: {
         key: payload.groupId,
-        rate: 1,
+        parallelism: 1,
       },
       body: {
         event,
