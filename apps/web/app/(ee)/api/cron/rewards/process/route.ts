@@ -26,7 +26,6 @@ export const POST = withCron(async ({ rawBody }) => {
     select: {
       id: true,
       event: true,
-      createdAt: true,
     },
   });
 
@@ -118,9 +117,11 @@ export const POST = withCron(async ({ rawBody }) => {
       break;
     }
 
+    let shouldNotify = !data;
+
     // Only when event is "reward-created" or "reward-deleted"
     if (data) {
-      await prisma.programEnrollment.updateMany({
+      const { count } = await prisma.programEnrollment.updateMany({
         where: {
           id: {
             in: programEnrollments.map(({ id }) => id),
@@ -130,24 +131,30 @@ export const POST = withCron(async ({ rawBody }) => {
           ...data,
         },
       });
+
+      shouldNotify = count > 0;
     }
 
-    const users = programEnrollments.flatMap(({ partner }) =>
-      partner.users.map(({ user }) => user),
-    );
+    if (shouldNotify) {
+      const users = programEnrollments.flatMap(({ partner }) =>
+        partner.users.map(({ user }) => user),
+      );
 
-    await notifyPartnerRewardChange({
-      action: event,
-      program: group.program,
-      reward,
-      rewardSnapshot,
-      effectiveAt: occurredAt,
-      users,
-    });
+      await notifyPartnerRewardChange({
+        action: event,
+        program: group.program,
+        reward,
+        rewardSnapshot,
+        effectiveAt: occurredAt,
+        users,
+      });
+    }
+
+    if (event !== "reward-updated") {
+      await sleep(500);
+    }
 
     startingAfter = programEnrollments[programEnrollments.length - 1].id;
-
-    await sleep(500);
   }
 
   if (event === "reward-deleted") {
