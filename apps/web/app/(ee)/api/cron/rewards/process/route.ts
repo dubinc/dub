@@ -5,7 +5,6 @@ import { withCron } from "@/lib/cron/with-cron";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { sleep } from "@dub/utils";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -148,10 +147,6 @@ export const POST = withCron(async ({ rawBody }) => {
         effectiveAt: occurredAt,
         users,
       });
-    }
-
-    if (event !== "reward-updated") {
-      await sleep(500);
     }
 
     startingAfter = programEnrollments[programEnrollments.length - 1].id;
