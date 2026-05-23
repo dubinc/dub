@@ -1,3 +1,4 @@
+import { notifyPartnerRewardChange } from "@/lib/api/partners/notify-partner-reward-change";
 import { RewardJobPayload } from "@/lib/api/rewards/queue-reward-processing";
 import { CRON_BATCH_SIZE } from "@/lib/cron";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
@@ -15,6 +16,7 @@ export async function handleRewardUpdated({
   group: Pick<PartnerGroup, "id">;
   reward: Pick<Reward, "id" | "event">;
 }) {
+  const { occurredAt, rewardSnapshot } = payload;
   const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
   let startingAfter: string | undefined = undefined;
 
@@ -26,7 +28,20 @@ export async function handleRewardUpdated({
       },
       select: {
         id: true,
-        partnerId: true,
+        partner: {
+          select: {
+            users: {
+              select: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       orderBy: {
         id: "asc",
@@ -44,7 +59,17 @@ export async function handleRewardUpdated({
       break;
     }
 
-    // TODO:
-    // Send email
+    const users = programEnrollments.flatMap(({ partner }) =>
+      partner.users.map(({ user }) => user),
+    );
+
+    await notifyPartnerRewardChange({
+      action: "reward-updated",
+      program,
+      reward,
+      rewardSnapshot,
+      effectiveAt: occurredAt,
+      users,
+    });
   }
 }

@@ -8,8 +8,7 @@ import { handleRewardUpdated } from "./handle-reward-updated.ts";
 
 export const dynamic = "force-dynamic";
 
-// TODO:
-// Set maxDuration
+export const maxDuration = 600;
 
 // POST /api/cron/rewards/sync-enrollments
 export const POST = withCron(async ({ rawBody }) => {
@@ -55,32 +54,22 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`Group ${groupId} not found. Skipping...`);
   }
 
-  const { program } = group;
+  const params = {
+    payload,
+    program: group.program,
+    group,
+    reward,
+  };
 
   switch (event) {
     case "reward-created":
-      await handleRewardCreated({
-        payload,
-        program,
-        group,
-        reward,
-      });
+      await handleRewardCreated(params);
 
     case "reward-updated":
-      await handleRewardUpdated({
-        payload,
-        program,
-        group,
-        reward,
-      });
+      await handleRewardUpdated(params);
 
     case "reward-deleted":
-      await handleRewardDeleted({
-        payload,
-        program,
-        group,
-        reward,
-      });
+      await handleRewardDeleted(params);
   }
 
   return logAndRespond(`Processed reward ${rewardId} for group ${groupId}.`);
