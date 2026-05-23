@@ -64,12 +64,15 @@ export const POST = withCron(async ({ rawBody }) => {
   switch (event) {
     case "reward-created":
       await handleRewardCreated(params);
+      break;
 
     case "reward-updated":
       await handleRewardUpdated(params);
+      break;
 
     case "reward-deleted":
       await handleRewardDeleted(params);
+      break;
   }
 
   return logAndRespond(`Processed reward ${rewardId} for group ${groupId}.`);
