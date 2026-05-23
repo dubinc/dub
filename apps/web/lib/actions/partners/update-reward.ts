@@ -3,12 +3,13 @@
 import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
-import { notifyPartnersRewardChanged } from "@/lib/api/partners/notify-partners-reward-changed";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -117,6 +118,24 @@ export const updateRewardAction = authActionClient
       salePartnerGroup ||
       referralPartnerGroup;
 
+    if (!partnerGroup) {
+      throw new Error("Partner group not found.");
+    }
+
+    await queueRewardProcessing({
+      event: "reward-updated",
+      payload: {
+        groupId: partnerGroup?.id,
+        rewardId: reward.id,
+        occurredAt: new Date().toISOString(),
+        rewardSnapshot: {
+          description: formatRewardDescription(serializeReward(updatedReward), {
+            includeEarnPrefix: false,
+          }),
+        },
+      },
+    });
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -156,16 +175,6 @@ export const updateRewardAction = authActionClient
                 ),
             ]
           : []),
-
-        partnerGroup &&
-          notifyPartnersRewardChanged({
-            programId,
-            groupId: partnerGroup.id,
-            action: "updated",
-            effectiveAt: updatedReward.updatedAt,
-            reward: serializeReward(rewardMetadata),
-            idempotencyKey: `reward-sync-${rewardId}-updated-${updatedReward.updatedAt.getTime()}`,
-          }),
       ]),
     );
   });

@@ -1,10 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { notifyPartnersRewardChanged } from "@/lib/api/partners/notify-partners-reward-changed";
+import { notifyPartnerRewardChange } from "@/lib/api/partners/notify-partner-reward-change";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import {
-  queueRewardEnrollmentSync,
+  queueRewardProcessing,
   RewardSnapshot,
-} from "@/lib/api/rewards/queue-reward-enrollment-sync";
+} from "@/lib/api/rewards/queue-reward-processing";
 import { CRON_BATCH_SIZE } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
@@ -111,7 +111,7 @@ export async function POST(req: Request) {
         );
       }
 
-      await queueRewardEnrollmentSync({
+      await queueRewardProcessing({
         action,
         rewardId,
         groupId,
@@ -153,7 +153,7 @@ export async function POST(req: Request) {
         }
       }
 
-      await notifyPartnersRewardChanged({
+      await notifyPartnerRewardChange({
         programId,
         groupId,
         action: "removed",
@@ -179,7 +179,7 @@ export async function POST(req: Request) {
       });
     }
 
-    await notifyPartnersRewardChanged({
+    await notifyPartnerRewardChange({
       programId,
       groupId,
       action: "added",

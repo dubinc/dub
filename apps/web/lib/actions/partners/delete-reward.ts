@@ -3,10 +3,11 @@
 import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
-import { getRewardEmailSnapshot } from "@/lib/api/partners/notify-partners-reward-changed";
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { queueRewardEnrollmentSync } from "@/lib/api/rewards/queue-reward-enrollment-sync";
+import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -37,39 +38,48 @@ export const deleteRewardAction = authActionClient
     });
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
-    const rewardSnapshot = getRewardEmailSnapshot(reward);
 
-    const partnerGroup = await prisma.$transaction(async (tx) => {
-      const group = await tx.partnerGroup.update({
-        // @ts-ignore
-        where: {
-          [rewardIdColumn]: reward.id,
-        },
-        data: {
-          [rewardIdColumn]: null,
-        },
-      });
+    const { partnerGroup, rewardUpdated } = await prisma.$transaction(
+      async (tx) => {
+        const partnerGroup = await tx.partnerGroup.update({
+          // @ts-ignore
+          where: {
+            [rewardIdColumn]: reward.id,
+          },
+          data: {
+            [rewardIdColumn]: null,
+          },
+        });
 
-      // soft delete reward, we will hard delete it in the cron job
-      await tx.reward.update({
-        where: {
-          id: reward.id,
-        },
-        data: {
-          programId: null,
-        },
-      });
+        // soft delete reward, we will hard delete it in the cron job
+        const rewardUpdated = await tx.reward.update({
+          where: {
+            id: reward.id,
+          },
+          data: {
+            programId: null,
+          },
+        });
 
-      return group;
-    });
+        return {
+          partnerGroup,
+          rewardUpdated,
+        };
+      },
+    );
 
-    await queueRewardEnrollmentSync({
-      action: "delete",
-      rewardId: reward.id,
-      groupId: partnerGroup.id,
-      programId,
-      event: reward.event,
-      rewardSnapshot,
+    await queueRewardProcessing({
+      event: "reward-deleted",
+      payload: {
+        groupId: partnerGroup.id,
+        rewardId: reward.id,
+        occurredAt: new Date().toISOString(),
+        rewardSnapshot: {
+          description: formatRewardDescription(serializeReward(rewardUpdated), {
+            includeEarnPrefix: false,
+          }),
+        },
+      },
     });
 
     waitUntil(
@@ -95,7 +105,7 @@ export const deleteRewardAction = authActionClient
           userId: user.id,
           resourceId: reward.id,
           parentResourceType: "group",
-          parentResourceId: partnerGroup?.id,
+          parentResourceId: partnerGroup.id,
           old: reward,
           new: null,
         }),
