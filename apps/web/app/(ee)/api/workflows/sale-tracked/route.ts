@@ -71,7 +71,7 @@ export const { POST } = serve<Input>(
 
     // Step 2: Send webhooks
     await context.run("send-webhooks", async () => {
-      await stepSendWebhooks({
+      return await stepSendWebhooks({
         ...input,
         link,
         customer,
@@ -81,7 +81,7 @@ export const { POST } = serve<Input>(
     if (link.programId && link.partnerId) {
       // Step 3:  Create partner commission
       await context.run("create-commission", async () => {
-        await stepCreateCommission({
+        return await stepCreateCommission({
           ...input,
           link,
           customer,
@@ -238,7 +238,7 @@ async function stepCreateCommission({
 
   const metadata = parseMetadata(saleEvent.metadata);
 
-  await createPartnerCommission({
+  const { commission, outputLog } = await createPartnerCommission({
     event: "sale",
     programId: link.programId,
     partnerId: link.partnerId,
@@ -261,6 +261,11 @@ async function stepCreateCommission({
       },
     },
   });
+
+  return {
+    outputLog,
+    commission,
+  };
 }
 
 async function stepSendWebhooks({
@@ -270,6 +275,8 @@ async function stepSendWebhooks({
 }: StepFunctionInput) {
   const { workspace_id: workspaceId } = saleEvent;
 
+  let webhooksSent = 0;
+  let postbacksSent = 0;
   let webhookPartner: z.infer<typeof WebhookPartnerSchema> | undefined;
 
   const workspace = await prisma.project.findUnique({
@@ -283,7 +290,10 @@ async function stepSendWebhooks({
   });
 
   if (!workspace) {
-    return;
+    return {
+      webhooksSent,
+      postbacksSent,
+    };
   }
 
   // Find the partner for the program's link
@@ -306,7 +316,7 @@ async function stepSendWebhooks({
     }
   }
 
-  await sendWorkspaceWebhook({
+  const workspaceWebhookResponse = await sendWorkspaceWebhook({
     trigger: "sale.created",
     data: transformSaleEventData({
       ...saleEvent,
@@ -319,8 +329,12 @@ async function stepSendWebhooks({
     workspace,
   });
 
+  if (workspaceWebhookResponse) {
+    webhooksSent += workspaceWebhookResponse.length;
+  }
+
   if (link.programId && link.partnerId) {
-    await sendPartnerPostback({
+    const partnerPostbackResponse = await sendPartnerPostback({
       partnerId: link.partnerId,
       event: "sale.created",
       data: {
@@ -330,7 +344,16 @@ async function stepSendWebhooks({
         customer,
       },
     });
+
+    if (partnerPostbackResponse) {
+      postbacksSent += partnerPostbackResponse.length;
+    }
   }
+
+  return {
+    webhooksSent,
+    postbacksSent,
+  };
 }
 
 async function stepRunFraudDetection({
