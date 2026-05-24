@@ -152,6 +152,7 @@ export async function approvePartner({
 
       triggerQStashWorkflow({
         workflowType: "partner-approved",
+        workflowLabel: partnerId,
         body: {
           programId,
           partnerId,

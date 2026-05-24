@@ -58,6 +58,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           );
           await triggerQStashWorkflow({
             workflowType: "partner-approved",
+            workflowLabel: partner.id,
             body: {
               programId: NETWORK_PROGRAM_ID,
               partnerId: partner.id,

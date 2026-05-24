@@ -439,6 +439,7 @@ const _trackSale = async ({
 
       await triggerQStashWorkflow({
         workflowType: "sale-tracked",
+        workflowLabel: saleEvent.customer_id,
         body: {
           saleEvent,
           source,

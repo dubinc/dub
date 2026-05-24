@@ -145,6 +145,7 @@ export const bulkApprovePartnersAction = authActionClient
           triggerQStashWorkflow(
             updatedEnrollments.map(({ partnerId, programId }) => ({
               workflowType: "partner-approved",
+              workflowLabel: partnerId,
               body: {
                 programId,
                 partnerId,

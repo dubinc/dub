@@ -11,6 +11,7 @@ type WorkflowType = "partner-approved" | "sale-tracked";
 
 interface QStashWorkflow {
   workflowType: WorkflowType;
+  workflowLabel: string;
   body: Record<string, unknown>;
 }
 
@@ -27,7 +28,7 @@ export async function triggerQStashWorkflow(
         workflows.map((workflow) => ({
           url: `${APP_DOMAIN}/api/workflows/${workflow.workflowType}`,
           body: workflow.body,
-          label: workflow.workflowType,
+          label: workflow.workflowLabel,
           retries: 5,
           flowControl: {
             key: workflow.workflowType,
@@ -67,7 +68,10 @@ export async function triggerQStashWorkflow(
   }
 }
 
-export function getWorkflowConfig({ workflowType, body }: QStashWorkflow): {
+export function getWorkflowConfig({
+  workflowType,
+  body,
+}: Omit<QStashWorkflow, "label">): {
   correlation: Record<string, unknown>;
 } {
   switch (workflowType) {
