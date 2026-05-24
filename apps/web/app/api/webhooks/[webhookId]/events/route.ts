@@ -21,6 +21,7 @@ export const GET = withWorkspace(
 
     const parsedEvents = events.data.map((event) => ({
       ...event,
+      timestamp: new Date(event.timestamp + "Z"), // timestamp is always in UTC
       request_body: JSON.parse(event.request_body),
     }));
 
