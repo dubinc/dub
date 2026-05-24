@@ -297,8 +297,9 @@ export const createPartnerCommission = async ({
       },
     });
 
-    const outputLog = `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings, { currency: commission.currency })}) for ${partnerId}: ${prettyPrint(commission)}`;
+    const outputLog = `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings, { currency: commission.currency })}) for ${partnerId}`;
     console.log(outputLog);
+    console.log(prettyPrint(commission));
 
     const webhookPartner = constructWebhookPartner(programEnrollment, {
       // check links metrics

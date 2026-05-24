@@ -71,7 +71,7 @@ export async function triggerQStashWorkflow(
 export function getWorkflowConfig({
   workflowType,
   body,
-}: Omit<QStashWorkflow, "label">): {
+}: Omit<QStashWorkflow, "workflowLabel">): {
   correlation: Record<string, unknown>;
 } {
   switch (workflowType) {
