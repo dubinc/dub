@@ -7,6 +7,7 @@ import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { publishWorkspaceClicksUsageEvent } from "@/lib/upstash/redis-streams/workspace-clicks-usage";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { WebhookPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -14,7 +15,7 @@ import { CUSTOMER_SOURCES } from "@/lib/zod/schemas/rewards";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
 import { Customer, Link } from "@dub/prisma/client";
-import { pick } from "@dub/utils";
+import { pick, toCentsNumber } from "@dub/utils";
 import { WorkflowNonRetryableError } from "@upstash/workflow";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
@@ -90,7 +91,7 @@ export const { POST } = serve<Input>(
 
       // Step 4: Run fraud detection
       await context.run("run-fraud-detection", async () => {
-        await stepRunFraudDetection({
+        return await stepRunFraudDetection({
           ...input,
           link,
           customer,
@@ -100,7 +101,7 @@ export const { POST } = serve<Input>(
 
       // Step 5: Execute Dub workflow
       await context.run("execute-dub-workflow", async () => {
-        await stepExecuteWorkflow({
+        return await stepExecuteWorkflow({
           ...input,
           link,
           customer,
@@ -150,18 +151,7 @@ async function stepUpdateStats({
     linkId: link.id,
   });
 
-  await prisma.$transaction([
-    prisma.project.update({
-      where: {
-        id: workspaceId,
-      },
-      data: {
-        usage: {
-          increment: 1,
-        },
-      },
-    }),
-
+  const [updatedLink, updatedCustomer] = await prisma.$transaction([
     prisma.link.update({
       where: {
         id: link.id,
@@ -204,18 +194,39 @@ async function stepUpdateStats({
     }),
   ]);
 
-  if (link.programId && link.partnerId) {
-    await syncPartnerLinksStats({
-      partnerId: link.partnerId,
-      programId: link.programId,
-      eventType: "sale",
-    });
-  }
+  // process side effects via Redis streams
+  await Promise.allSettled([
+    publishWorkspaceClicksUsageEvent({
+      linkId: link.id,
+      workspaceId,
+      timestamp: new Date().toISOString(),
+    }),
+    link.programId &&
+      link.partnerId &&
+      syncPartnerLinksStats({
+        partnerId: link.partnerId,
+        programId: link.programId,
+        eventType: "sale",
+      }),
+  ]);
 
   // Return value is persisted with the step so replays after later steps do not re-derive a
   // stale firstConversionFlag from the customer row.
   return {
     isFirstConversion: firstConversionFlag,
+    updatedLink: {
+      id: updatedLink.id,
+      sales: updatedLink.sales,
+      saleAmount: toCentsNumber(updatedLink.saleAmount),
+      conversions: updatedLink.conversions,
+      lastConversionAt: updatedLink.lastConversionAt,
+    },
+    updatedCustomer: {
+      id: updatedCustomer.id,
+      sales: updatedCustomer.sales,
+      saleAmount: toCentsNumber(updatedCustomer.saleAmount),
+      firstSaleAt: updatedCustomer.firstSaleAt,
+    },
   };
 }
 
@@ -391,7 +402,7 @@ async function stepRunFraudDetection({
 
   const { partner } = programEnrollment;
 
-  await detectAndRecordFraudEvent({
+  return await detectAndRecordFraudEvent({
     program: { id: link.programId },
     partner: pick(partner, ["id", "email", "name"]),
     programEnrollment: pick(programEnrollment, ["status"]),
@@ -418,7 +429,7 @@ async function stepExecuteWorkflow({
 
   const { workspace_id: workspaceId } = saleEvent;
 
-  await executeWorkflows({
+  return await executeWorkflows({
     trigger: "partnerMetricsUpdated",
     reason: "sale",
     identity: {
