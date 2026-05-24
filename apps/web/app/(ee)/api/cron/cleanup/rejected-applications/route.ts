@@ -19,6 +19,7 @@ export async function POST(req: Request) {
       rawBody,
     });
 
+    let totalDeletedProgramEnrollments = 0;
     while (true) {
       // rejected programEnrollments more than 30 days ago
       const rejectedProgramEnrollments =
@@ -56,9 +57,13 @@ export async function POST(req: Request) {
       console.log(
         `Deleted ${deletedProgramEnrollments.count} rejected programEnrollments that are older than 30 days`,
       );
+
+      totalDeletedProgramEnrollments += deletedProgramEnrollments.count;
     }
 
-    return NextResponse.json({ status: "OK" });
+    return NextResponse.json({
+      totalDeletedProgramEnrollments,
+    });
   } catch (error) {
     await log({
       message: `/api/cron/cleanup/rejected-applications failed - ${error.message}`,
