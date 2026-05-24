@@ -10,8 +10,8 @@ interface VerifyCommissionProps {
   expectedEarnings: number;
 }
 
-const POLL_INTERVAL_MS = 5000; // 5 seconds
-const TIMEOUT_MS = 45000; // 45 seconds
+const POLL_INTERVAL_MS = 10000; // 10 seconds
+const TIMEOUT_MS = 60000; // 60 seconds
 
 export const verifyCommission = async ({
   http,
