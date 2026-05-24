@@ -159,6 +159,7 @@ export const PartnerGroupDefaultLinkSchema = z.object({
   id: z.string(),
   domain: z.string(),
   url: parseUrlSchema,
+  createdAt: z.coerce.date(),
 });
 
 export const getGroupsQuerySchema = z
