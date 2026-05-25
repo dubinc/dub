@@ -54,7 +54,7 @@ export function CustomerSelector({
   const customerOptions = useMemo(() => {
     return (
       customers?.map((customer) => ({
-        value: customer.id,
+        value: customer.email || customer.id,
         label: customer.name || customer.email || customer.externalId,
         icon: (
           <span className="shrink-0 text-neutral-600">
@@ -75,7 +75,7 @@ export function CustomerSelector({
     if (!customer) return null;
 
     return {
-      value: customer.id,
+      value: customer.email || customer.id,
       label: customer.name || customer.email || customer.externalId,
       icon: (
         <span className="shrink-0 text-neutral-600">

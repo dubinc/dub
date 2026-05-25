@@ -81,17 +81,6 @@ export default function PartnerApplicationRejected({
                   : null}
             </Text>
 
-            {reapplicationTimeframe === "instant" ? (
-              <Section className="my-8 mt-8">
-                <Link
-                  href={`${PARTNERS_DOMAIN}/apply/${program.slug}`}
-                  className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                >
-                  Submit a new application
-                </Link>
-              </Section>
-            ) : null}
-
             {reason ? (
               <Text className="text-sm leading-6 text-neutral-600">
                 <strong>Reason for rejection:</strong>
@@ -106,6 +95,17 @@ export default function PartnerApplicationRejected({
                 <br />
                 {notes}
               </Text>
+            ) : null}
+
+            {reapplicationTimeframe === "instant" ? (
+              <Section className="my-8 mt-8">
+                <Link
+                  href={`${PARTNERS_DOMAIN}/apply/${program.slug}`}
+                  className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                >
+                  Submit a new application
+                </Link>
+              </Section>
             ) : null}
 
             {reapplicationTimeframe === "instant" ? null : (
