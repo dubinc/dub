@@ -45,7 +45,7 @@ describe.sequential(
           partnerId,
           rejectionReason: "other",
           rejectionNote: "e2e: first rejection",
-          allowImmediateReapply: false,
+          reapplicationTimeframe: "standard" as const,
         },
       });
       expect(rejectStatus).toEqual(200);
@@ -57,7 +57,7 @@ describe.sequential(
           partnerId,
           rejectionReason: "other",
           rejectionNote: "e2e: should fail",
-          allowImmediateReapply: false,
+          reapplicationTimeframe: "standard" as const,
         },
       });
       expect(duplicateRejectStatus).toEqual(400);

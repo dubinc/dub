@@ -129,7 +129,8 @@ export default function NetworkApplicationsPage() {
   const onSearchChange = (value: string) => {
     const search = value.trim();
     const hasActiveFilters =
-      Boolean(searchParamsObj.networkStatus) || Boolean(searchParamsObj.country);
+      Boolean(searchParamsObj.networkStatus) ||
+      Boolean(searchParamsObj.country);
 
     if (!search || !hasActiveFilters) {
       return;

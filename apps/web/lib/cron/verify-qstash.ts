@@ -3,10 +3,7 @@ import { Receiver } from "@upstash/qstash";
 import { DubApiError } from "../api/errors";
 
 // we're using Upstash's Receiver to verify the request signature
-const receiver = new Receiver({
-  currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY || "",
-  nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY || "",
-});
+const receiver = new Receiver();
 
 export const verifyQstashSignature = async ({
   req,
@@ -32,6 +29,8 @@ export const verifyQstashSignature = async ({
   const isValid = await receiver.verify({
     signature,
     body: rawBody,
+    // Pass the region header for multi-region support
+    upstashRegion: req.headers.get("upstash-region") ?? undefined,
   });
 
   if (!isValid) {
