@@ -154,8 +154,10 @@ function DiscountSheetContent({
     "provider",
   ]);
 
+  const effectiveProvider = isEditingExisting ? discountProvider : provider;
+
   const showStripeCouponFields =
-    provider === DiscountProvider.stripe &&
+    effectiveProvider === DiscountProvider.stripe &&
     (Boolean(existingDiscount?.id) || useExistingCoupon);
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
@@ -337,7 +339,7 @@ function DiscountSheetContent({
                   </div>
 
                   {!existingDiscount?.id &&
-                    provider === DiscountProvider.stripe && (
+                    effectiveProvider === DiscountProvider.stripe && (
                       <div className="grid grid-cols-1 gap-3 p-px lg:grid-cols-2">
                         {COUPON_CREATION_OPTIONS.map(
                           ({ label, description, useExisting }) => {
@@ -474,7 +476,7 @@ function DiscountSheetContent({
                 )}
                 title={
                   <>
-                    {provider === DiscountProvider.shopify ? (
+                    {effectiveProvider === DiscountProvider.shopify ? (
                       <Shopify className="h-7 w-auto" />
                     ) : (
                       <StripeIcon className="size-7" />
