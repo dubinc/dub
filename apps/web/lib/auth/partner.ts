@@ -300,16 +300,18 @@ export const withPartnerProfile = (
         // Normalize program scope for handlers (e.g. programScopeFilter):
         // - programAccess "all" → undefined (no filter)
         // - programAccess "restricted" → assigned programs, or [] if none
-
         const assignedPrograms =
           partnerUser.programAccess === "all"
             ? undefined
             : partnerUser.assignedPrograms.map(({ program }) => program);
 
+        // There can only be two states in the database
+        // 1. All links (empty array)
+        // 2. Scoped links (array of link ids)
         const assignedLinks =
-          partnerUser.programAccess === "all"
-            ? undefined
-            : partnerUser.assignedLinks.map(({ linkId }) => ({ id: linkId }));
+          partnerUser.assignedLinks.length > 0
+            ? partnerUser.assignedLinks.map(({ linkId }) => ({ id: linkId }))
+            : undefined;
 
         // If the user is scoped to specific programs and the route has a programId param,
         // verify they have access to this program (param may be program id or slug)
