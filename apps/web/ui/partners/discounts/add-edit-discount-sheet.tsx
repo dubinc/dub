@@ -37,7 +37,6 @@ import {
   PropsWithChildren,
   ReactNode,
   SetStateAction,
-  useEffect,
   useRef,
   useState,
 } from "react";
@@ -83,41 +82,23 @@ function DiscountSheetContent({
   const { group, mutateGroup } = useGroup();
   const { mutate: mutateProgram } = useProgram();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
-  const { searchParams } = useRouterStuff();
-  const discountIdParam = searchParams.get("discountId");
-  const isEditingExisting =
-    discountIdParam != null && discountIdParam !== "new";
 
-  const existingDiscount = isEditingExisting
-    ? discount ?? group?.discount ?? undefined
-    : discount ?? defaultDiscountValues;
+  const isEdit = Boolean(discount?.id);
 
   const [useExistingCoupon, setUseExistingCoupon] = useState(
-    Boolean(
-      existingDiscount?.id ||
-        defaultDiscountValues?.couponId ||
-        (isEditingExisting && group?.discount?.id),
-    ),
+    Boolean(discount || defaultDiscountValues?.couponId),
   );
 
   const [useStripeTestCouponId, setUseStripeTestCouponId] = useState(
-    Boolean(
-      existingDiscount?.couponTestId ?? defaultDiscountValues?.couponTestId,
-    ),
+    Boolean(discount?.couponTestId ?? defaultDiscountValues?.couponTestId),
   );
 
-  useEffect(() => {
-    if (!existingDiscount?.id) return;
-    setUseExistingCoupon(true);
-    setUseStripeTestCouponId(Boolean(existingDiscount.couponTestId));
-  }, [existingDiscount?.id]);
-
   const discountProvider =
-    existingDiscount?.provider ??
+    discount?.provider ??
     defaultDiscountValues?.provider ??
     DiscountProvider.stripe;
 
-  const defaultValuesSource = existingDiscount ||
+  const defaultValuesSource = discount ||
     defaultDiscountValues || {
       amount: 10,
       type: "percentage",
@@ -154,11 +135,11 @@ function DiscountSheetContent({
     "provider",
   ]);
 
-  const effectiveProvider = isEditingExisting ? discountProvider : provider;
+  const effectiveProvider = isEdit ? discountProvider : provider;
 
   const showStripeCouponFields =
     effectiveProvider === DiscountProvider.stripe &&
-    (Boolean(existingDiscount?.id) || useExistingCoupon);
+    (isEdit || useExistingCoupon);
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
@@ -231,10 +212,10 @@ function DiscountSheetContent({
       return;
     }
 
-    if (existingDiscount?.id) {
+    if (discount) {
       await updateDiscount({
         workspaceId,
-        discountId: existingDiscount.id,
+        discountId: discount.id,
         couponTestId: data.couponTestId,
         autoProvision: data.autoProvision,
       });
@@ -252,7 +233,7 @@ function DiscountSheetContent({
   };
 
   const onDelete = async () => {
-    if (!workspaceId || !defaultProgramId || !existingDiscount?.id) {
+    if (!workspaceId || !defaultProgramId || !discount) {
       return;
     }
 
@@ -262,7 +243,7 @@ function DiscountSheetContent({
 
     await deleteDiscount({
       workspaceId,
-      discountId: existingDiscount.id,
+      discountId: discount.id,
     });
   };
 
@@ -275,7 +256,7 @@ function DiscountSheetContent({
       >
         <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
-            {existingDiscount?.id ? "Edit" : "Create"} discount
+            {discount ? "Edit" : "Create"} discount
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -312,7 +293,7 @@ function DiscountSheetContent({
                         {...(() => {
                           const { onChange: onProviderChange, ...rest } =
                             register("provider", {
-                              disabled: Boolean(existingDiscount?.id),
+                              disabled: isEdit,
                             });
 
                           return {
@@ -338,8 +319,7 @@ function DiscountSheetContent({
                     </div>
                   </div>
 
-                  {!existingDiscount?.id &&
-                    effectiveProvider === DiscountProvider.stripe && (
+                  {!isEdit && effectiveProvider === DiscountProvider.stripe && (
                       <div className="grid grid-cols-1 gap-3 p-px lg:grid-cols-2">
                         {COUPON_CREATION_OPTIONS.map(
                           ({ label, description, useExisting }) => {
@@ -407,7 +387,7 @@ function DiscountSheetContent({
                             className="border-border-subtle block w-full rounded-lg bg-white px-3 py-2 text-neutral-800 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                             {...register("couponId")}
                             placeholder="XZuejd0Q"
-                            disabled={!!existingDiscount?.id} // we don't allow updating the coupon ID for existing discounts
+                            disabled={isEdit} // we don't allow updating the coupon ID for existing discounts
                           />
                         </div>
                       </div>
@@ -467,13 +447,11 @@ function DiscountSheetContent({
           <Tooltip
             content="To change the conditions, delete the discount and create a new one."
             side="top"
-            disabled={!existingDiscount?.id}
+            disabled={!isEdit}
           >
             <div>
               <DiscountSheetCard
-                className={cn(
-                  existingDiscount?.id && "cursor-not-allowed select-none",
-                )}
+                className={cn(isEdit && "cursor-not-allowed select-none")}
                 title={
                   <>
                     {effectiveProvider === DiscountProvider.shopify ? (
@@ -485,7 +463,7 @@ function DiscountSheetContent({
                       Discount a{" "}
                       <InlineBadgePopover
                         text={capitalize(type)}
-                        disabled={!!existingDiscount?.id}
+                        disabled={isEdit}
                       >
                         <InlineBadgePopoverMenu
                           selectedValue={type}
@@ -517,9 +495,9 @@ function DiscountSheetContent({
                             : "amount"
                         }
                         invalid={!amount}
-                        disabled={!!existingDiscount?.id}
+                        disabled={isEdit}
                       >
-                        <AmountInput disabled={!!existingDiscount?.id} />
+                        <AmountInput disabled={isEdit} />
                       </InlineBadgePopover>{" "}
                       <InlineBadgePopover
                         text={
@@ -529,7 +507,7 @@ function DiscountSheetContent({
                               ? "for the customer's lifetime"
                               : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
                         }
-                        disabled={!!existingDiscount?.id}
+                        disabled={isEdit}
                       >
                         <DurationPopoverContent
                           value={Number(maxDuration)}
@@ -579,7 +557,7 @@ function DiscountSheetContent({
 
         <div className="flex items-center justify-between border-t border-neutral-200 p-5">
           <div>
-            {existingDiscount?.id && (
+            {discount && (
               <Button
                 type="button"
                 variant="outline"
@@ -603,12 +581,10 @@ function DiscountSheetContent({
             <Button
               type="submit"
               variant="primary"
-              text={
-                existingDiscount?.id ? "Update discount" : "Create discount"
-              }
+              text={discount ? "Update discount" : "Create discount"}
               className="w-fit"
               loading={isCreating || isUpdating}
-              disabled={(!existingDiscount?.id && amount == null) || isDeleting}
+              disabled={(!discount && amount == null) || isDeleting}
             />
           </div>
         </div>
