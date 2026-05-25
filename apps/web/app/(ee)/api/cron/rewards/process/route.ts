@@ -1,6 +1,8 @@
 import { notifyPartnerRewardChange } from "@/lib/api/partners/notify-partner-reward-change";
-import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
-import { rewardJobSchema } from "@/lib/api/rewards/queue-reward-processing.ts";
+import {
+  queueRewardProcessing,
+  rewardJobSchema,
+} from "@/lib/api/rewards/queue-reward-processing";
 import {
   acquireRewardGroupLock,
   releaseRewardGroupLock,
@@ -13,8 +15,6 @@ import { Prisma } from "@dub/prisma/client";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
-
-export const maxDuration = 600;
 
 // POST /api/cron/rewards/process
 export const POST = withCron(async ({ rawBody }) => {
@@ -70,153 +70,163 @@ export const POST = withCron(async ({ rawBody }) => {
     groupId,
     event: reward.event,
     operationId,
-    mode: startAfterProgramEnrollmentId ? "continuation" : "new",
+    mode: "continuation",
   });
 
   if (!lockAcquired) {
     return logAndRespond(
-      `Reward ${rewardId} is already being processed. Skipping...`,
+      `Reward ${rewardId} processing lock not held by operation ${operationId}. Skipping...`,
     );
   }
 
-  const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+  let shouldReleaseLock = false;
 
-  let startingAfter = startAfterProgramEnrollmentId;
-  let where: Prisma.ProgramEnrollmentWhereInput | undefined = undefined;
-  let data: Prisma.ProgramEnrollmentUpdateManyArgs["data"] | undefined =
-    undefined;
+  try {
+    const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
-  switch (event) {
-    case "reward-created":
-      where = { [rewardIdColumn]: null };
-      data = { [rewardIdColumn]: reward.id };
-      break;
+    let startingAfter = startAfterProgramEnrollmentId;
+    let where: Prisma.ProgramEnrollmentWhereInput | undefined = undefined;
+    let data: Prisma.ProgramEnrollmentUpdateManyArgs["data"] | undefined =
+      undefined;
 
-    case "reward-updated":
-      where = { [rewardIdColumn]: reward.id };
-      break;
+    switch (event) {
+      case "reward-created":
+        where = { [rewardIdColumn]: null };
+        data = { [rewardIdColumn]: reward.id };
+        break;
 
-    case "reward-deleted":
-      where = { [rewardIdColumn]: reward.id };
-      data = { [rewardIdColumn]: null };
-      break;
-  }
+      case "reward-updated":
+        where = { [rewardIdColumn]: reward.id };
+        break;
 
-  const programEnrollments = await prisma.programEnrollment.findMany({
-    where: {
-      groupId: group.id,
-      status: {
-        notIn: INACTIVE_ENROLLMENT_STATUSES,
-      },
-      ...(startAfterProgramEnrollmentId && {
-        id: {
-          gt: startAfterProgramEnrollmentId,
+      case "reward-deleted":
+        where = { [rewardIdColumn]: reward.id };
+        data = { [rewardIdColumn]: null };
+        break;
+    }
+
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        groupId: group.id,
+        status: {
+          notIn: INACTIVE_ENROLLMENT_STATUSES,
         },
-      }),
-      ...where,
-    },
-    select: {
-      id: true,
-      partner: {
-        select: {
-          users: {
-            select: {
-              user: {
-                select: {
-                  name: true,
-                  email: true,
+        ...(startAfterProgramEnrollmentId && {
+          id: {
+            gt: startAfterProgramEnrollmentId,
+          },
+        }),
+        ...where,
+      },
+      select: {
+        id: true,
+        partner: {
+          select: {
+            users: {
+              select: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
                 },
               },
             },
           },
         },
       },
-    },
-    orderBy: {
-      id: "asc",
-    },
-    take: 300,
-  });
-
-  if (programEnrollments.length > 0) {
-    let shouldNotify = !data;
-
-    // Only when event is "reward-created" or "reward-deleted"
-    if (data) {
-      const { count } = await prisma.programEnrollment.updateMany({
-        where: {
-          id: {
-            in: programEnrollments.map(({ id }) => id),
-          },
-        },
-        data: {
-          ...data,
-        },
-      });
-
-      shouldNotify = count > 0;
-    }
-
-    if (shouldNotify) {
-      const users = programEnrollments.flatMap(({ partner }) =>
-        partner.users.map(({ user }) => user),
-      );
-
-      await notifyPartnerRewardChange({
-        action: event,
-        program: group.program,
-        reward,
-        rewardSnapshot,
-        effectiveAt: occurredAt,
-        users,
-      });
-    }
-
-    startingAfter = programEnrollments[programEnrollments.length - 1].id;
-
-    const qstashResponse = await queueRewardProcessing({
-      event,
-      payload: {
-        ...payload,
-        startAfterProgramEnrollmentId: startingAfter,
+      orderBy: {
+        id: "asc",
       },
+      take: 1,
     });
 
-    if (qstashResponse?.messageId) {
-      return logAndRespond(
-        `Enqueued next page (${startingAfter}) for reward ${rewardId} for the group ${groupId}.`,
-      );
-    } else {
+    if (programEnrollments.length > 0) {
+      let shouldNotify = !data;
+
+      // Only when event is "reward-created" or "reward-deleted"
+      if (data) {
+        const { count } = await prisma.programEnrollment.updateMany({
+          where: {
+            id: {
+              in: programEnrollments.map(({ id }) => id),
+            },
+          },
+          data: {
+            ...data,
+          },
+        });
+
+        shouldNotify = count > 0;
+      }
+
+      if (shouldNotify) {
+        const users = programEnrollments.flatMap(({ partner }) =>
+          partner.users.map(({ user }) => user),
+        );
+
+        await notifyPartnerRewardChange({
+          action: event,
+          program: group.program,
+          reward,
+          rewardSnapshot,
+          effectiveAt: occurredAt,
+          users,
+        });
+      }
+
+      startingAfter = programEnrollments[programEnrollments.length - 1].id;
+
+      const qstashResponse = await queueRewardProcessing({
+        event,
+        payload: {
+          ...payload,
+          startAfterProgramEnrollmentId: startingAfter,
+        },
+      });
+
+      if (qstashResponse?.messageId) {
+        return logAndRespond(
+          `Enqueued next page (${startingAfter}) for reward ${rewardId} for the group ${groupId}.`,
+        );
+      }
+
+      shouldReleaseLock = true;
       return logAndRespond(
         `Failed to enqueue next page (${startingAfter}) for reward ${rewardId} for the group ${groupId}.`,
         { status: 400 },
       );
     }
-  }
 
-  // No more program enrollments found, hard delete the reward
-  if (event === "reward-deleted") {
-    try {
-      await prisma.reward.delete({
-        where: {
-          id: reward.id,
-        },
-      });
-    } catch (error) {
-      // Treat already-deleted reward as success so retries can resend the notification
-      if (error.code !== "P2025") {
-        throw new Error(
-          `Failed to hard delete reward ${reward.id}: ${error.message}`,
-        );
+    // No more program enrollments found, hard delete the reward
+    if (event === "reward-deleted") {
+      try {
+        await prisma.reward.delete({
+          where: {
+            id: reward.id,
+          },
+        });
+      } catch (error) {
+        // Treat already-deleted reward as success so retries can resend the notification
+        if (error.code !== "P2025") {
+          throw new Error(
+            `Failed to hard delete reward ${reward.id}: ${error.message}`,
+          );
+        }
       }
     }
+
+    shouldReleaseLock = true;
+    return logAndRespond(`Processed reward ${rewardId} for group ${groupId}.`);
+  } catch (error) {
+    throw error;
+  } finally {
+    if (shouldReleaseLock) {
+      await releaseRewardGroupLock({
+        groupId,
+        event: reward.event,
+        operationId,
+      });
+    }
   }
-
-  await releaseRewardGroupLock({
-    groupId,
-    event: reward.event,
-    operationId,
-  });
-
-  return logAndRespond(`Processed reward ${rewardId} for group ${groupId}.`);
 });

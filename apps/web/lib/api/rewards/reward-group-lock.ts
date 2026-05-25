@@ -2,19 +2,31 @@ import { redis } from "@/lib/upstash";
 import { EventType } from "@dub/prisma/client";
 
 const REWARD_GROUP_LOCK_PREFIX = "reward:process:lock";
+const REWARD_GROUP_LOCK_TTL_SECONDS = 60 * 60; // 1 hour
 
-export async function assertRewardGroupLockAvailable({
+function getRewardGroupLockKey(groupId: string, event: EventType) {
+  return `${REWARD_GROUP_LOCK_PREFIX}:${groupId}:${event}`;
+}
+
+export async function reserveRewardGroupLock({
   groupId,
   event,
+  operationId,
 }: {
   groupId: string;
   event: EventType;
+  operationId: string;
 }) {
-  const holder = await redis.get<string>(
-    `${REWARD_GROUP_LOCK_PREFIX}:${groupId}:${event}`,
+  const acquired = await redis.set(
+    getRewardGroupLockKey(groupId, event),
+    operationId,
+    {
+      nx: true,
+      ex: REWARD_GROUP_LOCK_TTL_SECONDS,
+    },
   );
 
-  if (holder) {
+  if (!acquired) {
     throw new Error(
       `This group is being updated while ${event} reward changes are applied. Please wait a few minutes and try again.`,
     );
@@ -32,22 +44,7 @@ export async function acquireRewardGroupLock({
   operationId: string;
   mode: "new" | "continuation";
 }) {
-  const lockKey = `reward:process:lock:${groupId}:${event}`;
-
-  if (mode === "new") {
-    const holder = await redis.get<string>(lockKey);
-
-    if (holder) {
-      return false;
-    }
-
-    const acquired = await redis.set(lockKey, operationId, {
-      nx: true,
-      ex: 60 * 60, // 1 hour
-    });
-
-    return !!acquired;
-  }
+  const lockKey = getRewardGroupLockKey(groupId, event);
 
   if (mode === "continuation") {
     const holder = await redis.get<string>(lockKey);
@@ -56,8 +53,16 @@ export async function acquireRewardGroupLock({
       return false;
     }
 
+    await redis.expire(lockKey, REWARD_GROUP_LOCK_TTL_SECONDS);
     return true;
   }
+
+  const acquired = await redis.set(lockKey, operationId, {
+    nx: true,
+    ex: REWARD_GROUP_LOCK_TTL_SECONDS,
+  });
+
+  return !!acquired;
 }
 
 export async function releaseRewardGroupLock({
@@ -69,7 +74,7 @@ export async function releaseRewardGroupLock({
   event: EventType;
   operationId: string;
 }) {
-  const lockKey = `${REWARD_GROUP_LOCK_PREFIX}:${groupId}:${event}`;
+  const lockKey = getRewardGroupLockKey(groupId, event);
   const holder = await redis.get<string>(lockKey);
 
   if (holder === operationId) {
