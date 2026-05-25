@@ -32,7 +32,6 @@ export const GET = withPartnerProfile(
         ...(programSlug
           ? {
               slug: programSlug,
-              ...programAccessFilter(partnerUser.assignedPrograms),
               OR: [
                 // Partner is enrolled in the program
                 // in this case, return messages regardless of messaging enabled status which is passed to the UI
