@@ -179,11 +179,7 @@ export default async function DeepLinkPreviewPage(props: {
               </div>
             </div>
 
-            <DeepLinkActionButtons
-              link={link}
-              language={language}
-              platform={platform}
-            />
+            <DeepLinkActionButtons link={link} language={language} />
           </div>
         </div>
       </main>
