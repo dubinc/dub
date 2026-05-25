@@ -1,9 +1,9 @@
 "use server";
 
-import { generateDiscountCodeForPartner } from "@/lib/api/discounts/generate-discount-code-for-partner";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
+import { generateDiscountCodeForPartner } from "@/lib/discounts/generate-discount-code-for-partner";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -49,7 +49,6 @@ export const acceptProgramInviteAction = authPartnerActionClient
       },
     });
 
-    // TODO: Move these into a workflow similar to `/api/workflows/partner-approved/route.ts`
     waitUntil(
       (async () => {
         const workspace = await prisma.project.findUnique({

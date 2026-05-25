@@ -155,15 +155,6 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Unlimited partners",
-      },
-      {
-        check: {
-          default: false,
-          business: true,
-          advanced: true,
-          enterprise: true,
-        },
         text: "Automated global payouts",
         href: "https://dub.co/help/article/partner-payouts",
       },
@@ -273,6 +264,27 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
         text: ({ plan }) => (
           <>
             <strong>
+              {plan.limits.partners === 0
+                ? "No"
+                : plan.limits.partners === INFINITY_NUMBER
+                  ? "Unlimited"
+                  : nFormatter(plan.limits.partners)}
+            </strong>{" "}
+            partners
+          </>
+        ),
+        href: "https://dub.co/help/article/inviting-partners",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: ({ plan }) => (
+          <>
+            <strong>
               {plan.limits.groups === 0
                 ? "No"
                 : plan.limits.groups === INFINITY_NUMBER
@@ -280,6 +292,27 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
                   : nFormatter(plan.limits.groups)}
             </strong>{" "}
             partner groups
+          </>
+        ),
+        href: "https://dub.co/help/article/partner-groups",
+      },
+      {
+        check: {
+          default: false,
+          business: true,
+          advanced: true,
+          enterprise: true,
+        },
+        text: ({ plan }) => (
+          <>
+            <strong>
+              {plan.limits.partnerTags === 0
+                ? "No"
+                : plan.limits.partnerTags === INFINITY_NUMBER
+                  ? "Unlimited"
+                  : nFormatter(plan.limits.partnerTags)}
+            </strong>{" "}
+            partner tags
           </>
         ),
         href: "https://dub.co/help/article/partner-groups",
@@ -422,18 +455,6 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
         },
         text: () => (
           <>
-            Premium <strong>dub.link</strong> domain
-          </>
-        ),
-        href: "https://dub.co/help/article/default-dub-domains#premium-dublink-domain",
-      },
-      {
-        check: {
-          default: true,
-          free: false,
-        },
-        text: () => (
-          <>
             Free <strong>.link</strong> domain
           </>
         ),
@@ -526,32 +547,21 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
     href: "https://dub.co/contact/support",
     features: [
       {
-        text: ({ id }) => (
-          <>
-            <strong>
-              {
-                {
-                  free: "Basic support",
-                  pro: "Elevated support",
-                  business: "Priority support",
-                  advanced: "Priority via Slack",
-                  enterprise: "Priority with SLA",
-                }[id]
-              }
-            </strong>
-          </>
-        ),
+        text: ({ id }) =>
+          ({
+            free: "Basic support",
+            pro: "Elevated support",
+            business: "Priority support",
+            advanced: "Priority via Slack",
+            enterprise: "Priority with SLA",
+          })[id],
       },
       {
         check: {
           default: false,
           enterprise: true,
         },
-        text: () => (
-          <>
-            <strong>Dedicated</strong> success manager
-          </>
-        ),
+        text: "Dedicated success manager",
       },
     ],
   },

@@ -15,7 +15,10 @@ import { cn, fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { FeaturedPrograms } from "./featured-programs";
 import { MarketplaceEmptyState } from "./marketplace-empty-state";
-import { ProgramCard, ProgramCardSkeleton } from "./program-card";
+import {
+  MarketplaceProgramCard,
+  MarketplaceProgramCardSkeleton,
+} from "./program-card";
 import ProgramSort from "./program-sort";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
 
@@ -97,10 +100,13 @@ export function ProgramMarketplacePageClient() {
             >
               {programs
                 ? programs.map((program) => (
-                    <ProgramCard key={program.id} program={program} />
+                    <MarketplaceProgramCard
+                      key={program.id}
+                      program={program}
+                    />
                   ))
                 : [...Array(5)].map((_, idx) => (
-                    <ProgramCardSkeleton key={idx} />
+                    <MarketplaceProgramCardSkeleton key={idx} />
                   ))}
             </div>
           </div>

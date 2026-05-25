@@ -14,6 +14,14 @@ enum PartnerProfileType {
   company
 }
 
+enum PartnerNetworkStatus {
+  draft
+  submitted
+  approved
+  rejected
+  trusted
+}
+
 enum MonthlyTraffic {
   ZeroToOneThousand
   OneThousandToTenThousand
@@ -41,20 +49,21 @@ enum IdentityVerificationStatus {
 }
 
 model Partner {
-  id          String             @id @default(cuid())
-  name        String
-  companyName String?
-  profileType PartnerProfileType @default(individual)
-  email       String?            @unique
-  image       String?            @db.Text
-  description String?            @db.Text
-  country     String?
+  id            String               @id @default(cuid())
+  name          String
+  username      String?              @unique
+  email         String?              @unique
+  image         String?              @db.Text
+  description   String?              @db.Text
+  country       String?
+  companyName   String?
+  profileType   PartnerProfileType   @default(individual)
+  networkStatus PartnerNetworkStatus @default(draft)
 
   // identity verification fields
   identityVerificationStatus IdentityVerificationStatus?
   identityVerifiedAt         DateTime?
   veriffSessionId            String?                     @unique
-  veriffIdentityHash         String?                     @unique
   veriffMetadata             Json? // see veriffMetadataSchema
 
   // payout fields
@@ -68,14 +77,16 @@ model Partner {
   cryptoWalletAddress          String?
 
   // timestamp fields
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  discoverableAt DateTime?
-  trustedAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  submittedAt DateTime?
+  reviewedAt  DateTime?
+  trustedAt   DateTime?
 
   // miscellaneous fields
-  invoiceSettings  Json?
-  changeHistoryLog Json?
+  invoiceSettings     Json?
+  changeHistoryLog    Json?
+  referredByPartnerId String?
 
   programs                   ProgramEnrollment[]
   users                      PartnerUser[]
@@ -96,19 +107,22 @@ model Partner {
   preferredEarningStructures PartnerPreferredEarningStructure[]
   salesChannels              PartnerSalesChannel[]
   discoveredByPrograms       DiscoveredPartner[]
+  programPartnerTags         ProgramPartnerTag[]
   fraudEventGroups           FraudEventGroup[]
   fraudEvents                FraudEvent[]
   fraudAlerts                FraudAlert[]
   partnerRewinds             PartnerRewind[]
   platforms                  PartnerPlatform[]
-  referrals                  PartnerReferral[]
+  referredApplications       ProgramApplicationEvent[]
+  submittedLeads             SubmittedLead[]
 
   @@index(country)
-  @@index(discoverableAt)
-  @@index(trustedAt)
+  @@index(networkStatus)
+  @@index(createdAt)
   @@index(payoutMethodHash)
   @@index(cryptoWalletAddress)
   @@index(identityVerifiedAt)
+  @@index(referredByPartnerId)
   @@fulltext([email, name, companyName]) // For full-text search
 }
 

@@ -3,7 +3,6 @@ import { DubApiError } from "@/lib/api/errors";
 import { createToken } from "@/lib/api/oauth/utils";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { identifyPostbackChannel } from "@/lib/postback/api/utils";
 import {
   MAX_POSTBACKS,
   POSTBACK_SECRET_LENGTH,
@@ -14,6 +13,7 @@ import {
   createPostbackOutputSchema,
   postbackSchema,
 } from "@/lib/postback/schemas";
+import { identifyPostbackChannel } from "@/lib/postback/utils";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

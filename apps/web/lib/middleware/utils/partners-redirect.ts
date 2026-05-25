@@ -21,6 +21,10 @@ const PARTNERS_PROGRAM_REDIRECTS = {
   "teller-perps": "teller",
   "hundred-health": "hundred",
   "gitroom-short": "postiz",
+  "getviktor-com": "viktor",
+  getviktor: "viktor",
+  heynavii: "navii",
+  galaxyai: "magica",
 };
 
 export const partnersProgramRedirects = (path: string) => {

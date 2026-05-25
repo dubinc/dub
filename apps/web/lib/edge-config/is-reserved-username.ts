@@ -1,11 +1,11 @@
 import { get } from "@vercel/edge-config";
 
 /**
- * Only for dub.sh / dub.link domains
+ * Only for dub.sh domain
  * Check if a username is reserved – should only be available on Pro+
  */
 export const isReservedUsername = async (key: string) => {
-  if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {
+  if (!process.env.EDGE_CONFIG) {
     return false;
   }
 

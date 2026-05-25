@@ -1,11 +1,14 @@
 import * as z from "zod/v4";
+import { getPaginationQuerySchema } from "./misc";
 import {
   EnrolledPartnerSchema,
-  PartnerPartnerPlatformsSchema,
+  getPartnersQuerySchema,
+  OldPartnerPlatformsFields,
+  PARTNERS_MAX_PAGE_SIZE,
 } from "./partners";
 import { ProgramEnrollmentSchema } from "./programs";
 
-export const partnerApplicationWebhookSchema = z.object({
+export const PartnerApplicationSchema = z.object({
   id: z.string(),
   createdAt: z.coerce.date(),
   partner: EnrolledPartnerSchema.pick({
@@ -23,16 +26,7 @@ export const partnerApplicationWebhookSchema = z.object({
         status: true,
       }).shape,
     )
-    .extend(
-      PartnerPartnerPlatformsSchema.pick({
-        website: true,
-        youtube: true,
-        twitter: true,
-        linkedin: true,
-        instagram: true,
-        tiktok: true,
-      }).shape,
-    ),
+    .extend(OldPartnerPlatformsFields.shape),
   applicationFormData: z
     .array(
       z.object({
@@ -42,3 +36,16 @@ export const partnerApplicationWebhookSchema = z.object({
     )
     .nullable(),
 });
+
+export const partnerApplicationWebhookSchema = PartnerApplicationSchema;
+
+export const getPartnerApplicationsQuerySchema = getPartnersQuerySchema
+  .pick({
+    country: true,
+    groupId: true,
+  })
+  .extend(
+    getPaginationQuerySchema({
+      pageSize: PARTNERS_MAX_PAGE_SIZE,
+    }),
+  );

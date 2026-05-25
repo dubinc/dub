@@ -6,6 +6,7 @@ import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { queueRewardEnrollmentSync } from "@/lib/api/rewards/queue-reward-enrollment-sync";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
@@ -31,6 +32,7 @@ export const createRewardAction = authActionClient
       description,
       tooltipDescription,
       modifiers,
+      config,
       groupId,
     } = parsedInput;
 
@@ -40,7 +42,14 @@ export const createRewardAction = authActionClient
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { canUseAdvancedRewardLogic } = getPlanCapabilities(workspace.plan);
+    const { canUseAdvancedRewardLogic, canCreateReferralReward } =
+      getPlanCapabilities(workspace.plan);
+
+    if (event === "referral" && !canCreateReferralReward) {
+      throw new Error(
+        "Referral rewards are only available on the Advanced plan and above.",
+      );
+    }
 
     if (modifiers && !canUseAdvancedRewardLogic) {
       throw new Error(
@@ -74,6 +83,7 @@ export const createRewardAction = authActionClient
           description: description || null,
           tooltipDescription: tooltipDescription || null,
           modifiers: modifiers || Prisma.DbNull,
+          config: config ?? Prisma.DbNull,
           ...(type === "flat"
             ? {
                 amountInCents,
@@ -95,16 +105,15 @@ export const createRewardAction = authActionClient
         },
       });
 
-      await tx.programEnrollment.updateMany({
-        where: {
-          groupId,
-        },
-        data: {
-          [rewardIdColumn]: reward.id,
-        },
-      });
-
       return reward;
+    });
+
+    await queueRewardEnrollmentSync({
+      action: "create",
+      rewardId: reward.id,
+      groupId,
+      programId,
+      event,
     });
 
     waitUntil(

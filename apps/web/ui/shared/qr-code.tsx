@@ -1,5 +1,6 @@
 import { getQRData, QRCodeSVG } from "@/lib/qr";
 import { DEFAULT_MARGIN } from "@/lib/qr/constants";
+import { DotStyle, MarkerBorderStyle, MarkerCenterStyle } from "@/lib/qr/types";
 import { memo, useMemo } from "react";
 
 export const QRCode = memo(
@@ -10,6 +11,10 @@ export const QRCode = memo(
     logo,
     scale = 1,
     margin = DEFAULT_MARGIN,
+    dotStyle,
+    markerCenterStyle,
+    markerBorderStyle,
+    markerColor,
   }: {
     url: string;
     fgColor?: string;
@@ -17,10 +22,35 @@ export const QRCode = memo(
     logo?: string;
     scale?: number;
     margin?: number;
+    dotStyle?: DotStyle;
+    markerCenterStyle?: MarkerCenterStyle;
+    markerBorderStyle?: MarkerBorderStyle;
+    markerColor?: string;
   }) => {
     const qrData = useMemo(
-      () => getQRData({ url, fgColor, hideLogo, logo, margin }),
-      [url, fgColor, hideLogo, logo, margin],
+      () =>
+        getQRData({
+          url,
+          fgColor,
+          hideLogo,
+          logo,
+          margin,
+          dotStyle,
+          markerCenterStyle,
+          markerBorderStyle,
+          markerColor,
+        }),
+      [
+        url,
+        fgColor,
+        hideLogo,
+        logo,
+        margin,
+        dotStyle,
+        markerCenterStyle,
+        markerBorderStyle,
+        markerColor,
+      ],
     );
 
     return (
@@ -31,6 +61,10 @@ export const QRCode = memo(
         fgColor={qrData.fgColor}
         level={qrData.level}
         margin={qrData.margin}
+        dotStyle={qrData.dotStyle}
+        markerCenterStyle={qrData.markerCenterStyle}
+        markerBorderStyle={qrData.markerBorderStyle}
+        markerColor={qrData.markerColor}
         {...(qrData.imageSettings && {
           imageSettings: {
             ...qrData.imageSettings,

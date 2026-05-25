@@ -8,8 +8,8 @@ import { GroupSchema } from "@/lib/zod/schemas/groups";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { PayoutSchema } from "@/lib/zod/schemas/payouts";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
-import { referralSchema } from "@/lib/zod/schemas/referrals";
 import { RewardSchema } from "@/lib/zod/schemas/rewards";
+import { submittedLeadSchema } from "@/lib/zod/schemas/submitted-leads";
 import * as z from "zod/v4";
 
 // Schema that represents the audit log schema in Tinybird
@@ -54,9 +54,8 @@ const actionSchema = z.enum([
   "partner.created",
   "partner.archived",
   "partner.invited",
-  "partner.approved",
-  "partner.invite_deleted",
-  "partner.invite_resent",
+  "partner.invite_deleted", // TODO: change to partner_invite.deleted
+  "partner.invite_resent", // TODO: change to partner_invite.resent
   "partner.enrollment_updated",
   "partner.deactivated",
   "partner.reactivated",
@@ -195,7 +194,7 @@ export const auditLogTarget = z.union([
   z.object({
     type: z.literal("partner_referral"),
     id: z.string(),
-    metadata: referralSchema.pick({
+    metadata: submittedLeadSchema.pick({
       email: true,
       name: true,
       company: true,

@@ -1,5 +1,5 @@
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { recordPostbackEvent } from "@/lib/postback/api/record-postback-event";
+import { recordPostbackEvent } from "@/lib/postback/record-postback-event";
 import {
   postbackCallbackBodySchema,
   postbackCallbackParamsSchema,

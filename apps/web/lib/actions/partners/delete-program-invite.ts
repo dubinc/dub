@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -33,16 +34,24 @@ export const deleteProgramInviteAction = authActionClient
             partnerId,
             programId,
           },
+          status: {
+            in: ["invited", "declined"],
+          },
         },
         include: {
           program: true,
           partner: true,
           links: true,
+          programPartnerTags: {
+            include: {
+              partnerTag: true,
+            },
+          },
         },
       });
 
-    if (programEnrollment.status !== "invited") {
-      throw new Error("Invite not found.");
+    if (programEnrollment.totalCommissions > 0) {
+      throw new Error("Partner has commissions, cannot delete invite.");
     }
 
     // only delete links that have don't have sales / leads
@@ -51,18 +60,54 @@ export const deleteProgramInviteAction = authActionClient
     );
 
     await Promise.allSettled([
+      prisma.link.deleteMany({
+        where: {
+          id: {
+            in: linksToDelete.map((link) => link.id),
+          },
+        },
+      }),
+
+      bulkDeleteLinks(
+        linksToDelete.map((link) => ({
+          ...link,
+          programEnrollment: {
+            groupId: programEnrollment.groupId,
+            programPartnerTags: programEnrollment.programPartnerTags,
+          },
+        })),
+      ),
+
+      prisma.discoveredPartner.delete({
+        where: {
+          programId_partnerId: {
+            partnerId,
+            programId,
+          },
+        },
+      }),
+    ]);
+
+    await prisma.$transaction([
       prisma.programEnrollment.delete({
         where: {
           id: programEnrollment.id,
         },
       }),
 
-      prisma.link.deleteMany({
-        where: { id: { in: linksToDelete.map((link) => link.id) } },
+      prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          partnersUsage: {
+            decrement: 1,
+          },
+        },
       }),
+    ]);
 
-      bulkDeleteLinks(linksToDelete),
-
+    waitUntil(
       recordAuditLog({
         workspaceId: workspace.id,
         programId,
@@ -77,5 +122,5 @@ export const deleteProgramInviteAction = authActionClient
           },
         ],
       }),
-    ]);
+    );
   });

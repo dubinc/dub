@@ -89,7 +89,14 @@ export const COMMISSIONS_MAX_PAGE_SIZE = 100;
 
 export const getCommissionsQuerySchema = z
   .object({
-    type: z.enum(CommissionType).optional(),
+    type: z
+      .enum(CommissionType)
+      .optional()
+      .describe(
+        "Filter the list of commissions by type. " +
+          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+          "Examples: `sale`, `sale,lead`, `-click`.",
+      ),
     customerId: z
       .string()
       .optional()
@@ -102,7 +109,9 @@ export const getCommissionsQuerySchema = z
       .string()
       .optional()
       .describe(
-        "Filter the list of commissions by the associated partner. When specified, takes precedence over `tenantId`.",
+        "Filter the list of commissions by the associated partner. When specified, takes precedence over `tenantId`. " +
+          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+          "Examples: `partner_abc`, `partner_abc,partner_xyz`, `-partner_abc`.",
       ),
     tenantId: z
       .string()
@@ -114,7 +123,17 @@ export const getCommissionsQuerySchema = z
       .string()
       .optional()
       .describe(
-        "Filter the list of commissions by the associated partner group.",
+        "Filter the list of commissions by the associated partner group. " +
+          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+          "Examples: `group_abc`, `group_abc,group_xyz`, `-group_abc`.",
+      ),
+    partnerTagId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of commissions by the associated partner tag. " +
+          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+          "Examples: `ptag_abc`, `ptag_abc,ptag_xyz`, `-ptag_abc`.",
       ),
     invoiceId: z
       .string()
@@ -160,14 +179,19 @@ export const getCommissionsQuerySchema = z
     }),
   });
 
-export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
-  page: true,
-  pageSize: true,
-  sortOrder: true,
-  sortBy: true,
-  startingAfter: true,
-  endingBefore: true,
-});
+export const getCommissionsCountQuerySchema = getCommissionsQuerySchema
+  .omit({
+    page: true,
+    pageSize: true,
+    sortOrder: true,
+    sortBy: true,
+    startingAfter: true,
+    endingBefore: true,
+  })
+  .extend({
+    // Accept raw string to support comma-separated multi-value (e.g. "sale,lead")
+    type: z.string().optional(),
+  });
 
 export const createCommissionSchema = z.object({
   workspaceId: z.string(),
@@ -362,6 +386,12 @@ export const COMMISSION_EXPORT_COLUMNS = [
   {
     id: "customerExternalId",
     label: "Customer external ID",
+    type: "string",
+    default: false,
+  },
+  {
+    id: "stripeCustomerId",
+    label: "Stripe customer ID",
     type: "string",
     default: false,
   },

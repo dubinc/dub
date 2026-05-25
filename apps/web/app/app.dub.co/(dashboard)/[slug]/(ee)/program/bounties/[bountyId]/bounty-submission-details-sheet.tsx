@@ -1,8 +1,8 @@
 "use client";
 
+import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
@@ -41,6 +41,7 @@ import {
   timeAgo,
 } from "@dub/utils";
 import Linkify from "linkify-react";
+import Link from "next/link";
 import {
   Dispatch,
   SetStateAction,
@@ -250,14 +251,13 @@ function BountySubmissionDetailsSheetContent({
                   value: (
                     <StatusBadge
                       variant={
-                        BOUNTY_SUBMISSION_STATUS_BADGES[submission.status]
-                          .variant
+                        BountySubmissionStatusBadges[submission.status].variant
                       }
                       icon={
-                        BOUNTY_SUBMISSION_STATUS_BADGES[submission.status].icon
+                        BountySubmissionStatusBadges[submission.status].icon
                       }
                     >
-                      {BOUNTY_SUBMISSION_STATUS_BADGES[submission.status].label}
+                      {BountySubmissionStatusBadges[submission.status].label}
                     </StatusBadge>
                   ),
                 },
@@ -529,14 +529,13 @@ function BountySubmissionDetailsSheetContent({
 
         <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
           <div className="flex items-center justify-between gap-2 p-5">
-            {submission.status === "approved" ? (
-              <a
-                href={`/${workspaceSlug}/program/commissions?partnerId=${submission.partner.id}&type=custom`}
-                target="_blank"
+            {submission.status === "approved" && submission.commission?.id ? (
+              <Link
+                href={`/${workspaceSlug}/program/commissions/${submission.commission.id}`}
                 className="w-full"
               >
-                <Button variant="secondary" text="View commissions" />
-              </a>
+                <Button variant="secondary" text="View commission" />
+              </Link>
             ) : (
               <div className="flex w-full flex-col gap-4">
                 {!bounty?.rewardAmount && (

@@ -11,20 +11,22 @@ import { OnboardingPlatformsPageClient } from "./page-client";
 
 export default function OnboardingPlatformsPage() {
   return (
-    <div className="relative mx-auto w-full max-w-[416px] text-center md:mt-4">
-      <h1 className="animate-slide-up-fade text-lg font-medium [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
+    <div className="mx-auto flex w-full max-w-[430px] flex-col text-center md:mt-4">
+      <h1 className="animate-slide-up-fade text-center text-xl font-semibold [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
         Your social and web platforms
       </h1>
 
-      <p className="animate-slide-up-fade text-content-subtle mt-1 text-sm [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
+      <p className="animate-slide-up-fade text-content-subtle mt-1 text-base [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
         Verifying your social and web platforms will improve your reputation
         score and rank you higher in our partner network.
       </p>
 
-      <div className="animate-slide-up-fade mt-8 grid gap-4 [animation-delay:750ms] [animation-duration:1s] [animation-fill-mode:both]">
-        <Suspense fallback={<PartnerPlatformsForm partner={null} />}>
-          <OnboardingPlatformsFormRSC />
-        </Suspense>
+      <div className="animate-slide-up-fade w-full rounded-xl py-8 [animation-delay:750ms] [animation-duration:1s] [animation-fill-mode:both]">
+        <div className="grid gap-4">
+          <Suspense fallback={<PartnerPlatformsForm partner={null} />}>
+            <OnboardingPlatformsFormRSC />
+          </Suspense>
+        </div>
       </div>
     </div>
   );

@@ -48,7 +48,7 @@ const updateColorSchema = baseUpdateSchema.extend({
 const updateLinkSchema = baseUpdateSchema.extend({
   resourceType: z.literal("link"),
   name: z.string().min(1).optional(),
-  url: z.url().optional(),
+  url: z.httpUrl().optional(),
 });
 
 // Combined schema that can handle any resource type

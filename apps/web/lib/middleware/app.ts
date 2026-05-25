@@ -22,7 +22,7 @@ export async function AppMiddleware(req: NextRequest) {
 
   const user = await getUserViaToken(req);
 
-  // if there's no user and the path isn't /login or /register, redirect to /login
+  // if there's no user and the path is not a public page, redirect to /login
   if (
     !user &&
     path !== "/login" &&
@@ -31,7 +31,8 @@ export async function AppMiddleware(req: NextRequest) {
     path !== "/auth/saml" &&
     !path.startsWith("/auth/reset-password/") &&
     !path.startsWith("/share/") &&
-    !path.startsWith("/deeplink/")
+    !path.startsWith("/deeplink/") &&
+    !path.startsWith("/unsubscribe/")
   ) {
     return NextResponse.redirect(
       new URL(
@@ -91,15 +92,18 @@ export async function AppMiddleware(req: NextRequest) {
         "/links",
         "/analytics",
         "/events",
-        "/customers",
-        "/program",
-        "/programs",
-        "/settings",
         "/upgrade",
         "/guides",
         "/wrapped",
+        "/programs",
+        // here we have separate logic for the root paths instead of path.startsWith("/program")
+        // because some workspace slugs are program-something which will break
+        "/program",
+        "/customers",
+        "/settings",
       ].includes(path) ||
       path.startsWith("/program/") ||
+      path.startsWith("/customers/") ||
       path.startsWith("/settings/") ||
       isTopLevelSettingsRedirect(path)
     ) {

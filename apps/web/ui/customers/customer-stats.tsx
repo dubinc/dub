@@ -71,7 +71,7 @@ export function CustomerStats({
             </span>
           </div>
         ) : undefined,
-        href: `/${workspaceSlug}/events?event=sales&customerId=${customerId}&interval=1y`,
+        href: `/${workspaceSlug}/events?event=sales&customerId=${customerId}&interval=all`,
       },
       {
         label: "Subscription canceled",

@@ -73,7 +73,7 @@ function PayoutStatsCard({
             <div className="flex items-center gap-2">
               {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
-                  content="You need to connect your payout account to be able to receive payouts from the programs you are enrolled in."
+                  content="You need to [connect your payout account](/payouts?settings=true) to be able to receive payouts from the programs you are enrolled in."
                   side="right"
                 >
                   <div>
@@ -96,9 +96,11 @@ function PayoutStatsCard({
                   className="ml-2 h-7 px-2 py-1"
                   onClick={() => setShowForceWithdrawalModal(true)}
                   disabledTooltip={
-                    amount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS
-                      ? `Your current processed payouts balance is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`
-                      : undefined
+                    !partner?.payoutsEnabledAt
+                      ? "You need to [connect your payout account](/payouts?settings=true) to withdraw funds."
+                      : amount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS
+                        ? `Your current processed payouts balance is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`
+                        : undefined
                   }
                 />
               )}

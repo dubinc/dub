@@ -23,7 +23,7 @@ import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
-  websiteUrl: z.url(),
+  websiteUrl: z.httpUrl(),
   landerData: programLanderSchema.optional(),
   prompt: z.string().optional(),
 });
@@ -51,8 +51,9 @@ export const generateLanderAction = authActionClient
           },
           include: {
             clickReward: true,
-            saleReward: true,
             leadReward: true,
+            saleReward: true,
+            referralReward: true,
             discount: true,
           },
         },
@@ -61,7 +62,12 @@ export const generateLanderAction = authActionClient
 
     const group = program.groups[0];
     const discount = group.discount;
-    const rewards = [group.clickReward, group.leadReward, group.saleReward]
+    const rewards = [
+      group.clickReward,
+      group.leadReward,
+      group.saleReward,
+      group.referralReward,
+    ]
       .filter((r): r is Reward => r !== null)
       .map(serializeReward);
 

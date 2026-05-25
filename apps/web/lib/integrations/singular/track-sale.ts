@@ -61,6 +61,5 @@ export const trackSingularSaleEvent = async ({
     leadEventName,
     metadata: null,
     workspace,
-    rawBody: queryParams,
   });
 };

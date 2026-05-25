@@ -8,19 +8,49 @@ import { NextResponse } from "next/server";
 export const POST = withAdmin(async ({ req }) => {
   const { email, slug } = await req.json();
 
-  const response = await prisma.user.findFirst({
-    where: email
-      ? { email }
-      : {
-          projects: {
-            some: {
-              project: {
-                slug,
+  let userEmails: string[] = [];
+  if (email) {
+    userEmails.push(email);
+    const partner = await prisma.partner.findUnique({
+      where: {
+        email,
+      },
+      select: {
+        users: {
+          select: {
+            user: {
+              select: {
+                email: true,
               },
-              role: "owner",
             },
           },
+          take: 1,
         },
+      },
+    });
+    if (partner?.users && partner.users.length > 0) {
+      userEmails.push(...partner.users.map((user) => user.user.email || ""));
+    }
+  }
+
+  const response = await prisma.user.findFirst({
+    where:
+      userEmails.length > 0
+        ? {
+            email: {
+              in: userEmails,
+            },
+          }
+        : {
+            projects: {
+              some: {
+                project: {
+                  slug,
+                },
+                role: "owner",
+              },
+            },
+          },
     select: {
       email: true,
       projects: {

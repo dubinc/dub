@@ -9,7 +9,7 @@ enum FraudRuleType {
   referralSourceBanned
   paidTrafficDetected
   partnerCrossProgramBan // Cross-program ban from other programs
-  partnerDuplicatePayoutMethod // Duplicate payout method with other partners
+  partnerDuplicateAccount // Duplicate identity with other partners
 }
 
 model FraudRule {
@@ -85,6 +85,7 @@ enum FraudAlertStatus {
   confirmed
   dismissed
 }
+
 model FraudAlert {
   id           String           @id @default(cuid())
   partnerId    String

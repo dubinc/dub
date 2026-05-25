@@ -105,23 +105,6 @@ export function UsageChart() {
   const filters = useMemo(
     () => [
       {
-        key: "folderId",
-        icon: Folder,
-        label: "Folder",
-        options:
-          folders?.map((folder) => ({
-            value: folder.id,
-            icon: (
-              <FolderIcon
-                folder={folder}
-                shape="square"
-                iconClassName="size-3"
-              />
-            ),
-            label: folder.name,
-          })) ?? [],
-      },
-      {
         key: "domain",
         icon: Globe2,
         label: "Domain",
@@ -140,17 +123,34 @@ export function UsageChart() {
             ),
           })) ?? [],
       },
+      {
+        key: "folderId",
+        icon: Folder,
+        label: "Folder",
+        options:
+          folders?.map((folder) => ({
+            value: folder.id,
+            icon: (
+              <FolderIcon
+                folder={folder}
+                shape="square"
+                iconClassName="size-3"
+              />
+            ),
+            label: folder.name,
+          })) ?? [],
+      },
     ],
-    [activeResource, folders, domains],
+    [activeResource, domains, folders],
   );
 
   // Active filters
   const activeFilters = useMemo(() => {
     const filters: { key: string; value: string }[] = [];
-    if (folderId) filters.push({ key: "folderId", value: folderId });
     if (domain) filters.push({ key: "domain", value: domain });
+    if (folderId) filters.push({ key: "folderId", value: folderId });
     return filters;
-  }, [folderId, domain]);
+  }, [domain, folderId]);
 
   const chartData = useMemo(
     () =>
@@ -341,8 +341,8 @@ export function UsageChart() {
           </div>
           <ToggleGroup
             options={[
-              { value: "folderId", label: "Folder" },
               { value: "domain", label: "Domain" },
+              { value: "folderId", label: "Folder" },
             ]}
             selected={groupBy}
             selectAction={(id) => queryParams({ set: { groupBy: id } })}

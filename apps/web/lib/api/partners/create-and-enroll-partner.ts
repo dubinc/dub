@@ -13,6 +13,7 @@ import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { createPartnerDefaultLinks } from "./create-partner-default-links";
+import { generatePartnerUsername } from "./generate-partner-username";
 import { throwIfExistingTenantEnrollmentExists } from "./throw-if-existing-tenant-id-exists";
 
 interface CreateAndEnrollPartnerInput {
@@ -152,6 +153,7 @@ export const createAndEnrollPartner = async ({
         clickRewardId: group.clickRewardId,
         leadRewardId: group.leadRewardId,
         saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
         discountId: group.discountId,
         ...(enrolledAt && {
           createdAt: enrolledAt,
@@ -170,6 +172,10 @@ export const createAndEnrollPartner = async ({
       id: createId({ prefix: "pn_" }),
       name: partner.name || partner.email,
       email: partner.email,
+      username: await generatePartnerUsername({
+        email: partner.email,
+        name: partner.name,
+      }),
       image: partner.image && !isStored(partner.image) ? null : partner.image,
       country: partner.country,
       description: partner.description,
@@ -218,7 +224,19 @@ export const createAndEnrollPartner = async ({
   });
 
   waitUntil(
-    Promise.all([
+    Promise.allSettled([
+      // Status is always "invited" or "approved" here — no caller passes "pending"
+      prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          partnersUsage: {
+            increment: 1,
+          },
+        },
+      }),
+
       // upload partner image to R2
       partner.image &&
         !isStored(partner.image) &&

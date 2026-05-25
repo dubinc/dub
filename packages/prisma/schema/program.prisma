@@ -89,7 +89,9 @@ model Program {
   fraudEventGroups         FraudEventGroup[]
   sourceFraudEvents        FraudEvent[]              @relation("SourceFraudEvents")
   fraudAlerts              FraudAlert[]
-  referrals                PartnerReferral[]
+  partnerTags              PartnerTag[]
+  programPartnerTags       ProgramPartnerTag[]
+  submittedLeads           SubmittedLead[]
   partnerUserPrograms      PartnerUserProgram[]
   partnerUserLinks         PartnerUserLink[]
 
@@ -97,18 +99,25 @@ model Program {
   @@index(addedToMarketplaceAt)
 }
 
+enum ReapplicationTimeframe {
+  instant
+  standard
+  never
+}
+
 model ProgramEnrollment {
-  id            String                  @id @default(cuid())
-  partnerId     String
-  programId     String
-  tenantId      String?
-  groupId       String?
-  applicationId String?                 @unique
-  clickRewardId String?
-  leadRewardId  String?
-  saleRewardId  String?
-  discountId    String?
-  status        ProgramEnrollmentStatus @default(pending)
+  id               String                  @id @default(cuid())
+  partnerId        String
+  programId        String
+  tenantId         String?
+  groupId          String?
+  applicationId    String?                 @unique
+  clickRewardId    String?
+  leadRewardId     String?
+  saleRewardId     String?
+  referralRewardId String?
+  discountId       String?
+  status           ProgramEnrollmentStatus @default(pending)
 
   // partner stats
   totalClicks      Int    @default(0) // total clicks
@@ -130,32 +139,35 @@ model ProgramEnrollment {
   daysSinceLastConversion Int? // days since lastConversionAt
   consistencyScore        Int? // based on daysSinceLastConversion
 
-  createdAt                    DateTime             @default(now())
-  updatedAt                    DateTime             @updatedAt
+  createdAt                    DateTime               @default(now())
+  updatedAt                    DateTime               @updatedAt
   customerDataSharingEnabledAt DateTime?
   groupMoveDisabledAt          DateTime?
   bannedAt                     DateTime?
   bannedReason                 PartnerBannedReason?
+  reapplicationTimeframe       ReapplicationTimeframe @default(standard)
 
-  partner           Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  program           Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  links             Link[]
-  customers         Customer[]
-  partnerGroup      PartnerGroup?       @relation(fields: [groupId], references: [id])
-  application       ProgramApplication? @relation(fields: [applicationId], references: [id])
-  clickReward       Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
-  leadReward        Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
-  saleReward        Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
-  discount          Discount?           @relation(fields: [discountId], references: [id])
-  bountySubmissions BountySubmission[]
-  discountCodes     DiscountCode[]
-  commissions       Commission[]
-  payouts           Payout[]
-  messages          Message[]
-  fraudEventGroups  FraudEventGroup[]
-  referrals         PartnerReferral[]
-  fraudAlerts       FraudAlert[]
-  discoveredPartner DiscoveredPartner?
+  partner            Partner                  @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  program            Program                  @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  links              Link[]
+  customers          Customer[]
+  partnerGroup       PartnerGroup?            @relation(fields: [groupId], references: [id])
+  application        ProgramApplication?      @relation(fields: [applicationId], references: [id])
+  clickReward        Reward?                  @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
+  leadReward         Reward?                  @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
+  saleReward         Reward?                  @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  referralReward     Reward?                  @relation("ReferralRewardEnrollments", fields: [referralRewardId], references: [id])
+  discount           Discount?                @relation(fields: [discountId], references: [id])
+  bountySubmissions  BountySubmission[]
+  discountCodes      DiscountCode[]
+  commissions        Commission[]
+  payouts            Payout[]
+  fraudEventGroups   FraudEventGroup[]
+  fraudAlerts        FraudAlert[]
+  discoveredPartner  DiscoveredPartner?
+  programPartnerTags ProgramPartnerTag[]
+  applicationEvent   ProgramApplicationEvent?
+  submittedLeads     SubmittedLead[]
 
   // unique constraints
   @@unique([partnerId, programId])
@@ -176,47 +188,10 @@ model ProgramEnrollment {
   // other indexes
   @@index([programId, groupId])
   @@index([groupId, status])
+  @@index(status)
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)
+  @@index(referralRewardId)
   @@index(discountId)
-}
-
-enum ProgramApplicationRejectionReason {
-  needsMoreDetail
-  doesNotMeetRequirements
-  notTheRightFit
-  other
-}
-
-model ProgramApplication {
-  id              String                             @id @default(cuid())
-  programId       String
-  groupId         String?
-  name            String
-  email           String
-  country         String?
-  website         String?                            @db.Text
-  youtube         String?                            @db.Text
-  twitter         String?                            @db.Text
-  linkedin        String?                            @db.Text
-  instagram       String?                            @db.Text
-  tiktok          String?                            @db.Text
-  formData        Json?                              @db.Json
-  userId          String? // user who reviewed the application
-  rejectionReason ProgramApplicationRejectionReason?
-  rejectionNote   String?                            @db.Text
-  reviewedAt      DateTime?
-  createdAt       DateTime                           @default(now())
-  updatedAt       DateTime                           @updatedAt
-
-  program      Program            @relation(fields: [programId], references: [id])
-  partnerGroup PartnerGroup?      @relation(fields: [groupId], references: [id])
-  enrollment   ProgramEnrollment?
-  user         User?              @relation(fields: [userId], references: [id])
-
-  @@index(programId)
-  @@index(groupId)
-  @@index(email)
-  @@index(userId)
 }

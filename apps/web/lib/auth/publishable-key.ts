@@ -5,6 +5,7 @@ import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { Project } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { COMMON_CORS_HEADERS } from "../api/cors";
 
@@ -114,16 +115,18 @@ export const withPublishableKey = (
             workspace,
           });
 
-          captureRequestLog({
-            req: reqForLog,
-            response,
-            workspace,
-            session: undefined,
-            token: null,
-            url,
-            requestHeaders,
-            startTime,
-          });
+          waitUntil(
+            captureRequestLog({
+              req: reqForLog,
+              response,
+              workspace,
+              session: undefined,
+              token: null,
+              url,
+              requestHeaders,
+              startTime,
+            }),
+          );
 
           return response;
         } else {
@@ -139,16 +142,18 @@ export const withPublishableKey = (
         );
 
         if (workspace) {
-          captureRequestLog({
-            req: reqForLog,
-            response: errorResponse,
-            workspace,
-            session: undefined,
-            token: null,
-            url,
-            requestHeaders,
-            startTime,
-          });
+          waitUntil(
+            captureRequestLog({
+              req: reqForLog,
+              response: errorResponse,
+              workspace,
+              session: undefined,
+              token: null,
+              url,
+              requestHeaders,
+              startTime,
+            }),
+          );
         }
 
         return errorResponse;

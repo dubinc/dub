@@ -80,11 +80,8 @@ export const uploadedImageSchema = z
   .transform((v) => v || null);
 
 export const publicHostedImageSchema = z
-  .url()
-  .trim()
-  .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
-    message: "Image URL must start with http:// or https://",
-  });
+  .httpUrl({ error: "Image URL must start with http:// or https://" })
+  .trim();
 
 /** Coerce unusable preview strings (e.g. data:favicons) to null before create/update link validation. */
 export function preprocessLinkPreviewImage(

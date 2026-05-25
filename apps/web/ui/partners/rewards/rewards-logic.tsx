@@ -2,7 +2,7 @@
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
+import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
@@ -16,6 +16,8 @@ import {
   RewardConditionEntityAttribute,
   STRING_CONDITION_OPERATORS,
 } from "@/lib/zod/schemas/rewards";
+import { CountryFlag } from "@/ui/shared/country-flag";
+import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
 import { RewardStructure } from "@dub/prisma/client";
 import {
@@ -322,9 +324,25 @@ function ConditionLogic({
   // Auto-set operator to "equals_to" for customer.source
   const isCustomerSourceCondition =
     condition.entity === "customer" && condition.attribute === "source";
+  const isSaleTypeCondition =
+    condition.entity === "sale" && condition.attribute === "type";
+
+  const availableConditionOperators: (typeof CONDITION_OPERATORS)[number][] = [
+    "number",
+    "currency",
+  ].includes(attributeType)
+    ? NUMBER_CONDITION_OPERATORS
+    : attributeType === "enum"
+      ? ENUM_CONDITION_OPERATORS
+      : attributeType === "date"
+        ? DATE_CONDITION_OPERATORS
+        : STRING_CONDITION_OPERATORS;
 
   useEffect(() => {
-    if (isCustomerSourceCondition && condition.operator !== "equals_to") {
+    if (
+      (isCustomerSourceCondition || isSaleTypeCondition) &&
+      condition.operator !== "equals_to"
+    ) {
       setValue(
         conditionKey,
         {
@@ -338,6 +356,7 @@ function ConditionLogic({
     }
   }, [
     isCustomerSourceCondition,
+    isSaleTypeCondition,
     condition.operator,
     condition,
     conditionKey,
@@ -409,7 +428,9 @@ function ConditionLogic({
                         (attribute) =>
                           attribute.id !== "source" ||
                           (program &&
-                            REFERRAL_ENABLED_PROGRAM_IDS.includes(program.id)),
+                            SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(
+                              program.id,
+                            )),
                       )
                       .map((attribute) => ({
                         text: attribute.label,
@@ -417,7 +438,7 @@ function ConditionLogic({
                       }))}
                   />
                 </InlineBadgePopover>{" "}
-                {isCustomerSourceCondition ? (
+                {isCustomerSourceCondition || isSaleTypeCondition ? (
                   <span className="text-content-emphasis font-medium">is </span>
                 ) : (
                   <InlineBadgePopover
@@ -459,14 +480,7 @@ function ConditionLogic({
                           },
                         )
                       }
-                      items={(["number", "currency"].includes(attributeType)
-                        ? NUMBER_CONDITION_OPERATORS
-                        : attributeType === "enum"
-                          ? ENUM_CONDITION_OPERATORS
-                          : attributeType === "date"
-                            ? DATE_CONDITION_OPERATORS
-                            : STRING_CONDITION_OPERATORS
-                      ).map((operator) => ({
+                      items={availableConditionOperators.map((operator) => ({
                         text: CONDITION_OPERATOR_LABELS[operator],
                         value: operator,
                       }))}
@@ -535,10 +549,9 @@ function ConditionLogic({
                                 text: name,
                                 value: key,
                                 icon: (
-                                  <img
-                                    alt={`${key} flag`}
-                                    src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
-                                    className="size-3 shrink-0"
+                                  <CountryFlag
+                                    countryCode={key}
+                                    className="size-3"
                                   />
                                 ),
                               }),
@@ -837,37 +850,16 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
                   : `for ${displayMaxDuration} ${pluralize("month", Number(displayMaxDuration))}`
             }
           >
-            <InlineBadgePopoverMenu
-              selectedValue={
-                displayMaxDuration === Infinity
-                  ? "Infinity"
-                  : displayMaxDuration?.toString()
+            <DurationPopoverContent
+              value={displayMaxDuration ?? undefined}
+              onChange={(value) =>
+                setValue(`${modifierKey}.maxDuration`, value, {
+                  shouldDirty: true,
+                })
               }
-              onSelect={(value) =>
-                setValue(
-                  `${modifierKey}.maxDuration`,
-                  value === "Infinity" ? Infinity : Number(value),
-                  {
-                    shouldDirty: true,
-                  },
-                )
-              }
-              items={[
-                {
-                  text: "one time",
-                  value: "0",
-                },
-                ...RECURRING_MAX_DURATIONS.filter(
-                  (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
-                ).map((v) => ({
-                  text: `for ${v} ${pluralize("month", Number(v))}`,
-                  value: v.toString(),
-                })),
-                {
-                  text: "for the customer's lifetime",
-                  value: "Infinity",
-                },
-              ]}
+              presetDurations={RECURRING_MAX_DURATIONS.filter(
+                (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
+              )}
             />
           </InlineBadgePopover>
         </>

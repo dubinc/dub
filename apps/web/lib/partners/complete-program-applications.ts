@@ -4,6 +4,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
+import { markApplicationEventSubmitted } from "../application-events/update-application-event";
 import { qstash } from "../cron";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
@@ -196,7 +197,6 @@ export async function completeProgramApplications(userEmail: string) {
               group?.autoApprovePartnersEnabledAt
                 ? qstash.publishJSON({
                     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
-                    delay: 5 * 60,
                     body: {
                       programId: program.id,
                       partnerId: partner.id,
@@ -257,6 +257,12 @@ export async function completeProgramApplications(userEmail: string) {
         }),
       ]);
     }
+
+    await Promise.allSettled(
+      programEnrollments.map((programEnrollment) =>
+        markApplicationEventSubmitted(programEnrollment),
+      ),
+    );
   } catch (error) {
     console.error("Failed to complete program applications", error);
   }

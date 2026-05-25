@@ -1,27 +1,41 @@
 import { createProgram } from "@/lib/actions/partners/create-program";
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
+import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { wouldGainPartnerAccess } from "@/lib/plans/has-partner-access";
 import { stripe } from "@/lib/stripe";
-import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
-import UpgradeEmail from "@dub/email/templates/upgrade-email";
+import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
 import { prisma } from "@dub/prisma";
-import { Program, User } from "@dub/prisma/client";
-import { getPlanAndTierFromPriceId, log, prettyPrint } from "@dub/utils";
+import { User } from "@dub/prisma/client";
+import {
+  getPlanAndTierFromPriceId,
+  getWorkspaceLimitsForStripeSubscriptionStatus,
+  log,
+} from "@dub/utils";
 import Stripe from "stripe";
+import { getPlanPeriodFromStripeSubscription } from "./utils/stripe-plan-period";
 
 export async function checkoutSessionCompleted(
   event: Stripe.CheckoutSessionCompletedEvent,
 ) {
   const checkoutSession = event.data.object;
 
-  if (
-    checkoutSession.mode === "setup" ||
-    checkoutSession.payment_status !== "paid"
-  ) {
-    return "Session is setup mode or not paid, skipping...";
+  if (checkoutSession.mode === "setup") {
+    return "Session is setup mode, skipping...";
+  }
+
+  if (checkoutSession.mode === "subscription") {
+    if (
+      checkoutSession.payment_status !== "paid" &&
+      checkoutSession.payment_status !== "no_payment_required"
+    ) {
+      return "Subscription checkout session not completed (payment status), skipping...";
+    }
+  } else {
+    return `Session mode ${checkoutSession.mode} is not handled here, skipping...`;
   }
 
   if (
@@ -46,15 +60,26 @@ export async function checkoutSessionCompleted(
     return `Invalid price ID in checkout.session.completed event: ${priceId}`;
   }
 
+  const limits = getWorkspaceLimitsForStripeSubscriptionStatus({
+    planLimits: plan.limits,
+    subscriptionStatus: subscription.status,
+  });
+
+  const trialEndsAt =
+    subscription.status === "trialing" && subscription.trial_end
+      ? new Date(subscription.trial_end * 1000)
+      : null;
+
   const stripeId = checkoutSession.customer.toString();
   const workspaceId = checkoutSession.client_reference_id;
   const planName = plan.name.toLowerCase();
+  const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
 
   // when the workspace subscribes to a plan, set their stripe customer ID
   // in the database for easy identification in future webhook events
   // also update the billingCycleStart to today's date
 
-  const workspace = await prisma.project.update({
+  const updatedWorkspace = await prisma.project.update({
     where: {
       id: workspaceId,
     },
@@ -63,22 +88,30 @@ export async function checkoutSessionCompleted(
       billingCycleStart: new Date().getDate(),
       plan: planName,
       planTier: planTier,
-      usageLimit: plan.limits.clicks,
-      linksLimit: plan.limits.links,
-      payoutsLimit: plan.limits.payouts,
-      domainsLimit: plan.limits.domains,
-      aiLimit: plan.limits.ai,
-      tagsLimit: plan.limits.tags,
-      foldersLimit: plan.limits.folders,
-      groupsLimit: plan.limits.groups,
-      networkInvitesLimit: plan.limits.networkInvites,
-      usersLimit: plan.limits.users,
+      usageLimit: limits.clicks,
+      linksLimit: limits.links,
+      payoutsLimit: limits.payouts,
+      domainsLimit: limits.domains,
+      aiLimit: limits.ai,
+      tagsLimit: limits.tags,
+      partnerTagsLimit: limits.partnerTags,
+      foldersLimit: limits.folders,
+      groupsLimit: limits.groups,
+      networkInvitesLimit: limits.networkInvites,
+      partnersLimit: limits.partners,
+      usersLimit: limits.users,
+      trialEndsAt,
       paymentFailedAt: null,
+      ...(planPeriod !== undefined && { planPeriod }),
     },
-    select: {
-      plan: true,
-      defaultProgramId: true,
+    include: {
       users: {
+        where: {
+          role: "owner",
+          user: {
+            isMachine: false,
+          },
+        },
         select: {
           user: {
             select: {
@@ -86,11 +119,6 @@ export async function checkoutSessionCompleted(
               name: true,
               email: true,
             },
-          },
-        },
-        where: {
-          user: {
-            isMachine: false,
           },
         },
       },
@@ -102,40 +130,47 @@ export async function checkoutSessionCompleted(
     },
   });
 
-  const users = workspace.users.map(({ user }) => ({
+  const users = updatedWorkspace.users.map(({ user }) => ({
     id: user.id,
     name: user.name,
     email: user.email,
   }));
 
   await Promise.allSettled([
-    completeOnboarding({ users, workspaceId }),
-    sendBatchEmail(
-      users.map((user) => ({
-        to: user.email as string,
-        replyTo: "steven.tey@dub.co",
-        subject: `Thank you for upgrading to Dub ${plan.name}!`,
-        react: UpgradeEmail({
-          name: user.name,
-          email: user.email as string,
-          plan: plan.name,
-          planTier: planTier,
-        }),
-        variant: "marketing",
-      })),
-    ),
-    // enable dub.link premium default domain for the workspace
-    prisma.defaultDomains.update({
-      where: {
-        projectId: workspaceId,
-      },
-      data: {
-        dublink: true,
-      },
-    }),
+    completeOnboarding({ users, workspaceId, subscription }),
+    // if workspace had a program from before and is upgrading to an eligible plan, reactivate it
+    updatedWorkspace.defaultProgramId &&
+      wouldGainPartnerAccess({
+        currentPlan: "free",
+        newPlan: updatedWorkspace.plan,
+      }) &&
+      reactivateProgram(updatedWorkspace.defaultProgramId),
+    // If no programOnboarding data (Links trial), send TrialStartedEmail
+    // For program trial we send it in create-program.ts
+    subscription.status === "trialing" &&
+      !updatedWorkspace.store?.["programOnboarding"] &&
+      sendBatchEmail(
+        users.map((user) => ({
+          to: user.email as string,
+          replyTo: "steven.tey@dub.co",
+          subject: "Welcome to your 14-day Dub trial",
+          react: TrialStartedEmail({
+            email: user.email as string,
+            plan: plan.name,
+            workspace: {
+              slug: updatedWorkspace.slug,
+              logo: updatedWorkspace.logo,
+              name: updatedWorkspace.name,
+            },
+          }),
+          variant: "marketing",
+        })),
+      ),
     // expire tokens cache
     tokenCache.expireMany({
-      hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
+      hashedKeys: updatedWorkspace.restrictedTokens.map(
+        ({ hashedKey }) => hashedKey,
+      ),
     }),
   ]);
 
@@ -143,77 +178,67 @@ export async function checkoutSessionCompleted(
 }
 
 async function completeOnboarding({
-  users,
   workspaceId,
+  users,
+  subscription,
 }: {
-  users: Pick<User, "id" | "email">[];
   workspaceId: string;
+  users: Pick<User, "id" | "email">[];
+  subscription: Pick<Stripe.Subscription, "status">;
 }) {
-  const workspace = (await prisma.project.findUnique({
+  const workspace = await prisma.project.findUnique({
     where: {
       id: workspaceId,
     },
-    include: {
-      users: true,
-      programs: true,
-    },
-  })) as unknown as (WorkspaceProps & { programs: Program[] }) | null;
+  });
 
   if (!workspace) {
-    console.error("Failed to complete onboarding for workspace", workspaceId);
+    console.error(
+      "Failed to find workspace in completeOnboarding",
+      workspaceId,
+    );
     return;
   }
 
   await Promise.allSettled([
-    // Complete onboarding for workspace users
     onboardingStepCache.mset({
       userIds: users.map(({ id }) => id),
       step: "completed",
     }),
 
-    (async () => {
-      // Register saved domain
-      const data = await redis.get<{ domain: string; userId: string }>(
-        `onboarding-domain:${workspaceId}`,
-      );
-      if (data && data.domain && data.userId) {
-        const { domain, userId } = data;
+    // Create program based on programOnboarding data
+    users.length > 0 &&
+      workspace.store?.["programOnboarding"] &&
+      createProgram({
+        workspace,
+        user: users[0],
+      }).catch((error) => {
+        console.error("Failed to create program in completeOnboarding", error);
+        return;
+      }),
 
-        try {
+    // Claim saved domain (only if subscription is active)
+    subscription.status === "active" &&
+      (async () => {
+        // Register saved domain
+        const data = await redis.get<{ domain: string; userId: string }>(
+          `onboarding-domain:${workspaceId}`,
+        );
+        if (data && data.domain && data.userId) {
+          const { domain, userId } = data;
+
           await claimDotLinkDomain({
             domain,
             userId,
             workspace,
+          }).catch((error) => {
+            console.error(
+              "Failed to claim saved domain in completeOnboarding",
+              error,
+            );
+            return;
           });
-          await redis.del(`onboarding-domain:${workspaceId}`);
-        } catch (e) {
-          console.error(
-            "Failed to register saved domain from onboarding",
-            { domain, userId, workspace },
-            e,
-          );
         }
-      }
-
-      // Create program
-      if (
-        users.length > 0 &&
-        workspace.programs.length === 0 &&
-        workspace.store?.programOnboarding
-      ) {
-        try {
-          await createProgram({
-            workspace,
-            user: users[0],
-          });
-        } catch (e) {
-          console.error(
-            "Failed to create program from onboarding",
-            prettyPrint({ workspace, user: users[0] }),
-            e,
-          );
-        }
-      }
-    })(),
+      })(),
   ]);
 }

@@ -31,7 +31,6 @@ export function dubDiscountToStripeCoupon(
   }
 
   const stripeCouponData: Stripe.CouponCreateParams = {
-    currency: "usd",
     duration,
     ...(duration === "repeating" &&
       durationInMonths && {
@@ -39,7 +38,8 @@ export function dubDiscountToStripeCoupon(
       }),
     ...(discount.type === "percentage"
       ? { percent_off: discount.amount }
-      : { amount_off: discount.amount }),
+      : // `currency` is required if amount_off is passed: https://docs.stripe.com/api/coupons/create#create_coupon-currency
+        { amount_off: discount.amount, currency: "usd" }),
     ...(discount.name && { name: discount.name }),
   };
 
@@ -51,7 +51,7 @@ export function dubDiscountToStripeCoupon(
  */
 export function stripeCouponToDubDiscount(
   stripeCoupon: Stripe.Coupon,
-): DubDiscountAttributes {
+): DubDiscountAttributes & { id: string } {
   // Determine discount type and amount
   const type: RewardStructure = stripeCoupon.percent_off
     ? "percentage"
@@ -74,6 +74,7 @@ export function stripeCouponToDubDiscount(
   }
 
   return {
+    id: stripeCoupon.id,
     amount,
     type,
     maxDuration,

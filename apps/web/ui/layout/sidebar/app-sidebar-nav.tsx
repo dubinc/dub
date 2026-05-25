@@ -1,7 +1,7 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
+import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
@@ -10,10 +10,9 @@ import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
-import { useProgramReferralsCount } from "@/lib/swr/use-program-referrals-count";
+import { useProgramSubmittedLeadsCount } from "@/lib/swr/use-program-submitted-leads-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import useWorkspaces from "@/lib/swr/use-workspaces";
-import { useRouterStuff } from "@dub/ui";
+import { type Icon, useRouterStuff } from "@dub/ui";
 import {
   Bell,
   Brush,
@@ -46,10 +45,11 @@ import {
   Users6,
   Webhook,
 } from "@dub/ui/icons";
+import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
-import { ReactNode, useEffect, useMemo } from "react";
+import { ReactNode, useMemo } from "react";
 import { DubPartnersPopup } from "./dub-partners-popup";
 import { Compass } from "./icons/compass";
 import { ConnectedDots4 } from "./icons/connected-dots4";
@@ -74,118 +74,48 @@ type SidebarNavData = {
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   pendingFraudEventsCount?: number;
-  pendingReferralsCount?: number;
+  pendingLeadsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
 };
 
-const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ slug, pathname }) => [
-  {
-    name: "Short Links",
-    description:
-      "Create, organize, and measure the performance of your short links.",
-    learnMoreHref: "https://dub.co/links",
-    icon: Compass,
-    href: slug ? `/${slug}/links` : "/links",
-    active:
-      !!slug &&
-      pathname.startsWith(`/${slug}`) &&
-      !pathname.startsWith(`/${slug}/program`) &&
-      !pathname.startsWith(`/${slug}/settings`),
-  },
-  {
+const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
+  slug,
+  pathname,
+  defaultProgramId,
+}) => {
+  const programGroup = {
+    id: "program",
     name: "Partner Program",
     description:
       "Kickstart viral product-led growth with powerful, branded referral and affiliate programs.",
     learnMoreHref: "https://dub.co/partners",
     icon: ConnectedDots4,
     href: slug ? `/${slug}/program` : "/program",
-    active: pathname.startsWith(`/${slug}/program`),
+    active:
+      !!slug &&
+      pathname.startsWith(`/${slug}`) &&
+      !pathname.startsWith(`/${slug}/links`) &&
+      !pathname.startsWith(`/${slug}/settings`),
     popup: DubPartnersPopup,
-  },
-];
+  };
+  const linksGroup = {
+    id: "links",
+    name: "Short Links",
+    description:
+      "Create, organize, and measure the performance of your short links.",
+    learnMoreHref: "https://dub.co/links",
+    icon: Compass,
+    href: slug ? `/${slug}/links` : "/links",
+    active: pathname.startsWith(`/${slug}/links`),
+  };
+  return defaultProgramId
+    ? [programGroup, linksGroup]
+    : [linksGroup, programGroup];
+};
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
-  // Top-level
-  default: ({ slug, pathname, queryString, showNews }) => ({
-    title: "Short Links",
-    showNews,
-    direction: "left",
-    content: [
-      {
-        items: [
-          {
-            name: "Links",
-            icon: Hyperlink,
-            href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
-            isActive: (pathname: string, href: string) => {
-              const basePath = href.split("?")[0];
-
-              // Exact match for the base links page
-              if (pathname === basePath) return true;
-
-              // Check if it's a link detail page (path segment after base contains a dot for domain)
-              if (pathname.startsWith(basePath + "/")) {
-                const nextSegment = pathname
-                  .slice(basePath.length + 1)
-                  .split("/")[0];
-                return nextSegment.includes(".");
-              }
-
-              return false;
-            },
-          },
-          {
-            name: "Domains",
-            icon: Globe,
-            href: `/${slug}/links/domains`,
-          },
-        ],
-      },
-      {
-        name: "Insights",
-        items: [
-          {
-            name: "Analytics",
-            icon: LinesY,
-            href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
-          },
-          {
-            name: "Events",
-            icon: CursorRays,
-            href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
-          },
-          {
-            name: "Customers",
-            icon: User,
-            href: `/${slug}/customers`,
-          },
-        ],
-      },
-      {
-        name: "Library",
-        items: [
-          {
-            name: "Folders",
-            icon: Folder,
-            href: `/${slug}/links/folders`,
-          },
-          {
-            name: "Tags",
-            icon: Tag,
-            href: `/${slug}/links/tags`,
-          },
-          {
-            name: "UTM Templates",
-            icon: DiamondTurnRight,
-            href: `/${slug}/links/utm`,
-          },
-        ],
-      },
-    ],
-  }),
-
-  // Program
+  // partner program
   program: ({
     slug,
     showNews,
@@ -194,7 +124,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     submittedBountiesCount,
     unreadMessagesCount,
     pendingFraudEventsCount,
-    pendingReferralsCount,
+    pendingLeadsCount,
     partnerNetworkEnabled,
   }) => ({
     title: "Partner Program",
@@ -279,12 +209,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Customers",
-            icon: User,
+            icon: User as Icon,
             href: `/${slug}/program/customers`,
-            badge: pendingReferralsCount
-              ? pendingReferralsCount > 99
+            badge: pendingLeadsCount
+              ? pendingLeadsCount > 99
                 ? "99+"
-                : pendingReferralsCount
+                : pendingLeadsCount
               : undefined,
           },
           {
@@ -352,6 +282,84 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             arrow: true,
             href: `/${slug}/program/groups/default/branding`,
             isActive: () => false,
+          },
+        ],
+      },
+    ],
+  }),
+  // short links
+  links: ({ slug, pathname, queryString, showNews }) => ({
+    title: "Short Links",
+    showNews,
+    direction: "left",
+    content: [
+      {
+        items: [
+          {
+            name: "Links",
+            icon: Hyperlink,
+            href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
+            isActive: (pathname: string, href: string) => {
+              const basePath = href.split("?")[0];
+
+              // Exact match for the base links page
+              if (pathname === basePath) return true;
+
+              // Check if it's a link detail page (path segment after base contains a dot for domain)
+              if (pathname.startsWith(basePath + "/")) {
+                const nextSegment = pathname
+                  .slice(basePath.length + 1)
+                  .split("/")[0];
+                return nextSegment.includes(".");
+              }
+
+              return false;
+            },
+          },
+          {
+            name: "Domains",
+            icon: Globe,
+            href: `/${slug}/links/domains`,
+          },
+        ],
+      },
+      {
+        name: "Insights",
+        items: [
+          {
+            name: "Analytics",
+            icon: LinesY,
+            href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
+          },
+          {
+            name: "Events",
+            icon: CursorRays,
+            href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
+          },
+          {
+            name: "Customers",
+            icon: User,
+            href: `/${slug}/customers`,
+          },
+        ],
+      },
+      {
+        name: "Library",
+        items: [
+          {
+            name: "Folders",
+            icon: Folder,
+            href: `/${slug}/links/folders`,
+          },
+          {
+            name: "Tags",
+            icon: Tag,
+            href: `/${slug}/links/tags`,
+          },
+          {
+            name: "UTM Templates",
+            icon: DiamondTurnRight,
+            href: `/${slug}/links/utm`,
           },
         ],
       },
@@ -470,7 +478,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Notifications",
             icon: Bell,
-            href: `/${slug}/settings/notifications`,
+            href: "/settings/notifications",
             arrow: true,
           },
         ],
@@ -486,55 +494,11 @@ export function AppSidebarNav({
   toolContent?: ReactNode;
   newsContent?: ReactNode;
 }) {
-  const { slug: paramsSlug } = useParams() as { slug?: string };
+  const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
-  const { data: session, status } = useSession();
-  const { plan, defaultProgramId } = useWorkspace();
-  const { workspaces } = useWorkspaces();
-
-  // Store the current workspace slug in sessionStorage so we can remember it on account settings pages
-  useEffect(() => {
-    if (paramsSlug) {
-      sessionStorage.setItem("dub_last_workspace", paramsSlug);
-    }
-  }, [paramsSlug]);
-
-  // Validate and clear sessionStorage if user doesn't have access to the stored workspace
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      // Clear sessionStorage on logout
-      sessionStorage.removeItem("dub_last_workspace");
-      return;
-    }
-
-    if (workspaces && typeof window !== "undefined") {
-      const storedSlug = sessionStorage.getItem("dub_last_workspace");
-      if (storedSlug && !paramsSlug) {
-        // Only validate if we're not currently on a workspace page (to avoid clearing during navigation)
-        const hasAccess = workspaces.some((w) => w.slug === storedSlug);
-        if (!hasAccess) {
-          // User doesn't have access to the stored workspace, clear it
-          sessionStorage.removeItem("dub_last_workspace");
-        }
-      }
-    }
-  }, [workspaces, status, paramsSlug]);
-
-  // Use params slug when available, otherwise try sessionStorage (last visited workspace), then fall back to default workspace
-  const slug =
-    paramsSlug ||
-    (typeof window !== "undefined" && workspaces
-      ? (() => {
-          const storedSlug = sessionStorage.getItem("dub_last_workspace");
-          // Validate that the stored slug is accessible by the current user
-          if (storedSlug && workspaces.some((w) => w.slug === storedSlug)) {
-            return storedSlug;
-          }
-          return null;
-        })()
-      : null) ||
-    session?.user?.["defaultWorkspace"];
+  const { data: session } = useSession();
+  const { plan, defaultProgramId, trialEndsAt } = useWorkspace();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -547,7 +511,7 @@ export function AppSidebarNav({
           ? null
           : pathname.startsWith(`/${slug}/program`)
             ? "program"
-            : "default";
+            : "links";
   }, [slug, pathname]);
 
   const { program } = useProgram({
@@ -590,13 +554,13 @@ export function AppSidebarNav({
     ignoreParams: true,
   });
 
-  const { data: pendingReferralsCount } = useProgramReferralsCount<number>({
+  const { data: pendingLeadsCount } = useProgramSubmittedLeadsCount<number>({
     query: { status: "pending" },
     ignoreParams: true,
     enabled: Boolean(
       currentArea === "program" &&
         defaultProgramId &&
-        REFERRAL_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
+        SUBMITTED_LEADS_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
     ),
   });
 
@@ -621,14 +585,21 @@ export function AppSidebarNav({
         submittedBountiesCount,
         unreadMessagesCount,
         pendingFraudEventsCount,
-        pendingReferralsCount,
+        pendingLeadsCount,
         showConversionGuides:
           canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
       }}
       toolContent={toolContent}
-      newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}
+      newsContent={
+        plan &&
+        (plan === "free" || isWorkspaceBillingTrialActive(trialEndsAt) ? (
+          <SidebarUsage />
+        ) : (
+          newsContent
+        ))
+      }
       switcher={<WorkspaceDropdown />}
     />
   );

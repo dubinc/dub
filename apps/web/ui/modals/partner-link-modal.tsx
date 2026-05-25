@@ -98,7 +98,7 @@ function QRCodePreview({
     `qr-code-design-program-${programEnrollment?.program?.id}`,
     {
       fgColor: "#000000",
-      logo: logo ?? undefined,
+      hideLogo: false,
     },
   );
 

@@ -1,11 +1,11 @@
 import { DubApiError } from "@/lib/api/errors";
 import { createLink } from "@/lib/api/links";
 import { registerDomain } from "@/lib/dynadot/register-domain";
-import { WorkspaceWithUsers } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
 import DomainClaimed from "@dub/email/templates/domain-claimed";
 import { prisma } from "@dub/prisma";
-import { DEFAULT_LINK_PROPS } from "@dub/utils";
+import { Project } from "@dub/prisma/client";
+import { DEFAULT_LINK_PROPS, isWorkspaceBillingTrialActive } from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import { waitUntil } from "@vercel/functions";
 import { addDomainToVercel } from "./add-domain-vercel";
@@ -19,7 +19,10 @@ export async function claimDotLinkDomain({
   skipWorkspaceChecks = false,
 }: {
   domain: string;
-  workspace: WorkspaceWithUsers;
+  workspace: Pick<
+    Project,
+    "id" | "slug" | "plan" | "stripeId" | "trialEndsAt" | "dotLinkClaimed"
+  >;
   userId: string;
   skipWorkspaceChecks?: boolean; // when used in /api/domains/register
 }) {
@@ -33,7 +36,8 @@ export async function claimDotLinkDomain({
     if (!workspace.stripeId) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You cannot register a .link domain on a free trial.",
+        message:
+          "You cannot register a .link domain until you add a payment method.",
       });
     }
 
@@ -43,6 +47,13 @@ export async function claimDotLinkDomain({
         message: "You are limited to one free .link domain per workspace.",
       });
     }
+  }
+
+  if (isWorkspaceBillingTrialActive(workspace.trialEndsAt)) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You cannot register a .link domain during your free trial.",
+    });
   }
 
   const customDomainTerms = await get("customDomainTerms");
@@ -155,7 +166,7 @@ export const sendDomainClaimedEmails = async ({
   workspace,
   domain,
 }: {
-  workspace: Pick<WorkspaceWithUsers, "id" | "slug">;
+  workspace: Pick<Project, "id" | "slug">;
   domain: string;
 }) => {
   const workspaceWithOwner = await prisma.project.findUniqueOrThrow({

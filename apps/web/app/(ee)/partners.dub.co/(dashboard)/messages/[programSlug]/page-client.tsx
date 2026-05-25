@@ -11,6 +11,7 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { useProgramMessages } from "@/lib/swr/use-program-messages";
 import useUser from "@/lib/swr/use-user";
 import { ProgramEnrollmentProps } from "@/lib/types";
+import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
@@ -89,6 +90,47 @@ export function PartnerMessagesProgramPageClient() {
   const program = programMessages?.[0]?.program;
   const messages = programMessages?.[0]?.messages;
 
+  const isBannedOrRejected = ["banned", "rejected"].includes(
+    programEnrollment?.status ?? "",
+  );
+  const shouldShowExternalSupportEmptyState =
+    program?.messagingEnabledAt === null || isBannedOrRejected;
+
+  const ExternalSupportEmptyState = () => {
+    return (
+      <div className="flex size-full flex-col items-center justify-center px-4">
+        <MsgsDotted className="size-10 text-neutral-700" />
+        <div className="mt-6 max-w-md text-center">
+          <span className="text-content-emphasis text-base font-semibold">
+            {isBannedOrRejected
+              ? `This program has ${programEnrollment?.status} you`
+              : "This program uses external support"}
+          </span>
+          <p className="text-content-subtle text-sm font-medium">
+            {isBannedOrRejected
+              ? "For more information, please contact the program via email."
+              : "You can contact them directly via email."}
+          </p>
+        </div>
+        <a
+          href={
+            enrolledProgram?.supportEmail
+              ? `mailto:${enrolledProgram.supportEmail}`
+              : "#"
+          }
+          target="_blank"
+        >
+          <Button
+            className="mt-4 h-9 rounded-lg px-3"
+            variant="secondary"
+            text={isBannedOrRejected ? "Contact program" : "Email support"}
+            icon={<EnvelopeArrowRight className="size-4" />}
+          />
+        </a>
+      </div>
+    );
+  };
+
   const { executeAsync: sendMessage } = useAction(messageProgramAction, {
     onError({ error }) {
       toast.error(parseActionError(error, "Failed to send message"));
@@ -127,19 +169,19 @@ export function PartnerMessagesProgramPageClient() {
                 type="button"
                 onClick={() => setIsRightPanelOpen((o) => !o)}
                 disabled={!programEnrollment}
-                className="-mx-2 -my-1 flex items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-100 enabled:hover:bg-black/5 enabled:active:bg-black/10"
+                className="-mx-2 -my-1 flex items-center gap-2 rounded-lg px-2.5 py-1.5 transition-colors duration-100 enabled:hover:bg-black/5 enabled:active:bg-black/10"
               >
                 {!program ? (
                   <>
-                    <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
-                    <div className="h-8 w-36 animate-pulse rounded-md bg-neutral-200" />
+                    <div className="size-7 animate-pulse rounded-full bg-neutral-200" />
+                    <div className="h-7 w-36 animate-pulse rounded-md bg-neutral-200" />
                   </>
                 ) : (
                   <>
                     <img
                       src={program?.logo || "https://assets.dub.co/logo.png"}
                       alt={`${program?.name} logo`}
-                      className="size-8 shrink-0 rounded-full"
+                      className="size-7 shrink-0 rounded-full"
                     />
                     <h2 className="text-content-emphasis text-lg font-semibold leading-7">
                       {program?.name ?? "Program"}
@@ -158,34 +200,8 @@ export function PartnerMessagesProgramPageClient() {
             <ViewProgramButton programSlug={programSlug} />
           ) : null}
         </div>
-        {["banned", "rejected"].includes(programEnrollment?.status ?? "") ||
-        (program?.messagingEnabledAt === null &&
-          messages &&
-          !messages.length) ? (
-          <div className="flex size-full flex-col items-center justify-center px-4">
-            <MsgsDotted className="size-10 text-neutral-700" />
-            <div className="mt-6 max-w-md text-center">
-              <span className="text-content-emphasis text-base font-semibold">
-                This program uses external support
-              </span>
-              <p className="text-content-subtle text-sm font-medium">
-                You can contact them directly via email.
-              </p>
-            </div>
-            {enrolledProgram?.supportEmail && (
-              <Link
-                href={`mailto:${enrolledProgram.supportEmail}`}
-                target="_blank"
-              >
-                <Button
-                  className="mt-4 h-9 rounded-lg px-3"
-                  variant="secondary"
-                  text="Email support"
-                  icon={<EnvelopeArrowRight className="size-4" />}
-                />
-              </Link>
-            )}
-          </div>
+        {shouldShowExternalSupportEmptyState && messages?.length === 0 ? (
+          <ExternalSupportEmptyState />
         ) : (
           <div className="min-h-0 grow">
             <MessagesPanel
@@ -194,6 +210,15 @@ export function PartnerMessagesProgramPageClient() {
               currentUserType="partner"
               currentUserId={partner?.id || ""}
               program={program}
+              {...(shouldShowExternalSupportEmptyState && messages?.length
+                ? {
+                    footerSlot: (
+                      <div className="py-12">
+                        <ExternalSupportEmptyState />
+                      </div>
+                    ),
+                  }
+                : {})}
               onSendMessage={async (message) => {
                 const createdAt = new Date();
 
@@ -344,67 +369,71 @@ function ProgramInfoPanel({
               {program.name}
             </span>
             <span className="text-content-subtle text-sm font-medium">
-              Partner since {formatDate(programEnrollment.createdAt)}
+              {INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)
+                ? `You are ${programEnrollment.status} from this program`
+                : `Partner since ${formatDate(programEnrollment.createdAt)}`}
             </span>
           </div>
         </div>
       </div>
 
       {/* Referral link */}
-      {programEnrollment.links && programEnrollment.links.length > 0 && (
-        <div className="pl-6 pr-6 pt-7">
-          <div className="flex items-end justify-between">
-            <h3 className="text-content-emphasis text-sm font-semibold">
-              Referral link
-            </h3>
-            <Link
-              href={`/programs/${program.slug}/links`}
-              target="_blank"
-              className="text-sm font-medium text-neutral-500 hover:text-neutral-700"
-            >
-              View all
-            </Link>
-          </div>
+      {programEnrollment.links &&
+        programEnrollment.links.length > 0 &&
+        !INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status) && (
+          <div className="pl-6 pr-6 pt-7">
+            <div className="flex items-end justify-between">
+              <h3 className="text-content-emphasis text-sm font-semibold">
+                Referral link
+              </h3>
+              <Link
+                href={`/programs/${program.slug}/links`}
+                target="_blank"
+                className="text-sm font-medium text-neutral-500 hover:text-neutral-700"
+              >
+                View all
+              </Link>
+            </div>
 
-          <div className="relative mt-2">
-            <input
-              type="text"
-              readOnly
-              value={getPrettyUrl(partnerLink)}
-              className="text-content-default focus:border-border-emphasis bg-bg-default block h-11 w-full rounded-xl border border-neutral-200 pl-3 pr-12 text-sm focus:outline-none focus:ring-neutral-500"
-            />
-            {/* Gradient fade overlay */}
-            <div className="pointer-events-none absolute right-12 top-1 h-8 w-10 bg-gradient-to-r from-transparent to-white" />
-            <button
-              type="button"
-              onClick={() => {
-                copyToClipboard(partnerLink);
-                toast.success("Link copied");
-              }}
-              className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg bg-neutral-900 text-white transition-colors hover:bg-gray-800"
-            >
-              <div className="relative size-3">
-                <div
-                  className={cn(
-                    "absolute inset-0 transition-[transform,opacity]",
-                    copied && "translate-y-1 opacity-0",
-                  )}
-                >
-                  <Copy className="size-3" />
+            <div className="relative mt-2">
+              <input
+                type="text"
+                readOnly
+                value={getPrettyUrl(partnerLink)}
+                className="text-content-default focus:border-border-emphasis bg-bg-default block h-11 w-full rounded-xl border border-neutral-200 pl-3 pr-12 text-sm focus:outline-none focus:ring-neutral-500"
+              />
+              {/* Gradient fade overlay */}
+              <div className="pointer-events-none absolute right-12 top-1 h-8 w-10 bg-gradient-to-r from-transparent to-white" />
+              <button
+                type="button"
+                onClick={() => {
+                  copyToClipboard(partnerLink);
+                  toast.success("Link copied");
+                }}
+                className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg bg-neutral-900 text-white transition-colors hover:bg-gray-800"
+              >
+                <div className="relative size-3">
+                  <div
+                    className={cn(
+                      "absolute inset-0 transition-[transform,opacity]",
+                      copied && "translate-y-1 opacity-0",
+                    )}
+                  >
+                    <Copy className="size-3" />
+                  </div>
+                  <div
+                    className={cn(
+                      "absolute inset-0 transition-[transform,opacity]",
+                      !copied && "translate-y-1 opacity-0",
+                    )}
+                  >
+                    <Check className="size-3" />
+                  </div>
                 </div>
-                <div
-                  className={cn(
-                    "absolute inset-0 transition-[transform,opacity]",
-                    !copied && "translate-y-1 opacity-0",
-                  )}
-                >
-                  <Check className="size-3" />
-                </div>
-              </div>
-            </button>
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Stats */}
       <div className="pl-6 pr-6 pt-7">
@@ -451,22 +480,26 @@ function ProgramInfoPanel({
       </div>
 
       {/* Rewards */}
-      <div className="pl-6 pr-6 pt-7">
-        <h3 className="text-content-emphasis text-sm font-semibold">Rewards</h3>
-        <div className="mt-1">
-          <ProgramRewardsPanel
-            rewards={programEnrollment.rewards ?? []}
-            discount={programEnrollment.discount}
-          />
+      {!INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status) && (
+        <div className="pl-6 pr-6 pt-7">
+          <h3 className="text-content-emphasis text-sm font-semibold">
+            Rewards
+          </h3>
+          <div className="mt-1">
+            <ProgramRewardsPanel
+              rewards={programEnrollment.rewards ?? []}
+              discount={programEnrollment.discount}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Help & support */}
       <div className="border-border-subtle pl-6 pr-6 pt-7">
         <h3 className="text-content-emphasis text-sm font-semibold">
           Help and support
         </h3>
-        <div className="mt-1">
+        <div className="-ml-2 mt-1">
           <ProgramHelpLinks />
         </div>
       </div>

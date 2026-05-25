@@ -12,6 +12,7 @@ import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
+import { FraudRuleType } from "@dub/prisma/client";
 import { log, prettyPrint, R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 
@@ -62,11 +63,11 @@ export async function POST(req: Request) {
         id: true,
         email: true,
         image: true,
-        payoutMethodHash: true,
         programs: {
           select: {
             programId: true,
             tenantId: true,
+            status: true,
           },
         },
         users: {
@@ -244,7 +245,6 @@ export async function POST(req: Request) {
           syncTotalCommissions({
             partnerId: targetPartnerId,
             programId,
-            mode: "direct",
           }),
         ),
       ]);
@@ -263,8 +263,24 @@ export async function POST(req: Request) {
         const targetEnrollment = targetPartnerEnrollments.find(
           ({ programId }) => programId === sourceEnrollment.programId,
         );
+
         await prisma.$transaction(async (tx) => {
-          // delete old source enrollment
+          if (
+            targetEnrollment &&
+            sourceEnrollment.status === "approved" &&
+            ["pending", "invited"].includes(targetEnrollment.status)
+          ) {
+            await tx.programEnrollment.update({
+              where: {
+                partnerId_programId: {
+                  partnerId: targetPartnerId,
+                  programId: sourceEnrollment.programId,
+                },
+              },
+              data: { status: "approved" },
+            });
+          }
+
           await tx.programEnrollment.delete({
             where: {
               partnerId_programId: {
@@ -343,6 +359,65 @@ export async function POST(req: Request) {
       }
     }
 
+    const fraudEventsToDelete = await prisma.fraudEvent.findMany({
+      where: {
+        partnerId: sourcePartnerId,
+        fraudEventGroup: {
+          type: FraudRuleType.partnerDuplicateAccount,
+        },
+      },
+      include: {
+        fraudEventGroup: {
+          select: {
+            id: true,
+            _count: {
+              select: {
+                fraudEvents: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (fraudEventsToDelete.length > 0) {
+      await prisma.fraudEvent.deleteMany({
+        where: {
+          id: { in: fraudEventsToDelete.map((e) => e.id) },
+        },
+      });
+    }
+
+    const fraudEventGroupsToResolve = fraudEventsToDelete.filter(
+      // this is the count pre-deletion the fraud event, so if there are 2 fraud events
+      // that means post-deletion will leave 1 fraud event in the group (no additional duplicates), hence can be resolved
+      (e) => e.fraudEventGroup._count.fraudEvents === 2,
+    );
+
+    await resolveFraudGroups({
+      where: {
+        OR: [
+          {
+            partnerId: sourcePartnerId,
+          },
+          ...(fraudEventGroupsToResolve.length > 0
+            ? [
+                {
+                  id: {
+                    in: fraudEventGroupsToResolve.map(
+                      (e) => e.fraudEventGroup.id,
+                    ),
+                  },
+                },
+              ]
+            : []),
+        ],
+        type: FraudRuleType.partnerDuplicateAccount,
+      },
+      resolutionReason:
+        "Automatically resolved because partners with duplicate payout methods were merged. No other partners share this payout method.",
+    });
+
     try {
       // Finally, delete the partner account
       await conn.execute(`DELETE FROM Partner WHERE id = ?`, [sourcePartnerId]);
@@ -359,28 +434,6 @@ export async function POST(req: Request) {
       console.error(
         `Error deleting partner ${sourcePartnerId}: ${error.message}`,
       );
-    }
-
-    // After merging, check if the fraud condition has been resolved.
-    // If no other partners share the same payout method hash, we can
-    // automatically resolve any pending fraud groups for this partner.
-    if (targetAccount.payoutMethodHash) {
-      const duplicatePartners = await prisma.partner.count({
-        where: {
-          payoutMethodHash: targetAccount.payoutMethodHash,
-        },
-      });
-
-      if (duplicatePartners <= 1) {
-        await resolveFraudGroups({
-          where: {
-            partnerId: targetPartnerId,
-            type: "partnerDuplicatePayoutMethod",
-          },
-          resolutionReason:
-            "Automatically resolved because partners with duplicate payout methods were merged. No other partners share this payout method.",
-        });
-      }
     }
 
     // Make sure the cache is cleared

@@ -1,7 +1,12 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getCommissionsCountQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
-import { CommissionStatus, FraudEventStatus } from "@dub/prisma/client";
+import {
+  CommissionStatus,
+  CommissionType,
+  FraudEventStatus,
+} from "@dub/prisma/client";
+import { parseFilterValue } from "@dub/utils";
 import * as z from "zod/v4";
 
 type CommissionsCountFilters = z.infer<
@@ -20,6 +25,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     payoutId,
     customerId,
     groupId,
+    partnerTagId,
     fraudEventGroupId,
     start,
     end,
@@ -65,8 +71,22 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
         ],
       };
 
+  const groupFilter = parseFilterValue(groupId);
+  const partnerTagFilter = parseFilterValue(partnerTagId);
+
   const programEnrollmentFilter = {
-    ...(groupId && { groupId }),
+    ...(groupFilter && {
+      groupId:
+        groupFilter.sqlOperator === "NOT IN"
+          ? { notIn: groupFilter.values }
+          : { in: groupFilter.values },
+    }),
+    ...(partnerTagFilter && {
+      programPartnerTags:
+        partnerTagFilter.sqlOperator === "NOT IN"
+          ? { none: { partnerTagId: { in: partnerTagFilter.values } } }
+          : { some: { partnerTagId: { in: partnerTagFilter.values } } },
+    }),
     ...(isHoldStatus && {
       fraudEventGroups: {
         some: {
@@ -76,6 +96,10 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     }),
   };
 
+  const partnerFilter = parseFilterValue(partnerId);
+  const customerFilter = parseFilterValue(customerId);
+  const typeFilter = parseFilterValue(type);
+
   const commissionsCount = await prisma.commission.groupBy({
     by: ["status"],
     where: {
@@ -83,11 +107,26 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
         not: 0,
       },
       programId,
-      partnerId,
+      ...(partnerFilter && {
+        partnerId:
+          partnerFilter.sqlOperator === "NOT IN"
+            ? { notIn: partnerFilter.values }
+            : { in: partnerFilter.values },
+      }),
       status: statusFilter,
-      type,
+      ...(typeFilter && {
+        type:
+          typeFilter.sqlOperator === "NOT IN"
+            ? { notIn: typeFilter.values as CommissionType[] }
+            : { in: typeFilter.values as CommissionType[] },
+      }),
       payoutId,
-      customerId,
+      ...(customerFilter && {
+        customerId:
+          customerFilter.sqlOperator === "NOT IN"
+            ? { notIn: customerFilter.values }
+            : { in: customerFilter.values },
+      }),
       ...(eventIds && {
         eventId: {
           in: eventIds,
@@ -95,7 +134,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       }),
       createdAt: {
         gte: startDate,
-        lte: endDate,
+        lt: endDate,
       },
       ...(Object.keys(programEnrollmentFilter).length > 0 && {
         programEnrollment: programEnrollmentFilter,

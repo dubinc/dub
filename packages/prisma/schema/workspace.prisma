@@ -1,3 +1,10 @@
+enum PlanPeriod {
+  monthly
+  yearly
+  quarterly
+  biweekly
+}
+
 model Project {
   id               String  @id @default(cuid())
   name             String
@@ -6,12 +13,16 @@ model Project {
   inviteCode       String? @unique
   defaultProgramId String? @unique // default affiliate program ID for the workspace
 
-  plan              String    @default("free")
-  planTier          Int       @default(1)
-  stripeId          String?   @unique // Stripe subscription ID
-  billingCycleStart Int // day of the month when the billing cycle starts
-  paymentFailedAt   DateTime?
-  invoicePrefix     String?   @unique // prefix used to generate unique invoice numbers (for Dub Payouts)
+  plan                   String      @default("free")
+  planTier               Int         @default(1)
+  planPeriod             PlanPeriod? // monthly, yearly, etc. from Stripe price.recurring.interval
+  stripeId               String?     @unique // Stripe subscription ID
+  billingCycleStart      Int // day of the month when the billing cycle starts
+  billingCycleEndsAt     DateTime? // derived from Stripe current_period_end
+  trialEndsAt            DateTime? // when set and in the future, the workspace is on a Stripe subscription free trial
+  subscriptionCanceledAt DateTime? // when the workspace's subscription was canceled (or set to cancel)
+  paymentFailedAt        DateTime?
+  invoicePrefix          String?     @unique // prefix used to generate unique invoice numbers (for Dub Payouts)
 
   stripeConnectId String? @unique // for Stripe Integration
   shopifyStoreId  String? @unique // for Shopify Integration
@@ -31,8 +42,11 @@ model Project {
 
   domainsLimit        Int @default(3)
   tagsLimit           Int @default(5)
+  partnerTagsLimit    Int @default(0)
   foldersUsage        Int @default(0)
   foldersLimit        Int @default(0)
+  partnersUsage       Int @default(0)
+  partnersLimit       Int @default(0)
   groupsLimit         Int @default(0)
   usersLimit          Int @default(1)
   aiUsage             Int @default(0)
@@ -42,10 +56,10 @@ model Project {
   referralLinkId  String? @unique
   referredSignups Int     @default(0)
 
-  store            Json? // General key-value store for things like persisting toggles, dismissing popups, etc.
+  store                     Json? // General key-value store for things like persisting toggles, dismissing popups, etc.
   siteVisitTrackingSettings Json? // Site visit tracking: sitemaps, short-link domain, Site Links folder id
-  allowedHostnames Json?
-  publishableKey   String? @unique // for the client-side publishable key
+  allowedHostnames          Json?
+  publishableKey            String? @unique // for the client-side publishable key
 
   conversionEnabled      Boolean @default(false) // Whether to enable conversion tracking for links by default
   webhookEnabled         Boolean @default(false)
@@ -80,6 +94,7 @@ model Project {
   yearInReviews         YearInReview[]
 
   @@index(usageLastChecked(sort: Asc))
+  @@index(trialEndsAt)
 }
 
 enum WorkspaceRole {
@@ -116,7 +131,7 @@ model ProjectUsers {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([userId, projectId])
-  @@index([projectId])
+  @@index(projectId)
 }
 
 // TODO: could potentially combine this with NotificationEmail in the future?
@@ -127,5 +142,5 @@ model SentEmail {
   project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String?
 
-  @@index([projectId])
+  @@index(projectId)
 }

@@ -1,12 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
-import { getPostbackOrThrow } from "@/lib/api/postbacks/get-postback-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
+import { getPostbackOrThrow } from "@/lib/postback/get-postback-or-throw";
 import commissionCreated from "@/lib/postback/sample-events/commission-created.json";
 import leadCreated from "@/lib/postback/sample-events/lead-created.json";
 import saleCreated from "@/lib/postback/sample-events/sale-created.json";
 import { sendTestPostbackInputSchema } from "@/lib/postback/schemas";
+import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { PostbackTrigger } from "@/lib/types";
 import { NextResponse } from "next/server";
 

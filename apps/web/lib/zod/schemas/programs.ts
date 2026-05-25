@@ -21,8 +21,8 @@ import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
 import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
 import { programInviteEmailDataSchema } from "./program-invite-email";
-import { referralFormSchema } from "./referral-form";
 import { RewardSchema } from "./rewards";
+import { submittedLeadFormSchema } from "./submitted-lead-form";
 import { UserSchema } from "./users";
 import { centsSchemaWithDefault, parseDateSchema } from "./utils";
 
@@ -104,10 +104,10 @@ export const updateProgramSchema = z.object({
       message: `Minimum payout amount must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.join(", ")}`,
     }),
   supportEmail: z.email().max(255).nullish(),
-  helpUrl: z.url().max(500).nullish(),
-  termsUrl: z.url().max(500).nullish(),
+  helpUrl: z.httpUrl().max(500).nullish(),
+  termsUrl: z.httpUrl().max(500).nullish(),
   messagingEnabledAt: z.coerce.date().nullish(),
-  referralFormData: referralFormSchema.nullish(),
+  referralFormData: submittedLeadFormSchema.nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
@@ -125,7 +125,7 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
 
 export const ProgramEnrollmentApplicationSchema = z.object({
   rejectionReason: z
-    .nativeEnum(ProgramApplicationRejectionReason)
+    .enum(ProgramApplicationRejectionReason)
     .nullable()
     .describe("Preset reason when the application was rejected."),
   rejectionNote: z
@@ -162,6 +162,7 @@ export const ProgramEnrollmentSchema = z.object({
   clickRewardId: z.string().nullish(),
   leadRewardId: z.string().nullish(),
   saleRewardId: z.string().nullish(),
+  referralRewardId: z.string().nullish(),
   discount: DiscountSchema.nullish(),
   discountId: z.string().nullish(),
   applicationId: z
@@ -194,7 +195,7 @@ export const ProgramEnrollmentSchema = z.object({
   }).nullish(),
   customerDataSharingEnabledAt: z.date().nullable(),
   groupMoveDisabledAt: z.date().nullable(),
-  referralFormData: referralFormSchema.nullish(),
+  referralFormData: submittedLeadFormSchema.nullish(),
   application: ProgramEnrollmentApplicationSchema.nullish().describe(
     "Linked program application, including review outcome when applicable.",
   ),

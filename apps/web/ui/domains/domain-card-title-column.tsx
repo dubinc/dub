@@ -1,6 +1,5 @@
 import { ArrowTurnRight2, Flag2, Globe } from "@dub/ui/icons";
 import { cn, getPrettyUrl, punycode } from "@dub/utils";
-import { Star } from "lucide-react";
 
 export function DomainCardTitleColumn({
   domain,
@@ -50,11 +49,6 @@ export function DomainCardTitleColumn({
             <span className="xs:px-3 xs:py-1 flex items-center gap-1 rounded-full bg-sky-400/[.15] px-1.5 py-0.5 text-xs font-medium text-sky-600">
               <Flag2 className="hidden h-3 w-3 sm:block" />
               Primary
-            </span>
-          ) : defaultDomain && domain === "dub.link" ? (
-            <span className="xs:px-3 xs:py-1 flex items-center gap-1 rounded-full bg-yellow-400/[.25] px-1.5 py-0.5 text-xs font-medium text-yellow-600">
-              <Star className="h-3 w-3" fill="currentColor" />
-              Premium
             </span>
           ) : null}
         </div>

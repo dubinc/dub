@@ -3,7 +3,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { generateRandomName } from "@/lib/names";
-import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
+import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -48,6 +48,24 @@ export async function createShopifyLead({
 
   const { link_id: linkId, country, timestamp } = clickData;
 
+  const partnerLink = await prisma.link.findUnique({
+    where: {
+      id: linkId,
+    },
+    select: {
+      id: true,
+      programId: true,
+      partnerId: true,
+    },
+  });
+
+  if (!partnerLink) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Link not found for linkId: ${linkId}`,
+    });
+  }
+
   // create customer
   const customer = await prisma.customer.create({
     data: {
@@ -56,6 +74,8 @@ export async function createShopifyLead({
       name,
       email,
       projectId: workspaceId,
+      programId: partnerLink.programId,
+      partnerId: partnerLink.partnerId,
       clickedAt: new Date(timestamp + "Z"),
       clickId,
       linkId,

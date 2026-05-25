@@ -7,15 +7,12 @@ import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
   onboardPartnerSchema,
 } from "@/lib/zod/schemas/partners";
-import { CountryCombobox } from "@/ui/partners/country-combobox";
-import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Partner } from "@dub/prisma/client";
 import {
   Button,
   FileUpload,
   ToggleGroup,
-  TooltipContent,
   useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
@@ -40,7 +37,6 @@ export function OnboardingForm({
       Partner,
       | "name"
       | "description"
-      | "country"
       | "image"
       | "profileType"
       | "companyName"
@@ -52,9 +48,7 @@ export function OnboardingForm({
   const searchParams = useSearchParams();
   const { isMobile } = useMediaQuery();
   const [accountCreated, setAccountCreated] = useState(false);
-  const [isCountryComboboxOpen, setIsCountryComboboxOpen] = useState(false);
   const { data: session, update: refreshSession } = useSession();
-  const countryChangeWarning = useCountryChangeWarningModal();
 
   const {
     register,
@@ -68,7 +62,6 @@ export function OnboardingForm({
     defaultValues: {
       name: partner?.name ?? undefined,
       description: partner?.description ?? undefined,
-      country: partner?.country ?? undefined,
       image: partner?.image ?? undefined,
       profileType: partner?.profileType ?? "individual",
       companyName: partner?.companyName ?? undefined,
@@ -116,10 +109,10 @@ export function OnboardingForm({
   return (
     <form
       ref={formRef}
+      method="post"
       onSubmit={handleSubmit(async (data) => await executeAsync(data))}
       className="flex w-full flex-col gap-6 text-left"
     >
-      {countryChangeWarning.modal}
       <label>
         <span className="text-sm font-medium text-neutral-800">Name</span>
         <input
@@ -148,7 +141,7 @@ export function OnboardingForm({
             render={({ field }) => (
               <FileUpload
                 accept="images"
-                className="mt-1.5 size-20 rounded-full border border-neutral-300"
+                className="mt-1.5 size-20 shrink-0 rounded-full border border-neutral-300 transition-[border-color,box-shadow] focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500"
                 iconClassName="size-5"
                 previewClassName="size-20 rounded-full"
                 variant="plain"
@@ -162,63 +155,17 @@ export function OnboardingForm({
             )}
           />
           <div>
-            <p className="text-xs text-neutral-500">
-              Square image recommended, up to 2 MB.
+            <p className="text-xs font-medium text-neutral-600">
+              Visible to programs and helps with approvals
             </p>
-            <p className="mt-0.5 text-xs font-medium text-neutral-500">
-              Adding an image can improve your approval rates.
-            </p>
+            <p className="mt-0.5 text-xs text-neutral-500">Max 2 MB</p>
           </div>
         </div>
       </label>
 
       <label>
-        <span className="text-sm font-medium text-neutral-800">Country</span>
-        <Controller
-          control={control}
-          name="country"
-          rules={{ required: true }}
-          render={({ field }) => (
-            <CountryCombobox
-              {...field}
-              error={errors.country ? true : false}
-              open={isCountryComboboxOpen}
-              onOpenChange={(open) => {
-                if (!open) {
-                  setIsCountryComboboxOpen(false);
-                  return;
-                }
-
-                const shouldShowCountryChangeWarning =
-                  !partner?.payoutsEnabledAt;
-
-                if (shouldShowCountryChangeWarning) {
-                  countryChangeWarning.acknowledgeAndContinue(() => {
-                    setIsCountryComboboxOpen(true);
-                  });
-                  return;
-                }
-
-                setIsCountryComboboxOpen(true);
-              }}
-              disabledTooltip={
-                partner?.payoutsEnabledAt ? (
-                  <TooltipContent
-                    title="Since you've already connected your bank account for payouts, you cannot change your profile country."
-                    cta="Contact support"
-                    href="https://dub.co/support"
-                    target="_blank"
-                  />
-                ) : undefined
-              }
-            />
-          )}
-        />
-      </label>
-
-      <label>
         <span className="text-sm font-medium text-neutral-800">
-          Description
+          About you
           <span className="font-normal text-neutral-500"> (optional)</span>
         </span>
         <div>
@@ -229,7 +176,7 @@ export function OnboardingForm({
                 ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                 : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
             )}
-            placeholder="Tell us about the kind of content you create – e.g. tech, travel, fashion, etc."
+            placeholder="Share who you are, what you do, and who your audience is."
             maxLength={MAX_PARTNER_DESCRIPTION_LENGTH}
             minRows={3}
             onKeyDown={handleKeyDown}

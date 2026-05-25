@@ -10,7 +10,7 @@ enum Category {
   Education
   Health
   Consumer
-  // Prediction_Markets
+  Support
 }
 
 model ProgramCategory {
@@ -52,9 +52,9 @@ model DiscoveredPartner {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  program           Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partner           Partner            @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
 
   @@unique([programId, partnerId])
   @@index(partnerId)

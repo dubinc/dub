@@ -7,7 +7,10 @@ type EnqueueBatchJobsProps = PublishBatchRequest<unknown> & {
     | "ban-partner"
     | "send-partner-summary"
     | "create-discount-code"
-    | "sync-bounty-social-metrics";
+    | "sync-bounty-social-metrics"
+    | "process-hubspot-webhook"
+    | "delete-discount-code"
+    | "create-referral-commissions";
 };
 
 // Generic helper to enqueue a batch of QStash jobs.
@@ -15,14 +18,13 @@ export async function enqueueBatchJobs(jobs: EnqueueBatchJobsProps[]) {
   try {
     const result = await qstash.batchJSON(jobs);
 
-    if (process.env.NODE_ENV === "development") {
-      console.info(
-        `[enqueueBatchJobs] ${result.length} batch jobs enqueued successfully.`,
-        {
-          jobs,
-        },
-      );
-    }
+    console.log(
+      `[enqueueBatchJobs] ${result.length} batch jobs enqueued successfully.`,
+      {
+        result,
+        jobs,
+      },
+    );
 
     return result;
   } catch (error) {

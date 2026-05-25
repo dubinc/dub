@@ -19,6 +19,7 @@ export async function POST(req: Request) {
       rawBody,
     });
 
+    let totalDeletedProgramEnrollments = 0;
     while (true) {
       // rejected programEnrollments more than 30 days ago
       const rejectedProgramEnrollments =
@@ -28,11 +29,9 @@ export async function POST(req: Request) {
             updatedAt: {
               lt: subDays(new Date(), 30),
             },
-            // only delete if there are no commissions or messages
+            reapplicationTimeframe: "standard",
+            // only delete if there are no commissions
             commissions: {
-              none: {},
-            },
-            messages: {
               none: {},
             },
           },
@@ -46,20 +45,25 @@ export async function POST(req: Request) {
         break;
       }
 
-      const deletedRes = await prisma.programEnrollment.deleteMany({
-        where: {
-          id: {
-            in: rejectedProgramEnrollments.map(({ id }) => id),
+      const deletedProgramEnrollments =
+        await prisma.programEnrollment.deleteMany({
+          where: {
+            id: {
+              in: rejectedProgramEnrollments.map(({ id }) => id),
+            },
           },
-        },
-      });
+        });
 
       console.log(
-        `Deleted ${deletedRes.count} rejected programEnrollments that are older than 30 days`,
+        `Deleted ${deletedProgramEnrollments.count} rejected programEnrollments that are older than 30 days`,
       );
+
+      totalDeletedProgramEnrollments += deletedProgramEnrollments.count;
     }
 
-    return NextResponse.json({ status: "OK" });
+    return NextResponse.json({
+      totalDeletedProgramEnrollments,
+    });
   } catch (error) {
     await log({
       message: `/api/cron/cleanup/rejected-applications failed - ${error.message}`,

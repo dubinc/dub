@@ -134,6 +134,21 @@ export const E2E_SALE_REWARD = {
       maxDuration: null,
       amountInCents: 3300,
     },
+    {
+      id: "5daf6243-afc0-4770-8bd1-8b2e4e97130d",
+      type: "flat",
+      operator: "AND",
+      conditions: [
+        {
+          value: "new",
+          entity: "sale",
+          operator: "equals_to",
+          attribute: "type",
+        },
+      ],
+      maxDuration: null,
+      amountInCents: 9000,
+    },
   ],
 };
 

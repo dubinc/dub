@@ -11,7 +11,7 @@ const MAX_CUSTOMERS_PER_BATCH = 100;
 export async function deleteWorkspaceCustomers(
   payload: DeleteWorkspacePayload,
 ) {
-  const { workspaceId, startingAfter } = payload;
+  const { workspaceId } = payload;
 
   const customers = await prisma.customer.findMany({
     where: {
@@ -20,12 +20,6 @@ export async function deleteWorkspaceCustomers(
     orderBy: {
       id: "asc",
     },
-    ...(startingAfter && {
-      skip: 1,
-      cursor: {
-        id: startingAfter,
-      },
-    }),
     take: MAX_CUSTOMERS_PER_BATCH,
   });
 

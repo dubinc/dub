@@ -3,9 +3,6 @@ import {
   Commission,
   CommissionStatus,
   CommissionType,
-  Link,
-  Partner,
-  ProgramEnrollment,
 } from "@dub/prisma/client";
 import { currencyFormatter, log, prettyPrint, toCentsNumber } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -18,12 +15,12 @@ import { getProgramEnrollmentOrThrow } from "../api/programs/get-program-enrollm
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "../api/workflows/execute-workflows";
 import { Session } from "../auth";
-import { sendPartnerPostback } from "../postback/api/send-partner-postback";
+import { sendPartnerPostback } from "../postback/send-partner-postback";
 import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
-import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
+import { constructWebhookPartner } from "./constuct-webhook-partner";
 import { determinePartnerReward } from "./determine-partner-reward";
 import { getRewardAmount } from "./get-reward-amount";
 
@@ -43,22 +40,6 @@ export type CreatePartnerCommissionProps = {
   user?: Session["user"]; // user who created the manual commission
   context?: RewardContext;
   skipWorkflow?: boolean;
-};
-
-const constructWebhookPartner = (
-  programEnrollment: ProgramEnrollment & { partner: Partner; links: Link[] },
-  {
-    totalCommissions: totalCommissionsParam,
-  }: { totalCommissions?: number } = {},
-) => {
-  const totalCommissions =
-    totalCommissionsParam ?? toCentsNumber(programEnrollment.totalCommissions);
-  return {
-    ...programEnrollment.partner,
-    groupId: programEnrollment.groupId,
-    ...aggregatePartnerLinksStats(programEnrollment.links),
-    totalCommissions,
-  };
 };
 
 export const createPartnerCommission = async ({
@@ -138,6 +119,12 @@ export const createPartnerCommission = async ({
           subscriptionStartDate,
           subscriptionDurationMonths,
         },
+        ...(event === "sale" && {
+          sale: {
+            ...context?.sale,
+            type: firstCommission ? "recurring" : "new",
+          },
+        }),
       };
     }
 
@@ -439,11 +426,14 @@ export const createPartnerCommission = async ({
   } catch (error) {
     console.error("Error creating commission", error);
 
-    await log({
-      message: `Error creating commission - ${error.message}`,
-      type: "errors",
-      mention: true,
-    });
+    // only log to Slack if the error is not a unique constraint violation
+    if (error.code !== "P2002") {
+      await log({
+        message: `Error creating commission - ${error.message}`,
+        type: "errors",
+        mention: true,
+      });
+    }
 
     return {
       commission: null,

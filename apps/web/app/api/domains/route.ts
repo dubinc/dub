@@ -182,12 +182,34 @@ export const POST = withWorkspace(
             }),
           });
         }
+
+        if (slug.endsWith(".dub.link")) {
+          const alreadyClaimed = await tx.domain.count({
+            where: {
+              projectId: workspace.id,
+              slug: {
+                endsWith: ".dub.link",
+              },
+            },
+          });
+          if (alreadyClaimed >= 1) {
+            throw new DubApiError({
+              code: "forbidden",
+              message:
+                "You can only claim one .dub.link subdomain per workspace.",
+            });
+          }
+        }
+
         return await tx.domain.create({
           data: {
             id: domainId,
             slug: slug,
             projectId: workspace.id,
             primary: totalDomains === 0,
+            ...(slug.endsWith(".dub.link") && {
+              verified: true,
+            }),
             ...(placeholder && { placeholder }),
             expiredUrl,
             notFoundUrl,

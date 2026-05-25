@@ -162,6 +162,7 @@ export const PATCH = withWorkspace(
           clickReward: true,
           leadReward: true,
           saleReward: true,
+          referralReward: true,
           discount: true,
         },
       }),
@@ -300,6 +301,13 @@ export const DELETE = withWorkspace(
       }),
     ]);
 
+    if (group.programId !== programId) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: `Group "${groupIdOrSlug}" not found in your program.`,
+      });
+    }
+
     if (group.slug === DEFAULT_PARTNER_GROUP.slug) {
       throw new DubApiError({
         code: "forbidden",
@@ -334,6 +342,7 @@ export const DELETE = withWorkspace(
       group.clickRewardId,
       group.leadRewardId,
       group.saleRewardId,
+      group.referralRewardId,
     ].filter(Boolean) as string[];
 
     if (groupRewardIds.length > 0) {

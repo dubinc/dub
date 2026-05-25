@@ -1,7 +1,7 @@
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { deleteDiscountCodes } from "../discounts/delete-discount-code";
+import { deleteDiscountCodes } from "../../discounts/delete-discount-code";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
 
 const BATCH_SIZE = 250;
@@ -69,6 +69,11 @@ export async function bulkDeletePartners({
         id: true,
         code: true,
         programId: true,
+        discount: {
+          select: {
+            provider: true,
+          },
+        },
       },
     });
 
@@ -142,10 +147,9 @@ export async function bulkDeletePartners({
     // Delete the messages
     const deletedMessages = await prisma.message.deleteMany({
       where: {
-        programEnrollment: {
-          id: {
-            in: programEnrollmentIds,
-          },
+        programId: ACME_PROGRAM_ID,
+        partnerId: {
+          in: partnerIds,
         },
       },
     });
@@ -174,6 +178,7 @@ export async function bulkDeletePartners({
     });
     console.log(`Deleted ${deletedActivityLogs.count} activity logs`);
 
+    // Delete the program enrollments
     const deletedProgramEnrollments = await prisma.programEnrollment.deleteMany(
       {
         where: {
@@ -186,6 +191,19 @@ export async function bulkDeletePartners({
     console.log(
       `Deleted ${deletedProgramEnrollments.count} program enrollments`,
     );
+
+    if (deletedProgramEnrollments.count > 0) {
+      await prisma.project.updateMany({
+        where: {
+          defaultProgramId: ACME_PROGRAM_ID,
+        },
+        data: {
+          partnersUsage: {
+            decrement: deletedProgramEnrollments.count,
+          },
+        },
+      });
+    }
   }
 
   if (deletePartners) {

@@ -194,6 +194,7 @@ export const withWorkspace = (
                   project: {
                     select: {
                       plan: true,
+                      trialEndsAt: true,
                     },
                   },
                 }),
@@ -239,7 +240,9 @@ export const withWorkspace = (
             ? "1 s"
             : "1 m";
 
-          const planLimit = getRatelimitForPlan(token.project?.plan || "free");
+          const planLimit = getRatelimitForPlan(token.project?.plan || "free", {
+            trialEndsAt: token.project?.trialEndsAt ?? null,
+          });
           limit = planLimit.limits[isAnalytics ? "analyticsApi" : "api"];
 
           const { success, headers } = await rateLimitRequest({
@@ -357,6 +360,9 @@ export const withWorkspace = (
 
         // workspace doesn't exist
         if (!workspace || !workspace.users) {
+          // Clear so the catch path won't record this error against a partial/wrong workspace.
+          workspace = undefined;
+
           throw new DubApiError({
             code: "not_found",
             message: "Workspace not found.",
@@ -478,16 +484,18 @@ export const withWorkspace = (
         });
 
         if (workspace) {
-          captureRequestLog({
-            req: reqForLog,
-            response,
-            workspace,
-            session,
-            token,
-            url,
-            requestHeaders,
-            startTime,
-          });
+          waitUntil(
+            captureRequestLog({
+              req: reqForLog,
+              response,
+              workspace,
+              session,
+              token,
+              url,
+              requestHeaders,
+              startTime,
+            }),
+          );
         }
 
         return response;
@@ -498,16 +506,18 @@ export const withWorkspace = (
         );
 
         if (workspace) {
-          captureRequestLog({
-            req: reqForLog,
-            response: errorResponse,
-            workspace,
-            session,
-            token,
-            url,
-            requestHeaders,
-            startTime,
-          });
+          waitUntil(
+            captureRequestLog({
+              req: reqForLog,
+              response: errorResponse,
+              workspace,
+              session,
+              token,
+              url,
+              requestHeaders,
+              startTime,
+            }),
+          );
         }
 
         return errorResponse;

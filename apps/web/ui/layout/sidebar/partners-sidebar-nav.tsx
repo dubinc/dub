@@ -8,16 +8,18 @@ import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count"
 import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
 import { ProgramsPromoCard } from "@/ui/partners/program-marketplace/programs-promo-card";
 import type { PartnerRole } from "@dub/prisma/client";
-import { useRouterStuff } from "@dub/ui";
+import { type Icon, useRouterStuff } from "@dub/ui";
 import {
   Bell,
   CircleDollar,
   ColorPalette2,
   Gauge6,
   Gear2,
+  Gift,
   GridIcon,
   MoneyBills2,
   Msgs,
+  Nodes4,
   ShieldCheck,
   Shop,
   SquareUserSparkle2,
@@ -26,6 +28,8 @@ import {
   Users2,
   Webhook,
 } from "@dub/ui/icons";
+import { cn } from "@dub/utils";
+import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
 import { CursorRays } from "./icons/cursor-rays";
@@ -47,6 +51,7 @@ type SidebarNavData = {
   programBountiesCount?: number;
   showDetailedAnalytics?: boolean;
   postbacksEnabled?: boolean;
+  hasReferralReward?: boolean;
   partnerRole?: PartnerRole;
 };
 
@@ -193,6 +198,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     queryString,
     programBountiesCount,
     showDetailedAnalytics,
+    hasReferralReward,
     partnerRole,
   }) => ({
     title: (
@@ -211,7 +217,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Links",
-            icon: Hyperlink,
+            icon: Hyperlink as Icon,
             href: `/programs/${programSlug}/links`,
             locked: isUnapproved,
           },
@@ -241,19 +247,19 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             ? [
                 {
                   name: "Analytics",
-                  icon: LinesY,
+                  icon: LinesY as Icon,
                   href: `/programs/${programSlug}/analytics` as `/${string}`,
                   locked: isUnapproved,
                 },
                 {
                   name: "Events",
-                  icon: CursorRays,
+                  icon: CursorRays as Icon,
                   href: `/programs/${programSlug}/events` as `/${string}`,
                   locked: isUnapproved,
                 },
                 {
                   name: "Customers",
-                  icon: User,
+                  icon: User as Icon,
                   href: `/programs/${programSlug}/customers` as `/${string}`,
                   locked: isUnapproved,
                 },
@@ -274,6 +280,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 : programBountiesCount || undefined,
             locked: isUnapproved,
           },
+          ...(hasReferralReward
+            ? [
+                {
+                  name: "Partner Referrals",
+                  icon: Nodes4 as Icon,
+                  href: `/programs/${programSlug}/referrals` as `/${string}`,
+                  locked: isUnapproved,
+                },
+              ]
+            : []),
           {
             name: "Resources",
             icon: ColorPalette2,
@@ -372,6 +388,24 @@ export function PartnersSidebarNav({
 
   const { partner } = usePartnerProfile();
 
+  const referralsActive =
+    pathname === "/referrals" || pathname.startsWith("/referrals/");
+
+  const composedToolContent = (
+    <div className="flex flex-col items-center gap-3">
+      <Link
+        href="/referrals"
+        className={cn(
+          "text-content-default flex size-11 shrink-0 items-center justify-center rounded-lg",
+          referralsActive ? "bg-white" : "hover:bg-bg-inverted/5",
+        )}
+      >
+        <Gift className="size-5" />
+      </Link>
+      {toolContent}
+    </div>
+  );
+
   return (
     <SidebarNav
       groups={NAV_GROUPS}
@@ -387,9 +421,10 @@ export function PartnersSidebarNav({
         programBountiesCount: bountiesCount.active,
         showDetailedAnalytics,
         postbacksEnabled: partner?.featureFlags?.postbacks,
+        hasReferralReward: !!programEnrollment?.referralRewardId,
         partnerRole: partner?.role,
       }}
-      toolContent={toolContent}
+      toolContent={composedToolContent}
       newsContent={newsContent}
       bottom={
         isEnrolledProgramPage ? (

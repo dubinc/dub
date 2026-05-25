@@ -66,7 +66,6 @@ export function useLinkBuilderSubmit({
           onSuccess?.(data);
 
           // for editing links, if domain / key is changed, push to new url
-          console.log({ props, data });
           if (
             props &&
             (props.domain !== data.domain || props.key !== data.key)

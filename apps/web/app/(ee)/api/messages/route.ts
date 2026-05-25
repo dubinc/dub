@@ -25,9 +25,9 @@ export const GET = withWorkspace(
       where: partnerId
         ? {
             id: partnerId,
-            // Partner is either discoverable, enrolled in the program, or already has a message with the program
+            // Partner is either approved or trusted in the partner network, enrolled in the program, or already has a message with the program
             OR: [
-              { discoverableAt: { not: null } },
+              { networkStatus: { in: ["approved", "trusted"] } },
               { programs: { some: { programId } } },
               { messages: { some: { programId } } },
             ],

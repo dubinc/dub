@@ -9,7 +9,7 @@ import {
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, INFINITY_NUMBER, nFormatter, PLANS } from "@dub/utils";
+import { capitalize, cn, INFINITY_NUMBER, nFormatter, PLANS } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { Dispatch, ReactNode, SetStateAction, useMemo, useState } from "react";
@@ -263,7 +263,7 @@ export function PartnersUpgradeModal({
             <UpgradePlanButton
               plan={plan.name.toLowerCase()}
               period={period}
-              text={`Continue with ${plan.name}`}
+              text={`Continue with ${plan.name} ${capitalize(period)}`}
               variant="primary"
             />
           ) : (

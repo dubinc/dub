@@ -13,6 +13,7 @@ model PartnerGroup {
   clickRewardId                String?              @unique
   leadRewardId                 String?              @unique
   saleRewardId                 String?              @unique
+  referralRewardId             String?              @unique
   discountId                   String?              @unique
   linkStructure                PartnerLinkStructure @default(short)
   additionalLinks              Json?                @db.Json
@@ -35,6 +36,7 @@ model PartnerGroup {
   clickReward              Reward?                   @relation("ClickReward", fields: [clickRewardId], references: [id])
   leadReward               Reward?                   @relation("LeadReward", fields: [leadRewardId], references: [id])
   saleReward               Reward?                   @relation("SaleReward", fields: [saleRewardId], references: [id])
+  referralReward           Reward?                   @relation("ReferralReward", fields: [referralRewardId], references: [id])
   discount                 Discount?                 @relation(fields: [discountId], references: [id])
   partners                 ProgramEnrollment[]
   applications             ProgramApplication[]
@@ -50,14 +52,14 @@ model PartnerGroup {
 model PartnerGroupDefaultLink {
   id        String   @id @default(cuid())
   programId String
-  groupId   String
+  groupId   String? // can be null for soft-deleted default links
   domain    String
   url       String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  program      Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partnerGroup PartnerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  program      Program       @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partnerGroup PartnerGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
   links        Link[]
 
   @@unique([groupId, url])

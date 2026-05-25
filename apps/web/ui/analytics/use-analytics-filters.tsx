@@ -3,8 +3,10 @@ import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useCustomer from "@/lib/swr/use-customer";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
+import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import {
   BlurImage,
@@ -99,6 +101,34 @@ export function useAnalyticsFilters({
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
+  const tagIdParsed = useMemo(
+    () => parseFilterValue(searchParamsObj.tagId),
+    [searchParamsObj.tagId],
+  );
+
+  const selectedTagIds = useMemo(
+    () => tagIdParsed?.values ?? [],
+    [tagIdParsed],
+  );
+
+  const partnerTagIdParsed = useMemo(
+    () => parseFilterValue(searchParamsObj.partnerTagId),
+    [searchParamsObj.partnerTagId],
+  );
+
+  const { partnerTags: partnerTagsById } = usePartnerTags(
+    {
+      query: { ids: partnerTagIdParsed?.values },
+      enabled: !!partnerTagIdParsed?.values?.length && !!programPage,
+    },
+    { keepPreviousData: true },
+  );
+
+  const partnerTagIdToName = useMemo(
+    () => new Map((partnerTagsById ?? []).map((t) => [t.id, t.name])),
+    [partnerTagsById],
+  );
+
   const selectedCustomerId = searchParamsObj.customerId;
 
   const { data: selectedCustomerWorkspace } = useCustomer({
@@ -143,6 +173,35 @@ export function useAnalyticsFilters({
             },
           ]
         : []),
+      ...(tagIdParsed?.values?.length
+        ? [
+            {
+              key: "tagId",
+              operator: tagIdParsed.operator as FilterOperator,
+              values: tagIdParsed.values,
+            },
+          ]
+        : []),
+      // Handle partnerTagId special case
+      ...(partnerTagIdParsed?.values?.length
+        ? [
+            {
+              key: "partnerTagId",
+              operator: partnerTagIdParsed.operator as FilterOperator,
+              values: partnerTagIdParsed.values,
+            },
+          ]
+        : []),
+      // Handle root special case
+      ...(root
+        ? [
+            {
+              key: "root",
+              operator: "IS" as FilterOperator,
+              values: [root],
+            },
+          ]
+        : []),
       // Handle customerId special case
       ...(selectedCustomer
         ? [
@@ -159,14 +218,17 @@ export function useAnalyticsFilters({
         : []),
     ];
 
-    // Handle all filters dynamically (including domain, tagId, folderId, root)
+    // Handle remaining filters via parseFilterValue (multi-value / negation). folderId included; tagId handled above.
     VALID_ANALYTICS_FILTERS.forEach((filter) => {
       // Skip special cases we handled above
-      if (["key", "customerId"].includes(filter)) return;
+      if (
+        ["key", "tagId", "partnerTagId", "root", "customerId"].includes(filter)
+      )
+        return;
       // Also skip date range filters and qr
       if (["interval", "start", "end", "qr"].includes(filter)) return;
-      // Skip domain if we're showing a specific link (domain + key) without linkId
-      if (filter === "domain" && domain && key && !params.linkId) return;
+      // Skip domain when domain+key identify a specific link (link chip / linkId handles that)
+      if (filter === "domain" && domain && key) return;
 
       const value =
         params[filter] ||
@@ -187,6 +249,8 @@ export function useAnalyticsFilters({
     return filters;
   }, [
     searchParamsObj,
+    tagIdParsed,
+    partnerTagIdParsed,
     partnerPage,
     selectedCustomerId,
     selectedCustomer,
@@ -227,6 +291,11 @@ export function useAnalyticsFilters({
   });
   const { data: groups } = useAnalyticsFilterOption("top_groups", {
     disabled: !isRequested("groupId"),
+    omitGroupByFilterKey: true,
+    context,
+  });
+  const { data: partnerTags } = useAnalyticsFilterOption("top_partner_tags", {
+    disabled: !isRequested("partnerTagId"),
     omitGroupByFilterKey: true,
     context,
   });
@@ -435,23 +504,6 @@ export function useAnalyticsFilters({
         : programPage
           ? [
               {
-                key: "groupId",
-                icon: Users6,
-                label: "Group",
-                getOptionIcon: (_value, props) => {
-                  const group = props.option?.data?.group;
-                  return group ? <GroupColorCircle group={group} /> : null;
-                },
-                options:
-                  groups?.map(({ group, ...rest }) => ({
-                    value: group.id,
-                    icon: <GroupColorCircle group={group} />,
-                    label: group.name,
-                    data: { group },
-                    right: getFilterOptionTotal(rest),
-                  })) ?? null,
-              },
-              {
                 key: "partnerId",
                 icon: Users,
                 label: "Partner",
@@ -466,6 +518,37 @@ export function useAnalyticsFilters({
                       right: getFilterOptionTotal(rest),
                     };
                   }) ?? null,
+              },
+              {
+                key: "groupId",
+                icon: Users6,
+                label: "Partner Group",
+                getOptionIcon: (_value, props) => {
+                  const group = props.option?.data?.group;
+                  return group ? <GroupColorCircle group={group} /> : null;
+                },
+                options:
+                  groups?.map(({ group, ...rest }) => ({
+                    value: group.id,
+                    icon: <GroupColorCircle group={group} />,
+                    label: group.name,
+                    data: { group },
+                    right: getFilterOptionTotal(rest),
+                  })) ?? null,
+              },
+              {
+                key: "partnerTagId",
+                icon: Tag,
+                label: "Partner Tag",
+                multiple: true,
+                getOptionLabel: (value) =>
+                  partnerTagIdToName.get(value) ?? null,
+                options:
+                  partnerTags?.map(({ partnerTag, ...rest }) => ({
+                    value: partnerTag.id,
+                    label: partnerTag.name,
+                    right: getFilterOptionTotal(rest),
+                  })) ?? null,
               },
               SaleTypeFilterItem,
             ]
@@ -553,13 +636,7 @@ export function useAnalyticsFilters({
         getOptionIcon: (value) => {
           if (typeof value !== "string") return null;
 
-          return (
-            <img
-              alt={value}
-              src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
-              className="size-4 shrink-0"
-            />
-          );
+          return <CountryFlag countryCode={value} />;
         },
         options:
           countries?.map(({ country, ...rest }) => ({
@@ -577,13 +654,7 @@ export function useAnalyticsFilters({
           cities?.map(({ city, country, ...rest }) => ({
             value: city,
             label: city,
-            icon: (
-              <img
-                alt={country}
-                src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                className="size-4 shrink-0"
-              />
-            ),
+            icon: <CountryFlag countryCode={country} />,
             right: getFilterOptionTotal(rest),
           })) ?? null,
       },
@@ -595,13 +666,7 @@ export function useAnalyticsFilters({
           regions?.map(({ region, country, ...rest }) => ({
             value: region,
             label: REGIONS[region] || region.split("-")[1],
-            icon: (
-              <img
-                alt={country}
-                src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                className="size-4 shrink-0"
-              />
-            ),
+            icon: <CountryFlag countryCode={country} />,
             right: getFilterOptionTotal(rest),
           })) ?? null,
       },
@@ -820,6 +885,10 @@ export function useAnalyticsFilters({
       linkTags,
       folders,
       groups,
+      partnerTags,
+      partnerTagIdToName,
+      selectedTagIds,
+      partnerTagIdParsed,
       selectedCustomerId,
       countries,
       cities,
@@ -911,6 +980,17 @@ export function useAnalyticsFilters({
 
   const onRemove = useCallback(
     (key, value) => {
+      // Handle link filter when represented by domain+key (no linkId in URL)
+      if (
+        key === "linkId" &&
+        searchParamsObj.domain &&
+        searchParamsObj.key &&
+        !searchParamsObj.linkId
+      ) {
+        queryParams({ del: ["domain", "key"], scroll: false });
+        return;
+      }
+
       const currentParam = searchParamsObj[key];
 
       if (!currentParam) return;

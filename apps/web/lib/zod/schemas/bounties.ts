@@ -137,7 +137,7 @@ export const updateBountySchema = createBountySchema
   .partial();
 
 export const BountySubmissionFileSchema = z.object({
-  url: z.string().describe("The URL of the uploaded file."),
+  url: z.httpUrl().describe("The URL of the uploaded file."),
   fileName: z.string().describe("The original file name."),
   size: z.number().describe("The file size in bytes."),
 });
@@ -326,7 +326,7 @@ export const createBountySubmissionInputSchema = z.object({
     .array(BountySubmissionFileSchema)
     .max(BOUNTY_MAX_SUBMISSION_FILES)
     .default([]),
-  urls: z.array(z.url()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
+  urls: z.array(z.httpUrl()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
   description: z
     .string()
     .trim()

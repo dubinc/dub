@@ -3,6 +3,7 @@
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
@@ -63,6 +64,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
           clickRewardId: null,
           leadRewardId: null,
           saleRewardId: null,
+          referralRewardId: null,
           discountId: null,
         },
       });
@@ -116,6 +118,12 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
             resolutionReason:
               "Resolved automatically because the partner application was rejected.",
           }),
+
+          trackApplicationEvents({
+            event: "rejected",
+            programId,
+            partnerIds: programEnrollments.map(({ partner }) => partner.id),
+          }),
         ]);
 
         const program = await prisma.program.findUniqueOrThrow({
@@ -152,7 +160,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
                 },
                 rejectionReason: undefined,
                 additionalNotes: undefined,
-                canReapplyImmediately: false,
+                reapplicationTimeframe: "standard",
               }),
             })),
           );

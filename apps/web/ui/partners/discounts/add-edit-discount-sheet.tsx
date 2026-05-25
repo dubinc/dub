@@ -11,17 +11,21 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountProps } from "@/lib/types";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
+import { Shopify } from "@/ui/guides/icons/shopify";
+import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
 import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import { Button, InfoTooltip, Sheet, Switch } from "@dub/ui";
+import { DiscountProvider } from "@dub/prisma/client";
+import { Button, InfoTooltip, Sheet, Switch, useRouterStuff } from "@dub/ui";
 import { CircleCheckFill, StripeIcon, Tag } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
+  ChangeEvent,
   Dispatch,
   PropsWithChildren,
   ReactNode,
@@ -33,7 +37,7 @@ import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import * as z from "zod/v4";
-import { STRIPE_ERROR_MAP } from "../constants";
+import { ERROR_MAP } from "../constants";
 import { RewardDiscountPartnersCard } from "../groups/reward-discount-partners-card";
 
 interface DiscountSheetProps {
@@ -59,6 +63,8 @@ const COUPON_CREATION_OPTIONS = [
   },
 ] as const;
 
+const DEFAULT_MAX_DURATION = 6;
+
 function DiscountSheetContent({
   setIsOpen,
   discount,
@@ -76,11 +82,16 @@ function DiscountSheetContent({
     Boolean(discount?.couponTestId),
   );
 
+  const discountProvider =
+    discount?.provider ??
+    defaultDiscountValues?.provider ??
+    DiscountProvider.stripe;
+
   const defaultValuesSource = discount ||
     defaultDiscountValues || {
       amount: 10,
       type: "percentage",
-      maxDuration: 6,
+      maxDuration: DEFAULT_MAX_DURATION,
       couponId: "",
       couponTestId: "",
       autoProvisionEnabledAt: null,
@@ -100,15 +111,17 @@ function DiscountSheetContent({
       couponId: defaultValuesSource.couponId || "",
       couponTestId: defaultValuesSource.couponTestId,
       autoProvision: Boolean(defaultValuesSource.autoProvisionEnabledAt),
+      provider: discountProvider,
     },
   });
 
   const { handleSubmit, watch, setValue, register } = form;
-  const [type, amount, maxDuration, autoProvision] = watch([
+  const [type, amount, maxDuration, autoProvision, provider] = watch([
     "type",
     "amount",
     "maxDuration",
     "autoProvision",
+    "provider",
   ]);
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
@@ -122,12 +135,12 @@ function DiscountSheetContent({
       },
       onError({ error }) {
         if (error.serverError) {
-          const code = Object.keys(STRIPE_ERROR_MAP).find((key) =>
+          const code = Object.keys(ERROR_MAP).find((key) =>
             error.serverError!.startsWith(key),
           );
 
           if (code) {
-            const { title, ctaLabel, ctaUrl } = STRIPE_ERROR_MAP[code];
+            const { title, ctaLabel, ctaUrl } = ERROR_MAP[code];
             const message = error.serverError!.replace(`${code}: `, "");
 
             toast.custom(() => (
@@ -251,18 +264,46 @@ function DiscountSheetContent({
               <div className="border-border-subtle -mx-px rounded-xl border-x border-t bg-neutral-100 p-2.5">
                 <div className="space-y-4">
                   <div className="flex flex-col gap-2">
-                    <label className="text-content-emphasis text-sm font-medium">
-                      Payment provider
+                    <label
+                      htmlFor="provider"
+                      className="text-content-emphasis text-sm font-medium"
+                    >
+                      Discount provider
                     </label>
                     <div className="">
-                      <select className="block w-full rounded-md border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500">
-                        <option value="stripe">Stripe</option>
+                      <select
+                        className="block w-full rounded-md border-neutral-300 px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 disabled:cursor-not-allowed disabled:bg-neutral-50"
+                        {...(() => {
+                          const { onChange: onProviderChange, ...rest } =
+                            register("provider", {
+                              disabled: Boolean(discount),
+                            });
+
+                          return {
+                            ...rest,
+                            onChange: (e: ChangeEvent<HTMLSelectElement>) => {
+                              onProviderChange(e);
+                              setUseExistingCoupon(false);
+                              setUseStripeTestCouponId(false);
+                              if (e.target.value === DiscountProvider.shopify) {
+                                setValue("couponId", "");
+                                setValue("couponTestId", "");
+                              }
+                            },
+                          };
+                        })()}
+                        id="provider"
+                      >
+                        <option value={DiscountProvider.stripe}>Stripe</option>
+                        <option value={DiscountProvider.shopify}>
+                          Shopify
+                        </option>
                       </select>
                     </div>
                   </div>
 
-                  {!discount && (
-                    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                  {!discount && provider === DiscountProvider.stripe && (
+                    <div className="grid grid-cols-1 gap-3 p-px lg:grid-cols-2">
                       {COUPON_CREATION_OPTIONS.map(
                         ({ label, description, useExisting }) => {
                           const isSelected = useExistingCoupon === useExisting;
@@ -305,72 +346,73 @@ function DiscountSheetContent({
                     </div>
                   )}
 
-                  {(useExistingCoupon || discount) && (
-                    <>
-                      <div>
-                        <label
-                          htmlFor="couponId"
-                          className="flex items-center space-x-2"
-                        >
-                          <h2 className="text-sm font-medium text-neutral-900">
-                            Stripe coupon ID
-                          </h2>
-                        </label>
-                        <div className="mt-2">
-                          <input
-                            type="text"
-                            id="couponId"
-                            className="border-border-subtle block w-full rounded-lg bg-white px-3 py-2 text-neutral-800 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                            {...register("couponId")}
-                            placeholder="XZuejd0Q"
-                            disabled={!!discount} // we don't allow updating the coupon ID for existing discounts
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <Switch
-                          fn={() => {
-                            setUseStripeTestCouponId(!useStripeTestCouponId);
-                            setValue("couponTestId", "");
-                          }}
-                          checked={useStripeTestCouponId}
-                          trackDimensions="w-8 h-4"
-                          thumbDimensions="w-3 h-3"
-                          thumbTranslate="translate-x-4"
-                        />
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-medium text-neutral-800">
-                            Use Stripe test coupon ID
-                          </h3>
-
-                          <InfoTooltip content="Enabling this will allow you to test your coupon code before going live by entering your Stripe test coupon ID." />
-                        </div>
-                      </div>
-
-                      {useStripeTestCouponId && (
+                  {(useExistingCoupon || discount) &&
+                    provider === DiscountProvider.stripe && (
+                      <>
                         <div>
                           <label
-                            htmlFor="couponTestId"
+                            htmlFor="couponId"
                             className="flex items-center space-x-2"
                           >
                             <h2 className="text-sm font-medium text-neutral-900">
-                              Stripe test coupon ID
+                              Stripe coupon ID
                             </h2>
                           </label>
                           <div className="mt-2">
                             <input
                               type="text"
-                              id="couponTestId"
-                              className="border-border-subtle block w-full rounded-lg px-3 py-2 text-neutral-800 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                              {...register("couponTestId")}
-                              placeholder="2NMXz81x"
+                              id="couponId"
+                              className="border-border-subtle block w-full rounded-lg bg-white px-3 py-2 text-neutral-800 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                              {...register("couponId")}
+                              placeholder="XZuejd0Q"
+                              disabled={!!discount} // we don't allow updating the coupon ID for existing discounts
                             />
                           </div>
                         </div>
-                      )}
-                    </>
-                  )}
+
+                        <div className="flex items-center gap-3">
+                          <Switch
+                            fn={() => {
+                              setUseStripeTestCouponId(!useStripeTestCouponId);
+                              setValue("couponTestId", "");
+                            }}
+                            checked={useStripeTestCouponId}
+                            trackDimensions="w-8 h-4"
+                            thumbDimensions="w-3 h-3"
+                            thumbTranslate="translate-x-4"
+                          />
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-sm font-medium text-neutral-800">
+                              Use Stripe test coupon ID
+                            </h3>
+
+                            <InfoTooltip content="Enabling this will allow you to test your coupon code before going live by entering your Stripe test coupon ID." />
+                          </div>
+                        </div>
+
+                        {useStripeTestCouponId && (
+                          <div>
+                            <label
+                              htmlFor="couponTestId"
+                              className="flex items-center space-x-2"
+                            >
+                              <h2 className="text-sm font-medium text-neutral-900">
+                                Stripe test coupon ID
+                              </h2>
+                            </label>
+                            <div className="mt-2">
+                              <input
+                                type="text"
+                                id="couponTestId"
+                                className="border-border-subtle block w-full rounded-lg px-3 py-2 text-neutral-800 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                                {...register("couponTestId")}
+                                placeholder="2NMXz81x"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
                 </div>
               </div>
             }
@@ -384,7 +426,11 @@ function DiscountSheetContent({
             )}
             title={
               <>
-                <StripeIcon className="size-7" />
+                {provider === DiscountProvider.shopify ? (
+                  <Shopify className="h-7 w-auto" />
+                ) : (
+                  <StripeIcon className="size-7" />
+                )}
                 <span className="leading-relaxed">
                   Discount a{" "}
                   <InlineBadgePopover
@@ -435,29 +481,12 @@ function DiscountSheetContent({
                     }
                     disabled={!!discount}
                   >
-                    <InlineBadgePopoverMenu
-                      selectedValue={maxDuration?.toString()}
-                      onSelect={(value) =>
-                        setValue("maxDuration", Number(value), {
-                          shouldDirty: true,
-                        })
+                    <DurationPopoverContent
+                      value={Number(maxDuration)}
+                      onChange={(value) =>
+                        setValue("maxDuration", value, { shouldDirty: true })
                       }
-                      items={[
-                        {
-                          text: "one time",
-                          value: "0",
-                        },
-                        ...RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
-                          (v) => ({
-                            text: `for ${v} ${pluralize("month", Number(v))}`,
-                            value: v.toString(),
-                          }),
-                        ),
-                        {
-                          text: "for the customer's lifetime",
-                          value: "Infinity",
-                        },
-                      ]}
+                      presetDurations={RECURRING_MAX_DURATIONS}
                     />
                   </InlineBadgePopover>
                 </span>
@@ -599,8 +628,15 @@ export function DiscountSheet({
   isOpen: boolean;
   nested?: boolean;
 }) {
+  const { queryParams } = useRouterStuff();
+
   return (
-    <Sheet open={isOpen} onOpenChange={rest.setIsOpen} nested={nested}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={rest.setIsOpen}
+      nested={nested}
+      onClose={() => queryParams({ del: "discountId", scroll: false })}
+    >
       <DiscountSheetContent {...rest} />
     </Sheet>
   );

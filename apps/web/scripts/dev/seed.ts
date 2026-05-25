@@ -38,6 +38,7 @@ type Workspace = Pick<
   | "usersLimit"
   | "aiLimit"
   | "groupsLimit"
+  | "partnersLimit"
   | "defaultProgramId"
   | "invoicePrefix"
   | "conversionEnabled"
@@ -554,6 +555,11 @@ const truncate = async () => {
     "Bounty",
     "CampaignGroup",
     "Campaign",
+    "FraudEvent",
+    "FraudEventGroup",
+    "FraudRule",
+    "ActivityLog",
+    "ProgramApplicationEvent",
     "ProgramApplication",
     "DiscoveredPartner",
     "FraudAlert",

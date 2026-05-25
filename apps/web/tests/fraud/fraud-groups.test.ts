@@ -66,6 +66,7 @@ describe.concurrent("/fraud/groups", async () => {
       FraudRuleType.customerEmailSuspiciousDomain,
       FraudRuleType.referralSourceBanned,
       FraudRuleType.paidTrafficDetected,
+      FraudRuleType.partnerDuplicateAccount,
     ];
 
     for (const fraudType of typesToTest) {

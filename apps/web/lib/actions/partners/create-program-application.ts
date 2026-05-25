@@ -4,9 +4,11 @@ import { createId } from "@/lib/api/create-id";
 import { detectAndRecordFraudApplication } from "@/lib/api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
 import { getIP } from "@/lib/api/utils/get-ip";
+import { markApplicationEventSubmitted } from "@/lib/application-events/update-application-event";
+import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
+import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import {
   formatApplicationFormData,
@@ -183,7 +185,7 @@ export const createProgramApplicationAction = actionClient
       // for in-app applications from existing partners, we need to check
       // if the partner has an incomplete profile, if so we prompt them to complete it
       if (inAppApplication) {
-        const { isComplete } = getPartnerProfileChecklistProgress({
+        const { isComplete } = getNetworkProfileChecklistProgress({
           partner: {
             ...existingPartner,
             preferredEarningStructures:
@@ -199,6 +201,12 @@ export const createProgramApplicationAction = actionClient
         if (!isComplete) {
           throw new Error(
             "Please complete your partner profile to submit your application: https://partners.dub.co/profile",
+          );
+        }
+
+        if (!["approved", "trusted"].includes(existingPartner.networkStatus)) {
+          throw new Error(
+            "Your partner network profile is not approved. Please wait for it to be approved before applying to this program.",
           );
         }
       }
@@ -313,6 +321,7 @@ async function createApplicationAndEnrollment({
         clickRewardId: group.clickRewardId,
         leadRewardId: group.leadRewardId,
         saleRewardId: group.saleRewardId,
+        referralRewardId: group.referralRewardId,
         discountId: group.discountId,
       },
     }),
@@ -327,7 +336,7 @@ async function createApplicationAndEnrollment({
         }),
       );
 
-      await Promise.all([
+      await Promise.allSettled([
         notifyPartnerApplication({
           partner,
           program,
@@ -339,7 +348,6 @@ async function createApplicationAndEnrollment({
         group.autoApprovePartnersEnabledAt
           ? qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
-              delay: 5 * 60,
               body: {
                 programId: program.id,
                 partnerId: partner.id,
@@ -371,6 +379,8 @@ async function createApplicationAndEnrollment({
             partner,
           },
         }),
+
+        markApplicationEventSubmitted(programEnrollment),
       ]);
     })(),
   );
@@ -417,6 +427,23 @@ async function createApplication({
       expires: addDays(new Date(), 7), // persist for 7 days
     },
   );
+
+  // Attach application ID to application events
+  const cookieName = getApplicationEventCookieName(program.id);
+  const eventId = cookieStore.get(cookieName)?.value;
+
+  if (eventId) {
+    try {
+      await prisma.programApplicationEvent.update({
+        where: {
+          id: eventId,
+        },
+        data: {
+          programApplicationId: application.id,
+        },
+      });
+    } catch {}
+  }
 
   return {
     programApplicationId: application.id,

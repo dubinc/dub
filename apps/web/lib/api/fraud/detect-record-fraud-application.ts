@@ -13,8 +13,7 @@ interface FraudApplicationContext {
   };
 }
 
-// Detect and record fraud events for the partner when they apply to a program
-// Checks for cross-program bans and duplicate payout methods
+// Detect and record fraud events for the partner when they apply to a program (partnerDuplicateAccount fraud rule)
 export async function detectAndRecordFraudApplication({
   context: { program, partner },
 }: {
@@ -33,7 +32,7 @@ export async function detectAndRecordFraudApplication({
   if (
     isFraudRuleEnabled({
       fraudRules,
-      ruleType: FraudRuleType.partnerDuplicatePayoutMethod,
+      ruleType: FraudRuleType.partnerDuplicateAccount,
     })
   ) {
     const { payoutMethodHash, cryptoWalletAddress } = partner;
@@ -81,7 +80,7 @@ export async function detectAndRecordFraudApplication({
             fraudEvents.push({
               programId: program.id,
               partnerId: sourcePartner.id,
-              type: FraudRuleType.partnerDuplicatePayoutMethod,
+              type: FraudRuleType.partnerDuplicateAccount,
               metadata: {
                 ...(payoutMethodHash ? { payoutMethodHash } : {}),
                 ...(cryptoWalletAddress ? { cryptoWalletAddress } : {}),

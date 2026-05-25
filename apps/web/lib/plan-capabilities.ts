@@ -23,5 +23,9 @@ export const getPlanCapabilities = (
       !!plan && ["enterprise", "advanced"].includes(plan),
     canInstallAdvancedIntegrations:
       !!plan && ["enterprise", "advanced"].includes(plan),
+    canRequestSlackSupportInvite:
+      !!plan && ["enterprise", "advanced"].includes(plan),
+    canCreateReferralReward:
+      !!plan && ["enterprise", "advanced"].includes(plan),
   };
 };

@@ -48,7 +48,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     configurable: true,
   },
   {
-    type: "partnerDuplicatePayoutMethod",
+    type: "partnerDuplicateAccount",
     name: "Duplicate account detected",
     description:
       "This partner was flagged by our system for having 2 or more Dub accounts. Please review to prevent abuse of program restrictions, caps, or bonuses.",

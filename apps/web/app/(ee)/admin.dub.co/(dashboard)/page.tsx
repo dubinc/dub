@@ -3,14 +3,18 @@ import { DeletePartnerAccount } from "./components/delete-partner-account";
 import { ImpersonateUser } from "./components/impersonate-user";
 import { ImpersonateWorkspace } from "./components/impersonate-workspace";
 import { RefreshDomain } from "./components/refresh-domain";
+import { RenewDomain } from "./components/renew-domain";
 import { ResetLoginAttempts } from "./components/reset-login-attempts";
+import { SlackSupportInvite } from "./components/slack-support-invite";
 
 export default function AdminPage() {
   return (
     <div className="mx-auto flex w-full max-w-screen-sm flex-col divide-y divide-neutral-200 overflow-auto bg-white">
       <div className="flex flex-col space-y-4 px-5 py-10">
-        <h2 className="text-xl font-semibold">Impersonate User</h2>
-        <p className="text-sm text-neutral-500">Get a login link for a user</p>
+        <h2 className="text-xl font-semibold">Impersonate User/Partner</h2>
+        <p className="text-sm text-neutral-500">
+          Get a login link for a user email (or partner email)
+        </p>
         <ImpersonateUser />
       </div>
       <div className="flex flex-col space-y-4 px-5 py-10">
@@ -40,6 +44,16 @@ export default function AdminPage() {
         <DeletePartnerAccount />
       </div>
       <div className="flex flex-col space-y-4 px-5 py-10">
+        <h2 className="text-xl font-semibold">Renew domain (.link)</h2>
+        <p className="text-sm text-neutral-500">
+          Create a new domain-renewal invoice and charge the workspace default
+          payment method. On success, Stripe webhooks extend Dub expiry and
+          re-enable Dynadot auto-renew. If the domain has already expired at
+          Dynadot, you may still need to renew it in the Dynadot dashboard.
+        </p>
+        <RenewDomain />
+      </div>
+      <div className="flex flex-col space-y-4 px-5 py-10">
         <h2 className="text-xl font-semibold">Refresh Domain</h2>
         <p className="text-sm text-neutral-500">
           Remove and re-add domain from Vercel
@@ -52,6 +66,14 @@ export default function AdminPage() {
           Reset a user's invalidLoginAttempts and lockedAt fields
         </p>
         <ResetLoginAttempts />
+      </div>
+      <div className="flex flex-col space-y-4 px-5 py-10">
+        <h2 className="text-xl font-semibold">Slack Support Invite</h2>
+        <p className="text-sm text-neutral-500">
+          Manually send a priority Slack Connect invite to a user for a given
+          workspace (bypasses the plan check).
+        </p>
+        <SlackSupportInvite />
       </div>
     </div>
   );

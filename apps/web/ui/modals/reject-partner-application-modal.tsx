@@ -5,18 +5,24 @@ import {
 } from "@/lib/partners/program-application-rejection";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
-import { PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH } from "@/lib/zod/schemas/partners";
+import {
+  MAX_FRAUD_REASON_LENGTH,
+  PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH,
+} from "@/lib/zod/schemas/partners";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ProgramApplicationRejectionReason } from "@dub/prisma/client";
 import {
   Button,
-  Checkbox,
   Combobox,
   ComboboxOption,
+  InfoTooltip,
   Modal,
+  Switch,
+  ToggleGroup,
   useKeyboardShortcut,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -35,6 +41,21 @@ const REJECTION_REASON_COMBO_OPTIONS: ComboboxOption[] =
     value,
     label: getProgramApplicationRejectionReasonLabel(value),
   }));
+
+const REAPPLICATION_TIMEFRAME_OPTIONS = [
+  { value: "instant", label: "Immediate" },
+  { value: "standard", label: "30 days" },
+  { value: "never", label: "Never" },
+] as const;
+
+const REAPPLICATION_TIMEFRAME_DESCRIPTIONS: Record<
+  (typeof REAPPLICATION_TIMEFRAME_OPTIONS)[number]["value"],
+  string
+> = {
+  instant: "The partner can reapply immediately.",
+  standard: "The partner can reapply after 30 days.",
+  never: "The partner can never reapply for the program.",
+};
 
 interface RejectPartnerApplicationModalProps {
   showRejectPartnerApplicationModal: boolean;
@@ -55,20 +76,29 @@ export function RejectPartnerApplicationModal({
   confirmShortcutOptions,
 }: RejectPartnerApplicationModalProps) {
   const { id: workspaceId } = useWorkspace();
-  const allowReapplyCheckboxId = useId();
-  const allowImmediateReapplyOutcomeRef = useRef(false);
+  const reapplicationTimeframeOutcomeRef = useRef<
+    "instant" | "standard" | "never"
+  >("standard");
 
   const [selectedReason, setSelectedReason] = useState<ComboboxOption | null>(
     null,
   );
   const [rejectionNote, setRejectionNote] = useState("");
-  const [allowImmediateReapply, setAllowImmediateReapply] = useState(false);
+  const [reapplicationTimeframe, setReapplicationTimeframe] = useState<
+    "instant" | "standard" | "never"
+  >("standard");
+  const [flagForFraud, setFlagForFraud] = useState(false);
+  const [flagForFraudReason, setFlagForFraudReason] = useState("");
+  const fraudReasonFieldId = useId();
+  const fraudReasonCounterId = useId();
 
   useEffect(() => {
     if (!showRejectPartnerApplicationModal) {
       setSelectedReason(null);
       setRejectionNote("");
-      setAllowImmediateReapply(false);
+      setReapplicationTimeframe("standard");
+      setFlagForFraud(false);
+      setFlagForFraudReason("");
     }
   }, [showRejectPartnerApplicationModal]);
 
@@ -77,9 +107,11 @@ export function RejectPartnerApplicationModal({
     {
       onSuccess: async () => {
         toast.success(
-          allowImmediateReapplyOutcomeRef.current
+          reapplicationTimeframeOutcomeRef.current === "instant"
             ? `Application rejected — ${partner.email} can reapply immediately.`
-            : `Partner ${partner.email} has been rejected from your program.`,
+            : reapplicationTimeframeOutcomeRef.current === "never"
+              ? `Partner ${partner.email} has been rejected and cannot reapply.`
+              : `Partner ${partner.email} has been rejected from your program.`,
         );
         setShowRejectPartnerApplicationModal(false);
         await onConfirm?.();
@@ -93,12 +125,20 @@ export function RejectPartnerApplicationModal({
   const handleConfirm = useCallback(async () => {
     if (!workspaceId || !partner) return;
 
-    allowImmediateReapplyOutcomeRef.current = allowImmediateReapply;
+    if (flagForFraud && !flagForFraudReason.trim()) {
+      toast.error("Fraud reason is required when flagging for fraud.");
+      return;
+    }
+
+    reapplicationTimeframeOutcomeRef.current = reapplicationTimeframe;
 
     await rejectPartnerApplication({
       workspaceId,
       partnerId: partner.id,
-      allowImmediateReapply,
+      reapplicationTimeframe,
+      ...(flagForFraud
+        ? { flagForFraud: true, flagForFraudReason: flagForFraudReason.trim() }
+        : {}),
       ...(selectedReason && {
         rejectionReason:
           selectedReason.value as ProgramApplicationRejectionReason,
@@ -111,7 +151,9 @@ export function RejectPartnerApplicationModal({
     rejectPartnerApplication,
     selectedReason,
     rejectionNote,
-    allowImmediateReapply,
+    reapplicationTimeframe,
+    flagForFraud,
+    flagForFraudReason,
   ]);
 
   const handleClose = useCallback(() => {
@@ -208,27 +250,101 @@ export function RejectPartnerApplicationModal({
             </p>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <div className="flex gap-2">
-              <Checkbox
-                id={allowReapplyCheckboxId}
-                checked={allowImmediateReapply}
-                onCheckedChange={(checked) =>
-                  setAllowImmediateReapply(checked === true)
+          <div>
+            <label className="block text-sm font-medium text-neutral-900">
+              Reapplication timeframe
+            </label>
+            <ToggleGroup
+              className={cn(
+                "mt-1.5 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-100 p-1",
+                flagForFraud && "pointer-events-none opacity-60",
+              )}
+              optionClassName="h-8 flex flex-1 items-center justify-center rounded-md text-sm normal-case"
+              indicatorClassName="bg-white"
+              options={[...REAPPLICATION_TIMEFRAME_OPTIONS]}
+              selected={reapplicationTimeframe}
+              selectAction={(value) => {
+                if (isPending || flagForFraud) {
+                  return;
                 }
-                disabled={isPending}
-              />
-              <label
-                htmlFor={allowReapplyCheckboxId}
-                className="select-none text-sm font-medium text-neutral-700"
-              >
-                Allow partner to reapply immediately
-              </label>
-            </div>
-            <p className="pl-7 text-xs text-neutral-500">
-              This will skip the 30 day waiting period and allow the partner to
-              resubmit another application.
+                const timeframe = value as "instant" | "standard" | "never";
+                setReapplicationTimeframe(timeframe);
+                if (timeframe === "instant") {
+                  setFlagForFraud(false);
+                  setFlagForFraudReason("");
+                }
+              }}
+            />
+            <p className="mt-1.5 text-xs text-neutral-500">
+              {REAPPLICATION_TIMEFRAME_DESCRIPTIONS[reapplicationTimeframe]}
             </p>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-neutral-900">
+                  Flag partner for potential fraud
+                </span>
+                <InfoTooltip content="This will report the partner to our fraud team, and if deemed fraudulent, they will be banned from the network." />
+              </div>
+              <Switch
+                checked={flagForFraud}
+                disabled={isPending || reapplicationTimeframe === "instant"}
+                disabledTooltip={
+                  reapplicationTimeframe === "instant"
+                    ? 'Select a reapplication option other than "Immediate" to flag for fraud.'
+                    : undefined
+                }
+                fn={(checked: boolean) => {
+                  setFlagForFraud(checked);
+                  setReapplicationTimeframe(checked ? "never" : "standard");
+                }}
+              />
+            </div>
+            <motion.div
+              initial={false}
+              animate={{
+                height: flagForFraud ? "auto" : 0,
+                opacity: flagForFraud ? 1 : 0,
+              }}
+              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+              className="overflow-hidden"
+              inert={!flagForFraud}
+            >
+              <div className="mt-1 p-px">
+                <textarea
+                  id={fraudReasonFieldId}
+                  aria-describedby={fraudReasonCounterId}
+                  className={cn(
+                    "mt-1.5 block w-full rounded-md border border-neutral-300 bg-white text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500 sm:text-sm",
+                  )}
+                  placeholder="Describe the suspected fraudulent activity..."
+                  rows={3}
+                  maxLength={MAX_FRAUD_REASON_LENGTH}
+                  value={flagForFraudReason}
+                  onChange={(e) => setFlagForFraudReason(e.target.value)}
+                  disabled={isPending}
+                />
+                <p
+                  id={fraudReasonCounterId}
+                  className="mt-1 block text-right text-xs tabular-nums text-neutral-400"
+                >
+                  <span className="sr-only">
+                    {flagForFraudReason.length} of {MAX_FRAUD_REASON_LENGTH}{" "}
+                    characters entered.{" "}
+                    {Math.max(
+                      0,
+                      MAX_FRAUD_REASON_LENGTH - flagForFraudReason.length,
+                    )}{" "}
+                    characters remaining.
+                  </span>
+                  <span aria-hidden="true">
+                    {flagForFraudReason.length}/{MAX_FRAUD_REASON_LENGTH}
+                  </span>
+                </p>
+              </div>
+            </motion.div>
           </div>
         </div>
       )}

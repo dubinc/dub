@@ -1,15 +1,23 @@
 "use client";
 
+import { usePartnerReferral } from "@/lib/partner-referrals/hooks/use-partner-referral";
+import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import useGroup from "@/lib/swr/use-group";
 import usePartner from "@/lib/swr/use-partner";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DiscountCodeProps, EnrolledPartnerProps } from "@/lib/types";
+import {
+  DiscountCodeProps,
+  EnrolledPartnerExtendedProps,
+  EnrolledPartnerProps,
+} from "@/lib/types";
 import { useAddDiscountCodeModal } from "@/ui/modals/add-discount-code-modal";
 import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
 import { DeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
+import { DiscountProvider } from "@dub/prisma/client";
 import {
   Button,
   CopyButton,
@@ -30,9 +38,10 @@ export default function ProgramPartnerLinksPage() {
   const { partner, error } = usePartner({ partnerId });
 
   return partner ? (
-    <div className="grid gap-4">
+    <div className="grid min-w-0 gap-4">
       <PartnerLinks partner={partner} />
       <PartnerDiscountCodes partner={partner} />
+      <PartnerReferralLink partner={partner} />
     </div>
   ) : (
     <div className="flex justify-center py-16">
@@ -65,6 +74,9 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
       {
         id: "shortLink",
         header: "Link",
+        meta: {
+          disableTruncate: true,
+        },
         cell: ({ row }) => {
           const partnerLink = constructPartnerLink({
             group: group ?? undefined,
@@ -152,7 +164,8 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-[40px]",
+    containerClassName: "w-full max-w-full overflow-hidden",
+    scrollWrapperClassName: "min-h-[40px] max-w-full",
   } as any);
 
   return (
@@ -174,12 +187,114 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
   );
 };
 
-const PartnerDiscountCodes = ({
+const PartnerReferralLink = ({
   partner,
 }: {
   partner: EnrolledPartnerProps;
 }) => {
-  const { slug, stripeConnectId } = useWorkspace();
+  const {
+    program,
+    loading: loadingProgram,
+    error: errorProgram,
+  } = useProgram();
+  const {
+    referral,
+    loading: loadingReferral,
+    error: referralError,
+  } = usePartnerReferral({
+    partnerId: partner.id,
+  });
+
+  const referralLink = constructPartnerReferralLink({
+    partner,
+    program,
+  });
+
+  const data = useMemo(() => {
+    if (!referralLink || !referral?.stats) {
+      return [];
+    }
+
+    return [
+      {
+        link: referralLink,
+        totalPartners: referral.stats.totalPartners,
+        totalConversions: referral.stats.totalConversions,
+        totalSaleAmount: referral.stats.totalSaleAmount,
+      },
+    ];
+  }, [referralLink, referral]);
+
+  const table = useTable({
+    data,
+    columns: [
+      {
+        id: "link",
+        header: "Link",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-black">
+              {getPrettyUrl(row.original.link)}
+            </span>
+            <CopyButton value={row.original.link} className="p-0.5" />
+          </div>
+        ),
+      },
+      {
+        header: "Partners",
+        size: 1,
+        minSize: 1,
+        cell: ({ row }) => nFormatter(row.original.totalPartners),
+      },
+      {
+        header: "Conversions",
+        size: 1,
+        minSize: 1,
+        cell: ({ row }) => nFormatter(row.original.totalConversions),
+      },
+      {
+        header: "Revenue",
+        size: 1,
+        minSize: 1,
+        cell: ({ row }) =>
+          currencyFormatter(row.original.totalSaleAmount, {
+            trailingZeroDisplay: "stripIfInteger",
+          }),
+      },
+    ],
+    resourceName: (p) => `link${p ? "s" : ""}`,
+    thClassName: (id) =>
+      cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
+    tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-[40px]",
+    loading: loadingReferral || loadingProgram,
+    error:
+      referralError || errorProgram
+        ? "Failed to load partner referral data"
+        : undefined,
+  });
+
+  if (!partner?.referralRewardId) {
+    return null;
+  }
+
+  return (
+    <>
+      <h2 className="text-content-emphasis text-lg font-semibold">
+        Partner referral link
+      </h2>
+      <Table {...table} />
+    </>
+  );
+};
+
+const PartnerDiscountCodes = ({
+  partner,
+}: {
+  partner: EnrolledPartnerExtendedProps;
+}) => {
+  const { slug, stripeConnectId, shopifyStoreId } = useWorkspace();
 
   const [selectedDiscountCode, setSelectedDiscountCode] =
     useState<DiscountCodeProps | null>(null);
@@ -252,7 +367,14 @@ const PartnerDiscountCodes = ({
   } as any);
 
   const disabledReason = useMemo(() => {
-    if (!stripeConnectId) {
+    if (!partner.discount) {
+      return "No discount assigned to this partner group. Please add a discount before you can create a discount code.";
+    }
+
+    if (
+      partner.discount.provider === DiscountProvider.stripe &&
+      !stripeConnectId
+    ) {
       return (
         <TooltipContent
           title="Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount codes."
@@ -263,8 +385,18 @@ const PartnerDiscountCodes = ({
       );
     }
 
-    if (!partner.discountId) {
-      return "No discount assigned to this partner group. Please add a discount before you can create a discount code.";
+    if (
+      partner.discount.provider === DiscountProvider.shopify &&
+      !shopifyStoreId
+    ) {
+      return (
+        <TooltipContent
+          title="Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create discount codes."
+          cta="Install Shopify app"
+          href={`/${slug}/settings/integrations/shopify`}
+          target="_blank"
+        />
+      );
     }
 
     if (partner.links?.length === 0) {
@@ -276,7 +408,13 @@ const PartnerDiscountCodes = ({
     }
 
     return undefined;
-  }, [partner.discountId, partner.links, discountCodes, stripeConnectId]);
+  }, [
+    partner.discount,
+    partner.links,
+    discountCodes,
+    stripeConnectId,
+    shopifyStoreId,
+  ]);
 
   return (
     <>
