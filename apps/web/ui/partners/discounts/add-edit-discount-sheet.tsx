@@ -20,7 +20,14 @@ import {
 } from "@/ui/shared/inline-badge-popover";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { DiscountProvider } from "@dub/prisma/client";
-import { Button, InfoTooltip, Sheet, Switch, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  InfoTooltip,
+  Sheet,
+  Switch,
+  Tooltip,
+  useRouterStuff,
+} from "@dub/ui";
 import { CircleCheckFill, StripeIcon, Tag } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -75,6 +82,7 @@ function DiscountSheetContent({
   const { group, mutateGroup } = useGroup();
   const { mutate: mutateProgram } = useProgram();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { queryParams } = useRouterStuff();
 
   const [useExistingCoupon, setUseExistingCoupon] = useState(false);
 
@@ -128,6 +136,7 @@ function DiscountSheetContent({
     createDiscountAction,
     {
       onSuccess: async () => {
+        queryParams({ del: "discountId", scroll: false });
         setIsOpen(false);
         toast.success("Discount created!");
         await mutateProgram();
@@ -164,6 +173,7 @@ function DiscountSheetContent({
     updateDiscountAction,
     {
       onSuccess: async () => {
+        queryParams({ del: "discountId", scroll: false });
         setIsOpen(false);
         toast.success("Discount updated!");
         await mutateProgram();
@@ -420,80 +430,88 @@ function DiscountSheetContent({
 
           <VerticalLine />
 
-          <DiscountSheetCard
-            className={cn(
-              discount && "pointer-events-none cursor-not-allowed select-none",
-            )}
-            title={
-              <>
-                {provider === DiscountProvider.shopify ? (
-                  <Shopify className="h-7 w-auto" />
-                ) : (
-                  <StripeIcon className="size-7" />
-                )}
-                <span className="leading-relaxed">
-                  Discount a{" "}
-                  <InlineBadgePopover
-                    text={capitalize(type)}
-                    disabled={!!discount}
-                  >
-                    <InlineBadgePopoverMenu
-                      selectedValue={type}
-                      onSelect={(value) =>
-                        setValue("type", value as "flat" | "percentage", {
-                          shouldDirty: true,
-                        })
-                      }
-                      items={[
-                        {
-                          text: "Flat",
-                          value: "flat",
-                        },
-                        {
-                          text: "Percentage",
-                          value: "percentage",
-                        },
-                      ]}
-                    />
-                  </InlineBadgePopover>{" "}
-                  {type === "percentage" && "of "}
-                  <InlineBadgePopover
-                    text={
-                      amount
-                        ? constructDiscountAmount({
-                            amount: type === "flat" ? amount * 100 : amount,
-                            type,
-                          })
-                        : "amount"
-                    }
-                    invalid={!amount}
-                    disabled={!!discount}
-                  >
-                    <AmountInput disabled={!!discount} />
-                  </InlineBadgePopover>{" "}
-                  <InlineBadgePopover
-                    text={
-                      maxDuration === 0
-                        ? "one time"
-                        : maxDuration === Infinity
-                          ? "for the customer's lifetime"
-                          : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
-                    }
-                    disabled={!!discount}
-                  >
-                    <DurationPopoverContent
-                      value={Number(maxDuration)}
-                      onChange={(value) =>
-                        setValue("maxDuration", value, { shouldDirty: true })
-                      }
-                      presetDurations={RECURRING_MAX_DURATIONS}
-                    />
-                  </InlineBadgePopover>
-                </span>
-              </>
-            }
-            content={<></>}
-          />
+          <Tooltip
+            content="To change the conditions, delete the discount and create a new one."
+            side="top"
+            disabled={!discount}
+          >
+            <div>
+              <DiscountSheetCard
+                className={cn(discount && "cursor-not-allowed select-none")}
+                title={
+                  <>
+                    {provider === DiscountProvider.shopify ? (
+                      <Shopify className="h-7 w-auto" />
+                    ) : (
+                      <StripeIcon className="size-7" />
+                    )}
+                    <span className="leading-relaxed">
+                      Discount a{" "}
+                      <InlineBadgePopover
+                        text={capitalize(type)}
+                        disabled={!!discount}
+                      >
+                        <InlineBadgePopoverMenu
+                          selectedValue={type}
+                          onSelect={(value) =>
+                            setValue("type", value as "flat" | "percentage", {
+                              shouldDirty: true,
+                            })
+                          }
+                          items={[
+                            {
+                              text: "Flat",
+                              value: "flat",
+                            },
+                            {
+                              text: "Percentage",
+                              value: "percentage",
+                            },
+                          ]}
+                        />
+                      </InlineBadgePopover>{" "}
+                      {type === "percentage" && "of "}
+                      <InlineBadgePopover
+                        text={
+                          amount
+                            ? constructDiscountAmount({
+                                amount: type === "flat" ? amount * 100 : amount,
+                                type,
+                              })
+                            : "amount"
+                        }
+                        invalid={!amount}
+                        disabled={!!discount}
+                      >
+                        <AmountInput disabled={!!discount} />
+                      </InlineBadgePopover>{" "}
+                      <InlineBadgePopover
+                        text={
+                          maxDuration === 0
+                            ? "one time"
+                            : maxDuration === Infinity
+                              ? "for the customer's lifetime"
+                              : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
+                        }
+                        disabled={!!discount}
+                      >
+                        <DurationPopoverContent
+                          value={Number(maxDuration)}
+                          onChange={(value) =>
+                            setValue("maxDuration", value, {
+                              shouldDirty: true,
+                            })
+                          }
+                          presetDurations={RECURRING_MAX_DURATIONS}
+                        />
+                      </InlineBadgePopover>
+                    </span>
+                  </>
+                }
+                content={<></>}
+              />
+            </div>
+          </Tooltip>
 
           <VerticalLine />
 
@@ -633,9 +651,13 @@ export function DiscountSheet({
   return (
     <Sheet
       open={isOpen}
-      onOpenChange={rest.setIsOpen}
+      onOpenChange={(open) => {
+        rest.setIsOpen(open);
+        if (!open) {
+          queryParams({ del: "discountId", scroll: false });
+        }
+      }}
       nested={nested}
-      onClose={() => queryParams({ del: "discountId", scroll: false })}
     >
       <DiscountSheetContent {...rest} />
     </Sheet>
