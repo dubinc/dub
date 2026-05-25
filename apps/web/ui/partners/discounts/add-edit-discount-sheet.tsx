@@ -83,28 +83,41 @@ function DiscountSheetContent({
   const { group, mutateGroup } = useGroup();
   const { mutate: mutateProgram } = useProgram();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { searchParams } = useRouterStuff();
+  const discountIdParam = searchParams.get("discountId");
+  const isEditingExisting =
+    discountIdParam != null && discountIdParam !== "new";
+
+  const existingDiscount = isEditingExisting
+    ? discount ?? group?.discount ?? undefined
+    : discount ?? defaultDiscountValues;
 
   const [useExistingCoupon, setUseExistingCoupon] = useState(
-    Boolean(discount || defaultDiscountValues?.couponId),
+    Boolean(
+      existingDiscount?.id ||
+        defaultDiscountValues?.couponId ||
+        (isEditingExisting && group?.discount?.id),
+    ),
   );
 
   const [useStripeTestCouponId, setUseStripeTestCouponId] = useState(
-    Boolean(discount?.couponTestId ?? defaultDiscountValues?.couponTestId),
+    Boolean(
+      existingDiscount?.couponTestId ?? defaultDiscountValues?.couponTestId,
+    ),
   );
 
   useEffect(() => {
-    if (discount) {
-      setUseExistingCoupon(true);
-      setUseStripeTestCouponId(Boolean(discount.couponTestId));
-    }
-  }, [discount?.id]);
+    if (!existingDiscount?.id) return;
+    setUseExistingCoupon(true);
+    setUseStripeTestCouponId(Boolean(existingDiscount.couponTestId));
+  }, [existingDiscount?.id]);
 
   const discountProvider =
-    discount?.provider ??
+    existingDiscount?.provider ??
     defaultDiscountValues?.provider ??
     DiscountProvider.stripe;
 
-  const defaultValuesSource = discount ||
+  const defaultValuesSource = existingDiscount ||
     defaultDiscountValues || {
       amount: 10,
       type: "percentage",
@@ -143,7 +156,7 @@ function DiscountSheetContent({
 
   const showStripeCouponFields =
     provider === DiscountProvider.stripe &&
-    (Boolean(discount) || useExistingCoupon);
+    (Boolean(existingDiscount?.id) || useExistingCoupon);
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
@@ -216,10 +229,10 @@ function DiscountSheetContent({
       return;
     }
 
-    if (discount) {
+    if (existingDiscount?.id) {
       await updateDiscount({
         workspaceId,
-        discountId: discount.id,
+        discountId: existingDiscount.id,
         couponTestId: data.couponTestId,
         autoProvision: data.autoProvision,
       });
@@ -237,7 +250,7 @@ function DiscountSheetContent({
   };
 
   const onDelete = async () => {
-    if (!workspaceId || !defaultProgramId || !discount) {
+    if (!workspaceId || !defaultProgramId || !existingDiscount?.id) {
       return;
     }
 
@@ -247,7 +260,7 @@ function DiscountSheetContent({
 
     await deleteDiscount({
       workspaceId,
-      discountId: discount.id,
+      discountId: existingDiscount.id,
     });
   };
 
@@ -260,7 +273,7 @@ function DiscountSheetContent({
       >
         <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
-            {discount ? "Edit" : "Create"} discount
+            {existingDiscount?.id ? "Edit" : "Create"} discount
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -297,7 +310,7 @@ function DiscountSheetContent({
                         {...(() => {
                           const { onChange: onProviderChange, ...rest } =
                             register("provider", {
-                              disabled: Boolean(discount),
+                              disabled: Boolean(existingDiscount?.id),
                             });
 
                           return {
@@ -323,54 +336,56 @@ function DiscountSheetContent({
                     </div>
                   </div>
 
-                  {!discount && provider === DiscountProvider.stripe && (
-                    <div className="grid grid-cols-1 gap-3 p-px lg:grid-cols-2">
-                      {COUPON_CREATION_OPTIONS.map(
-                        ({ label, description, useExisting }) => {
-                          const isSelected = useExistingCoupon === useExisting;
+                  {!existingDiscount?.id &&
+                    provider === DiscountProvider.stripe && (
+                      <div className="grid grid-cols-1 gap-3 p-px lg:grid-cols-2">
+                        {COUPON_CREATION_OPTIONS.map(
+                          ({ label, description, useExisting }) => {
+                            const isSelected =
+                              useExistingCoupon === useExisting;
 
-                          return (
-                            <label
-                              key={label}
-                              className={cn(
-                                "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                                "transition-all duration-150",
-                                isSelected &&
-                                  "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                              )}
-                            >
-                              <input
-                                type="radio"
-                                value={label}
-                                className="hidden"
-                                checked={isSelected}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setUseExistingCoupon(useExisting);
-                                    if (!useExisting) {
-                                      setValue("couponId", "");
-                                      setValue("couponTestId", "");
-                                      setUseStripeTestCouponId(false);
-                                    }
-                                  }
-                                }}
-                              />
-                              <div className="flex grow flex-col text-sm">
-                                <span className="font-medium">{label}</span>
-                                <span>{description}</span>
-                              </div>
-                              <CircleCheckFill
+                            return (
+                              <label
+                                key={label}
                                 className={cn(
-                                  "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                                  isSelected && "scale-100 opacity-100",
+                                  "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                                  "transition-all duration-150",
+                                  isSelected &&
+                                    "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                                 )}
-                              />
-                            </label>
-                          );
-                        },
-                      )}
-                    </div>
-                  )}
+                              >
+                                <input
+                                  type="radio"
+                                  value={label}
+                                  className="hidden"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setUseExistingCoupon(useExisting);
+                                      if (!useExisting) {
+                                        setValue("couponId", "");
+                                        setValue("couponTestId", "");
+                                        setUseStripeTestCouponId(false);
+                                      }
+                                    }
+                                  }}
+                                />
+                                <div className="flex grow flex-col text-sm">
+                                  <span className="font-medium">{label}</span>
+                                  <span>{description}</span>
+                                </div>
+                                <CircleCheckFill
+                                  className={cn(
+                                    "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                    isSelected && "scale-100 opacity-100",
+                                  )}
+                                />
+                              </label>
+                            );
+                          },
+                        )}
+                      </div>
+                    )}
 
                   {showStripeCouponFields && (
                     <>
@@ -390,7 +405,7 @@ function DiscountSheetContent({
                             className="border-border-subtle block w-full rounded-lg bg-white px-3 py-2 text-neutral-800 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                             {...register("couponId")}
                             placeholder="XZuejd0Q"
-                            disabled={!!discount} // we don't allow updating the coupon ID for existing discounts
+                            disabled={!!existingDiscount?.id} // we don't allow updating the coupon ID for existing discounts
                           />
                         </div>
                       </div>
@@ -450,11 +465,13 @@ function DiscountSheetContent({
           <Tooltip
             content="To change the conditions, delete the discount and create a new one."
             side="top"
-            disabled={!discount}
+            disabled={!existingDiscount?.id}
           >
             <div>
               <DiscountSheetCard
-                className={cn(discount && "cursor-not-allowed select-none")}
+                className={cn(
+                  existingDiscount?.id && "cursor-not-allowed select-none",
+                )}
                 title={
                   <>
                     {provider === DiscountProvider.shopify ? (
@@ -466,7 +483,7 @@ function DiscountSheetContent({
                       Discount a{" "}
                       <InlineBadgePopover
                         text={capitalize(type)}
-                        disabled={!!discount}
+                        disabled={!!existingDiscount?.id}
                       >
                         <InlineBadgePopoverMenu
                           selectedValue={type}
@@ -498,9 +515,9 @@ function DiscountSheetContent({
                             : "amount"
                         }
                         invalid={!amount}
-                        disabled={!!discount}
+                        disabled={!!existingDiscount?.id}
                       >
-                        <AmountInput disabled={!!discount} />
+                        <AmountInput disabled={!!existingDiscount?.id} />
                       </InlineBadgePopover>{" "}
                       <InlineBadgePopover
                         text={
@@ -510,7 +527,7 @@ function DiscountSheetContent({
                               ? "for the customer's lifetime"
                               : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
                         }
-                        disabled={!!discount}
+                        disabled={!!existingDiscount?.id}
                       >
                         <DurationPopoverContent
                           value={Number(maxDuration)}
@@ -542,7 +559,9 @@ function DiscountSheetContent({
               </div>
 
               <Switch
-                fn={() => setValue("autoProvision", !autoProvision)}
+                fn={(checked) =>
+                  setValue("autoProvision", checked, { shouldDirty: true })
+                }
                 checked={autoProvision}
                 trackDimensions="w-8 h-4"
                 thumbDimensions="w-3 h-3"
@@ -558,7 +577,7 @@ function DiscountSheetContent({
 
         <div className="flex items-center justify-between border-t border-neutral-200 p-5">
           <div>
-            {discount && (
+            {existingDiscount?.id && (
               <Button
                 type="button"
                 variant="outline"
@@ -582,10 +601,12 @@ function DiscountSheetContent({
             <Button
               type="submit"
               variant="primary"
-              text={discount ? "Update discount" : "Create discount"}
+              text={
+                existingDiscount?.id ? "Update discount" : "Create discount"
+              }
               className="w-fit"
               loading={isCreating || isUpdating}
-              disabled={(!discount && amount == null) || isDeleting}
+              disabled={(!existingDiscount?.id && amount == null) || isDeleting}
             />
           </div>
         </div>
