@@ -2,7 +2,6 @@ import { DubApiError } from "@/lib/api/errors";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import {
   getReferredPartnersQuerySchema,
   referredPartnerSchema,
@@ -22,11 +21,6 @@ export const GET = withPartnerProfile(
       page = 1,
       pageSize,
     } = getReferredPartnersQuerySchema.parse(searchParams);
-
-    throwIfNoPermission({
-      role: partnerUser.role,
-      permission: "referrals.read",
-    });
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
@@ -109,5 +103,8 @@ export const GET = withPartnerProfile(
     }));
 
     return NextResponse.json(z.array(referredPartnerSchema).parse(result));
+  },
+  {
+    requiredPermission: "referrals.read",
   },
 );

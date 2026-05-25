@@ -1,5 +1,4 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { getNetworkProgramsCountQuerySchema } from "@/lib/zod/schemas/program-network";
 import { prisma } from "@dub/prisma";
@@ -18,11 +17,6 @@ export const GET = withPartnerProfile(
   async ({ partner, partnerUser, searchParams }) => {
     const { groupBy, category, rewardType, status, featured, search } =
       getNetworkProgramsCountQuerySchema.parse(searchParams);
-
-    throwIfNoPermission({
-      role: partnerUser.role,
-      permission: "marketplace.read",
-    });
 
     const searchSql = search ? Prisma.sql`CONCAT('%', ${search}, '%')` : null;
     const commonWhereSql = Prisma.sql`
@@ -123,5 +117,8 @@ export const GET = withPartnerProfile(
   `) as { count: bigint }[];
 
     return NextResponse.json(Number(count[0].count));
+  },
+  {
+    requiredPermission: "marketplace.read",
   },
 );

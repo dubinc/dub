@@ -1,5 +1,4 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   NetworkProgramSchema,
@@ -23,11 +22,6 @@ export const GET = withPartnerProfile(
       page = 1,
       pageSize,
     } = getNetworkProgramsQuerySchema.parse(searchParams);
-
-    throwIfNoPermission({
-      role: partnerUser.role,
-      permission: "marketplace.read",
-    });
 
     const programs = await prisma.program.findMany({
       where: {
@@ -144,5 +138,8 @@ export const GET = withPartnerProfile(
           })),
       ),
     );
+  },
+  {
+    requiredPermission: "marketplace.read",
   },
 );

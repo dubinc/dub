@@ -121,4 +121,7 @@ export const GET = withPartnerProfile(
       ),
     );
   },
+  {
+    requiredPermission: "messages.read",
+  },
 );
