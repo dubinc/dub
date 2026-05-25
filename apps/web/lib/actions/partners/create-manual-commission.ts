@@ -192,6 +192,15 @@ export const createManualCommissionAction = authActionClient
         );
       }
 
+      if (stripeCustomerInvoices.length > 12) {
+        throw new Error(
+          `Too many Stripe invoices found for customer ${customer.email} (${stripeCustomerInvoices.length}). Please import the invoices manually.`,
+        );
+      }
+
+      console.log("Stripe invoices to import: ");
+      console.table(stripeCustomerInvoices);
+
       // use the first ever stripe invoice created date as the last lead and conversion dates
       lastLeadAt = stripeCustomerInvoices[0].createdAt;
       lastConversionAt = stripeCustomerInvoices[0].createdAt;
@@ -371,15 +380,17 @@ export const createManualCommissionAction = authActionClient
     const tbRes = await Promise.allSettled(tbEventsToRecord.map((fn) => fn()));
     console.log("Recorded events in Tinybird: ", prettyPrint(tbRes));
 
-    // create partner commissions
-    await Promise.allSettled(
-      commissionsToCreate.map((commission) =>
-        createPartnerCommission(commission),
-      ),
-    );
-
+    let createdCommissions = 0;
+    // create partner commissions (use a for loop to make sure the commissions are created in the correct order)
+    // TODO: migrate to use workflow to support bulk creation
+    for (const c of commissionsToCreate) {
+      const { commission } = await createPartnerCommission(c);
+      if (commission) {
+        createdCommissions++;
+      }
+    }
     console.log(
-      `Created ${commissionsToCreate.length} commissions: ${prettyPrint(commissionsToCreate)}`,
+      `Created ${createdCommissions} commissions for partner ${partner.email} (${partner.id}) and customer ${customer.email} (${customer.id})`,
     );
 
     waitUntil(
