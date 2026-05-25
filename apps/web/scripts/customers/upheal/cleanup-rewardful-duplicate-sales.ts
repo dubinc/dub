@@ -1,97 +1,26 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { syncPartnerLinksStats } from "../../../lib/api/partners/sync-partner-links-stats";
-import { syncTotalCommissions } from "../../../lib/api/partners/sync-total-commissions";
 
 // Dry run: set to false to actually delete
 const DRY_RUN = true;
-const programId = "prog_xxx";
+const programId = "prog_1KPAZMF49X9A1WEWRBM55KZY7";
+const workspaceId = "ws_1KPAZ1MGF3VZH9HNMX048MW1X";
+const CUSTOMER_SALES = [
+  {
+    customerId: "cus_1KR0SNVY4VP3XP7CBM5N4XMXP",
+    linkId: "link_1KR0SMNWK9D4M13G6CM10925R",
+    amount: 22800,
+    eventId: "qCP2HOEFvn3IJZz2",
+  },
+];
 
 async function main() {
-  // Rewardful-imported commissions use the Rewardful sale UUID as invoiceId (e.g. "4fc7004e-..."),
-  // while the sync-stripe-invoices.ts script sets real Stripe invoice IDs (e.g. "in_1Ramt7...").
-  // We find all commissions that do NOT have a Stripe invoice ID.
-  const rewardfulCommissions = await prisma.commission.findMany({
-    where: {
-      programId,
-      // Rewardful commissions store a Rewardful sale UUID as invoiceId (e.g. "4fc7004e-...").
-      // We explicitly exclude null invoiceIds to avoid touching unrelated commissions.
-      invoiceId: {
-        not: null,
-      },
-      NOT: {
-        invoiceId: {
-          startsWith: "in_",
-        },
-      },
-    },
-    include: {
-      customer: {
-        include: {
-          link: true,
-        },
-      },
-    },
-  });
-
-  console.log(
-    `Found ${rewardfulCommissions.length} Rewardful-imported commissions`,
-  );
-
-  // For each Rewardful commission, check if there is a corresponding sync commission
-  // (same customer, same amount, Stripe invoiceId) — that's the duplicate we kept.
-  const toDelete: typeof rewardfulCommissions = [];
-
-  for (const rc of rewardfulCommissions) {
-    const syncCommission = await prisma.commission.findFirst({
-      where: {
-        programId,
-        customerId: rc.customerId,
-        amount: rc.amount,
-        invoiceId: {
-          startsWith: "in_",
-        },
-      },
-    });
-
-    if (syncCommission) {
-      toDelete.push(rc);
-    } else {
-      console.log(
-        `No sync commission found for Rewardful commission ${rc.id} (customer ${rc.customerId}, amount ${rc.amount}). Skipping.`,
-      );
-    }
-  }
-
-  console.log(
-    `\n${toDelete.length} Rewardful commissions have sync duplicates and will be cleaned up.`,
-  );
-
-  if (toDelete.length === 0) {
-    console.log("Nothing to do.");
-    return;
-  }
-
-  console.table(
-    toDelete.map((c) => ({
-      commissionId: c.id,
-      eventId: c.eventId,
-      invoiceId: c.invoiceId,
-      customerId: c.customerId,
-      linkId: c.linkId,
-      amount: c.amount,
-    })),
-  );
-
-  if (DRY_RUN) {
-    console.log("\nDRY RUN — no changes made. Set DRY_RUN=false to proceed.");
-    return;
-  }
-
   // 1. Delete Tinybird sale events (both raw datasource and MV)
-  const eventIds = toDelete.map((c) => c.eventId).filter(Boolean);
+  const eventIds = CUSTOMER_SALES.map((c) => c.eventId).filter(Boolean);
   if (eventIds.length > 0) {
     const condition = `event_id IN (${eventIds.map((id) => `'${id}'`).join(",")})`;
+    console.log({ condition });
     const tbRes = await Promise.allSettled([
       deleteTinybirdData({ dataSource: "dub_sale_events", condition }),
       deleteTinybirdData({ dataSource: "dub_sale_events_mv", condition }),
@@ -99,16 +28,8 @@ async function main() {
     console.log("\nTinybird deletion results:", tbRes);
   }
 
-  // 2. Delete Rewardful commissions from Prisma
-  const deleted = await prisma.commission.deleteMany({
-    where: {
-      id: { in: toDelete.map((c) => c.id) },
-    },
-  });
-  console.log(`\nDeleted ${deleted.count} commissions from Prisma`);
-
   // 3. Fix double-counted stats per customer and per link
-  const statsByCustomer = toDelete.reduce(
+  const statsByCustomer = CUSTOMER_SALES.reduce(
     (acc, c) => {
       if (!c.customerId) return acc;
       acc[c.customerId] ??= { sales: 0, saleAmount: 0 };
@@ -119,23 +40,18 @@ async function main() {
     {} as Record<string, { sales: number; saleAmount: number }>,
   );
 
-  const statsByLink = toDelete.reduce(
+  const statsByLink = CUSTOMER_SALES.reduce(
     (acc, c) => {
       if (!c.linkId) return acc;
       acc[c.linkId] ??= {
         sales: 0,
         saleAmount: 0,
-        partnerId: null as string | null,
       };
       acc[c.linkId].sales += 1;
       acc[c.linkId].saleAmount += c.amount;
-      acc[c.linkId].partnerId = c.customer?.link?.partnerId ?? null;
       return acc;
     },
-    {} as Record<
-      string,
-      { sales: number; saleAmount: number; partnerId: string | null }
-    >,
+    {} as Record<string, { sales: number; saleAmount: number }>,
   );
 
   await Promise.all([
@@ -171,20 +87,22 @@ async function main() {
     ),
   ]);
 
+  const links = await prisma.link.findMany({
+    where: {
+      id: { in: Object.keys(statsByLink) },
+    },
+    select: {
+      id: true,
+      partnerId: true,
+    },
+  });
   // 4. Sync partner stats (link-level and total earnings)
-  const partnerIds = [
-    ...new Set(
-      Object.values(statsByLink)
-        .map((s) => s.partnerId)
-        .filter(Boolean),
-    ),
-  ] as string[];
+  const partnerIds = [...new Set(links.map((l) => l.partnerId))] as string[];
 
   await Promise.all(
-    partnerIds.flatMap((partnerId) => [
+    partnerIds.map((partnerId) =>
       syncPartnerLinksStats({ partnerId, programId, eventType: "sale" }),
-      syncTotalCommissions({ partnerId, programId }),
-    ]),
+    ),
   );
 
   console.log("\nCleanup complete.");
@@ -205,7 +123,7 @@ async function deleteTinybirdData({
         Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: `delete_condition=${condition}`,
+      body: `delete_condition=workspace_id='${workspaceId}' and ${condition}`,
     },
   ).then((res) => res.json());
 }
