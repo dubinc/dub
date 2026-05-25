@@ -55,7 +55,7 @@ const RBAC_MATRIX: RbacEntry[] = [
     roles: {
       owner: { status: 200 },
       member: { status: 200 },
-      viewer: { status: 200 },
+      viewer: { status: 403 },
     },
   },
   {
@@ -200,7 +200,7 @@ const RBAC_MATRIX: RbacEntry[] = [
     endpoint: "/programs/example",
     roles: {
       owner: { status: 200 },
-      member: { status: 404, code: "not_found" },
+      member: { status: 403, code: "forbidden" },
       viewer: { status: 200 },
     },
   },
@@ -240,7 +240,7 @@ const RBAC_MATRIX: RbacEntry[] = [
     queryParams: { linkId: "{{inaccessibleLinkId}}" },
     roles: {
       owner: { status: 200 },
-      member: { status: 404, code: "not_found" },
+      member: { status: 403, code: "forbidden" },
       viewer: { status: 200 },
     },
   },
@@ -250,7 +250,7 @@ const RBAC_MATRIX: RbacEntry[] = [
     queryParams: { linkId: "{{inaccessibleLinkId}}" },
     roles: {
       owner: { status: 200 },
-      member: { status: 404, code: "not_found" },
+      member: { status: 403, code: "forbidden" },
       viewer: { status: 200 },
     },
   },
