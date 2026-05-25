@@ -1,6 +1,6 @@
 import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { programScopeFilter } from "@/lib/auth/partner-users/program-scope-filter";
+import { programAccessFilter } from "@/lib/auth/partner-users/program-access-filter";
 import { throwIfNoProgramAccess } from "@/lib/auth/partner-users/throw-if-no-access";
 import { partnerProfilePayoutsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { PartnerPayoutResponseSchema } from "@/lib/zod/schemas/payouts";
@@ -30,7 +30,7 @@ export const GET = withPartnerProfile(
         partnerId: partner.id,
         ...(programId
           ? { programId }
-          : programScopeFilter(partnerUser.assignedPrograms)),
+          : programAccessFilter(partnerUser.assignedPrograms)),
         ...(status && { status }),
       },
       include: {

@@ -1,5 +1,5 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { programScopeFilter } from "@/lib/auth/partner-users/program-scope-filter";
+import { programAccessFilter } from "@/lib/auth/partner-users/program-access-filter";
 import { throwIfNoProgramAccess } from "@/lib/auth/partner-users/throw-if-no-access";
 import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
@@ -21,7 +21,7 @@ export const GET = withPartnerProfile(
       partnerId: partner.id,
       ...(programId
         ? { programId }
-        : programScopeFilter(partnerUser.assignedPrograms)),
+        : programAccessFilter(partnerUser.assignedPrograms)),
     };
 
     if (groupBy === "status") {

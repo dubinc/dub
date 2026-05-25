@@ -42,8 +42,8 @@ interface WithPartnerProfileHandler {
       PartnerUser,
       "id" | "userId" | "role" | "programAccess"
     > & {
-      assignedPrograms?: Pick<Program, "id" | "slug">[];
-      assignedLinks?: Pick<Link, "id">[];
+      assignedPrograms: Pick<Program, "id" | "slug">[] | undefined;
+      assignedLinks: Pick<Link, "id">[] | undefined;
     };
   }): Promise<Response>;
 }
@@ -297,6 +297,10 @@ export const withPartnerProfile = (
           }
         }
 
+        // Normalize program scope for handlers (e.g. programScopeFilter):
+        // - programAccess "all" → undefined (no filter)
+        // - programAccess "restricted" → assigned programs, or [] if none
+
         const assignedPrograms =
           partnerUser.programAccess === "all"
             ? undefined
@@ -309,27 +313,16 @@ export const withPartnerProfile = (
 
         // If the user is scoped to specific programs and the route has a programId param,
         // verify they have access to this program (param may be program id or slug)
-        if (
-          params.programId &&
-          assignedPrograms !== undefined &&
-          assignedPrograms.length > 0
-        ) {
-          let hasAccess = false;
-
-          if (params.programId.startsWith("prog_")) {
-            hasAccess = assignedPrograms.some(
-              ({ id }) => id === params.programId,
-            );
-          } else {
-            hasAccess = assignedPrograms.some(
-              ({ slug }) => slug === params.programId,
-            );
-          }
+        if (params.programId && assignedPrograms !== undefined) {
+          const hasAccess = assignedPrograms.some(
+            ({ id, slug }) =>
+              id === params.programId || slug === params.programId,
+          );
 
           if (!hasAccess) {
             throw new DubApiError({
-              code: "not_found",
-              message: `You don't have access to this program.`,
+              code: "forbidden",
+              message: "You don't have access to this program.",
             });
           }
         }
