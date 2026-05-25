@@ -20,8 +20,11 @@ const PERMISSIONS = [
   "program_enrollments.withdraw",
   "bounties.submit",
   "links.write",
-  "referrals.submit",
+  "leads.submit",
   "payouts.read",
+  "marketplace.read",
+  "invitations.read",
+  "referrals.read",
 ] as const;
 
 const ROLE_PERMISSIONS: Record<PartnerRole, Set<Permission>> = {
@@ -35,8 +38,11 @@ const ROLE_PERMISSIONS: Record<PartnerRole, Set<Permission>> = {
     "program_enrollments.withdraw",
     "bounties.submit",
     "links.write",
-    "referrals.submit",
+    "leads.submit",
     "payouts.read",
+    "marketplace.read",
+    "invitations.read",
+    "referrals.read",
   ]),
   viewer: new Set([]),
 } as const;

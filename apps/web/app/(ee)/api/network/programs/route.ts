@@ -1,4 +1,5 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   NetworkProgramSchema,
@@ -9,131 +10,139 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 // GET /api/network/programs - get all available programs in the network
-export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const {
-    search,
-    featured,
-    category,
-    rewardType,
-    status,
-    sortBy,
-    sortOrder,
-    page = 1,
-    pageSize,
-  } = getNetworkProgramsQuerySchema.parse(searchParams);
+export const GET = withPartnerProfile(
+  async ({ partner, partnerUser, searchParams }) => {
+    const {
+      search,
+      featured,
+      category,
+      rewardType,
+      status,
+      sortBy,
+      sortOrder,
+      page = 1,
+      pageSize,
+    } = getNetworkProgramsQuerySchema.parse(searchParams);
 
-  const programs = await prisma.program.findMany({
-    where: {
-      // Added to marketplace
-      addedToMarketplaceAt: {
-        not: null,
-      },
-      ...(featured && {
-        featuredOnMarketplaceAt: {
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "marketplace.read",
+    });
+
+    const programs = await prisma.program.findMany({
+      where: {
+        // Added to marketplace
+        addedToMarketplaceAt: {
           not: null,
         },
-      }),
-      ...(search && {
-        OR: [
-          { name: { contains: search } },
-          { slug: { contains: search } },
-          { domain: { contains: search } },
-          { url: { contains: search } },
-          { description: { contains: search } },
-        ],
-      }),
-      ...(category && {
-        categories: {
-          some: {
-            category,
+        ...(featured && {
+          featuredOnMarketplaceAt: {
+            not: null,
           },
-        },
-      }),
-      ...(rewardType && {
-        groups: {
-          some: {
-            slug: DEFAULT_PARTNER_GROUP.slug,
-            ...(rewardType === "sale" && {
-              saleRewardId: { not: null },
-            }),
-            ...(rewardType === "lead" && {
-              leadRewardId: { not: null },
-            }),
-            ...(rewardType === "click" && {
-              clickRewardId: { not: null },
-            }),
-            ...(rewardType === "discount" && {
-              discountId: { not: null },
-            }),
+        }),
+        ...(search && {
+          OR: [
+            { name: { contains: search } },
+            { slug: { contains: search } },
+            { domain: { contains: search } },
+            { url: { contains: search } },
+            { description: { contains: search } },
+          ],
+        }),
+        ...(category && {
+          categories: {
+            some: {
+              category,
+            },
           },
-        },
-      }),
-      ...(status !== undefined && {
-        partners:
-          status === null
-            ? { none: { partnerId: partner.id } }
-            : {
-                some: {
-                  partnerId: partner.id,
-                  status,
+        }),
+        ...(rewardType && {
+          groups: {
+            some: {
+              slug: DEFAULT_PARTNER_GROUP.slug,
+              ...(rewardType === "sale" && {
+                saleRewardId: { not: null },
+              }),
+              ...(rewardType === "lead" && {
+                leadRewardId: { not: null },
+              }),
+              ...(rewardType === "click" && {
+                clickRewardId: { not: null },
+              }),
+              ...(rewardType === "discount" && {
+                discountId: { not: null },
+              }),
+            },
+          },
+        }),
+        ...(status !== undefined && {
+          partners:
+            status === null
+              ? { none: { partnerId: partner.id } }
+              : {
+                  some: {
+                    partnerId: partner.id,
+                    status,
+                  },
                 },
-              },
-      }),
-    },
-    include: {
-      groups: {
-        where: {
-          slug: DEFAULT_PARTNER_GROUP.slug,
-        },
-        include: {
-          clickReward: true,
-          leadReward: true,
-          saleReward: true,
-          referralReward: true,
-          discount: true,
-        },
+        }),
       },
-      categories: true,
-      invoices: true,
-    },
-    orderBy:
-      sortBy === "popularity"
-        ? {}
-        : {
-            [sortBy === "recency" ? "addedToMarketplaceAt" : sortBy]: sortOrder,
+      include: {
+        groups: {
+          where: {
+            slug: DEFAULT_PARTNER_GROUP.slug,
           },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-  });
+          include: {
+            clickReward: true,
+            leadReward: true,
+            saleReward: true,
+            referralReward: true,
+            discount: true,
+          },
+        },
+        categories: true,
+        invoices: true,
+      },
+      orderBy:
+        sortBy === "popularity"
+          ? {}
+          : {
+              [sortBy === "recency" ? "addedToMarketplaceAt" : sortBy]:
+                sortOrder,
+            },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
 
-  return NextResponse.json(
-    z.array(NetworkProgramSchema).parse(
-      programs
-        .sort((a, b) =>
-          // if requesting featured programs, randomize the order
-          featured
-            ? Math.random() - 0.5
-            : // if sorting by popularity, sort by marketplaceRanking first, then total invoice paid out
-              sortBy === "popularity"
-              ? a.marketplaceRanking - b.marketplaceRanking ||
-                b.invoices.reduce((acc, invoice) => acc + invoice.amount, 0) -
-                  a.invoices.reduce((acc, invoice) => acc + invoice.amount, 0)
-              : 0,
-        )
-        .map((program) => ({
-          ...program,
-          rewards:
-            program.groups.length > 0
-              ? [
-                  program.groups[0].clickReward,
-                  program.groups[0].leadReward,
-                  program.groups[0].saleReward,
-                ].filter(Boolean)
-              : [],
-          discount:
-            program.groups.length > 0 ? program.groups[0].discount : null,
-          categories: program.categories.map(({ category }) => category),
-        })),
-    ),
-  );
-});
+    return NextResponse.json(
+      z.array(NetworkProgramSchema).parse(
+        programs
+          .sort((a, b) =>
+            // if requesting featured programs, randomize the order
+            featured
+              ? Math.random() - 0.5
+              : // if sorting by popularity, sort by marketplaceRanking first, then total invoice paid out
+                sortBy === "popularity"
+                ? a.marketplaceRanking - b.marketplaceRanking ||
+                  b.invoices.reduce((acc, invoice) => acc + invoice.amount, 0) -
+                    a.invoices.reduce((acc, invoice) => acc + invoice.amount, 0)
+                : 0,
+          )
+          .map((program) => ({
+            ...program,
+            rewards:
+              program.groups.length > 0
+                ? [
+                    program.groups[0].clickReward,
+                    program.groups[0].leadReward,
+                    program.groups[0].saleReward,
+                  ].filter(Boolean)
+                : [],
+            discount:
+              program.groups.length > 0 ? program.groups[0].discount : null,
+            categories: program.categories.map(({ category }) => category),
+          })),
+      ),
+    );
+  },
+);

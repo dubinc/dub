@@ -7,7 +7,7 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
 import { ProgramsPromoCard } from "@/ui/partners/program-marketplace/programs-promo-card";
-import type { PartnerRole } from "@dub/prisma/client";
+import { PartnerRole } from "@dub/prisma/client";
 import { type Icon, useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -106,7 +106,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
-  programs: ({ invitationsCount }) => ({
+  programs: ({ invitationsCount, partnerRole }) => ({
     title: (
       <div className="mb-3">
         <PartnerProgramDropdown />
@@ -127,18 +127,26 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 (k) => !pathname.startsWith(`${href}/${k}`),
               ),
           },
-          {
-            name: "Marketplace",
-            icon: Shop,
-            href: "/programs/marketplace" as `/${string}`,
-            badge: "New",
-          },
-          {
-            name: "Invitations",
-            icon: UserCheck,
-            href: "/programs/invitations",
-            badge: invitationsCount || undefined,
-          },
+          ...(partnerRole && hasPermission(partnerRole, "marketplace.read")
+            ? [
+                {
+                  name: "Marketplace",
+                  icon: Shop,
+                  href: "/programs/marketplace" as `/${string}`,
+                  badge: "New",
+                },
+              ]
+            : []),
+          ...(partnerRole && hasPermission(partnerRole, "invitations.read")
+            ? [
+                {
+                  name: "Invitations",
+                  icon: UserCheck,
+                  href: "/programs/invitations" as `/${string}`,
+                  badge: invitationsCount || undefined,
+                },
+              ]
+            : []),
         ],
       },
     ],

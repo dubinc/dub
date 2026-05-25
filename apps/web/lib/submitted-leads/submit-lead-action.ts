@@ -67,7 +67,7 @@ export const submitLeadAction = authPartnerActionClient
 
     throwIfNoPermission({
       role: partnerUser.role,
-      permission: "referrals.submit",
+      permission: "leads.submit",
     });
 
     const programEnrollment = await getProgramEnrollmentOrThrow({

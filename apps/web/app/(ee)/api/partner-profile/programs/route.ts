@@ -1,4 +1,5 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
@@ -12,6 +13,13 @@ export const GET = withPartnerProfile(
   async ({ partner, partnerUser, searchParams }) => {
     const { includeRewardsDiscounts, status } =
       partnerProfileProgramsQuerySchema.parse(searchParams);
+
+    if (status === "invited") {
+      throwIfNoPermission({
+        role: partnerUser.role,
+        permission: "invitations.read",
+      });
+    }
 
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
