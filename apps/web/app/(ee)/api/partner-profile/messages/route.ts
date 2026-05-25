@@ -1,5 +1,6 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { programAccessFilter } from "@/lib/auth/partner-users/program-access-filter";
+import { throwIfNoProgramAccess } from "@/lib/auth/partner-users/throw-if-no-access";
 import {
   ProgramMessagesSchema,
   getProgramMessagesQuerySchema,
@@ -19,11 +20,19 @@ export const GET = withPartnerProfile(
 
     const messagesLimit = messagesLimitArg ?? (programSlug ? undefined : 10);
 
+    if (programSlug) {
+      throwIfNoProgramAccess({
+        programSlug,
+        partnerUser,
+      });
+    }
+
     const programs = await prisma.program.findMany({
       where: {
         ...(programSlug
           ? {
               slug: programSlug,
+              ...programAccessFilter(partnerUser.assignedPrograms),
               OR: [
                 // Partner is enrolled in the program
                 // in this case, return messages regardless of messaging enabled status which is passed to the UI
