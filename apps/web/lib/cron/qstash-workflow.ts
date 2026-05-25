@@ -2,6 +2,7 @@ import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { Client } from "@upstash/workflow";
 
 const client = new Client({
+  baseUrl: "https://qstash-us-east-1.upstash.io",
   token: process.env.QSTASH_TOKEN || "",
 });
 

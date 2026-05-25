@@ -23,14 +23,14 @@ export async function rejectPartner({
   partnerId,
   rejectionReason,
   rejectionNote,
-  allowImmediateReapply,
+  reapplicationTimeframe,
   flagForFraud,
   flagForFraudReason,
   userId,
 }: RejectPartnerInput) {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  if (flagForFraud && allowImmediateReapply) {
+  if (flagForFraud && reapplicationTimeframe === "instant") {
     throw new DubApiError({
       code: "bad_request",
       message:
@@ -94,8 +94,8 @@ export async function rejectPartner({
       });
     }
 
-    // If the partner can immediately re-apply, delete the application
-    if (allowImmediateReapply) {
+    // If the partner can immediately re-apply, delete the enrollment
+    if (reapplicationTimeframe === "instant") {
       const { count } = await tx.programEnrollment.deleteMany({
         where: {
           id: programEnrollment.id,
@@ -114,7 +114,7 @@ export async function rejectPartner({
       return;
     }
 
-    // If the partner cannot immediately re-apply, reject the application
+    // Reject the enrollment and persist the reapplication timeframe
     await tx.programEnrollment.update({
       where: {
         id: programEnrollment.id,
@@ -122,9 +122,11 @@ export async function rejectPartner({
       },
       data: {
         status: ProgramEnrollmentStatus.rejected,
+        reapplicationTimeframe,
         clickRewardId: null,
         leadRewardId: null,
         saleRewardId: null,
+        referralRewardId: null,
         discountId: null,
       },
     });
@@ -194,7 +196,7 @@ export async function rejectPartner({
             additionalNotes: rejectionNote,
             rejectionReason:
               getProgramApplicationRejectionReasonLabel(rejectionReason),
-            canReapplyImmediately: allowImmediateReapply,
+            reapplicationTimeframe,
           }),
         }),
     ]),

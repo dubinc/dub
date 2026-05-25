@@ -72,7 +72,7 @@ export async function POST(req: Request) {
       stripeId: invoice.workspace.stripeId,
       amount: invoice.total,
       invoiceId: invoice.id,
-      statementDescriptor: "Dub",
+      statementDescriptor: "DUB.CO DOMAIN RENEWAL",
       description: `Domain renewal invoice (${invoice.id})`,
       idempotencyKey: `${invoice.id}-${invoice.failedAttempts}`,
     });

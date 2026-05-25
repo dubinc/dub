@@ -178,6 +178,7 @@ export async function bulkDeletePartners({
     });
     console.log(`Deleted ${deletedActivityLogs.count} activity logs`);
 
+    // Delete the program enrollments
     const deletedProgramEnrollments = await prisma.programEnrollment.deleteMany(
       {
         where: {

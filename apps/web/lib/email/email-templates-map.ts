@@ -1,6 +1,6 @@
 import BountyApproved from "@dub/email/templates/bounty-approved";
 import IdentityVerificationAnnouncement from "@dub/email/templates/broadcasts/identity-verification-announcement";
-import StablecoinPayoutsAnnouncement from "@dub/email/templates/broadcasts/stablecoin-payouts-announcement";
+import DubLaunchWeekDay5 from "@dub/email/templates/broadcasts/launch-week-day-5";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
 import ConnectPlatformsReminder from "@dub/email/templates/connect-platforms-reminder";
 import PartnerBanned from "@dub/email/templates/partner-banned";
@@ -8,6 +8,7 @@ import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
 import PartnerGroupChanged from "@dub/email/templates/partner-group-changed";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
+import PartnerRewardsUpdated from "@dub/email/templates/partner-rewards-updated";
 import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
 import UnresolvedFraudEventsSummary from "@dub/email/templates/unresolved-fraud-events-summary";
 
@@ -22,6 +23,7 @@ export const EMAIL_TEMPLATES_MAP = {
   ProgramPayoutThankYou,
   UnresolvedFraudEventsSummary,
   PartnerGroupChanged,
+  PartnerRewardsUpdated,
 
   // special broadcast emails
   // DubPartnerRewind,
@@ -29,5 +31,6 @@ export const EMAIL_TEMPLATES_MAP = {
   IdentityVerificationAnnouncement,
   // PayoutAutoWithdrawals,
   // ProgramMarketplaceAnnouncement,
-  StablecoinPayoutsAnnouncement,
+  // StablecoinPayoutsAnnouncement,
+  DubLaunchWeekDay5,
 } as const;

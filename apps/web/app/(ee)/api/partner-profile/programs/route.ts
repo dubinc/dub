@@ -3,6 +3,7 @@ import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-pro
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { Reward } from "@dub/prisma/client";
+import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -14,6 +15,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId: partner.id,
+      programId: { not: NETWORK_PROGRAM_ID },
       ...(status && { status }),
       program: {
         deactivatedAt: null,
@@ -46,6 +48,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         clickReward: true,
         leadReward: true,
         saleReward: true,
+        referralReward: true,
         discount: true,
       }),
     },

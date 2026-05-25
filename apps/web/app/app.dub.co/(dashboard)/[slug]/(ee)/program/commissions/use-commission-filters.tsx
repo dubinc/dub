@@ -136,6 +136,7 @@ export function useCommissionFilters() {
         key: "status",
         icon: CircleDotted,
         label: "Status",
+        singleSelect: true,
         options: Object.entries(CommissionStatusBadges).map(
           ([value, { label }]) => {
             const Icon = CommissionStatusBadges[value].icon;
@@ -199,7 +200,10 @@ export function useCommissionFilters() {
   const onSelect = useCallback(
     (key: string, value: string) => {
       const currentParam = searchParamsObj[key];
-      if (!currentParam) {
+      const filterDef = filters.find((f) => f.key === key);
+      const isSingleSelect = filterDef?.singleSelect;
+
+      if (!currentParam || isSingleSelect) {
         queryParams({ set: { [key]: value }, del: "page" });
         return;
       }
@@ -212,7 +216,7 @@ export function useCommissionFilters() {
         queryParams({ set: { [key]: newParam }, del: "page" });
       }
     },
-    [searchParamsObj, queryParams],
+    [searchParamsObj, queryParams, filters],
   );
 
   const onRemove = useCallback(

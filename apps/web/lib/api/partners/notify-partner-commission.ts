@@ -30,7 +30,7 @@ export async function notifyPartnerCommission({
     Commission,
     "type" | "amount" | "earnings" | "partnerId" | "linkId"
   >;
-  isFirstCommission: boolean;
+  isFirstCommission?: boolean;
 }) {
   // Workspace owner emails are sent:
   // - only for sale commissions

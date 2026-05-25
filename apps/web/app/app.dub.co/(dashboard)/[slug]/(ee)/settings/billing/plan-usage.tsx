@@ -53,7 +53,6 @@ export default function PlanUsage() {
     plan,
     role,
     stripeId,
-    defaultProgramId,
     usage,
     usageLimit,
     linksUsage,

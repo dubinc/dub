@@ -64,6 +64,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
           clickRewardId: null,
           leadRewardId: null,
           saleRewardId: null,
+          referralRewardId: null,
           discountId: null,
         },
       });
@@ -159,7 +160,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
                 },
                 rejectionReason: undefined,
                 additionalNotes: undefined,
-                canReapplyImmediately: false,
+                reapplicationTimeframe: "standard",
               }),
             })),
           );

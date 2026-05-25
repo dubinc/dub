@@ -1,3 +1,6 @@
+import { useAttributeReferringPartnerModal } from "@/lib/partner-referrals/components/attribute-referring-partner-modal";
+import { usePartnerReferral } from "@/lib/partner-referrals/hooks/use-partner-referral";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -20,7 +23,12 @@ import {
   TimestampTooltip,
   Trophy,
 } from "@dub/ui";
-import { TriangleWarning, Users, VerifiedBadge } from "@dub/ui/icons";
+import {
+  TriangleWarning,
+  UserArrowRight,
+  Users,
+  VerifiedBadge,
+} from "@dub/ui/icons";
 import {
   COUNTRIES,
   fetcher,
@@ -73,7 +81,7 @@ type PartnerInfoCardsProps = {
 type BasicField = {
   id: string;
   icon: React.ReactElement;
-  text: string | null | undefined;
+  text: ReactNode | null | undefined;
   /** When set, the row is wrapped in TimestampTooltip (local / UTC / unix). */
   timestamp?: Date | string | number;
   /** Optional outer wrapper (e.g. ConversionScoreTooltip) around the row content. */
@@ -90,7 +98,9 @@ export function PartnerInfoCards({
   showFraudIndicator = true,
   showApplicationRiskAnalysis = false,
 }: PartnerInfoCardsProps) {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
+
+  const { canCreateReferralReward } = getPlanCapabilities(plan);
 
   const isEnrolled = type === "enrolled" || type === undefined;
   const isNetwork = type === "network";
@@ -183,6 +193,17 @@ export function PartnerInfoCards({
               ...(partner.identityVerifiedAt
                 ? { timestamp: partner.identityVerifiedAt }
                 : {}),
+            },
+          ]
+        : []),
+
+      // Referred by
+      ...(isEnrolled && canCreateReferralReward
+        ? [
+            {
+              id: "referredBy",
+              icon: <UserArrowRight className="size-3.5 shrink-0" />,
+              text: <ReferredByPartner partner={partner} />,
             },
           ]
         : []),
@@ -383,6 +404,7 @@ export function PartnerInfoCards({
                         group.clickReward,
                         group.leadReward,
                         group.saleReward,
+                        group.referralReward,
                       ].filter((r): r is RewardProps => r !== null)}
                       discount={group.discount}
                       variant="plain"
@@ -476,5 +498,69 @@ function TagsList({ partner }: { partner: EnrolledPartnerExtendedProps }) {
         mode="link"
       />
     </div>
+  );
+}
+
+function ReferredByPartner({
+  partner,
+}: {
+  partner: Pick<
+    EnrolledPartnerExtendedProps,
+    "id" | "name" | "image" | "email" | "groupId" | "totalCommissions"
+  >;
+}) {
+  const { slug } = useWorkspace();
+
+  const { referral, loading, error } = usePartnerReferral({
+    partnerId: partner?.id,
+  });
+
+  const {
+    AttributeReferringPartnerModal,
+    setShowAttributeReferringPartnerModal,
+  } = useAttributeReferringPartnerModal({ partner });
+
+  if (error) {
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <span className="flex min-w-0 items-center gap-1">
+        <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
+        <div className="size-4 animate-pulse rounded-full bg-neutral-200" />
+        <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
+      </span>
+    );
+  }
+
+  // Has a referring partner
+  if (referral && referral.referredBy) {
+    return (
+      <span className="flex min-w-0 items-center gap-1">
+        Referred by
+        <Link
+          href={`/${slug}/program/partners/${referral.referredBy.id}`}
+          className="inline-flex min-w-0 max-w-full cursor-alias items-center gap-1 rounded decoration-dotted underline-offset-2 hover:underline"
+        >
+          <PartnerAvatar partner={referral.referredBy} className="size-3.5" />
+          <span className="truncate">{referral.referredBy.name}</span>
+        </Link>
+      </span>
+    );
+  }
+
+  return (
+    <>
+      <AttributeReferringPartnerModal />
+      <button
+        type="button"
+        onClick={() => setShowAttributeReferringPartnerModal(true)}
+        aria-label="Attribute referring partner"
+        className="bg-bg-inverted/5 text-content-default hover:bg-bg-inverted/10 -my-0.5 inline-flex h-5 min-w-0 select-none items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium transition-all"
+      >
+        Attribute referring partner
+      </button>
+    </>
   );
 }

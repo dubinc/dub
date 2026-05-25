@@ -67,6 +67,7 @@ export const GroupSchema = z.object({
   clickReward: RewardSchema.nullish(),
   leadReward: RewardSchema.nullish(),
   saleReward: RewardSchema.nullish(),
+  referralReward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
   utmTemplate: UTMTemplateSchema.nullish(),
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
@@ -158,6 +159,7 @@ export const PartnerGroupDefaultLinkSchema = z.object({
   id: z.string(),
   domain: z.string(),
   url: parseUrlSchema,
+  createdAt: z.coerce.date(),
 });
 
 export const getGroupsQuerySchema = z

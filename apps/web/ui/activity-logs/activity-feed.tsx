@@ -13,6 +13,7 @@ const ACTIVITY_ITEM_MAP: Record<
   clickReward: RewardActivityItem,
   leadReward: RewardActivityItem,
   saleReward: RewardActivityItem,
+  referralReward: RewardActivityItem,
 };
 
 interface ActivityFeedProps {

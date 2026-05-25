@@ -1,6 +1,5 @@
 "use client";
 
-import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import {
   DiscountProps,
@@ -10,9 +9,9 @@ import {
 import { Gift, Heart, Icon, Trophy } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
-import { REWARD_EVENTS } from "../constants";
 import { formatDiscountDescription } from "../format-discount-description";
-import { ProgramRewardModifiersTooltip } from "../program-reward-modifiers-tooltip";
+import { ProgramRewardDescription } from "../program-reward-description";
+import { REWARD_EVENT_ICON } from "../rewards/reward-event-icon";
 
 const MAX_VISIBLE_BOUNTIES = 3;
 
@@ -62,35 +61,8 @@ export function LanderRewards({
           </h2>
           <ul className="mt-2 flex flex-col gap-2 text-sm font-medium tracking-[-0.02em] text-neutral-600">
             {sortedFilteredRewards.map((reward) => (
-              <Item key={reward.id} icon={REWARD_EVENTS[reward.event].icon}>
-                {reward.description || (
-                  <>
-                    {constructRewardAmount(reward)}{" "}
-                    {reward.event === "sale" && reward.maxDuration === 0 ? (
-                      <>for the first sale</>
-                    ) : (
-                      <>per {reward.event}</>
-                    )}
-                    {reward.maxDuration === null ? (
-                      <> for the customer's lifetime</>
-                    ) : reward.maxDuration && reward.maxDuration >= 1 ? (
-                      <>
-                        {" "}
-                        for{" "}
-                        {reward.maxDuration % 12 === 0
-                          ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
-                          : `${reward.maxDuration} month${reward.maxDuration > 1 ? "s" : ""}`}
-                      </>
-                    ) : null}
-                  </>
-                )}
-                {(!!reward.modifiers?.length ||
-                  Boolean(reward.tooltipDescription)) && (
-                  <>
-                    {" "}
-                    <ProgramRewardModifiersTooltip reward={reward} />
-                  </>
-                )}
+              <Item key={reward.id} icon={REWARD_EVENT_ICON[reward.event]}>
+                <ProgramRewardDescription reward={reward} />
               </Item>
             ))}
 
