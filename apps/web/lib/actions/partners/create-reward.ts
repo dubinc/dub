@@ -7,6 +7,7 @@ import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
+import { assertRewardGroupLockAvailable } from "@/lib/api/rewards/reward-group-lock";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
@@ -16,6 +17,7 @@ import {
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -73,6 +75,11 @@ export const createRewardAction = authActionClient
 
     validateReward(parsedInput);
 
+    await assertRewardGroupLockAvailable({
+      groupId,
+      event,
+    });
+
     const reward = await prisma.$transaction(async (tx) => {
       const reward = await tx.reward.create({
         data: {
@@ -115,6 +122,7 @@ export const createRewardAction = authActionClient
         groupId,
         rewardId: reward.id,
         occurredAt: new Date().toISOString(),
+        operationId: nanoid(10),
         rewardSnapshot: {
           description: formatRewardDescription(serializeReward(reward), {
             includeEarnPrefix: false,

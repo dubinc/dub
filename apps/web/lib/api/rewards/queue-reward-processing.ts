@@ -7,6 +7,8 @@ const rewardJobPayloadSchema = z.object({
   rewardId: z.string(),
   groupId: z.string(),
   occurredAt: z.string(),
+  startAfterProgramEnrollmentId: z.string().nullish(),
+  operationId: z.string(),
   rewardSnapshot: z.object({
     description: z.string(),
   }),

@@ -6,12 +6,18 @@ import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
+import { assertRewardGroupLockAvailable } from "@/lib/api/rewards/reward-group-lock";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import {
+  REWARD_EVENT_COLUMN_MAPPING,
+  updateRewardSchema,
+} from "@/lib/zod/schemas/rewards";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
@@ -65,6 +71,27 @@ export const updateRewardAction = authActionClient
       event: reward.event,
     });
 
+    const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+
+    const group = await prisma.partnerGroup.findFirst({
+      where: {
+        [rewardIdColumn]: reward.id,
+      },
+      select: {
+        id: true,
+        slug: true,
+      },
+    });
+
+    if (!group) {
+      throw new Error("Partner group not found.");
+    }
+
+    await assertRewardGroupLockAvailable({
+      groupId: group.id,
+      event: reward.event,
+    });
+
     const updatedReward = await prisma.reward.update({
       where: {
         id: rewardId,
@@ -88,46 +115,19 @@ export const updateRewardAction = authActionClient
       },
       include: {
         program: true,
-        clickPartnerGroup: true,
-        leadPartnerGroup: true,
-        salePartnerGroup: true,
-        referralPartnerGroup: true,
       },
     });
 
-    const {
-      program,
-      clickPartnerGroup,
-      leadPartnerGroup,
-      salePartnerGroup,
-      referralPartnerGroup,
-      ...rewardMetadata
-    } = updatedReward;
-
-    const isDefaultGroup = [
-      clickPartnerGroup,
-      leadPartnerGroup,
-      salePartnerGroup,
-      referralPartnerGroup,
-    ].some((group) => group?.slug === "default");
-
-    // Determine the groupId from the partner group relation
-    const partnerGroup =
-      clickPartnerGroup ||
-      leadPartnerGroup ||
-      salePartnerGroup ||
-      referralPartnerGroup;
-
-    if (!partnerGroup) {
-      throw new Error("Partner group not found.");
-    }
+    const { program, ...rewardMetadata } = updatedReward;
+    const isDefaultGroup = group.slug === DEFAULT_PARTNER_GROUP.slug;
 
     await queueRewardProcessing({
       event: "reward-updated",
       payload: {
-        groupId: partnerGroup?.id,
+        groupId: group.id,
         rewardId: reward.id,
         occurredAt: new Date().toISOString(),
+        operationId: nanoid(10),
         rewardSnapshot: {
           description: formatRewardDescription(serializeReward(updatedReward), {
             includeEarnPrefix: false,
@@ -159,7 +159,7 @@ export const updateRewardAction = authActionClient
           userId: user.id,
           resourceId: rewardMetadata.id,
           parentResourceType: "group",
-          parentResourceId: partnerGroup?.id,
+          parentResourceId: group.id,
           old: reward,
           new: updatedReward,
         }),
