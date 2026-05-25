@@ -380,11 +380,18 @@ export const createManualCommissionAction = authActionClient
     const tbRes = await Promise.allSettled(tbEventsToRecord.map((fn) => fn()));
     console.log("Recorded events in Tinybird: ", prettyPrint(tbRes));
 
+    let createdCommissions = 0;
     // create partner commissions (use a for loop to make sure the commissions are created in the correct order)
+    // TODO: migrate to use workflow to support bulk creation
     for (const c of commissionsToCreate) {
       const { commission } = await createPartnerCommission(c);
-      console.log(`Commission created: ${prettyPrint(commission)}`);
+      if (commission) {
+        createdCommissions++;
+      }
     }
+    console.log(
+      `Created ${createdCommissions} commissions for partner ${partner.email} (${partner.id}) and customer ${customer.email} (${customer.id})`,
+    );
 
     waitUntil(
       (async () => {
