@@ -320,54 +320,53 @@ function DiscountSheetContent({
                   </div>
 
                   {!isEdit && effectiveProvider === DiscountProvider.stripe && (
-                      <div className="grid grid-cols-1 gap-3 p-px lg:grid-cols-2">
-                        {COUPON_CREATION_OPTIONS.map(
-                          ({ label, description, useExisting }) => {
-                            const isSelected =
-                              useExistingCoupon === useExisting;
+                    <div className="grid grid-cols-1 gap-3 p-px lg:grid-cols-2">
+                      {COUPON_CREATION_OPTIONS.map(
+                        ({ label, description, useExisting }) => {
+                          const isSelected = useExistingCoupon === useExisting;
 
-                            return (
-                              <label
-                                key={label}
-                                className={cn(
-                                  "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                                  "transition-all duration-150",
-                                  isSelected &&
-                                    "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                                )}
-                              >
-                                <input
-                                  type="radio"
-                                  value={label}
-                                  className="hidden"
-                                  checked={isSelected}
-                                  onChange={(e) => {
-                                    if (e.target.checked) {
-                                      setUseExistingCoupon(useExisting);
-                                      if (!useExisting) {
-                                        setValue("couponId", "");
-                                        setValue("couponTestId", "");
-                                        setUseStripeTestCouponId(false);
-                                      }
+                          return (
+                            <label
+                              key={label}
+                              className={cn(
+                                "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                                "transition-all duration-150",
+                                isSelected &&
+                                  "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                              )}
+                            >
+                              <input
+                                type="radio"
+                                value={label}
+                                className="hidden"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setUseExistingCoupon(useExisting);
+                                    if (!useExisting) {
+                                      setValue("couponId", "");
+                                      setValue("couponTestId", "");
+                                      setUseStripeTestCouponId(false);
                                     }
-                                  }}
-                                />
-                                <div className="flex grow flex-col text-sm">
-                                  <span className="font-medium">{label}</span>
-                                  <span>{description}</span>
-                                </div>
-                                <CircleCheckFill
-                                  className={cn(
-                                    "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                                    isSelected && "scale-100 opacity-100",
-                                  )}
-                                />
-                              </label>
-                            );
-                          },
-                        )}
-                      </div>
-                    )}
+                                  }
+                                }}
+                              />
+                              <div className="flex grow flex-col text-sm">
+                                <span className="font-medium">{label}</span>
+                                <span>{description}</span>
+                              </div>
+                              <CircleCheckFill
+                                className={cn(
+                                  "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                  isSelected && "scale-100 opacity-100",
+                                )}
+                              />
+                            </label>
+                          );
+                        },
+                      )}
+                    </div>
+                  )}
 
                   {showStripeCouponFields && (
                     <>
