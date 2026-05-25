@@ -1,10 +1,13 @@
+import { createCommissions } from "@/lib/api/commissions/create-commissions";
 import { getCommissions } from "@/lib/api/commissions/get-commissions";
 import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
   CommissionEnrichedSchema,
+  createCommissionBodySchema,
   getCommissionsQuerySchema,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
@@ -74,4 +77,18 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       })),
     ),
   );
+});
+
+// POST /api/commissions - create commissions
+export const POST = withWorkspace(async ({ workspace, req }) => {
+  const programId = getDefaultProgramIdOrThrow(workspace);
+
+  const input = createCommissionBodySchema.parse(await parseRequestBody(req));
+
+  const commissions = await createCommissions({
+    ...input,
+    programId,
+  });
+
+  return NextResponse.json(commissions);
 });

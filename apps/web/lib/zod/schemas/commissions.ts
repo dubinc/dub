@@ -1,7 +1,7 @@
 import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
 import { CommissionStatus, CommissionType } from "@dub/prisma/client";
 import * as z from "zod/v4";
-import { CustomerSchema } from "./customers";
+import { createCustomerBodySchema, CustomerSchema } from "./customers";
 import { LinkSchema } from "./links";
 import {
   getCursorPaginationQuerySchema,
@@ -193,6 +193,7 @@ export const getCommissionsCountQuerySchema = getCommissionsQuerySchema
     type: z.string().optional(),
   });
 
+// TODO: Remove this
 export const createCommissionSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
@@ -216,6 +217,94 @@ export const createCommissionSchema = z.object({
   invoiceId: z.string().nullish(),
   productId: z.string().nullish(),
 });
+
+export const createCommissionBodySchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("custom"),
+    partnerId: z
+      .string()
+      .describe("The partner ID to create the commission for."),
+    amount: z.number().min(1).describe("The commission amount in cents."),
+    date: parseDateSchema
+      .nullish()
+      .describe("If not provided, the current date will be used."),
+    description: z
+      .string()
+      .max(190)
+      .nullish()
+      .describe("The description of the commission."),
+  }),
+
+  z.object({
+    type: z.literal("lead"),
+    partnerId: z
+      .string()
+      .describe("The partner ID to create the commission for."),
+    customerId: z
+      .string()
+      .nullish()
+      .describe("The customer ID to create the commission for."),
+    customer: createCustomerBodySchema
+      .nullish()
+      .describe("The customer to create the commission for."),
+    linkId: z
+      .string()
+      .nullish()
+      .describe("The link ID to create the commission for."),
+    leadEventDate: parseDateSchema
+      .nullish()
+      .describe("The date of the lead event."),
+    leadEventName: z.string().nullish().describe("The name of the lead event."),
+  }),
+
+  z.object({
+    type: z.literal("sale"),
+    partnerId: z
+      .string()
+      .describe("The partner ID to create the commission for."),
+    customerId: z
+      .string()
+      .nullish()
+      .describe("The customer ID to create the commission for."),
+    customer: createCustomerBodySchema
+      .nullish()
+      .describe("The customer to create the commission for."),
+    linkId: z
+      .string()
+      .nullish()
+      .describe("The link ID to create the commission for."),
+    importStripeInvoices: z
+      .boolean()
+      .nullish()
+      .default(false)
+      .describe(
+        "When `true`, import all unimported paid Stripe invoices for the customer and create a commission for each. When `false`, create a single manual sale event using `saleAmount`.",
+      ),
+    saleAmount: centsSchema
+      .pipe(z.number().min(0))
+      .nullish()
+      .describe(
+        "Required when `importStripeInvoices` is `false`. The sale amount in cents for the manual sale event. Ignored when importing from Stripe.",
+      ),
+    saleEventDate: parseDateSchema
+      .nullish()
+      .describe(
+        "Only used when `importStripeInvoices` is `false`. The date of the manual sale event. Defaults to the current date if not provided.",
+      ),
+    invoiceId: z
+      .string()
+      .nullish()
+      .describe(
+        "Only used when `importStripeInvoices` is `false`. An optional invoice ID to attach to the manual sale event for deduplication.",
+      ),
+    productId: z
+      .string()
+      .nullish()
+      .describe(
+        "Only used when `importStripeInvoices` is `false`. An optional product ID stored on the sale event metadata.",
+      ),
+  }),
+]);
 
 export const commissionPatchStatusSchema = z.enum([
   "pending",
