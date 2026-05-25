@@ -137,7 +137,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 },
               ]
             : []),
-          ...(partnerRole && hasPermission(partnerRole, "invitations.read")
+          ...(partnerRole && hasPermission(partnerRole, "program_invites.read")
             ? [
                 {
                   name: "Invitations",
