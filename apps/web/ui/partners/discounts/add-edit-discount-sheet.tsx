@@ -97,7 +97,7 @@ function DiscountSheetContent({
       setUseExistingCoupon(true);
       setUseStripeTestCouponId(Boolean(discount.couponTestId));
     }
-  }, [discount?.id, discount?.couponTestId]);
+  }, [discount?.id]);
 
   const discountProvider =
     discount?.provider ??
@@ -397,9 +397,11 @@ function DiscountSheetContent({
 
                       <div className="flex items-center gap-3">
                         <Switch
-                          fn={() => {
-                            setUseStripeTestCouponId(!useStripeTestCouponId);
-                            setValue("couponTestId", "");
+                          fn={(checked) => {
+                            setUseStripeTestCouponId(checked);
+                            if (!checked) {
+                              setValue("couponTestId", "");
+                            }
                           }}
                           checked={useStripeTestCouponId}
                           trackDimensions="w-8 h-4"
