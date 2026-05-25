@@ -2,7 +2,6 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import { programAccessFilter } from "@/lib/auth/partner-users/program-access-filter";
 import { countMessagesQuerySchema } from "@/lib/zod/schemas/messages";
 import { prisma } from "@dub/prisma";
-import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/messages/count - count messages for a partner
@@ -13,9 +12,6 @@ export const GET = withPartnerProfile(
     const count = await prisma.message.count({
       where: {
         partnerId: partner.id,
-        programId: {
-          not: NETWORK_PROGRAM_ID,
-        },
         ...programAccessFilter(partnerUser.assignedPrograms),
         ...(unread !== undefined && {
           // Only count messages from the program
