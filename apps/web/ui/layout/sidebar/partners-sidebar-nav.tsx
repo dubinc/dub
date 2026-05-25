@@ -127,7 +127,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 (k) => !pathname.startsWith(`${href}/${k}`),
               ),
           },
-          ...(partnerRole && hasPermission(partnerRole, "marketplace.read")
+          ...(partnerRole && hasPermission(partnerRole, "network.read")
             ? [
                 {
                   name: "Marketplace",

@@ -24,7 +24,7 @@ const PERMISSIONS = [
   "links.write",
   "leads.submit",
   "payouts.read",
-  "marketplace.read",
+  "network.read",
   "referrals.read",
 ] as const;
 
@@ -43,7 +43,7 @@ const ROLE_PERMISSIONS: Record<PartnerRole, Set<Permission>> = {
     "links.write",
     "leads.submit",
     "payouts.read",
-    "marketplace.read",
+    "network.read",
     "referrals.read",
   ]),
   viewer: new Set([]),

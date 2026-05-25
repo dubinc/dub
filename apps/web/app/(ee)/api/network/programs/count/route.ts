@@ -119,6 +119,6 @@ export const GET = withPartnerProfile(
     return NextResponse.json(Number(count[0].count));
   },
   {
-    requiredPermission: "marketplace.read",
+    requiredPermission: "network.read",
   },
 );

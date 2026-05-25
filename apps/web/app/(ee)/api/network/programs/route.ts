@@ -140,6 +140,6 @@ export const GET = withPartnerProfile(
     );
   },
   {
-    requiredPermission: "marketplace.read",
+    requiredPermission: "network.read",
   },
 );
