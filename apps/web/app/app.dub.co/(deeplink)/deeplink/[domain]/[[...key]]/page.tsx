@@ -12,7 +12,7 @@ import {
   IOSAppStore,
   MobilePhone,
 } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, getApexDomain } from "@dub/utils";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -97,15 +97,12 @@ export default async function DeepLinkPreviewPage(props: {
 
   const {
     hidePoweredByBadge = false,
-    appName,
-    variant = "default",
+    appName = getApexDomain(link.url),
+    variant,
     buttonClassnames,
   } = deepViewData ?? {};
 
-  const description = t.description.replace(
-    "{appName}",
-    appName ?? t.appNameFallback,
-  );
+  const description = t.description.replace("{appName}", appName);
 
   return (
     <>
