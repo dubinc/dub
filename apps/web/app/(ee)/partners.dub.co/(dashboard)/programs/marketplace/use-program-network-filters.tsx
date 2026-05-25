@@ -74,6 +74,7 @@ export function useProgramNetworkFilters() {
         key: "rewardType",
         icon: Gift,
         label: "Reward type",
+        singleSelect: true,
         options: Object.entries(REWARD_TYPES).map(
           ([key, { label, icon: Icon }]) => ({
             value: key,
@@ -91,6 +92,7 @@ export function useProgramNetworkFilters() {
         icon: Suitcase,
         label: "Category",
         labelPlural: "categories",
+        singleSelect: true,
         getOptionIcon: (value) => {
           const Icon = PROGRAM_CATEGORIES_MAP[value]?.icon || Suitcase;
           return <Icon className="size-4" />;
@@ -108,6 +110,7 @@ export function useProgramNetworkFilters() {
         key: "status",
         icon: CircleDotted,
         label: "Status",
+        singleSelect: true,
         options:
           statusCount?.map(({ status, _count }) => {
             const {
@@ -146,7 +149,7 @@ export function useProgramNetworkFilters() {
   }, [searchParamsObj]);
 
   const onSelect = useCallback(
-    (key: string, value: any) =>
+    (key: string, value: string) =>
       queryParams({
         set: {
           [key]: value,
@@ -157,11 +160,19 @@ export function useProgramNetworkFilters() {
   );
 
   const onRemove = useCallback(
-    (key: string) => {
+    (key: string, _value?: string) => {
       queryParams({
         del: [key, "page"],
       });
     },
+    [queryParams],
+  );
+
+  const onClearFilters = useCallback(
+    () =>
+      queryParams({
+        del: ["rewardType", "category", "status", "page"],
+      }),
     [queryParams],
   );
 
@@ -182,6 +193,7 @@ export function useProgramNetworkFilters() {
     activeFilters,
     onSelect,
     onRemove,
+    onClearFilters,
     onRemoveAll,
     isFiltered,
   };
