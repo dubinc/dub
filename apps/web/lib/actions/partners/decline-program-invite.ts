@@ -1,5 +1,6 @@
 "use server";
 
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
@@ -11,8 +12,13 @@ const declineProgramInviteSchema = z.object({
 export const declineProgramInviteAction = authPartnerActionClient
   .inputSchema(declineProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
     const { programId } = parsedInput;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "program_invites.decline",
+    });
 
     await prisma.programEnrollment.update({
       where: {

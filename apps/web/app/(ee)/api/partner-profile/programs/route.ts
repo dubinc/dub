@@ -17,21 +17,21 @@ export const GET = withPartnerProfile(
     if (status === "invited") {
       throwIfNoPermission({
         role: partnerUser.role,
-        permission: "invitations.read",
+        permission: "program_invites.read",
       });
     }
 
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         partnerId: partner.id,
-        programId: { not: NETWORK_PROGRAM_ID },
         ...(status && { status }),
         program: {
-          ...(partnerUser.assignedPrograms && {
-            id: {
+          id: {
+            not: NETWORK_PROGRAM_ID,
+            ...(partnerUser.assignedPrograms && {
               in: partnerUser.assignedPrograms.map((program) => program.id),
-            },
-          }),
+            }),
+          },
           deactivatedAt: null,
         },
       },

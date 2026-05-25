@@ -10,13 +10,19 @@ export const GET = withPartnerProfile(
     const { status } =
       partnerProfileProgramsCountQuerySchema.parse(searchParams);
 
-    //    ...programScopeFilter(partnerUser.assignedPrograms),
-
     const count = await prisma.programEnrollment.count({
       where: {
         partnerId: partner.id,
-        programId: { not: NETWORK_PROGRAM_ID },
         ...(status && { status }),
+        program: {
+          id: {
+            not: NETWORK_PROGRAM_ID,
+            ...(partnerUser.assignedPrograms && {
+              in: partnerUser.assignedPrograms.map((program) => program.id),
+            }),
+          },
+          deactivatedAt: null,
+        },
       },
     });
 
