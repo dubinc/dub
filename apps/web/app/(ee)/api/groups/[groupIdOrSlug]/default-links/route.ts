@@ -32,7 +32,7 @@ export const GET = withWorkspace(
         groupId: group.id,
       },
       orderBy: {
-        createdAt: "desc",
+        createdAt: "asc",
       },
     });
 

@@ -233,33 +233,35 @@ function RewardSheetContent({
           : undefined,
       description: defaultValuesSource?.description ?? null,
       tooltipDescription: defaultValuesSource?.tooltipDescription ?? null,
-      modifiers: defaultValuesSource?.modifiers?.map((m) => {
-        const maxDuration =
-          m.maxDuration === undefined
-            ? defaultValuesSource?.maxDuration
-            : m.maxDuration;
+      modifiers: Array.isArray(defaultValuesSource?.modifiers)
+        ? defaultValuesSource.modifiers.map((m) => {
+            const maxDuration =
+              m.maxDuration === undefined
+                ? defaultValuesSource?.maxDuration
+                : m.maxDuration;
 
-        return {
-          ...m,
-          conditions: m.conditions.map((c) => ({
-            ...c,
-            value:
-              REWARD_CONDITION_ATTRIBUTES.find((a) => a.id === c.attribute)
-                ?.type === "currency" &&
-              c.value !== "" &&
-              c.value != null &&
-              !Number.isNaN(Number(c.value))
-                ? Number(c.value) / 100
-                : c.value,
-          })),
-          amountInCents:
-            m.amountInCents !== undefined && m.amountInCents !== null
-              ? m.amountInCents / 100
-              : undefined,
-          amountInPercentage: m.amountInPercentage ?? undefined,
-          maxDuration: m.maxDuration === null ? Infinity : maxDuration,
-        };
-      }),
+            return {
+              ...m,
+              conditions: m.conditions.map((c) => ({
+                ...c,
+                value:
+                  REWARD_CONDITION_ATTRIBUTES.find((a) => a.id === c.attribute)
+                    ?.type === "currency" &&
+                  c.value !== "" &&
+                  c.value != null &&
+                  !Number.isNaN(Number(c.value))
+                    ? Number(c.value) / 100
+                    : c.value,
+              })),
+              amountInCents:
+                m.amountInCents !== undefined && m.amountInCents !== null
+                  ? m.amountInCents / 100
+                  : undefined,
+              amountInPercentage: m.amountInPercentage ?? undefined,
+              maxDuration: m.maxDuration === null ? Infinity : maxDuration,
+            };
+          })
+        : undefined,
     },
   });
 

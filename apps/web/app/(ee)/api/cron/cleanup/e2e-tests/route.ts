@@ -161,15 +161,17 @@ export async function POST(req: Request) {
       });
     }
 
-    console.log("Removed the following items.", {
+    const removedItems = {
       links: links.length,
       domains: domains.length,
       tags: tags.length,
       partners: partners.length,
       users: users.length,
-    });
+    };
 
-    return NextResponse.json({ status: "OK" });
+    console.log("Removed the following items.", removedItems);
+
+    return NextResponse.json(removedItems);
   } catch (error) {
     await log({
       message: `/api/cron/cleanup/e2e-tests failed - ${error.message}`,

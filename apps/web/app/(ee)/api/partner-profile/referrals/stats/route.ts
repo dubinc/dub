@@ -28,6 +28,7 @@ export const GET = withPartnerProfile(async ({ partner }) => {
         partnerId: partner.id,
         programId: NETWORK_PROGRAM_ID,
         type: CommissionType.referral,
+        status: { in: ["pending", "processed", "paid"] },
       },
       _sum: {
         earnings: true,
