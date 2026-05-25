@@ -13,14 +13,10 @@ export const GET = withPartnerProfile(
     const count = await prisma.message.count({
       where: {
         partnerId: partner.id,
-        AND: [
-          programAccessFilter(partnerUser.assignedPrograms),
-          {
-            programId: {
-              not: NETWORK_PROGRAM_ID,
-            },
-          },
-        ],
+        programId: {
+          not: NETWORK_PROGRAM_ID,
+        },
+        ...programAccessFilter(partnerUser.assignedPrograms),
         ...(unread !== undefined && {
           // Only count messages from the program
           senderPartnerId: null,
