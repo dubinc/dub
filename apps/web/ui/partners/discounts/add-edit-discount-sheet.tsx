@@ -86,7 +86,7 @@ function DiscountSheetContent({
   const isEdit = Boolean(discount?.id);
 
   const [useExistingCoupon, setUseExistingCoupon] = useState(
-    Boolean(discount || defaultDiscountValues?.couponId),
+    Boolean(discount?.couponId || defaultDiscountValues?.couponId),
   );
 
   const [useStripeTestCouponId, setUseStripeTestCouponId] = useState(
