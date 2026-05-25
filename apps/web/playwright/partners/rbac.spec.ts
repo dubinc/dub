@@ -240,7 +240,7 @@ const RBAC_MATRIX: RbacEntry[] = [
     queryParams: { linkId: "{{inaccessibleLinkId}}" },
     roles: {
       owner: { status: 200 },
-      member: { status: 403, code: "forbidden" },
+      member: { status: 404, code: "not_found" },
       viewer: { status: 200 },
     },
   },
@@ -250,7 +250,7 @@ const RBAC_MATRIX: RbacEntry[] = [
     queryParams: { linkId: "{{inaccessibleLinkId}}" },
     roles: {
       owner: { status: 200 },
-      member: { status: 403, code: "forbidden" },
+      member: { status: 404, code: "not_found" },
       viewer: { status: 200 },
     },
   },
