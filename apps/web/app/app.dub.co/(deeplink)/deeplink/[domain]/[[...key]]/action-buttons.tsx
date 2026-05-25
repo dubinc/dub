@@ -2,15 +2,18 @@
 
 import { Link } from "@dub/prisma/client";
 import { Button, useCopyToClipboard } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useSearchParams } from "next/navigation";
 import { getTranslations, Language } from "./translations";
 
 export function DeepLinkActionButtons({
   link,
   language,
+  buttonClassnames,
 }: {
   link: Pick<Link, "shortLink">;
   language: Language;
+  buttonClassnames?: string;
 }) {
   const t = getTranslations(language);
   const searchParams = useSearchParams();
@@ -28,7 +31,7 @@ export function DeepLinkActionButtons({
   return (
     <Button
       text={t.openInApp}
-      className="h-12 w-full rounded-xl bg-neutral-900 text-white"
+      className={cn("h-12 w-full font-medium text-white", buttonClassnames)}
       onClick={handleClick}
     />
   );
