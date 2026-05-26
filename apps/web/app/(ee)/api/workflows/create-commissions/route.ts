@@ -411,7 +411,6 @@ async function stepRecordEvents({
   customer: CustomerProps;
   isFirstConversion: boolean;
 }) {
-  // Just to make TypeScript happy
   if (body.type === "custom") {
     throw new WorkflowNonRetryableError(
       "Custom commissions are not supported.",
@@ -423,10 +422,9 @@ async function stepRecordEvents({
       ? body.leadEventDate ?? new Date()
       : body.saleEventDate ?? new Date();
 
-  const leadEventName = body.type === "lead" ? body.leadEventName : "Sign up";
-
   const clickId = nanoid(16);
-  const clickedAt = new Date(finalLeadEventDate.getTime() - 5 * 60 * 1000);
+  let clickedAt = new Date(finalLeadEventDate.getTime() - 5 * 60 * 1000);
+  const leadEventName = body.type === "lead" ? body.leadEventName : "Sign up";
 
   let saleEvents: z.infer<typeof saleEventSchemaTBWithTimestamp>[] = [];
   let stripeCustomerInvoices: Awaited<
@@ -434,7 +432,7 @@ async function stepRecordEvents({
   > = [];
 
   // Record click event
-  const clickEvent = recordClickZodSchema.parse({
+  let clickEvent = recordClickZodSchema.parse({
     timestamp: clickedAt.toISOString(),
     identity_hash: customer.externalId || customer.id,
     click_id: clickId,
@@ -516,6 +514,12 @@ async function stepRecordEvents({
           metadata: JSON.stringify(invoice.metadata),
         }),
       );
+
+      if (saleEvents.length > 0) {
+        clickedAt = new Date(
+          new Date(saleEvents[0].timestamp).getTime() - 5 * 60 * 1000,
+        );
+      }
     }
 
     // Prepare sale event if requested
@@ -536,6 +540,11 @@ async function stepRecordEvents({
       ];
     }
   }
+
+  clickEvent = {
+    ...clickEvent,
+    timestamp: clickedAt.toISOString(),
+  };
 
   await recordClickZod(clickEvent);
 
