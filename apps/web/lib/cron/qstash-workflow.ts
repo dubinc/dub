@@ -9,7 +9,7 @@ const client = new Client({
 const WORKFLOW_RETRIES = 3;
 const WORKFLOW_PARALLELISM = 20;
 
-type WorkflowIds = "partner-approved";
+type WorkflowIds = "partner-approved" | "create-commissions";
 
 interface QStashWorkflow {
   workflowId: WorkflowIds;
