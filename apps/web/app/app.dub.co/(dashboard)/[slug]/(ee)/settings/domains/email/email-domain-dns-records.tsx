@@ -184,14 +184,14 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
 
   const records = (data?.records || []) as DomainRecord[];
   const sendingRecords = records.filter(
-    (record) => record.record !== "Tracking",
+    (record) => record.record === "SPF" || record.record === "DKIM",
   );
   const trackingRecords = records.filter(
-    (record) => record.record === "Tracking",
+    (record) => record.record === "Tracking" || record.record === "TrackingCAA",
   );
-  const allRequiredVerified = records
-    .filter((record) => record.record !== "Receiving")
-    .every((record) => record.status === "verified");
+  const allRequiredVerified = [...sendingRecords, ...trackingRecords].every(
+    (record) => record.status === "verified",
+  );
 
   const dmarcRecords = [
     {
@@ -244,7 +244,8 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
                 title="Tracking (Required for open tracking)"
                 description={
                   <p className="text-sm text-neutral-700">
-                    Add this CNAME record to enable open tracking from.
+                    Add this CNAME record to enable open tracking for
+                    <strong>{domain.slug}</strong>.
                   </p>
                 }
                 records={trackingRecords}
