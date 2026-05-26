@@ -80,15 +80,33 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 });
 
 // POST /api/commissions - create commissions
-export const POST = withWorkspace(async ({ workspace, req }) => {
-  const programId = getDefaultProgramIdOrThrow(workspace);
+export const POST = withWorkspace(
+  async ({ workspace, session, req }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const input = createCommissionBodySchema.parse(await parseRequestBody(req));
+    const body = createCommissionBodySchema.parse(await parseRequestBody(req));
 
-  const commissions = await createCommissions({
-    ...input,
-    programId,
-  });
+    await createCommissions({
+      ...body,
+      workspace,
+      programId,
+      user: session.user,
+    });
 
-  return NextResponse.json(commissions);
-});
+    return NextResponse.json({
+      status: "queued",
+      message: "Commission creation has been queued.",
+    });
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+    requiredRoles: ["owner", "member"],
+  },
+);

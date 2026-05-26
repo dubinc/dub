@@ -250,11 +250,15 @@ export const createCommissionBodySchema = z.discriminatedUnion("type", [
     linkId: z
       .string()
       .nullish()
-      .describe("The link ID to create the commission for."),
+      .describe("The link ID to create the commission for. "),
     leadEventDate: parseDateSchema
       .nullish()
       .describe("The date of the lead event."),
-    leadEventName: z.string().nullish().describe("The name of the lead event."),
+    leadEventName: z
+      .string()
+      .nullish()
+      .default("Sign Up")
+      .describe("The name of the lead event."),
   }),
 
   z.object({

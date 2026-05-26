@@ -22,10 +22,12 @@ export async function getCustomerStripeInvoices({
   stripeCustomerId,
   stripeConnectId,
   programId,
+  limit = 100,
 }: {
   stripeCustomerId: string;
   stripeConnectId: string;
   programId: string;
+  limit?: number;
 }) {
   const installedStripeIntegration =
     await prisma.installedIntegration.findFirst({
@@ -55,7 +57,7 @@ export async function getCustomerStripeInvoices({
     {
       customer: stripeCustomerId,
       status: "paid",
-      limit: 100,
+      limit,
       expand: ["data.payments.data.payment"],
     },
     {
