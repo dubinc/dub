@@ -122,29 +122,20 @@ export const { POST } = serve<Input>(
       },
     });
 
-    // Step 1: Resolve link
-    const link = await context.run("resolve-link", async () => {
-      return stepResolveLink({
-        ...input,
-        workspace,
-        partner,
-        links,
-      });
-    });
-
-    // Step 2: Resolve customer
-    const { customer, isFirstConversion } = await context.run(
-      "resolve-customer",
+    // Step 1: Resolve link and customer
+    const { link, customer, isFirstConversion } = await context.run(
+      "resolve-link-and-customer",
       async () => {
-        return stepResolveCustomer({
+        return stepResolveLinkAndCustomer({
           ...input,
           workspace,
-          link,
+          partner,
+          links,
         });
       },
     );
 
-    // Step 3: Record click, lead and sale events
+    // Step 2: Record click, lead and sale events
     const { clickEvent, leadEvent, saleEvents } = await context.run(
       "record-events",
       async () => {
@@ -158,7 +149,7 @@ export const { POST } = serve<Input>(
       },
     );
 
-    // Step 4: Create commissions
+    // Step 3: Create commissions
     const {
       totalSales,
       totalSaleAmount,
@@ -176,7 +167,7 @@ export const { POST } = serve<Input>(
       });
     });
 
-    // Step 5:  Sync link stats, customer stats
+    // Step 4: Sync link stats, customer stats
     await context.run("update-stats", async () => {
       return stepUpdateStats({
         ...input,
@@ -192,7 +183,7 @@ export const { POST } = serve<Input>(
       });
     });
 
-    // Step 6: Execute Dub workflow
+    // Step 5: Execute Dub workflow
     await context.run("execute-dub-workflow", async () => {
       return stepExecuteWorkflow({
         ...input,
@@ -236,10 +227,11 @@ export const { POST } = serve<Input>(
   },
 );
 
-async function stepResolveLink({
+async function stepResolveLinkAndCustomer({
   body,
   links,
   partner,
+  workspace,
 }: Omit<StepFunctionInput, "link" | "customer"> & {
   partner: Pick<Partner, "id" | "email">;
   links: Link[];
@@ -257,6 +249,8 @@ async function stepResolveLink({
     );
   }
 
+  let resolvedLink: Link;
+
   if (body.linkId) {
     const link = links.find((l) => l.id === body.linkId);
 
@@ -266,40 +260,10 @@ async function stepResolveLink({
       );
     }
 
-    return {
-      id: link.id,
-      url: link.url,
-      partnerId: link.partnerId,
-      programId: link.programId,
-      lastLeadAt: link.lastLeadAt,
-      lastConversionAt: link.lastConversionAt,
-      sales: link.sales,
-    };
-  }
-
-  // If linkId is not provided, default to patner's link with most sales
-  const link = links.sort((a, b) => b.sales - a.sales)[0];
-
-  return {
-    id: link.id,
-    url: link.url,
-    partnerId: link.partnerId,
-    programId: link.programId,
-    lastLeadAt: link.lastLeadAt,
-    lastConversionAt: link.lastConversionAt,
-    sales: link.sales,
-  };
-}
-
-async function stepResolveCustomer({
-  body,
-  workspace,
-  link,
-}: Omit<StepFunctionInput, "customer">) {
-  if (body.type === "custom") {
-    throw new WorkflowNonRetryableError(
-      "Custom commissions are not supported.",
-    );
+    resolvedLink = link;
+  } else {
+    // If linkId is not provided, default to patner's link with most sales
+    resolvedLink = links.sort((a, b) => b.sales - a.sales)[0];
   }
 
   let customer: Customer | null = null;
@@ -349,7 +313,7 @@ async function stepResolveCustomer({
         avatar: finalCustomerAvatar,
         externalId,
         stripeCustomerId,
-        linkId: link.id,
+        linkId: resolvedLink.id,
         country,
         projectId: workspace.id,
         projectConnectId: workspace.stripeConnectId,
@@ -381,11 +345,19 @@ async function stepResolveCustomer({
     body.type === "sale" &&
     isFirstConversion({
       customer,
-      linkId: link.id,
+      linkId: resolvedLink.id,
     });
 
   return {
-    isFirstConversion: firstConversionFlag,
+    link: {
+      id: resolvedLink.id,
+      url: resolvedLink.url,
+      partnerId: resolvedLink.partnerId,
+      programId: resolvedLink.programId,
+      lastLeadAt: resolvedLink.lastLeadAt,
+      lastConversionAt: resolvedLink.lastConversionAt,
+      sales: resolvedLink.sales,
+    },
     customer: {
       id: customer.id,
       country: customer.country,
@@ -393,6 +365,7 @@ async function stepResolveCustomer({
       stripeCustomerId: customer.stripeCustomerId,
       firstSaleAt: customer.firstSaleAt,
     },
+    isFirstConversion: firstConversionFlag,
   };
 }
 
