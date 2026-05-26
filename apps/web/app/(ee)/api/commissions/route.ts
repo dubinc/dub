@@ -8,6 +8,7 @@ import { withWorkspace } from "@/lib/auth";
 import {
   CommissionEnrichedSchema,
   createCommissionBodySchema,
+  createCommissionResponseSchema,
   getCommissionsQuerySchema,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
@@ -93,10 +94,12 @@ export const POST = withWorkspace(
       user: session.user,
     });
 
-    return NextResponse.json({
-      status: "queued",
-      message: "Commission creation has been queued.",
-    });
+    return NextResponse.json(
+      createCommissionResponseSchema.parse({
+        success: true,
+        message: "Your commissions are being created and will appear shortly.",
+      }),
+    );
   },
   {
     requiredPlan: [

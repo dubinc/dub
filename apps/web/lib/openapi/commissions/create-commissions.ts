@@ -1,9 +1,8 @@
 import {
-  CommissionEnrichedSchema,
   createCommissionBodySchema,
+  createCommissionResponseSchema,
 } from "@/lib/zod/schemas/commissions";
 import { ZodOpenApiOperationObject } from "zod-openapi";
-import * as z from "zod/v4";
 import { openApiErrorResponses } from "../responses";
 
 export const createCommissions: ZodOpenApiOperationObject = {
@@ -19,11 +18,11 @@ export const createCommissions: ZodOpenApiOperationObject = {
     },
   },
   responses: {
-    "200": {
+    "202": {
       description: "The created commissions.",
       content: {
         "application/json": {
-          schema: z.array(CommissionEnrichedSchema),
+          schema: createCommissionResponseSchema,
         },
       },
     },

@@ -199,7 +199,9 @@ export const createCommissionBodySchema = z.discriminatedUnion("type", [
     partnerId: z
       .string()
       .describe("The partner ID to create the commission for."),
-    amount: z.number().min(1).describe("The commission amount in cents."),
+    amount: centsSchema
+      .pipe(z.number().min(1))
+      .describe("The commission amount in cents."),
     date: parseDateSchema
       .nullish()
       .describe("If not provided, the current date will be used."),
@@ -280,6 +282,11 @@ export const createCommissionBodySchema = z.discriminatedUnion("type", [
       ),
   }),
 ]);
+
+export const createCommissionResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+});
 
 export const commissionPatchStatusSchema = z.enum([
   "pending",

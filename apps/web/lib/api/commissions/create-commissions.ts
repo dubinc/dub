@@ -32,7 +32,7 @@ export async function createCommissions(params: createCommissionsParams) {
   if (type === "custom") {
     const { amount, date, description, user } = params;
 
-    await createPartnerCommission({
+    const { commission } = await createPartnerCommission({
       event: "custom",
       programId,
       partnerId,
@@ -45,7 +45,7 @@ export async function createCommissions(params: createCommissionsParams) {
 
     waitUntil(triggerAggregateDueCommissionsCronJob(programId));
 
-    return;
+    return commission;
   }
 
   if (links.length === 0) {
@@ -88,6 +88,13 @@ export async function createCommissions(params: createCommissionsParams) {
         message: `Customer ${params.customerId} does not belong to workspace ${workspace.id}.`,
       });
     }
+  }
+
+  if (!params.customerId && !params.customer) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Either customerId or customer must be provided.",
+    });
   }
 
   if (type === "sale") {
