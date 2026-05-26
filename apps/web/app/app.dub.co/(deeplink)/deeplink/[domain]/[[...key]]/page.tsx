@@ -99,7 +99,7 @@ export default async function DeepLinkPreviewPage(props: {
     hidePoweredByBadge = false,
     appName = getApexDomain(link.url),
     variant,
-    buttonClassnames,
+    buttonStyle,
   } = deepViewData ?? {};
 
   const description = t.description.replace("{appName}", appName);
@@ -200,7 +200,7 @@ export default async function DeepLinkPreviewPage(props: {
             <DeepLinkActionButtons
               link={link}
               language={language}
-              buttonClassnames={buttonClassnames}
+              buttonStyle={buttonStyle}
             />
           </div>
         </div>

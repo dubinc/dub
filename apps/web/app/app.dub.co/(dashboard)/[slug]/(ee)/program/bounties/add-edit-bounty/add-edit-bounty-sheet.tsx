@@ -616,7 +616,7 @@ export function BountySheet({
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "bountyId", scroll: false })}
+      onClose={() => queryParams({ del: "bountyId" })}
       nested={nested}
     >
       <BountySheetContent {...rest} />
