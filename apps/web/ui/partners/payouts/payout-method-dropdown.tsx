@@ -40,7 +40,7 @@ export function PayoutMethodDropdown() {
     setDefaultPayoutMethodAction,
     {
       onSuccess: async () => {
-        toast.success("Default payout method updated.");
+        toast.success("Your default payout method has been updated.");
         await Promise.all([
           mutatePayoutSettings(),
           mutatePrefix("/api/partner-profile"),

@@ -18,22 +18,26 @@ export const setDefaultPayoutMethodAction = authPartnerActionClient
     });
 
     if (!partner.payoutsEnabledAt) {
-      throw new Error("Payout settings are currently restricted.");
+      throw new Error(
+        `You haven't enabled payout yet. Please connect a payout method first.`,
+      );
     }
 
     const payoutMethods = await getPartnerPayoutMethods(partner);
-    const method = payoutMethods.find((m) => m.type === type);
+    const payoutMethod = payoutMethods.find((m) => m.type === type);
 
-    if (!method) {
-      throw new Error("This payout method is not available.");
+    if (!payoutMethod) {
+      throw new Error("This payout method is not available for your country.");
     }
 
-    if (!method.connected) {
-      throw new Error("This payout method is not connected.");
+    if (!payoutMethod.connected) {
+      throw new Error(
+        "Please connect your payout method before setting it as your default.",
+      );
     }
 
-    if (method.default) {
-      throw new Error("Already the default payout method.");
+    if (payoutMethod.default) {
+      throw new Error("This is already your default payout method.");
     }
 
     await prisma.partner.update({
