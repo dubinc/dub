@@ -215,19 +215,19 @@ async function trackVisitEvent({
   }
 
   // for network program application events, track the click event
-  if (program.id === NETWORK_PROGRAM_ID && referredByPartner) {
+  if (referredByPartner) {
     waitUntil(
       (async () => {
-        const networkPartnerLink = await prisma.link.findFirst({
+        const networkReferralLink = await prisma.link.findFirst({
           where: {
             programId: NETWORK_PROGRAM_ID,
             partnerId: referredByPartner.id,
           },
         });
 
-        if (!networkPartnerLink) {
+        if (!networkReferralLink) {
           console.log(
-            `No network partner link found for partner ${referredByPartner.id}, skipping...`,
+            `No network referral link found for partner ${referredByPartner.id} (not enrolled in network program yet), skipping...`,
           );
           return;
         }
@@ -237,9 +237,9 @@ async function trackVisitEvent({
           ...requestContext,
           timestamp: new Date().toISOString(),
           workspace_id: NETWORK_WORKSPACE_ID,
-          link_id: networkPartnerLink.id,
-          domain: networkPartnerLink.domain,
-          key: networkPartnerLink.key,
+          link_id: networkReferralLink.id,
+          domain: networkReferralLink.domain,
+          key: networkReferralLink.key,
         });
 
         await recordClickZod(generatedClickEvent);
@@ -249,7 +249,7 @@ async function trackVisitEvent({
 
         await prisma.link.update({
           where: {
-            id: networkPartnerLink.id,
+            id: networkReferralLink.id,
           },
           data: {
             clicks: { increment: 1 },
@@ -257,7 +257,7 @@ async function trackVisitEvent({
           },
         });
         console.log(
-          `Updated link ${networkPartnerLink.id} to ${networkPartnerLink.clicks + 1} clicks`,
+          `Updated link ${networkReferralLink.id} to ${networkReferralLink.clicks + 1} clicks`,
         );
 
         await syncPartnerLinksStats({

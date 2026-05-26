@@ -45,8 +45,16 @@ const acceptFileTypes: Record<
     errorMessage: "File type not supported (.svg, .png, .jpg, or .webp only)",
   },
   programResourceFiles: {
-    types: [...documentTypes, "application/zip"],
-    errorMessage: "File type not supported (document or zip files only)",
+    types: [
+      "image/svg+xml",
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+      ...documentTypes,
+      "application/zip",
+    ],
+    errorMessage:
+      "File type not supported (.svg, .png, .jpg, .webp, document, or zip files only)",
   },
 };
 
