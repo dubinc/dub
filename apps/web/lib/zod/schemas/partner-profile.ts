@@ -218,6 +218,12 @@ export const partnerProfileChangeHistoryLogSchema = z.array(
       to: z.enum(PartnerNetworkStatus),
       changedAt: z.coerce.date(),
     }),
+    z.object({
+      field: z.literal("defaultPayoutMethod"),
+      from: z.enum(PartnerPayoutMethod).nullable(),
+      to: z.enum(PartnerPayoutMethod),
+      changedAt: z.coerce.date(),
+    }),
   ]),
 );
 
