@@ -59,17 +59,15 @@ type Input = z.infer<typeof inputSchema>;
 
 type StepFunctionInput = Input & {
   workspace: Pick<Project, "id" | "stripeConnectId">;
+  link: Pick<
+    Link,
+    "id" | "url" | "lastLeadAt" | "lastConversionAt" | "programId" | "partnerId"
+  >;
+  customer: Pick<
+    Customer,
+    "id" | "country" | "externalId" | "stripeCustomerId" | "firstSaleAt"
+  >;
 };
-
-type CustomerProps = Pick<
-  Customer,
-  "id" | "country" | "externalId" | "stripeCustomerId" | "firstSaleAt"
->;
-
-type LinkProps = Pick<
-  Link,
-  "id" | "url" | "lastLeadAt" | "lastConversionAt" | "programId" | "partnerId"
->;
 
 type SaleEventProps = {
   id: string;
@@ -242,7 +240,7 @@ async function stepResolveLink({
   body,
   links,
   partner,
-}: StepFunctionInput & {
+}: Omit<StepFunctionInput, "link" | "customer"> & {
   partner: Pick<Partner, "id" | "email">;
   links: Link[];
 }) {
@@ -297,9 +295,7 @@ async function stepResolveCustomer({
   body,
   workspace,
   link,
-}: StepFunctionInput & {
-  link: LinkProps;
-}) {
+}: Omit<StepFunctionInput, "customer">) {
   if (body.type === "custom") {
     throw new WorkflowNonRetryableError(
       "Custom commissions are not supported.",
@@ -407,8 +403,6 @@ async function stepRecordEvents({
   customer,
   programId,
 }: StepFunctionInput & {
-  link: LinkProps;
-  customer: CustomerProps;
   isFirstConversion: boolean;
 }) {
   if (body.type === "custom") {
@@ -596,8 +590,6 @@ async function stepCreateCommissions({
   userId,
   programId,
 }: StepFunctionInput & {
-  link: Pick<Link, "id">;
-  customer: CustomerProps;
   leadEvent: { id: string; timestamp: string };
   saleEvents: SaleEventProps[];
 }) {
@@ -731,8 +723,6 @@ async function stepUpdateStats({
   totalSaleAmount,
   isFirstConversion,
 }: StepFunctionInput & {
-  link: LinkProps;
-  customer: CustomerProps;
   clickEvent: { id: string; timestamp: string };
   lastLeadAt: Date | undefined;
   lastConversionAt: Date | undefined;
@@ -805,7 +795,7 @@ async function stepExecuteWorkflow({
   programId,
   totalSaleAmount,
   isFirstConversion,
-}: StepFunctionInput & {
+}: Omit<StepFunctionInput, "link" | "customer"> & {
   commissions: Pick<Commission, "id">[];
   totalSaleAmount: number;
   isFirstConversion: boolean;
