@@ -5,6 +5,14 @@ export const deepViewDataSchema = z
     hidePoweredByBadge: z.boolean().optional(),
     appName: z.string().trim().min(1).optional(),
     variant: z.enum(["default", "minimal"]).default("default"),
-    buttonClassnames: z.string().trim().min(1).optional(),
+    buttonStyle: z
+      .object({
+        backgroundColor: z.string().trim().min(1).optional(),
+        borderColor: z.string().trim().min(1).optional(),
+        borderRadius: z.string().trim().min(1).optional(),
+      })
+      .optional(),
   })
-  .nullish();
+  .default({
+    variant: "default",
+  });
