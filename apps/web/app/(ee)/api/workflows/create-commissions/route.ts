@@ -1,6 +1,7 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { getCustomerStripeInvoices } from "@/lib/api/customers/get-customer-stripe-invoices";
+import { updateLinkStatsForImporter } from "@/lib/api/links/update-link-stats-for-importer";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { Session } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
@@ -58,10 +59,13 @@ type StepFunctionInput = Input & {
 
 type CustomerProps = Pick<
   Customer,
-  "id" | "country" | "externalId" | "stripeCustomerId"
-> & {
-  isFirstConversion: boolean;
-};
+  "id" | "country" | "externalId" | "stripeCustomerId" | "firstSaleAt"
+>;
+
+type LinkProps = Pick<
+  Link,
+  "id" | "url" | "lastLeadAt" | "lastConversionAt" | "programId" | "partnerId"
+>;
 
 type SaleEventProps = {
   id: string;
@@ -116,9 +120,6 @@ export const { POST } = serve<Input>(
       },
     });
 
-    // TODO:
-    // Maybe combine 1 and 2?
-
     // Step 1: Resolve link
     const link = await context.run("resolve-link", async () => {
       return stepResolveLink({
@@ -130,16 +131,19 @@ export const { POST } = serve<Input>(
     });
 
     // Step 2: Resolve customer
-    const customer = await context.run("resolve-customer", async () => {
-      return stepResolveCustomer({
-        ...input,
-        workspace,
-        link,
-      });
-    });
+    const { customer, isFirstConversion } = await context.run(
+      "resolve-customer",
+      async () => {
+        return stepResolveCustomer({
+          ...input,
+          workspace,
+          link,
+        });
+      },
+    );
 
     // Step 3: Record click, lead and sale events
-    const { leadEvent, saleEvents } = await context.run(
+    const { clickEvent, leadEvent, saleEvents } = await context.run(
       "record-events",
       async () => {
         return stepRecordEvents({
@@ -147,31 +151,39 @@ export const { POST } = serve<Input>(
           workspace,
           link,
           customer,
+          isFirstConversion,
         });
       },
     );
 
     // Step 4: Create commissions
-    await context.run("create-commissions", async () => {
-      return stepCreateCommissions({
+    const { totalSales, totalSaleAmount, lastLeadAt, lastConversionAt } =
+      await context.run("create-commissions", async () => {
+        return stepCreateCommissions({
+          ...input,
+          workspace,
+          link,
+          customer,
+          leadEvent,
+          saleEvents,
+        });
+      });
+
+    // Step 5:  Sync link stats, customer stats
+    await context.run("update-stats", async () => {
+      return stepUpdateStats({
         ...input,
         workspace,
         link,
         customer,
-        leadEvent,
-        saleEvents,
+        clickEvent,
+        totalSales,
+        totalSaleAmount,
+        lastLeadAt,
+        lastConversionAt,
+        isFirstConversion,
       });
     });
-
-    // Step 5:  Sync link stats, customer stats
-    // await context.run("update-stats", async () => {
-    //   // return stepUpdateStats({
-    //   //   ...input,
-    //   //   workspace,
-    //   //   link,
-    //   //   customer,
-    //   // });
-    // });
 
     // // Step 6: Execute Dub workflow
     // await context.run("execute-dub-workflow", async () => {
@@ -196,11 +208,13 @@ async function stepResolveLink({
   partner,
 }: StepFunctionInput & {
   partner: Pick<Partner, "id" | "email">;
-  links: Pick<Link, "id" | "sales" | "url">[];
+  links: Link[];
 }) {
   // Just to make TypeScript happy
   if (body.type === "custom") {
-    return;
+    throw new WorkflowNonRetryableError(
+      "Custom commissions are not supported.",
+    );
   }
 
   if (links.length === 0) {
@@ -221,6 +235,11 @@ async function stepResolveLink({
     return {
       id: link.id,
       url: link.url,
+      partnerId: link.partnerId,
+      programId: link.programId,
+      lastLeadAt: link.lastLeadAt,
+      lastConversionAt: link.lastConversionAt,
+      sales: link.sales,
     };
   }
 
@@ -230,6 +249,11 @@ async function stepResolveLink({
   return {
     id: link.id,
     url: link.url,
+    partnerId: link.partnerId,
+    programId: link.programId,
+    lastLeadAt: link.lastLeadAt,
+    lastConversionAt: link.lastConversionAt,
+    sales: link.sales,
   };
 }
 
@@ -238,11 +262,13 @@ async function stepResolveCustomer({
   workspace,
   link,
 }: StepFunctionInput & {
-  link: Pick<Link, "id"> | undefined;
+  link: LinkProps;
 }) {
   // Just to make TypeScript happy
-  if (body.type === "custom" || !link) {
-    return;
+  if (body.type === "custom") {
+    throw new WorkflowNonRetryableError(
+      "Custom commissions are not supported.",
+    );
   }
 
   let customer: Customer | null = null;
@@ -322,11 +348,14 @@ async function stepResolveCustomer({
     });
 
   return {
-    id: customer.id,
-    country: customer.country,
-    externalId: customer.externalId,
-    stripeCustomerId: customer.stripeCustomerId,
     isFirstConversion: firstConversionFlag,
+    customer: {
+      id: customer.id,
+      country: customer.country,
+      externalId: customer.externalId,
+      stripeCustomerId: customer.stripeCustomerId,
+      firstSaleAt: customer.firstSaleAt,
+    },
   };
 }
 
@@ -337,19 +366,14 @@ async function stepRecordEvents({
   customer,
   programId,
 }: StepFunctionInput & {
-  link: Pick<Link, "id" | "url"> | undefined;
-  customer: CustomerProps | undefined;
+  link: LinkProps;
+  customer: CustomerProps;
+  isFirstConversion: boolean;
 }) {
   // Just to make TypeScript happy
   if (body.type === "custom") {
     throw new WorkflowNonRetryableError(
       "Custom commissions are not supported.",
-    );
-  }
-
-  if (!link || !customer) {
-    throw new WorkflowNonRetryableError(
-      "Failed to resolve link or customer from the request.",
     );
   }
 
@@ -483,6 +507,7 @@ async function stepRecordEvents({
   return {
     clickEvent: {
       id: clickEvent.click_id,
+      timestamp: clickEvent.timestamp,
     },
     leadEvent: {
       id: leadEvent.event_id,
@@ -521,18 +546,12 @@ async function stepCreateCommissions({
   leadEvent,
   saleEvents,
 }: StepFunctionInput & {
-  link: Pick<Link, "id"> | undefined;
-  customer: CustomerProps | undefined;
+  link: Pick<Link, "id">;
+  customer: CustomerProps;
   leadEvent: { id: string; timestamp: string };
   saleEvents: SaleEventProps[];
 }) {
   const { partnerId } = body;
-
-  if (!link || !customer) {
-    throw new WorkflowNonRetryableError(
-      "Failed to resolve link or customer from the request.",
-    );
-  }
 
   const user = await prisma.user.findUnique({
     where: {
@@ -544,6 +563,9 @@ async function stepCreateCommissions({
     throw new WorkflowNonRetryableError(`User ${userId} not found.`);
   }
 
+  let commissions: Pick<Commission, "id" | "type" | "earnings">[] = [];
+  let lastLeadAt: Date | undefined = undefined;
+  let lastConversionAt: Date | undefined = undefined;
   const commissionsToCreate: CreatePartnerCommissionProps[] = [];
 
   // Lead commission
@@ -603,11 +625,7 @@ async function stepCreateCommissions({
     throw new WorkflowNonRetryableError("No commissions to create.");
   }
 
-  let commissions: Pick<
-    Commission,
-    "id" | "type" | "earnings" | "customerId" | "programId" | "partnerId"
-  >[] = [];
-
+  // Create commissions one by one
   for (const commissionToCreate of commissionsToCreate) {
     const { commission } = await createPartnerCommission(commissionToCreate);
 
@@ -616,42 +634,118 @@ async function stepCreateCommissions({
         id: commission.id,
         type: commission.type,
         earnings: commission.earnings,
-        customerId: commission.customerId,
-        programId: commission.programId,
-        partnerId: commission.partnerId,
       });
     }
   }
 
+  const { totalSales, totalSaleAmount } = commissions.reduce(
+    (acc, commission) => {
+      if (commission.type === CommissionType.sale) {
+        acc.totalSales++;
+        acc.totalSaleAmount += commission.earnings;
+      }
+
+      return acc;
+    },
+    {
+      totalSales: 0,
+      totalSaleAmount: 0,
+    },
+  );
+
+  if (leadEvent) {
+    lastLeadAt = new Date(leadEvent.timestamp);
+  }
+
+  if (saleEvents.length > 0) {
+    lastLeadAt = new Date(saleEvents[0].timestamp);
+    lastConversionAt = new Date(saleEvents[0].timestamp);
+  }
+
   return {
     commissions,
+    totalSales,
+    totalSaleAmount,
+    lastLeadAt,
+    lastConversionAt,
   };
-
-  // let totalSales = 0;
-  // let totalSaleAmount = 0;
-  // let lastLeadAt: Date | undefined = undefined;
-  // let lastConversionAt: Date | undefined = undefined;
-
-  // if (body.type === "lead") {
-  //   lastLeadAt = new Date(leadEvent.timestamp);
-  // } else if (body.type === "sale") {
-  // }
 }
 
 async function stepUpdateStats({
   link,
   customer,
+  clickEvent,
+  lastLeadAt,
+  lastConversionAt,
+  totalSales,
+  totalSaleAmount,
+  isFirstConversion,
 }: StepFunctionInput & {
-  link: Pick<Link, "id" | "url" | "lastLeadAt"> | undefined;
-  customer: CustomerProps | undefined;
+  link: LinkProps;
+  customer: CustomerProps;
+  clickEvent: { id: string; timestamp: string };
+  lastLeadAt: Date | undefined;
+  lastConversionAt: Date | undefined;
+  totalSales: number;
+  totalSaleAmount: number;
+  isFirstConversion: boolean;
 }) {
-  if (!link || !customer) {
-    throw new WorkflowNonRetryableError(
-      "Failed to resolve link or customer from the request.",
-    );
-  }
+  await prisma.$transaction([
+    prisma.link.update({
+      where: {
+        id: link.id,
+      },
+      data: {
+        clicks: {
+          increment: 1,
+        },
+        leads: {
+          increment: 1,
+        },
+        lastLeadAt: updateLinkStatsForImporter({
+          currentTimestamp: link.lastLeadAt,
+          newTimestamp: lastLeadAt || new Date(),
+        }),
+        ...(isFirstConversion && {
+          conversions: {
+            increment: 1,
+          },
+          lastConversionAt: updateLinkStatsForImporter({
+            currentTimestamp: link.lastConversionAt,
+            newTimestamp: lastConversionAt || new Date(),
+          }),
+        }),
+        sales: {
+          increment: totalSales,
+        },
+        saleAmount: {
+          increment: totalSaleAmount,
+        },
+      },
+    }),
 
-  //
+    prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        linkId: link.id,
+        programId: link.programId,
+        partnerId: link.partnerId,
+        clickId: clickEvent.id,
+        clickedAt: new Date(clickEvent.timestamp),
+        sales: {
+          increment: totalSales,
+        },
+        saleAmount: {
+          increment: totalSaleAmount,
+        },
+        firstSaleAt: customer.firstSaleAt
+          ? undefined
+          : lastConversionAt ?? new Date(),
+      },
+    }),
+  ]);
 }
 
 async function stepExecuteWorkflow({}: StepFunctionInput & {
