@@ -1,9 +1,13 @@
+import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/trigger-aggregate-due-commissions";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { getCustomerStripeInvoices } from "@/lib/api/customers/get-customer-stripe-invoices";
 import { updateLinkStatsForImporter } from "@/lib/api/links/update-link-stats-for-importer";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { Session } from "@/lib/auth";
+import { logger } from "@/lib/axiom/server";
 import { generateRandomName } from "@/lib/names";
 import {
   createPartnerCommission,
@@ -157,17 +161,22 @@ export const { POST } = serve<Input>(
     );
 
     // Step 4: Create commissions
-    const { totalSales, totalSaleAmount, lastLeadAt, lastConversionAt } =
-      await context.run("create-commissions", async () => {
-        return stepCreateCommissions({
-          ...input,
-          workspace,
-          link,
-          customer,
-          leadEvent,
-          saleEvents,
-        });
+    const {
+      totalSales,
+      totalSaleAmount,
+      lastLeadAt,
+      lastConversionAt,
+      commissions,
+    } = await context.run("create-commissions", async () => {
+      return stepCreateCommissions({
+        ...input,
+        workspace,
+        link,
+        customer,
+        leadEvent,
+        saleEvents,
       });
+    });
 
     // Step 5:  Sync link stats, customer stats
     await context.run("update-stats", async () => {
@@ -185,19 +194,46 @@ export const { POST } = serve<Input>(
       });
     });
 
-    // // Step 6: Execute Dub workflow
-    // await context.run("execute-dub-workflow", async () => {
-    //   // return stepExecuteWorkflow({
-    //   //   ...input,
-    //   //   workspace,
-    //   //   link,
-    //   //   customer,
-    //   // });
-    // });
+    // Step 6: Execute Dub workflow
+    await context.run("execute-dub-workflow", async () => {
+      return stepExecuteWorkflow({
+        ...input,
+        workspace,
+        commissions,
+        totalSaleAmount,
+        isFirstConversion,
+      });
+    });
   },
   {
     initialPayloadParser: (requestPayload) => {
       return inputSchema.parse(JSON.parse(requestPayload));
+    },
+    failureFunction: async ({
+      context,
+      failStatus,
+      failResponse,
+      failHeaders,
+    }) => {
+      const { body, programId } = context.requestPayload;
+      const { partnerId, type } = body;
+
+      logger.error("workflow.failed", {
+        service: "qstash",
+        event: "workflow.failed",
+        workflowType: "create-commissions",
+        workflowRunId: context.workflowRunId,
+        failStatus,
+        failResponse,
+        failHeaders,
+        correlation: {
+          programId,
+          partnerId,
+          type,
+        },
+      });
+
+      await logger.flush();
     },
   },
 );
@@ -264,7 +300,6 @@ async function stepResolveCustomer({
 }: StepFunctionInput & {
   link: LinkProps;
 }) {
-  // Just to make TypeScript happy
   if (body.type === "custom") {
     throw new WorkflowNonRetryableError(
       "Custom commissions are not supported.",
@@ -283,6 +318,12 @@ async function stepResolveCustomer({
     if (!customer) {
       throw new WorkflowNonRetryableError(
         `Customer ${body.customerId} not found.`,
+      );
+    }
+
+    if (customer.projectId !== workspace.id) {
+      throw new WorkflowNonRetryableError(
+        `Customer ${body.customerId} does not belong to the workspace.`,
       );
     }
   }
@@ -382,7 +423,7 @@ async function stepRecordEvents({
       ? body.leadEventDate ?? new Date()
       : body.saleEventDate ?? new Date();
 
-  const leadEventName = body.type === "lead" ? body.leadEventName : "Sign Up";
+  const leadEventName = body.type === "lead" ? body.leadEventName : "Sign up";
 
   const clickId = nanoid(16);
   const clickedAt = new Date(finalLeadEventDate.getTime() - 5 * 60 * 1000);
@@ -541,10 +582,10 @@ async function stepCreateCommissions({
   body,
   link,
   customer,
-  userId,
-  programId,
   leadEvent,
   saleEvents,
+  userId,
+  programId,
 }: StepFunctionInput & {
   link: Pick<Link, "id">;
   customer: CustomerProps;
@@ -563,7 +604,8 @@ async function stepCreateCommissions({
     throw new WorkflowNonRetryableError(`User ${userId} not found.`);
   }
 
-  let commissions: Pick<Commission, "id" | "type" | "earnings">[] = [];
+  let commissions: Pick<Commission, "id" | "type" | "earnings" | "amount">[] =
+    [];
   let lastLeadAt: Date | undefined = undefined;
   let lastConversionAt: Date | undefined = undefined;
   const commissionsToCreate: CreatePartnerCommissionProps[] = [];
@@ -634,16 +676,15 @@ async function stepCreateCommissions({
         id: commission.id,
         type: commission.type,
         earnings: commission.earnings,
+        amount: commission.amount,
       });
     }
   }
 
-  const { totalSales, totalSaleAmount } = commissions.reduce(
-    (acc, commission) => {
-      if (commission.type === CommissionType.sale) {
-        acc.totalSales++;
-        acc.totalSaleAmount += commission.earnings;
-      }
+  const { totalSales, totalSaleAmount } = saleEvents.reduce(
+    (acc, saleEvent) => {
+      acc.totalSales++;
+      acc.totalSaleAmount += saleEvent.amount;
 
       return acc;
     },
@@ -748,9 +789,52 @@ async function stepUpdateStats({
   ]);
 }
 
-async function stepExecuteWorkflow({}: StepFunctionInput & {
-  link: Pick<Link, "id" | "url"> | undefined;
-  customer: CustomerProps | undefined;
+async function stepExecuteWorkflow({
+  body,
+  workspace,
+  commissions,
+  programId,
+  totalSaleAmount,
+  isFirstConversion,
+}: StepFunctionInput & {
+  commissions: Pick<Commission, "id">[];
+  totalSaleAmount: number;
+  isFirstConversion: boolean;
 }) {
-  //
+  if (body.type === "custom") {
+    throw new WorkflowNonRetryableError(
+      "Custom commissions are not supported.",
+    );
+  }
+
+  const { partnerId, type } = body;
+
+  if (commissions.length > 0) {
+    await executeWorkflows({
+      trigger: "partnerMetricsUpdated",
+      reason: "commission",
+      identity: {
+        workspaceId: workspace.id,
+        programId,
+        partnerId,
+      },
+      metrics: {
+        current: {
+          leads: type === "lead" ? 1 : 0,
+          saleAmount: totalSaleAmount,
+          conversions: isFirstConversion ? 1 : 0,
+        },
+      },
+    });
+  }
+
+  await syncPartnerLinksStats({
+    partnerId,
+    programId,
+    eventType: type,
+  });
+
+  if (commissions.length > 0) {
+    await triggerAggregateDueCommissionsCronJob(programId);
+  }
 }
