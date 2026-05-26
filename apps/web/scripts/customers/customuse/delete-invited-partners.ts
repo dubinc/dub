@@ -1,9 +1,9 @@
-import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { prisma } from "@dub/prisma";
 import { Link, ProgramEnrollment } from "@dub/prisma/client";
 import "dotenv-flow/config";
+import { bulkDeleteLinks } from "../../../lib/api/links/bulk-delete-links";
 
-const programId = "prog_xxx";
+const programId = "prog_1KEVK3M4HD3M7P92DH1VWC7MG";
 const BATCH_SIZE = 250;
 
 const dryRun = process.argv.includes("--dry-run");
@@ -73,6 +73,7 @@ async function deleteProgramInvite({
       },
     }),
   ]);
+  console.log("Deleted program invite for", programEnrollment.partnerId);
 }
 
 async function main() {
