@@ -101,7 +101,7 @@ export function NetworkPartnerCard({
             "_blank",
           );
         } else {
-          queryParams({ set: { partnerId: partner.id }, scroll: false });
+          queryParams({ set: { partnerId: partner.id } });
         }
       }}
     >

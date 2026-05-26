@@ -390,7 +390,6 @@ export function BountySubmissionsTable() {
         set: {
           submissionId: row.original.id,
         },
-        scroll: false,
       });
     },
     sortableColumns: [
@@ -407,7 +406,6 @@ export function BountySubmissionsTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     pagination,
     onPaginationChange: setPagination,
