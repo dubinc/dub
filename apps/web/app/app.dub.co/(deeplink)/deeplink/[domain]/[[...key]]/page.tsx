@@ -12,7 +12,7 @@ import {
   IOSAppStore,
   MobilePhone,
 } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, getApexDomain } from "@dub/utils";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -95,6 +95,15 @@ export default async function DeepLinkPreviewPage(props: {
     redirect(`https://${domain}`);
   }
 
+  const {
+    hidePoweredByBadge = false,
+    appName = getApexDomain(link.url),
+    variant,
+    buttonClassnames,
+  } = deepViewData ?? {};
+
+  const description = t.description.replace("{appName}", appName);
+
   return (
     <>
       {domain === "pliab.ly" && (
@@ -143,46 +152,55 @@ export default async function DeepLinkPreviewPage(props: {
         </div>
 
         <div className="relative z-10 flex flex-1 flex-col px-8 py-8">
-          <div className="flex justify-center">
-            <Link
-              href="https://dub.co/docs/concepts/deep-links/quickstart"
-              target="_blank"
-              className={cn(
-                "flex items-center gap-1 whitespace-nowrap text-sm font-medium text-neutral-900",
-                t["poweredByOrder"] === "inverted" ? "flex-row-reverse" : "",
-              )}
-            >
-              {t.poweredBy} <Wordmark className="text-content-emphasis h-3.5" />
-            </Link>
-          </div>
+          {!hidePoweredByBadge && (
+            <div className="flex justify-center">
+              <Link
+                href="https://dub.co/docs/concepts/deep-links/quickstart"
+                target="_blank"
+                className={cn(
+                  "flex items-center gap-1 whitespace-nowrap text-sm font-medium text-neutral-900",
+                  t["poweredByOrder"] === "inverted" ? "flex-row-reverse" : "",
+                )}
+              >
+                {t.poweredBy}{" "}
+                <Wordmark className="text-content-emphasis h-3.5" />
+              </Link>
+            </div>
+          )}
 
           <div className="flex flex-1 flex-col justify-center gap-12">
-            <div className="flex flex-col items-center gap-y-6">
-              <BrandLogoBadge link={link} />
+            <div className="flex flex-col items-center gap-y-4">
+              <BrandLogoBadge link={link} appName={appName} />
 
-              <div className="flex h-40 w-full max-w-xs flex-col gap-6 rounded-xl border border-neutral-300 px-10 py-8">
-                <p className="text-center text-sm font-normal leading-5 text-neutral-700">
-                  {t.description}
+              {variant === "minimal" ? (
+                <p className="text-pretty text-center leading-5 text-neutral-500">
+                  {description}
                 </p>
+              ) : (
+                <div className="flex h-40 w-full max-w-xs flex-col gap-6 rounded-xl border border-neutral-300 px-10 py-8">
+                  <p className="text-pretty text-center text-sm leading-5 text-neutral-600">
+                    {description}
+                  </p>
 
-                <div className="flex items-center justify-center gap-3">
-                  <Copy className="text-content-default size-6" />
-                  <ArrowRight className="text-content-subtle size-3" />
-                  {platform === "android" ? (
-                    <AndroidLogo className="text-content-default size-6" />
-                  ) : (
-                    <IOSAppStore className="text-content-default size-6" />
-                  )}
-                  <ArrowRight className="text-content-subtle size-3" />
-                  <MobilePhone className="text-content-default size-6" />
+                  <div className="flex items-center justify-center gap-3">
+                    <Copy className="text-content-default size-6" />
+                    <ArrowRight className="text-content-subtle size-3" />
+                    {platform === "android" ? (
+                      <AndroidLogo className="text-content-default size-6" />
+                    ) : (
+                      <IOSAppStore className="text-content-default size-6" />
+                    )}
+                    <ArrowRight className="text-content-subtle size-3" />
+                    <MobilePhone className="text-content-default size-6" />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <DeepLinkActionButtons
               link={link}
               language={language}
-              platform={platform}
+              buttonClassnames={buttonClassnames}
             />
           </div>
         </div>
