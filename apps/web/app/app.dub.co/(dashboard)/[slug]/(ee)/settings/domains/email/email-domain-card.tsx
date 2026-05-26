@@ -56,12 +56,16 @@ export function EmailDomainCard({ domain }: EmailDomainCardProps) {
       slug: domain.slug,
     });
 
-  // Automatically open DNS records section if status is not verified
+  // Automatically open DNS records section if any required record is unverified
   useEffect(() => {
-    if (data?.status && data.status !== "verified") {
+    const hasUnverifiedRecords = data?.records?.some(
+      (record) => record.status !== "verified" && record.record !== "Receiving",
+    );
+
+    if ((data?.status && data.status !== "verified") || hasUnverifiedRecords) {
       setShowDetails(true);
     }
-  }, [data?.status]);
+  }, [data?.status, data?.records]);
 
   return (
     <>

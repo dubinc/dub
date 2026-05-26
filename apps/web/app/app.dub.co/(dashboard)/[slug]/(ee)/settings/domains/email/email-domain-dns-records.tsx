@@ -182,8 +182,16 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
     },
   );
 
-  const isVerified = data?.status === "verified";
-  const records = data?.records || [];
+  const records = (data?.records || []) as DomainRecord[];
+  const sendingRecords = records.filter(
+    (record) => record.record !== "Tracking",
+  );
+  const trackingRecords = records.filter(
+    (record) => record.record === "Tracking",
+  );
+  const allRequiredVerified = records
+    .filter((record) => record.record !== "Receiving")
+    .every((record) => record.status === "verified");
 
   const dmarcRecords = [
     {
@@ -197,52 +205,65 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
 
   return (
     <div className="mt-4 space-y-4">
-      {!records && !isValidating ? (
+      {!data && isValidating ? (
         <div className="h-20 animate-pulse rounded-lg bg-neutral-200" />
-      ) : isVerified ? (
-        <div className="flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
-          <CircleCheck className="h-5 w-5 shrink-0" />
-          <div>
-            Good news! All the DNS records are verified. You are ready to start
-            sending emails with this domain.
-          </div>
-        </div>
-      ) : records && records.length > 0 ? (
+      ) : records.length > 0 ? (
         <div className="flex flex-col gap-8">
-          <div className="flex flex-col gap-4 rounded-lg border border-neutral-200 bg-neutral-100 p-4">
-            <div className="flex flex-col gap-6">
-              {records.length > 0 && (
-                <DnsRecordsTable
-                  title="DKIM and SPF (Required)"
-                  description={
-                    <p className="text-sm text-neutral-700">
-                      To authorize Dub to send emails from{" "}
-                      <strong>{domain.slug}</strong> to your partners, verify
-                      that the DNS records listed below are properly configured
-                      in your domain's DNS settings.
-                    </p>
-                  }
-                  records={records}
-                  showPriority
-                  showStatus
-                />
-              )}
+          {allRequiredVerified && (
+            <div className="flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
+              <CircleCheck className="h-5 w-5 shrink-0" />
+              <div>
+                Good news! All the DNS records are verified. You are ready to
+                start sending emails with this domain.
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="flex flex-col rounded-lg border border-neutral-200 bg-neutral-100 p-4">
-            {dmarcRecords.length > 0 && (
+          <div className="flex flex-col gap-4 rounded-lg border border-neutral-200 bg-neutral-100 p-4">
+            {sendingRecords.length > 0 && (
               <DnsRecordsTable
-                title="DMARC (Recommended)"
+                title="DKIM and SPF (Required)"
                 description={
                   <p className="text-sm text-neutral-700">
-                    Add DMARC record to build trust in your domain and protect
-                    against email spoofing.
+                    To authorize Dub to send emails from{" "}
+                    <strong>{domain.slug}</strong> to your partners, verify that
+                    the DNS records listed below are properly configured in your
+                    domain&apos;s DNS settings.
                   </p>
                 }
-                records={dmarcRecords}
+                records={sendingRecords}
+                showPriority
+                showStatus
               />
             )}
+          </div>
+
+          {trackingRecords.length > 0 && (
+            <div className="flex flex-col gap-4 rounded-lg border border-neutral-200 bg-neutral-100 p-4">
+              <DnsRecordsTable
+                title="Tracking (Required for open tracking)"
+                description={
+                  <p className="text-sm text-neutral-700">
+                    Add this CNAME record to enable open tracking from.
+                  </p>
+                }
+                records={trackingRecords}
+                showStatus
+              />
+            </div>
+          )}
+
+          <div className="flex flex-col rounded-lg border border-neutral-200 bg-neutral-100 p-4">
+            <DnsRecordsTable
+              title="DMARC (Recommended)"
+              description={
+                <p className="text-sm text-neutral-700">
+                  Add DMARC record to build trust in your domain and protect
+                  against email spoofing.
+                </p>
+              }
+              records={dmarcRecords}
+            />
           </div>
         </div>
       ) : (

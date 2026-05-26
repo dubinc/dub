@@ -11,7 +11,7 @@ const schema = z.object({
 export const dynamic = "force-dynamic";
 
 // POST /api/cron/email-domains/update
-// Update the Resend domain to enable click tracking
+// Ensure Resend domain has open tracking and a custom tracking subdomain configured
 export const POST = withCron(async ({ rawBody }) => {
   const { domainId } = schema.parse(JSON.parse(rawBody));
 
@@ -43,6 +43,7 @@ export const POST = withCron(async ({ rawBody }) => {
     id: domainRecord.resendDomainId,
     openTracking: true,
     clickTracking: false,
+    trackingSubdomain: "click",
     tls: "enforced",
   });
 
