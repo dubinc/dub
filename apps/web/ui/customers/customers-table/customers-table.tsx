@@ -371,7 +371,6 @@ export function CustomersTable({
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;

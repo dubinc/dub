@@ -97,7 +97,6 @@ export function CommissionsStatusSelector({
                     ...(id === undefined
                       ? { del: "status" }
                       : { set: { status: id } }),
-                    scroll: false,
                     getNewPath: true,
                   }) as string
                 }
@@ -165,7 +164,7 @@ export function CommissionsStatusSelector({
                   ]}
                   selected={unit}
                   selectAction={(v) =>
-                    queryParams({ set: { commissionUnit: v }, scroll: false })
+                    queryParams({ set: { commissionUnit: v } })
                   }
                 />
               )}

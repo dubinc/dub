@@ -83,7 +83,6 @@ export function useFraudGroupFilters({
           [key]: value,
         },
         del: "page",
-        scroll: false,
       }),
     [queryParams],
   );
@@ -92,7 +91,6 @@ export function useFraudGroupFilters({
     (key: string, _value?: any) =>
       queryParams({
         del: [key, "page"],
-        scroll: false,
       }),
     [queryParams],
   );
@@ -101,7 +99,6 @@ export function useFraudGroupFilters({
     () =>
       queryParams({
         del: ["type", "partnerId", "page"],
-        scroll: false,
       }),
     [queryParams],
   );

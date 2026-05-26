@@ -173,7 +173,6 @@ export function SubmittedLeadTable() {
     onRowClick: (row) => {
       queryParams({
         set: { leadId: row.original.id },
-        scroll: false,
       });
       setDetailsSheetState({
         leadId: row.original.id,
@@ -231,7 +230,6 @@ export function SubmittedLeadTable() {
               ? () => {
                   queryParams({
                     set: { leadId: previousLeadId },
-                    scroll: false,
                   });
                   setDetailsSheetState({
                     leadId: previousLeadId,
@@ -245,7 +243,6 @@ export function SubmittedLeadTable() {
               ? () => {
                   queryParams({
                     set: { leadId: nextLeadId },
-                    scroll: false,
                   });
                   setDetailsSheetState({
                     leadId: nextLeadId,
