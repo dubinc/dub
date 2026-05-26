@@ -12,11 +12,11 @@ export function BrandLogoBadge({
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-4">
-      <div className="rounded-2xl border border-neutral-100 bg-white p-6 shadow-lg">
+      <div className="flex size-20 items-center justify-center rounded-3xl bg-white shadow-[0px_1px_3px_0px_#0000000F,_0px_4px_14px_0px_#00000014]">
         <img
           src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
           alt={`${appName} logo`}
-          className="size-8 shrink-0 overflow-visible rounded-full p-px"
+          className="size-12 shrink-0 overflow-visible rounded-full p-px"
         />
       </div>
       <div className="pr-1.5 text-lg font-semibold text-neutral-900">
