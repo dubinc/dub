@@ -448,7 +448,7 @@ async function stepRecordEvents({
   const leadEvent = leadEventSchemaTBWithTimestamp.parse({
     ...clickEvent,
     event_id: nanoid(16),
-    event_name: leadEventName,
+    event_name: leadEventName ?? "Sign up",
     customer_id: customer.id,
     timestamp: finalLeadEventDate.toISOString(),
   });

@@ -193,31 +193,6 @@ export const getCommissionsCountQuerySchema = getCommissionsQuerySchema
     type: z.string().optional(),
   });
 
-// TODO: Remove this
-export const createCommissionSchema = z.object({
-  workspaceId: z.string(),
-  partnerId: z.string(),
-  commissionType: z.enum(CommissionType),
-  useExistingEvents: z.boolean(),
-
-  // Custom
-  date: parseDateSchema.nullish(),
-  amount: z.number().min(0).nullish(),
-  description: z.string().max(190).nullish(),
-
-  // Lead
-  customerId: z.string().nullish(),
-  linkId: z.string().nullish(),
-  leadEventDate: parseDateSchema.nullish(),
-  leadEventName: z.string().nullish(),
-
-  // Sale
-  saleEventDate: parseDateSchema.nullish(),
-  saleAmount: centsSchema.pipe(z.number().min(0)).nullish(),
-  invoiceId: z.string().nullish(),
-  productId: z.string().nullish(),
-});
-
 export const createCommissionBodySchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("custom"),
@@ -254,11 +229,7 @@ export const createCommissionBodySchema = z.discriminatedUnion("type", [
     leadEventDate: parseDateSchema
       .nullish()
       .describe("The date of the lead event."),
-    leadEventName: z
-      .string()
-      .nullish()
-      .default("Sign Up")
-      .describe("The name of the lead event."),
+    leadEventName: z.string().nullish().describe("The name of the lead event."),
   }),
 
   z.object({
