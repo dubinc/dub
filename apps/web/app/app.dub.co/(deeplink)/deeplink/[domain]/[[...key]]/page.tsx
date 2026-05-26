@@ -118,7 +118,7 @@ export default async function DeepLinkPreviewPage(props: {
     hidePoweredByBadge = false,
     appName = getApexDomain(link.url),
     variant,
-    buttonClassnames,
+    buttonStyle,
   } = deepViewData ?? {};
 
   const description = t.description.replace("{appName}", appName);
@@ -135,40 +135,42 @@ export default async function DeepLinkPreviewPage(props: {
         </>
       )}
       <main className="mx-auto flex h-dvh w-full max-w-md flex-col bg-white">
-        <div className="absolute inset-0 isolate overflow-hidden bg-white">
-          <div
-            className={cn(
-              "absolute inset-y-0 left-1/2 w-[1200px] -translate-x-1/2",
-              "[mask-composite:intersect] [mask-image:linear-gradient(black,transparent_320px),linear-gradient(90deg,transparent,black_5%,black_95%,transparent)]",
-            )}
-          >
-            <Grid
-              cellSize={60}
-              patternOffset={[0.75, 0]}
-              className="text-neutral-200"
-            />
-          </div>
-
-          {[...Array(2)].map((_, idx) => (
+        {variant !== "minimal" && (
+          <div className="absolute inset-0 isolate overflow-hidden bg-white">
             <div
-              key={idx}
               className={cn(
-                "absolute left-1/2 top-6 size-[80px] -translate-x-1/2 -translate-y-1/2 scale-x-[1.6]",
-                idx === 0 ? "mix-blend-overlay" : "opacity-10",
+                "absolute inset-y-0 left-1/2 w-[1200px] -translate-x-1/2",
+                "[mask-composite:intersect] [mask-image:linear-gradient(black,transparent_320px),linear-gradient(90deg,transparent,black_5%,black_95%,transparent)]",
               )}
             >
-              {[...Array(idx === 0 ? 2 : 1)].map((_, idx) => (
-                <div
-                  key={idx}
-                  className={cn(
-                    "absolute -inset-16 mix-blend-overlay blur-[50px] saturate-[2]",
-                    "bg-[conic-gradient(from_90deg,#F00_5deg,#EAB308_63deg,#5CFF80_115deg,#1E00FF_170deg,#855AFC_220deg,#3A8BFD_286deg,#F00_360deg)]",
-                  )}
-                />
-              ))}
+              <Grid
+                cellSize={60}
+                patternOffset={[0.75, 0]}
+                className="text-neutral-200"
+              />
             </div>
-          ))}
-        </div>
+
+            {[...Array(2)].map((_, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "absolute left-1/2 top-6 size-[80px] -translate-x-1/2 -translate-y-1/2 scale-x-[1.6]",
+                  idx === 0 ? "mix-blend-overlay" : "opacity-10",
+                )}
+              >
+                {[...Array(idx === 0 ? 2 : 1)].map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={cn(
+                      "absolute -inset-16 mix-blend-overlay blur-[50px] saturate-[2]",
+                      "bg-[conic-gradient(from_90deg,#F00_5deg,#EAB308_63deg,#5CFF80_115deg,#1E00FF_170deg,#855AFC_220deg,#3A8BFD_286deg,#F00_360deg)]",
+                    )}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="relative z-10 flex flex-1 flex-col px-8 py-8">
           {!hidePoweredByBadge && (
@@ -192,12 +194,12 @@ export default async function DeepLinkPreviewPage(props: {
               <BrandLogoBadge link={link} appName={appName} />
 
               {variant === "minimal" ? (
-                <p className="text-pretty text-center leading-5 text-neutral-500">
+                <p className="text-pretty text-center font-light text-neutral-500">
                   {description}
                 </p>
               ) : (
                 <div className="flex h-40 w-full max-w-xs flex-col gap-6 rounded-xl border border-neutral-300 px-10 py-8">
-                  <p className="text-pretty text-center text-sm leading-5 text-neutral-600">
+                  <p className="text-pretty text-center text-sm text-neutral-600">
                     {description}
                   </p>
 
@@ -221,7 +223,7 @@ export default async function DeepLinkPreviewPage(props: {
               language={language}
               platform={platform}
               androidPackageName={androidPackageName}
-              buttonClassnames={buttonClassnames}
+              buttonStyle={buttonStyle}
             />
           </div>
         </div>
