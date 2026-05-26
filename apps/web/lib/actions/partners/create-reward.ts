@@ -6,6 +6,7 @@ import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { queueRewardEnrollmentSync } from "@/lib/api/rewards/queue-reward-enrollment-sync";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
@@ -104,16 +105,15 @@ export const createRewardAction = authActionClient
         },
       });
 
-      await tx.programEnrollment.updateMany({
-        where: {
-          groupId,
-        },
-        data: {
-          [rewardIdColumn]: reward.id,
-        },
-      });
-
       return reward;
+    });
+
+    await queueRewardEnrollmentSync({
+      action: "create",
+      rewardId: reward.id,
+      groupId,
+      programId,
+      event,
     });
 
     waitUntil(

@@ -248,7 +248,6 @@ export default function PartnerProgramCustomersPage() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",

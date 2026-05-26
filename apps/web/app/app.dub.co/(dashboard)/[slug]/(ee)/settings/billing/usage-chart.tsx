@@ -84,21 +84,18 @@ export function UsageChart() {
   const onSelect = (key: string, value: string) => {
     queryParams({
       set: { [key]: value },
-      scroll: false,
     });
   };
 
   const onRemove = (key: string) => {
     queryParams({
       del: key,
-      scroll: false,
     });
   };
 
   const onRemoveAll = () => {
     queryParams({
       del: ["folderId", "domain"],
-      scroll: false,
     });
   };
 

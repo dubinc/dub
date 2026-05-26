@@ -63,6 +63,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           partnerId = ${partner.id}
           AND programId = ${NETWORK_PROGRAM_ID}
           AND type = ${CommissionType.referral}
+          AND status in ('pending', 'processed', 'paid')
           AND createdAt >= ${startDate}
           AND createdAt < ${endDate}
         GROUP BY start
