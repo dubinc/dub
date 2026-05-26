@@ -2,6 +2,7 @@
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { getPartnerPayoutMethods } from "@/lib/payouts/get-partner-payout-methods";
+import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
 import {
   partnerProfileChangeHistoryLogSchema,
   setDefaultPayoutMethodSchema,
@@ -37,14 +38,15 @@ export const setDefaultPayoutMethodAction = authPartnerActionClient
       throw new Error("This payout method is not available for your country.");
     }
 
-    if (!payoutMethod.connected) {
-      throw new Error(
-        "Please connect your payout method before setting it as your default.",
-      );
-    }
-
     if (payoutMethod.default) {
       throw new Error("This is already your default payout method.");
+    }
+
+    const { activePayoutMethods } = await recomputePartnerPayoutState(partner);
+    if (!activePayoutMethods.includes(type)) {
+      throw new Error(
+        "This payout method can't receive payouts right now. Please fix it in Stripe or choose another method.",
+      );
     }
 
     const fromDefault = partner.defaultPayoutMethod;

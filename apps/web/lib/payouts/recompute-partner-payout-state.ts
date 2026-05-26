@@ -112,6 +112,7 @@ export async function recomputePartnerPayoutState(
   return {
     payoutsEnabledAt,
     defaultPayoutMethod,
+    activePayoutMethods,
     cryptoWalletAddress,
     cryptoWalletNetwork,
     maskedCryptoWalletAddress,
