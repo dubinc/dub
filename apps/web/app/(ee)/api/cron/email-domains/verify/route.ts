@@ -4,7 +4,7 @@ import { sendBatchEmail } from "@dub/email";
 import { resend } from "@dub/email/resend/client";
 import EmailDomainStatusChanged from "@dub/email/templates/email-domain-status-changed";
 import { prisma } from "@dub/prisma";
-import { EmailDomain } from "@dub/prisma/client";
+import { EmailDomain, EmailDomainStatus } from "@dub/prisma/client";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -62,7 +62,7 @@ async function verifyEmailDomain(domain: EmailDomain) {
       id: domain.id,
     },
     data: {
-      status: resendDomain.status,
+      status: resendDomain.status as EmailDomainStatus,
       lastChecked: new Date(),
     },
   });
