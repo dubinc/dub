@@ -21,6 +21,16 @@ import { DeepLinkActionButtons } from "./action-buttons";
 import { BrandLogoBadge } from "./brand-logo-badge";
 import { getLanguage, getTranslations } from "./translations";
 
+const ANDROID_PACKAGE_NAME_REGEX =
+  /^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/;
+
+interface AssetLink {
+  target?: {
+    namespace?: string;
+    package_name?: string;
+  };
+}
+
 export default async function DeepLinkPreviewPage(props: {
   params: Promise<{ domain: string; key?: string[] }>;
 }) {
@@ -95,25 +105,23 @@ export default async function DeepLinkPreviewPage(props: {
     redirect(`https://${domain}`);
   }
 
-  const ANDROID_PACKAGE_NAME_REGEX =
-    /^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/;
-
   let androidPackageName: string | null = null;
+
   if (platform === "android" && Array.isArray(link.shortDomain.assetLinks)) {
-    for (const entry of link.shortDomain.assetLinks as Array<{
-      target?: { namespace?: string; package_name?: string };
-    }>) {
-      const candidate = entry?.target?.package_name;
+    for (const assetLink of link.shortDomain.assetLinks as Array<AssetLink>) {
+      const packageName = assetLink?.target?.package_name;
+
       if (
-        entry?.target?.namespace === "android_app" &&
-        typeof candidate === "string" &&
-        ANDROID_PACKAGE_NAME_REGEX.test(candidate)
+        assetLink?.target?.namespace === "android_app" &&
+        typeof packageName === "string" &&
+        ANDROID_PACKAGE_NAME_REGEX.test(packageName)
       ) {
-        androidPackageName = candidate;
+        androidPackageName = packageName;
         break;
       }
     }
   }
+
   const {
     hidePoweredByBadge = false,
     appName = getApexDomain(link.url),
