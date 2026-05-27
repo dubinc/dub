@@ -1,9 +1,11 @@
 import { NetworkProgramProps } from "@/lib/types";
+import { getMarketplaceAllHref } from "@/ui/partners/program-marketplace/get-marketplace-all-href";
 import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
 import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
-import { Tooltip, useRouterStuff } from "@dub/ui";
+import { Tooltip } from "@dub/ui";
 import { OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ProgramStatusBadge } from "./program-status-badge";
 
 export function MarketplaceProgramCard({
@@ -11,18 +13,18 @@ export function MarketplaceProgramCard({
 }: {
   program: NetworkProgramProps;
 }) {
-  const { queryParams } = useRouterStuff();
+  const router = useRouter();
 
   return (
     <Link
       href={`/programs/marketplace/${program.slug}`}
-      className="border-border-subtle hover:drop-shadow-card-hover rounded-xl border bg-white p-6 transition-[filter]"
+      className="border-border-subtle hover:drop-shadow-card-hover flex h-full flex-col rounded-xl border bg-white p-6 transition-[filter]"
     >
       <div className="flex justify-between gap-4">
         <img
           src={program.logo || `${OG_AVATAR_URL}${program.name}`}
           alt={program.name}
-          className="size-12 rounded-full"
+          className="size-12 shrink-0 rounded-full object-cover"
         />
 
         <ProgramStatusBadge program={program} />
@@ -48,20 +50,12 @@ export function MarketplaceProgramCard({
                 rewards={program.rewards}
                 discount={program.discount}
                 onRewardClick={(reward) =>
-                  queryParams({
-                    set: {
-                      rewardType: reward.event,
-                    },
-                    del: "page",
-                  })
+                  router.push(
+                    getMarketplaceAllHref({ rewardType: reward.event }),
+                  )
                 }
                 onDiscountClick={() =>
-                  queryParams({
-                    set: {
-                      rewardType: "discount",
-                    },
-                    del: "page",
-                  })
+                  router.push(getMarketplaceAllHref({ rewardType: "discount" }))
                 }
                 className="mt-1"
               />
@@ -73,20 +67,17 @@ export function MarketplaceProgramCard({
                 Category
               </span>
               <div className="mt-1 flex items-center gap-1.5">
-                {program.categories.slice(0, 1)?.map((category) => (
-                  <ProgramCategory
-                    key={category}
-                    category={category}
-                    onClick={() =>
-                      queryParams({
-                        set: {
-                          category,
-                        },
-                        del: "page",
-                      })
-                    }
-                  />
-                ))}
+                {program.categories
+                  .slice(0, 1)
+                  ?.map((category) => (
+                    <ProgramCategory
+                      key={category}
+                      category={category}
+                      onClick={() =>
+                        router.push(getMarketplaceAllHref({ category }))
+                      }
+                    />
+                  ))}
                 {program.categories.length > 1 && (
                   <Tooltip
                     content={
@@ -96,12 +87,7 @@ export function MarketplaceProgramCard({
                             key={category}
                             category={category}
                             onClick={() =>
-                              queryParams({
-                                set: {
-                                  category,
-                                },
-                                del: "page",
-                              })
+                              router.push(getMarketplaceAllHref({ category }))
                             }
                           />
                         ))}

@@ -1,9 +1,11 @@
 import { NetworkProgramProps } from "@/lib/types";
+import { getMarketplaceAllHref } from "@/ui/partners/program-marketplace/get-marketplace-all-href";
 import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
 import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
-import { Tooltip, useRouterStuff } from "@dub/ui";
+import { Tooltip } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ProgramStatusBadge } from "./program-status-badge";
 
 export function FeaturedProgramCard({
@@ -11,7 +13,7 @@ export function FeaturedProgramCard({
 }: {
   program: NetworkProgramProps;
 }) {
-  const { queryParams } = useRouterStuff();
+  const router = useRouter();
 
   const isDarkImage = program.marketplaceHeaderImage?.includes("-dark");
 
@@ -86,20 +88,14 @@ export function FeaturedProgramCard({
                   discount={program.discount}
                   isDarkImage={isDarkImage}
                   onRewardClick={(reward) =>
-                    queryParams({
-                      set: {
-                        rewardType: reward.event,
-                      },
-                      del: "page",
-                    })
+                    router.push(
+                      getMarketplaceAllHref({ rewardType: reward.event }),
+                    )
                   }
                   onDiscountClick={() =>
-                    queryParams({
-                      set: {
-                        rewardType: "discount",
-                      },
-                      del: "page",
-                    })
+                    router.push(
+                      getMarketplaceAllHref({ rewardType: "discount" }),
+                    )
                   }
                   className="hover:bg-bg-default/10 active:bg-bg-default/20 mt-2"
                   iconClassName="hover:bg-bg-default/10 active:bg-bg-default/20"
@@ -118,24 +114,21 @@ export function FeaturedProgramCard({
                   Category
                 </span>
                 <div className="mt-2 flex items-center gap-1.5">
-                  {program.categories.slice(0, 1)?.map((category) => (
-                    <ProgramCategory
-                      key={category}
-                      category={category}
-                      onClick={() =>
-                        queryParams({
-                          set: {
-                            category,
-                          },
-                          del: "page",
-                        })
-                      }
-                      className={cn(
-                        "hover:bg-bg-default/10 active:bg-bg-default/20",
-                        isDarkImage && "text-content-inverted",
-                      )}
-                    />
-                  ))}
+                  {program.categories
+                    .slice(0, 1)
+                    ?.map((category) => (
+                      <ProgramCategory
+                        key={category}
+                        category={category}
+                        onClick={() =>
+                          router.push(getMarketplaceAllHref({ category }))
+                        }
+                        className={cn(
+                          "hover:bg-bg-default/10 active:bg-bg-default/20",
+                          isDarkImage && "text-content-inverted",
+                        )}
+                      />
+                    ))}
                   {program.categories.length > 1 && (
                     <Tooltip
                       content={
@@ -145,12 +138,7 @@ export function FeaturedProgramCard({
                               key={category}
                               category={category}
                               onClick={() =>
-                                queryParams({
-                                  set: {
-                                    category,
-                                  },
-                                  del: "page",
-                                })
+                                router.push(getMarketplaceAllHref({ category }))
                               }
                             />
                           ))}

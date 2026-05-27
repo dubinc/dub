@@ -24,32 +24,27 @@ export function FeaturedPrograms() {
 
   return programs?.length === 0 || error ? null : (
     <div>
-      <h2 className="text-content-emphasis text-base font-semibold">
-        Featured programs
-      </h2>
-      <div className="mt-4">
-        <Carousel autoplay={{ delay: 5000 }} opts={{ loop: true }}>
-          <CarouselContent className="items-stretch">
-            {programs ? (
-              programs.map((program) => (
-                <CarouselCard key={program.id} program={program} />
-              ))
-            ) : (
-              <>
-                <CarouselItem className="basis-full">
-                  <FeaturedProgramCardSkeleton />
-                </CarouselItem>
-                <CarouselItem className="basis-full">
-                  <FeaturedProgramCardSkeleton />
-                </CarouselItem>
-              </>
-            )}
-          </CarouselContent>
-          <div className="mt-2">
-            <CarouselNavBar />
-          </div>
-        </Carousel>
-      </div>
+      <Carousel autoplay={{ delay: 5000 }} opts={{ loop: true }}>
+        <CarouselContent className="items-stretch">
+          {programs ? (
+            programs.map((program) => (
+              <CarouselCard key={program.id} program={program} />
+            ))
+          ) : (
+            <>
+              <CarouselItem className="basis-full">
+                <FeaturedProgramCardSkeleton />
+              </CarouselItem>
+              <CarouselItem className="basis-full">
+                <FeaturedProgramCardSkeleton />
+              </CarouselItem>
+            </>
+          )}
+        </CarouselContent>
+        <div className="mt-2">
+          <CarouselNavBar />
+        </div>
+      </Carousel>
     </div>
   );
 }
