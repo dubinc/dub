@@ -167,7 +167,7 @@ export async function createCommissions(params: CreateCommissionsParams) {
 
       if (commission) {
         throw new DubApiError({
-          code: "bad_request",
+          code: "conflict",
           message: `There is already a commission for the invoice ${invoiceId}.`,
         });
       }

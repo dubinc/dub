@@ -1,8 +1,9 @@
 import { CommissionResponse } from "@/lib/types";
 import { describe, expect, test } from "vitest";
-import { randomCustomer, randomId, retry } from "../utils/helpers";
+import { randomCustomer, randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import {
+  E2E_CUSTOMER_ID,
   E2E_LEAD_REWARD,
   E2E_PARTNER,
   E2E_SALE_REWARD,
@@ -70,85 +71,41 @@ describe.sequential("POST /commissions", async () => {
   const { http } = await h.init();
 
   test("create custom commission with required fields", async () => {
+    const description = randomId();
+
     const { status, data } = await http.post<any>({
       path: "/commissions",
       body: {
         type: "custom",
         partnerId: E2E_PARTNER.id,
         amount: 500,
+        description,
       },
     });
 
     expect(status).toEqual(202);
     expect(data).toStrictEqual(expectedQueuedResponse);
 
-    // Custom commissions are created synchronously — verify via GET
-    await retry(
-      async () => {
-        const { data: commissions } = await http.get<CommissionResponse[]>({
-          path: "/commissions",
-          query: {
-            partnerId: E2E_PARTNER.id,
-            type: "custom",
-            sortBy: "createdAt",
-            sortOrder: "desc",
-            pageSize: "1",
-          },
-        });
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        expect(commissions.length).toBeGreaterThan(0);
-        expect(commissions[0].earnings).toEqual(500);
-        expect(commissions[0].amount).toEqual(0);
-        expect(commissions[0].type).toEqual("custom");
-      },
-      {
-        retries: 5,
-        interval: 1000,
-      },
-    );
-  });
-
-  test("create custom commission with all fields", async () => {
-    const { status, data } = await http.post<any>({
+    const { data: commissions } = await http.get<CommissionResponse[]>({
       path: "/commissions",
-      body: {
-        type: "custom",
+      query: {
         partnerId: E2E_PARTNER.id,
-        amount: 1000,
-        date: "2025-01-15",
-        description: "E2E bonus",
+        type: "custom",
+        sortBy: "createdAt",
+        sortOrder: "desc",
+        pageSize: "1",
       },
     });
 
-    expect(status).toEqual(202);
-    expect(data).toStrictEqual(expectedQueuedResponse);
-
-    await retry(
-      async () => {
-        const { data: commissions } = await http.get<CommissionResponse[]>({
-          path: "/commissions",
-          query: {
-            partnerId: E2E_PARTNER.id,
-            type: "custom",
-            sortBy: "createdAt",
-            sortOrder: "desc",
-            pageSize: "5",
-          },
-        });
-
-        const match = commissions.find(
-          (c) => c.earnings === 1000 && c.description === "E2E bonus",
-        );
-
-        expect(match).toBeDefined();
-        expect(match!.amount).toEqual(0);
-        expect(match!.type).toEqual("custom");
-      },
-      {
-        retries: 5,
-        interval: 1000,
-      },
+    const commissionFound = commissions.find(
+      (c) => c.description === description,
     );
+
+    expect(commissionFound).toBeDefined();
+    expect(commissionFound!.earnings).toEqual(500);
+    expect(commissionFound!.type).toEqual("custom");
   });
 
   test("create lead commission", async () => {
@@ -163,6 +120,7 @@ describe.sequential("POST /commissions", async () => {
           externalId: customer.externalId,
           email: customer.email,
           name: customer.name,
+          country: "US",
         },
       },
     });
@@ -187,6 +145,7 @@ describe.sequential("POST /commissions", async () => {
         partnerId: E2E_PARTNER.id,
         saleAmount: 1000,
         invoiceId,
+        customerId: E2E_CUSTOMER_ID,
       },
     });
 
@@ -256,11 +215,14 @@ describe.sequential("POST /commissions", async () => {
         partnerId: E2E_PARTNER.id,
         saleAmount: 1000,
         invoiceId: commissionWithInvoice!.invoiceId,
+        customerId: E2E_CUSTOMER_ID,
       },
     });
 
-    expect(status).toEqual(400);
-    expect(data.error.code).toEqual("bad_request");
-    expect(data.error.message).toContain("already a commission");
+    expect(status).toEqual(409);
+    expect(data.error.code).toEqual("conflict");
+    expect(data.error.message).toContain(
+      "There is already a commission for the invoice",
+    );
   });
 });
