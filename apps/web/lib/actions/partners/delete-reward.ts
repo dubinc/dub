@@ -39,36 +39,38 @@ export const deleteRewardAction = authActionClient
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
-    const { group, deletedReward } = await prisma.$transaction(async (tx) => {
-      const group = await tx.partnerGroup.update({
-        // @ts-ignore
-        where: {
-          [rewardIdColumn]: reward.id,
-        },
-        data: {
-          [rewardIdColumn]: null,
-        },
-      });
+    const { partnerGroup, deletedReward } = await prisma.$transaction(
+      async (tx) => {
+        const partnerGroup = await tx.partnerGroup.update({
+          // @ts-ignore
+          where: {
+            [rewardIdColumn]: reward.id,
+          },
+          data: {
+            [rewardIdColumn]: null,
+          },
+        });
 
-      // soft delete reward, we will hard delete it in the cron job
-      const deletedReward = await tx.reward.update({
-        where: {
-          id: reward.id,
-        },
-        data: {
-          programId: null,
-        },
-      });
+        // soft delete reward, we will hard delete it in the cron job
+        const deletedReward = await tx.reward.update({
+          where: {
+            id: reward.id,
+          },
+          data: {
+            programId: null,
+          },
+        });
 
-      return {
-        group,
-        deletedReward,
-      };
-    });
+        return {
+          partnerGroup,
+          deletedReward,
+        };
+      },
+    );
 
     await queueRewardProcessing({
       event: "reward-deleted",
-      groupId: group.id,
+      groupId: partnerGroup.id,
       occurredAt: new Date().toISOString(),
       rewardSnapshot: {
         id: deletedReward.id,
@@ -102,7 +104,7 @@ export const deleteRewardAction = authActionClient
           userId: user.id,
           resourceId: reward.id,
           parentResourceType: "group",
-          parentResourceId: group.id,
+          parentResourceId: partnerGroup.id,
           old: reward,
           new: null,
         }),
