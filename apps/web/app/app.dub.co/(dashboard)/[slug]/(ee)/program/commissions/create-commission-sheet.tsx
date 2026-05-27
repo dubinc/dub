@@ -239,7 +239,10 @@ function CreateCommissionSheetContent({
     }
   }, [commissionType]);
 
-  const { makeRequest, isSubmitting } = useApiMutation();
+  const { makeRequest, isSubmitting } = useApiMutation<{
+    success: boolean;
+    message: string;
+  }>();
 
   const onSubmit = async (data: FormData) => {
     if (!workspaceId || !defaultProgramId) {
@@ -287,8 +290,17 @@ function CreateCommissionSheetContent({
     await makeRequest("/api/commissions", {
       method: "POST",
       body,
-      onSuccess: async () => {
-        toast.success("A commission has been created for the partner!");
+      onSuccess: async ({ message }) => {
+        if (commissionType === "custom") {
+          toast.success("A commission has been created for the partner!");
+        } else {
+          toast.success(
+            "Your commissions are being created and will appear shortly.",
+          );
+        }
+
+        toast.success(message);
+
         setIsOpen(false);
         await mutatePrefix("/api/commissions");
       },

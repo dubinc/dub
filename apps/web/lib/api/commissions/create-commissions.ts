@@ -10,13 +10,13 @@ import { z } from "zod";
 import { DubApiError } from "../errors";
 import { getProgramEnrollmentOrThrow } from "../programs/get-program-enrollment-or-throw";
 
-type createCommissionsParams = z.infer<typeof createCommissionBodySchema> & {
+type CreateCommissionsParams = z.infer<typeof createCommissionBodySchema> & {
   workspace: Pick<Project, "id" | "stripeConnectId">;
   programId: string;
   user: Session["user"];
 };
 
-export async function createCommissions(params: createCommissionsParams) {
+export async function createCommissions(params: CreateCommissionsParams) {
   const { workspace, programId, partnerId, type, user, ...rest } = params;
 
   const { partner, links } = await getProgramEnrollmentOrThrow({
@@ -94,6 +94,13 @@ export async function createCommissions(params: createCommissionsParams) {
     throw new DubApiError({
       code: "bad_request",
       message: "Either customerId or customer must be provided.",
+    });
+  }
+
+  if (params.customerId && params.customer) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Either customerId or customer must be provided, not both.",
     });
   }
 

@@ -76,7 +76,7 @@ type SaleEventProps = {
   currency: string;
   invoiceId: string;
   productId?: string;
-  status?: "refunded";
+  status?: "refunded"; // Only applicable for Stripe invoices
 };
 
 // POST /api/workflows/create-commissions
@@ -144,7 +144,6 @@ export const { POST } = serve<Input>(
           workspace,
           link,
           customer,
-          isFirstConversion,
         });
       },
     );
@@ -268,6 +267,7 @@ async function stepResolveLinkAndCustomer({
 
   let customer: Customer | null = null;
 
+  // Find an existing customer
   if (body.customerId) {
     customer = await prisma.customer.findUnique({
       where: {
@@ -288,7 +288,8 @@ async function stepResolveLinkAndCustomer({
     }
   }
 
-  if (body.customer) {
+  // Create or update the customer
+  else if (body.customer) {
     const { name, email, avatar, country, externalId, stripeCustomerId } =
       body.customer;
 
@@ -375,9 +376,7 @@ async function stepRecordEvents({
   link,
   customer,
   programId,
-}: StepFunctionInput & {
-  isFirstConversion: boolean;
-}) {
+}: StepFunctionInput) {
   if (body.type === "custom") {
     throw new WorkflowNonRetryableError(
       "Custom commissions are not supported.",
