@@ -10,8 +10,8 @@ import {
 import { verifyCommission } from "../utils/verify-commission";
 
 const expectedQueuedResponse = {
-  status: "queued",
-  message: "Commission creation has been queued.",
+  success: true,
+  message: "Your commissions are being created and will appear shortly.",
 };
 
 const validationCases = [
