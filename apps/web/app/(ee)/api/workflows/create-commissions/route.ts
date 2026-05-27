@@ -686,6 +686,7 @@ async function stepCreateCommissions({
 }
 
 async function stepUpdateStats({
+  body,
   link,
   customer,
   clickEvent,
@@ -702,6 +703,8 @@ async function stepUpdateStats({
   totalSaleAmount: number;
   isFirstConversion: boolean;
 }) {
+  const { type } = body;
+
   await prisma.$transaction([
     prisma.link.update({
       where: {
@@ -752,9 +755,11 @@ async function stepUpdateStats({
         saleAmount: {
           increment: totalSaleAmount,
         },
-        firstSaleAt: customer.firstSaleAt
-          ? undefined
-          : lastConversionAt ?? new Date(),
+        ...(type === CommissionType.sale && {
+          firstSaleAt: customer.firstSaleAt
+            ? undefined
+            : lastConversionAt ?? new Date(),
+        }),
       },
     }),
   ]);
@@ -797,6 +802,8 @@ async function stepExecuteWorkflow({
         },
       },
     });
+
+    await triggerAggregateDueCommissionsCronJob(programId);
   }
 
   await syncPartnerLinksStats({
@@ -804,8 +811,4 @@ async function stepExecuteWorkflow({
     programId,
     eventType: type,
   });
-
-  if (commissions.length > 0) {
-    await triggerAggregateDueCommissionsCronJob(programId);
-  }
 }
