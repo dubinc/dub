@@ -322,7 +322,11 @@ async function stepResolveLinkAndCustomer({
         projectConnectId: workspace.stripeConnectId,
       },
       update: {
-        //
+        name: finalCustomerName,
+        email,
+        avatar: finalCustomerAvatar,
+        country,
+        stripeCustomerId,
       },
     });
 

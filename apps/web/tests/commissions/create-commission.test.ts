@@ -88,7 +88,7 @@ describe.sequential("POST /commissions", async () => {
       },
     });
 
-    expect(status).toEqual(200);
+    expect(status).toEqual(202);
     expect(data).toStrictEqual(expectedQueuedResponse);
 
     // Custom commissions are created synchronously — verify via GET
@@ -129,7 +129,7 @@ describe.sequential("POST /commissions", async () => {
       },
     });
 
-    expect(status).toEqual(200);
+    expect(status).toEqual(202);
     expect(data).toStrictEqual(expectedQueuedResponse);
 
     await retry(
@@ -176,7 +176,7 @@ describe.sequential("POST /commissions", async () => {
       },
     });
 
-    expect(status).toEqual(200);
+    expect(status).toEqual(202);
     expect(data).toStrictEqual(expectedQueuedResponse);
 
     await verifyCommission({
@@ -199,7 +199,7 @@ describe.sequential("POST /commissions", async () => {
       },
     });
 
-    expect(status).toEqual(200);
+    expect(status).toEqual(202);
     expect(data).toStrictEqual(expectedQueuedResponse);
 
     await verifyCommission({

@@ -99,6 +99,9 @@ export const POST = withWorkspace(
         success: true,
         message: "Your commissions are being created and will appear shortly.",
       }),
+      {
+        status: 202,
+      },
     );
   },
   {
