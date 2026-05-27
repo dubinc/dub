@@ -3,7 +3,10 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { createCommissionBodySchema } from "@/lib/zod/schemas/commissions";
+import {
+  createCommissionBodySchema,
+  createCommissionResponseSchema,
+} from "@/lib/zod/schemas/commissions";
 import { StripeCustomerInvoiceSchema } from "@/lib/zod/schemas/customers";
 import { CustomerSelector } from "@/ui/customers/customer-selector";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
@@ -130,7 +133,6 @@ function CreateCommissionSheetContent({
     saleEventDate,
     saleAmount,
     leadEventDate,
-    description,
   ] = watch([
     "partnerId",
     "date",
@@ -140,7 +142,6 @@ function CreateCommissionSheetContent({
     "saleEventDate",
     "saleAmount",
     "leadEventDate",
-    "description",
   ]);
 
   const { rewards } = useRewards();
@@ -239,10 +240,8 @@ function CreateCommissionSheetContent({
     }
   }, [commissionType]);
 
-  const { makeRequest, isSubmitting } = useApiMutation<{
-    success: boolean;
-    message: string;
-  }>();
+  const { makeRequest, isSubmitting } =
+    useApiMutation<z.infer<typeof createCommissionResponseSchema>>();
 
   const onSubmit = async (data: FormData) => {
     if (!workspaceId || !defaultProgramId) {
@@ -291,16 +290,7 @@ function CreateCommissionSheetContent({
       method: "POST",
       body,
       onSuccess: async ({ message }) => {
-        if (commissionType === "custom") {
-          toast.success("A commission has been created for the partner!");
-        } else {
-          toast.success(
-            "Your commissions are being created and will appear shortly.",
-          );
-        }
-
         toast.success(message);
-
         setIsOpen(false);
         await mutatePrefix("/api/commissions");
       },
