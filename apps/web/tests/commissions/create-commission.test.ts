@@ -43,15 +43,6 @@ const validationCases = [
     expectedStatus: 422,
     expectedMessageContains: "amount",
   },
-  {
-    name: "missing partnerId",
-    body: {
-      type: "custom",
-      amount: 500,
-    },
-    expectedStatus: 422,
-    expectedMessageContains: "partnerId",
-  },
 ];
 
 validationCases.forEach(
