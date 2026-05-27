@@ -44,11 +44,7 @@ export async function GET(req: NextRequest) {
 
     const headers = await safeFetch(
       urlObject.toString(),
-      {
-        headers: {
-          method: "HEAD",
-        },
-      },
+      { method: "HEAD" },
       { maxRedirects: 0 },
     )
       .then((r) => ({

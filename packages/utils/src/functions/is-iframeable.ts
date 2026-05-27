@@ -24,7 +24,13 @@ export const isIframeable = ({
     }
   }
 
-  const xFrameOptions = headers.get("X-Frame-Options");
+  // X-Frame-Options values are tokens per RFC 7034 but some servers send
+  // them lowercased, padded, or duplicated. Normalize before comparing.
+  const xFrameOptions = headers
+    .get("x-frame-options")
+    ?.split(",")[0]
+    ?.trim()
+    .toUpperCase();
   if (xFrameOptions === "DENY" || xFrameOptions === "SAMEORIGIN") {
     return false;
   }
