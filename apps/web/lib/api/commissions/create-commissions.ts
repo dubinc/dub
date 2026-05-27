@@ -6,7 +6,8 @@ import { createCommissionBodySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { Customer, Project } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
+
 import { DubApiError } from "../errors";
 import { getProgramEnrollmentOrThrow } from "../programs/get-program-enrollment-or-throw";
 
