@@ -6,21 +6,12 @@ import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
-import {
-  releaseRewardGroupLock,
-  reserveRewardGroupLock,
-} from "@/lib/api/rewards/reward-group-lock";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import {
-  REWARD_EVENT_COLUMN_MAPPING,
-  updateRewardSchema,
-} from "@/lib/zod/schemas/rewards";
+import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
-import { Prisma, Program, Reward } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
@@ -74,98 +65,75 @@ export const updateRewardAction = authActionClient
       event: reward.event,
     });
 
-    const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
-
-    const group = await prisma.partnerGroup.findFirst({
+    const updatedReward = await prisma.reward.update({
       where: {
-        [rewardIdColumn]: reward.id,
+        id: rewardId,
       },
-      select: {
-        id: true,
-        slug: true,
+      data: {
+        type,
+        maxDuration,
+        description: description || null,
+        tooltipDescription: tooltipDescription || null,
+        modifiers: modifiers === null ? Prisma.DbNull : modifiers,
+        config: config === null ? Prisma.DbNull : config,
+        ...(type === "flat"
+          ? {
+              amountInCents,
+              amountInPercentage: null,
+            }
+          : {
+              amountInCents: null,
+              amountInPercentage: new Prisma.Decimal(amountInPercentage!),
+            }),
+      },
+      include: {
+        program: true,
+        clickPartnerGroup: true,
+        leadPartnerGroup: true,
+        salePartnerGroup: true,
+        referralPartnerGroup: true,
       },
     });
 
-    if (!group) {
+    const {
+      program,
+      clickPartnerGroup,
+      leadPartnerGroup,
+      salePartnerGroup,
+      referralPartnerGroup,
+      ...rewardMetadata
+    } = updatedReward;
+
+    const isDefaultGroup = [
+      clickPartnerGroup,
+      leadPartnerGroup,
+      salePartnerGroup,
+      referralPartnerGroup,
+    ].some((group) => group?.slug === "default");
+
+    // Determine the groupId from the partner group relation
+    const partnerGroup =
+      clickPartnerGroup ||
+      leadPartnerGroup ||
+      salePartnerGroup ||
+      referralPartnerGroup;
+
+    if (!partnerGroup) {
       throw new Error("Partner group not found.");
     }
 
-    const operationId = nanoid(10);
-
-    await reserveRewardGroupLock({
-      groupId: group.id,
-      event: reward.event,
-      operationId,
-    });
-
-    let updatedReward:
-      | (Reward & {
-          program: Pick<Program, "id" | "slug" | "addedToMarketplaceAt"> | null;
-        })
-      | null = null;
-
-    try {
-      updatedReward = await prisma.reward.update({
-        where: {
-          id: rewardId,
-        },
-        data: {
-          type,
-          maxDuration,
-          description: description || null,
-          tooltipDescription: tooltipDescription || null,
-          modifiers: modifiers === null ? Prisma.DbNull : modifiers,
-          config: config === null ? Prisma.DbNull : config,
-          ...(type === "flat"
-            ? {
-                amountInCents,
-                amountInPercentage: null,
-              }
-            : {
-                amountInCents: null,
-                amountInPercentage: new Prisma.Decimal(amountInPercentage!),
-              }),
-        },
-        include: {
-          program: {
-            select: {
-              id: true,
-              slug: true,
-              addedToMarketplaceAt: true,
-            },
-          },
-        },
-      });
-
-      await queueRewardProcessing({
-        event: "reward-updated",
-        payload: {
-          groupId: group.id,
-          rewardId: reward.id,
-          occurredAt: new Date().toISOString(),
-          operationId,
-          rewardSnapshot: {
-            description: formatRewardDescription(
-              serializeReward(updatedReward),
-              {
-                includeEarnPrefix: false,
-              },
-            ),
-          },
-        },
-      });
-    } catch (error) {
-      await releaseRewardGroupLock({
-        groupId: group.id,
+    await queueRewardProcessing({
+      event: "reward-updated",
+      groupId: partnerGroup.id,
+      occurredAt: new Date().toISOString(),
+      rewardSnapshot: {
+        id: reward.id,
         event: reward.event,
-        operationId,
-      });
-
-      throw error;
-    }
-
-    const { program, ...rewardMetadata } = updatedReward;
-    const isDefaultGroup = group.slug === DEFAULT_PARTNER_GROUP.slug;
+        description: formatRewardDescription(serializeReward(updatedReward), {
+          includeEarnPrefix: false,
+        }),
+      },
+    });
 
     waitUntil(
       Promise.allSettled([
@@ -190,7 +158,7 @@ export const updateRewardAction = authActionClient
           userId: user.id,
           resourceId: rewardMetadata.id,
           parentResourceType: "group",
-          parentResourceId: group.id,
+          parentResourceId: partnerGroup.id,
           old: reward,
           new: updatedReward,
         }),

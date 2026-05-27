@@ -18,6 +18,7 @@ interface NotifyPartnerRewardChangeParams {
   rewardSnapshot: { description: string };
   effectiveAt: Date | string;
   users: Pick<User, "name" | "email">[];
+  idempotencyKey: string;
 }
 
 export async function notifyPartnerRewardChange({
@@ -27,6 +28,7 @@ export async function notifyPartnerRewardChange({
   rewardSnapshot,
   effectiveAt,
   users,
+  idempotencyKey,
 }: NotifyPartnerRewardChangeParams) {
   await queueBatchEmail<typeof PartnerRewardUpdated>(
     users.map((user) => ({
@@ -53,5 +55,8 @@ export async function notifyPartnerRewardChange({
         action,
       },
     })),
+    {
+      idempotencyKey,
+    },
   );
 }

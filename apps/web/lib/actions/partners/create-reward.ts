@@ -7,10 +7,6 @@ import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
-import {
-  releaseRewardGroupLock,
-  reserveRewardGroupLock,
-} from "@/lib/api/rewards/reward-group-lock";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
@@ -19,8 +15,7 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
-import { Prisma, Reward } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -78,82 +73,54 @@ export const createRewardAction = authActionClient
 
     validateReward(parsedInput);
 
-    const operationId = nanoid(10);
-
-    await reserveRewardGroupLock({
-      groupId,
-      event,
-      operationId,
-    });
-
-    let reward: Reward | null = null;
-
-    try {
-      reward = await prisma.$transaction(async (tx) => {
-        const reward = await tx.reward.create({
-          data: {
-            id: createId({ prefix: "rw_" }),
-            programId,
-            event,
-            type,
-            maxDuration,
-            description: description || null,
-            tooltipDescription: tooltipDescription || null,
-            modifiers: modifiers || Prisma.DbNull,
-            config: config ?? Prisma.DbNull,
-            ...(type === "flat"
-              ? {
-                  amountInCents,
-                  amountInPercentage: null,
-                }
-              : {
-                  amountInCents: null,
-                  amountInPercentage: new Prisma.Decimal(amountInPercentage!),
-                }),
-          },
-        });
-
-        await tx.partnerGroup.update({
-          where: {
-            id: groupId,
-          },
-          data: {
-            [rewardIdColumn]: reward.id,
-          },
-        });
-
-        return reward;
-      });
-
-      const qstashResponse = await queueRewardProcessing({
-        event: "reward-created",
-        payload: {
-          groupId,
-          rewardId: reward.id,
-          occurredAt: new Date().toISOString(),
-          operationId,
-          rewardSnapshot: {
-            description: formatRewardDescription(serializeReward(reward), {
-              includeEarnPrefix: false,
-            }),
-          },
+    const reward = await prisma.$transaction(async (tx) => {
+      const reward = await tx.reward.create({
+        data: {
+          id: createId({ prefix: "rw_" }),
+          programId,
+          event,
+          type,
+          maxDuration,
+          description: description || null,
+          tooltipDescription: tooltipDescription || null,
+          modifiers: modifiers || Prisma.DbNull,
+          config: config ?? Prisma.DbNull,
+          ...(type === "flat"
+            ? {
+                amountInCents,
+                amountInPercentage: null,
+              }
+            : {
+                amountInCents: null,
+                amountInPercentage: new Prisma.Decimal(amountInPercentage!),
+              }),
         },
       });
 
-      if (!qstashResponse?.messageId) {
-        throw new Error(
-          "Failed to queue reward processing. Please try again in a few minutes.",
-        );
-      }
-    } catch (error) {
-      await releaseRewardGroupLock({
-        groupId,
-        event,
-        operationId,
+      await tx.partnerGroup.update({
+        where: {
+          id: groupId,
+        },
+        data: {
+          [rewardIdColumn]: reward.id,
+        },
       });
 
-      throw error;
-    }
+      return reward;
+    });
+
+    await queueRewardProcessing({
+      event: "reward-created",
+      groupId,
+      occurredAt: new Date().toISOString(),
+      rewardSnapshot: {
+        id: reward.id,
+        event: reward.event,
+        description: formatRewardDescription(serializeReward(reward), {
+          includeEarnPrefix: false,
+        }),
+      },
+    });
 
     waitUntil(
       Promise.allSettled([

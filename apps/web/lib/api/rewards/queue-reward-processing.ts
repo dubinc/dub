@@ -1,54 +1,53 @@
 import { logger } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
+import { EventType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
+import { incrementRewardVersion } from "./reward-version";
 
-const rewardJobPayloadSchema = z.object({
-  rewardId: z.string(),
+export const rewardJobSchema = z.object({
+  event: z.enum(["reward-created", "reward-updated", "reward-deleted"]),
   groupId: z.string(),
   occurredAt: z.string(),
+  version: z.number().optional().default(1),
+  batchNumber: z.number().optional().default(1),
   startAfterProgramEnrollmentId: z.string().nullish(),
-  operationId: z.string(),
   rewardSnapshot: z.object({
+    id: z.string(),
+    event: z.enum(EventType),
     description: z.string(),
   }),
 });
 
-export const rewardJobSchema = z.discriminatedUnion("event", [
-  z.object({
-    event: z.literal("reward-created"),
-    payload: rewardJobPayloadSchema,
-  }),
-
-  z.object({
-    event: z.literal("reward-updated"),
-    payload: rewardJobPayloadSchema,
-  }),
-
-  z.object({
-    event: z.literal("reward-deleted"),
-    payload: rewardJobPayloadSchema,
-  }),
-]);
-
 export type RewardJob = z.input<typeof rewardJobSchema>;
-export type RewardJobPayload = z.input<typeof rewardJobPayloadSchema>;
 
-export async function queueRewardProcessing({ event, payload }: RewardJob) {
+export async function queueRewardProcessing(params: RewardJob) {
+  // If version is provided (recursive cron job), use it, otherwise increment the version
+  const version =
+    params.version !== undefined
+      ? params.version
+      : await incrementRewardVersion({
+          groupId: params.groupId,
+          event: params.rewardSnapshot.event,
+        });
+
   try {
-    return await qstash.publishJSON({
+    const response = await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/rewards/process`,
       method: "POST",
-      // set a flow control key to ensure that only one job is running for a given group at a time
-      flowControl: {
-        key: payload.groupId,
-        parallelism: 1,
-      },
       body: {
-        event,
-        payload,
+        ...params,
+        version,
       },
     });
+
+    if (!response?.messageId) {
+      throw new Error(
+        "We couldn't start reward processing right now. Please try again in a few moments.",
+      );
+    }
+
+    return response;
   } catch (error) {
     logger.error("publishJSON.failed", {
       service: "qstash",
@@ -57,12 +56,16 @@ export async function queueRewardProcessing({ event, payload }: RewardJob) {
       errorName: error instanceof Error ? error.name : undefined,
       errorStack: error instanceof Error ? error.stack : undefined,
       correlation: {
-        event,
-        rewardId: payload.rewardId,
-        groupId: payload.groupId,
+        event: params.event,
+        groupId: params.groupId,
+        rewardId: params.rewardSnapshot.id,
       },
     });
 
     await logger.flush();
+
+    throw new Error(
+      "We couldn't start reward processing right now. Please try again in a few moments.",
+    );
   }
 }

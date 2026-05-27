@@ -6,14 +6,9 @@ import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
-import {
-  releaseRewardGroupLock,
-  reserveRewardGroupLock,
-} from "@/lib/api/rewards/reward-group-lock";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -44,84 +39,45 @@ export const deleteRewardAction = authActionClient
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
-    const group = await prisma.partnerGroup.findFirst({
-      where: {
-        [rewardIdColumn]: reward.id,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!group) {
-      throw new Error("Partner group not found.");
-    }
-
-    const operationId = nanoid(10);
-
-    await reserveRewardGroupLock({
-      groupId: group.id,
-      event: reward.event,
-      operationId,
-    });
-
-    try {
-      const rewardUpdated = await prisma.$transaction(async (tx) => {
-        await tx.partnerGroup.update({
-          // @ts-ignore
-          where: {
-            [rewardIdColumn]: reward.id,
-          },
-          data: {
-            [rewardIdColumn]: null,
-          },
-        });
-
-        // soft delete reward, we will hard delete it in the cron job
-        const rewardUpdated = await tx.reward.update({
-          where: {
-            id: reward.id,
-          },
-          data: {
-            programId: null,
-          },
-        });
-
-        return rewardUpdated;
-      });
-
-      const qstashResponse = await queueRewardProcessing({
-        event: "reward-deleted",
-        payload: {
-          groupId: group.id,
-          rewardId: reward.id,
-          occurredAt: new Date().toISOString(),
-          operationId,
-          rewardSnapshot: {
-            description: formatRewardDescription(
-              serializeReward(rewardUpdated),
-              {
-                includeEarnPrefix: false,
-              },
-            ),
-          },
+    const { group, deletedReward } = await prisma.$transaction(async (tx) => {
+      const group = await tx.partnerGroup.update({
+        // @ts-ignore
+        where: {
+          [rewardIdColumn]: reward.id,
+        },
+        data: {
+          [rewardIdColumn]: null,
         },
       });
 
-      if (!qstashResponse?.messageId) {
-        throw new Error(
-          "Failed to queue reward processing. Please try again in a few minutes.",
-        );
-      }
-    } catch (error) {
-      await releaseRewardGroupLock({
-        groupId: group.id,
-        event: reward.event,
-        operationId,
+      // soft delete reward, we will hard delete it in the cron job
+      const deletedReward = await tx.reward.update({
+        where: {
+          id: reward.id,
+        },
+        data: {
+          programId: null,
+        },
       });
 
-      throw error;
-    }
+      return {
+        group,
+        deletedReward,
+      };
+    });
+
+    await queueRewardProcessing({
+      event: "reward-deleted",
+      groupId: group.id,
+      occurredAt: new Date().toISOString(),
+      rewardSnapshot: {
+        id: deletedReward.id,
+        event: deletedReward.event,
+        description: formatRewardDescription(serializeReward(deletedReward), {
+          includeEarnPrefix: false,
+        }),
+      },
+    });
 
     waitUntil(
       Promise.allSettled([
