@@ -1,5 +1,4 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { subMinutes } from "date-fns";
 import { logAndRespond } from "../../utils";
@@ -10,75 +9,70 @@ export const dynamic = "force-dynamic";
 // reward change for the same group + event type can bump the version and skip stale jobs
 // (e.g. delete then create), leaving the old row behind. This job is a safety net for those orphans.
 
-const REWARD_BATCH_SIZE = 10;
-
-// GET /api/cron/cleanup/orphaned-rewards
-export const GET = withCron(async () => {
+// POST /api/cron/cleanup/orphaned-rewards
+export const POST = withCron(async () => {
   const rewards = await prisma.reward.findMany({
     where: {
       programId: null,
       updatedAt: {
-        lt: subMinutes(new Date(), 30), // 30 minutes ago
+        lt: subMinutes(new Date(), 30), // only look for rewards older than 30 minutes ago
       },
     },
     select: {
       id: true,
-      event: true,
+      clickPartnerGroup: true,
+      leadPartnerGroup: true,
+      salePartnerGroup: true,
+      referralPartnerGroup: true,
+      _count: {
+        select: {
+          clickEnrollments: true,
+          leadEnrollments: true,
+          saleEnrollments: true,
+          referralEnrollments: true,
+        },
+      },
     },
     orderBy: {
       updatedAt: "asc",
     },
-    take: REWARD_BATCH_SIZE,
+    take: 100,
   });
 
   if (rewards.length === 0) {
     return logAndRespond("No orphaned rewards found.");
   }
 
-  for (const reward of rewards) {
-    const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
+  const rewardsToDelete = rewards.filter((reward) => {
+    return (
+      reward.clickPartnerGroup === null &&
+      reward.leadPartnerGroup === null &&
+      reward.salePartnerGroup === null &&
+      reward.referralPartnerGroup === null &&
+      reward._count.clickEnrollments === 0 &&
+      reward._count.leadEnrollments === 0 &&
+      reward._count.saleEnrollments === 0 &&
+      reward._count.referralEnrollments === 0
+    );
+  });
 
-    const [partnerGroupCount, programEnrollmentCount] = await Promise.all([
-      prisma.partnerGroup.count({
-        where: {
-          [rewardIdColumn]: reward.id,
-        },
-      }),
+  console.log(
+    `Found ${rewardsToDelete.length} rewards to delete out of ${rewards.length} rewards (some of them are referenced by partner groups or program enrollments).`,
+  );
 
-      prisma.programEnrollment.count({
-        where: {
-          [rewardIdColumn]: reward.id,
-        },
-      }),
-    ]);
-
-    // Ideally this should never happen, but just in case
-    if (partnerGroupCount > 0) {
-      console.log(
-        `Reward ${reward.id} is referenced by ${partnerGroupCount} partner groups. Skipping...`,
-      );
-      continue;
-    }
-
-    if (programEnrollmentCount > 0) {
-      console.log(
-        `Reward ${reward.id} is referenced by ${programEnrollmentCount} program enrollments. Skipping...`,
-      );
-      continue;
-    }
-
-    try {
-      await prisma.reward.delete({
-        where: {
-          id: reward.id,
-        },
-      });
-
-      console.log(`Deleted reward ${reward.id}.`);
-    } catch (error) {
-      console.error(`Error deleting reward ${reward.id}`, error);
-    }
+  if (rewardsToDelete.length === 0) {
+    return logAndRespond("No rewards to delete, skipping...");
   }
 
-  return logAndRespond("Finished deleting orphaned rewards.");
+  const deletedRewards = await prisma.reward.deleteMany({
+    where: {
+      id: {
+        in: rewardsToDelete.map((reward) => reward.id),
+      },
+    },
+  });
+
+  return logAndRespond(
+    `Finished deleting orphaned rewards (${deletedRewards.count} rewards deleted).`,
+  );
 });
