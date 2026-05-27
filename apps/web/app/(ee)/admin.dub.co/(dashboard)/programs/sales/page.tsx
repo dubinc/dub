@@ -10,18 +10,10 @@ import {
 } from "@dub/ui";
 import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { Suspense, useMemo } from "react";
+import { useMemo } from "react";
 import useSWR from "swr";
 
 export default function ProgramSalesPage() {
-  return (
-    <Suspense>
-      <ProgramSalesPageClient />
-    </Suspense>
-  );
-}
-
-function ProgramSalesPageClient() {
   const { getQueryString } = useRouterStuff();
 
   const { data: { programs } = {}, isLoading } = useSWR<{
@@ -138,7 +130,7 @@ function ProgramSalesPageClient() {
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-screen-xl flex-col space-y-6 p-6">
+    <div className="mx-auto flex w-full max-w-screen-xl flex-col space-y-6">
       <SimpleDateRangePicker defaultInterval="mtd" className="w-fit" />
       <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
         <div className="grid w-full grid-cols-1 divide-x sm:grid-cols-3">
