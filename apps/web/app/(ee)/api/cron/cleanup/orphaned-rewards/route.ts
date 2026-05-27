@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 // reward change for the same group + event type can bump the version and skip stale jobs
 // (e.g. delete then create), leaving the old row behind. This job is a safety net for those orphans.
 
+const REWARD_BATCH_SIZE = 10;
+
 // GET /api/cron/cleanup/orphaned-rewards
 export const GET = withCron(async () => {
   const rewards = await prisma.reward.findMany({
@@ -23,7 +25,10 @@ export const GET = withCron(async () => {
       id: true,
       event: true,
     },
-    take: 10,
+    orderBy: {
+      updatedAt: "asc",
+    },
+    take: REWARD_BATCH_SIZE,
   });
 
   if (rewards.length === 0) {

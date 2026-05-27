@@ -116,6 +116,13 @@ export const POST = withCron(async ({ rawBody }) => {
       partner: {
         select: {
           users: {
+            where: {
+              user: {
+                email: {
+                  not: null,
+                },
+              },
+            },
             select: {
               user: {
                 select: {

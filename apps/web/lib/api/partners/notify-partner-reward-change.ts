@@ -30,9 +30,18 @@ export async function notifyPartnerRewardChange({
   users,
   idempotencyKey,
 }: NotifyPartnerRewardChangeParams) {
+  const usersWithEmail = users.filter(
+    (user): user is Pick<User, "name"> & { email: string } =>
+      user.email !== null,
+  );
+
+  if (usersWithEmail.length === 0) {
+    return;
+  }
+
   await queueBatchEmail<typeof PartnerRewardUpdated>(
-    users.map((user) => ({
-      to: user.email!,
+    usersWithEmail.map((user) => ({
+      to: user.email,
       subject: `Your rewards for ${program.name} have been updated`,
       variant: "notifications",
       templateName: "PartnerRewardUpdated",
@@ -45,7 +54,7 @@ export async function notifyPartnerRewardChange({
         },
         partner: {
           name: user.name ?? "",
-          email: user.email!,
+          email: user.email,
         },
         rewardSnapshot: {
           description: rewardSnapshot.description,

@@ -23,7 +23,7 @@ const REWARD_EVENT_TO_EMAIL_ACTION = {
   "reward-deleted": "removed",
 };
 
-export default function PartnerRewardsUpdated({
+export default function PartnerRewardUpdated({
   program = {
     name: "Acme",
     logo: DUB_WORDMARK,
