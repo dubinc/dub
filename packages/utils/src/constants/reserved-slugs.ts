@@ -64,7 +64,6 @@ export const RESERVED_SLUGS = [
   "resources",
   "campaigns",
   "messages",
-  "network",
   "marketplace",
   "fraud",
 ];

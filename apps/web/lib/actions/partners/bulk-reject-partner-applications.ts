@@ -160,7 +160,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
                 },
                 rejectionReason: undefined,
                 additionalNotes: undefined,
-                canReapplyImmediately: false,
+                reapplicationTimeframe: "standard",
               }),
             })),
           );

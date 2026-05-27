@@ -5,9 +5,11 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -116,6 +118,23 @@ export const updateRewardAction = authActionClient
       salePartnerGroup ||
       referralPartnerGroup;
 
+    if (!partnerGroup) {
+      throw new Error("Partner group not found.");
+    }
+
+    await queueRewardProcessing({
+      event: "reward-updated",
+      groupId: partnerGroup.id,
+      occurredAt: new Date().toISOString(),
+      rewardSnapshot: {
+        id: reward.id,
+        event: reward.event,
+        description: formatRewardDescription(serializeReward(updatedReward), {
+          includeEarnPrefix: false,
+        }),
+      },
+    });
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -139,13 +158,13 @@ export const updateRewardAction = authActionClient
           userId: user.id,
           resourceId: rewardMetadata.id,
           parentResourceType: "group",
-          parentResourceId: partnerGroup?.id,
+          parentResourceId: partnerGroup.id,
           old: reward,
           new: updatedReward,
         }),
 
         // we only cache default group pages for now so we need to invalidate them
-        ...(isDefaultGroup
+        ...(isDefaultGroup && program
           ? [
               revalidatePath(`/partners.dub.co/${program.slug}`),
               revalidatePath(`/partners.dub.co/${program.slug}/apply`),

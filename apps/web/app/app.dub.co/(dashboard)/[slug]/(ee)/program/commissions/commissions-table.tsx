@@ -341,7 +341,6 @@ export function CommissionsTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     onRowClick: (row, e) => {
       const url = `/${slug}/program/commissions/${row.original.id}`;

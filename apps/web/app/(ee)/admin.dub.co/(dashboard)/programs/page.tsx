@@ -342,7 +342,7 @@ export default function AdminProgramsPage() {
         }}
       />
 
-      <div className="mx-auto flex w-full max-w-screen-xl flex-col gap-4 p-6 pb-12 pt-4">
+      <div className="mx-auto flex w-full max-w-screen-xl flex-col gap-4">
         <div className="flex justify-end">
           <Button
             text="Add program"

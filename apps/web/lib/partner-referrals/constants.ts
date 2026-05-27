@@ -69,7 +69,7 @@ export const PARTNER_REFERRAL_PERCENTAGE_BASIS_LABELS = Object.fromEntries(
 // TODO: refactor to pull from programEnrollment.saleReward
 export const NETWORK_REFERRAL_REWARD = {
   amountInPercentage: 50,
-  maxDuration: 6,
+  maxDuration: 12,
 } as const;
 
 export const NETWORK_REFERRAL_SWAG_THRESHOLD_CENTS = 1000_000;
