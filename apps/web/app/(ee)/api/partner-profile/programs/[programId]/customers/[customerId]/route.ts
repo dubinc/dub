@@ -82,8 +82,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   // get the first partner link that this customer interacted with
   const firstLinkId = events[events.length - 1].link_id;
   const link = links.find((link) => link.id === firstLinkId);
-  const firstSaleAt =
-    customer.commissions[0]?.createdAt ?? customer.firstSaleAt;
 
   return NextResponse.json(
     PartnerProfileCustomerSchema.extend({
@@ -91,7 +89,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     }).parse({
       ...transformCustomer({
         ...customer,
-        firstSaleAt,
+        firstSaleAt: customer.commissions[0]?.createdAt ?? null,
         email: customer.email
           ? customerDataSharingEnabledAt
             ? customer.email

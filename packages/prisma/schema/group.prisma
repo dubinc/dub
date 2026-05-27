@@ -52,14 +52,14 @@ model PartnerGroup {
 model PartnerGroupDefaultLink {
   id        String   @id @default(cuid())
   programId String
-  groupId   String
+  groupId   String? // can be null for soft-deleted default links
   domain    String
   url       String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  program      Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partnerGroup PartnerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  program      Program       @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partnerGroup PartnerGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
   links        Link[]
 
   @@unique([groupId, url])

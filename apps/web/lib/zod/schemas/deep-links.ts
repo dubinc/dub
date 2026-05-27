@@ -2,7 +2,17 @@ import * as z from "zod/v4";
 
 export const deepViewDataSchema = z
   .object({
-    ios: z.any(),
-    android: z.any(),
+    hidePoweredByBadge: z.boolean().optional(),
+    appName: z.string().trim().min(1).optional(),
+    variant: z.enum(["default", "minimal"]).default("default"),
+    buttonStyle: z
+      .object({
+        backgroundColor: z.string().trim().min(1).optional(),
+        borderColor: z.string().trim().min(1).optional(),
+        borderRadius: z.string().trim().min(1).optional(),
+      })
+      .optional(),
   })
-  .nullish();
+  .default({
+    variant: "default",
+  });

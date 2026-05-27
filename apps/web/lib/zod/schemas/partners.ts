@@ -903,71 +903,49 @@ export const PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH = 500;
 // Max length for optional `flagForFraudReason` on `FraudAlert`
 export const MAX_FRAUD_REASON_LENGTH = 2000;
 
-export const rejectPartnerSchema = z
-  .object({
-    partnerId: z.string().describe("The ID of the partner to reject."),
-    rejectionReason: z
-      .enum(ProgramApplicationRejectionReason)
-      .optional()
-      .describe(
-        "The reason for rejecting the partner application. This will be shared with the partner via email.",
-      ),
-    rejectionNote: z
-      .string()
-      .max(PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH)
-      .optional()
-      .transform((s) => {
-        const t = s?.trim();
-        return t === "" ? undefined : t;
-      })
-      .describe(
-        "Additional details about the rejection. This will be shared with the partner via email.",
-      ),
-    allowImmediateReapply: z
-      .boolean()
-      .optional()
-      .default(false)
-      .describe(
-        "When true, pending enrollment is removed so the partner can submit a new application immediately.",
-      ),
-    flagForFraud: z
-      .boolean()
-      .optional()
-      .describe(
-        "Whether to flag the partner for fraud review by the Dub team. Cannot be combined with allowImmediateReapply.",
-      ),
-    flagForFraudReason: z
-      .string()
-      .max(MAX_FRAUD_REASON_LENGTH)
-      .optional()
-      .transform((s) => {
-        const t = s?.trim();
-        return t === "" ? undefined : t;
-      })
-      .describe(
-        "The reason for flagging the partner for fraud. Required when flagForFraud is true.",
-      ),
-  })
-  .superRefine((data, ctx) => {
-    if (data.allowImmediateReapply && data.flagForFraud) {
-      ctx.addIssue({
-        code: "custom",
-        message:
-          "Cannot flag for fraud when allowing the partner to reapply immediately.",
-        path: ["flagForFraud"],
-      });
-    }
-    if (
-      data.flagForFraud &&
-      (!data.flagForFraudReason || !data.flagForFraudReason.trim())
-    ) {
-      ctx.addIssue({
-        code: "custom",
-        message: "Fraud reason is required when flagging for fraud.",
-        path: ["flagForFraudReason"],
-      });
-    }
-  });
+export const rejectPartnerSchema = z.object({
+  partnerId: z.string().describe("The ID of the partner to reject."),
+  rejectionReason: z
+    .enum(ProgramApplicationRejectionReason)
+    .optional()
+    .describe(
+      "The reason for rejecting the partner application. This will be shared with the partner via email.",
+    ),
+  rejectionNote: z
+    .string()
+    .max(PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH)
+    .optional()
+    .transform((s) => {
+      const t = s?.trim();
+      return t === "" ? undefined : t;
+    })
+    .describe(
+      "Additional details about the rejection. This will be shared with the partner via email.",
+    ),
+  reapplicationTimeframe: z
+    .enum(["instant", "standard", "never"])
+    .default("standard")
+    .describe(
+      "The mode for reapplying for the program. `instant`: The partner can reapply immediately. `standard`: The partner can reapply after 30 days. `never`: The partner can never reapply for the program. Defaults to `standard` if undefined.",
+    ),
+  flagForFraud: z
+    .boolean()
+    .optional()
+    .describe(
+      "Whether to flag the partner for fraud review by the Dub team. Cannot be combined with `reapplicationTimeframe: instant`.",
+    ),
+  flagForFraudReason: z
+    .string()
+    .max(MAX_FRAUD_REASON_LENGTH)
+    .optional()
+    .transform((s) => {
+      const t = s?.trim();
+      return t === "" ? undefined : t;
+    })
+    .describe(
+      "The reason for flagging the partner for fraud. Required when flagForFraud is true.",
+    ),
+});
 
 export const bulkRejectPartnersSchema = z.object({
   workspaceId: z.string(),
