@@ -209,7 +209,6 @@ export function FraudGroupTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     getRowId: (row) => row.id,
     onRowClick: (row) => {
@@ -217,7 +216,6 @@ export function FraudGroupTable() {
         set: {
           groupId: row.original.id,
         },
-        scroll: false,
       });
     },
     cellRight: (cell) => {
@@ -327,7 +325,6 @@ export function FraudGroupTable() {
               ? () =>
                   queryParams({
                     set: { groupId: previousGroupId },
-                    scroll: false,
                   })
               : undefined
           }
@@ -336,7 +333,6 @@ export function FraudGroupTable() {
               ? () =>
                   queryParams({
                     set: { groupId: nextGroupId },
-                    scroll: false,
                   })
               : undefined
           }

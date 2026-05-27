@@ -152,7 +152,7 @@ export function ReferralsEmbedPageClient({
   dynamicHeight,
 }: ReferralsEmbedPageClientProps) {
   const resources = programResourcesSchema.parse(
-    program.resources ?? { logos: [], colors: [], files: [] },
+    program.resources ?? { logos: [], colors: [], files: [], links: [] },
   );
 
   const programEmbedData = programEmbedSchema.parse(program.embedData);
@@ -161,10 +161,7 @@ export function ReferralsEmbedPageClient({
     (programEmbedData?.customTermsUrl || program.termsUrl) ?? undefined;
 
   const hasResources =
-    resources &&
-    ["logos", "colors", "files"].some(
-      (resource) => resources?.[resource]?.length,
-    );
+    resources && Object.values(resources).some((resource) => resource.length);
 
   const [showQuickstart, setShowQuickstart] = useLocalStorage(
     "referral-embed-show-quickstart",

@@ -51,7 +51,6 @@ export function CommissionsPartnersTable() {
     queryParams({
       set: { partnerId: stagedPartnerIds.join(",") },
       del: "page",
-      scroll: false,
     });
     setStagedPartnerIds(null);
   }, [queryParams, stagedPartnerIds]);
@@ -59,7 +58,7 @@ export function CommissionsPartnersTable() {
   const clearFilter = useCallback(() => {
     setStagedPartnerIds(null);
     if (searchParams.has("partnerId")) {
-      queryParams({ del: ["partnerId", "page"], scroll: false });
+      queryParams({ del: ["partnerId", "page"] });
     }
   }, [queryParams, searchParams]);
 
@@ -106,7 +105,6 @@ export function CommissionsPartnersTable() {
                 queryParams({
                   set: { partnerId },
                   del: "page",
-                  scroll: false,
                 });
                 setStagedPartnerIds(null);
               }}

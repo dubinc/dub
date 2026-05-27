@@ -323,7 +323,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         set: {
           partnerId: row.original.id,
         },
-        scroll: false,
       });
     },
     pagination,
@@ -340,7 +339,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
@@ -378,7 +376,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               ? () =>
                   queryParams({
                     set: { partnerId: previousPartnerId },
-                    scroll: false,
                   })
               : undefined
           }
@@ -387,7 +384,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               ? () =>
                   queryParams({
                     set: { partnerId: nextPartnerId },
-                    scroll: false,
                   })
               : undefined
           }
