@@ -2,6 +2,7 @@ import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { convertToCSV } from "@/lib/analytics/utils";
+import { formatAnalyticsForExport } from "@/lib/analytics/utils/format-analytics-for-export";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
@@ -124,7 +125,7 @@ export const GET = withPartnerProfile(
 
         if (!response || response.length === 0) return;
 
-        const csvData = convertToCSV(response);
+        const csvData = convertToCSV(formatAnalyticsForExport(response));
         zip.file(`${endpoint}.csv`, csvData);
       }),
     );
