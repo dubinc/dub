@@ -9,8 +9,18 @@ export const rewardJobSchema = z.object({
   event: z.enum(["reward-created", "reward-updated", "reward-deleted"]),
   groupId: z.string(),
   occurredAt: z.string(),
-  version: z.number().optional().default(1),
-  batchNumber: z.number().optional().default(1),
+  version: z
+    .number()
+    .optional()
+    .default(1)
+    .describe(
+      "Incremented by 1 for each new reward change (create/update/delete) for same reward type in a group.",
+    ),
+  batchNumber: z
+    .number()
+    .optional()
+    .default(1)
+    .describe("Used as a idempotency key for Resend."),
   startAfterProgramEnrollmentId: z.string().nullish(),
   rewardSnapshot: z.object({
     id: z.string(),
