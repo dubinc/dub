@@ -1,6 +1,7 @@
 "use client";
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { getMarketplaceHref } from "@/ui/partners/program-marketplace/get-marketplace-href";
 import { useProgramMarketplacePromo } from "@/ui/partners/program-marketplace/use-program-marketplace-promo";
 import { Grid, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -20,7 +21,7 @@ export function ProgramMarketplaceCard() {
 
   return (
     <AnimatePresence>
-      {!pathname.endsWith("/programs/marketplace") && (
+      {!pathname.endsWith("/marketplace") && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -54,7 +55,7 @@ export function ProgramMarketplaceCard() {
             </div>
 
             <Link
-              href="/programs/marketplace"
+              href={getMarketplaceHref()}
               className={cn(
                 buttonVariants({ variant: "primary" }),
                 "flex h-6 w-fit items-center justify-center whitespace-nowrap rounded-md border px-1.5 text-xs",

@@ -4,7 +4,6 @@ const PARTNERS_REDIRECTS = {
   "/settings/notifications": "/profile/notifications",
   "/account/settings/notifications": "/profile/notifications",
   "/profile/sites": "/profile",
-  "/marketplace": "/programs/marketplace",
   "/rewind": "/rewind/2025",
   "/onboarding/online-presence": "/onboarding/platforms",
   "/onboarding/verify": "/onboarding/payouts",
@@ -12,6 +11,34 @@ const PARTNERS_REDIRECTS = {
 
 export const partnersRedirect = (path: string) => {
   return PARTNERS_REDIRECTS[path] || null;
+};
+
+export const partnersMarketplaceRedirects = (path: string) => {
+  if (path === "/programs/marketplace") {
+    return "/marketplace";
+  }
+
+  if (path === "/programs/marketplace/all") {
+    return "/marketplace/all";
+  }
+
+  if (path === "/programs/marketplace/popular") {
+    return "/marketplace/popular";
+  }
+
+  const match = path.match(/^\/programs\/marketplace\/([^/]+)$/);
+
+  if (match) {
+    const slug = match[1];
+
+    if (slug === "all" || slug === "popular") {
+      return `/marketplace/${slug}`;
+    }
+
+    return `/marketplace/p/${slug}`;
+  }
+
+  return null;
 };
 
 const PARTNERS_PROGRAM_REDIRECTS = {

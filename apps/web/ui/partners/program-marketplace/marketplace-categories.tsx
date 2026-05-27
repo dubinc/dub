@@ -1,7 +1,10 @@
 "use client";
 
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
-import { getMarketplaceAllHref } from "@/ui/partners/program-marketplace/get-marketplace-all-href";
+import {
+  getMarketplaceAllHref,
+  getMarketplaceCategoryHref,
+} from "@/ui/partners/program-marketplace/get-marketplace-href";
 import { Category } from "@dub/prisma/client";
 import { CircleInfo } from "@dub/ui";
 import Link from "next/link";
@@ -43,7 +46,7 @@ export function MarketplaceCategories() {
           return (
             <Link
               key={category}
-              href={getMarketplaceAllHref({ category })}
+              href={getMarketplaceCategoryHref(category)}
               className="border-border-subtle hover:bg-bg-subtle flex items-center gap-2 rounded-xl border bg-white px-3 py-2.5 transition-colors"
             >
               <Icon className="text-content-muted size-4 shrink-0" />

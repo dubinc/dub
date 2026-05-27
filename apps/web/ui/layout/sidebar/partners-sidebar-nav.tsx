@@ -7,6 +7,7 @@ import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count"
 import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
 import { MarketplaceSidebarFilters } from "@/ui/partners/program-marketplace/marketplace-sidebar-filters";
 import { ProgramsPromoCard } from "@/ui/partners/program-marketplace/programs-promo-card";
+import { isMarketplaceFilterSidebarPath } from "@/ui/partners/program-marketplace/utils/category-slug";
 import { type Icon, useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -116,16 +117,13 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: "/programs",
             isActive: (pathname, href) =>
               pathname.startsWith(href) &&
-              ["invitations", "marketplace"].every(
-                (k) => !pathname.startsWith(`${href}/${k}`),
-              ),
+              !pathname.startsWith(`${href}/invitations`),
           },
           {
             name: "Marketplace",
             icon: Shop,
-            href: "/programs/marketplace" as `/${string}`,
-            isActive: (pathname) =>
-              pathname.startsWith("/programs/marketplace"),
+            href: "/marketplace" as `/${string}`,
+            isActive: (pathname) => pathname.startsWith("/marketplace"),
           },
           {
             name: "Invitations",
@@ -341,7 +339,8 @@ export function PartnersSidebarNav({
     enabled: isEnrolledProgramPage,
   });
 
-  const isMarketplaceAllPage = pathname.startsWith("/programs/marketplace/all");
+  const isMarketplaceFilterSidebarPage =
+    isMarketplaceFilterSidebarPath(pathname);
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -352,10 +351,10 @@ export function PartnersSidebarNav({
           ? null
           : isEnrolledProgramPage
             ? "program"
-            : isMarketplaceAllPage
+            : isMarketplaceFilterSidebarPage
               ? "programsMarketplace"
               : "programs";
-  }, [pathname, isEnrolledProgramPage, isMarketplaceAllPage]);
+  }, [pathname, isEnrolledProgramPage, isMarketplaceFilterSidebarPage]);
 
   const { count: invitationsCount } = useProgramEnrollmentsCount({
     status: "invited",

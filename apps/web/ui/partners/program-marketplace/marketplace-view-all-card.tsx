@@ -1,4 +1,4 @@
-import { getMarketplaceAllHref } from "@/ui/partners/program-marketplace/get-marketplace-all-href";
+import { getMarketplaceAllHref } from "@/ui/partners/program-marketplace/get-marketplace-href";
 import { ProgramMarketplaceLogos } from "@/ui/partners/program-marketplace/program-marketplace-logos";
 import Link from "next/link";
 

@@ -1,5 +1,9 @@
 import { NetworkProgramProps } from "@/lib/types";
-import { getMarketplaceAllHref } from "@/ui/partners/program-marketplace/get-marketplace-all-href";
+import {
+  getMarketplaceAllHref,
+  getMarketplaceCategoryHref,
+  getMarketplaceProgramHref,
+} from "@/ui/partners/program-marketplace/get-marketplace-href";
 import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
 import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
 import { Tooltip } from "@dub/ui";
@@ -10,8 +14,10 @@ import { ProgramStatusBadge } from "./program-status-badge";
 
 export function FeaturedProgramCard({
   program,
+  showStatus = true,
 }: {
   program: NetworkProgramProps;
+  showStatus?: boolean;
 }) {
   const router = useRouter();
 
@@ -19,7 +25,7 @@ export function FeaturedProgramCard({
 
   return (
     <Link
-      href={`/programs/marketplace/${program.slug}`}
+      href={getMarketplaceProgramHref(program.slug)}
       className="border-border-subtle relative block h-full overflow-hidden rounded-xl border p-6"
     >
       {program.marketplaceHeaderImage && (
@@ -49,7 +55,7 @@ export function FeaturedProgramCard({
             className="size-12 rounded-full border border-white/20"
           />
 
-          <ProgramStatusBadge program={program} />
+          {showStatus ? <ProgramStatusBadge program={program} /> : null}
         </div>
 
         <div className="mt-10 flex flex-col">
@@ -121,7 +127,7 @@ export function FeaturedProgramCard({
                         key={category}
                         category={category}
                         onClick={() =>
-                          router.push(getMarketplaceAllHref({ category }))
+                          router.push(getMarketplaceCategoryHref(category))
                         }
                         className={cn(
                           "hover:bg-bg-default/10 active:bg-bg-default/20",
@@ -138,7 +144,9 @@ export function FeaturedProgramCard({
                               key={category}
                               category={category}
                               onClick={() =>
-                                router.push(getMarketplaceAllHref({ category }))
+                                router.push(
+                                  getMarketplaceCategoryHref(category),
+                                )
                               }
                             />
                           ))}

@@ -33,7 +33,7 @@ export const config = {
 };
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
-  const { domain, path, key, fullKey } = parse(req);
+  const { domain, path, key, fullKey, fullPath } = parse(req);
 
   // Axiom logging
   logger.info(...transformMiddlewareRequest(req));
@@ -80,6 +80,14 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   if (PARTNERS_HOSTNAMES.has(domain)) {
     return PartnersMiddleware(req);
+  }
+
+  if (
+    path.startsWith("/marketplace") &&
+    (domain === "dub.co" ||
+      domain === `staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`)
+  ) {
+    return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
   }
 
   if (isValidUrl(fullKey)) {

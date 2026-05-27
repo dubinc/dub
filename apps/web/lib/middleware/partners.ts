@@ -4,6 +4,7 @@ import { getUserViaToken } from "./utils/get-user-via-token";
 import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
 import { parse } from "./utils/parse";
 import {
+  partnersMarketplaceRedirects,
   partnersProgramRedirects,
   partnersRedirect,
 } from "./utils/partners-redirect";
@@ -39,6 +40,16 @@ export async function PartnersMiddleware(req: NextRequest) {
     return NextResponse.redirect(
       new URL(
         `${partnersProgramRedirects(path)}${searchParamsString}`,
+        req.url,
+      ),
+      {
+        status: 301,
+      },
+    );
+  } else if (partnersMarketplaceRedirects(path)) {
+    return NextResponse.redirect(
+      new URL(
+        `${partnersMarketplaceRedirects(path)}${searchParamsString}`,
         req.url,
       ),
       {

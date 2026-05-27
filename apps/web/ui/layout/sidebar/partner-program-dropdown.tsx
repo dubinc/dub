@@ -87,7 +87,7 @@ export function PartnerProgramDropdown() {
                   </span>
                 </Link>
                 <Link
-                  href="/programs/marketplace"
+                  href="/marketplace"
                   className={cn(
                     "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-base transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 sm:text-sm",
                     "outline-none focus-visible:ring-2 focus-visible:ring-black/50",

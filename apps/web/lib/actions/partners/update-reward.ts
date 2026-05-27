@@ -152,7 +152,7 @@ export const updateRewardAction = authActionClient
               revalidatePath(`/partners.dub.co/${program.slug}/apply`),
               program.addedToMarketplaceAt &&
                 revalidatePath(
-                  `/partners.dub.co/programs/marketplace/${program.slug}`,
+                  `/partners.dub.co/marketplace/p/${program.slug}`,
                 ),
             ]
           : []),

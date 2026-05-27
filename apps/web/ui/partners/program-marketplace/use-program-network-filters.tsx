@@ -4,7 +4,7 @@ import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Gift, Suitcase } from "@dub/ui/icons";
 import { capitalize, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
-import { ProgramNetworkStatusBadges } from "../../../app/(ee)/partners.dub.co/(dashboard)/programs/marketplace/program-status-badge";
+import { ProgramNetworkStatusBadges } from "./program-status-badge";
 
 const REWARD_TYPES = {
   sale: {

@@ -369,7 +369,8 @@ async function getRequestContext(
 // Supports:
 //   - https://partners.dub.co/{programSlug}
 //   - https://partners.dub.co/programs/{programSlug}/apply
-//   - https://partners.dub.co/programs/marketplace/{programSlug}
+//   - https://partners.dub.co/marketplace/p/{programSlug}
+//   - https://partners.dub.co/programs/marketplace/{programSlug} (legacy)
 //   - https://partners.dub.co/register (platform-level signup -> network program)
 function identityProgramSlug(url: string) {
   try {
@@ -385,15 +386,21 @@ function identityProgramSlug(url: string) {
       return { programSlug: NETWORK_PROGRAM_SLUG, isMarketplace: false };
     }
 
-    const isMarketplace = parts[0] === "programs" && parts[1] === "marketplace";
-    const programSlug = isMarketplace // e.g. https://partners.dub.co/programs/marketplace/acme
+    const isLegacyMarketplace =
+      parts[0] === "programs" && parts[1] === "marketplace";
+    const isMarketplace =
+      (parts[0] === "marketplace" && parts[1] === "p") || isLegacyMarketplace;
+
+    const programSlug = isLegacyMarketplace
       ? parts[2]
-      : parts[0] === "programs" // e.g. https://partners.dub.co/programs/acme/apply
-        ? parts[1]
-        : parts[0]; // e.g. https://partners.dub.co/acme, or https://partners.dub.co/acme/apply, or https://partners.dub.co/acme/group/apply
+      : isMarketplace
+        ? parts[2]
+        : parts[0] === "programs" // e.g. https://partners.dub.co/programs/acme/apply
+          ? parts[1]
+          : parts[0]; // e.g. https://partners.dub.co/acme, or https://partners.dub.co/acme/apply, or https://partners.dub.co/acme/group/apply
 
     return {
-      programSlug: programSlug.toLowerCase(),
+      programSlug: programSlug?.toLowerCase(),
       isMarketplace,
     };
   } catch (error) {

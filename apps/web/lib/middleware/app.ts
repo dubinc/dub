@@ -20,6 +20,10 @@ export async function AppMiddleware(req: NextRequest) {
     return EmbedMiddleware(req);
   }
 
+  if (path.startsWith("/marketplace")) {
+    return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
+  }
+
   const user = await getUserViaToken(req);
 
   // if there's no user and the path is not a public page, redirect to /login

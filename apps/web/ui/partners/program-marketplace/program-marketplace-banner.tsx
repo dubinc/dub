@@ -1,6 +1,7 @@
 "use client";
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { getMarketplaceHref } from "@/ui/partners/program-marketplace/get-marketplace-href";
 import { useProgramMarketplacePromo } from "@/ui/partners/program-marketplace/use-program-marketplace-promo";
 import { X } from "@/ui/shared/icons";
 import { Button, Grid, buttonVariants } from "@dub/ui";
@@ -68,7 +69,7 @@ export function ProgramMarketplaceBanner() {
 
               <div className="flex items-center gap-2 p-3 sm:px-2 sm:py-0">
                 <Link
-                  href="/programs/marketplace"
+                  href={getMarketplaceHref()}
                   className={cn(
                     buttonVariants({ variant: "primary" }),
                     "flex h-8 w-fit items-center justify-center whitespace-nowrap rounded-lg border px-3 text-sm",

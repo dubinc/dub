@@ -14,12 +14,13 @@ import { Globe } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn, getDomainWithoutWWW } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getMarketplaceHref } from "../get-marketplace-href";
+import { MarketplaceProgramHeaderControls } from "../marketplace-program-header-controls";
 import { ProgramStatusBadge } from "../program-status-badge";
-import { MarketplaceProgramHeaderControls } from "./header-controls";
 
 export const revalidate = 3600; // 1 hour
 
-export async function generateStaticParams() {
+export async function generateMarketplaceProgramStaticParams() {
   const programs = await prisma.program.findMany({
     where: {
       addedToMarketplaceAt: {
@@ -32,22 +33,22 @@ export async function generateStaticParams() {
   });
 
   return programs.map((program) => ({
-    programSlug: program.slug,
+    slug: ["p", program.slug],
   }));
 }
 
-export default async function MarketplaceProgramPage(props: {
-  params: Promise<{ programSlug: string }>;
+export async function MarketplaceProgramPage({
+  programSlug,
+}: {
+  programSlug: string;
 }) {
-  const params = await props.params;
-  const { programSlug } = params;
 
   const program = await getNetworkProgram({
     slug: programSlug,
   });
 
   if (!program) {
-    redirect("/programs/marketplace");
+    redirect(getMarketplaceHref());
   }
 
   const isDarkImage = program.marketplaceHeaderImage?.includes("dark");
@@ -58,7 +59,7 @@ export default async function MarketplaceProgramPage(props: {
         <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-1">
             <Link
-              href="/programs/marketplace"
+              href={getMarketplaceHref()}
               className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
             >
               <Shop className="text-content-default size-4" />

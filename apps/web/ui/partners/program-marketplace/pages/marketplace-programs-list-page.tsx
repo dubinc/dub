@@ -5,6 +5,7 @@ import { NetworkProgramProps } from "@/lib/types";
 import { PROGRAM_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/program-network";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PaginationControls, usePagination, useRouterStuff } from "@dub/ui";
+import { Category } from "@dub/prisma/client";
 import { cn, fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { MarketplaceEmptyState } from "../marketplace-empty-state";
@@ -16,17 +17,28 @@ import {
 import ProgramSort from "../program-sort";
 import { useProgramNetworkFilters } from "../use-program-network-filters";
 
-export function MarketplaceAllProgramsPageClient() {
-  const { getQueryString } = useRouterStuff();
+export function MarketplaceProgramsListPage({
+  fixedCategory,
+}: {
+  fixedCategory?: Category;
+}) {
+  const { getQueryString, searchParamsObj } = useRouterStuff();
 
-  const { data: programsCount, error: countError } = useNetworkProgramsCount();
+  const categoryParam = fixedCategory ?? searchParamsObj.category;
+  const queryString = getQueryString(
+    fixedCategory ? { category: fixedCategory } : undefined,
+  );
+
+  const { data: programsCount, error: countError } = useNetworkProgramsCount({
+    query: fixedCategory ? { category: fixedCategory } : undefined,
+  });
 
   const {
     data: programs,
     error,
     isValidating,
   } = useSWR<NetworkProgramProps[]>(
-    `/api/network/programs${getQueryString()}`,
+    `/api/network/programs${queryString}`,
     fetcher,
     { revalidateOnFocus: false, keepPreviousData: true },
   );
@@ -37,6 +49,11 @@ export function MarketplaceAllProgramsPageClient() {
 
   const { activeFilters, isFiltered, onClearFilters, onRemoveAll } =
     useProgramNetworkFilters();
+
+  const hasActiveFilters =
+    activeFilters.length > 0 ||
+    Boolean(searchParamsObj.search) ||
+    Boolean(categoryParam && !fixedCategory);
 
   return (
     <div className="flex flex-col gap-4">
@@ -90,7 +107,7 @@ export function MarketplaceAllProgramsPageClient() {
         </div>
       ) : (
         <MarketplaceEmptyState
-          isFiltered={isFiltered}
+          isFiltered={hasActiveFilters}
           onClearAllFilters={onRemoveAll}
         />
       )}
