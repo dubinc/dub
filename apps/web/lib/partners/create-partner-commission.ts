@@ -426,11 +426,14 @@ export const createPartnerCommission = async ({
   } catch (error) {
     console.error("Error creating commission", error);
 
-    await log({
-      message: `Error creating commission - ${error.message}`,
-      type: "errors",
-      mention: true,
-    });
+    // only log to Slack if the error is not a unique constraint violation
+    if (error.code !== "P2002") {
+      await log({
+        message: `Error creating commission - ${error.message}`,
+        type: "errors",
+        mention: true,
+      });
+    }
 
     return {
       commission: null,

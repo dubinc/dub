@@ -6,7 +6,6 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
-import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
@@ -101,10 +100,6 @@ export async function customerSubscriptionDeleted(
   const workspaceLinks = workspace.links;
   const workspaceUsers = workspace.users.map(({ user }) => user);
 
-  const isBlacklistedCancellation = await isBlacklistedEmail(
-    workspaceUsers.filter(({ email }) => email).map(({ email }) => email!),
-  );
-
   await prisma.project.update({
     where: {
       stripeId,
@@ -174,17 +169,14 @@ export async function customerSubscriptionDeleted(
           workspace.slug +
           "`* deleted their *`" +
           capitalize(workspace.plan) +
-          "`* subscription" +
-          (isBlacklistedCancellation ? " (blacklisted / banned)" : ""),
+          "`* subscription",
         type: "cron",
         mention: true,
       }),
 
-    // Don't send feedback if the user was blacklisted / banned
-    !isBlacklistedCancellation &&
-      sendCancellationFeedback({
-        owners: workspaceUsers,
-      }),
+    sendCancellationFeedback({
+      owners: workspaceUsers,
+    }),
 
     // Disable the webhooks
     prisma.webhook.updateMany({
