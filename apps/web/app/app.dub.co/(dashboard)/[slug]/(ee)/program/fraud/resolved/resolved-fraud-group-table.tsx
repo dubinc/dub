@@ -183,7 +183,6 @@ export function ResolvedFraudGroupTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     getRowId: (row) => row.id,
     onRowClick: (row) => {
@@ -191,7 +190,6 @@ export function ResolvedFraudGroupTable() {
         set: {
           groupId: row.original.id,
         },
-        scroll: false,
       });
     },
     thClassName: "border-l-0",
@@ -233,7 +231,6 @@ export function ResolvedFraudGroupTable() {
               ? () =>
                   queryParams({
                     set: { groupId: previousGroupId },
-                    scroll: false,
                   })
               : undefined
           }
@@ -242,7 +239,6 @@ export function ResolvedFraudGroupTable() {
               ? () =>
                   queryParams({
                     set: { groupId: nextGroupId },
-                    scroll: false,
                   })
               : undefined
           }

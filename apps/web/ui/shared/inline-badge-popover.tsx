@@ -79,11 +79,13 @@ export function InlineBadgePopover({
         disabled={disabled}
         className={cn(
           "inline-block rounded px-1.5 text-left text-sm font-semibold transition-colors",
-          invalid
-            ? "bg-orange-50 text-orange-500 hover:bg-orange-100 data-[state=open]:bg-orange-100"
-            : showOptional
-              ? "bg-neutral-100 text-neutral-500 hover:bg-neutral-200 data-[state=open]:bg-neutral-200"
-              : "bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=open]:bg-blue-100",
+          disabled
+            ? "cursor-not-allowed bg-neutral-200 text-neutral-500 hover:bg-neutral-200 data-[state=open]:bg-neutral-200"
+            : invalid
+              ? "bg-orange-50 text-orange-500 hover:bg-orange-100 data-[state=open]:bg-orange-100"
+              : showOptional
+                ? "bg-neutral-100 text-neutral-500 hover:bg-neutral-200 data-[state=open]:bg-neutral-200"
+                : "bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=open]:bg-blue-100",
           buttonClassName,
         )}
       >

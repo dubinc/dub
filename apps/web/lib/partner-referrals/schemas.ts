@@ -73,3 +73,10 @@ export const networkReferralsTimeseriesSchema = z.object({
   partners: z.number().int().nonnegative(),
   earnings: z.number().int(),
 });
+
+export const attributeReferringPartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+  referredByPartnerId: z.string(),
+  createCommissionsForPastEvents: z.boolean().default(false),
+});

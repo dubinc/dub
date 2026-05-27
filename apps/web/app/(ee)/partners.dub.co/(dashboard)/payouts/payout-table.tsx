@@ -203,14 +203,12 @@ export function PayoutTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     onRowClick: (row) => {
       queryParams({
         set: {
           payoutId: row.original.id,
         },
-        scroll: false,
       });
     },
     thClassName: "border-l-0",

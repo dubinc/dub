@@ -133,7 +133,6 @@ export function ProgramPartnerNetworkPageClient({
               ? () =>
                   queryParams({
                     set: { partnerId: previousPartnerId },
-                    scroll: false,
                   })
               : undefined
           }
@@ -142,7 +141,6 @@ export function ProgramPartnerNetworkPageClient({
               ? () =>
                   queryParams({
                     set: { partnerId: nextPartnerId },
-                    scroll: false,
                   })
               : undefined
           }

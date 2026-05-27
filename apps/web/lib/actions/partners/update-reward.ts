@@ -3,6 +3,7 @@
 import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
+import { notifyPartnersRewardChanged } from "@/lib/api/partners/notify-partners-reward-changed";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
@@ -145,7 +146,7 @@ export const updateRewardAction = authActionClient
         }),
 
         // we only cache default group pages for now so we need to invalidate them
-        ...(isDefaultGroup
+        ...(isDefaultGroup && program
           ? [
               revalidatePath(`/partners.dub.co/${program.slug}`),
               revalidatePath(`/partners.dub.co/${program.slug}/apply`),
@@ -155,6 +156,16 @@ export const updateRewardAction = authActionClient
                 ),
             ]
           : []),
+
+        partnerGroup &&
+          notifyPartnersRewardChanged({
+            programId,
+            groupId: partnerGroup.id,
+            action: "updated",
+            effectiveAt: updatedReward.updatedAt,
+            reward: serializeReward(rewardMetadata),
+            idempotencyKey: `reward-sync-${rewardId}-updated-${updatedReward.updatedAt.getTime()}`,
+          }),
       ]),
     );
   });

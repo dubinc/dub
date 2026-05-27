@@ -112,7 +112,6 @@ export function AnalyticsToggle({
             set: {
               interval: preset.id,
             },
-            scroll: false,
           });
 
           return;
@@ -127,7 +126,6 @@ export function AnalyticsToggle({
             start: range.from.toISOString(),
             end: range.to.toISOString(),
           },
-          scroll: false,
         });
       }}
       presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
