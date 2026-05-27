@@ -1,6 +1,6 @@
 import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import { sanitizeFullTextSearch } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 
 /**
@@ -34,12 +34,25 @@ export function buildPartnerEmailSearchWhere({
 
 export type PartnerEnrollmentQueryFilters = Omit<
   z.infer<typeof getPartnersQuerySchemaExtended>,
-  "sortBy" | "sortOrder" | "page" | "pageSize" | "includePartnerPlatforms"
+  | "sortBy"
+  | "sortOrder"
+  | "page"
+  | "pageSize"
+  | "includePartnerPlatforms"
+  | "status"
+  | "referredByPartnerId"
 > & {
   programId: string;
+  status?:
+    | z.infer<typeof getPartnersQuerySchemaExtended>["status"]
+    | string
+    | string[];
+  referredByPartnerId?: string | string[];
   partnerTagIdOperator?: "IN" | "NOT IN";
   groupIdOperator?: "IN" | "NOT IN";
   countryOperator?: "IN" | "NOT IN";
+  statusOperator?: "IN" | "NOT IN";
+  referredByPartnerIdOperator?: "IN" | "NOT IN";
 };
 
 function normalizeBounds(
@@ -180,6 +193,67 @@ export function buildNullableStringListWhere(
   } as Prisma.ProgramEnrollmentWhereInput | Prisma.PartnerWhereInput;
 }
 
+export function buildEnrollmentStatusWhere(
+  status: string | string[] | undefined,
+  statusOperator: "IN" | "NOT IN" = "IN",
+): Prisma.ProgramEnrollmentWhereInput["status"] | undefined {
+  if (status === undefined) {
+    return undefined;
+  }
+
+  const list = normalizeStringList(status);
+  if (!list) {
+    return undefined;
+  }
+
+  if (list.length === 1 && list[0] === "approved_invited") {
+    return { in: ["approved", "invited"] };
+  }
+
+  const exclude = statusOperator === "NOT IN";
+  const statuses = list as ProgramEnrollmentStatus[];
+
+  if (!exclude) {
+    return statuses.length === 1 ? statuses[0] : { in: statuses };
+  }
+
+  return statuses.length === 1 ? { not: statuses[0] } : { notIn: statuses };
+}
+
+export function buildReferredByPartnerIdWhere(
+  referredByPartnerId: string | string[] | undefined,
+  referredByPartnerIdOperator: "IN" | "NOT IN" = "IN",
+): Prisma.ProgramEnrollmentWhereInput | undefined {
+  const list = normalizeStringList(referredByPartnerId);
+  if (!list) {
+    return undefined;
+  }
+
+  const exclude = referredByPartnerIdOperator === "NOT IN";
+  const inOrEquals = list.length === 1 ? list[0]! : { in: list };
+  const negation = list.length === 1 ? { not: list[0]! } : { notIn: list };
+
+  if (!exclude) {
+    return {
+      applicationEvent: {
+        referredByPartnerId: inOrEquals,
+      },
+    };
+  }
+
+  return {
+    OR: [
+      { applicationEvent: { is: null } },
+      { applicationEvent: { referredByPartnerId: null } },
+      {
+        applicationEvent: {
+          referredByPartnerId: negation,
+        },
+      },
+    ],
+  };
+}
+
 export function mergePartnerCountryAndSearchWhere(
   countryWhere: Prisma.PartnerWhereInput | undefined,
   searchWhere: Prisma.PartnerWhereInput,
@@ -215,9 +289,16 @@ export function buildProgramEnrollmentWhereForList(
     partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
+    statusOperator = "IN",
+    referredByPartnerIdOperator = "IN",
   } = filters;
 
   const metricWhere = buildMetricRangeWhere(filters);
+  const statusWhere = buildEnrollmentStatusWhere(status, statusOperator);
+  const referredByWhere = buildReferredByPartnerIdWhere(
+    referredByPartnerId,
+    referredByPartnerIdOperator,
+  );
 
   const partnerTagIdNotIn = partnerTagIdOperator === "NOT IN";
   const groupIdNotIn = groupIdOperator === "NOT IN";
@@ -268,19 +349,10 @@ export function buildProgramEnrollmentWhereForList(
         in: partnerIds,
       },
     }),
-    status:
-      status === "approved_invited"
-        ? {
-            in: ["approved", "invited"],
-          }
-        : status,
+    ...(statusWhere !== undefined ? { status: statusWhere } : {}),
     ...(groupIdWhere ?? {}),
     ...(hasPartnerWhere ? { partner: partnerWhere } : {}),
-    ...(referredByPartnerId && {
-      applicationEvent: {
-        referredByPartnerId,
-      },
-    }),
+    ...(referredByWhere ?? {}),
     ...metricWhere,
   };
 }

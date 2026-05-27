@@ -2,6 +2,7 @@ import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { formatPartnersForExport } from "@/lib/api/partners/format-partners-for-export";
 import { getPartners } from "@/lib/api/partners/get-partners";
 import { getPartnersCount } from "@/lib/api/partners/get-partners-count";
+import { parsePartnerListQuery } from "@/lib/api/partners/parse-partner-filter-params";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
@@ -16,8 +17,11 @@ export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const parsedParams = partnersExportQuerySchema.parse(searchParams);
-    const { columns, ...filters } = parsedParams;
+    const params = parsePartnerListQuery(
+      searchParams,
+      partnersExportQuerySchema,
+    );
+    const { columns, ...filters } = params;
 
     const partnersCount = await getPartnersCount<number>({
       ...filters,
@@ -25,12 +29,11 @@ export const GET = withWorkspace(
       programId,
     });
 
-    // Process the export in the background if the number of partners is greater than MAX_PARTNERS_TO_EXPORT
     if (partnersCount > MAX_PARTNERS_TO_EXPORT) {
       await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/partners`,
         body: {
-          ...parsedParams,
+          ...params,
           columns: columns.join(","),
           programId,
           userId: session.user.id,

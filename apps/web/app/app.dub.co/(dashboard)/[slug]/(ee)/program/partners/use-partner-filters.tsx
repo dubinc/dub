@@ -31,57 +31,19 @@ import {
   nFormatter,
   OG_AVATAR_URL,
   parseFilterValue,
-  type FilterOperator,
-  type ParsedFilter,
 } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-const SINGLE_VALUE_FILTER_KEYS = ["status", "referredByPartnerId"] as const;
-const MULTI_VALUE_FILTER_KEYS = ["partnerTagId", "groupId", "country"] as const;
+const CATEGORICAL_FILTER_KEYS = [
+  "groupId",
+  "partnerTagId",
+  "status",
+  "country",
+  "referredByPartnerId",
+] as const;
 
-function buildMultiValueParam(
-  parsed: ParsedFilter | undefined,
-  values: string[],
-): string {
-  return buildFilterValue({
-    operator: parsed?.operator ?? (values.length > 1 ? "IS_ONE_OF" : "IS"),
-    sqlOperator: parsed?.sqlOperator ?? "IN",
-    values,
-  });
-}
-
-function activeFiltersToSearchParams(
-  activeFilters: Array<
-    | { key: string; values: string[]; operator: FilterOperator }
-    | { key: string; value: string }
-  >,
-): Record<string, string> {
-  return Object.fromEntries(
-    activeFilters.flatMap((f) => {
-      if ("values" in f && Array.isArray(f.values) && "operator" in f) {
-        const values = f.values as string[];
-        const op: FilterOperator =
-          (f as { operator?: FilterOperator }).operator ??
-          (values.length > 1 ? "IS_ONE_OF" : "IS");
-        return [
-          [
-            f.key,
-            buildFilterValue({
-              operator: op,
-              sqlOperator: op.includes("NOT") ? "NOT IN" : "IN",
-              values,
-            }),
-          ],
-        ];
-      }
-      if ("value" in f && f.value != null) {
-        return [[f.key, f.value]];
-      }
-      return [];
-    }),
-  );
-}
+type CategoricalFilterKey = (typeof CATEGORICAL_FILTER_KEYS)[number];
 
 const PARTNER_METRIC_RANGE = [
   {
@@ -166,10 +128,10 @@ export function usePartnerFilters(
   ],
 ) {
   const { searchParamsObj, queryParams } = useRouterStuff();
-  const { id: workspaceId, slug } = useWorkspace();
+  const { slug } = useWorkspace();
   const status = (searchParamsObj.status ||
     extraSearchParams.status ||
-    "approved") as ProgramEnrollmentStatus;
+    "approved_invited") as ProgramEnrollmentStatus;
 
   const cohortParams = useMemo(
     () => ({
@@ -248,6 +210,7 @@ export function usePartnerFilters(
   const { referredByPartners } = useReferredByPartnerFilterOptions({
     search: selectedFilter === "referredByPartnerId" ? debouncedSearch : "",
     enabled: enabledFilters.includes("referredByPartnerId"),
+    status: searchParamsObj.search ? undefined : status,
   });
 
   const referredByCountMap = useMemo(
@@ -296,7 +259,6 @@ export function usePartnerFilters(
               key: "partnerTagId",
               icon: Tag,
               label: "Tag",
-              multiple: true,
               shouldFilter: !partnerTagsAsync,
               options:
                 partnerTags?.map(({ id, name, count, hideDuringSearch }) => ({
@@ -314,7 +276,6 @@ export function usePartnerFilters(
               key: "status",
               icon: CircleDotted,
               label: "Status",
-              singleSelect: true,
               options:
                 statusCount
                   ?.filter(
@@ -450,40 +411,18 @@ export function usePartnerFilters(
     ],
   );
 
-  const partnerTagIdParsed = useMemo(
-    () => parseFilterValue(searchParamsObj.partnerTagId),
-    [searchParamsObj.partnerTagId],
-  );
-  const groupIdParsed = useMemo(
-    () => parseFilterValue(searchParamsObj.groupId),
-    [searchParamsObj.groupId],
-  );
-  const countryParsed = useMemo(
-    () => parseFilterValue(searchParamsObj.country),
-    [searchParamsObj.country],
-  );
-
-  const parsedByKey = useMemo(
-    () => ({
-      partnerTagId: partnerTagIdParsed,
-      groupId: groupIdParsed,
-      country: countryParsed,
-    }),
-    [partnerTagIdParsed, groupIdParsed, countryParsed],
-  );
-
   const activeFilters = useMemo(() => {
-    const multiValueFilters = MULTI_VALUE_FILTER_KEYS.flatMap((key) => {
+    const categoricalFilters = CATEGORICAL_FILTER_KEYS.flatMap((key) => {
       if (!enabledFilters.includes(key)) return [];
-      const parsed = parsedByKey[key];
-      if (!parsed) return [];
-      return [{ key, values: parsed.values, operator: parsed.operator }];
-    });
-    const singleValueFilters = SINGLE_VALUE_FILTER_KEYS.flatMap((key) => {
-      if (!enabledFilters.includes(key)) return [];
-      const value = searchParamsObj[key];
-      if (!value) return [];
-      return [{ key, value }];
+      const parsed = parseFilterValue(searchParamsObj[key]);
+      if (!parsed?.values.length) return [];
+      return [
+        {
+          key,
+          values: parsed.values,
+          operator: parsed.operator,
+        },
+      ];
     });
     const metricFilters = PARTNER_METRIC_RANGE.filter((m) =>
       enabledFilters.includes(m.filterKey),
@@ -509,8 +448,8 @@ export function usePartnerFilters(
         },
       ];
     });
-    return [...multiValueFilters, ...singleValueFilters, ...metricFilters];
-  }, [searchParamsObj, enabledFilters, parsedByKey]);
+    return [...categoricalFilters, ...metricFilters];
+  }, [searchParamsObj, enabledFilters]);
 
   const onSelect = useCallback(
     (key: string, value: unknown) => {
@@ -531,23 +470,48 @@ export function usePartnerFilters(
         return;
       }
 
-      if (
-        MULTI_VALUE_FILTER_KEYS.includes(
-          key as (typeof MULTI_VALUE_FILTER_KEYS)[number],
-        )
-      ) {
-        const parsed = parsedByKey[key as keyof typeof parsedByKey];
-        const currentValues = parsed?.values ?? [];
-        const next = String(value);
-        const newValues = currentValues.includes(next)
-          ? currentValues
-          : [...currentValues, next];
-        const newParam = buildMultiValueParam(parsed, newValues);
-        return queryParams({ set: { [key]: newParam }, del: "page" });
+      if (!CATEGORICAL_FILTER_KEYS.includes(key as CategoricalFilterKey)) {
+        return;
       }
-      return queryParams({ set: { [key]: value as string }, del: "page" });
+
+      const currentParam = searchParamsObj[key];
+      const parsed = parseFilterValue(currentParam);
+      const next = String(value);
+
+      if (!currentParam || !parsed) {
+        return queryParams({
+          set: {
+            [key]: buildFilterValue({
+              operator: "IS",
+              sqlOperator: "IN",
+              values: [next],
+            }),
+          },
+          del: "page",
+        });
+      }
+
+      if (parsed.values.includes(next)) {
+        return;
+      }
+
+      const newValues = [...parsed.values, next];
+      return queryParams({
+        set: {
+          [key]: buildFilterValue({
+            operator: parsed.operator.includes("NOT")
+              ? parsed.operator
+              : newValues.length > 1
+                ? "IS_ONE_OF"
+                : "IS",
+            sqlOperator: parsed.sqlOperator,
+            values: newValues,
+          }),
+        },
+        del: "page",
+      });
     },
-    [queryParams, parsedByKey],
+    [queryParams, searchParamsObj],
   );
 
   const onRemove = useCallback(
@@ -561,38 +525,54 @@ export function usePartnerFilters(
       }
 
       if (
-        MULTI_VALUE_FILTER_KEYS.includes(
-          key as (typeof MULTI_VALUE_FILTER_KEYS)[number],
-        ) &&
-        value
+        CATEGORICAL_FILTER_KEYS.includes(key as CategoricalFilterKey) &&
+        value != null
       ) {
-        const parsed = parsedByKey[key as keyof typeof parsedByKey];
-        const newValues = (parsed?.values ?? []).filter((v) => v !== value);
+        const currentParam = searchParamsObj[key];
+        const parsed = parseFilterValue(currentParam);
+        if (!parsed) {
+          return queryParams({ del: [key, "page"] });
+        }
+        const newValues = parsed.values.filter((v) => v !== String(value));
         if (newValues.length === 0) {
           return queryParams({ del: [key, "page"] });
         }
-        const newParam = buildMultiValueParam(parsed, newValues);
-        return queryParams({ set: { [key]: newParam }, del: "page" });
+        return queryParams({
+          set: {
+            [key]: buildFilterValue({
+              operator: parsed.operator.includes("NOT")
+                ? parsed.operator
+                : newValues.length > 1
+                  ? "IS_ONE_OF"
+                  : "IS",
+              sqlOperator: parsed.sqlOperator,
+              values: newValues,
+            }),
+          },
+          del: "page",
+        });
       }
       return queryParams({ del: [key, "page"] });
     },
-    [queryParams, parsedByKey],
+    [queryParams, searchParamsObj],
   );
 
   const onRemoveFilter = useCallback(
     (key: string) => {
-      onRemove(key);
+      const metric = PARTNER_METRIC_RANGE.find((m) => m.filterKey === key);
+      if (metric) {
+        return queryParams({
+          del: [metric.minParam, metric.maxParam, "page"],
+        });
+      }
+      return queryParams({ del: [key, "page"] });
     },
-    [onRemove],
+    [queryParams],
   );
 
   const onToggleOperator = useCallback(
     (key: string) => {
-      if (
-        !MULTI_VALUE_FILTER_KEYS.includes(
-          key as (typeof MULTI_VALUE_FILTER_KEYS)[number],
-        )
-      ) {
+      if (!CATEGORICAL_FILTER_KEYS.includes(key as CategoricalFilterKey)) {
         return;
       }
       const raw = searchParamsObj[key];
@@ -605,6 +585,11 @@ export function usePartnerFilters(
       queryParams({ set: { [key]: newParam }, del: "page" });
     },
     [queryParams, searchParamsObj],
+  );
+
+  const onOpenFilter = useCallback(
+    (key: string | null) => setSelectedFilter(key),
+    [],
   );
 
   const onRemoveAll = useCallback(
@@ -633,31 +618,6 @@ export function usePartnerFilters(
     [queryParams],
   );
 
-  const searchQuery = useMemo(() => {
-    const acc: Record<string, string> = {
-      workspaceId: workspaceId || "",
-      ...extraSearchParams,
-    };
-    if (searchParamsObj.search) {
-      acc.search = searchParamsObj.search;
-    }
-    for (const f of activeFilters) {
-      const metric = PARTNER_METRIC_RANGE.find((m) => m.filterKey === f.key);
-      if (metric && "value" in f && f.value != null) {
-        const { min, max } = parseRangeToken(String(f.value));
-        if (min != null) {
-          acc[metric.minParam] = String(min);
-        }
-        if (max != null) {
-          acc[metric.maxParam] = String(max);
-        }
-      } else {
-        Object.assign(acc, activeFiltersToSearchParams([f]));
-      }
-    }
-    return new URLSearchParams(acc).toString();
-  }, [activeFilters, searchParamsObj.search, workspaceId, extraSearchParams]);
-
   return {
     filters,
     activeFilters,
@@ -666,9 +626,8 @@ export function usePartnerFilters(
     onRemoveFilter,
     onRemoveAll,
     onToggleOperator,
-    setSelectedFilter,
+    onOpenFilter,
     setSearch,
-    searchQuery,
   };
 }
 
@@ -763,32 +722,42 @@ function usePartnerTagFilterOptions({
 function useReferredByPartnerFilterOptions({
   search,
   enabled = true,
+  status,
 }: {
   search: string;
   enabled?: boolean;
+  status?: ProgramEnrollmentStatus;
 }) {
   const { searchParamsObj } = useRouterStuff();
 
+  const activePartnerIds = useMemo(() => {
+    const parsed = parseFilterValue(searchParamsObj.referredByPartnerId);
+    return parsed?.values ?? [];
+  }, [searchParamsObj.referredByPartnerId]);
+
+  const query = { search, ...(status && { status }) };
+
   const { partners, loading: partnersLoading } = usePartners({
-    query: { search },
+    query,
     enabled,
   });
 
   const { partners: selectedPartners } = usePartners({
     query: {
-      partnerIds: searchParamsObj.referredByPartnerId
-        ? [searchParamsObj.referredByPartnerId]
-        : undefined,
+      ...query,
+      partnerIds: activePartnerIds.length ? activePartnerIds : undefined,
     },
-    enabled: enabled && !!searchParamsObj.referredByPartnerId,
+    enabled: enabled && activePartnerIds.length > 0,
   });
 
   const result = useMemo(() => {
     if (
       partnersLoading ||
-      (searchParamsObj.referredByPartnerId &&
-        ![...(selectedPartners ?? []), ...(partners ?? [])].some(
-          (p) => p.id === searchParamsObj.referredByPartnerId,
+      (activePartnerIds.length &&
+        !activePartnerIds.every((id) =>
+          [...(selectedPartners ?? []), ...(partners ?? [])].some(
+            (p) => p.id === id,
+          ),
         ))
     ) {
       return null;
@@ -800,12 +769,7 @@ function useReferredByPartnerFilterOptions({
         ?.filter((sp) => !partners?.some((p) => p.id === sp.id))
         ?.map((sp) => ({ ...sp, hideDuringSearch: true })) ?? []),
     ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[];
-  }, [
-    partnersLoading,
-    partners,
-    selectedPartners,
-    searchParamsObj.referredByPartnerId,
-  ]);
+  }, [partnersLoading, partners, selectedPartners, activePartnerIds]);
 
   return { referredByPartners: result };
 }

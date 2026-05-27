@@ -3,18 +3,17 @@ import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import {
+  buildEnrollmentStatusWhere,
   buildMetricRangeWhere,
   buildNullableStringListWhere,
   buildPartnerEmailSearchWhere,
   buildProgramEnrollmentWhereForList,
   mergePartnerCountryAndSearchWhere,
+  type PartnerEnrollmentQueryFilters,
 } from "./program-enrollment-query";
 
-type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
-  programId: string;
-  partnerTagIdOperator?: "IN" | "NOT IN";
-  groupIdOperator?: "IN" | "NOT IN";
-  countryOperator?: "IN" | "NOT IN";
+type PartnersCountFilters = PartnerEnrollmentQueryFilters & {
+  groupBy?: z.infer<typeof partnersCountQuerySchema>["groupBy"];
 };
 
 export async function getPartnersCount<T>(
@@ -35,7 +34,10 @@ export async function getPartnersCount<T>(
     partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
+    statusOperator = "IN",
   } = enrollmentFilters;
+
+  const statusWhere = buildEnrollmentStatusWhere(status, statusOperator);
 
   const enrollmentScope: Prisma.ProgramEnrollmentWhereInput = {
     programId,
@@ -104,12 +106,7 @@ export async function getPartnersCount<T>(
           some: {
             ...enrollmentScope,
             ...(groupIdWhere ?? {}),
-            status:
-              status === "approved_invited"
-                ? {
-                    in: ["approved", "invited"],
-                  }
-                : status,
+            ...(statusWhere !== undefined ? { status: statusWhere } : {}),
             ...enrollmentMetricWhere,
           },
         },
@@ -132,6 +129,7 @@ export async function getPartnersCount<T>(
       where: {
         ...enrollmentScope,
         ...(groupIdWhere ?? {}),
+        ...(statusWhere !== undefined ? { status: statusWhere } : {}),
         partner: partnerWhereWithCountry,
         ...enrollmentMetricWhere,
       },
@@ -143,15 +141,16 @@ export async function getPartnersCount<T>(
       },
     });
 
-    // Find missing statuses
-    const missingStatuses = Object.values(ProgramEnrollmentStatus).filter(
-      (status) => !partners.some((p) => p.status === status),
-    );
+    // Only pad missing enum values when no status filter is active
+    if (statusWhere === undefined) {
+      const missingStatuses = Object.values(ProgramEnrollmentStatus).filter(
+        (status) => !partners.some((p) => p.status === status),
+      );
 
-    // Add missing statuses with count 0
-    missingStatuses.forEach((status) => {
-      partners.push({ _count: 0, status: status });
-    });
+      missingStatuses.forEach((status) => {
+        partners.push({ _count: 0, status: status });
+      });
+    }
 
     return partners as T;
   }
@@ -162,12 +161,7 @@ export async function getPartnersCount<T>(
       where: {
         ...enrollmentScope,
         partner: partnerWhereWithCountry,
-        status:
-          status === "approved_invited"
-            ? {
-                in: ["approved", "invited"],
-              }
-            : status,
+        ...(statusWhere !== undefined ? { status: statusWhere } : {}),
         ...enrollmentMetricWhere,
       },
       _count: true,
@@ -215,12 +209,7 @@ export async function getPartnersCount<T>(
         programEnrollment: {
           ...enrollmentScope,
           ...(groupIdWhere ?? {}),
-          status:
-            status === "approved_invited"
-              ? {
-                  in: ["approved", "invited"],
-                }
-              : status,
+          ...(statusWhere !== undefined ? { status: statusWhere } : {}),
           partner: partnerWhereWithCountry,
           ...enrollmentMetricWhere,
         },

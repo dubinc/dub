@@ -2,13 +2,17 @@ import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { toCentsNumber } from "@dub/utils";
 import * as z from "zod/v4";
-import { buildProgramEnrollmentWhereForList } from "./program-enrollment-query";
+import {
+  buildProgramEnrollmentWhereForList,
+  type PartnerEnrollmentQueryFilters,
+} from "./program-enrollment-query";
 
-type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
-  programId: string;
-  partnerTagIdOperator?: "IN" | "NOT IN";
-  groupIdOperator?: "IN" | "NOT IN";
-  countryOperator?: "IN" | "NOT IN";
+type PartnerFilters = PartnerEnrollmentQueryFilters & {
+  sortBy: z.infer<typeof getPartnersQuerySchemaExtended>["sortBy"];
+  sortOrder: z.infer<typeof getPartnersQuerySchemaExtended>["sortOrder"];
+  page?: number;
+  pageSize: z.infer<typeof getPartnersQuerySchemaExtended>["pageSize"];
+  includePartnerPlatforms?: boolean;
 };
 
 export async function getPartners(filters: PartnerFilters) {

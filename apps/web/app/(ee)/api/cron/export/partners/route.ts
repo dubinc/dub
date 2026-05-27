@@ -14,9 +14,16 @@ import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { fetchPartnersBatch } from "./fetch-partners-batch";
 
+const sqlOperatorSchema = z.enum(["IN", "NOT IN"]);
+
 const payloadSchema = partnersExportQuerySchema.extend({
   programId: z.string(),
   userId: z.string(),
+  partnerTagIdOperator: sqlOperatorSchema.optional(),
+  groupIdOperator: sqlOperatorSchema.optional(),
+  countryOperator: sqlOperatorSchema.optional(),
+  statusOperator: sqlOperatorSchema.optional(),
+  referredByPartnerIdOperator: sqlOperatorSchema.optional(),
 });
 
 // POST /api/cron/export/partners - QStash worker for processing large partner exports
@@ -29,9 +36,19 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    let { programId, columns, userId, ...filters } = payloadSchema.parse(
-      JSON.parse(rawBody),
-    );
+    const payload = payloadSchema.parse(JSON.parse(rawBody));
+
+    const {
+      programId,
+      columns,
+      userId,
+      partnerTagIdOperator,
+      groupIdOperator,
+      countryOperator,
+      statusOperator,
+      referredByPartnerIdOperator,
+      ...filters
+    } = payload;
 
     const user = await prisma.user.findUnique({
       where: {
@@ -65,10 +82,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fetch partners in batches and build CSV
     const allPartners: any[] = [];
     const partnersFilters = {
       ...filters,
+      partnerTagIdOperator,
+      groupIdOperator,
+      countryOperator,
+      statusOperator,
+      referredByPartnerIdOperator,
       programId,
     };
 

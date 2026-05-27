@@ -556,6 +556,8 @@ function PartnersFilters({
     onRemoveFilter,
     onRemoveAll,
     onToggleOperator,
+    onOpenFilter,
+    setSearch,
   } = usePartnerFilters({ sortBy, sortOrder, status });
 
   return (
@@ -568,6 +570,10 @@ function PartnersFilters({
           onSelect={onSelect}
           onRemove={onRemove}
           onRemoveFilter={onRemoveFilter}
+          isAdvancedFilter
+          onOpenFilter={onOpenFilter}
+          onSearchChange={setSearch}
+          onSelectedFilterChange={onOpenFilter}
         />
         <SearchBoxPersisted
           placeholder="Search by name, email, or company"
@@ -586,6 +592,7 @@ function PartnersFilters({
                 onRemoveFilter={onRemoveFilter}
                 onRemoveAll={onRemoveAll}
                 onToggleOperator={onToggleOperator}
+                isAdvancedFilter
               />
             </div>
           )}
