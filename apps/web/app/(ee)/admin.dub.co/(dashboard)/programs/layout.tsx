@@ -12,7 +12,7 @@ export default function AdminProgramsLayout({
       <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
         <Suspense>
           <ProgramsNavTabs />
-          <div className="border-border-subtle -mx-px -mb-px space-y-4 rounded-xl border bg-white">
+          <div className="border-border-subtle -mx-px -mb-px space-y-4 rounded-xl border bg-white p-4">
             {children}
           </div>
         </Suspense>
