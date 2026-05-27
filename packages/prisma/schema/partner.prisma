@@ -28,6 +28,7 @@ enum PartnerPayoutMethod {
   connect
   stablecoin
   paypal
+  tremendous
 }
 
 // https://devdocs.veriff.com/v1/docs/how-to-generate-sessions-manually#verification-session-statuses
@@ -69,6 +70,7 @@ model Partner {
   stripeRecipientId            String?              @unique
   payoutMethodHash             String?
   cryptoWalletAddress          String?
+  tremendousEmail              String?              @unique
 
   // timestamp fields
   createdAt   DateTime  @default(now())

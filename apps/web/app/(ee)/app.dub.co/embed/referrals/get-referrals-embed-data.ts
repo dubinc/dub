@@ -27,6 +27,8 @@ export const getReferralsEmbedData = async (token: string) => {
           id: true,
           name: true,
           email: true,
+          tremendousEmail: true,
+          defaultPayoutMethod: true,
           platforms: {
             select: {
               type: true,
@@ -118,6 +120,8 @@ export const getReferralsEmbedData = async (token: string) => {
       id: partner.id,
       name: partner.name,
       email: partner.email,
+      tremendousEmail: partner.tremendousEmail,
+      defaultPayoutMethod: partner.defaultPayoutMethod,
     },
     partnerPlatforms: partner.platforms,
     links: z.array(ReferralsEmbedLinkSchema).parse(links),

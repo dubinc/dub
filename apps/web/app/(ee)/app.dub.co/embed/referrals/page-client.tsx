@@ -50,6 +50,7 @@ import { ReferralsEmbedLeaderboard } from "./leaderboard";
 import { ReferralsEmbedLinks } from "./links";
 import { ReferralsEmbedQuickstart } from "./quickstart";
 import { ReferralsEmbedResources } from "./resources";
+import { ReferralsEmbedSettings } from "./settings";
 import { ThemeOptions } from "./theme-options";
 import { ReferralsReferralsEmbedToken } from "./token";
 import { ReferralsEmbedLink } from "./types";
@@ -67,7 +68,10 @@ type ReferralsEmbedData = {
     | "resources"
   >;
   programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
-  partner: Pick<Partner, "id" | "name" | "email">;
+  partner: Pick<
+    Partner,
+    "id" | "name" | "email" | "tremendousEmail" | "defaultPayoutMethod"
+  >;
   partnerPlatforms: Array<{
     type: PlatformType;
     identifier: string;
@@ -181,6 +185,7 @@ export function ReferralsEmbedPageClient({
         : ["Leaderboard"]),
       "FAQ",
       ...(hasResources ? ["Resources"] : []),
+      "Settings",
     ],
     [
       showQuickstart,
@@ -359,6 +364,8 @@ export function ReferralsEmbedPageClient({
                   <ReferralsEmbedFAQ />
                 ) : selectedTab === "Resources" ? (
                   <ReferralsEmbedResources resources={resources} />
+                ) : selectedTab === "Settings" ? (
+                  <ReferralsEmbedSettings />
                 ) : null}
               </AnimatePresence>
             </div>

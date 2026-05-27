@@ -24,13 +24,14 @@ export function ReferralsEmbedQuickstart({
   setSelectedTab,
 }: {
   hasResources: boolean;
-  setSelectedTab: (tab: "Links" | "Resources" | "FAQ") => void;
+  setSelectedTab: (tab: "Links" | "Resources" | "FAQ" | "Settings") => void;
 }) {
-  const { program, group, links, earnings } = useReferralsEmbedData();
+  const { isMobile } = useMediaQuery();
+  const [copied, copyToClipboard] = useCopyToClipboard();
+  const { partner, program, group, links, earnings } = useReferralsEmbedData();
+
   const programEmbedData = programEmbedSchema.parse(program.embedData);
 
-  const [copied, copyToClipboard] = useCopyToClipboard();
-  const { isMobile } = useMediaQuery();
   const payoutsDisabled = earnings.upcoming === 0 && earnings.paid === 0;
 
   const items = [
@@ -133,9 +134,16 @@ export function ReferralsEmbedQuickstart({
                     ? "You will be able to withdraw your earnings once you have made at least one sale."
                     : undefined
                 }
-                onClick={() =>
-                  window.open("https://partners.dub.co/payouts", "_blank")
-                }
+                onClick={() => {
+                  if (
+                    !partner.defaultPayoutMethod ||
+                    partner.defaultPayoutMethod === "tremendous"
+                  ) {
+                    setSelectedTab("Settings");
+                  } else {
+                    window.open("https://partners.dub.co/payouts", "_blank");
+                  }
+                }}
                 text="Connect payouts"
               />
             ),
