@@ -4,14 +4,14 @@ import { triggerWorkflows } from "@/lib/cron/qstash-workflow";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { createCommissionBodySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
-import { Project } from "@dub/prisma/client";
+import { Customer, Project } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { DubApiError } from "../errors";
 import { getProgramEnrollmentOrThrow } from "../programs/get-program-enrollment-or-throw";
 
 type CreateCommissionsParams = z.infer<typeof createCommissionBodySchema> & {
-  workspace: Pick<Project, "id" | "stripeConnectId">;
+  workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
   programId: string;
   user: Session["user"];
 };
@@ -55,49 +55,53 @@ export async function createCommissions(params: CreateCommissionsParams) {
     });
   }
 
+  const { linkId, customerId, customer } = params;
+
   // Check the link is valid
-  if (params.linkId) {
-    const link = links.find((l) => l.id === params.linkId);
+  if (linkId) {
+    const link = links.find((l) => l.id === linkId);
 
     if (!link) {
       throw new DubApiError({
         code: "not_found",
-        message: `Link ${params.linkId} does not belong to partner ${partner.email} (${partnerId}).`,
+        message: `Link ${linkId} does not belong to partner ${partner.email} (${partnerId}).`,
       });
     }
   }
 
+  let customerFound: Customer | null = null;
+
   // Check the customer is valid
-  if (params.customerId) {
-    const customer = await prisma.customer.findUnique({
+  if (customerId) {
+    customerFound = await prisma.customer.findUnique({
       where: {
-        id: params.customerId,
+        id: customerId,
       },
     });
 
-    if (!customer) {
+    if (!customerFound) {
       throw new DubApiError({
         code: "not_found",
-        message: `Customer ${params.customerId} not found.`,
+        message: `Customer ${customerId} not found.`,
       });
     }
 
-    if (customer.projectId !== workspace.id) {
+    if (customerFound.projectId !== workspace.id) {
       throw new DubApiError({
         code: "bad_request",
-        message: `Customer ${params.customerId} does not belong to workspace ${workspace.id}.`,
+        message: `Customer ${customerId} does not belong to workspace ${workspace.id}.`,
       });
     }
   }
 
-  if (!params.customerId && !params.customer) {
+  if (!customerId && !customer) {
     throw new DubApiError({
       code: "bad_request",
       message: "Either customerId or customer must be provided.",
     });
   }
 
-  if (params.customerId && params.customer) {
+  if (customerId && customer) {
     throw new DubApiError({
       code: "bad_request",
       message: "Either customerId or customer must be provided, not both.",
@@ -105,11 +109,53 @@ export async function createCommissions(params: CreateCommissionsParams) {
   }
 
   if (type === "sale") {
-    if (params.invoiceId) {
+    const {
+      importStripeInvoices,
+      saleAmount,
+      saleEventDate,
+      invoiceId,
+      productId,
+    } = params;
+
+    if (!importStripeInvoices && !saleAmount) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Either saleAmount or importStripeInvoices must be provided.",
+      });
+    }
+
+    const hasManualSaleFields =
+      saleAmount || saleEventDate || invoiceId || productId;
+
+    if (importStripeInvoices) {
+      if (hasManualSaleFields) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "saleAmount, saleEventDate, invoiceId, and productId cannot be provided when importStripeInvoices is enabled.",
+        });
+      }
+
+      if (!workspace.stripeConnectId) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `Your workspace isn't connected to Stripe yet. Please install the Stripe integration to continue: https://app.dub.co/${workspace.slug}/settings/integrations/stripe`,
+        });
+      }
+
+      if (customerFound && !customerFound.stripeCustomerId) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `Customer ${customerFound.id} does not have a Stripe Customer ID configured. Please update the customer record at https://app.dub.co/${workspace.slug}/program/customers/${customerFound.id}`,
+        });
+      }
+    }
+
+    if (invoiceId) {
       const commission = await prisma.commission.findUnique({
         where: {
           invoiceId_programId: {
-            invoiceId: params.invoiceId,
+            invoiceId,
             programId,
           },
         },
@@ -121,17 +167,9 @@ export async function createCommissions(params: CreateCommissionsParams) {
       if (commission) {
         throw new DubApiError({
           code: "bad_request",
-          message: `There is already a commission for the invoice ${params.invoiceId}.`,
+          message: `There is already a commission for the invoice ${invoiceId}.`,
         });
       }
-    }
-
-    if (params.importStripeInvoices && !workspace.stripeConnectId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "Your workspace isn't connected to Stripe yet. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
-      });
     }
   }
 

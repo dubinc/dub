@@ -277,12 +277,23 @@ function CreateCommissionSheetContent({
         customerId: data.customerId,
         linkId: data.linkId,
         importStripeInvoices,
-        saleAmount: data.saleAmount ? Math.round(data.saleAmount * 100) : null,
-        saleEventDate: data.saleEventDate
-          ? data.saleEventDate.toISOString()
-          : null,
-        invoiceId: data.invoiceId || null,
-        productId: data.productId || null,
+        ...(importStripeInvoices
+          ? {
+              saleAmount: null,
+              saleEventDate: null,
+              invoiceId: null,
+              productId: null,
+            }
+          : {
+              saleAmount: data.saleAmount
+                ? Math.round(data.saleAmount * 100)
+                : null,
+              saleEventDate: data.saleEventDate
+                ? data.saleEventDate.toISOString()
+                : null,
+              invoiceId: data.invoiceId || null,
+              productId: data.productId || null,
+            }),
       };
     }
 
