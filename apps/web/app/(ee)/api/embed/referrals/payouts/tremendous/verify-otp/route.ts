@@ -121,6 +121,7 @@ export const POST = withReferralsEmbedToken(
         where: {
           id: partner.id,
           defaultPayoutMethod: null,
+          payoutsEnabledAt: null,
         },
         data: {
           tremendousEmail: email,
@@ -129,6 +130,9 @@ export const POST = withReferralsEmbedToken(
         },
       }),
     ]);
+
+    // TODO:
+    // Send confirmation email to the partner
 
     return NextResponse.json({ success: true });
   },
