@@ -144,36 +144,30 @@ export async function createNewCustomer(event: Stripe.Event) {
     );
   }
 
-  // send workspace webhook
   waitUntil(
     (async () => {
-      const programEnrollment =
-        link.programId && link.partnerId
-          ? await prisma.programEnrollment
-              .findUnique({
-                where: {
-                  partnerId_programId: {
-                    partnerId: link.partnerId,
-                    programId: link.programId,
-                  },
-                },
-                include: {
-                  partner: true,
-                  links: true,
-                },
-              })
-              .catch((error) => {
-                console.error(
-                  "Failed to load program enrollment for lead webhook partner context",
-                  error,
-                );
-                return null;
-              })
-          : null;
+      let webhookPartner:
+        | ReturnType<typeof constructWebhookPartner>
+        | undefined;
 
-      const webhookPartner = programEnrollment
-        ? constructWebhookPartner(programEnrollment)
-        : undefined;
+      if (link.programId && link.partnerId) {
+        const programEnrollment = await prisma.programEnrollment.findUnique({
+          where: {
+            partnerId_programId: {
+              partnerId: link.partnerId,
+              programId: link.programId,
+            },
+          },
+          include: {
+            partner: true,
+            links: true,
+          },
+        });
+
+        webhookPartner = programEnrollment
+          ? constructWebhookPartner(programEnrollment)
+          : undefined;
+      }
 
       await Promise.allSettled([
         sendWorkspaceWebhook({
