@@ -154,6 +154,7 @@ export const { POST } = serve<Input>(
       totalSaleAmount,
       lastLeadAt,
       lastConversionAt,
+      earliestSaleAt,
       commissions,
     } = await context.run("create-commissions", async () => {
       return stepCreateCommissions({
@@ -178,6 +179,7 @@ export const { POST } = serve<Input>(
         totalSaleAmount,
         lastLeadAt,
         lastConversionAt,
+        earliestSaleAt,
         isFirstConversion,
       });
     });
@@ -383,22 +385,62 @@ async function stepRecordEvents({
     );
   }
 
-  const finalLeadEventDate =
-    body.type === "lead"
-      ? body.leadEventDate ?? new Date()
-      : body.saleEventDate ?? new Date();
-
-  const clickId = nanoid(16);
-  let clickedAt = new Date(finalLeadEventDate.getTime() - 5 * 60 * 1000);
-  const leadEventName = body.type === "lead" ? body.leadEventName : "Sign up";
-
-  let saleEvents: z.infer<typeof saleEventSchemaTBWithTimestamp>[] = [];
+  let finalLeadEventDate: Date;
   let stripeCustomerInvoices: Awaited<
     ReturnType<typeof getCustomerStripeInvoices>
   > = [];
 
+  if (body.type === "lead") {
+    finalLeadEventDate = body.leadEventDate ?? new Date();
+  } else if (body.importStripeInvoices) {
+    if (!workspace.stripeConnectId) {
+      throw new WorkflowNonRetryableError(
+        "Workspace isn't connected to Stripe yet.",
+      );
+    }
+
+    if (!customer.stripeCustomerId) {
+      throw new WorkflowNonRetryableError(
+        "Customer doesn't have a Stripe customer ID.",
+      );
+    }
+
+    stripeCustomerInvoices = await getCustomerStripeInvoices({
+      stripeCustomerId: customer.stripeCustomerId,
+      stripeConnectId: workspace.stripeConnectId,
+      programId,
+      limit: 50,
+    });
+
+    // Filter out invoices that are already associated with a commission on Dub
+    stripeCustomerInvoices = stripeCustomerInvoices.filter(
+      (invoice) => !invoice.dubCommissionId,
+    );
+
+    if (stripeCustomerInvoices.length === 0) {
+      throw new WorkflowNonRetryableError(
+        "No unimported Stripe invoices found for customer.",
+      );
+    }
+
+    // Sort invoices by created date ascending
+    stripeCustomerInvoices.sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+    );
+
+    finalLeadEventDate = stripeCustomerInvoices[0].createdAt;
+  } else {
+    finalLeadEventDate = body.saleEventDate ?? new Date();
+  }
+
+  const clickId = nanoid(16);
+  const clickedAt = new Date(finalLeadEventDate.getTime() - 5 * 60 * 1000);
+  const leadEventName = body.type === "lead" ? body.leadEventName : "Sign up";
+
+  let saleEvents: z.infer<typeof saleEventSchemaTBWithTimestamp>[] = [];
+
   // Record click event
-  let clickEvent = recordClickZodSchema.parse({
+  const clickEvent = recordClickZodSchema.parse({
     timestamp: clickedAt.toISOString(),
     identity_hash: customer.externalId || customer.id,
     click_id: clickId,
@@ -429,43 +471,7 @@ async function stepRecordEvents({
       importStripeInvoices,
     } = body;
 
-    // Import sales from Stripe invoices
     if (importStripeInvoices) {
-      if (!workspace.stripeConnectId) {
-        throw new WorkflowNonRetryableError(
-          "Workspace isn't connected to Stripe yet.",
-        );
-      }
-
-      if (!customer.stripeCustomerId) {
-        throw new WorkflowNonRetryableError(
-          "Customer doesn't have a Stripe customer ID.",
-        );
-      }
-
-      stripeCustomerInvoices = await getCustomerStripeInvoices({
-        stripeCustomerId: customer.stripeCustomerId,
-        stripeConnectId: workspace.stripeConnectId,
-        programId,
-        limit: 50,
-      });
-
-      // Filter out invoices that are already associated with a commission on Dub
-      stripeCustomerInvoices = stripeCustomerInvoices.filter(
-        (invoice) => !invoice.dubCommissionId,
-      );
-
-      if (stripeCustomerInvoices.length === 0) {
-        throw new WorkflowNonRetryableError(
-          "No unimported Stripe invoices found for customer.",
-        );
-      }
-
-      // Sort invoices by created date ascending
-      stripeCustomerInvoices.sort(
-        (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
-      );
-
       saleEvents = stripeCustomerInvoices.map((invoice) =>
         saleEventSchemaTBWithTimestamp.parse({
           ...clickEvent,
@@ -480,16 +486,7 @@ async function stepRecordEvents({
           metadata: JSON.stringify(invoice.metadata),
         }),
       );
-
-      if (saleEvents.length > 0) {
-        clickedAt = new Date(
-          new Date(saleEvents[0].timestamp).getTime() - 5 * 60 * 1000,
-        );
-      }
-    }
-
-    // Prepare sale event if requested
-    else if (saleAmount) {
+    } else if (saleAmount) {
       saleEvents = [
         saleEventSchemaTBWithTimestamp.parse({
           ...clickEvent,
@@ -506,11 +503,6 @@ async function stepRecordEvents({
       ];
     }
   }
-
-  clickEvent = {
-    ...clickEvent,
-    timestamp: clickedAt.toISOString(),
-  };
 
   await recordClickZod(clickEvent);
 
@@ -577,10 +569,6 @@ async function stepCreateCommissions({
     throw new WorkflowNonRetryableError(`User ${userId} not found.`);
   }
 
-  let commissions: Pick<Commission, "id" | "type" | "earnings" | "amount">[] =
-    [];
-  let lastLeadAt: Date | undefined = undefined;
-  let lastConversionAt: Date | undefined = undefined;
   const commissionsToCreate: CreatePartnerCommissionProps[] = [];
 
   // Lead commission
@@ -640,6 +628,9 @@ async function stepCreateCommissions({
     throw new WorkflowNonRetryableError("No commissions to create.");
   }
 
+  let commissions: Pick<Commission, "id" | "type" | "earnings" | "amount">[] =
+    [];
+
   // Create commissions one by one
   for (const commissionToCreate of commissionsToCreate) {
     const { commission } = await createPartnerCommission(commissionToCreate);
@@ -667,13 +658,22 @@ async function stepCreateCommissions({
     },
   );
 
+  let lastLeadAt: Date | undefined = undefined;
+  let lastConversionAt: Date | undefined = undefined;
+
   if (leadEvent) {
     lastLeadAt = new Date(leadEvent.timestamp);
   }
 
+  const earliestSaleAt =
+    saleEvents.length > 0
+      ? new Date(
+          Math.min(...saleEvents.map((e) => new Date(e.timestamp).getTime())),
+        )
+      : undefined;
+
   if (saleEvents.length > 0) {
-    lastLeadAt = new Date(saleEvents[0].timestamp);
-    lastConversionAt = new Date(saleEvents[0].timestamp);
+    lastConversionAt = earliestSaleAt;
   }
 
   return {
@@ -682,6 +682,7 @@ async function stepCreateCommissions({
     totalSaleAmount,
     lastLeadAt,
     lastConversionAt,
+    earliestSaleAt,
   };
 }
 
@@ -692,6 +693,7 @@ async function stepUpdateStats({
   clickEvent,
   lastLeadAt,
   lastConversionAt,
+  earliestSaleAt,
   totalSales,
   totalSaleAmount,
   isFirstConversion,
@@ -699,6 +701,7 @@ async function stepUpdateStats({
   clickEvent: { id: string; timestamp: string };
   lastLeadAt: Date | undefined;
   lastConversionAt: Date | undefined;
+  earliestSaleAt: Date | undefined;
   totalSales: number;
   totalSaleAmount: number;
   isFirstConversion: boolean;
@@ -755,11 +758,11 @@ async function stepUpdateStats({
         saleAmount: {
           increment: totalSaleAmount,
         },
-        ...(type === CommissionType.sale && {
-          firstSaleAt: customer.firstSaleAt
-            ? undefined
-            : lastConversionAt ?? new Date(),
-        }),
+        ...(type === CommissionType.sale &&
+          !customer.firstSaleAt &&
+          earliestSaleAt && {
+            firstSaleAt: earliestSaleAt,
+          }),
       },
     }),
   ]);
