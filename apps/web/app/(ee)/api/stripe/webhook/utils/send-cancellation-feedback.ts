@@ -1,3 +1,4 @@
+import { isBlacklistedEmail } from "@/lib/edge-config";
 import { sendEmail } from "@dub/email";
 import Stripe from "stripe";
 
@@ -21,6 +22,15 @@ export async function sendCancellationFeedback({
   }[];
   reason?: Stripe.Subscription.CancellationDetails.Feedback | null;
 }) {
+  const isBlacklistedCancellation = await isBlacklistedEmail(
+    owners.filter(({ email }) => email).map(({ email }) => email!),
+  );
+
+  if (isBlacklistedCancellation) {
+    console.log("Blacklisted cancellation, skipping feedback email...");
+    return;
+  }
+
   const reasonText = reason ? cancellationReasonMap[reason] : "";
 
   return await Promise.all(
