@@ -67,12 +67,14 @@ export async function POST(req: Request) {
 
     // Fetch partners in batches and build CSV
     const allPartners: any[] = [];
-    const partnersFilters = {
-      ...filters,
-      programId,
-    };
 
-    for await (const { partners } of fetchPartnersBatch(partnersFilters)) {
+    for await (const { partners } of fetchPartnersBatch({
+      filters: {
+        ...filters,
+        programId,
+      },
+      columns,
+    })) {
       allPartners.push(...formatPartnersForExport(partners, columns));
     }
 
