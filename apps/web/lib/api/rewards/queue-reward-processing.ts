@@ -29,7 +29,7 @@ export const rewardJobSchema = z.object({
   }),
 });
 
-export type RewardJob = z.infer<typeof rewardJobSchema>;
+export type RewardJob = z.input<typeof rewardJobSchema>;
 
 export async function queueRewardProcessing(params: RewardJob) {
   try {
