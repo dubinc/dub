@@ -32,16 +32,16 @@ export const rewardJobSchema = z.object({
 export type RewardJob = z.infer<typeof rewardJobSchema>;
 
 export async function queueRewardProcessing(params: RewardJob) {
-  // If version is provided (recursive cron job), use it, otherwise increment the version
-  const version =
-    params.version !== undefined
-      ? params.version
-      : await incrementRewardVersion({
-          groupId: params.groupId,
-          event: params.rewardSnapshot.event,
-        });
-
   try {
+    // If version is provided (recursive cron job), use it, otherwise increment the version
+    const version =
+      params.version !== undefined
+        ? params.version
+        : await incrementRewardVersion({
+            groupId: params.groupId,
+            event: params.rewardSnapshot.event,
+          });
+
     const response = await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/rewards/process`,
       method: "POST",
