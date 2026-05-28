@@ -7,7 +7,7 @@ import { CreateOrder200Response, OrdersApi } from "tremendous";
 import { trackCommissionStatusUpdatesByProgram } from "../api/commissions/track-commission-update-activity-log";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
-import { tremendousConfiguration, tremendousEnv } from "./env";
+import { tremendousConfiguration, tremendousEnv } from "./configuration";
 
 export async function sendTremendousPayouts({
   partnerId,
