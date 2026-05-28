@@ -114,8 +114,10 @@ export async function sendTremendousPayouts({
   const reward = order.rewards?.[0];
   const redeemUrl = reward?.delivery?.link;
 
-  if (order.status === "CANCELED" || order.status === "FAILED") {
-    console.error(`Failed to create Tremendous order: ${order.status}`);
+  if (order.status !== "EXECUTED") {
+    console.error(
+      `Tremendous order ${order.id} status is not EXECUTED: ${order.status}`,
+    );
     return;
   }
 
@@ -152,7 +154,7 @@ export async function sendTremendousPayouts({
       data: {
         tremendousOrderId: order.id,
         tremendousRewardId: reward.id,
-        status: "sent",
+        status: "completed",
         paidAt: new Date(),
         method: "tremendous",
       },
