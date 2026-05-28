@@ -25,16 +25,14 @@ export async function markApplicationEventSubmitted({
     return;
   }
 
-  const where = {
-    ...(applicationEventId
-      ? { id: applicationEventId }
-      : { programId, partnerId }),
-    submittedAt: null,
-  } as const;
-
   try {
     await prisma.programApplicationEvent.updateMany({
-      where,
+      where: {
+        ...(applicationEventId
+          ? { id: applicationEventId }
+          : { programId, partnerId }),
+        submittedAt: null,
+      },
       data: {
         partnerId,
         submittedAt: new Date(),
