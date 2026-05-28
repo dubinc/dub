@@ -1,7 +1,11 @@
-export function formatAnalyticsForExport(rows: Record<string, any>[]) {
+export function formatProgramAnalyticsForExport(rows: Record<string, any>[]) {
   return rows.map(({ groupByField: _groupByField, ...row }) => {
     if (row.partner) {
-      row.partner = { name: row.partner.name, country: row.partner.country };
+      row.partner = {
+        name: row.partner.name,
+        email: row.partner.email,
+        country: row.partner.country,
+      };
     }
 
     if (row.group) {

@@ -2,7 +2,6 @@ import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { convertToCSV } from "@/lib/analytics/utils";
-import { formatAnalyticsForExport } from "@/lib/analytics/utils/format-analytics-for-export";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
@@ -108,8 +107,19 @@ export const GET = withPartnerProfile(
         // no need to fetch top links data if there's a link specified
         // since this is just a single link
         if (endpoint === "top_links" && linkId) return;
-        // skip clicks count
-        if (endpoint === "count") return;
+        // skip other irrelevant endpoints for partner profile analytics export
+        if (
+          [
+            "count",
+            "top_partners",
+            "top_groups",
+            "top_partner_tags",
+            "top_folders",
+            "top_link_tags",
+          ].includes(endpoint)
+        ) {
+          return;
+        }
 
         const response = await getAnalytics({
           ...parsedParams,
@@ -125,7 +135,7 @@ export const GET = withPartnerProfile(
 
         if (!response || response.length === 0) return;
 
-        const csvData = convertToCSV(formatAnalyticsForExport(response));
+        const csvData = convertToCSV(response);
         zip.file(`${endpoint}.csv`, csvData);
       }),
     );
