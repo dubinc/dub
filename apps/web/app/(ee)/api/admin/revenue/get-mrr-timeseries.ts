@@ -1,4 +1,4 @@
-import { differenceInDays } from "date-fns";
+import { differenceInDays, min } from "date-fns";
 
 type RevenueGranularity = "day" | "month";
 
@@ -7,7 +7,7 @@ type StripeMetricQueryResponse = {
     timestamp: string;
     results: {
       name?: string;
-      value: number;
+      value: string;
     }[];
   }[];
 };
@@ -58,7 +58,7 @@ export async function getMrrByBucket({
   granularity: RevenueGranularity;
 }) {
   if (!process.env.STRIPE_SECRET_KEY) {
-    return new Map<string, number>();
+    throw new Error("Missing STRIPE_SECRET_KEY.");
   }
 
   const response = await fetch(
@@ -72,8 +72,9 @@ export async function getMrrByBucket({
       },
       body: JSON.stringify({
         metrics: [{ name: "revenue.mrr" }],
-        starts_at: startDate.toISOString(),
-        ends_at: endDate.toISOString(),
+        starts_at: startDate,
+        // make sure end date is not in the future
+        ends_at: min([endDate, new Date()]),
         granularity: getStripeGranularity({ granularity, startDate, endDate }),
         currency: "usd",
       }),
@@ -88,11 +89,20 @@ export async function getMrrByBucket({
     const lookup = new Map<string, number>();
     (responseBody as StripeMetricQueryResponse).data?.forEach((row) => {
       const key = getBucketKey(row.timestamp, granularity);
-      const mrr =
-        row.results.find((result) => result.name === "revenue.mrr")?.value ?? 0;
+      const mrr = parseInt(
+        row.results.find((result) => result.name === "revenue.mrr")?.value ??
+          "0",
+      );
       lookup.set(key, (lookup.get(key) ?? 0) + mrr);
     });
     return lookup;
   }
-  return new Map<string, number>();
+
+  const stripeError = (responseBody as StripeErrorResponse).error;
+  const stripeMessage =
+    stripeError?.message ??
+    `Stripe MRR metric query failed with status ${response.status}.`;
+  const stripeCode = stripeError?.code ? ` [${stripeError.code}]` : "";
+
+  throw new Error(`${stripeMessage}${stripeCode}`);
 }

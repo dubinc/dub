@@ -263,6 +263,18 @@ export const createPartnerCommission = async ({
     }
   }
 
+  // skip commission creation if the earnings is zero
+  if (earnings === 0) {
+    console.log(
+      `Partner ${partnerId} has zero earnings for ${event} event, skipping commission creation...`,
+    );
+    return {
+      commission: null,
+      programEnrollment,
+      webhookPartner: constructWebhookPartner(programEnrollment),
+    };
+  }
+
   try {
     const commission = await prisma.commission.create({
       data: {
@@ -342,7 +354,7 @@ export const createPartnerCommission = async ({
         });
 
         const { workspace } = program;
-        const isClawback = earnings < 0;
+        const isClawback = commission.earnings < 0;
         const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
 
         await Promise.allSettled([
