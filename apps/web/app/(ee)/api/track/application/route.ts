@@ -198,7 +198,7 @@ async function trackVisitEvent({
     }
 
     const isSelfReferral =
-      partnerId && referredByPartner?.id && partnerId === referredByPartner.id;
+      referredByPartner?.id && partnerId === referredByPartner.id;
 
     if (isSelfReferral) {
       console.log(
