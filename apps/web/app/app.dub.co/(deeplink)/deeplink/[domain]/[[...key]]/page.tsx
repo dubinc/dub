@@ -21,6 +21,16 @@ import { DeepLinkActionButtons } from "./action-buttons";
 import { BrandLogoBadge } from "./brand-logo-badge";
 import { getLanguage, getTranslations } from "./translations";
 
+const ANDROID_PACKAGE_NAME_REGEX =
+  /^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/;
+
+interface AssetLink {
+  target?: {
+    namespace?: string;
+    package_name?: string;
+  };
+}
+
 export default async function DeepLinkPreviewPage(props: {
   params: Promise<{ domain: string; key?: string[] }>;
 }) {
@@ -96,6 +106,23 @@ export default async function DeepLinkPreviewPage(props: {
   // This should never happen
   if (!link) {
     redirect(`https://${domain}`);
+  }
+
+  let androidPackageName: string | null = null;
+
+  if (platform === "android" && Array.isArray(link.shortDomain.assetLinks)) {
+    for (const assetLink of link.shortDomain.assetLinks as Array<AssetLink>) {
+      const packageName = assetLink?.target?.package_name;
+
+      if (
+        assetLink?.target?.namespace === "android_app" &&
+        typeof packageName === "string" &&
+        ANDROID_PACKAGE_NAME_REGEX.test(packageName)
+      ) {
+        androidPackageName = packageName;
+        break;
+      }
+    }
   }
 
   const {
@@ -205,6 +232,8 @@ export default async function DeepLinkPreviewPage(props: {
             <DeepLinkActionButtons
               link={link}
               language={language}
+              platform={platform}
+              androidPackageName={androidPackageName}
               buttonStyle={buttonStyle}
             />
           </div>
