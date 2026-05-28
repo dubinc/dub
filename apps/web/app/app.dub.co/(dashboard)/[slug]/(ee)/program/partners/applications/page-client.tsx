@@ -349,7 +349,6 @@ export function ProgramPartnersApplicationsPageClient() {
         set: {
           partnerId: row.original.id,
         },
-        scroll: false,
       });
     },
     pagination,
@@ -366,7 +365,6 @@ export function ProgramPartnersApplicationsPageClient() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
 
     getRowId: (row) => row.id,
@@ -437,7 +435,6 @@ export function ProgramPartnersApplicationsPageClient() {
               ? () =>
                   queryParams({
                     set: { partnerId: previousPartnerId },
-                    scroll: false,
                   })
               : undefined
           }
@@ -446,7 +443,6 @@ export function ProgramPartnersApplicationsPageClient() {
               ? () =>
                   queryParams({
                     set: { partnerId: nextPartnerId },
-                    scroll: false,
                   })
               : undefined
           }
