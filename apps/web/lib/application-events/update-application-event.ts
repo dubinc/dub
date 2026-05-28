@@ -33,24 +33,12 @@ export async function markApplicationEventSubmitted({
   } as const;
 
   try {
-    const applicationEvent = await prisma.programApplicationEvent.findFirst({
-      where,
-      select: {
-        referredByPartnerId: true,
-      },
-    });
-
     await prisma.programApplicationEvent.updateMany({
       where,
       data: {
         partnerId,
         submittedAt: new Date(),
         programApplicationId: applicationId,
-        ...(partnerId &&
-        applicationEvent?.referredByPartnerId &&
-        partnerId === applicationEvent.referredByPartnerId
-          ? { referredByPartnerId: null }
-          : {}),
       },
     });
   } catch {}
