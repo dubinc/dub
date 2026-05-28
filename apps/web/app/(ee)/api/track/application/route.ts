@@ -175,6 +175,40 @@ async function trackVisitEvent({
   }
 
   const session = await getSession();
+  const partnerId = session?.user?.defaultPartnerId;
+
+  if (partnerId) {
+    const existingEnrollment = await prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId: program.id,
+        },
+      },
+      select: {
+        partnerId: true,
+      },
+    });
+
+    if (existingEnrollment) {
+      console.log(
+        `Partner ${partnerId} is already enrolled in program ${program.id}. Skipping visit tracking...`,
+      );
+      return;
+    }
+
+    if (
+      partnerId &&
+      referredByPartner?.id &&
+      partnerId === referredByPartner.id
+    ) {
+      console.log(
+        `Self-referral detected for partner ${partnerId} on program ${program.id}. Skipping visit tracking...`,
+      );
+      return;
+    }
+  }
+
   const requestContext = await getRequestContext(req, { referrer, url });
 
   try {
@@ -189,7 +223,7 @@ async function trackVisitEvent({
               ? getDomainWithoutWWW(referrer) || "direct"
               : "direct",
           referredByPartnerId: referredByPartner?.id,
-          partnerId: session?.user?.defaultPartnerId,
+          partnerId,
           visitedAt: new Date(),
           country: requestContext.country,
           metadata: requestContext,
@@ -293,6 +327,13 @@ async function trackStartEvent({
   const partnerId = session?.user?.defaultPartnerId;
 
   try {
+    const applicationEvent = partnerId
+      ? await prisma.programApplicationEvent.findUnique({
+          where: { id: eventId },
+          select: { referredByPartnerId: true },
+        })
+      : null;
+
     await prisma.programApplicationEvent.update({
       where: {
         id: eventId,
@@ -301,6 +342,11 @@ async function trackStartEvent({
       data: {
         startedAt: new Date(),
         ...(partnerId ? { partnerId } : {}),
+        ...(partnerId &&
+        applicationEvent?.referredByPartnerId &&
+        partnerId === applicationEvent.referredByPartnerId
+          ? { referredByPartnerId: null }
+          : {}),
       },
     });
 

@@ -25,18 +25,32 @@ export async function markApplicationEventSubmitted({
     return;
   }
 
+  const where = {
+    ...(applicationEventId
+      ? { id: applicationEventId }
+      : { programId, partnerId }),
+    submittedAt: null,
+  } as const;
+
   try {
-    await prisma.programApplicationEvent.updateMany({
-      where: {
-        ...(applicationEventId
-          ? { id: applicationEventId }
-          : { programId, partnerId }),
-        submittedAt: null,
+    const applicationEvent = await prisma.programApplicationEvent.findFirst({
+      where,
+      select: {
+        referredByPartnerId: true,
       },
+    });
+
+    await prisma.programApplicationEvent.updateMany({
+      where,
       data: {
         partnerId,
         submittedAt: new Date(),
         programApplicationId: applicationId,
+        ...(partnerId &&
+        applicationEvent?.referredByPartnerId &&
+        partnerId === applicationEvent.referredByPartnerId
+          ? { referredByPartnerId: null }
+          : {}),
       },
     });
   } catch {}
