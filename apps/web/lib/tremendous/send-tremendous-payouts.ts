@@ -46,6 +46,8 @@ export async function sendTremendousPayouts({
       status: "processing",
       mode: "internal",
       method: "tremendous",
+      tremendousRewardId: null,
+      tremendousOrderId: null,
     },
     include: {
       program: {
@@ -84,7 +86,7 @@ export async function sendTremendousPayouts({
 
   const ordersApi = new OrdersApi(tremendousConfiguration);
 
-  const { order } = await ordersApi.createOrder({
+  const { data } = await ordersApi.createOrder({
     external_id: idempotencyKey,
     payment: {
       funding_source_id: "balance",
@@ -108,8 +110,14 @@ export async function sendTremendousPayouts({
     },
   });
 
-  const orderData = order as CreateOrder200Response;
-  const redeemUrl = orderData.order.rewards?.[0]?.delivery?.link;
+  const { order } = data as CreateOrder200Response;
+  const reward = order.rewards?.[0];
+  const redeemUrl = reward?.delivery?.link;
+
+  if (order.status === "CANCELED" || order.status === "FAILED") {
+    console.error(`Failed to create Tremendous order: ${order.status}`);
+    return;
+  }
 
   if (!redeemUrl) {
     console.error(`No redeem URL found for Tremendous order: ${order.id}`);
@@ -118,11 +126,6 @@ export async function sendTremendousPayouts({
 
   // TODO:
   // Handle errors
-
-  if (order.status === "CANCELED" || order.status === "FAILED") {
-    console.error(`Failed to create Tremendous order: ${order.status}`);
-    return;
-  }
 
   const commissions = await prisma.commission.findMany({
     where: {
@@ -148,6 +151,7 @@ export async function sendTremendousPayouts({
       },
       data: {
         tremendousOrderId: order.id,
+        tremendousRewardId: reward.id,
         status: "sent",
         paidAt: new Date(),
         method: "tremendous",
