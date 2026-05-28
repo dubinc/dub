@@ -3,7 +3,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { useRouterStuff } from "@dub/ui";
+import { Badge, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { cn, currencyFormatter, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
@@ -46,9 +46,6 @@ function RevenuePageClient() {
   const { getQueryString, queryParams, searchParamsObj } = useRouterStuff();
   const { interval, start, end, tab } = searchParamsObj;
   const selectedTab = isRevenueTab(tab) ? tab : "totalRevenue";
-  const selectedTabConfig =
-    revenueTabs.find((revenueTab) => revenueTab.id === selectedTab) ??
-    revenueTabs[0];
 
   const { data: { timeseries } = {}, isLoading } = useSWR<{
     timeseries: {
@@ -61,34 +58,97 @@ function RevenuePageClient() {
     keepPreviousData: true,
   });
 
+  const previousPeriodQueryString = useMemo(() => {
+    if (!timeseries || timeseries.length === 0) {
+      return null;
+    }
+
+    const getUtcMonthStart = (date: Date) =>
+      new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+
+    const currentStartOfMonth = getUtcMonthStart(new Date(timeseries[0].date));
+    const previousEnd = new Date(currentStartOfMonth.getTime() - 1);
+    const previousStart = getUtcMonthStart(previousEnd);
+
+    const toDateParam = (date: Date) => date.toISOString().slice(0, 10);
+
+    return getQueryString({
+      start: toDateParam(previousStart),
+      end: toDateParam(previousEnd),
+    });
+  }, [getQueryString, timeseries]);
+
+  const {
+    data: { timeseries: previousPeriodTimeseries } = {},
+    isLoading: isPreviousPeriodLoading,
+  } = useSWR<{
+    timeseries: {
+      date: Date;
+      mrr: number;
+      payoutFees: number;
+      totalRevenue: number;
+    }[];
+  }>(
+    previousPeriodQueryString
+      ? `/api/admin/revenue${previousPeriodQueryString}`
+      : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
   const chartData =
     timeseries?.map(({ date, ...values }) => ({
       date: new Date(date),
       values,
     })) ?? null;
 
-  const totals = useMemo(
-    () => ({
-      totalRevenue:
-        timeseries?.reduce(
-          (acc, { totalRevenue }) => acc + (totalRevenue || 0),
-          0,
-        ) ?? 0,
-      mrr: timeseries?.reduce((acc, { mrr }) => acc + (mrr || 0), 0) ?? 0,
-      payoutFees:
-        timeseries?.reduce(
-          (acc, { payoutFees }) => acc + (payoutFees || 0),
-          0,
-        ) ?? 0,
-    }),
-    [timeseries],
-  );
+  const totals = useMemo(() => {
+    const finalMrr = timeseries?.[timeseries.length - 1]?.mrr ?? 0;
+    const finalPayoutFees =
+      timeseries?.[timeseries.length - 1]?.payoutFees ?? 0;
+    return {
+      totalRevenue: finalMrr + finalPayoutFees,
+      mrr: finalMrr,
+      payoutFees: finalPayoutFees,
+    };
+  }, [timeseries]);
+
+  const percentChanges = useMemo(() => {
+    const getPercentChange = (key: RevenueTab) => {
+      if (!timeseries || timeseries.length === 0 || isPreviousPeriodLoading) {
+        return null;
+      }
+
+      if (!previousPeriodTimeseries || previousPeriodTimeseries.length === 0) {
+        return null;
+      }
+
+      const previousFinal =
+        previousPeriodTimeseries[previousPeriodTimeseries.length - 1]?.[key] ??
+        0;
+      const currentFinal = timeseries[timeseries.length - 1]?.[key] ?? 0;
+
+      if (previousFinal === 0) {
+        return currentFinal === 0 ? 0 : null;
+      }
+
+      return (currentFinal / previousFinal - 1) * 100;
+    };
+
+    return {
+      totalRevenue: getPercentChange("totalRevenue"),
+      mrr: getPercentChange("mrr"),
+      payoutFees: getPercentChange("payoutFees"),
+    };
+  }, [isPreviousPeriodLoading, previousPeriodTimeseries, timeseries]);
 
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-col space-y-6 p-6">
       <SimpleDateRangePicker
-        defaultInterval="mtd"
-        presets={["30d", "90d", "mtd", "qtd", "ytd", "1y", "all"]}
+        defaultInterval="30d"
+        presets={["30d", "mtd", "qtd", "ytd", "1y", "all"]}
         className="w-fit"
       />
       <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
@@ -121,16 +181,33 @@ function RevenuePageClient() {
               </div>
               <div className="mt-1 flex h-12 items-center">
                 {(totals[id] || totals[id] === 0) && !isLoading ? (
-                  <NumberFlow
-                    value={(totals[id] ?? 0) / 100}
-                    className="text-xl font-medium sm:text-3xl"
-                    format={{
-                      style: "currency",
-                      currency: "USD",
-                      // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                      trailingZeroDisplay: "stripIfInteger",
-                    }}
-                  />
+                  <div className="flex items-center gap-2">
+                    <NumberFlow
+                      value={(totals[id] ?? 0) / 100}
+                      className="text-xl font-medium sm:text-3xl"
+                      format={{
+                        style: "currency",
+                        currency: "USD",
+                        // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                        trailingZeroDisplay: "stripIfInteger",
+                      }}
+                    />
+                    {percentChanges[id] !== null ? (
+                      <Badge
+                        variant={
+                          percentChanges[id] >= 0
+                            ? "green"
+                            : percentChanges[id] < 0
+                              ? "red"
+                              : "neutral"
+                        }
+                        className="rounded-md px-2 py-1 text-xs"
+                      >
+                        {percentChanges[id] >= 0 ? "+" : ""}
+                        {percentChanges[id].toFixed(1)}%
+                      </Badge>
+                    ) : null}
+                  </div>
                 ) : (
                   <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
                 )}
@@ -154,16 +231,13 @@ function RevenuePageClient() {
                     {
                       id: "mrr",
                       valueAccessor: (d) => d.values.mrr,
-                      isActive:
-                        selectedTab === "mrr" || selectedTab === "totalRevenue",
+                      isActive: selectedTab === "mrr",
                       colorClassName: revenueTabs[1].colorClassName,
                     },
                     {
                       id: "payoutFees",
                       valueAccessor: (d) => d.values.payoutFees,
-                      isActive:
-                        selectedTab === "payoutFees" ||
-                        selectedTab === "totalRevenue",
+                      isActive: selectedTab === "payoutFees",
                       colorClassName: revenueTabs[2].colorClassName,
                     },
                   ]}
