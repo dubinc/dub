@@ -63,7 +63,7 @@ export const sendPartnerPostback = async ({
     }
   });
 
-  await Promise.allSettled(
+  return await Promise.allSettled(
     adapters.map((adapter) =>
       adapter.execute({
         event,

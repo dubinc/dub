@@ -136,11 +136,11 @@ export const createPartnerCommission = async ({
 
     // if there is no reward, skip commission creation
     if (!reward) {
-      console.log(
-        `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
-      );
+      const outputLog = `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`;
+      console.log(outputLog);
       return {
         commission: null,
+        outputLog,
         programEnrollment,
         webhookPartner: constructWebhookPartner(programEnrollment),
       };
@@ -158,11 +158,11 @@ export const createPartnerCommission = async ({
       if (firstCommission) {
         // if first commission is fraud or canceled, skip commission creation
         if (["fraud", "canceled"].includes(firstCommission.status)) {
-          console.log(
-            `Partner ${partnerId} has a first commission that is ${firstCommission.status}, skipping commission creation...`,
-          );
+          const outputLog = `Partner ${partnerId} has a first commission that is ${firstCommission.status}, skipping commission creation...`;
+          console.log(outputLog);
           return {
             commission: null,
+            outputLog,
             programEnrollment,
             webhookPartner: constructWebhookPartner(programEnrollment),
           };
@@ -170,12 +170,11 @@ export const createPartnerCommission = async ({
 
         // for lead events, we need to check if the partner has already been issued a lead reward for this customer
         if (event === "lead") {
-          console.log(
-            `Partner ${partnerId} has already been issued a lead reward for this customer ${customerId}, skipping commission creation...`,
-          );
-
+          const outputLog = `Partner ${partnerId} has already been issued a lead reward for this customer ${customerId}, skipping commission creation...`;
+          console.log(outputLog);
           return {
             commission: null,
+            outputLog,
             programEnrollment,
             webhookPartner: constructWebhookPartner(programEnrollment),
           };
@@ -201,11 +200,11 @@ export const createPartnerCommission = async ({
               typeof originalReward?.maxDuration === "number" &&
               originalReward.maxDuration === 0
             ) {
-              console.log(
-                `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`,
-              );
+              const outputLog = `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`;
+              console.log(outputLog);
               return {
                 commission: null,
+                outputLog,
                 programEnrollment,
                 webhookPartner: constructWebhookPartner(programEnrollment),
               };
@@ -217,12 +216,12 @@ export const createPartnerCommission = async ({
           if (typeof reward?.maxDuration === "number") {
             // One-time sale reward (maxDuration === 0)
             if (reward.maxDuration === 0) {
-              console.log(
-                `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
-              );
+              const outputLog = `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`;
+              console.log(outputLog);
 
               return {
                 commission: null,
+                outputLog,
                 programEnrollment,
                 webhookPartner: constructWebhookPartner(programEnrollment),
               };
@@ -236,12 +235,12 @@ export const createPartnerCommission = async ({
               );
 
               if (subscriptionDurationMonths >= reward.maxDuration) {
-                console.log(
-                  `Partner ${partnerId} has reached max duration for ${event} event (subscription duration: ${subscriptionDurationMonths} months, max duration: ${reward.maxDuration} months), skipping commission creation...`,
-                );
+                const outputLog = `Partner ${partnerId} has reached max duration for ${event} event (subscription duration: ${subscriptionDurationMonths} months, max duration: ${reward.maxDuration} months), skipping commission creation...`;
+                console.log(outputLog);
 
                 return {
                   commission: null,
+                  outputLog,
                   programEnrollment,
                   webhookPartner: constructWebhookPartner(programEnrollment),
                 };
@@ -262,6 +261,18 @@ export const createPartnerCommission = async ({
         });
       }
     }
+  }
+
+  // skip commission creation if the earnings is zero
+  if (earnings === 0) {
+    console.log(
+      `Partner ${partnerId} has zero earnings for ${event} event, skipping commission creation...`,
+    );
+    return {
+      commission: null,
+      programEnrollment,
+      webhookPartner: constructWebhookPartner(programEnrollment),
+    };
   }
 
   try {
@@ -298,9 +309,9 @@ export const createPartnerCommission = async ({
       },
     });
 
-    console.log(
-      `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings, { currency: commission.currency })}) for ${partnerId}: ${prettyPrint(commission)}`,
-    );
+    const outputLog = `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings, { currency: commission.currency })}) for ${partnerId}`;
+    console.log(outputLog);
+    console.log(prettyPrint(commission));
 
     const webhookPartner = constructWebhookPartner(programEnrollment, {
       // check links metrics
@@ -343,7 +354,7 @@ export const createPartnerCommission = async ({
         });
 
         const { workspace } = program;
-        const isClawback = earnings < 0;
+        const isClawback = commission.earnings < 0;
         const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
 
         await Promise.allSettled([
@@ -420,16 +431,18 @@ export const createPartnerCommission = async ({
 
     return {
       commission,
+      outputLog,
       programEnrollment,
       webhookPartner,
     };
   } catch (error) {
-    console.error("Error creating commission", error);
+    const outputLog = `Error creating commission - ${error.message}`;
+    console.error(outputLog);
 
     // only log to Slack if the error is not a unique constraint violation
     if (error.code !== "P2002") {
       await log({
-        message: `Error creating commission - ${error.message}`,
+        message: outputLog,
         type: "errors",
         mention: true,
       });
@@ -437,6 +450,7 @@ export const createPartnerCommission = async ({
 
     return {
       commission: null,
+      outputLog,
       programEnrollment,
       webhookPartner: constructWebhookPartner(programEnrollment),
     };

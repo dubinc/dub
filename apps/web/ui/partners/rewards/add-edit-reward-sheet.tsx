@@ -309,7 +309,7 @@ function RewardSheetContent({
     updateRewardAction,
     {
       onSuccess: async () => {
-        queryParams({ del: "rewardId", scroll: false });
+        queryParams({ del: "rewardId" });
         toast.success("Reward updated!");
         await mutateProgram();
         await mutateGroup();
@@ -825,7 +825,7 @@ export function RewardSheet({
       open={isOpen}
       onOpenChange={rest.setIsOpen}
       nested={nested}
-      onClose={() => queryParams({ del: "rewardId", scroll: false })}
+      onClose={() => queryParams({ del: "rewardId" })}
     >
       <RewardSheetContent {...rest} />
     </Sheet>

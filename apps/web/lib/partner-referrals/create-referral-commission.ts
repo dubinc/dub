@@ -27,6 +27,13 @@ export const createReferralCommission = async (
   const { sourceCommission, programId, partnerId, referredByPartnerId } =
     context;
 
+  if (partnerId && referredByPartnerId && partnerId === referredByPartnerId) {
+    console.log(
+      `Skipping referral commission creation for self-referral (partner ${partnerId}).`,
+    );
+    return null;
+  }
+
   if (programId === NETWORK_PROGRAM_ID) {
     console.log(
       `Skipping referral commission creation for network program ${programId}...`,
