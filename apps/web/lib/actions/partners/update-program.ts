@@ -62,6 +62,10 @@ export const updateProgramAction = authActionClient
       },
     });
 
+    if (updatedProgram.termsUrl !== program.termsUrl) {
+      revalidatePath(`/partners.dub.co/${program.slug}/apply`);
+    }
+
     waitUntil(
       (async () => {
         await recordAuditLog({
@@ -78,10 +82,6 @@ export const updateProgramAction = authActionClient
             },
           ],
         });
-
-        if (updatedProgram.termsUrl !== program.termsUrl) {
-          revalidatePath(`/partners.dub.co/${program.slug}/apply`);
-        }
       })(),
     );
 
