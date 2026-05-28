@@ -24,7 +24,7 @@ function SettingsErrorAlert({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="border-border-error bg-bg-error/40 text-content-error mb-3 flex items-start gap-2 rounded-lg border px-3 py-2.5"
+      className="bg-bg-error text-content-error mb-3 flex items-start gap-2 rounded-lg border border-red-200 px-3 py-2.5"
     >
       <AlertCircleFill className="mt-0.5 size-4 shrink-0" />
       <p className="text-sm font-medium leading-5">{message}</p>
@@ -103,7 +103,7 @@ function TremendousEmailForm({
         <div className="min-w-0 flex-1 space-y-1.5">
           <label
             htmlFor="tremendous-email"
-            className="text-content-emphasis block text-xs font-medium"
+            className="text-content-emphasis block text-sm font-medium"
           >
             Email
           </label>
