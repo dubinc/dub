@@ -197,11 +197,10 @@ async function trackVisitEvent({
       return;
     }
 
-    if (
-      partnerId &&
-      referredByPartner?.id &&
-      partnerId === referredByPartner.id
-    ) {
+    const isSelfReferral =
+      partnerId && referredByPartner?.id && partnerId === referredByPartner.id;
+
+    if (isSelfReferral) {
       console.log(
         `Self-referral detected for partner ${partnerId} on program ${program.id}. Skipping visit tracking...`,
       );
@@ -329,10 +328,19 @@ async function trackStartEvent({
   try {
     const applicationEvent = partnerId
       ? await prisma.programApplicationEvent.findUnique({
-          where: { id: eventId },
-          select: { referredByPartnerId: true },
+          where: {
+            id: eventId,
+          },
+          select: {
+            referredByPartnerId: true,
+          },
         })
       : null;
+
+    const isSelfReferral =
+      partnerId &&
+      applicationEvent?.referredByPartnerId &&
+      partnerId === applicationEvent.referredByPartnerId;
 
     await prisma.programApplicationEvent.update({
       where: {
@@ -342,11 +350,7 @@ async function trackStartEvent({
       data: {
         startedAt: new Date(),
         ...(partnerId ? { partnerId } : {}),
-        ...(partnerId &&
-        applicationEvent?.referredByPartnerId &&
-        partnerId === applicationEvent.referredByPartnerId
-          ? { referredByPartnerId: null }
-          : {}),
+        ...(isSelfReferral ? { referredByPartnerId: null } : {}),
       },
     });
 
