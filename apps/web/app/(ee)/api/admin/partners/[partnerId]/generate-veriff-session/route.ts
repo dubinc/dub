@@ -8,7 +8,7 @@ import { prisma } from "@dub/prisma";
 import { addDays } from "date-fns";
 import { NextResponse } from "next/server";
 
-// POST /api/admin/partners/[partnerId]/identity-verification
+// POST /api/admin/partners/[partnerId]/generate-veriff-session
 export const POST = withAdmin(
   async ({ params }) => {
     const { partnerId } = params;

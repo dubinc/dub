@@ -1,10 +1,9 @@
 "use client";
 
-import { deepViewDataSchema } from "@/lib/zod/schemas/deep-links";
+import { DeepViewData } from "@/lib/zod/schemas/deep-links";
 import { Link } from "@dub/prisma/client";
 import { Button, useCopyToClipboard } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
-import * as z from "zod/v4";
 import { getTranslations, Language } from "./translations";
 
 export function DeepLinkActionButtons({
@@ -18,7 +17,7 @@ export function DeepLinkActionButtons({
   language: Language;
   platform: "ios" | "android";
   androidPackageName: string | null;
-  buttonStyle?: z.infer<typeof deepViewDataSchema>["buttonStyle"];
+  buttonStyle?: DeepViewData["buttonStyle"];
 }) {
   const t = getTranslations(language);
   const searchParams = useSearchParams();

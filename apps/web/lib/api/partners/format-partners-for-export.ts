@@ -70,6 +70,15 @@ export function formatPartnersForExport(
     sortedColumns.forEach((column) => {
       let value = partner[column] ?? "";
 
+      if (
+        column === "group" &&
+        value &&
+        typeof value === "object" &&
+        "name" in value
+      ) {
+        value = value.name ?? "";
+      }
+
       if (numericCentsMoneyColumns.has(column)) {
         value =
           value === "" || value == null
