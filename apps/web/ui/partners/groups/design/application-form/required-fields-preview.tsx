@@ -1,32 +1,51 @@
-import { UserCheck } from "@dub/ui";
+import { Tooltip, UserCheck } from "@dub/ui";
+import { cn } from "@dub/utils";
 
 const RequiredFieldItemPreview = ({
   icon,
   label,
+  tooltip,
 }: {
   icon: React.ReactNode;
   label: string;
+  tooltip?: string;
 }) => {
-  return (
-    <div className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-blue-100 py-2">
+  const tile = (
+    <div
+      className={cn(
+        "flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-blue-100 py-2",
+        tooltip &&
+          "cursor-help transition-colors duration-150 hover:bg-blue-200/60",
+      )}
+    >
       <div className="relative h-4 w-4">{icon}</div>
       <div className="text-sm font-medium text-blue-900">{label}</div>
     </div>
   );
+
+  return tooltip ? <Tooltip content={tooltip}>{tile}</Tooltip> : tile;
 };
 
 const RequiredFieldsPreview = () => {
   return (
     <div className="rounded-xl bg-blue-50 px-1 pb-1.5 pt-1">
-      <div className="grid w-full grid-cols-1 gap-1 lg:grid-cols-3">
-        <RequiredFieldItemPreview icon={<SignatureIcon />} label="Name" />
-        <RequiredFieldItemPreview icon={<EmailIcon />} label="Email" />
+      <div className="grid w-full grid-cols-1 gap-1 sm:grid-cols-2">
+        <RequiredFieldItemPreview
+          icon={<SignatureIcon />}
+          label="Name"
+          tooltip="The partner's name when their Dub account is created"
+        />
+        <RequiredFieldItemPreview
+          icon={<EmailIcon />}
+          label="Email"
+          tooltip="The partner's email when their Dub account is created"
+        />
       </div>
-      <div className="mt-1 flex items-center justify-center gap-2">
+      <div className="mt-1 flex items-center justify-center gap-1.5">
         <UserCheck className="size-4 text-blue-500" />
-        <div className="text-xs font-medium text-blue-900">
+        <span className="text-xs font-medium text-blue-900">
           Required applicant fields
-        </div>
+        </span>
       </div>
     </div>
   );
