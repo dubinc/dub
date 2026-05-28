@@ -58,6 +58,46 @@ function RevenuePageClient() {
     keepPreviousData: true,
   });
 
+  const previousPeriodQueryString = useMemo(() => {
+    if (!timeseries || timeseries.length === 0) {
+      return null;
+    }
+
+    const getUtcMonthStart = (date: Date) =>
+      new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+
+    const currentStartOfMonth = getUtcMonthStart(new Date(timeseries[0].date));
+    const previousEnd = new Date(currentStartOfMonth.getTime() - 1);
+    const previousStart = getUtcMonthStart(previousEnd);
+
+    const toDateParam = (date: Date) => date.toISOString().slice(0, 10);
+
+    return getQueryString({
+      start: toDateParam(previousStart),
+      end: toDateParam(previousEnd),
+    });
+  }, [getQueryString, timeseries]);
+
+  const {
+    data: { timeseries: previousPeriodTimeseries } = {},
+    isLoading: isPreviousPeriodLoading,
+  } = useSWR<{
+    timeseries: {
+      date: Date;
+      mrr: number;
+      payoutFees: number;
+      totalRevenue: number;
+    }[];
+  }>(
+    previousPeriodQueryString
+      ? `/api/admin/revenue${previousPeriodQueryString}`
+      : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
   const chartData =
     timeseries?.map(({ date, ...values }) => ({
       date: new Date(date),
@@ -77,18 +117,24 @@ function RevenuePageClient() {
 
   const percentChanges = useMemo(() => {
     const getPercentChange = (key: RevenueTab) => {
-      if (!timeseries || timeseries.length === 0) {
+      if (!timeseries || timeseries.length === 0 || isPreviousPeriodLoading) {
         return null;
       }
 
-      const first = timeseries[0]?.[key] ?? 0;
-      const last = timeseries[timeseries.length - 1]?.[key] ?? 0;
-
-      if (first === 0) {
-        return last === 0 ? 0 : null;
+      if (!previousPeriodTimeseries || previousPeriodTimeseries.length === 0) {
+        return null;
       }
 
-      return (last / first - 1) * 100;
+      const previousFinal =
+        previousPeriodTimeseries[previousPeriodTimeseries.length - 1]?.[key] ??
+        0;
+      const currentFinal = timeseries[timeseries.length - 1]?.[key] ?? 0;
+
+      if (previousFinal === 0) {
+        return currentFinal === 0 ? 0 : null;
+      }
+
+      return (currentFinal / previousFinal - 1) * 100;
     };
 
     return {
@@ -96,7 +142,7 @@ function RevenuePageClient() {
       mrr: getPercentChange("mrr"),
       payoutFees: getPercentChange("payoutFees"),
     };
-  }, [timeseries]);
+  }, [isPreviousPeriodLoading, previousPeriodTimeseries, timeseries]);
 
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-col space-y-6 p-6">
@@ -149,17 +195,16 @@ function RevenuePageClient() {
                     {percentChanges[id] !== null ? (
                       <Badge
                         variant={
-                          (percentChanges[id] ?? 0) >= 0 ? "green" : "gray"
+                          percentChanges[id] >= 0
+                            ? "green"
+                            : percentChanges[id] < 0
+                              ? "red"
+                              : "neutral"
                         }
-                        className={cn(
-                          "rounded-md px-2 py-1 text-xs",
-                          (percentChanges[id] ?? 0) >= 0
-                            ? "text-green-700"
-                            : "text-red-700",
-                        )}
+                        className="rounded-md px-2 py-1 text-xs"
                       >
-                        {(percentChanges[id] ?? 0) >= 0 ? "+" : ""}
-                        {(percentChanges[id] ?? 0).toFixed(1)}%
+                        {percentChanges[id] >= 0 ? "+" : ""}
+                        {percentChanges[id].toFixed(1)}%
                       </Badge>
                     ) : null}
                   </div>

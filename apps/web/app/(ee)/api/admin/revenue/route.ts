@@ -2,7 +2,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withAdmin } from "@/lib/auth";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { DUB_FOUNDING_DATE } from "@dub/utils";
-import { differenceInDays, endOfDay, startOfDay } from "date-fns";
+import { differenceInDays } from "date-fns";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 import { getPayoutsTimeseries } from "../payouts/get-payouts-timeseries";
@@ -24,8 +24,8 @@ export const GET = withAdmin(async ({ searchParams }) => {
   const timezone = "UTC";
   const { startDate, endDate, granularity } = getStartEndDates({
     interval,
-    start: start ? startOfDay(new Date(start)) : undefined,
-    end: end ? endOfDay(new Date(end)) : undefined,
+    start,
+    end,
     dataAvailableFrom: DUB_FOUNDING_DATE,
     timezone,
   });
