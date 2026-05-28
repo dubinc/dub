@@ -174,6 +174,10 @@ export function ReferralsEmbedPageClient({
 
   const activeBountiesCount = bounties.length;
 
+  const showSettingsTab =
+    !partner.defaultPayoutMethod ||
+    partner.defaultPayoutMethod === "tremendous";
+
   const tabs = useMemo(
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
@@ -185,7 +189,7 @@ export function ReferralsEmbedPageClient({
         : ["Leaderboard"]),
       "FAQ",
       ...(hasResources ? ["Resources"] : []),
-      "Settings",
+      ...(showSettingsTab ? ["Settings"] : []),
     ],
     [
       showQuickstart,
@@ -193,6 +197,7 @@ export function ReferralsEmbedPageClient({
       group.additionalLinks,
       programEmbedData,
       hasResources,
+      showSettingsTab,
     ],
   );
 

@@ -450,7 +450,7 @@ function CashPayoutMethod({
   );
 }
 
-function ReferralsEmbedSettingsContent() {
+export function ReferralsEmbedSettings() {
   const { partner } = useReferralsEmbedData();
 
   const hasAnyConnected = Boolean(partner.defaultPayoutMethod);
@@ -484,8 +484,4 @@ function ReferralsEmbedSettingsContent() {
       </div>
     </div>
   );
-}
-
-export function ReferralsEmbedSettings() {
-  return <ReferralsEmbedSettingsContent />;
 }
