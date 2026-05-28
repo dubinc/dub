@@ -63,12 +63,11 @@ function RevenuePageClient() {
       return null;
     }
 
-    const getUtcMonthStart = (date: Date) =>
-      new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
-
-    const currentStartOfMonth = getUtcMonthStart(new Date(timeseries[0].date));
-    const previousEnd = new Date(currentStartOfMonth.getTime() - 1);
-    const previousStart = getUtcMonthStart(previousEnd);
+    const currentStart = new Date(timeseries[0].date);
+    const currentEnd = new Date(timeseries[timeseries.length - 1].date);
+    const periodDurationMs = currentEnd.getTime() - currentStart.getTime();
+    const previousEnd = new Date(currentStart.getTime() - 1);
+    const previousStart = new Date(previousEnd.getTime() - periodDurationMs);
 
     const toDateParam = (date: Date) => date.toISOString().slice(0, 10);
 
@@ -118,11 +117,11 @@ function RevenuePageClient() {
   const percentChanges = useMemo(() => {
     const getPercentChange = (key: RevenueTab) => {
       if (!timeseries || timeseries.length === 0 || isPreviousPeriodLoading) {
-        return null;
+        return 0;
       }
 
       if (!previousPeriodTimeseries || previousPeriodTimeseries.length === 0) {
-        return null;
+        return 0;
       }
 
       const previousFinal =
@@ -131,7 +130,7 @@ function RevenuePageClient() {
       const currentFinal = timeseries[timeseries.length - 1]?.[key] ?? 0;
 
       if (previousFinal === 0) {
-        return currentFinal === 0 ? 0 : null;
+        return currentFinal === 0 ? 0 : 100;
       }
 
       return (currentFinal / previousFinal - 1) * 100;
@@ -192,7 +191,7 @@ function RevenuePageClient() {
                         trailingZeroDisplay: "stripIfInteger",
                       }}
                     />
-                    {percentChanges[id] !== null ? (
+                    {percentChanges[id] ? (
                       <Badge
                         variant={
                           percentChanges[id] >= 0
