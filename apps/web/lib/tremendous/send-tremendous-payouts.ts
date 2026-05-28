@@ -1,5 +1,5 @@
 import { sendEmail } from "@dub/email";
-import PartnerTremendousReward from "@dub/email/templates/partner-tremendous-reward";
+import PartnerTremendousPayout from "@dub/email/templates/partner-tremendous-payout";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -199,7 +199,7 @@ export async function sendTremendousPayouts({
       variant: "notifications",
       to: partner.email,
       subject: `You've received a ${currencyFormatter(totalTransferableAmount)} reward from ${payout.program.name}`,
-      react: PartnerTremendousReward({
+      react: PartnerTremendousPayout({
         email: partner.email,
         program: payout.program,
         payout: {
