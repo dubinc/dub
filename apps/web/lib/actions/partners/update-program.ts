@@ -67,22 +67,20 @@ export const updateProgramAction = authActionClient
     }
 
     waitUntil(
-      (async () => {
-        await recordAuditLog({
-          workspaceId: workspace.id,
-          programId: program.id,
-          action: "program.updated",
-          description: `Program ${program.name} updated`,
-          actor: user,
-          targets: [
-            {
-              type: "program",
-              id: program.id,
-              metadata: updatedProgram,
-            },
-          ],
-        });
-      })(),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId: program.id,
+        action: "program.updated",
+        description: `Program ${program.name} updated`,
+        actor: user,
+        targets: [
+          {
+            type: "program",
+            id: program.id,
+            metadata: updatedProgram,
+          },
+        ],
+      }),
     );
 
     return {
