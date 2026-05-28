@@ -73,6 +73,11 @@ async function fetchAndParseSitemap(
   sitemapUrl: string,
 ): Promise<SitemapXmlResult> {
   const response = await safeFetch(sitemapUrl, undefined, { maxRedirects: 0 });
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch sitemap: ${response.status} ${response.statusText}`,
+    );
+  }
   const MAX_SITEMAP_BYTES = 10 * 1024 * 1024; // 10 MB
   const contentLength = response.headers.get("content-length");
   if (contentLength && parseInt(contentLength, 10) > MAX_SITEMAP_BYTES) {

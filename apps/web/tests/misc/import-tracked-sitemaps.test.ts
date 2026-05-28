@@ -297,4 +297,22 @@ describe("crawlSitemapUrls", () => {
       expect(urls).toContain("https://example.com/page-1");
     });
   });
+
+  describe("non-2xx responses", () => {
+    it("reports hadErrors instead of parsing the body on a non-2xx response", async () => {
+      mockContentFetch.mockResolvedValue(
+        makeFetchResponse(
+          Buffer.from(urlsetXml(["https://example.com/page-1"])),
+          500,
+        ),
+      );
+
+      const { urls, hadErrors } = await crawlSitemapUrls(
+        "https://example.com/sitemap.xml",
+      );
+
+      expect(urls).toEqual([]);
+      expect(hadErrors).toBe(true);
+    });
+  });
 });
