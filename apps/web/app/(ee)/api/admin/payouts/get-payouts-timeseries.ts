@@ -1,6 +1,6 @@
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
-import { prisma } from "@dub/prisma";
-import { InvoiceStatus, Prisma } from "@dub/prisma/client";
+import { conn } from "@/lib/planetscale/connection";
+import { InvoiceStatus } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import { format } from "date-fns";
 
@@ -13,6 +13,9 @@ interface TimeseriesPoint {
 export interface FormattedPayoutsTimeseriesPoint extends TimeseriesPoint {
   date: Date;
 }
+
+const toSqlDateTime = (date: Date) =>
+  date.toISOString().slice(0, 19).replace("T", " ");
 
 export async function getPayoutsTimeseries({
   programId,
@@ -32,23 +35,47 @@ export async function getPayoutsTimeseries({
   const { dateFormat, dateIncrement, startFunction, formatString } =
     sqlGranularityMap[granularity];
 
-  const timeseriesData = await prisma.$queryRaw<
-    { date: Date; payouts: number; fees: number; total: number }[]
-  >`
-    SELECT 
-      DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone}), ${dateFormat}) as date,
+  const whereClauses: string[] = ["createdAt >= ?", "createdAt <= ?"];
+  const queryParams: string[] = [
+    toSqlDateTime(startDate),
+    toSqlDateTime(endDate),
+  ];
+
+  if (programId) {
+    whereClauses.unshift("programId = ?");
+    queryParams.unshift(programId);
+  } else {
+    whereClauses.unshift("programId != ?");
+    queryParams.unshift(ACME_PROGRAM_ID);
+  }
+
+  if (status) {
+    whereClauses.push("status = ?");
+    queryParams.push(status);
+  } else {
+    whereClauses.push("status != ?");
+    queryParams.push("failed");
+  }
+
+  const { rows } = await conn.execute<{
+    date: string;
+    payouts: number;
+    fees: number;
+    total: number;
+  }>(
+    `SELECT
+      DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ?), ?) as date,
       SUM(amount) as payouts,
       SUM(fee) as fees,
       SUM(total) as total
     FROM Invoice
-    WHERE 
-      ${programId ? Prisma.sql`programId = ${programId}` : Prisma.sql`programId != ${ACME_PROGRAM_ID}`}
-      AND ${status ? Prisma.sql`status = ${status}` : Prisma.sql`status != 'failed'`}
-      AND createdAt >= ${startDate}
-      AND createdAt <= ${endDate}
-    GROUP BY DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone}), ${dateFormat})
-    ORDER BY date ASC;
-  `;
+    WHERE ${whereClauses.join(" AND ")}
+    GROUP BY DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ?), ?)
+    ORDER BY date ASC`,
+    [timezone, dateFormat, ...queryParams, timezone, dateFormat],
+  );
+
+  const timeseriesData = rows ?? [];
 
   const timeseriesLookup: Record<string, TimeseriesPoint> = Object.fromEntries(
     timeseriesData.map((item) => [
