@@ -1,5 +1,5 @@
 import { sendEmail } from "@dub/email";
-import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
+import PartnerTremendousReward from "@dub/email/templates/partner-tremendous-reward";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -84,7 +84,7 @@ export async function sendTremendousPayouts({
 
   const ordersApi = new OrdersApi(tremendousConfiguration);
 
-  const { order }: CreateOrder200Response = await ordersApi.createOrder({
+  const { order } = await ordersApi.createOrder({
     external_id: idempotencyKey,
     payment: {
       funding_source_id: "balance",
@@ -107,6 +107,14 @@ export async function sendTremendousPayouts({
       },
     },
   });
+
+  const orderData = order as CreateOrder200Response;
+  const redeemUrl = orderData.order.rewards?.[0]?.delivery?.link;
+
+  if (!redeemUrl) {
+    console.error(`No redeem URL found for Tremendous order: ${order.id}`);
+    return;
+  }
 
   // TODO:
   // Handle errors
@@ -184,11 +192,15 @@ export async function sendTremendousPayouts({
     await sendEmail({
       variant: "notifications",
       to: partner.email,
-      subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
-      react: PartnerPayoutProcessed({
+      subject: `You've received a ${currencyFormatter(totalTransferableAmount)} reward from ${payout.program.name}`,
+      react: PartnerTremendousReward({
         email: partner.email,
         program: payout.program,
-        payout,
+        payout: {
+          ...payout,
+          amount: totalTransferableAmount,
+        },
+        redeemUrl,
       }),
     });
   }

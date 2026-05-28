@@ -13,4 +13,4 @@ export const tremendousWebhookSchema = z.object({
   }),
 });
 
-export type TremendousWebhookEvent = z.infer<typeof tremendousWebhookSchema>;
+export type TremendousWebhookPayload = z.infer<typeof tremendousWebhookSchema>;
