@@ -207,8 +207,8 @@ function TremendousOtpVerifyForm({
                 <div
                   key={idx}
                   className={cn(
-                    "relative flex size-10 items-center justify-center text-lg",
-                    "border-border-default bg-bg-default rounded-lg border transition-all",
+                    "relative flex size-10 items-center justify-center text-lg font-medium",
+                    "text-content-emphasis border-border-default bg-bg-default rounded-lg border transition-all",
                     isActive &&
                       "border-border-emphasis ring-border-emphasis z-10 ring-2",
                   )}

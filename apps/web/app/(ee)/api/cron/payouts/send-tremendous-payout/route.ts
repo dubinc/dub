@@ -14,12 +14,12 @@ const inputSchema = z.object({
 export const POST = withCron(async ({ rawBody }) => {
   const { partnerId, invoiceId } = inputSchema.parse(JSON.parse(rawBody));
 
-  const order = await sendTremendousPayouts({
+  await sendTremendousPayouts({
     partnerId,
     invoiceId,
   });
 
   return logAndRespond(
-    `Processed send-tremendous-payout job for partner ${partnerId} and invoice ${invoiceId}: ${order?.id}`,
+    `Processed send-tremendous-payout job for partner ${partnerId}.`,
   );
 });

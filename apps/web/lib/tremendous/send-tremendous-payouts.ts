@@ -16,6 +16,11 @@ export async function sendTremendousPayouts({
   partnerId: string;
   invoiceId?: string;
 }) {
+  console.log(`Processing Tremendous payouts....`, {
+    partnerId,
+    invoiceId,
+  });
+
   if (!tremendousEnv.TREMENDOUS_CAMPAIGN_ID) {
     throw new Error("TREMENDOUS_CAMPAIGN_ID is not configured.");
   }
@@ -115,19 +120,16 @@ export async function sendTremendousPayouts({
   const redeemUrl = reward?.delivery?.link;
 
   if (order.status !== "EXECUTED") {
-    console.error(
+    throw new Error(
       `Tremendous order ${order.id} status is not EXECUTED: ${order.status}`,
     );
-    return;
   }
 
   if (!redeemUrl) {
-    console.error(`No redeem URL found for Tremendous order: ${order.id}`);
-    return;
+    throw new Error(`No redeem URL found for Tremendous order: ${order.id}`);
   }
 
-  // TODO:
-  // Handle errors
+  console.log("Tremendous order created", order);
 
   const commissions = await prisma.commission.findMany({
     where: {
@@ -210,6 +212,4 @@ export async function sendTremendousPayouts({
       }),
     });
   }
-
-  return order;
 }
