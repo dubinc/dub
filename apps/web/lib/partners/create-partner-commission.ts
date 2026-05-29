@@ -23,6 +23,10 @@ export const queuePartnerCommissionCreation = async (
     workflowType: "create-partner-commission",
     workflowLabel: customerId ?? partnerId,
     body: params,
+    flowControl: {
+      key: customerId ?? partnerId,
+      parallelism: 1,
+    },
   });
 
   return {

@@ -439,7 +439,7 @@ export const createPartnerCommissionSchema = z.object({
   linkId: z.string().optional(),
   customerId: z.string().optional(),
   eventId: z.string().optional(),
-  invoiceId: z.string().optional(),
+  invoiceId: z.string().nullish(),
   amount: z.number().default(0).optional(),
   quantity: z.number().default(1),
   currency: z.string().optional(),

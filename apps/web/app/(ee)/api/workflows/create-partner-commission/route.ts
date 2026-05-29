@@ -19,7 +19,15 @@ import {
 } from "@/lib/zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
-import { Commission, CommissionStatus } from "@dub/prisma/client";
+import {
+  Commission,
+  CommissionStatus,
+  Link,
+  Partner,
+  PartnerGroup,
+  ProgramEnrollment,
+  Reward,
+} from "@dub/prisma/client";
 import { currencyFormatter, log, prettyPrint, toCentsNumber } from "@dub/utils";
 import { WorkflowRetryAfterError } from "@upstash/workflow";
 import { serve } from "@upstash/workflow/nextjs";
@@ -29,8 +37,17 @@ import { logAndReturn } from "../../cron/utils";
 
 type Input = z.infer<typeof createPartnerCommissionSchema>;
 
+type ProgramEnrollmentWithReward = ProgramEnrollment & {
+  links: Link[];
+  partner: Partner;
+  partnerGroup: PartnerGroup | null;
+  clickReward?: Reward | null;
+  leadReward?: Reward | null;
+  saleReward?: Reward | null;
+};
+
 type StepFunctionInput = Input & {
-  programEnrollment: Awaited<ReturnType<typeof getProgramEnrollmentOrThrow>>;
+  programEnrollment: ProgramEnrollmentWithReward;
   isFirstCommission?: boolean;
 };
 
@@ -65,7 +82,6 @@ export const { POST } = serve<Input>(
       async () => {
         return await stepCreateCommission({
           ...input,
-          // @ts-ignore // Fix this
           programEnrollment,
         });
       },
@@ -76,9 +92,9 @@ export const { POST } = serve<Input>(
       await context.run("run-side-effects", async () => {
         return await stepRunSideEffects({
           ...input,
-          // @ts-ignore // Fix this
           programEnrollment,
           isFirstCommission,
+          commission,
         });
       });
     }
@@ -388,6 +404,7 @@ async function stepRunSideEffects(
     },
     include: {
       customer: true,
+      link: true,
     },
   });
 
