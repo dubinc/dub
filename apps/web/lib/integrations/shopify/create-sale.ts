@@ -2,7 +2,7 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/create-partner-commission";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { recordSale } from "@/lib/tinybird";
 import { LeadEventTB } from "@/lib/types";
@@ -131,11 +131,12 @@ export async function createShopifySale({
   ]);
 
   // for program links
-  let result: Awaited<ReturnType<typeof createPartnerCommission>> | undefined =
-    undefined;
+  let result:
+    | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
+    | undefined = undefined;
 
   if (link.programId && link.partnerId) {
-    result = await createPartnerCommission({
+    result = await queuePartnerCommissionCreation({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,

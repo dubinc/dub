@@ -7,16 +7,14 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import {
-  createPartnerCommission,
-  CreatePartnerCommissionProps,
-} from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/create-partner-commission";
 import {
   recordClickZod,
   recordClickZodSchema,
 } from "@/lib/tinybird/record-click-zod";
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
+import { CreatePartnerCommissionProps } from "@/lib/types";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
@@ -91,7 +89,7 @@ export const createManualCommissionAction = authActionClient
 
     // Create a custom commission
     if (commissionType === "custom") {
-      await createPartnerCommission({
+      await queuePartnerCommissionCreation({
         event: "custom",
         partnerId,
         programId,
@@ -384,7 +382,7 @@ export const createManualCommissionAction = authActionClient
     // create partner commissions (use a for loop to make sure the commissions are created in the correct order)
     // TODO: migrate to use workflow to support bulk creation
     for (const c of commissionsToCreate) {
-      await createPartnerCommission(c);
+      await queuePartnerCommissionCreation(c);
       queuedCommissions++;
     }
     console.log(

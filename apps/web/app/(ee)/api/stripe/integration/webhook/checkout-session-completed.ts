@@ -5,7 +5,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/create-partner-commission";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import {
   getClickEvent,
@@ -476,8 +476,9 @@ export async function checkoutSessionCompleted(
     }),
   ]);
 
-  let result: Awaited<ReturnType<typeof createPartnerCommission>> | undefined =
-    undefined;
+  let result:
+    | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
+    | undefined = undefined;
 
   if (link && link.programId && link.partnerId) {
     const productId = await getCheckoutSessionProductId({
@@ -486,7 +487,7 @@ export async function checkoutSessionCompleted(
       mode,
     });
 
-    result = await createPartnerCommission({
+    result = await queuePartnerCommissionCreation({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -699,11 +700,11 @@ async function attributeViaPromoCode({
       const linkUpdated = await incrementLinkLeads(link.id);
 
       let result:
-        | Awaited<ReturnType<typeof createPartnerCommission>>
+        | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
         | undefined = undefined;
 
       if (link.programId && link.partnerId) {
-        result = await createPartnerCommission({
+        result = await queuePartnerCommissionCreation({
           event: "lead",
           programId: link.programId,
           partnerId: link.partnerId,

@@ -1,14 +1,9 @@
-import * as z from "zod/v4";
 import { getProgramEnrollmentOrThrow } from "../api/programs/get-program-enrollment-or-throw";
 import { triggerQStashWorkflow } from "../cron/qstash-workflow";
-import { createPartnerCommissionSchema } from "../zod/schemas/commissions";
+import { CreatePartnerCommissionProps } from "../types";
 import { constructWebhookPartner } from "./constuct-webhook-partner";
 
-export type CreatePartnerCommissionProps = z.infer<
-  typeof createPartnerCommissionSchema
->;
-
-export const createPartnerCommission = async (
+export const queuePartnerCommissionCreation = async (
   params: CreatePartnerCommissionProps,
 ) => {
   const { partnerId, programId, customerId } = params;

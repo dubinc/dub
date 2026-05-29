@@ -4,7 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/create-partner-commission";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { getLeadEvent, recordLead } from "@/lib/tinybird";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
@@ -150,11 +150,11 @@ export async function attributeViaDiscountCode({
       });
 
       let result:
-        | Awaited<ReturnType<typeof createPartnerCommission>>
+        | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
         | undefined = undefined;
 
       if (link.programId && link.partnerId) {
-        result = await createPartnerCommission({
+        result = await queuePartnerCommissionCreation({
           event: "lead",
           programId: link.programId,
           partnerId: link.partnerId,

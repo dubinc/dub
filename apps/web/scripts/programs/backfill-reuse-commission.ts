@@ -4,10 +4,7 @@ import { updateLinkStatsForImporter } from "@/lib/api/links/update-link-stats-fo
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { qstash } from "@/lib/cron";
-import {
-  createPartnerCommission,
-  CreatePartnerCommissionProps,
-} from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/create-partner-commission";
 import { getCustomerEventsTB } from "@/lib/tinybird/get-customer-events-tb";
 import {
   recordClickZod,
@@ -15,6 +12,7 @@ import {
 } from "@/lib/tinybird/record-click-zod";
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
+import { CreatePartnerCommissionProps } from "@/lib/types";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
@@ -315,7 +313,7 @@ async function main() {
   console.log("Commissions to create: ", commissionsToCreate);
   await Promise.allSettled(
     commissionsToCreate.map((commission) =>
-      createPartnerCommission({ ...commission, skipWorkflow: true }),
+      queuePartnerCommissionCreation({ ...commission, skipWorkflow: true }),
     ),
   );
 

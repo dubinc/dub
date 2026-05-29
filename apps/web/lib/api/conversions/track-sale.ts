@@ -3,7 +3,7 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/create-partner-commission";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { isStored, storage } from "@/lib/storage";
 import {
@@ -465,11 +465,11 @@ const _trackSale = async ({
       });
 
       let result:
-        | Awaited<ReturnType<typeof createPartnerCommission>>
+        | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
         | undefined = undefined;
 
       if (link.programId && link.partnerId) {
-        result = await createPartnerCommission({
+        result = await queuePartnerCommissionCreation({
           event: "sale",
           programId: link.programId,
           partnerId: link.partnerId,
