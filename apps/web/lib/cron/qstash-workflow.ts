@@ -93,13 +93,12 @@ export function getWorkflowConfig({
       };
 
     case "create-partner-commission": {
-      const saleEvent = body.saleEvent as Record<string, string>;
-
       return {
         correlation: {
-          linkId: saleEvent.link_id,
-          eventId: saleEvent.event_id,
-          customerId: saleEvent.customer_id,
+          programId: body.programId,
+          partnerId: body.partnerId,
+          customerId: body.customerId,
+          bountySubmissionId: body.bountySubmissionId,
         },
       };
     }

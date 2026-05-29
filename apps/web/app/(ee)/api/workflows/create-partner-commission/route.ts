@@ -61,7 +61,7 @@ type StepCreateCommissionOutput = {
 export const { POST } = serve<Input>(
   async (context) => {
     const input = context.requestPayload;
-    const { event, partnerId, programId } = input;
+    const { event, partnerId, programId, bountySubmissionId } = input;
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
@@ -88,7 +88,33 @@ export const { POST } = serve<Input>(
     );
 
     if (commission) {
-      // Step 2: Run side effects
+      // Step 2: Link the commission to the bounty submission
+      if (bountySubmissionId) {
+        await context.run("set-bounty-commission", async () => {
+          const { count } = await prisma.bountySubmission.updateMany({
+            where: {
+              id: bountySubmissionId,
+              status: "approved",
+              commissionId: null,
+            },
+            data: {
+              commissionId: commission.id,
+            },
+          });
+
+          if (count) {
+            return logAndReturn({
+              outputLog: `Linked commission ${commission.id} to bounty submission ${bountySubmissionId}`,
+            });
+          } else {
+            return logAndReturn({
+              outputLog: `Bounty submission ${bountySubmissionId} not found or already linked to a commission, skipping...`,
+            });
+          }
+        });
+      }
+
+      // Step 3: Run side effects
       await context.run("run-side-effects", async () => {
         return await stepRunSideEffects({
           ...input,

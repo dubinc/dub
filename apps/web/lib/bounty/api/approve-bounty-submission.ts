@@ -114,6 +114,7 @@ export async function approveBountySubmission({
     quantity: 1,
     userId: user.id,
     description: `Commission for successfully completed "${bounty.name}" bounty.`,
+    bountySubmissionId: submissionId,
   });
 
   const approvedSubmission = await prisma.bountySubmission.update({
@@ -126,7 +127,6 @@ export async function approveBountySubmission({
       userId: user.id,
       rejectionNote: null,
       rejectionReason: null,
-      //  commissionId: commission.id,
     },
     include: {
       partner: {
@@ -183,7 +183,6 @@ export async function approveBountySubmission({
               type: bounty.type,
             },
           }),
-          scheduledAt: new Date(Date.now() + 1000 * 60).toISOString(),
         }),
     ]),
   );

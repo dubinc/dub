@@ -448,4 +448,10 @@ export const createPartnerCommissionSchema = z.object({
   userId: z.string().optional(),
   context: rewardContextSchema.optional(),
   skipWorkflow: z.boolean().default(false).optional(),
+  bountySubmissionId: z
+    .string()
+    .optional()
+    .describe(
+      "The ID of the bounty submission that the commission should be created for.",
+    ),
 });
