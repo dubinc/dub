@@ -443,6 +443,7 @@ async function stepRunSideEffects(
     commission: _commission,
     programEnrollment,
     isFirstCommission,
+    event,
     programId,
     partnerId,
     userId,
@@ -454,7 +455,12 @@ async function stepRunSideEffects(
     customer,
   } = input;
 
-  if (customer && eventId && clickEvent) {
+  // - sale: always evaluate
+  // - lead: only when a commission was created
+  const shouldRunFraudDetection =
+    event === "sale" || (_commission && event === "lead");
+
+  if (shouldRunFraudDetection && customer && eventId && clickEvent) {
     await detectAndRecordFraudEvent({
       program: { id: programId },
       partner: pick(programEnrollment.partner, ["id", "email", "name"]),
