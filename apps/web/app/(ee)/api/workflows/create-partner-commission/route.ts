@@ -381,11 +381,14 @@ async function stepCreateCommission(
 
     console.log(prettyPrint(commission));
 
+    const isFirstCommission =
+      event !== "custom" ? firstCommission === null : undefined;
+
     return logAndReturn({
       commission: {
         id: commission.id,
       },
-      isFirstCommission: firstCommission === null,
+      isFirstCommission,
       outputLog: `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings, { currency: commission.currency })}) for ${partnerId}`,
     });
   } catch (error) {
