@@ -512,6 +512,7 @@ export async function checkoutSessionCompleted(
         url: saleData.url,
         referer: saleData.referer,
       },
+      isFirstConversion: firstConversionFlag,
     });
 
     waitUntil(

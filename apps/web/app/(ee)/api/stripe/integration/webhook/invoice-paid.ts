@@ -268,6 +268,7 @@ export async function invoicePaid(
         url: saleData.url,
         referer: saleData.referer,
       },
+      isFirstConversion: firstConversionFlag,
     });
 
     waitUntil(

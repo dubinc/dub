@@ -160,6 +160,7 @@ export async function createShopifySale({
         url: saleData.url,
         referer: saleData.referer,
       },
+      isFirstConversion: firstConversionFlag,
     });
 
     waitUntil(

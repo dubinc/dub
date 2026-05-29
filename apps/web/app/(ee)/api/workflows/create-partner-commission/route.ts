@@ -434,6 +434,7 @@ async function stepRunSideEffects(
     eventId,
     skipWorkflow,
     clickEvent,
+    isFirstConversion,
   } = input;
 
   const commission = await prisma.commission.findUnique({
@@ -584,7 +585,7 @@ async function stepRunSideEffects(
         programEnrollment: pick(programEnrollment, ["status"]),
         customer: {
           ...pick(customer, ["id", "email", "name"]),
-          isFirstConversion: true, // fix it
+          isFirstConversion,
         },
         link: { id: linkId },
         click: pick(clickEvent, ["url", "referer"]),

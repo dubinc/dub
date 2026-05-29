@@ -448,6 +448,7 @@ export const createPartnerCommissionSchema = z.object({
   userId: z.string().optional(),
   context: rewardContextSchema.optional(),
   skipWorkflow: z.boolean().default(false).optional(),
+  isFirstConversion: z.boolean().optional(),
   bountySubmissionId: z
     .string()
     .optional()

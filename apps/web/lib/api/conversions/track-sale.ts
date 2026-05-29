@@ -495,6 +495,7 @@ const _trackSale = async ({
             url: saleData.url,
             referer: saleData.referer,
           },
+          isFirstConversion: firstConversionFlag,
         });
 
         await Promise.allSettled([
