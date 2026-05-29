@@ -115,32 +115,40 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    await prisma.$transaction([
-      prisma.emailVerificationToken.delete({
-        where: {
-          identifier_token: {
-            identifier,
-            token: code,
+    try {
+      await prisma.$transaction([
+        prisma.emailVerificationToken.delete({
+          where: {
+            identifier_token: {
+              identifier,
+              token: code,
+            },
           },
-        },
-      }),
+        }),
 
-      prisma.partner.update({
-        where: {
-          id: partner.id,
-          defaultPayoutMethod: null,
-          payoutsEnabledAt: null,
-        },
-        data: {
-          tremendousEmail: email,
-          defaultPayoutMethod: "tremendous",
-          payoutsEnabledAt: new Date(),
-        },
-      }),
-    ]);
+        prisma.partner.update({
+          where: {
+            id: partner.id,
+            defaultPayoutMethod: null,
+            payoutsEnabledAt: null,
+          },
+          data: {
+            tremendousEmail: email,
+            defaultPayoutMethod: "tremendous",
+            payoutsEnabledAt: new Date(),
+          },
+        }),
+      ]);
+    } catch (e) {
+      if (e.code === "P2025") {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "You already have a payout method connected.",
+        });
+      }
 
-    // TODO:
-    // Send confirmation email to the partner
+      throw e;
+    }
 
     return NextResponse.json({ success: true });
   },

@@ -7,7 +7,7 @@ import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
 import { ratelimit } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "@dub/email";
-import VerifyEmail from "@dub/email/templates/verify-email";
+import PartnerTremendousVerifyEmail from "@dub/email/templates/partner-tremendous-verify-email";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -93,7 +93,7 @@ export const POST = withReferralsEmbedToken(
         data: {
           identifier,
           token: code,
-          expires: new Date(Date.now() + EMAIL_OTP_EXPIRY_IN * 1000), // 15 minutes,
+          expires: new Date(Date.now() + EMAIL_OTP_EXPIRY_IN * 1000), // 5 minutes
         },
       }),
     ]);
@@ -101,9 +101,10 @@ export const POST = withReferralsEmbedToken(
     await sendEmail({
       subject: "OTP to verify your payout email",
       to: email,
-      react: VerifyEmail({
+      react: PartnerTremendousVerifyEmail({
         email,
         code,
+        expiryMinutes: EMAIL_OTP_EXPIRY_IN / 60,
       }),
     });
 
