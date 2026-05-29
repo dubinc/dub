@@ -218,7 +218,6 @@ export async function sendTremendousPayouts({
           amount: totalTransferableAmount,
         },
         redeemUrl,
-        forceWithdrawal,
       }),
     });
   }
