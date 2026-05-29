@@ -454,4 +454,10 @@ export const createPartnerCommissionSchema = z.object({
     .describe(
       "The ID of the bounty submission that the commission should be created for.",
     ),
+  clickEvent: z
+    .object({
+      url: z.string().nullable(),
+      referer: z.string().nullable(),
+    })
+    .optional(),
 });

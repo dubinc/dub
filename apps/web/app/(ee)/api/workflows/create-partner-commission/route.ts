@@ -1,5 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
+import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { notifyPartnerCommission } from "@/lib/api/partners/notify-partner-commission";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -28,7 +29,13 @@ import {
   ProgramEnrollment,
   Reward,
 } from "@dub/prisma/client";
-import { currencyFormatter, log, prettyPrint, toCentsNumber } from "@dub/utils";
+import {
+  currencyFormatter,
+  log,
+  pick,
+  prettyPrint,
+  toCentsNumber,
+} from "@dub/utils";
 import { WorkflowRetryAfterError } from "@upstash/workflow";
 import { serve } from "@upstash/workflow/nextjs";
 import { differenceInMonths } from "date-fns";
@@ -424,7 +431,9 @@ async function stepRunSideEffects(
     partnerId,
     userId,
     linkId,
+    eventId,
     skipWorkflow,
+    clickEvent,
   } = input;
 
   const commission = await prisma.commission.findUnique({
@@ -483,8 +492,10 @@ async function stepRunSideEffects(
 
   const { workspace } = program;
   const { customer } = commission;
+
   const isClawback = commission.earnings < 0;
   const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
+  const shouldRunFraudDetection = customer && eventId && clickEvent;
 
   await Promise.allSettled([
     sendWorkspaceWebhook({
@@ -566,18 +577,18 @@ async function stepRunSideEffects(
       }),
 
     // Only run this for non-manual commissions
-    // customer &&
-    //   detectAndRecordFraudEvent({
-    //     program: { id: programId },
-    //     partner: pick(webhookPartner, ["id", "email", "name"]),
-    //     programEnrollment: pick(programEnrollment, ["status"]),
-    //     customer: {
-    //       ...pick(customer, ["id", "email", "name"]),
-    //       isFirstConversion: firstConversionFlag,
-    //     },
-    //     link: { id: linkId },
-    //     click: pick(saleData, ["url", "referer"]),
-    //     event: { id: saleData.event_id },
-    //   }),
+    shouldRunFraudDetection &&
+      detectAndRecordFraudEvent({
+        program: { id: programId },
+        partner: pick(webhookPartner, ["id", "email", "name"]),
+        programEnrollment: pick(programEnrollment, ["status"]),
+        customer: {
+          ...pick(customer, ["id", "email", "name"]),
+          isFirstConversion: true, // fix it
+        },
+        link: { id: linkId },
+        click: pick(clickEvent, ["url", "referer"]),
+        event: { id: eventId },
+      }),
   ]);
 }

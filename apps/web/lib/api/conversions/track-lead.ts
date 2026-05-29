@@ -305,6 +305,10 @@ export const trackLead = async ({
                   source,
                 },
               },
+              clickEvent: {
+                url: clickData.url,
+                referer: clickData.referer,
+              },
             });
 
             await Promise.allSettled([
@@ -328,19 +332,6 @@ export const trackLead = async ({
                 programId: link.programId,
                 eventType: "lead",
               }),
-
-              // only run fraud checks if the commission was created
-              // commission &&
-              //   webhookPartner &&
-              //   detectAndRecordFraudEvent({
-              //     program: { id: link.programId },
-              //     partner: pick(webhookPartner, ["id", "email", "name"]),
-              //     programEnrollment: pick(programEnrollment, ["status"]),
-              //     customer: pick(customer, ["id", "email", "name"]),
-              //     link: pick(link, ["id"]),
-              //     click: pick(clickData, ["url", "referer"]),
-              //     event: { id: leadEventId },
-              //   }),
             ]);
           }
 

@@ -491,6 +491,10 @@ const _trackSale = async ({
               amount: saleData.amount,
             },
           },
+          clickEvent: {
+            url: saleData.url,
+            referer: saleData.referer,
+          },
         });
 
         await Promise.allSettled([
@@ -515,21 +519,6 @@ const _trackSale = async ({
             programId: link.programId,
             eventType: "sale",
           }),
-
-          // TODO: move to workflows/create-partner-commission
-          // webhookPartner &&
-          //   detectAndRecordFraudEvent({
-          //     program: { id: link.programId },
-          //     partner: pick(webhookPartner, ["id", "email", "name"]),
-          //     programEnrollment: pick(programEnrollment, ["status"]),
-          //     customer: {
-          //       ...pick(customer, ["id", "email", "name"]),
-          //       isFirstConversion: firstConversionFlag,
-          //     },
-          //     link: pick(link, ["id"]),
-          //     click: pick(saleData, ["url", "referer"]),
-          //     event: { id: saleData.event_id },
-          //   }),
         ]);
       }
 

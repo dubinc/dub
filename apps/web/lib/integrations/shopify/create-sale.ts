@@ -156,6 +156,10 @@ export async function createShopifySale({
           amount: saleData.amount,
         },
       },
+      clickEvent: {
+        url: saleData.url,
+        referer: saleData.referer,
+      },
     });
 
     waitUntil(
@@ -181,20 +185,6 @@ export async function createShopifySale({
           programId: link.programId,
           eventType: "sale",
         }),
-
-        // webhookPartner &&
-        //   detectAndRecordFraudEvent({
-        //     program: { id: link.programId },
-        //     partner: pick(webhookPartner, ["id", "email", "name"]),
-        //     programEnrollment: pick(programEnrollment, ["status"]),
-        //     customer: {
-        //       ...pick(customer, ["id", "email", "name"]),
-        //       isFirstConversion: firstConversionFlag,
-        //     },
-        //     link: pick(link, ["id"]),
-        //     click: pick(saleData, ["url", "referer"]),
-        //     event: { id: saleData.event_id },
-        //   }),
       ]),
     );
   }

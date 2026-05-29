@@ -6,7 +6,7 @@ import { constructWebhookPartner } from "./constuct-webhook-partner";
 export const queuePartnerCommissionCreation = async (
   params: CreatePartnerCommissionProps,
 ) => {
-  const { partnerId, programId, customerId } = params;
+  const { partnerId, programId, customerId, bountySubmissionId } = params;
 
   const result = await getProgramEnrollmentOrThrow({
     partnerId,
@@ -21,7 +21,7 @@ export const queuePartnerCommissionCreation = async (
 
   await triggerQStashWorkflow({
     workflowType: "create-partner-commission",
-    workflowLabel: customerId ?? partnerId,
+    workflowLabel: bountySubmissionId ?? customerId ?? partnerId,
     body: params,
     flowControl: {
       key: customerId ?? partnerId,
