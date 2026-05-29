@@ -25,6 +25,6 @@ export function useSelectedGuide({ guides }: { guides: IntegrationGuide[] }) {
   return {
     selectedGuide,
     setSelectedGuide: (guide: IntegrationGuide) =>
-      queryParams({ set: { guide: guide.key }, scroll: false }),
+      queryParams({ set: { guide: guide.key } }),
   };
 }

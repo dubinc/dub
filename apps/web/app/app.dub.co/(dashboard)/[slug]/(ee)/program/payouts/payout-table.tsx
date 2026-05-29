@@ -237,7 +237,6 @@ export function PayoutTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     onRowClick: (row, e) => {
       const url = `/${workspaceSlug}/program/payouts/${row.original.id}`;
@@ -329,7 +328,6 @@ export function PayoutTable() {
                 selectedPayoutIds: pendingEligible.map((p) => p.id).join(","),
               },
               del: ["selectedPayoutId", "excludedPayoutIds"],
-              scroll: false,
             });
           }}
         />

@@ -259,6 +259,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       select: {
         id: true,
         name: true,
+        email: true,
         image: true,
         country: true,
         payoutsEnabledAt: true,

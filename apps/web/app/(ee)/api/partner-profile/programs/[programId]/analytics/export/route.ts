@@ -107,8 +107,19 @@ export const GET = withPartnerProfile(
         // no need to fetch top links data if there's a link specified
         // since this is just a single link
         if (endpoint === "top_links" && linkId) return;
-        // skip clicks count
-        if (endpoint === "count") return;
+        // skip other irrelevant endpoints for partner profile analytics export
+        if (
+          [
+            "count",
+            "top_partners",
+            "top_groups",
+            "top_partner_tags",
+            "top_folders",
+            "top_link_tags",
+          ].includes(endpoint)
+        ) {
+          return;
+        }
 
         const response = await getAnalytics({
           ...parsedParams,

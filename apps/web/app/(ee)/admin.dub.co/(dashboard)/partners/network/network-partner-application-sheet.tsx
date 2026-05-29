@@ -27,8 +27,8 @@ import { cn, COUNTRIES, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
+import { NetworkIdentityVerification } from "./identity-verification";
 import { NetworkPartnerChangeHistory } from "./network-partner-change-history";
-import { NetworkRequestIdentityVerification } from "./request-identity-verification";
 
 type NetworkPartnerSheetTabId = "about" | "programs" | "duplicates";
 
@@ -229,7 +229,7 @@ export function NetworkPartnerApplicationSheet({
     <Sheet
       open={isOpen}
       onOpenChange={setIsOpen}
-      onClose={() => queryParams({ del: "partnerId", scroll: false })}
+      onClose={() => queryParams({ del: "partnerId" })}
       contentProps={{
         className: "md:w-[max(min(calc(100vw-334px),1170px),540px)]",
       }}
@@ -304,12 +304,12 @@ export function NetworkPartnerApplicationSheet({
               </div>
             </div>
             <div className="overflow-x-hidden">
+              <NetworkIdentityVerification partner={partner} />
+            </div>
+            <div className="overflow-x-hidden">
               <NetworkPartnerChangeHistory
                 changeHistoryLog={partner.changeHistoryLog}
               />
-            </div>
-            <div className="overflow-x-hidden">
-              <NetworkRequestIdentityVerification partner={partner} />
             </div>
           </div>
           <div className="@3xl/sheet:order-1 @3xl/sheet:min-h-0 @3xl/sheet:overflow-y-auto scrollbar-hide">

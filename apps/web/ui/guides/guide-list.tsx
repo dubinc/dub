@@ -49,7 +49,6 @@ export function GuideList() {
             set: {
               step: value || "none",
             },
-            scroll: false,
           });
         }}
         className="space-y-4"
@@ -128,7 +127,6 @@ export function GuideList() {
                         set: {
                           step: sections[index + 1].type,
                         },
-                        scroll: false,
                       });
                     }}
                   />

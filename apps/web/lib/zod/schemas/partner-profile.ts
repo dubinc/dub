@@ -218,6 +218,12 @@ export const partnerProfileChangeHistoryLogSchema = z.array(
       to: z.enum(PartnerNetworkStatus),
       changedAt: z.coerce.date(),
     }),
+    z.object({
+      field: z.literal("defaultPayoutMethod"),
+      from: z.enum(PartnerPayoutMethod).nullable(),
+      to: z.enum(PartnerPayoutMethod),
+      changedAt: z.coerce.date(),
+    }),
   ]),
 );
 
@@ -227,6 +233,10 @@ export const partnerPayoutMethodSchema = z.object({
   default: z.boolean(),
   connected: z.boolean(),
   identifier: z.string().nullable(),
+});
+
+export const setDefaultPayoutMethodSchema = z.object({
+  type: z.enum(PartnerPayoutMethod),
 });
 
 export const partnerProfilePayoutsQuerySchema = payoutsQuerySchema.extend({
