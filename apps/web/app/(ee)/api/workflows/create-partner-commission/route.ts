@@ -23,6 +23,7 @@ import { prisma } from "@dub/prisma";
 import {
   Commission,
   CommissionStatus,
+  Customer,
   Link,
   Partner,
   PartnerGroup,
@@ -59,7 +60,8 @@ type StepFunctionInput = Input & {
 };
 
 type StepCreateCommissionOutput = {
-  commission: Pick<Commission, "id"> | null;
+  commission?: Pick<Commission, "id" | "earnings" | "currency"> | null;
+  customer?: Pick<Customer, "id" | "email" | "name"> | null;
   outputLog: string;
   isFirstCommission?: boolean;
 };
@@ -84,7 +86,7 @@ export const { POST } = serve<Input>(
     });
 
     // Step 1: Create commission
-    const { commission, isFirstCommission } = await context.run(
+    const { commission, customer, isFirstCommission } = await context.run(
       "create-commission",
       async () => {
         return await stepCreateCommission({
@@ -120,17 +122,18 @@ export const { POST } = serve<Input>(
           }
         });
       }
-
-      // Step 3: Run side effects
-      await context.run("run-side-effects", async () => {
-        return await stepRunSideEffects({
-          ...input,
-          programEnrollment,
-          isFirstCommission,
-          commission,
-        });
-      });
     }
+
+    // Step 3: Run side effects
+    await context.run("run-side-effects", async () => {
+      return await stepRunSideEffects({
+        ...input,
+        programEnrollment,
+        commission,
+        customer,
+        isFirstCommission,
+      });
+    });
   },
   {
     initialPayloadParser: (requestPayload) => {
@@ -384,6 +387,18 @@ async function stepCreateCommission(
         description,
         ...(createdAt && { createdAt }), // TODO: Check this
       },
+      select: {
+        id: true,
+        earnings: true,
+        currency: true,
+        customer: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
+      },
     });
 
     console.log(prettyPrint(commission));
@@ -392,9 +407,7 @@ async function stepCreateCommission(
       event !== "custom" ? firstCommission === null : undefined;
 
     return logAndReturn({
-      commission: {
-        id: commission.id,
-      },
+      commission,
       isFirstCommission,
       outputLog: `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings, { currency: commission.currency })}) for ${partnerId}`,
     });
@@ -421,7 +434,10 @@ async function stepCreateCommission(
 }
 
 async function stepRunSideEffects(
-  input: StepFunctionInput & { commission: Pick<Commission, "id"> },
+  input: StepFunctionInput & {
+    commission?: Pick<Commission, "id" | "earnings"> | null;
+    customer?: Pick<Customer, "id" | "email" | "name"> | null;
+  },
 ) {
   const {
     commission: _commission,
@@ -435,28 +451,37 @@ async function stepRunSideEffects(
     skipWorkflow,
     clickEvent,
     isFirstConversion,
+    customer,
   } = input;
 
-  const commission = await prisma.commission.findUnique({
+  if (customer && eventId && clickEvent) {
+    await detectAndRecordFraudEvent({
+      program: { id: programId },
+      partner: pick(programEnrollment.partner, ["id", "email", "name"]),
+      programEnrollment: pick(programEnrollment, ["status"]),
+      customer: {
+        ...pick(customer, ["id", "email", "name"]),
+        isFirstConversion,
+      },
+      link: { id: linkId },
+      click: pick(clickEvent, ["url", "referer"]),
+      event: { id: eventId },
+    });
+  }
+
+  if (!_commission) {
+    return logAndReturn({
+      outputLog: "Commission was not created. Skipping side effects...",
+    });
+  }
+
+  const commission = await prisma.commission.findUniqueOrThrow({
     where: {
       id: _commission.id,
     },
     include: {
-      customer: true,
       link: true,
     },
-  });
-
-  if (!commission) {
-    return logAndReturn({
-      commission: null,
-      outputLog: `Commission ${_commission.id} not found, skipping side effects...`,
-    });
-  }
-
-  const webhookPartner = constructWebhookPartner(programEnrollment, {
-    totalCommissions:
-      toCentsNumber(programEnrollment.totalCommissions) + commission.earnings,
   });
 
   const program = await prisma.program.findUniqueOrThrow({
@@ -492,11 +517,13 @@ async function stepRunSideEffects(
   });
 
   const { workspace } = program;
-  const { customer } = commission;
-
   const isClawback = commission.earnings < 0;
   const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
-  const shouldRunFraudDetection = customer && eventId && clickEvent;
+
+  const webhookPartner = constructWebhookPartner(programEnrollment, {
+    totalCommissions:
+      toCentsNumber(programEnrollment.totalCommissions) + commission.earnings,
+  });
 
   await Promise.allSettled([
     sendWorkspaceWebhook({
@@ -513,7 +540,7 @@ async function stepRunSideEffects(
       event: "commission.created",
       data: {
         ...commission,
-        customer: commission.customer,
+        customer,
       },
     }),
 
@@ -538,6 +565,11 @@ async function stepRunSideEffects(
         where: {
           id: userId,
         },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+        },
       })
     : null;
 
@@ -561,6 +593,7 @@ async function stepRunSideEffects(
         ],
       }),
 
+    // Execute Dub workflows
     shouldTriggerWorkflow &&
       executeWorkflows({
         trigger: "partnerMetricsUpdated",
@@ -575,21 +608,6 @@ async function stepRunSideEffects(
             commissions: commission.earnings,
           },
         },
-      }),
-
-    // Only run this for non-manual commissions
-    shouldRunFraudDetection &&
-      detectAndRecordFraudEvent({
-        program: { id: programId },
-        partner: pick(webhookPartner, ["id", "email", "name"]),
-        programEnrollment: pick(programEnrollment, ["status"]),
-        customer: {
-          ...pick(customer, ["id", "email", "name"]),
-          isFirstConversion,
-        },
-        link: { id: linkId },
-        click: pick(clickEvent, ["url", "referer"]),
-        event: { id: eventId },
       }),
   ]);
 }

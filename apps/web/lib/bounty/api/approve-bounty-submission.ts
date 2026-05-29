@@ -106,17 +106,6 @@ export async function approveBountySubmission({
     });
   }
 
-  await queuePartnerCommissionCreation({
-    event: "custom",
-    partnerId: submission.partnerId,
-    programId: submission.programId,
-    amount: finalRewardAmount,
-    quantity: 1,
-    userId: user.id,
-    description: `Commission for successfully completed "${bounty.name}" bounty.`,
-    bountySubmissionId: submissionId,
-  });
-
   const approvedSubmission = await prisma.bountySubmission.update({
     where: {
       id: submissionId,
@@ -145,6 +134,17 @@ export async function approveBountySubmission({
         },
       },
     },
+  });
+
+  await queuePartnerCommissionCreation({
+    event: "custom",
+    partnerId: submission.partnerId,
+    programId: submission.programId,
+    amount: finalRewardAmount,
+    quantity: 1,
+    userId: user.id,
+    description: `Commission for successfully completed "${bounty.name}" bounty.`,
+    bountySubmissionId: submissionId,
   });
 
   const { program, partner } = approvedSubmission;
