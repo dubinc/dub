@@ -7,6 +7,7 @@ import {
   Button,
   Gift,
   MoneyBill,
+  Tooltip,
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils/src";
@@ -19,6 +20,50 @@ import { useEmbedToken } from "../use-embed-token";
 import { useReferralsEmbedData } from "./page-client";
 
 type GiftCardPanel = "collapsed" | "email" | "verify";
+
+function PayoutMethodButton({
+  text,
+  variant,
+  className,
+  disabled,
+  disabledTooltip,
+  onClick,
+}: {
+  text: string;
+  variant: "primary" | "secondary";
+  className?: string;
+  disabled?: boolean;
+  disabledTooltip?: string;
+  onClick?: () => void;
+}) {
+  if (disabledTooltip) {
+    return (
+      <Tooltip
+        content={disabledTooltip}
+        contentClassName="text-content-default dark:prose-invert dark:prose-a:text-neutral-400 dark:hover:prose-a:text-neutral-300"
+      >
+        <div
+          className={cn(
+            "border-border-subtle bg-bg-subtle text-content-subtle flex cursor-not-allowed items-center justify-center whitespace-nowrap rounded-lg border text-sm",
+            className,
+          )}
+        >
+          {text}
+        </div>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <Button
+      className={className}
+      text={text}
+      variant={variant}
+      disabled={disabled}
+      onClick={onClick}
+    />
+  );
+}
 
 function SettingsErrorAlert({ message }: { message: string }) {
   return (
@@ -287,7 +332,7 @@ function PayoutMethodCard({
         )}
       </div>
 
-      <Button
+      <PayoutMethodButton
         className="h-8 w-fit shrink-0 rounded-lg px-3 py-2"
         text={buttonText ?? (isConnected ? "Edit" : "Connect")}
         variant={isConnected ? "secondary" : "primary"}
@@ -324,7 +369,8 @@ function TremendousGiftCardOption({
   return (
     <div
       className={cn(
-        "border-border-subtle bg-bg-muted overflow-hidden rounded-lg border",
+        "border-border-subtle overflow-hidden rounded-lg border",
+        !isConnected && "bg-bg-muted",
         hasAnyConnected && !isConnected && "opacity-50",
       )}
     >
@@ -355,7 +401,7 @@ function TremendousGiftCardOption({
         </div>
 
         {!isExpanded ? (
-          <Button
+          <PayoutMethodButton
             text={isConnected ? "Edit" : "Connect"}
             className="h-8 w-fit shrink-0 rounded-lg px-3 py-2"
             variant={isConnected ? "secondary" : "primary"}
