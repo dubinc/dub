@@ -7,7 +7,6 @@ import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutFailed from "@dub/email/templates/partner-payout-failed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
-import { log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";
 
@@ -18,12 +17,6 @@ export async function processPayoutInvoiceFailure({
   invoice: Invoice;
   charge?: Stripe.Charge;
 }) {
-  await log({
-    message: `Partner payout failed for invoice ${invoice.id}.`,
-    type: "errors",
-    mention: true,
-  });
-
   // reset the payouts to their initial state
   const { count } = await prisma.payout.updateMany({
     where: {

@@ -2,7 +2,7 @@ import {
   decodeLinkIfCaseSensitive,
   encodeKeyIfCaseSensitive,
 } from "@/lib/api/links/case-sensitivity";
-import { deepViewDataSchema } from "@/lib/zod/schemas/deep-links";
+import { parseDeepViewData } from "@/lib/zod/schemas/deep-links";
 import { prisma } from "@dub/prisma";
 import { Grid, Wordmark } from "@dub/ui";
 import {
@@ -20,6 +20,16 @@ import { userAgent } from "next/server";
 import { DeepLinkActionButtons } from "./action-buttons";
 import { BrandLogoBadge } from "./brand-logo-badge";
 import { getLanguage, getTranslations } from "./translations";
+
+const ANDROID_PACKAGE_NAME_REGEX =
+  /^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/;
+
+interface AssetLink {
+  target?: {
+    namespace?: string;
+    package_name?: string;
+  };
+}
 
 export default async function DeepLinkPreviewPage(props: {
   params: Promise<{ domain: string; key?: string[] }>;
@@ -73,19 +83,22 @@ export default async function DeepLinkPreviewPage(props: {
     redirect(`https://${domain}`);
   }
 
-  const deepViewData = deepViewDataSchema.parse(link.shortDomain.deepviewData);
+  const { appleAppSiteAssociation, assetLinks, deepviewData } =
+    link.shortDomain;
 
   // if the domain isn't set up for deep linking on the user's platform, skip
   // the preview and forward to the platform-specific URL (or the canonical URL)
   if (platform === "android") {
-    if (!link.shortDomain.assetLinks || !deepViewData) {
+    if (!assetLinks || !deepviewData) {
       redirect(link.android ?? link.url);
     }
   } else {
-    if (!link.shortDomain.appleAppSiteAssociation || !deepViewData) {
+    if (!appleAppSiteAssociation || !deepviewData) {
       redirect(link.ios ?? link.url);
     }
   }
+
+  const deepViewData = parseDeepViewData(deepviewData);
 
   // decode the link if the domain is case sensitive
   link = decodeLinkIfCaseSensitive(link);
@@ -95,12 +108,29 @@ export default async function DeepLinkPreviewPage(props: {
     redirect(`https://${domain}`);
   }
 
+  let androidPackageName: string | null = null;
+
+  if (platform === "android" && Array.isArray(link.shortDomain.assetLinks)) {
+    for (const assetLink of link.shortDomain.assetLinks as Array<AssetLink>) {
+      const packageName = assetLink?.target?.package_name;
+
+      if (
+        assetLink?.target?.namespace === "android_app" &&
+        typeof packageName === "string" &&
+        ANDROID_PACKAGE_NAME_REGEX.test(packageName)
+      ) {
+        androidPackageName = packageName;
+        break;
+      }
+    }
+  }
+
   const {
     hidePoweredByBadge = false,
     appName = getApexDomain(link.url),
     variant,
     buttonStyle,
-  } = deepViewData ?? {};
+  } = deepViewData;
 
   const description = t.description.replace("{appName}", appName);
 
@@ -202,6 +232,8 @@ export default async function DeepLinkPreviewPage(props: {
             <DeepLinkActionButtons
               link={link}
               language={language}
+              platform={platform}
+              androidPackageName={androidPackageName}
               buttonStyle={buttonStyle}
             />
           </div>
