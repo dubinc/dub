@@ -20,6 +20,7 @@ import {
   WorkspaceProps,
 } from "@/lib/types";
 import { redis } from "@/lib/upstash";
+import { publishWorkspaceClicksUsageEvent } from "@/lib/upstash/redis-streams/workspace-clicks-usage";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   transformLeadEventData,
@@ -442,54 +443,34 @@ const _trackSale = async ({
 
   waitUntil(
     (async () => {
-      const [_sale, link] = await Promise.all([
-        // Record sale event
-        recordSale({
-          ...saleData,
-          timestamp: undefined,
-        }),
-
-        // Update link conversions, sales, and saleAmount
-        prisma.link.update({
-          where: {
-            id: saleData.link_id,
-          },
-          data: {
-            ...(firstConversionFlag && {
-              conversions: {
-                increment: 1,
-              },
-              lastConversionAt: new Date(),
-            }),
-            sales: {
+      // Update link conversions, sales, and saleAmount
+      const link = await prisma.link.update({
+        where: {
+          id: saleData.link_id,
+        },
+        data: {
+          ...(firstConversionFlag && {
+            conversions: {
               increment: 1,
             },
-            saleAmount: {
-              increment: amount,
-            },
+            lastConversionAt: new Date(),
+          }),
+          sales: {
+            increment: 1,
           },
-          include: includeTags,
-        }),
-
-        // Update workspace events usage
-        prisma.project.update({
-          where: {
-            id: workspace.id,
+          saleAmount: {
+            increment: amount,
           },
-          data: {
-            usage: {
-              increment: 1,
-            },
-          },
-        }),
-      ]);
+        },
+        include: includeTags,
+      });
 
       let createdCommission:
         | Awaited<ReturnType<typeof createPartnerCommission>>
         | undefined = undefined;
 
-      // Create partner commission and execute workflows
       if (link.programId && link.partnerId) {
+        // TODO: move to workflows/create-partner-commission
         createdCommission = await createPartnerCommission({
           event: "sale",
           programId: link.programId,
@@ -539,6 +520,7 @@ const _trackSale = async ({
             eventType: "sale",
           }),
 
+          // TODO: move to workflows/create-partner-commission
           webhookPartner &&
             detectAndRecordFraudEvent({
               program: { id: link.programId },
@@ -556,6 +538,11 @@ const _trackSale = async ({
       }
 
       await Promise.allSettled([
+        recordSale({
+          ...saleData,
+          timestamp: undefined,
+        }),
+
         sendWorkspaceWebhook({
           trigger: "sale.created",
           data: transformSaleEventData({
@@ -583,6 +570,12 @@ const _trackSale = async ({
               }),
             ]
           : []),
+
+        publishWorkspaceClicksUsageEvent({
+          linkId: link.id,
+          workspaceId: workspace.id,
+          timestamp: new Date().toISOString(),
+        }),
       ]);
 
       // Update customer stats + program/partner associations
