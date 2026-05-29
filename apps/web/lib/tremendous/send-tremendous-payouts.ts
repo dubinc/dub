@@ -12,13 +12,16 @@ import { tremendousConfiguration, tremendousEnv } from "./configuration";
 export async function sendTremendousPayouts({
   partnerId,
   invoiceId,
+  forceWithdrawal = false,
 }: {
   partnerId: string;
   invoiceId?: string;
+  forceWithdrawal?: boolean;
 }) {
   console.log(`Processing Tremendous payouts....`, {
     partnerId,
     invoiceId,
+    forceWithdrawal,
   });
 
   if (!tremendousEnv.TREMENDOUS_CAMPAIGN_ID) {
@@ -63,6 +66,9 @@ export async function sendTremendousPayouts({
           workspaceId: true,
         },
       },
+    },
+    orderBy: {
+      createdAt: "asc",
     },
   });
 
@@ -196,11 +202,14 @@ export async function sendTremendousPayouts({
 
   if (partner.email) {
     const payout = payouts[0];
+    const formattedAmount = currencyFormatter(totalTransferableAmount);
 
     await sendEmail({
       variant: "notifications",
       to: partner.email,
-      subject: `You've received a ${currencyFormatter(totalTransferableAmount)} reward from ${payout.program.name}`,
+      subject: forceWithdrawal
+        ? `A withdrawal of ${formattedAmount} has been initiated from your Dub account`
+        : `You've received a ${formattedAmount} reward from ${payout.program.name}`,
       react: PartnerTremendousPayout({
         email: partner.email,
         program: payout.program,
@@ -209,6 +218,7 @@ export async function sendTremendousPayouts({
           amount: totalTransferableAmount,
         },
         redeemUrl,
+        forceWithdrawal,
       }),
     });
   }
