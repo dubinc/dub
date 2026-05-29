@@ -9,7 +9,7 @@ import {
 } from "./misc";
 import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
 import { PayoutSchema } from "./payouts";
-import { RewardSchema } from "./rewards";
+import { rewardContextSchema, RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { centsSchema, parseDateSchema } from "./utils";
 
@@ -431,3 +431,21 @@ export const commissionsExportQuerySchema = getCommissionsQuerySchema
         },
       ),
   });
+
+export const createPartnerCommissionSchema = z.object({
+  event: z.enum(CommissionType),
+  partnerId: z.string(),
+  programId: z.string(),
+  linkId: z.string().nullish(),
+  customerId: z.string().nullish(),
+  eventId: z.string().nullish(),
+  invoiceId: z.string().nullish(),
+  amount: z.number().default(0).optional(),
+  quantity: z.number().default(1),
+  currency: z.string().optional(),
+  description: z.string().nullish(),
+  createdAt: z.coerce.date().nullish(),
+  userId: z.string().nullish(),
+  context: rewardContextSchema.nullish(),
+  skipWorkflow: z.boolean().nullish(),
+});

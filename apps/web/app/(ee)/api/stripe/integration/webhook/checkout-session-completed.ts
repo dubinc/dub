@@ -1,7 +1,6 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
-import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
@@ -24,7 +23,7 @@ import {
 } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
 import { Customer, Project } from "@dub/prisma/client";
-import { COUNTRIES_TO_CONTINENTS, nanoid, pick } from "@dub/utils";
+import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { getCheckoutSessionProductId } from "./utils/get-checkout-session-product-id";
@@ -477,10 +476,8 @@ export async function checkoutSessionCompleted(
     }),
   ]);
 
-  // for program links
-  let createdCommission:
-    | Awaited<ReturnType<typeof createPartnerCommission>>
-    | undefined = undefined;
+  let result: Awaited<ReturnType<typeof createPartnerCommission>> | undefined =
+    undefined;
 
   if (link && link.programId && link.partnerId) {
     const productId = await getCheckoutSessionProductId({
@@ -489,7 +486,7 @@ export async function checkoutSessionCompleted(
       mode,
     });
 
-    createdCommission = await createPartnerCommission({
+    result = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -511,8 +508,6 @@ export async function checkoutSessionCompleted(
         },
       },
     });
-
-    const { webhookPartner, programEnrollment } = createdCommission;
 
     waitUntil(
       Promise.allSettled([
@@ -538,19 +533,19 @@ export async function checkoutSessionCompleted(
           eventType: "sale",
         }),
 
-        webhookPartner &&
-          detectAndRecordFraudEvent({
-            program: { id: link.programId },
-            partner: pick(webhookPartner, ["id", "email", "name"]),
-            programEnrollment: pick(programEnrollment, ["status"]),
-            customer: {
-              ...pick(customer, ["id", "email", "name"]),
-              isFirstConversion: firstConversionFlag,
-            },
-            link: pick(link, ["id"]),
-            click: pick(saleData, ["url", "referer"]),
-            event: { id: saleData.event_id },
-          }),
+        // webhookPartner &&
+        //   detectAndRecordFraudEvent({
+        //     program: { id: link.programId },
+        //     partner: pick(webhookPartner, ["id", "email", "name"]),
+        //     programEnrollment: pick(programEnrollment, ["status"]),
+        //     customer: {
+        //       ...pick(customer, ["id", "email", "name"]),
+        //       isFirstConversion: firstConversionFlag,
+        //     },
+        //     link: pick(link, ["id"]),
+        //     click: pick(saleData, ["url", "referer"]),
+        //     event: { id: saleData.event_id },
+        //   }),
       ]),
     );
   }
@@ -565,7 +560,7 @@ export async function checkoutSessionCompleted(
           clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
           customer,
-          partner: createdCommission?.webhookPartner,
+          partner: result?.webhookPartner,
           metadata: null,
         }),
       }),
@@ -703,12 +698,12 @@ async function attributeViaPromoCode({
     (async () => {
       const linkUpdated = await incrementLinkLeads(link.id);
 
-      let createdCommission:
+      let result:
         | Awaited<ReturnType<typeof createPartnerCommission>>
         | undefined = undefined;
 
       if (link.programId && link.partnerId) {
-        createdCommission = await createPartnerCommission({
+        result = await createPartnerCommission({
           event: "lead",
           programId: link.programId,
           partnerId: link.partnerId,
@@ -756,7 +751,7 @@ async function attributeViaPromoCode({
             eventName: "Checkout session completed",
             link: linkUpdated,
             customer,
-            partner: createdCommission?.webhookPartner,
+            partner: result?.webhookPartner,
             metadata: null,
           }),
         }),

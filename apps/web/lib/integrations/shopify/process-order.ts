@@ -149,12 +149,12 @@ export async function attributeViaDiscountCode({
         include: includeTags,
       });
 
-      let createdCommission:
+      let result:
         | Awaited<ReturnType<typeof createPartnerCommission>>
         | undefined = undefined;
 
       if (link.programId && link.partnerId) {
-        createdCommission = await createPartnerCommission({
+        result = await createPartnerCommission({
           event: "lead",
           programId: link.programId,
           partnerId: link.partnerId,
@@ -202,7 +202,7 @@ export async function attributeViaDiscountCode({
             eventName: "Checkout with discount code",
             link: linkUpdated,
             customer,
-            partner: createdCommission?.webhookPartner,
+            partner: result?.webhookPartner,
             metadata: null,
           }),
         }),

@@ -1,7 +1,6 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
-import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
@@ -32,7 +31,7 @@ import {
 } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
 import { Customer } from "@dub/prisma/client";
-import { nanoid, pick, R2_URL } from "@dub/utils";
+import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";
@@ -465,13 +464,12 @@ const _trackSale = async ({
         include: includeTags,
       });
 
-      let createdCommission:
+      let result:
         | Awaited<ReturnType<typeof createPartnerCommission>>
         | undefined = undefined;
 
       if (link.programId && link.partnerId) {
-        // TODO: move to workflows/create-partner-commission
-        createdCommission = await createPartnerCommission({
+        result = await createPartnerCommission({
           event: "sale",
           programId: link.programId,
           partnerId: link.partnerId,
@@ -494,8 +492,6 @@ const _trackSale = async ({
             },
           },
         });
-
-        const { webhookPartner, programEnrollment } = createdCommission;
 
         await Promise.allSettled([
           executeWorkflows({
@@ -521,19 +517,19 @@ const _trackSale = async ({
           }),
 
           // TODO: move to workflows/create-partner-commission
-          webhookPartner &&
-            detectAndRecordFraudEvent({
-              program: { id: link.programId },
-              partner: pick(webhookPartner, ["id", "email", "name"]),
-              programEnrollment: pick(programEnrollment, ["status"]),
-              customer: {
-                ...pick(customer, ["id", "email", "name"]),
-                isFirstConversion: firstConversionFlag,
-              },
-              link: pick(link, ["id"]),
-              click: pick(saleData, ["url", "referer"]),
-              event: { id: saleData.event_id },
-            }),
+          // webhookPartner &&
+          //   detectAndRecordFraudEvent({
+          //     program: { id: link.programId },
+          //     partner: pick(webhookPartner, ["id", "email", "name"]),
+          //     programEnrollment: pick(programEnrollment, ["status"]),
+          //     customer: {
+          //       ...pick(customer, ["id", "email", "name"]),
+          //       isFirstConversion: firstConversionFlag,
+          //     },
+          //     link: pick(link, ["id"]),
+          //     click: pick(saleData, ["url", "referer"]),
+          //     event: { id: saleData.event_id },
+          //   }),
         ]);
       }
 
@@ -550,7 +546,7 @@ const _trackSale = async ({
             clickedAt: customer.clickedAt || customer.createdAt,
             link,
             customer,
-            partner: createdCommission?.webhookPartner,
+            partner: result?.webhookPartner,
             metadata,
           }),
           workspace,

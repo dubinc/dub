@@ -106,6 +106,9 @@ export async function approveBountySubmission({
     });
   }
 
+  // TODO:
+  // Fix this
+
   const { commission } = await createPartnerCommission({
     event: "custom",
     partnerId: submission.partnerId,

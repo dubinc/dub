@@ -1,6 +1,5 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
-import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
@@ -12,7 +11,7 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { nanoid, pick } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
@@ -239,12 +238,11 @@ export async function invoicePaid(
   ]);
 
   // for program links
-  let createdCommission:
-    | Awaited<ReturnType<typeof createPartnerCommission>>
-    | undefined = undefined;
+  let result: Awaited<ReturnType<typeof createPartnerCommission>> | undefined =
+    undefined;
 
   if (link.programId && link.partnerId) {
-    createdCommission = await createPartnerCommission({
+    result = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -266,8 +264,6 @@ export async function invoicePaid(
         },
       },
     });
-
-    const { webhookPartner, programEnrollment } = createdCommission;
 
     waitUntil(
       Promise.allSettled([
@@ -293,19 +289,19 @@ export async function invoicePaid(
           eventType: "sale",
         }),
 
-        webhookPartner &&
-          detectAndRecordFraudEvent({
-            program: { id: link.programId },
-            partner: pick(webhookPartner, ["id", "email", "name"]),
-            programEnrollment: pick(programEnrollment, ["status"]),
-            customer: {
-              ...pick(customer, ["id", "email", "name"]),
-              isFirstConversion: firstConversionFlag,
-            },
-            link: pick(link, ["id"]),
-            click: pick(saleData, ["url", "referer"]),
-            event: { id: saleData.event_id },
-          }),
+        // webhookPartner &&
+        //   detectAndRecordFraudEvent({
+        //     program: { id: link.programId },
+        //     partner: pick(webhookPartner, ["id", "email", "name"]),
+        //     programEnrollment: pick(programEnrollment, ["status"]),
+        //     customer: {
+        //       ...pick(customer, ["id", "email", "name"]),
+        //       isFirstConversion: firstConversionFlag,
+        //     },
+        //     link: pick(link, ["id"]),
+        //     click: pick(saleData, ["url", "referer"]),
+        //     event: { id: saleData.event_id },
+        //   }),
       ]),
     );
   }
@@ -320,7 +316,7 @@ export async function invoicePaid(
           clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
           customer,
-          partner: createdCommission?.webhookPartner,
+          partner: result?.webhookPartner,
           metadata: null,
         }),
       }),
