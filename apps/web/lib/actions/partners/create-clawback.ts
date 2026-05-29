@@ -33,6 +33,6 @@ export const createClawbackAction = authActionClient
       description,
       amount: -amount,
       quantity: 1,
-      user,
+      userId: user.id,
     });
   });

@@ -98,7 +98,7 @@ export const createManualCommissionAction = authActionClient
         amount: amount ?? 0,
         quantity: 1,
         createdAt: date ?? new Date(),
-        user,
+        userId: user.id,
         description,
       });
 
@@ -322,7 +322,7 @@ export const createManualCommissionAction = authActionClient
           eventId: leadEventData.event_id,
           quantity: 1,
           createdAt: new Date(leadEventData.timestamp), // we don't add the "Z" to the timestamp because it's already in UTC
-          user,
+          userId: user.id,
           context: {
             customer: { country: customer.country },
           },
@@ -363,7 +363,7 @@ export const createManualCommissionAction = authActionClient
             currency: saleEventData.currency,
             invoiceId: saleEventData.invoice_id,
             createdAt: new Date(saleEventData.timestamp), // we don't add the "Z" to the timestamp because it's already in UTC
-            user,
+            userId: user.id,
             context: {
               customer: { country: customer.country },
               sale: { productId },

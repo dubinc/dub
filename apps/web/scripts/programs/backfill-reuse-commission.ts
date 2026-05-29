@@ -130,7 +130,6 @@ async function main() {
         eventId: leadEventData.event_id,
         quantity: 1,
         createdAt: new Date(leadEventData.timestamp + "Z"), // add the "Z" to the timestamp to make it UTC
-        user,
         context: {
           customer: { country: customer.country },
         },

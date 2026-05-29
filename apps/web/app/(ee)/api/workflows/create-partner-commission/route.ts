@@ -135,6 +135,10 @@ async function stepCreateCommission(
     programEnrollment,
   } = input;
 
+  if (typeof amount !== "number") {
+    amount = 0;
+  }
+
   let earnings = 0;
   let reward: RewardProps | null = null;
   let status: CommissionStatus = "pending";
@@ -144,7 +148,7 @@ async function stepCreateCommission(
   > | null = null;
 
   if (event === "custom") {
-    earnings = amount ?? 0;
+    earnings = amount;
     amount = 0;
   } else {
     if (["lead", "sale"].includes(event) && customerId) {
@@ -293,7 +297,10 @@ async function stepCreateCommission(
       } else {
         earnings = calculateSaleEarnings({
           reward,
-          sale: { quantity, amount: amount ?? 0 },
+          sale: {
+            quantity,
+            amount,
+          },
         });
       }
     }

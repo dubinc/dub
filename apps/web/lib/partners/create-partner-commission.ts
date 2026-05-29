@@ -1,32 +1,18 @@
 import * as z from "zod/v4";
 import { getProgramEnrollmentOrThrow } from "../api/programs/get-program-enrollment-or-throw";
-import { Session } from "../auth";
+import { triggerQStashWorkflow } from "../cron/qstash-workflow";
 import { createPartnerCommissionSchema } from "../zod/schemas/commissions";
 import { constructWebhookPartner } from "./constuct-webhook-partner";
 
 export type CreatePartnerCommissionProps = z.infer<
   typeof createPartnerCommissionSchema
-> & {
-  user?: Session["user"];
-};
+>;
 
-export const createPartnerCommission = async ({
-  event,
-  partnerId,
-  programId,
-  linkId,
-  customerId,
-  eventId,
-  invoiceId,
-  amount = 0,
-  quantity,
-  currency,
-  description,
-  createdAt,
-  user,
-  context,
-  skipWorkflow = false,
-}: CreatePartnerCommissionProps) => {
+export const createPartnerCommission = async (
+  params: CreatePartnerCommissionProps,
+) => {
+  const { partnerId, programId, customerId } = params;
+
   const result = await getProgramEnrollmentOrThrow({
     partnerId,
     programId,
@@ -37,6 +23,12 @@ export const createPartnerCommission = async ({
   });
 
   const { partner, links, ...programEnrollment } = result;
+
+  await triggerQStashWorkflow({
+    workflowType: "create-partner-commission",
+    workflowLabel: customerId ?? partnerId,
+    body: params,
+  });
 
   return {
     partner,
