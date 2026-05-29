@@ -184,14 +184,25 @@ function PayoutMethodItem({
           </span>
         </div>
       </div>
-      <Button
-        variant={method.connected ? "secondary" : "primary"}
-        text={method.connected ? "Manage" : "Connect"}
-        onClick={() => onAction(method.type, method.connected)}
-        loading={isActionPending}
-        disabled={payoutsDisabled}
-        className="h-7 w-fit shrink-0 cursor-pointer text-xs"
-      />
+
+      {method.type === "tremendous" ? (
+        <Button
+          variant="secondary"
+          text="Manage"
+          disabled={true}
+          disabledTooltip="Contact support if you need to update this email."
+          className="h-7 w-fit shrink-0 cursor-pointer text-xs"
+        />
+      ) : (
+        <Button
+          variant={method.connected ? "secondary" : "primary"}
+          text={method.connected ? "Manage" : "Connect"}
+          onClick={() => onAction(method.type, method.connected)}
+          loading={isActionPending}
+          disabled={payoutsDisabled}
+          className="h-7 w-fit shrink-0 cursor-pointer text-xs"
+        />
+      )}
     </div>
   );
 }
