@@ -7,7 +7,7 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { queuePartnerCommissionCreation } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import {
   recordClickZod,
   recordClickZodSchema,
@@ -190,9 +190,9 @@ export const createManualCommissionAction = authActionClient
         );
       }
 
-      if (stripeCustomerInvoices.length > 12) {
+      if (stripeCustomerInvoices.length > 36) {
         throw new Error(
-          `Too many Stripe invoices found for customer ${customer.email} (${stripeCustomerInvoices.length}). Please import the invoices manually.`,
+          `Too many Stripe invoices found for customer ${customer.email} (${stripeCustomerInvoices.length}). Please contact support.`,
         );
       }
 
@@ -380,7 +380,6 @@ export const createManualCommissionAction = authActionClient
 
     let queuedCommissions = 0;
     // create partner commissions (use a for loop to make sure the commissions are created in the correct order)
-    // TODO: migrate to use workflow to support bulk creation
     for (const c of commissionsToCreate) {
       await queuePartnerCommissionCreation(c);
       queuedCommissions++;

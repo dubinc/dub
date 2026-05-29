@@ -4,7 +4,7 @@ import { updateLinkStatsForImporter } from "@/lib/api/links/update-link-stats-fo
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { qstash } from "@/lib/cron";
-import { queuePartnerCommissionCreation } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { getCustomerEventsTB } from "@/lib/tinybird/get-customer-events-tb";
 import {
   recordClickZod,

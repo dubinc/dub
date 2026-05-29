@@ -1,4 +1,3 @@
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { notifyPartnerCommission } from "@/lib/api/partners/notify-partner-commission";
@@ -96,32 +95,30 @@ export const { POST } = serve<Input>(
       },
     );
 
-    if (commission) {
-      // Step 2: Link the commission to the bounty submission
-      if (bountySubmissionId) {
-        await context.run("set-bounty-commission", async () => {
-          const { count } = await prisma.bountySubmission.updateMany({
-            where: {
-              id: bountySubmissionId,
-              status: "approved",
-              commissionId: null,
-            },
-            data: {
-              commissionId: commission.id,
-            },
-          });
-
-          if (count) {
-            return logAndReturn({
-              outputLog: `Linked commission ${commission.id} to bounty submission ${bountySubmissionId}`,
-            });
-          } else {
-            return logAndReturn({
-              outputLog: `Bounty submission ${bountySubmissionId} not found or already linked to a commission, skipping...`,
-            });
-          }
+    // Step 2 (optional): Link the commission to the bounty submission
+    if (commission && bountySubmissionId) {
+      await context.run("set-bounty-commission", async () => {
+        const { count } = await prisma.bountySubmission.updateMany({
+          where: {
+            id: bountySubmissionId,
+            status: "approved",
+            commissionId: null,
+          },
+          data: {
+            commissionId: commission.id,
+          },
         });
-      }
+
+        if (count) {
+          return logAndReturn({
+            outputLog: `Linked commission ${commission.id} to bounty submission ${bountySubmissionId}`,
+          });
+        } else {
+          return logAndReturn({
+            outputLog: `Bounty submission ${bountySubmissionId} not found or already linked to a commission, skipping...`,
+          });
+        }
+      });
     }
 
     // Step 3: Run side effects
@@ -455,26 +452,6 @@ async function stepRunSideEffects(
     customer,
   } = input;
 
-  // - sale: always evaluate
-  // - lead: only when a commission was created
-  const shouldRunFraudDetection =
-    event === "sale" || (_commission && event === "lead");
-
-  if (shouldRunFraudDetection && customer && eventId && clickEvent) {
-    await detectAndRecordFraudEvent({
-      program: { id: programId },
-      partner: pick(programEnrollment.partner, ["id", "email", "name"]),
-      programEnrollment: pick(programEnrollment, ["status"]),
-      customer: {
-        ...pick(customer, ["id", "email", "name"]),
-        isFirstConversion,
-      },
-      link: { id: linkId },
-      click: pick(clickEvent, ["url", "referer"]),
-      event: { id: eventId },
-    });
-  }
-
   if (!_commission) {
     return logAndReturn({
       outputLog: "Commission was not created. Skipping side effects...",
@@ -531,7 +508,13 @@ async function stepRunSideEffects(
       toCentsNumber(programEnrollment.totalCommissions) + commission.earnings,
   });
 
-  await Promise.allSettled([
+  // Fraud detection should be run for:
+  // - sale events: always evaluate
+  // - lead events: only when a commission was created
+  const shouldRunFraudDetection =
+    event === "sale" || (_commission && event === "lead");
+
+  return await Promise.allSettled([
     sendWorkspaceWebhook({
       workspace,
       trigger: "commission.created",
@@ -564,40 +547,6 @@ async function stepRunSideEffects(
         commission,
         isFirstCommission,
       }),
-  ]);
-
-  const user = userId
-    ? await prisma.user.findUnique({
-        where: {
-          id: userId,
-        },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-        },
-      })
-    : null;
-
-  await Promise.allSettled([
-    // We only capture audit logs for manual commissions
-    user &&
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: isClawback ? "clawback.created" : "commission.created",
-        description: isClawback
-          ? `Clawback created for ${partnerId}`
-          : `Commission created for ${partnerId}`,
-        actor: user,
-        targets: [
-          {
-            type: isClawback ? "clawback" : "commission",
-            id: commission.id,
-            metadata: commission,
-          },
-        ],
-      }),
 
     // Execute Dub workflows
     shouldTriggerWorkflow &&
@@ -614,6 +563,24 @@ async function stepRunSideEffects(
             commissions: commission.earnings,
           },
         },
+      }),
+
+    // Run fraud detection
+    shouldRunFraudDetection &&
+      customer &&
+      eventId &&
+      clickEvent &&
+      detectAndRecordFraudEvent({
+        program: { id: programId },
+        partner: pick(programEnrollment.partner, ["id", "email", "name"]),
+        programEnrollment: pick(programEnrollment, ["status"]),
+        customer: {
+          ...pick(customer, ["id", "email", "name"]),
+          isFirstConversion,
+        },
+        link: { id: linkId },
+        click: pick(clickEvent, ["url", "referer"]),
+        event: { id: eventId },
       }),
   ]);
 }

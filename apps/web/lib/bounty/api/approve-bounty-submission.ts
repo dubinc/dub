@@ -3,7 +3,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { Session } from "@/lib/auth";
 import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
-import { queuePartnerCommissionCreation } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import {
   approveBountySubmissionBodySchema,
   BountySubmissionSchema,
