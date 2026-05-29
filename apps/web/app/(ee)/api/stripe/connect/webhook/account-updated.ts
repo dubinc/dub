@@ -39,6 +39,7 @@ export async function accountUpdated(event: Stripe.AccountUpdatedEvent) {
       payoutsEnabledAt: true,
       defaultPayoutMethod: true,
       payoutMethodHash: true,
+      tremendousEmail: true,
     },
   });
 

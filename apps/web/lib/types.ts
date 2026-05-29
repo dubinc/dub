@@ -526,6 +526,7 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
   userId: string;
   platforms: PartnerPlatformProps[];
   defaultPayoutMethod: PartnerPayoutMethod | null;
+  tremendousEmail: string | null;
 };
 
 export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;
