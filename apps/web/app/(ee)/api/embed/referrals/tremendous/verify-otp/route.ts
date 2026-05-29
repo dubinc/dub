@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
+import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
 import { ratelimit } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { prisma } from "@dub/prisma";
@@ -13,9 +14,16 @@ const verifyOtpSchema = z.object({
   code: z.string().min(6, "OTP must be 6 characters long.").max(6),
 });
 
-// POST /api/embed/referrals/payouts/tremendous/verify-otp
+// POST /api/embed/referrals/tremendous/verify-otp
 export const POST = withReferralsEmbedToken(
   async ({ req, programEnrollment }) => {
+    if (!TREMENDOUS_ENABLED_PROGRAM_IDS.includes(programEnrollment.programId)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Gift card payouts are not available for this program.",
+      });
+    }
+
     const { email, code } = verifyOtpSchema.parse(await parseRequestBody(req));
     const { partnerId } = programEnrollment;
 

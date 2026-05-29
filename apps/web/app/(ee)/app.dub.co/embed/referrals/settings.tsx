@@ -24,7 +24,7 @@ function SettingsErrorAlert({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="bg-bg-error text-content-error mb-3 flex items-start gap-2 rounded-lg border border-red-200 px-3 py-2.5"
+      className="bg-bg-error text-content-error border-border-error mb-3 flex items-start gap-2 rounded-lg border px-3 py-2.5"
     >
       <AlertCircleFill className="mt-0.5 size-4 shrink-0" />
       <p className="text-sm font-medium leading-5">{message}</p>
@@ -63,17 +63,14 @@ function TremendousEmailForm({
     setErrorMessage(null);
 
     try {
-      const response = await fetch(
-        "/api/embed/referrals/payouts/tremendous/send-otp",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ email }),
+      const response = await fetch("/api/embed/referrals/tremendous/send-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({ email }),
+      });
 
       const result = await response.json();
 
@@ -117,7 +114,7 @@ function TremendousEmailForm({
             }}
             placeholder="panic@thedis.co"
             required
-            className="border-border-subtle text-content-default bg-bg-default focus:border-border-emphasis h-9 w-full rounded-lg border px-3 text-sm focus:outline-none focus:ring-neutral-500"
+            className="border-border-subtle text-content-default bg-bg-default focus:border-border-emphasis h-9 w-full rounded-lg border px-3 text-sm focus:outline-none focus:ring-neutral-500 dark:focus:border-neutral-400 dark:focus:ring-neutral-400"
           />
         </div>
         <Button
@@ -158,7 +155,7 @@ function TremendousOtpVerifyForm({
 
     try {
       const response = await fetch(
-        "/api/embed/referrals/payouts/tremendous/verify-otp",
+        "/api/embed/referrals/tremendous/verify-otp",
         {
           method: "POST",
           headers: {
@@ -268,13 +265,13 @@ function PayoutMethodCard({
     >
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <div className="border-border-muted bg-bg-default flex size-8 shrink-0 items-center justify-center rounded-lg border">
-          <Icon className="size-[18px] text-neutral-800" />
+          <Icon className="text-content-emphasis size-[18px]" />
         </div>
         <h2 className="text-content-emphasis text-sm font-semibold">{label}</h2>
         {showRecommendedBadge && (
           <Badge
             variant="blue"
-            className="rounded-md border-blue-100 bg-blue-100 px-1 py-0 text-xs font-semibold text-blue-600"
+            className="rounded-md px-1 py-0 text-xs font-semibold"
           >
             Recommended
           </Badge>
@@ -283,7 +280,7 @@ function PayoutMethodCard({
         {isConnected && (
           <Badge
             variant="green"
-            className="rounded-md border-green-100 bg-green-100 px-1 py-0 text-xs font-semibold text-green-600"
+            className="rounded-md px-1 py-0 text-xs font-semibold"
           >
             Connected
           </Badge>
@@ -334,7 +331,7 @@ function TremendousGiftCardOption({
       <div className="flex items-center gap-3 p-3">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <div className="border-border-muted bg-bg-default flex size-8 shrink-0 items-center justify-center rounded-lg border">
-            <Gift className="size-[18px] text-neutral-800" />
+            <Gift className="text-content-emphasis size-[18px]" />
           </div>
           <h2 className="text-content-emphasis text-sm font-semibold">
             Gift Cards
@@ -342,7 +339,7 @@ function TremendousGiftCardOption({
           {!hasAnyConnected && (
             <Badge
               variant="blue"
-              className="rounded-md border-blue-100 bg-blue-100 px-1 py-0 text-xs font-semibold text-blue-600"
+              className="rounded-md px-1 py-0 text-xs font-semibold"
             >
               Recommended
             </Badge>
@@ -350,7 +347,7 @@ function TremendousGiftCardOption({
           {isConnected && (
             <Badge
               variant="green"
-              className="rounded-md border-green-100 bg-green-100 px-1 py-0 text-xs font-semibold text-green-600"
+              className="rounded-md px-1 py-0 text-xs font-semibold"
             >
               Connected
             </Badge>

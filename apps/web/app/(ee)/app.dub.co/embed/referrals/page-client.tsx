@@ -2,6 +2,7 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
+import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
 import {
   DiscountProps,
   PartnerBountyProps,
@@ -175,8 +176,9 @@ export function ReferralsEmbedPageClient({
   const activeBountiesCount = bounties.length;
 
   const showSettingsTab =
-    !partner.defaultPayoutMethod ||
-    partner.defaultPayoutMethod === "tremendous";
+    TREMENDOUS_ENABLED_PROGRAM_IDS.includes(program.id) &&
+    (!partner.defaultPayoutMethod ||
+      partner.defaultPayoutMethod === "tremendous");
 
   const tabs = useMemo(
     () => [

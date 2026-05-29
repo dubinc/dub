@@ -1,4 +1,5 @@
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import {
   Button,
@@ -136,8 +137,9 @@ export function ReferralsEmbedQuickstart({
                 }
                 onClick={() => {
                   if (
-                    !partner.defaultPayoutMethod ||
-                    partner.defaultPayoutMethod === "tremendous"
+                    TREMENDOUS_ENABLED_PROGRAM_IDS.includes(program.id) &&
+                    (!partner.defaultPayoutMethod ||
+                      partner.defaultPayoutMethod === "tremendous")
                   ) {
                     setSelectedTab("Settings");
                   } else {

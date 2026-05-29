@@ -3,6 +3,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { generateOTP } from "@/lib/auth";
 import { EMAIL_OTP_EXPIRY_IN } from "@/lib/auth/constants";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
+import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
 import { ratelimit } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "@dub/email";
@@ -15,13 +16,16 @@ const sendOtpSchema = z.object({
   email: emailSchema,
 });
 
-// TODO:
-// Audit log the email change for this partner
-// Also record the events to Axiom
-
-// POST /api/embed/referrals/payouts/tremendous/send-otp
+// POST /api/embed/referrals/tremendous/send-otp
 export const POST = withReferralsEmbedToken(
   async ({ req, programEnrollment }) => {
+    if (!TREMENDOUS_ENABLED_PROGRAM_IDS.includes(programEnrollment.programId)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Gift card payouts are not available for this program.",
+      });
+    }
+
     const { email } = sendOtpSchema.parse(await parseRequestBody(req));
     const { partnerId } = programEnrollment;
 
