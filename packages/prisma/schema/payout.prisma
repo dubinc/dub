@@ -27,8 +27,7 @@ model Payout {
   periodStart         DateTime?
   periodEnd           DateTime?
   paypalTransferId    String?              @unique
-  tremendousOrderId   String?
-  tremendousRewardId  String?              @unique
+  tremendousOrderId   String?              @unique
   stripeTransferId    String?
   stripePayoutId      String?
   stripePayoutTraceId String?              @db.Text

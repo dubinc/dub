@@ -54,7 +54,6 @@ export async function sendTremendousPayouts({
       status: "processing",
       mode: "internal",
       method: "tremendous",
-      tremendousRewardId: null,
       tremendousOrderId: null,
     },
     include: {
@@ -161,7 +160,6 @@ export async function sendTremendousPayouts({
       },
       data: {
         tremendousOrderId: order.id,
-        tremendousRewardId: reward.id,
         status: "completed",
         paidAt: new Date(),
         method: "tremendous",
