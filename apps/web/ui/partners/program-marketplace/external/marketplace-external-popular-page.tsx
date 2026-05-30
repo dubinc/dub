@@ -1,10 +1,13 @@
 import { getPublicNetworkProgramFilterCounts } from "@/lib/fetchers/get-public-network-program-filter-counts";
 import { getPublicNetworkPrograms } from "@/lib/fetchers/get-public-network-programs";
 import {
+  MarketplaceProgramGrid,
+  MarketplaceProgramGridEmpty,
+} from "../marketplace-program-grid";
+import {
   MarketplaceExternalFilterSidebar,
   getMarketplaceExternalBasePath,
 } from "./marketplace-external-filters";
-import { MarketplaceExternalProgramGrid } from "./marketplace-external-program-grid";
 import { MarketplaceExternalShell } from "./marketplace-external-shell";
 
 const POPULAR_PAGE_SIZE = 12;
@@ -35,7 +38,11 @@ export async function MarketplaceExternalPopularPage({
           rewardTypeCounts={filterCounts.rewardTypes}
         />
         <div className="min-w-0 flex-1">
-          <MarketplaceExternalProgramGrid programs={programs} />
+          {programs.length > 0 ? (
+            <MarketplaceProgramGrid programs={programs} showStatus={false} />
+          ) : (
+            <MarketplaceProgramGridEmpty />
+          )}
         </div>
       </div>
     </MarketplaceExternalShell>

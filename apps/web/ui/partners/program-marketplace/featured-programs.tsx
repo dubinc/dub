@@ -8,37 +8,59 @@ import {
   CarouselNavBar,
 } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { ComponentProps } from "react";
 import useSWR from "swr";
 import {
   FeaturedProgramCard,
   FeaturedProgramCardSkeleton,
 } from "./featured-program-card";
 
-export function FeaturedPrograms() {
-  const { data: programs, error } = useSWR<NetworkProgramProps[]>(
-    `/api/network/programs?featured=true`,
+const FEATURED_PROGRAMS_API_PATH = "/api/network/programs?featured=true";
+
+type FeaturedProgramsProps = {
+  showStatus?: boolean;
+} & (
+  | { programs: NetworkProgramProps[]; apiPath?: never }
+  | { apiPath?: string; programs?: never }
+);
+
+export function FeaturedPrograms({
+  showStatus = true,
+  ...props
+}: FeaturedProgramsProps) {
+  const apiPath =
+    "apiPath" in props && props.apiPath !== undefined
+      ? props.apiPath
+      : "programs" in props
+        ? null
+        : FEATURED_PROGRAMS_API_PATH;
+
+  const { data: fetchedPrograms, error } = useSWR<NetworkProgramProps[]>(
+    apiPath,
     fetcher,
     { revalidateOnFocus: false, keepPreviousData: true },
   );
 
-  return programs?.length === 0 || error ? null : (
+  const programs = "programs" in props ? props.programs : fetchedPrograms;
+
+  if (error || programs?.length === 0) {
+    return null;
+  }
+
+  return (
     <div>
       <Carousel autoplay={{ delay: 5000 }} opts={{ loop: true }}>
         <CarouselContent className="items-stretch">
           {programs ? (
             programs.map((program) => (
-              <CarouselCard key={program.id} program={program} />
+              <CarouselItem key={program.id} className="basis-full">
+                <FeaturedProgramCard
+                  program={program}
+                  showStatus={showStatus}
+                />
+              </CarouselItem>
             ))
           ) : (
-            <>
-              <CarouselItem className="basis-full">
-                <FeaturedProgramCardSkeleton />
-              </CarouselItem>
-              <CarouselItem className="basis-full">
-                <FeaturedProgramCardSkeleton />
-              </CarouselItem>
-            </>
+            <FeaturedProgramsSkeletonItems />
           )}
         </CarouselContent>
         <div className="mt-2">
@@ -49,10 +71,27 @@ export function FeaturedPrograms() {
   );
 }
 
-const CarouselCard = (props: ComponentProps<typeof FeaturedProgramCard>) => {
+export function FeaturedProgramsSkeleton() {
   return (
-    <CarouselItem className="basis-full">
-      <FeaturedProgramCard {...props} />
-    </CarouselItem>
+    <div>
+      <Carousel opts={{ loop: true }}>
+        <CarouselContent className="items-stretch">
+          <FeaturedProgramsSkeletonItems />
+        </CarouselContent>
+      </Carousel>
+    </div>
   );
-};
+}
+
+function FeaturedProgramsSkeletonItems() {
+  return (
+    <>
+      <CarouselItem className="basis-full">
+        <FeaturedProgramCardSkeleton />
+      </CarouselItem>
+      <CarouselItem className="basis-full">
+        <FeaturedProgramCardSkeleton />
+      </CarouselItem>
+    </>
+  );
+}

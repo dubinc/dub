@@ -4,16 +4,16 @@ import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
 import { NetworkProgramProps } from "@/lib/types";
 import { PROGRAM_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/program-network";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PaginationControls, usePagination, useRouterStuff } from "@dub/ui";
 import { Category } from "@dub/prisma/client";
+import { PaginationControls, usePagination, useRouterStuff } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { MarketplaceEmptyState } from "../marketplace-empty-state";
 import { MarketplaceFilterControl } from "../marketplace-filter-control";
 import {
-  MarketplaceProgramCard,
-  MarketplaceProgramCardSkeleton,
-} from "../program-card";
+  MarketplaceProgramGrid,
+  MarketplaceProgramGridSkeleton,
+} from "../marketplace-program-grid";
 import ProgramSort from "../program-sort";
 import { useProgramNetworkFilters } from "../use-program-network-filters";
 
@@ -78,23 +78,14 @@ export function MarketplaceProgramsListPage({
       ) : !programs || programs?.length ? (
         <div>
           <div className="min-h-[300px]">
-            <div
-              className={cn(
-                "@4xl/page:grid-cols-3 @xl/page:grid-cols-2 grid grid-cols-1 gap-4 transition-opacity lg:gap-6",
-                isValidating && "opacity-50",
-              )}
-            >
-              {programs
-                ? programs.map((program) => (
-                    <MarketplaceProgramCard
-                      key={program.id}
-                      program={program}
-                    />
-                  ))
-                : [...Array(5)].map((_, idx) => (
-                    <MarketplaceProgramCardSkeleton key={idx} />
-                  ))}
-            </div>
+            {programs ? (
+              <MarketplaceProgramGrid
+                programs={programs}
+                className={cn(isValidating && "opacity-50")}
+              />
+            ) : (
+              <MarketplaceProgramGridSkeleton />
+            )}
           </div>
           <div className="sticky bottom-0 mt-4 rounded-b-[inherit] border-t border-neutral-200 bg-white px-3.5 py-2">
             <PaginationControls

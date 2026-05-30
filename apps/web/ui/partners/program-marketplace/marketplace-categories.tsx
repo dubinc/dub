@@ -1,37 +1,22 @@
-"use client";
-
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,
 } from "@/ui/partners/program-marketplace/get-marketplace-href";
-import { Category } from "@dub/prisma/client";
+import { MARKETPLACE_HOME_CATEGORIES } from "@/ui/partners/program-marketplace/marketplace-home-sections";
 import { CircleInfo } from "@dub/ui";
 import Link from "next/link";
-
-const MARKETPLACE_HOME_CATEGORIES = [
-  Category.Productivity,
-  Category.Artificial_Intelligence,
-  Category.Marketing,
-  Category.Development,
-  Category.Design,
-  Category.Finance,
-  Category.Ecommerce,
-  Category.Health,
-  Category.Consumer,
-  Category.Education,
-] as const;
 
 export function MarketplaceCategories() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-content-emphasis text-base font-semibold">
+        <h2 className="text-content-emphasis text-[18px] font-semibold">
           Categories
         </h2>
         <Link
           href={getMarketplaceAllHref()}
-          className="text-content-subtle hover:text-content-emphasis text-sm font-medium transition-colors"
+          className="text-content-emphasis text-sm font-medium transition-colors hover:text-neutral-500"
         >
           View all programs
         </Link>
@@ -39,19 +24,20 @@ export function MarketplaceCategories() {
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
         {MARKETPLACE_HOME_CATEGORIES.map((category) => {
-          const { icon: Icon } = PROGRAM_CATEGORIES_MAP[category] ?? {
+          const { icon: Icon, label } = PROGRAM_CATEGORIES_MAP[category] ?? {
             icon: CircleInfo,
+            label: category.replaceAll("_", " "),
           };
 
           return (
             <Link
               key={category}
               href={getMarketplaceCategoryHref(category)}
-              className="border-border-subtle hover:bg-bg-subtle flex items-center gap-2 rounded-xl border bg-white px-3 py-2.5 transition-colors"
+              className="border-border-subtle hover:bg-bg-subtle flex flex-col gap-2 rounded-xl border bg-white p-3 transition-colors"
             >
-              <Icon className="text-content-muted size-4 shrink-0" />
-              <span className="text-content-emphasis truncate text-sm font-medium">
-                {category.replaceAll("_", " ")}
+              <Icon className="size-[18px] shrink-0 text-neutral-600" />
+              <span className="truncate text-sm font-semibold text-neutral-900">
+                {label}
               </span>
             </Link>
           );

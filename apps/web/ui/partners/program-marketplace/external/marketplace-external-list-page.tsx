@@ -7,11 +7,14 @@ import { getPublicNetworkProgramsQuerySchema } from "@/lib/zod/schemas/program-n
 import { Category } from "@dub/prisma/client";
 import Link from "next/link";
 import {
+  MarketplaceProgramGrid,
+  MarketplaceProgramGridEmpty,
+} from "../marketplace-program-grid";
+import {
   MarketplaceExternalFilterSidebar,
   getMarketplaceExternalBasePath,
 } from "./marketplace-external-filters";
 import { MarketplaceExternalListToolbar } from "./marketplace-external-list-toolbar";
-import { MarketplaceExternalProgramGrid } from "./marketplace-external-program-grid";
 import { MarketplaceExternalShell } from "./marketplace-external-shell";
 
 export async function MarketplaceExternalListPage({
@@ -74,7 +77,11 @@ export async function MarketplaceExternalListPage({
 
         <div className="flex min-w-0 flex-1 flex-col gap-6">
           <MarketplaceExternalListToolbar />
-          <MarketplaceExternalProgramGrid programs={programs} />
+          {programs.length > 0 ? (
+            <MarketplaceProgramGrid programs={programs} showStatus={false} />
+          ) : (
+            <MarketplaceProgramGridEmpty />
+          )}
           {totalPages > 1 ? (
             <div className="flex items-center justify-center gap-2">
               {Array.from({ length: totalPages }, (_, index) => {
