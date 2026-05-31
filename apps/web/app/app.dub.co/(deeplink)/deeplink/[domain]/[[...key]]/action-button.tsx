@@ -6,7 +6,7 @@ import { Button, useCopyToClipboard } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import { getTranslations, Language } from "./translations";
 
-export function DeepLinkActionButtons({
+export function DeepLinkActionButton({
   link,
   language,
   platform,
