@@ -24,6 +24,7 @@ export async function getPayoutsTimeseries({
   endDate,
   granularity,
   timezone = "UTC",
+  excludeCreditCardFees = false,
 }: {
   programId?: string;
   status?: InvoiceStatus;
@@ -31,6 +32,7 @@ export async function getPayoutsTimeseries({
   endDate: Date;
   granularity: keyof typeof sqlGranularityMap;
   timezone?: string;
+  excludeCreditCardFees?: boolean;
 }) {
   const { dateFormat, dateIncrement, startFunction, formatString } =
     sqlGranularityMap[granularity];
@@ -63,11 +65,31 @@ export async function getPayoutsTimeseries({
     fees: number;
     total: number;
   }>(
+    // Optionally remove card processing (2.9%) from invoice fees.
+    // amount and fee are stored in cents, so we round the computed deduction.
     `SELECT
       DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ?), ?) as date,
       SUM(amount) as payouts,
-      SUM(fee) as fees,
-      SUM(total) as total
+      SUM(
+        ${
+          excludeCreditCardFees
+            ? `CASE
+                WHEN paymentMethod = 'card' THEN fee - ROUND(amount * 0.029)
+                ELSE fee
+              END`
+            : "fee"
+        }
+      ) as fees,
+      SUM(
+        amount + ${
+          excludeCreditCardFees
+            ? `CASE
+                WHEN paymentMethod = 'card' THEN fee - ROUND(amount * 0.029)
+                ELSE fee
+              END`
+            : "fee"
+        }
+      ) as total
     FROM Invoice
     WHERE ${whereClauses.join(" AND ")}
     GROUP BY DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ?), ?)
