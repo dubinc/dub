@@ -214,7 +214,10 @@ function RevenuePageClient() {
             </button>
           ))}
         </div>
-        <div className="p-5 sm:p-10">
+        <div className="relative p-5 sm:p-10">
+          <span className="absolute right-10 top-5 rounded-md border border-neutral-200 bg-neutral-50 px-2 py-1 text-xs text-neutral-600">
+            All times in UTC
+          </span>
           <div className="flex h-96 w-full items-center justify-center">
             {chartData ? (
               chartData.length > 0 ? (
