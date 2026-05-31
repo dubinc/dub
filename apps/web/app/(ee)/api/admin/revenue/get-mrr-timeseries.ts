@@ -77,6 +77,7 @@ export async function getMrrByBucket({
         ends_at: min([endDate, new Date()]),
         granularity: getStripeGranularity({ granularity, startDate, endDate }),
         currency: "usd",
+        timezone: "UTC",
       }),
     },
   );
