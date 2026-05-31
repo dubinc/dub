@@ -4,7 +4,7 @@ import { notifyPartnerCommission } from "@/lib/api/partners/notify-partner-commi
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
-import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { executeWorkflows as executeDubWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
 import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
@@ -22,20 +22,13 @@ import { prisma } from "@dub/prisma";
 import {
   Commission,
   CommissionStatus,
-  Customer,
   Link,
   Partner,
   PartnerGroup,
   ProgramEnrollment,
   Reward,
 } from "@dub/prisma/client";
-import {
-  currencyFormatter,
-  log,
-  pick,
-  prettyPrint,
-  toCentsNumber,
-} from "@dub/utils";
+import { currencyFormatter, log, pick, toCentsNumber } from "@dub/utils";
 import { WorkflowRetryAfterError } from "@upstash/workflow";
 import { serve } from "@upstash/workflow/nextjs";
 import { differenceInMonths } from "date-fns";
@@ -59,8 +52,7 @@ type StepFunctionInput = Input & {
 };
 
 type StepCreateCommissionOutput = {
-  commission?: Pick<Commission, "id" | "earnings" | "currency"> | null;
-  customer?: Pick<Customer, "id" | "email" | "name"> | null;
+  commission: Pick<Commission, "id"> | null;
   outputLog: string;
   isFirstCommission?: boolean;
 };
@@ -85,7 +77,7 @@ export const { POST } = serve<Input>(
     });
 
     // Step 1: Create commission
-    const { commission, customer, isFirstCommission } = await context.run(
+    const { commission, isFirstCommission } = await context.run(
       "create-commission",
       async () => {
         return await stepCreateCommission({
@@ -127,7 +119,6 @@ export const { POST } = serve<Input>(
         ...input,
         programEnrollment,
         commission,
-        customer,
         isFirstCommission,
       });
     });
@@ -382,23 +373,9 @@ async function stepCreateCommission(
         earnings,
         status,
         description,
-        ...(createdAt && { createdAt }), // TODO: Check this
-      },
-      select: {
-        id: true,
-        earnings: true,
-        currency: true,
-        customer: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
+        createdAt,
       },
     });
-
-    console.log(prettyPrint(commission));
 
     const isFirstCommission =
       event !== "custom" ? firstCommission === null : undefined;
@@ -432,24 +409,20 @@ async function stepCreateCommission(
 
 async function stepRunSideEffects(
   input: StepFunctionInput & {
-    commission?: Pick<Commission, "id" | "earnings"> | null;
-    customer?: Pick<Customer, "id" | "email" | "name"> | null;
+    commission: Pick<Commission, "id"> | null;
   },
 ) {
   const {
     commission: _commission,
     programEnrollment,
     isFirstCommission,
-    event,
     programId,
     partnerId,
-    userId,
     linkId,
     eventId,
     skipWorkflow,
     clickEvent,
     isFirstConversion,
-    customer,
   } = input;
 
   if (!_commission) {
@@ -463,7 +436,15 @@ async function stepRunSideEffects(
       id: _commission.id,
     },
     include: {
-      link: true,
+      customer: true,
+      link: {
+        select: {
+          id: true,
+          shortLink: true,
+          domain: true,
+          key: true,
+        },
+      },
     },
   });
 
@@ -508,13 +489,7 @@ async function stepRunSideEffects(
       toCentsNumber(programEnrollment.totalCommissions) + commission.earnings,
   });
 
-  // Fraud detection should be run for:
-  // - sale events: always evaluate
-  // - lead events: only when a commission was created
-  const shouldRunFraudDetection =
-    event === "sale" || (_commission && event === "lead");
-
-  return await Promise.allSettled([
+  const results = await Promise.allSettled([
     sendWorkspaceWebhook({
       workspace,
       trigger: "commission.created",
@@ -527,10 +502,7 @@ async function stepRunSideEffects(
     sendPartnerPostback({
       partnerId,
       event: "commission.created",
-      data: {
-        ...commission,
-        customer,
-      },
+      data: commission,
     }),
 
     syncTotalCommissions({
@@ -550,7 +522,7 @@ async function stepRunSideEffects(
 
     // Execute Dub workflows
     shouldTriggerWorkflow &&
-      executeWorkflows({
+      executeDubWorkflows({
         trigger: "partnerMetricsUpdated",
         reason: "commission",
         identity: {
@@ -566,8 +538,7 @@ async function stepRunSideEffects(
       }),
 
     // Run fraud detection
-    shouldRunFraudDetection &&
-      customer &&
+    commission.customer &&
       eventId &&
       clickEvent &&
       detectAndRecordFraudEvent({
@@ -575,7 +546,7 @@ async function stepRunSideEffects(
         partner: pick(programEnrollment.partner, ["id", "email", "name"]),
         programEnrollment: pick(programEnrollment, ["status"]),
         customer: {
-          ...pick(customer, ["id", "email", "name"]),
+          ...pick(commission.customer, ["id", "email", "name"]),
           isFirstConversion,
         },
         link: { id: linkId },
@@ -583,4 +554,16 @@ async function stepRunSideEffects(
         event: { id: eventId },
       }),
   ]);
+
+  return [
+    "sendWorkspaceWebhook",
+    "sendPartnerPostback",
+    "syncTotalCommissions",
+    "notifyPartnerCommission",
+    "executeWorkflows",
+    "detectAndRecordFraudEvent",
+  ].map((step, index) => ({
+    step,
+    result: results[index],
+  }));
 }
