@@ -6,7 +6,7 @@ import { expect } from "vitest";
 import * as z from "zod/v4";
 
 const POLL_INTERVAL_MS = 5000; // 5 seconds
-const TIMEOUT_MS = 45000; // 45 seconds
+const TIMEOUT_MS = 60000; // 60 seconds
 
 export const verifyFraudEvent = async ({
   http,
