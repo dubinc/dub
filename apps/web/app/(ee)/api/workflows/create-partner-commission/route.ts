@@ -547,7 +547,8 @@ async function stepRunSideEffects(
         programEnrollment: pick(programEnrollment, ["status"]),
         customer: {
           ...pick(commission.customer, ["id", "email", "name"]),
-          isFirstConversion,
+          // only pass along isFirstConversion if it's a boolean
+          ...(typeof isFirstConversion === "boolean" && { isFirstConversion }),
         },
         link: { id: linkId },
         click: pick(clickEvent, ["url", "referer"]),
