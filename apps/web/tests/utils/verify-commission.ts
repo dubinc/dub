@@ -43,7 +43,7 @@ export const verifyCommission = async ({
     query.customerId = customerId;
   }
 
-  // Poll for commission every 5 seconds, timeout after 45 seconds
+  // Poll for commission every 5 seconds, timeout after 60 seconds
   const startTime = Date.now();
 
   while (Date.now() - startTime < TIMEOUT_MS) {

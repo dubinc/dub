@@ -29,7 +29,7 @@ export const verifyFraudEvent = async ({
 
   expect(customers.length).toBeGreaterThan(0);
 
-  // Poll for fraud event every 5 seconds, timeout after 45 seconds
+  // Poll for fraud event every 5 seconds, timeout after 60 seconds
   const startTime = Date.now();
   let fraudEvent:
     | z.infer<(typeof fraudEventSchemas)[keyof typeof fraudEventSchemas]>

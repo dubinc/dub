@@ -264,9 +264,9 @@ export const createManualCommissionAction = authActionClient
           ...(stripeCustomerInvoices.find(
             (invoice) => invoice.id === saleEvent.invoice_id,
           )?.refunded && {
-            status: "refunded",
+            status: "refunded" as const,
           }),
-          user,
+          userId: user.id,
           context: {
             customer: { country: customer.country },
           },

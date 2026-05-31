@@ -4,7 +4,7 @@ import { notifyPartnerCommission } from "@/lib/api/partners/notify-partner-commi
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
-import { executeWorkflows as executeDubWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
 import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
@@ -21,7 +21,6 @@ import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import {
   Commission,
-  CommissionStatus,
   Link,
   Partner,
   PartnerGroup,
@@ -87,7 +86,17 @@ export const { POST } = serve<Input>(
       },
     );
 
-    // Step 2 (optional): Link the commission to the bounty submission
+    // Step 2: Run side effects
+    await context.run("run-side-effects", async () => {
+      return await stepRunSideEffects({
+        ...input,
+        programEnrollment,
+        commission,
+        isFirstCommission,
+      });
+    });
+
+    // Step 3 (optional): Link the created commission to the bounty submission
     if (commission && bountySubmissionId) {
       await context.run("set-bounty-commission", async () => {
         const { count } = await prisma.bountySubmission.updateMany({
@@ -112,16 +121,6 @@ export const { POST } = serve<Input>(
         }
       });
     }
-
-    // Step 3: Run side effects
-    await context.run("run-side-effects", async () => {
-      return await stepRunSideEffects({
-        ...input,
-        programEnrollment,
-        commission,
-        isFirstCommission,
-      });
-    });
   },
   {
     initialPayloadParser: (requestPayload) => {
@@ -170,6 +169,7 @@ async function stepCreateCommission(
     currency,
     description,
     createdAt,
+    status,
     userId,
     context,
     programEnrollment,
@@ -181,7 +181,6 @@ async function stepCreateCommission(
 
   let earnings = 0;
   let reward: RewardProps | null = null;
-  let status: CommissionStatus = "pending";
   let firstCommission: Pick<
     Commission,
     "rewardId" | "status" | "createdAt"
@@ -522,7 +521,7 @@ async function stepRunSideEffects(
 
     // Execute Dub workflows
     shouldTriggerWorkflow &&
-      executeDubWorkflows({
+      executeWorkflows({
         trigger: "partnerMetricsUpdated",
         reason: "commission",
         identity: {
