@@ -10,7 +10,7 @@ type Result = Pick<
 // Remove the self referrals from ProgramApplicationEvent
 async function main() {
   const programApplicationEvents: Result[] = await prisma.$queryRaw`
-    SELECT id, partnerId, referredByPartnerId
+    SELECT id, partnerId, referredByPartnerId, visitedAt
     FROM ProgramApplicationEvent
       WHERE partnerId = referredByPartnerId AND partnerId != ''
   `;
