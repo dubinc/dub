@@ -16,6 +16,7 @@ const GENERIC_EMAIL_DOMAINS = [
   "protonmail.com",
   "proton.me",
   "pm.me",
+  "promail.ink",
   "passinbox.com",
   "passmail.net",
   "163.com",

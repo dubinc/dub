@@ -76,20 +76,22 @@ export async function updateWorkspacePlan({
   const cancellationFields = getSubscriptionCancellationFields(subscription);
   const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
 
+  const billingOrCancellationChanged =
+    workspace.billingCycleEndsAt?.getTime() !==
+      cancellationFields.billingCycleEndsAt?.getTime() ||
+    workspace.subscriptionCanceledAt?.getTime() !==
+      cancellationFields.subscriptionCanceledAt?.getTime();
+
   // Update workspace plan / limits / subscription details if:
   // - workspace upgrades/downgrades their subscription
   // - workspace changes their plan period / tier
   // - trialEndsAt changes (i.e. free trial -> paid subscription)
-  // - cancellationFields changes (billingCycleEndsAt or subscriptionCanceledAt)
   // - the partners limit increases and the updated price ID is a new business price ID
   if (
     workspace.plan !== newPlanName ||
     workspace.planPeriod !== planPeriod ||
     workspace.planTier !== newPlanTier ||
     isPaidPlanActivated ||
-    workspace.billingCycleEndsAt !== cancellationFields.billingCycleEndsAt ||
-    workspace.subscriptionCanceledAt !==
-      cancellationFields.subscriptionCanceledAt ||
     (workspace.partnersLimit < newPlan.limits.partners &&
       NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {
@@ -310,5 +312,15 @@ export async function updateWorkspacePlan({
         `Sent thank you emails to ${workspaceOwners.length} workspace owners for workspace ${workspace.slug}.`,
       );
     }
+  } else if (billingOrCancellationChanged) {
+    await prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: cancellationFields,
+    });
+    console.log(
+      `Updated workspace ${workspace.id} billing cycle / cancellation fields.`,
+    );
   }
 }

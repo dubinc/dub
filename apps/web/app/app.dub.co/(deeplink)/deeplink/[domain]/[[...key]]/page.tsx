@@ -17,7 +17,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { userAgent } from "next/server";
-import { DeepLinkActionButtons } from "./action-buttons";
+import { DeepLinkActionButton } from "./action-button";
 import { BrandLogoBadge } from "./brand-logo-badge";
 import { getLanguage, getTranslations } from "./translations";
 
@@ -200,8 +200,8 @@ export default async function DeepLinkPreviewPage(props: {
             </div>
           )}
 
-          <div className="flex flex-1 flex-col justify-center gap-12">
-            <div className="flex flex-col items-center gap-y-4">
+          <div className="flex flex-1 flex-col justify-center gap-8">
+            <div className="flex flex-col items-center gap-y-3">
               <BrandLogoBadge link={link} appName={appName} />
 
               {variant === "minimal" ? (
@@ -229,7 +229,7 @@ export default async function DeepLinkPreviewPage(props: {
               )}
             </div>
 
-            <DeepLinkActionButtons
+            <DeepLinkActionButton
               link={link}
               language={language}
               platform={platform}

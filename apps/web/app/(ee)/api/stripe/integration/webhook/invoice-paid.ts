@@ -6,6 +6,7 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { stripeAppClient } from "@/lib/stripe";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
 import { StripeMode } from "@/lib/types";
 import { redis } from "@/lib/upstash";
@@ -15,6 +16,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 
 // Handle event "invoice.paid"
@@ -24,8 +26,20 @@ export async function invoicePaid(
 ) {
   const invoice = event.data.object;
   const stripeAccountId = event.account as string;
-  const stripeCustomerId = invoice.customer as string;
+  const stripeCustomerId = invoice.customer as string | null;
   const invoiceId = invoice.id;
+
+  if (!invoiceId) {
+    return {
+      response: "Invoice ID not found, skipping...",
+    };
+  }
+
+  if (!stripeCustomerId) {
+    return {
+      response: "Stripe customer ID not found on invoice, skipping...",
+    };
+  }
 
   // Find customer using stripeCustomerId
   let customer = await prisma.customer.findUnique({
@@ -69,11 +83,71 @@ export async function invoicePaid(
     }
   }
 
-  // if customer is still not found, we skip the event
+  // if customer is still not found, try to attribute via partner discount on the invoice
   if (!customer) {
-    return {
-      response: `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId), skipping...`,
-    };
+    const workspace = await prisma.project.findUnique({
+      where: {
+        stripeConnectId: stripeAccountId,
+      },
+      select: {
+        id: true,
+        defaultProgramId: true,
+        stripeConnectId: true,
+        webhookEnabled: true,
+      },
+    });
+
+    if (!workspace) {
+      return {
+        response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
+      };
+    }
+
+    if (!workspace.defaultProgramId) {
+      return {
+        response: `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub and workspace has no default program, skipping...`,
+        workspaceId: workspace.id,
+      };
+    }
+
+    const { promotionCodeId, error } = await resolvePromotionCodeIdFromInvoice({
+      invoiceId,
+      stripeAccountId,
+      mode,
+    });
+
+    if (error) {
+      return {
+        response: `Failed to resolve promotion code from invoice ${invoiceId}: ${error}`,
+        workspaceId: workspace.id,
+      };
+    }
+
+    if (promotionCodeId) {
+      const promoCodeResponse = await attributeViaPromotionCodeId({
+        promotionCodeId,
+        stripeAccountId,
+        workspace,
+        mode,
+        stripeCustomerId,
+        customerDetails: {
+          name: invoice.customer_name,
+          email: invoice.customer_email,
+          address: invoice.customer_address,
+        },
+      });
+
+      if (promoCodeResponse) {
+        customer = promoCodeResponse.customer;
+      }
+    }
+
+    if (!customer) {
+      return {
+        response: `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId or partner discount code on the invoice), skipping...`,
+        workspaceId: workspace.id,
+      };
+    }
   }
 
   // Sale amount excluding tax: use total_excluding_tax only when invoice was paid in full
@@ -345,5 +419,59 @@ export async function invoicePaid(
   return {
     response: `Sale recorded for customer ID ${customer.id} and invoice ID ${invoiceId}`,
     workspaceId: customer.projectId,
+  };
+}
+
+async function resolvePromotionCodeIdFromInvoice({
+  invoiceId,
+  stripeAccountId,
+  mode,
+}: {
+  invoiceId: string;
+  stripeAccountId: string;
+  mode: StripeMode;
+}): Promise<
+  | {
+      promotionCodeId: string;
+      error: null;
+    }
+  | {
+      promotionCodeId: null;
+      error: string;
+    }
+> {
+  const stripe = stripeAppClient({ mode });
+
+  const expandedInvoice = (await stripe.invoices.retrieve(
+    invoiceId,
+    {
+      expand: ["discounts", "discounts.promotion_code"],
+    },
+    {
+      stripeAccount: stripeAccountId,
+    },
+  )) as Stripe.Invoice & {
+    discounts: {
+      promotion_code: Stripe.PromotionCode;
+    }[];
+  };
+
+  if (!expandedInvoice) {
+    return {
+      promotionCodeId: null,
+      error: "Invoice not found", // should never happen, but just in case
+    };
+  }
+
+  if (!expandedInvoice.discounts || expandedInvoice.discounts.length === 0) {
+    return {
+      promotionCodeId: null,
+      error: "No discounts found on invoice",
+    };
+  }
+
+  return {
+    promotionCodeId: expandedInvoice.discounts[0].promotion_code.id,
+    error: null,
   };
 }
