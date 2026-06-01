@@ -19,6 +19,10 @@ export async function createDiscountCode({
   discount,
   code,
 }: CreateDiscountCodeArgs) {
+  if (!discount.programId) {
+    throw new Error("Discount does not have a program ID.");
+  }
+
   let finalCode = code;
 
   // Construct the discount code if no code is provided
