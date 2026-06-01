@@ -88,14 +88,15 @@ export async function attributeViaDiscountCode({
   const { customer: orderCustomer, billing_address: billingAddress } =
     orderSchema.parse(event);
 
+  const billingAddressCountry = billingAddress?.country_code?.toUpperCase();
   // Record a fake click for this event
   const clickEvent = await recordFakeClick({
     link,
     customer: {
-      continent: billingAddress?.country_code
-        ? COUNTRIES_TO_CONTINENTS[billingAddress.country_code]
+      continent: billingAddressCountry
+        ? COUNTRIES_TO_CONTINENTS[billingAddressCountry] ?? "Unknown"
         : "Unknown",
-      country: billingAddress?.country_code ?? "Unknown",
+      country: billingAddressCountry ?? "Unknown",
       region: billingAddress?.province ?? "Unknown",
     },
   });
