@@ -22,30 +22,38 @@ type CreateReferralCommissionArgs =
       programId: string;
     };
 
+type CreateReferralCommissionResult = {
+  commission: Commission | null;
+  reason: string | null;
+};
+
 export const createReferralCommission = async (
   args: CreateReferralCommissionArgs,
-) => {
+): Promise<CreateReferralCommissionResult> => {
   const context = await resolveReferralContext(args);
 
   if (!context) {
-    return null;
+    return {
+      commission: null,
+      reason: "No context found",
+    };
   }
 
   const { sourceCommission, programId, partnerId, referredByPartnerId } =
     context;
 
   if (partnerId === referredByPartnerId) {
-    console.log(
-      `Skipping referral commission creation for self-referral (partner ${partnerId}).`,
-    );
-    return null;
+    return {
+      commission: null,
+      reason: `Skipping referral commission creation for self-referral (partner ${partnerId}).`,
+    };
   }
 
   if (programId === NETWORK_PROGRAM_ID) {
-    console.log(
-      `Skipping referral commission creation for network program ${programId}...`,
-    );
-    return null;
+    return {
+      commission: null,
+      reason: `Skipping referral commission creation for network program ${programId}...`,
+    };
   }
 
   const referrerProgramEnrollment = await prisma.programEnrollment.findUnique({
@@ -64,19 +72,19 @@ export const createReferralCommission = async (
   });
 
   if (!referrerProgramEnrollment) {
-    console.log(
-      `Referrer partner ${referredByPartnerId} is not enrolled in the program ${programId}.`,
-    );
-    return null;
+    return {
+      commission: null,
+      reason: `Referrer partner ${referredByPartnerId} is not enrolled in the program ${programId}.`,
+    };
   }
 
   const { referralReward } = referrerProgramEnrollment;
 
   if (!referralReward) {
-    console.log(
-      `Referrer partner ${referredByPartnerId} has no referral reward for the group in program ${programId}.`,
-    );
-    return null;
+    return {
+      commission: null,
+      reason: `Referrer partner ${referredByPartnerId} has no referral reward for the group in program ${programId}.`,
+    };
   }
 
   const rewardConfig = referralRewardConfigSchema.safeParse(
@@ -84,8 +92,10 @@ export const createReferralCommission = async (
   );
 
   if (!rewardConfig.success) {
-    console.log(`Referral reward ${referralReward.id} has an invalid config.`);
-    return null;
+    return {
+      commission: null,
+      reason: `Referral reward ${referralReward.id} has an invalid config.`,
+    };
   }
 
   let commissionData: Prisma.CommissionUncheckedCreateInput = {
@@ -131,10 +141,10 @@ export const createReferralCommission = async (
 
         // Recurring
         if (monthsSinceFirstCommission >= referralReward.maxDuration) {
-          console.log(
-            `Referrer ${referredByPartnerId} reached max duration (${referralReward.maxDuration} months) for referred partner ${partnerId} for the customer ${sourceCommission.customerId}.`,
-          );
-          return null;
+          return {
+            commission: null,
+            reason: `Referrer ${referredByPartnerId} reached max duration (${referralReward.maxDuration} months) for referred partner ${partnerId} for the customer ${sourceCommission.customerId}.`,
+          };
         }
       }
     }
@@ -183,10 +193,10 @@ export const createReferralCommission = async (
     });
 
     if ((totalCommissionsEarned ?? 0) < (commissionsThresholdInCents ?? 0)) {
-      console.log(
-        `Referrer ${referredByPartnerId} has not reached the commission threshold for referred partner ${partnerId}.`,
-      );
-      return null;
+      return {
+        commission: null,
+        reason: `Referrer ${referredByPartnerId} has not reached the commission threshold for referred partner ${partnerId}.`,
+      };
     }
 
     commissionData = {
@@ -198,14 +208,17 @@ export const createReferralCommission = async (
 
   // When reward is based on unknown trigger
   else {
-    console.log(
-      `Invalid trigger ${trigger} for referral reward ${referralReward.id}.`,
-    );
-    return null;
+    return {
+      commission: null,
+      reason: `Invalid trigger ${trigger} for referral reward ${referralReward.id}.`,
+    };
   }
 
   if (commissionData.earnings === 0) {
-    return null;
+    return {
+      commission: null,
+      reason: "Skipping referral commission creation for zero earnings...",
+    };
   }
 
   // Check if the commission already exists using the invoiceId
@@ -223,10 +236,10 @@ export const createReferralCommission = async (
     });
 
     if (existingCommission) {
-      console.log(
-        `Referral commission ${existingCommission.id} already exists for the invoiceId ${commissionData.invoiceId}.`,
-      );
-      return null;
+      return {
+        commission: null,
+        reason: `Referral commission ${existingCommission.id} already exists for the invoiceId ${commissionData.invoiceId}.`,
+      };
     }
   }
 
@@ -246,10 +259,10 @@ export const createReferralCommission = async (
     // Don't retry on unique constraint violation – the commission already exists
     // (likely a race between the dedup check and the create)
     if (error.code === "P2002") {
-      console.log(
-        `Referral commission already exists for invoiceId ${commissionData.invoiceId}, skipping creation.`,
-      );
-      return null;
+      return {
+        commission: null,
+        reason: `Referral commission already exists for invoiceId ${commissionData.invoiceId}, skipping creation.`,
+      };
     }
 
     console.error("Error creating referral commission", error, commissionData);
@@ -315,7 +328,10 @@ export const createReferralCommission = async (
     }),
   ]);
 
-  return commission;
+  return {
+    commission,
+    reason: null,
+  };
 };
 
 function generateCommissionDescription({
