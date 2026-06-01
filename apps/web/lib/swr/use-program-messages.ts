@@ -1,10 +1,12 @@
 import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
 import * as z from "zod/v4";
+import { hasPermission } from "../auth/partner-users/partner-user-permissions";
 import {
   ProgramMessagesSchema,
   getProgramMessagesQuerySchema,
 } from "../zod/schemas/messages";
+import usePartnerProfile from "./use-partner-profile";
 
 const partialQuerySchema = getProgramMessagesQuerySchema.partial();
 
@@ -17,10 +19,15 @@ export function useProgramMessages({
   enabled?: boolean;
   swrOpts?: SWRConfiguration;
 } = {}) {
+  const { partner } = usePartnerProfile();
+
+  const isEnabled =
+    enabled && partner?.role && hasPermission(partner.role, "messages.read");
+
   const { data, isLoading, error, mutate } = useSWR<
     z.infer<typeof ProgramMessagesSchema> & { delivered?: false }
   >(
-    enabled
+    isEnabled
       ? `/api/partner-profile/messages?${new URLSearchParams({
           ...(query as Record<string, string>),
         }).toString()}`

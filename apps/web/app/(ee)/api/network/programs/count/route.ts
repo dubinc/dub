@@ -13,12 +13,13 @@ const rewardTypeMap = {
 };
 
 // GET /api/network/programs/count - get the number of available programs in the network
-export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { groupBy, category, rewardType, status, featured, search } =
-    getNetworkProgramsCountQuerySchema.parse(searchParams);
+export const GET = withPartnerProfile(
+  async ({ partner, partnerUser, searchParams }) => {
+    const { groupBy, category, rewardType, status, featured, search } =
+      getNetworkProgramsCountQuerySchema.parse(searchParams);
 
-  const searchSql = search ? Prisma.sql`CONCAT('%', ${search}, '%')` : null;
-  const commonWhereSql = Prisma.sql`
+    const searchSql = search ? Prisma.sql`CONCAT('%', ${search}, '%')` : null;
+    const commonWhereSql = Prisma.sql`
     p.addedToMarketplaceAt IS NOT NULL
     AND EXISTS (
       SELECT 1 FROM PartnerGroup pg
@@ -58,8 +59,8 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     ${searchSql ? Prisma.sql`AND (p.name LIKE ${searchSql} OR p.slug LIKE ${searchSql} OR p.domain LIKE ${searchSql})` : Prisma.sql``}
   `;
 
-  if (groupBy === "category") {
-    const categories = (await prisma.$queryRaw`
+    if (groupBy === "category") {
+      const categories = (await prisma.$queryRaw`
       SELECT pc.category, COUNT(p.id) AS _count
       FROM ProgramCategory pc
       JOIN Program p ON p.id = pc.programId
@@ -68,14 +69,14 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       ORDER BY _count DESC
     `) as { category: string; _count: bigint }[];
 
-    return NextResponse.json(
-      categories.map(({ _count, ...rest }) => ({
-        ...rest,
-        _count: Number(_count),
-      })),
-    );
-  } else if (groupBy === "rewardType") {
-    const rewards = (await prisma.$queryRaw`
+      return NextResponse.json(
+        categories.map(({ _count, ...rest }) => ({
+          ...rest,
+          _count: Number(_count),
+        })),
+      );
+    } else if (groupBy === "rewardType") {
+      const rewards = (await prisma.$queryRaw`
       SELECT
         COUNT(pg.clickRewardId) AS "click",
         COUNT(pg.leadRewardId) AS "lead",
@@ -86,14 +87,14 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       WHERE pg.slug = ${DEFAULT_PARTNER_GROUP.slug} AND ${commonWhereSql}
     `) as { click: bigint; lead: bigint; sale: bigint; discount: bigint }[];
 
-    return NextResponse.json(
-      ["sale", "lead", "click", "discount"].map((k) => ({
-        type: k,
-        _count: Number(rewards[0][k]),
-      })),
-    );
-  } else if (groupBy === "status") {
-    const statuses = (await prisma.$queryRaw`
+      return NextResponse.json(
+        ["sale", "lead", "click", "discount"].map((k) => ({
+          type: k,
+          _count: Number(rewards[0][k]),
+        })),
+      );
+    } else if (groupBy === "status") {
+      const statuses = (await prisma.$queryRaw`
       SELECT pe.status, COUNT(p.id) AS _count
       FROM Program p
       LEFT JOIN ProgramEnrollment pe ON p.id = pe.programId AND pe.partnerId = ${partner.id}
@@ -102,18 +103,22 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       ORDER BY _count DESC
     `) as { status: string | null; _count: bigint }[];
 
-    return NextResponse.json(
-      statuses.map(({ _count, ...rest }) => ({
-        ...rest,
-        _count: Number(_count),
-      })),
-    );
-  }
+      return NextResponse.json(
+        statuses.map(({ _count, ...rest }) => ({
+          ...rest,
+          _count: Number(_count),
+        })),
+      );
+    }
 
-  const count = (await prisma.$queryRaw`
+    const count = (await prisma.$queryRaw`
     SELECT COUNT(*) AS count FROM Program p
     WHERE ${commonWhereSql}
   `) as { count: bigint }[];
 
-  return NextResponse.json(Number(count[0].count));
-});
+    return NextResponse.json(Number(count[0].count));
+  },
+  {
+    requiredPermission: "network.read",
+  },
+);

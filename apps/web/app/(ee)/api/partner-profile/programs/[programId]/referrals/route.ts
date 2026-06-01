@@ -13,7 +13,7 @@ import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/:programId/referrals
 export const GET = withPartnerProfile(
-  async ({ partner, params, searchParams }) => {
+  async ({ partner, partnerUser, params, searchParams }) => {
     const { programId } = params;
     const {
       country,
@@ -103,5 +103,8 @@ export const GET = withPartnerProfile(
     }));
 
     return NextResponse.json(z.array(referredPartnerSchema).parse(result));
+  },
+  {
+    requiredPermission: "referrals.read",
   },
 );

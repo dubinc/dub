@@ -1,5 +1,6 @@
 "use server";
 
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { prisma } from "@dub/prisma";
 import { getDomainWithoutWWW } from "@dub/utils";
 import dns from "dns";
@@ -7,7 +8,12 @@ import { authPartnerActionClient } from "../safe-action";
 
 export const verifyPartnerWebsiteAction = authPartnerActionClient.action(
   async ({ ctx }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "partner_profile.update",
+    });
 
     const partnerPlatform = await prisma.partnerPlatform.findUnique({
       where: {

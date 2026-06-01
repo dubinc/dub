@@ -5,6 +5,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { throwIfNoLinkAccess } from "@/lib/auth/partner-users/throw-if-no-access";
 import { NewLinkProps } from "@/lib/types";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
@@ -14,12 +15,17 @@ import { NextResponse } from "next/server";
 
 // PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
 export const PATCH = withPartnerProfile(
-  async ({ partner, params, req, session }) => {
+  async ({ partner, params, req, session, partnerUser }) => {
     const { url, key, comments } = createPartnerLinkSchema
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
     const { programId, linkId } = params;
+
+    throwIfNoLinkAccess({
+      linkId,
+      partnerUser,
+    });
 
     const {
       program,
@@ -153,55 +159,72 @@ export const PATCH = withPartnerProfile(
 
     return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink));
   },
+  {
+    requiredPermission: "links.write",
+  },
 );
 
 // DELETE /api/partner-profile/[programId]/links/[linkId] - delete a link for a partner
-export const DELETE = withPartnerProfile(async ({ partner, params }) => {
-  const { programId, linkId } = params;
+export const DELETE = withPartnerProfile(
+  async ({ partner, params, partnerUser }) => {
+    const { programId, linkId } = params;
 
-  const { links, status } = await getProgramEnrollmentOrThrow({
-    partnerId: partner.id,
-    programId,
-    include: {
-      links: true,
-    },
-  });
-
-  if (["banned", "deactivated"].includes(status)) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "You are banned from this program.",
+    throwIfNoLinkAccess({
+      linkId,
+      partnerUser,
     });
-  }
 
-  const link = links.find((link) => link.id === linkId);
-
-  if (!link) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Link not found.",
+    const { links, status } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId,
+      include: {
+        links: true,
+      },
     });
-  }
 
-  // Check if this is a default link
-  if (link.partnerGroupDefaultLinkId) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "You cannot delete your default link.",
-    });
-  }
+    if (["banned", "deactivated"].includes(status)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are banned from this program.",
+      });
+    }
 
-  // Check if link has any clicks, leads, or sales
-  if (link.clicks > 0 || link.leads > 0 || toCentsNumber(link.saleAmount) > 0) {
-    throw new DubApiError({
-      code: "bad_request",
-      message:
-        "You can only delete links with 0 clicks, 0 leads, and $0 in sales.",
-    });
-  }
+    const link = links.find((link) => link.id === linkId);
 
-  // Delete the link
-  await deleteLink(link.id);
+    if (!link) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Link not found.",
+      });
+    }
 
-  return NextResponse.json({ id: link.id });
-});
+    // Check if this is a default link
+    if (link.partnerGroupDefaultLinkId) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You cannot delete your default link.",
+      });
+    }
+
+    // Check if link has any clicks, leads, or sales
+    if (
+      link.clicks > 0 ||
+      link.leads > 0 ||
+      toCentsNumber(link.saleAmount) > 0
+    ) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "You can only delete links with 0 clicks, 0 leads, and $0 in sales.",
+      });
+    }
+
+    // Delete the link
+    await deleteLink(link.id);
+
+    return NextResponse.json({ id: link.id });
+  },
+  {
+    requiredPermission: "links.write",
+  },
+);

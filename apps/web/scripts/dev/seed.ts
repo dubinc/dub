@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { hashPassword } from "@/lib/auth/password";
+import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import {
   Domain,
@@ -73,6 +74,7 @@ type GroupSeed = Pick<
   | "saleRewardId"
   | "additionalLinks"
 > & {
+  maxPartnerLinks?: PartnerGroup["maxPartnerLinks"];
   defaultLinks: Pick<PartnerGroupDefaultLink, "url">[];
 };
 
@@ -129,10 +131,54 @@ type SeedData = {
   >[];
 };
 
-const parseJSON = (): SeedData => {
-  const jsonPath = path.join(__dirname, "data.json");
-  const jsonData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
-  return jsonData;
+function parseCliArgs(argv: string[]) {
+  const args = argv.slice(2);
+  let shouldTruncate = false;
+  let workspaceSlug: string | undefined;
+
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (a === "--truncate") {
+      shouldTruncate = true;
+      continue;
+    }
+
+    if (a === "--workspace" || a === "-w") {
+      const next = args[i + 1];
+      if (!next || next.startsWith("-")) {
+        throw new Error(
+          `Missing value for ${a}. Usage: -w <slug> or --workspace <slug> (loads {slug}-workspace.json; default slug is acme).`,
+        );
+      }
+      workspaceSlug = next;
+      i++;
+      continue;
+    }
+
+    if (a.startsWith("-")) {
+      throw new Error(
+        `Unknown argument: ${a}. Supported flags: --truncate, --workspace / -w <slug>.`,
+      );
+    }
+  }
+
+  return {
+    shouldTruncate,
+    workspaceSlug: workspaceSlug ?? "acme",
+  };
+}
+
+const parseJSON = (workspaceSlug: string): SeedData => {
+  const filename = `${workspaceSlug}-workspace.json`;
+  const jsonPath = path.join(__dirname, filename);
+
+  if (!fs.existsSync(jsonPath)) {
+    throw new Error(
+      `Workspace seed file not found: ${filename} (expected path: ${jsonPath})`,
+    );
+  }
+
+  return JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
 };
 
 // Create workspace
@@ -165,6 +211,7 @@ const createUsers = async (data: SeedData) => {
       emailVerified: new Date(user.emailVerified),
       passwordHash,
     })),
+    skipDuplicates: true,
   });
 
   console.log(`Created ${count} users`);
@@ -304,6 +351,8 @@ const createGroups = async (data: SeedData) => {
       leadRewardId: group.leadRewardId ?? null,
       saleRewardId: group.saleRewardId ?? null,
       additionalLinks: group.additionalLinks as Prisma.JsonArray,
+      maxPartnerLinks:
+        group.maxPartnerLinks ?? DEFAULT_ADDITIONAL_PARTNER_LINKS,
     })),
   });
 
@@ -477,21 +526,28 @@ const truncate = async () => {
     "VerificationToken",
     "EmailVerificationToken",
     "NotificationPreference",
+    "OAuthCode",
+    "OAuthApp",
     "Integration",
     "Commission",
     "PartnerComment",
     "Payout",
     "Invoice",
+    "FraudEvent",
+    "PartnerReferral",
     "Customer",
     "Reward",
     "DiscountCode",
     "Discount",
     "FolderAccessRequest",
     "EmailDomain",
+    "NotificationEmail",
     "Message",
     "PartnerGroupDefaultLink",
     "FolderUser",
     "Folder",
+    "Dashboard",
+    "PartnerUserLink",
     "Link",
     "Workflow",
     "BountyGroup",
@@ -505,15 +561,38 @@ const truncate = async () => {
     "ActivityLog",
     "ProgramApplicationEvent",
     "ProgramApplication",
+    "DiscoveredPartner",
+    "FraudAlert",
+    "FraudEventGroup",
     "ProgramEnrollment",
     "PartnerGroup",
+    "PartnerNotificationPreferences",
+    "PartnerUserProgram",
     "PartnerUser",
+    "Postback",
+    "PartnerPlatform",
+    "PartnerIndustryInterest",
+    "PartnerPreferredEarningStructure",
+    "PartnerSalesChannel",
+    "PartnerRewind",
     "Partner",
     "PartnerInvite",
+    "RegisteredDomain",
     "Domain",
     "ProjectUsers",
+    "ActivityLog",
+    "Account",
+    "Session",
+    "UserNotificationPreferences",
     "User",
+    "ProgramSimilarity",
+    "ProgramCategory",
+    "FraudRule",
     "Program",
+    "YearInReview",
+    "ProjectInvite",
+    "SentEmail",
+    "DefaultDomains",
     "Project",
   ];
 
@@ -566,9 +645,8 @@ const askConfirmation = (question: string): Promise<boolean> => {
 };
 
 async function main() {
-  // Check for --truncate flag
   // process.argv[0] = node, process.argv[1] = script path, process.argv[2+] = arguments
-  const shouldTruncate = process.argv.slice(2).includes("--truncate");
+  const { shouldTruncate, workspaceSlug } = parseCliArgs(process.argv);
 
   if (shouldTruncate) {
     console.log(
@@ -589,7 +667,7 @@ async function main() {
     console.log("\n");
   }
 
-  const data = parseJSON();
+  const data = parseJSON(workspaceSlug);
 
   await createWorkspace(data);
   await createUsers(data);

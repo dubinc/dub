@@ -1,5 +1,6 @@
 "use server";
 
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { generateOTP } from "@/lib/auth/utils";
 import { qstash } from "@/lib/cron";
 import { ratelimit, redis } from "@/lib/upstash";
@@ -39,8 +40,13 @@ const schema = z.discriminatedUnion("step", [
 export const mergePartnerAccountsAction = authPartnerActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
-    const { user } = ctx;
+    const { user, partnerUser } = ctx;
     const { step } = parsedInput;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "partner_profile.update",
+    });
 
     switch (step) {
       case "send-tokens":

@@ -14,6 +14,7 @@ interface GetEarningsForPartnerParams
   programId: string;
   partnerId: string;
   customerDataSharingEnabledAt: Date | null;
+  linkIds?: string[];
 }
 
 export async function getEarningsForPartner(
@@ -36,6 +37,7 @@ export async function getEarningsForPartner(
     programId,
     partnerId,
     customerDataSharingEnabledAt,
+    linkIds,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -44,6 +46,8 @@ export async function getEarningsForPartner(
     end,
     timezone,
   });
+
+  const finalLinkIds = linkId ? [linkId] : linkIds ? linkIds : [];
 
   const earnings = await prisma.commission.findMany({
     where: {
@@ -54,7 +58,13 @@ export async function getEarningsForPartner(
       partnerId,
       status,
       type,
-      linkId,
+      ...(finalLinkIds.length > 0
+        ? {
+            linkId: {
+              in: finalLinkIds,
+            },
+          }
+        : {}),
       customerId,
       payoutId,
       createdAt: {

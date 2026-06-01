@@ -2,6 +2,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
+  linkIncludeFilter,
+  linkScopeFilter,
+} from "@/lib/auth/partner-users/link-scope-filter";
+import {
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
@@ -13,7 +17,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/:programId/customers/count – Get customer counts grouped by a field
 export const GET = withPartnerProfile(
-  async ({ partner, params, searchParams }) => {
+  async ({ partner, params, searchParams, partnerUser }) => {
     const { programId } = params;
     const { search, country, linkId, groupBy } =
       getPartnerCustomersCountQuerySchema.parse(searchParams);
@@ -24,6 +28,7 @@ export const GET = withPartnerProfile(
         programId: programId,
         include: {
           program: true,
+          links: linkIncludeFilter(partnerUser.assignedLinks),
         },
       });
 
@@ -61,6 +66,7 @@ export const GET = withPartnerProfile(
               name: { search: sanitizeFullTextSearch(search) },
             }
         : {}),
+      ...linkScopeFilter(partnerUser.assignedLinks),
     };
 
     // Get customer count by country

@@ -2,6 +2,8 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { linkScopeFilter } from "@/lib/auth/partner-users/link-scope-filter";
+import { throwIfNoLinkAccess } from "@/lib/auth/partner-users/throw-if-no-access";
 import { generateRandomName } from "@/lib/names";
 import { getPartnerEarningsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
@@ -10,7 +12,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/earnings/count – get earnings count for a partner in a program enrollment
 export const GET = withPartnerProfile(
-  async ({ partner, params, searchParams }) => {
+  async ({ partner, params, searchParams, partnerUser }) => {
     const { program, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
@@ -39,6 +41,11 @@ export const GET = withPartnerProfile(
       timezone,
     });
 
+    throwIfNoLinkAccess({
+      linkId,
+      partnerUser,
+    });
+
     const where: Prisma.CommissionWhereInput = {
       earnings: {
         not: 0,
@@ -50,6 +57,7 @@ export const GET = withPartnerProfile(
         gte: startDate,
         lte: endDate,
       },
+      ...linkScopeFilter(partnerUser.assignedLinks),
     };
 
     if (groupBy) {

@@ -4,6 +4,7 @@ import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { SUBMITTED_LEAD_FORM_REQUIRED_FIELD_KEYS } from "@/lib/submitted-leads/constants";
 import { notifyPartnerLeadSubmitted } from "@/lib/submitted-leads/notify-partner-lead-submitted";
 import { SubmittedLeadFormDataField } from "@/lib/types";
@@ -61,8 +62,13 @@ function convertFieldValue(
 export const submitLeadAction = authPartnerActionClient
   .inputSchema(submitLeadSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { partner, user } = ctx;
+    const { partner, user, partnerUser } = ctx;
     const { programId, formData: rawFormData } = parsedInput;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "leads.submit",
+    });
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,

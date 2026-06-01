@@ -1,5 +1,6 @@
 "use server";
 
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
@@ -12,8 +13,13 @@ const schema = z.object({
 export const markProgramMessagesReadAction = authPartnerActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
     const { programSlug } = parsedInput;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "messages.mark_as_read",
+    });
 
     const program = await prisma.program.findFirstOrThrow({
       select: {

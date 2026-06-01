@@ -3,7 +3,7 @@ import { withAxiom } from "@/lib/axiom/server";
 import { PartnerBetaFeatures, PartnerProps } from "@/lib/types";
 import { flattenVeriffMetadata } from "@/lib/veriff/veriff-metadata";
 import { prisma } from "@dub/prisma";
-import { PartnerUser } from "@dub/prisma/client";
+import { Link, PartnerUser, Program } from "@dub/prisma/client";
 import {
   getSearchParams,
   NETWORK_PROGRAM_ID,
@@ -38,7 +38,13 @@ interface WithPartnerProfileHandler {
     headers?: Headers;
     session: Session;
     partner: Omit<PartnerProps, "role" | "userId">;
-    partnerUser: Pick<PartnerUser, "userId" | "role">;
+    partnerUser: Pick<
+      PartnerUser,
+      "id" | "userId" | "role" | "programAccess"
+    > & {
+      assignedPrograms: Pick<Program, "id" | "slug">[] | undefined;
+      assignedLinks: Pick<Link, "id">[] | undefined;
+    };
   }): Promise<Response>;
 }
 
@@ -246,6 +252,21 @@ export const withPartnerProfile = (
                 platforms: true,
               },
             },
+            assignedPrograms: {
+              select: {
+                program: {
+                  select: {
+                    id: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
+            assignedLinks: {
+              select: {
+                linkId: true,
+              },
+            },
           },
         });
 
@@ -272,6 +293,38 @@ export const withPartnerProfile = (
             throw new DubApiError({
               code: "forbidden",
               message: "Unauthorized: Beta feature.",
+            });
+          }
+        }
+
+        // Normalize program scope for handlers (e.g. programScopeFilter):
+        // - programAccess "all" → undefined (no filter)
+        // - programAccess "restricted" → assigned programs, or [] if none
+        const assignedPrograms =
+          partnerUser.programAccess === "all"
+            ? undefined
+            : partnerUser.assignedPrograms.map(({ program }) => program);
+
+        // There can only be two states in the database
+        // 1. All links (empty array)
+        // 2. Scoped links (array of link ids)
+        const assignedLinks =
+          partnerUser.assignedLinks.length > 0
+            ? partnerUser.assignedLinks.map(({ linkId }) => ({ id: linkId }))
+            : undefined;
+
+        // If the user is scoped to specific programs and the route has a programId param,
+        // verify they have access to this program (param may be program id or slug)
+        if (params.programId && assignedPrograms !== undefined) {
+          const hasAccess = assignedPrograms.some(
+            ({ id, slug }) =>
+              id === params.programId || slug === params.programId,
+          );
+
+          if (!hasAccess) {
+            throw new DubApiError({
+              code: "forbidden",
+              message: "You don't have access to this program.",
             });
           }
         }
@@ -303,8 +356,12 @@ export const withPartnerProfile = (
             platforms: partnerPlatformSchema.array().parse(platforms),
           } as Omit<PartnerProps, "role" | "userId">,
           partnerUser: {
+            id: partnerUser.id,
             userId: partnerUser.userId,
             role: partnerUser.role,
+            programAccess: partnerUser.programAccess,
+            assignedPrograms,
+            assignedLinks,
           },
           headers: responseHeaders,
         });

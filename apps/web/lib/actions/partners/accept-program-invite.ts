@@ -1,6 +1,7 @@
 "use server";
 
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { generateDiscountCodeForPartner } from "@/lib/discounts/generate-discount-code-for-partner";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
@@ -18,8 +19,13 @@ const acceptProgramInviteSchema = z.object({
 export const acceptProgramInviteAction = authPartnerActionClient
   .inputSchema(acceptProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
     const { programId } = parsedInput;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "program_invites.accept",
+    });
 
     const enrollment = await prisma.programEnrollment.update({
       where: {

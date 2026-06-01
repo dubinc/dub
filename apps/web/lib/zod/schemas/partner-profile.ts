@@ -9,6 +9,7 @@ import {
   PartnerPayoutMethod,
   PartnerProfileType,
   PartnerRole,
+  ProgramAccessScope,
   ProgramEnrollmentStatus,
   SubmittedLeadStatus,
 } from "@dub/prisma/client";
@@ -29,6 +30,7 @@ import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
+import { ProgramSchema } from "./programs";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema } from "./utils";
 
@@ -189,13 +191,47 @@ export const getPartnerUsersQuerySchema = z.object({
   role: z.enum(PartnerRole).optional(),
 });
 
+export const assignProgramInputSchema = z.object({
+  programAccess: z.enum(ProgramAccessScope),
+  programIds: z.array(z.string()),
+  linkIds: z.record(z.string(), z.array(z.string()).optional()),
+});
+
+export const assignedProgramOutputSchema = z.object({
+  program: ProgramSchema.pick({
+    id: true,
+    name: true,
+    slug: true,
+    logo: true,
+  }),
+  createdAt: z.coerce.date(),
+});
+
 export const partnerUserSchema = z.object({
   id: z.string().nullable(),
   name: z.string().nullable(),
   email: z.string(),
   role: z.enum(PartnerRole),
+  programAccess: z.enum(ProgramAccessScope),
   image: z.string().nullish(),
   createdAt: z.date(),
+  programs: z.array(
+    ProgramSchema.pick({
+      id: true,
+      name: true,
+      slug: true,
+      logo: true,
+    }).extend({
+      links: z.array(
+        LinkSchema.pick({
+          id: true,
+          domain: true,
+          key: true,
+          shortLink: true,
+        }),
+      ),
+    }),
+  ),
 });
 
 export const partnerProfileChangeHistoryLogSchema = z.array(

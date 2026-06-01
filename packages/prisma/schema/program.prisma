@@ -92,6 +92,8 @@ model Program {
   partnerTags              PartnerTag[]
   programPartnerTags       ProgramPartnerTag[]
   submittedLeads           SubmittedLead[]
+  partnerUserPrograms      PartnerUserProgram[]
+  partnerUserLinks         PartnerUserLink[]
 
   @@index(workspaceId)
   @@index(addedToMarketplaceAt)

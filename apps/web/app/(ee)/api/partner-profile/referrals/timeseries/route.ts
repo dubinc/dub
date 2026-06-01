@@ -18,28 +18,29 @@ const querySchema = z.object({
 });
 
 // GET /api/partner-profile/referrals/timeseries
-export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  if (!["approved", "trusted"].includes(partner.networkStatus)) {
-    throw new DubApiError({
-      code: "forbidden",
-      message:
-        "You must be approved in the Dub Partner Network to view referrals.",
+export const GET = withPartnerProfile(
+  async ({ partner, searchParams }) => {
+    if (!["approved", "trusted"].includes(partner.networkStatus)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You must be approved in the Dub Partner Network to view referrals.",
+      });
+    }
+
+    const { interval, timezone } = querySchema.parse(searchParams);
+
+    const { startDate, endDate, granularity } = getStartEndDates({
+      interval,
+      timezone,
     });
-  }
 
-  const { interval, timezone } = querySchema.parse(searchParams);
+    const { dateFormat, dateIncrement, startFunction, formatString } =
+      sqlGranularityMap[granularity];
 
-  const { startDate, endDate, granularity } = getStartEndDates({
-    interval,
-    timezone,
-  });
-
-  const { dateFormat, dateIncrement, startFunction, formatString } =
-    sqlGranularityMap[granularity];
-
-  const [partnersResult, earningsResult] = await Promise.all([
-    prisma.$queryRaw<{ start: string; partners: number }[]>(
-      Prisma.sql`
+    const [partnersResult, earningsResult] = await Promise.all([
+      prisma.$queryRaw<{ start: string; partners: number }[]>(
+        Prisma.sql`
         SELECT
           DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start,
           COUNT(*) AS partners
@@ -51,10 +52,10 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         GROUP BY start
         ORDER BY start ASC
       `,
-    ),
+      ),
 
-    prisma.$queryRaw<{ start: string; earnings: number }[]>(
-      Prisma.sql`
+      prisma.$queryRaw<{ start: string; earnings: number }[]>(
+        Prisma.sql`
         SELECT
           DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start,
           SUM(earnings) AS earnings
@@ -69,41 +70,45 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         GROUP BY start
         ORDER BY start ASC
       `,
-    ),
-  ]);
+      ),
+    ]);
 
-  const partnersLookup = partnersResult.reduce(
-    (acc, item) => {
-      acc[item.start] = Number(item.partners);
-      return acc;
-    },
-    {} as Record<string, number>,
-  );
+    const partnersLookup = partnersResult.reduce(
+      (acc, item) => {
+        acc[item.start] = Number(item.partners);
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-  const earningsLookup = earningsResult.reduce(
-    (acc, item) => {
-      acc[item.start] = Number(item.earnings);
-      return acc;
-    },
-    {} as Record<string, number>,
-  );
+    const earningsLookup = earningsResult.reduce(
+      (acc, item) => {
+        acc[item.start] = Number(item.earnings);
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
-  const timeseries: NetworkReferralsTimeseries[] = [];
-  let currentDate = startFunction(startDate);
+    const timeseries: NetworkReferralsTimeseries[] = [];
+    let currentDate = startFunction(startDate);
 
-  while (currentDate < endDate) {
-    const periodKey = format(currentDate, formatString);
+    while (currentDate < endDate) {
+      const periodKey = format(currentDate, formatString);
 
-    timeseries.push({
-      start: currentDate.toISOString(),
-      partners: partnersLookup[periodKey] ?? 0,
-      earnings: earningsLookup[periodKey] ?? 0,
-    });
+      timeseries.push({
+        start: currentDate.toISOString(),
+        partners: partnersLookup[periodKey] ?? 0,
+        earnings: earningsLookup[periodKey] ?? 0,
+      });
 
-    currentDate = dateIncrement(currentDate);
-  }
+      currentDate = dateIncrement(currentDate);
+    }
 
-  return NextResponse.json(
-    z.array(networkReferralsTimeseriesSchema).parse(timeseries),
-  );
-});
+    return NextResponse.json(
+      z.array(networkReferralsTimeseriesSchema).parse(timeseries),
+    );
+  },
+  {
+    requiredPermission: "referrals.read",
+  },
+);
