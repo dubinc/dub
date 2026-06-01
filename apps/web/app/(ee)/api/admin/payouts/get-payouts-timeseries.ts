@@ -1,6 +1,6 @@
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
-import { prisma } from "@dub/prisma";
-import { InvoiceStatus, Prisma } from "@dub/prisma/client";
+import { conn } from "@/lib/planetscale/connection";
+import { InvoiceStatus } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import { format } from "date-fns";
 
@@ -14,6 +14,9 @@ export interface FormattedPayoutsTimeseriesPoint extends TimeseriesPoint {
   date: Date;
 }
 
+const toSqlDateTime = (date: Date) =>
+  date.toISOString().slice(0, 19).replace("T", " ");
+
 export async function getPayoutsTimeseries({
   programId,
   status,
@@ -21,6 +24,7 @@ export async function getPayoutsTimeseries({
   endDate,
   granularity,
   timezone = "UTC",
+  excludeCreditCardFees = false,
 }: {
   programId?: string;
   status?: InvoiceStatus;
@@ -28,27 +32,72 @@ export async function getPayoutsTimeseries({
   endDate: Date;
   granularity: keyof typeof sqlGranularityMap;
   timezone?: string;
+  excludeCreditCardFees?: boolean;
 }) {
   const { dateFormat, dateIncrement, startFunction, formatString } =
     sqlGranularityMap[granularity];
 
-  const timeseriesData = await prisma.$queryRaw<
-    { date: Date; payouts: number; fees: number; total: number }[]
-  >`
-    SELECT 
-      DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone}), ${dateFormat}) as date,
+  const whereClauses: string[] = ["createdAt >= ?", "createdAt <= ?"];
+  const queryParams: string[] = [
+    toSqlDateTime(startDate),
+    toSqlDateTime(endDate),
+  ];
+
+  if (programId) {
+    whereClauses.unshift("programId = ?");
+    queryParams.unshift(programId);
+  } else {
+    whereClauses.unshift("programId != ?");
+    queryParams.unshift(ACME_PROGRAM_ID);
+  }
+
+  if (status) {
+    whereClauses.push("status = ?");
+    queryParams.push(status);
+  } else {
+    whereClauses.push("status != ?");
+    queryParams.push("failed");
+  }
+
+  const { rows } = await conn.execute<{
+    date: string;
+    payouts: number;
+    fees: number;
+    total: number;
+  }>(
+    // Optionally remove card processing (2.9%) from invoice fees.
+    // amount and fee are stored in cents, so we round the computed deduction.
+    `SELECT
+      DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ?), ?) as date,
       SUM(amount) as payouts,
-      SUM(fee) as fees,
-      SUM(total) as total
+      SUM(
+        ${
+          excludeCreditCardFees
+            ? `CASE
+                WHEN paymentMethod = 'card' THEN fee - ROUND(amount * 0.029)
+                ELSE fee
+              END`
+            : "fee"
+        }
+      ) as fees,
+      SUM(
+        amount + ${
+          excludeCreditCardFees
+            ? `CASE
+                WHEN paymentMethod = 'card' THEN fee - ROUND(amount * 0.029)
+                ELSE fee
+              END`
+            : "fee"
+        }
+      ) as total
     FROM Invoice
-    WHERE 
-      ${programId ? Prisma.sql`programId = ${programId}` : Prisma.sql`programId != ${ACME_PROGRAM_ID}`}
-      AND ${status ? Prisma.sql`status = ${status}` : Prisma.sql`status != 'failed'`}
-      AND createdAt >= ${startDate}
-      AND createdAt <= ${endDate}
-    GROUP BY DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone}), ${dateFormat})
-    ORDER BY date ASC;
-  `;
+    WHERE ${whereClauses.join(" AND ")}
+    GROUP BY DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ?), ?)
+    ORDER BY date ASC`,
+    [timezone, dateFormat, ...queryParams, timezone, dateFormat],
+  );
+
+  const timeseriesData = rows ?? [];
 
   const timeseriesLookup: Record<string, TimeseriesPoint> = Object.fromEntries(
     timeseriesData.map((item) => [

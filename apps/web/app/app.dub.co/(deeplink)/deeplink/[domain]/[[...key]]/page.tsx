@@ -17,9 +17,19 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { userAgent } from "next/server";
-import { DeepLinkActionButtons } from "./action-buttons";
+import { DeepLinkActionButton } from "./action-button";
 import { BrandLogoBadge } from "./brand-logo-badge";
 import { getLanguage, getTranslations } from "./translations";
+
+const ANDROID_PACKAGE_NAME_REGEX =
+  /^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/;
+
+interface AssetLink {
+  target?: {
+    namespace?: string;
+    package_name?: string;
+  };
+}
 
 export default async function DeepLinkPreviewPage(props: {
   params: Promise<{ domain: string; key?: string[] }>;
@@ -98,6 +108,23 @@ export default async function DeepLinkPreviewPage(props: {
     redirect(`https://${domain}`);
   }
 
+  let androidPackageName: string | null = null;
+
+  if (platform === "android" && Array.isArray(link.shortDomain.assetLinks)) {
+    for (const assetLink of link.shortDomain.assetLinks as Array<AssetLink>) {
+      const packageName = assetLink?.target?.package_name;
+
+      if (
+        assetLink?.target?.namespace === "android_app" &&
+        typeof packageName === "string" &&
+        ANDROID_PACKAGE_NAME_REGEX.test(packageName)
+      ) {
+        androidPackageName = packageName;
+        break;
+      }
+    }
+  }
+
   const {
     hidePoweredByBadge = false,
     appName = getApexDomain(link.url),
@@ -173,8 +200,8 @@ export default async function DeepLinkPreviewPage(props: {
             </div>
           )}
 
-          <div className="flex flex-1 flex-col justify-center gap-12">
-            <div className="flex flex-col items-center gap-y-4">
+          <div className="flex flex-1 flex-col justify-center gap-8">
+            <div className="flex flex-col items-center gap-y-3">
               <BrandLogoBadge link={link} appName={appName} />
 
               {variant === "minimal" ? (
@@ -202,9 +229,11 @@ export default async function DeepLinkPreviewPage(props: {
               )}
             </div>
 
-            <DeepLinkActionButtons
+            <DeepLinkActionButton
               link={link}
               language={language}
+              platform={platform}
+              androidPackageName={androidPackageName}
               buttonStyle={buttonStyle}
             />
           </div>
