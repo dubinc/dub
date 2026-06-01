@@ -8,6 +8,7 @@ import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { recordLead } from "@/lib/tinybird";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
 import { StripeMode } from "@/lib/types";
+import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
@@ -85,6 +86,22 @@ export async function attributeViaPromoCode({
   const linkId = link.id;
   const customerAddress = customerDetails.address;
 
+  // If a customer with this Stripe customer ID already exists, another webhook
+  // (e.g. checkout.session.completed) has already attributed it – skip to avoid
+  // duplicate leads and a unique constraint violation on stripeCustomerId.
+  const existingCustomer = await prisma.customer.findUnique({
+    where: {
+      stripeCustomerId,
+    },
+  });
+
+  if (existingCustomer) {
+    console.log(
+      `Customer with stripeCustomerId ${stripeCustomerId} already exists, skipping promo code attribution...`,
+    );
+    return null;
+  }
+
   // Record a fake click for this event
   const clickEvent = await recordFakeClick({
     link,
@@ -97,22 +114,34 @@ export async function attributeViaPromoCode({
     },
   });
 
-  const customer = await prisma.customer.create({
-    data: {
-      id: createId({ prefix: "cus_" }),
-      name:
-        customerDetails.name || customerDetails.email || generateRandomName(),
-      email: customerDetails.email,
-      externalId: clickEvent.click_id,
-      stripeCustomerId,
-      linkId: clickEvent.link_id,
-      clickId: clickEvent.click_id,
-      clickedAt: new Date(clickEvent.timestamp + "Z"),
-      country: customerAddress?.country,
-      projectId: workspace.id,
-      projectConnectId: workspace.stripeConnectId,
-    },
-  });
+  let customer: Awaited<ReturnType<typeof prisma.customer.create>>;
+  try {
+    customer = await prisma.customer.create({
+      data: {
+        id: createId({ prefix: "cus_" }),
+        name:
+          customerDetails.name || customerDetails.email || generateRandomName(),
+        email: customerDetails.email,
+        externalId: clickEvent.click_id,
+        stripeCustomerId,
+        linkId: clickEvent.link_id,
+        clickId: clickEvent.click_id,
+        clickedAt: new Date(clickEvent.timestamp + "Z"),
+        country: customerAddress?.country,
+        projectId: workspace.id,
+        projectConnectId: workspace.stripeConnectId,
+      },
+    });
+  } catch (error) {
+    // a concurrent webhook may have created the customer first (unique stripeCustomerId)
+    if (error.code === "P2002") {
+      console.log(
+        `Customer with stripeCustomerId ${stripeCustomerId} was created concurrently, skipping promo code attribution...`,
+      );
+      return null;
+    }
+    throw error;
+  }
 
   // Prepare the payload for the lead event
   const { timestamp, ...rest } = clickEvent;
@@ -127,6 +156,12 @@ export async function attributeViaPromoCode({
   };
 
   await recordLead(leadEvent);
+
+  // cache lead event in Redis because the ingested event is not available immediately on Tinybird
+  // (the sale recording right after this relies on reading the lead event back)
+  await redis.set(`leadCache:${customer.id}`, leadEvent, {
+    ex: 60 * 5,
+  });
 
   // record lead side effects (link stats, partner commissions, workflows, workspace webhook)
   waitUntil(

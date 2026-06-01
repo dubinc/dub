@@ -103,6 +103,13 @@ export async function invoicePaid(
       };
     }
 
+    if (!workspace.defaultProgramId) {
+      return {
+        response: `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub and workspace has no default program, skipping...`,
+        workspaceId: workspace.id,
+      };
+    }
+
     const promotionCodeId = await resolvePromotionCodeIdFromInvoice({
       invoiceId,
       stripeAccountId,
