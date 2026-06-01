@@ -130,7 +130,14 @@ function ProgramApplicationSheetForm({
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!group || !program || !partner?.email || !partner.country) return;
+    if (!group || !program || !partner?.email) return;
+
+    if (!partner.country) {
+      toast.error(
+        "You haven't set your country yet. Please contact support to apply.",
+      );
+      return;
+    }
 
     const result = await executeAsync({
       ...data,
