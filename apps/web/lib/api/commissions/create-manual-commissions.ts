@@ -31,6 +31,7 @@ import { DubApiError } from "../errors";
 import { updateLinkStatsForImporter } from "../links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { getProgramEnrollmentOrThrow } from "../programs/get-program-enrollment-or-throw";
+import { executeWorkflows } from "../workflows/execute-workflows";
 
 type CreateCommissionsParams = z.infer<typeof createCommissionBodySchema> & {
   workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
@@ -71,8 +72,8 @@ const saleEventSchemaTBWithTimestamp = saleEventSchemaTB.extend({
   timestamp: z.string(),
 });
 
-export async function createManulCommissions(params: CreateCommissionsParams) {
-  const { workspace, programId, partnerId, type, user, ...rest } = params;
+export async function createManualCommissions(params: CreateCommissionsParams) {
+  const { workspace, programId, partnerId, type, user } = params;
 
   const { partner, links } = await getProgramEnrollmentOrThrow({
     programId,
@@ -574,6 +575,7 @@ async function executeSideEffects(params: ExecuteSideEffectsParams) {
     isFirstConversion,
     partnerId,
     programId,
+    workspace,
   } = params;
 
   // Just to make TypeScript happy
@@ -671,9 +673,28 @@ async function executeSideEffects(params: ExecuteSideEffectsParams) {
     }),
   ]);
 
-  await syncPartnerLinksStats({
-    partnerId,
-    programId,
-    eventType: type,
-  });
+  await Promise.all([
+    syncPartnerLinksStats({
+      partnerId,
+      programId,
+      eventType: type,
+    }),
+
+    executeWorkflows({
+      trigger: "partnerMetricsUpdated",
+      reason: "commission",
+      identity: {
+        workspaceId: workspace.id,
+        programId,
+        partnerId,
+      },
+      metrics: {
+        current: {
+          leads: type === CommissionType.lead ? 1 : 0,
+          saleAmount: totalSaleAmount,
+          conversions: isFirstConversion ? 1 : 0,
+        },
+      },
+    }),
+  ]);
 }

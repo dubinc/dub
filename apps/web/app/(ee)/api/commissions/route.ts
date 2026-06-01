@@ -1,4 +1,4 @@
-import { createManulCommissions } from "@/lib/api/commissions/create-manual-commissions";
+import { createManualCommissions } from "@/lib/api/commissions/create-manual-commissions";
 import { getCommissions } from "@/lib/api/commissions/get-commissions";
 import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
@@ -87,7 +87,7 @@ export const POST = withWorkspace(
 
     const body = createCommissionBodySchema.parse(await parseRequestBody(req));
 
-    await createManulCommissions({
+    await createManualCommissions({
       ...body,
       workspace,
       programId,
