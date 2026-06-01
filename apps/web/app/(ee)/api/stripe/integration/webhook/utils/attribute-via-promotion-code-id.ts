@@ -152,7 +152,7 @@ export async function attributeViaPromotionCodeId({
     ...rest,
     workspace_id: clickEvent.workspace_id || customer.projectId,
     event_id: nanoid(16),
-    event_name: "Checkout with discount code",
+    event_name: "Attributed via discount code",
     customer_id: customer.id,
     metadata: "",
   };
@@ -220,7 +220,6 @@ export async function attributeViaPromotionCodeId({
           workspace,
           data: transformLeadEventData({
             ...leadEvent,
-            eventName: "Checkout session completed",
             link: linkUpdated,
             customer,
             partner: createdCommission?.webhookPartner,
@@ -235,7 +234,6 @@ export async function attributeViaPromotionCodeId({
                 event: "lead.created",
                 data: {
                   ...leadEvent,
-                  eventName: "Checkout session completed",
                   link: linkUpdated,
                   customer,
                 },
