@@ -85,23 +85,6 @@ export async function attributeViaPromotionCodeId({
   const link = discountCode.link;
   const linkId = link.id;
   const customerAddress = customerDetails.address;
-
-  // If a customer with this Stripe customer ID already exists, another webhook
-  // (e.g. checkout.session.completed) has already attributed it – skip to avoid
-  // duplicate leads and a unique constraint violation on stripeCustomerId.
-  const existingCustomer = await prisma.customer.findUnique({
-    where: {
-      stripeCustomerId,
-    },
-  });
-
-  if (existingCustomer) {
-    console.log(
-      `Customer with stripeCustomerId ${stripeCustomerId} already exists, skipping promo code attribution...`,
-    );
-    return null;
-  }
-
   const customerCountry = customerAddress?.country?.toUpperCase();
 
   // Record a fake click for this event
