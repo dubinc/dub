@@ -40,7 +40,7 @@ export const POST = withCron(async ({ rawBody }) => {
     },
   });
 
-  if (!discount) {
+  if (!discount || !discount.program) {
     return logAndRespond(`Discount ${discountId} not found. Skipping...`);
   }
 

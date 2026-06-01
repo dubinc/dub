@@ -68,9 +68,9 @@ export const updateDiscountAction = authActionClient
                 // we only cache default group pages for now so we need to invalidate them
                 ...(partnerGroup?.slug === DEFAULT_PARTNER_GROUP.slug
                   ? [
-                      revalidatePath(`/partners.dub.co/${program.slug}`),
-                      revalidatePath(`/partners.dub.co/${program.slug}/apply`),
-                      program.addedToMarketplaceAt &&
+                      revalidatePath(`/partners.dub.co/${program?.slug}`),
+                      revalidatePath(`/partners.dub.co/${program?.slug}/apply`),
+                      program?.addedToMarketplaceAt &&
                         revalidatePath(
                           `/partners.dub.co/programs/marketplace/${program.slug}`,
                         ),
