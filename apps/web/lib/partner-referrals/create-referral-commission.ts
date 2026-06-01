@@ -11,7 +11,7 @@ import { sendPartnerPostback } from "../postback/send-partner-postback";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 
-type CreateReferralCommissionArgs =
+export type CreateReferralCommissionArgs =
   | {
       source: "commission"; // based on a source commission
       sourceCommissionId: string;
