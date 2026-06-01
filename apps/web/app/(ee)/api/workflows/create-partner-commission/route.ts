@@ -7,6 +7,7 @@ import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
 import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
+import { createReferralCommission } from "@/lib/partner-referrals/create-referral-commission";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
@@ -119,6 +120,16 @@ export const { POST } = serve<Input>(
             outputLog: `Bounty submission ${bountySubmissionId} not found or already linked to a commission, skipping...`,
           });
         }
+      });
+    }
+
+    // Step 4: Create referral commission
+    if (commission) {
+      await context.run("create-referral-commission", async () => {
+        return await createReferralCommission({
+          source: "commission",
+          sourceCommissionId: commission.id,
+        });
       });
     }
   },

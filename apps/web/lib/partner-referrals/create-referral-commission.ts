@@ -11,14 +11,21 @@ import { sendPartnerPostback } from "../postback/send-partner-postback";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 
-type CreateReferralCommissionProps =
-  | { sourceCommissionId: string; partnerId?: never; programId?: never } // Based on a source commission
-  | { sourceCommissionId?: never; partnerId: string; programId: string }; // Based on partner approval and commission threshold
+type CreateReferralCommissionArgs =
+  | {
+      source: "commission"; // based on a source commission
+      sourceCommissionId: string;
+    }
+  | {
+      source: "partner"; // based on partner approval and commission threshold
+      partnerId: string;
+      programId: string;
+    };
 
 export const createReferralCommission = async (
-  props: CreateReferralCommissionProps,
+  args: CreateReferralCommissionArgs,
 ) => {
-  const context = await resolveReferralContext(props);
+  const context = await resolveReferralContext(args);
 
   if (!context) {
     return null;
@@ -27,7 +34,7 @@ export const createReferralCommission = async (
   const { sourceCommission, programId, partnerId, referredByPartnerId } =
     context;
 
-  if (partnerId && referredByPartnerId && partnerId === referredByPartnerId) {
+  if (partnerId === referredByPartnerId) {
     console.log(
       `Skipping referral commission creation for self-referral (partner ${partnerId}).`,
     );
@@ -350,9 +357,9 @@ function generateCommissionDescription({
   return null;
 }
 
-async function resolveReferralContext(props: CreateReferralCommissionProps) {
-  if (props.sourceCommissionId) {
-    const { sourceCommissionId } = props;
+async function resolveReferralContext(args: CreateReferralCommissionArgs) {
+  if (args.source === "commission") {
+    const { sourceCommissionId } = args;
 
     const sourceCommission = await prisma.commission.findUnique({
       where: {
@@ -411,8 +418,8 @@ async function resolveReferralContext(props: CreateReferralCommissionProps) {
     };
   }
 
-  if (props.partnerId && props.programId) {
-    const { partnerId, programId } = props;
+  if (args.source === "partner") {
+    const { partnerId, programId } = args;
 
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: {

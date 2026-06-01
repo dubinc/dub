@@ -1,10 +1,9 @@
-import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, currencyFormatter } from "@dub/utils";
+import { currencyFormatter } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 
 export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
@@ -76,16 +75,6 @@ export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
             email: payout.partner.email!,
             program: payout.program,
             payout,
-          },
-        })),
-      ),
-
-      enqueueBatchJobs(
-        payouts.map((payout) => ({
-          queueName: "create-referral-commissions",
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/queue`,
-          body: {
-            payoutId: payout.id,
           },
         })),
       ),

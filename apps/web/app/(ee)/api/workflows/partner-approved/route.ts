@@ -320,6 +320,7 @@ export const { POST } = serve<Input>(
     // Step 7: Create referral commission if enabled
     await context.run("create-referral-commission", async () => {
       await createReferralCommission({
+        source: "partner",
         partnerId,
         programId,
       });
