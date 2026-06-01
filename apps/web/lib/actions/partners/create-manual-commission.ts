@@ -208,6 +208,8 @@ export const createManualCommissionAction = authActionClient
       clickId = nanoid(16);
       clickedAt = new Date(lastLeadAt.getTime() - 5 * 60 * 1000);
 
+      const customerCountry = customer.country?.toUpperCase();
+
       const generatedClickEvent = recordClickZodSchema.parse({
         timestamp: clickedAt.toISOString(),
         identity_hash: customer.externalId || customer.id,
@@ -215,9 +217,10 @@ export const createManualCommissionAction = authActionClient
         link_id: link.id,
         url: link.url,
         ip: "127.0.0.1",
-        continent: customer.country
-          ? COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()] || ""
-          : "",
+        country: customerCountry ?? "Unknown",
+        continent: customerCountry
+          ? COUNTRIES_TO_CONTINENTS[customerCountry] ?? "Unknown"
+          : "Unknown",
       });
 
       tbEventsToRecord.push(() => recordClickZod(generatedClickEvent));
