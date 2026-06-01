@@ -16,7 +16,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
-import { attributeViaPromoCode } from "./utils/attribute-via-promo-code";
+import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 
 // Handle event "invoice.paid"
@@ -110,21 +110,21 @@ export async function invoicePaid(
       };
     }
 
-    const promotionCodeId = await resolvePromotionCodeIdFromInvoice({
+    const { promotionCodeId, error } = await resolvePromotionCodeIdFromInvoice({
       invoiceId,
       stripeAccountId,
       mode,
     });
 
-    if (promotionCodeId === "checkout_deferred") {
+    if (error) {
       return {
-        response: `Invoice ${invoiceId} has a Checkout-scoped discount; deferring to checkout.session.completed...`,
+        response: `Failed to resolve promotion code from invoice ${invoiceId}: ${error}`,
         workspaceId: workspace.id,
       };
     }
 
     if (promotionCodeId) {
-      const promoCodeResponse = await attributeViaPromoCode({
+      const promoCodeResponse = await attributeViaPromotionCodeId({
         promotionCodeId,
         stripeAccountId,
         workspace,
@@ -430,10 +430,19 @@ async function resolvePromotionCodeIdFromInvoice({
   invoiceId: string;
   stripeAccountId: string;
   mode: StripeMode;
-}): Promise<string | "checkout_deferred" | null> {
+}): Promise<
+  | {
+      promotionCodeId: string;
+      error: null;
+    }
+  | {
+      promotionCodeId: null;
+      error: string;
+    }
+> {
   const stripe = stripeAppClient({ mode });
 
-  const expandedInvoice = await stripe.invoices.retrieve(
+  const expandedInvoice = (await stripe.invoices.retrieve(
     invoiceId,
     {
       expand: ["discounts", "discounts.promotion_code"],
@@ -441,55 +450,28 @@ async function resolvePromotionCodeIdFromInvoice({
     {
       stripeAccount: stripeAccountId,
     },
-  );
+  )) as Stripe.Invoice & {
+    discounts: {
+      promotion_code: Stripe.PromotionCode;
+    }[];
+  };
 
-  const discountSources: Array<
-    Array<string | Stripe.Discount | Stripe.DeletedDiscount> | undefined
-  > = [expandedInvoice.discounts];
-
-  for (const line of expandedInvoice.lines?.data ?? []) {
-    const subscriptionId = line.parent?.subscription_item_details?.subscription;
-    if (!subscriptionId) {
-      continue;
-    }
-
-    const subscription = await stripe.subscriptions.retrieve(
-      subscriptionId,
-      {
-        expand: ["discounts", "discounts.promotion_code"],
-      },
-      {
-        stripeAccount: stripeAccountId,
-      },
-    );
-    discountSources.push(subscription.discounts);
-    break;
+  if (!expandedInvoice) {
+    return {
+      promotionCodeId: null,
+      error: "Invoice not found", // should never happen, but just in case
+    };
   }
 
-  for (const discounts of discountSources) {
-    if (!discounts?.length) {
-      continue;
-    }
-
-    for (const discount of discounts) {
-      if (typeof discount === "string" || discount.deleted) {
-        continue;
-      }
-
-      const promotionCode = discount.promotion_code;
-      if (!promotionCode) {
-        continue;
-      }
-
-      if (discount.checkout_session) {
-        return "checkout_deferred";
-      }
-
-      return typeof promotionCode === "string"
-        ? promotionCode
-        : promotionCode.id;
-    }
+  if (!expandedInvoice.discounts || expandedInvoice.discounts.length === 0) {
+    return {
+      promotionCodeId: null,
+      error: "No discounts found on invoice",
+    };
   }
 
-  return null;
+  return {
+    promotionCodeId: expandedInvoice.discounts[0].promotion_code.id,
+    error: null,
+  };
 }

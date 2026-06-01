@@ -22,12 +22,10 @@ import { Customer } from "@dub/prisma/client";
 import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
-import {
-  attributeViaPromoCode,
-  incrementLinkLeads,
-} from "./utils/attribute-via-promo-code";
+import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getCheckoutSessionProductId } from "./utils/get-checkout-session-product-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
+import { incrementLinkLeads } from "./utils/increment-link-leads";
 import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
 
 // Handle event "checkout.session.completed"
@@ -192,7 +190,7 @@ export async function checkoutSessionCompleted(
 
       if (!customer) {
         if (promotionCodeId) {
-          const promoCodeResponse = await attributeViaPromoCode({
+          const promoCodeResponse = await attributeViaPromotionCodeId({
             promotionCodeId,
             stripeAccountId,
             workspace,
@@ -267,7 +265,7 @@ export async function checkoutSessionCompleted(
             };
           }
         } else if (promotionCodeId) {
-          const promoCodeResponse = await attributeViaPromoCode({
+          const promoCodeResponse = await attributeViaPromotionCodeId({
             promotionCodeId,
             stripeAccountId,
             workspace,

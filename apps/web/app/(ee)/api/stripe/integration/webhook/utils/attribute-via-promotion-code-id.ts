@@ -1,5 +1,4 @@
 import { createId } from "@/lib/api/create-id";
-import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
@@ -17,6 +16,7 @@ import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { getPromotionCode } from "./get-promotion-code";
+import { incrementLinkLeads } from "./increment-link-leads";
 
 export type PromoCodeCustomerDetails = {
   name?: string | null;
@@ -24,7 +24,7 @@ export type PromoCodeCustomerDetails = {
   address?: Pick<Stripe.Address, "country" | "state"> | null;
 };
 
-export async function attributeViaPromoCode({
+export async function attributeViaPromotionCodeId({
   promotionCodeId,
   stripeAccountId,
   workspace,
@@ -32,7 +32,7 @@ export async function attributeViaPromoCode({
   stripeCustomerId,
   customerDetails,
 }: {
-  promotionCodeId: string;
+  promotionCodeId: string; // must be Stripe's promotion code ID `promo_xxx`, not the actual promo code
   stripeAccountId: string;
   workspace: Pick<
     Project,
@@ -102,14 +102,16 @@ export async function attributeViaPromoCode({
     return null;
   }
 
+  const customerCountry = customerAddress?.country?.toUpperCase();
+
   // Record a fake click for this event
   const clickEvent = await recordFakeClick({
     link,
     customer: {
-      continent: customerAddress?.country
-        ? COUNTRIES_TO_CONTINENTS[customerAddress.country]
+      continent: customerCountry
+        ? COUNTRIES_TO_CONTINENTS[customerCountry] ?? "Unknown"
         : "Unknown",
-      country: customerAddress?.country ?? "Unknown",
+      country: customerCountry ?? "Unknown",
       region: customerAddress?.state ?? "Unknown",
     },
   });
@@ -250,19 +252,4 @@ export async function attributeViaPromoCode({
     clickEvent,
     leadEvent,
   };
-}
-
-export async function incrementLinkLeads(linkId: string) {
-  return prisma.link.update({
-    where: {
-      id: linkId,
-    },
-    data: {
-      leads: {
-        increment: 1,
-      },
-      lastLeadAt: new Date(),
-    },
-    include: includeTags,
-  });
 }
