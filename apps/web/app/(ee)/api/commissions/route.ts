@@ -1,10 +1,14 @@
+import { createManulCommissions } from "@/lib/api/commissions/create-manual-commissions";
 import { getCommissions } from "@/lib/api/commissions/get-commissions";
 import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
   CommissionEnrichedSchema,
+  createCommissionBodySchema,
+  createCommissionResponseSchema,
   getCommissionsQuerySchema,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
@@ -75,3 +79,40 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     ),
   );
 });
+
+// POST /api/commissions - create commissions
+export const POST = withWorkspace(
+  async ({ workspace, session, req }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const body = createCommissionBodySchema.parse(await parseRequestBody(req));
+
+    await createManulCommissions({
+      ...body,
+      workspace,
+      programId,
+      user: session.user,
+    });
+
+    return NextResponse.json(
+      createCommissionResponseSchema.parse({
+        success: true,
+        message: "Your commissions are being created and will appear shortly.",
+      }),
+      {
+        status: 202,
+      },
+    );
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+    requiredRoles: ["owner", "member"],
+  },
+);
