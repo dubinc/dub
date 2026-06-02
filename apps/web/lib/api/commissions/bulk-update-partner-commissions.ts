@@ -7,6 +7,7 @@ import { DubApiError } from "../errors";
 import { syncTotalCommissions } from "../partners/sync-total-commissions";
 import { reconcilePayoutAmounts } from "./reconcile-payout-amounts";
 import { trackCommissionActivityLog } from "./track-commission-update-activity-log";
+import { voidReferralCommissions } from "./void-referral-commissions";
 
 type BulkUpdatePartnerCommissionsProps = z.infer<
   typeof bulkUpdateCommissionsSchema
@@ -163,6 +164,13 @@ export async function bulkUpdatePartnerCommissions({
         userId,
         old: commissions,
         new: updatedCommissions,
+      }),
+
+      voidReferralCommissions({
+        workspaceId,
+        programId,
+        sourceCommissionIds: commissionIds,
+        sourceCommissionStatus: status,
       }),
     ]),
   );
