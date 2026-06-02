@@ -20,36 +20,44 @@ const validationCases = [
     name: "missing type field",
     body: { partnerId: E2E_PARTNER.id, amount: 500 },
     expectedStatus: 422,
-    expectedMessageContains: "type",
+    expectedMessage: "invalid_union: type: Invalid input",
   },
   {
     name: "invalid type value",
     body: { type: "invalid", partnerId: E2E_PARTNER.id },
     expectedStatus: 422,
-    expectedMessageContains: "type",
+    expectedMessage: "invalid_union: type: Invalid input",
   },
   {
     name: "custom commission with amount 0",
     body: { type: "custom", partnerId: E2E_PARTNER.id, amount: 0 },
     expectedStatus: 422,
-    expectedMessageContains: "amount",
+    expectedMessage: "too_small: amount: Too small: expected number to be >=1",
+  },
+  {
+    name: "sale commission missing saleAmount",
+    body: {
+      type: "sale",
+      partnerId: E2E_PARTNER.id,
+      customerId: E2E_CUSTOMER_ID,
+      importStripeInvoices: false,
+    },
+    expectedStatus: 422,
+    expectedMessage:
+      "custom: saleAmount: `saleAmount` is required when `importStripeInvoices` is false.",
   },
 ];
 
-validationCases.forEach(
-  ({ name, body, expectedStatus, expectedMessageContains }) => {
-    test(`POST /commissions - validation error: ${name}`, async (ctx) => {
-      const h = new IntegrationHarness(ctx);
-      const { http } = await h.init();
-      const response = await http.post<any>({ path: "/commissions", body });
-      expect(response.status).toEqual(expectedStatus);
-      expect(response.data.error.code).toEqual("unprocessable_entity");
-      expect(response.data.error.message.toLowerCase()).toContain(
-        expectedMessageContains,
-      );
-    });
-  },
-);
+validationCases.forEach(({ name, body, expectedStatus, expectedMessage }) => {
+  test(`POST /commissions - validation error: ${name}`, async (ctx) => {
+    const h = new IntegrationHarness(ctx);
+    const { http } = await h.init();
+    const response = await http.post<any>({ path: "/commissions", body });
+    expect(response.status).toEqual(expectedStatus);
+    expect(response.data.error.code).toEqual("unprocessable_entity");
+    expect(response.data.error.message).toEqual(expectedMessage);
+  });
+});
 
 describe.sequential("POST /commissions", async () => {
   const h = new IntegrationHarness();
