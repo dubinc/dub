@@ -445,19 +445,19 @@ async function resolvePromotionCodeIdFromInvoice({
   if (!expandedInvoice) {
     return {
       promotionCodeId: null,
-      error: "Invoice not found", // should never happen, but just in case
+      resolvePromotionCodeError: "Invoice not found", // should never happen, but just in case
     };
   }
 
   if (!expandedInvoice.discounts || expandedInvoice.discounts.length === 0) {
     return {
       promotionCodeId: null,
-      error: "No discounts found on invoice",
+      resolvePromotionCodeError: "No discounts found on invoice",
     };
   }
 
   return {
     promotionCodeId: expandedInvoice.discounts[0].promotion_code.id,
-    error: null,
+    resolvePromotionCodeError: null,
   };
 }
