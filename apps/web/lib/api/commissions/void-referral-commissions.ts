@@ -2,6 +2,7 @@ import { MUTABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import { prisma } from "@dub/prisma";
 import { CommissionStatus } from "@dub/prisma/client";
 import { syncTotalCommissions } from "../partners/sync-total-commissions";
+import { reconcilePayoutAmounts } from "./reconcile-payout-amounts";
 import { trackCommissionStatusUpdate } from "./track-commission-update-activity-log";
 
 const VOID_STATUSES: CommissionStatus[] = [
@@ -56,6 +57,7 @@ export async function voidReferralCommissions({
       amount: true,
       earnings: true,
       status: true,
+      payoutId: true,
     },
   });
 
@@ -79,7 +81,21 @@ export async function voidReferralCommissions({
   // Find unique partner Ids
   const partnerIds = [...new Set(referralCommissions.map((c) => c.partnerId))];
 
+  // Reconcile payout amounts for all affected payouts
+  const affectedPayoutIds = [
+    ...referralCommissions
+      .filter(
+        (commission) =>
+          commission.status === "processed" && commission.payoutId,
+      )
+      .map((commission) => commission.payoutId!),
+  ];
+
   await Promise.allSettled([
+    affectedPayoutIds.length > 0
+      ? reconcilePayoutAmounts(affectedPayoutIds)
+      : Promise.resolve(),
+
     ...partnerIds.map((partnerId) =>
       syncTotalCommissions({
         partnerId,
@@ -95,9 +111,6 @@ export async function voidReferralCommissions({
       newStatus: sourceCommissionStatus,
     }),
   ]);
-
-  // TODO:
-  // If payout is created, we need to reduce the payout total
 
   console.log(`Voided ${count} referral commissions.`);
 }
