@@ -33,6 +33,7 @@ const validationCases = [
     expectedMessageContains: "amount",
   },
 ];
+
 validationCases.forEach(
   ({ name, body, expectedStatus, expectedMessageContains }) => {
     test(`POST /commissions - validation error: ${name}`, async (ctx) => {
@@ -47,9 +48,11 @@ validationCases.forEach(
     });
   },
 );
+
 describe.sequential("POST /commissions", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
+
   test("create custom commission with required fields", async () => {
     const description = randomId();
     const { status, data } = await http.post<any>({
@@ -61,9 +64,12 @@ describe.sequential("POST /commissions", async () => {
         description,
       },
     });
+
     expect(status).toEqual(202);
     expect(data).toStrictEqual(expectedQueuedResponse);
+
     await new Promise((resolve) => setTimeout(resolve, 2000));
+
     const { data: commissions } = await http.get<CommissionResponse[]>({
       path: "/commissions",
       query: {
@@ -74,6 +80,7 @@ describe.sequential("POST /commissions", async () => {
         pageSize: "1",
       },
     });
+
     const commissionFound = commissions.find(
       (c) => c.description === description,
     );
@@ -81,8 +88,10 @@ describe.sequential("POST /commissions", async () => {
     expect(commissionFound!.earnings).toEqual(500);
     expect(commissionFound!.type).toEqual("custom");
   });
+
   test("create lead commission", async () => {
     const customer = randomCustomer();
+
     const { status, data } = await http.post<any>({
       path: "/commissions",
       body: {
@@ -96,16 +105,20 @@ describe.sequential("POST /commissions", async () => {
         },
       },
     });
+
     expect(status).toEqual(202);
     expect(data).toStrictEqual(expectedQueuedResponse);
+
     await verifyCommission({
       http,
       customerExternalId: customer.externalId,
       expectedEarnings: E2E_LEAD_REWARD.amountInCents,
     });
   });
+
   test("create sale commission with manual amount", async () => {
     const invoiceId = `INV_${randomId()}`;
+
     const { status, data } = await http.post<any>({
       path: "/commissions",
       body: {
@@ -116,8 +129,10 @@ describe.sequential("POST /commissions", async () => {
         customerId: E2E_CUSTOMER_ID,
       },
     });
+
     expect(status).toEqual(202);
     expect(data).toStrictEqual(expectedQueuedResponse);
+
     await verifyCommission({
       http,
       invoiceId,
@@ -125,6 +140,7 @@ describe.sequential("POST /commissions", async () => {
       expectedEarnings: E2E_SALE_REWARD.amountInCents,
     });
   });
+
   test("error when customer is not found", async () => {
     const { status, data } = await http.post<any>({
       path: "/commissions",
@@ -139,6 +155,7 @@ describe.sequential("POST /commissions", async () => {
     expect(data.error.code).toEqual("not_found");
     expect(data.error.message).toContain("not found");
   });
+
   test("error when link does not belong to partner", async () => {
     const { status, data } = await http.post<any>({
       path: "/commissions",
@@ -148,10 +165,12 @@ describe.sequential("POST /commissions", async () => {
         linkId: "link_nonexistent",
       },
     });
+
     expect(status).toEqual(404);
     expect(data.error.code).toEqual("not_found");
     expect(data.error.message).toContain("does not belong");
   });
+
   test("error when invoiceId already exists", async () => {
     const { data: existingCommissions } = await http.get<CommissionResponse[]>({
       path: "/commissions",
@@ -162,10 +181,13 @@ describe.sequential("POST /commissions", async () => {
         pageSize: "50",
       },
     });
+
     const commissionWithInvoice = existingCommissions.find(
       (c) => c.invoiceId != null,
     );
+
     expect(commissionWithInvoice).toBeDefined();
+
     const { status, data } = await http.post<any>({
       path: "/commissions",
       body: {
@@ -176,6 +198,7 @@ describe.sequential("POST /commissions", async () => {
         customerId: E2E_CUSTOMER_ID,
       },
     });
+
     expect(status).toEqual(409);
     expect(data.error.code).toEqual("conflict");
     expect(data.error.message).toContain(
