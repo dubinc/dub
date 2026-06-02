@@ -2,7 +2,8 @@ import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-pay
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 20;
+const BATCH_DELAY_MS = 1000;
 
 // Reconciles partners that ended up with payoutsEnabledAt set while defaultPayoutMethod is null.
 // Re-runs recomputePartnerPayoutState so both fields reflect the partner's
@@ -49,7 +50,7 @@ async function main() {
 
     const results = await Promise.allSettled(
       partners.map(async (partner) => {
-        const { payoutsEnabledAt, defaultPayoutMethod } =
+        const { payoutsEnabledAt, defaultPayoutMethod, cryptoWalletAddress } =
           await recomputePartnerPayoutState(partner);
 
         await prisma.partner.update({
@@ -59,6 +60,7 @@ async function main() {
           data: {
             payoutsEnabledAt,
             defaultPayoutMethod,
+            cryptoWalletAddress,
           },
         });
 
@@ -89,6 +91,12 @@ async function main() {
     cursor = partners[partners.length - 1].id;
 
     console.log(`Processed ${totalProcessed} partners so far...`);
+
+    // Small delay between batches to avoid Stripe API rate limits, since
+    // recomputePartnerPayoutState makes multiple Stripe calls per partner.
+    if (partners.length === BATCH_SIZE) {
+      await new Promise((resolve) => setTimeout(resolve, BATCH_DELAY_MS));
+    }
   }
 
   console.log(
