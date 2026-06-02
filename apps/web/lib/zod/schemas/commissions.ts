@@ -440,7 +440,7 @@ export const createPartnerCommissionSchema = z.object({
     .optional(),
 });
 
-export const createCommissionBodySchema = z.discriminatedUnion("type", [
+export const createManualCommissionBodySchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("custom"),
     partnerId: z
