@@ -175,6 +175,39 @@ async function trackVisitEvent({
   }
 
   const session = await getSession();
+  const partnerId = session?.user?.defaultPartnerId;
+
+  if (partnerId) {
+    const existingEnrollment = await prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId: program.id,
+        },
+      },
+      select: {
+        partnerId: true,
+      },
+    });
+
+    if (existingEnrollment) {
+      console.log(
+        `Partner ${partnerId} is already enrolled in program ${program.id}. Skipping visit tracking...`,
+      );
+      return;
+    }
+
+    const isSelfReferral =
+      referredByPartner?.id && partnerId === referredByPartner.id;
+
+    if (isSelfReferral) {
+      console.log(
+        `Self-referral detected for partner ${partnerId} on program ${program.id}. Skipping visit tracking...`,
+      );
+      return;
+    }
+  }
+
   const requestContext = await getRequestContext(req, { referrer, url });
 
   try {
@@ -189,7 +222,7 @@ async function trackVisitEvent({
               ? getDomainWithoutWWW(referrer) || "direct"
               : "direct",
           referredByPartnerId: referredByPartner?.id,
-          partnerId: session?.user?.defaultPartnerId,
+          partnerId,
           visitedAt: new Date(),
           country: requestContext.country,
           metadata: requestContext,
@@ -215,19 +248,19 @@ async function trackVisitEvent({
   }
 
   // for network program application events, track the click event
-  if (program.id === NETWORK_PROGRAM_ID && referredByPartner) {
+  if (referredByPartner) {
     waitUntil(
       (async () => {
-        const networkPartnerLink = await prisma.link.findFirst({
+        const networkReferralLink = await prisma.link.findFirst({
           where: {
             programId: NETWORK_PROGRAM_ID,
             partnerId: referredByPartner.id,
           },
         });
 
-        if (!networkPartnerLink) {
+        if (!networkReferralLink) {
           console.log(
-            `No network partner link found for partner ${referredByPartner.id}, skipping...`,
+            `No network referral link found for partner ${referredByPartner.id} (not enrolled in network program yet), skipping...`,
           );
           return;
         }
@@ -237,9 +270,9 @@ async function trackVisitEvent({
           ...requestContext,
           timestamp: new Date().toISOString(),
           workspace_id: NETWORK_WORKSPACE_ID,
-          link_id: networkPartnerLink.id,
-          domain: networkPartnerLink.domain,
-          key: networkPartnerLink.key,
+          link_id: networkReferralLink.id,
+          domain: networkReferralLink.domain,
+          key: networkReferralLink.key,
         });
 
         await recordClickZod(generatedClickEvent);
@@ -249,7 +282,7 @@ async function trackVisitEvent({
 
         await prisma.link.update({
           where: {
-            id: networkPartnerLink.id,
+            id: networkReferralLink.id,
           },
           data: {
             clicks: { increment: 1 },
@@ -257,7 +290,7 @@ async function trackVisitEvent({
           },
         });
         console.log(
-          `Updated link ${networkPartnerLink.id} to ${networkPartnerLink.clicks + 1} clicks`,
+          `Updated link ${networkReferralLink.id} to ${networkReferralLink.clicks + 1} clicks`,
         );
 
         await syncPartnerLinksStats({
@@ -293,6 +326,22 @@ async function trackStartEvent({
   const partnerId = session?.user?.defaultPartnerId;
 
   try {
+    const applicationEvent = partnerId
+      ? await prisma.programApplicationEvent.findUnique({
+          where: {
+            id: eventId,
+          },
+          select: {
+            referredByPartnerId: true,
+          },
+        })
+      : null;
+
+    const isSelfReferral =
+      partnerId &&
+      applicationEvent?.referredByPartnerId &&
+      partnerId === applicationEvent.referredByPartnerId;
+
     await prisma.programApplicationEvent.update({
       where: {
         id: eventId,
@@ -301,6 +350,7 @@ async function trackStartEvent({
       data: {
         startedAt: new Date(),
         ...(partnerId ? { partnerId } : {}),
+        ...(isSelfReferral ? { referredByPartnerId: null } : {}),
       },
     });
 

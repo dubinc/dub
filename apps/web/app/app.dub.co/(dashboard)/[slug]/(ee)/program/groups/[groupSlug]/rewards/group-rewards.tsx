@@ -267,7 +267,6 @@ const RewardItem = ({
                   set: {
                     rewardId: reward.id,
                   },
-                  scroll: false,
                 });
               }}
             />

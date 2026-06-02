@@ -170,7 +170,6 @@ export function EarningsCompositeChart() {
             selectAction={(option) => {
               queryParams({
                 set: { groupBy: option },
-                scroll: false,
               });
             }}
           />
@@ -362,19 +361,16 @@ function EarningsTableControls() {
         [key]: value,
       },
       del: "page",
-      scroll: false,
     });
 
   const onRemove = (key: string, _value: any) =>
     queryParams({
       del: [key, "page"],
-      scroll: false,
     });
 
   const onRemoveAll = () =>
     queryParams({
       del: ["linkId", "customerId", "status", "page"],
-      scroll: false,
     });
 
   return (

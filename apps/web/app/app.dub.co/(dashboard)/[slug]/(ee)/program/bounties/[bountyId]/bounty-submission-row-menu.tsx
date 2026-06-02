@@ -70,7 +70,6 @@ export function BountySubmissionRowMenu({
                       set: {
                         submissionId: submission.id,
                       },
-                      scroll: false,
                     });
                     setIsOpen(false);
                   }}

@@ -129,7 +129,8 @@ export default function NetworkApplicationsPage() {
   const onSearchChange = (value: string) => {
     const search = value.trim();
     const hasActiveFilters =
-      Boolean(searchParamsObj.networkStatus) || Boolean(searchParamsObj.country);
+      Boolean(searchParamsObj.networkStatus) ||
+      Boolean(searchParamsObj.country);
 
     if (!search || !hasActiveFilters) {
       return;
@@ -260,11 +261,10 @@ export default function NetworkApplicationsPage() {
           set: {
             partnerId: fallbackPartnerId,
           },
-          scroll: false,
         });
       } else {
         setDetailsSheetState({ open: false, partnerId: null });
-        queryParams({ del: "partnerId", scroll: false });
+        queryParams({ del: "partnerId" });
       }
     } catch (error) {
       toast.error(
@@ -390,7 +390,6 @@ export default function NetworkApplicationsPage() {
         set: {
           partnerId: row.original.id,
         },
-        scroll: false,
       }),
     loading: isLoading,
     sortableColumns: ["createdAt"],
@@ -403,7 +402,6 @@ export default function NetworkApplicationsPage() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
 
     pagination,
@@ -427,7 +425,6 @@ export default function NetworkApplicationsPage() {
                     set: {
                       partnerId: previousPartnerId,
                     },
-                    scroll: false,
                   })
               : undefined
           }
@@ -438,7 +435,6 @@ export default function NetworkApplicationsPage() {
                     set: {
                       partnerId: nextPartnerId,
                     },
-                    scroll: false,
                   })
               : undefined
           }

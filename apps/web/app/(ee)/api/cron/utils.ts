@@ -11,3 +11,8 @@ export function logAndRespond(
   console[logLevel](message);
   return new Response(message, { status });
 }
+
+export function logAndReturn<T>(value: T): T {
+  console.log(value);
+  return value;
+}
