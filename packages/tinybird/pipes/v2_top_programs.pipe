@@ -174,5 +174,4 @@ SQL >
             {% elif eventType == 'composite' %} top_programs_composite
             {% else %} top_programs_sales
             {% end %}
-
-
+TYPE ENDPOINT

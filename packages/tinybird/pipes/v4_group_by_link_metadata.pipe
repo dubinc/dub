@@ -587,5 +587,4 @@ SQL >
         {% elif eventType == 'composite' %}group_by_link_metadata_composite
         {% else %} group_by_link_metadata_clicks
         {% end %}
-
-
+TYPE ENDPOINT
