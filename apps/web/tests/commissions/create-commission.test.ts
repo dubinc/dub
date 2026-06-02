@@ -122,7 +122,7 @@ describe.sequential("POST /commissions", async () => {
     await verifyCommission({
       http,
       customerExternalId: customer.externalId,
-      expectedEarnings: E2E_LEAD_REWARD.amountInCents,
+      expectedEarnings: E2E_LEAD_REWARD.modifiers[1].amountInCents,
     });
   });
 
