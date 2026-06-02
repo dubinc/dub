@@ -1,10 +1,9 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
-import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { stripeAppClient } from "@/lib/stripe";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
@@ -13,7 +12,7 @@ import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { nanoid, pick } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
@@ -110,18 +109,12 @@ export async function invoicePaid(
       };
     }
 
-    const { promotionCodeId, error } = await resolvePromotionCodeIdFromInvoice({
-      invoiceId,
-      stripeAccountId,
-      mode,
-    });
-
-    if (error) {
-      return {
-        response: `Failed to resolve promotion code from invoice ${invoiceId}: ${error}`,
-        workspaceId: workspace.id,
-      };
-    }
+    const { promotionCodeId, resolvePromotionCodeError } =
+      await resolvePromotionCodeIdFromInvoice({
+        invoiceId,
+        stripeAccountId,
+        mode,
+      });
 
     if (promotionCodeId) {
       const promoCodeResponse = await attributeViaPromotionCodeId({
@@ -140,6 +133,10 @@ export async function invoicePaid(
       if (promoCodeResponse) {
         customer = promoCodeResponse.customer;
       }
+    } else if (resolvePromotionCodeError) {
+      console.log(
+        `Failed to resolve promotion code from invoice ${invoiceId}: ${resolvePromotionCodeError}`,
+      );
     }
 
     if (!customer) {
@@ -313,12 +310,12 @@ export async function invoicePaid(
   ]);
 
   // for program links
-  let createdCommission:
-    | Awaited<ReturnType<typeof createPartnerCommission>>
+  let result:
+    | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
     | undefined = undefined;
 
   if (link.programId && link.partnerId) {
-    createdCommission = await createPartnerCommission({
+    result = await queuePartnerCommissionCreation({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -339,9 +336,12 @@ export async function invoicePaid(
           amount: saleData.amount,
         },
       },
+      clickEvent: {
+        url: saleData.url,
+        referer: saleData.referer,
+      },
+      isFirstConversion: firstConversionFlag,
     });
-
-    const { webhookPartner, programEnrollment } = createdCommission;
 
     waitUntil(
       Promise.allSettled([
@@ -366,20 +366,6 @@ export async function invoicePaid(
           programId: link.programId,
           eventType: "sale",
         }),
-
-        webhookPartner &&
-          detectAndRecordFraudEvent({
-            program: { id: link.programId },
-            partner: pick(webhookPartner, ["id", "email", "name"]),
-            programEnrollment: pick(programEnrollment, ["status"]),
-            customer: {
-              ...pick(customer, ["id", "email", "name"]),
-              isFirstConversion: firstConversionFlag,
-            },
-            link: pick(link, ["id"]),
-            click: pick(saleData, ["url", "referer"]),
-            event: { id: saleData.event_id },
-          }),
       ]),
     );
   }
@@ -394,7 +380,7 @@ export async function invoicePaid(
           clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
           customer,
-          partner: createdCommission?.webhookPartner,
+          partner: result?.webhookPartner,
           metadata: null,
         }),
       }),
@@ -433,11 +419,11 @@ async function resolvePromotionCodeIdFromInvoice({
 }): Promise<
   | {
       promotionCodeId: string;
-      error: null;
+      resolvePromotionCodeError: null;
     }
   | {
       promotionCodeId: null;
-      error: string;
+      resolvePromotionCodeError: string;
     }
 > {
   const stripe = stripeAppClient({ mode });
@@ -459,19 +445,19 @@ async function resolvePromotionCodeIdFromInvoice({
   if (!expandedInvoice) {
     return {
       promotionCodeId: null,
-      error: "Invoice not found", // should never happen, but just in case
+      resolvePromotionCodeError: "Invoice not found", // should never happen, but just in case
     };
   }
 
   if (!expandedInvoice.discounts || expandedInvoice.discounts.length === 0) {
     return {
       promotionCodeId: null,
-      error: "No discounts found on invoice",
+      resolvePromotionCodeError: "No discounts found on invoice",
     };
   }
 
   return {
     promotionCodeId: expandedInvoice.discounts[0].promotion_code.id,
-    error: null,
+    resolvePromotionCodeError: null,
   };
 }

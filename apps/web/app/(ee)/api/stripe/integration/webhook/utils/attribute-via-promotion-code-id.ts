@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { recordLead } from "@/lib/tinybird";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
@@ -153,12 +153,12 @@ export async function attributeViaPromotionCodeId({
     (async () => {
       const linkUpdated = await incrementLinkLeads(link.id);
 
-      let createdCommission:
-        | Awaited<ReturnType<typeof createPartnerCommission>>
+      let result:
+        | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
         | undefined = undefined;
 
       if (link.programId && link.partnerId) {
-        createdCommission = await createPartnerCommission({
+        result = await queuePartnerCommissionCreation({
           event: "lead",
           programId: link.programId,
           partnerId: link.partnerId,
@@ -205,7 +205,7 @@ export async function attributeViaPromotionCodeId({
             ...leadEvent,
             link: linkUpdated,
             customer,
-            partner: createdCommission?.webhookPartner,
+            partner: result?.webhookPartner,
             metadata: null,
           }),
         }),
