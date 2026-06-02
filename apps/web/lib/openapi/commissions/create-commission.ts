@@ -5,11 +5,12 @@ import {
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses } from "../responses";
 
-export const createCommissions: ZodOpenApiOperationObject = {
-  operationId: "createCommissions",
+export const createCommission: ZodOpenApiOperationObject = {
+  operationId: "createCommission",
   "x-speakeasy-name-override": "create",
-  summary: "Create commissions",
-  description: "Create one or more commissions for a partner.",
+  summary: "Create commission",
+  description:
+    "Create one or more commissions for a partner. Commission creation is processed asynchronously. Use the List Commissions endpoint or webhooks to be notified when the commission is created.",
   requestBody: {
     content: {
       "application/json": {
@@ -19,7 +20,8 @@ export const createCommissions: ZodOpenApiOperationObject = {
   },
   responses: {
     "202": {
-      description: "The created commissions.",
+      description:
+        "The request was accepted and commission creation was queued.",
       content: {
         "application/json": {
           schema: createCommissionResponseSchema,
