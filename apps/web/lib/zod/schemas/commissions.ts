@@ -438,6 +438,13 @@ export const createPartnerCommissionSchema = z.object({
       referer: z.string().nullable(),
     })
     .optional(),
+  triggerAggregateDueCommissions: z
+    .boolean()
+    .default(false)
+    .optional()
+    .describe(
+      "Whether to trigger the triggerAggregateDueCommissionsCronJob or not.",
+    ),
 });
 
 export const createManualCommissionBodySchema = z.discriminatedUnion("type", [

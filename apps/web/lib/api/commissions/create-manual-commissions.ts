@@ -241,10 +241,11 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
     );
   }
 
-  if (commissionsToCreate.length > 0) {
-    for (const commissionToCreate of commissionsToCreate) {
-      await queuePartnerCommissionCreation(commissionToCreate);
-    }
+  for (const [index, commissionToCreate] of commissionsToCreate.entries()) {
+    await queuePartnerCommissionCreation({
+      ...commissionToCreate,
+      triggerAggregateDueCommissions: index === commissionsToCreate.length - 1, // trigger the job once per batch
+    });
   }
 
   waitUntil(

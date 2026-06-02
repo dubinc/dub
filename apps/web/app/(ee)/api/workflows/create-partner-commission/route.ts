@@ -423,7 +423,8 @@ async function stepRunSideEffects(
     skipWorkflow,
     clickEvent,
     isFirstConversion,
-    userId, // Provided only for manual commission creation
+    userId,
+    triggerAggregateDueCommissions,
   } = input;
 
   if (!_commission) {
@@ -557,7 +558,8 @@ async function stepRunSideEffects(
       }),
 
     // Aggregate due commissions immediately for manual commission
-    userId && triggerAggregateDueCommissionsCronJob(programId),
+    triggerAggregateDueCommissions &&
+      triggerAggregateDueCommissionsCronJob(programId),
   ]);
 
   return [
