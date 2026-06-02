@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { isCI, isLocalDev } from "@/lib/api/environment";
 import { detectAndRecordFraudApplication } from "@/lib/api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
 import { getIP } from "@/lib/api/utils/get-ip";
@@ -34,11 +35,11 @@ import {
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { addDays } from "date-fns";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import * as z from "zod/v4";
 import { actionClient } from "../safe-action";
 
-export type PartnerData = { name: string; country: string };
+export type PartnerData = { name: string; country?: string };
 
 interface Response {
   programApplicationId: string;
@@ -390,7 +391,7 @@ async function createApplicationAndEnrollment({
     programEnrollmentId: enrollmentId,
     partnerData: {
       name: data.name,
-      country: data.country,
+      country: partner.country ?? data.country ?? undefined,
     },
   };
 }
@@ -404,9 +405,15 @@ async function createApplication({
   data: z.infer<typeof createProgramApplicationSchema>;
   group: PartnerGroup;
 }) {
+  const headerList = await headers();
+  const country =
+    headerList.get("x-vercel-ip-country") ??
+    (isLocalDev || isCI ? "US" : undefined);
+
   const application = await prisma.programApplication.create({
     data: {
       ...sanitizeData(data, group),
+      country,
       id: createId({ prefix: "pga_" }),
       programId: program.id,
       groupId: group.id,
@@ -449,7 +456,7 @@ async function createApplication({
     programApplicationId: application.id,
     partnerData: {
       name: data.name,
-      country: data.country,
+      country,
     },
   };
 }

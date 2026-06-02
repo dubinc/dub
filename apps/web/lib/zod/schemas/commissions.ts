@@ -9,7 +9,7 @@ import {
 } from "./misc";
 import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
 import { PayoutSchema } from "./payouts";
-import { RewardSchema } from "./rewards";
+import { rewardContextSchema, RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { centsSchema, parseDateSchema } from "./utils";
 
@@ -431,3 +431,35 @@ export const commissionsExportQuerySchema = getCommissionsQuerySchema
         },
       ),
   });
+
+export const createPartnerCommissionSchema = z.object({
+  event: z.enum(CommissionType),
+  partnerId: z.string(),
+  programId: z.string(),
+  linkId: z.string().optional(),
+  customerId: z.string().optional(),
+  eventId: z.string().optional(),
+  invoiceId: z.string().nullish(),
+  amount: z.number().default(0).optional(),
+  quantity: z.number().default(1),
+  currency: z.string().optional(),
+  description: z.string().nullish(),
+  createdAt: z.coerce.date().optional(),
+  status: commissionPatchStatusSchema.optional(), // used for create-manual-commission (import commission as refunded)
+  userId: z.string().optional(),
+  context: rewardContextSchema.optional(),
+  skipWorkflow: z.boolean().default(false).optional(),
+  isFirstConversion: z.boolean().optional(),
+  bountySubmissionId: z
+    .string()
+    .optional()
+    .describe(
+      "The ID of the bounty submission that the commission should be created for.",
+    ),
+  clickEvent: z
+    .object({
+      url: z.string().nullable(),
+      referer: z.string().nullable(),
+    })
+    .optional(),
+});

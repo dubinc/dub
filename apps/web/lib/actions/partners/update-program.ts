@@ -62,27 +62,25 @@ export const updateProgramAction = authActionClient
       },
     });
 
-    waitUntil(
-      (async () => {
-        await recordAuditLog({
-          workspaceId: workspace.id,
-          programId: program.id,
-          action: "program.updated",
-          description: `Program ${program.name} updated`,
-          actor: user,
-          targets: [
-            {
-              type: "program",
-              id: program.id,
-              metadata: updatedProgram,
-            },
-          ],
-        });
+    if (updatedProgram.termsUrl !== program.termsUrl) {
+      revalidatePath(`/partners.dub.co/${program.slug}/apply`);
+    }
 
-        if (updatedProgram.termsUrl !== program.termsUrl) {
-          revalidatePath(`/partners.dub.co/${program.slug}/apply`);
-        }
-      })(),
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId: program.id,
+        action: "program.updated",
+        description: `Program ${program.name} updated`,
+        actor: user,
+        targets: [
+          {
+            type: "program",
+            id: program.id,
+            metadata: updatedProgram,
+          },
+        ],
+      }),
     );
 
     return {

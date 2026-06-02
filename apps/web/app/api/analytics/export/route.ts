@@ -2,6 +2,7 @@ import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { convertToCSV } from "@/lib/analytics/utils";
+import { formatProgramAnalyticsForExport } from "@/lib/analytics/utils/format-program-analytics-for-export";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
@@ -119,7 +120,9 @@ export const GET = withWorkspace(
 
         if (!response || response.length === 0) return;
 
-        const csvData = convertToCSV(response);
+        const csvData = convertToCSV(
+          programId ? formatProgramAnalyticsForExport(response) : response,
+        );
         zip.file(`${endpoint}.csv`, csvData);
       }),
     );

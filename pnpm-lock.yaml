@@ -234,8 +234,8 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       dub:
-        specifier: ^0.69.0
-        version: 0.69.0
+        specifier: ^0.72.0
+        version: 0.72.0
       fast-xml-parser:
         specifier: ^5.0.6
         version: 5.0.6
@@ -7673,8 +7673,8 @@ packages:
     peerDependencies:
       zod: '>= 3'
 
-  dub@0.69.0:
-    resolution: {integrity: sha512-2UotC3GARdPxtduY9/mD6fwxYhHIJnfXe1emLY96b1kj4iRcMRRerYbde1y5FPRsAJKBhuO2PaoT0TZNmn7gxA==}
+  dub@0.72.0:
+    resolution: {integrity: sha512-SqMv/fR3wtDWFdIb5JZ5//IFoCShcaGCAewVDxtVDIcGWGhm8K6MBGTqrf3WcIUwxPJqbuFeV/D7julD2JVN0A==}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -9640,6 +9640,10 @@ packages:
 
   jsonfile@6.1.0:
     resolution: {integrity: sha512-5dgndWOriYSm5cnYaJNhalLNDKOqFwyDB/rr1E9ZsGciGvKPs8R2xYGCacuf3z6K1YKDz182fd+fY3cn3pMqXQ==}
+
+  jsonpath-rfc9535@1.1.0:
+    resolution: {integrity: sha512-Bj8ldGo67FNvj5nNsxGN7frkUcHZWqszNkfBOvfxOM1+WUa5J0PiGaflroTKOjGo2JQhOC1DZUaTv4tGzBaQLQ==}
+    engines: {node: '>=20'}
 
   jsonwebtoken@9.0.2:
     resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
@@ -21625,8 +21629,9 @@ snapshots:
     dependencies:
       zod: 3.23.8
 
-  dub@0.69.0:
+  dub@0.72.0:
     dependencies:
+      jsonpath-rfc9535: 1.1.0
       zod: 4.3.5
 
   dunder-proto@1.0.1:
@@ -24380,6 +24385,8 @@ snapshots:
       universalify: 2.0.1
     optionalDependencies:
       graceful-fs: 4.2.11
+
+  jsonpath-rfc9535@1.1.0: {}
 
   jsonwebtoken@9.0.2:
     dependencies:

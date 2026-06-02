@@ -75,6 +75,7 @@ const DiscountItem = ({
   const { queryParams } = useRouterStuff();
   const { openCopyDiscountToLiveModal, CopyDiscountToLiveModal } =
     useCopyDiscountToLiveModal();
+
   const As = discount ? Link : "div";
 
   return (
@@ -150,7 +151,6 @@ const DiscountItem = ({
                   set: {
                     discountId: discount?.id ?? "new",
                   },
-                  scroll: false,
                 });
               }}
             />

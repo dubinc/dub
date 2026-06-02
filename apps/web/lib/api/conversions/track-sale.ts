@@ -1,10 +1,9 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
-import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { isStored, storage } from "@/lib/storage";
 import {
@@ -20,6 +19,7 @@ import {
   WorkspaceProps,
 } from "@/lib/types";
 import { redis } from "@/lib/upstash";
+import { publishWorkspaceClicksUsageEvent } from "@/lib/upstash/redis-streams/workspace-clicks-usage";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   transformLeadEventData,
@@ -31,7 +31,7 @@ import {
 } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
 import { Customer } from "@dub/prisma/client";
-import { nanoid, pick, R2_URL } from "@dub/utils";
+import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";
@@ -442,55 +442,34 @@ const _trackSale = async ({
 
   waitUntil(
     (async () => {
-      const [_sale, link] = await Promise.all([
-        // Record sale event
-        recordSale({
-          ...saleData,
-          timestamp: undefined,
-        }),
-
-        // Update link conversions, sales, and saleAmount
-        prisma.link.update({
-          where: {
-            id: saleData.link_id,
-          },
-          data: {
-            ...(firstConversionFlag && {
-              conversions: {
-                increment: 1,
-              },
-              lastConversionAt: new Date(),
-            }),
-            sales: {
+      // Update link conversions, sales, and saleAmount
+      const link = await prisma.link.update({
+        where: {
+          id: saleData.link_id,
+        },
+        data: {
+          ...(firstConversionFlag && {
+            conversions: {
               increment: 1,
             },
-            saleAmount: {
-              increment: amount,
-            },
+            lastConversionAt: new Date(),
+          }),
+          sales: {
+            increment: 1,
           },
-          include: includeTags,
-        }),
+          saleAmount: {
+            increment: amount,
+          },
+        },
+        include: includeTags,
+      });
 
-        // Update workspace events usage
-        prisma.project.update({
-          where: {
-            id: workspace.id,
-          },
-          data: {
-            usage: {
-              increment: 1,
-            },
-          },
-        }),
-      ]);
-
-      let createdCommission:
-        | Awaited<ReturnType<typeof createPartnerCommission>>
+      let result:
+        | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
         | undefined = undefined;
 
-      // Create partner commission and execute workflows
       if (link.programId && link.partnerId) {
-        createdCommission = await createPartnerCommission({
+        result = await queuePartnerCommissionCreation({
           event: "sale",
           programId: link.programId,
           partnerId: link.partnerId,
@@ -512,9 +491,12 @@ const _trackSale = async ({
               amount: saleData.amount,
             },
           },
+          clickEvent: {
+            url: saleData.url,
+            referer: saleData.referer,
+          },
+          isFirstConversion: firstConversionFlag,
         });
-
-        const { webhookPartner, programEnrollment } = createdCommission;
 
         await Promise.allSettled([
           executeWorkflows({
@@ -538,24 +520,15 @@ const _trackSale = async ({
             programId: link.programId,
             eventType: "sale",
           }),
-
-          webhookPartner &&
-            detectAndRecordFraudEvent({
-              program: { id: link.programId },
-              partner: pick(webhookPartner, ["id", "email", "name"]),
-              programEnrollment: pick(programEnrollment, ["status"]),
-              customer: {
-                ...pick(customer, ["id", "email", "name"]),
-                isFirstConversion: firstConversionFlag,
-              },
-              link: pick(link, ["id"]),
-              click: pick(saleData, ["url", "referer"]),
-              event: { id: saleData.event_id },
-            }),
         ]);
       }
 
       await Promise.allSettled([
+        recordSale({
+          ...saleData,
+          timestamp: undefined,
+        }),
+
         sendWorkspaceWebhook({
           trigger: "sale.created",
           data: transformSaleEventData({
@@ -563,7 +536,7 @@ const _trackSale = async ({
             clickedAt: customer.clickedAt || customer.createdAt,
             link,
             customer,
-            partner: createdCommission?.webhookPartner,
+            partner: result?.webhookPartner,
             metadata,
           }),
           workspace,
@@ -583,6 +556,12 @@ const _trackSale = async ({
               }),
             ]
           : []),
+
+        publishWorkspaceClicksUsageEvent({
+          linkId: link.id,
+          workspaceId: workspace.id,
+          timestamp: new Date().toISOString(),
+        }),
       ]);
 
       // Update customer stats + program/partner associations

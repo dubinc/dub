@@ -162,7 +162,8 @@ function createStripeDiscountProvider() {
             coupon: discount.couponId,
             code: currentCode.toUpperCase(),
             restrictions: {
-              first_time_transaction: true,
+              first_time_transaction:
+                settings.discountCodeRestrictions.firstTimeTransaction,
             },
           },
           {

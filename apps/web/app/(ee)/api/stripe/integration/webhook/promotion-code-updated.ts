@@ -19,7 +19,7 @@ export async function promotionCodeUpdated({
 
   if (promotionCode.active) {
     return {
-      response: `Promotion code ${promotionCode.id} is active.`,
+      response: `Promotion code ${promotionCode.id} is active, no action needed.`,
     };
   }
 

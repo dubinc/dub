@@ -618,7 +618,7 @@ export function BountySubmissionDetailsSheet({
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "submissionId", scroll: false })}
+      onClose={() => queryParams({ del: "submissionId" })}
     >
       <BountySubmissionDetailsSheetContent {...rest} />
     </Sheet>

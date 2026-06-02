@@ -118,6 +118,7 @@ export const PATCH = withAdmin(async ({ params, req }) => {
       country: true,
       changeHistoryLog: true,
       veriffSessionId: true,
+      identityVerifiedAt: true,
     },
   });
 
@@ -159,7 +160,7 @@ export const PATCH = withAdmin(async ({ params, req }) => {
   });
 
   // if there was an existing veriff session, trigger a country change verification
-  if (partner.veriffSessionId) {
+  if (partner.identityVerifiedAt) {
     waitUntil(
       qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/verify-country-change`,
