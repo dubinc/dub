@@ -32,7 +32,7 @@ import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { getProgramEnrollmentOrThrow } from "../programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "../workflows/execute-workflows";
 
-type CreateCommissionsParams = z.infer<
+type CreateCommissionsArgs = z.infer<
   typeof createManualCommissionBodySchema
 > & {
   workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
@@ -40,20 +40,20 @@ type CreateCommissionsParams = z.infer<
   user: Session["user"];
 };
 
-type ResolveLinkAndCustomer = CreateCommissionsParams & {
+type ResolveLinkAndCustomerArgs = CreateCommissionsArgs & {
   workspace: Pick<Project, "id" | "stripeConnectId">;
   partner: Pick<Partner, "id" | "email">;
   links: Link[];
 };
 
-type RecordEventsParams = CreateCommissionsParams & {
+type RecordEventsArgs = CreateCommissionsArgs & {
   workspace: Pick<Project, "id" | "stripeConnectId">;
   partner: Pick<Partner, "id" | "email">;
   targetLink: Link;
   targetCustomer: Customer;
 };
 
-type ExecuteSideEffectsParams = CreateCommissionsParams & {
+type ExecuteSideEffectsArgs = CreateCommissionsArgs & {
   clickEvent: { id: string; timestamp: string };
   leadEvent: { id: string; timestamp: string };
   saleEvents: Pick<
@@ -73,8 +73,8 @@ const saleEventSchemaTBWithTimestamp = saleEventSchemaTB.extend({
   timestamp: z.string(),
 });
 
-export async function createManualCommissions(params: CreateCommissionsParams) {
-  const { workspace, programId, partnerId, type, user } = params;
+export async function createManualCommissions(args: CreateCommissionsArgs) {
+  const { workspace, programId, partnerId, type, user } = args;
 
   const { partner, links } = await getProgramEnrollmentOrThrow({
     programId,
@@ -87,7 +87,7 @@ export async function createManualCommissions(params: CreateCommissionsParams) {
 
   // Custom commission
   if (type === "custom") {
-    const { amount, date, description, user } = params;
+    const { amount, date, description, user } = args;
 
     await queuePartnerCommissionCreation({
       event: "custom",
@@ -106,7 +106,7 @@ export async function createManualCommissions(params: CreateCommissionsParams) {
   // Lead & sale commissions
   const { targetLink, targetCustomer, isFirstConversion } =
     await resolveLinkAndCustomer({
-      ...params,
+      ...args,
       links,
       partner,
     });
@@ -118,7 +118,7 @@ export async function createManualCommissions(params: CreateCommissionsParams) {
       saleEventDate,
       invoiceId,
       productId,
-    } = params;
+    } = args;
 
     if (!importStripeInvoices && !saleAmount) {
       throw new DubApiError({
@@ -177,7 +177,7 @@ export async function createManualCommissions(params: CreateCommissionsParams) {
   }
 
   const { clickEvent, leadEvent, saleEvents } = await recordEvents({
-    ...params,
+    ...args,
     partner,
     targetLink,
     targetCustomer,
@@ -249,7 +249,7 @@ export async function createManualCommissions(params: CreateCommissionsParams) {
 
   waitUntil(
     executeSideEffects({
-      ...params,
+      ...args,
       targetLink,
       targetCustomer,
       clickEvent,
@@ -260,8 +260,8 @@ export async function createManualCommissions(params: CreateCommissionsParams) {
   );
 }
 
-async function resolveLinkAndCustomer(params: ResolveLinkAndCustomer) {
-  const { type } = params;
+async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
+  const { type } = args;
 
   // Just to make TypeScript happy
   if (type === "custom") {
@@ -270,7 +270,7 @@ async function resolveLinkAndCustomer(params: ResolveLinkAndCustomer) {
 
   let targetLink: Link;
   let targetCustomer: Customer | null = null;
-  const { workspace, partner, links, linkId, customerId, customer } = params;
+  const { workspace, partner, links, linkId, customerId, customer } = args;
 
   if (links.length === 0) {
     throw new DubApiError({
@@ -403,8 +403,8 @@ async function resolveLinkAndCustomer(params: ResolveLinkAndCustomer) {
   };
 }
 
-async function recordEvents(params: RecordEventsParams) {
-  const { type } = params;
+async function recordEvents(args: RecordEventsArgs) {
+  const { type } = args;
 
   // Just to make TypeScript happy
   if (type === "custom") {
@@ -415,11 +415,11 @@ async function recordEvents(params: RecordEventsParams) {
   let stripeCustomerInvoices: Awaited<
     ReturnType<typeof getCustomerStripeInvoices>
   > = [];
-  const { workspace, programId, targetLink, targetCustomer } = params;
+  const { workspace, programId, targetLink, targetCustomer } = args;
 
   if (type === "lead") {
-    finalLeadEventDate = params.leadEventDate ?? new Date();
-  } else if (params.importStripeInvoices) {
+    finalLeadEventDate = args.leadEventDate ?? new Date();
+  } else if (args.importStripeInvoices) {
     stripeCustomerInvoices = await getCustomerStripeInvoices({
       stripeCustomerId: targetCustomer.stripeCustomerId!,
       stripeConnectId: workspace.stripeConnectId!,
@@ -446,12 +446,12 @@ async function recordEvents(params: RecordEventsParams) {
 
     finalLeadEventDate = stripeCustomerInvoices[0].createdAt;
   } else {
-    finalLeadEventDate = params.saleEventDate ?? new Date();
+    finalLeadEventDate = args.saleEventDate ?? new Date();
   }
 
   const clickId = nanoid(16);
   const clickedAt = new Date(finalLeadEventDate.getTime() - 5 * 60 * 1000);
-  const leadEventName = type === "lead" ? params.leadEventName : "Sign up";
+  const leadEventName = type === "lead" ? args.leadEventName : "Sign up";
   let saleEvents: z.infer<typeof saleEventSchemaTBWithTimestamp>[] = [];
 
   // Record click event
@@ -484,7 +484,7 @@ async function recordEvents(params: RecordEventsParams) {
       saleEventDate,
       productId,
       importStripeInvoices,
-    } = params;
+    } = args;
 
     if (importStripeInvoices) {
       saleEvents = stripeCustomerInvoices.map((invoice) =>
@@ -558,7 +558,7 @@ async function recordEvents(params: RecordEventsParams) {
   };
 }
 
-async function executeSideEffects(params: ExecuteSideEffectsParams) {
+async function executeSideEffects(args: ExecuteSideEffectsArgs) {
   const {
     type,
     targetLink,
@@ -570,7 +570,7 @@ async function executeSideEffects(params: ExecuteSideEffectsParams) {
     partnerId,
     programId,
     workspace,
-  } = params;
+  } = args;
 
   // Just to make TypeScript happy
   if (type === "custom") {
@@ -667,7 +667,7 @@ async function executeSideEffects(params: ExecuteSideEffectsParams) {
     }),
   ]);
 
-  await Promise.all([
+  await Promise.allSettled([
     syncPartnerLinksStats({
       partnerId,
       programId,
