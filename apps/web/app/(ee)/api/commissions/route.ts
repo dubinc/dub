@@ -7,8 +7,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
   CommissionEnrichedSchema,
-  createCommissionBodySchema,
   createCommissionResponseSchema,
+  createManualCommissionBodySchema,
   getCommissionsQuerySchema,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
@@ -85,7 +85,9 @@ export const POST = withWorkspace(
   async ({ workspace, session, req }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const body = createCommissionBodySchema.parse(await parseRequestBody(req));
+    const body = createManualCommissionBodySchema.parse(
+      await parseRequestBody(req),
+    );
 
     await createManualCommissions({
       ...body,

@@ -1,6 +1,6 @@
 import {
-  createCommissionBodySchema,
   createCommissionResponseSchema,
+  createManualCommissionBodySchema,
 } from "@/lib/zod/schemas/commissions";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { openApiErrorResponses } from "../responses";
@@ -13,7 +13,7 @@ export const createCommissions: ZodOpenApiOperationObject = {
   requestBody: {
     content: {
       "application/json": {
-        schema: createCommissionBodySchema,
+        schema: createManualCommissionBodySchema,
       },
     },
   },

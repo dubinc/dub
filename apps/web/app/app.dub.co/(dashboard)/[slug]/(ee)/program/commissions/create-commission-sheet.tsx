@@ -4,8 +4,8 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
-  createCommissionBodySchema,
   createCommissionResponseSchema,
+  createManualCommissionBodySchema,
 } from "@/lib/zod/schemas/commissions";
 import { StripeCustomerInvoiceSchema } from "@/lib/zod/schemas/customers";
 import { CustomerSelector } from "@/ui/customers/customer-selector";
@@ -43,7 +43,7 @@ interface CreateCommissionSheetProps {
 
 // Flatten the discriminated union for react-hook-form compatibility.
 // The form renders all possible fields; onSubmit builds the correct variant.
-type CreateCommissionBody = z.infer<typeof createCommissionBodySchema>;
+type CreateCommissionBody = z.infer<typeof createManualCommissionBodySchema>;
 type CustomBody = Extract<CreateCommissionBody, { type: "custom" }>;
 type LeadBody = Extract<CreateCommissionBody, { type: "lead" }>;
 type SaleBody = Extract<CreateCommissionBody, { type: "sale" }>;

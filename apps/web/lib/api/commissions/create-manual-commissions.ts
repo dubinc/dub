@@ -11,7 +11,7 @@ import {
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
 import { CreatePartnerCommissionProps } from "@/lib/types";
-import { createCommissionBodySchema } from "@/lib/zod/schemas/commissions";
+import { createManualCommissionBodySchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
@@ -33,7 +33,9 @@ import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { getProgramEnrollmentOrThrow } from "../programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "../workflows/execute-workflows";
 
-type CreateCommissionsParams = z.infer<typeof createCommissionBodySchema> & {
+type CreateCommissionsParams = z.infer<
+  typeof createManualCommissionBodySchema
+> & {
   workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
   programId: string;
   user: Session["user"];
