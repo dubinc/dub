@@ -317,15 +317,17 @@ export async function updatePartnerCommission({
           })
         : Promise.resolve(),
 
-      voidReferralCommissions({
-        workspaceId,
-        programId,
-        sourceCommissionIds: [
-          commission.id,
-          ...relatedCommissions.map(({ id }) => id),
-        ],
-        sourceCommissionStatus: finalStatus!,
-      }),
+      finalStatus &&
+        finalStatus !== "pending" &&
+        voidReferralCommissions({
+          workspaceId,
+          programId,
+          sourceCommissionIds: [
+            commission.id,
+            ...relatedCommissions.map(({ id }) => id),
+          ],
+          sourceCommissionStatus: finalStatus!,
+        }),
     ]),
   );
 
