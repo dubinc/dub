@@ -1,19 +1,14 @@
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
-import { Customer, TrackLeadResponse } from "@/lib/types";
-import {
-  CustomerEmailMatchType,
-  fraudEventSchemas,
-} from "@/lib/zod/schemas/fraud";
-import { FraudRuleType, Partner } from "@dub/prisma/client";
-import { randomCustomer, retry } from "tests/utils/helpers";
-import { HttpClient } from "tests/utils/http";
+import { TrackLeadResponse } from "@/lib/types";
+import { CustomerEmailMatchType } from "@/lib/zod/schemas/fraud";
+import { randomCustomer } from "tests/utils/helpers";
 import {
   E2E_FRAUD_PARTNER,
   E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN,
   E2E_TRACK_CLICK_HEADERS,
 } from "tests/utils/resource";
-import { describe, expect, test } from "vitest";
-import * as z from "zod/v4";
+import { verifyFraudEvent } from "tests/utils/verify-fraud-event";
+import { describe, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
 describe.concurrent("/fraud/**", async () => {
@@ -269,81 +264,3 @@ describe.concurrent("/fraud/**", async () => {
     });
   });
 });
-
-const verifyFraudEvent = async ({
-  http,
-  partner,
-  customer,
-  ruleType,
-  metadata,
-}: {
-  http: HttpClient;
-  partner: Pick<Partner, "id" | "name" | "email" | "image">;
-  customer: Pick<Customer, "externalId">;
-  ruleType: FraudRuleType;
-  metadata?: Record<string, unknown>;
-}) => {
-  // Resolve customerId from customerExternalID
-  const { data: customers } = await http.get<Customer[]>({
-    path: "/customers",
-    query: { externalId: customer.externalId },
-  });
-
-  expect(customers.length).toBeGreaterThan(0);
-
-  // Wait until fraud event is available
-  const fraudEvent = await waitForFraudEvent({
-    http,
-    customerId: customers[0].id,
-    ruleType,
-  });
-
-  // Assert fraud event shape
-  expect(fraudEvent).toStrictEqual({
-    createdAt: expect.any(String),
-    partner: expect.objectContaining({
-      id: partner.id,
-      name: partner.name,
-      email: partner.email,
-      image: partner.image,
-    }),
-    ...(metadata && { metadata }),
-    customer: expect.objectContaining({
-      id: customers[0].id,
-      name: customers[0].name,
-      email: customers[0].email,
-      avatar: customers[0].avatar,
-    }),
-  });
-};
-
-async function waitForFraudEvent({
-  http,
-  customerId,
-  ruleType,
-}: {
-  http: HttpClient;
-  customerId: string;
-  ruleType: FraudRuleType;
-}) {
-  return await retry(
-    async () => {
-      const { data } = await http.get<
-        z.infer<(typeof fraudEventSchemas)[keyof typeof fraudEventSchemas]>[]
-      >({
-        path: "/fraud/events",
-        query: {
-          customerId,
-          type: ruleType,
-        },
-      });
-
-      if (!data.length) {
-        throw new Error("Fraud event not ready.");
-      }
-
-      return data[0];
-    },
-    { retries: 10, interval: 600 },
-  );
-}

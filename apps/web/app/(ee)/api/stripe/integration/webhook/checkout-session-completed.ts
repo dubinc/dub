@@ -1,11 +1,10 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
-import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import {
   getClickEvent,
@@ -19,7 +18,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
 import { Customer } from "@dub/prisma/client";
-import { nanoid, pick } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
@@ -483,9 +482,8 @@ export async function checkoutSessionCompleted(
     }),
   ]);
 
-  // for program links
-  let createdCommission:
-    | Awaited<ReturnType<typeof createPartnerCommission>>
+  let result:
+    | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
     | undefined = undefined;
 
   if (link && link.programId && link.partnerId) {
@@ -495,7 +493,7 @@ export async function checkoutSessionCompleted(
       mode,
     });
 
-    createdCommission = await createPartnerCommission({
+    result = await queuePartnerCommissionCreation({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -516,9 +514,12 @@ export async function checkoutSessionCompleted(
           amount: saleData.amount,
         },
       },
+      clickEvent: {
+        url: saleData.url,
+        referer: saleData.referer,
+      },
+      isFirstConversion: firstConversionFlag,
     });
-
-    const { webhookPartner, programEnrollment } = createdCommission;
 
     waitUntil(
       Promise.allSettled([
@@ -543,20 +544,6 @@ export async function checkoutSessionCompleted(
           programId: link.programId,
           eventType: "sale",
         }),
-
-        webhookPartner &&
-          detectAndRecordFraudEvent({
-            program: { id: link.programId },
-            partner: pick(webhookPartner, ["id", "email", "name"]),
-            programEnrollment: pick(programEnrollment, ["status"]),
-            customer: {
-              ...pick(customer, ["id", "email", "name"]),
-              isFirstConversion: firstConversionFlag,
-            },
-            link: pick(link, ["id"]),
-            click: pick(saleData, ["url", "referer"]),
-            event: { id: saleData.event_id },
-          }),
       ]),
     );
   }
@@ -571,7 +558,7 @@ export async function checkoutSessionCompleted(
           clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
           customer,
-          partner: createdCommission?.webhookPartner,
+          partner: result?.webhookPartner,
           metadata: null,
         }),
       }),
