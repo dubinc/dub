@@ -322,7 +322,7 @@ export const { POST } = serve<Input>(
     // Step 7: Create referral commission if enabled
     if (applicationEvent?.referredByPartnerId) {
       await context.run("create-referral-commission", async () => {
-        await createReferralCommission({
+        return await createReferralCommission({
           source: "partner",
           partnerId,
           programId,

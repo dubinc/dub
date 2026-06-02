@@ -22,6 +22,7 @@ import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import {
   Commission,
+  CommissionType,
   Link,
   Partner,
   PartnerGroup,
@@ -52,7 +53,7 @@ type StepFunctionInput = Input & {
 };
 
 type StepCreateCommissionOutput = {
-  commission: Pick<Commission, "id"> | null;
+  commission: Pick<Commission, "id" | "type"> | null;
   outputLog: string;
   isFirstCommission?: boolean;
 };
@@ -124,7 +125,7 @@ export const { POST } = serve<Input>(
     }
 
     // Step 4: Create referral commission
-    if (commission) {
+    if (commission && commission.type === CommissionType.sale) {
       await context.run("create-referral-commission", async () => {
         return await createReferralCommission({
           source: "commission",
