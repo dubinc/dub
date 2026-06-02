@@ -109,18 +109,12 @@ export async function invoicePaid(
       };
     }
 
-    const { promotionCodeId, error } = await resolvePromotionCodeIdFromInvoice({
-      invoiceId,
-      stripeAccountId,
-      mode,
-    });
-
-    if (error) {
-      return {
-        response: `Failed to resolve promotion code from invoice ${invoiceId}: ${error}`,
-        workspaceId: workspace.id,
-      };
-    }
+    const { promotionCodeId, resolvePromotionCodeError } =
+      await resolvePromotionCodeIdFromInvoice({
+        invoiceId,
+        stripeAccountId,
+        mode,
+      });
 
     if (promotionCodeId) {
       const promoCodeResponse = await attributeViaPromotionCodeId({
@@ -139,6 +133,10 @@ export async function invoicePaid(
       if (promoCodeResponse) {
         customer = promoCodeResponse.customer;
       }
+    } else if (resolvePromotionCodeError) {
+      console.log(
+        `Failed to resolve promotion code from invoice ${invoiceId}: ${resolvePromotionCodeError}`,
+      );
     }
 
     if (!customer) {
@@ -421,11 +419,11 @@ async function resolvePromotionCodeIdFromInvoice({
 }): Promise<
   | {
       promotionCodeId: string;
-      error: null;
+      resolvePromotionCodeError: null;
     }
   | {
       promotionCodeId: null;
-      error: string;
+      resolvePromotionCodeError: string;
     }
 > {
   const stripe = stripeAppClient({ mode });
