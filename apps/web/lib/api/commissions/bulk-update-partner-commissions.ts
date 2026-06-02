@@ -171,6 +171,7 @@ export async function bulkUpdatePartnerCommissions({
             voidReferralCommissions({
               workspaceId,
               programId,
+              userId,
               sourceCommissionIds: commissionIds,
               sourceCommissionStatus: status,
             }),

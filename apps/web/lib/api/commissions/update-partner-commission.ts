@@ -322,6 +322,7 @@ export async function updatePartnerCommission({
         voidReferralCommissions({
           workspaceId,
           programId,
+          userId,
           sourceCommissionIds: [
             commission.id,
             ...relatedCommissions.map(({ id }) => id),

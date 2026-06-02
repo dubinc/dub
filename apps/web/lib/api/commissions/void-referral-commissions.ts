@@ -90,8 +90,8 @@ export async function voidReferralCommissions({
 
       const voidedCommissions = await tx.commission.findMany({
         where: {
-          sourceCommissionId: {
-            in: sourceCommissionIds,
+          id: {
+            in: commissions.map(({ id }) => id),
           },
           status: sourceCommissionStatus,
         },
