@@ -235,7 +235,7 @@ export const createProgramApplicationSchema = z.object({
   groupId: z.string().optional(),
   name: z.string().trim().min(1).max(100),
   email: z.email().trim().min(1).max(100),
-  country: z.enum(COUNTRY_CODES),
+  country: z.enum(COUNTRY_CODES).optional(),
   formData: programApplicationFormDataWithValuesSchema,
   inAppApplication: z.boolean().optional(),
 });
