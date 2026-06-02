@@ -1,8 +1,10 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
+import { voidReferralCommissions } from "@/lib/api/commissions/void-referral-commissions";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { stripeAppClient } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
 import { prisma } from "@dub/prisma";
+import { CommissionStatus } from "@dub/prisma/client";
 import type Stripe from "stripe";
 
 // Handle event "charge.refunded"
@@ -138,6 +140,13 @@ export async function chargeRefunded(
     programId: commission.programId,
     commissions: [commission],
     newStatus: "refunded",
+  });
+
+  await voidReferralCommissions({
+    workspaceId: workspace.id,
+    programId: commission.programId,
+    sourceCommissionIds: [commission.id],
+    sourceCommissionStatus: CommissionStatus.refunded,
   });
 
   return {
