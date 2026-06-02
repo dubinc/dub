@@ -9,10 +9,12 @@ import {
   E2E_SALE_REWARD,
 } from "../utils/resource";
 import { verifyCommission } from "../utils/verify-commission";
+
 const expectedQueuedResponse = {
   success: true,
   message: "Your commissions are being created and will appear shortly.",
 };
+
 const validationCases = [
   {
     name: "missing type field",
