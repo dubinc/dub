@@ -1,8 +1,9 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { triggerQStashWorkflow } from "@/lib/cron/qstash-workflow";
 import { generateRandomName } from "@/lib/names";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { isStored, storage } from "@/lib/storage";
 import {
@@ -18,8 +19,12 @@ import {
   WorkspaceProps,
 } from "@/lib/types";
 import { redis } from "@/lib/upstash";
+import { publishWorkspaceClicksUsageEvent } from "@/lib/upstash/redis-streams/workspace-clicks-usage";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { transformLeadEventData } from "@/lib/webhook/transform";
+import {
+  transformLeadEventData,
+  transformSaleEventData,
+} from "@/lib/webhook/transform";
 import {
   trackSaleRequestSchema,
   trackSaleResponseSchema,
@@ -417,7 +422,7 @@ const _trackSale = async ({
     amount = convertedAmount;
   }
 
-  const saleEvent = {
+  const saleData = {
     ...leadEventData,
     workspace_id: leadEventData.workspace_id || workspace.id, // in case for some reason the lead event doesn't have workspace_id
     event_id: nanoid(16),
@@ -430,19 +435,159 @@ const _trackSale = async ({
     metadata: metadata ? JSON.stringify(metadata) : "",
   };
 
+  const firstConversionFlag = isFirstConversion({
+    customer,
+    linkId: saleData.link_id,
+  });
+
   waitUntil(
     (async () => {
-      await recordSale({
-        ...saleEvent,
-        timestamp: undefined,
+      // Update link conversions, sales, and saleAmount
+      const link = await prisma.link.update({
+        where: {
+          id: saleData.link_id,
+        },
+        data: {
+          ...(firstConversionFlag && {
+            conversions: {
+              increment: 1,
+            },
+            lastConversionAt: new Date(),
+          }),
+          sales: {
+            increment: 1,
+          },
+          saleAmount: {
+            increment: amount,
+          },
+        },
+        include: includeTags,
       });
 
-      await triggerQStashWorkflow({
-        workflowType: "sale-tracked",
-        workflowLabel: saleEvent.customer_id,
-        body: {
-          saleEvent,
-          source,
+      let result:
+        | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
+        | undefined = undefined;
+
+      if (link.programId && link.partnerId) {
+        result = await queuePartnerCommissionCreation({
+          event: "sale",
+          programId: link.programId,
+          partnerId: link.partnerId,
+          linkId: link.id,
+          customerId: customer.id,
+          eventId: saleData.event_id,
+          amount: saleData.amount,
+          quantity: 1,
+          invoiceId,
+          currency,
+          context: {
+            customer: {
+              country: customer.country,
+              signupDate: customer.createdAt,
+              source,
+            },
+            sale: {
+              productId: metadata?.productId,
+              amount: saleData.amount,
+              ...(metadata != null
+                ? {
+                    metadata: metadata as Record<string, unknown>,
+                  }
+                : {}),
+            },
+          },
+          clickEvent: {
+            url: saleData.url,
+            referer: saleData.referer,
+          },
+          isFirstConversion: firstConversionFlag,
+        });
+
+        await Promise.allSettled([
+          executeWorkflows({
+            trigger: "partnerMetricsUpdated",
+            reason: "sale",
+            identity: {
+              workspaceId: workspace.id,
+              programId: link.programId,
+              partnerId: link.partnerId,
+            },
+            metrics: {
+              current: {
+                saleAmount: saleData.amount,
+                conversions: firstConversionFlag ? 1 : 0,
+              },
+            },
+          }),
+
+          syncPartnerLinksStats({
+            partnerId: link.partnerId,
+            programId: link.programId,
+            eventType: "sale",
+          }),
+        ]);
+      }
+
+      await Promise.allSettled([
+        recordSale({
+          ...saleData,
+          timestamp: undefined,
+        }),
+
+        sendWorkspaceWebhook({
+          trigger: "sale.created",
+          data: transformSaleEventData({
+            ...saleData,
+            clickedAt: customer.clickedAt || customer.createdAt,
+            link,
+            customer,
+            partner: result?.webhookPartner,
+            metadata,
+          }),
+          workspace,
+        }),
+
+        ...(link.partnerId
+          ? [
+              sendPartnerPostback({
+                partnerId: link.partnerId,
+                event: "sale.created",
+                data: {
+                  ...saleData,
+                  clickedAt: customer.clickedAt || customer.createdAt,
+                  link,
+                  customer,
+                },
+              }),
+            ]
+          : []),
+
+        publishWorkspaceClicksUsageEvent({
+          linkId: link.id,
+          workspaceId: workspace.id,
+          timestamp: new Date().toISOString(),
+        }),
+      ]);
+
+      // Update customer stats + program/partner associations
+      await prisma.customer.update({
+        where: {
+          id: customer.id,
+        },
+        data: {
+          ...(link.programId && {
+            programId: link.programId,
+          }),
+          ...(link.partnerId && {
+            partnerId: link.partnerId,
+          }),
+          sales: {
+            increment: 1,
+          },
+          saleAmount: {
+            increment: amount,
+          },
+          firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
         },
       });
     })(),

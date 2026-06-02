@@ -1,5 +1,6 @@
 import { logger } from "@/lib/axiom/server";
-import { APP_DOMAIN } from "@dub/utils";
+import { APP_DOMAIN, pluralize } from "@dub/utils";
+import { FlowControl } from "@upstash/qstash";
 import { Client } from "@upstash/workflow";
 
 const client = new Client({
@@ -7,12 +8,13 @@ const client = new Client({
   token: process.env.QSTASH_TOKEN || "",
 });
 
-type WorkflowType = "partner-approved" | "sale-tracked";
+type WorkflowType = "partner-approved" | "create-partner-commission";
 
 interface QStashWorkflow {
   workflowType: WorkflowType;
   workflowLabel: string;
   body: Record<string, unknown>;
+  flowControl?: FlowControl;
 }
 
 // Run workflows
@@ -30,11 +32,16 @@ export async function triggerQStashWorkflow(
           body: workflow.body,
           label: workflow.workflowLabel,
           retries: 5,
-          flowControl: {
+          flowControl: workflow.flowControl ?? {
             key: workflow.workflowType,
             parallelism: 15,
           },
         })),
+      );
+
+      console.log(
+        `${response.length} QStash ${pluralize("workflow", response.length)} triggered`,
+        response,
       );
 
       return response;
@@ -84,14 +91,13 @@ export function getWorkflowConfig({
         },
       };
 
-    case "sale-tracked": {
-      const saleEvent = body.saleEvent as Record<string, string>;
-
+    case "create-partner-commission": {
       return {
         correlation: {
-          linkId: saleEvent.link_id,
-          eventId: saleEvent.event_id,
-          customerId: saleEvent.customer_id,
+          programId: body.programId,
+          partnerId: body.partnerId,
+          customerId: body.customerId,
+          bountySubmissionId: body.bountySubmissionId,
         },
       };
     }

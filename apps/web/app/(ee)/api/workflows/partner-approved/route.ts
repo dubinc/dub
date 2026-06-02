@@ -80,9 +80,9 @@ export const { POST } = serve<Input>(
     // Step 1: Create partner default links
     await context.run("create-default-links", async () => {
       if (!groupId) {
-        console.error({
-          message: `The partner ${partnerId} is not associated with any group.`,
-        });
+        console.error(
+          `The partner ${partnerId} is not associated with any group.`,
+        );
         return;
       }
 
@@ -98,9 +98,7 @@ export const { POST } = serve<Input>(
         });
 
       if (partnerGroupDefaultLinks.length === 0) {
-        console.error({
-          message: `Group ${groupId} does not have any default links.`,
-        });
+        console.error(`Group ${groupId} does not have any default links.`);
         return;
       }
 
@@ -114,9 +112,9 @@ export const { POST } = serve<Input>(
       }
 
       if (partnerGroupDefaultLinks.length === 0) {
-        console.error({
-          message: `Already created default links for partner ${partnerId}.`,
-        });
+        console.error(
+          `Already created default links for partner ${partnerId}.`,
+        );
         return;
       }
 
@@ -153,6 +151,15 @@ export const { POST } = serve<Input>(
         userId,
       });
 
+      console.info({
+        message: `Created ${partnerLinks.length} partner default links.`,
+        data: partnerLinks.map(({ id, url, shortLink }) => ({
+          id,
+          url,
+          shortLink,
+        })),
+      });
+
       allPartnerLinks.push(...partnerLinks);
 
       return;
@@ -178,9 +185,9 @@ export const { POST } = serve<Input>(
     // Step 3: Send email to partner application approved
     await context.run("send-email", async () => {
       if (!groupId) {
-        console.error({
-          message: `The partner ${partnerId} is not associated with any group.`,
-        });
+        console.error(
+          `The partner ${partnerId} is not associated with any group.`,
+        );
         return;
       }
 
@@ -208,9 +215,9 @@ export const { POST } = serve<Input>(
       });
 
       if (partnerUsers.length === 0) {
-        console.info({
-          message: `No partner users found for partner ${partnerId} to send email notification.`,
-        });
+        console.log(
+          `No partner users found for partner ${partnerId} to send email notification.`,
+        );
         return;
       }
 
@@ -244,6 +251,13 @@ export const { POST } = serve<Input>(
           idempotencyKey: `application-approved/${programEnrollment.id}`,
         },
       );
+
+      if (data) {
+        console.info({
+          message: `Sent emails to ${partnerUsers.length} partner users.`,
+          data: data,
+        });
+      }
 
       if (error) {
         throw new Error(error.message);
@@ -312,7 +326,9 @@ export const { POST } = serve<Input>(
     });
   },
   {
-    initialPayloadParser: (input) => inputSchema.parse(JSON.parse(input)),
+    initialPayloadParser: (requestPayload) => {
+      return inputSchema.parse(JSON.parse(requestPayload));
+    },
     failureFunction: async ({
       context,
       failStatus,
