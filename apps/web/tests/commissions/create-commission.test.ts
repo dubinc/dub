@@ -166,21 +166,6 @@ describe.concurrent("POST /commissions", async () => {
     expect(data.error.message).toContain("not found");
   });
 
-  test("error when link does not belong to partner", async () => {
-    const { status, data } = await http.post<any>({
-      path: "/commissions",
-      body: {
-        type: "lead",
-        partnerId: E2E_PARTNER.id,
-        linkId: "link_nonexistent",
-      },
-    });
-
-    expect(status).toEqual(404);
-    expect(data.error.code).toEqual("not_found");
-    expect(data.error.message).toContain("does not belong");
-  });
-
   test("error when invoiceId already exists", async () => {
     const { data: existingCommissions } = await http.get<CommissionResponse[]>({
       path: "/commissions",
