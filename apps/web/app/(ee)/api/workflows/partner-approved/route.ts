@@ -227,7 +227,7 @@ export const { POST } = serve<Input>(
       });
 
       // Resend batch email
-      const { error } = await sendBatchEmail(
+      const { data, error } = await sendBatchEmail(
         partnerUsers.map(({ user }) => ({
           variant: "notifications",
           to: user.email!,

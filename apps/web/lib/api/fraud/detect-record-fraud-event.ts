@@ -8,16 +8,13 @@ import { executeFraudRule } from "./execute-fraud-rule";
 import { getMergedFraudRules } from "./get-merged-fraud-rules";
 
 export async function detectAndRecordFraudEvent(context: FraudEventContext) {
-  let recordedFraudEvents = 0;
   const result = fraudEventContext.safeParse(context);
 
   if (!result.success) {
     console.error(
       `[detectAndRecordFraudEvent] Invalid context ${result.error}`,
     );
-    return {
-      recordedFraudEvents,
-    };
+    return;
   }
 
   const validatedContext = result.data;
@@ -28,9 +25,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     console.info(
       `[detectAndRecordFraudEvent] Program enrollment is ${programEnrollment.status}, skipping...`,
     );
-    return {
-      recordedFraudEvents,
-    };
+    return;
   }
 
   // Get program-specific rule overrides
@@ -70,9 +65,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   }
 
   if (triggeredRules.length === 0) {
-    return {
-      recordedFraudEvents,
-    };
+    return;
   }
 
   console.log(
@@ -80,7 +73,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     prettyPrint(triggeredRules),
   );
 
-  const { createdFraudEvents } = await createFraudEvents(
+  await createFraudEvents(
     triggeredRules.map((rule) => ({
       programId: validatedContext.program.id,
       partnerId: validatedContext.partner.id,
@@ -91,8 +84,4 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
       metadata: rule.metadata,
     })),
   );
-
-  return {
-    recordedFraudEvents: recordedFraudEvents + createdFraudEvents,
-  };
 }

@@ -48,7 +48,6 @@ export async function executeWorkflows({
 }: WorkflowContext) {
   const { programId, partnerId } = identity;
 
-  let executedWorkflows = 0;
   let workflows = await prisma.workflow.findMany({
     where: {
       programId,
@@ -61,9 +60,7 @@ export async function executeWorkflows({
     console.log(
       `No workflows found to execute for trigger ${trigger} and reason ${reason}.`,
     );
-    return {
-      executedWorkflows,
-    };
+    return;
   }
 
   // Parse all workflow configs once upfront, filtering out any that fail to parse
@@ -95,9 +92,7 @@ export async function executeWorkflows({
     console.log(
       `No valid workflows found to execute for trigger ${trigger} and reason ${reason}.`,
     );
-    return {
-      executedWorkflows,
-    };
+    return;
   }
 
   // Filter by reason if provided
@@ -114,9 +109,7 @@ export async function executeWorkflows({
       console.log(
         `No relevant workflows found to execute for trigger ${trigger} and reason ${reason}.`,
       );
-      return {
-        executedWorkflows,
-      };
+      return;
     }
   }
 
@@ -170,18 +163,14 @@ export async function executeWorkflows({
     console.error(
       `Partner ${partnerId} is not enrolled in program ${programId}.`,
     );
-    return {
-      executedWorkflows,
-    };
+    return;
   }
 
   if (!programEnrollment.groupId) {
     console.error(
       `Partner ${partnerId} is not enrolled in a group in program ${programId}.`,
     );
-    return {
-      executedWorkflows,
-    };
+    return;
   }
 
   const { totalLeads, totalSaleAmount, totalConversions } =
@@ -217,15 +206,9 @@ export async function executeWorkflows({
         workflow,
         context: workflowContext,
       });
-
-      executedWorkflows++;
     } catch (error) {
       console.error(`Failed to execute workflow ${workflow.id}:`, error);
       continue;
     }
   }
-
-  return {
-    executedWorkflows,
-  };
 }

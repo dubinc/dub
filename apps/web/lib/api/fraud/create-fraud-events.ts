@@ -13,12 +13,9 @@ import {
 export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   const startTime = performance.now();
 
-  let createdFraudEvents = 0;
   if (fraudEvents.length === 0) {
     console.log(`[createFraudEvents] No fraud events to create`);
-    return {
-      createdFraudEvents,
-    };
+    return;
   }
 
   const eventsWithHash = fraudEvents.map((e) => ({
@@ -57,9 +54,7 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
 
   if (newEvents.length === 0) {
     console.log(`[createFraudEvents] No new fraud events to create`);
-    return {
-      createdFraudEvents,
-    };
+    return;
   }
 
   // Find existing groups to avoid creating duplicates and maintain group continuity
@@ -138,8 +133,6 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
     data: newEventsWithGroup,
   });
 
-  createdFraudEvents = createdEvents.count;
-
   console.info(
     `[createFraudEvents] Created ${createdEvents.count} fraud events ${prettyPrint(newEventsWithGroup)}`,
   );
@@ -165,8 +158,4 @@ export async function createFraudEvents(fraudEvents: CreateFraudEventInput[]) {
   console.info(
     `[createFraudEvents] completed in ${(endTime - startTime).toFixed(2)}ms`,
   );
-
-  return {
-    createdFraudEvents,
-  };
 }
