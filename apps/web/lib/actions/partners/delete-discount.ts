@@ -1,10 +1,10 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { queueDiscountProcessing } from "@/lib/api/discounts/queue-discount-processing";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
-import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -35,58 +35,38 @@ export const deleteDiscountAction = authActionClient
       discountId,
     });
 
-    // Cache discount codes to delete them later
-    const discountCodes = await prisma.discountCode.findMany({
-      where: {
-        discountId: discount.id,
-      },
-      select: {
-        id: true,
-        code: true,
-        programId: true,
-        discount: {
-          select: {
-            provider: true,
-          },
-        },
-      },
-    });
-
-    const group = await prisma.$transaction(async (tx) => {
-      const group = await tx.partnerGroup.update({
+    const partnerGroup = await prisma.$transaction(async (tx) => {
+      const partnerGroup = await tx.partnerGroup.update({
         where: {
           discountId: discount.id,
         },
         data: {
           discountId: null,
         },
-      });
-
-      await tx.programEnrollment.updateMany({
-        where: {
-          discountId: discount.id,
-        },
-        data: {
-          discountId: null,
+        select: {
+          id: true,
         },
       });
 
-      await tx.discountCode.updateMany({
-        where: {
-          discountId: discount.id,
-        },
-        data: {
-          discountId: null,
-        },
-      });
-
-      await tx.discount.delete({
+      // Soft delete discount, we will hard delete it in the cron job
+      await tx.discount.update({
         where: {
           id: discount.id,
         },
+        data: {
+          programId: null,
+        },
       });
 
-      return group;
+      return partnerGroup;
+    });
+
+    await queueDiscountProcessing({
+      event: "discount-deleted",
+      groupId: partnerGroup.id,
+      discountSnapshot: {
+        id: discount.id,
+      },
     });
 
     waitUntil(
@@ -94,11 +74,18 @@ export const deleteDiscountAction = authActionClient
         qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
           body: {
-            groupId: group.id,
+            groupId: partnerGroup.id,
           },
         }),
 
-        deleteDiscountCodes(discountCodes),
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/delete/queue`,
+          method: "POST",
+          body: {
+            discountId: discount.id,
+            provider: discount.provider,
+          },
+        }),
 
         recordAuditLog({
           workspaceId: workspace.id,

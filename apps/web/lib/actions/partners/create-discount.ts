@@ -2,6 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
+import { queueDiscountProcessing } from "@/lib/api/discounts/queue-discount-processing";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
@@ -97,27 +98,15 @@ export const createDiscountAction = authActionClient
         },
       });
 
-      await tx.programEnrollment.updateMany({
-        where: {
-          groupId,
-        },
-        data: {
-          discountId: discount.id,
-        },
-      });
-
-      await tx.discountCode.updateMany({
-        where: {
-          programEnrollment: {
-            groupId,
-          },
-        },
-        data: {
-          discountId: discount.id,
-        },
-      });
-
       return discount;
+    });
+
+    await queueDiscountProcessing({
+      event: "discount-created",
+      groupId,
+      discountSnapshot: {
+        id: discount.id,
+      },
     });
 
     waitUntil(
