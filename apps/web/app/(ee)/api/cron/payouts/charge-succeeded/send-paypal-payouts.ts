@@ -83,7 +83,7 @@ export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
       enqueueBatchJobs(
         payouts.map((payout) => ({
           queueName: "create-referral-commissions",
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/queue`,
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/referrals/network`,
           body: {
             payoutId: payout.id,
           },
