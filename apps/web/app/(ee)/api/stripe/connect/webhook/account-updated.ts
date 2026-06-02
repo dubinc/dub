@@ -130,9 +130,6 @@ export async function accountUpdated(event: Stripe.AccountUpdatedEvent) {
       stripeConnectId: account.id,
     },
     data: {
-      payoutsEnabledAt: partner.payoutsEnabledAt
-        ? undefined // Don't update if already set
-        : new Date(),
       payoutMethodHash: bankAccount.fingerprint,
     },
   });
