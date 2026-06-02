@@ -59,7 +59,7 @@ validationCases.forEach(({ name, body, expectedStatus, expectedMessage }) => {
   });
 });
 
-describe.sequential("POST /commissions", async () => {
+describe.concurrent("POST /commissions", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
