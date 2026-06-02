@@ -1,4 +1,3 @@
-import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/trigger-aggregate-due-commissions";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { Session } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
@@ -100,8 +99,6 @@ export async function createManualCommissions(params: CreateCommissionsParams) {
       description,
       userId: user.id,
     });
-
-    waitUntil(triggerAggregateDueCommissionsCronJob(programId));
 
     return;
   }
@@ -244,16 +241,10 @@ export async function createManualCommissions(params: CreateCommissionsParams) {
     );
   }
 
-  if (commissionsToCreate.length === 0) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "No commissions to create.",
-    });
-  }
-
-  // Create commissions one by one
-  for (const commissionToCreate of commissionsToCreate) {
-    await queuePartnerCommissionCreation(commissionToCreate);
+  if (commissionsToCreate.length > 0) {
+    for (const commissionToCreate of commissionsToCreate) {
+      await queuePartnerCommissionCreation(commissionToCreate);
+    }
   }
 
   waitUntil(

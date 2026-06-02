@@ -1,3 +1,4 @@
+import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/trigger-aggregate-due-commissions";
 import { createId } from "@/lib/api/create-id";
 import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { notifyPartnerCommission } from "@/lib/api/partners/notify-partner-commission";
@@ -422,6 +423,7 @@ async function stepRunSideEffects(
     skipWorkflow,
     clickEvent,
     isFirstConversion,
+    userId, // Provided only for manual commission creation
   } = input;
 
   if (!_commission) {
@@ -553,6 +555,9 @@ async function stepRunSideEffects(
         click: pick(clickEvent, ["url", "referer"]),
         event: { id: eventId },
       }),
+
+    // Aggregate due commissions immediately for manual commission
+    userId && triggerAggregateDueCommissionsCronJob(programId),
   ]);
 
   return [
