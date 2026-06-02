@@ -23,7 +23,6 @@ import {
   Project,
 } from "@dub/prisma/client";
 import { COUNTRIES_TO_CONTINENTS, nanoid, R2_URL } from "@dub/utils";
-import { prettyPrint } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";
@@ -249,8 +248,6 @@ export async function createManualCommissions(params: CreateCommissionsParams) {
       message: "No commissions to create.",
     });
   }
-
-  console.log("commissionsToCreate", prettyPrint(commissionsToCreate));
 
   // Create commissions one by one
   for (const commissionToCreate of commissionsToCreate) {
