@@ -166,12 +166,16 @@ export async function bulkUpdatePartnerCommissions({
         new: updatedCommissions,
       }),
 
-      voidReferralCommissions({
-        workspaceId,
-        programId,
-        sourceCommissionIds: commissionIds,
-        sourceCommissionStatus: status,
-      }),
+      ...(status !== "pending"
+        ? [
+            voidReferralCommissions({
+              workspaceId,
+              programId,
+              sourceCommissionIds: commissionIds,
+              sourceCommissionStatus: status,
+            }),
+          ]
+        : []),
     ]),
   );
 
