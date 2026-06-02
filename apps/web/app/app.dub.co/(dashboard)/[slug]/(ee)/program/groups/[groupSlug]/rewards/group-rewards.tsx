@@ -191,7 +191,6 @@ const RewardItem = ({
             set: {
               rewardId: reward?.id ?? `new-${event}`,
             },
-            scroll: false,
           });
         }}
       >
