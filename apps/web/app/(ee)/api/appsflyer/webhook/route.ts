@@ -19,7 +19,7 @@ import * as z from "zod/v4";
 
 const querySchema = z.object({
   appId: z.string(),
-  partnerEventId: z.string(),
+  partnerEventId: z.string().nullish(),
   eventValue: z.string().nullish(),
 });
 
@@ -52,8 +52,10 @@ export const GET = withAxiom(async (req) => {
 
     const { appId, partnerEventId } = querySchema.parse(queryParams);
 
-    if (!["lead", "sale"].includes(partnerEventId)) {
-      return NextResponse.json("partnerEventId is not supported. Skipping...");
+    if (!partnerEventId || !["lead", "sale"].includes(partnerEventId)) {
+      return NextResponse.json(
+        `"${partnerEventId}" is not a valid partner event ID (accepted values: "lead", "sale"). Skipping...`,
+      );
     }
 
     // Find the installation
