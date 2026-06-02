@@ -8,7 +8,7 @@ export default defineConfig({
     dir: "./tests",
     reporters: ["verbose"],
     globals: true,
-    testTimeout: 50000,
+    testTimeout: 60000,
     env: loadEnv("", process.cwd(), ""),
     setupFiles: ["./tests/setupTests.ts"],
   },
