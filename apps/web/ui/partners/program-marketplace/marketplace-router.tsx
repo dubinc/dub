@@ -1,13 +1,11 @@
-import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { notFound } from "next/navigation";
-import { MarketplacePageTitle } from "./marketplace-page-title";
+import { MarketplaceListPageTitle } from "./marketplace-list-page-title";
 import {
   MarketplaceVariantProvider,
   type MarketplaceVariant,
 } from "./marketplace-variant-context";
-import { MarketplaceCategoryProgramsPage } from "./pages/marketplace-category-programs-page";
 import { MarketplaceHomePage } from "./pages/marketplace-home-page";
 import { MarketplaceProgramPage } from "./pages/marketplace-program-page";
 import { MarketplaceProgramsListPage } from "./pages/marketplace-programs-list-page";
@@ -35,7 +33,7 @@ export function MarketplaceRouter({
 
     if (segments.length === 1 && segments[0] === "all") {
       return (
-        <PageContent title={<MarketplacePageTitle title="All Programs" />}>
+        <PageContent title={<MarketplaceListPageTitle />}>
           <PageWidthWrapper className="pb-10">
             <MarketplaceProgramsListPage />
           </PageWidthWrapper>
@@ -47,14 +45,10 @@ export function MarketplaceRouter({
       const category = slugToCategory(segments[1]);
 
       if (category) {
-        const categoryLabel =
-          PROGRAM_CATEGORIES_MAP[category]?.label ??
-          category.replaceAll("_", " ");
-
         return (
-          <PageContent title={<MarketplacePageTitle title={categoryLabel} />}>
+          <PageContent title={<MarketplaceListPageTitle />}>
             <PageWidthWrapper className="pb-10">
-              <MarketplaceCategoryProgramsPage category={category} />
+              <MarketplaceProgramsListPage />
             </PageWidthWrapper>
           </PageContent>
         );

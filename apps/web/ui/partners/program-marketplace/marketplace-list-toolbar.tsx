@@ -50,12 +50,12 @@ function MarketplaceListToolbarInternal() {
         : undefined;
 
     if (routeCategory) {
-      router.push(getMarketplaceAllHref({ search }));
+      router.replace(getMarketplaceAllHref({ search }));
       return;
     }
 
     queryParams({
-      del: ["rewardType", "category", "status", "page", "sortBy", "sortOrder"],
+      del: ["rewardType", "status", "page", "sortBy", "sortOrder"],
     });
   }, [queryParams, routeCategory, router, searchParamsObj]);
 

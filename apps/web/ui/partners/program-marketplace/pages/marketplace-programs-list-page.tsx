@@ -3,9 +3,9 @@
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
 import { NetworkProgramProps } from "@/lib/types";
 import { PROGRAM_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/program-network";
-import { Category } from "@dub/prisma/client";
 import { PaginationControls, usePagination, useRouterStuff } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
+import { usePathname } from "next/navigation";
 import useSWR from "swr";
 import { MarketplaceEmptyState } from "../marketplace-empty-state";
 import { MarketplaceListToolbar } from "../marketplace-list-toolbar";
@@ -14,21 +14,20 @@ import {
   MarketplaceProgramGridSkeleton,
 } from "../marketplace-program-grid";
 import { useProgramNetworkFilters } from "../use-program-network-filters";
+import { getMarketplaceCategoryFromPathname } from "../utils/category-slug";
 
-export function MarketplaceProgramsListPage({
-  fixedCategory,
-}: {
-  fixedCategory?: Category;
-}) {
+export function MarketplaceProgramsListPage() {
+  const pathname = usePathname();
   const { getQueryString, searchParamsObj } = useRouterStuff();
 
-  const categoryParam = fixedCategory ?? searchParamsObj.category;
+  const categoryParam = getMarketplaceCategoryFromPathname(pathname);
+
   const queryString = getQueryString(
-    fixedCategory ? { category: fixedCategory } : undefined,
+    categoryParam ? { category: categoryParam } : undefined,
   );
 
   const { data: programsCount, error: countError } = useNetworkProgramsCount({
-    query: fixedCategory ? { category: fixedCategory } : undefined,
+    query: categoryParam ? { category: categoryParam } : undefined,
   });
 
   const {
@@ -48,9 +47,7 @@ export function MarketplaceProgramsListPage({
   const { activeFilters, isFiltered, onRemoveAll } = useProgramNetworkFilters();
 
   const hasActiveFilters =
-    activeFilters.length > 0 ||
-    Boolean(searchParamsObj.search) ||
-    Boolean(categoryParam && !fixedCategory);
+    activeFilters.length > 0 || Boolean(searchParamsObj.search);
 
   return (
     <div className="flex flex-col gap-4">

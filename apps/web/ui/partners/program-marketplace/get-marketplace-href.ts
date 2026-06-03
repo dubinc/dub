@@ -32,6 +32,19 @@ export function getMarketplaceAllHref(
   return buildMarketplaceHref(`${MARKETPLACE_BASE}/all`, params);
 }
 
+export function getPreservedMarketplaceSearchParams(
+  searchParamsObj: Record<string, string | string[] | undefined>,
+) {
+  const { rewardType, search, sortBy, sortOrder } = searchParamsObj;
+
+  return {
+    rewardType: typeof rewardType === "string" ? rewardType : undefined,
+    search: typeof search === "string" ? search : undefined,
+    sortBy: typeof sortBy === "string" ? sortBy : undefined,
+    sortOrder: typeof sortOrder === "string" ? sortOrder : undefined,
+  };
+}
+
 /** @deprecated Use {@link getMarketplaceAllHref} — popular routes redirect to /all. */
 export function getMarketplacePopularHref(
   params?: Record<string, string | undefined>,

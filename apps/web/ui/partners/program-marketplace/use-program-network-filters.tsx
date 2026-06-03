@@ -9,6 +9,7 @@ import { useCallback, useMemo } from "react";
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,
+  getPreservedMarketplaceSearchParams,
 } from "./get-marketplace-href";
 import { ProgramNetworkStatusBadges } from "./program-status-badge";
 import { getMarketplaceCategoryFromPathname } from "./utils/category-slug";
@@ -27,19 +28,6 @@ const REWARD_TYPES = {
     label: "Dual-sided incentives",
   },
 };
-
-function getPreservedMarketplaceParams(
-  searchParamsObj: Record<string, string | string[] | undefined>,
-) {
-  const { rewardType, search, sortBy, sortOrder } = searchParamsObj;
-
-  return {
-    rewardType: typeof rewardType === "string" ? rewardType : undefined,
-    search: typeof search === "string" ? search : undefined,
-    sortBy: typeof sortBy === "string" ? sortBy : undefined,
-    sortOrder: typeof sortOrder === "string" ? sortOrder : undefined,
-  };
-}
 
 export function useProgramNetworkFilters() {
   const router = useRouter();
@@ -143,25 +131,32 @@ export function useProgramNetworkFilters() {
   );
 
   const activeFilters = useMemo(() => {
-    const { rewardType, category: categoryQuery, status } = searchParamsObj;
-    const category = routeCategory ?? categoryQuery;
+    const { rewardType, status } = searchParamsObj;
 
     return [
       ...(rewardType ? [{ key: "rewardType", value: rewardType }] : []),
-      ...(category ? [{ key: "category", value: category }] : []),
+      ...(routeCategory ? [{ key: "category", value: routeCategory }] : []),
       ...(status ? [{ key: "status", value: status }] : []),
     ];
   }, [routeCategory, searchParamsObj]);
 
+  const setCategoryFilter = useCallback(
+    (category: Category | null) => {
+      const preserved = getPreservedMarketplaceSearchParams(searchParamsObj);
+
+      router.replace(
+        category
+          ? getMarketplaceCategoryHref(category, preserved)
+          : getMarketplaceAllHref(preserved),
+      );
+    },
+    [router, searchParamsObj],
+  );
+
   const onSelect = useCallback(
     (key: string, value: string) => {
       if (key === "category") {
-        router.push(
-          getMarketplaceCategoryHref(
-            value as Category,
-            getPreservedMarketplaceParams(searchParamsObj),
-          ),
-        );
+        setCategoryFilter(value as Category);
         return;
       }
 
@@ -172,15 +167,13 @@ export function useProgramNetworkFilters() {
         del: "page",
       });
     },
-    [queryParams, router, searchParamsObj],
+    [queryParams, setCategoryFilter],
   );
 
   const onRemove = useCallback(
     (key: string, _value?: string) => {
       if (key === "category") {
-        router.push(
-          getMarketplaceAllHref(getPreservedMarketplaceParams(searchParamsObj)),
-        );
+        setCategoryFilter(null);
         return;
       }
 
@@ -188,15 +181,16 @@ export function useProgramNetworkFilters() {
         del: [key, "page"],
       });
     },
-    [queryParams, router, searchParamsObj],
+    [queryParams, setCategoryFilter],
   );
 
   const onClearFilters = useCallback(() => {
-    const preserved = getPreservedMarketplaceParams(searchParamsObj);
+    const preserved = getPreservedMarketplaceSearchParams(searchParamsObj);
 
     if (routeCategory) {
-      router.push(
+      router.replace(
         getMarketplaceAllHref({
+          rewardType: preserved.rewardType,
           search: preserved.search,
           sortBy: preserved.sortBy,
           sortOrder: preserved.sortOrder,
@@ -212,7 +206,7 @@ export function useProgramNetworkFilters() {
 
   const onRemoveAll = useCallback(() => {
     if (routeCategory) {
-      router.push(getMarketplaceAllHref());
+      router.replace(getMarketplaceAllHref());
       return;
     }
 
