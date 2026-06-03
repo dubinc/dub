@@ -184,15 +184,15 @@ export const POST = withReferralsEmbedToken(
           },
         }),
       ]);
-    } catch (e) {
-      if (e.code === "P2025") {
+    } catch (error) {
+      if (error.code === "P2025") {
         throw new DubApiError({
           code: "bad_request",
           message: "You already have a payout method connected.",
         });
       }
 
-      throw e;
+      throw error;
     }
 
     return NextResponse.json({ success: true });

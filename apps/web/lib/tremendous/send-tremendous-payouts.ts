@@ -8,6 +8,7 @@ import { trackCommissionStatusUpdatesByProgram } from "../api/commissions/track-
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
 import { tremendousConfiguration, tremendousEnv } from "./configuration";
+import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "./constants";
 
 export async function sendTremendousPayouts({
   partnerId,
@@ -55,6 +56,9 @@ export async function sendTremendousPayouts({
       mode: "internal",
       method: "tremendous",
       tremendousOrderId: null,
+      amount: {
+        lte: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+      },
     },
     include: {
       program: {
@@ -84,6 +88,12 @@ export async function sendTremendousPayouts({
   if (totalTransferableAmount === 0) {
     console.log("No payouts for sending via Tremendous, skipping...");
     return;
+  }
+
+  if (totalTransferableAmount > TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS) {
+    throw new Error(
+      `Tremendous payout amount is greater than the maximum allowed amount of ${currencyFormatter(TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS)}.`,
+    );
   }
 
   const payoutIds = payouts.map((p) => p.id);

@@ -1,5 +1,6 @@
 "use client";
 
+import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
@@ -10,7 +11,7 @@ import {
   Tooltip,
   useMediaQuery,
 } from "@dub/ui";
-import { cn } from "@dub/utils/src";
+import { cn, currencyFormatter } from "@dub/utils/src";
 import { OTPInput } from "input-otp";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
@@ -379,25 +380,34 @@ function TremendousGiftCardOption({
           <div className="border-border-muted bg-bg-default flex size-8 shrink-0 items-center justify-center rounded-lg border">
             <Gift className="text-content-emphasis size-[18px]" />
           </div>
-          <h2 className="text-content-emphasis text-sm font-semibold">
-            Gift Cards
-          </h2>
-          {!hasAnyConnected && (
-            <Badge
-              variant="blue"
-              className="rounded-md px-1 py-0 text-xs font-semibold"
-            >
-              Recommended
-            </Badge>
-          )}
-          {isConnected && (
-            <Badge
-              variant="green"
-              className="rounded-md px-1 py-0 text-xs font-semibold"
-            >
-              Connected
-            </Badge>
-          )}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-content-emphasis text-sm font-semibold">
+                Gift Cards
+              </h2>
+              {!hasAnyConnected && (
+                <Badge
+                  variant="blue"
+                  className="rounded-md px-1 py-0 text-xs font-semibold"
+                >
+                  Recommended
+                </Badge>
+              )}
+              {isConnected && (
+                <Badge
+                  variant="green"
+                  className="rounded-md px-1 py-0 text-xs font-semibold"
+                >
+                  Connected
+                </Badge>
+              )}
+            </div>
+            <p className="text-content-subtle mt-0.5 text-xs">
+              Gift card payouts are limited to{" "}
+              {currencyFormatter(TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS)} per
+              payout.
+            </p>
+          </div>
         </div>
 
         {!isExpanded ? (

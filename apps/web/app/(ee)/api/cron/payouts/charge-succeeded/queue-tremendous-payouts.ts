@@ -1,4 +1,5 @@
 import { qstash } from "@/lib/cron";
+import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
 import { prisma } from "@dub/prisma";
 import {
   Invoice,
@@ -26,6 +27,9 @@ export async function queueTremendousPayouts(
       status: PayoutStatus.processing,
       mode: PayoutMode.internal,
       method: PartnerPayoutMethod.tremendous,
+      amount: {
+        lte: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+      },
       partner: {
         tremendousEmail: {
           not: null,

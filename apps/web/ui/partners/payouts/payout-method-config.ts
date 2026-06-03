@@ -57,7 +57,7 @@ export const PAYOUT_METHODS = [
   },
   {
     id: "tremendous" as const,
-    title: "Gift cards",
+    title: "Gift card",
     recommended: false,
     icon: Gift,
     iconWrapperClass: "border-[#1717171A] bg-white",
