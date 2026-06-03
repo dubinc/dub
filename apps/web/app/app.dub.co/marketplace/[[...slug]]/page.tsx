@@ -15,7 +15,7 @@ export const revalidate = 3600;
 export async function generateStaticParams() {
   const programParams = await generateMarketplaceProgramStaticParams();
   const categoryParams = Object.values(Category).map((category) => ({
-    slug: [categoryToSlug(category)],
+    slug: ["c", categoryToSlug(category)],
   }));
 
   return [
@@ -44,11 +44,11 @@ export async function generateMetadata(props: {
   } else if (segments.length === 1 && segments[0] === "popular") {
     title = "Popular Programs";
     description = "The most popular partner programs on Dub.";
-  } else if (segments.length === 2 && segments[0] === "p") {
-    title = "Program Details";
   } else if (segments.length === 1) {
+    title = "Program Details";
+  } else if (segments.length === 2 && segments[0] === "c") {
     const category = Object.values(Category).find(
-      (value) => categoryToSlug(value) === segments[0],
+      (value) => categoryToSlug(value) === segments[1],
     );
 
     if (category) {

@@ -33,7 +33,7 @@ export async function generateMarketplaceProgramStaticParams() {
   });
 
   return programs.map((program) => ({
-    slug: ["p", program.slug],
+    slug: [program.slug],
   }));
 }
 
@@ -42,7 +42,6 @@ export async function MarketplaceProgramPage({
 }: {
   programSlug: string;
 }) {
-
   const program = await getNetworkProgram({
     slug: programSlug,
   });

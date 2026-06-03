@@ -54,12 +54,8 @@ export function MarketplaceRouter({
       );
     }
 
-    if (segments.length === 2 && segments[0] === "p") {
-      return <MarketplaceProgramPage programSlug={segments[1]} />;
-    }
-
-    if (segments.length === 1) {
-      const category = slugToCategory(segments[0]);
+    if (segments.length === 2 && segments[0] === "c") {
+      const category = slugToCategory(segments[1]);
 
       if (category) {
         const categoryLabel =
@@ -74,6 +70,10 @@ export function MarketplaceRouter({
           </PageContent>
         );
       }
+    }
+
+    if (segments.length === 1) {
+      return <MarketplaceProgramPage programSlug={segments[0]} />;
     }
 
     notFound();

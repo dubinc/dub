@@ -3,8 +3,8 @@ import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,
 } from "@/ui/partners/program-marketplace/get-marketplace-href";
-import { Check } from "@dub/ui";
 import { Category } from "@dub/prisma/client";
+import { Check } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -169,11 +169,7 @@ function FilterLink({
   );
 }
 
-export function getMarketplaceExternalBasePath({
-  slug,
-}: {
-  slug?: string[];
-}) {
+export function getMarketplaceExternalBasePath({ slug }: { slug?: string[] }) {
   const segments = slug ?? [];
 
   if (segments.length === 1 && segments[0] === "all") {
@@ -184,8 +180,8 @@ export function getMarketplaceExternalBasePath({
     return "/marketplace/popular";
   }
 
-  if (segments.length === 1) {
-    return `/marketplace/${segments[0]}`;
+  if (segments.length === 2 && segments[0] === "c") {
+    return `/marketplace/c/${segments[1]}`;
   }
 
   return "/marketplace/all";

@@ -35,7 +35,7 @@ export const partnersMarketplaceRedirects = (path: string) => {
       return `/marketplace/${slug}`;
     }
 
-    return `/marketplace/p/${slug}`;
+    return `/marketplace/${slug}`;
   }
 
   return null;

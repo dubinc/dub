@@ -1,6 +1,6 @@
 import { Category } from "@dub/prisma/client";
 
-export const MARKETPLACE_RESERVED_SLUGS = new Set(["all", "popular", "p"]);
+export const MARKETPLACE_RESERVED_SLUGS = new Set(["all", "popular", "c"]);
 
 export function categoryToSlug(category: Category): string {
   return category.toLowerCase().replaceAll("_", "-");
@@ -35,7 +35,11 @@ export function isMarketplaceFilterSidebarPath(pathname: string): boolean {
     return true;
   }
 
-  if (segments.length === 2 && slugToCategory(segments[1])) {
+  if (
+    segments.length === 3 &&
+    segments[1] === "c" &&
+    slugToCategory(segments[2])
+  ) {
     return true;
   }
 

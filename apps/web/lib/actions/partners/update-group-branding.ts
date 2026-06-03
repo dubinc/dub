@@ -129,7 +129,7 @@ export const updateGroupBrandingAction = authActionClient
                 ),
                 program.addedToMarketplaceAt &&
                   revalidatePath(
-                    `/partners.dub.co/marketplace/p/${program.slug}`,
+                    `/partners.dub.co/marketplace/${program.slug}`,
                   ),
               ]
             : []),

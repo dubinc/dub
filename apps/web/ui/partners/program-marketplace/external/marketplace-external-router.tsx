@@ -26,19 +26,12 @@ export async function MarketplaceExternalRouter({
 
   if (segments.length === 1 && segments[0] === "popular") {
     return (
-      <MarketplaceExternalPopularPage
-        slug={slug}
-        searchParams={searchParams}
-      />
+      <MarketplaceExternalPopularPage slug={slug} searchParams={searchParams} />
     );
   }
 
-  if (segments.length === 2 && segments[0] === "p") {
-    return <MarketplaceExternalProgramPage programSlug={segments[1]} />;
-  }
-
-  if (segments.length === 1) {
-    const category = slugToCategory(segments[0]);
+  if (segments.length === 2 && segments[0] === "c") {
+    const category = slugToCategory(segments[1]);
 
     if (category) {
       return (
@@ -49,6 +42,10 @@ export async function MarketplaceExternalRouter({
         />
       );
     }
+  }
+
+  if (segments.length === 1) {
+    return <MarketplaceExternalProgramPage programSlug={segments[0]} />;
   }
 
   notFound();

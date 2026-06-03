@@ -43,13 +43,13 @@ export function getMarketplaceCategoryHref(
   params?: Record<string, string | undefined>,
 ) {
   return buildMarketplaceHref(
-    `${MARKETPLACE_BASE}/${categoryToSlug(category)}`,
+    `${MARKETPLACE_BASE}/c/${categoryToSlug(category)}`,
     params,
   );
 }
 
 export function getMarketplaceProgramHref(programSlug: string) {
-  return `${MARKETPLACE_BASE}/p/${programSlug}`;
+  return `${MARKETPLACE_BASE}/${programSlug}`;
 }
 
 export function getMarketplacePathFromSlug(slug?: string[]) {

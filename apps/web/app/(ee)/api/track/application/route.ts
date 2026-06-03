@@ -419,7 +419,7 @@ async function getRequestContext(
 // Supports:
 //   - https://partners.dub.co/{programSlug}
 //   - https://partners.dub.co/programs/{programSlug}/apply
-//   - https://partners.dub.co/marketplace/p/{programSlug}
+//   - https://partners.dub.co/marketplace/{programSlug}
 //   - https://partners.dub.co/programs/marketplace/{programSlug} (legacy)
 //   - https://partners.dub.co/register (platform-level signup -> network program)
 function identityProgramSlug(url: string) {
@@ -438,13 +438,18 @@ function identityProgramSlug(url: string) {
 
     const isLegacyMarketplace =
       parts[0] === "programs" && parts[1] === "marketplace";
-    const isMarketplace =
-      (parts[0] === "marketplace" && parts[1] === "p") || isLegacyMarketplace;
+    const isMarketplaceProgram =
+      parts[0] === "marketplace" &&
+      parts.length === 2 &&
+      parts[1] !== "all" &&
+      parts[1] !== "popular" &&
+      parts[1] !== "c";
+    const isMarketplace = isMarketplaceProgram || isLegacyMarketplace;
 
     const programSlug = isLegacyMarketplace
       ? parts[2]
-      : isMarketplace
-        ? parts[2]
+      : isMarketplaceProgram
+        ? parts[1]
         : parts[0] === "programs" // e.g. https://partners.dub.co/programs/acme/apply
           ? parts[1]
           : parts[0]; // e.g. https://partners.dub.co/acme, or https://partners.dub.co/acme/apply, or https://partners.dub.co/acme/group/apply

@@ -4,7 +4,7 @@ import type {
   IOAuthController,
   JacksonOption,
 } from "@boxyhq/saml-jackson";
-import samlJackson from "@boxyhq/saml-jackson";
+// import samlJackson from "@boxyhq/saml-jackson";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
 export const samlAudience = "https://saml.dub.co";
@@ -45,10 +45,10 @@ export async function jackson() {
     !globalThis.oauthController ||
     !globalThis.directorySyncController
   ) {
-    const ret = await samlJackson(opts);
-    globalThis.apiController = ret.connectionAPIController;
-    globalThis.oauthController = ret.oauthController;
-    globalThis.directorySyncController = ret.directorySyncController;
+    // const ret = await samlJackson(opts);
+    // globalThis.apiController = ret.connectionAPIController;
+    // globalThis.oauthController = ret.oauthController;
+    // globalThis.directorySyncController = ret.directorySyncController;
   }
 
   return {
