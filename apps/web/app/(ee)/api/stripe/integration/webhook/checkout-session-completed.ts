@@ -478,6 +478,10 @@ export async function checkoutSessionCompleted(
         },
         firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
         subscriptionCanceledAt: null,
+        ...(!customer?.stripeCustomerId &&
+          stripeCustomerId && {
+            stripeCustomerId,
+          }),
       },
     }),
   ]);
