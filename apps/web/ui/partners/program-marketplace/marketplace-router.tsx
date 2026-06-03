@@ -26,7 +26,7 @@ export function MarketplaceRouter({
     if (segments.length === 0) {
       return (
         <PageContent title="Program marketplace">
-          <PageWidthWrapper>
+          <PageWidthWrapper className="pb-10">
             <MarketplaceHomePage />
           </PageWidthWrapper>
         </PageContent>
@@ -36,7 +36,7 @@ export function MarketplaceRouter({
     if (segments.length === 1 && segments[0] === "all") {
       return (
         <PageContent title={<MarketplacePageTitle title="All Programs" />}>
-          <PageWidthWrapper>
+          <PageWidthWrapper className="pb-10">
             <MarketplaceProgramsListPage />
           </PageWidthWrapper>
         </PageContent>
@@ -53,7 +53,7 @@ export function MarketplaceRouter({
 
         return (
           <PageContent title={<MarketplacePageTitle title={categoryLabel} />}>
-            <PageWidthWrapper>
+            <PageWidthWrapper className="pb-10">
               <MarketplaceCategoryProgramsPage category={category} />
             </PageWidthWrapper>
           </PageContent>

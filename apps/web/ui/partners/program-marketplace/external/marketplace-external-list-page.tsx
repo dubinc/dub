@@ -75,7 +75,7 @@ export async function MarketplaceExternalListPage({
           sortOrder={sortOrder}
         />
 
-        <div className="flex min-w-0 flex-1 flex-col gap-6">
+        <div className="@container/page flex min-w-0 flex-1 flex-col gap-6">
           <MarketplaceExternalListToolbar />
           {programs.length > 0 ? (
             <MarketplaceProgramGrid programs={programs} showStatus={false} />

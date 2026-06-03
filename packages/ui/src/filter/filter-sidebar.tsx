@@ -109,7 +109,7 @@ export function FilterSidebar({
             ) : filter.options.length === 0 ? (
               <p className="px-2 py-2 text-sm text-neutral-400">No options</p>
             ) : (
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-1">
                 {filter.options.map((option) => (
                   <FilterOptionRow
                     key={String(option.value)}
