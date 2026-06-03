@@ -244,11 +244,9 @@ async function stepCreateCommission(
     }
 
     const products = context?.sale?.products ?? [];
-
     const modifiers = rewardConditionsArraySchema.safeParse(
       programEnrollment.saleReward?.modifiers,
     );
-
     const hasProductIdModifier = modifiers.success
       ? modifiers.data.some((m) =>
           m.conditions.some(
