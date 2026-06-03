@@ -18,6 +18,7 @@ import {
   createPartnerCommissionSchema,
 } from "@/lib/zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { rewardConditionsArraySchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import {
   Commission,
@@ -54,6 +55,11 @@ type StepCreateCommissionOutput = {
   commission: Pick<Commission, "id"> | null;
   outputLog: string;
   isFirstCommission?: boolean;
+};
+
+type RewardWithProduct = {
+  reward: RewardProps;
+  sale: { amount: number; quantity: number };
 };
 
 // POST /api/workflows/create-partner-commission
@@ -181,6 +187,7 @@ async function stepCreateCommission(
 
   let earnings = 0;
   let reward: RewardProps | null = null;
+  let rewards: RewardWithProduct[] = [];
   let firstCommission: Pick<
     Commission,
     "rewardId" | "status" | "createdAt"
@@ -233,11 +240,84 @@ async function stepCreateCommission(
       };
     }
 
-    reward = determinePartnerReward({
-      event,
-      programEnrollment,
-      ...(context ? { context } : {}),
-    });
+    const products = context?.sale?.products ?? [];
+
+    const modifiers = rewardConditionsArraySchema.safeParse(
+      programEnrollment.saleReward?.modifiers,
+    );
+
+    const hasProductIdModifier = modifiers.success
+      ? modifiers.data.some((m) =>
+          m.conditions.some(
+            (c) => c.entity === "sale" && c.attribute === "productId",
+          ),
+        )
+      : false;
+
+    // If there are products and a productId modifier,
+    // we need to calculate the reward for each product (for Stripe integration only)
+    if (products.length > 0 && hasProductIdModifier) {
+      for (const product of products) {
+        const reward = determinePartnerReward({
+          event,
+          programEnrollment,
+          context: {
+            ...context,
+            sale: {
+              ...context?.sale,
+              productId: product.id,
+              amount: product.amount,
+            },
+          },
+        });
+
+        if (reward) {
+          rewards.push({
+            reward,
+            sale: {
+              amount: product.amount,
+              quantity: product.quantity,
+            },
+          });
+        }
+      }
+
+      // if (rewards.length > 0) {
+      //   reward = rewards[0].reward;
+      // }
+    } else {
+      context = {
+        ...context,
+        sale: {
+          ...context?.sale,
+          // Callers that pass it explicitly keep their value, and
+          // Stripe webhooks (which send `products[]`) still surface a productId via the first line item
+          ...(event === "sale" && {
+            productId: context?.sale?.productId ?? products[0]?.id,
+          }),
+        },
+      };
+
+      const reward = determinePartnerReward({
+        event,
+        programEnrollment,
+        ...(context ? { context } : {}),
+      });
+
+      if (reward) {
+        rewards.push({
+          reward,
+          sale: {
+            amount,
+            quantity,
+          },
+        });
+      }
+    }
+
+    if (rewards.length > 0) {
+      reward = rewards[0].reward;
+    }
 
     // if there is no reward, skip commission creation
     if (!reward) {
@@ -247,15 +327,15 @@ async function stepCreateCommission(
       });
     }
 
-    // for click events, it's super simple – just multiply the reward amount by the quantity
+    // Click commissions are created by /api/cron/aggregate-clicks, not this workflow.
+    // TODO: Confirm whether any caller still queues event === "click" here; if not, remove this branch.
     if (event === "click") {
       earnings = getRewardAmount(reward) * quantity;
-
+    } else {
       // for lead and sale events, we need to check if this partner-customer combination was recorded already (for deduplication)
       // for sale rewards specifically, we also need to check:
       // 1. if the partner has reached the max duration for the reward (if applicable)
       // 2. if the previous commission were marked as fraud or canceled
-    } else {
       if (firstCommission) {
         // if first commission is fraud or canceled, skip commission creation
         if (["fraud", "canceled"].includes(firstCommission.status)) {
@@ -332,15 +412,18 @@ async function stepCreateCommission(
       // for lead events, we just multiply the reward amount by the quantity
       if (event === "lead") {
         earnings = getRewardAmount(reward) * quantity;
-        // for sale events, we need to calculate the earnings based on the sale amount
-      } else {
-        earnings = calculateSaleEarnings({
-          reward,
-          sale: {
-            quantity,
-            amount,
-          },
-        });
+      }
+      // for sale events, we need to calculate the earnings based on the sale amount
+      else {
+        earnings = rewards.reduce(
+          (acc, { reward, sale }) =>
+            acc +
+            calculateSaleEarnings({
+              reward,
+              sale,
+            }),
+          0,
+        );
       }
     }
   }
