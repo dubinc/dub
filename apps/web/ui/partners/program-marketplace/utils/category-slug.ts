@@ -20,6 +20,22 @@ export function slugToCategory(slug: string): Category | null {
   );
 }
 
+export function getMarketplaceCategoryFromPathname(
+  pathname: string,
+): Category | null {
+  const segments = pathname.split("/").filter(Boolean);
+
+  if (
+    segments[0] === "marketplace" &&
+    segments.length === 3 &&
+    segments[1] === "c"
+  ) {
+    return slugToCategory(segments[2]);
+  }
+
+  return null;
+}
+
 export function isMarketplaceFilterSidebarPath(pathname: string): boolean {
   const segments = pathname.split("/").filter(Boolean);
 

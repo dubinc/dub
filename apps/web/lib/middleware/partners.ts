@@ -46,16 +46,11 @@ export async function PartnersMiddleware(req: NextRequest) {
         status: 301,
       },
     );
-  } else if (partnersMarketplaceRedirects(path)) {
-    return NextResponse.redirect(
-      new URL(
-        `${partnersMarketplaceRedirects(path)}${searchParamsString}`,
-        req.url,
-      ),
-      {
-        status: 301,
-      },
-    );
+  } else if (partnersMarketplaceRedirects(path, searchParamsObj)) {
+    const destination = partnersMarketplaceRedirects(path, searchParamsObj)!;
+    return NextResponse.redirect(new URL(destination, req.url), {
+      status: 301,
+    });
   } else if (!user && isAuthenticatedPath) {
     if (path.startsWith("/programs/")) {
       const programSlug = path.split("/")[2];

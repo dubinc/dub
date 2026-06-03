@@ -9,7 +9,6 @@ import {
 } from "./marketplace-variant-context";
 import { MarketplaceCategoryProgramsPage } from "./pages/marketplace-category-programs-page";
 import { MarketplaceHomePage } from "./pages/marketplace-home-page";
-import { MarketplacePopularProgramsPage } from "./pages/marketplace-popular-programs-page";
 import { MarketplaceProgramPage } from "./pages/marketplace-program-page";
 import { MarketplaceProgramsListPage } from "./pages/marketplace-programs-list-page";
 import { slugToCategory } from "./utils/category-slug";
@@ -39,16 +38,6 @@ export function MarketplaceRouter({
         <PageContent title={<MarketplacePageTitle title="All Programs" />}>
           <PageWidthWrapper>
             <MarketplaceProgramsListPage />
-          </PageWidthWrapper>
-        </PageContent>
-      );
-    }
-
-    if (segments.length === 1 && segments[0] === "popular") {
-      return (
-        <PageContent title={<MarketplacePageTitle title="Popular" />}>
-          <PageWidthWrapper>
-            <MarketplacePopularProgramsPage />
           </PageWidthWrapper>
         </PageContent>
       );

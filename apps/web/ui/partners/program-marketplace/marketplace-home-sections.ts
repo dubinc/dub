@@ -1,8 +1,8 @@
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { Category } from "@dub/prisma/client";
 import {
+  getMarketplaceAllHref,
   getMarketplaceCategoryHref,
-  getMarketplacePopularHref,
 } from "./get-marketplace-href";
 
 export const MARKETPLACE_HOME_ROW_PAGE_SIZE = 5;
@@ -39,7 +39,10 @@ const featuredHomeRows: MarketplaceHomeRow[] = [
   {
     key: "most-popular",
     title: "Most popular",
-    viewAllHref: getMarketplacePopularHref(),
+    viewAllHref: getMarketplaceAllHref({
+      sortBy: "popularity",
+      sortOrder: "desc",
+    }),
     apiPath: `/api/network/programs?sortBy=popularity&pageSize=${MARKETPLACE_HOME_ROW_PAGE_SIZE}`,
     fetchParams: {
       sortBy: "popularity",
@@ -50,7 +53,10 @@ const featuredHomeRows: MarketplaceHomeRow[] = [
   {
     key: "new",
     title: "New",
-    viewAllHref: getMarketplacePopularHref({ sortBy: "recency" }),
+    viewAllHref: getMarketplaceAllHref({
+      sortBy: "recency",
+      sortOrder: "desc",
+    }),
     apiPath: `/api/network/programs?sortBy=recency&pageSize=${MARKETPLACE_HOME_ROW_PAGE_SIZE}`,
     fetchParams: {
       sortBy: "recency",

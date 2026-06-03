@@ -176,10 +176,6 @@ export function getMarketplaceExternalBasePath({ slug }: { slug?: string[] }) {
     return "/marketplace/all";
   }
 
-  if (segments.length === 1 && segments[0] === "popular") {
-    return "/marketplace/popular";
-  }
-
   if (segments.length === 2 && segments[0] === "c") {
     return `/marketplace/c/${segments[1]}`;
   }

@@ -1,10 +1,17 @@
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
+import { Category } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Gift, Suitcase } from "@dub/ui/icons";
 import { capitalize, nFormatter } from "@dub/utils";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
+import {
+  getMarketplaceAllHref,
+  getMarketplaceCategoryHref,
+} from "./get-marketplace-href";
 import { ProgramNetworkStatusBadges } from "./program-status-badge";
+import { getMarketplaceCategoryFromPathname } from "./utils/category-slug";
 
 const REWARD_TYPES = {
   sale: {
@@ -21,8 +28,25 @@ const REWARD_TYPES = {
   },
 };
 
+function getPreservedMarketplaceParams(
+  searchParamsObj: Record<string, string | string[] | undefined>,
+) {
+  const { rewardType, search, sortBy, sortOrder } = searchParamsObj;
+
+  return {
+    rewardType: typeof rewardType === "string" ? rewardType : undefined,
+    search: typeof search === "string" ? search : undefined,
+    sortBy: typeof sortBy === "string" ? sortBy : undefined,
+    sortOrder: typeof sortOrder === "string" ? sortOrder : undefined,
+  };
+}
+
 export function useProgramNetworkFilters() {
+  const router = useRouter();
+  const pathname = usePathname();
   const { searchParamsObj, queryParams } = useRouterStuff();
+
+  const routeCategory = getMarketplaceCategoryFromPathname(pathname);
 
   const { data: categoriesCount } = useNetworkProgramsCount<
     | {
@@ -119,50 +143,83 @@ export function useProgramNetworkFilters() {
   );
 
   const activeFilters = useMemo(() => {
-    const { rewardType, category, status } = searchParamsObj;
+    const { rewardType, category: categoryQuery, status } = searchParamsObj;
+    const category = routeCategory ?? categoryQuery;
 
     return [
       ...(rewardType ? [{ key: "rewardType", value: rewardType }] : []),
       ...(category ? [{ key: "category", value: category }] : []),
       ...(status ? [{ key: "status", value: status }] : []),
     ];
-  }, [searchParamsObj]);
+  }, [routeCategory, searchParamsObj]);
 
   const onSelect = useCallback(
-    (key: string, value: string) =>
+    (key: string, value: string) => {
+      if (key === "category") {
+        router.push(
+          getMarketplaceCategoryHref(
+            value as Category,
+            getPreservedMarketplaceParams(searchParamsObj),
+          ),
+        );
+        return;
+      }
+
       queryParams({
         set: {
           [key]: value,
         },
         del: "page",
-      }),
-    [queryParams],
+      });
+    },
+    [queryParams, router, searchParamsObj],
   );
 
   const onRemove = useCallback(
     (key: string, _value?: string) => {
+      if (key === "category") {
+        router.push(
+          getMarketplaceAllHref(getPreservedMarketplaceParams(searchParamsObj)),
+        );
+        return;
+      }
+
       queryParams({
         del: [key, "page"],
       });
     },
-    [queryParams],
+    [queryParams, router, searchParamsObj],
   );
 
-  const onClearFilters = useCallback(
-    () =>
-      queryParams({
-        del: ["rewardType", "category", "status", "page"],
-      }),
-    [queryParams],
-  );
+  const onClearFilters = useCallback(() => {
+    const preserved = getPreservedMarketplaceParams(searchParamsObj);
 
-  const onRemoveAll = useCallback(
-    () =>
-      queryParams({
-        del: ["rewardType", "category", "status", "search", "page"],
-      }),
-    [queryParams],
-  );
+    if (routeCategory) {
+      router.push(
+        getMarketplaceAllHref({
+          search: preserved.search,
+          sortBy: preserved.sortBy,
+          sortOrder: preserved.sortOrder,
+        }),
+      );
+      return;
+    }
+
+    queryParams({
+      del: ["rewardType", "category", "status", "page"],
+    });
+  }, [queryParams, routeCategory, router, searchParamsObj]);
+
+  const onRemoveAll = useCallback(() => {
+    if (routeCategory) {
+      router.push(getMarketplaceAllHref());
+      return;
+    }
+
+    queryParams({
+      del: ["rewardType", "category", "status", "search", "page"],
+    });
+  }, [queryParams, routeCategory, router]);
 
   const isFiltered = Boolean(
     activeFilters.length > 0 || searchParamsObj.search,

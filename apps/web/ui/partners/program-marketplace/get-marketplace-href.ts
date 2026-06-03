@@ -32,10 +32,47 @@ export function getMarketplaceAllHref(
   return buildMarketplaceHref(`${MARKETPLACE_BASE}/all`, params);
 }
 
+/** @deprecated Use {@link getMarketplaceAllHref} — popular routes redirect to /all. */
 export function getMarketplacePopularHref(
   params?: Record<string, string | undefined>,
 ) {
-  return buildMarketplaceHref(`${MARKETPLACE_BASE}/popular`, params);
+  return getMarketplaceAllHref(params);
+}
+
+function parseMarketplaceSearchParam(
+  searchParams: Record<string, string | string[] | undefined>,
+  key: string,
+) {
+  const value = searchParams[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+/** Redirect target for legacy `/marketplace/popular` URLs. */
+export function getMarketplacePopularRedirectHref(
+  searchParams: Record<string, string | string[] | undefined> = {},
+) {
+  const rewardType = parseMarketplaceSearchParam(searchParams, "rewardType");
+  const search = parseMarketplaceSearchParam(searchParams, "search");
+  const sortBy = parseMarketplaceSearchParam(searchParams, "sortBy");
+  const sortOrder = parseMarketplaceSearchParam(searchParams, "sortOrder");
+
+  if (!sortBy || sortBy === "popularity") {
+    return getMarketplaceAllHref({
+      rewardType,
+      search,
+      sortBy: "popularity",
+      sortOrder: sortOrder ?? "desc",
+    });
+  }
+
+  return getMarketplaceAllHref({
+    rewardType,
+    search,
+    sortBy,
+    sortOrder:
+      sortOrder ??
+      (sortBy === "recency" || sortBy === "popularity" ? "desc" : undefined),
+  });
 }
 
 export function getMarketplaceCategoryHref(

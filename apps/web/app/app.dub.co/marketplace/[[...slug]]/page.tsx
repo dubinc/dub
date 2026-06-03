@@ -3,12 +3,14 @@ import { MarketplaceExternalRouter } from "@/ui/partners/program-marketplace/ext
 import {
   getMarketplaceCanonicalUrl,
   getMarketplacePathFromSlug,
+  getMarketplacePopularRedirectHref,
 } from "@/ui/partners/program-marketplace/get-marketplace-href";
 import { generateMarketplaceProgramStaticParams } from "@/ui/partners/program-marketplace/pages/marketplace-program-page";
 import { categoryToSlug } from "@/ui/partners/program-marketplace/utils/category-slug";
 import { Category } from "@dub/prisma/client";
 import { constructMetadata } from "@dub/utils";
 import { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 export const revalidate = 3600;
 
@@ -18,13 +20,7 @@ export async function generateStaticParams() {
     slug: ["c", categoryToSlug(category)],
   }));
 
-  return [
-    { slug: [] },
-    { slug: ["all"] },
-    { slug: ["popular"] },
-    ...categoryParams,
-    ...programParams,
-  ];
+  return [{ slug: [] }, { slug: ["all"] }, ...categoryParams, ...programParams];
 }
 
 export async function generateMetadata(props: {
@@ -41,9 +37,6 @@ export async function generateMetadata(props: {
   if (segments.length === 1 && segments[0] === "all") {
     title = "All Programs";
     description = "Browse all partner programs on Dub.";
-  } else if (segments.length === 1 && segments[0] === "popular") {
-    title = "Popular Programs";
-    description = "The most popular partner programs on Dub.";
   } else if (segments.length === 1) {
     title = "Program Details";
   } else if (segments.length === 2 && segments[0] === "c") {
@@ -73,6 +66,10 @@ export default async function MarketplaceExternalPage(props: {
 }) {
   const { slug } = await props.params;
   const searchParams = await props.searchParams;
+
+  if (slug?.length === 1 && slug[0] === "popular") {
+    redirect(getMarketplacePopularRedirectHref(searchParams));
+  }
 
   return <MarketplaceExternalRouter slug={slug} searchParams={searchParams} />;
 }

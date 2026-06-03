@@ -1,3 +1,5 @@
+import { getMarketplacePopularRedirectHref } from "@/ui/partners/program-marketplace/get-marketplace-href";
+
 const PARTNERS_REDIRECTS = {
   "/settings": "/profile",
   "/settings/payouts": "/payouts",
@@ -13,7 +15,10 @@ export const partnersRedirect = (path: string) => {
   return PARTNERS_REDIRECTS[path] || null;
 };
 
-export const partnersMarketplaceRedirects = (path: string) => {
+export const partnersMarketplaceRedirects = (
+  path: string,
+  searchParams: Record<string, string | string[] | undefined> = {},
+) => {
   if (path === "/programs/marketplace") {
     return "/marketplace";
   }
@@ -22,8 +27,11 @@ export const partnersMarketplaceRedirects = (path: string) => {
     return "/marketplace/all";
   }
 
-  if (path === "/programs/marketplace/popular") {
-    return "/marketplace/popular";
+  if (
+    path === "/programs/marketplace/popular" ||
+    path === "/marketplace/popular"
+  ) {
+    return getMarketplacePopularRedirectHref(searchParams);
   }
 
   const match = path.match(/^\/programs\/marketplace\/([^/]+)$/);
@@ -31,8 +39,12 @@ export const partnersMarketplaceRedirects = (path: string) => {
   if (match) {
     const slug = match[1];
 
-    if (slug === "all" || slug === "popular") {
-      return `/marketplace/${slug}`;
+    if (slug === "all") {
+      return "/marketplace/all";
+    }
+
+    if (slug === "popular") {
+      return getMarketplacePopularRedirectHref(searchParams);
     }
 
     return `/marketplace/${slug}`;

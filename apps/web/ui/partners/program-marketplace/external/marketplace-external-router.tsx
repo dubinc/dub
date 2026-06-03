@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { slugToCategory } from "../utils/category-slug";
 import { MarketplaceExternalHomePage } from "./marketplace-external-home-page";
 import { MarketplaceExternalListPage } from "./marketplace-external-list-page";
-import { MarketplaceExternalPopularPage } from "./marketplace-external-popular-page";
 import { MarketplaceExternalProgramPage } from "./marketplace-external-program-page";
 
 export async function MarketplaceExternalRouter({
@@ -21,12 +20,6 @@ export async function MarketplaceExternalRouter({
   if (segments.length === 1 && segments[0] === "all") {
     return (
       <MarketplaceExternalListPage slug={slug} searchParams={searchParams} />
-    );
-  }
-
-  if (segments.length === 1 && segments[0] === "popular") {
-    return (
-      <MarketplaceExternalPopularPage slug={slug} searchParams={searchParams} />
     );
   }
 

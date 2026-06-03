@@ -2,6 +2,7 @@
 
 import { FilterBars } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { motion } from "motion/react";
 
 export function MarketplaceFilterControl({
   activeFilterCount,
@@ -12,25 +13,17 @@ export function MarketplaceFilterControl({
   onClear: () => void;
   className?: string;
 }) {
-  const hasActiveFilters = activeFilterCount > 0;
-
-  if (!hasActiveFilters) {
-    return (
-      <div
-        className={cn(
-          "flex h-9 w-10 items-center justify-center rounded-lg border border-neutral-200 bg-white",
-          className,
-        )}
-      >
-        <FilterBars className="size-4 shrink-0 text-neutral-900" />
-      </div>
-    );
+  if (activeFilterCount === 0) {
+    return null;
   }
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
       className={cn(
-        "flex h-9 items-stretch overflow-hidden rounded-lg border border-neutral-200 bg-white",
+        "flex h-9 shrink-0 items-stretch overflow-hidden rounded-lg border border-neutral-200 bg-white",
         className,
       )}
     >
@@ -51,6 +44,6 @@ export function MarketplaceFilterControl({
       >
         Clear
       </button>
-    </div>
+    </motion.div>
   );
 }
