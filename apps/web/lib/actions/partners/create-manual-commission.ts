@@ -7,16 +7,14 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import {
-  createPartnerCommission,
-  CreatePartnerCommissionProps,
-} from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import {
   recordClickZod,
   recordClickZodSchema,
 } from "@/lib/tinybird/record-click-zod";
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
+import { CreatePartnerCommissionProps } from "@/lib/types";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
@@ -91,14 +89,14 @@ export const createManualCommissionAction = authActionClient
 
     // Create a custom commission
     if (commissionType === "custom") {
-      await createPartnerCommission({
+      await queuePartnerCommissionCreation({
         event: "custom",
         partnerId,
         programId,
         amount: amount ?? 0,
         quantity: 1,
         createdAt: date ?? new Date(),
-        user,
+        userId: user.id,
         description,
       });
 
@@ -192,9 +190,9 @@ export const createManualCommissionAction = authActionClient
         );
       }
 
-      if (stripeCustomerInvoices.length > 12) {
+      if (stripeCustomerInvoices.length > 36) {
         throw new Error(
-          `Too many Stripe invoices found for customer ${customer.email} (${stripeCustomerInvoices.length}). Please import the invoices manually.`,
+          `Too many Stripe invoices found for customer ${customer.email} (${stripeCustomerInvoices.length}). Please contact support.`,
         );
       }
 
@@ -208,6 +206,8 @@ export const createManualCommissionAction = authActionClient
       clickId = nanoid(16);
       clickedAt = new Date(lastLeadAt.getTime() - 5 * 60 * 1000);
 
+      const customerCountry = customer.country?.toUpperCase();
+
       const generatedClickEvent = recordClickZodSchema.parse({
         timestamp: clickedAt.toISOString(),
         identity_hash: customer.externalId || customer.id,
@@ -215,9 +215,10 @@ export const createManualCommissionAction = authActionClient
         link_id: link.id,
         url: link.url,
         ip: "127.0.0.1",
-        continent: customer.country
-          ? COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()] || ""
-          : "",
+        country: customerCountry ?? "Unknown",
+        continent: customerCountry
+          ? COUNTRIES_TO_CONTINENTS[customerCountry] ?? "Unknown"
+          : "Unknown",
       });
 
       tbEventsToRecord.push(() => recordClickZod(generatedClickEvent));
@@ -266,9 +267,9 @@ export const createManualCommissionAction = authActionClient
           ...(stripeCustomerInvoices.find(
             (invoice) => invoice.id === saleEvent.invoice_id,
           )?.refunded && {
-            status: "refunded",
+            status: "refunded" as const,
           }),
-          user,
+          userId: user.id,
           context: {
             customer: { country: customer.country },
           },
@@ -322,7 +323,7 @@ export const createManualCommissionAction = authActionClient
           eventId: leadEventData.event_id,
           quantity: 1,
           createdAt: new Date(leadEventData.timestamp), // we don't add the "Z" to the timestamp because it's already in UTC
-          user,
+          userId: user.id,
           context: {
             customer: { country: customer.country },
           },
@@ -363,7 +364,7 @@ export const createManualCommissionAction = authActionClient
             currency: saleEventData.currency,
             invoiceId: saleEventData.invoice_id,
             createdAt: new Date(saleEventData.timestamp), // we don't add the "Z" to the timestamp because it's already in UTC
-            user,
+            userId: user.id,
             context: {
               customer: { country: customer.country },
               sale: { productId },
@@ -380,17 +381,14 @@ export const createManualCommissionAction = authActionClient
     const tbRes = await Promise.allSettled(tbEventsToRecord.map((fn) => fn()));
     console.log("Recorded events in Tinybird: ", prettyPrint(tbRes));
 
-    let createdCommissions = 0;
+    let queuedCommissions = 0;
     // create partner commissions (use a for loop to make sure the commissions are created in the correct order)
-    // TODO: migrate to use workflow to support bulk creation
     for (const c of commissionsToCreate) {
-      const { commission } = await createPartnerCommission(c);
-      if (commission) {
-        createdCommissions++;
-      }
+      await queuePartnerCommissionCreation(c);
+      queuedCommissions++;
     }
     console.log(
-      `Created ${createdCommissions} commissions for partner ${partner.email} (${partner.id}) and customer ${customer.email} (${customer.id})`,
+      `Queued ${queuedCommissions} commissions for partner ${partner.email} (${partner.id}) and customer ${customer.email} (${customer.id})`,
     );
 
     waitUntil(

@@ -7,10 +7,10 @@ export const PRICING_PLAN_TAGLINES = {
   },
   partners: {
     Business:
-      "For fast-growing startups looking to scale with affiliates and referrals",
+      "For startups looking to get started with affiliate and creator partnerships",
     Advanced:
       "For scaling teams with high-volume affiliate traffic and white-labeling needs",
     Enterprise:
-      "For large organizations looking for dedicated support and unlimited usage",
+      "For large organizations looking for dedicated support and volume discounts",
   },
 };
