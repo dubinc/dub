@@ -9,7 +9,7 @@ import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
 import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { determinePartnerRewards } from "@/lib/partners/determine-partner-reward";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { RewardProps } from "@/lib/types";
@@ -234,11 +234,17 @@ async function stepCreateCommission(
       };
     }
 
-    reward = determinePartnerReward({
+    const rewards = determinePartnerRewards({
       event,
       programEnrollment,
-      ...(context ? { context } : {}),
+      context,
+      amount,
+      quantity,
     });
+
+    if (rewards.length > 0) {
+      reward = rewards[0].reward;
+    }
 
     // if there is no reward, skip commission creation
     if (!reward) {
@@ -248,7 +254,8 @@ async function stepCreateCommission(
       });
     }
 
-    // for click events, it's super simple – just multiply the reward amount by the quantity
+    // Click commissions are created by /api/cron/aggregate-clicks, not this workflow.
+    // TODO: Confirm whether any caller still queues event === "click" here; if not, remove this branch.
     if (event === "click") {
       earnings = getRewardAmount(reward) * quantity;
 
@@ -333,15 +340,18 @@ async function stepCreateCommission(
       // for lead events, we just multiply the reward amount by the quantity
       if (event === "lead") {
         earnings = getRewardAmount(reward) * quantity;
-        // for sale events, we need to calculate the earnings based on the sale amount
-      } else {
-        earnings = calculateSaleEarnings({
-          reward,
-          sale: {
-            quantity,
-            amount,
-          },
-        });
+      }
+      // for sale events, we need to calculate the earnings based on the sale amount
+      else {
+        earnings = rewards.reduce(
+          (acc, { reward, sale }) =>
+            acc +
+            calculateSaleEarnings({
+              reward,
+              sale,
+            }),
+          0,
+        );
       }
     }
   }
