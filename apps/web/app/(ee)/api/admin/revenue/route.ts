@@ -48,6 +48,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
       endDate,
       granularity: revenueGranularity,
       timezone,
+      excludeCreditCardFees: true,
     }),
   ]);
 

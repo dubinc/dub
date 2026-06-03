@@ -96,6 +96,7 @@ import {
   CommissionDetailSchema,
   CommissionEnrichedSchema,
   CommissionSchema,
+  createPartnerCommissionSchema,
 } from "./zod/schemas/commissions";
 import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
@@ -978,3 +979,7 @@ export type ApplicationAnalyticsByGroup = {
 };
 
 export type CommissionProps = z.infer<typeof CommissionSchema>;
+
+export type CreatePartnerCommissionProps = z.infer<
+  typeof createPartnerCommissionSchema
+>;

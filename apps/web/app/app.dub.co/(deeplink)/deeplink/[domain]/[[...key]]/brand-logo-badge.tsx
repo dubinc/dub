@@ -19,7 +19,7 @@ export function BrandLogoBadge({
           className="size-10 shrink-0 overflow-visible rounded-full"
         />
       </div>
-      <div className="text-lg font-semibold text-neutral-900">{appName}</div>
+      <h1 className="text-xl font-semibold text-neutral-900">{appName}</h1>
     </div>
   );
 }
