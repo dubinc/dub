@@ -64,19 +64,26 @@ export async function MarketplaceExternalListPage({
   return (
     <MarketplaceExternalShell variant="list">
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
-        <MarketplaceExternalFilterSidebar
-          basePath={basePath}
-          activeCategory={category}
-          activeRewardType={rewardType}
-          categoryCounts={filterCounts.categories}
-          rewardTypeCounts={filterCounts.rewardTypes}
-          search={search}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-        />
+        <div className="hidden shrink-0 lg:block">
+          <MarketplaceExternalFilterSidebar
+            basePath={basePath}
+            activeCategory={category}
+            activeRewardType={rewardType}
+            categoryCounts={filterCounts.categories}
+            rewardTypeCounts={filterCounts.rewardTypes}
+            search={search}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+          />
+        </div>
 
         <div className="@container/page flex min-w-0 flex-1 flex-col gap-6">
-          <MarketplaceExternalListToolbar />
+          <MarketplaceExternalListToolbar
+            basePath={basePath}
+            activeCategory={category}
+            categoryCounts={filterCounts.categories}
+            rewardTypeCounts={filterCounts.rewardTypes}
+          />
           {programs.length > 0 ? (
             <MarketplaceProgramGrid programs={programs} showStatus={false} />
           ) : (

@@ -8,7 +8,12 @@ const Filter = {
   Sidebar: FilterSidebar,
 };
 
-export { encodeRangeToken, parseRangeToken } from "./types";
+export { FilterOptionRow } from "./filter-option-row";
+export {
+  encodeRangeToken,
+  normalizeActiveFilter,
+  parseRangeToken,
+} from "./types";
 export type {
   ActiveFilterInput,
   Filter as FilterConfig,

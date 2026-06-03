@@ -5,7 +5,8 @@ import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bountie
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
-import { MarketplaceSidebarFilters } from "@/ui/partners/program-marketplace/marketplace-sidebar-filters";
+import { getProgramsAreaNavItems } from "@/ui/layout/sidebar/programs-area-nav";
+import { MarketplaceSidebarPanel } from "@/ui/partners/program-marketplace/marketplace-sidebar-panel";
 import { ProgramsPromoCard } from "@/ui/partners/program-marketplace/programs-promo-card";
 import { isMarketplaceFilterSidebarPath } from "@/ui/partners/program-marketplace/utils/category-slug";
 import { type Icon, useRouterStuff } from "@dub/ui";
@@ -21,7 +22,6 @@ import {
   Msgs,
   Nodes4,
   ShieldCheck,
-  Shop,
   SquareUserSparkle2,
   Trophy,
   UserCheck,
@@ -110,37 +110,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     direction: "left",
     content: [
       {
-        items: [
-          {
-            name: "Programs",
-            icon: GridIcon,
-            href: "/programs",
-            isActive: (pathname, href) =>
-              pathname.startsWith(href) &&
-              !pathname.startsWith(`${href}/invitations`),
-          },
-          {
-            name: "Marketplace",
-            icon: Shop,
-            href: "/marketplace" as `/${string}`,
-            isActive: (pathname) => pathname.startsWith("/marketplace"),
-          },
-          {
-            name: "Invitations",
-            icon: UserCheck,
-            href: "/programs/invitations",
-            badge: invitationsCount || undefined,
-          },
-        ],
+        items: getProgramsAreaNavItems(invitationsCount),
       },
     ],
     footer: <ProgramsAreaFooter newsContent={newsContent} />,
   }),
 
-  programsMarketplace: () => ({
+  programsMarketplace: ({ invitationsCount }) => ({
     direction: "right",
     content: [],
-    panel: <MarketplaceSidebarFilters />,
+    panel: <MarketplaceSidebarPanel invitationsCount={invitationsCount} />,
   }),
 
   profile: ({ postbacksEnabled }) => ({

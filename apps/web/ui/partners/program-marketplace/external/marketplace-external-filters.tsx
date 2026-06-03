@@ -1,8 +1,5 @@
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
-import {
-  getMarketplaceAllHref,
-  getMarketplaceCategoryHref,
-} from "@/ui/partners/program-marketplace/get-marketplace-href";
+import { buildExternalMarketplaceFilterHref } from "@/ui/partners/program-marketplace/utils/build-external-marketplace-filter-href";
 import { Category } from "@dub/prisma/client";
 import { Check } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -41,43 +38,16 @@ export function MarketplaceExternalFilterSidebar({
   const buildHref = (params: {
     category?: Category | null;
     rewardType?: keyof typeof REWARD_TYPES | null;
-  }) => {
-    const rewardType =
-      params.rewardType === undefined
-        ? activeRewardType
-        : params.rewardType || undefined;
-
-    const query = new URLSearchParams();
-    if (rewardType) query.set("rewardType", rewardType);
-    if (search) query.set("search", search);
-    if (sortBy && sortBy !== "popularity") query.set("sortBy", sortBy);
-    if (sortOrder && sortOrder !== "desc") query.set("sortOrder", sortOrder);
-    const queryString = query.toString();
-
-    if (params.category === null) {
-      return getMarketplaceAllHref({
-        rewardType,
-        search,
-        sortBy,
-        sortOrder,
-      });
-    }
-
-    if (params.category) {
-      return getMarketplaceCategoryHref(params.category, {
-        rewardType,
-        search,
-        sortBy,
-        sortOrder,
-      });
-    }
-
-    if (basePath.endsWith("/all")) {
-      return `${basePath}${queryString ? `?${queryString}` : ""}`;
-    }
-
-    return `${basePath}${queryString ? `?${queryString}` : ""}`;
-  };
+  }) =>
+    buildExternalMarketplaceFilterHref({
+      basePath,
+      activeCategory,
+      activeRewardType,
+      search,
+      sortBy,
+      sortOrder,
+      ...params,
+    });
 
   return (
     <aside className="w-full shrink-0 lg:w-56">

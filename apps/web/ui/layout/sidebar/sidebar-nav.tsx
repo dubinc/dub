@@ -461,7 +461,7 @@ function NavGroupItem({
   );
 }
 
-function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
+export function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
   const {
     name,
     href,

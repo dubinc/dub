@@ -17,7 +17,8 @@ export function MarketplaceProgramGrid({
   return (
     <div
       className={cn(
-        "@4xl/page:grid-cols-3 @xl/page:grid-cols-2 grid grid-cols-1 gap-4 lg:gap-6",
+        "@4xl/page:grid-cols-3 @xl/page:grid-cols-2",
+        "grid grid-cols-2 gap-4 lg:gap-6",
         className,
       )}
     >
@@ -42,7 +43,8 @@ export function MarketplaceProgramGridSkeleton({
   return (
     <div
       className={cn(
-        "@4xl/page:grid-cols-3 @xl/page:grid-cols-2 grid grid-cols-1 gap-4 lg:gap-6",
+        "@4xl/page:grid-cols-3 @xl/page:grid-cols-2",
+        "grid grid-cols-2 gap-4 lg:gap-6",
         className,
       )}
     >

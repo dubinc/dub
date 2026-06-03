@@ -3,18 +3,16 @@
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
 import { NetworkProgramProps } from "@/lib/types";
 import { PROGRAM_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/program-network";
-import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { Category } from "@dub/prisma/client";
 import { PaginationControls, usePagination, useRouterStuff } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { MarketplaceEmptyState } from "../marketplace-empty-state";
-import { MarketplaceFilterControl } from "../marketplace-filter-control";
+import { MarketplaceListToolbar } from "../marketplace-list-toolbar";
 import {
   MarketplaceProgramGrid,
   MarketplaceProgramGridSkeleton,
 } from "../marketplace-program-grid";
-import ProgramSort from "../program-sort";
 import { useProgramNetworkFilters } from "../use-program-network-filters";
 
 export function MarketplaceProgramsListPage({
@@ -47,8 +45,7 @@ export function MarketplaceProgramsListPage({
     PROGRAM_NETWORK_MAX_PAGE_SIZE,
   );
 
-  const { activeFilters, isFiltered, onClearFilters, onRemoveAll } =
-    useProgramNetworkFilters();
+  const { activeFilters, isFiltered, onRemoveAll } = useProgramNetworkFilters();
 
   const hasActiveFilters =
     activeFilters.length > 0 ||
@@ -57,19 +54,7 @@ export function MarketplaceProgramsListPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="xs:flex-row xs:items-center flex flex-col justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <MarketplaceFilterControl
-            activeFilterCount={activeFilters.length}
-            onClear={onClearFilters}
-          />
-          <ProgramSort />
-        </div>
-        <SearchBoxPersisted
-          placeholder="Search the marketplace..."
-          inputClassName="md:w-[19rem] h-9 rounded-lg"
-        />
-      </div>
+      <MarketplaceListToolbar variant="internal" />
 
       {error || countError ? (
         <div className="text-content-subtle py-12 text-sm">
