@@ -16,6 +16,7 @@ import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
+import { productIdFromLineItemPrice } from "./utils/get-checkout-session-products";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 
 // Handle event "invoice.paid"
@@ -317,19 +318,21 @@ export async function invoicePaid(
   if (link.programId && link.partnerId) {
     const products = invoice.lines.data
       .map((line) => {
-        const productId = line.pricing?.price_details?.product;
+        const productId = productIdFromLineItemPrice(
+          line.pricing?.price_details?.product,
+        );
 
         if (!productId) return null;
 
         return {
           id: productId,
           amount: line.amount,
-          quantity: line.quantity,
+          quantity: line.quantity ?? 0,
         };
       })
       .filter(
         (p): p is { id: string; amount: number; quantity: number } =>
-          p !== null,
+          p !== null && p.quantity !== null,
       );
 
     result = await queuePartnerCommissionCreation({

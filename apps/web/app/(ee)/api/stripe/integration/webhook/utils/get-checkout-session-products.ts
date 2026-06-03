@@ -76,7 +76,7 @@ export async function getCheckoutSessionProducts({
       })
       .filter(
         (p): p is { id: string; amount: number; quantity: number } =>
-          p !== null,
+          p !== null && p.quantity !== null,
       );
 
     if (products.length === 0) {
