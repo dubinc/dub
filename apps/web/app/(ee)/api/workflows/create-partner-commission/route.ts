@@ -330,12 +330,12 @@ async function stepCreateCommission(
     // TODO: Confirm whether any caller still queues event === "click" here; if not, remove this branch.
     if (event === "click") {
       earnings = getRewardAmount(reward) * quantity;
-    }
-    // for lead and sale events, we need to check if this partner-customer combination was recorded already (for deduplication)
-    // for sale rewards specifically, we also need to check:
-    // 1. if the partner has reached the max duration for the reward (if applicable)
-    // 2. if the previous commission were marked as fraud or canceled
-    else {
+
+      // for lead and sale events, we need to check if this partner-customer combination was recorded already (for deduplication)
+      // for sale rewards specifically, we also need to check:
+      // 1. if the partner has reached the max duration for the reward (if applicable)
+      // 2. if the previous commission were marked as fraud or canceled
+    } else {
       if (firstCommission) {
         // if first commission is fraud or canceled, skip commission creation
         if (["fraud", "canceled"].includes(firstCommission.status)) {
