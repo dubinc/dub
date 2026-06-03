@@ -98,6 +98,7 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
       createdAt: date ?? new Date(),
       description,
       userId: user.id,
+      triggerAggregateDueCommissions: true,
     });
 
     return;

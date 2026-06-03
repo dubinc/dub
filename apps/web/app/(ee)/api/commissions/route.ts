@@ -89,12 +89,16 @@ export const POST = withWorkspace(
       await parseRequestBody(req),
     );
 
+    console.time("createManualCommissions");
+
     await createManualCommissions({
       ...body,
       workspace,
       programId,
       user: session.user,
     });
+
+    console.timeEnd("createManualCommissions");
 
     return NextResponse.json(
       createCommissionResponseSchema.parse({

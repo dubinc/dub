@@ -449,6 +449,7 @@ export const createPartnerCommissionSchema = z.object({
 
 export const createManualCommissionBodySchema = z
   .discriminatedUnion("type", [
+    // Custom commission
     z.object({
       type: z.literal("custom"),
       partnerId: z
@@ -467,6 +468,7 @@ export const createManualCommissionBodySchema = z
         .describe("The description of the commission."),
     }),
 
+    // Lead commission
     z.object({
       type: z.literal("lead"),
       partnerId: z
@@ -492,6 +494,7 @@ export const createManualCommissionBodySchema = z
         .describe("The name of the lead event."),
     }),
 
+    // Sale commission
     z.object({
       type: z.literal("sale"),
       partnerId: z
