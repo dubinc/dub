@@ -1,10 +1,15 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
+import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
-import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
-import { ratelimit } from "@/lib/upstash";
+import {
+  TREMENDOUS_ENABLED_PROGRAM_IDS,
+  TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS,
+} from "@/lib/tremendous/constants";
+import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { prisma } from "@dub/prisma";
+import { TREMENDOUS_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -38,6 +43,35 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
+    const emailDomain = extractEmailDomain(email)!;
+
+    // Check if the email domain is allowed by Tremendous
+    const isProhibited = TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS.some((tld) =>
+      emailDomain.endsWith(tld),
+    );
+
+    if (isProhibited) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "This email address isn't eligible for gift card payouts. Please use a different email address.",
+      });
+    }
+
+    // Check if the email domain is disposable
+    const isDisposableEmailDomain = await redis.sismember(
+      "disposableEmailDomains",
+      emailDomain,
+    );
+
+    if (isDisposableEmailDomain) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "This email address isn't eligible for gift card payouts. Please use a different email address.",
+      });
+    }
+
     const [partner, duplicatePartner] = await prisma.$transaction([
       prisma.partner.findUniqueOrThrow({
         where: {
@@ -45,6 +79,7 @@ export const POST = withReferralsEmbedToken(
         },
         select: {
           id: true,
+          country: true,
           defaultPayoutMethod: true,
         },
       }),
@@ -61,6 +96,16 @@ export const POST = withReferralsEmbedToken(
         },
       }),
     ]);
+
+    if (
+      partner.country &&
+      !TREMENDOUS_SUPPORTED_COUNTRIES.includes(partner.country)
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Gift card payouts are not available in your country.",
+      });
+    }
 
     if (partner.defaultPayoutMethod) {
       throw new DubApiError({

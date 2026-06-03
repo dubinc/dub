@@ -30,7 +30,12 @@ import {
   Wordmark,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
-import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
+import {
+  cn,
+  getApexDomain,
+  getPrettyUrl,
+  TREMENDOUS_SUPPORTED_COUNTRIES,
+} from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import {
@@ -71,7 +76,12 @@ type ReferralsEmbedData = {
   programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
   partner: Pick<
     Partner,
-    "id" | "name" | "email" | "tremendousEmail" | "defaultPayoutMethod"
+    | "id"
+    | "name"
+    | "email"
+    | "country"
+    | "tremendousEmail"
+    | "defaultPayoutMethod"
   >;
   partnerPlatforms: Array<{
     type: PlatformType;
@@ -175,10 +185,18 @@ export function ReferralsEmbedPageClient({
 
   const activeBountiesCount = bounties.length;
 
+  const isTremendousCountrySupported = Boolean(
+    partner.country && TREMENDOUS_SUPPORTED_COUNTRIES.includes(partner.country),
+  );
+
+  const usesTremendous = partner.defaultPayoutMethod === "tremendous";
+
+  // Show Tremendous payout settings if the partner already uses Tremendous,
+  // or hasn't selected a payout method yet and is eligible based on country.
   const showSettingsTab =
     TREMENDOUS_ENABLED_PROGRAM_IDS.includes(program.id) &&
-    (!partner.defaultPayoutMethod ||
-      partner.defaultPayoutMethod === "tremendous");
+    (usesTremendous ||
+      (!partner.defaultPayoutMethod && isTremendousCountrySupported));
 
   const tabs = useMemo(
     () => [

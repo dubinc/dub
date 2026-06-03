@@ -13,7 +13,7 @@ import {
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
-import { cn, DUB_LOGO } from "@dub/utils";
+import { cn, DUB_LOGO, TREMENDOUS_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { motion } from "motion/react";
 import { useReferralsEmbedData } from "./page-client";
 
@@ -136,11 +136,25 @@ export function ReferralsEmbedQuickstart({
                     : undefined
                 }
                 onClick={() => {
-                  if (
+                  const isTremendousCountrySupported = Boolean(
+                    partner.country &&
+                      TREMENDOUS_SUPPORTED_COUNTRIES.includes(partner.country),
+                  );
+
+                  const usesTremendous =
+                    partner.defaultPayoutMethod === "tremendous";
+
+                  // Show Tremendous payout settings if the partner already uses Tremendous,
+                  // or hasn't selected a payout method yet and is eligible based on country.
+                  const showTremendousSettings =
                     TREMENDOUS_ENABLED_PROGRAM_IDS.includes(program.id) &&
-                    (!partner.defaultPayoutMethod ||
-                      partner.defaultPayoutMethod === "tremendous")
-                  ) {
+                    (usesTremendous ||
+                      (!partner.defaultPayoutMethod &&
+                        isTremendousCountrySupported));
+
+                  console.log({ showTremendousSettings });
+
+                  if (showTremendousSettings) {
                     setSelectedTab("Settings");
                   } else {
                     window.open("https://partners.dub.co/payouts", "_blank");
