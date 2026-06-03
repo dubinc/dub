@@ -15,7 +15,7 @@ import {
   trackCommissionActivityLog,
   trackCommissionStatusUpdate,
 } from "./track-commission-update-activity-log";
-import { voidReferralCommissions } from "./void-referral-commissions";
+import { queueVoidReferralCommissions } from "./void-referral-commissions";
 
 type UpdatePartnerCommissionProps = z.infer<
   typeof updateCommissionSchemaExtended
@@ -319,7 +319,7 @@ export async function updatePartnerCommission({
 
       finalStatus &&
         finalStatus !== "pending" &&
-        voidReferralCommissions({
+        queueVoidReferralCommissions({
           workspaceId,
           programId,
           userId,

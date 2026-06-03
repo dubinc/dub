@@ -186,7 +186,9 @@ export const createReferralCommission = async (
         partnerId,
         programId,
         type: "sale",
-        status: "paid",
+        status: {
+          in: ["pending", "processed", "paid"],
+        },
       },
       _sum: {
         earnings: true,

@@ -1,5 +1,5 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
-import { voidReferralCommissions } from "@/lib/api/commissions/void-referral-commissions";
+import { queueVoidReferralCommissions } from "@/lib/api/commissions/void-referral-commissions";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { stripeAppClient } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
@@ -142,7 +142,7 @@ export async function chargeRefunded(
     newStatus: "refunded",
   });
 
-  await voidReferralCommissions({
+  await queueVoidReferralCommissions({
     workspaceId: workspace.id,
     programId: commission.programId,
     sourceCommissionIds: [commission.id],
