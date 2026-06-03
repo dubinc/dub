@@ -57,7 +57,7 @@ type StepCreateCommissionOutput = {
   isFirstCommission?: boolean;
 };
 
-type RewardWithProduct = {
+type ProductReward = {
   reward: RewardProps;
   sale: { amount: number; quantity: number };
 };
@@ -187,7 +187,7 @@ async function stepCreateCommission(
 
   let earnings = 0;
   let reward: RewardProps | null = null;
-  let rewards: RewardWithProduct[] = [];
+  let rewards: ProductReward[] = [];
   let firstCommission: Pick<
     Commission,
     "rewardId" | "status" | "createdAt"
