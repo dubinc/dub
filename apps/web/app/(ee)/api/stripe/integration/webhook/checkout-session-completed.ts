@@ -478,7 +478,7 @@ export async function checkoutSessionCompleted(
         },
         firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
         subscriptionCanceledAt: null,
-        ...(!existingCustomer?.stripeCustomerId &&
+        ...(!customer?.stripeCustomerId &&
           stripeCustomerId && {
             stripeCustomerId,
           }),
