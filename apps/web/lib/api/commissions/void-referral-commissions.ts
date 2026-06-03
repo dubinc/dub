@@ -59,9 +59,9 @@ export async function voidReferralCommissions({
     ],
   };
 
-  const { originalCommissions, voidedCommissions } = await prisma.$transaction(
+  const { voidedReferralCommissions, count } = await prisma.$transaction(
     async (tx) => {
-      const commissions = await tx.commission.findMany({
+      const referralCommissions = await tx.commission.findMany({
         where: whereInput,
         select: {
           id: true,
@@ -73,65 +73,42 @@ export async function voidReferralCommissions({
         },
       });
 
-      if (commissions.length === 0) {
+      if (referralCommissions.length === 0) {
         return {
-          originalCommissions: commissions,
-          voidedCommissions: [],
+          voidedReferralCommissions: [],
+          count: 0,
         };
       }
 
       const { count } = await tx.commission.updateMany({
         where: whereInput,
         data: {
-          status: sourceCommissionStatus,
+          status: "canceled",
           payoutId: null,
         },
       });
 
-      // No commissions were updated
-      if (count === 0) {
-        return {
-          originalCommissions: commissions,
-          voidedCommissions: [],
-        };
-      }
-
-      const voidedCommissions = await tx.commission.findMany({
-        where: {
-          id: {
-            in: commissions.map(({ id }) => id),
-          },
-          status: sourceCommissionStatus,
-        },
-        select: {
-          id: true,
-          partnerId: true,
-          amount: true,
-          earnings: true,
-          status: true,
-          payoutId: true,
-        },
-      });
-
       return {
-        originalCommissions: commissions,
-        voidedCommissions,
+        voidedReferralCommissions: referralCommissions,
+        count,
       };
     },
   );
 
-  if (voidedCommissions.length === 0) {
+  if (count === 0) {
     console.log("No referral commissions found.");
     return;
   }
 
   // Find unique partner Ids
-  const partnerIds = [...new Set(voidedCommissions.map((c) => c.partnerId))];
+  const partnerIds = [
+    ...new Set(voidedReferralCommissions.map((c) => c.partnerId)),
+  ];
 
   // Reconcile payout amounts for all affected payouts
   const affectedPayoutIds = [
     ...new Set(
-      originalCommissions
+      voidedReferralCommissions
         .filter(
           (commission) =>
             commission.status === "processed" && commission.payoutId,
@@ -140,7 +117,7 @@ export async function voidReferralCommissions({
     ),
   ];
 
-  await Promise.all([
+  await Promise.allSettled([
     affectedPayoutIds.length > 0
       ? reconcilePayoutAmounts(affectedPayoutIds)
       : Promise.resolve(),
@@ -156,32 +133,48 @@ export async function voidReferralCommissions({
       workspaceId,
       programId,
       userId,
-      commissions: originalCommissions,
-      newStatus: sourceCommissionStatus,
+      commissions: voidedReferralCommissions,
+      newStatus: "canceled",
     }),
   ]);
 
-  // For referral commissions created by the "commissionThreshold" trigger,
-  // recalculate totalCommissionsEarned and void the referral commission if the
-  // partner no longer meets the threshold.
-  await cancelReferralCommissionsBelowThreshold({
-    partnerIds,
-    programId,
-  });
-
-  console.log(`Voided ${originalCommissions.length} referral commissions.`);
+  console.log(`Voided ${count} referral commissions.`);
 }
 
-async function cancelReferralCommissionsBelowThreshold({
-  partnerIds,
+// For referral commissions created by the "commissionThreshold" trigger,
+// recalculate totalCommissionsEarned and void the referral commission if the
+// partner no longer meets the threshold.
+export async function cancelReferralCommissionsBelowThreshold({
+  workspaceId,
   programId,
+  userId,
+  sourceCommissionIds,
 }: {
-  partnerIds: string[];
+  workspaceId: string;
   programId: string;
+  userId?: string;
+  sourceCommissionIds: string[];
 }) {
-  if (partnerIds.length === 0) {
+  if (sourceCommissionIds.length === 0) {
     return;
   }
+
+  const commissions = await prisma.commission.findMany({
+    where: {
+      id: {
+        in: sourceCommissionIds,
+      },
+    },
+    select: {
+      partnerId: true,
+    },
+  });
+
+  if (commissions.length === 0) {
+    return;
+  }
+
+  const partnerIds = [...new Set(commissions.map((c) => c.partnerId))];
 
   const [totalCommissionsByPartner, programEnrollments] = await Promise.all([
     prisma.commission.groupBy({
@@ -308,30 +301,107 @@ async function cancelReferralCommissionsBelowThreshold({
     invoiceIdsToCancel,
   );
 
-  await prisma.commission.updateMany({
-    where: {
-      invoiceId: {
-        in: invoiceIdsToCancel,
+  const cancelWhereInput: Prisma.CommissionWhereInput = {
+    invoiceId: {
+      in: invoiceIdsToCancel,
+    },
+    programId,
+    OR: [
+      {
+        status: "pending",
       },
-      programId,
-      OR: [
-        {
-          status: "pending",
-        },
-        {
-          status: "processed",
-          payout: {
-            status: {
-              in: MUTABLE_PAYOUT_STATUSES,
-            },
+      {
+        status: "processed",
+        payout: {
+          status: {
+            in: MUTABLE_PAYOUT_STATUSES,
           },
         },
-      ],
+      },
+    ],
+  };
+
+  const { canceledCommissions, count } = await prisma.$transaction(
+    async (tx) => {
+      const referralCommissions = await tx.commission.findMany({
+        where: cancelWhereInput,
+        select: {
+          id: true,
+          partnerId: true,
+          amount: true,
+          earnings: true,
+          status: true,
+          payoutId: true,
+        },
+      });
+
+      if (referralCommissions.length === 0) {
+        return {
+          canceledCommissions: [],
+          count: 0,
+        };
+      }
+
+      const { count } = await tx.commission.updateMany({
+        where: cancelWhereInput,
+        data: {
+          status: "canceled",
+          invoiceId: null,
+          payoutId: null,
+        },
+      });
+
+      return {
+        canceledCommissions: referralCommissions,
+        count,
+      };
     },
-    data: {
-      status: "canceled",
-    },
-  });
+  );
+
+  if (count === 0) {
+    console.log("No threshold referral commissions found to cancel.");
+    return;
+  }
+
+  // Find unique partner Ids
+  const canceledPartnerIds = [
+    ...new Set(canceledCommissions.map((c) => c.partnerId)),
+  ];
+
+  // Reconcile payout amounts for all affected payouts
+  const affectedPayoutIds = [
+    ...new Set(
+      canceledCommissions
+        .filter(
+          (commission) =>
+            commission.status === "processed" && commission.payoutId,
+        )
+        .map((commission) => commission.payoutId!),
+    ),
+  ];
+
+  await Promise.all([
+    affectedPayoutIds.length > 0
+      ? reconcilePayoutAmounts(affectedPayoutIds)
+      : Promise.resolve(),
+
+    ...canceledPartnerIds.map((partnerId) =>
+      syncTotalCommissions({
+        partnerId,
+        programId,
+      }),
+    ),
+
+    trackCommissionStatusUpdate({
+      workspaceId,
+      programId,
+      userId,
+      commissions: canceledCommissions,
+      newStatus: "canceled",
+    }),
+  ]);
+
+  console.log(`Canceled ${count} threshold referral commissions.`);
 }
 
 export async function queueVoidReferralCommissions(

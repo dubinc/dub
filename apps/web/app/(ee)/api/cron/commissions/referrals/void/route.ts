@@ -1,4 +1,5 @@
 import {
+  cancelReferralCommissionsBelowThreshold,
   voidReferralCommissions,
   voidReferralCommissionsSchema,
 } from "@/lib/api/commissions/void-referral-commissions";
@@ -9,11 +10,30 @@ export const dynamic = "force-dynamic";
 
 // POST /api/cron/commissions/referrals/void
 export const POST = withCron(async ({ rawBody }) => {
-  const input = voidReferralCommissionsSchema.parse(JSON.parse(rawBody));
+  const {
+    workspaceId,
+    programId,
+    userId,
+    sourceCommissionIds,
+    sourceCommissionStatus,
+  } = voidReferralCommissionsSchema.parse(JSON.parse(rawBody));
 
-  await voidReferralCommissions(input);
+  await voidReferralCommissions({
+    workspaceId,
+    programId,
+    userId,
+    sourceCommissionIds,
+    sourceCommissionStatus,
+  });
+
+  await cancelReferralCommissionsBelowThreshold({
+    workspaceId,
+    userId,
+    sourceCommissionIds,
+    programId,
+  });
 
   return logAndRespond(
-    `Voided referral commissions for ${input.sourceCommissionIds.length} source commission(s).`,
+    `Voided referral commissions for ${sourceCommissionIds.length} source commission(s).`,
   );
 });
