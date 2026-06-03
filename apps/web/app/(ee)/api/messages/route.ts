@@ -1,3 +1,4 @@
+import { partnerReachableByProgramWhereInput } from "@/lib/api/partners/partner-reachable-by-program-where-input";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -26,11 +27,7 @@ export const GET = withWorkspace(
         ? {
             id: partnerId,
             // Partner is either approved or trusted in the partner network, enrolled in the program, or already has a message with the program
-            OR: [
-              { networkStatus: { in: ["approved", "trusted"] } },
-              { programs: { some: { programId } } },
-              { messages: { some: { programId } } },
-            ],
+            ...partnerReachableByProgramWhereInput(programId),
           }
         : {
             // Partner has messages with the program
