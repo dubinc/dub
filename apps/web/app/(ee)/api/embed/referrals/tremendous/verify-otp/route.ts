@@ -58,13 +58,14 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    // Check if the email domain is disposable
-    const isDisposableEmailDomain = await redis.sismember(
-      "disposableEmailDomains",
-      emailDomain,
+    const [isDisposableEmailDomain, isTremendousProhibited] = await Promise.all(
+      [
+        redis.sismember("disposableEmailDomains", emailDomain),
+        redis.sismember("tremendousProhibitedEmailDomains", emailDomain),
+      ],
     );
 
-    if (isDisposableEmailDomain) {
+    if (isDisposableEmailDomain || isTremendousProhibited) {
       throw new DubApiError({
         code: "forbidden",
         message:

@@ -24,6 +24,3 @@ export const TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS = [
   ".ve",
   ".ye",
 ];
-
-// TODO:
-// Handle prohibited email domains: https://api.tremendous.com/prohibited_email_domains.txt
