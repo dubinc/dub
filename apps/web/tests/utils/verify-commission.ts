@@ -10,7 +10,7 @@ interface VerifyCommissionProps {
   http: HttpClient;
   customerExternalId?: string;
   invoiceId?: string;
-  expectedAmount?: number;
+  expectedSaleAmount?: number;
   expectedEarnings: number;
 }
 
@@ -18,7 +18,7 @@ export const verifyCommission = async ({
   http,
   customerExternalId,
   invoiceId,
-  expectedAmount,
+  expectedSaleAmount,
   expectedEarnings,
 }: VerifyCommissionProps) => {
   let customerId: string | undefined;
@@ -65,8 +65,8 @@ export const verifyCommission = async ({
         expect(commission.customer?.id).toEqual(customerId);
       }
 
-      if (expectedAmount !== undefined) {
-        expect(commission.amount).toEqual(expectedAmount);
+      if (expectedSaleAmount !== undefined) {
+        expect(commission.amount).toEqual(expectedSaleAmount);
       }
 
       expect(commission.earnings).toEqual(expectedEarnings);

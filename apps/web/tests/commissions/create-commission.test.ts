@@ -6,7 +6,6 @@ import {
   E2E_CUSTOMER_ID,
   E2E_LEAD_REWARD,
   E2E_PARTNER,
-  E2E_SALE_REWARD,
 } from "../utils/resource";
 import { verifyCommission } from "../utils/verify-commission";
 
@@ -126,8 +125,9 @@ describe.concurrent("POST /commissions", async () => {
     });
   });
 
-  test("create sale commission with manual amount", async () => {
+  test("create sale commission with a new customer", async () => {
     const invoiceId = `INV_${randomId()}`;
+    const customer = randomCustomer();
 
     const { status, data } = await http.post<any>({
       path: "/commissions",
@@ -136,7 +136,12 @@ describe.concurrent("POST /commissions", async () => {
         partnerId: E2E_PARTNER.id,
         saleAmount: 1000,
         invoiceId,
-        customerId: E2E_CUSTOMER_ID,
+        customer: {
+          externalId: customer.externalId,
+          email: customer.email,
+          name: customer.name,
+          country: "US",
+        },
       },
     });
 
@@ -146,8 +151,8 @@ describe.concurrent("POST /commissions", async () => {
     await verifyCommission({
       http,
       invoiceId,
-      expectedAmount: 1000,
-      expectedEarnings: E2E_SALE_REWARD.amountInCents,
+      expectedSaleAmount: 1000,
+      expectedEarnings: 5000, // Earn $50 per sale for 3 months
     });
   });
 
