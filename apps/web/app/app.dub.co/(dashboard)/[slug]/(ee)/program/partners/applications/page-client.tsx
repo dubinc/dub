@@ -13,6 +13,7 @@ import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-mod
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
+import { PartnerApplicationSource } from "@/ui/partners/partner-application-source";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -47,6 +48,7 @@ const applicationsColumns = {
   all: [
     "partner",
     "createdAt",
+    "source",
     "location",
     "website",
     "youtube",
@@ -58,6 +60,7 @@ const applicationsColumns = {
   defaultVisible: [
     "partner",
     "createdAt",
+    "source",
     "location",
     "website",
     "youtube",
@@ -88,6 +91,7 @@ export function ProgramPartnersApplicationsPageClient() {
     status: "pending",
   });
 
+  // TODO: refactor to use `/partners/applications` endpoint
   const {
     data: partners,
     error,
@@ -99,6 +103,7 @@ export function ProgramPartnersApplicationsPageClient() {
         status: "pending",
         sortBy,
         sortOrder,
+        includeApplicationEvent: true,
         includePartnerPlatforms: true,
       },
       { exclude: ["partnerId"] },
@@ -190,6 +195,16 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "createdAt",
         header: "Applied",
         accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+      },
+      {
+        id: "source",
+        header: "Source",
+        minSize: 170,
+        cell: ({ row }) => (
+          <PartnerApplicationSource
+            referralSource={row.original.applicationEvent?.referralSource}
+          />
+        ),
       },
       {
         id: "group",

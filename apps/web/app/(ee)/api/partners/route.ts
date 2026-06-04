@@ -3,6 +3,7 @@ import { getPartners } from "@/lib/api/partners/get-partners";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { applicationEventSchema } from "@/lib/application-events/schema";
 import { withWorkspace } from "@/lib/auth";
 import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
@@ -50,25 +51,22 @@ export const GET = withWorkspace(
         country: filterOverrides.country,
       }),
     };
-    const {
-      sortBy: sortByWithOldFields,
-      includePartnerPlatforms,
-      ...parsedParams
-    } = getPartnersQuerySchemaExtended
-      .extend({
-        // add old fields for backward compatibility
-        sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
-          z.enum([
-            "clicks",
-            "leads",
-            "conversions",
-            "sales",
-            "saleAmount",
-            "totalSales",
-          ]),
-        ),
-      })
-      .parse(paramsToParse);
+    const { sortBy: sortByWithOldFields, ...parsedParams } =
+      getPartnersQuerySchemaExtended
+        .extend({
+          // add old fields for backward compatibility
+          sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
+            z.enum([
+              "clicks",
+              "leads",
+              "conversions",
+              "sales",
+              "saleAmount",
+              "totalSales",
+            ]),
+          ),
+        })
+        .parse(paramsToParse);
 
     // get the final sortBy field (replace old fields with new fields)
     const sortBy =
@@ -104,11 +102,16 @@ export const GET = withWorkspace(
       saleAmount: z.number().default(0),
     });
 
-    const responseSchema = includePartnerPlatforms
-      ? baseSchema.extend({
-          platforms: z.array(partnerPlatformSchema),
-        })
-      : baseSchema;
+    const responseSchema =
+      parsedParams.includeApplicationEvent ||
+      parsedParams.includePartnerPlatforms
+        ? baseSchema.extend({
+            platforms: z.array(partnerPlatformSchema),
+            applicationEvent: applicationEventSchema
+              .pick({ referralSource: true })
+              .nullish(),
+          })
+        : baseSchema;
 
     return NextResponse.json(
       z.array(responseSchema).parse(

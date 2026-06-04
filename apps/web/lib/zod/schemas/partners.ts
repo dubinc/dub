@@ -193,23 +193,26 @@ export const getPartnersQuerySchema = z
   })
   .extend(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
+// Only Dub UI uses the following query parameters
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
   status: z
     .enum(ProgramEnrollmentStatus)
     .or(z.enum(["approved_invited"]))
     .optional(),
+  // TODO: refactor to use multi/negative filtering syntax
   partnerIds: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional(),
+  groupId: z.union([z.string(), z.array(z.string())]).optional(),
   partnerTagId: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional(),
-  groupId: z.union([z.string(), z.array(z.string())]).optional(),
   country: z.union([z.string(), z.array(z.string())]).optional(),
   referredByPartnerId: z.string().optional(),
   includePartnerPlatforms: booleanQuerySchema.optional(),
+  includeApplicationEvent: booleanQuerySchema.optional(),
   // metric range query fields (TODO: Add to public API once we finalize the syntax)
   totalClicksMin: z.coerce
     .number()
@@ -590,6 +593,11 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   customerDataSharingEnabledAt: z.date().nullish(),
   groupMoveDisabledAt: z.date().nullish(),
   platforms: z.array(partnerPlatformSchema).nullable(),
+  applicationEvent: z
+    .object({
+      referralSource: z.string(),
+    })
+    .nullish(),
   discount: DiscountSchema.pick({
     id: true,
     provider: true,
