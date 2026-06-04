@@ -426,7 +426,6 @@ async function recordEvents(args: RecordEventsArgs) {
       stripeCustomerId: targetCustomer.stripeCustomerId!,
       stripeConnectId: workspace.stripeConnectId!,
       programId,
-      limit: 60,
     });
 
     // Filter out invoices that are already associated with a commission on Dub
