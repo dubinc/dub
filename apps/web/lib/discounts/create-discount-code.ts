@@ -41,12 +41,33 @@ export async function createDiscountCode({
 
   const discountProvider = getDiscountProvider(discount.provider);
 
-  const externalDiscountCode = await discountProvider.createDiscountCode({
-    workspace,
-    discount,
-    code: finalCode,
-    shouldRetry: code ? false : true,
-  });
+  let externalDiscountCode: Awaited<
+    ReturnType<typeof discountProvider.createDiscountCode>
+  >;
+
+  try {
+    externalDiscountCode = await discountProvider.createDiscountCode({
+      workspace,
+      discount,
+      code: finalCode,
+      shouldRetry: code ? false : true,
+    });
+  } catch (error) {
+    const message = error?.raw?.message || error?.message || "";
+    const isDuplicateCode =
+      message.includes("already exists") ||
+      error?.code === "TAKEN" ||
+      error?.code === "DUPLICATE";
+
+    if (isDuplicateCode) {
+      throw new DubApiError({
+        code: "conflict",
+        message: `The discount code ${finalCode} is already in use. Please choose a different code.`,
+      });
+    }
+
+    throw error;
+  }
 
   try {
     return await prisma.discountCode.create({
@@ -79,7 +100,7 @@ export async function createDiscountCode({
       throw new DubApiError({
         code: "conflict",
         message:
-          "This discount code could not be saved because it conflicts with an existing record. Please refresh and try again.",
+          "This discount code is already in use, or this link already has a code. Please refresh and try again.",
       });
     }
 
