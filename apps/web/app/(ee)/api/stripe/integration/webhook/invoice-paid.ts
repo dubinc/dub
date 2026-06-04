@@ -369,11 +369,13 @@ export async function invoicePaid(
             workspaceId: workspace.id,
             programId: link.programId,
             partnerId: link.partnerId,
+            customerId: customer.id,
+            customerFirstSaleAt: customer.firstSaleAt ?? new Date(),
           },
           metrics: {
             current: {
-              saleAmount: saleData.amount,
               conversions: firstConversionFlag ? 1 : 0,
+              saleAmount: saleData.amount,
             },
           },
         }),
