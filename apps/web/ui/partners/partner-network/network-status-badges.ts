@@ -31,7 +31,8 @@ export const NetworkStatusBadges = {
   },
   rejected: {
     partnerTooltip: {
-      content: "Your Dub Partner Network application was rejected.",
+      content:
+        "Your Dub Partner Network application was not approved. You are not eligible to apply to this program.",
       cta: "Rejected",
     },
     label: "Rejected",
