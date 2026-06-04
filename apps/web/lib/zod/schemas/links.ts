@@ -156,6 +156,11 @@ const LinksQuerySchema = z.object({
     .meta({ deprecated: true }),
 });
 
+const linksSortBy = z
+  .enum(["createdAt", "clicks", "saleAmount", "lastClicked"])
+  .optional()
+  .default("createdAt");
+
 export const getLinksQuerySchemaBase = LinksQuerySchema.extend({}).extend({
   ...getCursorPaginationQuerySchema({
     example: "link_1KAP4CDPBSVMMBMH9XX3YZZ0Z...",
@@ -259,6 +264,7 @@ export const exportLinksColumnsDefault = exportLinksColumns
 export const linksExportQuerySchema = getLinksQuerySchemaBase
   .omit({ page: true, pageSize: true })
   .extend({
+    sortBy: linksSortBy,
     columns: z
       .string()
       .default(exportLinksColumnsDefault.join(","))
@@ -841,10 +847,7 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().extend({
 
 export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.extend({
   // Only Dub UI uses the following query parameters
-  sortBy: z
-    .enum(["createdAt", "clicks", "saleAmount", "lastClicked"])
-    .optional()
-    .default("createdAt"),
+  sortBy: linksSortBy,
   includeUser: booleanQuerySchema.default(false),
   includeWebhooks: booleanQuerySchema.default(false),
   includeDashboard: booleanQuerySchema.default(false),
