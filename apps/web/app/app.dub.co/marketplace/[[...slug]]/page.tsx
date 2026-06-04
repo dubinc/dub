@@ -1,3 +1,4 @@
+import { getNetworkProgram } from "@/lib/fetchers/get-network-program";
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { MarketplaceExternalRouter } from "@/ui/partners/program-marketplace/external/marketplace-external-router";
 import {
@@ -37,8 +38,21 @@ export async function generateMetadata(props: {
   if (segments.length === 1 && segments[0] === "all") {
     title = "All Programs";
     description = "Browse all partner programs on Dub.";
-  } else if (segments.length === 1) {
-    title = "Program Details";
+  } else if (
+    segments.length === 1 &&
+    segments[0] !== "all" &&
+    segments[0] !== "popular"
+  ) {
+    const program = await getNetworkProgram({ slug: segments[0] });
+
+    if (program) {
+      title = program.name;
+      description =
+        program.description ||
+        `Join the ${program.name} affiliate program on Dub's Partner Network.`;
+    } else {
+      title = "Program Details";
+    }
   } else if (segments.length === 2 && segments[0] === "c") {
     const category = Object.values(Category).find(
       (value) => categoryToSlug(value) === segments[1],

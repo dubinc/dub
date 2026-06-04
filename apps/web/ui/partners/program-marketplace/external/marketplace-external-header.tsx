@@ -1,8 +1,29 @@
+"use client";
+
 import { Button, Wordmark } from "@dub/ui";
 import { APP_DOMAIN, PARTNERS_DOMAIN, cn } from "@dub/utils";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { MARKETPLACE_RESERVED_SLUGS } from "../utils/category-slug";
+
+function getPartnersLoginHref(pathname: string) {
+  const segments = pathname.split("/").filter(Boolean);
+
+  if (
+    segments[0] === "marketplace" &&
+    segments.length === 2 &&
+    !MARKETPLACE_RESERVED_SLUGS.has(segments[1])
+  ) {
+    return `${PARTNERS_DOMAIN}/login?next=${encodeURIComponent(`/marketplace/${segments[1]}`)}`;
+  }
+
+  return `${PARTNERS_DOMAIN}/login`;
+}
 
 export function MarketplaceExternalHeader() {
+  const pathname = usePathname();
+  const loginHref = getPartnersLoginHref(pathname);
+
   return (
     <header className="border-border-subtle border-b bg-white">
       <div className="mx-auto flex h-16 w-full max-w-screen-xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -19,7 +40,7 @@ export function MarketplaceExternalHeader() {
 
         <div className="flex items-center gap-2">
           <Link
-            href={`${PARTNERS_DOMAIN}/login`}
+            href={loginHref}
             className="text-content-default hover:text-content-emphasis px-3 py-2 text-sm font-medium transition-colors"
           >
             Log in

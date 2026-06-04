@@ -119,3 +119,7 @@ export function getMarketplaceCanonicalUrl(pathname: string) {
 export function getMarketplacePartnersProgramUrl(programSlug: string) {
   return `https://partners.dub.co${getMarketplaceProgramHref(programSlug)}`;
 }
+
+export function getMarketplacePublicApplyHref(programSlug: string) {
+  return getMarketplacePartnersProgramUrl(programSlug);
+}
