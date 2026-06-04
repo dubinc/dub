@@ -845,8 +845,8 @@ export const getLinkInfoQuerySchema = domainKeySchema.partial().extend({
     .meta({ example: "123456" }),
 });
 
+// Only Dub UI uses the following query parameters
 export const getLinksQuerySchemaExtended = getLinksQuerySchemaBase.extend({
-  // Only Dub UI uses the following query parameters
   sortBy: linksSortBy,
   includeUser: booleanQuerySchema.default(false),
   includeWebhooks: booleanQuerySchema.default(false),
