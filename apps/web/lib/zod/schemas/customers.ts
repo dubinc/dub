@@ -139,7 +139,7 @@ export const CustomerSchema = z.object({
     .describe(
       "The unique ID of the customer. You may use either the customer's `id` on Dub (obtained via `/customers` endpoint) or their `externalId` (unique ID within your system, prefixed with `ext_`, e.g. `ext_123`).",
     ),
-  name: z.string().describe("Name of the customer."),
+  name: z.string().nullish().describe("Name of the customer."),
   email: z.string().nullish().describe("Email of the customer."),
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
   externalId: z
