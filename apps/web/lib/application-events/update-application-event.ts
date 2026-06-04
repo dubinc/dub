@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { PartnerNetworkStatus, Prisma } from "@dub/prisma/client";
 import { cookies } from "next/headers";
 import { getApplicationEventCookieName } from "./utils";
 
@@ -7,14 +7,14 @@ import { getApplicationEventCookieName } from "./utils";
 // event via the browser cookie and backfill partnerId + submittedAt.
 // Fallback to the (programId, partnerId) lookup if no cookie is present (e.g. the
 // partner visited while already logged in on a different browser).
-export async function markApplicationEventSubmitted({
-  programId,
-  partnerId,
-  applicationId,
-}: Pick<
-  Prisma.ProgramEnrollmentCreateManyInput,
-  "programId" | "partnerId" | "applicationId"
->) {
+export async function markApplicationEventSubmitted(
+  programEnrollment: Pick<
+    Prisma.ProgramEnrollmentCreateManyInput,
+    "programId" | "partnerId" | "applicationId"
+  >,
+  { partnerNetworkStatus }: { partnerNetworkStatus: PartnerNetworkStatus },
+) {
+  const { programId, partnerId, applicationId } = programEnrollment;
   const cookieStore = await cookies();
   const cookieName = getApplicationEventCookieName(programId);
   const applicationEventId = cookieStore.get(cookieName)?.value;
@@ -25,21 +25,44 @@ export async function markApplicationEventSubmitted({
     return;
   }
 
+  const applicationEvent = await prisma.programApplicationEvent.findUnique({
+    where: {
+      ...(applicationEventId
+        ? { id: applicationEventId }
+        : { programId_partnerId: { programId, partnerId } }),
+    },
+  });
+
+  if (!applicationEvent) {
+    console.error(
+      "[markApplicationEventSubmitted]: No application event found, skipping...",
+    );
+    return;
+  }
+
   try {
-    await prisma.programApplicationEvent.updateMany({
+    await prisma.programApplicationEvent.update({
       where: {
-        ...(applicationEventId
-          ? { id: applicationEventId }
-          : { programId, partnerId }),
-        submittedAt: null,
+        id: applicationEvent.id,
       },
       data: {
-        partnerId,
         submittedAt: new Date(),
+        partnerId,
         programApplicationId: applicationId,
+        ...(applicationEvent.referralSource === "marketplace" &&
+        !["approved", "trusted"].includes(partnerNetworkStatus)
+          ? {
+              referralSource: "direct",
+            }
+          : {}),
       },
     });
-  } catch {}
+  } catch (error) {
+    console.error(
+      "[markApplicationEventSubmitted]: Error updating application event:",
+      error,
+    );
+  }
 }
 
 export async function trackApplicationEvents({

@@ -381,7 +381,9 @@ async function createApplicationAndEnrollment({
           },
         }),
 
-        markApplicationEventSubmitted(programEnrollment),
+        markApplicationEventSubmitted(programEnrollment, {
+          partnerNetworkStatus: partner.networkStatus,
+        }),
       ]);
     })(),
   );

@@ -260,7 +260,9 @@ export async function completeProgramApplications(userEmail: string) {
 
     await Promise.allSettled(
       programEnrollments.map((programEnrollment) =>
-        markApplicationEventSubmitted(programEnrollment),
+        markApplicationEventSubmitted(programEnrollment, {
+          partnerNetworkStatus: partner.networkStatus,
+        }),
       ),
     );
   } catch (error) {

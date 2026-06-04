@@ -45,6 +45,7 @@ import {
   PartnerFraudBanner,
 } from "./fraud-risks/partner-fraud-banner";
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
+import { PartnerApplicationSource } from "./partner-application-source";
 import { PartnerAvatar } from "./partner-avatar";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { PartnerStarButton } from "./partner-star-button";
@@ -175,8 +176,7 @@ export function PartnerInfoCards({
             >
               <span>Applied {formatDate(partner.createdAt)}</span>
             </TimestampTooltip>
-            {/* TODO: add source column back once we fix application source display */}
-            {/* {applicationReferralSource && (
+            {applicationReferralSource && (
               <>
                 <span>via</span>
                 <PartnerApplicationSource
@@ -184,7 +184,7 @@ export function PartnerInfoCards({
                   variant="inline"
                 />
               </>
-            )} */}
+            )}
           </span>
         ) : (
           `${isPendingApplication ? "Applied" : "Partner since"} ${formatDate(partner.createdAt)}`
