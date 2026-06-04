@@ -848,6 +848,8 @@ interface WorkflowIdentity {
   programId: string;
   partnerId: string;
   groupId?: string;
+  customerId?: string;
+  customerFirstSaleAt?: Date;
 }
 
 interface PartnerMetrics {

@@ -47,6 +47,8 @@ const applicationsColumns = {
   all: [
     "partner",
     "createdAt",
+    "source",
+    "group",
     "location",
     "website",
     "youtube",
@@ -58,6 +60,7 @@ const applicationsColumns = {
   defaultVisible: [
     "partner",
     "createdAt",
+    "source",
     "location",
     "website",
     "youtube",
@@ -88,6 +91,7 @@ export function ProgramPartnersApplicationsPageClient() {
     status: "pending",
   });
 
+  // TODO: refactor to use `/partners/applications` endpoint
   const {
     data: partners,
     error,
@@ -99,6 +103,7 @@ export function ProgramPartnersApplicationsPageClient() {
         status: "pending",
         sortBy,
         sortOrder,
+        includeApplicationEvent: true,
         includePartnerPlatforms: true,
       },
       { exclude: ["partnerId"] },
@@ -163,7 +168,7 @@ export function ProgramPartnersApplicationsPageClient() {
     });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "applications-table-columns",
+    "applications-table-columns-v2",
     applicationsColumns,
   );
 
@@ -191,10 +196,20 @@ export function ProgramPartnersApplicationsPageClient() {
         header: "Applied",
         accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
       },
+      // TODO: add source column back once we fix application source display
+      // {
+      //   id: "source",
+      //   header: "Source",
+      //   minSize: 170,
+      //   cell: ({ row }) => (
+      //     <PartnerApplicationSource
+      //       referralSource={row.original.applicationEvent?.referralSource}
+      //     />
+      //   ),
+      // },
       {
         id: "group",
         header: "Group",
-        enableHiding: false,
         minSize: 150,
         cell: ({ row }) => {
           if (!groups || !row.original.groupId) {

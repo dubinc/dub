@@ -152,12 +152,47 @@ export function PartnerInfoCards({
   ];
 
   if ((isEnrolled || isAdmin) && partner) {
+    const isPendingApplication =
+      "status" in partner && partner.status === "pending";
+    const applicationReferralSource =
+      isEnrolled && partner.applicationEvent?.referralSource;
+
     basicFields = basicFields.concat([
       {
         id: "createdAt",
-        icon: <Users className="size-3.5" />,
-        text: `${"status" in partner && partner.status === "pending" ? "Applied" : "Partner since"} ${formatDate(partner.createdAt)}`,
-        timestamp: partner.createdAt,
+        icon: isPendingApplication ? (
+          <CalendarIcon className="size-3.5" />
+        ) : (
+          <Users className="size-3.5" />
+        ),
+        text: isPendingApplication ? (
+          <span className="inline-flex flex-wrap items-center gap-1">
+            <TimestampTooltip
+              timestamp={partner.createdAt}
+              rows={["local", "utc", "unix"]}
+              side="left"
+              delayDuration={250}
+            >
+              <span>Applied {formatDate(partner.createdAt)}</span>
+            </TimestampTooltip>
+            {/* TODO: add source column back once we fix application source display */}
+            {/* {applicationReferralSource && (
+              <>
+                <span>via</span>
+                <PartnerApplicationSource
+                  referralSource={applicationReferralSource}
+                  variant="inline"
+                />
+              </>
+            )} */}
+          </span>
+        ) : (
+          `${isPendingApplication ? "Applied" : "Partner since"} ${formatDate(partner.createdAt)}`
+        ),
+        timestamp:
+          isPendingApplication && applicationReferralSource
+            ? undefined
+            : partner.createdAt,
       },
       {
         id: "payoutMethod" as const,
@@ -309,7 +344,11 @@ export function PartnerInfoCards({
                     {text !== undefined ? (
                       <>
                         {icon}
-                        <span className="text-xs font-medium">{text}</span>
+                        {typeof text === "string" ? (
+                          <span className="text-xs font-medium">{text}</span>
+                        ) : (
+                          <div className="text-xs font-medium">{text}</div>
+                        )}
                       </>
                     ) : (
                       <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
