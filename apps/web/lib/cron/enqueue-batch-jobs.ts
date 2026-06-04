@@ -1,6 +1,7 @@
 import { log } from "@dub/utils";
 import type { PublishBatchRequest } from "@upstash/qstash";
 import { qstash } from ".";
+import { isLocalDev } from "../api/environment";
 
 type EnqueueBatchJobsProps = PublishBatchRequest<unknown> & {
   queueName:
@@ -9,6 +10,7 @@ type EnqueueBatchJobsProps = PublishBatchRequest<unknown> & {
     | "create-discount-code"
     | "sync-bounty-social-metrics"
     | "process-hubspot-webhook"
+    | "process-intercom-webhook"
     | "delete-discount-code"
     | "create-referral-commissions";
 };
@@ -18,13 +20,15 @@ export async function enqueueBatchJobs(jobs: EnqueueBatchJobsProps[]) {
   try {
     const result = await qstash.batchJSON(jobs);
 
-    console.log(
-      `[enqueueBatchJobs] ${result.length} batch jobs enqueued successfully.`,
-      {
-        result,
-        jobs,
-      },
-    );
+    if (isLocalDev) {
+      console.log(
+        `[enqueueBatchJobs] ${result.length} batch jobs enqueued successfully.`,
+        {
+          result,
+          jobs,
+        },
+      );
+    }
 
     return result;
   } catch (error) {
