@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
+import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@dub/prisma";
-import { Discount, Link, Partner, Project } from "@dub/prisma/client";
+import { Discount, Link, Partner, Prisma, Project } from "@dub/prisma/client";
 import { constructDiscountCode } from "./construct-discount-code";
 import { getDiscountProvider } from "./discount-provider";
 
@@ -19,33 +20,69 @@ export async function createDiscountCode({
   discount,
   code,
 }: CreateDiscountCodeArgs) {
-  let finalCode = code;
-
-  // Construct the discount code if no code is provided
-  if (!finalCode) {
-    finalCode = constructDiscountCode({
+  const finalCode =
+    code ||
+    constructDiscountCode({
       partner,
       discount,
+    });
+
+  const linkWithCode = await prisma.link.findUnique({
+    where: { id: link.id },
+    select: { discountCode: { select: { code: true } } },
+  });
+
+  if (linkWithCode?.discountCode) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `This link already has a discount code (${linkWithCode.discountCode.code}) assigned.`,
     });
   }
 
   const discountProvider = getDiscountProvider(discount.provider);
 
-  const discountCode = await discountProvider.createDiscountCode({
+  const externalDiscountCode = await discountProvider.createDiscountCode({
     workspace,
     discount,
     code: finalCode,
     shouldRetry: code ? false : true,
   });
 
-  return await prisma.discountCode.create({
-    data: {
-      id: createId({ prefix: "dcode_" }),
-      code: discountCode.code,
-      programId: discount.programId,
-      partnerId: partner.id,
-      linkId: link.id,
-      discountId: discount.id,
-    },
-  });
+  try {
+    return await prisma.discountCode.create({
+      data: {
+        id: createId({ prefix: "dcode_" }),
+        code: externalDiscountCode.code,
+        programId: discount.programId,
+        partnerId: partner.id,
+        linkId: link.id,
+        discountId: discount.id,
+      },
+    });
+  } catch (error) {
+    try {
+      await discountProvider.disableDiscountCode({
+        workspace,
+        code: externalDiscountCode.code,
+      });
+    } catch (rollbackError) {
+      console.error("Failed to rollback external discount code", {
+        code: externalDiscountCode.code,
+        rollbackError,
+      });
+    }
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new DubApiError({
+        code: "conflict",
+        message:
+          "This discount code could not be saved because it conflicts with an existing record. Please refresh and try again.",
+      });
+    }
+
+    throw error;
+  }
 }
