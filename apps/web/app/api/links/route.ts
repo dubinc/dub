@@ -31,6 +31,7 @@ export const GET = withWorkspace(
       ...filters,
       workspaceId: workspace.id,
       folderIds,
+      sortBy: workspace.totalLinks > 10_000 ? "createdAt" : filters.sortBy,
       searchMode:
         workspace.totalLinks > MEGA_WORKSPACE_LINKS_LIMIT ? "exact" : "fuzzy",
     });
