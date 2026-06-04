@@ -49,6 +49,7 @@ const applicationsColumns = {
     "partner",
     "createdAt",
     "source",
+    "group",
     "location",
     "website",
     "youtube",
@@ -168,7 +169,7 @@ export function ProgramPartnersApplicationsPageClient() {
     });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "applications-table-columns",
+    "applications-table-columns-v2",
     applicationsColumns,
   );
 
@@ -209,7 +210,6 @@ export function ProgramPartnersApplicationsPageClient() {
       {
         id: "group",
         header: "Group",
-        enableHiding: false,
         minSize: 150,
         cell: ({ row }) => {
           if (!groups || !row.original.groupId) {

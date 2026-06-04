@@ -155,7 +155,8 @@ export function PartnerInfoCards({
   if ((isEnrolled || isAdmin) && partner) {
     const isPendingApplication =
       "status" in partner && partner.status === "pending";
-    const applicationReferralSource = partner.applicationEvent?.referralSource;
+    const applicationReferralSource =
+      isEnrolled && partner.applicationEvent?.referralSource;
 
     basicFields = basicFields.concat([
       {
@@ -180,7 +181,6 @@ export function PartnerInfoCards({
               <PartnerApplicationSource
                 referralSource={applicationReferralSource}
                 variant="inline"
-                groupName={group?.name}
               />
             </span>
           ) : (
