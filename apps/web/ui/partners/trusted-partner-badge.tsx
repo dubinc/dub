@@ -5,14 +5,16 @@ const TRUSTED_BADGE_SRC = "https://assets.dub.co/icons/trusted-badge.svg";
 
 export function TrustedPartnerBadge({
   variant = "overlay",
+  size = "small",
 }: {
   variant?: "overlay" | "inline";
+  size?: "small" | "large";
 }) {
   const badge = (
     <img
       alt="Trusted partner badge"
       src={TRUSTED_BADGE_SRC}
-      className={cn("shrink-0", variant === "inline" ? "size-3.5" : "size-6")}
+      className={cn("shrink-0", size === "small" ? "size-3.5" : "size-5")}
     />
   );
 

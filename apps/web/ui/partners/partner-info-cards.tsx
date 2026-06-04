@@ -46,8 +46,8 @@ import {
 } from "./fraud-risks/partner-fraud-banner";
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
 import { PartnerAvatar } from "./partner-avatar";
-import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
 import { PartnerInfoGroup } from "./partner-info-group";
+import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
 import { PartnerStarButton } from "./partner-star-button";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
 import { PartnerTagsList } from "./partner-tags-list";
@@ -56,7 +56,6 @@ import {
   getPayoutMethodLabel,
 } from "./payouts/payout-method-config";
 import { ProgramRewardList } from "./program-reward-list";
-import { TrustedPartnerBadge } from "./trusted-partner-badge";
 import {
   UpdatePartnerTagsModal,
   useUpdatePartnerTagsModal,
@@ -265,9 +264,6 @@ export function PartnerInfoCards({
                 ) : (
                   <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
                 )}
-                {partner?.networkStatus === "trusted" && (
-                  <TrustedPartnerBadge />
-                )}
               </div>
 
               <div className="flex items-center gap-2">
@@ -295,6 +291,7 @@ export function PartnerInfoCards({
                   {"networkStatus" in partner && partner.networkStatus && (
                     <PartnerNetworkStatusBadge
                       networkStatus={partner.networkStatus}
+                      size="large"
                     />
                   )}
 

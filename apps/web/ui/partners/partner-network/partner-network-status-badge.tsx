@@ -1,14 +1,17 @@
 import { PartnerNetworkStatus } from "@dub/prisma/client";
 import { BadgeCheck2Fill, Tooltip } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { TrustedPartnerBadge } from "../trusted-partner-badge";
 
 export function PartnerNetworkStatusBadge({
   networkStatus,
+  size = "small",
 }: {
   networkStatus: PartnerNetworkStatus;
+  size?: "small" | "large";
 }) {
   if (networkStatus === "trusted") {
-    return <TrustedPartnerBadge variant="inline" />;
+    return <TrustedPartnerBadge variant="inline" size={size} />;
   }
 
   if (networkStatus === "approved") {
@@ -28,7 +31,12 @@ export function PartnerNetworkStatusBadge({
           </div>
         }
       >
-        <BadgeCheck2Fill className="size-3.5 shrink-0 text-blue-500" />
+        <BadgeCheck2Fill
+          className={cn(
+            "shrink-0 text-blue-500",
+            size === "small" ? "size-3.5" : "size-5",
+          )}
+        />
       </Tooltip>
     );
   }
