@@ -422,6 +422,16 @@ export const rewardContextSchema = z.object({
       productId: z.string().nullish(),
       amount: z.number().nullish(),
       type: z.enum(["new", "recurring"]).nullish(),
+      products: z
+        .array(
+          z.object({
+            id: z.string(),
+            amount: z.number(),
+            quantity: z.number(),
+          }),
+        )
+        .nullish()
+        .describe("Only used in Stripe integration."),
     })
     .optional(),
 
