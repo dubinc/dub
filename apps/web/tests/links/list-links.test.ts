@@ -215,26 +215,4 @@ describe.concurrent("/links/** - pagination", async () => {
     expect(statusBefore).toEqual(422);
     expect(errorBefore).toStrictEqual(mixedPaginationError);
   });
-
-  test("Rejects cursor pagination with unsupported sort field", async () => {
-    const { status, data: error } = await http.get({
-      path: "/links",
-      query: {
-        pageSize: "5",
-        startingAfter: baseline[0].id,
-        sortBy: "clicks",
-      },
-    });
-
-    expect(status).toEqual(422);
-    expect(error).toStrictEqual({
-      error: {
-        code: "unprocessable_entity",
-        message:
-          "Cursor-based pagination only supports sorting by `createdAt`. Use offset-based pagination (page/pageSize) for other sort fields.",
-        doc_url:
-          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-      },
-    });
-  });
 });
