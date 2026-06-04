@@ -1,9 +1,12 @@
 import * as z from "zod/v4";
 import { hubSpotAuthTokenSchema, hubSpotContactSchema } from "./hubspot/schema";
+import { intercomCredentialsSchema } from "./intercom/schema";
 
 export type HubSpotAuthToken = z.infer<typeof hubSpotAuthTokenSchema>;
 
 export type HubSpotContact = z.infer<typeof hubSpotContactSchema>;
+
+export type IntercomCredentials = z.infer<typeof intercomCredentialsSchema>;
 
 export type SlackAuthToken = {
   appId: string;

@@ -2,6 +2,7 @@ import type { PlanProps } from "@/lib/types";
 import {
   APPSFLYER_INTEGRATION_ID,
   HUBSPOT_INTEGRATION_ID,
+  INTERCOM_INTEGRATION_ID,
   SHOPIFY_INTEGRATION_ID,
   STRIPE_INTEGRATION_ID,
 } from "@dub/utils";
@@ -132,6 +133,11 @@ export const WEBHOOK_REQUEST_ACTORS_BY_PATH = {
     name: "HubSpot",
     image:
       "https://dubassets.com/integrations/int_ffw3qgrFAahY6qs1hXaH3wHS_JPoCPOh",
+  },
+  "/intercom/webhook": {
+    id: INTERCOM_INTEGRATION_ID,
+    name: "Intercom",
+    image: "",
   },
 } as const;
 
