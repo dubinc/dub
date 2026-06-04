@@ -212,7 +212,6 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
   country: z.union([z.string(), z.array(z.string())]).optional(),
   referredByPartnerId: z.string().optional(),
   includePartnerPlatforms: booleanQuerySchema.optional(),
-  includeApplicationEvent: booleanQuerySchema.optional(),
   // metric range query fields (TODO: Add to public API once we finalize the syntax)
   totalClicksMin: z.coerce
     .number()
@@ -593,11 +592,6 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   customerDataSharingEnabledAt: z.date().nullish(),
   groupMoveDisabledAt: z.date().nullish(),
   platforms: z.array(partnerPlatformSchema).nullable(),
-  applicationEvent: z
-    .object({
-      referralSource: z.string(),
-    })
-    .nullish(),
   discount: DiscountSchema.pick({
     id: true,
     provider: true,

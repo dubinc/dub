@@ -19,7 +19,6 @@ export async function getPartners(filters: PartnerFilters) {
     sortBy,
     sortOrder,
     programId,
-    includeApplicationEvent,
     includePartnerPlatforms: _includePartnerPlatforms,
     includeGroup = false,
     ...enrollmentRest
@@ -45,7 +44,6 @@ export async function getPartners(filters: PartnerFilters) {
         },
       },
       links: true,
-      ...(includeApplicationEvent ? { applicationEvent: true } : {}),
       ...(includeGroup
         ? {
             partnerGroup: {

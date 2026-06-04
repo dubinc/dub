@@ -46,6 +46,7 @@ import {
 } from "./fraud-risks/partner-fraud-banner";
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
 import { PartnerAvatar } from "./partner-avatar";
+import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { PartnerStarButton } from "./partner-star-button";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
@@ -154,8 +155,6 @@ export function PartnerInfoCards({
   if ((isEnrolled || isAdmin) && partner) {
     const isPendingApplication =
       "status" in partner && partner.status === "pending";
-    const applicationReferralSource =
-      isEnrolled && partner.applicationEvent?.referralSource;
 
     basicFields = basicFields.concat([
       {
@@ -175,24 +174,11 @@ export function PartnerInfoCards({
             >
               <span>Applied {formatDate(partner.createdAt)}</span>
             </TimestampTooltip>
-            {/* TODO: add source column back once we fix application source display */}
-            {/* {applicationReferralSource && (
-              <>
-                <span>via</span>
-                <PartnerApplicationSource
-                  referralSource={applicationReferralSource}
-                  variant="inline"
-                />
-              </>
-            )} */}
           </span>
         ) : (
           `${isPendingApplication ? "Applied" : "Partner since"} ${formatDate(partner.createdAt)}`
         ),
-        timestamp:
-          isPendingApplication && applicationReferralSource
-            ? undefined
-            : partner.createdAt,
+        timestamp: isPendingApplication ? undefined : partner.createdAt,
       },
       {
         id: "payoutMethod" as const,
@@ -305,6 +291,12 @@ export function PartnerInfoCards({
                   <span className="text-content-emphasis text-lg font-semibold">
                     {partner.name}
                   </span>
+
+                  {"networkStatus" in partner && partner.networkStatus && (
+                    <PartnerNetworkStatusBadge
+                      networkStatus={partner.networkStatus}
+                    />
+                  )}
 
                   {showFraudIndicator && (
                     <PartnerFraudIndicator partnerId={partner.id} />
