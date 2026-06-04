@@ -38,7 +38,7 @@ export const executeCompleteBountyWorkflow = async ({
 
   const { bountyId } = action.data;
   const { identity, metrics } = context;
-  const { partnerId, groupId } = identity;
+  const { partnerId, groupId, customerId, customerFirstSaleAt } = identity;
 
   if (!groupId) {
     console.error("Partner groupId not set in the context.");
@@ -116,6 +116,17 @@ export const executeCompleteBountyWorkflow = async ({
         return;
       }
     }
+  }
+
+  if (
+    bounty.performanceScope === "new" &&
+    customerFirstSaleAt &&
+    customerFirstSaleAt < bounty.startsAt
+  ) {
+    console.log(
+      `Bounty ${bounty.id} is for net-new revenue only and partner ${partnerId} referred customer ${customerId} before the bounty started, skipping...`,
+    );
+    return;
   }
 
   console.log(
