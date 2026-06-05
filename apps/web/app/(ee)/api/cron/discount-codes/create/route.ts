@@ -96,6 +96,17 @@ export const POST = withCron(async ({ rawBody }) => {
       );
     }
 
+    // Eg: This application does not have the required permissions for this endpoint on account 'acct_xxx'.
+    // Having the 'read_write' scope would allow this request to continue.
+    if (
+      error instanceof Error &&
+      error.message.includes(
+        "This application does not have the required permissions",
+      )
+    ) {
+      return logAndRespond(error.message, { logLevel: "warn" });
+    }
+
     throw error;
   }
 
