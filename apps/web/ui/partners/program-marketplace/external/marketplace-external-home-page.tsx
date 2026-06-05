@@ -12,7 +12,9 @@ export async function MarketplaceExternalHomePage() {
   return (
     <MarketplaceExternalShell variant="home">
       <div className="flex flex-col gap-10">
-        <FeaturedPrograms programs={featuredPrograms} showStatus={false} />
+        <div className="-mx-4 -mt-8 px-2 sm:-mx-6 lg:-mx-8">
+          <FeaturedPrograms programs={featuredPrograms} showStatus={false} />
+        </div>
         <MarketplaceCategories />
         {MARKETPLACE_HOME_ROWS.map((row, index) => (
           <MarketplaceProgramRow

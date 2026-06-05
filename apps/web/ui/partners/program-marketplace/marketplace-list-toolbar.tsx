@@ -211,7 +211,7 @@ function ToolbarLayout({
         ) : null}
       </button>
 
-      <div className="hidden items-center gap-4 lg:flex lg:gap-6">
+      <div className="hidden items-center gap-4 lg:flex lg:gap-2">
         <MarketplaceFilterControl
           activeFilterCount={activeFilterCount}
           onClear={onClearFilters}

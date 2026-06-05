@@ -51,11 +51,12 @@ export function FeaturedPrograms({
       <Carousel autoplay={{ delay: 5000 }} opts={{ loop: true }}>
         <CarouselContent className="items-stretch">
           {programs ? (
-            programs.map((program) => (
+            programs.map((program, index) => (
               <CarouselItem key={program.id} className="basis-full">
                 <FeaturedProgramCard
                   program={program}
                   showStatus={showStatus}
+                  colorIndex={index}
                 />
               </CarouselItem>
             ))

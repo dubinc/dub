@@ -16,7 +16,7 @@ export function MarketplaceExternalShell({
 }) {
   if (variant === "none") {
     return (
-      <div className={cn(CONTAINER_CLASS, "relative z-10 py-10")}>
+      <div className={cn(CONTAINER_CLASS, "relative z-10 pt-6")}>
         {children}
       </div>
     );
@@ -42,7 +42,7 @@ export function MarketplaceExternalShell({
 
   return (
     <div className="relative z-10 flex flex-col">
-      <div className={cn(CONTAINER_CLASS, "py-10")}>
+      <div className={cn(CONTAINER_CLASS, "pb-12 pt-20")}>
         <div className="flex flex-col gap-4">
           <h1 className="font-display text-[50px] font-medium leading-[1.1] text-neutral-900">
             {resolvedTitle}

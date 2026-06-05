@@ -7,73 +7,84 @@ import {
 import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
 import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
 import { Tooltip } from "@dub/ui";
-import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ProgramStatusBadge } from "./program-status-badge";
+import { useImageAccentColor } from "./use-image-accent-color";
+
+const FEATURED_CARD_BACKGROUNDS = [
+  "#FFF1F2", // rose-50
+  "#F0F9FF", // sky-50
+  "#FFFBEB", // amber-50
+  "#F5F3FF", // violet-50
+  "#ECFDF5", // emerald-50
+  "#FFF7ED", // orange-50
+  "#FDF4FF", // fuchsia-50
+  "#F0FDFA", // teal-50
+  "#EEF2FF", // indigo-50
+  "#F7FEE7", // lime-50
+];
+
+export function getFeaturedCardBackground(index: number) {
+  return FEATURED_CARD_BACKGROUNDS[
+    ((index % FEATURED_CARD_BACKGROUNDS.length) +
+      FEATURED_CARD_BACKGROUNDS.length) %
+      FEATURED_CARD_BACKGROUNDS.length
+  ];
+}
 
 export function FeaturedProgramCard({
   program,
   showStatus = true,
+  colorIndex = 0,
 }: {
   program: NetworkProgramProps;
   showStatus?: boolean;
+  colorIndex?: number;
 }) {
   const router = useRouter();
 
-  const isDarkImage = program.marketplaceHeaderImage?.includes("-dark");
+  // Derive the tint from the program's image; fall back to the palette if
+  // extraction is blocked (CORS / no image).
+  const { color: accentColor, ready: accentReady } = useImageAccentColor(
+    program.marketplaceHeaderImage ?? program.logo,
+  );
+  const backgroundColor = accentColor ?? getFeaturedCardBackground(colorIndex);
 
   return (
     <Link
       href={getMarketplaceProgramHref(program.slug)}
-      className="border-border-subtle relative block h-full overflow-hidden rounded-xl border p-6"
+      className="relative flex h-full flex-col-reverse gap-4 overflow-hidden rounded-2xl p-2 sm:min-h-[340px] sm:flex-row"
     >
-      {program.marketplaceHeaderImage && (
-        <>
-          <img
-            src={program.marketplaceHeaderImage}
-            alt={program.name}
-            className="absolute inset-0 size-full object-cover"
-          />
-          <div
-            className={cn(
-              "absolute inset-x-0 bottom-0 h-1/2 backdrop-blur-[2px] xl:hidden",
-              isDarkImage
-                ? "bg-gradient-to-t from-black/50 to-transparent"
-                : "bg-gradient-to-t from-white/50 to-transparent",
-            )}
-            aria-hidden
-          />
-        </>
-      )}
+      {/* Color layer: the final tint fades in once, with no intermediate
+          (placeholder) color, so there's no hue flicker. Cached images are
+          marked ready immediately, so they appear instantly. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 transition-opacity duration-500 ease-out"
+        style={{ backgroundColor, opacity: accentReady ? 1 : 0 }}
+      />
 
-      <div className="relative">
-        <div className="flex justify-between gap-4">
+      {/* Content (z-20 so the overlapping logo sits above the image on mobile) */}
+      <div className="relative z-20 flex min-w-0 flex-1 flex-col p-6">
+        {/* On mobile the logo overlaps the bottom-left of the stacked image */}
+        <div className="-mt-16 flex justify-between gap-4 sm:mt-0">
           <img
             src={program.logo || `${OG_AVATAR_URL}${program.name}`}
             alt={program.name}
-            className="size-12 rounded-full border border-white/20"
+            className="size-12 rounded-full border-4 border-neutral-100 sm:border sm:border-black/5"
           />
 
           {showStatus ? <ProgramStatusBadge program={program} /> : null}
         </div>
 
-        <div className="mt-10 flex flex-col">
-          <span
-            className={cn(
-              "text-3xl font-semibold",
-              isDarkImage && "text-content-inverted",
-            )}
-          >
+        <div className="flex flex-col pt-4 sm:mt-auto sm:pt-10">
+          <span className="text-content-emphasis text-2xl font-semibold">
             {program.name}
           </span>
 
-          <div
-            className={cn(
-              "mt-1 line-clamp-2 max-w-sm text-sm",
-              isDarkImage && "text-content-inverted",
-            )}
-          >
+          <div className="text-content-default mt-1 line-clamp-2 max-w-sm text-sm">
             {program.description ||
               `${program.name} is a program in the Dub Partner Network. Join the network to start partnering with them.`}
           </div>
@@ -81,18 +92,12 @@ export function FeaturedProgramCard({
           <div className="mt-5 flex gap-8">
             {Boolean(program.rewards?.length || program.discount) && (
               <div>
-                <span
-                  className={cn(
-                    "text-content-subtle block text-xs font-medium",
-                    isDarkImage && "text-content-inverted/80",
-                  )}
-                >
+                <span className="text-content-subtle block text-xs font-medium">
                   Rewards
                 </span>
                 <ProgramRewardsDisplay
                   rewards={program.rewards}
                   discount={program.discount}
-                  isDarkImage={isDarkImage}
                   onRewardClick={(reward) =>
                     router.push(
                       getMarketplaceAllHref({ rewardType: reward.event }),
@@ -111,12 +116,7 @@ export function FeaturedProgramCard({
             )}
             {Boolean(program.categories.length) && (
               <div className="min-w-0">
-                <span
-                  className={cn(
-                    "text-content-subtle block text-xs font-medium",
-                    isDarkImage && "text-content-inverted/80",
-                  )}
-                >
+                <span className="text-content-subtle block text-xs font-medium">
                   Category
                 </span>
                 <div className="mt-2 flex items-center gap-1.5">
@@ -129,10 +129,7 @@ export function FeaturedProgramCard({
                         onClick={() =>
                           router.push(getMarketplaceCategoryHref(category))
                         }
-                        className={cn(
-                          "hover:bg-bg-default/10 active:bg-bg-default/20",
-                          isDarkImage && "text-content-inverted",
-                        )}
+                        className="hover:bg-bg-default/10 active:bg-bg-default/20"
                       />
                     ))}
                   {program.categories.length > 1 && (
@@ -153,12 +150,7 @@ export function FeaturedProgramCard({
                         </div>
                       }
                     >
-                      <div
-                        className={cn(
-                          "-ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium",
-                          isDarkImage && "text-content-inverted/80",
-                        )}
-                      >
+                      <div className="-ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium">
                         +{program.categories.length - 1}
                       </div>
                     </Tooltip>
@@ -169,19 +161,30 @@ export function FeaturedProgramCard({
           </div>
         </div>
       </div>
+
+      {/* Banner: stacked on top (mobile) / inset panel on the right (desktop) */}
+      {program.marketplaceHeaderImage && (
+        <div className="relative z-10 h-44 w-full shrink-0 overflow-hidden rounded-xl sm:h-auto sm:w-[55%] sm:self-stretch">
+          <img
+            src={program.marketplaceHeaderImage}
+            alt={program.name}
+            className="absolute inset-0 size-full object-cover"
+          />
+        </div>
+      )}
     </Link>
   );
 }
 
 export function FeaturedProgramCardSkeleton() {
   return (
-    <div className="border-border-subtle relative h-full overflow-hidden rounded-xl border p-6">
-      <div className="relative">
+    <div className="relative h-full min-h-[340px] overflow-hidden rounded-2xl bg-neutral-100 p-2">
+      <div className="relative flex h-full flex-col p-6">
         <div className="flex justify-between gap-4">
           <div className="size-12 animate-pulse rounded-full bg-neutral-200" />
         </div>
 
-        <div className="mt-10 flex flex-col">
+        <div className="mt-auto flex flex-col pt-10">
           {/* Name - text-3xl font-semibold is typically ~36px height */}
           <div className="h-9 w-40 animate-pulse rounded bg-neutral-200" />
 

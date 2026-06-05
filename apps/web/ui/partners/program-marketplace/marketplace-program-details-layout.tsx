@@ -1,4 +1,3 @@
-import { cn } from "@dub/utils";
 import { ReactNode } from "react";
 
 /** Shared content column — hero inner content + body sections align to this width. */
@@ -19,11 +18,7 @@ export function MarketplaceProgramDetailsLayout({
 }) {
   return (
     <div className="w-full">
-      {header ? (
-        <div className={cn(marketplaceProgramDetailsColumnClassName, "mb-6")}>
-          {header}
-        </div>
-      ) : null}
+      {header ? <div className="mb-6">{header}</div> : null}
       {hero}
       <div className={marketplaceProgramDetailsColumnClassName}>{children}</div>
     </div>
