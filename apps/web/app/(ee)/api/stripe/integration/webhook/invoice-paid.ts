@@ -482,8 +482,7 @@ async function resolvePromotionCodeIdFromInvoice({
   if (!discountWithPromotionCode) {
     return {
       promotionCodeId: null,
-      resolvePromotionCodeError:
-        "No promotion code found on invoice discounts (coupon applied directly)",
+      resolvePromotionCodeError: "No promotion code found on invoice discounts",
     };
   }
 
