@@ -345,3 +345,35 @@ export const socialContentSchema = z.preprocess(
     }),
   ]),
 );
+export const youtubeChannelVideosSchema = z.object({
+  videos: z.array(
+    z.object({
+      type: z.string(),
+      id: z.string(),
+      url: z.string(),
+      title: z.string().nullish(),
+      description: z.string().nullish(),
+      thumbnail: z.string().nullish(),
+      channel: z
+        .object({
+          title: z.string().nullish(),
+          thumbnail: z.string().nullish(),
+        })
+        .optional(),
+      viewCountText: z.string().nullish(),
+      viewCountInt: z
+        .number()
+        .nullish()
+        .transform((val) => val ?? 0),
+      publishedTimeText: z.string().nullish(),
+      publishedTime: z.string().nullish(),
+      lengthText: z.string().nullish(),
+      lengthSeconds: z
+        .number()
+        .nullish()
+        .transform((val) => val ?? 0),
+      badges: z.array(z.unknown()).optional(),
+    }),
+  ),
+  continuationToken: z.string().nullish(),
+});

@@ -1,0 +1,84 @@
+// Partner natural-language search schema.
+//
+// PlanetScale recommends using Prisma's Unsupported type for VECTOR columns,
+// then using raw SQL for vector writes/searches/indexes until Prisma supports
+// custom MySQL types directly:
+// https://planetscale.com/docs/vitess/vectors/using-with-an-orm#prisma
+//
+// Keep vector fields optional in Prisma even when they are logically required
+// for indexed rows. Required Unsupported fields disable generated Prisma Client
+// create/update/upsert methods, and vector values still need TO_VECTOR(...),
+// DISTANCE(...), and CREATE VECTOR INDEX statements outside Prisma's generated
+// query API.
+
+enum PartnerContentTranscriptFetchStatus {
+  pending
+  fetched
+  notAvailable
+  error
+}
+
+model PartnerContentIngestionRun {
+  id                      String    @id @default(cuid())
+  status                  String
+  requestedByUserId       String?
+  platforms               Json      @db.Json
+  limitCreators           Int
+  contentItemsPerPlatform Int
+  stats                   Json?     @db.Json
+  error                   String?   @db.Text
+  startedAt               DateTime  @default(now())
+  completedAt             DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+}
+
+model PartnerContentItem {
+  id                   String                         @id @default(cuid())
+  partnerId            String
+  partnerPlatformId    String
+  platformContentId    String
+  url                  String                         @db.Text
+  contentType          String
+  title                String?                        @db.Text
+  description          String?                        @db.Text
+  thumbnailUrl         String?                        @db.Text // may require internal image cache for long-term storage; MVP field
+  publishedAt          DateTime?
+  durationMs           Int?
+  viewCount            BigInt?
+  transcriptFetchStatus PartnerContentTranscriptFetchStatus @default(pending)
+  transcriptCreditsUsed Int?
+  transcriptLastAttemptedAt DateTime?
+  hasTimestamps        Boolean                        @default(false)
+  normalizedTranscript String?                        @db.LongText
+  transcriptHash       String?
+  embeddingModel       String?
+  totalChunkCount      Int                            @default(0)
+  embeddedChunkCount   Int                            @default(0)
+  lastFetchedAt        DateTime?
+  createdAt            DateTime                       @default(now())
+  updatedAt            DateTime                       @updatedAt
+
+  @@unique([partnerPlatformId, platformContentId])
+  @@index([partnerId, partnerPlatformId])
+  @@index(publishedAt)
+}
+
+model PartnerContentChunk {
+  id                   String                      @id @default(cuid())
+  partnerContentItemId String
+  partnerId            String
+  chunkIndex           Int
+  text                 String                      @db.Text
+  startMs              Int?
+  endMs                Int?
+  transcriptHash       String
+  embedding            Unsupported("vector(1024)")?
+  embeddingModel       String
+  createdAt            DateTime                    @default(now())
+  updatedAt            DateTime                    @updatedAt
+
+  @@unique([partnerContentItemId, chunkIndex, transcriptHash, embeddingModel])
+  @@index(partnerId)
+  @@index(partnerContentItemId)
+}

@@ -1,7 +1,11 @@
 import { createFetch, createSchema } from "@better-fetch/fetch";
 import { PlatformType } from "@dub/prisma/client";
 import * as z from "zod/v4";
-import { socialContentSchema, socialProfileSchema } from "./schema";
+import {
+  socialContentSchema,
+  socialProfileSchema,
+  youtubeChannelVideosSchema,
+} from "./schema";
 
 export const scrapeCreatorsFetch = createFetch({
   baseURL: "https://api.scrapecreators.com",
@@ -40,6 +44,23 @@ export const scrapeCreatorsFetch = createFetch({
           url: z.string(),
         }),
         output: socialContentSchema,
+      },
+
+      // Fetch recent YouTube channel videos
+      "/v1/youtube/channel-videos": {
+        method: "get",
+        query: z
+          .object({
+            channelId: z.string().optional(),
+            handle: z.string().optional(),
+            sort: z.enum(["latest", "popular"]).optional(),
+            continuationToken: z.string().optional(),
+            includeExtras: z.enum(["true", "false"]).optional(),
+          })
+          .refine((query) => query.channelId || query.handle, {
+            message: "Either channelId or handle is required.",
+          }),
+        output: youtubeChannelVideosSchema,
       },
     },
     {
