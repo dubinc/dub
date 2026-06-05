@@ -2,7 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { qstash } from "@/lib/cron";
-import { forwardMessageToIntercom } from "@/lib/integrations/intercom/forward-message";
+import { forwardMessageAsPartner } from "@/lib/integrations/intercom/forward-message";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -88,7 +88,7 @@ export const messageProgramAction = authPartnerActionClient
           delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
         }),
 
-        forwardMessageToIntercom({
+        forwardMessageAsPartner({
           program,
           partner,
           message,

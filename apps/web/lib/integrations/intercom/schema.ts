@@ -12,10 +12,43 @@ export const intercomCredentialsSchema = z.object({
 });
 
 export const intercomWebhookSchema = z.object({
-  type: z.string(),
+  app_id: z.string().optional().describe("Intercom workspace ID."),
   topic: z.string(),
   data: z.object({
-    item: z.record(z.string(), z.unknown()),
+    item: z.object({
+      id: z.string(),
+      type: z.string(),
+      contacts: z.object({
+        contacts: z.array(
+          z.object({
+            id: z.string(),
+            external_id: z.string().nullable(),
+          }),
+        ),
+      }),
+      conversation_parts: z.object({
+        conversation_parts: z.array(
+          z.object({
+            type: z.string(),
+            id: z.string(),
+            body: z.string(),
+            author: z.object({
+              type: z.string(),
+              id: z.string(),
+              name: z.string(),
+              email: z.string(),
+            }),
+            attachments: z.array(
+              z.object({
+                type: z.string(),
+                name: z.string(),
+                url: z.url(),
+                content_type: z.string(),
+              }),
+            ),
+          }),
+        ),
+      }),
+    }),
   }),
-  app_id: z.string().optional(),
 });

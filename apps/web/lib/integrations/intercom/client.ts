@@ -65,6 +65,12 @@ export class Intercom {
     return await response.json();
   }
 
+  async getContactById(id: string) {
+    return await this.client.contacts.find({
+      contact_id: id,
+    });
+  }
+
   async createContact(
     partner: Pick<Partner, "id" | "email" | "name" | "image">,
   ) {
@@ -92,28 +98,28 @@ export class Intercom {
   }
 
   async createConversation({
-    contact,
+    contactId,
     message,
   }: {
-    contact: IntercomContact;
+    contactId: string;
     message: Pick<Message, "text">;
   }) {
     return await this.client.conversations.create({
       from: {
         type: "user",
-        id: contact.id,
+        id: contactId,
       },
       body: message.text,
     });
   }
 
   async replyAsContact({
-    contact,
     message,
+    contactId,
     conversationId,
   }: {
-    contact: IntercomContact;
     message: Pick<Message, "text">;
+    contactId: string;
     conversationId: string;
   }) {
     return await this.client.conversations.reply({
@@ -121,7 +127,7 @@ export class Intercom {
       body: {
         message_type: "comment",
         type: "user",
-        intercom_user_id: contact.id,
+        intercom_user_id: contactId,
         body: message.text,
       },
     });
