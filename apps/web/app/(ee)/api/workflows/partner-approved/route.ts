@@ -61,6 +61,7 @@ export const { POST } = serve<Input>(
       program,
       partner,
       links: existingPartnerLinks,
+      applicationEvent,
       ...programEnrollment
     } = await getProgramEnrollmentOrThrow({
       programId,
@@ -69,6 +70,7 @@ export const { POST } = serve<Input>(
         program: true,
         partner: true,
         links: true,
+        applicationEvent: true,
       },
     });
 
@@ -318,12 +320,15 @@ export const { POST } = serve<Input>(
     });
 
     // Step 7: Create referral commission if enabled
-    await context.run("create-referral-commission", async () => {
-      await createReferralCommission({
-        partnerId,
-        programId,
+    if (applicationEvent?.referredByPartnerId) {
+      await context.run("create-referral-commission", async () => {
+        return await createReferralCommission({
+          source: "partner",
+          partnerId,
+          programId,
+        });
       });
-    });
+    }
   },
   {
     initialPayloadParser: (requestPayload) => {

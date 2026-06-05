@@ -7,6 +7,7 @@ import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
 import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
+import { createReferralCommission } from "@/lib/partner-referrals/create-referral-commission";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
 import { determinePartnerRewards } from "@/lib/partners/determine-partner-reward";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
@@ -21,6 +22,7 @@ import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import {
   Commission,
+  CommissionType,
   Link,
   Partner,
   PartnerGroup,
@@ -51,7 +53,7 @@ type StepFunctionInput = Input & {
 };
 
 type StepCreateCommissionOutput = {
-  commission: Pick<Commission, "id"> | null;
+  commission: Pick<Commission, "id" | "type"> | null;
   outputLog: string;
   isFirstCommission?: boolean;
 };
@@ -119,6 +121,16 @@ export const { POST } = serve<Input>(
             outputLog: `Bounty submission ${bountySubmissionId} not found or already linked to a commission, skipping...`,
           });
         }
+      });
+    }
+
+    // Step 4: Create referral commission
+    if (commission && commission.type === CommissionType.sale) {
+      await context.run("create-referral-commission", async () => {
+        return await createReferralCommission({
+          source: "commission",
+          sourceCommissionId: commission.id,
+        });
       });
     }
   },

@@ -61,4 +61,5 @@ model Commission {
   @@index(status)
   @@index(rewardId)
   @@index(userId)
+  @@index(sourceCommissionId)
 }

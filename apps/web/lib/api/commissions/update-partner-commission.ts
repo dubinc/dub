@@ -15,6 +15,7 @@ import {
   trackCommissionActivityLog,
   trackCommissionStatusUpdate,
 } from "./track-commission-update-activity-log";
+import { queueVoidReferralCommissions } from "./void-referral-commissions";
 
 type UpdatePartnerCommissionProps = z.infer<
   typeof updateCommissionSchemaExtended
@@ -315,6 +316,19 @@ export async function updatePartnerCommission({
             newStatus: finalStatus!,
           })
         : Promise.resolve(),
+
+      finalStatus &&
+        finalStatus !== "pending" &&
+        queueVoidReferralCommissions({
+          workspaceId,
+          programId,
+          userId,
+          sourceCommissionIds: [
+            commission.id,
+            ...relatedCommissions.map(({ id }) => id),
+          ],
+          sourceCommissionStatus: finalStatus!,
+        }),
     ]),
   );
 

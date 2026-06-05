@@ -1,5 +1,8 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { createReferralCommission } from "@/lib/partner-referrals/create-referral-commission";
+import {
+  createReferralCommission,
+  CreateReferralCommissionArgs,
+} from "@/lib/partner-referrals/create-referral-commission";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";
 
@@ -14,13 +17,28 @@ const inputSchema = z.union([
 export const POST = withCron(async ({ rawBody }) => {
   const inputParsed = inputSchema.parse(JSON.parse(rawBody));
 
-  const referralCommission = await createReferralCommission(inputParsed);
+  let args: CreateReferralCommissionArgs;
 
-  if (referralCommission === null) {
-    return logAndRespond("Referral commission creation skipped.");
+  if ("sourceCommissionId" in inputParsed) {
+    args = {
+      source: "commission",
+      sourceCommissionId: inputParsed.sourceCommissionId,
+    };
+  } else {
+    args = {
+      source: "partner",
+      programId: inputParsed.programId,
+      partnerId: inputParsed.partnerId,
+    };
   }
 
-  return logAndRespond(
-    `Referral commission ${referralCommission.id} created successfully.`,
-  );
+  const { commission, reason } = await createReferralCommission(args);
+
+  if (commission) {
+    return logAndRespond(
+      `Referral commission ${commission.id} created successfully.`,
+    );
+  }
+
+  return logAndRespond(reason ?? "Referral commission creation skipped.");
 });
