@@ -47,6 +47,7 @@ import {
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
 import { PartnerAvatar } from "./partner-avatar";
 import { PartnerInfoGroup } from "./partner-info-group";
+import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
 import { PartnerStarButton } from "./partner-star-button";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
 import { PartnerTagsList } from "./partner-tags-list";
@@ -55,7 +56,6 @@ import {
   getPayoutMethodLabel,
 } from "./payouts/payout-method-config";
 import { ProgramRewardList } from "./program-reward-list";
-import { TrustedPartnerBadge } from "./trusted-partner-badge";
 import {
   UpdatePartnerTagsModal,
   useUpdatePartnerTagsModal,
@@ -154,8 +154,6 @@ export function PartnerInfoCards({
   if ((isEnrolled || isAdmin) && partner) {
     const isPendingApplication =
       "status" in partner && partner.status === "pending";
-    const applicationReferralSource =
-      isEnrolled && partner.applicationEvent?.referralSource;
 
     basicFields = basicFields.concat([
       {
@@ -175,24 +173,11 @@ export function PartnerInfoCards({
             >
               <span>Applied {formatDate(partner.createdAt)}</span>
             </TimestampTooltip>
-            {/* TODO: add source column back once we fix application source display */}
-            {/* {applicationReferralSource && (
-              <>
-                <span>via</span>
-                <PartnerApplicationSource
-                  referralSource={applicationReferralSource}
-                  variant="inline"
-                />
-              </>
-            )} */}
           </span>
         ) : (
           `${isPendingApplication ? "Applied" : "Partner since"} ${formatDate(partner.createdAt)}`
         ),
-        timestamp:
-          isPendingApplication && applicationReferralSource
-            ? undefined
-            : partner.createdAt,
+        timestamp: isPendingApplication ? undefined : partner.createdAt,
       },
       {
         id: "payoutMethod" as const,
@@ -279,9 +264,6 @@ export function PartnerInfoCards({
                 ) : (
                   <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
                 )}
-                {partner?.networkStatus === "trusted" && (
-                  <TrustedPartnerBadge />
-                )}
               </div>
 
               <div className="flex items-center gap-2">
@@ -305,6 +287,13 @@ export function PartnerInfoCards({
                   <span className="text-content-emphasis text-lg font-semibold">
                     {partner.name}
                   </span>
+
+                  {"networkStatus" in partner && partner.networkStatus && (
+                    <PartnerNetworkStatusBadge
+                      networkStatus={partner.networkStatus}
+                      size="large"
+                    />
+                  )}
 
                   {showFraudIndicator && (
                     <PartnerFraudIndicator partnerId={partner.id} />
