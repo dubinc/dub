@@ -5,6 +5,7 @@ import {
   socialContentSchema,
   socialProfileSchema,
   youtubeChannelVideosSchema,
+  youtubeTranscriptSchema,
 } from "./schema";
 
 export const scrapeCreatorsFetch = createFetch({
@@ -61,6 +62,16 @@ export const scrapeCreatorsFetch = createFetch({
             message: "Either channelId or handle is required.",
           }),
         output: youtubeChannelVideosSchema,
+      },
+
+      // Fetch a YouTube video or short transcript
+      "/v1/youtube/video/transcript": {
+        method: "get",
+        query: z.object({
+          url: z.string(),
+          language: z.string().length(2).optional(),
+        }),
+        output: youtubeTranscriptSchema,
       },
     },
     {

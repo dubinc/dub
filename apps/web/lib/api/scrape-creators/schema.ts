@@ -345,6 +345,7 @@ export const socialContentSchema = z.preprocess(
     }),
   ]),
 );
+
 export const youtubeChannelVideosSchema = z.object({
   videos: z.array(
     z.object({
@@ -376,4 +377,22 @@ export const youtubeChannelVideosSchema = z.object({
     }),
   ),
   continuationToken: z.string().nullish(),
+});
+
+export const youtubeTranscriptSchema = z.object({
+  videoId: z.string(),
+  type: z.string(),
+  url: z.string(),
+  transcript: z
+    .array(
+      z.object({
+        text: z.string(),
+        startMs: z.string(),
+        endMs: z.string(),
+        startTimeText: z.string().nullish(),
+      }),
+    )
+    .nullable(),
+  transcript_only_text: z.string().nullish(),
+  language: z.string().nullish(),
 });

@@ -17,6 +17,7 @@ export const PARTNER_CONTENT_SEARCH_ROUTES = {
   enumerate: "/api/cron/partner-content/enumerate",
   enumeratePage: "/api/cron/partner-content/enumerate/page",
   fetch: "/api/cron/partner-content/fetch",
+  transcript: "/api/cron/partner-content/transcript",
 } as const;
 
 type PartnerContentSearchRoute =
@@ -70,8 +71,19 @@ export const partnerContentFetchPayloadSchema = z.object({
   mode: partnerContentIngestionModeSchema,
   runStamp: z.string().min(1),
   dryRun: z.boolean().default(false),
+  forceTranscriptJobs: z.boolean().default(false),
   partnerId: z.string().min(1),
   partnerPlatformId: z.string().min(1),
+  platform: z.enum(PARTNER_CONTENT_SEARCH_PLATFORMS),
+});
+
+export const partnerContentTranscriptPayloadSchema = z.object({
+  mode: partnerContentIngestionModeSchema,
+  runStamp: z.string().min(1),
+  dryRun: z.boolean().default(false),
+  partnerId: z.string().min(1),
+  partnerPlatformId: z.string().min(1),
+  partnerContentItemId: z.string().min(1),
   platform: z.enum(PARTNER_CONTENT_SEARCH_PLATFORMS),
 });
 

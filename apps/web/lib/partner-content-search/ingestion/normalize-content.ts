@@ -1,4 +1,5 @@
 import { youtubeChannelVideosSchema } from "@/lib/api/scrape-creators/schema";
+import { TranscriptSegment } from "@/lib/partner-content-search/types";
 import * as z from "zod/v4";
 
 type YouTubeChannelVideo = z.infer<
@@ -41,9 +42,26 @@ export function normalizeYouTubeChannelVideo(
   };
 }
 
+export function normalizeYouTubeTranscriptSegments(
+  transcript: Array<{ text: string; startMs: string; endMs: string }> | null,
+): TranscriptSegment[] {
+  return (transcript ?? [])
+    .map((segment) => ({
+      text: segment.text,
+      startMs: parseMs(segment.startMs),
+      endMs: parseMs(segment.endMs),
+    }))
+    .filter((segment) => segment.text.trim().length > 0);
+}
+
 function parseDate(value?: string | null) {
   if (!value) return null;
 
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function parseMs(value: string) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : null;
 }

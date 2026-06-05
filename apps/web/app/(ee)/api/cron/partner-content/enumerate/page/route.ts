@@ -81,6 +81,7 @@ export const POST = withCron(async ({ rawBody }) => {
       mode: payload.mode,
       runStamp: payload.runStamp,
       dryRun: payload.dryRun,
+      forceTranscriptJobs: false,
       partnerId: partnerPlatform.partnerId,
       partnerPlatformId: partnerPlatform.partnerPlatformId,
       platform: partnerPlatform.type,
