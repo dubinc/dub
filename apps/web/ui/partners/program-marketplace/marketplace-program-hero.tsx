@@ -60,8 +60,7 @@ export function MarketplaceProgramHero({
       <div
         className={cn(
           marketplaceProgramDetailsColumnClassName,
-          "relative z-20 pb-8",
-          hasBanner ? "pt-0" : "pt-8",
+          "relative z-20 p-4",
         )}
       >
         <img
