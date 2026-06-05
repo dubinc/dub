@@ -415,13 +415,21 @@ async function getRequestContext(
   };
 }
 
+const MARKETPLACE_RESERVED_SLUGS = new Set(["all", "popular", "c"]);
 // Identify the program slug from the URL
 // Supports:
 //   - https://partners.dub.co/{programSlug}
 //   - https://partners.dub.co/programs/{programSlug}/apply
 //   - https://partners.dub.co/marketplace/{programSlug}
+//   - https://dub.co/marketplace/{programSlug}
 //   - https://partners.dub.co/programs/marketplace/{programSlug} (legacy)
 //   - https://partners.dub.co/register (platform-level signup -> network program)
+//
+// Marketplace list routes (no program slug):
+//   - /marketplace
+//   - /marketplace/all
+//   - /marketplace/popular
+//   - /marketplace/c/{category}
 function identityProgramSlug(url: string) {
   try {
     const urlObj = new URL(url);
@@ -431,34 +439,60 @@ function identityProgramSlug(url: string) {
       return { programSlug: null, isMarketplace: false };
     }
 
-    // Platform-level /register page is associated with the network program
     if (parts[0] === "register") {
       return { programSlug: NETWORK_PROGRAM_SLUG, isMarketplace: false };
     }
 
-    const isLegacyMarketplace =
-      parts[0] === "programs" && parts[1] === "marketplace";
-    const isMarketplaceProgram =
-      parts[0] === "marketplace" &&
-      parts.length === 2 &&
-      parts[1] !== "all" &&
-      parts[1] !== "popular" &&
-      parts[1] !== "c";
-    const isMarketplace = isMarketplaceProgram || isLegacyMarketplace;
+    if (parts[0] === "marketplace") {
+      if (parts.length === 1) {
+        return { programSlug: null, isMarketplace: false };
+      }
 
-    const programSlug = isLegacyMarketplace
-      ? parts[2]
-      : isMarketplaceProgram
-        ? parts[1]
-        : parts[0] === "programs" // e.g. https://partners.dub.co/programs/acme/apply
-          ? parts[1]
-          : parts[0]; // e.g. https://partners.dub.co/acme, or https://partners.dub.co/acme/apply, or https://partners.dub.co/acme/group/apply
+      if (parts[1] === "c") {
+        return { programSlug: null, isMarketplace: false };
+      }
+
+      if (parts.length === 2 && MARKETPLACE_RESERVED_SLUGS.has(parts[1])) {
+        return { programSlug: null, isMarketplace: false };
+      }
+
+      if (parts.length === 2) {
+        return {
+          programSlug: parts[1].toLowerCase(),
+          isMarketplace: true,
+        };
+      }
+
+      return { programSlug: null, isMarketplace: false };
+    }
+
+    if (parts[0] === "programs" && parts[1] === "marketplace") {
+      if (!parts[2] || MARKETPLACE_RESERVED_SLUGS.has(parts[2])) {
+        return { programSlug: null, isMarketplace: false };
+      }
+
+      return {
+        programSlug: parts[2].toLowerCase(),
+        isMarketplace: true,
+      };
+    }
+
+    if (parts[0] === "programs") {
+      if (!parts[1]) {
+        return { programSlug: null, isMarketplace: false };
+      }
+
+      return {
+        programSlug: parts[1].toLowerCase(),
+        isMarketplace: false,
+      };
+    }
 
     return {
-      programSlug: programSlug?.toLowerCase(),
-      isMarketplace,
+      programSlug: parts[0].toLowerCase(),
+      isMarketplace: false,
     };
-  } catch (error) {
+  } catch {
     return { programSlug: null, isMarketplace: false };
   }
 }
