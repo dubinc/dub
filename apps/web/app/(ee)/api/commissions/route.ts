@@ -80,7 +80,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   );
 });
 
-// POST /api/commissions - create commissions
+// POST /api/commissions - create manual commission
 export const POST = withWorkspace(
   async ({ workspace, session, req }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);

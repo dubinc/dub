@@ -307,8 +307,10 @@ async function resolveLinkAndCustomer(args: ResolveLinkAndCustomerArgs) {
 
     targetLink = link;
   } else {
-    // If linkId is not provided, default to patner's link with most sales
-    targetLink = links.sort((a, b) => b.sales - a.sales)[0];
+    // If linkId is not provided, default to the link with the most revenue
+    targetLink = links.sort(
+      (a, b) => Number(b.saleAmount) - Number(a.saleAmount),
+    )[0];
   }
 
   // Find an existing customer

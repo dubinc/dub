@@ -454,7 +454,7 @@ export const createManualCommissionBodySchema = z
       type: z.literal("custom"),
       partnerId: z
         .string()
-        .describe("The partner ID to create the commission for."),
+        .describe("The ID of the partner to create the commission for."),
       amount: centsSchema
         .pipe(z.number().min(1))
         .describe("The commission amount in cents."),
@@ -473,25 +473,36 @@ export const createManualCommissionBodySchema = z
       type: z.literal("lead"),
       partnerId: z
         .string()
-        .describe("The partner ID to create the commission for."),
+        .describe("The ID of the partner to create the commission for."),
       customerId: z
         .string()
         .nullish()
-        .describe("The customer ID to create the commission for."),
+        .describe(
+          "The customer ID to associate the commission with. Useful if the customer was already created in a prior operation and you want to associate the commission with it.",
+        ),
       customer: createCustomerBodySchema
         .nullish()
-        .describe("The customer to create the commission for."),
+        .describe(
+          "The full customer object to associate the commission with. Useful for creating the customer on demand.",
+        ),
       linkId: z
         .string()
         .nullish()
-        .describe("The link ID to create the commission for. "),
+        .describe(
+          "The partner link ID to associate the commission with. If not provided, default to the link with the most revenue.",
+        ),
       leadEventDate: parseDateSchema
         .nullish()
-        .describe("The date of the lead event."),
+        .describe(
+          "The date and time of the lead event. If not provided, defaults to the current date and time.",
+        ),
       leadEventName: z
         .string()
         .nullish()
-        .describe("The name of the lead event."),
+        .default("Sign up")
+        .describe(
+          "The name of the lead event. If not provided, defaults to 'Sign up'.",
+        ),
     }),
 
     // Sale commission
@@ -499,18 +510,24 @@ export const createManualCommissionBodySchema = z
       type: z.literal("sale"),
       partnerId: z
         .string()
-        .describe("The partner ID to create the commission for."),
+        .describe("The ID of the partner to create the commission for."),
       customerId: z
         .string()
         .nullish()
-        .describe("The customer ID to create the commission for."),
+        .describe(
+          "The customer ID to associate the commission with. Useful if the customer was already created in a prior operation and you want to associate the commission with it.",
+        ),
       customer: createCustomerBodySchema
         .nullish()
-        .describe("The customer to create the commission for."),
+        .describe(
+          "The full customer object to associate the commission with. Useful for creating the customer on demand.",
+        ),
       linkId: z
         .string()
         .nullish()
-        .describe("The link ID to create the commission for."),
+        .describe(
+          "The partner link ID to associate the commission with. If not provided, default to the link with the most revenue.",
+        ),
       importStripeInvoices: z
         .boolean()
         .nullish()
@@ -527,19 +544,19 @@ export const createManualCommissionBodySchema = z
       saleEventDate: parseDateSchema
         .nullish()
         .describe(
-          "Only used when `importStripeInvoices` is `false`. The date of the manual sale event. Defaults to the current date if not provided.",
+          "Only used when `importStripeInvoices` is `false`. The date of the manual sale event. Defaults to the current date and time if not provided.",
         ),
       invoiceId: z
         .string()
         .nullish()
         .describe(
-          "Only used when `importStripeInvoices` is `false`. An optional invoice ID to attach to the manual sale event for deduplication.",
+          "Only used when `importStripeInvoices` is `false`. An optional invoice ID to attach to the generated sale event and commission entry for deduplication.",
         ),
       productId: z
         .string()
         .nullish()
         .describe(
-          "Only used when `importStripeInvoices` is `false`. An optional product ID stored on the sale event metadata.",
+          "Only used when `importStripeInvoices` is `false`. An optional product ID stored on the sale event metadata – will also impact commission earnings calculation (if a `Sale` `Product ID` modifier is set).",
         ),
     }),
   ])
