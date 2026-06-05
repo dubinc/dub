@@ -1,11 +1,17 @@
 import { getYouTubeVideoTranscript } from "@/lib/api/scrape-creators/get-youtube-video-transcript";
+import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { PARTNER_CONTENT_SEARCH_MODELS } from "@/lib/partner-content-search/constants";
 import {
   chunkTranscriptSegments,
   hashTranscript,
 } from "@/lib/partner-content-search/chunk-transcript";
-import { partnerContentTranscriptPayloadSchema } from "@/lib/partner-content-search/ingestion/enqueue";
+import {
+  createPartnerContentDeduplicationId,
+  getPartnerContentUrl,
+  PARTNER_CONTENT_SEARCH_ROUTES,
+  partnerContentTranscriptPayloadSchema,
+} from "@/lib/partner-content-search/ingestion/enqueue";
 import { normalizeYouTubeTranscriptSegments } from "@/lib/partner-content-search/ingestion/normalize-content";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -170,6 +176,23 @@ export const POST = withCron(async ({ rawBody }) => {
         }),
       ]);
 
+    const embedJob = await qstash.publishJSON({
+      url: getPartnerContentUrl(PARTNER_CONTENT_SEARCH_ROUTES.embed),
+      method: "POST",
+      body: {
+        mode: payload.mode,
+        runStamp: payload.runStamp,
+        partnerId: contentItem.partnerId,
+        partnerContentItemId: contentItem.id,
+      },
+      deduplicationId: createPartnerContentDeduplicationId(
+        "partner-content-embed",
+        payload.mode,
+        payload.runStamp,
+        contentItem.id,
+      ),
+    });
+
     return NextResponse.json({
       success: true,
       mode: payload.mode,
@@ -183,6 +206,7 @@ export const POST = withCron(async ({ rawBody }) => {
       chunkCount: chunks.length,
       chunksDeleted: deletedChunks.count,
       chunksCreated: createChunksResult.count,
+      embedJob,
       sampleSegments: transcriptSegments.slice(0, 5),
       sampleChunks: chunks.slice(0, 3),
       contentItem: updatedContentItem,

@@ -18,6 +18,7 @@ export const PARTNER_CONTENT_SEARCH_ROUTES = {
   enumeratePage: "/api/cron/partner-content/enumerate/page",
   fetch: "/api/cron/partner-content/fetch",
   transcript: "/api/cron/partner-content/transcript",
+  embed: "/api/cron/partner-content/embed",
 } as const;
 
 type PartnerContentSearchRoute =
@@ -86,6 +87,24 @@ export const partnerContentTranscriptPayloadSchema = z.object({
   partnerContentItemId: z.string().min(1),
   platform: z.enum(PARTNER_CONTENT_SEARCH_PLATFORMS),
 });
+
+export const partnerContentEmbedPayloadSchema = z
+  .object({
+    mode: partnerContentIngestionModeSchema,
+    runStamp: z.string().min(1),
+    partnerId: z.string().min(1),
+    partnerPlatformId: z.string().min(1).optional(),
+    partnerContentItemId: z.string().min(1).optional(),
+    limitContentItems: z.number().int().positive().max(500).default(100),
+    maxChunks: z.number().int().positive().max(128).default(96),
+  })
+  .refine(
+    ({ partnerPlatformId, partnerContentItemId }) =>
+      Boolean(partnerPlatformId) !== Boolean(partnerContentItemId),
+    {
+      message: "Use exactly one of partnerPlatformId or partnerContentItemId.",
+    },
+  );
 
 export type PartnerContentEnumeratePayload = z.infer<
   typeof partnerContentEnumeratePayloadSchema
