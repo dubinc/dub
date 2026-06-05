@@ -1,3 +1,7 @@
+import {
+  VITEST_POLL_INTERVAL_MS,
+  VITEST_TEST_TIMEOUT_MS,
+} from "@/lib/constants/misc";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { expect } from "vitest";
 import { HttpClient } from "../../utils/http";
@@ -9,9 +13,6 @@ interface VerifyPartnerGroupMoveProps {
   query?: Record<string, string>;
 }
 
-const POLL_INTERVAL_MS = 5000; // 5 seconds
-const TIMEOUT_MS = 60000; // 60 seconds
-
 export const verifyPartnerGroupMove = async ({
   http,
   partnerId,
@@ -21,7 +22,7 @@ export const verifyPartnerGroupMove = async ({
   const startTime = Date.now();
   let lastGroupId: string | null = null;
 
-  while (Date.now() - startTime < TIMEOUT_MS) {
+  while (Date.now() - startTime < VITEST_TEST_TIMEOUT_MS) {
     const { data: partner } = await http.get<EnrolledPartnerProps>({
       path: `/partners/${partnerId}`,
       query,
@@ -34,11 +35,13 @@ export const verifyPartnerGroupMove = async ({
       return partner;
     }
 
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+    await new Promise((resolve) =>
+      setTimeout(resolve, VITEST_POLL_INTERVAL_MS),
+    );
   }
 
   throw new Error(
-    `Partner group move not found within ${TIMEOUT_MS / 1000} seconds. ` +
+    `Partner group move not found within ${VITEST_TEST_TIMEOUT_MS / 1000} seconds. ` +
       `partnerId: ${partnerId}, expectedGroupId: ${expectedGroupId}. ` +
       `Last seen groupId: ${lastGroupId}`,
   );
