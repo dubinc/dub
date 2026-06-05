@@ -103,7 +103,6 @@ export function ProgramPartnersApplicationsPageClient() {
         status: "pending",
         sortBy,
         sortOrder,
-        includeApplicationEvent: true,
         includePartnerPlatforms: true,
       },
       { exclude: ["partnerId"] },
@@ -196,17 +195,6 @@ export function ProgramPartnersApplicationsPageClient() {
         header: "Applied",
         accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
       },
-      // TODO: add source column back once we fix application source display
-      // {
-      //   id: "source",
-      //   header: "Source",
-      //   minSize: 170,
-      //   cell: ({ row }) => (
-      //     <PartnerApplicationSource
-      //       referralSource={row.original.applicationEvent?.referralSource}
-      //     />
-      //   ),
-      // },
       {
         id: "group",
         header: "Group",

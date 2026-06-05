@@ -3,7 +3,6 @@ import { getPartners } from "@/lib/api/partners/get-partners";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { applicationEventSchema } from "@/lib/application-events/schema";
 import { withWorkspace } from "@/lib/auth";
 import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
@@ -102,16 +101,11 @@ export const GET = withWorkspace(
       saleAmount: z.number().default(0),
     });
 
-    const responseSchema =
-      parsedParams.includeApplicationEvent ||
-      parsedParams.includePartnerPlatforms
-        ? baseSchema.extend({
-            platforms: z.array(partnerPlatformSchema),
-            applicationEvent: applicationEventSchema
-              .pick({ referralSource: true })
-              .nullish(),
-          })
-        : baseSchema;
+    const responseSchema = parsedParams.includePartnerPlatforms
+      ? baseSchema.extend({
+          platforms: z.array(partnerPlatformSchema),
+        })
+      : baseSchema;
 
     return NextResponse.json(
       z.array(responseSchema).parse(
