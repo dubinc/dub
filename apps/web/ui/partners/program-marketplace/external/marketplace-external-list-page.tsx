@@ -3,6 +3,7 @@ import {
   getPublicNetworkPrograms,
   getPublicNetworkProgramsCount,
 } from "@/lib/fetchers/get-public-network-programs";
+import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { getPublicNetworkProgramsQuerySchema } from "@/lib/zod/schemas/program-network";
 import { Category } from "@dub/prisma/client";
 import Link from "next/link";
@@ -60,9 +61,22 @@ export async function MarketplaceExternalListPage({
   ]);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / 24));
+  const categoryMeta = category ? PROGRAM_CATEGORIES_MAP[category] : undefined;
 
   return (
-    <MarketplaceExternalShell variant="list">
+    <MarketplaceExternalShell
+      variant="list"
+      title={
+        categoryMeta ? (
+          <>
+            {categoryMeta.label} partner
+            <br />
+            programs
+          </>
+        ) : undefined
+      }
+      description={categoryMeta?.listPageDescription}
+    >
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
         <div className="hidden shrink-0 lg:block">
           <MarketplaceExternalFilterSidebar
