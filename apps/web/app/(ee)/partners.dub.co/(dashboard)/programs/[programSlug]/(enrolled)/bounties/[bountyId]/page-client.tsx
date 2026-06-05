@@ -18,7 +18,6 @@ import {
   PartnerBountyCard,
   PartnerBountyCardSkeleton,
 } from "../bounty-card";
-import { BountyPerformanceSection } from "./bounty-performance-section";
 import { BountySubmissionsTable } from "./bounty-submissions-table";
 
 export function PartnerBountyPageClient() {
@@ -77,9 +76,10 @@ export function PartnerBountyPageClient() {
                 </div>
               </div>
 
-              {bounty.type === "performance" ? (
-                <BountyPerformanceSection bounty={bounty} />
-              ) : (
+              {bounty.type === "performance" ? null : (
+                // (
+                //   <BountyPerformanceSection bounty={bounty} />
+                // )
                 <BountySubmissionsTable bounty={bounty} />
               )}
 
