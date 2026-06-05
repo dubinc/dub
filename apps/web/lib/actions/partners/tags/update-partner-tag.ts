@@ -4,6 +4,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { updatePartnerTagSchema } from "@/lib/zod/schemas/partner-tags";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../../safe-action";
+import { throwIfNoPermission } from "../../throw-if-no-permission";
 
 // Update a partner tag
 export const updatePartnerTagAction = authActionClient
@@ -11,6 +12,11 @@ export const updatePartnerTagAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { partnerTagId, name } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

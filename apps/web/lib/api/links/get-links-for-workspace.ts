@@ -24,7 +24,6 @@ export async function getLinksForWorkspace(filters: GetLinksForWorkspaceProps) {
     tagNames,
     search,
     searchMode,
-    sort,
     userId,
     showArchived,
     withTags,
@@ -40,12 +39,10 @@ export async function getLinksForWorkspace(filters: GetLinksForWorkspaceProps) {
     endDate,
   } = filters;
 
-  // Support legacy sort param
-  if (sort && sort !== "createdAt") {
-    filters = { ...filters, sortBy: sort };
-  }
-
-  const paginationQuery = buildPaginationQuery(filters);
+  const paginationQuery = buildPaginationQuery({
+    ...filters,
+    sortOrder: "desc",
+  });
 
   // Validate the provided cursor ID
   const cursorId = filters.startingAfter || filters.endingBefore;
