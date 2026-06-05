@@ -8,6 +8,7 @@ import { updatePartnerTagsSchema } from "@/lib/zod/schemas/partner-tags";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../../safe-action";
+import { throwIfNoPermission } from "../../throw-if-no-permission";
 
 const PARTNER_LINKS_TINYBIRD_BATCH_SIZE = 500;
 
@@ -21,6 +22,11 @@ export const updateProgramPartnerTagsAction = authActionClient
       addTagIds: addTagIdsInput,
       removeTagIds: removeTagIdsInput,
     } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const partnerIds = [...new Set(partnerIdsInput)];
     const addTagIds = [...new Set(addTagIdsInput ?? [])];
