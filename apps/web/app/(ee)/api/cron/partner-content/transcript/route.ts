@@ -9,6 +9,7 @@ import {
 import {
   createPartnerContentDeduplicationId,
   getPartnerContentUrl,
+  PARTNER_CONTENT_EMBED_FLOW_CONTROL,
   PARTNER_CONTENT_SEARCH_ROUTES,
   partnerContentTranscriptPayloadSchema,
 } from "@/lib/partner-content-search/ingestion/enqueue";
@@ -185,6 +186,7 @@ export const POST = withCron(async ({ rawBody }) => {
         partnerId: contentItem.partnerId,
         partnerContentItemId: contentItem.id,
       },
+      flowControl: PARTNER_CONTENT_EMBED_FLOW_CONTROL,
       deduplicationId: createPartnerContentDeduplicationId(
         "partner-content-embed",
         payload.mode,

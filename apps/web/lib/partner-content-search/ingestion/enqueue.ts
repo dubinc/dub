@@ -13,6 +13,13 @@ export const PARTNER_CONTENT_ENUMERATE_PAGE_SIZE = (() => {
 })();
 export const PARTNER_CONTENT_INCREMENTAL_REFRESH_DAYS = 7;
 
+export const PARTNER_CONTENT_EMBED_FLOW_CONTROL = {
+  key: "partner-content-embed-voyage",
+  parallelism: 5,
+  rate: 120,
+  period: "1m",
+} as const;
+
 export const PARTNER_CONTENT_SEARCH_ROUTES = {
   enumerate: "/api/cron/partner-content/enumerate",
   enumeratePage: "/api/cron/partner-content/enumerate/page",

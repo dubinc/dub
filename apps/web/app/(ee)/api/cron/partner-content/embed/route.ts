@@ -4,6 +4,7 @@ import { PARTNER_CONTENT_SEARCH_MODELS } from "@/lib/partner-content-search/cons
 import {
   createPartnerContentDeduplicationId,
   getPartnerContentUrl,
+  PARTNER_CONTENT_EMBED_FLOW_CONTROL,
   PARTNER_CONTENT_SEARCH_ROUTES,
   partnerContentEmbedPayloadSchema,
 } from "@/lib/partner-content-search/ingestion/enqueue";
@@ -14,6 +15,8 @@ import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
+
+const EMBED_RATE_LIMIT_RETRY_DELAY_SECONDS = 120;
 
 type UnembeddedChunk = {
   id: string;
@@ -99,10 +102,51 @@ export const POST = withCron(async ({ rawBody }) => {
     });
   }
 
-  const embeddings = await embedPartnerContentTexts({
-    input: chunks.map(({ text }) => text),
-    inputType: "document",
-  });
+  let embeddings: number[][];
+
+  try {
+    embeddings = await embedPartnerContentTexts({
+      input: chunks.map(({ text }) => text),
+      inputType: "document",
+    });
+  } catch (error) {
+    if (!isVoyageRateLimitError(error)) throw error;
+
+    const response = await qstash.publishJSON({
+      url: getPartnerContentUrl(PARTNER_CONTENT_SEARCH_ROUTES.embed),
+      method: "POST",
+      body: {
+        mode: payload.mode,
+        runStamp: payload.runStamp,
+        partnerId: payload.partnerId,
+        partnerContentItemId: contentItem.id,
+        maxChunks: payload.maxChunks,
+      },
+      flowControl: PARTNER_CONTENT_EMBED_FLOW_CONTROL,
+      delay: getRateLimitRetryDelaySeconds(contentItem.id),
+      deduplicationId: createPartnerContentDeduplicationId(
+        "partner-content-embed-rate-limit-retry",
+        payload.mode,
+        payload.runStamp,
+        contentItem.id,
+      ),
+    });
+
+    return NextResponse.json({
+      success: true,
+      mode: payload.mode,
+      runStamp: payload.runStamp,
+      rateLimited: true,
+      retryScheduled: true,
+      retryMessageId: response.messageId,
+      contentItem: {
+        id: contentItem.id,
+        transcriptFetchStatus: contentItem.transcriptFetchStatus,
+        totalChunkCount: contentItem.totalChunkCount,
+        embeddedChunkCount: contentItem.embeddedChunkCount,
+      },
+    });
+  }
 
   if (embeddings.length !== chunks.length) {
     throw new Error(
@@ -220,6 +264,7 @@ async function enqueueEmbedJobsForPartnerPlatform({
   const messages = pendingContentItems.map((contentItem) => ({
     url: getPartnerContentUrl(PARTNER_CONTENT_SEARCH_ROUTES.embed),
     method: "POST" as const,
+    flowControl: PARTNER_CONTENT_EMBED_FLOW_CONTROL,
     body: {
       mode,
       runStamp,
@@ -246,6 +291,8 @@ async function enqueueEmbedJobsForPartnerPlatform({
     partnerPlatformId,
     inspectedContentItemCount: contentItems.length,
     embedJobCount: messages.length,
+    pendingContentItemCount: pendingContentItems.length,
+    flowControl: PARTNER_CONTENT_EMBED_FLOW_CONTROL,
     qstashResponses,
     contentItems: pendingContentItems,
   });
@@ -291,5 +338,23 @@ function serializeEmbedding(embedding: number[]) {
 
       return value;
     }),
+  );
+}
+
+function isVoyageRateLimitError(error: unknown) {
+  return error instanceof Error && error.message.includes("failed: 429");
+}
+
+function getRateLimitRetryDelaySeconds(contentItemId: string) {
+  return (
+    EMBED_RATE_LIMIT_RETRY_DELAY_SECONDS +
+    (getStableNumericHash(contentItemId) % 120)
+  );
+}
+
+function getStableNumericHash(value: string) {
+  return Array.from(value).reduce(
+    (hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0,
+    0,
   );
 }
