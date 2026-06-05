@@ -4,7 +4,7 @@ import { createId } from "@/lib/api/create-id";
 import { qstash } from "@/lib/cron";
 import { forwardMessageAsPartner } from "@/lib/integrations/intercom/forward-message";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import {
   MessageSchema,
@@ -77,23 +77,42 @@ export const messageProgramAction = authPartnerActionClient
     });
 
     waitUntil(
-      Promise.all([
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-program`,
-          body: {
-            programId: program.id,
-            partnerId: partner.id,
-            lastMessageId: message.id,
-          },
-          delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
-        }),
+      (async () => {
+        const intercomInstallation =
+          await prisma.installedIntegration.findFirst({
+            where: {
+              projectId: program.workspaceId,
+              integrationId: INTERCOM_INTEGRATION_ID,
+            },
+            select: {
+              id: true,
+              credentials: true,
+            },
+          });
 
-        forwardMessageAsPartner({
-          program,
-          partner,
-          message,
-        }),
-      ]),
+        Promise.all([
+          // Skip notifying the program of new partner messages when Intercom is connected
+          !intercomInstallation &&
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-program`,
+              body: {
+                programId: program.id,
+                partnerId: partner.id,
+                lastMessageId: message.id,
+              },
+              delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
+            }),
+
+          // Forward the message to the Intercom
+          intercomInstallation &&
+            forwardMessageAsPartner({
+              program,
+              partner,
+              message,
+              intercomInstallation,
+            }),
+        ]);
+      })(),
     );
 
     return {

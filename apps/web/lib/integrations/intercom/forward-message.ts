@@ -1,8 +1,12 @@
 import { decrypt } from "@/lib/encryption";
 import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { Message, Partner, Program } from "@dub/prisma/client";
-import { INTERCOM_INTEGRATION_ID } from "@dub/utils";
+import {
+  InstalledIntegration,
+  Message,
+  Partner,
+  Program,
+} from "@dub/prisma/client";
 import { Intercom } from "./client";
 import { intercomCredentialsSchema } from "./schema";
 
@@ -10,26 +14,18 @@ export async function forwardMessageAsPartner({
   program,
   partner,
   message,
+  intercomInstallation,
 }: {
   program: Pick<Program, "id" | "workspaceId">;
   partner: Pick<Partner, "id" | "email" | "name" | "image">;
   message: Pick<Message, "id" | "text">;
+  intercomInstallation: Pick<InstalledIntegration, "id" | "credentials"> | null;
 }) {
   if (!partner.email) {
     return;
   }
 
-  const installedIntegration = await prisma.installedIntegration.findFirst({
-    where: {
-      projectId: program.workspaceId,
-      integrationId: INTERCOM_INTEGRATION_ID,
-    },
-    select: {
-      credentials: true,
-    },
-  });
-
-  if (!installedIntegration) {
+  if (!intercomInstallation) {
     console.log(
       `[Intercom] Installation not found for program ${program.id}. Skipping forward message.`,
     );
@@ -37,7 +33,7 @@ export async function forwardMessageAsPartner({
   }
 
   const parsedCredentials = intercomCredentialsSchema.safeParse(
-    installedIntegration.credentials,
+    intercomInstallation.credentials,
   );
 
   if (!parsedCredentials.success) {
