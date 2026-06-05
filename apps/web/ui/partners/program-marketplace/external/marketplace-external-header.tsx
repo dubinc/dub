@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Wordmark } from "@dub/ui";
-import { APP_DOMAIN, PARTNERS_DOMAIN, cn } from "@dub/utils";
+import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getMarketplaceHref } from "../get-marketplace-href";
@@ -62,15 +62,5 @@ export function MarketplaceExternalHeader() {
         </div>
       </div>
     </header>
-  );
-}
-
-export function MarketplaceExternalFooter() {
-  return (
-    <footer className={cn("border-border-subtle border-t bg-white py-10")}>
-      <div className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 lg:px-8">
-        <Wordmark className="h-5 opacity-40" />
-      </div>
-    </footer>
   );
 }

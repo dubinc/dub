@@ -1,4 +1,7 @@
+import { cn } from "@dub/utils";
 import { ReactNode } from "react";
+
+const CONTAINER_CLASS = "mx-auto w-full max-w-screen-xl px-4 sm:px-6 lg:px-8";
 
 export function MarketplaceExternalShell({
   variant = "home",
@@ -11,6 +14,14 @@ export function MarketplaceExternalShell({
   description?: string;
   children: ReactNode;
 }) {
+  if (variant === "none") {
+    return (
+      <div className={cn(CONTAINER_CLASS, "relative z-10 py-10")}>
+        {children}
+      </div>
+    );
+  }
+
   const resolvedTitle =
     title ??
     (variant === "home" ? (
@@ -30,9 +41,9 @@ export function MarketplaceExternalShell({
       : "Explore the Dub Partner marketplace and start earning.");
 
   return (
-    <div className="mx-auto w-full max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8">
-      {variant !== "none" ? (
-        <div className="mb-10 flex flex-col gap-4">
+    <div className="relative z-10 flex flex-col">
+      <div className={cn(CONTAINER_CLASS, "py-10")}>
+        <div className="flex flex-col gap-4">
           <h1 className="font-display text-[50px] font-medium leading-[1.1] text-neutral-900">
             {resolvedTitle}
           </h1>
@@ -40,8 +51,9 @@ export function MarketplaceExternalShell({
             {resolvedDescription}
           </p>
         </div>
-      ) : null}
-      {children}
+      </div>
+      <div className="h-px w-full bg-neutral-200" />
+      <div className={cn(CONTAINER_CLASS, "py-10")}>{children}</div>
     </div>
   );
 }
