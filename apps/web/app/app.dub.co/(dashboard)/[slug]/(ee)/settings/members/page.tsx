@@ -15,7 +15,7 @@ import { useRemoveWorkspaceUserModal } from "@/ui/modals/remove-workspace-user-m
 import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceEnvironment, WorkspaceRole } from "@dub/prisma/client";
 import {
   Button,
   DynamicTooltipWrapper,
@@ -51,7 +51,7 @@ export default function WorkspaceMembersPage() {
 
   const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
 
-  const { role, plan } = useWorkspace();
+  const { role, plan, environment } = useWorkspace();
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
 
@@ -91,6 +91,7 @@ export default function WorkspaceMembersPage() {
   }, [plan]);
 
   const isCurrentUserOwner = role === "owner";
+  const isStaging = environment === WorkspaceEnvironment.staging;
 
   const filters = useMemo(
     () => [
@@ -143,7 +144,9 @@ export default function WorkspaceMembersPage() {
     return filters;
   }, [status, roleFilter]);
 
-  useKeyboardShortcut("m", () => setShowInviteWorkspaceUserModal(true));
+  useKeyboardShortcut("m", () => {
+    if (!isStaging) setShowInviteWorkspaceUserModal(true);
+  });
 
   const columns = useMemo<ColumnDef<WorkspaceUserProps>[]>(
     () => [
@@ -242,6 +245,22 @@ export default function WorkspaceMembersPage() {
     });
   };
 
+  const { error: inviteNewTeammatesError } = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    environment,
+    customPermissionDescription: "invite new teammates",
+    stagingBehavior: "production-only",
+  });
+
+  const { error: generateInviteLinksError } = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    environment,
+    customPermissionDescription: "generate invite links",
+    stagingBehavior: "production-only",
+  });
+
   return (
     <>
       <InviteWorkspaceUserModal />
@@ -259,26 +278,14 @@ export default function WorkspaceMembersPage() {
               onClick={() => setShowInviteWorkspaceUserModal(true)}
               className="h-9 w-fit"
               shortcut="M"
-              disabledTooltip={
-                clientAccessCheck({
-                  action: "workspaces.write",
-                  role,
-                  customPermissionDescription: "invite new teammates",
-                }).error || undefined
-              }
+              disabledTooltip={inviteNewTeammatesError || undefined}
             />
             <Button
               icon={<LinkIcon className="h-4 w-4 text-neutral-800" />}
               variant="secondary"
               onClick={() => setShowInviteCodeModal(true)}
               className="h-9 space-x-0"
-              disabledTooltip={
-                clientAccessCheck({
-                  action: "workspaces.write",
-                  role,
-                  customPermissionDescription: "generate invite links",
-                }).error || undefined
-              }
+              disabledTooltip={generateInviteLinksError || undefined}
             />
           </div>
         }
@@ -338,7 +345,8 @@ function RoleCell({
   isCurrentUser: boolean;
   isCurrentUserOwner: boolean;
 }) {
-  const { plan } = useWorkspace();
+  const { plan, environment } = useWorkspace();
+  const isStaging = environment === WorkspaceEnvironment.staging;
   const [role, setRole] = useState<WorkspaceRole>(user.role);
 
   useEffect(() => {
@@ -366,15 +374,16 @@ function RoleCell({
       role,
     });
 
-  const isDisabled =
-    !isCurrentUserOwner || // Only owners can change roles
-    isCurrentUser; // Can't change your own role
-
+  // Only owners can change roles
+  // Can't change your own role
+  // Can't change roles in staging workspaces
   const disabledTooltip = !isCurrentUserOwner
     ? "Only owners can change member roles"
     : isCurrentUser
       ? "You cannot change your own role"
-      : undefined;
+      : isStaging
+        ? "Roles cannot be updated in staging workspaces (automatically synced from your production workspace)"
+        : undefined;
 
   return (
     <>
@@ -388,16 +397,19 @@ function RoleCell({
           className={cn(
             "rounded-md border border-neutral-200 text-xs text-neutral-500 focus:border-neutral-600 focus:ring-neutral-600",
             {
-              "cursor-not-allowed bg-neutral-100": isDisabled,
+              "cursor-not-allowed bg-neutral-100": disabledTooltip
+                ? true
+                : false,
             },
           )}
           value={role}
-          disabled={isDisabled}
+          disabled={disabledTooltip ? true : false}
           onChange={(e) => {
             const newRole = e.target.value as WorkspaceRole;
             setRole(newRole);
             setShowWorkspaceUserRoleModal(true);
           }}
+          title={disabledTooltip}
         >
           {WORKSPACE_ROLES.map(({ value, label }) => {
             return (
@@ -425,6 +437,8 @@ function RowMenuButton({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
+  const { environment } = useWorkspace();
+  const isStaging = environment === WorkspaceEnvironment.staging;
 
   const user = row.original;
   const searchParams = useSearchParams();
@@ -446,6 +460,11 @@ function RowMenuButton({
     });
 
   const isCurrentUser = session?.user?.email === user.email;
+
+  // In staging, only show menu for self (leave workspace)
+  if (isStaging && !isCurrentUser) {
+    return null;
+  }
 
   // Only show menu if user is owner OR they're removing themselves
   if (!isCurrentUserOwner && !isCurrentUser) {
