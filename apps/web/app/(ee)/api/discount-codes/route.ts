@@ -96,7 +96,7 @@ export const POST = withWorkspace(
       const duplicateByCode = await prisma.discountCode.findUnique({
         where: {
           programId_code: {
-            programId,
+            programId: discount.programId,
             code,
           },
         },

@@ -50,6 +50,7 @@ const GENERIC_EMAIL_DOMAINS = [
   "otona.uk",
   "instaddr.ch",
   "t-mail.asia",
+  "adras.org",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [
