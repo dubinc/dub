@@ -375,7 +375,12 @@ export const customersExportQuerySchema = getCustomersQuerySchema
       .string()
       .optional()
       .default(CUSTOMER_EXPORT_DEFAULT_COLUMNS.join(","))
-      .transform((v) => v.split(","))
+      .transform((v) =>
+        v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      )
       .refine(
         (columns) => {
           const validColumnIds = CUSTOMER_EXPORT_COLUMNS.map((col) => col.id);
