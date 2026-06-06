@@ -15,7 +15,8 @@ export function PartnersDashboardPageClient() {
     });
 
   const programEnrollments = allProgramEnrollments?.filter(
-    (programEnrollment) => programEnrollment.status !== "invited",
+    (programEnrollment) =>
+      !["invited", "declined"].includes(programEnrollment.status),
   );
 
   return (

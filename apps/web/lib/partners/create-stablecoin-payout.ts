@@ -187,6 +187,7 @@ export const createStablecoinPayout = async ({
       data: {
         stripeRecipientId: null,
         payoutsEnabledAt: null,
+        defaultPayoutMethod: null,
       },
     });
 

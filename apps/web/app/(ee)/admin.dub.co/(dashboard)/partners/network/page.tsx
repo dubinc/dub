@@ -254,8 +254,6 @@ export default function NetworkApplicationsPage() {
             : "Partner rejected from the network.",
       );
 
-      await mutate();
-
       if (fallbackPartnerId) {
         queryParams({
           set: {
@@ -266,6 +264,8 @@ export default function NetworkApplicationsPage() {
         setDetailsSheetState({ open: false, partnerId: null });
         queryParams({ del: "partnerId" });
       }
+
+      mutate();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to review partner.",

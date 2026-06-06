@@ -77,6 +77,7 @@ export const POST = withAdmin(
           stripeConnectId: null,
           payoutsEnabledAt: null,
           payoutMethodHash: null,
+          defaultPayoutMethod: null,
         },
       });
       console.log(`Updated partner ${partner.email} with stripeConnectId null`);
