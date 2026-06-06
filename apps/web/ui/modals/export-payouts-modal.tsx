@@ -55,10 +55,6 @@ function ExportPayoutsModal({
   });
 
   const onSubmit = handleSubmit(async (data) => {
-    if (!workspaceId) {
-      return;
-    }
-
     const lid = toast.loading("Exporting payouts...");
 
     try {
@@ -84,9 +80,6 @@ function ExportPayoutsModal({
 
       const response = await fetch(`/api/payouts/export${queryString}`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
       if (!response.ok) {

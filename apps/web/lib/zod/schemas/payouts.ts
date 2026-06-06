@@ -256,7 +256,12 @@ export const payoutsExportQuerySchema = payoutsQuerySchema
     columns: z
       .string()
       .default(DEFAULT_PAYOUT_EXPORT_COLUMNS.join(","))
-      .transform((v) => v.split(","))
+      .transform((v) =>
+        v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      )
       .refine(
         (columns): columns is PayoutExportColumnId[] => {
           const validColumnIds = PAYOUT_EXPORT_COLUMNS.map((col) => col.id);
