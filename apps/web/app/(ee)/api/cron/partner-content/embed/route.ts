@@ -184,6 +184,7 @@ export const POST = withCron(async ({ rawBody }) => {
         partnerContentItemId: contentItem.id,
         maxChunks: payload.maxChunks,
       },
+      flowControl: PARTNER_CONTENT_EMBED_FLOW_CONTROL,
       deduplicationId: createPartnerContentDeduplicationId(
         "partner-content-embed",
         payload.mode,

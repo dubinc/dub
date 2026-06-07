@@ -66,153 +66,12 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
+  let transcriptWriteResult: Awaited<
+    ReturnType<typeof writeTranscriptChunks>
+  >;
+
   try {
-    const transcriptResponse = await getYouTubeVideoTranscript({
-      url: contentItem.url,
-    });
-
-    const transcriptSegments = normalizeYouTubeTranscriptSegments(
-      transcriptResponse.transcript,
-    );
-    const normalizedTranscript = transcriptSegments
-      .map(({ text }) => text.trim())
-      .filter(Boolean)
-      .join(" ");
-    const transcriptHash =
-      transcriptSegments.length > 0 ? hashTranscript(transcriptSegments) : null;
-
-    if (!transcriptHash) {
-      const updatedContentItem = await prisma.partnerContentItem.update({
-        where: {
-          id: contentItem.id,
-        },
-        data: {
-          transcriptFetchStatus: "notAvailable",
-          transcriptLastAttemptedAt: new Date(),
-          normalizedTranscript: null,
-          transcriptHash: null,
-          hasTimestamps: false,
-          totalChunkCount: 0,
-          embeddedChunkCount: 0,
-        },
-        select: {
-          id: true,
-          transcriptFetchStatus: true,
-          totalChunkCount: true,
-          embeddedChunkCount: true,
-        },
-      });
-
-      await prisma.partnerContentChunk.deleteMany({
-        where: {
-          partnerContentItemId: contentItem.id,
-        },
-      });
-
-      return NextResponse.json({
-        success: true,
-        mode: payload.mode,
-        runStamp: payload.runStamp,
-        dryRun: payload.dryRun,
-        writesEnabled: true,
-        transcriptAvailable: false,
-        segmentCount: 0,
-        normalizedTranscriptLength: 0,
-        transcriptHash: null,
-        chunkCount: 0,
-        chunksCreated: 0,
-        contentItem: updatedContentItem,
-      });
-    }
-
-    const chunks = chunkTranscriptSegments(transcriptSegments);
-    const hasTimestamps = transcriptSegments.some(
-      ({ startMs, endMs }) => startMs !== null || endMs !== null,
-    );
-    const embeddingModel = PARTNER_CONTENT_SEARCH_MODELS.embedding.model;
-
-    const [updatedContentItem, deletedChunks, createChunksResult] =
-      await prisma.$transaction([
-        prisma.partnerContentItem.update({
-          where: {
-            id: contentItem.id,
-          },
-          data: {
-            transcriptFetchStatus: "fetched",
-            transcriptLastAttemptedAt: new Date(),
-            normalizedTranscript,
-            transcriptHash,
-            hasTimestamps,
-            embeddingModel,
-            totalChunkCount: chunks.length,
-            embeddedChunkCount: 0,
-            lastFetchedAt: new Date(),
-          },
-          select: {
-            id: true,
-            transcriptFetchStatus: true,
-            transcriptHash: true,
-            totalChunkCount: true,
-            embeddedChunkCount: true,
-            hasTimestamps: true,
-            lastFetchedAt: true,
-          },
-        }),
-        prisma.partnerContentChunk.deleteMany({
-          where: {
-            partnerContentItemId: contentItem.id,
-          },
-        }),
-        prisma.partnerContentChunk.createMany({
-          data: chunks.map((chunk) => ({
-            partnerContentItemId: contentItem.id,
-            partnerId: contentItem.partnerId,
-            chunkIndex: chunk.chunkIndex,
-            text: chunk.text,
-            startMs: chunk.startMs,
-            endMs: chunk.endMs,
-            transcriptHash,
-            embeddingModel,
-          })),
-        }),
-      ]);
-
-    const embedJob = await qstash.publishJSON({
-      url: getPartnerContentUrl(PARTNER_CONTENT_SEARCH_ROUTES.embed),
-      method: "POST",
-      body: {
-        mode: payload.mode,
-        runStamp: payload.runStamp,
-        partnerId: contentItem.partnerId,
-        partnerContentItemId: contentItem.id,
-      },
-      flowControl: PARTNER_CONTENT_EMBED_FLOW_CONTROL,
-      deduplicationId: createPartnerContentDeduplicationId(
-        "partner-content-embed",
-        payload.mode,
-        payload.runStamp,
-        contentItem.id,
-      ),
-    });
-
-    return NextResponse.json({
-      success: true,
-      mode: payload.mode,
-      runStamp: payload.runStamp,
-      dryRun: payload.dryRun,
-      writesEnabled: true,
-      transcriptAvailable: true,
-      segmentCount: transcriptSegments.length,
-      normalizedTranscriptLength: normalizedTranscript.length,
-      transcriptHash,
-      chunkCount: chunks.length,
-      chunksDeleted: deletedChunks.count,
-      chunksCreated: createChunksResult.count,
-      embedJob,
-      sampleSegments: transcriptSegments.slice(0, 5),
-      sampleChunks: chunks.slice(0, 3),
-      contentItem: updatedContentItem,
-    });
+    transcriptWriteResult = await writeTranscriptChunks(contentItem);
   } catch (error) {
     await prisma.partnerContentItem.update({
       where: {
@@ -226,4 +85,207 @@ export const POST = withCron(async ({ rawBody }) => {
 
     throw error;
   }
+
+  if (!transcriptWriteResult.transcriptAvailable) {
+    return NextResponse.json({
+      success: true,
+      mode: payload.mode,
+      runStamp: payload.runStamp,
+      dryRun: payload.dryRun,
+      writesEnabled: true,
+      ...transcriptWriteResult,
+    });
+  }
+
+  const embedJob = await enqueueEmbedJob({
+    mode: payload.mode,
+    runStamp: payload.runStamp,
+    partnerId: contentItem.partnerId,
+    partnerContentItemId: contentItem.id,
+  });
+
+  return NextResponse.json({
+    success: true,
+    mode: payload.mode,
+    runStamp: payload.runStamp,
+    dryRun: payload.dryRun,
+    writesEnabled: true,
+    ...transcriptWriteResult,
+    ...embedJob,
+  });
 });
+
+async function writeTranscriptChunks(contentItem: {
+  id: string;
+  partnerId: string;
+  url: string;
+}) {
+  const transcriptResponse = await getYouTubeVideoTranscript({
+    url: contentItem.url,
+  });
+
+  const transcriptSegments = normalizeYouTubeTranscriptSegments(
+    transcriptResponse.transcript,
+  );
+  const normalizedTranscript = transcriptSegments
+    .map(({ text }) => text.trim())
+    .filter(Boolean)
+    .join(" ");
+  const transcriptHash =
+    transcriptSegments.length > 0 ? hashTranscript(transcriptSegments) : null;
+
+  if (!transcriptHash) {
+    const updatedContentItem = await prisma.partnerContentItem.update({
+      where: {
+        id: contentItem.id,
+      },
+      data: {
+        transcriptFetchStatus: "notAvailable",
+        transcriptLastAttemptedAt: new Date(),
+        normalizedTranscript: null,
+        transcriptHash: null,
+        hasTimestamps: false,
+        totalChunkCount: 0,
+        embeddedChunkCount: 0,
+      },
+      select: {
+        id: true,
+        transcriptFetchStatus: true,
+        totalChunkCount: true,
+        embeddedChunkCount: true,
+      },
+    });
+
+    await prisma.partnerContentChunk.deleteMany({
+      where: {
+        partnerContentItemId: contentItem.id,
+      },
+    });
+
+    return {
+      transcriptAvailable: false,
+      segmentCount: 0,
+      normalizedTranscriptLength: 0,
+      transcriptHash: null,
+      chunkCount: 0,
+      chunksCreated: 0,
+      contentItem: updatedContentItem,
+    };
+  }
+
+  const chunks = chunkTranscriptSegments(transcriptSegments);
+  const hasTimestamps = transcriptSegments.some(
+    ({ startMs, endMs }) => startMs !== null || endMs !== null,
+  );
+  const embeddingModel = PARTNER_CONTENT_SEARCH_MODELS.embedding.model;
+
+  const [updatedContentItem, deletedChunks, createChunksResult] =
+    await prisma.$transaction([
+      prisma.partnerContentItem.update({
+        where: {
+          id: contentItem.id,
+        },
+        data: {
+          transcriptFetchStatus: "fetched",
+          transcriptLastAttemptedAt: new Date(),
+          normalizedTranscript,
+          transcriptHash,
+          hasTimestamps,
+          embeddingModel,
+          totalChunkCount: chunks.length,
+          embeddedChunkCount: 0,
+          lastFetchedAt: new Date(),
+        },
+        select: {
+          id: true,
+          transcriptFetchStatus: true,
+          transcriptHash: true,
+          totalChunkCount: true,
+          embeddedChunkCount: true,
+          hasTimestamps: true,
+          lastFetchedAt: true,
+        },
+      }),
+      prisma.partnerContentChunk.deleteMany({
+        where: {
+          partnerContentItemId: contentItem.id,
+        },
+      }),
+      prisma.partnerContentChunk.createMany({
+        data: chunks.map((chunk) => ({
+          partnerContentItemId: contentItem.id,
+          partnerId: contentItem.partnerId,
+          chunkIndex: chunk.chunkIndex,
+          text: chunk.text,
+          startMs: chunk.startMs,
+          endMs: chunk.endMs,
+          transcriptHash,
+          embeddingModel,
+        })),
+      }),
+    ]);
+
+  return {
+    transcriptAvailable: true,
+    segmentCount: transcriptSegments.length,
+    normalizedTranscriptLength: normalizedTranscript.length,
+    transcriptHash,
+    chunkCount: chunks.length,
+    chunksDeleted: deletedChunks.count,
+    chunksCreated: createChunksResult.count,
+    sampleSegments: transcriptSegments.slice(0, 5),
+    sampleChunks: chunks.slice(0, 3),
+    contentItem: updatedContentItem,
+  };
+}
+
+async function enqueueEmbedJob({
+  mode,
+  runStamp,
+  partnerId,
+  partnerContentItemId,
+}: {
+  mode: "incremental" | "backfill";
+  runStamp: string;
+  partnerId: string;
+  partnerContentItemId: string;
+}) {
+  try {
+    const embedJob = await qstash.publishJSON({
+      url: getPartnerContentUrl(PARTNER_CONTENT_SEARCH_ROUTES.embed),
+      method: "POST",
+      body: {
+        mode,
+        runStamp,
+        partnerId,
+        partnerContentItemId,
+      },
+      flowControl: PARTNER_CONTENT_EMBED_FLOW_CONTROL,
+      deduplicationId: createPartnerContentDeduplicationId(
+        "partner-content-embed",
+        mode,
+        runStamp,
+        partnerContentItemId,
+      ),
+    });
+
+    return {
+      embedEnqueueStatus: "enqueued" as const,
+      embedJob,
+    };
+  } catch (error) {
+    console.error("[PartnerContentSearch] Failed to enqueue embed job", {
+      error,
+      mode,
+      runStamp,
+      partnerId,
+      partnerContentItemId,
+    });
+
+    return {
+      embedEnqueueStatus: "failed" as const,
+      embedEnqueueError:
+        error instanceof Error ? error.message : "Unknown QStash error",
+    };
+  }
+}
