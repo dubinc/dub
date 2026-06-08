@@ -1,4 +1,4 @@
-import { Tag, useCopyToClipboard } from "@dub/ui";
+import { DiscountCode, useCopyToClipboard } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { toast } from "sonner";
 
@@ -20,7 +20,7 @@ export function DiscountCodeBadge({ code }: { code: string }) {
         })
       }
     >
-      <Tag className="size-3 text-green-700" strokeWidth={1.5} />
+      <DiscountCode className="size-3 text-green-700" strokeWidth={1.5} />
       <div className="text-xs font-medium text-green-700 decoration-dotted underline-offset-2 transition-colors group-hover/discountcode:underline">
         {code}
       </div>

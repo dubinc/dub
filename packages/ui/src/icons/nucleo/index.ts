@@ -85,6 +85,7 @@ export * from "./diamond-turn-right";
 export * from "./diamond-turn-right-fill";
 export * from "./directions";
 export * from "./discount";
+export * from "./discount-code";
 export * from "./dots";
 export * from "./download";
 export * from "./duplicate";
