@@ -375,14 +375,14 @@ async function stepCreateCommission(
       reward,
       earnings,
     });
-  }
 
-  // If spend limit clamped earnings to 0, skip commission creation
-  if (earnings === 0) {
-    return logAndReturn({
-      commission: null,
-      outputLog: `Partner ${partnerId} has reached spend limit (${reward?.spendLimitAmount}) for ${event} event, skipping commission creation...`,
-    });
+    // If spend limit clamped earnings to 0, skip commission creation
+    if (earnings === 0) {
+      return logAndReturn({
+        commission: null,
+        outputLog: `Partner ${partnerId} has reached spend limit (${reward?.spendLimitAmount}) for ${event} event, skipping commission creation...`,
+      });
+    }
   }
 
   try {

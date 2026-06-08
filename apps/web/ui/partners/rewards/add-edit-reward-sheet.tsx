@@ -313,8 +313,15 @@ function RewardSheetContent({
 
   // Compute amount based on type
   const amount = type === "flat" ? amountInCents : amountInPercentage;
-  const spendLimitEnabled =
-    spendLimitAmount != null && spendLimitInterval != null;
+  const spendLimitEnabled = spendLimitInterval != null;
+  const hasIncompleteMainSpendLimit =
+    spendLimitInterval != null &&
+    (spendLimitAmount == null || isNaN(spendLimitAmount));
+  const hasIncompleteModifierSpendLimit = modifiers?.some(
+    (m) =>
+      m.spendLimitInterval != null &&
+      (m.spendLimitAmount == null || isNaN(m.spendLimitAmount)),
+  );
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -548,13 +555,6 @@ function RewardSheetContent({
                                 });
                               } else {
                                 setValue(
-                                  "spendLimitAmount",
-                                  spendLimitAmount ?? 100,
-                                  {
-                                    shouldDirty: true,
-                                  },
-                                );
-                                setValue(
                                   "spendLimitInterval",
                                   spendLimitInterval ?? "allTime",
                                   {
@@ -756,7 +756,12 @@ function RewardSheetContent({
               className="h-9 w-fit"
               loading={isCreating || isUpdating}
               disabled={
-                amount == null || isDeleting || isCreating || isUpdating
+                amount == null ||
+                hasIncompleteMainSpendLimit ||
+                hasIncompleteModifierSpendLimit ||
+                isDeleting ||
+                isCreating ||
+                isUpdating
               }
               disabledTooltip={
                 showReferralUpsell ? (

@@ -10,28 +10,24 @@ import {
   startOfWeek,
 } from "date-fns";
 
-export function getSpendLimitWindow({
-  interval,
-}: {
-  interval: SpendLimitInterval;
-}) {
+export function getSpendLimitWindow(spendLimitInterval: SpendLimitInterval) {
   const date = new Date();
 
-  if (interval === "day") {
+  if (spendLimitInterval === "day") {
     return {
       startDate: startOfDay(date),
       endDate: endOfDay(date),
     };
   }
 
-  if (interval === "week") {
+  if (spendLimitInterval === "week") {
     return {
       startDate: startOfWeek(date),
       endDate: endOfWeek(date),
     };
   }
 
-  if (interval === "month") {
+  if (spendLimitInterval === "month") {
     return {
       startDate: startOfMonth(date),
       endDate: endOfMonth(date),
@@ -59,14 +55,13 @@ export async function getCappedEarnings({
   if (
     earnings === 0 ||
     reward.spendLimitAmount == null ||
-    reward.spendLimitInterval == null
+    reward.spendLimitInterval == null ||
+    reward.event === "referral"
   ) {
     return earnings;
   }
 
-  const { startDate, endDate } = getSpendLimitWindow({
-    interval: reward.spendLimitInterval,
-  });
+  const { startDate, endDate } = getSpendLimitWindow(reward.spendLimitInterval);
 
   const {
     _sum: { earnings: totalEarnings },
@@ -74,6 +69,7 @@ export async function getCappedEarnings({
     where: {
       programId: programEnrollment.programId,
       partnerId: programEnrollment.partnerId,
+      type: reward.event,
       status: {
         in: ["pending", "processed", "paid"],
       },

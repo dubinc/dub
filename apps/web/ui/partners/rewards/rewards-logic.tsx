@@ -805,8 +805,7 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
     maxDuration !== undefined ? maxDuration : parentMaxDuration;
 
   const amount = displayType === "flat" ? amountInCents : amountInPercentage;
-  const spendLimitEnabled =
-    spendLimitAmount != null && spendLimitInterval != null;
+  const spendLimitEnabled = spendLimitInterval != null;
 
   return (
     <span className="leading-relaxed">
@@ -887,13 +886,6 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
                 shouldDirty: true,
               });
             } else {
-              setValue(
-                `${modifierKey}.spendLimitAmount`,
-                spendLimitAmount ?? 100,
-                {
-                  shouldDirty: true,
-                },
-              );
               setValue(
                 `${modifierKey}.spendLimitInterval`,
                 spendLimitInterval ?? "allTime",

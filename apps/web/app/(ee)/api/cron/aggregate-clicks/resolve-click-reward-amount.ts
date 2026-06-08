@@ -1,17 +1,15 @@
-import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { evaluateRewardConditions } from "@/lib/partners/evaluate-reward-conditions";
-import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { rewardConditionsArraySchema } from "@/lib/zod/schemas/rewards";
 import { Reward } from "@dub/prisma/client";
 
 // Resolve the click reward amount for a given reward and country
-export function resolveClickRewardAmount({
+export function resolveClickReward({
   reward,
   country,
 }: {
   reward: Reward;
   country: string;
-}): number {
+}) {
   let partnerReward = reward;
 
   if (reward.modifiers) {
@@ -35,10 +33,12 @@ export function resolveClickRewardAmount({
             matchedCondition.amountInCents != null
               ? matchedCondition.amountInCents
               : null,
+          spendLimitAmount: matchedCondition.spendLimitAmount ?? null,
+          spendLimitInterval: matchedCondition.spendLimitInterval ?? null,
         };
       }
     }
   }
 
-  return getRewardAmount(serializeReward(partnerReward));
+  return partnerReward;
 }
