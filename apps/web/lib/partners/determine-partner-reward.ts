@@ -91,6 +91,10 @@ export const determinePartnerReward = ({
             matchedCondition.maxDuration !== undefined
               ? matchedCondition.maxDuration
               : partnerReward.maxDuration,
+          // The matched modifier is fully authoritative for the spend limit.
+          // The parent's spend limit is intentionally not inherited.
+          spendLimitAmount: matchedCondition.spendLimitAmount ?? null,
+          spendLimitInterval: matchedCondition.spendLimitInterval ?? null,
         };
       }
     }

@@ -4,6 +4,7 @@ import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-e
 import { notifyPartnerCommission } from "@/lib/api/partners/notify-partner-commission";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { getCappedEarnings } from "@/lib/api/rewards/clamp-earnings-to-spend-limit";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
@@ -361,6 +362,26 @@ async function stepCreateCommission(
     return logAndReturn({
       commission: null,
       outputLog: `Partner ${partnerId} has zero earnings for ${event} event, skipping commission creation...`,
+    });
+  }
+
+  if (
+    reward &&
+    reward.spendLimitAmount != null &&
+    reward.spendLimitInterval != null
+  ) {
+    earnings = await getCappedEarnings({
+      programEnrollment,
+      reward,
+      earnings,
+    });
+  }
+
+  // If spend limit clamped earnings to 0, skip commission creation
+  if (earnings === 0) {
+    return logAndReturn({
+      commission: null,
+      outputLog: `Partner ${partnerId} has reached spend limit (${reward?.spendLimitAmount}) for ${event} event, skipping commission creation...`,
     });
   }
 

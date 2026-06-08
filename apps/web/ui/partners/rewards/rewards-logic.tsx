@@ -19,7 +19,7 @@ import {
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
-import { RewardStructure } from "@dub/prisma/client";
+import { RewardStructure, SpendLimitInterval } from "@dub/prisma/client";
 import {
   ArrowTurnRight2,
   Button,
@@ -133,6 +133,8 @@ export function RewardsLogic({
                 : undefined,
             type,
             maxDuration: getValues("maxDuration"),
+            spendLimitAmount: null,
+            spendLimitInterval: null,
           });
         }}
         variant={isDefaultReward ? "primary" : "secondary"}
@@ -777,6 +779,8 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
     amountInPercentage,
     type,
     maxDuration,
+    spendLimitAmount,
+    spendLimitInterval,
     event,
     parentType,
     parentMaxDuration,
@@ -787,6 +791,8 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
       `${modifierKey}.amountInPercentage`,
       `${modifierKey}.type`,
       `${modifierKey}.maxDuration`,
+      `${modifierKey}.spendLimitAmount`,
+      `${modifierKey}.spendLimitInterval`,
       "event",
       "type",
       "maxDuration",
@@ -799,6 +805,8 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
     maxDuration !== undefined ? maxDuration : parentMaxDuration;
 
   const amount = displayType === "flat" ? amountInCents : amountInPercentage;
+  const spendLimitEnabled =
+    spendLimitAmount != null && spendLimitInterval != null;
 
   return (
     <span className="leading-relaxed">
@@ -864,6 +872,86 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
           </InlineBadgePopover>
         </>
       )}
+      {", "}with{" "}
+      <InlineBadgePopover
+        text={spendLimitEnabled ? "a spend limit of" : "no spend limit"}
+      >
+        <InlineBadgePopoverMenu
+          selectedValue={spendLimitEnabled ? "limit" : "none"}
+          onSelect={(value) => {
+            if (value === "none") {
+              setValue(`${modifierKey}.spendLimitAmount`, null, {
+                shouldDirty: true,
+              });
+              setValue(`${modifierKey}.spendLimitInterval`, null, {
+                shouldDirty: true,
+              });
+            } else {
+              setValue(
+                `${modifierKey}.spendLimitAmount`,
+                spendLimitAmount ?? 100,
+                {
+                  shouldDirty: true,
+                },
+              );
+              setValue(
+                `${modifierKey}.spendLimitInterval`,
+                spendLimitInterval ?? "allTime",
+                {
+                  shouldDirty: true,
+                },
+              );
+            }
+          }}
+          items={[
+            { text: "no spend limit", value: "none" },
+            { text: "a spend limit of", value: "limit" },
+          ]}
+        />
+      </InlineBadgePopover>{" "}
+      {spendLimitEnabled ? (
+        <>
+          <InlineBadgePopover
+            text={
+              spendLimitAmount != null && !isNaN(spendLimitAmount)
+                ? `$${spendLimitAmount}`
+                : "amount"
+            }
+            invalid={spendLimitAmount == null || isNaN(spendLimitAmount)}
+          >
+            <AmountInput
+              fieldKey={`${modifierKey}.spendLimitAmount`}
+              type="currency"
+            />
+          </InlineBadgePopover>{" "}
+          <InlineBadgePopover
+            text={
+              spendLimitInterval === "allTime"
+                ? "all-time"
+                : `per ${spendLimitInterval}`
+            }
+          >
+            <InlineBadgePopoverMenu
+              selectedValue={spendLimitInterval ?? "allTime"}
+              onSelect={(value) =>
+                setValue(
+                  `${modifierKey}.spendLimitInterval`,
+                  value as SpendLimitInterval,
+                  {
+                    shouldDirty: true,
+                  },
+                )
+              }
+              items={[
+                { text: "all-time", value: "allTime" },
+                { text: "per day", value: "day" },
+                { text: "per week", value: "week" },
+                { text: "per month", value: "month" },
+              ]}
+            />
+          </InlineBadgePopover>
+        </>
+      ) : null}
     </span>
   );
 }
@@ -907,6 +995,7 @@ function AmountInput({
   fieldKey:
     | `modifiers.${number}.amountInCents`
     | `modifiers.${number}.amountInPercentage`
+    | `modifiers.${number}.spendLimitAmount`
     | `modifiers.${number}.conditions.${number}.value`;
   type: "currency" | "percentage" | "number";
 }) {

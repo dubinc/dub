@@ -197,7 +197,28 @@ export function validateReward(
             });
           }
         }
+
+        const hasModifierSpendLimitAmount = modifier.spendLimitAmount != null;
+        const hasModifierSpendLimitInterval =
+          modifier.spendLimitInterval != null;
+
+        if (hasModifierSpendLimitAmount !== hasModifierSpendLimitInterval) {
+          throw new DubApiError({
+            code: "bad_request",
+            message: `Modifier ${index + 1}: both "spendLimitAmount" and "spendLimitInterval" are required together. Provide both fields or omit both.`,
+          });
+        }
       });
     }
+  }
+
+  const hasSpendLimitAmount = reward.spendLimitAmount != null;
+  const hasSpendLimitInterval = reward.spendLimitInterval != null;
+
+  if (hasSpendLimitAmount !== hasSpendLimitInterval) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Both "spendLimitAmount" and "spendLimitInterval" are required together. Provide both fields or omit both.`,
+    });
   }
 }

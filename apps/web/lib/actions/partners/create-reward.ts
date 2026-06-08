@@ -35,6 +35,8 @@ export const createRewardAction = authActionClient
       modifiers,
       config,
       groupId,
+      spendLimitAmount,
+      spendLimitInterval,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -85,6 +87,8 @@ export const createRewardAction = authActionClient
           tooltipDescription: tooltipDescription || null,
           modifiers: modifiers || Prisma.DbNull,
           config: config ?? Prisma.DbNull,
+          spendLimitAmount,
+          spendLimitInterval,
           ...(type === "flat"
             ? {
                 amountInCents,
