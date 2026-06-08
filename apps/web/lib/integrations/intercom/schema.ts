@@ -52,6 +52,7 @@ export const intercomWebhookSchema = z.object({
             ),
             app_package_code: z
               .string()
+              .nullable()
               .describe(
                 "The app package code if this part was created via API. null if the part was not created via API.",
               ),
