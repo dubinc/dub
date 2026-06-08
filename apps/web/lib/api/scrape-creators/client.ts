@@ -81,10 +81,4 @@ export const scrapeCreatorsFetch = createFetch({
   onError: ({ error }) => {
     console.error("[ScrapeCreators] Error", error);
   },
-  // onResponse: async ({ response }) => {
-  //   console.log(
-  //     "[ScrapeCreators] Response",
-  //     prettyPrint(await response.clone().json()),
-  //   );
-  // },
 });

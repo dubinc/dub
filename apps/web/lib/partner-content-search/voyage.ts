@@ -27,6 +27,40 @@ type VoyageRerankResponse = {
 
 type VoyageFetch = typeof fetch;
 
+// Typed error so callers can branch on the HTTP status (e.g. 429 rate limits)
+// instead of string-matching the message.
+export class VoyageApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly endpoint: string,
+  ) {
+    super(`Voyage ${endpoint} request failed: ${status}`);
+    this.name = "VoyageApiError";
+  }
+}
+
+// Serialize an embedding for use in raw SQL TO_VECTOR(...) statements. Shared by
+// the embed cron route (writes) and the admin search route (query vector).
+export function serializeEmbeddingForVector(embedding: number[]) {
+  const expectedDimensions = PARTNER_CONTENT_SEARCH_MODELS.embedding.dimensions;
+
+  if (embedding.length !== expectedDimensions) {
+    throw new Error(
+      `Expected ${expectedDimensions} embedding dimensions, received ${embedding.length}.`,
+    );
+  }
+
+  return JSON.stringify(
+    embedding.map((value) => {
+      if (!Number.isFinite(value)) {
+        throw new Error("Voyage returned a non-finite embedding value.");
+      }
+
+      return value;
+    }),
+  );
+}
+
 export function buildVoyageEmbeddingRequest({
   input,
   inputType,
@@ -100,7 +134,7 @@ export async function embedPartnerContentTexts({
   });
 
   if (!response.ok) {
-    throw new Error(`Voyage embeddings request failed: ${response.status}`);
+    throw new VoyageApiError(response.status, "embeddings");
   }
 
   const result = (await response.json()) as VoyageEmbeddingResponse;
@@ -144,7 +178,7 @@ export async function rerankPartnerContent({
   });
 
   if (!response.ok) {
-    throw new Error(`Voyage rerank request failed: ${response.status}`);
+    throw new VoyageApiError(response.status, "rerank");
   }
 
   const result = (await response.json()) as VoyageRerankResponse;

@@ -1,13 +1,16 @@
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import {
+  buildEligiblePartnerPlatformWhere,
   createPartnerContentDeduplicationId,
   getPartnerContentUrl,
   PARTNER_CONTENT_ENUMERATE_PAGE_SIZE,
-  PARTNER_CONTENT_INCREMENTAL_REFRESH_DAYS,
   PARTNER_CONTENT_SEARCH_ROUTES,
+  parsePartnerContentCronPayload,
   partnerContentEnumeratePayloadSchema,
+  PartnerContentIngestionMode,
 } from "@/lib/partner-content-search/ingestion/enqueue";
+import { PartnerContentPlatform } from "@/lib/partner-content-search/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { logAndRespond } from "../../utils";
@@ -17,9 +20,11 @@ export const maxDuration = 60;
 
 // POST /api/cron/partner-content/enumerate
 export const POST = withCron(async ({ rawBody }) => {
-  const payload = partnerContentEnumeratePayloadSchema.parse(
-    JSON.parse(rawBody),
+  const payload = parsePartnerContentCronPayload(
+    partnerContentEnumeratePayloadSchema,
+    rawBody,
   );
+  if (payload instanceof Response) return payload;
 
   // Process a single page per invocation and hand the next cursor back to
   // this same route, rather than draining the whole partner set in one
@@ -132,17 +137,13 @@ function buildEligiblePartnerWhere({
   mode,
   filter,
 }: {
-  mode: "incremental" | "backfill";
+  mode: PartnerContentIngestionMode;
   filter: {
     partnerId?: string;
     partnerIds?: string[];
-    platforms: Array<"youtube" | "instagram" | "tiktok">;
+    platforms: PartnerContentPlatform[];
   };
 }): Prisma.PartnerWhereInput {
-  const incrementalCutoff = new Date(
-    Date.now() - PARTNER_CONTENT_INCREMENTAL_REFRESH_DAYS * 24 * 60 * 60 * 1000,
-  );
-
   return {
     networkStatus: {
       in: ["approved", "trusted"],
@@ -156,26 +157,10 @@ function buildEligiblePartnerWhere({
       },
     }),
     platforms: {
-      some: {
-        type: {
-          in: filter.platforms,
-        },
-        verifiedAt: {
-          not: null,
-        },
-        ...(mode === "incremental" && {
-          OR: [
-            {
-              contentLastFetchedAt: null,
-            },
-            {
-              contentLastFetchedAt: {
-                lt: incrementalCutoff,
-              },
-            },
-          ],
-        }),
-      },
+      some: buildEligiblePartnerPlatformWhere({
+        mode,
+        platforms: filter.platforms,
+      }),
     },
   };
 }

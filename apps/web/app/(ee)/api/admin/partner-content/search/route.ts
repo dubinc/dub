@@ -5,9 +5,12 @@ import {
   PARTNER_CONTENT_SEARCH_LIMITS,
   PARTNER_CONTENT_SEARCH_MODELS,
 } from "@/lib/partner-content-search/constants";
-import { embedPartnerContentTexts } from "@/lib/partner-content-search/voyage";
+import {
+  embedPartnerContentTexts,
+  serializeEmbeddingForVector,
+} from "@/lib/partner-content-search/voyage";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { PlatformType, Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -33,6 +36,7 @@ const partnerContentSearchSchema = z.object({
     .max(PARTNER_CONTENT_SEARCH_LIMITS.chunkCandidateCount)
     .optional(),
   partnerIds: z.array(z.string()).min(1).max(100).optional(),
+  platform: z.enum(PlatformType).optional(),
 });
 
 type PartnerContentSearchRow = {
@@ -48,6 +52,7 @@ type PartnerContentSearchRow = {
   platformContentId: string;
   contentUrl: string;
   contentTitle: string | null;
+  contentThumbnailUrl: string | null;
   contentPublishedAt: Date | null;
   chunkIndex: number;
   chunkText: string;
@@ -75,17 +80,13 @@ export const POST = withAdmin(
         inputType: "query",
       });
 
-      const queryVector = serializeEmbedding(queryEmbedding);
-      const rows = body.partnerIds?.length
-        ? await searchPartnerContentChunksForPartners({
-            queryVector,
-            partnerIds: body.partnerIds,
-            limit: candidateChunkCount,
-          })
-        : await searchPartnerContentChunks({
-            queryVector,
-            limit: candidateChunkCount,
-          });
+      const queryVector = serializeEmbeddingForVector(queryEmbedding);
+      const rows = await searchPartnerContentChunks({
+        queryVector,
+        limit: candidateChunkCount,
+        partnerIds: body.partnerIds,
+        platform: body.platform,
+      });
 
       return NextResponse.json({
         success: true,
@@ -111,50 +112,22 @@ export const POST = withAdmin(
 async function searchPartnerContentChunks({
   queryVector,
   limit,
-}: {
-  queryVector: string;
-  limit: number;
-}) {
-  return await prisma.$queryRaw<PartnerContentSearchRow[]>`
-    SELECT
-      c.id AS chunkId,
-      c.partnerContentItemId,
-      c.partnerId,
-      p.name AS partnerName,
-      p.username AS partnerUsername,
-      p.image AS partnerImage,
-      p.description AS partnerDescription,
-      pp.type AS platformType,
-      pp.identifier AS platformIdentifier,
-      pci.platformContentId,
-      pci.url AS contentUrl,
-      pci.title AS contentTitle,
-      pci.publishedAt AS contentPublishedAt,
-      c.chunkIndex,
-      c.text AS chunkText,
-      c.startMs,
-      c.endMs,
-      DISTANCE(TO_VECTOR(${queryVector}), c.embedding, 'cosine') AS distance
-    FROM PartnerContentChunk c
-    INNER JOIN PartnerContentItem pci ON pci.id = c.partnerContentItemId
-    INNER JOIN Partner p ON p.id = c.partnerId
-    INNER JOIN PartnerPlatform pp ON pp.id = pci.partnerPlatformId
-    WHERE c.embedding IS NOT NULL
-    ORDER BY distance ASC
-    LIMIT ${limit}
-  `;
-}
-
-async function searchPartnerContentChunksForPartners({
-  queryVector,
   partnerIds,
-  limit,
+  platform,
 }: {
   queryVector: string;
-  partnerIds: string[];
   limit: number;
+  partnerIds?: string[];
+  platform?: PlatformType;
 }) {
-  return await prisma.$queryRaw<PartnerContentSearchRow[]>`
+  const partnerFilter = partnerIds?.length
+    ? Prisma.sql`AND c.partnerId IN (${Prisma.join(partnerIds)})`
+    : Prisma.empty;
+  const platformFilter = platform
+    ? Prisma.sql`AND pp.type = ${platform}`
+    : Prisma.empty;
+
+  return await prisma.$queryRaw<PartnerContentSearchRow[]>(Prisma.sql`
     SELECT
       c.id AS chunkId,
       c.partnerContentItemId,
@@ -168,9 +141,10 @@ async function searchPartnerContentChunksForPartners({
       pci.platformContentId,
       pci.url AS contentUrl,
       pci.title AS contentTitle,
+      pci.thumbnailUrl AS contentThumbnailUrl,
       pci.publishedAt AS contentPublishedAt,
       c.chunkIndex,
-      c.text AS chunkText,
+      c.chunkText,
       c.startMs,
       c.endMs,
       DISTANCE(TO_VECTOR(${queryVector}), c.embedding, 'cosine') AS distance
@@ -179,10 +153,11 @@ async function searchPartnerContentChunksForPartners({
     INNER JOIN Partner p ON p.id = c.partnerId
     INNER JOIN PartnerPlatform pp ON pp.id = pci.partnerPlatformId
     WHERE c.embedding IS NOT NULL
-      AND c.partnerId IN (${Prisma.join(partnerIds)})
+      ${partnerFilter}
+      ${platformFilter}
     ORDER BY distance ASC
     LIMIT ${limit}
-  `;
+  `);
 }
 
 function groupPartnerSearchResults({
@@ -248,11 +223,12 @@ function toChunkResult(row: PartnerContentSearchRow, distance: number) {
       platformContentId: row.platformContentId,
       url: row.contentUrl,
       title: row.contentTitle,
+      thumbnailUrl: row.contentThumbnailUrl,
       publishedAt: row.contentPublishedAt?.toISOString() ?? null,
     },
     chunk: {
       index: row.chunkIndex,
-      text: row.chunkText,
+      chunkText: row.chunkText,
       startMs: row.startMs,
       endMs: row.endMs,
     },
@@ -263,24 +239,4 @@ function toChunkResult(row: PartnerContentSearchRow, distance: number) {
 
 function toScore(distance: number) {
   return Number((1 - distance).toFixed(6));
-}
-
-function serializeEmbedding(embedding: number[]) {
-  const expectedDimensions = PARTNER_CONTENT_SEARCH_MODELS.embedding.dimensions;
-
-  if (embedding.length !== expectedDimensions) {
-    throw new Error(
-      `Expected ${expectedDimensions} embedding dimensions, received ${embedding.length}.`,
-    );
-  }
-
-  return JSON.stringify(
-    embedding.map((value) => {
-      if (!Number.isFinite(value)) {
-        throw new Error("Voyage returned a non-finite embedding value.");
-      }
-
-      return value;
-    }),
-  );
 }

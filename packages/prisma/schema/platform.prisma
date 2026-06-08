@@ -25,7 +25,8 @@ model PartnerPlatform {
   contentLastFetchedAt DateTime? // last time we fetched recent content from ScrapeCreators for this platform
   latestContentUrl     String?   @db.Text // the most recent content URL we found for this platform
 
-  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partner             Partner              @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partnerContentItems PartnerContentItem[]
 
   @@unique([partnerId, type])
   @@index(type)

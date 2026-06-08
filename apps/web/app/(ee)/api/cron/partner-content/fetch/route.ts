@@ -6,14 +6,16 @@ import {
   createPartnerContentDeduplicationId,
   getPartnerContentUrl,
   PARTNER_CONTENT_SEARCH_ROUTES,
+  parsePartnerContentCronPayload,
   partnerContentFetchPayloadSchema,
+  PartnerContentIngestionMode,
 } from "@/lib/partner-content-search/ingestion/enqueue";
 import {
   NormalizedPartnerContentItem,
   normalizeYouTubeChannelVideo,
 } from "@/lib/partner-content-search/ingestion/normalize-content";
+import { PartnerContentPlatform } from "@/lib/partner-content-search/types";
 import { prisma } from "@dub/prisma";
-import { NextResponse } from "next/server";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +25,11 @@ const MAX_YOUTUBE_CHANNEL_VIDEO_PAGES = 3;
 
 // POST /api/cron/partner-content/fetch
 export const POST = withCron(async ({ rawBody }) => {
-  const payload = partnerContentFetchPayloadSchema.parse(JSON.parse(rawBody));
+  const payload = parsePartnerContentCronPayload(
+    partnerContentFetchPayloadSchema,
+    rawBody,
+  );
+  if (payload instanceof Response) return payload;
 
   const partnerPlatform = await prisma.partnerPlatform.findUnique({
     where: {
@@ -104,13 +110,8 @@ export const POST = withCron(async ({ rawBody }) => {
     ? fetchedContentItems
     : newContentItems;
 
-  const writeResult = payload.dryRun
-    ? {
-        contentItemsCreated: 0,
-        partnerPlatformUpdated: false,
-        transcriptJobCount: 0,
-        qstashResponses: [],
-      }
+  const { contentItemsCreated, transcriptJobCount } = payload.dryRun
+    ? { contentItemsCreated: 0, transcriptJobCount: 0 }
     : await writeFetchedContentItems({
         mode: payload.mode,
         runStamp: payload.runStamp,
@@ -123,24 +124,15 @@ export const POST = withCron(async ({ rawBody }) => {
         latestContentUrl: latestContentItem?.url ?? null,
       });
 
-  return NextResponse.json({
-    success: true,
-    mode: payload.mode,
-    runStamp: payload.runStamp,
-    dryRun: payload.dryRun,
-    fetchedContentCount: fetchedContentItems.length,
-    existingContentCount: existingContentItems.length,
-    newContentCount: newContentItems.length,
-    writesEnabled: !payload.dryRun,
-    wouldWriteContentItems: newContentItems.length,
-    forceTranscriptJobs: payload.forceTranscriptJobs,
-    wouldPublishTranscriptJobs: payload.dryRun
-      ? 0
-      : contentItemsForTranscriptJobs.length,
-    ...writeResult,
-    newContentItems: newContentItems.slice(0, 10),
-    partnerPlatform,
-  });
+  return logAndRespond(
+    `[PartnerContentSearch] ${
+      payload.dryRun ? "Dry-run fetched" : "Fetched"
+    } ${fetchedContentItems.length} items (${newContentItems.length} new, ${
+      existingContentItems.length
+    } existing) for partner platform ${partnerPlatform.id}: created ${contentItemsCreated}, enqueued ${transcriptJobCount} transcript jobs on ${
+      payload.mode
+    } run ${payload.runStamp}.`,
+  );
 });
 
 async function fetchRecentYouTubeContent({
@@ -218,12 +210,12 @@ async function writeFetchedContentItems({
   contentItemsForTranscriptJobs,
   latestContentUrl,
 }: {
-  mode: "incremental" | "backfill";
+  mode: PartnerContentIngestionMode;
   runStamp: string;
   dryRun: boolean;
   partnerId: string;
   partnerPlatformId: string;
-  platform: "youtube" | "instagram" | "tiktok";
+  platform: PartnerContentPlatform;
   contentItems: NormalizedPartnerContentItem[];
   contentItemsForTranscriptJobs: NormalizedPartnerContentItem[];
   latestContentUrl: string | null;
@@ -248,7 +240,7 @@ async function writeFetchedContentItems({
         viewCount:
           item.viewCount === null ? null : BigInt(Math.trunc(item.viewCount)),
         transcriptFetchStatus: "pending",
-        hasTimestamps: false,
+        transcriptHasTimestamps: false,
         totalChunkCount: 0,
         embeddedChunkCount: 0,
       })),
@@ -305,15 +297,12 @@ async function writeFetchedContentItems({
     },
   }));
 
-  const qstashResponses =
-    transcriptMessages.length === 0
-      ? []
-      : await qstash.batchJSON(transcriptMessages);
+  if (transcriptMessages.length > 0) {
+    await qstash.batchJSON(transcriptMessages);
+  }
 
   return {
     contentItemsCreated: createResult.count,
-    partnerPlatformUpdated: true,
     transcriptJobCount: transcriptMessages.length,
-    qstashResponses,
   };
 }

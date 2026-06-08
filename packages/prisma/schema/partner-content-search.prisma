@@ -18,21 +18,6 @@ enum PartnerContentTranscriptFetchStatus {
   error
 }
 
-model PartnerContentIngestionRun {
-  id                      String    @id @default(cuid())
-  status                  String
-  requestedByUserId       String?
-  platforms               Json      @db.Json
-  limitCreators           Int
-  contentItemsPerPlatform Int
-  stats                   Json?     @db.Json
-  error                   String?   @db.Text
-  startedAt               DateTime  @default(now())
-  completedAt             DateTime?
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-}
-
 model PartnerContentItem {
   id                   String                         @id @default(cuid())
   partnerId            String
@@ -49,7 +34,7 @@ model PartnerContentItem {
   transcriptFetchStatus PartnerContentTranscriptFetchStatus @default(pending)
   transcriptCreditsUsed Int?
   transcriptLastAttemptedAt DateTime?
-  hasTimestamps        Boolean                        @default(false)
+  transcriptHasTimestamps Boolean                     @default(false)
   normalizedTranscript String?                        @db.LongText
   transcriptHash       String?
   embeddingModel       String?
@@ -58,6 +43,10 @@ model PartnerContentItem {
   lastFetchedAt        DateTime?
   createdAt            DateTime                       @default(now())
   updatedAt            DateTime                       @updatedAt
+
+  partner         Partner               @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partnerPlatform PartnerPlatform       @relation(fields: [partnerPlatformId], references: [id], onDelete: Cascade)
+  chunks          PartnerContentChunk[]
 
   @@unique([partnerPlatformId, platformContentId])
   @@index([partnerId, partnerPlatformId])
@@ -69,7 +58,7 @@ model PartnerContentChunk {
   partnerContentItemId String
   partnerId            String
   chunkIndex           Int
-  text                 String                      @db.Text
+  chunkText            String                      @db.Text
   startMs              Int?
   endMs                Int?
   transcriptHash       String
@@ -77,6 +66,9 @@ model PartnerContentChunk {
   embeddingModel       String
   createdAt            DateTime                    @default(now())
   updatedAt            DateTime                    @updatedAt
+
+  partnerContentItem PartnerContentItem @relation(fields: [partnerContentItemId], references: [id], onDelete: Cascade)
+  partner            Partner            @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerContentItemId, chunkIndex, transcriptHash, embeddingModel])
   @@index(partnerId)

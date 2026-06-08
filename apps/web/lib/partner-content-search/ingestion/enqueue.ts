@@ -1,7 +1,9 @@
 import { qstash } from "@/lib/cron";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { logAndRespond } from "app/(ee)/api/cron/utils";
+import type { Prisma } from "@dub/prisma/client";
 import * as z from "zod/v4";
-import { PARTNER_CONTENT_SEARCH_PLATFORMS } from "../types";
+import { PartnerContentPlatform, PARTNER_CONTENT_SEARCH_PLATFORMS } from "../types";
 
 // Partners enumerated per page / per page-worker job. Defaults to 500; override
 // with the PARTNER_CONTENT_ENUMERATE_PAGE_SIZE env var (e.g. 3) to exercise the
@@ -36,6 +38,10 @@ export const partnerContentIngestionModeSchema = z.enum([
   "backfill",
 ]);
 
+export type PartnerContentIngestionMode = z.infer<
+  typeof partnerContentIngestionModeSchema
+>;
+
 export const partnerContentIngestionFilterSchema = z
   .object({
     partnerId: z.string().optional(),
@@ -46,7 +52,7 @@ export const partnerContentIngestionFilterSchema = z
       .default([...PARTNER_CONTENT_SEARCH_PLATFORMS]),
     limitPartners: z.number().int().positive().max(100_000).optional(),
   })
-  .default({})
+  .prefault({})
   .refine((filter) => !(filter.partnerId && filter.partnerIds?.length), {
     message: "Use either partnerId or partnerIds, not both.",
   });
@@ -147,4 +153,61 @@ export async function enqueuePartnerContentEnumerate(
       payload.runStamp,
     ),
   });
+}
+
+export function getIncrementalRefreshCutoff() {
+  return new Date(
+    Date.now() - PARTNER_CONTENT_INCREMENTAL_REFRESH_DAYS * 24 * 60 * 60 * 1000,
+  );
+}
+
+// Shared platform-eligibility predicate for the enumerate fan-out. The
+// partner-level (enumerate) and platform-level (enumerate/page) routes both
+// filter platforms on the same verified + incremental-recency rules.
+export function buildEligiblePartnerPlatformWhere({
+  mode,
+  platforms,
+}: {
+  mode: PartnerContentIngestionMode;
+  platforms: PartnerContentPlatform[];
+}): Prisma.PartnerPlatformWhereInput {
+  return {
+    type: {
+      in: platforms,
+    },
+    verifiedAt: {
+      not: null,
+    },
+    ...(mode === "incremental" && {
+      OR: [
+        {
+          contentLastFetchedAt: null,
+        },
+        {
+          contentLastFetchedAt: {
+            lt: getIncrementalRefreshCutoff(),
+          },
+        },
+      ],
+    }),
+  };
+}
+
+// Parse a QStash payload for a cron route. A malformed payload is a permanent
+// error QStash should not retry, so respond 400 rather than letting it bubble
+// to withCron's 500 + error alert. Returns the parsed payload, or a Response to
+// return directly from the handler.
+export function parsePartnerContentCronPayload<T extends z.ZodTypeAny>(
+  schema: T,
+  rawBody: string,
+): z.infer<T> | Response {
+  try {
+    return schema.parse(JSON.parse(rawBody)) as z.infer<T>;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return logAndRespond(
+      `[PartnerContentSearch] Ignoring invalid cron payload: ${message}`,
+      { status: 400, logLevel: "warn" },
+    );
+  }
 }

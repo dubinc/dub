@@ -6,11 +6,16 @@ import {
   getPartnerContentUrl,
   PARTNER_CONTENT_EMBED_FLOW_CONTROL,
   PARTNER_CONTENT_SEARCH_ROUTES,
+  parsePartnerContentCronPayload,
   partnerContentEmbedPayloadSchema,
+  PartnerContentIngestionMode,
 } from "@/lib/partner-content-search/ingestion/enqueue";
-import { embedPartnerContentTexts } from "@/lib/partner-content-search/voyage";
+import {
+  embedPartnerContentTexts,
+  serializeEmbeddingForVector,
+  VoyageApiError,
+} from "@/lib/partner-content-search/voyage";
 import { prisma } from "@dub/prisma";
-import { NextResponse } from "next/server";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -20,7 +25,7 @@ const EMBED_RATE_LIMIT_RETRY_DELAY_SECONDS = 120;
 
 type UnembeddedChunk = {
   id: string;
-  text: string;
+  chunkText: string;
 };
 
 type EmbeddedChunkCount = {
@@ -29,7 +34,11 @@ type EmbeddedChunkCount = {
 
 // POST /api/cron/partner-content/embed
 export const POST = withCron(async ({ rawBody }) => {
-  const payload = partnerContentEmbedPayloadSchema.parse(JSON.parse(rawBody));
+  const payload = parsePartnerContentCronPayload(
+    partnerContentEmbedPayloadSchema,
+    rawBody,
+  );
+  if (payload instanceof Response) return payload;
 
   if (!payload.partnerContentItemId) {
     return enqueueEmbedJobsForPartnerPlatform(payload);
@@ -66,18 +75,13 @@ export const POST = withCron(async ({ rawBody }) => {
     contentItem.transcriptFetchStatus !== "fetched" ||
     contentItem.totalChunkCount === 0
   ) {
-    return NextResponse.json({
-      success: true,
-      mode: payload.mode,
-      runStamp: payload.runStamp,
-      skipped: true,
-      reason: "Content item has no fetched transcript chunks to embed.",
-      contentItem,
-    });
+    return logAndRespond(
+      `[PartnerContentSearch] Skipping embed for content item ${contentItem.id}: no fetched transcript chunks for ${payload.mode} run ${payload.runStamp}.`,
+    );
   }
 
   const chunks = await prisma.$queryRaw<UnembeddedChunk[]>`
-    SELECT id, text
+    SELECT id, chunkText
     FROM PartnerContentChunk
     WHERE partnerContentItemId = ${contentItem.id}
       AND embedding IS NULL
@@ -88,31 +92,22 @@ export const POST = withCron(async ({ rawBody }) => {
   if (chunks.length === 0) {
     const embeddedChunkCount = await refreshEmbeddedChunkCount(contentItem.id);
 
-    return NextResponse.json({
-      success: true,
-      mode: payload.mode,
-      runStamp: payload.runStamp,
-      skipped: true,
-      reason: "All chunks are already embedded.",
-      embeddedChunkCount,
-      contentItem: {
-        ...contentItem,
-        embeddedChunkCount,
-      },
-    });
+    return logAndRespond(
+      `[PartnerContentSearch] Content item ${contentItem.id} already fully embedded (${embeddedChunkCount}/${contentItem.totalChunkCount}) for ${payload.mode} run ${payload.runStamp}.`,
+    );
   }
 
   let embeddings: number[][];
 
   try {
     embeddings = await embedPartnerContentTexts({
-      input: chunks.map(({ text }) => text),
+      input: chunks.map(({ chunkText }) => chunkText),
       inputType: "document",
     });
   } catch (error) {
     if (!isVoyageRateLimitError(error)) throw error;
 
-    const response = await qstash.publishJSON({
+    await qstash.publishJSON({
       url: getPartnerContentUrl(PARTNER_CONTENT_SEARCH_ROUTES.embed),
       method: "POST",
       body: {
@@ -132,20 +127,9 @@ export const POST = withCron(async ({ rawBody }) => {
       ),
     });
 
-    return NextResponse.json({
-      success: true,
-      mode: payload.mode,
-      runStamp: payload.runStamp,
-      rateLimited: true,
-      retryScheduled: true,
-      retryMessageId: response.messageId,
-      contentItem: {
-        id: contentItem.id,
-        transcriptFetchStatus: contentItem.transcriptFetchStatus,
-        totalChunkCount: contentItem.totalChunkCount,
-        embeddedChunkCount: contentItem.embeddedChunkCount,
-      },
-    });
+    return logAndRespond(
+      `[PartnerContentSearch] Voyage rate-limited embed for content item ${contentItem.id}; retry scheduled for ${payload.mode} run ${payload.runStamp}.`,
+    );
   }
 
   if (embeddings.length !== chunks.length) {
@@ -158,7 +142,7 @@ export const POST = withCron(async ({ rawBody }) => {
     chunks.map((chunk, index) =>
       prisma.$executeRaw`
         UPDATE PartnerContentChunk
-        SET embedding = TO_VECTOR(${serializeEmbedding(embeddings[index])}),
+        SET embedding = TO_VECTOR(${serializeEmbeddingForVector(embeddings[index])}),
             embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.model}
         WHERE id = ${chunk.id}
       `,
@@ -171,10 +155,8 @@ export const POST = withCron(async ({ rawBody }) => {
     contentItem.totalChunkCount - embeddedChunkCount,
   );
 
-  let continuationMessageId: string | undefined;
-
   if (remainingChunkCount > 0) {
-    const response = await qstash.publishJSON({
+    await qstash.publishJSON({
       url: getPartnerContentUrl(PARTNER_CONTENT_SEARCH_ROUTES.embed),
       method: "POST",
       body: {
@@ -193,26 +175,11 @@ export const POST = withCron(async ({ rawBody }) => {
         embeddedChunkCount,
       ),
     });
-
-    continuationMessageId = response.messageId;
   }
 
-  return NextResponse.json({
-    success: true,
-    mode: payload.mode,
-    runStamp: payload.runStamp,
-    embeddedNow: chunks.length,
-    embeddedChunkCount,
-    totalChunkCount: contentItem.totalChunkCount,
-    remainingChunkCount,
-    continuationMessageId,
-    contentItem: {
-      id: contentItem.id,
-      transcriptFetchStatus: contentItem.transcriptFetchStatus,
-      totalChunkCount: contentItem.totalChunkCount,
-      embeddedChunkCount,
-    },
-  });
+  return logAndRespond(
+    `[PartnerContentSearch] Embedded ${chunks.length} chunks for content item ${contentItem.id} (${embeddedChunkCount}/${contentItem.totalChunkCount}, ${remainingChunkCount} remaining) on ${payload.mode} run ${payload.runStamp}.`,
+  );
 });
 
 async function enqueueEmbedJobsForPartnerPlatform({
@@ -223,7 +190,7 @@ async function enqueueEmbedJobsForPartnerPlatform({
   limitContentItems,
   maxChunks,
 }: {
-  mode: "incremental" | "backfill";
+  mode: PartnerContentIngestionMode;
   runStamp: string;
   partnerId: string;
   partnerPlatformId?: string;
@@ -281,22 +248,13 @@ async function enqueueEmbedJobsForPartnerPlatform({
     ),
   }));
 
-  const qstashResponses =
-    messages.length === 0 ? [] : await qstash.batchJSON(messages);
+  if (messages.length > 0) {
+    await qstash.batchJSON(messages);
+  }
 
-  return NextResponse.json({
-    success: true,
-    mode,
-    runStamp,
-    partnerId,
-    partnerPlatformId,
-    inspectedContentItemCount: contentItems.length,
-    embedJobCount: messages.length,
-    pendingContentItemCount: pendingContentItems.length,
-    flowControl: PARTNER_CONTENT_EMBED_FLOW_CONTROL,
-    qstashResponses,
-    contentItems: pendingContentItems,
-  });
+  return logAndRespond(
+    `[PartnerContentSearch] Enqueued ${messages.length} embed jobs (${pendingContentItems.length} pending of ${contentItems.length} inspected) for partner platform ${partnerPlatformId} on ${mode} run ${runStamp}.`,
+  );
 }
 
 async function refreshEmbeddedChunkCount(partnerContentItemId: string) {
@@ -322,28 +280,8 @@ async function refreshEmbeddedChunkCount(partnerContentItemId: string) {
   return embeddedChunkCount;
 }
 
-function serializeEmbedding(embedding: number[]) {
-  const expectedDimensions = PARTNER_CONTENT_SEARCH_MODELS.embedding.dimensions;
-
-  if (embedding.length !== expectedDimensions) {
-    throw new Error(
-      `Expected ${expectedDimensions} embedding dimensions, received ${embedding.length}.`,
-    );
-  }
-
-  return JSON.stringify(
-    embedding.map((value) => {
-      if (!Number.isFinite(value)) {
-        throw new Error("Voyage returned a non-finite embedding value.");
-      }
-
-      return value;
-    }),
-  );
-}
-
 function isVoyageRateLimitError(error: unknown) {
-  return error instanceof Error && error.message.includes("failed: 429");
+  return error instanceof VoyageApiError && error.status === 429;
 }
 
 function getRateLimitRetryDelaySeconds(contentItemId: string) {

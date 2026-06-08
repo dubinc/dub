@@ -1,15 +1,14 @@
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import {
+  buildEligiblePartnerPlatformWhere,
   createPartnerContentDeduplicationId,
   getPartnerContentUrl,
-  PARTNER_CONTENT_INCREMENTAL_REFRESH_DAYS,
   PARTNER_CONTENT_SEARCH_ROUTES,
+  parsePartnerContentCronPayload,
   partnerContentEnumeratePagePayloadSchema,
 } from "@/lib/partner-content-search/ingestion/enqueue";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
-import { NextResponse } from "next/server";
 import { logAndRespond } from "../../../utils";
 
 export const dynamic = "force-dynamic";
@@ -17,9 +16,11 @@ export const maxDuration = 60;
 
 // POST /api/cron/partner-content/enumerate/page
 export const POST = withCron(async ({ rawBody }) => {
-  const payload = partnerContentEnumeratePagePayloadSchema.parse(
-    JSON.parse(rawBody),
+  const payload = parsePartnerContentCronPayload(
+    partnerContentEnumeratePagePayloadSchema,
+    rawBody,
   );
+  if (payload instanceof Response) return payload;
 
   const partners = await prisma.partner.findMany({
     where: {
@@ -30,7 +31,10 @@ export const POST = withCron(async ({ rawBody }) => {
     select: {
       id: true,
       platforms: {
-        where: buildEligiblePartnerPlatformWhere(payload),
+        where: buildEligiblePartnerPlatformWhere({
+          mode: payload.mode,
+          platforms: payload.filter.platforms,
+        }),
         select: {
           id: true,
           partnerId: true,
@@ -88,54 +92,17 @@ export const POST = withCron(async ({ rawBody }) => {
     },
   }));
 
-  const qstashResponses = payload.dryRun
-    ? []
-    : await qstash.batchJSON(fetchMessages);
+  if (!payload.dryRun) {
+    await qstash.batchJSON(fetchMessages);
+  }
 
-  return NextResponse.json({
-    success: true,
-    mode: payload.mode,
-    runStamp: payload.runStamp,
-    dryRun: payload.dryRun,
-    partnerCount: partners.length,
-    partnerPlatformCount: partnerPlatforms.length,
-    fetchJobCount: fetchMessages.length,
-    qstashResponses,
-    partnerPlatforms,
-  });
-});
-
-function buildEligiblePartnerPlatformWhere({
-  mode,
-  filter,
-}: {
-  mode: "incremental" | "backfill";
-  filter: {
-    platforms: Array<"youtube" | "instagram" | "tiktok">;
-  };
-}): Prisma.PartnerPlatformWhereInput {
-  const incrementalCutoff = new Date(
-    Date.now() - PARTNER_CONTENT_INCREMENTAL_REFRESH_DAYS * 24 * 60 * 60 * 1000,
+  return logAndRespond(
+    `[PartnerContentSearch] ${
+      payload.dryRun ? "Dry-run enumerated" : "Enqueued"
+    } ${fetchMessages.length} fetch jobs across ${
+      partnerPlatforms.length
+    } platforms (${partners.length} partners) for ${payload.mode} run ${
+      payload.runStamp
+    }.`,
   );
-
-  return {
-    type: {
-      in: filter.platforms,
-    },
-    verifiedAt: {
-      not: null,
-    },
-    ...(mode === "incremental" && {
-      OR: [
-        {
-          contentLastFetchedAt: null,
-        },
-        {
-          contentLastFetchedAt: {
-            lt: incrementalCutoff,
-          },
-        },
-      ],
-    }),
-  };
-}
+});
