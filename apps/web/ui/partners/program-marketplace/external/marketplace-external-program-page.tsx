@@ -1,14 +1,14 @@
 import { getNetworkProgram } from "@/lib/fetchers/get-network-program";
 import { ApplicationAnalytics } from "@/ui/application-analytics";
 import {
+  getMarketplaceAllHref,
   getMarketplaceHref,
   getMarketplacePublicApplyHref,
 } from "@/ui/partners/program-marketplace/get-marketplace-href";
-import { MarketplaceProgramBackLink } from "@/ui/partners/program-marketplace/marketplace-program-back-link";
 import { MarketplaceProgramDetailBody } from "@/ui/partners/program-marketplace/marketplace-program-detail-body";
 import { MarketplaceProgramDetailsLayout } from "@/ui/partners/program-marketplace/marketplace-program-details-layout";
 import { MarketplaceProgramHero } from "@/ui/partners/program-marketplace/marketplace-program-hero";
-import { Button } from "@dub/ui";
+import { Button, ChevronLeft } from "@dub/ui";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { MarketplaceExternalShell } from "./marketplace-external-shell";
@@ -31,7 +31,15 @@ export async function MarketplaceExternalProgramPage({
       <ApplicationAnalytics />
       <MarketplaceExternalShell variant="none">
         <MarketplaceProgramDetailsLayout
-          header={<MarketplaceProgramBackLink />}
+          header={
+            <Link
+              href={getMarketplaceAllHref()}
+              className="group inline-flex items-center gap-1 text-xs font-medium text-neutral-800 transition-colors hover:text-neutral-500"
+            >
+              <ChevronLeft className="size-[10px] text-neutral-500 transition-transform group-hover:-translate-x-0.5" />
+              All Programs
+            </Link>
+          }
           hero={
             <MarketplaceProgramHero
               program={program}

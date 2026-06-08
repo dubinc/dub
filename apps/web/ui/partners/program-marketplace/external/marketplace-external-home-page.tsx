@@ -1,13 +1,17 @@
+import { getPublicNetworkPrograms } from "@/lib/fetchers/get-public-network-programs";
 import { FeaturedPrograms } from "../featured-programs";
-import { fetchMarketplaceHomePrograms } from "../fetch-marketplace-home-programs";
 import { MarketplaceCategories } from "../marketplace-categories";
 import { MARKETPLACE_HOME_ROWS } from "../marketplace-home-sections";
 import { MarketplaceProgramRow } from "../marketplace-program-row";
 import { MarketplaceExternalShell } from "./marketplace-external-shell";
 
 export async function MarketplaceExternalHomePage() {
-  const { featuredPrograms, rowPrograms } =
-    await fetchMarketplaceHomePrograms();
+  const [featuredPrograms, ...rowPrograms] = await Promise.all([
+    getPublicNetworkPrograms({ featured: true, pageSize: 6 }),
+    ...MARKETPLACE_HOME_ROWS.map((row) =>
+      getPublicNetworkPrograms(row.fetchParams),
+    ),
+  ]);
 
   return (
     <MarketplaceExternalShell variant="home">

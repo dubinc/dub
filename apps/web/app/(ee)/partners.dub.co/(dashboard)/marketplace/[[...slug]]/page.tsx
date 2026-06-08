@@ -23,5 +23,5 @@ export default async function MarketplacePage(props: {
     redirect(getMarketplacePopularRedirectHref(searchParams));
   }
 
-  return <MarketplaceRouter slug={slug} variant="internal" />;
+  return <MarketplaceRouter slug={slug} />;
 }

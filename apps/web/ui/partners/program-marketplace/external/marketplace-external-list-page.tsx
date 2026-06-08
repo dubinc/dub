@@ -7,6 +7,7 @@ import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { getPublicNetworkProgramsQuerySchema } from "@/lib/zod/schemas/program-network";
 import { Category } from "@dub/prisma/client";
 import Link from "next/link";
+import { MarketplaceListToolbar } from "../marketplace-list-toolbar";
 import {
   MarketplaceProgramGrid,
   MarketplaceProgramGridEmpty,
@@ -15,7 +16,6 @@ import {
   MarketplaceExternalFilterSidebar,
   getMarketplaceExternalBasePath,
 } from "./marketplace-external-filters";
-import { MarketplaceExternalListToolbar } from "./marketplace-external-list-toolbar";
 import { MarketplaceExternalShell } from "./marketplace-external-shell";
 
 export async function MarketplaceExternalListPage({
@@ -92,7 +92,8 @@ export async function MarketplaceExternalListPage({
         </div>
 
         <div className="@container/page flex min-w-0 flex-1 flex-col gap-6">
-          <MarketplaceExternalListToolbar
+          <MarketplaceListToolbar
+            variant="external"
             basePath={basePath}
             activeCategory={category}
             categoryCounts={filterCounts.categories}

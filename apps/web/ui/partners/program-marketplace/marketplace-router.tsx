@@ -1,70 +1,78 @@
+import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { getMarketplaceHref } from "@/ui/partners/program-marketplace/get-marketplace-href";
+import { Category } from "@dub/prisma/client";
+import { ChevronRight, Shop } from "@dub/ui";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MarketplaceListPageTitle } from "./marketplace-list-page-title";
-import {
-  MarketplaceVariantProvider,
-  type MarketplaceVariant,
-} from "./marketplace-variant-context";
+import { ReactNode } from "react";
 import { MarketplaceHomePage } from "./pages/marketplace-home-page";
 import { MarketplaceProgramPage } from "./pages/marketplace-program-page";
 import { MarketplaceProgramsListPage } from "./pages/marketplace-programs-list-page";
 import { slugToCategory } from "./utils/category-slug";
 
-export function MarketplaceRouter({
-  slug,
-  variant = "internal",
-}: {
-  slug?: string[];
-  variant?: MarketplaceVariant;
-}) {
-  const segments = slug ?? [];
-
-  const content = (() => {
-    if (segments.length === 0) {
-      return (
-        <PageContent title="Program marketplace">
-          <PageWidthWrapper className="pb-10">
-            <MarketplaceHomePage />
-          </PageWidthWrapper>
-        </PageContent>
-      );
-    }
-
-    if (segments.length === 1 && segments[0] === "all") {
-      return (
-        <PageContent title={<MarketplaceListPageTitle />}>
-          <PageWidthWrapper className="pb-10">
-            <MarketplaceProgramsListPage />
-          </PageWidthWrapper>
-        </PageContent>
-      );
-    }
-
-    if (segments.length === 2 && segments[0] === "c") {
-      const category = slugToCategory(segments[1]);
-
-      if (category) {
-        return (
-          <PageContent title={<MarketplaceListPageTitle />}>
-            <PageWidthWrapper className="pb-10">
-              <MarketplaceProgramsListPage />
-            </PageWidthWrapper>
-          </PageContent>
-        );
-      }
-    }
-
-    if (segments.length === 1) {
-      return <MarketplaceProgramPage programSlug={segments[0]} />;
-    }
-
-    notFound();
-  })();
+function MarketplaceListTitle({ category }: { category?: Category }) {
+  const title = category
+    ? PROGRAM_CATEGORIES_MAP[category]?.label ?? category.replaceAll("_", " ")
+    : "All Programs";
 
   return (
-    <MarketplaceVariantProvider variant={variant}>
-      {content}
-    </MarketplaceVariantProvider>
+    <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1">
+        <Link
+          href={getMarketplaceHref()}
+          className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
+        >
+          <Shop className="text-content-default size-4" />
+        </Link>
+        <ChevronRight className="text-content-subtle size-2.5 shrink-0 [&_*]:stroke-2" />
+      </div>
+      <span className="min-w-0 truncate text-lg font-semibold leading-7 text-neutral-900">
+        {title}
+      </span>
+    </div>
+  );
+}
+
+export function MarketplaceRouter({ slug }: { slug?: string[] }) {
+  const segments = slug ?? [];
+
+  if (segments.length === 0) {
+    return (
+      <PageContent title="Program marketplace">
+        <PageWidthWrapper className="pb-10">
+          <MarketplaceHomePage />
+        </PageWidthWrapper>
+      </PageContent>
+    );
+  }
+
+  if (segments.length === 1 && segments[0] === "all") {
+    return <ListPage title={<MarketplaceListTitle />} />;
+  }
+
+  if (segments.length === 2 && segments[0] === "c") {
+    const category = slugToCategory(segments[1]);
+
+    if (category) {
+      return <ListPage title={<MarketplaceListTitle category={category} />} />;
+    }
+  }
+
+  if (segments.length === 1) {
+    return <MarketplaceProgramPage programSlug={segments[0]} />;
+  }
+
+  notFound();
+}
+
+function ListPage({ title }: { title: ReactNode }) {
+  return (
+    <PageContent title={title}>
+      <PageWidthWrapper className="pb-10">
+        <MarketplaceProgramsListPage />
+      </PageWidthWrapper>
+    </PageContent>
   );
 }
