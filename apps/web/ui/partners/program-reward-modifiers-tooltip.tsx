@@ -18,6 +18,7 @@ import {
 } from "@dub/utils";
 import { formatDuration } from "date-fns";
 import { useRef } from "react";
+import { ProgramRewardSpendLimit } from "./program-reward-spend-limit";
 
 interface ProgramRewardModifiersTooltipProps {
   reward?: Omit<RewardProps, "id" | "updatedAt"> | null;
@@ -99,6 +100,8 @@ export function ProgramRewardModifiersTooltipContent({
                   modifier.maxDuration === undefined
                     ? reward.maxDuration
                     : modifier.maxDuration, // fallback to primary
+                spendLimitAmount: modifier.spendLimitAmount ?? null,
+                spendLimitInterval: modifier.spendLimitInterval ?? null,
               }}
               conditions={modifier.conditions}
               operator={modifier.operator}
@@ -152,6 +155,10 @@ const RewardItem = ({
       <div className="text-content-default text-xs font-semibold">
         {rewardAmount} per {reward.event}
         {reward.event === "sale" && durationText ? ` ${durationText}` : ""}
+        <ProgramRewardSpendLimit
+          spendLimitAmount={reward.spendLimitAmount}
+          spendLimitInterval={reward.spendLimitInterval}
+        />
       </div>
 
       {conditions && conditions.length > 0 && (

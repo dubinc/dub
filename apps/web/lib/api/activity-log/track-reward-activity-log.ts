@@ -26,6 +26,8 @@ function toRewardActivitySnapshot(reward: RewardProps) {
     tooltipDescription: reward.tooltipDescription ?? null,
     modifiers: reward.modifiers ?? null,
     config: reward.config ?? null,
+    spendLimitAmount: reward.spendLimitAmount ?? null,
+    spendLimitInterval: reward.spendLimitInterval ?? null,
   };
 }
 
@@ -177,6 +179,8 @@ export function trackRewardActivityLog({
         "description",
         "tooltipDescription",
         "config",
+        "spendLimitAmount",
+        "spendLimitInterval",
       ],
     });
 
