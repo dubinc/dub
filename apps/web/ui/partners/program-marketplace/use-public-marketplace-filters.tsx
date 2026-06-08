@@ -8,16 +8,10 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { getMarketplaceAllHref } from "./get-marketplace-href";
 import {
-  buildExternalMarketplaceFilterHref,
-  type ExternalMarketplaceRewardType,
-} from "./utils/build-external-marketplace-filter-href";
-
-const REWARD_TYPES = {
-  sale: "Sale reward (CPS)",
-  lead: "Lead reward (CPL)",
-  click: "Click reward (CPC)",
-  discount: "Dual-sided incentives",
-} as const;
+  MARKETPLACE_REWARD_TYPES,
+  type MarketplaceRewardType,
+} from "./marketplace-reward-types";
+import { buildExternalMarketplaceFilterHref } from "./utils/build-external-marketplace-filter-href";
 
 export function usePublicMarketplaceFilters({
   basePath,
@@ -29,7 +23,7 @@ export function usePublicMarketplaceFilters({
   activeCategory?: Category;
   categoryCounts: { category: Category; count: number }[];
   rewardTypeCounts: {
-    type: ExternalMarketplaceRewardType;
+    type: MarketplaceRewardType;
     count: number;
   }[];
 }) {
@@ -49,7 +43,7 @@ export function usePublicMarketplaceFilters({
       ? searchParamsObj.sortOrder
       : undefined;
   const activeRewardType = searchParamsObj.rewardType as
-    | ExternalMarketplaceRewardType
+    | MarketplaceRewardType
     | undefined;
 
   const filters = useMemo(
@@ -61,7 +55,7 @@ export function usePublicMarketplaceFilters({
         singleSelect: true,
         options: rewardTypeCounts.map(({ type, count }) => ({
           value: type,
-          label: REWARD_TYPES[type],
+          label: MARKETPLACE_REWARD_TYPES[type],
           right: String(count),
         })),
       },
@@ -94,7 +88,7 @@ export function usePublicMarketplaceFilters({
   const buildHref = useCallback(
     (params: {
       category?: Category | null;
-      rewardType?: ExternalMarketplaceRewardType | null;
+      rewardType?: MarketplaceRewardType | null;
     }) =>
       buildExternalMarketplaceFilterHref({
         basePath,
@@ -118,7 +112,7 @@ export function usePublicMarketplaceFilters({
       if (key === "rewardType") {
         router.push(
           buildHref({
-            rewardType: value as ExternalMarketplaceRewardType,
+            rewardType: value as MarketplaceRewardType,
           }),
         );
       }

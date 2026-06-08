@@ -10,11 +10,11 @@ import { useCallback, useState } from "react";
 import { getMarketplaceAllHref } from "./get-marketplace-href";
 import { MarketplaceFilterControl } from "./marketplace-filter-control";
 import { MarketplaceFilterSortSheet } from "./marketplace-filter-sort-sheet";
+import type { MarketplaceRewardType } from "./marketplace-reward-types";
 import { getMarketplaceToolbarBadgeCount } from "./marketplace-sort-options";
 import ProgramSort from "./program-sort";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
 import { usePublicMarketplaceFilters } from "./use-public-marketplace-filters";
-import type { ExternalMarketplaceRewardType } from "./utils/build-external-marketplace-filter-href";
 import { getMarketplaceCategoryFromPathname } from "./utils/category-slug";
 
 function MarketplaceListToolbarInternal() {
@@ -106,7 +106,7 @@ function MarketplaceListToolbarExternal({
   activeCategory?: Category;
   categoryCounts: { category: Category; count: number }[];
   rewardTypeCounts: {
-    type: ExternalMarketplaceRewardType;
+    type: MarketplaceRewardType;
     count: number;
   }[];
 }) {
@@ -238,7 +238,7 @@ export function MarketplaceListToolbar(
         activeCategory?: Category;
         categoryCounts: { category: Category; count: number }[];
         rewardTypeCounts: {
-          type: ExternalMarketplaceRewardType;
+          type: MarketplaceRewardType;
           count: number;
         }[];
       },

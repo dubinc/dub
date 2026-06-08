@@ -11,23 +11,9 @@ import {
   getMarketplaceCategoryHref,
   getPreservedMarketplaceSearchParams,
 } from "./get-marketplace-href";
+import { MARKETPLACE_REWARD_TYPES } from "./marketplace-reward-types";
 import { ProgramNetworkStatusBadges } from "./program-status-badge";
 import { getMarketplaceCategoryFromPathname } from "./utils/category-slug";
-
-const REWARD_TYPES = {
-  sale: {
-    label: "Sale reward (CPS)",
-  },
-  lead: {
-    label: "Lead reward (CPL)",
-  },
-  click: {
-    label: "Click reward (CPC)",
-  },
-  discount: {
-    label: "Dual-sided incentives",
-  },
-};
 
 export function useProgramNetworkFilters() {
   const router = useRouter();
@@ -82,14 +68,16 @@ export function useProgramNetworkFilters() {
         icon: Gift,
         label: "Reward type",
         singleSelect: true,
-        options: Object.entries(REWARD_TYPES).map(([key, { label }]) => ({
-          value: key,
-          label,
-          right: nFormatter(
-            rewardTypesCount?.find(({ type }) => type === key)?._count || 0,
-            { full: true },
-          ),
-        })),
+        options: Object.entries(MARKETPLACE_REWARD_TYPES).map(
+          ([key, label]) => ({
+            value: key,
+            label,
+            right: nFormatter(
+              rewardTypesCount?.find(({ type }) => type === key)?._count || 0,
+              { full: true },
+            ),
+          }),
+        ),
       },
       {
         key: "category",

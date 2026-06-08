@@ -45,13 +45,6 @@ export function getPreservedMarketplaceSearchParams(
   };
 }
 
-/** @deprecated Use {@link getMarketplaceAllHref} — popular routes redirect to /all. */
-export function getMarketplacePopularHref(
-  params?: Record<string, string | undefined>,
-) {
-  return getMarketplaceAllHref(params);
-}
-
 function parseMarketplaceSearchParam(
   searchParams: Record<string, string | string[] | undefined>,
   key: string,
@@ -116,7 +109,7 @@ export function getMarketplaceCanonicalUrl(pathname: string) {
   return `https://dub.co${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
 }
 
-export function getMarketplacePartnersProgramUrl(programSlug: string) {
+function getMarketplacePartnersProgramUrl(programSlug: string) {
   return `https://partners.dub.co${getMarketplaceProgramHref(programSlug)}`;
 }
 

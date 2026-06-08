@@ -2,11 +2,8 @@ import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,
 } from "@/ui/partners/program-marketplace/get-marketplace-href";
+import { MarketplaceRewardType } from "@/ui/partners/program-marketplace/marketplace-reward-types";
 import { Category } from "@dub/prisma/client";
-
-const REWARD_TYPES = ["sale", "lead", "click", "discount"] as const;
-
-export type ExternalMarketplaceRewardType = (typeof REWARD_TYPES)[number];
 
 export function buildExternalMarketplaceFilterHref({
   basePath,
@@ -20,12 +17,12 @@ export function buildExternalMarketplaceFilterHref({
 }: {
   basePath: string;
   activeCategory?: Category;
-  activeRewardType?: ExternalMarketplaceRewardType;
+  activeRewardType?: MarketplaceRewardType;
   search?: string;
   sortBy?: string;
   sortOrder?: string;
   category?: Category | null;
-  rewardType?: ExternalMarketplaceRewardType | null;
+  rewardType?: MarketplaceRewardType | null;
 }) {
   const resolvedRewardType =
     rewardType === undefined ? activeRewardType : rewardType || undefined;

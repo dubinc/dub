@@ -1,17 +1,14 @@
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
+import {
+  MARKETPLACE_REWARD_TYPES,
+  type MarketplaceRewardType,
+} from "@/ui/partners/program-marketplace/marketplace-reward-types";
 import { buildExternalMarketplaceFilterHref } from "@/ui/partners/program-marketplace/utils/build-external-marketplace-filter-href";
 import { Category } from "@dub/prisma/client";
 import { Check } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import type { ReactNode } from "react";
-
-const REWARD_TYPES = {
-  sale: "Sale reward (CPS)",
-  lead: "Lead reward (CPL)",
-  click: "Click reward (CPC)",
-  discount: "Dual-sided incentives",
-} as const;
 
 export function MarketplaceExternalFilterSidebar({
   basePath,
@@ -25,10 +22,10 @@ export function MarketplaceExternalFilterSidebar({
 }: {
   basePath: string;
   activeCategory?: Category;
-  activeRewardType?: keyof typeof REWARD_TYPES;
+  activeRewardType?: MarketplaceRewardType;
   categoryCounts: { category: Category; count: number }[];
   rewardTypeCounts: {
-    type: keyof typeof REWARD_TYPES;
+    type: MarketplaceRewardType;
     count: number;
   }[];
   search?: string;
@@ -37,7 +34,7 @@ export function MarketplaceExternalFilterSidebar({
 }) {
   const buildHref = (params: {
     category?: Category | null;
-    rewardType?: keyof typeof REWARD_TYPES | null;
+    rewardType?: MarketplaceRewardType | null;
   }) =>
     buildExternalMarketplaceFilterHref({
       basePath,
@@ -62,7 +59,7 @@ export function MarketplaceExternalFilterSidebar({
               active={activeRewardType === type}
               count={count}
             >
-              {REWARD_TYPES[type]}
+              {MARKETPLACE_REWARD_TYPES[type]}
             </FilterLink>
           ))}
         </FilterSection>
