@@ -240,9 +240,10 @@ export const createStripeTransfer = async ({
 
   const commissionIds = commissions.map((c) => c.id);
 
-  for (const commissionIdsBatch of chunk(commissionIds, 100)) {
+  let totalUpdatedCommissions = 0;
+  for (const commissionIdsBatch of chunk(commissionIds, 250)) {
     try {
-      await prisma.commission.updateMany({
+      const { count } = await prisma.commission.updateMany({
         where: {
           id: {
             in: commissionIdsBatch,
@@ -252,6 +253,11 @@ export const createStripeTransfer = async ({
           status: "paid",
         },
       });
+
+      totalUpdatedCommissions += count;
+      console.log(
+        `Marked ${totalUpdatedCommissions}/${commissionIds.length} commissions as paid`,
+      );
     } catch (error) {
       await log({
         message: `[createStripeTransfer] Failed to mark commissions as paid for payouts ${payoutIds.join(
