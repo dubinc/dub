@@ -8,7 +8,6 @@ import { intercomCredentialsSchema } from "@/lib/integrations/intercom/schema";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -111,8 +110,6 @@ export const GET = async (req: Request) => {
       workspaceId,
       credentials,
     });
-
-    waitUntil(intercom.createCustomAttribute());
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

@@ -9,7 +9,7 @@ import {
 import { Intercom } from "./client";
 import { intercomCredentialsSchema } from "./schema";
 
-export async function forwardMessageAsPartner({
+export async function sendMessageAsPartner({
   program,
   partner,
   message,

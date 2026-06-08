@@ -1,9 +1,8 @@
+import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import {
-  intercomCredentialsSchema,
-  intercomWebhookSchema,
-} from "@/lib/integrations/intercom/schema";
+import { intercomWebhookSchema } from "@/lib/integrations/intercom/schema";
 import { prisma } from "@dub/prisma";
 import { INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { logAndRespond } from "../../../cron/utils";
@@ -28,8 +27,8 @@ export const POST = withAxiom(async (req) => {
 
     const {
       topic,
-      app_id: intercomWorkspaceId,
       data,
+      app_id: intercomWorkspaceId,
     } = intercomWebhookSchema.parse(body);
 
     // Find the installation
@@ -64,51 +63,61 @@ export const POST = withAxiom(async (req) => {
     }
 
     const {
-      credentials,
-      project: { programs },
+      project: { programs, ...workspace },
     } = installation;
 
-    if (programs.length === 0) {
+    const program = programs?.[0];
+    workspaceId = workspace.id;
+
+    if (!program) {
       return logAndRespond(
         `[Intercom] No programs found for Intercom workspace ${intercomWorkspaceId}.`,
       );
     }
 
-    const program = programs[0];
-
     if (program.deactivatedAt) {
       return logAndRespond(`[Intercom] Program ${program.id} is deactivated.`);
     }
 
-    const parsedCredentials = intercomCredentialsSchema.parse(credentials);
+    let response: Awaited<ReturnType<typeof handleConversationAdminReplied>> =
+      "";
 
     if (topic === "conversation.admin.replied") {
-      const response = await handleConversationAdminReplied({
+      response = await handleConversationAdminReplied({
         data,
         program,
         installation,
       });
-
-      return logAndRespond(response.message);
     }
 
-    return logAndRespond("OK");
-  } catch (error) {
-    // const response = handleAndReturnErrorResponse(error);
-    // if (workspaceId) {
-    //   await captureWebhookLog({
-    //     workspaceId,
-    //     method: "POST",
-    //     path: "/intercom/webhook",
-    //     statusCode: response.status,
-    //     duration: Date.now() - startTime,
-    //     requestBody: body,
-    //     responseBody: response,
-    //     userAgent: req.headers.get("user-agent"),
-    //   });
-    // }
-    //return response;
+    await captureWebhookLog({
+      workspaceId,
+      method: "POST",
+      path: "/intercom/webhook",
+      statusCode: 200,
+      duration: Date.now() - startTime,
+      requestBody: body,
+      responseBody: response,
+      userAgent: req.headers.get("user-agent"),
+    });
 
-    return logAndRespond("OK");
+    return logAndRespond(response);
+  } catch (error) {
+    const response = handleAndReturnErrorResponse(error);
+
+    if (workspaceId) {
+      await captureWebhookLog({
+        workspaceId,
+        method: "POST",
+        path: "/intercom/webhook",
+        statusCode: response.status,
+        duration: Date.now() - startTime,
+        requestBody: body,
+        responseBody: response,
+        userAgent: req.headers.get("user-agent"),
+      });
+    }
+
+    return response;
   }
 });

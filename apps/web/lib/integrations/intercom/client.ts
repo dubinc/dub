@@ -45,30 +45,6 @@ export class Intercom {
     return contacts[0];
   }
 
-  // Create a custom attribute for the partner
-  async createCustomAttribute() {
-    const response = await fetch(`https://api.intercom.io/data_attributes`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Intercom-Version": "2.15",
-        Authorization: `Bearer ${this.token}`,
-      },
-      body: JSON.stringify({
-        name: "dubPartnerId",
-        description: "Dub Partner ID",
-        model: "contact",
-        data_type: "string",
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("[Intercom] Failed to create custom attribute.");
-    }
-
-    return await response.json();
-  }
-
   async getContactById(id: string) {
     return await this.client.contacts.find({
       contact_id: id,

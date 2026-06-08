@@ -13,10 +13,6 @@ import { InstalledIntegration, Prisma, Program } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
 import * as z from "zod/v4";
 
-type Result = {
-  message: string;
-};
-
 export async function handleConversationAdminReplied({
   data,
   program,
@@ -25,7 +21,7 @@ export async function handleConversationAdminReplied({
   data: z.infer<typeof intercomWebhookSchema>["data"];
   program: Pick<Program, "id" | "workspaceId">;
   installation: Pick<InstalledIntegration, "credentials" | "userId">;
-}): Promise<Result> {
+}): Promise<string> {
   const credentials = intercomCredentialsSchema.parse(installation.credentials);
 
   const partners = await identifyPartnersFromContacts({
@@ -35,9 +31,7 @@ export async function handleConversationAdminReplied({
   });
 
   if (partners.length === 0) {
-    return {
-      message: `No partners found for ${pluralize("contact", data.item.contacts.contacts.length)} ${data.item.contacts.contacts.map((contact) => contact.id).join(", ")}. Skipping message forwarding.`,
-    };
+    return `No partners found for ${pluralize("contact", data.item.contacts.contacts.length)} ${data.item.contacts.contacts.map((contact) => contact.id).join(", ")}. Skipping message forwarding.`;
   }
 
   const workspaceUsers = await prisma.projectUsers.findMany({
@@ -56,9 +50,7 @@ export async function handleConversationAdminReplied({
 
   // This should never happen
   if (workspaceUsers.length === 0) {
-    return {
-      message: "No workspace users found.",
-    };
+    return "No workspace users found.";
   }
 
   const { conversation_parts: conversations } = data.item.conversation_parts;
@@ -125,9 +117,7 @@ export async function handleConversationAdminReplied({
     ),
   );
 
-  return {
-    message: `Message forwarded to ${pluralize("partner", partners.length)}.`,
-  };
+  return `Message forwarded to ${pluralize("partner", partners.length)}.`;
 }
 
 // Identify partner from Intercom contact ID
