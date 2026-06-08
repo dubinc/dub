@@ -16,6 +16,10 @@ export const intercomContactSchema = z.object({
   external_id: z.string().nullable(),
 });
 
+export const intercomUninstallWebhookSchema = z.object({
+  app_id: z.string().describe("Intercom workspace ID."),
+});
+
 export const intercomWebhookSchema = z.object({
   app_id: z.string().optional().describe("Intercom workspace ID."),
   topic: z.string(),

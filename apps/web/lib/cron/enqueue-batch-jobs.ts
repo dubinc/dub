@@ -1,7 +1,6 @@
 import { log } from "@dub/utils";
 import type { PublishBatchRequest } from "@upstash/qstash";
 import { qstash } from ".";
-import { isLocalDev } from "../api/environment";
 
 type EnqueueBatchJobsProps = PublishBatchRequest<unknown> & {
   queueName:
@@ -17,34 +16,34 @@ type EnqueueBatchJobsProps = PublishBatchRequest<unknown> & {
 
 // Generic helper to enqueue a batch of QStash jobs.
 export async function enqueueBatchJobs(jobs: EnqueueBatchJobsProps[]) {
-  try {
-    const result = await qstash.batchJSON(jobs);
+  const maxRetries = 3;
 
-    if (isLocalDev) {
-      console.log(
-        `[enqueueBatchJobs] ${result.length} batch jobs enqueued successfully.`,
-        {
-          result,
-          jobs,
-        },
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await qstash.batchJSON(jobs);
+    } catch (error) {
+      console.error("[enqueueBatchJobs] Failed to enqueue batch jobs", {
+        error: JSON.stringify(error, null, 2),
+        jobs,
+        attempt,
+      });
+
+      if (attempt < maxRetries) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 1000 * Math.pow(2, attempt)),
+        );
+        continue;
+      }
+
+      await log({
+        message: `[enqueueBatchJobs] Failed to enqueue batch jobs: ${JSON.stringify(error, null, 2)}`,
+        type: "errors",
+        mention: true,
+      });
+
+      throw new Error(
+        `Failed to enqueue batch jobs: ${JSON.stringify(error, null, 2)}`,
       );
     }
-
-    return result;
-  } catch (error) {
-    console.error("[enqueueBatchJobs] Failed to enqueue batch jobs", {
-      error: JSON.stringify(error, null, 2),
-      jobs,
-    });
-
-    await log({
-      message: `[enqueueBatchJobs] Failed to enqueue batch jobs: ${JSON.stringify(error, null, 2)}`,
-      type: "errors",
-      mention: true,
-    });
-
-    throw new Error(
-      `Failed to enqueue batch jobs: ${JSON.stringify(error, null, 2)}`,
-    );
   }
 }

@@ -5,6 +5,7 @@ import { installIntegration } from "@/lib/integrations/install";
 import { Intercom } from "@/lib/integrations/intercom/client";
 import { intercomOAuthProvider } from "@/lib/integrations/intercom/oauth";
 import { intercomCredentialsSchema } from "@/lib/integrations/intercom/schema";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -25,7 +26,9 @@ export const GET = async (req: Request) => {
     );
   }
 
-  let workspace: Pick<WorkspaceProps, "id" | "slug" | "users"> | null = null;
+  let workspace:
+    | (Pick<WorkspaceProps, "id" | "slug" | "users"> & { plan: string })
+    | null = null;
 
   try {
     const session = await getSession();
@@ -47,6 +50,7 @@ export const GET = async (req: Request) => {
       select: {
         id: true,
         slug: true,
+        plan: true,
         users: {
           where: {
             userId: session.user.id,
@@ -70,6 +74,14 @@ export const GET = async (req: Request) => {
       throw new DubApiError({
         code: "bad_request",
         message: "Only workspace owners can install integrations.",
+      });
+    }
+
+    if (!getPlanCapabilities(workspace.plan).canInstallAdvancedIntegrations) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "Intercom integration is only available on Advanced and Enterprise plans.",
       });
     }
 
