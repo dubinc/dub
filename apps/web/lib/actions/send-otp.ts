@@ -30,11 +30,15 @@ export const sendOtpAction = actionClient
   .action(async ({ parsedInput }) => {
     const { email } = parsedInput;
 
-    const { success } = await ratelimit(2, "1 m").limit(
-      `send-otp:${email}:${await getIP()}`,
-    );
+    const ip = await getIP();
 
-    if (!success) {
+    const [{ success: emailSuccess }, { success: ipSuccess }] =
+      await Promise.all([
+        ratelimit(2, "1 m").limit(`send-otp:${email}:${ip}`),
+        ratelimit(15, "1 h").limit(`send-otp:${ip}`),
+      ]);
+
+    if (!emailSuccess || !ipSuccess) {
       throw new Error("Too many requests. Please try again later.");
     }
 
