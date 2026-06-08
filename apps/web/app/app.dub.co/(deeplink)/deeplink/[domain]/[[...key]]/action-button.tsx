@@ -30,6 +30,10 @@ export function DeepLinkActionButton({
       `${link.shortLink}${searchParamsString ? `?${searchParamsString}` : ""}`,
     );
 
+    const fallback = `${link.shortLink}?skip_deeplink_preview=1${
+      searchParamsString ? `&${searchParamsString}` : ""
+    }`;
+
     // Firefox on Android has a known bug where S.browser_fallback_url always
     // wins over launching the installed app (mozilla/fenix#23397), so we keep
     // the plain https:// path for Firefox users to avoid regressing them.
@@ -37,9 +41,6 @@ export function DeepLinkActionButton({
     if (platform === "android" && androidPackageName && !isFirefox) {
       const url = new URL(link.shortLink);
       const userQuery = searchParamsString ? `?${searchParamsString}` : "";
-      const fallback = `${link.shortLink}?skip_deeplink_preview=1${
-        searchParamsString ? `&${searchParamsString}` : ""
-      }`;
       const extras = [
         `scheme=${url.protocol.replace(":", "")}`,
         `package=${androidPackageName}`,
@@ -47,11 +48,25 @@ export function DeepLinkActionButton({
         "end",
       ].join(";");
 
+      // In-app webviews (e.g. Facebook, Instagram) don't honor the intent's
+      // S.browser_fallback_url when the app isn't installed – they just show
+      // "page can't be loaded". So we set a timer to navigate to the fallback
+      // ourselves. If the intent dispatches, the webview is backgrounded
+      // (visibilitychange → hidden) and we cancel before it fires.
+      const timer = window.setTimeout(() => {
+        window.location.href = fallback;
+      }, 1500);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") {
+          clearTimeout(timer);
+        }
+      });
+
       window.location.href = `intent://${url.host}${url.pathname}${userQuery}#Intent;${extras}`;
       return;
     }
 
-    window.location.href = `${link.shortLink}?skip_deeplink_preview=1${searchParamsString ? `&${searchParamsString}` : ""}`;
+    window.location.href = fallback;
   };
 
   return (
