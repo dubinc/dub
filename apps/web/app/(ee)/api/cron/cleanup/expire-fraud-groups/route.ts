@@ -1,3 +1,4 @@
+import { FRAUD_GROUP_EXPIRY_DAYS } from "@/lib/api/fraud/constants";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
 import { subDays } from "date-fns";
@@ -13,7 +14,7 @@ export const POST = withCron(async () => {
     where: {
       status: "pending",
       lastEventAt: {
-        lt: subDays(new Date(), 30), // only look for expired fraud groups older than 30 days
+        lt: subDays(new Date(), FRAUD_GROUP_EXPIRY_DAYS),
       },
     },
   });

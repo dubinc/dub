@@ -1,4 +1,5 @@
 import { FraudRuleInfo, FraudSeverity, PaidTrafficPlatform } from "@/lib/types";
+import { addDays, differenceInDays } from "date-fns";
 
 export const FRAUD_RULES: FraudRuleInfo[] = [
   // Conversion event rules
@@ -97,6 +98,22 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
 export const FRAUD_RULES_BY_TYPE = Object.fromEntries(
   FRAUD_RULES.map((rule) => [rule.type, rule]),
 ) as Record<FraudRuleInfo["type"], FraudRuleInfo>;
+
+export const FRAUD_GROUP_EXPIRY_DAYS = 30;
+export const FRAUD_GROUP_EXPIRING_SOON_DAYS = 7;
+
+export function getFraudGroupExpiresAt(lastEventAt: Date | string) {
+  return addDays(new Date(lastEventAt), FRAUD_GROUP_EXPIRY_DAYS);
+}
+
+export function isFraudGroupExpiringSoon(lastEventAt: Date | string) {
+  const daysUntilExpiry = differenceInDays(
+    getFraudGroupExpiresAt(lastEventAt),
+    new Date(),
+  );
+
+  return daysUntilExpiry > 0 && daysUntilExpiry <= FRAUD_GROUP_EXPIRING_SOON_DAYS;
+}
 
 export const FRAUD_RULES_BY_SCOPE = FRAUD_RULES.reduce(
   (acc, rule) => {
