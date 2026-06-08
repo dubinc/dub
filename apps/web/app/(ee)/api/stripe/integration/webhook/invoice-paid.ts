@@ -176,7 +176,7 @@ export async function invoicePaid(
 
   if (!ok) {
     console.info(
-      "[Stripe Webhook] Skipping already processed invoice.",
+      "[invoice.paid] Skipping already processed invoice.",
       invoiceId,
     );
     return {
@@ -321,6 +321,23 @@ export async function invoicePaid(
       ...invoice.metadata,
     };
 
+    const products = invoice.lines.data
+      .map((line) => {
+        const productId = line.pricing?.price_details?.product;
+
+        if (!productId) return null;
+
+        return {
+          id: productId,
+          amount: line.amount,
+          quantity: line.quantity ?? 0,
+        };
+      })
+      .filter(
+        (p): p is { id: string; amount: number; quantity: number } =>
+          p !== null && p.quantity !== null,
+      );
+
     result = await queuePartnerCommissionCreation({
       event: "sale",
       programId: link.programId,
@@ -338,7 +355,7 @@ export async function invoicePaid(
           signupDate: customer.createdAt,
         },
         sale: {
-          productId: invoice.lines.data[0]?.pricing?.price_details?.product,
+          products,
           amount: saleData.amount,
           ...(Object.keys(saleMetadata).length > 0
             ? { metadata: saleMetadata }
@@ -361,11 +378,13 @@ export async function invoicePaid(
             workspaceId: workspace.id,
             programId: link.programId,
             partnerId: link.partnerId,
+            customerId: customer.id,
+            customerFirstSaleAt: customer.firstSaleAt ?? new Date(),
           },
           metrics: {
             current: {
-              saleAmount: saleData.amount,
               conversions: firstConversionFlag ? 1 : 0,
+              saleAmount: saleData.amount,
             },
           },
         }),
@@ -445,9 +464,9 @@ async function resolvePromotionCodeIdFromInvoice({
     {
       stripeAccount: stripeAccountId,
     },
-  )) as Stripe.Invoice & {
+  )) as Omit<Stripe.Invoice, "discounts"> & {
     discounts: {
-      promotion_code: Stripe.PromotionCode;
+      promotion_code: Stripe.PromotionCode | null;
     }[];
   };
 
@@ -465,8 +484,19 @@ async function resolvePromotionCodeIdFromInvoice({
     };
   }
 
+  const discountWithPromotionCode = expandedInvoice.discounts.find((discount) =>
+    Boolean(discount?.promotion_code?.id),
+  );
+
+  if (!discountWithPromotionCode) {
+    return {
+      promotionCodeId: null,
+      resolvePromotionCodeError: "No promotion code found on invoice discounts",
+    };
+  }
+
   return {
-    promotionCodeId: expandedInvoice.discounts[0].promotion_code.id,
+    promotionCodeId: discountWithPromotionCode.promotion_code!.id,
     resolvePromotionCodeError: null,
   };
 }

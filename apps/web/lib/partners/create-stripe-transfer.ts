@@ -154,8 +154,10 @@ export const createStripeTransfer = async ({
       },
       data: {
         payoutsEnabledAt: null,
+        defaultPayoutMethod: null,
       },
     });
+
     console.log(`Updated partner ${partner.email} with payoutsEnabledAt null`);
 
     await markPayoutsAsProcessed(currentInvoicePayouts);

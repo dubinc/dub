@@ -223,7 +223,7 @@ export function DynamicTooltipWrapper({
 }) {
   return tooltipProps ? (
     <Tooltip {...tooltipProps}>
-      <div>{children}</div>
+      <div className="w-fit">{children}</div>
     </Tooltip>
   ) : (
     children

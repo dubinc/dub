@@ -50,6 +50,8 @@ const GENERIC_EMAIL_DOMAINS = [
   "otona.uk",
   "instaddr.ch",
   "t-mail.asia",
+  "adras.org",
+  "emailinbo.live",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [
@@ -61,7 +63,19 @@ const GENERIC_EMAIL_DOMAIN_PREFIXES = [
   "live.",
 ];
 
-const GENERIC_EMAIL_DOMAIN_SUFFIXES = [".edu.pl", ".edu.rs"];
+const GENERIC_EMAIL_DOMAIN_SUFFIXES = [
+  ".edu.pl",
+  ".edu.rs",
+  ".top",
+  ".cfd",
+  ".cyou",
+  ".icu",
+  ".xxx",
+  ".sbs",
+  ".click",
+  ".digital",
+  ".pro",
+];
 
 export const isGenericEmail = (email: string) => {
   const emailDomain = extractEmailDomain(email);

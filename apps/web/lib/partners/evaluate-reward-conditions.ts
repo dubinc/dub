@@ -169,64 +169,99 @@ const evaluateCondition = ({
   condition: RewardCondition;
   fieldValue: string | number | string[] | number[];
 }) => {
-  switch (condition.operator) {
-    case "equals_to":
-      return fieldValue === condition.value;
-    case "not_equals":
-      return fieldValue !== condition.value;
-    case "starts_with":
-      if (
-        typeof fieldValue === "string" &&
-        typeof condition.value === "string" &&
-        condition.value !== ""
-      ) {
-        return fieldValue.startsWith(condition.value);
-      }
-      return false;
-    case "ends_with":
-      if (
-        typeof fieldValue === "string" &&
-        typeof condition.value === "string" &&
-        condition.value !== ""
-      ) {
-        return fieldValue.endsWith(condition.value);
-      }
-      return false;
-    case "contains": {
-      if (typeof condition.value !== "string") return false;
-      const needle = condition.value.trim();
-      if (needle === "") return false;
-      return String(fieldValue).includes(needle);
-    }
-    case "not_contains": {
-      if (typeof condition.value !== "string") return false;
-      const needle = condition.value.trim();
-      if (needle === "") return false;
-      return !String(fieldValue).includes(needle);
-    }
-    case "in":
-      if (Array.isArray(condition.value)) {
-        return (condition.value as (string | number)[]).includes(
-          fieldValue as string | number,
-        );
-      }
-      return false;
-    case "not_in":
-      if (Array.isArray(condition.value) && condition.value.length > 0) {
-        return !(condition.value as (string | number)[]).includes(
-          fieldValue as string | number,
-        );
-      }
-      return false;
-    case "greater_than":
-      return Number(fieldValue) > Number(condition.value);
-    case "greater_than_or_equal":
-      return Number(fieldValue) >= Number(condition.value);
-    case "less_than":
-      return Number(fieldValue) < Number(condition.value);
-    case "less_than_or_equal":
-      return Number(fieldValue) <= Number(condition.value);
-    default:
-      return false;
+  // Equals
+  if (condition.operator === "equals_to") {
+    return fieldValue === condition.value;
   }
+
+  // Not equals
+  if (condition.operator === "not_equals") {
+    return fieldValue !== condition.value;
+  }
+
+  // Starts with
+  if (condition.operator === "starts_with") {
+    if (typeof fieldValue !== "string" || typeof condition.value !== "string") {
+      return false;
+    }
+
+    return fieldValue.startsWith(condition.value);
+  }
+
+  // Ends with
+  if (condition.operator === "ends_with") {
+    if (typeof fieldValue !== "string" || typeof condition.value !== "string") {
+      return false;
+    }
+
+    return fieldValue.endsWith(condition.value);
+  }
+
+  // Contains
+  if (condition.operator === "contains") {
+    if (typeof fieldValue !== "string" || typeof condition.value !== "string") {
+      return false;
+    }
+
+    const needle = condition.value.trim();
+    if (needle === "") return false;
+
+    return String(fieldValue).includes(needle);
+  }
+
+  // Not contains
+  if (condition.operator === "not_contains") {
+    if (typeof fieldValue !== "string" || typeof condition.value !== "string") {
+      return false;
+    }
+
+    const needle = condition.value.trim();
+    if (needle === "") return false;
+
+    return !String(fieldValue).includes(needle);
+  }
+
+  // In
+  if (condition.operator === "in") {
+    if (!Array.isArray(condition.value)) {
+      return false;
+    }
+
+    return (condition.value as (string | number)[]).includes(
+      fieldValue as string | number,
+    );
+  }
+
+  // Not in
+  if (condition.operator === "not_in") {
+    if (!Array.isArray(condition.value)) {
+      return false;
+    }
+
+    return !(condition.value as (string | number)[]).includes(
+      fieldValue as string | number,
+    );
+  }
+
+  // Greater than
+  if (condition.operator === "greater_than") {
+    return Number(fieldValue) > Number(condition.value);
+  }
+
+  // Greater than or equal
+  if (condition.operator === "greater_than_or_equal") {
+    return Number(fieldValue) >= Number(condition.value);
+  }
+
+  // Less than
+  if (condition.operator === "less_than") {
+    return Number(fieldValue) < Number(condition.value);
+  }
+
+  // Less than or equal
+  if (condition.operator === "less_than_or_equal") {
+    return Number(fieldValue) <= Number(condition.value);
+  }
+
+  return false;
 };

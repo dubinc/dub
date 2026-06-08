@@ -1,3 +1,7 @@
+import {
+  VITEST_POLL_INTERVAL_MS,
+  VITEST_TEST_TIMEOUT_MS,
+} from "@/lib/constants/misc";
 import { CommissionResponse, Customer } from "@/lib/types";
 import { expect } from "vitest";
 import { HttpClient } from "./http";
@@ -6,18 +10,15 @@ interface VerifyCommissionProps {
   http: HttpClient;
   customerExternalId?: string;
   invoiceId?: string;
-  expectedAmount?: number;
+  expectedSaleAmount?: number;
   expectedEarnings: number;
 }
-
-const POLL_INTERVAL_MS = 5000; // 5 seconds
-const TIMEOUT_MS = 60000; // 60 seconds
 
 export const verifyCommission = async ({
   http,
   customerExternalId,
   invoiceId,
-  expectedAmount,
+  expectedSaleAmount,
   expectedEarnings,
 }: VerifyCommissionProps) => {
   let customerId: string | undefined;
@@ -46,7 +47,7 @@ export const verifyCommission = async ({
   // Poll for commission every 5 seconds, timeout after 60 seconds
   const startTime = Date.now();
 
-  while (Date.now() - startTime < TIMEOUT_MS) {
+  while (Date.now() - startTime < VITEST_TEST_TIMEOUT_MS) {
     const { status, data: commissions } = await http.get<CommissionResponse[]>({
       path: "/commissions",
       query,
@@ -64,8 +65,8 @@ export const verifyCommission = async ({
         expect(commission.customer?.id).toEqual(customerId);
       }
 
-      if (expectedAmount !== undefined) {
-        expect(commission.amount).toEqual(expectedAmount);
+      if (expectedSaleAmount !== undefined) {
+        expect(commission.amount).toEqual(expectedSaleAmount);
       }
 
       expect(commission.earnings).toEqual(expectedEarnings);
@@ -74,12 +75,14 @@ export const verifyCommission = async ({
     }
 
     // Wait before next poll
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+    await new Promise((resolve) =>
+      setTimeout(resolve, VITEST_POLL_INTERVAL_MS),
+    );
   }
 
   // Timeout reached - fail the test
   throw new Error(
-    `Commission not found within ${TIMEOUT_MS / 1000} seconds. ` +
+    `Commission not found within ${VITEST_TEST_TIMEOUT_MS / 1000} seconds. ` +
       `Query: ${JSON.stringify(query)}`,
   );
 };
