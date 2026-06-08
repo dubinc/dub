@@ -5,6 +5,10 @@ interface IntercomContact {
   id: string;
 }
 
+interface IntercomConversation {
+  id: string;
+}
+
 export class Intercom {
   private client: IntercomClient;
   private token: string;
@@ -98,16 +102,16 @@ export class Intercom {
   }
 
   async createConversation({
-    contactId,
+    contact,
     message,
   }: {
-    contactId: string;
+    contact: IntercomContact;
     message: Pick<Message, "text">;
   }) {
     return await this.client.conversations.create({
       from: {
         type: "user",
-        id: contactId,
+        id: contact.id,
       },
       body: message.text,
     });
@@ -115,19 +119,19 @@ export class Intercom {
 
   async replyAsContact({
     message,
-    contactId,
-    conversationId,
+    contact,
+    conversation,
   }: {
     message: Pick<Message, "text">;
-    contactId: string;
-    conversationId: string;
+    contact: IntercomContact;
+    conversation: IntercomConversation;
   }) {
     return await this.client.conversations.reply({
-      conversation_id: conversationId,
+      conversation_id: conversation.id,
       body: {
         message_type: "comment",
         type: "user",
-        intercom_user_id: contactId,
+        intercom_user_id: contact.id,
         body: message.text,
       },
     });

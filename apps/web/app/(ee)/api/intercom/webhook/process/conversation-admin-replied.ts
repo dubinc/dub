@@ -61,12 +61,6 @@ export async function handleConversationAdminReplied({
     };
   }
 
-  // const workspaceUserEmailToUserId = new Map(
-  //   workspaceUsers
-  //     .filter(({ user }) => user.email)
-  //     .map(({ user }) => [user.email!, user.id]),
-  // );
-
   const { conversation_parts: conversations } = data.item.conversation_parts;
   const messagesToCreate: Prisma.MessageCreateManyInput[] = [];
 
@@ -106,7 +100,7 @@ export async function handleConversationAdminReplied({
         id: createId({ prefix: "msg_" }),
         programId: program.id,
         partnerId,
-        senderUserId: workspaceUser.id,
+        senderUserId: workspaceUser.userId,
         text: originalMessage,
       })),
     );

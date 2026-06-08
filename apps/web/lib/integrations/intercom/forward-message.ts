@@ -1,6 +1,5 @@
 import { decrypt } from "@/lib/encryption";
 import { redis } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
 import {
   InstalledIntegration,
   Message,
@@ -32,69 +31,15 @@ export async function forwardMessageAsPartner({
     return;
   }
 
-  const parsedCredentials = intercomCredentialsSchema.safeParse(
+  const credentials = intercomCredentialsSchema.parse(
     intercomInstallation.credentials,
   );
-
-  if (!parsedCredentials.success) {
-    console.log(
-      `[Intercom] Invalid installation credentials for program ${program.id}. Skipping forward message.`,
-    );
-    return;
-  }
-
-  const credentials = parsedCredentials.data;
 
   const intercom = new Intercom({
     token: decrypt(credentials.accessToken),
   });
 
-  // Find the partner's Intercom contact ID
-  const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
-    where: {
-      partnerId_programId: {
-        partnerId: partner.id,
-        programId: program.id,
-      },
-    },
-    select: {
-      intercomContactId: true,
-    },
-  });
-
-  let contactId = programEnrollment.intercomContactId;
-
-  if (!contactId) {
-    const contact = await intercom.createContact(partner);
-
-    if (!contact) {
-      console.log(
-        `[Intercom] Failed to get or create contact for partner ${partner.id}. Skipping forward message.`,
-      );
-      return;
-    }
-
-    contactId = contact.id;
-
-    await prisma.programEnrollment.update({
-      where: {
-        partnerId_programId: {
-          partnerId: partner.id,
-          programId: program.id,
-        },
-      },
-      data: {
-        intercomContactId: contact.id,
-      },
-    });
-  }
-
-  if (!contactId) {
-    console.log(
-      `[Intercom] Failed to get or create contact for partner ${partner.id}. Skipping forward message.`,
-    );
-    return;
-  }
+  const contact = await intercom.getOrCreateContact(partner);
 
   // Check for an existing conversation
   let conversationId = await redis.get<string>(
@@ -105,7 +50,7 @@ export async function forwardMessageAsPartner({
   // and store the conversation ID in Redis for future use
   if (!conversationId) {
     const conversation = await intercom.createConversation({
-      contactId,
+      contact,
       message,
     });
 
@@ -121,8 +66,10 @@ export async function forwardMessageAsPartner({
 
   // If a conversation exists, reply to it
   await intercom.replyAsContact({
-    contactId,
+    contact,
     message,
-    conversationId,
+    conversation: {
+      id: conversationId,
+    },
   });
 }
