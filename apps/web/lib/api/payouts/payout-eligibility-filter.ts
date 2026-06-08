@@ -19,8 +19,8 @@ export function getPayoutEligibilityFilter({
     ...(getPlanCapabilities(workspace.plan).canManageFraudEvents && {
       programEnrollment: {
         fraudEventGroups: {
-          none: {
-            status: "pending",
+          every: {
+            status: "resolved",
           },
         },
       },
