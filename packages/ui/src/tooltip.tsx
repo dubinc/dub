@@ -4,7 +4,7 @@ import { cn } from "@dub/utils";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { HelpCircle } from "lucide-react";
 import Link from "next/link";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { isValidElement, ReactNode, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Badge } from "./badge";
 import { Button, ButtonProps, buttonVariants } from "./button";
@@ -222,7 +222,9 @@ export function DynamicTooltipWrapper({
   tooltipProps?: TooltipProps;
 }) {
   return tooltipProps ? (
-    <Tooltip {...tooltipProps}>{children}</Tooltip>
+    <Tooltip {...tooltipProps}>
+      {isValidElement(children) ? children : <span>{children}</span>}
+    </Tooltip>
   ) : (
     children
   );
