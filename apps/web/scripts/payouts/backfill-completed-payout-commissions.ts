@@ -2,7 +2,7 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import "dotenv-flow/config";
 
-const BATCH_SIZE = 1000;
+const BATCH_SIZE = 500;
 const DRY_RUN = process.env.DRY_RUN !== "false"; // default to dry-run for safety
 
 // Reconciles commissions that are stuck at "processed" even though their payout
