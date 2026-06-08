@@ -144,7 +144,6 @@ model ProgramEnrollment {
   bannedAt                     DateTime?
   bannedReason                 PartnerBannedReason?
   reapplicationTimeframe       ReapplicationTimeframe @default(standard)
-  intercomContactId            String?
 
   partner            Partner                  @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program            Program                  @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
@@ -193,5 +192,4 @@ model ProgramEnrollment {
   @@index(saleRewardId)
   @@index(referralRewardId)
   @@index(discountId)
-  @@index(intercomContactId)
 }

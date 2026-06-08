@@ -1,12 +1,17 @@
 import { createId } from "@/lib/api/create-id";
 import { qstash } from "@/lib/cron";
-import { intercomWebhookSchema } from "@/lib/integrations/intercom/schema";
+import { decrypt } from "@/lib/encryption";
+import { Intercom } from "@/lib/integrations/intercom/client";
+import {
+  IntercomContact,
+  IntercomCredentials,
+  intercomCredentialsSchema,
+  intercomWebhookSchema,
+} from "@/lib/integrations/intercom/schema";
 import { prisma } from "@dub/prisma";
-import { Message, Program } from "@dub/prisma/client";
+import { InstalledIntegration, Prisma, Program } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
 import * as z from "zod/v4";
-
-type IntercomWebhookData = z.infer<typeof intercomWebhookSchema>["data"];
 
 type Result = {
   message: string;
@@ -15,38 +20,57 @@ type Result = {
 export async function handleConversationAdminReplied({
   data,
   program,
+  installation,
 }: {
-  data: IntercomWebhookData;
-  program: Pick<Program, "id">;
+  data: z.infer<typeof intercomWebhookSchema>["data"];
+  program: Pick<Program, "id" | "workspaceId">;
+  installation: Pick<InstalledIntegration, "credentials" | "userId">;
 }): Promise<Result> {
-  const contactIds = data.item.contacts.contacts.map((contact) => contact.id);
+  const credentials = intercomCredentialsSchema.parse(installation.credentials);
 
-  const programEnrollments = await prisma.programEnrollment.findMany({
-    where: {
-      intercomContactId: {
-        in: contactIds,
-      },
-    },
-    select: {
-      partnerId: true,
-      programId: true,
-    },
+  const partners = await identifyPartnersFromContacts({
+    contacts: data.item.contacts.contacts,
+    program,
+    credentials,
   });
 
-  // TODO:
-  // Attach intercomContactId to the program enrollment if not found
-  // and forward the message to the partner
-
-  if (programEnrollments.length === 0) {
+  if (partners.length === 0) {
     return {
-      message: `No program enrollments found for ${pluralize("contact", contactIds.length)} ${contactIds.join(", ")}. Skipping message forwarding.`,
+      message: `No partners found for ${pluralize("contact", data.item.contacts.contacts.length)} ${data.item.contacts.contacts.map((contact) => contact.id).join(", ")}. Skipping message forwarding.`,
     };
   }
 
-  const messagesCreated: Pick<Message, "id" | "programId" | "partnerId">[] = [];
-  const { conversation_parts: conversations } = data.item.conversation_parts;
+  const workspaceUsers = await prisma.projectUsers.findMany({
+    where: {
+      projectId: program.workspaceId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
+    },
+  });
 
-  for (const { body, attachments } of conversations) {
+  // This should never happen
+  if (workspaceUsers.length === 0) {
+    return {
+      message: "No workspace users found.",
+    };
+  }
+
+  // const workspaceUserEmailToUserId = new Map(
+  //   workspaceUsers
+  //     .filter(({ user }) => user.email)
+  //     .map(({ user }) => [user.email!, user.id]),
+  // );
+
+  const { conversation_parts: conversations } = data.item.conversation_parts;
+  const messagesToCreate: Prisma.MessageCreateManyInput[] = [];
+
+  for (const { body, attachments, author } of conversations) {
     let originalMessage = body.replaceAll(/\[(Image|Attachment|GIF)\]/g, "");
 
     if (attachments.length > 0) {
@@ -57,45 +81,117 @@ export async function handleConversationAdminReplied({
       continue;
     }
 
-    const messages = await Promise.all(
-      programEnrollments.map(({ programId, partnerId }) =>
-        prisma.message.create({
-          data: {
-            id: createId({ prefix: "msg_" }),
-            programId,
-            partnerId,
-            senderUserId: "user_cludszk1h0000wmd2e0ea2b0p", // FIX
-            text: originalMessage,
-          },
-          select: {
-            id: true,
-            programId: true,
-            partnerId: true,
-          },
-        }),
-      ),
+    let workspaceUser = workspaceUsers.find(
+      ({ user }) => user.email === author.email,
     );
 
-    messagesCreated.push(...messages);
+    if (!workspaceUser) {
+      // Fallback to the person who installed the integration
+      workspaceUser = workspaceUsers.find(
+        ({ user }) => user.id === installation.userId,
+      );
+
+      // Fallback to the first owner
+      if (!workspaceUser) {
+        workspaceUser = workspaceUsers.find(({ role }) => role === "owner");
+      }
+
+      if (!workspaceUser) {
+        continue;
+      }
+    }
+
+    messagesToCreate.push(
+      ...partners.map(({ partnerId }) => ({
+        id: createId({ prefix: "msg_" }),
+        programId: program.id,
+        partnerId,
+        senderUserId: workspaceUser.id,
+        text: originalMessage,
+      })),
+    );
   }
 
+  await prisma.message.createMany({
+    data: messagesToCreate,
+  });
+
   await Promise.all(
-    messagesCreated.map((message) =>
+    messagesToCreate.map((message) =>
       qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-partner`,
+        delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
+        deduplicationId: `${message.programId}-${message.partnerId}`,
         body: {
           programId: message.programId,
           partnerId: message.partnerId,
           lastMessageId: message.id,
         },
-        delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
       }),
     ),
   );
 
   return {
-    message: `Message forwarded to ${pluralize("partner", messagesCreated.length)}.`,
+    message: `Message forwarded to ${pluralize("partner", partners.length)}.`,
   };
 }
 
-// Skip body [Image]
+// Identify partner from Intercom contact ID
+async function identifyPartnersFromContacts({
+  contacts,
+  program,
+  credentials,
+}: {
+  contacts: IntercomContact[];
+  program: Pick<Program, "id">;
+  credentials: IntercomCredentials;
+}): Promise<{ partnerId: string }[]> {
+  const intercom = new Intercom({
+    token: decrypt(credentials.accessToken),
+  });
+
+  const emailAddresses: string[] = [];
+
+  for (const contact of contacts) {
+    const contactFound = await intercom.getContactById(contact.id);
+
+    if (!contactFound || !contactFound.email) {
+      continue;
+    }
+
+    emailAddresses.push(contactFound.email.toLowerCase());
+  }
+
+  if (emailAddresses.length === 0) {
+    return [];
+  }
+
+  const partners = await prisma.partner.findMany({
+    where: {
+      email: {
+        in: emailAddresses,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (partners.length === 0) {
+    return [];
+  }
+
+  const programEnrollments = await prisma.programEnrollment.findMany({
+    where: {
+      programId: program.id,
+      partnerId: {
+        in: partners.map((partner) => partner.id),
+      },
+    },
+    select: {
+      partnerId: true,
+    },
+  });
+
+  return programEnrollments.map(({ partnerId }) => ({ partnerId }));
+}

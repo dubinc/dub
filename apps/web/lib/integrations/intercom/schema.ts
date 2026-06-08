@@ -11,6 +11,11 @@ export const intercomCredentialsSchema = z.object({
   appId: z.string().describe("Intercom workspace ID."),
 });
 
+export const intercomContactSchema = z.object({
+  id: z.string(),
+  external_id: z.string().nullable(),
+});
+
 export const intercomWebhookSchema = z.object({
   app_id: z.string().optional().describe("Intercom workspace ID."),
   topic: z.string(),
@@ -19,12 +24,7 @@ export const intercomWebhookSchema = z.object({
       id: z.string(),
       type: z.string(),
       contacts: z.object({
-        contacts: z.array(
-          z.object({
-            id: z.string(),
-            external_id: z.string().nullable(),
-          }),
-        ),
+        contacts: z.array(intercomContactSchema),
       }),
       conversation_parts: z.object({
         conversation_parts: z.array(
@@ -52,3 +52,7 @@ export const intercomWebhookSchema = z.object({
     }),
   }),
 });
+
+export type IntercomCredentials = z.infer<typeof intercomCredentialsSchema>;
+
+export type IntercomContact = z.infer<typeof intercomContactSchema>;

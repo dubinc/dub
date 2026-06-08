@@ -1,6 +1,9 @@
 import { withAxiom } from "@/lib/axiom/server";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { intercomWebhookSchema } from "@/lib/integrations/intercom/schema";
+import {
+  intercomCredentialsSchema,
+  intercomWebhookSchema,
+} from "@/lib/integrations/intercom/schema";
 import { prisma } from "@dub/prisma";
 import { INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { logAndRespond } from "../../../cron/utils";
@@ -38,7 +41,7 @@ export const POST = withAxiom(async (req) => {
           equals: intercomWorkspaceId,
         },
       },
-      select: {
+      include: {
         project: {
           select: {
             id: true,
@@ -46,6 +49,7 @@ export const POST = withAxiom(async (req) => {
               select: {
                 id: true,
                 deactivatedAt: true,
+                workspaceId: true,
               },
             },
           },
@@ -59,7 +63,10 @@ export const POST = withAxiom(async (req) => {
       );
     }
 
-    const { programs } = installation.project;
+    const {
+      credentials,
+      project: { programs },
+    } = installation;
 
     if (programs.length === 0) {
       return logAndRespond(
@@ -73,10 +80,13 @@ export const POST = withAxiom(async (req) => {
       return logAndRespond(`[Intercom] Program ${program.id} is deactivated.`);
     }
 
+    const parsedCredentials = intercomCredentialsSchema.parse(credentials);
+
     if (topic === "conversation.admin.replied") {
       const response = await handleConversationAdminReplied({
-        program,
         data,
+        program,
+        installation,
       });
 
       return logAndRespond(response.message);
