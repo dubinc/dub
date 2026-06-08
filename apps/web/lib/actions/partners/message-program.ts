@@ -2,7 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { qstash } from "@/lib/cron";
-import { sendMessageAsPartner } from "@/lib/integrations/intercom/forward-message";
+import { sendMessageAsContact } from "@/lib/integrations/intercom/forward-message";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -105,7 +105,7 @@ export const messageProgramAction = authPartnerActionClient
 
           // Forward the message to the Intercom
           intercomInstallation &&
-            sendMessageAsPartner({
+            sendMessageAsContact({
               program,
               partner,
               message,

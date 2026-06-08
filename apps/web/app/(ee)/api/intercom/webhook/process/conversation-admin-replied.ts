@@ -56,7 +56,18 @@ export async function handleConversationAdminReplied({
   const { conversation_parts: conversations } = data.item.conversation_parts;
   const messagesToCreate: Prisma.MessageCreateManyInput[] = [];
 
-  for (const { body, attachments, author } of conversations) {
+  for (const {
+    body,
+    attachments,
+    author,
+    app_package_code: appPackageCode,
+  } of conversations) {
+    // Skip parts created via the Intercom API (e.g. messages we forward from
+    // partners back into Intercom) to avoid echoing them back to partners.
+    if (appPackageCode) {
+      continue;
+    }
+
     let originalMessage = body.replaceAll(/\[(Image|Attachment|GIF)\]/g, "");
 
     if (attachments.length > 0) {

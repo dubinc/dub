@@ -50,6 +50,11 @@ export const intercomWebhookSchema = z.object({
                 content_type: z.string(),
               }),
             ),
+            app_package_code: z
+              .string()
+              .describe(
+                "The app package code if this part was created via API. null if the part was not created via API.",
+              ),
           }),
         ),
       }),

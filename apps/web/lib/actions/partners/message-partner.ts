@@ -5,9 +5,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-usage";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
+import { sendMessageAsAdmin } from "@/lib/integrations/intercom/forward-message";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import {
@@ -43,51 +44,52 @@ export const messagePartnerAction = authActionClient
     }
 
     // Make sure partner is either approved or trusted in the partner network, enrolled in the program, or already has a message with the program
-    const { _count, programs } = await prisma.partner.findFirstOrThrow({
-      where: {
-        id: partnerId,
-        OR: [
-          {
-            networkStatus: {
-              in: ["approved", "trusted"],
+    const { _count, programs, ...partner } =
+      await prisma.partner.findFirstOrThrow({
+        where: {
+          id: partnerId,
+          OR: [
+            {
+              networkStatus: {
+                in: ["approved", "trusted"],
+              },
             },
-          },
-          {
-            programs: {
-              some: {
-                programId,
+            {
+              programs: {
+                some: {
+                  programId,
+                },
+              },
+            },
+            {
+              messages: {
+                some: {
+                  programId,
+                },
+              },
+            },
+          ],
+        },
+        include: {
+          _count: {
+            select: {
+              messages: {
+                where: {
+                  programId,
+                },
               },
             },
           },
-          {
-            messages: {
-              some: {
-                programId,
-              },
+          programs: {
+            where: {
+              programId,
             },
-          },
-        ],
-      },
-      include: {
-        _count: {
-          select: {
-            messages: {
-              where: {
-                programId,
-              },
+            select: {
+              status: true,
             },
           },
         },
-        programs: {
-          where: {
-            programId,
-          },
-          select: {
-            status: true,
-          },
-        },
-      },
-    });
+      });
 
     // if the partner is not enrolled / is in invited status, cap at one message
     const enrollment = programs[0];
@@ -148,15 +150,39 @@ export const messagePartnerAction = authActionClient
     });
 
     waitUntil(
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-partner`,
-        body: {
-          programId,
-          partnerId,
-          lastMessageId: message.id,
-        },
-        delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
-      }),
+      (async () => {
+        const intercomInstallation =
+          await prisma.installedIntegration.findFirst({
+            where: {
+              projectId: workspace.id,
+              integrationId: INTERCOM_INTEGRATION_ID,
+            },
+            select: {
+              id: true,
+              credentials: true,
+            },
+          });
+
+        await Promise.allSettled([
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-partner`,
+            body: {
+              programId,
+              partnerId,
+              lastMessageId: message.id,
+            },
+            delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
+          }),
+
+          intercomInstallation &&
+            sendMessageAsAdmin({
+              program: { id: programId, workspaceId: workspace.id },
+              partner,
+              message,
+              intercomInstallation,
+            }),
+        ]);
+      })(),
     );
 
     return {

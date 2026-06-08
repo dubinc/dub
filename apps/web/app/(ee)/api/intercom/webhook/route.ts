@@ -13,6 +13,7 @@ export const POST = withAxiom(async (req) => {
   try {
     const rawBody = await verifyIntercomWebhookSignature(req);
     const body = JSON.parse(rawBody);
+
     const { topic } = intercomWebhookSchema.parse(body);
 
     if (!relevantTopics.has(topic)) {

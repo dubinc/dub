@@ -5,6 +5,10 @@ interface IntercomContact {
   id: string;
 }
 
+interface IntercomAdmin {
+  id: string;
+}
+
 interface IntercomConversation {
   id: string;
 }
@@ -27,6 +31,22 @@ export class Intercom {
     }
 
     return admin;
+  }
+
+  async findAdminByEmail(email: string): Promise<IntercomAdmin | null> {
+    const { admins } = await this.client.admins.list();
+
+    const admin = admins?.find(
+      (admin) => admin?.email.toLowerCase() === email.toLowerCase(),
+    );
+
+    if (!admin?.id) {
+      return null;
+    }
+
+    return {
+      id: admin.id,
+    };
   }
 
   async searchContactByEmail(email: string) {
@@ -93,7 +113,7 @@ export class Intercom {
     });
   }
 
-  async replyAsContact({
+  async sendMessageAsContact({
     message,
     contact,
     conversation,
@@ -108,6 +128,51 @@ export class Intercom {
         message_type: "comment",
         type: "user",
         intercom_user_id: contact.id,
+        body: message.text,
+      },
+    });
+  }
+
+  async sendMessageAsAdmin({
+    admin,
+    contact,
+    message,
+  }: {
+    admin: IntercomAdmin;
+    contact: IntercomContact;
+    message: Pick<Message, "text">;
+  }) {
+    return await this.client.messages.create({
+      message_type: "inapp",
+      body: message.text,
+      template: "plain",
+      from: {
+        type: "admin",
+        id: Number(admin.id),
+      },
+      to: {
+        type: "user",
+        id: contact.id,
+      },
+      create_conversation_without_contact_reply: true,
+    });
+  }
+
+  async replyAsAdmin({
+    admin,
+    message,
+    conversation,
+  }: {
+    admin: IntercomAdmin;
+    message: Pick<Message, "text">;
+    conversation: IntercomConversation;
+  }) {
+    return await this.client.conversations.reply({
+      conversation_id: conversation.id,
+      body: {
+        message_type: "comment",
+        type: "admin",
+        admin_id: admin.id,
         body: message.text,
       },
     });
