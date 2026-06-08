@@ -238,10 +238,9 @@ export const createStripeTransfer = async ({
     },
   });
 
-  for (const commissionIdsBatch of chunk(
-    commissions.map((c) => c.id),
-    100,
-  )) {
+  const commissionIds = commissions.map((c) => c.id);
+
+  for (const commissionIdsBatch of chunk(commissionIds, 100)) {
     try {
       await prisma.commission.updateMany({
         where: {
