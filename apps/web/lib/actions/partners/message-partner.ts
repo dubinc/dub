@@ -3,13 +3,13 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-usage";
+import { partnerReachableByProgramWhereInput } from "@/lib/api/partners/partner-reachable-by-program-where-input";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
 import { sendMessageAsAdmin } from "@/lib/integrations/intercom/forward-message";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, INTERCOM_INTEGRATION_ID } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import {
   MessageSchema,
@@ -48,27 +48,7 @@ export const messagePartnerAction = authActionClient
       await prisma.partner.findFirstOrThrow({
         where: {
           id: partnerId,
-          OR: [
-            {
-              networkStatus: {
-                in: ["approved", "trusted"],
-              },
-            },
-            {
-              programs: {
-                some: {
-                  programId,
-                },
-              },
-            },
-            {
-              messages: {
-                some: {
-                  programId,
-                },
-              },
-            },
-          ],
+          ...partnerReachableByProgramWhereInput(programId),
         },
         include: {
           _count: {
@@ -149,41 +129,38 @@ export const messagePartnerAction = authActionClient
       },
     });
 
-    waitUntil(
-      (async () => {
-        const intercomInstallation =
-          await prisma.installedIntegration.findFirst({
-            where: {
-              projectId: workspace.id,
-              integrationId: INTERCOM_INTEGRATION_ID,
-            },
-            select: {
-              id: true,
-              credentials: true,
-            },
-          });
+    (async () => {
+      const intercomInstallation = await prisma.installedIntegration.findFirst({
+        where: {
+          projectId: workspace.id,
+          integrationId: INTERCOM_INTEGRATION_ID,
+        },
+        select: {
+          id: true,
+          credentials: true,
+        },
+      });
 
-        await Promise.allSettled([
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-partner`,
-            body: {
-              programId,
-              partnerId,
-              lastMessageId: message.id,
-            },
-            delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
+      await Promise.allSettled([
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-partner`,
+          body: {
+            programId,
+            partnerId,
+            lastMessageId: message.id,
+          },
+          delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
+        }),
+
+        intercomInstallation &&
+          sendMessageAsAdmin({
+            program: { id: programId, workspaceId: workspace.id },
+            partner,
+            message,
+            intercomInstallation,
           }),
-
-          intercomInstallation &&
-            sendMessageAsAdmin({
-              program: { id: programId, workspaceId: workspace.id },
-              partner,
-              message,
-              intercomInstallation,
-            }),
-        ]);
-      })(),
-    );
+      ]);
+    })();
 
     return {
       message: MessageSchema.parse(message),
