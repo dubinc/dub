@@ -22,7 +22,6 @@ import {
   BountyEndDate,
   BountyRewardsTable,
 } from "../../../../partners.dub.co/(dashboard)/programs/[programSlug]/(enrolled)/bounties/bounty-card";
-import { EmbedBountyPerformanceSection } from "./performance-section";
 import { EmbedBountySubmissionDetail } from "./submission-detail";
 import { EmbedBountySubmissionForm } from "./submission-form";
 import { EmbedBountySubmissionsTable } from "./submissions-table";
@@ -166,12 +165,13 @@ export function EmbedBountyDetail({
             </div>
           </div>
 
-          {bounty.type === "performance" ? (
-            <EmbedBountyPerformanceSection
-              bounty={bounty}
-              programEnrollment={programEnrollment}
-            />
-          ) : (
+          {bounty.type === "performance" ? null : (
+            // (
+            //   <EmbedBountyPerformanceSection
+            //     bounty={bounty}
+            //     programEnrollment={programEnrollment}
+            //   />
+            // )
             <EmbedBountySubmissionsTable
               bounty={bounty}
               onSubmit={(periodNumber) =>
