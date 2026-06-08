@@ -4,7 +4,10 @@ import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
+import {
+  MEGA_WORKSPACE_LINKS_LIMIT,
+  SORTABLE_LINKS_LIMIT,
+} from "@/lib/constants/misc";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -31,6 +34,10 @@ export const GET = withWorkspace(
       ...filters,
       workspaceId: workspace.id,
       folderIds,
+      sortBy:
+        workspace.totalLinks > SORTABLE_LINKS_LIMIT
+          ? "createdAt"
+          : filters.sortBy,
       searchMode:
         workspace.totalLinks > MEGA_WORKSPACE_LINKS_LIMIT ? "exact" : "fuzzy",
     });

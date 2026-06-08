@@ -139,7 +139,7 @@ export const CustomerSchema = z.object({
     .describe(
       "The unique ID of the customer. You may use either the customer's `id` on Dub (obtained via `/customers` endpoint) or their `externalId` (unique ID within your system, prefixed with `ext_`, e.g. `ext_123`).",
     ),
-  name: z.string().describe("Name of the customer."),
+  name: z.string().nullish().describe("Name of the customer."),
   email: z.string().nullish().describe("Email of the customer."),
   avatar: z.string().nullish().describe("Avatar URL of the customer."),
   externalId: z
@@ -375,7 +375,12 @@ export const customersExportQuerySchema = getCustomersQuerySchema
       .string()
       .optional()
       .default(CUSTOMER_EXPORT_DEFAULT_COLUMNS.join(","))
-      .transform((v) => v.split(","))
+      .transform((v) =>
+        v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      )
       .refine(
         (columns) => {
           const validColumnIds = CUSTOMER_EXPORT_COLUMNS.map((col) => col.id);

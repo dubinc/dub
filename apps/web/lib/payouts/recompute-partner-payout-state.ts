@@ -74,22 +74,26 @@ export async function recomputePartnerPayoutState(
     }
   });
 
-  const defaultPayoutMethod =
+  const hasValidDefaultPayoutMethod =
     partner.defaultPayoutMethod &&
-    activePayoutMethods.includes(partner.defaultPayoutMethod)
-      ? partner.defaultPayoutMethod
-      : activePayoutMethods[0] ?? null;
+    activePayoutMethods.includes(partner.defaultPayoutMethod);
+
+  const defaultPayoutMethod = hasValidDefaultPayoutMethod
+    ? partner.defaultPayoutMethod
+    : activePayoutMethods[0] ?? null;
+
   let payoutsEnabledAt: Date | null = null;
 
   if (defaultPayoutMethod) {
     // if default payout method has changed, set payoutsEnabledAt to today
     // otherwise, use the existing payoutsEnabledAt (or today if null)
-    payoutsEnabledAt =
-      defaultPayoutMethod !== partner.defaultPayoutMethod
-        ? new Date()
-        : partner.payoutsEnabledAt ?? new Date();
-  } else {
-    payoutsEnabledAt = null;
+    if (defaultPayoutMethod !== partner.defaultPayoutMethod) {
+      payoutsEnabledAt = new Date();
+    } else if (partner.payoutsEnabledAt) {
+      payoutsEnabledAt = partner.payoutsEnabledAt;
+    } else {
+      payoutsEnabledAt = new Date();
+    }
   }
 
   console.log(
@@ -109,6 +113,10 @@ export async function recomputePartnerPayoutState(
       : cryptoWalletAddress
     : null;
 
+  const hasPayoutStateChanged =
+    partner.payoutsEnabledAt !== payoutsEnabledAt ||
+    partner.defaultPayoutMethod !== defaultPayoutMethod;
+
   return {
     payoutsEnabledAt,
     defaultPayoutMethod,
@@ -116,5 +124,6 @@ export async function recomputePartnerPayoutState(
     cryptoWalletAddress,
     cryptoWalletNetwork,
     maskedCryptoWalletAddress,
+    hasPayoutStateChanged,
   };
 }

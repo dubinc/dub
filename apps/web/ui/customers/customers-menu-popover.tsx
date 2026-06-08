@@ -5,7 +5,7 @@ import { ThreeDots } from "@/ui/shared/icons";
 import { Button, Download, IconMenu, Popover } from "@dub/ui";
 import { useState } from "react";
 
-export function ExportCustomersButton() {
+export function CustomersMenuPopover() {
   const [openPopover, setOpenPopover] = useState(false);
 
   const { ExportCustomersModal, setShowExportCustomersModal } =
