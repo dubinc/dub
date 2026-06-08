@@ -185,6 +185,8 @@ const evaluateCondition = ({
       return false;
     }
 
+    if (condition.value === "") return false;
+
     return fieldValue.startsWith(condition.value);
   }
 
@@ -193,6 +195,8 @@ const evaluateCondition = ({
     if (typeof fieldValue !== "string" || typeof condition.value !== "string") {
       return false;
     }
+
+    if (condition.value === "") return false;
 
     return fieldValue.endsWith(condition.value);
   }
@@ -234,7 +238,7 @@ const evaluateCondition = ({
 
   // Not in
   if (condition.operator === "not_in") {
-    if (!Array.isArray(condition.value)) {
+    if (!Array.isArray(condition.value) || condition.value.length === 0) {
       return false;
     }
 
