@@ -57,7 +57,12 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         totalCommissions: "desc",
       },
       {
-        createdAt: "asc",
+        program: {
+          marketplaceRanking: "asc",
+        },
+      },
+      {
+        createdAt: "desc",
       },
     ],
   });

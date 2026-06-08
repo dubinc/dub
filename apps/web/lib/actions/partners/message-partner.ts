@@ -3,6 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-usage";
+import { partnerReachableByProgramWhereInput } from "@/lib/api/partners/partner-reachable-by-program-where-input";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -46,27 +47,7 @@ export const messagePartnerAction = authActionClient
     const { _count, programs } = await prisma.partner.findFirstOrThrow({
       where: {
         id: partnerId,
-        OR: [
-          {
-            networkStatus: {
-              in: ["approved", "trusted"],
-            },
-          },
-          {
-            programs: {
-              some: {
-                programId,
-              },
-            },
-          },
-          {
-            messages: {
-              some: {
-                programId,
-              },
-            },
-          },
-        ],
+        ...partnerReachableByProgramWhereInput(programId),
       },
       include: {
         _count: {
