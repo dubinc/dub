@@ -53,14 +53,17 @@ export function DeepLinkActionButton({
       // "page can't be loaded". So we set a timer to navigate to the fallback
       // ourselves. If the intent dispatches, the webview is backgrounded
       // (visibilitychange → hidden) and we cancel before it fires.
-      const timer = window.setTimeout(() => {
-        window.location.href = fallback;
-      }, 1500);
-      document.addEventListener("visibilitychange", () => {
+      const onVisibilityChange = () => {
         if (document.visibilityState === "hidden") {
           clearTimeout(timer);
+          document.removeEventListener("visibilitychange", onVisibilityChange);
         }
-      });
+      };
+      const timer = window.setTimeout(() => {
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+        window.location.href = fallback;
+      }, 1500);
+      document.addEventListener("visibilitychange", onVisibilityChange);
 
       window.location.href = `intent://${url.host}${url.pathname}${userQuery}#Intent;${extras}`;
       return;
