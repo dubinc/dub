@@ -114,7 +114,7 @@ export async function sendMessageAsAdmin({
       message,
     });
 
-    conversationId = conversation.id;
+    conversationId = conversation.conversation_id;
 
     await redis.set(redisKey, conversationId);
 

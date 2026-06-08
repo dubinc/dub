@@ -99,6 +99,13 @@ export const GET = async (req: Request) => {
 
     const admin = await intercom.getAdmin();
 
+    if (!admin.app?.id_code) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Failed to retrieve Intercom workspace ID.",
+      });
+    }
+
     const credentials = intercomCredentialsSchema.parse({
       accessToken: encrypt(token.access_token),
       appId: admin.app?.id_code,

@@ -137,7 +137,8 @@ export const WEBHOOK_REQUEST_ACTORS_BY_PATH = {
   "/intercom/webhook": {
     id: INTERCOM_INTEGRATION_ID,
     name: "Intercom",
-    image: "",
+    image:
+      "https://dubassets.com/integrations/int_ffw3qgrFAahY6qs1hXaH3wHS_JPoCPOh",
   },
 } as const;
 
