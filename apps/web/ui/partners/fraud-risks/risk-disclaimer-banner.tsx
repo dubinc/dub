@@ -1,7 +1,7 @@
 import { TriangleWarning } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 
-export function FraudDisclaimerBanner({ className }: { className?: string }) {
+export function RiskDisclaimerBanner({ className }: { className?: string }) {
   return (
     <div
       className={cn(

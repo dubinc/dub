@@ -24,9 +24,9 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { FraudPaidTrafficSettings } from "./fraud-paid-traffic-settings";
-import { FraudReferralSourceSettings } from "./fraud-referral-source-settings";
-import { FraudRuleToggleSettings } from "./fraud-rule-toggle-settings";
+import { RiskPaidTrafficSettings } from "./risk-paid-traffic-settings";
+import { RiskReferralSourceSettings } from "./risk-referral-source-settings";
+import { RiskSignalToggleSettings } from "./risk-signal-toggle-settings";
 
 // Rules that have dedicated settings components with complex config UI
 const RULES_WITH_CUSTOM_UI = new Set([
@@ -34,19 +34,17 @@ const RULES_WITH_CUSTOM_UI = new Set([
   "referralSourceBanned",
 ]);
 
-// Toggle-only rules rendered via the generic FraudRuleToggleSettings component
+// Toggle-only rules rendered via the generic RiskSignalToggleSettings component
 const TOGGLE_ONLY_RULES = CONFIGURABLE_FRAUD_RULES.filter(
   (rule): rule is FraudRuleInfo & { type: keyof UpdateFraudRuleSettings } =>
     !RULES_WITH_CUSTOM_UI.has(rule.type),
 );
 
-interface ProgramFraudSettingsSheetProps {
+interface RiskSignalsSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-function ProgramFraudSettingsSheetContent({
-  setIsOpen,
-}: ProgramFraudSettingsSheetProps) {
+function RiskSignalsSheetContent({ setIsOpen }: RiskSignalsSheetProps) {
   const { id: workspaceId } = useWorkspace();
   const { isSubmitting, makeRequest } = useApiMutation();
 
@@ -123,7 +121,7 @@ function ProgramFraudSettingsSheetContent({
       method: "PATCH",
       body,
       onSuccess: () => {
-        toast.success("Fraud settings updated successfully.");
+        toast.success("Risk signals updated successfully.");
         setIsOpen(false);
         mutatePrefix(["/api/fraud/rules", "/api/fraud/events"]);
       },
@@ -169,8 +167,8 @@ function ProgramFraudSettingsSheetContent({
           <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
             <div className="flex h-16 items-center justify-between px-6 py-4">
               <Sheet.Title className="flex items-center gap-2 text-lg font-semibold">
-                Fraud settings
-                <InfoTooltip content="Learn more about how to [customize your program's fraud settings](https://dub.co/help/article/fraud-detection)." />
+                Risk signals
+                <InfoTooltip content="Learn more about how to [customize your program's risk signals](https://dub.co/help/article/fraud-detection)." />
               </Sheet.Title>
               <Sheet.Close asChild>
                 <Button
@@ -185,7 +183,7 @@ function ProgramFraudSettingsSheetContent({
           <div className="h-full overflow-y-auto p-4 sm:p-6">
             <div className="space-y-4">
               {TOGGLE_ONLY_RULES.map((rule) => (
-                <FraudRuleToggleSettings
+                <RiskSignalToggleSettings
                   key={rule.type}
                   ruleType={rule.type}
                   title={FRAUD_RULES_BY_TYPE[rule.type].name}
@@ -193,8 +191,8 @@ function ProgramFraudSettingsSheetContent({
                   isConfigLoading={isLoading}
                 />
               ))}
-              <FraudPaidTrafficSettings isConfigLoading={isLoading} />
-              <FraudReferralSourceSettings isConfigLoading={isLoading} />
+              <RiskPaidTrafficSettings isConfigLoading={isLoading} />
+              <RiskReferralSourceSettings isConfigLoading={isLoading} />
             </div>
           </div>
 
@@ -223,25 +221,25 @@ function ProgramFraudSettingsSheetContent({
   );
 }
 
-function ProgramFraudSettingsSheet({
+function RiskSignalsSheet({
   isOpen,
   ...rest
-}: ProgramFraudSettingsSheetProps & {
+}: RiskSignalsSheetProps & {
   isOpen: boolean;
 }) {
   return (
     <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
-      <ProgramFraudSettingsSheetContent {...rest} />
+      <RiskSignalsSheetContent {...rest} />
     </Sheet>
   );
 }
 
-export function useProgramFraudSettingsSheet() {
+export function useRiskSignalsSheet() {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
-    programFraudSettingsSheet: (
-      <ProgramFraudSettingsSheet setIsOpen={setIsOpen} isOpen={isOpen} />
+    riskSignalsSheet: (
+      <RiskSignalsSheet setIsOpen={setIsOpen} isOpen={isOpen} />
     ),
     setIsOpen,
   };

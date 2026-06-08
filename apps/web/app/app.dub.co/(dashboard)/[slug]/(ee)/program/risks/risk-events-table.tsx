@@ -9,8 +9,8 @@ import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkResolveFraudGroupsModal } from "@/ui/modals/bulk-resolve-fraud-groups-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
-import { FraudDisclaimerBanner } from "@/ui/partners/fraud-risks/fraud-disclaimer-banner";
-import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
+import { RiskDisclaimerBanner } from "@/ui/partners/fraud-risks/risk-disclaimer-banner";
+import { RiskReviewSheet } from "@/ui/partners/fraud-risks/risk-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
@@ -35,7 +35,7 @@ import { Command } from "cmdk";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFraudGroupFilters } from "./use-fraud-group-filters";
 
-export function FraudGroupTable() {
+export function RiskEventsTable() {
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
@@ -233,10 +233,10 @@ export function FraudGroupTable() {
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (plural) => `fraud event${plural ? "s" : ""}`,
+    resourceName: (plural) => `risk event${plural ? "s" : ""}`,
     rowCount: fraudGroupCount ?? 0,
     loading,
-    error: error || countError ? "Failed to load fraud events" : undefined,
+    error: error || countError ? "Failed to load risk events" : undefined,
     selectionControls: (tableInstance) => {
       // Store table reference for resetting selection
       tableRef.current = tableInstance;
@@ -314,7 +314,7 @@ export function FraudGroupTable() {
       <BulkBanPartnersModal />
       <BulkResolveFraudGroupsModal />
       {detailsSheetState.groupId && currentFraudGroup && (
-        <FraudReviewSheet
+        <RiskReviewSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
@@ -340,7 +340,7 @@ export function FraudGroupTable() {
       )}
 
       <div>
-        <FraudDisclaimerBanner />
+        <RiskDisclaimerBanner />
         <div className="mt-3">
           <PendingFraudFilters />
         </div>
@@ -350,8 +350,8 @@ export function FraudGroupTable() {
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
-          title="No pending fraud to review"
-          description="There aren't any unresolved fraud events waiting for action right now."
+          title="No pending risk events to review"
+          description="There aren't any unresolved risk events waiting for action right now."
           cardContent={() => (
             <>
               <ShieldAlert className="size-4 text-neutral-700" />

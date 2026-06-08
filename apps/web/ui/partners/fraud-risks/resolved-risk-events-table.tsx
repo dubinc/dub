@@ -16,7 +16,7 @@ import Link from "next/link";
 
 const RESOLVED_FRAUD_GROUP_PAGE_SIZE = 10;
 
-export function ResolvedFraudGroupTable({ partnerId }: { partnerId: string }) {
+export function ResolvedRiskEventsTable({ partnerId }: { partnerId: string }) {
   const {
     fraudGroups,
     loading: fraudGroupsLoading,
@@ -126,7 +126,7 @@ export function ResolvedFraudGroupTable({ partnerId }: { partnerId: string }) {
         <h3 className="text-content-emphasis font-semibold">Resolved events</h3>
         {displayViewAll ? (
           <Link
-            href={`/${"workspaceSlug"}/program/fraud/resolved?partnerId=${partnerId}`}
+            href={`/${"workspaceSlug"}/program/risks/resolved?partnerId=${partnerId}`}
             target="_blank"
             className={cn(
               buttonVariants({ variant: "secondary" }),
