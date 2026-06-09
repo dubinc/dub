@@ -21,9 +21,9 @@ import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 export async function customerSubscriptionDeleted(
   event: Stripe.CustomerSubscriptionDeletedEvent,
 ) {
-  const subscriptionDeleted = event.data.object;
+  const deletedSubscription = event.data.object;
 
-  const stripeId = subscriptionDeleted.customer.toString();
+  const stripeId = deletedSubscription.customer.toString();
 
   // If a workspace deletes their subscription, reset their usage limit in the database to 1000.
   // Also remove the root domain link for all their domains from MySQL, Redis, and Tinybird
