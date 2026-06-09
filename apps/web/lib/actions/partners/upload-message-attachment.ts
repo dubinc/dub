@@ -6,7 +6,7 @@ import { ratelimit } from "@/lib/upstash";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import {
   MAX_ATTACHMENT_SIZE_BYTES,
-  PROGRAM_OWNER_ALLOWED_ATTACHMENT_TYPES,
+  PROGRAM_ALLOWED_ATTACHMENT_TYPES,
 } from "@/lib/zod/schemas/messages";
 import { nanoid, R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
@@ -16,7 +16,7 @@ import { throwIfNoPermission } from "../throw-if-no-permission";
 const schema = z.object({
   workspaceId: z.string(),
   fileName: z.string().trim().min(1),
-  contentType: z.enum(PROGRAM_OWNER_ALLOWED_ATTACHMENT_TYPES),
+  contentType: z.enum(PROGRAM_ALLOWED_ATTACHMENT_TYPES),
   contentLength: z.number().int().positive().max(MAX_ATTACHMENT_SIZE_BYTES),
 });
 

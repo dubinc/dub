@@ -10,7 +10,7 @@ export const MAX_ATTACHMENTS_PER_MESSAGE = 5;
 
 export const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
-export const PROGRAM_OWNER_ALLOWED_ATTACHMENT_TYPES = [
+export const PROGRAM_ALLOWED_ATTACHMENT_TYPES = [
   "image/png",
   "image/jpeg",
   "image/webp",
@@ -31,6 +31,8 @@ export const ATTACHMENT_MIME_TYPE_LABELS: Record<string, string> = {
   "image/jpeg": "JPG",
   "image/webp": "WEBP",
 };
+
+const messageTextSchema = z.string().trim().min(1).max(MAX_MESSAGE_LENGTH);
 
 export const MessageAttachmentSchema = z.object({
   id: z.string(),
@@ -55,7 +57,7 @@ export const MessageSchema = z.object({
   partnerId: z.string(),
   senderPartnerId: z.string().nullable(),
   senderUserId: z.string(),
-  text: z.string(),
+  text: messageTextSchema,
   subject: z.string().nullable(),
   type: z.enum(MessageType),
   readInApp: z.date().nullable(),
@@ -99,7 +101,7 @@ export const countMessagesQuerySchema = z.object({
 
 export const messagePartnerSchema = z.object({
   partnerId: z.string(),
-  text: z.string().max(MAX_MESSAGE_LENGTH),
+  text: messageTextSchema,
   attachments: z
     .array(messageAttachmentInputSchema)
     .max(MAX_ATTACHMENTS_PER_MESSAGE)
@@ -128,7 +130,7 @@ export const getProgramMessagesQuerySchema = z.object({
 
 export const messageProgramSchema = z.object({
   programSlug: z.string(),
-  text: z.string().max(MAX_MESSAGE_LENGTH),
+  text: messageTextSchema,
   attachments: z
     .array(messageAttachmentInputSchema)
     .max(MAX_ATTACHMENTS_PER_MESSAGE)

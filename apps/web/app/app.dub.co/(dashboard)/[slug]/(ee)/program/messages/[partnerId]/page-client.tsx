@@ -10,6 +10,7 @@ import { usePartnerMessages } from "@/lib/swr/use-partner-messages";
 import useProgram from "@/lib/swr/use-program";
 import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PROGRAM_ALLOWED_ATTACHMENT_TYPES } from "@/lib/zod/schemas/messages";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
@@ -22,7 +23,6 @@ import { PendingAttachment } from "@/ui/shared/message-input";
 import { Button } from "@dub/ui";
 import { ChevronLeft } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { PROGRAM_OWNER_ALLOWED_ATTACHMENT_TYPES } from "@/lib/zod/schemas/messages";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
@@ -117,7 +117,7 @@ export function ProgramMessagesPartnerPageClient() {
             workspaceId: workspaceId!,
             fileName: file.name,
             contentType:
-              file.type as (typeof PROGRAM_OWNER_ALLOWED_ATTACHMENT_TYPES)[number],
+              file.type as (typeof PROGRAM_ALLOWED_ATTACHMENT_TYPES)[number],
             contentLength: file.size,
           });
 
@@ -144,9 +144,7 @@ export function ProgramMessagesPartnerPageClient() {
 
           setPendingAttachments((prev) =>
             prev.map((a) =>
-              a.id === id
-                ? { ...a, uploading: false, url: destinationUrl }
-                : a,
+              a.id === id ? { ...a, uploading: false, url: destinationUrl } : a,
             ),
           );
         } catch {
@@ -224,7 +222,7 @@ export function ProgramMessagesPartnerPageClient() {
             pendingAttachments={pendingAttachments}
             onAddFiles={handleAddFiles}
             onRemoveAttachment={handleRemoveAttachment}
-            allowedFileTypes={PROGRAM_OWNER_ALLOWED_ATTACHMENT_TYPES}
+            allowedFileTypes={PROGRAM_ALLOWED_ATTACHMENT_TYPES}
             onSendMessage={async (message, attachments) => {
               const createdAt = new Date();
 
