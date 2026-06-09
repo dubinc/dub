@@ -51,6 +51,7 @@ const GENERIC_EMAIL_DOMAINS = [
   "instaddr.ch",
   "t-mail.asia",
   "adras.org",
+  "emailinbo.live",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [
