@@ -81,7 +81,8 @@ export async function updateWorkspacePlan({
       cancellationFields.billingCycleEndsAt?.getTime() ||
     workspace.subscriptionCanceledAt?.getTime() !==
       cancellationFields.subscriptionCanceledAt?.getTime() ||
-    workspace.trialEndsAt?.getTime() !== trialEndsAt?.getTime();
+    (trialEndsAt !== undefined &&
+      workspace.trialEndsAt?.getTime() !== trialEndsAt?.getTime());
 
   // Update workspace plan / limits / subscription details if:
   // - workspace upgrades/downgrades their subscription
