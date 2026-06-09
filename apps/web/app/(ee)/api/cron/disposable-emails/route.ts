@@ -15,6 +15,18 @@ export const POST = withCron(async () => {
     fetch("https://api.tremendous.com/prohibited_email_domains.txt"),
   ]);
 
+  if (!disposableRes.ok) {
+    throw new Error(
+      `Failed to fetch disposable email domains list: ${disposableRes.status} ${disposableRes.statusText} (${disposableRes.url})`,
+    );
+  }
+
+  if (!tremendousRes.ok) {
+    throw new Error(
+      `Failed to fetch Tremendous prohibited email domains list: ${tremendousRes.status} ${tremendousRes.statusText} (${tremendousRes.url})`,
+    );
+  }
+
   const disposableDomains = (await disposableRes.text())
     .split("\n")
     .filter(Boolean);
