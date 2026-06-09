@@ -12,7 +12,9 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
+  chunk,
   currencyFormatter,
+  log,
   pluralize,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -222,32 +224,50 @@ export const createStripeTransfer = async ({
     },
   });
 
-  await Promise.allSettled([
-    prisma.payout.updateMany({
-      where: {
-        id: {
-          in: payoutIds,
-        },
+  await prisma.payout.updateMany({
+    where: {
+      id: {
+        in: payoutIds,
       },
-      data: {
-        stripeTransferId: transfer.id,
-        status: "sent",
-        paidAt: new Date(),
-        method: "connect",
-      },
-    }),
+    },
+    data: {
+      stripeTransferId: transfer.id,
+      status: "sent",
+      paidAt: new Date(),
+      method: "connect",
+    },
+  });
 
-    prisma.commission.updateMany({
-      where: {
-        payoutId: {
-          in: payoutIds,
+  const commissionIds = commissions.map((c) => c.id);
+
+  let totalUpdatedCommissions = 0;
+  for (const commissionIdsBatch of chunk(commissionIds, 250)) {
+    try {
+      const { count } = await prisma.commission.updateMany({
+        where: {
+          id: {
+            in: commissionIdsBatch,
+          },
         },
-      },
-      data: {
-        status: "paid",
-      },
-    }),
-  ]);
+        data: {
+          status: "paid",
+        },
+      });
+
+      totalUpdatedCommissions += count;
+      console.log(
+        `Marked ${totalUpdatedCommissions}/${commissionIds.length} commissions as paid`,
+      );
+    } catch (error) {
+      await log({
+        message: `[createStripeTransfer] Failed to mark commissions as paid for payouts ${payoutIds.join(
+          ", ",
+        )}: ${error.message}`,
+        type: "errors",
+        mention: true,
+      });
+    }
+  }
 
   waitUntil(
     Promise.allSettled([
