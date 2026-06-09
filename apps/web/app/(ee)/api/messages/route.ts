@@ -46,6 +46,7 @@ export const GET = withWorkspace(
           include: {
             senderPartner: true,
             senderUser: true,
+            attachments: true,
           },
           orderBy: {
             [sortBy]: sortOrder,

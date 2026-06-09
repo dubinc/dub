@@ -7,8 +7,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
-import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
 import { PartnerAvatar } from "./partner-avatar";
+import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
 import {
   getPayoutMethodIconConfig,
   getPayoutMethodLabel,

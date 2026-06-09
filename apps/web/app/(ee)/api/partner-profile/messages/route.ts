@@ -77,6 +77,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         include: {
           senderPartner: true,
           senderUser: true,
+          attachments: true,
         },
         orderBy: {
           [sortBy]: sortOrder,

@@ -6,7 +6,48 @@ import { UserSchema } from "./users";
 
 export const MAX_MESSAGE_LENGTH = 2000;
 
-const messageTextSchema = z.string().min(1);
+export const MAX_ATTACHMENTS_PER_MESSAGE = 5;
+
+export const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+
+export const PROGRAM_OWNER_ALLOWED_ATTACHMENT_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/svg+xml",
+  "application/pdf",
+] as const;
+
+export const PARTNER_ALLOWED_ATTACHMENT_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+] as const;
+
+export const ATTACHMENT_MIME_TYPE_LABELS: Record<string, string> = {
+  "application/pdf": "PDF",
+  "image/svg+xml": "SVG",
+  "image/png": "PNG",
+  "image/jpeg": "JPG",
+  "image/webp": "WEBP",
+};
+
+export const MessageAttachmentSchema = z.object({
+  id: z.string(),
+  messageId: z.string(),
+  url: z.string(),
+  name: z.string(),
+  size: z.number(),
+  type: z.string(),
+  createdAt: z.date(),
+});
+
+export const messageAttachmentInputSchema = z.object({
+  url: z.url(),
+  name: z.string().min(1).max(255),
+  size: z.number().int().positive().max(MAX_ATTACHMENT_SIZE_BYTES),
+  type: z.string().min(1),
+});
 
 export const MessageSchema = z.object({
   id: z.string(),
@@ -14,7 +55,7 @@ export const MessageSchema = z.object({
   partnerId: z.string(),
   senderPartnerId: z.string().nullable(),
   senderUserId: z.string(),
-  text: messageTextSchema,
+  text: z.string(),
   subject: z.string().nullable(),
   type: z.enum(MessageType),
   readInApp: z.date().nullable(),
@@ -31,6 +72,7 @@ export const MessageSchema = z.object({
     name: true,
     image: true,
   }).nullable(),
+  attachments: z.array(MessageAttachmentSchema).default([]),
 });
 
 export const PartnerMessagesSchema = z.array(
@@ -57,7 +99,11 @@ export const countMessagesQuerySchema = z.object({
 
 export const messagePartnerSchema = z.object({
   partnerId: z.string(),
-  text: messageTextSchema.max(MAX_MESSAGE_LENGTH),
+  text: z.string().max(MAX_MESSAGE_LENGTH),
+  attachments: z
+    .array(messageAttachmentInputSchema)
+    .max(MAX_ATTACHMENTS_PER_MESSAGE)
+    .default([]),
 });
 
 export const ProgramMessagesSchema = z.array(
@@ -82,5 +128,17 @@ export const getProgramMessagesQuerySchema = z.object({
 
 export const messageProgramSchema = z.object({
   programSlug: z.string(),
-  text: messageTextSchema.max(MAX_MESSAGE_LENGTH),
+  text: z.string().max(MAX_MESSAGE_LENGTH),
+  attachments: z
+    .array(messageAttachmentInputSchema)
+    .max(MAX_ATTACHMENTS_PER_MESSAGE)
+    .default([]),
 });
+
+export function getAttachmentTypeLabel(mimeType: string): string {
+  return (
+    ATTACHMENT_MIME_TYPE_LABELS[mimeType] ||
+    mimeType.split("/").pop()?.toUpperCase() ||
+    "FILE"
+  );
+}

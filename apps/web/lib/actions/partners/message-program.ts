@@ -3,7 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import {
   MessageSchema,
@@ -16,7 +16,7 @@ export const messageProgramAction = authPartnerActionClient
   .inputSchema(messageProgramSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner, user } = ctx;
-    const { programSlug, text } = parsedInput;
+    const { programSlug, text, attachments } = parsedInput;
 
     const program = await prisma.program.findFirstOrThrow({
       select: {
@@ -59,6 +59,14 @@ export const messageProgramAction = authPartnerActionClient
       },
     });
 
+    const urlPrefix = `${R2_URL}/programs/${program.id}/messages/`;
+
+    for (const attachment of attachments) {
+      if (!attachment.url.startsWith(urlPrefix)) {
+        throw new Error("Invalid attachment URL.");
+      }
+    }
+
     const message = await prisma.message.create({
       data: {
         id: createId({ prefix: "msg_" }),
@@ -67,10 +75,22 @@ export const messageProgramAction = authPartnerActionClient
         senderPartnerId: partner.id,
         senderUserId: user.id,
         text,
+        ...(attachments.length > 0 && {
+          attachments: {
+            create: attachments.map((att) => ({
+              id: createId({ prefix: "msa_" }),
+              url: att.url,
+              name: att.name,
+              size: att.size,
+              type: att.type,
+            })),
+          },
+        }),
       },
       include: {
         senderUser: true,
         senderPartner: true,
+        attachments: true,
       },
     });
 

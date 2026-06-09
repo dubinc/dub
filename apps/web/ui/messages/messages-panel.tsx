@@ -10,7 +10,11 @@ import {
 import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import { Fragment, ReactNode, useMemo, useRef, useState } from "react";
-import { MessageInput } from "../shared/message-input";
+import { MessageInput, PendingAttachment } from "../shared/message-input";
+import {
+  MessageFileAttachments,
+  MessageImageAttachments,
+} from "./message-attachments";
 import { MessageMarkdown } from "./message-markdown";
 
 interface Sender {
@@ -30,17 +34,28 @@ export function MessagesPanel({
   placeholder,
   error,
   footerSlot,
+  pendingAttachments,
+  onAddFiles,
+  onRemoveAttachment,
+  allowedFileTypes,
 }: {
   messages?: (Message & { delivered?: boolean })[];
   currentUserType: "partner" | "user";
   currentUserId: string;
   program?: Pick<ProgramProps, "logo" | "name">;
   partner?: Pick<PartnerProps, "name">;
-  onSendMessage: (message: string) => void;
+  onSendMessage: (
+    message: string,
+    attachments: { url: string; name: string; size: number; type: string }[],
+  ) => void;
   placeholder?: string;
   error?: any;
   /** When set, replaces the message composer (e.g. read-only enrollment states). */
   footerSlot?: ReactNode;
+  pendingAttachments?: PendingAttachment[];
+  onAddFiles?: (files: File[]) => void;
+  onRemoveAttachment?: (id: string) => void;
+  allowedFileTypes?: readonly string[];
 }) {
   const { isMobile } = useMediaQuery();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -57,10 +72,13 @@ export function MessagesPanel({
     [placeholder, currentUserType, program?.name, partner?.name],
   );
 
-  const sendMessage = (message: string) => {
+  const sendMessage = (
+    message: string,
+    attachments: { url: string; name: string; size: number; type: string }[],
+  ) => {
     if (!messages) return false;
 
-    onSendMessage(message);
+    onSendMessage(message, attachments);
     scrollRef.current?.scrollTo({ top: 0 });
   };
 
@@ -212,19 +230,53 @@ export function MessagesPanel({
                             showStatusIndicator={showStatusIndicator}
                             program={program}
                           />
-                          {/* Message box */}
-                          <div
-                            className={cn(
-                              "max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
-                              isMySide
-                                ? "rounded-br bg-neutral-700"
-                                : "rounded-bl bg-neutral-100",
-                            )}
-                          >
-                            <MessageMarkdown invert={isMySide}>
-                              {message.text}
-                            </MessageMarkdown>
-                          </div>
+                          {/* Message bubble — text + file attachments */}
+                          {(() => {
+                            const imageAttachments =
+                              message.attachments?.filter((a) =>
+                                a.type.startsWith("image/"),
+                              ) ?? [];
+                            const fileAttachments =
+                              message.attachments?.filter(
+                                (a) => !a.type.startsWith("image/"),
+                              ) ?? [];
+                            const hasText = !!message.text;
+                            const hasFiles = fileAttachments.length > 0;
+                            const hasImages = imageAttachments.length > 0;
+
+                            return (
+                              <>
+                                {(hasText || hasFiles) && (
+                                  <div
+                                    className={cn(
+                                      "max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
+                                      isMySide
+                                        ? "rounded-br bg-neutral-700"
+                                        : "rounded-bl bg-neutral-100",
+                                    )}
+                                  >
+                                    {hasText && (
+                                      <MessageMarkdown invert={isMySide}>
+                                        {message.text}
+                                      </MessageMarkdown>
+                                    )}
+                                    {hasFiles && (
+                                      <MessageFileAttachments
+                                        attachments={fileAttachments}
+                                        invert={isMySide}
+                                      />
+                                    )}
+                                  </div>
+                                )}
+                                {hasImages && (
+                                  <MessageImageAttachments
+                                    attachments={imageAttachments}
+                                    invert={isMySide}
+                                  />
+                                )}
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                     )}
@@ -243,6 +295,10 @@ export function MessagesPanel({
                 placeholder={personalizedPlaceholder}
                 onSendMessage={sendMessage}
                 autoFocus={!isMobile}
+                attachments={pendingAttachments}
+                onAddFiles={onAddFiles}
+                onRemoveAttachment={onRemoveAttachment}
+                allowedFileTypes={allowedFileTypes}
               />
             </div>
           )}

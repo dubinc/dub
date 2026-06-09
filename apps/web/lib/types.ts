@@ -132,7 +132,7 @@ import {
   ABTestVariantsSchema,
   createLinkBodySchema,
 } from "./zod/schemas/links";
-import { MessageSchema } from "./zod/schemas/messages";
+import { MessageAttachmentSchema, MessageSchema } from "./zod/schemas/messages";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   NetworkPartnerSchema,
@@ -754,6 +754,8 @@ export type BountySubmissionsQueryFilters = z.infer<
 >;
 
 export type Message = z.infer<typeof MessageSchema>;
+
+export type MessageAttachment = z.infer<typeof MessageAttachmentSchema>;
 
 export type CampaignList = z.infer<typeof CampaignListSchema>;
 
