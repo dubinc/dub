@@ -67,7 +67,10 @@ export async function customerSubscriptionUpdated(
     // it means that their payment failed and we need to revert to their trial limits
     if (
       updatedSubscription.trial_end &&
-      differenceInHours(updatedSubscription.trial_end, new Date()) < 2
+      differenceInHours(
+        new Date(),
+        new Date(updatedSubscription.trial_end * 1000),
+      ) < 2
     ) {
       await prisma.project.update({
         where: {
