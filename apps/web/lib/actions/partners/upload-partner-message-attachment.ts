@@ -1,5 +1,6 @@
 "use server";
 
+import { sanitizeFileName } from "@/lib/messages/utils";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
@@ -72,7 +73,7 @@ export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
       },
     });
 
-    const storageKey = `messages/${program.id}/${nanoid(10)}/${fileName}`;
+    const storageKey = `messages/${program.id}/${nanoid(10)}/${sanitizeFileName(fileName)}`;
 
     const signedUrl = await storage.getSignedUploadUrl({
       key: storageKey,

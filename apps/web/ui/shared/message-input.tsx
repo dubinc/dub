@@ -1,7 +1,9 @@
 import {
-  ATTACHMENT_MIME_TYPE_COLOR,
   getAttachmentTypeLabel,
   isPreviewableImageType,
+} from "@/lib/messages/utils";
+import {
+  ATTACHMENT_MIME_TYPE_COLOR,
   MAX_ATTACHMENTS_PER_MESSAGE,
   MAX_MESSAGE_LENGTH,
   messageAttachmentInputSchema,

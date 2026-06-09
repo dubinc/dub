@@ -33,7 +33,7 @@ export const ATTACHMENT_MIME_TYPE_LABELS: Record<string, string> = {
 };
 
 // MIME types that are safe to render as inline image previews.
-const PREVIEWABLE_IMAGE_TYPES = new Set([
+export const PREVIEWABLE_IMAGE_TYPES = new Set([
   "image/png",
   "image/jpeg",
   "image/webp",
@@ -151,15 +151,3 @@ export const messageProgramSchema = z.object({
     .max(MAX_ATTACHMENTS_PER_MESSAGE)
     .default([]),
 });
-
-export function getAttachmentTypeLabel(mimeType: string): string {
-  return (
-    ATTACHMENT_MIME_TYPE_LABELS[mimeType] ||
-    mimeType.split("/").pop()?.toUpperCase() ||
-    "FILE"
-  );
-}
-
-export function isPreviewableImageType(mimeType: string): boolean {
-  return PREVIEWABLE_IMAGE_TYPES.has(mimeType);
-}

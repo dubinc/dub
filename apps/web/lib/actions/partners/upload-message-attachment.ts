@@ -1,6 +1,7 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { sanitizeFileName } from "@/lib/messages/utils";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
@@ -45,7 +46,7 @@ export const uploadMessageAttachmentAction = authActionClient
       throw new Error("Too many file uploads. Please try again later.");
     }
 
-    const storageKey = `messages/${programId}/${nanoid(10)}/${fileName}`;
+    const storageKey = `messages/${programId}/${nanoid(10)}/${sanitizeFileName(fileName)}`;
 
     const signedUrl = await storage.getSignedUploadUrl({
       key: storageKey,

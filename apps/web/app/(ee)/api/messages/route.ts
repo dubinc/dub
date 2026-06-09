@@ -1,7 +1,7 @@
-import { enrichMessage } from "@/lib/api/messages/enrich-message";
 import { partnerReachableByProgramWhereInput } from "@/lib/api/partners/partner-reachable-by-program-where-input";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { enrichMessage } from "@/lib/messages/utils";
 import {
   PartnerMessagesSchema,
   getPartnerMessagesQuerySchema,

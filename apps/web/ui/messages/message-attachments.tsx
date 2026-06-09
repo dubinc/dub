@@ -1,10 +1,8 @@
 "use client";
 
+import { getAttachmentTypeLabel } from "@/lib/messages/utils";
 import { MessageAttachment } from "@/lib/types";
-import {
-  ATTACHMENT_MIME_TYPE_COLOR,
-  getAttachmentTypeLabel,
-} from "@/lib/zod/schemas/messages";
+import { ATTACHMENT_MIME_TYPE_COLOR } from "@/lib/zod/schemas/messages";
 import { formatFileSize } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { Download, File } from "lucide-react";
