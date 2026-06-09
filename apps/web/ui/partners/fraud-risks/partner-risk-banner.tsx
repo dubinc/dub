@@ -80,7 +80,6 @@ export function PartnerRiskBanner({
         variant="outline"
         className="text-content-inverted hover:none h-7 w-fit rounded-lg bg-red-700 px-2.5 py-2 text-sm font-medium hover:bg-red-800"
         href={`/${slug}/program/risks?partnerId=${partner.id}`}
-        target="_blank"
       >
         Review event
       </ButtonLink>
