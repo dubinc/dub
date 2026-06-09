@@ -190,7 +190,7 @@ export function MessageInput({
             <p className="text-sm font-medium text-neutral-600">
               Drop to upload
             </p>
-            <p className="text-xs text-neutral-400">Upload images up to 10MB</p>
+            <p className="text-xs text-neutral-400">Upload files up to 10MB</p>
           </div>
         </div>
       )}
@@ -247,7 +247,7 @@ export function MessageInput({
 
         {/* Attachment preview strip */}
         {attachments.length > 0 && (
-          <div className="scrollbar-hide flex gap-2 overflow-x-auto border-t border-neutral-100 px-3 py-2">
+          <div className="scrollbar-hide flex gap-2 overflow-x-auto px-3 py-2">
             {attachments.map((att) => (
               <AttachmentChip
                 key={att.id}

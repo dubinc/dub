@@ -6,19 +6,28 @@ import { ATTACHMENT_MIME_TYPE_COLOR } from "@/lib/zod/schemas/messages";
 import { formatFileSize } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { Download, File } from "lucide-react";
+import { toast } from "sonner";
 import { ZoomImage } from "../shared/zoom-image";
 
 async function downloadFile(url: string, filename: string) {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  const blobUrl = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = blobUrl;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(blobUrl);
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Download failed (${response.status})`);
+    }
+
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } catch {
+    toast.error("Failed to download file. Please try again.");
+  }
 }
 
 export function MessageImageAttachments({

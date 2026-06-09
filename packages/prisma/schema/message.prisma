@@ -34,7 +34,7 @@ model Message {
 }
 
 model MessageAttachment {
-  id         String   @id @default(cuid())
+  id         String   @id
   messageId  String
   storageKey String   @db.Text
   name       String
