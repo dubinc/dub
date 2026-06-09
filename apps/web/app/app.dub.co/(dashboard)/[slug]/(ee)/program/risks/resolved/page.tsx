@@ -10,7 +10,7 @@ export default async function ResolvedRiskEventsPage(props: {
   return (
     <PageContent
       title="Resolved risk events"
-      titleBackHref={`/${params.slug}/program/fraud`}
+      titleBackHref={`/${params.slug}/program/risks`}
     >
       <PageWidthWrapper>
         <ResolvedRiskEventsTable />
