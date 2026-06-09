@@ -76,11 +76,12 @@ export async function updateWorkspacePlan({
   const cancellationFields = getSubscriptionCancellationFields(subscription);
   const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
 
-  const billingOrCancellationChanged =
+  const datetimeFieldsUpdated =
     workspace.billingCycleEndsAt?.getTime() !==
       cancellationFields.billingCycleEndsAt?.getTime() ||
     workspace.subscriptionCanceledAt?.getTime() !==
-      cancellationFields.subscriptionCanceledAt?.getTime();
+      cancellationFields.subscriptionCanceledAt?.getTime() ||
+    workspace.trialEndsAt?.getTime() !== trialEndsAt?.getTime();
 
   // Update workspace plan / limits / subscription details if:
   // - workspace upgrades/downgrades their subscription
@@ -312,15 +313,20 @@ export async function updateWorkspacePlan({
         `Sent thank you emails to ${workspaceOwners.length} workspace owners for workspace ${workspace.slug}.`,
       );
     }
-  } else if (billingOrCancellationChanged) {
+  } else if (datetimeFieldsUpdated) {
     await prisma.project.update({
       where: {
         id: workspace.id,
       },
-      data: cancellationFields,
+      data: {
+        ...cancellationFields,
+        ...(trialEndsAt !== undefined && { trialEndsAt }),
+      },
     });
+    console.log(`Updated workspace ${workspace.id} datetime fields`);
+  } else {
     console.log(
-      `Updated workspace ${workspace.id} billing cycle / cancellation fields.`,
+      `No plan or datetime field updates for workspace ${workspace.id}, skipping...`,
     );
   }
 }
