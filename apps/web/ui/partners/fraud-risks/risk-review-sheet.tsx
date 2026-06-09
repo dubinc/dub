@@ -32,7 +32,6 @@ import { useMarkAllAsFraudModal } from "./mark-all-as-fraud-modal";
 import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
 import { useResolveFraudGroupModal } from "./resolve-fraud-group-modal";
 import { ResolvedRiskEventsTable } from "./resolved-risk-events-table";
-import { RiskDisclaimerBanner } from "./risk-disclaimer-banner";
 
 interface RiskReviewSheetProps {
   fraudGroup: FraudGroupProps;
@@ -207,8 +206,6 @@ function RiskReviewSheetContent({
 
         <div className="min-h-0 grow overflow-y-auto">
           <div className="flex flex-col gap-6 p-6">
-            <RiskDisclaimerBanner />
-
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:gap-6">
               {/* Partner details */}
               <div className="bg-bg-muted border-border-subtle flex flex-grow flex-col gap-3 rounded-xl border px-4 py-3">

@@ -5,7 +5,7 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { usePartnerApplicationRisks } from "@/lib/swr/use-partner-application-risks";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudSeverity } from "@/lib/types";
-import { Button, ShieldKeyhole } from "@dub/ui";
+import { Button, Flag } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
@@ -179,7 +179,7 @@ export function PartnerApplicationRiskSummaryUpsell() {
                 severityConfig.bg,
               )}
             >
-              <ShieldKeyhole className={cn("size-4", severityConfig.icon)} />
+              <Flag className={cn("size-4", severityConfig.icon)} />
             </div>
 
             <p className="text-content-default max-w-72 text-center text-xs font-medium">
