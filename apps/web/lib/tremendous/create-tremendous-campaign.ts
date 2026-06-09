@@ -1,0 +1,37 @@
+import { prisma } from "@dub/prisma";
+import { Program } from "@dub/prisma/client";
+import { CampaignsApi, CreateCampaign200Response } from "tremendous";
+import { tremendousConfiguration } from "./configuration";
+import { TREMENDOUS_PRODUCT_IDS } from "./constants";
+
+export async function createTremendousCampaign(
+  program: Pick<Program, "id" | "tremendousCampaignId" | "name" | "logo">,
+) {
+  if (program.tremendousCampaignId) {
+    return;
+  }
+
+  const campaignsApi = new CampaignsApi(tremendousConfiguration);
+
+  const { data } = await campaignsApi.createCampaign({
+    name: `${program.name} Partners`,
+    description: "A campaign for partners to earn rewards",
+    products: TREMENDOUS_PRODUCT_IDS,
+    fee_charged_to: "RECIPIENT",
+    webpage_style: {
+      headline: `${program.name} sent you {{ amount }}`,
+      logo_image_url: program.logo,
+    },
+  });
+
+  const { campaign } = data as CreateCampaign200Response;
+
+  await prisma.program.update({
+    where: {
+      id: program.id,
+    },
+    data: {
+      tremendousCampaignId: campaign.id,
+    },
+  });
+}

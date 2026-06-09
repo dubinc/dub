@@ -24,3 +24,9 @@ export const TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS = [
   ".ve",
   ".ye",
 ];
+
+export const TREMENDOUS_PRODUCT_IDS = [
+  "A2J05SWPI2QG", // Virtual Visa
+  "Q24BD9EZ332JT", // Physical Visa
+  "OKMHM2X2OHYV", // Amazon.com
+];

@@ -7,7 +7,7 @@ import { CreateOrder200Response, OrdersApi } from "tremendous";
 import { trackCommissionStatusUpdatesByProgram } from "../api/commissions/track-commission-update-activity-log";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
-import { tremendousConfiguration, tremendousEnv } from "./configuration";
+import { tremendousConfiguration } from "./configuration";
 import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "./constants";
 
 export async function sendTremendousPayouts({
@@ -24,10 +24,6 @@ export async function sendTremendousPayouts({
     invoiceId,
     forceWithdrawal,
   });
-
-  if (!tremendousEnv.TREMENDOUS_CAMPAIGN_ID) {
-    throw new Error("TREMENDOUS_CAMPAIGN_ID is not configured.");
-  }
 
   const partner = await prisma.partner.findUniqueOrThrow({
     where: {
@@ -67,6 +63,7 @@ export async function sendTremendousPayouts({
           name: true,
           logo: true,
           workspaceId: true,
+          tremendousCampaignId: true,
         },
       },
     },
@@ -104,6 +101,14 @@ export async function sendTremendousPayouts({
     payoutIds,
   });
 
+  const program = payouts[0].program;
+
+  if (!program.tremendousCampaignId) {
+    throw new Error(
+      "Tremendous campaign ID is not configured for this program.",
+    );
+  }
+
   const ordersApi = new OrdersApi(tremendousConfiguration);
 
   const { data } = await ordersApi.createOrder({
@@ -112,7 +117,7 @@ export async function sendTremendousPayouts({
       funding_source_id: "balance",
     },
     reward: {
-      campaign_id: tremendousEnv.TREMENDOUS_CAMPAIGN_ID,
+      campaign_id: program.tremendousCampaignId,
       value: {
         denomination: totalTransferableAmount / 100,
         currency_code: "USD",

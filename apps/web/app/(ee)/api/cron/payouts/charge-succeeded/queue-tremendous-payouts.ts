@@ -1,5 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
+import { createTremendousCampaign } from "@/lib/tremendous/create-tremendous-campaign";
 import { prisma } from "@dub/prisma";
 import {
   Invoice,
@@ -14,10 +15,26 @@ const queue = qstash.queue({
 });
 
 export async function queueTremendousPayouts(
-  invoice: Pick<Invoice, "id" | "paymentMethod" | "payoutMode">,
+  invoice: Pick<Invoice, "id" | "paymentMethod" | "payoutMode" | "programId">,
 ) {
-  if (invoice.payoutMode === "external") {
+  if (invoice.payoutMode === "external" || !invoice.programId) {
     return;
+  }
+
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: invoice.programId,
+    },
+    select: {
+      id: true,
+      name: true,
+      logo: true,
+      tremendousCampaignId: true,
+    },
+  });
+
+  if (!program.tremendousCampaignId) {
+    await createTremendousCampaign(program);
   }
 
   const partnersInCurrentInvoice = await prisma.payout.groupBy({

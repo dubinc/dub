@@ -47,6 +47,7 @@ model Program {
   termsUrl                String? @db.Text
   helpUrl                 String? @db.Text
   supportEmail            String?
+  tremendousCampaignId    String?
 
   messagingEnabledAt      DateTime?
   partnerNetworkEnabledAt DateTime?
