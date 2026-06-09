@@ -1,17 +1,17 @@
 "use client";
 
 import { Button } from "@dub/ui";
-import { useRiskSignalsSheet } from "./risk-signals-sheet";
+import { useRiskRulesSheet } from "./risk-rules-sheet";
 
-export function RiskSignalsButton() {
-  const { riskSignalsSheet, setIsOpen } = useRiskSignalsSheet();
+export function RiskRulesButton() {
+  const { riskRulesSheet, setIsOpen } = useRiskRulesSheet();
 
   return (
     <>
-      {riskSignalsSheet}
+      {riskRulesSheet}
       <Button
         type="button"
-        text="Risk signals"
+        text="Risk rules"
         variant="secondary"
         onClick={() => setIsOpen(true)}
         className="h-9 px-3"

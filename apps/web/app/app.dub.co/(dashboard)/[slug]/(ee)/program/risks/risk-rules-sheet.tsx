@@ -15,7 +15,7 @@ import {
 } from "@/lib/types";
 import {
   getRulesBeingDisabled,
-  useDisableFraudRulesModal,
+  useDisableRiskRulesModal,
 } from "@/ui/modals/disable-fraud-rules-modal";
 import { X } from "@/ui/shared/icons";
 import { Button, InfoTooltip, Sheet } from "@dub/ui";
@@ -26,7 +26,7 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import { RiskPaidTrafficSettings } from "./risk-paid-traffic-settings";
 import { RiskReferralSourceSettings } from "./risk-referral-source-settings";
-import { RiskSignalToggleSettings } from "./risk-signal-toggle-settings";
+import { RiskRuleToggleSettings } from "./risk-rule-toggle-settings";
 
 // Rules that have dedicated settings components with complex config UI
 const RULES_WITH_CUSTOM_UI = new Set([
@@ -34,17 +34,17 @@ const RULES_WITH_CUSTOM_UI = new Set([
   "referralSourceBanned",
 ]);
 
-// Toggle-only rules rendered via the generic RiskSignalToggleSettings component
+// Toggle-only rules rendered via the generic RiskRuleToggleSettings component
 const TOGGLE_ONLY_RULES = CONFIGURABLE_FRAUD_RULES.filter(
   (rule): rule is FraudRuleInfo & { type: keyof UpdateFraudRuleSettings } =>
     !RULES_WITH_CUSTOM_UI.has(rule.type),
 );
 
-interface RiskSignalsSheetProps {
+interface RiskRulesSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-function RiskSignalsSheetContent({ setIsOpen }: RiskSignalsSheetProps) {
+function RiskRulesSheetContent({ setIsOpen }: RiskRulesSheetProps) {
   const { id: workspaceId } = useWorkspace();
   const { isSubmitting, makeRequest } = useApiMutation();
 
@@ -53,8 +53,8 @@ function RiskSignalsSheetContent({ setIsOpen }: RiskSignalsSheetProps) {
     fetcher,
   );
 
-  const { setShowDisableModal, DisableFraudRulesModal } =
-    useDisableFraudRulesModal({ setIsOpen });
+  const { setShowDisableModal, DisableRiskRulesModal } =
+    useDisableRiskRulesModal({ setIsOpen });
 
   const form = useForm<UpdateFraudRuleSettings>({
     defaultValues: {
@@ -121,7 +121,7 @@ function RiskSignalsSheetContent({ setIsOpen }: RiskSignalsSheetProps) {
       method: "PATCH",
       body,
       onSuccess: () => {
-        toast.success("Risk signals updated successfully.");
+        toast.success("Risk rules updated successfully.");
         setIsOpen(false);
         mutatePrefix(["/api/fraud/rules", "/api/fraud/events"]);
       },
@@ -159,7 +159,7 @@ function RiskSignalsSheetContent({ setIsOpen }: RiskSignalsSheetProps) {
   return (
     <>
       <FormProvider {...form}>
-        {DisableFraudRulesModal}
+        {DisableRiskRulesModal}
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex h-full flex-col"
@@ -167,8 +167,8 @@ function RiskSignalsSheetContent({ setIsOpen }: RiskSignalsSheetProps) {
           <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
             <div className="flex h-16 items-center justify-between px-6 py-4">
               <Sheet.Title className="flex items-center gap-2 text-lg font-semibold">
-                Risk signals
-                <InfoTooltip content="Learn more about how to [customize your program's risk signals](https://dub.co/help/article/fraud-detection)." />
+                Risk rules
+                <InfoTooltip content="Learn more about how to [customize your program's risk rules](https://dub.co/help/article/fraud-detection)." />
               </Sheet.Title>
               <Sheet.Close asChild>
                 <Button
@@ -183,7 +183,7 @@ function RiskSignalsSheetContent({ setIsOpen }: RiskSignalsSheetProps) {
           <div className="h-full overflow-y-auto p-4 sm:p-6">
             <div className="space-y-4">
               {TOGGLE_ONLY_RULES.map((rule) => (
-                <RiskSignalToggleSettings
+                <RiskRuleToggleSettings
                   key={rule.type}
                   ruleType={rule.type}
                   title={FRAUD_RULES_BY_TYPE[rule.type].name}
@@ -221,26 +221,24 @@ function RiskSignalsSheetContent({ setIsOpen }: RiskSignalsSheetProps) {
   );
 }
 
-function RiskSignalsSheet({
+function RiskRulesSheet({
   isOpen,
   ...rest
-}: RiskSignalsSheetProps & {
+}: RiskRulesSheetProps & {
   isOpen: boolean;
 }) {
   return (
     <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
-      <RiskSignalsSheetContent {...rest} />
+      <RiskRulesSheetContent {...rest} />
     </Sheet>
   );
 }
 
-export function useRiskSignalsSheet() {
+export function useRiskRulesSheet() {
   const [isOpen, setIsOpen] = useState(false);
 
   return {
-    riskSignalsSheet: (
-      <RiskSignalsSheet setIsOpen={setIsOpen} isOpen={isOpen} />
-    ),
+    riskRulesSheet: <RiskRulesSheet setIsOpen={setIsOpen} isOpen={isOpen} />,
     setIsOpen,
   };
 }
