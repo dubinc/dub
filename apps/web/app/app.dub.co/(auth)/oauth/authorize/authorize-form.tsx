@@ -1,12 +1,13 @@
 "use client";
 
 import { consolidateScopes, getScopesForRole } from "@/lib/api/tokens/scopes";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
 import { Button } from "@dub/ui";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import * as z from "zod/v4";
 
@@ -26,35 +27,34 @@ export const AuthorizeForm = ({
     null,
   );
 
-  // missing scopes for the user's role on the workspace selected
-  const [missingScopes, setMissingScopes] = useState<string[]>([]);
-
   useEffect(() => {
     setSelectedWorkspace(session?.user?.["defaultWorkspace"] || null);
   }, [session]);
 
-  // Check if the user has the required scopes for the workspace selected
-  useEffect(() => {
-    if (!selectedWorkspace) {
-      return;
-    }
-
+  const { permissionsError, missingScopes } = useMemo(() => {
     const workspace = workspaces?.find(
       (workspace) => workspace.slug === selectedWorkspace,
     );
 
     if (!workspace) {
-      return;
+      return { permissionsError: undefined, missingScopes: [] as string[] };
     }
 
     const userRole = workspace.users[0].role;
+
+    const permissionsError = clientAccessCheck({
+      action: "integrations.write",
+      role: userRole,
+      customPermissionDescription: "install this integration",
+    }).error;
+
     const scopesForRole = getScopesForRole(userRole);
-    const scopesMissing = consolidateScopes(scope).filter(
+    const missingScopes = consolidateScopes(scope).filter(
       (scope) => !scopesForRole.includes(scope) && scope !== "user.read",
     );
 
-    setMissingScopes(scopesMissing);
-  }, [selectedWorkspace]);
+    return { permissionsError, missingScopes };
+  }, [workspaces, selectedWorkspace, scope]);
 
   // Decline the request
   const onDecline = () => {
@@ -138,13 +138,16 @@ export const AuthorizeForm = ({
           text="Authorize"
           type="submit"
           loading={submitting}
-          disabled={!selectedWorkspace}
+          disabled={
+            !selectedWorkspace || !!permissionsError || missingScopes.length > 0
+          }
           disabledTooltip={
             !selectedWorkspace
               ? "Please select a workspace to continue"
-              : missingScopes.length > 0
-                ? "You don't have the permission to install this integration"
-                : undefined
+              : permissionsError ||
+                (missingScopes.length > 0
+                  ? "You don't have the permission to install this integration"
+                  : undefined)
           }
         />
       </div>
