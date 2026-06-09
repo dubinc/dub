@@ -33,7 +33,7 @@ export function MessageImageAttachments({
       {attachments.map((img) => (
         <div key={img.id} className="group relative">
           <ZoomImage
-            src={img.url}
+            src={img.signedUrl!}
             alt={img.name}
             className="max-h-64 w-full cursor-pointer rounded-lg border border-neutral-200 object-cover"
           />
@@ -41,7 +41,7 @@ export function MessageImageAttachments({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              downloadFile(img.url, img.name);
+              downloadFile(img.signedUrl!, img.name);
             }}
             className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-md bg-white/70 text-neutral-600 opacity-0 backdrop-blur-sm transition-opacity hover:bg-white/90 group-hover:opacity-100"
           >
@@ -64,7 +64,7 @@ export function MessageFileAttachments({
         <button
           key={file.id}
           type="button"
-          onClick={() => downloadFile(file.url, file.name)}
+          onClick={() => downloadFile(file.signedUrl!, file.name)}
           className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-left transition-colors hover:bg-neutral-100"
         >
           <FileTypeBadge type={file.type} />

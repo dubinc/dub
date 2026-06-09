@@ -10,6 +10,8 @@ export const MAX_ATTACHMENTS_PER_MESSAGE = 5;
 
 export const MAX_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
+export const MAX_ATTACHMENT_NAME_LENGTH = 255;
+
 export const PROGRAM_ALLOWED_ATTACHMENT_TYPES = [
   "image/png",
   "image/jpeg",
@@ -49,7 +51,8 @@ const messageTextSchema = z.string().max(MAX_MESSAGE_LENGTH);
 export const MessageAttachmentSchema = z.object({
   id: z.string(),
   messageId: z.string(),
-  url: z.string(),
+  storageKey: z.string(),
+  signedUrl: z.string().optional(),
   name: z.string(),
   size: z.number(),
   type: z.string(),
@@ -57,7 +60,7 @@ export const MessageAttachmentSchema = z.object({
 });
 
 export const messageAttachmentInputSchema = z.object({
-  url: z.url(),
+  storageKey: z.string().min(1),
   name: z.string().min(1).max(255),
   size: z.number().int().positive().max(MAX_ATTACHMENT_SIZE_BYTES),
   type: z.string().min(1),

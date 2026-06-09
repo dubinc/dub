@@ -4,17 +4,18 @@ import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import {
+  MAX_ATTACHMENT_NAME_LENGTH,
   MAX_ATTACHMENT_SIZE_BYTES,
   PARTNER_ALLOWED_ATTACHMENT_TYPES,
 } from "@/lib/zod/schemas/messages";
 import { prisma } from "@dub/prisma";
-import { nanoid, R2_URL } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
 const schema = z.object({
   programSlug: z.string(),
-  fileName: z.string().trim().min(1),
+  fileName: z.string().trim().min(1).max(MAX_ATTACHMENT_NAME_LENGTH),
   contentType: z.enum(PARTNER_ALLOWED_ATTACHMENT_TYPES),
   contentLength: z.number().int().positive().max(MAX_ATTACHMENT_SIZE_BYTES),
 });
@@ -71,16 +72,17 @@ export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
       },
     });
 
-    const key = `programs/${program.id}/messages/${nanoid(20)}/${fileName}`;
+    const storageKey = `programs/${program.id}/messages/${nanoid(20)}/${fileName}`;
 
     const signedUrl = await storage.getSignedUploadUrl({
-      key,
+      key: storageKey,
+      bucket: "private",
       contentLength,
       contentType,
     });
 
     return {
       signedUrl,
-      destinationUrl: `${R2_URL}/${key}`,
+      storageKey,
     };
   });

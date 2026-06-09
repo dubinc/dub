@@ -3,7 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, R2_URL } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import {
   MessageSchema,
@@ -64,11 +64,11 @@ export const messageProgramAction = authPartnerActionClient
       },
     });
 
-    const urlPrefix = `${R2_URL}/programs/${program.id}/messages/`;
+    const keyPrefix = `programs/${program.id}/messages/`;
 
     for (const attachment of attachments) {
-      if (!attachment.url.startsWith(urlPrefix)) {
-        throw new Error("Invalid attachment URL.");
+      if (!attachment.storageKey.startsWith(keyPrefix)) {
+        throw new Error("Invalid attachment storage key.");
       }
     }
 
@@ -84,7 +84,7 @@ export const messageProgramAction = authPartnerActionClient
           attachments: {
             create: attachments.map((att) => ({
               id: createId({ prefix: "msa_" }),
-              url: att.url,
+              storageKey: att.storageKey,
               name: att.name,
               size: att.size,
               type: att.type,

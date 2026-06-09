@@ -1,4 +1,9 @@
-import { Message, PartnerProps, ProgramProps } from "@/lib/types";
+import {
+  Message,
+  MessageAttachment,
+  PartnerProps,
+  ProgramProps,
+} from "@/lib/types";
 import { isPreviewableImageType } from "@/lib/zod/schemas/messages";
 import {
   AnimatedSizeContainer,
@@ -47,7 +52,10 @@ export function MessagesPanel({
   partner?: Pick<PartnerProps, "name">;
   onSendMessage: (
     message: string,
-    attachments: { url: string; name: string; size: number; type: string }[],
+    attachments: Pick<
+      MessageAttachment,
+      "storageKey" | "name" | "size" | "type"
+    >[],
   ) => void;
   placeholder?: string;
   error?: any;
@@ -75,7 +83,10 @@ export function MessagesPanel({
 
   const sendMessage = (
     message: string,
-    attachments: { url: string; name: string; size: number; type: string }[],
+    attachments: Pick<
+      MessageAttachment,
+      "storageKey" | "name" | "size" | "type"
+    >[],
   ) => {
     if (!messages) return false;
 

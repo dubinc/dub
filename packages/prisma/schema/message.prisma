@@ -34,13 +34,13 @@ model Message {
 }
 
 model MessageAttachment {
-  id        String   @id @default(cuid())
-  messageId String
-  url       String   @db.Text
-  name      String
-  size      Int
-  type      String
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  messageId  String
+  storageKey String   @db.Text
+  name       String
+  size       Int
+  type       String
+  createdAt  DateTime @default(now())
 
   message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
 

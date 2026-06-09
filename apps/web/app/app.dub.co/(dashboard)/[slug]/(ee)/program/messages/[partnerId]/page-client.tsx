@@ -126,7 +126,7 @@ export function ProgramMessagesPartnerPageClient() {
             continue;
           }
 
-          const { signedUrl, destinationUrl } = result.data;
+          const { signedUrl, storageKey } = result.data;
 
           const uploadResponse = await fetch(signedUrl, {
             method: "PUT",
@@ -144,7 +144,7 @@ export function ProgramMessagesPartnerPageClient() {
 
           setPendingAttachments((prev) =>
             prev.map((a) =>
-              a.id === id ? { ...a, uploading: false, url: destinationUrl } : a,
+              a.id === id ? { ...a, uploading: false, storageKey } : a,
             ),
           );
         } catch (err) {

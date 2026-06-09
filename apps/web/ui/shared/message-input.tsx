@@ -35,11 +35,11 @@ import { EmojiPicker } from "../shared/emoji-picker";
 
 export type PendingAttachment = Omit<
   z.infer<typeof messageAttachmentInputSchema>,
-  "url"
+  "storageKey"
 > & {
   id: string;
   file: File;
-  url?: string;
+  storageKey?: string;
   uploading: boolean;
 };
 
@@ -93,7 +93,7 @@ export function MessageInput({
   }, []);
 
   const hasCompletedAttachments = attachments.some(
-    (a) => !a.uploading && a.url,
+    (a) => !a.uploading && a.storageKey,
   );
   const hasUploading = attachments.some((a) => a.uploading);
   const hasText = typedMessage.trim().length > 0;
@@ -107,9 +107,9 @@ export function MessageInput({
 
     const message = typedMessage.trim();
     const completedAttachments = attachments
-      .filter((a) => !a.uploading && a.url)
+      .filter((a) => !a.uploading && a.storageKey)
       .map((a) => ({
-        url: a.url!,
+        storageKey: a.storageKey!,
         name: a.name,
         size: a.size,
         type: a.type,

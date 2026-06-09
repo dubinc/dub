@@ -5,17 +5,18 @@ import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import {
+  MAX_ATTACHMENT_NAME_LENGTH,
   MAX_ATTACHMENT_SIZE_BYTES,
   PROGRAM_ALLOWED_ATTACHMENT_TYPES,
 } from "@/lib/zod/schemas/messages";
-import { nanoid, R2_URL } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
-  fileName: z.string().trim().min(1),
+  fileName: z.string().trim().min(1).max(MAX_ATTACHMENT_NAME_LENGTH),
   contentType: z.enum(PROGRAM_ALLOWED_ATTACHMENT_TYPES),
   contentLength: z.number().int().positive().max(MAX_ATTACHMENT_SIZE_BYTES),
 });
@@ -44,16 +45,17 @@ export const uploadMessageAttachmentAction = authActionClient
       throw new Error("Too many file uploads. Please try again later.");
     }
 
-    const key = `programs/${programId}/messages/${nanoid(20)}/${fileName}`;
+    const storageKey = `programs/${programId}/messages/${nanoid(20)}/${fileName}`;
 
     const signedUrl = await storage.getSignedUploadUrl({
-      key,
+      key: storageKey,
+      bucket: "private",
       contentLength,
       contentType,
     });
 
     return {
       signedUrl,
-      destinationUrl: `${R2_URL}/${key}`,
+      storageKey,
     };
   });
