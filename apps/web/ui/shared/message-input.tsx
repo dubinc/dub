@@ -1,5 +1,6 @@
 import {
   getAttachmentTypeLabel,
+  isPreviewableImageType,
   MAX_ATTACHMENTS_PER_MESSAGE,
   MAX_MESSAGE_LENGTH,
   messageAttachmentInputSchema,
@@ -350,7 +351,7 @@ function AttachmentChip({
   attachment: PendingAttachment;
   onRemove: () => void;
 }) {
-  const isImage = attachment.type.startsWith("image/");
+  const isImage = isPreviewableImageType(attachment.type);
   const previewUrl = useMemo(
     () => (isImage ? URL.createObjectURL(attachment.file) : null),
     [attachment.file, isImage],

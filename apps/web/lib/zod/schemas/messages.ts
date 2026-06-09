@@ -32,7 +32,22 @@ export const ATTACHMENT_MIME_TYPE_LABELS: Record<string, string> = {
   "image/webp": "WEBP",
 };
 
-const messageTextSchema = z.string().trim().min(1).max(MAX_MESSAGE_LENGTH);
+// MIME types that are safe to render as inline image previews.
+const PREVIEWABLE_IMAGE_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+]);
+
+export const ATTACHMENT_MIME_TYPE_COLOR: Record<string, string> = {
+  "application/pdf": "bg-red-600",
+  "image/svg+xml": "bg-blue-600",
+  "image/png": "bg-blue-600",
+  "image/jpeg": "bg-blue-500",
+  "image/webp": "bg-blue-500",
+};
+
+const messageTextSchema = z.string().max(MAX_MESSAGE_LENGTH);
 
 export const MessageAttachmentSchema = z.object({
   id: z.string(),
@@ -57,7 +72,7 @@ export const MessageSchema = z.object({
   partnerId: z.string(),
   senderPartnerId: z.string().nullable(),
   senderUserId: z.string(),
-  text: messageTextSchema,
+  text: z.string(),
   subject: z.string().nullable(),
   type: z.enum(MessageType),
   readInApp: z.date().nullable(),
@@ -143,4 +158,8 @@ export function getAttachmentTypeLabel(mimeType: string): string {
     mimeType.split("/").pop()?.toUpperCase() ||
     "FILE"
   );
+}
+
+export function isPreviewableImageType(mimeType: string): boolean {
+  return PREVIEWABLE_IMAGE_TYPES.has(mimeType);
 }

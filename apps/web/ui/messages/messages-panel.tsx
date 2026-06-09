@@ -1,4 +1,5 @@
 import { Message, PartnerProps, ProgramProps } from "@/lib/types";
+import { isPreviewableImageType } from "@/lib/zod/schemas/messages";
 import {
   AnimatedSizeContainer,
   Check2,
@@ -230,48 +231,42 @@ export function MessagesPanel({
                             showStatusIndicator={showStatusIndicator}
                             program={program}
                           />
-                          {/* Message bubble — text + file attachments */}
+                          {/* Message bubble — text only */}
+                          {message.text && (
+                            <div
+                              className={cn(
+                                "max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
+                                isMySide
+                                  ? "rounded-br bg-neutral-700"
+                                  : "rounded-bl bg-neutral-100",
+                              )}
+                            >
+                              <MessageMarkdown invert={isMySide}>
+                                {message.text}
+                              </MessageMarkdown>
+                            </div>
+                          )}
+                          {/* Attachments — rendered outside the bubble */}
                           {(() => {
                             const imageAttachments =
                               message.attachments?.filter((a) =>
-                                a.type.startsWith("image/"),
+                                isPreviewableImageType(a.type),
                               ) ?? [];
                             const fileAttachments =
                               message.attachments?.filter(
-                                (a) => !a.type.startsWith("image/"),
+                                (a) => !isPreviewableImageType(a.type),
                               ) ?? [];
-                            const hasText = !!message.text;
-                            const hasFiles = fileAttachments.length > 0;
-                            const hasImages = imageAttachments.length > 0;
 
                             return (
                               <>
-                                {(hasText || hasFiles) && (
-                                  <div
-                                    className={cn(
-                                      "max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
-                                      isMySide
-                                        ? "rounded-br bg-neutral-700"
-                                        : "rounded-bl bg-neutral-100",
-                                    )}
-                                  >
-                                    {hasText && (
-                                      <MessageMarkdown invert={isMySide}>
-                                        {message.text}
-                                      </MessageMarkdown>
-                                    )}
-                                    {hasFiles && (
-                                      <MessageFileAttachments
-                                        attachments={fileAttachments}
-                                        invert={isMySide}
-                                      />
-                                    )}
-                                  </div>
-                                )}
-                                {hasImages && (
+                                {imageAttachments.length > 0 && (
                                   <MessageImageAttachments
                                     attachments={imageAttachments}
-                                    invert={isMySide}
+                                  />
+                                )}
+                                {fileAttachments.length > 0 && (
+                                  <MessageFileAttachments
+                                    attachments={fileAttachments}
                                   />
                                 )}
                               </>

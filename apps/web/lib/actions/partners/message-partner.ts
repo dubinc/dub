@@ -18,9 +18,16 @@ import {
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
-const schema = messagePartnerSchema.extend({
-  workspaceId: z.string(),
-});
+const schema = messagePartnerSchema
+  .extend({
+    workspaceId: z.string(),
+  })
+  .refine(
+    (data) => data.text.trim().length > 0 || data.attachments.length > 0,
+    {
+      message: "Message must contain text or at least one attachment.",
+    },
+  );
 
 // Message a partner
 export const messagePartnerAction = authActionClient

@@ -11,9 +11,14 @@ import {
 } from "../../zod/schemas/messages";
 import { authPartnerActionClient } from "../safe-action";
 
+const schema = messageProgramSchema.refine(
+  (data) => data.text.trim().length > 0 || data.attachments.length > 0,
+  { message: "Message must contain text or at least one attachment." },
+);
+
 // Message a program
 export const messageProgramAction = authPartnerActionClient
-  .inputSchema(messageProgramSchema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner, user } = ctx;
     const { programSlug, text, attachments } = parsedInput;
