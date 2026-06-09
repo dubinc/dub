@@ -199,12 +199,18 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
       return false;
     }
 
-    const result = await saveEmailDataAsync({
-      workspaceId,
-      subject: content.subject,
-      title: content.title,
-      body: content.body,
-    });
+    let result: Awaited<ReturnType<typeof saveEmailDataAsync>>;
+
+    try {
+      result = await saveEmailDataAsync({
+        workspaceId,
+        subject: content.subject,
+        title: content.title,
+        body: content.body,
+      });
+    } catch {
+      return false;
+    }
 
     if (result?.serverError || result?.validationErrors) {
       return false;

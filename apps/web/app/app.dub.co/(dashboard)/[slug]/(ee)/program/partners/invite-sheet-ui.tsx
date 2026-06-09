@@ -55,7 +55,7 @@ export function InviteSheetFooter({
           text="Send invite"
           className="w-fit"
           loading={isPending || isSubmitting}
-          disabled={isPending || isSubmitDisabled}
+          disabled={isPending || isSubmitting || isSubmitDisabled}
         />
       </div>
     </div>

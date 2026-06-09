@@ -9,7 +9,9 @@ export const getProgramNetworkInviteEmailDefaults = ({
   programName?: string;
   name?: string | null;
 }) => {
-  const partnerName = name && !name.includes("@") ? name : "there";
+  const trimmedName = name?.trim();
+  const partnerName =
+    trimmedName && !trimmedName.includes("@") ? trimmedName : "there";
 
   return {
     subject: `${programName} invited you to join on Dub Partners`,

@@ -72,7 +72,7 @@ function InviteNetworkPartnerSheetContent({
     setValue,
   } = useForm<InviteNetworkPartnerFormData>({
     defaultValues: {
-      groupId: groupId || program?.defaultGroupId || "",
+      groupId: groupId ?? program?.defaultGroupId ?? undefined,
     },
   });
 
@@ -105,10 +105,13 @@ function InviteNetworkPartnerSheetContent({
       return;
     }
 
+    const normalizedGroupId =
+      data.groupId && data.groupId !== "" ? data.groupId : null;
+
     await invitePartnerFromNetwork({
       workspaceId,
       partnerId: partner.id,
-      groupId: data.groupId ?? null,
+      groupId: normalizedGroupId,
       username: data.username?.trim() || undefined,
       // Only override the email if the user customized it
       ...(emailContent && {
