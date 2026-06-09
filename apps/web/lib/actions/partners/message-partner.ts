@@ -121,7 +121,7 @@ export const messagePartnerAction = authActionClient
       });
     }
 
-    const keyPrefix = `programs/${programId}/messages/`;
+    const keyPrefix = `messages/${programId}/`;
 
     for (const attachment of attachments) {
       if (!attachment.storageKey.startsWith(keyPrefix)) {

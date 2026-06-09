@@ -381,7 +381,7 @@ function MessageAvatar({
     <Tooltip content={avatarName}>
       <div className="relative shrink-0">
         <img
-          src={avatarImage ?? `${OG_AVATAR_URL}${avatarName}`}
+          src={avatarImage || `${OG_AVATAR_URL}${avatarName}`}
           alt={`${avatarName} avatar`}
           className="size-8 rounded-full"
           draggable={false}

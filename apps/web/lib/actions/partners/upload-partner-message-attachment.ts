@@ -72,7 +72,7 @@ export const uploadPartnerMessageAttachmentAction = authPartnerActionClient
       },
     });
 
-    const storageKey = `programs/${program.id}/messages/${nanoid(20)}/${fileName}`;
+    const storageKey = `messages/${program.id}/${nanoid(10)}/${fileName}`;
 
     const signedUrl = await storage.getSignedUploadUrl({
       key: storageKey,

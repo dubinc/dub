@@ -45,7 +45,7 @@ export const uploadMessageAttachmentAction = authActionClient
       throw new Error("Too many file uploads. Please try again later.");
     }
 
-    const storageKey = `programs/${programId}/messages/${nanoid(20)}/${fileName}`;
+    const storageKey = `messages/${programId}/${nanoid(10)}/${fileName}`;
 
     const signedUrl = await storage.getSignedUploadUrl({
       key: storageKey,

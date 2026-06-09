@@ -32,21 +32,27 @@ export function MessageImageAttachments({
     <div className="flex max-w-[min(100%,512px)] flex-col gap-1">
       {attachments.map((img) => (
         <div key={img.id} className="group relative">
-          <ZoomImage
-            src={img.signedUrl!}
-            alt={img.name}
-            className="max-h-64 w-full cursor-pointer rounded-lg border border-neutral-200 object-cover"
-          />
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              downloadFile(img.signedUrl!, img.name);
-            }}
-            className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-md bg-white/70 text-neutral-600 opacity-0 backdrop-blur-sm transition-opacity hover:bg-white/90 group-hover:opacity-100"
-          >
-            <Download className="size-3.5" />
-          </button>
+          {img.signedUrl ? (
+            <>
+              <ZoomImage
+                src={img.signedUrl}
+                alt={img.name}
+                className="max-h-64 w-full cursor-pointer rounded-lg border border-neutral-200 object-cover"
+              />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  downloadFile(img.signedUrl!, img.name);
+                }}
+                className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-md bg-white/70 text-neutral-600 opacity-0 backdrop-blur-sm transition-opacity hover:bg-white/90 group-hover:opacity-100"
+              >
+                <Download className="size-3.5" />
+              </button>
+            </>
+          ) : (
+            <div className="h-40 w-full animate-pulse rounded-lg bg-neutral-200" />
+          )}
         </div>
       ))}
     </div>
@@ -64,8 +70,16 @@ export function MessageFileAttachments({
         <button
           key={file.id}
           type="button"
-          onClick={() => downloadFile(file.signedUrl!, file.name)}
-          className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-left transition-colors hover:bg-neutral-100"
+          disabled={!file.signedUrl}
+          onClick={() =>
+            file.signedUrl && downloadFile(file.signedUrl, file.name)
+          }
+          className={cn(
+            "flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-left transition-colors",
+            file.signedUrl
+              ? "hover:bg-neutral-100"
+              : "cursor-default opacity-60",
+          )}
         >
           <FileTypeBadge type={file.type} />
           <div className="flex min-w-0 flex-1 flex-col">
