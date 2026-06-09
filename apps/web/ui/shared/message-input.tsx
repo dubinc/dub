@@ -531,47 +531,47 @@ function MessageInputToolbar({
   return (
     <RichTextToolbar
       toolsStart={
-        <>
-          <EmojiPicker
-            openPopover={emojiPickerOpen}
-            setOpenPopover={setEmojiPickerOpen}
-            onKeyboardDismissFocusEditor={() => editor?.commands.focus()}
-            anchorRect={cursorRect}
-            onSelect={(emoji) => {
-              if (!editor) return;
-              const stripColon = stripColonOnEmojiPickRef.current;
-              stripColonOnEmojiPickRef.current = false;
+        <EmojiPicker
+          openPopover={emojiPickerOpen}
+          setOpenPopover={setEmojiPickerOpen}
+          onKeyboardDismissFocusEditor={() => editor?.commands.focus()}
+          anchorRect={cursorRect}
+          onSelect={(emoji) => {
+            if (!editor) return;
+            const stripColon = stripColonOnEmojiPickRef.current;
+            stripColonOnEmojiPickRef.current = false;
 
-              const { from } = editor.state.selection;
-              if (
-                stripColon &&
-                from > 0 &&
-                editor.state.doc.textBetween(from - 1, from) === ":"
-              ) {
-                editor
-                  .chain()
-                  .deleteRange({ from: from - 1, to: from })
-                  .insertContent(emoji)
-                  .run();
-              } else {
-                editor.chain().insertContent(emoji).run();
-              }
-              setTimeout(() => editor.commands.focus(), 0);
-            }}
+            const { from } = editor.state.selection;
+            if (
+              stripColon &&
+              from > 0 &&
+              editor.state.doc.textBetween(from - 1, from) === ":"
+            ) {
+              editor
+                .chain()
+                .deleteRange({ from: from - 1, to: from })
+                .insertContent(emoji)
+                .run();
+            } else {
+              editor.chain().insertContent(emoji).run();
+            }
+            setTimeout(() => editor.commands.focus(), 0);
+          }}
+        >
+          <RichTextToolbarButton icon={FaceSmile} label="Emoji" />
+        </EmojiPicker>
+      }
+      toolsEnd={
+        onAttachClick ? (
+          <button
+            type="button"
+            onClick={onAttachClick}
+            className="flex size-7 items-center justify-center rounded-md text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
+            title="Attach file"
           >
-            <RichTextToolbarButton icon={FaceSmile} label="Emoji" />
-          </EmojiPicker>
-          {onAttachClick && (
-            <button
-              type="button"
-              onClick={onAttachClick}
-              className="flex size-7 items-center justify-center rounded-md text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
-              title="Attach file"
-            >
-              <Paperclip className="size-4" />
-            </button>
-          )}
-        </>
+            <Paperclip className="size-4" />
+          </button>
+        ) : undefined
       }
     />
   );
