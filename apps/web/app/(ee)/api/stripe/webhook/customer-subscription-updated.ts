@@ -63,20 +63,20 @@ export async function customerSubscriptionUpdated(
   }
 
   if (updatedSubscription.status === "past_due") {
+    const trialEndsAt = updatedSubscription.trial_end
+      ? new Date(updatedSubscription.trial_end * 1000)
+      : null;
+
     // if the subscription became past_due and the workspace's trial ended less than 2 hours ago
     // it means that their payment failed and we need to revert to their trial limits
-    if (
-      updatedSubscription.trial_end &&
-      differenceInHours(
-        new Date(),
-        new Date(updatedSubscription.trial_end * 1000),
-      ) < 2
-    ) {
+    if (trialEndsAt && differenceInHours(new Date(), trialEndsAt) < 2) {
       await prisma.project.update({
         where: {
           stripeId,
         },
         data: {
+          trialEndsAt,
+          // revert to trial limits
           usageLimit: TRIAL_LIMITS.clicks,
           linksLimit: TRIAL_LIMITS.links,
           payoutsLimit: TRIAL_LIMITS.payouts,
