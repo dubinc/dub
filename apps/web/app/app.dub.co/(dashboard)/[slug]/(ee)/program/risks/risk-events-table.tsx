@@ -3,8 +3,6 @@
 import {
   FRAUD_GROUP_EXPIRY_DAYS,
   FRAUD_RULES_BY_TYPE,
-  getFraudGroupExpiresAt,
-  isFraudGroupExpiringSoon,
 } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudGroups } from "@/lib/swr/use-fraud-groups";
@@ -43,7 +41,7 @@ import {
 import { cn, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { differenceInDays } from "date-fns";
+import { addDays, differenceInDays } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFraudGroupFilters } from "./use-fraud-group-filters";
 
@@ -373,30 +371,39 @@ export function RiskEventsTable() {
 }
 
 function LastDetectedCell({ lastEventAt }: { lastEventAt: Date | string }) {
-  const expiringSoon = isFraudGroupExpiringSoon(lastEventAt);
   const daysUntilExpiry = differenceInDays(
-    getFraudGroupExpiresAt(lastEventAt),
+    addDays(new Date(lastEventAt), FRAUD_GROUP_EXPIRY_DAYS),
     new Date(),
   );
 
   const dateLabel = (
     <span
-      className={cn(
-        expiringSoon &&
-          "flex items-center gap-1 text-amber-600 underline decoration-dotted underline-offset-2",
-      )}
+      {...(daysUntilExpiry < 7 && {
+        className: cn(
+          "flex items-center gap-1 underline decoration-dotted underline-offset-2",
+          daysUntilExpiry >= 0 && "text-amber-600",
+          daysUntilExpiry < 0 && "text-red-600",
+        ),
+      })}
     >
-      {expiringSoon && <CircleHalfDottedClock className="size-3.5 shrink-0" />}
+      {daysUntilExpiry < 7 && (
+        <CircleHalfDottedClock className="size-3.5 shrink-0" />
+      )}
       {formatDateTimeSmart(lastEventAt)}
     </span>
   );
 
-  if (expiringSoon) {
+  if (daysUntilExpiry < 7) {
     return (
       <Tooltip
-        content={`This risk event will expire in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"} if not resolved. Unresolved risk events are automatically expired ${FRAUD_GROUP_EXPIRY_DAYS} days after the last detection.`}
+        content={
+          daysUntilExpiry > 0
+            ? `This risk event will expire in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"} if not resolved. Unresolved risk events are automatically expired ${FRAUD_GROUP_EXPIRY_DAYS} days after the last detection.`
+            : "This risk event has expired and will be removed shortly. Please review it as soon as possible."
+        }
+        align="center"
       >
-        {dateLabel}
+        <div className="w-fit">{dateLabel}</div>
       </Tooltip>
     );
   }
