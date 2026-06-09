@@ -1,6 +1,6 @@
-import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
-import { getPlanAndTierFromPriceId } from "@dub/utils";
+import { getPlanAndTierFromPriceId, TRIAL_LIMITS } from "@dub/utils";
+import { differenceInHours } from "date-fns";
 import Stripe from "stripe";
 import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
 import { updateWorkspacePlan } from "./utils/update-workspace-plan";
@@ -17,20 +17,14 @@ export async function customerSubscriptionUpdated(
     return `Invalid price ID in customer.subscription.updated event: ${priceId}`;
   }
 
-  if (!["active", "trialing"].includes(updatedSubscription.status)) {
+  if (
+    ![
+      "active",
+      "trialing",
+      "past_due", // special case for handling past_due subscriptions (after a free trial)
+    ].includes(updatedSubscription.status)
+  ) {
     return `Invalid updated subscription status "${updatedSubscription.status}" for subscription ${updatedSubscription.id}, skipping...`;
-  }
-
-  if (updatedSubscription.status === "active") {
-    const latestInvoiceId = updatedSubscription.latest_invoice;
-
-    if (latestInvoiceId && typeof latestInvoiceId === "string") {
-      const latestInvoice = await stripe.invoices.retrieve(latestInvoiceId);
-
-      if (latestInvoice.status !== "paid") {
-        return `Skipping customer.subscription.updated for subscription ${updatedSubscription.id}: latest invoice (${latestInvoiceId}) is not paid.`;
-      }
-    }
   }
 
   const stripeId = updatedSubscription.customer.toString();
@@ -65,7 +59,38 @@ export async function customerSubscriptionUpdated(
   });
 
   if (!workspace) {
-    return `Workspace with Stripe ID ${stripeId} not found in customer.subscription.updated callback.`;
+    return `Workspace with Stripe ID ${stripeId} not found, skipping...`;
+  }
+
+  if (updatedSubscription.status === "past_due") {
+    // if the subscription became past_due and the workspace's trial ended less than 2 hours ago
+    // it means that their payment failed and we need to revert to their trial limits
+    if (
+      updatedSubscription.trial_end &&
+      differenceInHours(updatedSubscription.trial_end, new Date()) < 2
+    ) {
+      await prisma.project.update({
+        where: {
+          stripeId,
+        },
+        data: {
+          usageLimit: TRIAL_LIMITS.clicks,
+          linksLimit: TRIAL_LIMITS.links,
+          payoutsLimit: TRIAL_LIMITS.payouts,
+          domainsLimit: TRIAL_LIMITS.domains,
+          aiLimit: TRIAL_LIMITS.ai,
+          tagsLimit: TRIAL_LIMITS.tags,
+          partnerTagsLimit: TRIAL_LIMITS.partnerTags,
+          foldersLimit: TRIAL_LIMITS.folders,
+          groupsLimit: TRIAL_LIMITS.groups,
+          networkInvitesLimit: TRIAL_LIMITS.networkInvites,
+          partnersLimit: TRIAL_LIMITS.partners,
+          usersLimit: TRIAL_LIMITS.users,
+        },
+      });
+      return `Reverted workspace ${workspace.slug} to trial limits due to past_due subscription.`;
+    }
+    return `Unrelated past_due subscription event for workspace ${workspace.slug}, skipping...`;
   }
 
   await updateWorkspacePlan({
