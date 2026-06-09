@@ -152,8 +152,6 @@ export function ReferralsEmbedQuickstart({
                       (!partner.defaultPayoutMethod &&
                         isTremendousCountrySupported));
 
-                  console.log({ showTremendousSettings });
-
                   if (showTremendousSettings) {
                     setSelectedTab("Settings");
                   } else {

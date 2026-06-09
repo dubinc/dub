@@ -27,10 +27,10 @@ model Payout {
   periodStart         DateTime?
   periodEnd           DateTime?
   paypalTransferId    String?              @unique
-  tremendousOrderId   String?              @unique
   stripeTransferId    String?
   stripePayoutId      String?
   stripePayoutTraceId String?              @db.Text
+  tremendousOrderId   String?
   failureReason       String?              @db.Text
   webhookEventId      String?              @unique // only for external payouts
   createdAt           DateTime             @default(now())
