@@ -1,5 +1,5 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { enrichMessage } from "@/lib/messages/utils";
+import { enrichMessage } from "@/lib/messages/enrich";
 import {
   ProgramMessagesSchema,
   getProgramMessagesQuerySchema,
