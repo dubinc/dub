@@ -1,24 +1,32 @@
 "use client";
 
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
+import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
 import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
 import { NetworkPartnerSheet } from "@/ui/partners/partner-network/network-partner-sheet";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import type { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Filter,
   PaginationControls,
-  Switch,
   usePagination,
   useRouterStuff,
 } from "@dub/ui";
+import type { Icon } from "@dub/ui/icons";
+import { Star, StarFill } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import {
+  NetworkContentSearchResults,
+  type PartnerContentSearchResponse,
+} from "./network-content-search-results";
 import { NetworkEmptyState } from "./network-empty-state";
 import { NetworkPartnerCard } from "./network-partner-card";
 import { usePartnerNetworkFilters } from "./use-partner-network-filters";
@@ -38,6 +46,20 @@ const tabs = [
   },
 ] as const;
 
+const platformFilters = PARTNER_PLATFORM_FIELDS.filter(
+  ({ label }) => label !== "Website",
+).map(({ label, icon: Icon }) => ({
+  label,
+  value: label === "X/Twitter" ? "twitter" : label.toLowerCase(),
+  icon: Icon,
+})) as {
+  label: string;
+  value: PlatformType;
+  icon: Icon;
+}[];
+
+const PARTNER_CONTENT_SEARCH_PARTNER_LIMIT = 50;
+
 type ProgramPartnerNetworkPageClientProps = {
   variant?: "default" | "ignored";
 };
@@ -47,13 +69,62 @@ export function ProgramPartnerNetworkPageClient({
 }: ProgramPartnerNetworkPageClientProps = {}) {
   const { id: workspaceId } = useWorkspace();
   const { searchParams, getQueryString, queryParams } = useRouterStuff();
+  const selectedPlatform = searchParams.get("platform") as PlatformType | null;
+  const search = searchParams.get("search")?.trim() ?? "";
+  const starred = searchParams.get("starred") === "true";
 
   const status =
     variant === "ignored"
       ? "ignored"
       : tabs.find(({ id }) => id === searchParams.get("tab"))?.id || "discover";
+  const isYouTubeContentSearchMode =
+    status === "discover" && selectedPlatform === "youtube";
 
   const { data: partnerCounts, error: countError } = useNetworkPartnersCount();
+
+  const {
+    data: contentSearchResults,
+    error: contentSearchError,
+    isLoading: isSearchingContent,
+  } = useSWR<PartnerContentSearchResponse>(
+    workspaceId && isYouTubeContentSearchMode
+      ? ["partner-content-search", search, workspaceId, selectedPlatform, starred]
+      : null,
+    async ([, query]: readonly [
+      string,
+      string,
+      string,
+      PlatformType | null,
+      boolean,
+    ]) => {
+      const response = await fetch(
+        `/api/network/partners/content-search?workspaceId=${workspaceId}`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            query,
+            limit: PARTNER_CONTENT_SEARCH_PARTNER_LIMIT,
+            chunksPerPartner: 2,
+            platform: "youtube",
+            starred: starred || undefined,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to search partner content");
+      }
+
+      return response.json();
+    },
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+    },
+  );
 
   const {
     data: partners,
@@ -61,7 +132,8 @@ export function ProgramPartnerNetworkPageClient({
     mutate: mutatePartners,
     isValidating,
   } = useSWR<NetworkPartnerProps[]>(
-    workspaceId &&
+    !isYouTubeContentSearchMode &&
+      workspaceId &&
       `/api/network/partners${getQueryString(
         {
           workspaceId,
@@ -70,8 +142,8 @@ export function ProgramPartnerNetworkPageClient({
         {
           exclude:
             variant === "ignored"
-              ? ["tab", "partnerId", "starred"]
-              : ["tab", "partnerId"],
+              ? ["tab", "partnerId", "starred", "search"]
+              : ["tab", "partnerId", "search"],
         },
       )}`,
     fetcher,
@@ -88,6 +160,10 @@ export function ProgramPartnerNetworkPageClient({
 
   const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
     usePartnerNetworkFilters({ status });
+  const nonPlatformFilters = filters.filter(({ key }) => key !== "platform");
+  const listedActiveFilters = activeFilters.filter(
+    ({ key }) => key !== "platform",
+  );
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; partnerId: string | null }
@@ -187,35 +263,51 @@ export function ProgramPartnerNetworkPageClient({
 
       {status === "discover" && (
         <div className="mt-[17px]">
-          <div className="xs:flex-row xs:items-center flex flex-col gap-4">
-            <Filter.Select
-              className="h-9 w-full rounded-lg md:w-fit"
-              filters={filters}
-              activeFilters={activeFilters}
-              onSelect={onSelect}
-              onRemove={onRemove}
-            />
-            <label className="flex items-center gap-2">
-              <Switch
-                checked={searchParams.get("starred") == "true"}
-                fn={(checked) => {
+          <div className="@3xl/page:flex-row @3xl/page:items-center @3xl/page:justify-between flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Filter.Select
+                className="h-9 w-full rounded-lg sm:w-fit"
+                filters={nonPlatformFilters}
+                activeFilters={listedActiveFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+              />
+              <PlatformFilterBar
+                selectedPlatform={selectedPlatform}
+                onSelect={(platform) => {
+                  const isActive = selectedPlatform === platform;
+
                   queryParams({
-                    set: checked ? { starred: "true" } : undefined,
-                    del: ["page", ...(!checked ? ["starred"] : [])],
+                    set: isActive ? undefined : { platform },
+                    del: ["page", ...(isActive ? ["platform"] : [])],
                   });
                 }}
               />
-              <span className="text-content-emphasis text-sm font-medium">
-                Starred
-              </span>
-            </label>
+              <StarredFilterButton
+                active={searchParams.get("starred") == "true"}
+                onClick={() => {
+                  const isActive = searchParams.get("starred") == "true";
+
+                  queryParams({
+                    set: isActive ? undefined : { starred: "true" },
+                    del: ["page", ...(isActive ? ["starred"] : [])],
+                  });
+                }}
+              />
+            </div>
+            <div className="@3xl/page:w-[373px] w-full">
+              <SearchBoxPersisted
+                placeholder="Search partners or content..."
+                inputClassName="h-9"
+              />
+            </div>
           </div>
           <AnimatedSizeContainer height>
-            {activeFilters.length > 0 && (
+            {listedActiveFilters.length > 0 && (
               <div className="pt-4">
                 <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
+                  filters={nonPlatformFilters}
+                  activeFilters={listedActiveFilters}
                   onSelect={onSelect}
                   onRemove={onRemove}
                   onRemoveAll={onRemoveAll}
@@ -226,7 +318,19 @@ export function ProgramPartnerNetworkPageClient({
         </div>
       )}
 
-      {error || countError ? (
+      {isYouTubeContentSearchMode ? (
+        <NetworkContentSearchResults
+          error={contentSearchError}
+          hasQuery={search.length > 0}
+          isLoading={isSearchingContent}
+          partners={contentSearchResults?.partners}
+          onOpenPartner={(partnerId) => {
+            queryParams({
+              set: { partnerId },
+            });
+          }}
+        />
+      ) : error || countError ? (
         <div className="text-content-subtle py-12 text-sm">
           Failed to load partners
         </div>
@@ -309,7 +413,7 @@ export function ProgramPartnerNetworkPageClient({
         </div>
       ) : (
         <NetworkEmptyState
-          isFiltered={activeFilters.length > 0}
+          isFiltered={activeFilters.length > 0 || Boolean(search)}
           isStarred={
             variant === "ignored"
               ? false
@@ -320,6 +424,65 @@ export function ProgramPartnerNetworkPageClient({
         />
       )}
     </div>
+  );
+}
+
+function PlatformFilterBar({
+  selectedPlatform,
+  onSelect,
+}: {
+  selectedPlatform: PlatformType | null;
+  onSelect: (platform: PlatformType) => void;
+}) {
+  return (
+    <div className="border-border-subtle flex h-9 overflow-hidden rounded-lg border bg-white">
+      {platformFilters.map(({ label, value, icon: Icon }) => {
+        const isActive = selectedPlatform === value;
+
+        return (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={isActive}
+            aria-label={`Filter by ${label}`}
+            className={cn(
+              "text-content-subtle hover:bg-bg-muted hover:text-content-emphasis flex size-9 items-center justify-center border-r border-neutral-200 transition-colors last:border-r-0",
+              isActive && "bg-bg-muted text-content-emphasis shadow-sm",
+            )}
+            onClick={() => onSelect(value)}
+          >
+            <Icon className="size-4" />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function StarredFilterButton({
+  active,
+  onClick,
+}: {
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      aria-label="Show starred partners"
+      className={cn(
+        "border-border-subtle hover:bg-bg-muted flex size-9 items-center justify-center rounded-lg border bg-white transition-colors",
+        active && "border-amber-300 bg-amber-50 text-amber-600",
+      )}
+      onClick={onClick}
+    >
+      {active ? (
+        <StarFill className="size-4 text-amber-500" />
+      ) : (
+        <Star className="text-content-subtle size-4" />
+      )}
+    </button>
   );
 }
 
@@ -339,10 +502,9 @@ function useCurrentPartner({
     ? partners?.find(({ id }) => id === partnerId)
     : null;
 
-  const fetchPartnerId =
-    partners && partnerId && !currentPartner ? partnerId : null;
+  const fetchPartnerId = partnerId && !currentPartner ? partnerId : null;
 
-  const { data: fetchedPartners, isLoading } = useSWR<NetworkPartnerProps>(
+  const { data: fetchedPartners, isLoading } = useSWR<NetworkPartnerProps[]>(
     fetchPartnerId &&
       `/api/network/partners?workspaceId=${workspaceId}&partnerIds=${fetchPartnerId}&status=${partnerListStatus}`,
     fetcher,
