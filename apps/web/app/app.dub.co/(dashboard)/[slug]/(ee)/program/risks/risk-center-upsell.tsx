@@ -13,7 +13,7 @@ export function RiskCenterUpsell() {
   return (
     <>
       {partnersUpgradeModal}
-      <PageContent title="Fraud & Risk">
+      <PageContent title="Risk Center">
         <PageWidthWrapper>
           <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
             <ExampleRiskEvents />
