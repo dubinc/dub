@@ -203,7 +203,10 @@ export function PartnerMessagesProgramPageClient() {
               a.id === id ? { ...a, uploading: false, url: destinationUrl } : a,
             ),
           );
-        } catch {
+        } catch (error) {
+          toast.error(
+            error instanceof Error ? error.message : "Failed to upload file",
+          );
           setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
         }
       }

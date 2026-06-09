@@ -1,4 +1,5 @@
 import {
+  ATTACHMENT_MIME_TYPE_COLOR,
   getAttachmentTypeLabel,
   isPreviewableImageType,
   MAX_ATTACHMENTS_PER_MESSAGE,
@@ -18,7 +19,7 @@ import {
   useScrollProgress,
 } from "@dub/ui";
 import { cn, formatFileSize, nFormatter } from "@dub/utils";
-import { Paperclip, X } from "lucide-react";
+import { File, Paperclip, X } from "lucide-react";
 import {
   DragEvent,
   useCallback,
@@ -363,6 +364,30 @@ function AttachmentChip({
     };
   }, [previewUrl]);
 
+  if (isImage && previewUrl) {
+    return (
+      <div className="relative shrink-0">
+        {attachment.uploading && (
+          <div className="absolute inset-0 z-[1] flex items-center justify-center rounded-lg bg-white/80">
+            <LoadingCircle className="size-4" />
+          </div>
+        )}
+        <img
+          src={previewUrl}
+          alt={attachment.name}
+          className="size-14 rounded-lg border border-neutral-200 object-cover"
+        />
+        <button
+          type="button"
+          onClick={onRemove}
+          className="absolute -right-1.5 -top-1.5 z-[2] flex size-5 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-400 shadow-sm transition-colors hover:text-neutral-600"
+        >
+          <X className="size-3" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex shrink-0 items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5">
       {attachment.uploading && (
@@ -371,17 +396,15 @@ function AttachmentChip({
         </div>
       )}
 
-      {isImage && previewUrl ? (
-        <img
-          src={previewUrl}
-          alt={attachment.name}
-          className="size-8 rounded object-cover"
-        />
-      ) : (
-        <div className="flex size-8 items-center justify-center rounded bg-neutral-200 text-[9px] font-bold uppercase text-neutral-600">
-          {getAttachmentTypeLabel(attachment.type)}
-        </div>
-      )}
+      <div
+        className={cn(
+          "flex size-8 shrink-0 flex-col items-center justify-center gap-0.5 rounded text-[8px] font-semibold uppercase text-white",
+          ATTACHMENT_MIME_TYPE_COLOR[attachment.type] || "bg-neutral-500",
+        )}
+      >
+        <File className="size-2.5 shrink-0" />
+        <span>{getAttachmentTypeLabel(attachment.type)}</span>
+      </div>
 
       <div className="flex max-w-[120px] flex-col">
         <span className="truncate text-xs font-medium text-neutral-700">

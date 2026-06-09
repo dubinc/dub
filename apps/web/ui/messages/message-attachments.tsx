@@ -10,6 +10,19 @@ import { cn } from "@dub/utils/src";
 import { Download, File } from "lucide-react";
 import { ZoomImage } from "../shared/zoom-image";
 
+async function downloadFile(url: string, filename: string) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  const blobUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(blobUrl);
+}
+
 export function MessageImageAttachments({
   attachments,
 }: {
@@ -24,15 +37,16 @@ export function MessageImageAttachments({
             alt={img.name}
             className="max-h-64 w-full cursor-pointer rounded-lg border border-neutral-200 object-cover"
           />
-          <a
-            href={img.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              downloadFile(img.url, img.name);
+            }}
             className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-md bg-white/70 text-neutral-600 opacity-0 backdrop-blur-sm transition-opacity hover:bg-white/90 group-hover:opacity-100"
           >
             <Download className="size-3.5" />
-          </a>
+          </button>
         </div>
       ))}
     </div>
@@ -47,12 +61,11 @@ export function MessageFileAttachments({
   return (
     <div className="flex max-w-[min(100%,512px)] flex-col gap-2">
       {attachments.map((file) => (
-        <a
+        <button
           key={file.id}
-          href={file.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 transition-colors hover:bg-neutral-100"
+          type="button"
+          onClick={() => downloadFile(file.url, file.name)}
+          className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-left transition-colors hover:bg-neutral-100"
         >
           <FileTypeBadge type={file.type} />
           <div className="flex min-w-0 flex-1 flex-col">
@@ -64,9 +77,9 @@ export function MessageFileAttachments({
             </span>
           </div>
           <div className="border-bg-subtle rounded-lg border bg-white px-3 py-2">
-            <Download className="text-content-emphasis size-3 shrink-0" />
+            <Download className="text-content-emphasis size-4 shrink-0" />
           </div>
-        </a>
+        </button>
       ))}
     </div>
   );
@@ -77,7 +90,7 @@ function FileTypeBadge({ type }: { type: string }) {
     <div
       className={cn(
         "flex size-10 shrink-0 flex-col items-center justify-center gap-1 rounded-lg p-2 text-xs font-semibold uppercase text-white",
-        ATTACHMENT_MIME_TYPE_COLOR[type],
+        ATTACHMENT_MIME_TYPE_COLOR[type] || "bg-neutral-500",
       )}
     >
       <File className="size-3 shrink-0" />

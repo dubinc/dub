@@ -147,8 +147,11 @@ export function ProgramMessagesPartnerPageClient() {
               a.id === id ? { ...a, uploading: false, url: destinationUrl } : a,
             ),
           );
-        } catch {
+        } catch (err) {
           setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
+          toast.error(
+            `Failed to upload file: ${err instanceof Error ? err.message : String(err)}`,
+          );
         }
       }
     },
