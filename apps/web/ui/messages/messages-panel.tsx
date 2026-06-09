@@ -1,10 +1,10 @@
+import { isPreviewableImageType } from "@/lib/messages/utils";
 import {
   Message,
   MessageAttachment,
   PartnerProps,
   ProgramProps,
 } from "@/lib/types";
-import { isPreviewableImageType } from "@/lib/zod/schemas/messages";
 import {
   AnimatedSizeContainer,
   Check2,
