@@ -1,3 +1,4 @@
+import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { getPlanAndTierFromPriceId } from "@dub/utils";
 import Stripe from "stripe";
@@ -18,6 +19,18 @@ export async function customerSubscriptionUpdated(
 
   if (!["active", "trialing"].includes(updatedSubscription.status)) {
     return `Invalid updated subscription status "${updatedSubscription.status}" for subscription ${updatedSubscription.id}, skipping...`;
+  }
+
+  if (updatedSubscription.status === "active") {
+    const latestInvoiceId = updatedSubscription.latest_invoice;
+
+    if (latestInvoiceId && typeof latestInvoiceId === "string") {
+      const latestInvoice = await stripe.invoices.retrieve(latestInvoiceId);
+
+      if (latestInvoice.status !== "paid") {
+        return `Skipping customer.subscription.updated for subscription ${updatedSubscription.id}: latest invoice (${latestInvoiceId}) is not paid.`;
+      }
+    }
   }
 
   const stripeId = updatedSubscription.customer.toString();

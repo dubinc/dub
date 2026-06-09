@@ -11,9 +11,12 @@ export async function customerSubscriptionCreated(
     return `Subscription ${createdSubscription.id} is not in trialing status, skipping...`;
   }
 
-  const res = await stripe.subscriptions.update(createdSubscription.id, {
-    payment_behavior: "default_incomplete",
-  });
+  const updatedSubscription = await stripe.subscriptions.update(
+    createdSubscription.id,
+    {
+      payment_behavior: "default_incomplete",
+    },
+  );
 
-  return `Updated trial subscription ${createdSubscription.id} with payment_behavior default_incomplete: ${JSON.stringify(res, null, 2)}`;
+  return `Updated trial subscription ${updatedSubscription.id} with payment_behavior="default_incomplete"`;
 }
