@@ -34,7 +34,7 @@ export function InviteTeammatesForm({
   invites?: Invite[];
   className?: string;
 }) {
-  const { id, slug, plan, usersLimit, trialEndsAt } = useWorkspace();
+  const { id, plan, usersLimit, trialEndsAt } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const { queryParams } = useRouterStuff();
   const { openTrialLimitModal, TrialLimitActivateModal } =
@@ -66,16 +66,17 @@ export function InviteTeammatesForm({
       <form
         onSubmit={handleSubmit(async (data) => {
           const teammates = data.teammates.filter(({ email }) => email);
-          const res = await fetch(`/api/workspaces/${id}/invites`, {
+
+          const response = await fetch(`/api/workspaces/${id}/invites`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ teammates }),
           });
 
-          if (res.ok) {
+          if (response.ok) {
             await mutatePrefix(`/api/workspaces/${id}/invites`);
-
             toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
+
             queryParams({
               set: {
                 status: "invited",
@@ -84,12 +85,14 @@ export function InviteTeammatesForm({
 
             onSuccess?.();
           } else {
-            const body = await res.json().catch(() => null);
+            const body = await response.json().catch(() => null);
             const error = body?.error;
+
             if (trialActive && error?.code === "exceeded_limit") {
               openTrialLimitModal("users");
-              return;
+              throw error;
             }
+
             if (error?.message?.includes("upgrade")) {
               if (trialActive) {
                 openTrialLimitModal("users");
@@ -104,10 +107,13 @@ export function InviteTeammatesForm({
                   { duration: 4000 },
                 );
               }
-              return;
+              throw error;
             }
-            toast.error(error?.message ?? "Something went wrong");
-            if (error) throw error;
+
+            const message = error?.message ?? "Something went wrong";
+
+            toast.error(message);
+            throw new Error(message);
           }
         })}
         className={cn("flex flex-col gap-8 text-left", className)}
