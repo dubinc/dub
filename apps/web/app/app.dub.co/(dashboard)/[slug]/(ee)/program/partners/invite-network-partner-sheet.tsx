@@ -1,4 +1,7 @@
-import { invitePartnerFromNetworkAction } from "@/lib/actions/partners/invite-partner-from-network";
+import {
+  getProgramNetworkInviteEmailDefaults,
+  invitePartnerFromNetworkAction,
+} from "@/lib/actions/partners/invite-partner-from-network";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
@@ -45,18 +48,11 @@ function InviteNetworkPartnerSheetContent({
   const { program } = useProgram();
   const { id: workspaceId } = useWorkspace();
 
-  // Default email content (must stay in sync with
-  // getProgramNetworkInviteEmailDefaults in @dub/email)
   const defaultEmailContent = useMemo<EmailContent>(() => {
-    const programName = program?.name || "Dub";
-    const partnerName =
-      partner.name && !partner.name.includes("@") ? partner.name : "there";
-
-    return {
-      subject: `${programName} invited you to join on Dub Partners`,
-      title: "You're getting noticed!",
-      body: `Hi ${partnerName}, ${programName} found you on the Dub Partner Network and invited you to join their partner program.`,
-    };
+    return getProgramNetworkInviteEmailDefaults({
+      programName: program?.name || "Dub",
+      partnerName: partner.name,
+    });
   }, [program?.name, partner.name]);
 
   const [isEditingEmail, setIsEditingEmail] = useState(false);

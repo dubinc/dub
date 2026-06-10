@@ -8,14 +8,32 @@ import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-u
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerFromNetworkSchema } from "@/lib/zod/schemas/partner-network";
 import { sendEmail } from "@dub/email";
-import ProgramNetworkInvite, {
-  getProgramNetworkInviteEmailDefaults,
-} from "@dub/email/templates/program-network-invite";
+import ProgramInvite from "@dub/email/templates/program-invite";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
+
+export const getProgramNetworkInviteEmailDefaults = ({
+  programName,
+  partnerName: partnerNameProp,
+}: {
+  programName: string;
+  partnerName?: string | null;
+}) => {
+  const trimmedPartnerName = partnerNameProp?.trim();
+  const partnerName =
+    trimmedPartnerName && !trimmedPartnerName.includes("@")
+      ? trimmedPartnerName
+      : "there";
+
+  return {
+    subject: `${programName} invited you to join on Dub Partners`,
+    title: "You're getting noticed!",
+    body: `Hi ${partnerName}, ${programName} found you on the Dub Partner Network and invited you to join their partner program.`,
+  };
+};
 
 export const invitePartnerFromNetworkAction = authActionClient
   .inputSchema(invitePartnerFromNetworkSchema)
@@ -111,14 +129,14 @@ export const invitePartnerFromNetworkAction = authActionClient
           });
           const emailDefaults = getProgramNetworkInviteEmailDefaults({
             programName: program.name,
-            name: partner.name,
+            partnerName: partner.name,
           });
 
           await sendEmail({
             subject: emailSubject || emailDefaults.subject,
             variant: "notifications",
             to: partner.email,
-            react: ProgramNetworkInvite({
+            react: ProgramInvite({
               email: partner.email,
               name: partner.name,
               program: {
