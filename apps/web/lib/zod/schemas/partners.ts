@@ -1050,3 +1050,16 @@ export const partnerCrossProgramSummarySchema = z.object({
   activePrograms: z.number(),
   bannedPrograms: z.number(),
 });
+
+export const partnerSharedPlatformSchema = z.object({
+  type: z.enum(PlatformType),
+  identifier: z.string(),
+  partners: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      email: z.email().nullable(),
+      image: z.string().nullable(),
+    }),
+  ),
+});
