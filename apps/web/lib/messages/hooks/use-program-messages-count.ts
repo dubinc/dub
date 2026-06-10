@@ -1,13 +1,11 @@
 import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
 import * as z from "zod/v4";
-import { countMessagesQuerySchema } from "../messages/schemas";
-import { getPlanCapabilities } from "../plan-capabilities";
-import useWorkspace from "./use-workspace";
+import { countMessagesQuerySchema } from "../schemas";
 
 const partialQuerySchema = countMessagesQuerySchema.partial();
 
-export function usePartnerMessagesCount({
+export function useProgramMessagesCount({
   query,
   enabled = true,
   swrOpts,
@@ -16,17 +14,12 @@ export function usePartnerMessagesCount({
   enabled?: boolean;
   swrOpts?: SWRConfiguration;
 } = {}) {
-  const { id: workspaceId, plan, defaultProgramId } = useWorkspace();
-
   const { data, isLoading, error, mutate } = useSWR<number>(
-    enabled &&
-      workspaceId &&
-      defaultProgramId &&
-      getPlanCapabilities(plan).canMessagePartners &&
-      `/api/messages/count?${new URLSearchParams({
-        workspaceId,
-        ...(query as Record<string, string>),
-      }).toString()}`,
+    enabled
+      ? `/api/partner-profile/messages/count?${new URLSearchParams({
+          ...(query as Record<string, string>),
+        }).toString()}`
+      : null,
     fetcher,
     {
       keepPreviousData: true,

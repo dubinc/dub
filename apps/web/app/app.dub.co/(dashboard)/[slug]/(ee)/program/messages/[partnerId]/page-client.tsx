@@ -2,12 +2,12 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { PROGRAM_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
+import { usePartnerMessages } from "@/lib/messages/hooks/use-partner-messages";
 import { markPartnerMessagesReadAction } from "@/lib/messages/mark-partner-messages-read";
 import { messagePartnerAction } from "@/lib/messages/message-partner";
 import { uploadMessageAttachmentAction } from "@/lib/messages/upload-message-attachment";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
-import { usePartnerMessages } from "@/lib/swr/use-partner-messages";
 import useProgram from "@/lib/swr/use-program";
 import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";

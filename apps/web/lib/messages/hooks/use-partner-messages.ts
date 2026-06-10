@@ -1,11 +1,11 @@
 import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
 import * as z from "zod/v4";
+import useWorkspace from "../../swr/use-workspace";
 import {
   PartnerMessagesSchema,
   getPartnerMessagesQuerySchema,
-} from "../messages/schemas";
-import useWorkspace from "./use-workspace";
+} from "../schemas";
 
 const partialQuerySchema = getPartnerMessagesQuerySchema.partial();
 

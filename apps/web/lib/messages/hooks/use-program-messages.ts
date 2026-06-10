@@ -4,7 +4,7 @@ import * as z from "zod/v4";
 import {
   ProgramMessagesSchema,
   getProgramMessagesQuerySchema,
-} from "../messages/schemas";
+} from "../schemas";
 
 const partialQuerySchema = getProgramMessagesQuerySchema.partial();
 
