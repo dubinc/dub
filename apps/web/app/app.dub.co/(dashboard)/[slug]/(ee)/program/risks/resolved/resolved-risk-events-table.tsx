@@ -1,6 +1,9 @@
 "use client";
 
-import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
+import {
+  FRAUD_GROUP_EXPIRY_DAYS,
+  FRAUD_RULES_BY_TYPE,
+} from "@/lib/api/fraud/constants";
 import { useFraudGroups } from "@/lib/swr/use-fraud-groups";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { FraudGroupProps } from "@/lib/types";
@@ -14,6 +17,7 @@ import {
   Filter,
   Flag,
   Table,
+  TabSelect,
   Tooltip,
   usePagination,
   useRouterStuff,
@@ -21,22 +25,42 @@ import {
 } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
+import { addDays } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import { useFraudGroupFilters } from "../use-fraud-group-filters";
+
+const STATUS_TABS = [
+  {
+    id: "resolved" as const,
+    label: "Resolved",
+  },
+  {
+    id: "expired" as const,
+    label: "Expired",
+  },
+];
+
+type StatusTab = (typeof STATUS_TABS)[number]["id"];
 
 export function ResolvedRiskEventsTable() {
   const { queryParams, searchParams, searchParamsObj } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
-  const sortBy = searchParams.get("sortBy") || "resolvedAt";
+  const status =
+    STATUS_TABS.find(({ id }) => id === searchParams.get("status"))?.id ??
+    STATUS_TABS[0].id;
+
+  const defaultSortBy = status === "expired" ? "lastEventAt" : "resolvedAt";
+  const sortBy = searchParams.get("sortBy") || defaultSortBy;
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
   const isFiltered = Object.keys(searchParamsObj).some(
-    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+    (key) =>
+      !["sortBy", "sortOrder", "page", "status", "groupId"].includes(key),
   );
 
   const { fraudGroups, loading, error } = useFraudGroups({
     query: {
-      status: "resolved",
+      status,
     },
     exclude: ["groupId"],
   });
@@ -58,16 +82,17 @@ export function ResolvedRiskEventsTable() {
   const { currentFraudGroup } = useCurrentFraudGroup({
     fraudGroups,
     groupId: detailsSheetState.groupId,
+    status,
   });
 
   const { fraudGroupCount, error: countError } = useFraudGroupCount<number>({
     query: {
-      status: "resolved",
+      status,
     },
   });
 
-  const columns = useMemo(
-    () => [
+  const columns = useMemo(() => {
+    const baseColumns = [
       {
         id: "type",
         header: "Event",
@@ -128,6 +153,34 @@ export function ResolvedRiskEventsTable() {
               : {},
         },
       },
+    ];
+
+    if (status === "expired") {
+      return [
+        ...baseColumns,
+        {
+          id: "expiredAt",
+          header: "Expired on",
+          meta: {
+            headerTooltip: `Unresolved risk events are automatically expired ${FRAUD_GROUP_EXPIRY_DAYS} days after the last detection.`,
+          },
+          cell: ({ row }: { row: Row<FraudGroupProps> }) =>
+            formatDate(
+              addDays(
+                new Date(row.original.lastEventAt),
+                FRAUD_GROUP_EXPIRY_DAYS,
+              ),
+              {
+                month: "short",
+                year: undefined,
+              },
+            ),
+        },
+      ];
+    }
+
+    return [
+      ...baseColumns,
       {
         id: "resolvedAt",
         header: "Resolved on",
@@ -165,9 +218,8 @@ export function ResolvedRiskEventsTable() {
           );
         },
       },
-    ],
-    [],
-  );
+    ];
+  }, [status]);
 
   const { table, ...tableProps } = useTable({
     data: fraudGroups || [],
@@ -194,11 +246,11 @@ export function ResolvedRiskEventsTable() {
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (plural) => `resolved risk event${plural ? "s" : ""}`,
+    resourceName: (plural) => `${status} risk event${plural ? "s" : ""}`,
     rowCount: fraudGroupCount ?? 0,
     loading,
     error:
-      error || countError ? "Failed to load resolved risk events" : undefined,
+      error || countError ? `Failed to load ${status} risk events` : undefined,
   });
 
   const [previousGroupId, nextGroupId] = useMemo(() => {
@@ -216,6 +268,24 @@ export function ResolvedRiskEventsTable() {
         : null,
     ];
   }, [fraudGroups, detailsSheetState.groupId]);
+
+  let emptyState: { title: string; description: string };
+
+  if (status === "expired") {
+    emptyState = {
+      title: "No expired risk events found",
+      description: isFiltered
+        ? "No expired risk events found for the selected filters."
+        : "No risk events have expired yet.",
+    };
+  } else {
+    emptyState = {
+      title: "No resolved risk events found",
+      description: isFiltered
+        ? "No resolved risk events found for the selected filters."
+        : "No risk events have been resolved yet.",
+    };
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -244,18 +314,29 @@ export function ResolvedRiskEventsTable() {
           }
         />
       )}
-      <ResolvedRiskEventsFilters />
+      <div className="border-b border-neutral-200">
+        <TabSelect
+          options={STATUS_TABS}
+          selected={status}
+          onSelect={(id) => {
+            queryParams({
+              set: {
+                status: id,
+              },
+              del: ["page", "sortBy", "sortOrder", "groupId"],
+            });
+          }}
+        />
+      </div>
+
+      <ResolvedRiskEventsFilters status={status} />
 
       {fraudGroups?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
-          title="No resolved risk events found"
-          description={
-            isFiltered
-              ? "No resolved risk events found for the selected filters."
-              : "No risk events have been resolved yet."
-          }
+          title={emptyState.title}
+          description={emptyState.description}
           cardContent={() => (
             <>
               <Flag className="size-4 text-neutral-700" />
@@ -268,7 +349,7 @@ export function ResolvedRiskEventsTable() {
   );
 }
 
-function ResolvedRiskEventsFilters() {
+function ResolvedRiskEventsFilters({ status }: { status: StatusTab }) {
   const {
     filters,
     activeFilters,
@@ -278,7 +359,7 @@ function ResolvedRiskEventsFilters() {
     setSearch,
     setSelectedFilter,
   } = useFraudGroupFilters({
-    status: "resolved",
+    status,
   });
 
   return (
@@ -317,9 +398,11 @@ function ResolvedRiskEventsFilters() {
 function useCurrentFraudGroup({
   fraudGroups,
   groupId,
+  status,
 }: {
   fraudGroups?: FraudGroupProps[];
   groupId: string | null;
+  status: StatusTab;
 }) {
   let currentFraudGroup = groupId
     ? fraudGroups?.find((fraudGroup) => fraudGroup.id === groupId)
@@ -330,7 +413,11 @@ function useCurrentFraudGroup({
 
   const { fraudGroups: fetchedFraudGroups, loading: isLoading } =
     useFraudGroups({
-      query: { groupId: groupId ?? undefined },
+      query: {
+        groupId: groupId ?? undefined,
+        status,
+      },
+      exclude: ["page"],
       enabled: Boolean(shouldFetch),
     });
 
