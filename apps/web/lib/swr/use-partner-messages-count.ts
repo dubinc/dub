@@ -1,8 +1,8 @@
 import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
 import * as z from "zod/v4";
+import { countMessagesQuerySchema } from "../messages/schemas";
 import { getPlanCapabilities } from "../plan-capabilities";
-import { countMessagesQuerySchema } from "../zod/schemas/messages";
 import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = countMessagesQuerySchema.partial();

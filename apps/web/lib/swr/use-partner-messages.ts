@@ -4,7 +4,7 @@ import * as z from "zod/v4";
 import {
   PartnerMessagesSchema,
   getPartnerMessagesQuerySchema,
-} from "../zod/schemas/messages";
+} from "../messages/schemas";
 import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getPartnerMessagesQuerySchema.partial();

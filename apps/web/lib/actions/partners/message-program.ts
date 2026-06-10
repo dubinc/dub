@@ -5,10 +5,7 @@ import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import {
-  MessageSchema,
-  messageProgramSchema,
-} from "../../zod/schemas/messages";
+import { MessageSchema, messageProgramSchema } from "../../messages/schemas";
 import { authPartnerActionClient } from "../safe-action";
 
 const schema = messageProgramSchema.refine(

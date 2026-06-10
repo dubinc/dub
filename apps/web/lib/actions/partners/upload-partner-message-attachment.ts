@@ -1,14 +1,14 @@
 "use server";
 
-import { sanitizeFileName } from "@/lib/messages/utils";
-import { storage } from "@/lib/storage";
-import { ratelimit } from "@/lib/upstash";
-import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import {
   MAX_ATTACHMENT_NAME_LENGTH,
   MAX_ATTACHMENT_SIZE_BYTES,
   PARTNER_ALLOWED_ATTACHMENT_TYPES,
-} from "@/lib/zod/schemas/messages";
+} from "@/lib/messages/constants";
+import { sanitizeFileName } from "@/lib/messages/utils";
+import { storage } from "@/lib/storage";
+import { ratelimit } from "@/lib/upstash";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";

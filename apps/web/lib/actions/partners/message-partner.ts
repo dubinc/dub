@@ -11,10 +11,7 @@ import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import {
-  MessageSchema,
-  messagePartnerSchema,
-} from "../../zod/schemas/messages";
+import { MessageSchema, messagePartnerSchema } from "../../messages/schemas";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 

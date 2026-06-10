@@ -1,7 +1,7 @@
 import {
   ATTACHMENT_MIME_TYPE_LABELS,
   PREVIEWABLE_IMAGE_TYPES,
-} from "../zod/schemas/messages";
+} from "./constants";
 
 // Normalize a user-supplied file name
 export function sanitizeFileName(name: string): string {

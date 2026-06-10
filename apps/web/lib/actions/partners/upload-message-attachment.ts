@@ -1,15 +1,15 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { sanitizeFileName } from "@/lib/messages/utils";
-import { storage } from "@/lib/storage";
-import { ratelimit } from "@/lib/upstash";
-import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import {
   MAX_ATTACHMENT_NAME_LENGTH,
   MAX_ATTACHMENT_SIZE_BYTES,
   PROGRAM_ALLOWED_ATTACHMENT_TYPES,
-} from "@/lib/zod/schemas/messages";
+} from "@/lib/messages/constants";
+import { sanitizeFileName } from "@/lib/messages/utils";
+import { storage } from "@/lib/storage";
+import { ratelimit } from "@/lib/upstash";
+import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
