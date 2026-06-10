@@ -1059,7 +1059,6 @@ export const partnerSharedPlatformSchema = z.object({
       id: z.string(),
       name: z.string(),
       image: z.string().nullable(),
-      status: z.enum(ProgramEnrollmentStatus),
     }),
   ),
 });

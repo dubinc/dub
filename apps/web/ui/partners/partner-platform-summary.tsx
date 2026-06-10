@@ -1,32 +1,32 @@
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
-import { usePartnerSharedPlatforms } from "@/lib/swr/use-partner-shared-platforms";
-import { PartnerPlatformProps } from "@/lib/types";
+import { PartnerPlatformProps, PartnerSharedPlatformProps } from "@/lib/types";
 import { AnimatedSizeContainer, useCurrentSubdomain } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, fetcher } from "@dub/utils";
 import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useSWRConfig } from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { PartnerPlatformCard } from "./partner-platform-card";
 import { PartnerPlatformSharedPartners } from "./partner-platform-shared-partners";
 
 export function PartnerPlatformSummary({
   platforms,
   partnerId,
-  showSharedPlatforms = false,
   className,
 }: {
   platforms: PartnerPlatformProps[] | undefined;
   partnerId: string;
-  showSharedPlatforms?: boolean;
   className?: string;
 }) {
   const { subdomain } = useCurrentSubdomain();
   const { mutate } = useSWRConfig();
 
-  const { sharedPlatforms } = usePartnerSharedPlatforms({
-    partnerId,
-    enabled: Boolean(showSharedPlatforms && platforms && platforms.length > 0),
-  });
+  const { data: sharedPlatforms } = useSWR<PartnerSharedPlatformProps[]>(
+    subdomain === "admin" && partnerId
+      ? `/api/admin/partners/${partnerId}/shared-platforms`
+      : null,
+    fetcher,
+  );
+
   const [verifyingPlatforms, setVerifyingPlatforms] = useState<
     Partial<Record<PartnerPlatformProps["type"], boolean>>
   >({});
@@ -150,7 +150,7 @@ export function PartnerPlatformSummary({
                   })}
                 />
 
-                {showSharedPlatforms && (
+                {subdomain === "admin" && (
                   <AnimatedSizeContainer height>
                     {sharedPlatform && (
                       <PartnerPlatformSharedPartners

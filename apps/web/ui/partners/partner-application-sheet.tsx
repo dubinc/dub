@@ -174,10 +174,7 @@ function PartnerApplicationAbout({
         preferredApplicationId={partner.applicationId ?? null}
       />
       <hr className="border-neutral-200" />
-      <PartnerAbout
-        partner={partner}
-        showSharedPlatforms={partner.status === "pending"}
-      />
+      <PartnerAbout partner={partner} />
     </div>
   );
 }
