@@ -46,6 +46,9 @@ export const INACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
   ProgramEnrollmentStatus.rejected,
 ];
 
+export const COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] =
+  [...ACTIVE_ENROLLMENT_STATUSES, ProgramEnrollmentStatus.invited];
+
 export const exportPartnerColumns = [
   { id: "id", label: "ID", default: true },
   { id: "name", label: "Name", default: true },

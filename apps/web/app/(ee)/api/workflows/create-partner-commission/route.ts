@@ -19,6 +19,7 @@ import {
   createPartnerCommissionSchema,
 } from "@/lib/zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import {
   Commission,
@@ -178,6 +179,16 @@ async function stepCreateCommission(
 
   if (typeof amount !== "number") {
     amount = 0;
+  }
+
+  if (
+    ["click", "lead", "sale"].includes(event) &&
+    !COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES.includes(programEnrollment.status)
+  ) {
+    return logAndReturn({
+      commission: null,
+      outputLog: `Partner ${partnerId} is not eligible for commissions (status: ${programEnrollment.status}) in program ${programId}, skipping ${event} commission creation...`,
+    });
   }
 
   let earnings = 0;
