@@ -77,7 +77,7 @@ export default function UnresolvedFraudEventsSummary({
   return (
     <Html>
       <Head />
-      <Preview>Fraud detection events</Preview>
+      <Preview>Risk events</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-8 max-w-[600px] px-8 py-8">
@@ -86,13 +86,14 @@ export default function UnresolvedFraudEventsSummary({
             </Section>
 
             <Heading className="mx-0 my-8 p-0 text-lg font-medium text-black">
-              Fraud detection events
+              Risk events
             </Heading>
 
             <Text className="text-sm text-neutral-600">
-              Here are your detected fraud and risk events reported for{" "}
+              Here are your detected risk events reported for{" "}
               <strong>{todayDate}</strong> for the{" "}
-              <strong>{program.name}</strong> program.
+              <strong>{program.name}</strong> program. These risk events will
+              automatically expire in 30 days if not resolved.
             </Text>
 
             <Section className="my-6 rounded-xl border border-solid border-neutral-200 bg-white p-0">
@@ -100,6 +101,7 @@ export default function UnresolvedFraudEventsSummary({
                 const isLastDisplayedItem =
                   index === displayedGroups.length - 1;
                 const shouldShowBottomBorder = !isLastDisplayedItem;
+
                 return (
                   <Row
                     key={group.id}

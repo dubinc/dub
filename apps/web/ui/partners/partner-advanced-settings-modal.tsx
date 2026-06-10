@@ -25,6 +25,7 @@ type FormData = {
   tenantId: string | null;
   customerDataSharingEnabledAt: Date | null;
   groupMoveDisabledAt: Date | null;
+  riskDetectionDisabledAt: Date | null;
 };
 
 function PartnerAdvancedSettingsModal({
@@ -36,7 +37,11 @@ function PartnerAdvancedSettingsModal({
   setShowPartnerAdvancedSettingsModal: Dispatch<SetStateAction<boolean>>;
   partner: Pick<
     EnrolledPartnerExtendedProps,
-    "id" | "tenantId" | "customerDataSharingEnabledAt" | "groupMoveDisabledAt"
+    | "id"
+    | "tenantId"
+    | "customerDataSharingEnabledAt"
+    | "groupMoveDisabledAt"
+    | "riskDetectionDisabledAt"
   >;
 }) {
   const { id: workspaceId, plan } = useWorkspace();
@@ -48,6 +53,10 @@ function PartnerAdvancedSettingsModal({
 
   const [hasGroupMoveDisabled, setHasGroupMoveDisabled] = useState(
     !!partner.groupMoveDisabledAt,
+  );
+
+  const [hasRiskDetectionDisabled, setHasRiskDetectionDisabled] = useState(
+    !!partner.riskDetectionDisabledAt,
   );
 
   const { executeAsync } = useAction(updatePartnerEnrollmentAction, {
@@ -69,6 +78,7 @@ function PartnerAdvancedSettingsModal({
       tenantId: partner.tenantId,
       customerDataSharingEnabledAt: partner.customerDataSharingEnabledAt,
       groupMoveDisabledAt: partner.groupMoveDisabledAt ?? null,
+      riskDetectionDisabledAt: partner.riskDetectionDisabledAt ?? null,
     },
   });
 
@@ -83,6 +93,14 @@ function PartnerAdvancedSettingsModal({
   const handleGroupMoveDisabledToggle = (checked: boolean) => {
     setHasGroupMoveDisabled(checked);
     setValue("groupMoveDisabledAt", checked ? new Date() : null, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const handleRiskDetectionDisabledToggle = (checked: boolean) => {
+    setHasRiskDetectionDisabled(checked);
+    setValue("riskDetectionDisabledAt", checked ? new Date() : null, {
       shouldDirty: true,
       shouldValidate: true,
     });
@@ -107,6 +125,7 @@ function PartnerAdvancedSettingsModal({
             tenantId: data.tenantId || null,
             customerDataSharingEnabledAt: data.customerDataSharingEnabledAt,
             groupMoveDisabledAt: data.groupMoveDisabledAt,
+            riskDetectionDisabledAt: data.riskDetectionDisabledAt,
           });
 
           if (result?.serverError || result?.validationErrors) {
@@ -194,6 +213,26 @@ function PartnerAdvancedSettingsModal({
               </div>
             </div>
           )}
+
+          <div className="mt-6">
+            <div className="flex items-start gap-3">
+              <Switch
+                fn={handleRiskDetectionDisabledToggle}
+                checked={hasRiskDetectionDisabled}
+                trackDimensions="w-8 h-4"
+                thumbDimensions="w-3 h-3"
+                thumbTranslate="translate-x-4"
+              />
+              <div className="flex flex-col gap-1.5">
+                <h3 className="text-sm font-medium leading-none text-neutral-700">
+                  Exclude from risk monitoring
+                </h3>
+                <p className="text-xs text-neutral-500">
+                  Future risk events won't be generated for this partner.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">

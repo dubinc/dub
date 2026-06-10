@@ -30,6 +30,7 @@ import { AssociatedCommissionsTable } from "./associated-commissions-table";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 import { useMarkAllAsFraudModal } from "./mark-all-as-fraud-modal";
 import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
+import { RequestDetailsBanner } from "./request-details-banner";
 import { useResolveFraudGroupModal } from "./resolve-fraud-group-modal";
 import { ResolvedRiskEventsTable } from "./resolved-risk-events-table";
 
@@ -237,6 +238,11 @@ function RiskReviewSheetContent({
                   {fraudRuleInfo.description}
                 </span>
               </div>
+
+              {fraudGroup.type === FraudRuleType.paidTrafficDetected &&
+                fraudGroup.status === "pending" && (
+                  <RequestDetailsBanner fraudGroup={fraudGroup} />
+                )}
 
               <FraudEventsTableWrapper fraudGroup={fraudGroup} />
             </div>
