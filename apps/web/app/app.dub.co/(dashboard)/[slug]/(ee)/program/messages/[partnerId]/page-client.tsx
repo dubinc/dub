@@ -3,12 +3,14 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { markPartnerMessagesReadAction } from "@/lib/actions/partners/mark-partner-messages-read";
 import { messagePartnerAction } from "@/lib/actions/partners/message-partner";
+import { uploadMessageAttachmentAction } from "@/lib/actions/partners/upload-message-attachment";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
 import { usePartnerMessages } from "@/lib/swr/use-partner-messages";
 import useProgram from "@/lib/swr/use-program";
 import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { PROGRAM_ALLOWED_ATTACHMENT_TYPES } from "@/lib/zod/schemas/messages";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
@@ -17,13 +19,14 @@ import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
 import { PartnerInfoStats } from "@/ui/partners/partner-info-stats";
 import { X } from "@/ui/shared/icons";
+import { PendingAttachment } from "@/ui/shared/message-input";
 import { Button } from "@dub/ui";
 import { ChevronLeft } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { redirect, useParams, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
@@ -81,6 +84,84 @@ export function ProgramMessagesPartnerPageClient() {
       toast.error(parseActionError(error, "Failed to send message"));
     },
   });
+
+  const { executeAsync: uploadAttachment } = useAction(
+    uploadMessageAttachmentAction,
+    {
+      onError({ error }) {
+        toast.error(parseActionError(error, "Failed to upload file"));
+      },
+    },
+  );
+
+  const [pendingAttachments, setPendingAttachments] = useState<
+    PendingAttachment[]
+  >([]);
+
+  const handleAddFiles = useCallback(
+    async (files: File[]) => {
+      for (const file of files) {
+        const id = uuid();
+        const pending: PendingAttachment = {
+          id,
+          file,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          uploading: true,
+        };
+
+        setPendingAttachments((prev) => [...prev, pending]);
+
+        try {
+          const result = await uploadAttachment({
+            workspaceId: workspaceId!,
+            fileName: file.name,
+            contentType:
+              file.type as (typeof PROGRAM_ALLOWED_ATTACHMENT_TYPES)[number],
+            contentLength: file.size,
+          });
+
+          if (!result?.data) {
+            setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
+            continue;
+          }
+
+          const { signedUrl, storageKey } = result.data;
+
+          const uploadResponse = await fetch(signedUrl, {
+            method: "PUT",
+            body: file,
+            headers: {
+              "Content-Type": file.type,
+            },
+          });
+
+          if (!uploadResponse.ok) {
+            toast.error("Failed to upload file");
+            setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
+            continue;
+          }
+
+          setPendingAttachments((prev) =>
+            prev.map((a) =>
+              a.id === id ? { ...a, uploading: false, storageKey } : a,
+            ),
+          );
+        } catch (err) {
+          setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
+          toast.error(
+            `Failed to upload file: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
+      }
+    },
+    [workspaceId, uploadAttachment],
+  );
+
+  const handleRemoveAttachment = useCallback((id: string) => {
+    setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
+  }, []);
 
   const { setCurrentPanel } = useMessagesContext();
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
@@ -144,8 +225,12 @@ export function ProgramMessagesPartnerPageClient() {
             currentUserId={user?.id || ""}
             program={program}
             partner={partner}
+            pendingAttachments={pendingAttachments}
+            onAddFiles={handleAddFiles}
+            onRemoveAttachment={handleRemoveAttachment}
+            allowedFileTypes={PROGRAM_ALLOWED_ATTACHMENT_TYPES}
             defaultValue={defaultMessage}
-            onSendMessage={async (message) => {
+            onSendMessage={async (message, attachments) => {
               const createdAt = new Date();
 
               try {
@@ -155,6 +240,7 @@ export function ProgramMessagesPartnerPageClient() {
                       workspaceId: workspaceId!,
                       partnerId,
                       text: message,
+                      attachments,
                     });
 
                     if (result?.data?.message) {
@@ -199,6 +285,12 @@ export function ProgramMessagesPartnerPageClient() {
                                     name: user!.name,
                                     image: user!.image || null,
                                   },
+                                  attachments: attachments.map((a, i) => ({
+                                    id: `tmp_att_${i}`,
+                                    messageId: "",
+                                    ...a,
+                                    createdAt,
+                                  })),
                                 },
                               ],
                             },
@@ -208,6 +300,7 @@ export function ProgramMessagesPartnerPageClient() {
                   },
                 );
 
+                setPendingAttachments([]);
                 mutatePrefix("/api/messages");
               } catch (e) {
                 console.log(`Failed to send message: ${e}`);

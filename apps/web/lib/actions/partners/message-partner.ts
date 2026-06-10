@@ -18,16 +18,23 @@ import {
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
-const schema = messagePartnerSchema.extend({
-  workspaceId: z.string(),
-});
+const schema = messagePartnerSchema
+  .extend({
+    workspaceId: z.string(),
+  })
+  .refine(
+    (data) => data.text.trim().length > 0 || data.attachments.length > 0,
+    {
+      message: "Message must contain text or at least one attachment.",
+    },
+  );
 
 // Message a partner
 export const messagePartnerAction = authActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId, text } = parsedInput;
+    const { partnerId, text, attachments } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -114,6 +121,14 @@ export const messagePartnerAction = authActionClient
       });
     }
 
+    const keyPrefix = `messages/${programId}/`;
+
+    for (const attachment of attachments) {
+      if (!attachment.storageKey.startsWith(keyPrefix)) {
+        throw new Error("Invalid attachment storage key.");
+      }
+    }
+
     const message = await prisma.message.create({
       data: {
         id: createId({ prefix: "msg_" }),
@@ -121,10 +136,22 @@ export const messagePartnerAction = authActionClient
         partnerId,
         senderUserId: user.id,
         text,
+        ...(attachments.length > 0 && {
+          attachments: {
+            create: attachments.map((att) => ({
+              id: createId({ prefix: "msa_" }),
+              storageKey: att.storageKey,
+              name: att.name,
+              size: att.size,
+              type: att.type,
+            })),
+          },
+        }),
       },
       include: {
         senderUser: true,
         senderPartner: true,
+        attachments: true,
       },
     });
 
