@@ -6,8 +6,10 @@ import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
+const BATCH_SIZE = 250;
+
 // This route is used to expire fraud event groups after 30 days
-// Runs once every day at 02:30:00 AM UTC (0 2 * * *)
+// Runs once every day at 02:30:00 AM UTC (30 2 * * *)
 // POST /api/cron/cleanup/expired-fraud-groups
 export const POST = withCron(async () => {
   // TODO: remove this after July 9th, 2026
@@ -16,34 +18,30 @@ export const POST = withCron(async () => {
     return logAndRespond("Skipping cron because it's before July 9th, 2026.");
   }
 
-  const expiredFraudGroups = await prisma.fraudEventGroup.findMany({
-    where: {
-      status: "pending",
-      lastEventAt: {
-        lt: subDays(new Date(), FRAUD_GROUP_EXPIRY_DAYS),
+  let expiredCount = 0;
+  while (true) {
+    const { count } = await prisma.fraudEventGroup.updateMany({
+      where: {
+        status: "pending",
+        lastEventAt: {
+          lt: subDays(new Date(), FRAUD_GROUP_EXPIRY_DAYS),
+        },
       },
-    },
-  });
+      data: {
+        status: "expired",
+      },
+      limit: BATCH_SIZE,
+    });
 
-  if (expiredFraudGroups.length === 0) {
-    return logAndRespond("No expired fraud groups found.");
+    expiredCount += count;
+    console.log(`Expired ${count} fraud groups`);
+
+    if (count < BATCH_SIZE) {
+      break;
+    }
   }
 
-  console.log(`Found ${expiredFraudGroups.length} expired fraud groups`);
-
-  const { count } = await prisma.fraudEventGroup.updateMany({
-    where: {
-      id: {
-        in: expiredFraudGroups.map((event) => event.id),
-      },
-      status: "pending",
-    },
-    data: {
-      status: "expired",
-    },
-  });
-
   return logAndRespond(
-    `Finished expiring fraud groups (${count} fraud groups expired).`,
+    `Finished expiring fraud groups (${expiredCount} total fraud groups expired).`,
   );
 });

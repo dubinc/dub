@@ -35,6 +35,9 @@ async function main() {
           },
         },
         fraudEventGroups: {
+          where: {
+            status: "pending",
+          },
           select: {
             id: true,
             type: true,

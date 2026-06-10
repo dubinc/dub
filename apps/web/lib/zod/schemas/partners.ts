@@ -509,6 +509,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
       group: true,
       customerDataSharingEnabledAt: true,
       groupMoveDisabledAt: true,
+      riskDetectionDisabledAt: true,
     }).shape,
   )
   .extend({

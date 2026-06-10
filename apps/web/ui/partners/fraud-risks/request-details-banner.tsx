@@ -25,7 +25,7 @@ export function RequestDetailsBanner({
   const { partner } = fraudGroup;
 
   const message = `Hi ${partner.name},
-  
+
 We noticed paid advertising traffic tied to recent referral activity from your account.
 
 Could you share dashboard screenshots that contain the campaign name, keywords or targeting, and the landing page URL so we can review it?

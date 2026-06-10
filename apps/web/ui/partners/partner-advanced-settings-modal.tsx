@@ -45,7 +45,8 @@ function PartnerAdvancedSettingsModal({
   >;
 }) {
   const { id: workspaceId, plan } = useWorkspace();
-  const { canUseGroupMoveRule } = getPlanCapabilities(plan);
+  const { canUseGroupMoveRule, canManageFraudEvents } =
+    getPlanCapabilities(plan);
 
   const [hasCustomerDataSharing, setHasCustomerDataSharing] = useState(
     !!partner.customerDataSharingEnabledAt,
@@ -214,27 +215,29 @@ function PartnerAdvancedSettingsModal({
             </div>
           )}
 
-          <div className="mt-6">
-            <div className="flex items-start gap-3">
-              <Switch
-                fn={handleRiskDetectionDisabledToggle}
-                checked={hasRiskDetectionDisabled}
-                trackDimensions="w-8 h-4"
-                thumbDimensions="w-3 h-3"
-                thumbTranslate="translate-x-4"
-              />
-              <div className="flex flex-col gap-1.5">
-                <h3 className="text-sm font-medium leading-none text-neutral-700">
-                  Exclude from risk monitoring
-                </h3>
-                <MarkdownDescription className="text-xs text-neutral-500">
-                  Future [risk
-                  events](https://dub.co/help/article/fraud-detection) won't be
-                  detected for this partner.
-                </MarkdownDescription>
+          {canManageFraudEvents && (
+            <div className="mt-6">
+              <div className="flex items-start gap-3">
+                <Switch
+                  fn={handleRiskDetectionDisabledToggle}
+                  checked={hasRiskDetectionDisabled}
+                  trackDimensions="w-8 h-4"
+                  thumbDimensions="w-3 h-3"
+                  thumbTranslate="translate-x-4"
+                />
+                <div className="flex flex-col gap-1.5">
+                  <h3 className="text-sm font-medium leading-none text-neutral-700">
+                    Exclude from risk monitoring
+                  </h3>
+                  <MarkdownDescription className="text-xs text-neutral-500">
+                    Future [risk
+                    events](https://dub.co/help/article/fraud-detection) won't
+                    be detected for this partner.
+                  </MarkdownDescription>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
