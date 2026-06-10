@@ -162,7 +162,7 @@ export function ResolvedRiskEventsTable() {
           id: "expiredAt",
           header: "Expired on",
           meta: {
-            headerTooltip: `Unresolved risk events are automatically expired ${FRAUD_GROUP_EXPIRY_DAYS} days after the last detection.`,
+            headerTooltip: `Risk events are automatically expired ${FRAUD_GROUP_EXPIRY_DAYS} days after the last detection if not resolved.`,
           },
           cell: ({ row }: { row: Row<FraudGroupProps> }) =>
             formatDate(
