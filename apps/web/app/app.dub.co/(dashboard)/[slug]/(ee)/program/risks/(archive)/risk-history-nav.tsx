@@ -15,7 +15,7 @@ const RISK_HISTORY_TABS = [
     label: "Expired",
     icon: CircleHalfDottedClock,
   },
-] as const;
+];
 
 export function RiskHistoryNav() {
   const { slug } = useWorkspace();
