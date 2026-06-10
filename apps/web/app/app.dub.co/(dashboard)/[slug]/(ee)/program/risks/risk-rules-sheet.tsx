@@ -168,7 +168,7 @@ function RiskRulesSheetContent({ setIsOpen }: RiskRulesSheetProps) {
             <div className="flex h-16 items-center justify-between px-6 py-4">
               <Sheet.Title className="flex items-center gap-2 text-lg font-semibold">
                 Risk rules
-                <InfoTooltip content="Learn more about how to [customize your program's risk rules](https://dub.co/help/article/fraud-detection)." />
+                <InfoTooltip content="Learn more about how to [customize your program's risk rules](https://dub.co/help/article/risk-monitoring)." />
               </Sheet.Title>
               <Sheet.Close asChild>
                 <Button

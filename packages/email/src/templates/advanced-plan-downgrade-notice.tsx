@@ -81,7 +81,7 @@ export default function AdvancedPlanDowngradeNotice({
             <Text className="text-sm leading-6 text-black">
               •{" "}
               <Link
-                href="https://dub.co/help/article/fraud-detection"
+                href="https://dub.co/help/article/risk-monitoring"
                 className="font-medium text-black underline underline-offset-2"
               >
                 Risk events

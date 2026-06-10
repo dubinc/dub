@@ -231,7 +231,7 @@ function PartnerAdvancedSettingsModal({
                   </h3>
                   <MarkdownDescription className="text-xs text-neutral-500">
                     Future [risk
-                    events](https://dub.co/help/article/fraud-detection) won't
+                    events](https://dub.co/help/article/risk-monitoring) won't
                     be detected for this partner.
                   </MarkdownDescription>
                 </div>

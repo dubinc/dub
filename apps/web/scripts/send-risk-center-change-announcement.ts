@@ -1,10 +1,10 @@
 import "dotenv-flow/config";
 
-import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
-import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import type RiskCenterChangeAnnouncement from "@dub/email/templates/broadcasts/risk-center-change-announcement";
 import { prisma } from "@dub/prisma";
+import { FRAUD_RULES_BY_TYPE } from "../lib/api/fraud/constants";
+import { getWorkspaceUsers } from "../lib/api/get-workspace-users";
+import { queueBatchEmail } from "../lib/email/queue-batch-email";
 
 const BATCH_SIZE = 50;
 

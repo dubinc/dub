@@ -278,7 +278,7 @@ export const PRICING_PLAN_MAIN_FEATURES = {
               title:
                 "Safeguard your partner program by automatically flagging, reviewing, and resolving suspicious activity.",
               cta: "Learn more.",
-              href: "https://dub.co/help/article/fraud-detection",
+              href: "https://dub.co/help/article/risk-monitoring",
             },
           },
           {
