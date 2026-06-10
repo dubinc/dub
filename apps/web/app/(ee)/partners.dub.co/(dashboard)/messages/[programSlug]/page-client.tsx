@@ -1,10 +1,10 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { markProgramMessagesReadAction } from "@/lib/actions/partners/mark-program-messages-read";
-import { messageProgramAction } from "@/lib/actions/partners/message-program";
-import { uploadPartnerMessageAttachmentAction } from "@/lib/actions/partners/upload-partner-message-attachment";
 import { PARTNER_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
+import { markProgramMessagesReadAction } from "@/lib/messages/mark-program-messages-read";
+import { messageProgramAction } from "@/lib/messages/message-program";
+import { uploadPartnerMessageAttachmentAction } from "@/lib/messages/upload-partner-message-attachment";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";

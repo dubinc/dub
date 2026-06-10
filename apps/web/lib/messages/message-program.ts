@@ -5,8 +5,8 @@ import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { MessageSchema, messageProgramSchema } from "../../messages/schemas";
-import { authPartnerActionClient } from "../safe-action";
+import { authPartnerActionClient } from "../actions/safe-action";
+import { MessageSchema, messageProgramSchema } from "./schemas";
 
 const schema = messageProgramSchema.refine(
   (data) => data.text.trim().length > 0 || data.attachments.length > 0,

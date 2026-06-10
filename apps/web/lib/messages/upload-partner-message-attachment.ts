@@ -12,7 +12,7 @@ import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
-import { authPartnerActionClient } from "../safe-action";
+import { authPartnerActionClient } from "../actions/safe-action";
 
 const schema = z.object({
   programSlug: z.string(),
