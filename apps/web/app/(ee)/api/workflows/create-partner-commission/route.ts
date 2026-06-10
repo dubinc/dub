@@ -433,7 +433,6 @@ async function stepRunSideEffects(
     skipWorkflow,
     clickEvent,
     isFirstConversion,
-    userId,
     triggerAggregateDueCommissions,
   } = input;
 
@@ -556,7 +555,10 @@ async function stepRunSideEffects(
       detectAndRecordFraudEvent({
         program: { id: programId },
         partner: pick(programEnrollment.partner, ["id", "email", "name"]),
-        programEnrollment: pick(programEnrollment, ["status"]),
+        programEnrollment: pick(programEnrollment, [
+          "status",
+          "riskDetectionDisabledAt",
+        ]),
         customer: {
           ...pick(commission.customer, ["id", "email", "name"]),
           // only pass along isFirstConversion if it's a boolean

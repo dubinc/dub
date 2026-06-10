@@ -38,6 +38,7 @@ export function MessagesPanel({
   partner,
   onSendMessage,
   placeholder,
+  defaultValue,
   error,
   footerSlot,
   pendingAttachments,
@@ -58,6 +59,7 @@ export function MessagesPanel({
     >[],
   ) => void;
   placeholder?: string;
+  defaultValue?: string;
   error?: any;
   /** When set, replaces the message composer (e.g. read-only enrollment states). */
   footerSlot?: ReactNode;
@@ -305,6 +307,7 @@ export function MessagesPanel({
                 onAddFiles={onAddFiles}
                 onRemoveAttachment={onRemoveAttachment}
                 allowedFileTypes={allowedFileTypes}
+                defaultValue={defaultValue}
               />
             </div>
           )}

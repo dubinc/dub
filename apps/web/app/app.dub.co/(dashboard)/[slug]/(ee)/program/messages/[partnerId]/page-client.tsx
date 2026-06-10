@@ -25,17 +25,18 @@ import { ChevronLeft } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { redirect, useParams } from "next/navigation";
+import { redirect, useParams, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
 export function ProgramMessagesPartnerPageClient() {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-
-  const { partnerId } = useParams() as { partnerId: string };
   const { user } = useUser();
   const { program } = useProgram();
+  const searchParams = useSearchParams();
+  const { partnerId } = useParams<{ partnerId: string }>();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+
   const {
     partner: enrolledPartner,
     error: enrolledPartnerError,
@@ -167,6 +168,8 @@ export function ProgramMessagesPartnerPageClient() {
 
   if (errorMessages) redirect(`/${workspaceSlug}/program/messages`);
 
+  const defaultMessage = decodeURIComponent(searchParams.get("message") || "");
+
   return (
     <div
       className="relative grid h-full"
@@ -226,6 +229,7 @@ export function ProgramMessagesPartnerPageClient() {
             onAddFiles={handleAddFiles}
             onRemoveAttachment={handleRemoveAttachment}
             allowedFileTypes={PROGRAM_ALLOWED_ATTACHMENT_TYPES}
+            defaultValue={defaultMessage}
             onSendMessage={async (message, attachments) => {
               const createdAt = new Date();
 

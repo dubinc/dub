@@ -12,13 +12,14 @@ import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import { useProgramSubmittedLeadsCount } from "@/lib/swr/use-program-submitted-leads-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { type Icon, useRouterStuff } from "@dub/ui";
+import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
   Brush,
   ConnectedDots,
   CubeSettings,
   DiamondTurnRight,
+  Flag,
   Folder,
   Gauge6,
   Gear2,
@@ -34,7 +35,6 @@ import {
   PaperPlane,
   Receipt2,
   ShieldCheck,
-  ShieldKeyhole,
   Sliders,
   StackY3,
   Tag,
@@ -209,7 +209,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Customers",
-            icon: User as Icon,
+            icon: User,
             href: `/${slug}/program/customers`,
             badge: pendingLeadsCount
               ? pendingLeadsCount > 99
@@ -224,7 +224,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Risk Center",
-            icon: ShieldKeyhole,
+            icon: Flag,
             href: `/${slug}/program/risks`,
             badge: pendingFraudEventsCount
               ? pendingFraudEventsCount > 99
