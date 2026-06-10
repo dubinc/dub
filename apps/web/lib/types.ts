@@ -146,6 +146,7 @@ import {
   partnerPlatformSchema,
   PartnerRewindSchema,
   PartnerSchema,
+  partnerSharedPlatformSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
 import {
@@ -521,6 +522,10 @@ export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerPlatformProps = z.infer<typeof partnerPlatformSchema>;
+
+export type PartnerSharedPlatformProps = z.infer<
+  typeof partnerSharedPlatformSchema
+>;
 
 export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
