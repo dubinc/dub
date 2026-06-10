@@ -75,6 +75,7 @@ export const GET = withAdmin(async ({ params }) => {
         select: {
           id: true,
           name: true,
+          email: true,
           image: true,
         },
       },
@@ -107,6 +108,7 @@ export const GET = withAdmin(async ({ params }) => {
         partners: platformMatches.map((match) => ({
           id: match.partner.id,
           name: match.partner.name,
+          email: match.partner.email,
           image: match.partner.image,
         })),
       };

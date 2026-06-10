@@ -150,15 +150,13 @@ export function PartnerPlatformSummary({
                   })}
                 />
 
-                {subdomain === "admin" && (
-                  <AnimatedSizeContainer height>
-                    {sharedPlatform && (
-                      <PartnerPlatformSharedPartners
-                        sharedPartners={sharedPlatform.partners}
-                      />
-                    )}
-                  </AnimatedSizeContainer>
-                )}
+                <AnimatedSizeContainer height>
+                  {sharedPlatform && (
+                    <PartnerPlatformSharedPartners
+                      sharedPartners={sharedPlatform.partners}
+                    />
+                  )}
+                </AnimatedSizeContainer>
               </div>
             </Fragment>
           );

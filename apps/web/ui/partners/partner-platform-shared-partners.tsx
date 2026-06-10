@@ -1,13 +1,9 @@
-import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerSharedPlatformProps } from "@/lib/types";
-import { StatusBadge } from "@dub/ui";
 import { Duplicate } from "@dub/ui/icons";
 import { cn, pluralize } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
-import Link from "next/link";
 import { useId, useState } from "react";
 import { PartnerAvatar } from "./partner-avatar";
-import { PartnerStatusBadges } from "./partner-status-badges";
 
 export function PartnerPlatformSharedPartners({
   sharedPartners,
@@ -57,10 +53,6 @@ function SharedPartner({
 }: {
   partner: PartnerSharedPlatformProps["partners"][number];
 }) {
-  const { slug: workspaceSlug } = useWorkspace();
-
-  const badge = PartnerStatusBadges[partner.status];
-
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-2">
@@ -68,20 +60,15 @@ function SharedPartner({
         <span className="min-w-0 truncate text-xs font-medium text-neutral-700">
           {partner.name}
         </span>
-        {badge && (
-          <StatusBadge icon={null} variant={badge.variant} size="sm">
-            {badge.label}
-          </StatusBadge>
-        )}
       </div>
-      <Link
-        href={`/${workspaceSlug}/program/partners/${partner.id}`}
+      <a
+        href={`/partners/network?partnerId=${partner.id}&search=${encodeURIComponent(partner.email ?? "")}`}
         target="_blank"
         rel="noopener noreferrer"
         className="text-content-subtle hover:text-content-default shrink-0 text-xs font-medium"
       >
         View
-      </Link>
+      </a>
     </div>
   );
 }

@@ -1058,6 +1058,7 @@ export const partnerSharedPlatformSchema = z.object({
     z.object({
       id: z.string(),
       name: z.string(),
+      email: z.email().nullable(),
       image: z.string().nullable(),
     }),
   ),
