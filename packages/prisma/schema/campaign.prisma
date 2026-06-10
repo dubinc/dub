@@ -18,7 +18,7 @@ enum CampaignStatus {
 }
 
 model Campaign {
-  id              String              @id @default(cuid())
+  id              String              @id
   programId       String
   workflowId      String?             @unique
   userId          String
