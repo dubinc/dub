@@ -21,7 +21,9 @@ export const APP_DOMAIN_WITH_NGROK =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
     ? `https://app.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-      ? `https://preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+      ? process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : `https://preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
       : process.env.NEXT_PUBLIC_NGROK_URL || "http://localhost:8888";
 
 export const API_HOSTNAMES = new Set([
