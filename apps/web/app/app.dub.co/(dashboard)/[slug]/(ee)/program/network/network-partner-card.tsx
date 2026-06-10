@@ -214,6 +214,8 @@ export function NetworkPartnerCard({
                     stat,
                     value,
                     href,
+                    info,
+                    verifiedAt,
                   }) => (
                     <PlatformStatCard
                       key={label}
@@ -222,6 +224,8 @@ export function NetworkPartnerCard({
                       verified={verified}
                       stat={stat}
                       value={value}
+                      info={info}
+                      verifiedAt={verifiedAt}
                       href={verified && href ? href : undefined}
                     />
                   ),
@@ -313,6 +317,8 @@ function PlatformStatCard({
   verified,
   stat,
   value,
+  info,
+  verifiedAt,
   href,
 }: {
   label: string;
@@ -320,6 +326,8 @@ function PlatformStatCard({
   verified: boolean;
   stat?: string | null;
   value?: string | null;
+  info?: string[];
+  verifiedAt?: Date | null;
   href?: string | null;
 }) {
   const content = (
@@ -356,17 +364,88 @@ function PlatformStatCard({
 
   return (
     <DynamicTooltipWrapper
-      tooltipProps={value ? { content: value } : undefined}
+      tooltipProps={{
+        content: (
+          <PlatformStatTooltipContent
+            label={label}
+            icon={PlatformIcon}
+            value={value}
+            stat={stat}
+            info={info}
+            verified={verified}
+            verifiedAt={verifiedAt}
+          />
+        ),
+      }}
     >
       <As
-        href={href ?? "#"}
-        target="_blank"
-        rel="noopener noreferrer"
+        {...(href
+          ? {
+              href,
+              target: "_blank",
+              rel: "noopener noreferrer",
+            }
+          : {})}
         onClick={(e) => e.stopPropagation()}
       >
         {content}
       </As>
     </DynamicTooltipWrapper>
+  );
+}
+
+function PlatformStatTooltipContent({
+  label,
+  icon: PlatformIcon,
+  value,
+  stat,
+  info,
+  verified,
+  verifiedAt,
+}: {
+  label: string;
+  icon: Icon;
+  value?: string | null;
+  stat?: string | null;
+  info?: string[];
+  verified: boolean;
+  verifiedAt?: Date | null;
+}) {
+  if (!verified || !value) {
+    return (
+      <div className="flex items-center gap-2 p-2.5 text-xs">
+        <div className="border-border-subtle flex size-7 shrink-0 items-center justify-center rounded-full border">
+          <PlatformIcon className="text-content-subtle size-3.5 opacity-40" />
+        </div>
+        <span className="text-content-subtle font-medium">Not connected</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2 p-2.5 text-xs">
+      <div className="flex items-center gap-2">
+        <div className="border-border-subtle flex size-7 shrink-0 items-center justify-center rounded-full border">
+          <PlatformIcon className="size-3.5" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-content-emphasis truncate font-semibold">
+            {value}
+          </div>
+          {(info?.[0] ?? stat) && (
+            <div className="text-content-default font-medium">
+              {info?.[0] ?? stat}
+            </div>
+          )}
+        </div>
+      </div>
+      {verifiedAt && (
+        <div className="text-content-subtle flex items-center gap-1.5 font-medium">
+          <BadgeCheck2Fill className="size-3 shrink-0 text-green-600" />
+          Verified {timeAgo(verifiedAt, { withAgo: true })}
+        </div>
+      )}
+    </div>
   );
 }
 

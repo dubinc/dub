@@ -16,6 +16,7 @@ export const PARTNER_PLATFORM_FIELDS: {
   data: (platforms: PartnerPlatformProps[]) => {
     value?: string | null;
     verified: boolean;
+    verifiedAt?: Date | null;
     href?: string | null;
     info?: string[];
     stat?: string | null;
@@ -30,6 +31,7 @@ export const PARTNER_PLATFORM_FIELDS: {
       return {
         value: website ? getPrettyUrl(website.identifier) : null,
         verified: !!website?.verifiedAt,
+        verifiedAt: website?.verifiedAt ?? null,
         href: website?.identifier
           ? getUrlFromStringIfValid(website.identifier)
           : null,
@@ -54,6 +56,7 @@ export const PARTNER_PLATFORM_FIELDS: {
       return {
         value: youtube?.identifier ? `@${youtube.identifier}` : null,
         verified: !!youtube?.verifiedAt,
+        verifiedAt: youtube?.verifiedAt ?? null,
         href: youtube?.identifier
           ? `https://youtube.com/@${youtube.identifier}`
           : null,
@@ -81,6 +84,7 @@ export const PARTNER_PLATFORM_FIELDS: {
       return {
         value: twitter ? `@${twitter.identifier}` : null,
         verified: !!twitter?.verifiedAt,
+        verifiedAt: twitter?.verifiedAt ?? null,
         href: twitter?.identifier
           ? `https://x.com/${twitter.identifier}`
           : null,
@@ -108,6 +112,7 @@ export const PARTNER_PLATFORM_FIELDS: {
       return {
         value: linkedin ? linkedin.identifier : null,
         verified: !!linkedin?.verifiedAt,
+        verifiedAt: linkedin?.verifiedAt ?? null,
         href: linkedin?.identifier
           ? `https://linkedin.com/in/${linkedin.identifier}`
           : null,
@@ -123,6 +128,7 @@ export const PARTNER_PLATFORM_FIELDS: {
       return {
         value: instagram ? `@${instagram.identifier}` : null,
         verified: !!instagram?.verifiedAt,
+        verifiedAt: instagram?.verifiedAt ?? null,
         href: instagram?.identifier
           ? `https://instagram.com/${instagram.identifier}`
           : null,
@@ -150,6 +156,7 @@ export const PARTNER_PLATFORM_FIELDS: {
       return {
         value: tiktok ? `@${tiktok.identifier}` : null,
         verified: !!tiktok?.verifiedAt,
+        verifiedAt: tiktok?.verifiedAt ?? null,
         href: tiktok?.identifier
           ? `https://tiktok.com/@${tiktok.identifier}`
           : null,
