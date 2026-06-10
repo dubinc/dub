@@ -1,6 +1,9 @@
 "use client";
 
-import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
+import {
+  FRAUD_GROUP_EXPIRY_DAYS,
+  FRAUD_RULES_BY_TYPE,
+} from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudGroups } from "@/lib/swr/use-fraud-groups";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
@@ -9,8 +12,8 @@ import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkResolveFraudGroupsModal } from "@/ui/modals/bulk-resolve-fraud-groups-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
-import { FraudDisclaimerBanner } from "@/ui/partners/fraud-risks/fraud-disclaimer-banner";
-import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
+import { RiskDisclaimerBanner } from "@/ui/partners/fraud-risks/risk-disclaimer-banner";
+import { RiskReviewSheet } from "@/ui/partners/fraud-risks/risk-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
@@ -28,14 +31,21 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, ShieldAlert, UserDelete, UserXmark } from "@dub/ui/icons";
+import {
+  CircleHalfDottedClock,
+  Dots,
+  ShieldAlert,
+  UserDelete,
+  UserXmark,
+} from "@dub/ui/icons";
 import { cn, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import { addDays, differenceInDays } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFraudGroupFilters } from "./use-fraud-group-filters";
 
-export function FraudGroupTable() {
+export function RiskEventsTable() {
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
@@ -178,14 +188,7 @@ export function FraudGroupTable() {
             "The date and time of the most recent occurrence of this fraud event.",
         },
         cell: ({ row }) => (
-          <TimestampTooltip
-            timestamp={row.original.lastEventAt}
-            side="right"
-            rows={["local", "utc", "unix"]}
-            delayDuration={150}
-          >
-            <span>{formatDateTimeSmart(row.original.lastEventAt)}</span>
-          </TimestampTooltip>
+          <LastDetectedCell lastEventAt={row.original.lastEventAt} />
         ),
       },
       {
@@ -233,10 +236,10 @@ export function FraudGroupTable() {
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (plural) => `fraud event${plural ? "s" : ""}`,
+    resourceName: (plural) => `risk event${plural ? "s" : ""}`,
     rowCount: fraudGroupCount ?? 0,
     loading,
-    error: error || countError ? "Failed to load fraud events" : undefined,
+    error: error || countError ? "Failed to load risk events" : undefined,
     selectionControls: (tableInstance) => {
       // Store table reference for resetting selection
       tableRef.current = tableInstance;
@@ -314,7 +317,7 @@ export function FraudGroupTable() {
       <BulkBanPartnersModal />
       <BulkResolveFraudGroupsModal />
       {detailsSheetState.groupId && currentFraudGroup && (
-        <FraudReviewSheet
+        <RiskReviewSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
@@ -340,7 +343,7 @@ export function FraudGroupTable() {
       )}
 
       <div>
-        <FraudDisclaimerBanner />
+        <RiskDisclaimerBanner />
         <div className="mt-3">
           <PendingFraudFilters />
         </div>
@@ -350,8 +353,8 @@ export function FraudGroupTable() {
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
-          title="No pending fraud to review"
-          description="There aren't any unresolved fraud events waiting for action right now."
+          title="No pending risk events to review"
+          description="There aren't any unresolved risk events waiting for action right now."
           cardContent={() => (
             <>
               <ShieldAlert className="size-4 text-neutral-700" />
@@ -364,6 +367,56 @@ export function FraudGroupTable() {
         />
       )}
     </div>
+  );
+}
+
+function LastDetectedCell({ lastEventAt }: { lastEventAt: Date | string }) {
+  const daysUntilExpiry = differenceInDays(
+    addDays(new Date(lastEventAt), FRAUD_GROUP_EXPIRY_DAYS),
+    new Date(),
+  );
+
+  const dateLabel = (
+    <span
+      {...(daysUntilExpiry < 7 && {
+        className: cn(
+          "flex items-center gap-1 underline decoration-dotted underline-offset-2",
+          daysUntilExpiry >= 0 && "text-amber-600",
+          daysUntilExpiry < 0 && "text-red-600",
+        ),
+      })}
+    >
+      {daysUntilExpiry < 7 && (
+        <CircleHalfDottedClock className="size-3.5 shrink-0" />
+      )}
+      {formatDateTimeSmart(lastEventAt)}
+    </span>
+  );
+
+  if (daysUntilExpiry < 7) {
+    return (
+      <Tooltip
+        content={
+          daysUntilExpiry > 0
+            ? `This risk event will expire in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"} if not resolved. Unresolved risk events are automatically expired ${FRAUD_GROUP_EXPIRY_DAYS} days after the last detection.`
+            : "This risk event has expired and will be removed shortly. Please review it as soon as possible."
+        }
+        align="center"
+      >
+        <div className="w-fit">{dateLabel}</div>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <TimestampTooltip
+      timestamp={lastEventAt}
+      side="right"
+      rows={["local", "utc", "unix"]}
+      delayDuration={150}
+    >
+      {dateLabel}
+    </TimestampTooltip>
   );
 }
 

@@ -28,6 +28,7 @@ export function MessagesPanel({
   partner,
   onSendMessage,
   placeholder,
+  defaultValue,
   error,
   footerSlot,
 }: {
@@ -38,6 +39,7 @@ export function MessagesPanel({
   partner?: Pick<PartnerProps, "name">;
   onSendMessage: (message: string) => void;
   placeholder?: string;
+  defaultValue?: string;
   error?: any;
   /** When set, replaces the message composer (e.g. read-only enrollment states). */
   footerSlot?: ReactNode;
@@ -243,6 +245,7 @@ export function MessagesPanel({
                 placeholder={personalizedPlaceholder}
                 onSendMessage={sendMessage}
                 autoFocus={!isMobile}
+                defaultValue={defaultValue}
               />
             </div>
           )}

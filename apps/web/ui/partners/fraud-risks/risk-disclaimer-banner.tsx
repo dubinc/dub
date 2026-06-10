@@ -1,7 +1,7 @@
 import { TriangleWarning } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 
-export function FraudDisclaimerBanner({ className }: { className?: string }) {
+export function RiskDisclaimerBanner({ className }: { className?: string }) {
   return (
     <div
       className={cn(
@@ -11,8 +11,8 @@ export function FraudDisclaimerBanner({ className }: { className?: string }) {
     >
       <TriangleWarning className="mt-0.5 size-4 shrink-0 text-amber-600" />
       <p className="flex-1 text-sm text-amber-900">
-        We recommend reviewing the flagged events thoroughly and potentially
-        reaching out to the partner before making a final decision.{" "}
+        We recommend reviewing the risk events thoroughly before taking action.
+        Unresolved events expire after 30 days.{" "}
         <a
           href="https://dub.co/help/article/fraud-detection"
           target="_blank"

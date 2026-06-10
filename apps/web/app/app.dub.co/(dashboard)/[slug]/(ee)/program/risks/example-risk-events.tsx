@@ -1,7 +1,7 @@
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { FraudRuleType } from "@dub/prisma/client";
-import { Button, ShieldKeyhole } from "@dub/ui";
+import { Button, Flag } from "@dub/ui";
 import { formatDate } from "@dub/utils";
 
 const EXAMPLE_FRAUD_EVENTS: {
@@ -21,33 +21,33 @@ const EXAMPLE_FRAUD_EVENTS: {
   },
 ];
 
-interface ExampleFraudEventProps {
+interface ExampleRiskEventProps {
   type: FraudRuleType;
   partnerName: string;
   date: Date;
 }
 
-export function ExampleFraudEvents() {
+export function ExampleRiskEvents() {
   return (
     <div
       className="flex w-full max-w-md flex-col gap-4 overflow-hidden px-4 [mask-image:linear-gradient(black_80%,transparent)]"
       aria-hidden
     >
       {EXAMPLE_FRAUD_EVENTS.map((event, idx) => (
-        <ExampleFraudEvent key={idx} event={event} />
+        <ExampleRiskEvent key={idx} event={event} />
       ))}
     </div>
   );
 }
 
-function ExampleFraudEvent({ event }: { event: ExampleFraudEventProps }) {
+function ExampleRiskEvent({ event }: { event: ExampleRiskEventProps }) {
   const rule = FRAUD_RULES_BY_TYPE[event.type];
 
   return (
     <div className="flex w-full select-none items-center justify-between gap-4 overflow-hidden rounded-xl border border-neutral-200 bg-white p-5">
       <div className="flex min-w-0 flex-1 items-center gap-4">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50">
-          <ShieldKeyhole className="size-5 text-neutral-600" />
+          <Flag className="size-5 text-neutral-600" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <span className="text-sm font-semibold text-neutral-900">

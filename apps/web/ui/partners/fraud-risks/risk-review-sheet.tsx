@@ -11,13 +11,13 @@ import { X } from "@/ui/shared/icons";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import { FraudRuleType } from "@dub/prisma/client";
 import {
+  ArrowUpRight2,
   Button,
   ChevronLeft,
   ChevronRight,
   Msgs,
   Sheet,
   Tooltip,
-  User,
   buttonVariants,
   useKeyboardShortcut,
   useRouterStuff,
@@ -27,14 +27,14 @@ import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
 import useSWR from "swr";
 import { AssociatedCommissionsTable } from "./associated-commissions-table";
-import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 import { useMarkAllAsFraudModal } from "./mark-all-as-fraud-modal";
 import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
+import { RequestDetailsBanner } from "./request-details-banner";
 import { useResolveFraudGroupModal } from "./resolve-fraud-group-modal";
-import { ResolvedFraudGroupTable } from "./resolved-fraud-group-table";
+import { ResolvedRiskEventsTable } from "./resolved-risk-events-table";
 
-interface FraudReviewSheetProps {
+interface RiskReviewSheetProps {
   fraudGroup: FraudGroupProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
@@ -49,11 +49,11 @@ const COMMISSION_BLOCKING_FRAUD_TYPE: FraudRuleType[] = [
   FraudRuleType.paidTrafficDetected,
 ];
 
-function FraudReviewSheetContent({
+function RiskReviewSheetContent({
   fraudGroup,
   onPrevious,
   onNext,
-}: FraudReviewSheetProps) {
+}: RiskReviewSheetProps) {
   const { partner, user } = fraudGroup;
   const { slug, id: workspaceId } = useWorkspace();
 
@@ -147,23 +147,11 @@ function FraudReviewSheetContent({
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
             {fraudGroup.status === "pending"
-              ? "Fraud review"
-              : "Resolved fraud and risk event"}
+              ? "Risk event review"
+              : "Resolved risk event"}
           </Sheet.Title>
 
           <div className="flex items-center gap-2">
-            <Link
-              href={`/${slug}/program/partners/${partner.id}`}
-              target="_blank"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-9 items-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm font-medium",
-              )}
-            >
-              <User className="size-4 shrink-0" />
-              <span className="hidden sm:inline">View profile</span>
-            </Link>
-
             <Link
               href={`/${slug}/program/messages/${partner.id}`}
               target="_blank"
@@ -207,11 +195,14 @@ function FraudReviewSheetContent({
 
         <div className="min-h-0 grow overflow-y-auto">
           <div className="flex flex-col gap-6 p-6">
-            <FraudDisclaimerBanner />
-
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:gap-6">
               {/* Partner details */}
-              <div className="bg-bg-muted border-border-subtle flex flex-grow flex-col gap-3 rounded-xl border px-4 py-3">
+              <Link
+                href={`/${slug}/program/partners/${partner.id}`}
+                target="_blank"
+                className="bg-bg-muted border-border-subtle hover:bg-bg-subtle group relative flex flex-grow flex-col gap-3 rounded-xl border px-4 py-3 transition-colors"
+              >
+                <ArrowUpRight2 className="text-content-subtle absolute right-3 top-3 size-3.5 opacity-50 transition-opacity duration-150 group-hover:opacity-100" />
                 <h2 className="text-content-default text-sm font-semibold leading-5">
                   Partner details
                 </h2>
@@ -226,7 +217,7 @@ function FraudReviewSheetContent({
                     </span>
                   </div>
                 </div>
-              </div>
+              </Link>
 
               <div className="bg-bg-muted border-border-subtle flex flex-col gap-3 rounded-xl border px-4 py-3 sm:shrink-0">
                 <h2 className="text-content-default text-sm font-semibold leading-5">
@@ -247,6 +238,11 @@ function FraudReviewSheetContent({
                   {fraudRuleInfo.description}
                 </span>
               </div>
+
+              {fraudGroup.type === FraudRuleType.paidTrafficDetected &&
+                fraudGroup.status === "pending" && (
+                  <RequestDetailsBanner fraudGroup={fraudGroup} />
+                )}
 
               <FraudEventsTableWrapper fraudGroup={fraudGroup} />
             </div>
@@ -275,7 +271,7 @@ function FraudReviewSheetContent({
               )}
 
             {fraudGroup.status === "pending" && (
-              <ResolvedFraudGroupTable partnerId={partner.id} />
+              <ResolvedRiskEventsTable partnerId={partner.id} />
             )}
 
             {fraudGroup.status === "resolved" && (
@@ -381,11 +377,11 @@ function FraudReviewSheetContent({
   );
 }
 
-export function FraudReviewSheet({
+export function RiskReviewSheet({
   isOpen,
   nested,
   ...rest
-}: FraudReviewSheetProps & {
+}: RiskReviewSheetProps & {
   isOpen: boolean;
   nested?: boolean;
 }) {
@@ -412,7 +408,7 @@ export function FraudReviewSheet({
         className: "[--sheet-width:940px]",
       }}
     >
-      <FraudReviewSheetContent {...rest} />
+      <RiskReviewSheetContent {...rest} />
     </Sheet>
   );
 }

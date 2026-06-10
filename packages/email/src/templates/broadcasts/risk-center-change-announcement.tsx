@@ -1,4 +1,4 @@
-import { DUB_WORDMARK, formatDate, OG_AVATAR_URL } from "@dub/utils";
+import { DUB_WORDMARK, OG_AVATAR_URL } from "@dub/utils";
 import {
   Body,
   Column,
@@ -14,11 +14,12 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { Footer } from "../components/footer";
+import { Footer } from "../../components/footer";
 
 const MAX_DISPLAYED_GROUPS = 5;
 
-export default function UnresolvedFraudEventsSummary({
+export default function RiskCenterChangeAnnouncement({
+  email = "panic@thedis.co",
   workspace = {
     slug: "acme",
   },
@@ -45,8 +46,8 @@ export default function UnresolvedFraudEventsSummary({
       },
     },
   ],
-  email = "panic@thedis.co",
 }: {
+  email: string;
   workspace: {
     slug: string;
   };
@@ -62,38 +63,56 @@ export default function UnresolvedFraudEventsSummary({
       image: string | null;
     };
   }[];
-  email: string;
 }) {
-  const todayDate = formatDate(new Date(), {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-
   const displayedGroups = fraudGroups.slice(0, MAX_DISPLAYED_GROUPS);
   const remainingCount = fraudGroups.length - MAX_DISPLAYED_GROUPS;
   const hiddenCount = Math.max(0, remainingCount);
 
   return (
     <Html>
-      <Head />
-      <Preview>Risk events</Preview>
+      <Head>
+        <style>{`
+          @media only screen and (max-width: 600px) {
+            .email-container {
+              padding-left: 16px !important;
+              padding-right: 16px !important;
+            }
+          }
+        `}</style>
+      </Head>
+      <Preview>
+        Risk events now expire after 30 days if left unresolved, please review
+        them before they expire.
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-8 max-w-[600px] px-8 py-8">
-            <Section className="mt-8">
+          <Container className="email-container mx-auto my-10 max-w-[600px] px-10 py-5">
+            <Section className="mt-2">
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
 
-            <Heading className="mx-0 my-8 p-0 text-lg font-medium text-black">
-              Risk events
+            <Heading className="mx-0 mb-2 mt-10 text-xl font-semibold text-black">
+              Important updates to your Dub program
             </Heading>
 
-            <Text className="text-sm text-neutral-600">
-              Here are your detected risk events reported for{" "}
-              <strong>{todayDate}</strong> for the{" "}
-              <strong>{program.name}</strong> program. These risk events will
-              automatically expire in 30 days if not resolved.
+            <Text className="text-sm leading-6 text-neutral-600">
+              We've made some important changes to the fraud detection tools for
+              the <strong className="text-black">{program.name}</strong> program
+              that we wanted to let you know about.
+            </Text>
+
+            <Text className="mt-0 text-sm leading-6 text-neutral-600">
+              Unresolved risk events will now{" "}
+              <strong className="text-black">
+                automatically expire after 30 days
+              </strong>{" "}
+              if no new activity is detected. This is to ensure there are no
+              delay in partner payouts due to unresolved risk events.
+            </Text>
+
+            <Text className="text-sm leading-6 text-neutral-600">
+              You currently have pending risk events for your program – please
+              review them before they expire:
             </Text>
 
             <Section className="my-6 rounded-xl border border-solid border-neutral-200 bg-white p-0">
@@ -101,7 +120,6 @@ export default function UnresolvedFraudEventsSummary({
                 const isLastDisplayedItem =
                   index === displayedGroups.length - 1;
                 const shouldShowBottomBorder = !isLastDisplayedItem;
-
                 return (
                   <Row
                     key={group.id}
@@ -171,12 +189,38 @@ export default function UnresolvedFraudEventsSummary({
               )}
             </Section>
 
-            <Section className="mt-6 text-center">
+            <Text className="mt-0 text-sm leading-6 text-neutral-600">
+              To give you more time to review them, we've extended the
+              expiration period for all events to July 9th, 2026 (30 days from
+              now).
+            </Text>
+
+            <Text className="mt-0 text-sm leading-6 text-neutral-600">
+              Last but not least, the{" "}
+              <strong className="text-black">Fraud Detection</strong> tab has
+              been renamed to{" "}
+              <strong className="text-black">Risk Center</strong>. All existing
+              events, rules, and settings remain unchanged – just the names that
+              are different.
+            </Text>
+
+            <Section className="mb-10 mt-4">
               <Link
                 href={`https://app.dub.co/${workspace.slug}/program/risks`}
-                className="box-border block w-full rounded-md bg-black px-4 py-3 text-center text-sm font-medium leading-none text-white no-underline"
+                className="block w-full rounded-lg bg-neutral-900 py-2.5 text-center text-sm font-medium text-white no-underline"
+                style={{
+                  backgroundColor: "#171717",
+                  color: "#ffffff",
+                  borderRadius: "8px",
+                  padding: "10px 16px",
+                  textDecoration: "none",
+                  fontWeight: "500",
+                  fontSize: "14px",
+                  width: "100%",
+                  boxSizing: "border-box",
+                }}
               >
-                Review all events
+                Go to Risk Center
               </Link>
             </Section>
 

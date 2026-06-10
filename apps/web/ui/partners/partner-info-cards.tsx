@@ -41,10 +41,10 @@ import { Fragment, ReactNode, createElement } from "react";
 import useSWR from "swr";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
 import {
-  PartnerApplicationFraudBanner,
-  PartnerFraudBanner,
-} from "./fraud-risks/partner-fraud-banner";
-import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
+  PartnerApplicationRiskBanner,
+  PartnerRiskBanner,
+} from "./fraud-risks/partner-risk-banner";
+import { PartnerRiskIndicator } from "./fraud-risks/partner-risk-indicator";
 import { PartnerAvatar } from "./partner-avatar";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
@@ -247,9 +247,9 @@ export function PartnerInfoCards({
         {partner &&
           isEnrolled &&
           (partner.status === "pending" ? (
-            <PartnerApplicationFraudBanner partner={partner} />
+            <PartnerApplicationRiskBanner partner={partner} />
           ) : (
-            <PartnerFraudBanner partner={partner} />
+            <PartnerRiskBanner partner={partner} />
           ))}
 
         <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border bg-white">
@@ -296,7 +296,7 @@ export function PartnerInfoCards({
                   )}
 
                   {showFraudIndicator && (
-                    <PartnerFraudIndicator partnerId={partner.id} />
+                    <PartnerRiskIndicator partnerId={partner.id} />
                   )}
                 </div>
               ) : (

@@ -4,7 +4,7 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { ReactNode } from "react";
-import { FraudUpsell } from "./fraud-upsell";
+import { RiskCenterUpsell } from "./risk-center-upsell";
 
 export default function FraudRiskLayout({ children }: { children: ReactNode }) {
   const { plan, loading } = useWorkspace();
@@ -16,7 +16,7 @@ export default function FraudRiskLayout({ children }: { children: ReactNode }) {
   const { canManageFraudEvents } = getPlanCapabilities(plan);
 
   if (!canManageFraudEvents) {
-    return <FraudUpsell />;
+    return <RiskCenterUpsell />;
   }
 
   return children;
