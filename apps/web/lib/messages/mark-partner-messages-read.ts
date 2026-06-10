@@ -3,8 +3,8 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
-import { authActionClient } from "../safe-action";
-import { throwIfNoPermission } from "../throw-if-no-permission";
+import { authActionClient } from "../actions/safe-action";
+import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),

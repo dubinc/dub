@@ -1,18 +1,18 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { markProgramMessagesReadAction } from "@/lib/actions/partners/mark-program-messages-read";
-import { messageProgramAction } from "@/lib/actions/partners/message-program";
-import { uploadPartnerMessageAttachmentAction } from "@/lib/actions/partners/upload-partner-message-attachment";
+import { PARTNER_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
+import { useProgramMessages } from "@/lib/messages/hooks/use-program-messages";
+import { markProgramMessagesReadAction } from "@/lib/messages/mark-program-messages-read";
+import { messageProgramAction } from "@/lib/messages/message-program";
+import { uploadPartnerMessageAttachmentAction } from "@/lib/messages/upload-partner-message-attachment";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { useProgramMessages } from "@/lib/swr/use-program-messages";
 import useUser from "@/lib/swr/use-user";
 import { ProgramEnrollmentProps } from "@/lib/types";
-import { PARTNER_ALLOWED_ATTACHMENT_TYPES } from "@/lib/zod/schemas/messages";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";

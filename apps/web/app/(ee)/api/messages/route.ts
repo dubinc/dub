@@ -5,7 +5,7 @@ import { enrichMessage } from "@/lib/messages/enrich";
 import {
   PartnerMessagesSchema,
   getPartnerMessagesQuerySchema,
-} from "@/lib/zod/schemas/messages";
+} from "@/lib/messages/schemas";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
