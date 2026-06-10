@@ -25,7 +25,7 @@ type FormData = {
   tenantId: string | null;
   customerDataSharingEnabledAt: Date | null;
   groupMoveDisabledAt: Date | null;
-  riskDetectionDisabledAt: Date | null;
+  riskMonitoringDisabledAt: Date | null;
 };
 
 function PartnerAdvancedSettingsModal({
@@ -41,7 +41,7 @@ function PartnerAdvancedSettingsModal({
     | "tenantId"
     | "customerDataSharingEnabledAt"
     | "groupMoveDisabledAt"
-    | "riskDetectionDisabledAt"
+    | "riskMonitoringDisabledAt"
   >;
 }) {
   const { id: workspaceId, plan } = useWorkspace();
@@ -57,7 +57,7 @@ function PartnerAdvancedSettingsModal({
   );
 
   const [hasRiskDetectionDisabled, setHasRiskDetectionDisabled] = useState(
-    !!partner.riskDetectionDisabledAt,
+    !!partner.riskMonitoringDisabledAt,
   );
 
   const { executeAsync } = useAction(updatePartnerEnrollmentAction, {
@@ -79,7 +79,7 @@ function PartnerAdvancedSettingsModal({
       tenantId: partner.tenantId,
       customerDataSharingEnabledAt: partner.customerDataSharingEnabledAt,
       groupMoveDisabledAt: partner.groupMoveDisabledAt ?? null,
-      riskDetectionDisabledAt: partner.riskDetectionDisabledAt ?? null,
+      riskMonitoringDisabledAt: partner.riskMonitoringDisabledAt ?? null,
     },
   });
 
@@ -101,7 +101,7 @@ function PartnerAdvancedSettingsModal({
 
   const handleRiskDetectionDisabledToggle = (checked: boolean) => {
     setHasRiskDetectionDisabled(checked);
-    setValue("riskDetectionDisabledAt", checked ? new Date() : null, {
+    setValue("riskMonitoringDisabledAt", checked ? new Date() : null, {
       shouldDirty: true,
       shouldValidate: true,
     });
@@ -126,7 +126,7 @@ function PartnerAdvancedSettingsModal({
             tenantId: data.tenantId || null,
             customerDataSharingEnabledAt: data.customerDataSharingEnabledAt,
             groupMoveDisabledAt: data.groupMoveDisabledAt,
-            riskDetectionDisabledAt: data.riskDetectionDisabledAt,
+            riskMonitoringDisabledAt: data.riskMonitoringDisabledAt,
           });
 
           if (result?.serverError || result?.validationErrors) {

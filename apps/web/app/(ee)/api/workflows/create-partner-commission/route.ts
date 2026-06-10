@@ -557,7 +557,7 @@ async function stepRunSideEffects(
         partner: pick(programEnrollment.partner, ["id", "email", "name"]),
         programEnrollment: pick(programEnrollment, [
           "status",
-          "riskDetectionDisabledAt",
+          "riskMonitoringDisabledAt",
         ]),
         customer: {
           ...pick(commission.customer, ["id", "email", "name"]),
