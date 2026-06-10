@@ -1,7 +1,5 @@
-import {
-  getProgramNetworkInviteEmailDefaults,
-  invitePartnerFromNetworkAction,
-} from "@/lib/actions/partners/invite-partner-from-network";
+import { invitePartnerFromNetworkAction } from "@/lib/actions/partners/invite-partner-from-network";
+import { getProgramNetworkInviteEmailDefaults } from "@/lib/network/get-program-network-invite-email-defaults";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
