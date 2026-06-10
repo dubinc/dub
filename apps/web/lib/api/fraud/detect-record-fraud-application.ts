@@ -60,18 +60,20 @@ export async function detectAndRecordFraudApplication({
             },
             select: {
               status: true,
+              riskDetectionDisabledAt: true,
             },
           },
         },
       });
 
       if (duplicatePartners.length > 1) {
-        // For each partner, create fraud events pointing to all duplicates
         for (const sourcePartner of duplicatePartners) {
           const programEnrollment = sourcePartner.programs[0];
 
+          // Skip if the partner is inactive or risk detection is disabled
           if (
-            INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment?.status)
+            INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status) ||
+            programEnrollment.riskDetectionDisabledAt
           ) {
             continue;
           }
