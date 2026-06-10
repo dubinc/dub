@@ -154,8 +154,8 @@ function ResolveFraudGroupModal({
                   Exclude from risk monitoring
                 </h3>
                 <p className="text-xs text-neutral-500">
-                  Future risk events won't be generated for this partner. This
-                  can be changed anytime in the partner's advanced settings.
+                  Future risk events won't be flagged for this partner. This can
+                  be changed anytime in the partner's advanced settings.
                 </p>
               </div>
             </div>

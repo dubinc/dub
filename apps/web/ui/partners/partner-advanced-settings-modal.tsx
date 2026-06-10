@@ -227,9 +227,11 @@ function PartnerAdvancedSettingsModal({
                 <h3 className="text-sm font-medium leading-none text-neutral-700">
                   Exclude from risk monitoring
                 </h3>
-                <p className="text-xs text-neutral-500">
-                  Future risk events won't be generated for this partner.
-                </p>
+                <MarkdownDescription className="text-xs text-neutral-500">
+                  Future [risk
+                  events](https://dub.co/help/article/fraud-detection) won't be
+                  detected for this partner.
+                </MarkdownDescription>
               </div>
             </div>
           </div>
