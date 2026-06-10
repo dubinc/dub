@@ -5,7 +5,7 @@ import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { getTopLinksByCountries } from "@/lib/tinybird/get-top-links-by-countries";
-import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { CommissionType, Prisma } from "@dub/prisma/client";
 import {
@@ -64,9 +64,8 @@ async function handler(req: Request) {
     const linksWithClickRewards = await prisma.link.findMany({
       where: {
         programEnrollment: {
-          // Only actively enrolled partners (approved/archived) earn click commissions.
           status: {
-            in: [...ACTIVE_ENROLLMENT_STATUSES, "invited"],
+            in: COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
           },
           clickRewardId: {
             not: null,

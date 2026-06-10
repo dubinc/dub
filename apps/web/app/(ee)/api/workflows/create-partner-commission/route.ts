@@ -19,7 +19,7 @@ import {
   createPartnerCommissionSchema,
 } from "@/lib/zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import {
   Commission,
@@ -181,16 +181,13 @@ async function stepCreateCommission(
     amount = 0;
   }
 
-  // Only actively enrolled partners (approved/archived) earn event-based commissions.
   if (
     ["click", "lead", "sale"].includes(event) &&
-    ![...ACTIVE_ENROLLMENT_STATUSES, "invited"].includes(
-      programEnrollment.status,
-    )
+    !COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES.includes(programEnrollment.status)
   ) {
     return logAndReturn({
       commission: null,
-      outputLog: `Partner ${partnerId} is not actively enrolled (status: ${programEnrollment.status}) in program ${programId}, skipping ${event} commission creation...`,
+      outputLog: `Partner ${partnerId} is not eligible for commissions (status: ${programEnrollment.status}) in program ${programId}, skipping ${event} commission creation...`,
     });
   }
 
