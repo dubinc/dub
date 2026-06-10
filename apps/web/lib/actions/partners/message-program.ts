@@ -90,7 +90,7 @@ export const messageProgramAction = authPartnerActionClient
             },
           });
 
-        Promise.allSettled([
+        await Promise.allSettled([
           // Skip notifying the program of new partner messages when Intercom is connected
           !intercomInstallation &&
             qstash.publishJSON({
