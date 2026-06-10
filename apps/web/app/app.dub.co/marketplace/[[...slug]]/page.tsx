@@ -34,6 +34,7 @@ export async function generateMetadata(props: {
   let title = "Program Marketplace";
   let description =
     "Discover and apply to partner programs on Dub's Partner Network.";
+  let image: string | undefined;
 
   if (segments.length === 1 && segments[0] === "all") {
     title = "All Programs";
@@ -50,6 +51,7 @@ export async function generateMetadata(props: {
       description =
         program.description ||
         `Join the ${program.name} affiliate program on Dub's Partner Network.`;
+      image = program.marketplaceHeaderImage || program.logo || undefined;
     } else {
       title = "Program Details";
     }
@@ -59,17 +61,19 @@ export async function generateMetadata(props: {
     );
 
     if (category) {
-      const label =
-        PROGRAM_CATEGORIES_MAP[category]?.label ??
-        category.replaceAll("_", " ");
+      const categoryMeta = PROGRAM_CATEGORIES_MAP[category];
+      const label = categoryMeta?.label ?? category.replaceAll("_", " ");
       title = `${label} Programs`;
-      description = `Partner programs in ${label.toLowerCase()}.`;
+      description =
+        categoryMeta?.listPageDescription ??
+        `Partner programs in ${label.toLowerCase()}.`;
     }
   }
 
   return constructMetadata({
     title,
     description,
+    image,
     canonicalUrl: getMarketplaceCanonicalUrl(pathname),
   });
 }

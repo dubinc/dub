@@ -39,9 +39,9 @@ export function MarketplaceProgramCard({
       </div>
 
       <div className="mt-4 flex flex-col">
-        <span className="text-content-emphasis text-base font-semibold">
+        <h3 className="text-content-emphasis text-base font-semibold">
           {program.name}
-        </span>
+        </h3>
 
         <div className="text-content-subtle mt-1 line-clamp-2 text-sm">
           {program.description ||

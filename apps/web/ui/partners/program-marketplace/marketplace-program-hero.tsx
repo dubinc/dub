@@ -73,9 +73,9 @@ export function MarketplaceProgramHero({
         />
 
         <div className="mt-6 flex flex-col">
-          <span className="text-content-emphasis text-3xl font-semibold">
+          <h1 className="text-content-emphasis text-3xl font-semibold">
             {program.name}
-          </span>
+          </h1>
 
           <p className="text-content-default mt-2 max-w-md text-sm">
             {program.description ||
