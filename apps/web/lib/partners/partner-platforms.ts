@@ -32,6 +32,11 @@ export const PARTNER_PLATFORM_FIELDS: {
         href: website?.identifier
           ? getUrlFromStringIfValid(website.identifier)
           : null,
+        info: [
+          website?.subscribers && website?.verifiedAt
+            ? `${Number(website.subscribers)} DR`
+            : null,
+        ].filter(Boolean),
       };
     },
   },
