@@ -39,9 +39,10 @@ model RestrictedToken {
 
 // Login tokens
 model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
+  identifier            String
+  token                 String   @unique
+  expires               DateTime
+  isAdminImpersonation  Boolean  @default(false)
 
   @@unique([identifier, token])
 }
