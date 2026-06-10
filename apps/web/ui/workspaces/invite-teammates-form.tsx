@@ -67,13 +67,15 @@ export function InviteTeammatesForm({
         onSubmit={handleSubmit(async (data) => {
           const teammates = data.teammates.filter(({ email }) => email);
 
-          const response = await fetch(`/api/workspaces/${id}/invites`, {
+          const rawResponse = await fetch(`/api/workspaces/${id}/invites`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ teammates }),
           });
 
-          if (response.ok) {
+          const response = await rawResponse.json();
+
+          if (rawResponse.ok) {
             await mutatePrefix(`/api/workspaces/${id}/invites`);
             toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
 
@@ -85,15 +87,14 @@ export function InviteTeammatesForm({
 
             onSuccess?.();
           } else {
-            const body = await response.json().catch(() => null);
-            const error = body?.error;
+            const { code, message } = response.error;
 
-            if (trialActive && error?.code === "exceeded_limit") {
+            if (trialActive && code === "exceeded_limit") {
               openTrialLimitModal("users");
-              throw error;
+              throw new Error(message);
             }
 
-            if (error?.message?.includes("upgrade")) {
+            if (message.includes("upgrade")) {
               if (trialActive) {
                 openTrialLimitModal("users");
               } else {
@@ -107,11 +108,8 @@ export function InviteTeammatesForm({
                   { duration: 4000 },
                 );
               }
-              throw error;
+              throw new Error(message);
             }
-
-            const message =
-              error?.message ?? "Failed to send invites. Please try again.";
 
             toast.error(message);
             throw new Error(message);
