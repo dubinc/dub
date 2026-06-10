@@ -30,7 +30,7 @@ enum BountySubmissionFrequency {
 }
 
 model Bounty {
-  id                        String                     @id @default(cuid())
+  id                        String                     @id
   programId                 String
   workflowId                String?                    @unique
   name                      String
@@ -72,7 +72,7 @@ model BountyGroup {
 }
 
 model BountySubmission {
-  id                        String                           @id @default(cuid())
+  id                        String                           @id
   programId                 String
   partnerId                 String
   bountyId                  String
