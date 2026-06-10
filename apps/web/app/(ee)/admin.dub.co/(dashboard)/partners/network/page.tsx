@@ -20,10 +20,10 @@ import {
 import { CircleDotted, FlagWavy } from "@dub/ui/icons";
 import { cn, COUNTRIES, fetcher, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
-import { NetworkPartnerApplicationSheet } from "app/(ee)/admin.dub.co/(dashboard)/partners/network/network-partner-application-sheet";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { NetworkPartnerApplicationSheet } from "./network-partner-application-sheet";
 
 const SOCIAL_FIELDS = [
   { id: "website", label: "Website" },
