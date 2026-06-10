@@ -82,7 +82,7 @@ function ProgramMarketplaceLogoSprite({
   );
 }
 
-// Framer, Perplexity, Wispr Flow — Figma layout for the View all card
+// Framer, Perplexity, Wispr Flow
 const VIEW_ALL_CLUSTER = {
   originLeft: 138.29,
   originTop: 56,

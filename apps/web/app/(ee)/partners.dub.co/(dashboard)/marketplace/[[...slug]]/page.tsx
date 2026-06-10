@@ -1,9 +1,9 @@
-import { getMarketplacePopularRedirectHref } from "@/ui/partners/program-marketplace/get-marketplace-href";
 import { MarketplaceRouter } from "@/ui/partners/program-marketplace/marketplace-router";
 import {
   generateMarketplaceProgramStaticParams,
   revalidate,
 } from "@/ui/partners/program-marketplace/pages/marketplace-program-page";
+import { getMarketplacePopularRedirectHref } from "@/ui/partners/program-marketplace/utils/urls";
 import { redirect } from "next/navigation";
 
 export { revalidate };

@@ -8,7 +8,7 @@ import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count"
 import { getProgramsAreaNavItems } from "@/ui/layout/sidebar/programs-area-nav";
 import { MarketplaceSidebarPanel } from "@/ui/partners/program-marketplace/marketplace-sidebar-panel";
 import { ProgramsPromoCard } from "@/ui/partners/program-marketplace/programs-promo-card";
-import { isMarketplaceFilterSidebarPath } from "@/ui/partners/program-marketplace/utils/category-slug";
+import { isMarketplaceFilterSidebarPath } from "@/ui/partners/program-marketplace/utils/urls";
 import { type Icon, useRouterStuff } from "@dub/ui";
 import {
   Bell,

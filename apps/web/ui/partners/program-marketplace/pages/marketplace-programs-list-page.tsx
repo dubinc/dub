@@ -14,7 +14,7 @@ import {
   MarketplaceProgramGridSkeleton,
 } from "../marketplace-program-grid";
 import { useProgramNetworkFilters } from "../use-program-network-filters";
-import { getMarketplaceCategoryFromPathname } from "../utils/category-slug";
+import { getMarketplaceCategoryFromPathname } from "../utils/urls";
 
 export function MarketplaceProgramsListPage() {
   const pathname = usePathname();

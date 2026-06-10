@@ -1,8 +1,8 @@
 "use client";
 
 import { FeaturedPrograms } from "../featured-programs";
+import { MARKETPLACE_HOME_ROWS } from "../home-sections";
 import { MarketplaceCategories } from "../marketplace-categories";
-import { MARKETPLACE_HOME_ROWS } from "../marketplace-home-sections";
 import { MarketplaceProgramRow } from "../marketplace-program-row";
 
 export function MarketplaceHomePage() {

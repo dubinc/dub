@@ -1,7 +1,7 @@
 import { getPublicNetworkPrograms } from "@/lib/fetchers/get-public-network-programs";
 import { FeaturedPrograms } from "../featured-programs";
+import { MARKETPLACE_HOME_ROWS } from "../home-sections";
 import { MarketplaceCategories } from "../marketplace-categories";
-import { MARKETPLACE_HOME_ROWS } from "../marketplace-home-sections";
 import { MarketplaceProgramRow } from "../marketplace-program-row";
 import { MarketplaceExternalShell } from "./marketplace-external-shell";
 

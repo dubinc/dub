@@ -20,8 +20,6 @@ export function MarketplaceProgramHero({
 }) {
   const hasBanner = Boolean(program.marketplaceHeaderImage);
 
-  // Tint the card from the banner image (fades in, no flicker). No banner →
-  // neutral background.
   const { color: accentColor, ready: accentReady } = useImageAccentColor(
     hasBanner ? program.marketplaceHeaderImage : null,
   );
@@ -30,12 +28,10 @@ export function MarketplaceProgramHero({
     <div
       className={cn(
         "relative flex flex-col overflow-hidden rounded-2xl p-2",
-        // No banner: height fits the content (just the card + content padding).
         hasBanner && "min-h-[640px]",
         className,
       )}
     >
-      {/* Background color layer */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 transition-opacity duration-500 ease-out"
@@ -45,8 +41,6 @@ export function MarketplaceProgramHero({
         }}
       />
 
-      {/* Banner: inset rounded panel (~48% of the 640px min height), not a
-          full-card cover */}
       {hasBanner && program.marketplaceHeaderImage && (
         <div className="relative z-10 h-[307px] w-full shrink-0 overflow-hidden rounded-xl">
           <img

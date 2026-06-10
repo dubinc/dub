@@ -7,15 +7,19 @@ import { FilterBars } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import { getMarketplaceAllHref } from "./get-marketplace-href";
+import {
+  getMarketplaceToolbarBadgeCount,
+  type MarketplaceRewardType,
+} from "./constants";
 import { MarketplaceFilterControl } from "./marketplace-filter-control";
 import { MarketplaceFilterSortSheet } from "./marketplace-filter-sort-sheet";
-import type { MarketplaceRewardType } from "./marketplace-reward-types";
-import { getMarketplaceToolbarBadgeCount } from "./marketplace-sort-options";
 import ProgramSort from "./program-sort";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
 import { usePublicMarketplaceFilters } from "./use-public-marketplace-filters";
-import { getMarketplaceCategoryFromPathname } from "./utils/category-slug";
+import {
+  getMarketplaceAllHref,
+  getMarketplaceCategoryFromPathname,
+} from "./utils/urls";
 
 function MarketplaceListToolbarInternal() {
   const router = useRouter();

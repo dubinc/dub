@@ -6,14 +6,14 @@ import { CircleDotted, Gift, Suitcase } from "@dub/ui/icons";
 import { capitalize, nFormatter } from "@dub/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
+import { MARKETPLACE_REWARD_TYPES } from "./constants";
+import { ProgramNetworkStatusBadges } from "./program-status-badge";
 import {
   getMarketplaceAllHref,
+  getMarketplaceCategoryFromPathname,
   getMarketplaceCategoryHref,
   getPreservedMarketplaceSearchParams,
-} from "./get-marketplace-href";
-import { MARKETPLACE_REWARD_TYPES } from "./marketplace-reward-types";
-import { ProgramNetworkStatusBadges } from "./program-status-badge";
-import { getMarketplaceCategoryFromPathname } from "./utils/category-slug";
+} from "./utils/urls";
 
 export function useProgramNetworkFilters() {
   const router = useRouter();

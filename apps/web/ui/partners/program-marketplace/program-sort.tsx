@@ -2,7 +2,7 @@ import { IconMenu, Popover, Tick, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { MARKETPLACE_SORT_OPTIONS } from "./marketplace-sort-options";
+import { MARKETPLACE_SORT_OPTIONS } from "./constants";
 
 export default function ProgramSort({
   forceDropdown = false,

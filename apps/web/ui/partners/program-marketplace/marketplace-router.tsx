@@ -1,7 +1,10 @@
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { getMarketplaceHref } from "@/ui/partners/program-marketplace/get-marketplace-href";
+import {
+  getMarketplaceHref,
+  slugToCategory,
+} from "@/ui/partners/program-marketplace/utils/urls";
 import { Category } from "@dub/prisma/client";
 import { ChevronRight, Shop } from "@dub/ui";
 import Link from "next/link";
@@ -10,7 +13,6 @@ import { ReactNode } from "react";
 import { MarketplaceHomePage } from "./pages/marketplace-home-page";
 import { MarketplaceProgramPage } from "./pages/marketplace-program-page";
 import { MarketplaceProgramsListPage } from "./pages/marketplace-programs-list-page";
-import { slugToCategory } from "./utils/category-slug";
 
 function MarketplaceListTitle({ category }: { category?: Category }) {
   const title = category

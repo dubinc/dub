@@ -1,4 +1,4 @@
-import { getMarketplacePopularRedirectHref } from "@/ui/partners/program-marketplace/get-marketplace-href";
+import { getMarketplacePopularRedirectHref } from "@/ui/partners/program-marketplace/utils/urls";
 
 const PARTNERS_REDIRECTS = {
   "/settings": "/profile",

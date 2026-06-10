@@ -1,6 +1,8 @@
-import { formatNetworkPrograms } from "@/lib/network/format-network-programs";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { getPublicNetworkProgramsQuerySchema } from "@/lib/zod/schemas/program-network";
+import {
+  getPublicNetworkProgramsQuerySchema,
+  NetworkProgramSchema,
+} from "@/lib/zod/schemas/program-network";
 import { prisma } from "@dub/prisma";
 import { cache } from "react";
 import * as z from "zod/v4";
@@ -92,11 +94,32 @@ export const getPublicNetworkPrograms = cache(
       take: pageSize,
     });
 
-    return formatNetworkPrograms({
-      programs,
-      featured,
-      sortBy,
-    });
+    return z.array(NetworkProgramSchema).parse(
+      programs
+        .sort((a, b) =>
+          featured
+            ? (a.marketplaceRanking ?? 0) - (b.marketplaceRanking ?? 0)
+            : sortBy === "popularity"
+              ? (a.marketplaceRanking ?? 0) - (b.marketplaceRanking ?? 0) ||
+                b.invoices.reduce((acc, invoice) => acc + invoice.amount, 0) -
+                  a.invoices.reduce((acc, invoice) => acc + invoice.amount, 0)
+              : 0,
+        )
+        .map((program) => ({
+          ...program,
+          rewards:
+            program.groups.length > 0
+              ? [
+                  program.groups[0].clickReward,
+                  program.groups[0].leadReward,
+                  program.groups[0].saleReward,
+                ].filter(Boolean)
+              : [],
+          discount:
+            program.groups.length > 0 ? program.groups[0].discount : null,
+          categories: program.categories.map(({ category }) => category),
+        })),
+    );
   },
 );
 

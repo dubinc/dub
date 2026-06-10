@@ -2,7 +2,7 @@
 
 import { NavMobile, Nav as NavUI, Wordmark } from "@dub/ui";
 import Link from "next/link";
-import { getMarketplaceHref } from "../get-marketplace-href";
+import { getMarketplaceHref } from "../utils/urls";
 
 const DUB_HOME_HREF = "https://dub.co/home";
 

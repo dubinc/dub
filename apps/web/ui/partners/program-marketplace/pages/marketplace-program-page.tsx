@@ -9,9 +9,9 @@ import { prisma } from "@dub/prisma";
 import { ChevronRight, Shop } from "@dub/ui";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getMarketplaceHref } from "../get-marketplace-href";
 import { MarketplaceProgramHeaderControls } from "../marketplace-program-header-controls";
 import { ProgramStatusBadge } from "../program-status-badge";
+import { getMarketplaceHref } from "../utils/urls";
 
 export const revalidate = 3600; // 1 hour
 

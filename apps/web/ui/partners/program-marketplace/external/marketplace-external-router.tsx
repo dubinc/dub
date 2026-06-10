@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { slugToCategory } from "../utils/category-slug";
+import { slugToCategory } from "../utils/urls";
 import { MarketplaceExternalHomePage } from "./marketplace-external-home-page";
 import { MarketplaceExternalListPage } from "./marketplace-external-list-page";
 import { MarketplaceExternalProgramPage } from "./marketplace-external-program-page";

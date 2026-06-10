@@ -74,18 +74,10 @@ function extractTint(img: HTMLImageElement): string | null {
 const cache = new Map<string, string | null>();
 
 export type ImageAccentColor = {
-  /** The extracted tint, or null if unavailable (caller should fall back). */
   color: string | null;
-  /** True once extraction has finished (success or failure), or was cached. */
   ready: boolean;
 };
 
-/**
- * Extracts a soft background tint from an image's dominant (most vivid) color.
- * Returns `ready: false` until decoding completes so callers can reveal the
- * final color in one step (no intermediate/placeholder color → no flicker).
- * Cached images resolve synchronously on mount.
- */
 export function useImageAccentColor(src?: string | null): ImageAccentColor {
   const [state, setState] = useState<ImageAccentColor>(() => {
     if (src && cache.has(src)) {
@@ -118,7 +110,7 @@ export function useImageAccentColor(src?: string | null): ImageAccentColor {
       try {
         finish(extractTint(img));
       } catch {
-        finish(null); // tainted canvas (CORS) — caller falls back
+        finish(null);
       }
     };
     img.onerror = () => finish(null);

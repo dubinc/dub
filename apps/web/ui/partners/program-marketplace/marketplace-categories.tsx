@@ -1,9 +1,9 @@
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
+import { MARKETPLACE_HOME_CATEGORIES } from "@/ui/partners/program-marketplace/home-sections";
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,
-} from "@/ui/partners/program-marketplace/get-marketplace-href";
-import { MARKETPLACE_HOME_CATEGORIES } from "@/ui/partners/program-marketplace/marketplace-home-sections";
+} from "@/ui/partners/program-marketplace/utils/urls";
 import { CircleInfo } from "@dub/ui";
 import Link from "next/link";
 

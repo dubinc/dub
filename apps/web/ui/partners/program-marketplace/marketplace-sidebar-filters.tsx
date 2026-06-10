@@ -1,6 +1,6 @@
 "use client";
 
-import { getMarketplaceHref } from "@/ui/partners/program-marketplace/get-marketplace-href";
+import { getMarketplaceHref } from "@/ui/partners/program-marketplace/utils/urls";
 import { ChevronLeft, Filter } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";

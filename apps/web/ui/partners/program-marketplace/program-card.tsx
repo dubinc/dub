@@ -1,13 +1,13 @@
 "use client";
 
 import { NetworkProgramProps } from "@/lib/types";
+import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
+import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,
   getMarketplaceProgramHref,
-} from "@/ui/partners/program-marketplace/get-marketplace-href";
-import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
-import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
+} from "@/ui/partners/program-marketplace/utils/urls";
 import { Tooltip } from "@dub/ui";
 import { OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";

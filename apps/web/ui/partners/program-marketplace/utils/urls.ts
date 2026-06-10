@@ -1,7 +1,27 @@
+import { MarketplaceRewardType } from "@/ui/partners/program-marketplace/constants";
 import { Category } from "@dub/prisma/client";
-import { categoryToSlug } from "./utils/category-slug";
 
 const MARKETPLACE_BASE = "/marketplace";
+
+export const MARKETPLACE_RESERVED_SLUGS = new Set(["all", "popular", "c"]);
+
+export function categoryToSlug(category: Category): string {
+  return category.toLowerCase().replaceAll("_", "-");
+}
+
+export function slugToCategory(slug: string): Category | null {
+  if (MARKETPLACE_RESERVED_SLUGS.has(slug)) {
+    return null;
+  }
+
+  const normalizedSlug = slug.toLowerCase();
+
+  return (
+    (Object.values(Category) as Category[]).find(
+      (category) => categoryToSlug(category) === normalizedSlug,
+    ) ?? null
+  );
+}
 
 function buildMarketplaceHref(
   path: string,
@@ -53,7 +73,6 @@ function parseMarketplaceSearchParam(
   return typeof value === "string" ? value : undefined;
 }
 
-/** Redirect target for legacy `/marketplace/popular` URLs. */
 export function getMarketplacePopularRedirectHref(
   searchParams: Record<string, string | string[] | undefined> = {},
 ) {
@@ -115,4 +134,91 @@ function getMarketplacePartnersProgramUrl(programSlug: string) {
 
 export function getMarketplacePublicApplyHref(programSlug: string) {
   return getMarketplacePartnersProgramUrl(programSlug);
+}
+
+export function getMarketplaceCategoryFromPathname(
+  pathname: string,
+): Category | null {
+  const segments = pathname.split("/").filter(Boolean);
+
+  if (
+    segments[0] === "marketplace" &&
+    segments.length === 3 &&
+    segments[1] === "c"
+  ) {
+    return slugToCategory(segments[2]);
+  }
+
+  return null;
+}
+
+export function isMarketplaceFilterSidebarPath(pathname: string): boolean {
+  const segments = pathname.split("/").filter(Boolean);
+
+  if (segments[0] !== "marketplace") {
+    return false;
+  }
+
+  if (segments.length === 1) {
+    return false;
+  }
+
+  if (segments[1] === "all") {
+    return true;
+  }
+
+  if (
+    segments.length === 3 &&
+    segments[1] === "c" &&
+    slugToCategory(segments[2])
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+export function buildExternalMarketplaceFilterHref({
+  basePath,
+  activeRewardType,
+  search,
+  sortBy,
+  sortOrder,
+  category,
+  rewardType,
+}: {
+  basePath: string;
+  activeRewardType?: MarketplaceRewardType;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: string;
+  category?: Category | null;
+  rewardType?: MarketplaceRewardType | null;
+}) {
+  const resolvedRewardType =
+    rewardType === undefined ? activeRewardType : rewardType || undefined;
+
+  const queryParams = {
+    rewardType: resolvedRewardType,
+    search,
+    sortBy,
+    sortOrder,
+  };
+
+  if (category === null) {
+    return getMarketplaceAllHref(queryParams);
+  }
+
+  if (category) {
+    return getMarketplaceCategoryHref(category, queryParams);
+  }
+
+  const query = new URLSearchParams();
+  if (resolvedRewardType) query.set("rewardType", resolvedRewardType);
+  if (search) query.set("search", search);
+  if (sortBy && sortBy !== "popularity") query.set("sortBy", sortBy);
+  if (sortOrder && sortOrder !== "desc") query.set("sortOrder", sortOrder);
+  const queryString = query.toString();
+
+  return `${basePath}${queryString ? `?${queryString}` : ""}`;
 }

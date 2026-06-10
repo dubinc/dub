@@ -1,10 +1,9 @@
-import { getMarketplaceAllHref } from "@/ui/partners/program-marketplace/get-marketplace-href";
 import { ProgramMarketplaceLogosCluster } from "@/ui/partners/program-marketplace/program-marketplace-logos";
+import { getMarketplaceAllHref } from "@/ui/partners/program-marketplace/utils/urls";
 import { Grid } from "@dub/ui";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
-// Soft radial fade — grid whispers in the center, gone at the edges
 const VIEW_ALL_GRID_MASK =
   "radial-gradient(ellipse 85% 70% at 50% 44%, white 10%, rgba(255,255,255,0.2) 60%, transparent 62%)";
 

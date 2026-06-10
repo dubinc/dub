@@ -3,7 +3,7 @@ import { Category } from "@dub/prisma/client";
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,
-} from "./get-marketplace-href";
+} from "./utils/urls";
 
 export const MARKETPLACE_HOME_ROW_PAGE_SIZE = 5;
 

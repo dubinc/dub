@@ -6,12 +6,14 @@ import { useRouterStuff } from "@dub/ui";
 import { Gift, Suitcase } from "@dub/ui/icons";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
-import { getMarketplaceAllHref } from "./get-marketplace-href";
 import {
   MARKETPLACE_REWARD_TYPES,
   type MarketplaceRewardType,
-} from "./marketplace-reward-types";
-import { buildExternalMarketplaceFilterHref } from "./utils/build-external-marketplace-filter-href";
+} from "./constants";
+import {
+  buildExternalMarketplaceFilterHref,
+  getMarketplaceAllHref,
+} from "./utils/urls";
 
 export function usePublicMarketplaceFilters({
   basePath,
@@ -92,14 +94,13 @@ export function usePublicMarketplaceFilters({
     }) =>
       buildExternalMarketplaceFilterHref({
         basePath,
-        activeCategory,
         activeRewardType,
         search,
         sortBy,
         sortOrder,
         ...params,
       }),
-    [activeCategory, activeRewardType, basePath, search, sortBy, sortOrder],
+    [activeRewardType, basePath, search, sortBy, sortOrder],
   );
 
   const onSelect = useCallback(
@@ -147,7 +148,6 @@ export function usePublicMarketplaceFilters({
       router.push(
         buildExternalMarketplaceFilterHref({
           basePath,
-          activeCategory,
           activeRewardType,
           search,
           sortBy: nextSortBy,
