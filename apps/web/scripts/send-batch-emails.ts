@@ -11,16 +11,17 @@ async function main() {
     const usersWithPartners = await prisma.user.findMany({
       where: {
         sentMail: false,
-        projects: {
-          some: {
-            project: {
-              plan: {
-                in: ["advanced", "enterprise"],
-              },
-            },
-          },
+        defaultPartnerId: {
+          not: null,
+        },
+        partners: {
+          some: {},
+        },
+        notificationPreferences: {
+          partnerAccount: true,
         },
       },
+      take: 5000,
       include: {
         partners: {
           select: {
