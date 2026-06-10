@@ -2,12 +2,11 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, IconMenu, Popover, Refresh2 } from "@dub/ui";
-import { useRouter } from "next/navigation";
+import { Button, Popover, Refresh2 } from "@dub/ui";
+import Link from "next/link";
 import { useState } from "react";
 
 export function RiskCenterMenu() {
-  const router = useRouter();
   const { slug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
 
@@ -16,18 +15,17 @@ export function RiskCenterMenu() {
       content={
         <div className="w-full md:w-52">
           <div className="grid gap-px p-2">
-            <button
-              onClick={() => {
-                router.push(`/${slug}/program/risks/resolved`);
-                setOpenPopover(false);
-              }}
-              className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
+            <Link
+              href={`/${slug}/program/risks/resolved`}
+              onClick={() => setOpenPopover(false)}
             >
-              <IconMenu
+              <Button
+                variant="outline"
                 text="View resolved"
                 icon={<Refresh2 className="h-4 w-4" />}
+                className="h-9 justify-start rounded-md px-2 font-medium hover:bg-neutral-100 active:bg-neutral-200"
               />
-            </button>
+            </Link>
           </div>
         </div>
       }

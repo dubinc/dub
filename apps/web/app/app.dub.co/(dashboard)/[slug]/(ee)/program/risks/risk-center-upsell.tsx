@@ -24,12 +24,12 @@ export function RiskCenterUpsell() {
               <p className="text-content-subtle mt-2 text-sm">
                 Protect your program and partners with{" "}
                 <a
-                  href="https://dub.co/help/article/fraud-risk-prevention"
+                  href="https://dub.co/help/article/fraud-detection"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-content-default hover:text-content-emphasis cursor-alias underline decoration-dotted underline-offset-2"
                 >
-                  risk detection.
+                  risk monitoring.
                 </a>{" "}
                 Available on Advanced plans and higher.
               </p>
