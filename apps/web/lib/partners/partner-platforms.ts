@@ -18,6 +18,7 @@ export const PARTNER_PLATFORM_FIELDS: {
     verified: boolean;
     href?: string | null;
     info?: string[];
+    stat?: string | null;
   };
 }[] = [
   {
@@ -37,6 +38,10 @@ export const PARTNER_PLATFORM_FIELDS: {
             ? `${Number(website.subscribers)} DR`
             : null,
         ].filter(Boolean),
+        stat:
+          website?.subscribers && website?.verifiedAt
+            ? `${Number(website.subscribers)} DR`
+            : null,
       };
     },
   },
@@ -60,6 +65,10 @@ export const PARTNER_PLATFORM_FIELDS: {
             ? `${nFormatter(Number(youtube.views))} views`
             : null,
         ].filter(Boolean),
+        stat:
+          youtube?.subscribers && youtube?.verifiedAt
+            ? nFormatter(Number(youtube.subscribers))
+            : null,
       };
     },
   },
@@ -83,6 +92,10 @@ export const PARTNER_PLATFORM_FIELDS: {
             ? `${nFormatter(Number(twitter.posts))} tweets`
             : null,
         ].filter(Boolean),
+        stat:
+          twitter?.subscribers && twitter?.verifiedAt
+            ? nFormatter(Number(twitter.subscribers))
+            : null,
       };
     },
   },
@@ -121,6 +134,10 @@ export const PARTNER_PLATFORM_FIELDS: {
             ? `${nFormatter(Number(instagram.posts))} posts`
             : null,
         ].filter(Boolean),
+        stat:
+          instagram?.subscribers && instagram?.verifiedAt
+            ? nFormatter(Number(instagram.subscribers))
+            : null,
       };
     },
   },
@@ -144,6 +161,10 @@ export const PARTNER_PLATFORM_FIELDS: {
             ? `${nFormatter(Number(tiktok.posts))} posts`
             : null,
         ].filter(Boolean),
+        stat:
+          tiktok?.subscribers && tiktok?.verifiedAt
+            ? nFormatter(Number(tiktok.subscribers))
+            : null,
       };
     },
   },
