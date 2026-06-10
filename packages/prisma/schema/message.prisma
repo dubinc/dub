@@ -4,7 +4,7 @@ enum MessageType {
 }
 
 model Message {
-  id        String @id @default(cuid())
+  id        String @id
   programId String
   partnerId String
 

@@ -28,10 +28,10 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     return;
   }
 
-  // Skip if risk detection is disabled
-  if (programEnrollment.riskDetectionDisabledAt) {
+  // Skip if risk monitoring is disabled
+  if (programEnrollment.riskMonitoringDisabledAt) {
     console.info(
-      `[detectAndRecordFraudEvent] Risk detection is disabled for this partner, skipping...`,
+      `[detectAndRecordFraudEvent] Risk monitoring is disabled for this partner, skipping...`,
     );
     return;
   }

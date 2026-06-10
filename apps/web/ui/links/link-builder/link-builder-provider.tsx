@@ -1,5 +1,6 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
-import { DEFAULT_LINK_PROPS, PLANS } from "@dub/utils";
+import { DEFAULT_LINK_PROPS } from "@dub/utils";
 import {
   createContext,
   Dispatch,
@@ -15,14 +16,6 @@ export type LinkFormData = ExpandedLinkProps;
 export type LinkBuilderProps = {
   props?: ExpandedLinkProps;
   duplicateProps?: ExpandedLinkProps;
-  workspace: {
-    id?: string;
-    slug?: string;
-    plan?: string;
-    nextPlan?: (typeof PLANS)[number];
-    conversionEnabled?: boolean;
-    defaultProgramId?: string | null;
-  };
   modal: boolean;
 };
 
@@ -48,7 +41,7 @@ export function LinkBuilderProvider({
   children,
   ...rest
 }: PropsWithChildren<LinkBuilderProps>) {
-  const { plan, conversionEnabled } = rest.workspace || {};
+  const { plan, conversionEnabled } = useWorkspace();
 
   const [generatingMetatags, setGeneratingMetatags] = useState(
     Boolean(rest.props),

@@ -7,7 +7,7 @@ import {
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
-import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
+import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import { useProgramSubmittedLeadsCount } from "@/lib/swr/use-program-submitted-leads-count";

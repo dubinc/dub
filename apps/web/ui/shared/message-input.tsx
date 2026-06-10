@@ -1,13 +1,13 @@
 import {
-  getAttachmentTypeLabel,
-  isPreviewableImageType,
-} from "@/lib/messages/utils";
-import {
   ATTACHMENT_MIME_TYPE_COLOR,
   MAX_ATTACHMENTS_PER_MESSAGE,
   MAX_MESSAGE_LENGTH,
-  messageAttachmentInputSchema,
-} from "@/lib/zod/schemas/messages";
+} from "@/lib/messages/constants";
+import { messageAttachmentInputSchema } from "@/lib/messages/schemas";
+import {
+  getAttachmentTypeLabel,
+  isPreviewableImageType,
+} from "@/lib/messages/utils";
 import {
   ArrowTurnLeft,
   Button,
@@ -313,6 +313,7 @@ export function MessageInput({
                   </span>
                 </span>
               }
+              disabled={isSendDisabled}
               disabledTooltip={
                 isTooLong
                   ? `Message must be less than ${nFormatter(MAX_MESSAGE_LENGTH)} characters`

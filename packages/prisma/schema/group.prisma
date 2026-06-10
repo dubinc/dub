@@ -5,7 +5,7 @@ enum PartnerLinkStructure {
 }
 
 model PartnerGroup {
-  id                           String               @id @default(cuid())
+  id                           String               @id
   programId                    String
   name                         String
   slug                         String
@@ -50,7 +50,7 @@ model PartnerGroup {
 }
 
 model PartnerGroupDefaultLink {
-  id        String   @id @default(cuid())
+  id        String   @id
   programId String
   groupId   String? // can be null for soft-deleted default links
   domain    String

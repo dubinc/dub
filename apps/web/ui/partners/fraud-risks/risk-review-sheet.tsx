@@ -49,6 +49,12 @@ const COMMISSION_BLOCKING_FRAUD_TYPE: FraudRuleType[] = [
   FraudRuleType.paidTrafficDetected,
 ];
 
+const SHEET_TITLES: Record<FraudGroupProps["status"], string> = {
+  pending: "Risk event review",
+  resolved: "Resolved risk event",
+  expired: "Expired risk event",
+};
+
 function RiskReviewSheetContent({
   fraudGroup,
   onPrevious,
@@ -146,9 +152,7 @@ function RiskReviewSheetContent({
       >
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
-            {fraudGroup.status === "pending"
-              ? "Risk event review"
-              : "Resolved risk event"}
+            {SHEET_TITLES[fraudGroup.status]}
           </Sheet.Title>
 
           <div className="flex items-center gap-2">

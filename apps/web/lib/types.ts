@@ -58,6 +58,7 @@ import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
+import { MessageAttachmentSchema, MessageSchema } from "./messages/schemas";
 import { POSTBACK_TRIGGERS } from "./postback/constants";
 import { postbackEventInputSchemaTB, postbackSchema } from "./postback/schemas";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
@@ -132,7 +133,6 @@ import {
   ABTestVariantsSchema,
   createLinkBodySchema,
 } from "./zod/schemas/links";
-import { MessageAttachmentSchema, MessageSchema } from "./zod/schemas/messages";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   NetworkPartnerSchema,
