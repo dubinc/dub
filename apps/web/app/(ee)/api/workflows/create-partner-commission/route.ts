@@ -184,7 +184,9 @@ async function stepCreateCommission(
   // Only actively enrolled partners (approved/archived) earn event-based commissions.
   if (
     ["click", "lead", "sale"].includes(event) &&
-    !ACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)
+    ![...ACTIVE_ENROLLMENT_STATUSES, "invited"].includes(
+      programEnrollment.status,
+    )
   ) {
     return logAndReturn({
       commission: null,

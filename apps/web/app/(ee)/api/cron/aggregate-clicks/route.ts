@@ -65,9 +65,8 @@ async function handler(req: Request) {
       where: {
         programEnrollment: {
           // Only actively enrolled partners (approved/archived) earn click commissions.
-          // Skip pending, invited, declined, banned, deactivated, or rejected enrollments.
           status: {
-            in: ACTIVE_ENROLLMENT_STATUSES,
+            in: [...ACTIVE_ENROLLMENT_STATUSES, "invited"],
           },
           clickRewardId: {
             not: null,
