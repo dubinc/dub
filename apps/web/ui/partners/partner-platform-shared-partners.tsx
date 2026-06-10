@@ -5,7 +5,7 @@ import { Duplicate } from "@dub/ui/icons";
 import { cn, pluralize } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { PartnerAvatar } from "./partner-avatar";
 import { PartnerStatusBadges } from "./partner-status-badges";
 
@@ -15,12 +15,15 @@ export function PartnerPlatformSharedPartners({
   sharedPartners: PartnerSharedPlatformProps["partners"];
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const panelId = useId();
 
   return (
     <div className="border-subtle mx-2 rounded-b-lg border border-t-0 bg-white px-3">
       <button
         type="button"
         onClick={() => setIsExpanded((prev) => !prev)}
+        aria-expanded={isExpanded}
+        aria-controls={panelId}
         className="flex h-9 w-full items-center justify-between gap-2"
       >
         <div className="flex min-w-0 items-center gap-2">
@@ -39,7 +42,7 @@ export function PartnerPlatformSharedPartners({
       </button>
 
       {isExpanded && (
-        <div className="flex flex-col gap-2.5 pb-3 pt-1">
+        <div id={panelId} className="flex flex-col gap-2.5 pb-3 pt-1">
           {sharedPartners.map((partner) => (
             <SharedPartner key={partner.id} partner={partner} />
           ))}
@@ -74,6 +77,7 @@ function SharedPartner({
       <Link
         href={`/${workspaceSlug}/program/partners/${partner.id}`}
         target="_blank"
+        rel="noopener noreferrer"
         className="text-content-subtle hover:text-content-default shrink-0 text-xs font-medium"
       >
         View
