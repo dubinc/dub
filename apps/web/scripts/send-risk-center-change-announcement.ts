@@ -1,5 +1,6 @@
 import "dotenv-flow/config";
 
+import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import type RiskCenterChangeAnnouncement from "@dub/email/templates/broadcasts/risk-center-change-announcement";
@@ -33,6 +34,19 @@ async function main() {
             slug: true,
           },
         },
+        fraudEventGroups: {
+          select: {
+            id: true,
+            type: true,
+            eventCount: true,
+            partner: {
+              select: {
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
       },
       take: BATCH_SIZE,
       ...(cursor && {
@@ -55,6 +69,10 @@ async function main() {
 
     for (const program of programs) {
       try {
+        if (program.fraudEventGroups.length === 0) {
+          continue;
+        }
+
         const { users } = await getWorkspaceUsers({
           programId: program.id,
           role: "owner",
@@ -65,10 +83,19 @@ async function main() {
           continue;
         }
 
+        const transformedFraudGroups = program.fraudEventGroups.map(
+          ({ id, type, eventCount, partner }) => ({
+            id,
+            name: FRAUD_RULES_BY_TYPE[type].name,
+            count: eventCount,
+            partner,
+          }),
+        );
+
         await queueBatchEmail<typeof RiskCenterChangeAnnouncement>(
           users.map((user) => ({
             to: user.email,
-            subject: `Updates to fraud protection for ${program.name}`,
+            subject: `[Action Required]: Review unresolved risk events for ${program.name}`,
             variant: "notifications",
             templateName: "RiskCenterChangeAnnouncement",
             templateProps: {
@@ -77,6 +104,7 @@ async function main() {
               program: {
                 name: program.name,
               },
+              fraudGroups: transformedFraudGroups,
             },
           })),
           {
