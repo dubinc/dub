@@ -363,7 +363,7 @@ export function useLinkBuilder({
         modal={true}
       />
     );
-  }, [showLinkBuilder]);
+  }, [showLinkBuilder, workspace]);
 
   const CreateLinkButtonCallback = useCallback(
     (props?: CreateLinkButtonProps) => {

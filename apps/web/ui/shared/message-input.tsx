@@ -313,6 +313,7 @@ export function MessageInput({
                   </span>
                 </span>
               }
+              disabled={isSendDisabled}
               disabledTooltip={
                 isTooLong
                   ? `Message must be less than ${nFormatter(MAX_MESSAGE_LENGTH)} characters`
