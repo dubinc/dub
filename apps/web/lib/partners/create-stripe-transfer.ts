@@ -109,9 +109,10 @@ export const createStripeTransfer = async ({
   );
 
   if (totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
-    throw new Error(
+    console.warn(
       `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.email} is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}). Skipping...`,
     );
+    return;
   }
 
   let withdrawalFee = 0;
