@@ -138,7 +138,7 @@ export function PayoutTable() {
     ignoreParams: true,
   });
 
-  // Memoized map of partner IDs with pending fraud events
+  // Memoized map of partner IDs with pending risk events
   const fraudGroupCountMap = useMemo(() => {
     if (!fraudGroupCount) {
       return new Set<string>();
@@ -302,7 +302,7 @@ export function PayoutTable() {
                       href={`/${workspaceSlug}/program/payouts?status=hold`}
                       className="cursor-alias underline decoration-dotted underline-offset-2"
                     >
-                      unresolved fraud events
+                      unresolved risk events
                     </Link>
                   </li>
                 </ul>

@@ -114,9 +114,7 @@ export function ResolvedRiskEventsTable({ partnerId }: { partnerId: string }) {
     tdClassName: "border-l-0",
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-0",
-    error: fraudGroupsError
-      ? "Failed to load resolved fraud events"
-      : undefined,
+    error: fraudGroupsError ? "Failed to load resolved risk events" : undefined,
   });
 
   const displayViewAll =
@@ -150,7 +148,7 @@ export function ResolvedRiskEventsTable({ partnerId }: { partnerId: string }) {
               <LoadingSpinner />
             ) : (
               <p className="text-content-subtle text-sm">
-                No past resolved fraud events found for this partner
+                No past resolved risk events found for this partner
               </p>
             )}
           </div>

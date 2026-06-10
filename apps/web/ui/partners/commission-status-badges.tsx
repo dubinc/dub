@@ -137,7 +137,7 @@ export const CommissionStatusBadges = {
     tooltip: (data: CommissionTooltipDataProps) => {
       if (data.variant === "partner") {
         const title =
-          "This commission is on hold due to pending fraud events and cannot be paid out until they are resolved.";
+          "This commission is on hold due to pending risk events and cannot be paid out until they are resolved.";
 
         if (data.program?.name && data.program?.slug) {
           return `${title} If you believe this is incorrect, [reach out to the ${data.program.name} team](${PARTNERS_DOMAIN}/messages/${data.program.slug}).`;

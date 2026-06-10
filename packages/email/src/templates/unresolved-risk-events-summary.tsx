@@ -18,7 +18,7 @@ import { Footer } from "../components/footer";
 
 const MAX_DISPLAYED_GROUPS = 5;
 
-export default function UnresolvedFraudEventsSummary({
+export default function UnresolvedRiskEventsSummary({
   workspace = {
     slug: "acme",
   },

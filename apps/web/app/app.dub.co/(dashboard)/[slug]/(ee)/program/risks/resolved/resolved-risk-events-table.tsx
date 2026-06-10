@@ -194,11 +194,11 @@ export function ResolvedRiskEventsTable() {
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (plural) => `resolved fraud event${plural ? "s" : ""}`,
+    resourceName: (plural) => `resolved risk event${plural ? "s" : ""}`,
     rowCount: fraudGroupCount ?? 0,
     loading,
     error:
-      error || countError ? "Failed to load resolved fraud events" : undefined,
+      error || countError ? "Failed to load resolved risk events" : undefined,
   });
 
   const [previousGroupId, nextGroupId] = useMemo(() => {
@@ -244,19 +244,17 @@ export function ResolvedRiskEventsTable() {
           }
         />
       )}
-      <div>
-        <ResolvedFraudFilters />
-      </div>
+      <ResolvedRiskEventsFilters />
 
       {fraudGroups?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
-          title="No resolved fraud events found"
+          title="No resolved risk events found"
           description={
             isFiltered
-              ? "No resolved fraud events found for the selected filters."
-              : "No fraud events have been resolved yet."
+              ? "No resolved risk events found for the selected filters."
+              : "No risk events have been resolved yet."
           }
           cardContent={() => (
             <>
@@ -270,7 +268,7 @@ export function ResolvedRiskEventsTable() {
   );
 }
 
-function ResolvedFraudFilters() {
+function ResolvedRiskEventsFilters() {
   const {
     filters,
     activeFilters,
@@ -284,7 +282,7 @@ function ResolvedFraudFilters() {
   });
 
   return (
-    <>
+    <div>
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <Filter.Select
           className="w-full md:w-fit"
@@ -311,11 +309,11 @@ function ResolvedFraudFilters() {
           )}
         </div>
       </AnimatedSizeContainer>
-    </>
+    </div>
   );
 }
 
-// Gets the current fraud event from the loaded array if available, or a separate fetch if not
+// Gets the current risk event from the loaded array if available, or a separate fetch if not
 function useCurrentFraudGroup({
   fraudGroups,
   groupId,

@@ -112,7 +112,7 @@ function RiskReviewSheetContent({
     },
   });
 
-  // Left/right arrow keys for previous/next fraud event
+  // Left/right arrow keys for previous/next risk event
   useKeyboardShortcut("ArrowRight", () => onNext?.(), { sheet: true });
   useKeyboardShortcut("ArrowLeft", () => onPrevious?.(), { sheet: true });
 
