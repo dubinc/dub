@@ -28,7 +28,6 @@ type FormData = {
 };
 
 // TODO: Consolidate with bulk-edit-commissions-modal
-
 function MarkAllAsFraudModal({
   showModal,
   setShowModal,
@@ -40,11 +39,11 @@ function MarkAllAsFraudModal({
   setShowModal: Dispatch<SetStateAction<boolean>>;
   fraudGroup: FraudGroupProps;
   onSuccess?: () => Promise<void>; // Called when the commissions are marked as fraud
-  onResolve?: () => Promise<void>; // Called when the fraud event is resolved
+  onResolve?: () => Promise<void>; // Called when the risk event is resolved
 }) {
   const { id: workspaceId } = useWorkspace();
   const { makeRequest, isSubmitting } = useApiMutation();
-  const [resolveFraudEvent, setResolveFraudEvent] = useState(false);
+  const [resolveRiskEvent, setResolveRiskEvent] = useState(false);
 
   const { partner } = fraudGroup;
 
@@ -71,7 +70,7 @@ function MarkAllAsFraudModal({
     resolveFraudGroupAction,
     {
       onError: ({ error }) => {
-        toast.error(parseActionError(error, "Failed to resolve fraud events."));
+        toast.error(parseActionError(error, "Failed to resolve risk events."));
       },
     },
   );
@@ -82,7 +81,7 @@ function MarkAllAsFraudModal({
         status: "fraud",
         resolutionReason: "",
       });
-      setResolveFraudEvent(false);
+      setResolveRiskEvent(false);
     }
   }, [showModal, reset]);
 
@@ -110,7 +109,7 @@ function MarkAllAsFraudModal({
         },
       }),
 
-      ...(resolveFraudEvent
+      ...(resolveRiskEvent
         ? [
             resolveGroup({
               workspaceId,
@@ -124,10 +123,10 @@ function MarkAllAsFraudModal({
     if (bulkUpdateSucceeded) {
       setShowModal(false);
       reset();
-      setResolveFraudEvent(false);
+      setResolveRiskEvent(false);
       await mutatePrefix(["/api/commissions", "/api/fraud/groups"]);
 
-      if (resolveFraudEvent) {
+      if (resolveRiskEvent) {
         await onResolve?.();
       } else {
         await onSuccess?.();
@@ -214,18 +213,18 @@ function MarkAllAsFraudModal({
 
             <div>
               <div className="flex items-center gap-3">
-                <Switch checked={resolveFraudEvent} fn={setResolveFraudEvent} />
+                <Switch checked={resolveRiskEvent} fn={setResolveRiskEvent} />
                 <label className="text-sm font-medium text-neutral-900">
-                  Resolve fraud event
+                  Resolve risk event
                 </label>
               </div>
 
               <motion.div
-                animate={{ height: resolveFraudEvent ? "auto" : 0 }}
+                animate={{ height: resolveRiskEvent ? "auto" : 0 }}
                 transition={{ duration: 0.1 }}
                 initial={false}
                 className="overflow-hidden"
-                inert={!resolveFraudEvent}
+                inert={!resolveRiskEvent}
               >
                 <div className="pt-6">
                   <div className="flex items-center justify-between">
@@ -270,7 +269,7 @@ function MarkAllAsFraudModal({
               />
               <Button
                 type="submit"
-                text={resolveFraudEvent ? "Save and resolve" : "Save"}
+                text={resolveRiskEvent ? "Save and resolve" : "Save"}
                 className="h-8 w-fit rounded-lg"
                 loading={isSaving}
                 disabled={isLoading}

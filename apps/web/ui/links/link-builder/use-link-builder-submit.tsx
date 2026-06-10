@@ -1,4 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Button, useCopyToClipboard } from "@dub/ui";
 import { useRouter } from "next/navigation";
@@ -14,7 +15,8 @@ export function useLinkBuilderSubmit({
   onSuccess?: (data: LinkFormData) => void;
 } = {}) {
   const router = useRouter();
-  const { workspace, props } = useLinkBuilderContext();
+  const { props } = useLinkBuilderContext();
+  const workspace = useWorkspace();
   const { getValues, setError } = useFormContext<LinkFormData>();
   const [, copyToClipboard] = useCopyToClipboard();
 

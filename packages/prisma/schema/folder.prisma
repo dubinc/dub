@@ -15,7 +15,7 @@ enum FolderUserRole {
 }
 
 model Folder {
-  id          String             @id @default(cuid())
+  id          String             @id
   name        String
   description String?            @db.Text
   projectId   String

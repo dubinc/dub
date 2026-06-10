@@ -8,7 +8,8 @@ const APP_REDIRECTS = {
   "/welcome": "/onboarding/welcome",
   "/campaigns": "/program/campaigns",
   "/messages": "/program/messages",
-  "/fraud": "/program/fraud",
+  "/fraud": "/program/risks",
+  "/risks": "/program/risks",
 };
 
 const PROGRAM_REDIRECTS = {
@@ -20,6 +21,7 @@ const PROGRAM_REDIRECTS = {
   "/program/discounts": "/program/groups/default/discounts",
   "/program/link-settings": "/program/groups/default/links",
   "/program/branding": "/program/groups/default/branding",
+  "/program/fraud": "/program/risks",
 };
 
 export const appRedirect = async (path: string) => {

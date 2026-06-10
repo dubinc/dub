@@ -1,10 +1,10 @@
 "use client";
 
+import { useProgramMessagesCount } from "@/lib/messages/hooks/use-program-messages-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
-import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
 import { getProgramsAreaNavItems } from "@/ui/layout/sidebar/programs-area-nav";
 import { MarketplaceSidebarPanel } from "@/ui/partners/program-marketplace/marketplace-sidebar-panel";
 import { ProgramsPromoCard } from "@/ui/partners/program-marketplace/programs-promo-card";

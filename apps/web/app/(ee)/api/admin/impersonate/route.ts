@@ -139,6 +139,7 @@ async function getImpersonateUrl(email: string) {
       identifier: email,
       token: await hashToken(token, { secret: true }),
       expires: new Date(Date.now() + 60000),
+      isAdminImpersonation: true,
     },
   });
 
