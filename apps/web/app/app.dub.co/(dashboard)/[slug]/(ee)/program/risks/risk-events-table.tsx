@@ -1,6 +1,9 @@
 "use client";
 
-import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
+import {
+  FRAUD_GROUP_EXPIRY_DAYS,
+  FRAUD_RULES_BY_TYPE,
+} from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useFraudGroups } from "@/lib/swr/use-fraud-groups";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
@@ -28,10 +31,17 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, ShieldAlert, UserDelete, UserXmark } from "@dub/ui/icons";
+import {
+  CircleHalfDottedClock,
+  Dots,
+  ShieldAlert,
+  UserDelete,
+  UserXmark,
+} from "@dub/ui/icons";
 import { cn, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
+import { addDays, differenceInDays } from "date-fns";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFraudGroupFilters } from "./use-fraud-group-filters";
 
@@ -178,14 +188,7 @@ export function RiskEventsTable() {
             "The date and time of the most recent occurrence of this fraud event.",
         },
         cell: ({ row }) => (
-          <TimestampTooltip
-            timestamp={row.original.lastEventAt}
-            side="right"
-            rows={["local", "utc", "unix"]}
-            delayDuration={150}
-          >
-            <span>{formatDateTimeSmart(row.original.lastEventAt)}</span>
-          </TimestampTooltip>
+          <LastDetectedCell lastEventAt={row.original.lastEventAt} />
         ),
       },
       {
@@ -364,6 +367,56 @@ export function RiskEventsTable() {
         />
       )}
     </div>
+  );
+}
+
+function LastDetectedCell({ lastEventAt }: { lastEventAt: Date | string }) {
+  const daysUntilExpiry = differenceInDays(
+    addDays(new Date(lastEventAt), FRAUD_GROUP_EXPIRY_DAYS),
+    new Date(),
+  );
+
+  const dateLabel = (
+    <span
+      {...(daysUntilExpiry < 7 && {
+        className: cn(
+          "flex items-center gap-1 underline decoration-dotted underline-offset-2",
+          daysUntilExpiry >= 0 && "text-amber-600",
+          daysUntilExpiry < 0 && "text-red-600",
+        ),
+      })}
+    >
+      {daysUntilExpiry < 7 && (
+        <CircleHalfDottedClock className="size-3.5 shrink-0" />
+      )}
+      {formatDateTimeSmart(lastEventAt)}
+    </span>
+  );
+
+  if (daysUntilExpiry < 7) {
+    return (
+      <Tooltip
+        content={
+          daysUntilExpiry > 0
+            ? `This risk event will expire in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? "" : "s"} if not resolved. Unresolved risk events are automatically expired ${FRAUD_GROUP_EXPIRY_DAYS} days after the last detection.`
+            : "This risk event has expired and will be removed shortly. Please review it as soon as possible."
+        }
+        align="center"
+      >
+        <div className="w-fit">{dateLabel}</div>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <TimestampTooltip
+      timestamp={lastEventAt}
+      side="right"
+      rows={["local", "utc", "unix"]}
+      delayDuration={150}
+    >
+      {dateLabel}
+    </TimestampTooltip>
   );
 }
 

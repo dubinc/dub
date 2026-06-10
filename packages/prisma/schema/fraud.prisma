@@ -1,6 +1,7 @@
 enum FraudEventStatus {
   pending
   resolved
+  expired
 }
 
 enum FraudRuleType {
@@ -49,6 +50,7 @@ model FraudEventGroup {
   @@index([programId, partnerId, type, status])
   @@index(partnerId)
   @@index(userId)
+  @@index(lastEventAt)
 }
 
 model FraudEvent {
@@ -72,6 +74,7 @@ model FraudEvent {
   sourceProgram   Program?        @relation("SourceFraudEvents", fields: [sourceProgramId], references: [id])
 
   @@index([programId, partnerId, customerId])
+  @@index(fraudEventGroupId)
   @@index(partnerId)
   @@index(customerId)
   @@index(linkId)

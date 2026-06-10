@@ -12,13 +12,13 @@ import {
   AnimatedSizeContainer,
   Badge,
   Filter,
+  Flag,
   Table,
   Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { ShieldKeyhole } from "@dub/ui/icons";
 import { cn, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
@@ -260,7 +260,7 @@ export function ResolvedRiskEventsTable() {
           }
           cardContent={() => (
             <>
-              <ShieldKeyhole className="size-4 text-neutral-700" />
+              <Flag className="size-4 text-neutral-700" />
               <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
             </>
           )}

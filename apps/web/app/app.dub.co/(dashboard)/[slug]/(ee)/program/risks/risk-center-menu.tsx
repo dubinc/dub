@@ -18,7 +18,7 @@ export function RiskCenterMenu() {
           <div className="grid gap-px p-2">
             <button
               onClick={() => {
-                router.push(`/${slug}/program/fraud/resolved`);
+                router.push(`/${slug}/program/risks/resolved`);
                 setOpenPopover(false);
               }}
               className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
