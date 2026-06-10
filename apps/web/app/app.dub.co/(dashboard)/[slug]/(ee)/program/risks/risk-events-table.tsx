@@ -185,7 +185,7 @@ export function RiskEventsTable() {
         size: 150,
         meta: {
           headerTooltip:
-            "The date and time of the most recent occurrence of this fraud event.",
+            "The date and time of the most recent occurrence of this risk event.",
         },
         cell: ({ row }) => (
           <LastDetectedCell lastEventAt={row.original.lastEventAt} />
@@ -580,7 +580,7 @@ function MenuItem({
   );
 }
 
-// Gets the current fraud event from the loaded array if available, or a separate fetch if not
+// Gets the current risk event from the loaded array if available, or a separate fetch if not
 function useCurrentFraudGroup({
   fraudGroups,
   groupId,

@@ -11,7 +11,7 @@ import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirme
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import PartnerRewardUpdated from "@dub/email/templates/partner-reward-updated";
 import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
-import UnresolvedFraudEventsSummary from "@dub/email/templates/unresolved-fraud-events-summary";
+import UnresolvedRiskEventsSummary from "@dub/email/templates/unresolved-risk-events-summary";
 
 export const EMAIL_TEMPLATES_MAP = {
   BountyApproved,
@@ -22,7 +22,7 @@ export const EMAIL_TEMPLATES_MAP = {
   PartnerDeactivated,
   PartnerBanned,
   ProgramPayoutThankYou,
-  UnresolvedFraudEventsSummary,
+  UnresolvedRiskEventsSummary,
   PartnerGroupChanged,
   PartnerRewardUpdated,
 

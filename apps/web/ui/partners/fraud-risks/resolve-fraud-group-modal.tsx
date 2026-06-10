@@ -41,12 +41,12 @@ function ResolveFraudGroupModal({
 
   const { executeAsync, isPending } = useAction(resolveFraudGroupAction, {
     onSuccess: async () => {
-      toast.success("Fraud events resolved.");
+      toast.success("Risk events resolved.");
       setShowResolveFraudGroupModal(false);
       await onConfirm?.();
     },
     onError: ({ error }) => {
-      toast.error(parseActionError(error, "Failed to resolve fraud events."));
+      toast.error(parseActionError(error, "Failed to resolve risk events."));
     },
   });
 

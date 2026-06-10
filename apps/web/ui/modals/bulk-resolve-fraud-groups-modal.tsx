@@ -59,7 +59,7 @@ function BulkResolveFraudGroupsModal({
   const { executeAsync, isPending } = useAction(bulkResolveFraudGroupsAction, {
     onSuccess: async () => {
       await onConfirm?.();
-      toast.success("Fraud events resolved successfully!");
+      toast.success("Risk events resolved successfully!");
       setShowBulkResolveFraudGroupsModal(false);
     },
     onError({ error }) {
