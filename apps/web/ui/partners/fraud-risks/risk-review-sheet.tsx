@@ -27,14 +27,14 @@ import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
 import useSWR from "swr";
 import { AssociatedCommissionsTable } from "./associated-commissions-table";
-import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 import { useMarkAllAsFraudModal } from "./mark-all-as-fraud-modal";
 import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
 import { useResolveFraudGroupModal } from "./resolve-fraud-group-modal";
-import { ResolvedFraudGroupTable } from "./resolved-fraud-group-table";
+import { ResolvedRiskEventsTable } from "./resolved-risk-events-table";
+import { RiskDisclaimerBanner } from "./risk-disclaimer-banner";
 
-interface FraudReviewSheetProps {
+interface RiskReviewSheetProps {
   fraudGroup: FraudGroupProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
@@ -49,11 +49,11 @@ const COMMISSION_BLOCKING_FRAUD_TYPE: FraudRuleType[] = [
   FraudRuleType.paidTrafficDetected,
 ];
 
-function FraudReviewSheetContent({
+function RiskReviewSheetContent({
   fraudGroup,
   onPrevious,
   onNext,
-}: FraudReviewSheetProps) {
+}: RiskReviewSheetProps) {
   const { partner, user } = fraudGroup;
   const { slug, id: workspaceId } = useWorkspace();
 
@@ -147,8 +147,8 @@ function FraudReviewSheetContent({
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">
             {fraudGroup.status === "pending"
-              ? "Fraud review"
-              : "Resolved fraud and risk event"}
+              ? "Risk event review"
+              : "Resolved risk event"}
           </Sheet.Title>
 
           <div className="flex items-center gap-2">
@@ -207,7 +207,7 @@ function FraudReviewSheetContent({
 
         <div className="min-h-0 grow overflow-y-auto">
           <div className="flex flex-col gap-6 p-6">
-            <FraudDisclaimerBanner />
+            <RiskDisclaimerBanner />
 
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:gap-6">
               {/* Partner details */}
@@ -275,7 +275,7 @@ function FraudReviewSheetContent({
               )}
 
             {fraudGroup.status === "pending" && (
-              <ResolvedFraudGroupTable partnerId={partner.id} />
+              <ResolvedRiskEventsTable partnerId={partner.id} />
             )}
 
             {fraudGroup.status === "resolved" && (
@@ -381,11 +381,11 @@ function FraudReviewSheetContent({
   );
 }
 
-export function FraudReviewSheet({
+export function RiskReviewSheet({
   isOpen,
   nested,
   ...rest
-}: FraudReviewSheetProps & {
+}: RiskReviewSheetProps & {
   isOpen: boolean;
   nested?: boolean;
 }) {
@@ -412,7 +412,7 @@ export function FraudReviewSheet({
         className: "[--sheet-width:940px]",
       }}
     >
-      <FraudReviewSheetContent {...rest} />
+      <RiskReviewSheetContent {...rest} />
     </Sheet>
   );
 }

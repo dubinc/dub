@@ -6,13 +6,11 @@ import { DynamicTooltipWrapper, Flag } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useParams, usePathname } from "next/navigation";
 
-interface PartnerFraudIndicatorProps {
+interface PartnerRiskIndicatorProps {
   partnerId: string;
 }
 
-export function PartnerFraudIndicator({
-  partnerId,
-}: PartnerFraudIndicatorProps) {
+export function PartnerRiskIndicator({ partnerId }: PartnerRiskIndicatorProps) {
   const { slug } = useParams();
   const pathname = usePathname();
 
@@ -58,7 +56,7 @@ export function PartnerFraudIndicator({
       <ButtonLink
         variant="secondary"
         className="h-6 w-full items-center justify-center rounded-md px-1.5 py-2 text-sm font-medium"
-        href={`/${slug}/program/fraud?partnerId=${partnerId}`}
+        href={`/${slug}/program/risks?partnerId=${partnerId}`}
         target="_blank"
       >
         Review events

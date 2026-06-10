@@ -9,10 +9,10 @@ import { Button, ShieldKeyhole } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
-import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
 import { usePartnerApplicationRiskSummaryModal } from "./partner-application-risk-summary-modal";
 import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
+import { RiskDisclaimerBanner } from "./risk-disclaimer-banner";
 
 interface PartnerApplicationRiskSummaryProps {
   partner: {
@@ -95,7 +95,7 @@ export function PartnerApplicationRiskSummary({
         <PartnerCrossProgramSummary partnerId={partner.id} />
 
         {severity === "high" && (
-          <FraudDisclaimerBanner className="gap-2 px-3 py-2" />
+          <RiskDisclaimerBanner className="gap-2 px-3 py-2" />
         )}
       </div>
 

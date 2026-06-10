@@ -11,13 +11,13 @@ type FormData = z.infer<
   typeof updateFraudRuleSettingsSchema.shape.referralSourceBanned
 >;
 
-interface FraudReferralSourceSettingsProps {
+interface RiskReferralSourceSettingsProps {
   isConfigLoading?: boolean;
 }
 
-export function FraudReferralSourceSettings({
+export function RiskReferralSourceSettings({
   isConfigLoading = false,
-}: FraudReferralSourceSettingsProps) {
+}: RiskReferralSourceSettingsProps) {
   const {
     watch,
     setValue,

@@ -4,19 +4,19 @@ import { UpdateFraudRuleSettings } from "@/lib/types";
 import { Switch } from "@dub/ui";
 import { useFormContext } from "react-hook-form";
 
-interface FraudRuleToggleSettingsProps {
+interface RiskRuleToggleSettingsProps {
   ruleType: keyof UpdateFraudRuleSettings;
   title: string;
   description: string;
   isConfigLoading?: boolean;
 }
 
-export function FraudRuleToggleSettings({
+export function RiskRuleToggleSettings({
   ruleType,
   title,
   description,
   isConfigLoading = false,
-}: FraudRuleToggleSettingsProps) {
+}: RiskRuleToggleSettingsProps) {
   const {
     watch,
     setValue,

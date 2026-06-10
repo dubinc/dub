@@ -223,9 +223,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/commissions`,
           },
           {
-            name: "Fraud Detection",
+            name: "Risk Center",
             icon: ShieldKeyhole,
-            href: `/${slug}/program/fraud`,
+            href: `/${slug}/program/risks`,
             badge: pendingFraudEventsCount
               ? pendingFraudEventsCount > 99
                 ? "99+"

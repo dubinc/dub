@@ -142,7 +142,7 @@ export default function UnresolvedFraudEventsSummary({
                         <Column align="right" valign="middle">
                           <Link
                             className="inline-block rounded-lg border border-solid border-neutral-300 bg-white px-2.5 py-1.5 text-sm font-medium text-neutral-800 no-underline"
-                            href={`https://app.dub.co/${workspace.slug}/program/fraud?groupId=${group.id}`}
+                            href={`https://app.dub.co/${workspace.slug}/program/risks?groupId=${group.id}`}
                           >
                             View
                           </Link>
@@ -171,7 +171,7 @@ export default function UnresolvedFraudEventsSummary({
 
             <Section className="mt-6 text-center">
               <Link
-                href={`https://app.dub.co/${workspace.slug}/program/fraud`}
+                href={`https://app.dub.co/${workspace.slug}/program/risks`}
                 className="box-border block w-full rounded-md bg-black px-4 py-3 text-center text-sm font-medium leading-none text-white no-underline"
               >
                 Review all events

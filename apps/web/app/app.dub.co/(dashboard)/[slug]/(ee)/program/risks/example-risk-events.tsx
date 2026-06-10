@@ -21,26 +21,26 @@ const EXAMPLE_FRAUD_EVENTS: {
   },
 ];
 
-interface ExampleFraudEventProps {
+interface ExampleRiskEventProps {
   type: FraudRuleType;
   partnerName: string;
   date: Date;
 }
 
-export function ExampleFraudEvents() {
+export function ExampleRiskEvents() {
   return (
     <div
       className="flex w-full max-w-md flex-col gap-4 overflow-hidden px-4 [mask-image:linear-gradient(black_80%,transparent)]"
       aria-hidden
     >
       {EXAMPLE_FRAUD_EVENTS.map((event, idx) => (
-        <ExampleFraudEvent key={idx} event={event} />
+        <ExampleRiskEvent key={idx} event={event} />
       ))}
     </div>
   );
 }
 
-function ExampleFraudEvent({ event }: { event: ExampleFraudEventProps }) {
+function ExampleRiskEvent({ event }: { event: ExampleRiskEventProps }) {
   const rule = FRAUD_RULES_BY_TYPE[event.type];
 
   return (

@@ -35,7 +35,7 @@ export function useFraudGroupFilters({
       {
         key: "type",
         icon: ShieldKeyhole,
-        label: "Reason",
+        label: "Risk rule",
         options: fraudGroupCount
           ? fraudGroupCount.map(({ type, _count }) => ({
               label: FRAUD_RULES_BY_TYPE[type].name,
