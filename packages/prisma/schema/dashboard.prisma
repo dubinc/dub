@@ -1,5 +1,5 @@
 model Dashboard {
-  id String @id @default(cuid())
+  id String @id
 
   link   Link?   @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   linkId String? @unique

@@ -11,7 +11,7 @@ enum RewardStructure {
 }
 
 model Reward {
-  id                 String          @id @default(cuid())
+  id                 String          @id
   programId          String?
   description        String?
   tooltipDescription String?         @db.Text

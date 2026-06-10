@@ -4,7 +4,7 @@ enum PostbackReceiver {
 }
 
 model Postback {
-  id         String           @id @default(cuid())
+  id         String           @id
   partnerId  String
   name       String
   url        String           @db.LongText

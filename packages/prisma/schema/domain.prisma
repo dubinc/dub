@@ -69,7 +69,7 @@ enum EmailDomainStatus {
 }
 
 model EmailDomain {
-  id             String            @id @default(cuid())
+  id             String            @id
   workspaceId    String
   programId      String
   slug           String            @unique

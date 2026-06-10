@@ -7,7 +7,7 @@ enum WebhookReceiver {
 }
 
 model Webhook {
-  id                  String          @id @default(cuid())
+  id                  String          @id
   projectId           String
   installationId      String? // indicates which integration installation added the webhook
   receiver            WebhookReceiver @default(user)

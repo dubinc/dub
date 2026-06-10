@@ -17,7 +17,7 @@ enum CommissionType {
 }
 
 model Commission {
-  id                 String           @id @default(cuid())
+  id                 String           @id
   programId          String
   partnerId          String
   rewardId           String?
