@@ -6,7 +6,7 @@ import { Button, IconMenu, Popover, Refresh2 } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function ProgramFraudActionsMenu() {
+export function RiskCenterMenu() {
   const router = useRouter();
   const { slug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);

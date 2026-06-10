@@ -38,13 +38,13 @@ const PAID_TRAFFIC_PLATFORM_ICONS: Record<
   tiktok: TikTok,
 };
 
-interface FraudPaidTrafficSettingsProps {
+interface RiskPaidTrafficSettingsProps {
   isConfigLoading?: boolean;
 }
 
-export function FraudPaidTrafficSettings({
+export function RiskPaidTrafficSettings({
   isConfigLoading = false,
-}: FraudPaidTrafficSettingsProps) {
+}: RiskPaidTrafficSettingsProps) {
   const {
     watch,
     setValue,

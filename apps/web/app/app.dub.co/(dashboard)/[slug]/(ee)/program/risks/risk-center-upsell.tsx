@@ -4,22 +4,22 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
 import { Button } from "@dub/ui";
-import { ExampleFraudEvents } from "./example-fraud-events";
+import { ExampleRiskEvents } from "./example-risk-events";
 
-export function FraudUpsell() {
+export function RiskCenterUpsell() {
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
     usePartnersUpgradeModal();
 
   return (
     <>
       {partnersUpgradeModal}
-      <PageContent title="Fraud & Risk">
+      <PageContent title="Risk Center">
         <PageWidthWrapper>
           <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
-            <ExampleFraudEvents />
+            <ExampleRiskEvents />
             <div className="max-w-sm text-pretty text-center">
               <span className="text-base font-medium text-neutral-900">
-                Fraud and risk
+                Risk Center
               </span>
               <p className="text-content-subtle mt-2 text-sm">
                 Protect your program and partners with{" "}
@@ -29,7 +29,7 @@ export function FraudUpsell() {
                   rel="noopener noreferrer"
                   className="text-content-default hover:text-content-emphasis cursor-alias underline decoration-dotted underline-offset-2"
                 >
-                  fraud and risk detection.
+                  risk detection.
                 </a>{" "}
                 Available on Advanced plans and higher.
               </p>

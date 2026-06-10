@@ -10,7 +10,7 @@ import { ButtonLink } from "@/ui/placeholders/button-link";
 import { ShieldKeyhole } from "@dub/ui";
 import { useParams } from "next/navigation";
 
-export function PartnerApplicationFraudBanner({
+export function PartnerApplicationRiskBanner({
   partner,
 }: {
   partner: EnrolledPartnerExtendedProps;
@@ -37,7 +37,7 @@ export function PartnerApplicationFraudBanner({
   );
 }
 
-export function PartnerFraudBanner({
+export function PartnerRiskBanner({
   partner,
 }: {
   partner: EnrolledPartnerExtendedProps;
@@ -79,7 +79,7 @@ export function PartnerFraudBanner({
       <ButtonLink
         variant="outline"
         className="text-content-inverted hover:none h-7 w-fit rounded-lg bg-red-700 px-2.5 py-2 text-sm font-medium hover:bg-red-800"
-        href={`/${slug}/program/fraud?partnerId=${partner.id}`}
+        href={`/${slug}/program/risks?partnerId=${partner.id}`}
         target="_blank"
       >
         Review event

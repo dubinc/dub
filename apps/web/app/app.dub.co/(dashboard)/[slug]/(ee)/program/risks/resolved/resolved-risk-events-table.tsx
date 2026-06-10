@@ -4,7 +4,7 @@ import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { useFraudGroups } from "@/lib/swr/use-fraud-groups";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { FraudGroupProps } from "@/lib/types";
-import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
+import { RiskReviewSheet } from "@/ui/partners/fraud-risks/risk-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { UserRowItem } from "@/ui/users/user-row-item";
@@ -24,7 +24,7 @@ import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { useFraudGroupFilters } from "../use-fraud-group-filters";
 
-export function ResolvedFraudGroupTable() {
+export function ResolvedRiskEventsTable() {
   const { queryParams, searchParams, searchParamsObj } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
@@ -220,7 +220,7 @@ export function ResolvedFraudGroupTable() {
   return (
     <div className="flex flex-col gap-6">
       {detailsSheetState.groupId && currentFraudGroup && (
-        <FraudReviewSheet
+        <RiskReviewSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)

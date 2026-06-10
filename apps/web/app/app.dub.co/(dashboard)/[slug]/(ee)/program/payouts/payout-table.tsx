@@ -485,7 +485,7 @@ function AmountRowItem({
     if (hasPendingFraudEvents) {
       return (
         <Tooltip
-          content={`This partner's payouts are on hold due to [unresolved fraud events](${`/${slug}/program/fraud?partnerId=${payout.partner.id}`}). They cannot be paid out until resolved.`}
+          content={`This partner's payouts are on hold due to [unresolved risk events](${`/${slug}/program/risks?partnerId=${payout.partner.id}`}). They cannot be paid out until resolved.`}
         >
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
             {display}

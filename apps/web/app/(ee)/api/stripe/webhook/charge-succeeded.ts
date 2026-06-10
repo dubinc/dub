@@ -173,7 +173,7 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
     workspaceOwners.map(({ user }) => ({
       variant: "notifications",
       to: user.email!,
-      subject: `Your ${pluralize("domain", domains.length)} have been renewed`,
+      subject: `Your ${pluralize("domain", domains.length)} ${domains.length === 1 ? "has" : "have"} been renewed`,
       react: DomainRenewed({
         email: user.email!,
         workspace: {
