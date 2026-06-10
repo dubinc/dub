@@ -119,7 +119,6 @@ function LinkBuilderInner({
   });
 
   useEffect(() => {
-    console.log({ loading, primaryDomain, props, duplicateProps });
     // for a new link (no props or duplicateProps), set the domain to the primary domain
     if (
       !loading &&
