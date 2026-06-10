@@ -11,7 +11,7 @@ export default function RiskCenterPage() {
       titleInfo={{
         title:
           "Safeguard your partner program by automatically flagging, reviewing, and resolving potential risk events.",
-        href: "https://dub.co/help/article/fraud-detection",
+        href: "https://dub.co/help/article/risk-monitoring",
       }}
       controls={
         <>

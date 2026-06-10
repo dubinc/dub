@@ -24,7 +24,7 @@ export function RiskCenterUpsell() {
               <p className="text-content-subtle mt-2 text-sm">
                 Protect your program and partners with{" "}
                 <a
-                  href="https://dub.co/help/article/fraud-detection"
+                  href="https://dub.co/help/article/risk-monitoring"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-content-default hover:text-content-emphasis cursor-alias underline decoration-dotted underline-offset-2"
