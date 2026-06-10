@@ -9,6 +9,7 @@ import {
   ProgramEnrollmentProps,
   RewardProps,
 } from "@/lib/types";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
@@ -178,7 +179,9 @@ export function ReferralsEmbedPageClient({
   );
 
   const activeBountiesCount = bounties.length;
-  const isPending = programEnrollment.status === "pending";
+  const hasEmbedAccess = ACTIVE_ENROLLMENT_STATUSES.includes(
+    programEnrollment.status,
+  );
 
   const tabs = useMemo(
     () => [
@@ -236,9 +239,10 @@ export function ReferralsEmbedPageClient({
     ],
   );
 
-  if (isPending) {
+  if (!hasEmbedAccess) {
     return (
-      <ReferralsEmbedPending
+      <ReferralsEmbedUnapproved
+        status={programEnrollment.status}
         programName={program.name}
         themeOptions={themeOptions}
         dynamicHeight={dynamicHeight}
@@ -390,16 +394,19 @@ export function ReferralsEmbedPageClient({
   );
 }
 
-function ReferralsEmbedPending({
+function ReferralsEmbedUnapproved({
+  status,
   programName,
   themeOptions,
   dynamicHeight,
 }: {
+  status: ProgramEnrollmentStatus;
   programName: string;
   themeOptions: ThemeOptions;
   dynamicHeight: boolean;
 }) {
-  const badge = PartnerStatusBadges.pending;
+  const badge = PartnerStatusBadges[status];
+  const isPending = status === "pending";
 
   return (
     <div
@@ -419,11 +426,17 @@ function ReferralsEmbedPending({
         {badge.label}
       </StatusBadge>
       <h2 className="text-content-default mt-4 text-base font-semibold">
-        Application in review
+        {isPending ? "Application in review" : "Program unavailable"}
       </h2>
       <p className="text-content-subtle [&_strong]:text-content-default mt-2 max-w-sm text-balance text-sm font-medium [&_strong]:font-semibold">
-        You&apos;ll be notified when <strong>{programName}</strong> has finished
-        reviewing your application.
+        {isPending ? (
+          <>
+            You&apos;ll be notified when <strong>{programName}</strong> has
+            finished reviewing your application.
+          </>
+        ) : (
+          "You don't have access to this program."
+        )}
       </p>
     </div>
   );
