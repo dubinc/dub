@@ -5,7 +5,7 @@ import { EnrolledPartnerProps, FraudGroupCountByType } from "@/lib/types";
 import { fraudGroupCountQuerySchema } from "@/lib/zod/schemas/fraud";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { useRouterStuff } from "@dub/ui";
-import { ShieldKeyhole, Users } from "@dub/ui/icons";
+import { Flag, Users } from "@dub/ui/icons";
 import { nFormatter } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -34,8 +34,8 @@ export function useFraudGroupFilters({
     () => [
       {
         key: "type",
-        icon: ShieldKeyhole,
-        label: "Reason",
+        icon: Flag,
+        label: "Risk rule",
         options: fraudGroupCount
           ? fraudGroupCount.map(({ type, _count }) => ({
               label: FRAUD_RULES_BY_TYPE[type].name,

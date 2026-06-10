@@ -6,7 +6,7 @@ import { Button, IconMenu, Popover, Refresh2 } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function ProgramFraudActionsMenu() {
+export function RiskCenterMenu() {
   const router = useRouter();
   const { slug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
@@ -18,7 +18,7 @@ export function ProgramFraudActionsMenu() {
           <div className="grid gap-px p-2">
             <button
               onClick={() => {
-                router.push(`/${slug}/program/fraud/resolved`);
+                router.push(`/${slug}/program/risks/resolved`);
                 setOpenPopover(false);
               }}
               className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"

@@ -27,7 +27,10 @@ function formatConditionContent(
               key={code}
               className="inline-flex h-7 items-center gap-1.5 rounded-full bg-blue-100 px-2.5 text-xs font-medium text-blue-900"
             >
-              <CountryFlag countryCode={code} className="size-3.5 rounded-full" />
+              <CountryFlag
+                countryCode={code}
+                className="size-3.5 rounded-full"
+              />
               {COUNTRIES[code] ?? code}
             </span>
           ))}

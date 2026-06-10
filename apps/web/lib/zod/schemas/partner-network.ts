@@ -1,3 +1,4 @@
+import { processKey } from "@/lib/api/links/utils";
 import { PlatformType } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
@@ -101,4 +102,17 @@ export const invitePartnerFromNetworkSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   groupId: z.string().nullish().default(null),
+  username: z
+    .string()
+    .max(100)
+    .nullish()
+    .refine(
+      (v) => (v ? processKey({ domain: "d.to", key: v }) !== null : true),
+      {
+        message: "Invalid username. Must be a URL-friendly string.",
+      },
+    ),
+  emailSubject: z.string().trim().max(255).optional(),
+  emailTitle: z.string().trim().max(255).optional(),
+  emailBody: z.string().trim().max(3000).optional(),
 });

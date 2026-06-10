@@ -84,7 +84,7 @@ export default function AdvancedPlanDowngradeNotice({
                 href="https://dub.co/help/article/fraud-detection"
                 className="font-medium text-black underline underline-offset-2"
               >
-                Fraud events
+                Risk events
               </Link>{" "}
               are still being tracked, but you need to upgrade to view them.
             </Text>

@@ -4,7 +4,7 @@ import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { useFraudGroups } from "@/lib/swr/use-fraud-groups";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { FraudGroupProps } from "@/lib/types";
-import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
+import { RiskReviewSheet } from "@/ui/partners/fraud-risks/risk-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { UserRowItem } from "@/ui/users/user-row-item";
@@ -12,19 +12,19 @@ import {
   AnimatedSizeContainer,
   Badge,
   Filter,
+  Flag,
   Table,
   Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { ShieldKeyhole } from "@dub/ui/icons";
 import { cn, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { useFraudGroupFilters } from "../use-fraud-group-filters";
 
-export function ResolvedFraudGroupTable() {
+export function ResolvedRiskEventsTable() {
   const { queryParams, searchParams, searchParamsObj } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
@@ -194,11 +194,11 @@ export function ResolvedFraudGroupTable() {
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (plural) => `resolved fraud event${plural ? "s" : ""}`,
+    resourceName: (plural) => `resolved risk event${plural ? "s" : ""}`,
     rowCount: fraudGroupCount ?? 0,
     loading,
     error:
-      error || countError ? "Failed to load resolved fraud events" : undefined,
+      error || countError ? "Failed to load resolved risk events" : undefined,
   });
 
   const [previousGroupId, nextGroupId] = useMemo(() => {
@@ -220,7 +220,7 @@ export function ResolvedFraudGroupTable() {
   return (
     <div className="flex flex-col gap-6">
       {detailsSheetState.groupId && currentFraudGroup && (
-        <FraudReviewSheet
+        <RiskReviewSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
@@ -244,23 +244,21 @@ export function ResolvedFraudGroupTable() {
           }
         />
       )}
-      <div>
-        <ResolvedFraudFilters />
-      </div>
+      <ResolvedRiskEventsFilters />
 
       {fraudGroups?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
-          title="No resolved fraud events found"
+          title="No resolved risk events found"
           description={
             isFiltered
-              ? "No resolved fraud events found for the selected filters."
-              : "No fraud events have been resolved yet."
+              ? "No resolved risk events found for the selected filters."
+              : "No risk events have been resolved yet."
           }
           cardContent={() => (
             <>
-              <ShieldKeyhole className="size-4 text-neutral-700" />
+              <Flag className="size-4 text-neutral-700" />
               <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
             </>
           )}
@@ -270,7 +268,7 @@ export function ResolvedFraudGroupTable() {
   );
 }
 
-function ResolvedFraudFilters() {
+function ResolvedRiskEventsFilters() {
   const {
     filters,
     activeFilters,
@@ -284,7 +282,7 @@ function ResolvedFraudFilters() {
   });
 
   return (
-    <>
+    <div>
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <Filter.Select
           className="w-full md:w-fit"
@@ -311,11 +309,11 @@ function ResolvedFraudFilters() {
           )}
         </div>
       </AnimatedSizeContainer>
-    </>
+    </div>
   );
 }
 
-// Gets the current fraud event from the loaded array if available, or a separate fetch if not
+// Gets the current risk event from the loaded array if available, or a separate fetch if not
 function useCurrentFraudGroup({
   fraudGroups,
   groupId,
