@@ -1,14 +1,15 @@
 import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
 import * as z from "zod/v4";
+import useWorkspace from "../../swr/use-workspace";
 import {
-  ProgramMessagesSchema,
-  getProgramMessagesQuerySchema,
-} from "../zod/schemas/messages";
+  PartnerMessagesSchema,
+  getPartnerMessagesQuerySchema,
+} from "../schemas";
 
-const partialQuerySchema = getProgramMessagesQuerySchema.partial();
+const partialQuerySchema = getPartnerMessagesQuerySchema.partial();
 
-export function useProgramMessages({
+export function usePartnerMessages({
   query,
   enabled = true,
   swrOpts,
@@ -17,11 +18,14 @@ export function useProgramMessages({
   enabled?: boolean;
   swrOpts?: SWRConfiguration;
 } = {}) {
+  const { id: workspaceId } = useWorkspace();
+
   const { data, isLoading, error, mutate } = useSWR<
-    z.infer<typeof ProgramMessagesSchema> & { delivered?: false }
+    z.infer<typeof PartnerMessagesSchema> & { delivered?: false }
   >(
-    enabled
-      ? `/api/partner-profile/messages?${new URLSearchParams({
+    enabled && workspaceId
+      ? `/api/messages?${new URLSearchParams({
+          workspaceId,
           ...(query as Record<string, string>),
         }).toString()}`
       : null,
@@ -35,7 +39,7 @@ export function useProgramMessages({
   );
 
   return {
-    programMessages: data,
+    partnerMessages: data,
     isLoading,
     error,
     mutate,
