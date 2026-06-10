@@ -110,7 +110,8 @@ export function InviteTeammatesForm({
               throw error;
             }
 
-            const message = error?.message ?? "Something went wrong";
+            const message =
+              error?.message ?? "Failed to send invites. Please try again.";
 
             toast.error(message);
             throw new Error(message);
