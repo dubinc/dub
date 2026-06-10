@@ -55,7 +55,7 @@ export async function detectDuplicateIdentityFraud({
       programId: true,
       partnerId: true,
       status: true,
-      riskDetectionDisabledAt: true,
+      riskMonitoringDisabledAt: true,
       program: {
         select: {
           fraudRules: true,
@@ -86,11 +86,11 @@ export async function detectDuplicateIdentityFraud({
     map.get(e.programId)!.push({
       partnerId: e.partnerId,
       status: e.status,
-      riskDetectionDisabledAt: e.riskDetectionDisabledAt,
+      riskMonitoringDisabledAt: e.riskMonitoringDisabledAt,
     });
 
     return map;
-  }, new Map<string, Pick<ProgramEnrollment, "partnerId" | "status" | "riskDetectionDisabledAt">[]>());
+  }, new Map<string, Pick<ProgramEnrollment, "partnerId" | "status" | "riskMonitoringDisabledAt">[]>());
 
   // Filter out programs with only one partner
   partnersByProgram = new Map(
@@ -111,7 +111,7 @@ export async function detectDuplicateIdentityFraud({
       // Skip if the partner is inactive or risk detection is disabled
       if (
         INACTIVE_ENROLLMENT_STATUSES.includes(sourcePartner.status) ||
-        sourcePartner.riskDetectionDisabledAt
+        sourcePartner.riskMonitoringDisabledAt
       ) {
         continue;
       }

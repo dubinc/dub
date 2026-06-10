@@ -60,7 +60,7 @@ export async function detectAndRecordFraudApplication({
             },
             select: {
               status: true,
-              riskDetectionDisabledAt: true,
+              riskMonitoringDisabledAt: true,
             },
           },
         },
@@ -73,7 +73,7 @@ export async function detectAndRecordFraudApplication({
           // Skip if the partner is inactive or risk detection is disabled
           if (
             INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status) ||
-            programEnrollment.riskDetectionDisabledAt
+            programEnrollment.riskMonitoringDisabledAt
           ) {
             continue;
           }

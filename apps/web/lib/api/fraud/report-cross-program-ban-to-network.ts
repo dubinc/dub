@@ -27,7 +27,7 @@ export async function reportCrossProgramBanToNetwork({
       status: {
         notIn: INACTIVE_ENROLLMENT_STATUSES,
       },
-      riskDetectionDisabledAt: null,
+      riskMonitoringDisabledAt: null,
     },
     select: {
       programId: true,
