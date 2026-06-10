@@ -109,10 +109,16 @@ export const createStripeTransfer = async ({
   );
 
   if (totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
-    console.warn(
-      `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.email} is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}). Skipping...`,
-    );
-    return;
+    const message = `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`;
+
+    // For force-withdrawal action, throw so the error surfaces back to partners.
+    // Otherwise (e.g. cron-driven payouts) just log and skip silently.
+    if (forceWithdrawal) {
+      throw new Error(message);
+    } else {
+      console.warn(message);
+      return;
+    }
   }
 
   let withdrawalFee = 0;
