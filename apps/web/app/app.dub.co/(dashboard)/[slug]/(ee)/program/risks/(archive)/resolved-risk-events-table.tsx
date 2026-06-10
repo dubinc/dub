@@ -17,7 +17,6 @@ import {
   Filter,
   Flag,
   Table,
-  TabSelect,
   Tooltip,
   usePagination,
   useRouterStuff,
@@ -29,33 +28,17 @@ import { addDays } from "date-fns";
 import { useEffect, useMemo, useState } from "react";
 import { useFraudGroupFilters } from "../use-fraud-group-filters";
 
-const STATUS_TABS = [
-  {
-    id: "resolved" as const,
-    label: "Resolved",
-  },
-  {
-    id: "expired" as const,
-    label: "Expired",
-  },
-];
+type StatusTab = "resolved" | "expired";
 
-type StatusTab = (typeof STATUS_TABS)[number]["id"];
-
-export function ResolvedRiskEventsTable() {
+export function ResolvedRiskEventsTable({ status }: { status: StatusTab }) {
   const { queryParams, searchParams, searchParamsObj } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
-
-  const status =
-    STATUS_TABS.find(({ id }) => id === searchParams.get("status"))?.id ??
-    STATUS_TABS[0].id;
 
   const defaultSortBy = status === "expired" ? "lastEventAt" : "resolvedAt";
   const sortBy = searchParams.get("sortBy") || defaultSortBy;
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
   const isFiltered = Object.keys(searchParamsObj).some(
-    (key) =>
-      !["sortBy", "sortOrder", "page", "status", "groupId"].includes(key),
+    (key) => !["sortBy", "sortOrder", "page", "groupId"].includes(key),
   );
 
   const { fraudGroups, loading, error } = useFraudGroups({
@@ -288,7 +271,7 @@ export function ResolvedRiskEventsTable() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {detailsSheetState.groupId && currentFraudGroup && (
         <RiskReviewSheet
           isOpen={detailsSheetState.open}
@@ -314,20 +297,6 @@ export function ResolvedRiskEventsTable() {
           }
         />
       )}
-      <div className="border-b border-neutral-200">
-        <TabSelect
-          options={STATUS_TABS}
-          selected={status}
-          onSelect={(id) => {
-            queryParams({
-              set: {
-                status: id,
-              },
-              del: ["page", "sortBy", "sortOrder", "groupId"],
-            });
-          }}
-        />
-      </div>
 
       <ResolvedRiskEventsFilters status={status} />
 
