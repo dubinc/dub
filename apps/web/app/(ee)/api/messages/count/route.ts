@@ -1,6 +1,6 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { countMessagesQuerySchema } from "@/lib/zod/schemas/messages";
+import { countMessagesQuerySchema } from "@/lib/messages/schemas";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 

@@ -3,7 +3,7 @@ import { enrichMessage } from "@/lib/messages/enrich";
 import {
   ProgramMessagesSchema,
   getProgramMessagesQuerySchema,
-} from "@/lib/zod/schemas/messages";
+} from "@/lib/messages/schemas";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
