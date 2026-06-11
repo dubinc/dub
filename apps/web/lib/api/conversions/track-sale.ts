@@ -182,56 +182,95 @@ export const trackSale = async ({
         ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
         : customerAvatar;
 
-    newCustomer = await prisma.customer.create({
-      data: {
-        id: finalCustomerId,
-        name: finalCustomerName,
-        email: customerEmail,
-        avatar: finalCustomerAvatar,
-        externalId: customerExternalId,
-        linkId: clickData.link_id,
-        clickId: clickData.click_id,
-        country: clickData.country,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-        clickedAt: new Date(clickData.timestamp + "Z"),
-      },
-    });
+    try {
+      newCustomer = await prisma.customer.create({
+        data: {
+          id: finalCustomerId,
+          name: finalCustomerName,
+          email: customerEmail,
+          avatar: finalCustomerAvatar,
+          externalId: customerExternalId,
+          linkId: clickData.link_id,
+          clickId: clickData.click_id,
+          country: clickData.country,
+          projectId: workspace.id,
+          projectConnectId: workspace.stripeConnectId,
+          clickedAt: new Date(clickData.timestamp + "Z"),
+        },
+      });
+    } catch (error) {
+      if (error.code !== "P2002") {
+        throw error;
+      }
 
-    if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
-      // persist customer avatar to R2 if it's not already stored
-      waitUntil(
-        storage
-          .upload({
-            key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-            body: customerAvatar,
-            opts: {
-              width: 128,
-              height: 128,
-            },
-          })
-          .catch(async (error) => {
-            console.error("Error persisting customer avatar to R2", error);
-            // if the avatar fails to upload to R2, set the avatar to null in the database
-            if (newCustomer) {
-              await prisma.customer.update({
-                where: { id: newCustomer.id },
-                data: { avatar: null },
-              });
-            }
-          }),
-      );
+      existingCustomer = await prisma.customer.findUnique({
+        where: {
+          projectId_externalId: {
+            projectId: workspace.id,
+            externalId: customerExternalId,
+          },
+        },
+      });
+
+      if (!existingCustomer) {
+        throw error;
+      }
     }
 
-    leadEventData = {
-      ...clickData,
-      event_id: nanoid(16),
-      // if leadEventName is provided, use it
-      // otherwise use "Direct sale tracking lead event" (since it's for direct sale tracking)
-      event_name: leadEventName ?? "Direct sale tracking lead event",
-      customer_id: newCustomer.id,
-      metadata: metadata ? JSON.stringify(metadata) : "",
-    };
+    if (newCustomer) {
+      if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
+        // persist customer avatar to R2 if it's not already stored
+        waitUntil(
+          storage
+            .upload({
+              key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+              body: customerAvatar,
+              opts: {
+                width: 128,
+                height: 128,
+              },
+            })
+            .catch(async (error) => {
+              console.error("Error persisting customer avatar to R2", error);
+              // if the avatar fails to upload to R2, set the avatar to null in the database
+              if (newCustomer) {
+                await prisma.customer.update({
+                  where: { id: newCustomer.id },
+                  data: { avatar: null },
+                });
+              }
+            }),
+        );
+      }
+
+      leadEventData = {
+        ...clickData,
+        event_id: nanoid(16),
+        // if leadEventName is provided, use it
+        // otherwise use "Direct sale tracking lead event" (since it's for direct sale tracking)
+        event_name: leadEventName ?? "Direct sale tracking lead event",
+        customer_id: newCustomer.id,
+        metadata: metadata ? JSON.stringify(metadata) : "",
+      };
+    } else if (existingCustomer) {
+      const leadEvent = await getLeadEvent({
+        customerId: existingCustomer.id,
+        eventName: leadEventName,
+      });
+
+      leadEventData = leadEvent
+        ? {
+            ...leadEvent,
+            ...clickData,
+          }
+        : {
+            ...clickData,
+            event_id: nanoid(16),
+            event_name: leadEventName ?? "Direct sale tracking lead event",
+            customer_id: existingCustomer.id,
+            metadata: metadata ? JSON.stringify(metadata) : "",
+          };
+    }
   }
 
   const customer = existingCustomer ?? newCustomer;
