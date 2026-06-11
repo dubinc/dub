@@ -7,7 +7,12 @@ import {
   Twitter,
   YouTube,
 } from "@dub/ui/icons";
-import { getPrettyUrl, getUrlFromStringIfValid, nFormatter } from "@dub/utils";
+import {
+  getPrettyUrl,
+  getUrlFromStringIfValid,
+  nFormatter,
+  pluralize,
+} from "@dub/utils";
 import { PartnerPlatformProps } from "../types";
 
 export const PARTNER_PLATFORM_FIELDS: {
@@ -62,10 +67,10 @@ export const PARTNER_PLATFORM_FIELDS: {
           : null,
         info: [
           youtube?.subscribers && youtube?.verifiedAt
-            ? `${nFormatter(Number(youtube.subscribers))} subscribers`
+            ? `${nFormatter(Number(youtube.subscribers))} ${pluralize("subscriber", Number(youtube.subscribers))}`
             : null,
           youtube?.views && youtube?.verifiedAt
-            ? `${nFormatter(Number(youtube.views))} views`
+            ? `${nFormatter(Number(youtube.views))} ${pluralize("view", Number(youtube.views))}`
             : null,
         ].filter(Boolean),
         stat:
@@ -90,10 +95,10 @@ export const PARTNER_PLATFORM_FIELDS: {
           : null,
         info: [
           twitter?.subscribers && twitter?.verifiedAt
-            ? `${nFormatter(Number(twitter.subscribers))} followers`
+            ? `${nFormatter(Number(twitter.subscribers))} ${pluralize("follower", Number(twitter.subscribers))}`
             : null,
           twitter?.posts && twitter?.verifiedAt
-            ? `${nFormatter(Number(twitter.posts))} tweets`
+            ? `${nFormatter(Number(twitter.posts))} ${pluralize("tweet", Number(twitter.posts))}`
             : null,
         ].filter(Boolean),
         stat:
@@ -134,10 +139,10 @@ export const PARTNER_PLATFORM_FIELDS: {
           : null,
         info: [
           instagram?.subscribers && instagram?.verifiedAt
-            ? `${nFormatter(Number(instagram.subscribers))} followers`
+            ? `${nFormatter(Number(instagram.subscribers))} ${pluralize("follower", Number(instagram.subscribers))}`
             : null,
           instagram?.posts && instagram?.verifiedAt
-            ? `${nFormatter(Number(instagram.posts))} posts`
+            ? `${nFormatter(Number(instagram.posts))} ${pluralize("post", Number(instagram.posts))}`
             : null,
         ].filter(Boolean),
         stat:
@@ -162,10 +167,10 @@ export const PARTNER_PLATFORM_FIELDS: {
           : null,
         info: [
           tiktok?.subscribers && tiktok?.verifiedAt
-            ? `${nFormatter(Number(tiktok.subscribers))} followers`
+            ? `${nFormatter(Number(tiktok.subscribers))} ${pluralize("follower", Number(tiktok.subscribers))}`
             : null,
           tiktok?.posts && tiktok?.verifiedAt
-            ? `${nFormatter(Number(tiktok.posts))} posts`
+            ? `${nFormatter(Number(tiktok.posts))} ${pluralize("post", Number(tiktok.posts))} `
             : null,
         ].filter(Boolean),
         stat:

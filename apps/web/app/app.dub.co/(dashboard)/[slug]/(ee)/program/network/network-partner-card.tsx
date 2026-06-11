@@ -86,10 +86,10 @@ export function NetworkPartnerCard({
             label: field.label,
             icon: field.icon,
             ...field.data(partner.platforms),
-          })).sort((a, b) => {
-            if (a.verified === b.verified) return 0;
-            return a.verified ? -1 : 1;
-          })
+          })).sort(
+            (a, b) =>
+              getPlatformSortOrder(a) - getPlatformSortOrder(b),
+          )
         : null,
     [partner],
   );
@@ -240,6 +240,18 @@ export function NetworkPartnerCard({
   );
 }
 
+function getPlatformSortOrder({
+  verified,
+  value,
+}: {
+  verified: boolean;
+  value?: string | null;
+}) {
+  if (verified) return 0;
+  if (value) return 1;
+  return 2;
+}
+
 function NetworkPartnerCardActions({
   partner,
   onToggleStarred,
@@ -339,10 +351,7 @@ function PlatformStatCard({
     >
       <div className="relative">
         <PlatformIcon
-          className={cn(
-            "size-3.5",
-            !verified && "text-content-subtle opacity-40",
-          )}
+          className={cn("size-3.5", !value && "text-content-subtle opacity-40")}
         />
         {verified && (
           <BadgeCheck2Fill className="absolute -right-1.5 -top-1.5 size-3 text-green-600" />
@@ -364,19 +373,21 @@ function PlatformStatCard({
 
   return (
     <DynamicTooltipWrapper
-      tooltipProps={{
-        content: (
-          <PlatformStatTooltipContent
-            label={label}
-            icon={PlatformIcon}
-            value={value}
-            stat={stat}
-            info={info}
-            verified={verified}
-            verifiedAt={verifiedAt}
-          />
-        ),
-      }}
+      tooltipProps={
+        value
+          ? {
+              content: (
+                <PlatformStatTooltipContent
+                  icon={PlatformIcon}
+                  value={value}
+                  stat={stat}
+                  info={info}
+                  verifiedAt={verifiedAt}
+                />
+              ),
+            }
+          : undefined
+      }
     >
       <As
         {...(href
@@ -395,36 +406,21 @@ function PlatformStatCard({
 }
 
 function PlatformStatTooltipContent({
-  label,
   icon: PlatformIcon,
   value,
   stat,
   info,
-  verified,
   verifiedAt,
 }: {
-  label: string;
   icon: Icon;
   value?: string | null;
   stat?: string | null;
   info?: string[];
-  verified: boolean;
   verifiedAt?: Date | null;
 }) {
-  if (!verified || !value) {
-    return (
-      <div className="flex items-center gap-2 p-2.5 text-xs">
-        <div className="border-border-subtle flex size-7 shrink-0 items-center justify-center rounded-full border">
-          <PlatformIcon className="text-content-subtle size-3.5 opacity-40" />
-        </div>
-        <span className="text-content-subtle font-medium">Not connected</span>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col gap-2 p-2.5 text-xs">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-2 text-xs">
+      <div className="flex items-center gap-2 p-3 pb-1.5">
         <div className="border-border-subtle flex size-7 shrink-0 items-center justify-center rounded-full border">
           <PlatformIcon className="size-3.5" />
         </div>
@@ -439,12 +435,16 @@ function PlatformStatTooltipContent({
           )}
         </div>
       </div>
-      {verifiedAt && (
-        <div className="text-content-subtle flex items-center gap-1.5 font-medium">
-          <BadgeCheck2Fill className="size-3 shrink-0 text-green-600" />
-          Verified {timeAgo(verifiedAt, { withAgo: true })}
-        </div>
-      )}
+      <div className="text-content-subtle border-border-subtle flex items-center gap-1.5 border-t px-3 py-1.5 font-medium">
+        {verifiedAt ? (
+          <>
+            <BadgeCheck2Fill className="size-3 shrink-0 text-green-600" />
+            Verified {timeAgo(verifiedAt, { withAgo: true })}
+          </>
+        ) : (
+          "Not verified"
+        )}
+      </div>
     </div>
   );
 }

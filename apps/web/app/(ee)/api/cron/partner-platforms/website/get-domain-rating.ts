@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from "@dub/utils";
 import * as z from "zod/v4";
 
 const domainRatingSchema = z.object({
@@ -7,7 +8,7 @@ const domainRatingSchema = z.object({
 });
 
 export async function getDomainRating(target: string) {
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `https://api.ahrefs.com/v3/public/domain-rating-free?target=${encodeURIComponent(target)}&output=json`,
     {
       headers: {
