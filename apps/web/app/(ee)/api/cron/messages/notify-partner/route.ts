@@ -54,6 +54,13 @@ export async function POST(req: Request) {
             },
             include: {
               senderUser: true,
+              attachments: {
+                select: {
+                  name: true,
+                  size: true,
+                  type: true,
+                },
+              },
             },
           },
           users: {
@@ -114,6 +121,7 @@ export async function POST(req: Request) {
           messages: [...unreadMessages].reverse().map((message) => ({
             text: message.text,
             createdAt: message.createdAt,
+            attachments: message.attachments,
             user: message.senderUser.name
               ? {
                   name: message.senderUser.name,
