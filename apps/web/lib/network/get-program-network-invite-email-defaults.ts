@@ -1,3 +1,11 @@
+// Some network partners have an email address (or nothing) stored as their
+// name; fall back to a generic greeting rather than leaking it
+export const getNetworkPartnerDisplayName = (name?: string | null) => {
+  const trimmedName = name?.trim();
+
+  return trimmedName && !trimmedName.includes("@") ? trimmedName : "there";
+};
+
 export const getProgramNetworkInviteEmailDefaults = ({
   programName,
   partnerName: partnerNameProp,
@@ -5,11 +13,7 @@ export const getProgramNetworkInviteEmailDefaults = ({
   programName: string;
   partnerName?: string | null;
 }) => {
-  const trimmedPartnerName = partnerNameProp?.trim();
-  const partnerName =
-    trimmedPartnerName && !trimmedPartnerName.includes("@")
-      ? trimmedPartnerName
-      : "there";
+  const partnerName = getNetworkPartnerDisplayName(partnerNameProp);
 
   return {
     subject: `${programName} invited you to join on Dub Partners`,

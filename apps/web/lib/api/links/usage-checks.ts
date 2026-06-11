@@ -33,7 +33,9 @@ export const throwIfLinksUsageExceeded = (workspace: WorkspaceWithUsers) => {
   }
 };
 
-export const throwIfAIUsageExceeded = (workspace: WorkspaceWithUsers) => {
+export const throwIfAIUsageExceeded = (
+  workspace: Pick<WorkspaceWithUsers, "aiUsage" | "aiLimit" | "plan">,
+) => {
   if (workspace.aiUsage >= workspace.aiLimit) {
     throw new DubApiError({
       code: "forbidden",

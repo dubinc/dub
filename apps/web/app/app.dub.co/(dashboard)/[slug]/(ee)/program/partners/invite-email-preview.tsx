@@ -4,11 +4,14 @@ import {
   RichTextArea,
   RichTextProvider,
   RichTextToolbar,
+  Sparkle3,
+  Tooltip,
   Trophy,
   useMediaQuery,
 } from "@dub/ui";
 import { Lock } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { RotateCcw } from "lucide-react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -18,21 +21,36 @@ export type EmailContent = {
   body: string;
 };
 
+const INVITE_GENERATION_STEPS = ["Analyzing profile", "Constructing invite"];
+
 export function InviteEmailPreview({
   emailContent,
   defaultEmailContent,
   fromAddress,
   onSave,
+  onGenerate,
+  onReset,
   onEditingChange,
   isSaving = false,
+  isGenerating = false,
+  showReset = false,
+  generateDisabledTooltip,
+  generationAvatar,
 }: {
   emailContent: EmailContent;
   defaultEmailContent: EmailContent;
   fromAddress: string;
   // Persists the sanitized content; returning false keeps the edit mode open
   onSave: (content: EmailContent) => Promise<boolean> | boolean;
+  onGenerate?: () => Promise<void>;
+  onReset?: () => void;
   onEditingChange?: (isEditing: boolean) => void;
   isSaving?: boolean;
+  isGenerating?: boolean;
+  showReset?: boolean;
+  // When set, disables the generate button and explains why
+  generateDisabledTooltip?: string;
+  generationAvatar?: ReactNode;
 }) {
   const { isMobile } = useMediaQuery();
   const richTextRef = useRef<{ setContent: (content: any) => void }>(null);
@@ -116,13 +134,42 @@ export function InviteEmailPreview({
               />
             </>
           ) : (
-            <Button
-              type="button"
-              variant="secondary"
-              text="Edit"
-              className="h-7 w-fit rounded-lg px-2.5 text-sm"
-              onClick={handleStartEditing}
-            />
+            <>
+              {onGenerate && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  text="Personalize"
+                  icon={<Sparkle3 className="size-3.5" />}
+                  className="h-7 w-fit rounded-lg px-2.5 text-sm"
+                  onClick={onGenerate}
+                  loading={isGenerating}
+                  disabled={isGenerating}
+                  disabledTooltip={generateDisabledTooltip}
+                />
+              )}
+              {showReset && onReset && (
+                <Tooltip content="Reset to the default invite">
+                  <button
+                    type="button"
+                    aria-label="Reset to the default invite"
+                    className="flex size-7 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={onReset}
+                    disabled={isGenerating}
+                  >
+                    <RotateCcw className="size-3.5" />
+                  </button>
+                </Tooltip>
+              )}
+              <Button
+                type="button"
+                variant="secondary"
+                text="Edit"
+                className="h-7 w-fit rounded-lg px-2.5 text-sm"
+                onClick={handleStartEditing}
+                disabled={isGenerating}
+              />
+            </>
           )}
         </div>
       </div>
@@ -248,26 +295,77 @@ export function InviteEmailPreview({
               </p>
             </div>
             <div className="grid grid-cols-1 gap-3 p-4 pb-6">
-              <h3 className="font-medium text-neutral-900">
-                {displayContent.title}
-              </h3>
-              <div className="prose prose-sm prose-neutral max-w-none text-neutral-500">
-                <RichTextProvider
-                  key={`preview-${displayContent.body}`}
-                  features={["bold", "italic", "links"]}
-                  style="condensed"
-                  markdown
-                  editable={false}
-                  initialValue={displayContent.body}
-                  editorClassName="text-sm leading-6 text-neutral-500 [&_a]:font-semibold [&_a]:text-neutral-800 [&_a]:underline [&_a]:underline-offset-2 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:marker:text-neutral-400"
-                >
-                  <RichTextArea />
-                </RichTextProvider>
-              </div>
-              <InvitePreviewProgramDetails />
+              {isGenerating ? (
+                <InviteGenerationProgress avatar={generationAvatar} />
+              ) : (
+                <>
+                  <h3 className="font-medium text-neutral-900">
+                    {displayContent.title}
+                  </h3>
+                  <div className="prose prose-sm prose-neutral max-w-none text-neutral-500">
+                    <RichTextProvider
+                      key={`preview-${displayContent.body}`}
+                      features={["bold", "italic", "links"]}
+                      style="condensed"
+                      markdown
+                      editable={false}
+                      initialValue={displayContent.body}
+                      editorClassName="text-sm leading-6 text-neutral-500 [&_a]:font-semibold [&_a]:text-neutral-800 [&_a]:underline [&_a]:underline-offset-2 [&_p]:my-0 [&_p:not(:last-child)]:mb-4 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:marker:text-neutral-400"
+                    >
+                      <RichTextArea />
+                    </RichTextProvider>
+                  </div>
+                  <InvitePreviewProgramDetails />
+                </>
+              )}
             </div>
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+function InviteGenerationProgress({ avatar }: { avatar?: ReactNode }) {
+  const [stepIndex, setStepIndex] = useState(0);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setStepIndex((current) =>
+        Math.min(current + 1, INVITE_GENERATION_STEPS.length - 1),
+      );
+    }, 1600);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  return (
+    <div className="flex min-h-80 items-center justify-center rounded-lg border border-neutral-200 bg-white px-6 py-12">
+      <div className="flex flex-col items-center">
+        {avatar ? (
+          <div className="overflow-hidden rounded-full shadow-md">{avatar}</div>
+        ) : (
+          <div className="flex size-14 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50 shadow-sm">
+            <Sparkle3 className="size-5 animate-pulse text-neutral-500" />
+          </div>
+        )}
+
+        <div
+          key={INVITE_GENERATION_STEPS[stepIndex]}
+          className="animate-text-appear mt-6 flex items-center gap-2 text-sm font-semibold text-neutral-900"
+        >
+          <Sparkle3 className="size-3.5 shrink-0 animate-pulse text-neutral-400" />
+          <span
+            className="animate-gradient-move bg-clip-text text-transparent"
+            style={{
+              backgroundImage:
+                "linear-gradient(90deg, #171717 0%, #171717 35%, #a3a3a3 50%, #171717 65%, #171717 100%)",
+              backgroundSize: "200% 100%",
+            }}
+          >
+            {INVITE_GENERATION_STEPS[stepIndex]}
+          </span>
+        </div>
       </div>
     </div>
   );

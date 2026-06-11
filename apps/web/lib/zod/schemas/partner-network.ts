@@ -114,3 +114,15 @@ export const invitePartnerFromNetworkSchema = z.object({
   emailTitle: z.string().trim().max(255).optional(),
   emailBody: z.string().trim().max(3000).optional(),
 });
+
+export const generatedPartnerNetworkInviteEmailSchema = z.object({
+  subject: z.string().trim().min(1).max(255),
+  title: z.string().trim().min(1).max(255),
+  body: z.string().trim().min(1).max(3000),
+});
+
+export const generatePartnerNetworkInviteEmailSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+  groupId: z.string().nullish().default(null),
+});
