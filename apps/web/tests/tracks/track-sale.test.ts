@@ -250,6 +250,9 @@ describe.concurrent("POST /track/sale", async () => {
     const customerIds = successfulResponses.map(
       (response) => response.data.customer?.id,
     );
+    expect(
+      customerIds.every((id) => typeof id === "string" && id.length > 0),
+    ).toBe(true);
     expect(new Set(customerIds).size).toBe(1);
   });
 });
