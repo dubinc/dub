@@ -365,6 +365,10 @@ export function MessageInput({
 }
 
 function getUnsupportedFileTypeMessage(allowedFileTypes: readonly string[]) {
+  if (allowedFileTypes.length === 0) {
+    return "File type not supported.";
+  }
+
   const allowedLabels = formatList(
     allowedFileTypes.map((type) => getAttachmentTypeLabel(type)),
   );
@@ -375,7 +379,7 @@ function getUnsupportedFileTypeMessage(allowedFileTypes: readonly string[]) {
 function formatList(items: string[]) {
   const uniqueItems = Array.from(new Set(items));
 
-  if (uniqueItems.length <= 1) return uniqueItems[0] || "supported";
+  if (uniqueItems.length <= 1) return uniqueItems[0] || "";
   if (uniqueItems.length === 2) return uniqueItems.join(" or ");
 
   return `${uniqueItems.slice(0, -1).join(", ")}, or ${
