@@ -32,10 +32,3 @@ export const PREVIEWABLE_IMAGE_TYPES = new Set([
   "image/jpeg",
   "image/webp",
 ]);
-
-export const ATTACHMENT_MIME_TYPE_COLOR: Record<string, string> = {
-  "application/pdf": "bg-rose-600",
-  "image/png": "bg-blue-600",
-  "image/jpeg": "bg-blue-500",
-  "image/webp": "bg-blue-500",
-};
