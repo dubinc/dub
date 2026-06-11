@@ -163,11 +163,18 @@ export function FeaturedProgramCard({
                 <span className="block text-xs font-medium text-neutral-400">
                   Website
                 </span>
-                <a
-                  href={program.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                <button
+                  type="button"
+                  aria-label={`Visit ${getDomainWithoutWWW(program.url)}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.open(
+                      program.url as string,
+                      "_blank",
+                      "noopener,noreferrer",
+                    );
+                  }}
                   className="mt-2 flex max-w-[220px] items-center gap-1.5 text-sm font-medium text-neutral-900 transition-colors hover:text-neutral-600"
                 >
                   <Link4 className="size-4 shrink-0" />
@@ -175,7 +182,7 @@ export function FeaturedProgramCard({
                     {getDomainWithoutWWW(program.url)}
                   </span>
                   <ArrowUpRight className="size-3.5 shrink-0" />
-                </a>
+                </button>
               </div>
             )}
           </div>

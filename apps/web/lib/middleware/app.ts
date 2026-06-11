@@ -20,7 +20,7 @@ export async function AppMiddleware(req: NextRequest) {
     return EmbedMiddleware(req);
   }
 
-  if (path.startsWith("/marketplace")) {
+  if (path === "/marketplace" || path.startsWith("/marketplace/")) {
     return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
   }
 

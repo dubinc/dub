@@ -83,7 +83,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   }
 
   if (
-    path.startsWith("/marketplace") &&
+    (path === "/marketplace" || path.startsWith("/marketplace/")) &&
     (domain === "dub.co" ||
       domain === `staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`)
   ) {

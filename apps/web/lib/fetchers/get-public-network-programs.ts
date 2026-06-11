@@ -85,7 +85,7 @@ export const getPublicNetworkPrograms = cache(
       },
       orderBy:
         sortBy === "popularity"
-          ? {}
+          ? { marketplaceRanking: "asc" }
           : {
               [sortBy === "recency" ? "addedToMarketplaceAt" : sortBy]:
                 sortOrder,

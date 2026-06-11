@@ -134,7 +134,7 @@ export function SidebarNav<T extends Record<any, any>>({
                 </Link>
               </div>
               {(!currentArea ||
-                !areas[currentArea](data).hideSwitcherIcons) && (
+                !areas[currentArea]?.(data)?.hideSwitcherIcons) && (
                 <div className="flex flex-col gap-3">
                   {switcher}
                   {groups(data).map((group) => (
@@ -188,18 +188,20 @@ function SidebarAreasPanel<T extends Record<any, any>>({
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
-  const showNews = currentArea && areas[currentArea]?.(data).showNews;
-  const currentAreaHasFooter = Boolean(
-    currentArea && areas[currentArea](data).footer,
+  const currentAreaConfig = useMemo(
+    () => (currentArea ? areas[currentArea]?.(data) : undefined),
+    [currentArea, areas, data],
   );
+  const showNews = currentAreaConfig?.showNews;
+  const currentAreaHasFooter = Boolean(currentAreaConfig?.footer);
 
   const hasOverflow = useMemo(() => {
-    if (!currentArea) return false;
-    const { content, panel } = areas[currentArea](data);
+    if (!currentAreaConfig) return false;
+    const { content, panel } = currentAreaConfig;
     if (panel) return true;
     const totalItems = content.flatMap((c) => c.items).length;
     return totalItems > 10;
-  }, [currentArea, areas, data]);
+  }, [currentAreaConfig]);
 
   return (
     <div className="flex h-full w-[calc(var(--sidebar-areas-width)-0.5rem)] flex-col rounded-xl bg-neutral-100">

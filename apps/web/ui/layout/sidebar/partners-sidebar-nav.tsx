@@ -75,7 +75,8 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
       "View all your enrolled programs and review invitations to other programs.",
     icon: GridIcon,
     href: "/programs",
-    active: pathname.startsWith("/programs"),
+    active:
+      pathname.startsWith("/programs") || pathname.startsWith("/marketplace"),
   },
   {
     name: "Payouts",

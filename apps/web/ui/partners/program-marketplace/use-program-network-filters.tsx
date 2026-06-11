@@ -101,15 +101,15 @@ export function useProgramNetworkFilters() {
         singleSelect: true,
         options:
           statusCount?.map(({ status, _count }) => {
-            const { label } = status
-              ? ProgramNetworkStatusBadges[status]
-              : {
-                  label: "Not applied",
-                };
+            const label = status
+              ? ProgramNetworkStatusBadges[
+                  status as keyof typeof ProgramNetworkStatusBadges
+                ]?.label ?? capitalize(status)
+              : "Not applied";
 
             return {
               value: status ?? "null",
-              label: label || capitalize(status),
+              label,
               right: nFormatter(_count, { full: true }),
             };
           }) ?? null,

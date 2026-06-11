@@ -46,12 +46,19 @@ export async function PartnersMiddleware(req: NextRequest) {
         status: 301,
       },
     );
-  } else if (partnersMarketplaceRedirects(path, searchParamsObj)) {
-    const destination = partnersMarketplaceRedirects(path, searchParamsObj)!;
-    return NextResponse.redirect(new URL(destination, req.url), {
+  }
+
+  const marketplaceDestination = partnersMarketplaceRedirects(
+    path,
+    searchParamsObj,
+  );
+  if (marketplaceDestination) {
+    return NextResponse.redirect(new URL(marketplaceDestination, req.url), {
       status: 301,
     });
-  } else if (!user && isAuthenticatedPath) {
+  }
+
+  if (!user && isAuthenticatedPath) {
     if (path.startsWith("/programs/")) {
       const programSlug = path.split("/")[2];
       return NextResponse.redirect(new URL(`/${programSlug}/login`, req.url));

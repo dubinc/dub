@@ -15,16 +15,34 @@ export const partnersRedirect = (path: string) => {
   return PARTNERS_REDIRECTS[path] || null;
 };
 
+function withQuery(
+  targetPath: string,
+  searchParams: Record<string, string | string[] | undefined>,
+) {
+  const params = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (Array.isArray(value)) {
+      value.forEach((v) => params.append(key, v));
+    } else if (typeof value === "string") {
+      params.set(key, value);
+    }
+  }
+
+  const query = params.toString();
+  return query ? `${targetPath}?${query}` : targetPath;
+}
+
 export const partnersMarketplaceRedirects = (
   path: string,
   searchParams: Record<string, string | string[] | undefined> = {},
 ) => {
   if (path === "/programs/marketplace") {
-    return "/marketplace";
+    return withQuery("/marketplace", searchParams);
   }
 
   if (path === "/programs/marketplace/all") {
-    return "/marketplace/all";
+    return withQuery("/marketplace/all", searchParams);
   }
 
   if (
@@ -40,14 +58,14 @@ export const partnersMarketplaceRedirects = (
     const slug = match[1];
 
     if (slug === "all") {
-      return "/marketplace/all";
+      return withQuery("/marketplace/all", searchParams);
     }
 
     if (slug === "popular") {
       return getMarketplacePopularRedirectHref(searchParams);
     }
 
-    return `/marketplace/${slug}`;
+    return withQuery(`/marketplace/${slug}`, searchParams);
   }
 
   return null;

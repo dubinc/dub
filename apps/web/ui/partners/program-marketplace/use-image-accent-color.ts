@@ -97,6 +97,8 @@ export function useImageAccentColor(src?: string | null): ImageAccentColor {
       return;
     }
 
+    setState({ color: null, ready: false });
+
     let cancelled = false;
     const img = new Image();
     img.crossOrigin = "anonymous";
