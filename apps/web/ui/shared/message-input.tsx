@@ -1,5 +1,4 @@
 import {
-  ATTACHMENT_MIME_TYPE_COLOR,
   MAX_ATTACHMENTS_PER_MESSAGE,
   MAX_MESSAGE_LENGTH,
 } from "@/lib/messages/constants";
@@ -33,6 +32,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import * as z from "zod/v4";
+import { ATTACHMENT_MIME_TYPE_COLOR } from "../messages/message-attachments";
 import { EmojiPicker } from "../shared/emoji-picker";
 
 export type PendingAttachment = Omit<

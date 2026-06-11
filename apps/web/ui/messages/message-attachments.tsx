@@ -1,6 +1,5 @@
 "use client";
 
-import { ATTACHMENT_MIME_TYPE_COLOR } from "@/lib/messages/constants";
 import { getAttachmentTypeLabel } from "@/lib/messages/utils";
 import { MessageAttachment } from "@/lib/types";
 import { formatFileSize } from "@dub/utils";
@@ -29,6 +28,13 @@ async function downloadFile(url: string, filename: string) {
     toast.error("Failed to download file. Please try again.");
   }
 }
+
+export const ATTACHMENT_MIME_TYPE_COLOR: Record<string, string> = {
+  "application/pdf": "bg-rose-600",
+  "image/png": "bg-blue-600",
+  "image/jpeg": "bg-blue-500",
+  "image/webp": "bg-blue-500",
+};
 
 export function MessageImageAttachments({
   attachments,
