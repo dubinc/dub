@@ -70,7 +70,6 @@ export async function calculatePartnerRanking({
   starred,
   sortBy = "relevance",
   platform,
-  subscribers,
   page = 1,
   pageSize,
   similarPrograms = [],
@@ -90,38 +89,15 @@ export async function calculatePartnerRanking({
     conditions.push(Prisma.sql`p.country = ${country}`);
   }
 
-  // Filter by platform type and/or subscriber count (must have verified platform)
+  // Filter by platform type (must have verified platform)
   // Combine both filters into a single EXISTS clause so they apply to the same platform
-  if (platform || subscribers) {
+  if (platform) {
     const platformConditions: Prisma.Sql[] = [
       Prisma.sql`pp_filter.partnerId = p.id`,
       Prisma.sql`pp_filter.verifiedAt IS NOT NULL`,
     ];
 
-    if (platform) {
-      platformConditions.push(Prisma.sql`pp_filter.type = ${platform}`);
-    }
-
-    if (subscribers) {
-      switch (subscribers) {
-        case "<5000":
-          platformConditions.push(Prisma.sql`pp_filter.subscribers < 5000`);
-          break;
-        case "5000-25000":
-          platformConditions.push(
-            Prisma.sql`pp_filter.subscribers >= 5000 AND pp_filter.subscribers < 25000`,
-          );
-          break;
-        case "25000-100000":
-          platformConditions.push(
-            Prisma.sql`pp_filter.subscribers >= 25000 AND pp_filter.subscribers < 100000`,
-          );
-          break;
-        case "100000+":
-          platformConditions.push(Prisma.sql`pp_filter.subscribers >= 100000`);
-          break;
-      }
-    }
+    platformConditions.push(Prisma.sql`pp_filter.type = ${platform}`);
 
     conditions.push(
       Prisma.sql`EXISTS (
