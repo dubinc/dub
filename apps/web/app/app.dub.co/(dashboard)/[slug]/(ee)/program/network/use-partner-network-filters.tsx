@@ -119,13 +119,11 @@ export function usePartnerNetworkFilters({
         },
         getOptionLabel: (value: PlatformType) => platformLabels[value] || value,
         options:
-          platformsCount
-            ?.filter(({ platform }) => platform !== "website")
-            .map(({ platform, _count }) => ({
-              value: platform,
-              label: platformLabels[platform] || platform,
-              right: nFormatter(_count, { full: true }),
-            })) ?? [],
+          platformsCount?.map(({ platform, _count }) => ({
+            value: platform,
+            label: platformLabels[platform] || platform,
+            right: nFormatter(_count, { full: true }),
+          })) ?? [],
       },
       {
         key: "subscribers",
