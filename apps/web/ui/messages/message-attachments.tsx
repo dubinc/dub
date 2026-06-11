@@ -82,7 +82,7 @@ export function MessageFileAttachments({
             file.signedUrl && downloadFile(file.signedUrl, file.name)
           }
           className={cn(
-            "flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-left transition-colors",
+            "flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-1 pr-3 text-left transition-colors",
             file.signedUrl
               ? "hover:bg-neutral-100"
               : "cursor-default opacity-60",
@@ -97,7 +97,7 @@ export function MessageFileAttachments({
               {formatFileSize(file.size, 1)}
             </span>
           </div>
-          <div className="border-bg-subtle rounded-lg border bg-white px-3 py-2">
+          <div className="border-bg-subtle flex size-8 shrink-0 items-center justify-center rounded-lg border bg-white">
             <Download className="text-content-emphasis size-4 shrink-0" />
           </div>
         </button>
@@ -110,7 +110,7 @@ function FileTypeBadge({ type }: { type: string }) {
   return (
     <div
       className={cn(
-        "flex size-10 shrink-0 flex-col items-center justify-center gap-1 rounded-lg p-2 text-xs font-semibold uppercase text-white",
+        "flex size-12 shrink-0 flex-col items-center justify-center gap-0.5 rounded-md text-xs font-semibold uppercase text-white",
         ATTACHMENT_MIME_TYPE_COLOR[type] || "bg-neutral-500",
       )}
     >
