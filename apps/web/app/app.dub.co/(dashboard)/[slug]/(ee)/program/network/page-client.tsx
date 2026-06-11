@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import { NetworkEmptyState } from "./network-empty-state";
 import { NetworkPartnerCard } from "./network-partner-card";
+import { PartnerNetworkSort } from "./partner-network-sort";
 import { usePartnerNetworkFilters } from "./use-partner-network-filters";
 
 const tabs = [
@@ -201,7 +202,7 @@ export function ProgramPartnerNetworkPageClient({
                 onClick={() => {
                   queryParams({
                     set: { tab: tab.id },
-                    del: ["page", "starred"],
+                    del: ["page", "starred", "sortBy"],
                   });
                 }}
               >
@@ -223,58 +224,64 @@ export function ProgramPartnerNetworkPageClient({
 
       {status === "discover" && (
         <div className="mt-[17px]">
-          <div className="flex flex-col items-center gap-4 md:flex-row">
-            <Filter.Select
-              className="h-10 w-full shrink-0 rounded-lg md:w-fit"
-              filters={filters}
-              activeFilters={activeFilters}
-              onSelect={onSelect}
-              onRemove={onRemove}
-            />
-            <div className="flex items-center gap-4">
-              <ToggleGroup
-                className="h-10 w-full rounded-lg border-neutral-200 bg-neutral-50 p-0 md:w-fit"
-                optionClassName="rounded-lg px-3 py-2.5"
-                indicatorClassName="rounded-lg bg-white border-none shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_3px_0_rgba(0,0,0,0.08)]"
-                options={PLATFORM_TOGGLE_OPTIONS.map(
-                  ({ value, icon: Icon }) => ({
-                    value,
-                    label: <Icon className="size-4" />,
-                  }),
-                )}
-                selected={selectedPlatform}
-                selectAction={(option) => {
-                  if (option === "all") {
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col items-center gap-4 md:flex-row">
+              <Filter.Select
+                className="h-10 w-full shrink-0 rounded-lg md:w-fit"
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+              />
+              <div className="flex items-center gap-4">
+                <ToggleGroup
+                  className="h-10 w-full rounded-lg border-neutral-200 bg-neutral-50 p-0 md:w-fit"
+                  optionClassName="rounded-lg px-3 py-2.5"
+                  indicatorClassName="rounded-lg bg-white border-none shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_3px_0_rgba(0,0,0,0.08)]"
+                  options={PLATFORM_TOGGLE_OPTIONS.map(
+                    ({ value, icon: Icon }) => ({
+                      value,
+                      label: <Icon className="size-4" />,
+                    }),
+                  )}
+                  selected={selectedPlatform}
+                  selectAction={(option) => {
+                    if (option === "all") {
+                      queryParams({
+                        del: ["platform", "page"],
+                      });
+                    } else {
+                      queryParams({
+                        set: { platform: option },
+                        del: "page",
+                      });
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
                     queryParams({
-                      del: ["platform", "page"],
+                      set: !isStarred ? { starred: "true" } : undefined,
+                      del: ["page", ...(!isStarred ? [] : ["starred"])],
                     });
-                  } else {
-                    queryParams({
-                      set: { platform: option },
-                      del: "page",
-                    });
+                  }}
+                  icon={
+                    isStarred ? (
+                      <StarFill className="size-4 text-amber-500" />
+                    ) : (
+                      <Star className="text-content-subtle size-4" />
+                    )
                   }
-                }}
-              />
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  queryParams({
-                    set: !isStarred ? { starred: "true" } : undefined,
-                    del: ["page", ...(!isStarred ? [] : ["starred"])],
-                  });
-                }}
-                icon={
-                  isStarred ? (
-                    <StarFill className="size-4 text-amber-500" />
-                  ) : (
-                    <Star className="text-content-subtle size-4" />
-                  )
-                }
-                className="size-10 shrink-0 rounded-lg"
-              />
+                  className="size-10 shrink-0 rounded-lg"
+                />
+              </div>
             </div>
+            <PartnerNetworkSort
+              selectedPlatform={selectedPlatform}
+              className="md:ml-auto"
+            />
           </div>
           <AnimatedSizeContainer height>
             {activeFilters.length > 0 && (

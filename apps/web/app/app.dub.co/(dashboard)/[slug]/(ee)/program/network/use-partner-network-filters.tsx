@@ -102,7 +102,7 @@ export function usePartnerNetworkFilters({
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["country", "starred", "platform"],
+        del: ["country", "starred", "platform", "sortBy"],
       }),
     [queryParams],
   );

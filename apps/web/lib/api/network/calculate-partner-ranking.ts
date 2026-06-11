@@ -1,6 +1,6 @@
 import { getNetworkPartnersQuerySchema } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { PlatformType, Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import * as z from "zod/v4";
 
@@ -37,11 +37,38 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  * - clickToConversionRate: Average click-to-conversion rate across ALL programs the partner is enrolled in
  * - lastConversionAt: Most recent conversion date across ALL programs the partner is enrolled in
  */
+function buildOrderByClause({
+  starred,
+  sortBy,
+  platform,
+}: {
+  starred?: boolean | null;
+  sortBy?: "relevance" | "subscribers";
+  platform?: PlatformType;
+}) {
+  if (starred === true) {
+    return Prisma.sql`dp.starredAt ASC`;
+  }
+
+  if (sortBy === "subscribers" && platform) {
+    return Prisma.sql`(
+      SELECT COALESCE(MAX(pp_sort.subscribers), 0)
+      FROM PartnerPlatform pp_sort
+      WHERE pp_sort.partnerId = p.id
+        AND pp_sort.type = ${platform}
+        AND pp_sort.verifiedAt IS NOT NULL
+    ) DESC, p.id ASC`;
+  }
+
+  return Prisma.sql`finalScore DESC, p.id ASC`;
+}
+
 export async function calculatePartnerRanking({
   programId,
   partnerIds,
   country,
   starred,
+  sortBy = "relevance",
   platform,
   subscribers,
   page = 1,
@@ -120,10 +147,7 @@ export async function calculatePartnerRanking({
     WHERE pp.partnerId = p.id
   )`;
 
-  const orderByClause =
-    starred === true
-      ? Prisma.sql`dp.starredAt ASC`
-      : Prisma.sql`finalScore DESC, p.id ASC`;
+  const orderByClause = buildOrderByClause({ starred, sortBy, platform });
 
   const offset = (page - 1) * pageSize;
 
