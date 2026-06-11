@@ -440,7 +440,7 @@ const PartnerDiscountCodes = ({
         buttonText: "Group discounts",
         buttonHref: group?.slug
           ? `/${slug}/program/groups/${group.slug}/discounts`
-          : undefined,
+          : `/${slug}/program/groups`,
         buttonVariant: "secondary" as const,
         buttonClassName: undefined,
         target: undefined,
