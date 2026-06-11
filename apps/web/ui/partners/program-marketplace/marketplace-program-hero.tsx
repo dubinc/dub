@@ -28,7 +28,7 @@ export function MarketplaceProgramHero({
     <div
       className={cn(
         "relative flex flex-col overflow-hidden rounded-2xl p-2",
-        hasBanner && "min-h-[640px]",
+        hasBanner && applySlot && "min-h-[640px]",
         className,
       )}
     >
@@ -88,7 +88,7 @@ export function MarketplaceProgramHero({
                   <ProgramCategory
                     key={category}
                     category={category}
-                    variant="pill"
+                    variant="surface"
                   />
                 ))}
               </div>

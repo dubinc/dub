@@ -13,6 +13,7 @@ export function MarketplaceHomePage() {
       {MARKETPLACE_HOME_ROWS.map((row) => (
         <MarketplaceProgramRow
           key={row.key}
+          variant="home"
           title={row.title}
           viewAllHref={row.viewAllHref}
           apiPath={row.apiPath}

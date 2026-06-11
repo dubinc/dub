@@ -1,6 +1,7 @@
 import { ProgramMarketplaceLogosCluster } from "@/ui/partners/program-marketplace/program-marketplace-logos";
 import { getMarketplaceAllHref } from "@/ui/partners/program-marketplace/utils/urls";
 import { Grid } from "@dub/ui";
+import { cn } from "@dub/utils";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
@@ -9,13 +10,18 @@ const VIEW_ALL_GRID_MASK =
 
 export function MarketplaceViewAllCard({
   href = getMarketplaceAllHref(),
+  className,
 }: {
   href?: string;
+  className?: string;
 }) {
   return (
     <Link
       href={href}
-      className="border-border-subtle hover:drop-shadow-card-hover group relative flex h-full min-h-[220px] flex-col overflow-hidden rounded-xl border bg-white transition-[filter]"
+      className={cn(
+        "border-border-subtle hover:drop-shadow-card-hover group relative flex h-full min-h-[220px] flex-col overflow-hidden rounded-xl border bg-white transition-[filter]",
+        className,
+      )}
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-100 [-webkit-mask-image:var(--view-all-grid-mask)] [mask-image:var(--view-all-grid-mask)]"

@@ -7,11 +7,13 @@ export const ProgramRewardIcon = ({
   description,
   onClick,
   className,
+  iconClassName,
 }: {
   icon: Icon;
   description: string;
   onClick?: () => void;
   className?: string;
+  iconClassName?: string;
 }) => {
   const As = onClick ? "button" : "div";
 
@@ -38,12 +40,12 @@ export const ProgramRewardIcon = ({
             },
           })}
           className={cn(
-            "text-content-default flex size-6 items-center justify-center rounded-md",
+            "text-content-default flex items-center justify-center rounded-md",
             onClick && "hover:bg-bg-subtle active:bg-bg-emphasis",
             className,
           )}
         >
-          <Icon className="size-4" />
+          <Icon className={cn("size-4", iconClassName)} />
         </As>
       </HoverCard.Trigger>
     </HoverCard.Root>

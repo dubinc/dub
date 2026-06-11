@@ -9,7 +9,7 @@ import {
   getMarketplaceProgramHref,
 } from "@/ui/partners/program-marketplace/utils/urls";
 import { Tooltip } from "@dub/ui";
-import { OG_AVATAR_URL } from "@dub/utils";
+import { OG_AVATAR_URL, cn } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ProgramStatusBadge } from "./program-status-badge";
@@ -17,16 +17,21 @@ import { ProgramStatusBadge } from "./program-status-badge";
 export function MarketplaceProgramCard({
   program,
   showStatus = true,
+  className,
 }: {
   program: NetworkProgramProps;
   showStatus?: boolean;
+  className?: string;
 }) {
   const router = useRouter();
 
   return (
     <Link
       href={getMarketplaceProgramHref(program.slug)}
-      className="border-border-subtle hover:drop-shadow-card-hover flex h-full flex-col rounded-xl border bg-white p-6 transition-[filter]"
+      className={cn(
+        "border-border-subtle hover:drop-shadow-card-hover flex h-full flex-col rounded-xl border bg-white p-4 transition-[filter] sm:p-6",
+        className,
+      )}
     >
       <div className="flex justify-between gap-4">
         <img
@@ -38,7 +43,7 @@ export function MarketplaceProgramCard({
         {showStatus ? <ProgramStatusBadge program={program} /> : null}
       </div>
 
-      <div className="mt-4 flex flex-col">
+      <div className="mt-6 flex flex-col sm:mt-8">
         <h3 className="text-content-emphasis text-base font-semibold">
           {program.name}
         </h3>
@@ -48,13 +53,14 @@ export function MarketplaceProgramCard({
             `${program.name} is a program in the Dub Partner Network. Join the network to start partnering with them.`}
         </div>
 
-        <div className="mt-4 flex gap-4">
+        <div className="mt-5 flex gap-4">
           {Boolean(program.rewards?.length || program.discount) && (
             <div>
               <span className="text-content-muted block text-xs font-medium">
                 Rewards
               </span>
               <ProgramRewardsDisplay
+                // iconsOnly
                 rewards={program.rewards}
                 discount={program.discount}
                 onRewardClick={(reward) =>
@@ -65,21 +71,22 @@ export function MarketplaceProgramCard({
                 onDiscountClick={() =>
                   router.push(getMarketplaceAllHref({ rewardType: "discount" }))
                 }
-                className="mt-1"
+                className="mt-2"
               />
             </div>
           )}
           {Boolean(program.categories.length) && (
-            <div className="min-w-0">
+            <div className="hidden min-w-0 sm:block">
               <span className="text-content-muted block text-xs font-medium">
                 Category
               </span>
-              <div className="mt-1 flex items-center gap-1.5">
+              <div className="mt-2 flex items-center gap-1.5">
                 {program.categories
                   .slice(0, 1)
                   ?.map((category) => (
                     <ProgramCategory
                       key={category}
+                      variant="pill"
                       category={category}
                       onClick={() =>
                         router.push(getMarketplaceCategoryHref(category))
@@ -93,6 +100,7 @@ export function MarketplaceProgramCard({
                         {program.categories.slice(1).map((category) => (
                           <ProgramCategory
                             key={category}
+                            variant="pill"
                             category={category}
                             onClick={() =>
                               router.push(getMarketplaceCategoryHref(category))
@@ -116,9 +124,18 @@ export function MarketplaceProgramCard({
   );
 }
 
-export function MarketplaceProgramCardSkeleton() {
+export function MarketplaceProgramCardSkeleton({
+  className,
+}: {
+  className?: string;
+} = {}) {
   return (
-    <div className="border-border-subtle rounded-xl border bg-white p-6">
+    <div
+      className={cn(
+        "border-border-subtle h-full rounded-xl border bg-white p-6",
+        className,
+      )}
+    >
       <div className="flex justify-between gap-4">
         <div className="size-12 animate-pulse rounded-full bg-neutral-200" />
       </div>

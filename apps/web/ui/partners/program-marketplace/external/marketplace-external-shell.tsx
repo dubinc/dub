@@ -16,7 +16,7 @@ export function MarketplaceExternalShell({
 }) {
   if (variant === "none") {
     return (
-      <div className={cn(CONTAINER_CLASS, "relative z-10 pt-6")}>
+      <div className={cn(CONTAINER_CLASS, "relative z-10 pb-10 pt-6")}>
         {children}
       </div>
     );

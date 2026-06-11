@@ -1,5 +1,8 @@
 import { NetworkProgramProps } from "@/lib/types";
-import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
+import {
+  ProgramCategory,
+  programCategorySurfaceClassName,
+} from "@/ui/partners/program-marketplace/program-category";
 import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
 import {
   getMarketplaceAllHref,
@@ -7,7 +10,8 @@ import {
   getMarketplaceProgramHref,
 } from "@/ui/partners/program-marketplace/utils/urls";
 import { Tooltip } from "@dub/ui";
-import { OG_AVATAR_URL } from "@dub/utils";
+import { ArrowUpRight, Link4 } from "@dub/ui/icons";
+import { OG_AVATAR_URL, getDomainWithoutWWW } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ProgramStatusBadge } from "./program-status-badge";
@@ -84,13 +88,14 @@ export function FeaturedProgramCard({
               `${program.name} is a program in the Dub Partner Network. Join the network to start partnering with them.`}
           </div>
 
-          <div className="mt-5 flex gap-8">
+          <div className="mt-5 flex flex-wrap gap-x-8 gap-y-4">
             {Boolean(program.rewards?.length || program.discount) && (
               <div>
-                <span className="text-content-subtle block text-xs font-medium">
+                <span className="block text-xs font-medium text-neutral-400">
                   Rewards
                 </span>
                 <ProgramRewardsDisplay
+                  iconsOnly
                   rewards={program.rewards}
                   discount={program.discount}
                   onRewardClick={(reward) =>
@@ -103,15 +108,14 @@ export function FeaturedProgramCard({
                       getMarketplaceAllHref({ rewardType: "discount" }),
                     )
                   }
-                  className="hover:bg-bg-default/10 active:bg-bg-default/20 mt-2"
-                  iconClassName="hover:bg-bg-default/10 active:bg-bg-default/20"
-                  descriptionClassName="max-w-[240px]"
+                  className="mt-2"
+                  iconClassName="text-neutral-900"
                 />
               </div>
             )}
             {Boolean(program.categories.length) && (
               <div className="min-w-0">
-                <span className="text-content-subtle block text-xs font-medium">
+                <span className="block text-xs font-medium text-neutral-400">
                   Category
                 </span>
                 <div className="mt-2 flex items-center gap-1.5">
@@ -121,20 +125,21 @@ export function FeaturedProgramCard({
                       <ProgramCategory
                         key={category}
                         category={category}
+                        variant="surface"
                         onClick={() =>
                           router.push(getMarketplaceCategoryHref(category))
                         }
-                        className="hover:bg-bg-default/10 active:bg-bg-default/20"
                       />
                     ))}
                   {program.categories.length > 1 && (
                     <Tooltip
                       content={
-                        <div className="flex flex-col gap-0.5 p-2">
+                        <div className="flex flex-col gap-1 p-1">
                           {program.categories.slice(1).map((category) => (
                             <ProgramCategory
                               key={category}
                               category={category}
+                              variant="surface"
                               onClick={() =>
                                 router.push(
                                   getMarketplaceCategoryHref(category),
@@ -145,12 +150,32 @@ export function FeaturedProgramCard({
                         </div>
                       }
                     >
-                      <div className="-ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium">
+                      <div className={programCategorySurfaceClassName}>
                         +{program.categories.length - 1}
                       </div>
                     </Tooltip>
                   )}
                 </div>
+              </div>
+            )}
+            {program.url && (
+              <div className="basis-full sm:basis-auto">
+                <span className="block text-xs font-medium text-neutral-400">
+                  Website
+                </span>
+                <a
+                  href={program.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="mt-2 flex max-w-[220px] items-center gap-1.5 text-sm font-medium text-neutral-900 transition-colors hover:text-neutral-600"
+                >
+                  <Link4 className="size-4 shrink-0" />
+                  <span className="truncate">
+                    {getDomainWithoutWWW(program.url)}
+                  </span>
+                  <ArrowUpRight className="size-3.5 shrink-0" />
+                </a>
               </div>
             )}
           </div>
@@ -185,10 +210,21 @@ export function FeaturedProgramCardSkeleton() {
             <div className="h-5 w-64 animate-pulse rounded bg-neutral-200" />
           </div>
 
-          <div className="mt-5 flex gap-8">
+          <div className="mt-5 flex flex-wrap gap-x-8 gap-y-4">
             <div>
               <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
-              <div className="mt-2 h-6 w-24 animate-pulse rounded bg-neutral-200" />
+              <div className="mt-2 flex gap-1.5">
+                <div className="size-4 animate-pulse rounded bg-neutral-200" />
+                <div className="size-4 animate-pulse rounded bg-neutral-200" />
+              </div>
+            </div>
+            <div>
+              <div className="h-4 w-14 animate-pulse rounded bg-neutral-200" />
+              <div className="mt-2 h-5 w-24 animate-pulse rounded-full bg-neutral-200" />
+            </div>
+            <div className="basis-full sm:basis-auto">
+              <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
+              <div className="mt-2 h-5 w-28 animate-pulse rounded bg-neutral-200" />
             </div>
           </div>
         </div>

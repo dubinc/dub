@@ -18,6 +18,7 @@ interface ProgramRewardsDisplayProps {
   rewards?: RewardProps[] | null;
   discount?: DiscountProps | null;
   isDarkImage?: boolean;
+  iconsOnly?: boolean;
   className?: string;
   onRewardClick?: (reward: RewardProps) => void;
   onDiscountClick?: (discount: DiscountProps) => void;
@@ -29,6 +30,7 @@ export function ProgramRewardsDisplay({
   rewards,
   discount,
   isDarkImage = false,
+  iconsOnly = false,
   className,
   onRewardClick,
   onDiscountClick,
@@ -64,6 +66,23 @@ export function ProgramRewardsDisplay({
 
   // shouldn't happen, but just in case
   if (items.length === 0) return null;
+
+  if (iconsOnly) {
+    return (
+      <div className={cn("flex items-center gap-1.5", className)}>
+        {items.map((item) => (
+          <ProgramRewardIcon
+            key={item.id}
+            icon={item.icon}
+            description={item.description}
+            onClick={item.onClick}
+            className={cn(isDarkImage && "text-content-inverted")}
+            iconClassName={cn("text-neutral-900", iconClassName)}
+          />
+        ))}
+      </div>
+    );
+  }
 
   // If there's only one item, show the full description
   if (items.length === 1) {
@@ -108,7 +127,7 @@ export function ProgramRewardsDisplay({
             </div>
             <span
               className={cn(
-                "text-content-default max-w-[160px] truncate text-sm font-medium",
+                "text-content-default max-w-[120px] truncate text-sm font-medium sm:max-w-[160px]",
                 isDarkImage && "text-content-inverted",
                 descriptionClassName,
               )}

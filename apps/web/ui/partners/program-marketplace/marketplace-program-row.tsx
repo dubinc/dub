@@ -3,7 +3,7 @@
 import { NetworkProgramProps } from "@/lib/types";
 import { Carousel, CarouselContent, CarouselItem, useCarousel } from "@dub/ui";
 import { ChevronLeft, ChevronRight } from "@dub/ui/icons";
-import { fetcher } from "@dub/utils";
+import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import useSWR from "swr";
 import { MarketplaceViewAllCard } from "./marketplace-view-all-card";
@@ -17,6 +17,7 @@ type MarketplaceProgramRowProps = {
   viewAllHref: string;
   showViewAllCard?: boolean;
   showStatus?: boolean;
+  variant?: "default" | "home";
 } & (
   | { programs: NetworkProgramProps[]; apiPath?: never }
   | { apiPath: string; programs?: never }
@@ -58,6 +59,7 @@ export function MarketplaceProgramRow({
   viewAllHref,
   showViewAllCard = false,
   showStatus = true,
+  variant = "default",
   ...props
 }: MarketplaceProgramRowProps) {
   const { data: fetchedPrograms, error } = useSWR<NetworkProgramProps[]>(
@@ -67,6 +69,18 @@ export function MarketplaceProgramRow({
   );
 
   const programs = "programs" in props ? props.programs : fetchedPrograms;
+  const isHome = variant === "home";
+
+  const carouselItemClassName = cn(
+    "pl-0",
+    isHome
+      ? "basis-[310px] sm:basis-[419px]"
+      : "basis-[280px] md:basis-[320px]",
+  );
+
+  const cardClassName = isHome
+    ? "h-[260px] w-[310px] sm:h-[284px] sm:w-[419px] sm:p-8"
+    : undefined;
 
   if (error || programs?.length === 0) {
     return null;
@@ -91,33 +105,34 @@ export function MarketplaceProgramRow({
           </div>
         </div>
 
-        <CarouselContent className="-ml-4 mt-4 items-stretch">
+        <CarouselContent className="-ml-0 mt-4 gap-4">
           {programs ? (
             <>
               {programs.map((program) => (
                 <CarouselItem
                   key={program.id}
-                  className="basis-[280px] pl-4 md:basis-[320px]"
+                  className={carouselItemClassName}
                 >
                   <MarketplaceProgramCard
                     program={program}
                     showStatus={showStatus}
+                    className={cardClassName}
                   />
                 </CarouselItem>
               ))}
               {showViewAllCard ? (
-                <CarouselItem className="basis-[280px] pl-4 md:basis-[320px]">
-                  <MarketplaceViewAllCard href={viewAllHref} />
+                <CarouselItem className={carouselItemClassName}>
+                  <MarketplaceViewAllCard
+                    href={viewAllHref}
+                    className={cardClassName}
+                  />
                 </CarouselItem>
               ) : null}
             </>
           ) : (
             [...Array(3)].map((_, idx) => (
-              <CarouselItem
-                key={idx}
-                className="basis-[280px] pl-4 md:basis-[320px]"
-              >
-                <MarketplaceProgramCardSkeleton />
+              <CarouselItem key={idx} className={carouselItemClassName}>
+                <MarketplaceProgramCardSkeleton className={cardClassName} />
               </CarouselItem>
             ))
           )}

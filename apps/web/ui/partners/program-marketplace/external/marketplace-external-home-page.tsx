@@ -23,6 +23,7 @@ export async function MarketplaceExternalHomePage() {
         {MARKETPLACE_HOME_ROWS.map((row, index) => (
           <MarketplaceProgramRow
             key={row.key}
+            variant="home"
             title={row.title}
             viewAllHref={row.viewAllHref}
             programs={rowPrograms[index]}
