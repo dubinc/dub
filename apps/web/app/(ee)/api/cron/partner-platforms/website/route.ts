@@ -1,31 +1,21 @@
-import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
 import { PlatformType } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, chunk, getDomainWithoutWWW } from "@dub/utils";
-import * as z from "zod/v4";
+import { chunk, getDomainWithoutWWW } from "@dub/utils";
 import { logAndRespond } from "../../utils";
 import { getDomainRating } from "./get-domain-rating";
 
 export const dynamic = "force-dynamic";
 
-const BATCH_SIZE = 500;
+const BATCH_SIZE = 60;
 const CONCURRENCY = 10;
-
-const schema = z.object({
-  startingAfter: z.string().optional(),
-});
 
 /**
  * This route is used to update domain rating (DR) for verified website partners using the Ahrefs free API
- * Runs once a day at 05:00 AM UTC (cron expression: 0 5 * * *)
- * POST /api/cron/partner-platforms/website
+ * Runs once a minute (cron expression: * * * * *), processing up to 60 platforms per run (Ahrefs rate limit)
+ * GET /api/cron/partner-platforms/website
  */
-export const POST = withCron(async ({ rawBody }) => {
-  let { startingAfter } = schema.parse(
-    rawBody ? JSON.parse(rawBody) : { startingAfter: undefined },
-  );
-
+export const GET = withCron(async () => {
   const websites = await prisma.partnerPlatform.findMany({
     where: {
       type: PlatformType.website,
@@ -34,21 +24,13 @@ export const POST = withCron(async ({ rawBody }) => {
       },
     },
     take: BATCH_SIZE,
-    ...(startingAfter && {
-      cursor: {
-        id: startingAfter,
-      },
-      skip: 1,
-    }),
     orderBy: {
-      id: "asc",
+      lastCheckedAt: "asc",
     },
   });
 
   if (websites.length === 0) {
-    return logAndRespond(
-      "No more website platforms found. Finished updating website domain ratings.",
-    );
+    return logAndRespond("No verified website platforms found.");
   }
 
   const websiteChunks = chunk(websites, CONCURRENCY);
@@ -69,13 +51,6 @@ export const POST = withCron(async ({ rawBody }) => {
         try {
           const domainRating = await getDomainRating(target);
 
-          if (website.subscribers === BigInt(domainRating)) {
-            console.log(
-              `No changes to update for ${target} (DR: ${domainRating}), skipping...`,
-            );
-            return;
-          }
-
           await prisma.partnerPlatform.update({
             where: {
               id: website.id,
@@ -88,6 +63,8 @@ export const POST = withCron(async ({ rawBody }) => {
 
           console.log(`Updated domain rating for ${target}`, {
             domainRating,
+            previousDomainRating: Number(website.subscribers),
+            domainRatingChanged: Number(website.subscribers) !== domainRating,
           });
         } catch (error) {
           console.error(`Error updating domain rating for ${target}:`, error);
@@ -96,23 +73,7 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  if (websites.length === BATCH_SIZE) {
-    startingAfter = websites[websites.length - 1].id;
-
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partner-platforms/website`,
-      method: "POST",
-      body: {
-        startingAfter,
-      },
-    });
-
-    return logAndRespond(
-      `Processed ${BATCH_SIZE} websites. Scheduled next batch (startingAfter: ${startingAfter}).`,
-    );
-  }
-
   return logAndRespond(
-    `Finished updating domain ratings for ${websites.length} websites.`,
+    `Processed domain ratings for ${websites.length} websites.`,
   );
 });
