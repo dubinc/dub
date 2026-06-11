@@ -3,7 +3,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "dev": "concurrently --kill-others \"pnpm prisma:generate && next dev --turbopack --port 8888\" \"pnpm prisma:generate && pnpm prisma:studio --browser none\"",
+    "dev": "pnpm prisma:generate && concurrently --kill-others \"next dev --turbopack --port 8888\" \"pnpm prisma:studio --browser none\"",
     "build": "pnpm prisma:generate && next build",
     "lint": "next lint",
     "start": "next start",
