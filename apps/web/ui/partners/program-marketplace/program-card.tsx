@@ -60,7 +60,7 @@ export function MarketplaceProgramCard({
                 Rewards
               </span>
               <ProgramRewardsDisplay
-                // iconsOnly
+                iconsOnly
                 rewards={program.rewards}
                 discount={program.discount}
                 onRewardClick={(reward) =>
@@ -71,7 +71,7 @@ export function MarketplaceProgramCard({
                 onDiscountClick={() =>
                   router.push(getMarketplaceAllHref({ rewardType: "discount" }))
                 }
-                className="mt-2"
+                className="mt-1.5"
               />
             </div>
           )}

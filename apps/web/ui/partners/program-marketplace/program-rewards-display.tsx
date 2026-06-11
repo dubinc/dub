@@ -69,7 +69,7 @@ export function ProgramRewardsDisplay({
 
   if (iconsOnly) {
     return (
-      <div className={cn("flex items-center gap-1.5", className)}>
+      <div className={cn("flex min-h-6 items-center gap-1.5", className)}>
         {items.map((item) => (
           <ProgramRewardIcon
             key={item.id}
@@ -77,7 +77,7 @@ export function ProgramRewardsDisplay({
             description={item.description}
             onClick={item.onClick}
             className={cn(isDarkImage && "text-content-inverted")}
-            iconClassName={cn("text-neutral-900", iconClassName)}
+            iconClassName={cn("text-neutral-600", iconClassName)}
           />
         ))}
       </div>

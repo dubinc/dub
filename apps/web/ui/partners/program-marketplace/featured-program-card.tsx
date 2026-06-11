@@ -108,7 +108,7 @@ export function FeaturedProgramCard({
                       getMarketplaceAllHref({ rewardType: "discount" }),
                     )
                   }
-                  className="mt-2"
+                  className="mt-2 min-h-6"
                   iconClassName="text-neutral-900"
                 />
               </div>
@@ -118,7 +118,7 @@ export function FeaturedProgramCard({
                 <span className="block text-xs font-medium text-neutral-400">
                   Category
                 </span>
-                <div className="mt-2 flex items-center gap-1.5">
+                <div className="mt-2 flex min-h-6 items-center gap-1.5">
                   {program.categories
                     .slice(0, 1)
                     ?.map((category) => (
@@ -175,7 +175,7 @@ export function FeaturedProgramCard({
                       "noopener,noreferrer",
                     );
                   }}
-                  className="mt-2 flex max-w-[220px] items-center gap-1.5 text-sm font-medium text-neutral-900 transition-colors hover:text-neutral-600"
+                  className="mt-2 flex max-w-[220px] items-center gap-1 text-sm font-medium text-neutral-900 transition-colors hover:text-neutral-600"
                 >
                   <Link4 className="size-4 shrink-0" />
                   <span className="truncate">

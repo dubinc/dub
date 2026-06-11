@@ -15,7 +15,16 @@ export const ProgramRewardIcon = ({
   className?: string;
   iconClassName?: string;
 }) => {
-  const As = onClick ? "button" : "div";
+  const iconSurface = (
+    <span
+      className={cn(
+        "inline-flex items-center justify-center rounded-md p-1",
+        onClick && "hover:bg-bg-subtle active:bg-bg-emphasis transition-colors",
+      )}
+    >
+      <Icon className={cn("size-4", iconClassName)} />
+    </span>
+  );
 
   return (
     <HoverCard.Root openDelay={100}>
@@ -29,24 +38,27 @@ export const ProgramRewardIcon = ({
           <span>{description}</span>
         </HoverCard.Content>
       </HoverCard.Portal>
-      <HoverCard.Trigger>
-        <As
-          {...(onClick && {
-            type: "button",
-            onClick: (e) => {
+      <HoverCard.Trigger asChild>
+        {onClick ? (
+          <button
+            type="button"
+            onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onClick?.();
-            },
-          })}
-          className={cn(
-            "text-content-default flex items-center justify-center rounded-md",
-            onClick && "hover:bg-bg-subtle active:bg-bg-emphasis",
-            className,
-          )}
-        >
-          <Icon className={cn("size-4", iconClassName)} />
-        </As>
+              onClick();
+            }}
+            className={cn(
+              "inline-flex shrink-0 border-0 bg-transparent p-0",
+              className,
+            )}
+          >
+            {iconSurface}
+          </button>
+        ) : (
+          <div className={cn("inline-flex shrink-0", className)}>
+            {iconSurface}
+          </div>
+        )}
       </HoverCard.Trigger>
     </HoverCard.Root>
   );
