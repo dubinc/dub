@@ -4,6 +4,10 @@ import {
   RewardConditionsArray,
   RewardContext,
 } from "../types";
+import {
+  METADATA_NUMBER_CONDITION_OPERATORS,
+  METADATA_TEXT_CONDITION_OPERATORS,
+} from "../zod/schemas/rewards";
 import { getRewardAmount } from "./get-reward-amount";
 
 export const evaluateRewardConditions = ({
@@ -22,15 +26,7 @@ export const evaluateRewardConditions = ({
   for (const conditionGroup of conditions) {
     // Evaluate each condition in the group
     const conditionResults = conditionGroup.conditions.map((condition) => {
-      let fieldValue = undefined;
-
-      if (condition.entity === "customer") {
-        fieldValue = context.customer?.[condition.attribute];
-      } else if (condition.entity === "sale") {
-        fieldValue = context.sale?.[condition.attribute];
-      } else if (condition.entity === "partner") {
-        fieldValue = context.partner?.[condition.attribute];
-      }
+      const fieldValue = resolveConditionFieldValue({ condition, context });
 
       if (fieldValue === undefined) {
         return false;
@@ -75,6 +71,97 @@ export const evaluateRewardConditions = ({
   )[0];
 };
 
+function resolveConditionFieldValue({
+  condition,
+  context,
+}: {
+  condition: RewardCondition;
+  context: RewardContext;
+}): string | number | string[] | number[] | undefined {
+  if (condition.attribute === "metadata") {
+    const metaKey = condition.metadataField?.trim() ?? "";
+    if (!metaKey) return undefined;
+
+    if (condition.entity === "lead") {
+      const raw = context.lead?.metadata?.[metaKey];
+      return prepareMetadataFieldValue(raw, condition);
+    }
+
+    if (condition.entity === "sale") {
+      const raw = context.sale?.metadata?.[metaKey];
+      return prepareMetadataFieldValue(raw, condition);
+    }
+
+    return undefined;
+  }
+
+  if (condition.entity === "customer") {
+    return context.customer?.[condition.attribute];
+  }
+  if (condition.entity === "sale") {
+    return context.sale?.[condition.attribute];
+  }
+  if (condition.entity === "partner") {
+    return context.partner?.[condition.attribute];
+  }
+  if (condition.entity === "lead") {
+    return undefined;
+  }
+
+  return undefined;
+}
+
+function parseMetadataNumeric(raw: unknown): number | undefined {
+  if (raw == null) {
+    return undefined;
+  }
+  if (typeof raw === "number" && !Number.isNaN(raw)) {
+    return raw;
+  }
+  if (typeof raw === "string") {
+    if (raw.trim() === "" || Number.isNaN(Number(raw))) {
+      return undefined;
+    }
+    return Number(raw);
+  }
+  if (typeof raw === "boolean") {
+    return undefined;
+  }
+  const n = Number(raw);
+  return Number.isNaN(n) ? undefined : n;
+}
+
+function metadataRawToString(raw: unknown): string {
+  return typeof raw === "string" ? raw : String(raw);
+}
+
+function prepareMetadataFieldValue(
+  raw: unknown,
+  condition: RewardCondition,
+): string | number | string[] | number[] | undefined {
+  if (raw == null) return undefined;
+
+  const op = condition.operator;
+  const equalsOrNot = op === "equals_to" || op === "not_equals";
+
+  if (METADATA_TEXT_CONDITION_OPERATORS.includes(op) && !equalsOrNot) {
+    return metadataRawToString(raw);
+  }
+
+  const ordering = METADATA_NUMBER_CONDITION_OPERATORS.includes(op);
+  if (!ordering && !equalsOrNot) return undefined;
+
+  const numeric = parseMetadataNumeric(raw);
+  if (ordering) return numeric;
+
+  // For equals_to / not_equals, match the coercion to condition.value's type
+  // so that strict === in evaluateCondition sees the same type on both sides.
+  if (typeof condition.value === "number") {
+    return numeric !== undefined ? numeric : metadataRawToString(raw);
+  }
+  return metadataRawToString(raw);
+}
+
 const evaluateCondition = ({
   condition,
   fieldValue,
@@ -98,6 +185,8 @@ const evaluateCondition = ({
       return false;
     }
 
+    if (condition.value === "") return false;
+
     return fieldValue.startsWith(condition.value);
   }
 
@@ -107,7 +196,33 @@ const evaluateCondition = ({
       return false;
     }
 
+    if (condition.value === "") return false;
+
     return fieldValue.endsWith(condition.value);
+  }
+
+  // Contains
+  if (condition.operator === "contains") {
+    if (typeof fieldValue !== "string" || typeof condition.value !== "string") {
+      return false;
+    }
+
+    const needle = condition.value.trim();
+    if (needle === "") return false;
+
+    return String(fieldValue).includes(needle);
+  }
+
+  // Not contains
+  if (condition.operator === "not_contains") {
+    if (typeof fieldValue !== "string" || typeof condition.value !== "string") {
+      return false;
+    }
+
+    const needle = condition.value.trim();
+    if (needle === "") return false;
+
+    return !String(fieldValue).includes(needle);
   }
 
   // In
@@ -123,7 +238,7 @@ const evaluateCondition = ({
 
   // Not in
   if (condition.operator === "not_in") {
-    if (!Array.isArray(condition.value)) {
+    if (!Array.isArray(condition.value) || condition.value.length === 0) {
       return false;
     }
 

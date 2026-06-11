@@ -517,6 +517,9 @@ export async function checkoutSessionCompleted(
         sale: {
           products,
           amount: saleData.amount,
+          ...(charge.metadata && Object.keys(charge.metadata).length > 0
+            ? { metadata: charge.metadata }
+            : {}),
         },
       },
       clickEvent: {

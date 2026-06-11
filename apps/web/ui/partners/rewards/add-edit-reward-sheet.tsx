@@ -18,8 +18,8 @@ import {
   REWARD_CONDITION_ATTRIBUTES,
   REWARD_DESCRIPTION_MAX_LENGTH,
   REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH,
+  rewardConditionBaseSchema,
   rewardConditionsArraySchema,
-  rewardConditionSchema,
   rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
@@ -82,7 +82,7 @@ const formSchema = createOrUpdateRewardSchema.extend({
   modifiers: z
     .array(
       rewardConditionsSchema.extend({
-        conditions: z.array(rewardConditionSchema.partial()).min(1),
+        conditions: z.array(rewardConditionBaseSchema.partial()).min(1),
       }),
     )
     .min(1),
