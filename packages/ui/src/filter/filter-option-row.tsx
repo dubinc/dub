@@ -1,7 +1,7 @@
 "use client";
 
 import { cn, truncate } from "@dub/utils";
-import { isValidElement, ReactNode } from "react";
+import { ComponentType, isValidElement, SVGProps } from "react";
 import { Check } from "../icons";
 import { Filter, FilterOption } from "./types";
 
@@ -47,7 +47,7 @@ export function FilterOptionRow({
       </div>
       {Icon && (
         <span className="shrink-0 text-neutral-500 [&_svg]:size-4">
-          {isReactNode(Icon) ? Icon : <Icon className="size-4" />}
+          {renderFilterIcon(Icon)}
         </span>
       )}
       <span className="min-w-0 flex-1">{truncate(label, 48)}</span>
@@ -60,5 +60,15 @@ export function FilterOptionRow({
   );
 }
 
-const isReactNode = (element: unknown): element is ReactNode =>
-  isValidElement(element);
+function renderFilterIcon(
+  icon: NonNullable<
+    FilterOption["icon"] | ReturnType<NonNullable<Filter["getOptionIcon"]>>
+  >,
+) {
+  if (isValidElement(icon)) {
+    return icon;
+  }
+
+  const IconComponent = icon as ComponentType<SVGProps<SVGSVGElement>>;
+  return <IconComponent className="size-4" />;
+}

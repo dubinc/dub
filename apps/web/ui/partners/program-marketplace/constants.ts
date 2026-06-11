@@ -28,13 +28,13 @@ export const MARKETPLACE_SORT_OPTIONS = [
     order: "desc",
   },
   {
-    icon: SortAlphaDescending,
+    icon: SortAlphaAscending,
     label: "Name A-Z",
     value: "name",
     order: "asc",
   },
   {
-    icon: SortAlphaAscending,
+    icon: SortAlphaDescending,
     label: "Name Z-A",
     value: "name",
     order: "desc",

@@ -5,12 +5,21 @@ import { MarketplaceCategories } from "../marketplace-categories";
 import { MarketplaceProgramRow } from "../marketplace-program-row";
 import { MarketplaceExternalShell } from "./marketplace-external-shell";
 
+async function fetchHomePrograms(
+  params: Parameters<typeof getPublicNetworkPrograms>[0],
+) {
+  try {
+    return await getPublicNetworkPrograms(params);
+  } catch (error) {
+    console.error("Failed to fetch marketplace home programs:", error);
+    return [];
+  }
+}
+
 export async function MarketplaceExternalHomePage() {
   const [featuredPrograms, ...rowPrograms] = await Promise.all([
-    getPublicNetworkPrograms({ featured: true, pageSize: 6 }),
-    ...MARKETPLACE_HOME_ROWS.map((row) =>
-      getPublicNetworkPrograms(row.fetchParams),
-    ),
+    fetchHomePrograms({ featured: true, pageSize: 6 }),
+    ...MARKETPLACE_HOME_ROWS.map((row) => fetchHomePrograms(row.fetchParams)),
   ]);
 
   return (

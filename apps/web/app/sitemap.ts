@@ -53,7 +53,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  if (domain === process.env.NEXT_PUBLIC_APP_DOMAIN) {
+  if (
+    process.env.NEXT_PUBLIC_APP_DOMAIN &&
+    domain === process.env.NEXT_PUBLIC_APP_DOMAIN
+  ) {
     const marketplacePrograms = await prisma.program.findMany({
       where: {
         addedToMarketplaceAt: {
