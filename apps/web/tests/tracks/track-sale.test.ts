@@ -202,4 +202,58 @@ describe.concurrent("POST /track/sale", async () => {
       },
     });
   });
+
+  test("concurrent direct sale tracking with the same customerExternalId should not 500", async () => {
+    const clickResponse = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: E2E_TRACK_CLICK_HEADERS,
+      body: {
+        domain: "getacme.link",
+        key: "derek",
+      },
+    });
+    expect(clickResponse.status).toEqual(200);
+
+    const saleCustomer = randomCustomer();
+    const trackedClickId = clickResponse.data.clickId;
+
+    const responses = await Promise.all(
+      Array.from({ length: 3 }, () =>
+        http.post<TrackSaleResponse>({
+          path: "/track/sale",
+          body: {
+            eventName: "Purchase (concurrent direct sale)",
+            amount: randomSaleAmount(),
+            currency: "usd",
+            invoiceId: `INV_${randomId()}`,
+            paymentProcessor: "stripe",
+            clickId: trackedClickId,
+            leadEventName: "Signup (auto lead tracking)",
+            customerExternalId: saleCustomer.externalId,
+            customerName: saleCustomer.name,
+            customerEmail: saleCustomer.email,
+            customerAvatar: saleCustomer.avatar,
+          },
+        }),
+      ),
+    );
+
+    for (const response of responses) {
+      expect(response.status).toEqual(200);
+      expect(response.data.customer).toStrictEqual({
+        id: expect.any(String),
+        ...saleCustomer,
+      });
+      expect(response.data.sale).toStrictEqual({
+        amount: expect.any(Number),
+        currency: "usd",
+        paymentProcessor: "stripe",
+        invoiceId: expect.any(String),
+        metadata: null,
+      });
+    }
+
+    const customerIds = responses.map((response) => response.data.customer?.id);
+    expect(new Set(customerIds).size).toBe(1);
+  });
 });
