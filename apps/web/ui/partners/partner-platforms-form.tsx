@@ -685,6 +685,18 @@ function FormRow({
         platforms?: PartnerPlatformProps[];
       };
 
+      if (property === "website") {
+        const websitePlatform = getPlatformData(
+          partnerWithPlatforms.platforms,
+          "website",
+        );
+        const domainRating = websitePlatform?.subscribers ?? 0;
+
+        return [domainRating > 0 ? `${Number(domainRating)} DR` : null].filter(
+          Boolean,
+        ) as string[];
+      }
+
       if (property === "youtube") {
         const youtubePlatform = getPlatformData(
           partnerWithPlatforms.platforms,
