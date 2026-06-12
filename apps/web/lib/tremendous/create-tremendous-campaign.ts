@@ -19,7 +19,7 @@ export async function createTremendousCampaign(
     products: TREMENDOUS_PRODUCT_IDS,
     fee_charged_to: "RECIPIENT",
     webpage_style: {
-      headline: `${program.name} sent you {{ amount }}`,
+      headline: `${program.name} sent you a {{ amount }} gift card`,
       logo_image_url: program.logo,
     },
   });
