@@ -349,7 +349,10 @@ export function ReferralsEmbedPageClient({
           >
             <ReferralsEmbedActivity />
             {!programEmbedData?.hideEarnings && (
-              <ReferralsEmbedEarningsSummary />
+              <ReferralsEmbedEarningsSummary
+                showSettingsTab={showSettingsTab}
+                onSelectTab={setSelectedTab}
+              />
             )}
           </div>
           <div className="mt-4">
