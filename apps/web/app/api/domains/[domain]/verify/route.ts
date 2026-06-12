@@ -3,8 +3,11 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
 import { verifyDomain } from "@/lib/api/domains/verify-domain";
 import { withWorkspace } from "@/lib/auth";
+import { discoverDomainConnectIfEligible } from "@/lib/domain-connect/discover";
+import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import { DomainVerificationStatusProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
+import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const maxDuration = 30;
@@ -19,6 +22,7 @@ export const GET = withWorkspace(
     });
 
     let status: DomainVerificationStatusProps = "Valid Configuration";
+    const apex = getApexDomain(`https://${domain}`);
 
     const [domainJson, configJson] = await Promise.all([
       getDomainResponse(domain),
@@ -31,12 +35,14 @@ export const GET = withWorkspace(
       return NextResponse.json({
         status,
         response: { configJson, domainJson },
+        domainConnect: null,
       });
     } else if (domainJson.error) {
       status = "Unknown Error";
       return NextResponse.json({
         status,
         response: { configJson, domainJson },
+        domainConnect: null,
       });
     }
 
@@ -48,6 +54,7 @@ export const GET = withWorkspace(
       return NextResponse.json({
         status,
         response: { configJson, domainJson },
+        domainConnect: null,
       });
     }
 
@@ -65,13 +72,18 @@ export const GET = withWorkspace(
         status = "Valid Configuration";
       }
 
+      const domainConnect: DomainConnectDiscovery | null =
+        await discoverDomainConnectIfEligible(apex, status);
+
       return NextResponse.json({
         status,
         response: { configJson, domainJson, verificationJson },
+        domainConnect,
       });
     }
 
     let prismaResponse: any = null;
+    let domainConnect: DomainConnectDiscovery | null = null;
     if (!configJson.misconfigured) {
       prismaResponse = await prisma.domain.update({
         where: {
@@ -84,20 +96,19 @@ export const GET = withWorkspace(
       });
     } else {
       status = "Invalid Configuration";
-      prismaResponse = await prisma.domain.update({
-        where: {
-          slug: domain,
-        },
-        data: {
-          verified: false,
-          lastChecked: new Date(),
-        },
-      });
+      [prismaResponse, domainConnect] = await Promise.all([
+        prisma.domain.update({
+          where: { slug: domain },
+          data: { verified: false, lastChecked: new Date() },
+        }),
+        discoverDomainConnectIfEligible(apex, "Invalid Configuration"),
+      ]);
     }
 
     return NextResponse.json({
       status,
       response: { configJson, domainJson, prismaResponse },
+      domainConnect,
     });
   },
   {

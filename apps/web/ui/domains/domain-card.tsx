@@ -1,4 +1,5 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
+import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import useDomains from "@/lib/swr/use-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -69,6 +70,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   const { data, isValidating, mutate } = useSWRImmutable<{
     status: DomainVerificationStatusProps;
     response: any;
+    domainConnect?: DomainConnectDiscovery | null;
   }>(
     workspaceId &&
       isVisible &&
@@ -81,9 +83,11 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       return {
         status: "Valid Configuration",
         response: null,
+        domainConnect: null,
       } as {
         status: DomainVerificationStatusProps;
         response: any;
+        domainConnect?: DomainConnectDiscovery | null;
       };
     }
     return data;
@@ -316,7 +320,13 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                   </div>
                 </div>
               ) : (
-                <DomainConfiguration data={verificationData} />
+                <DomainConfiguration
+                  data={verificationData}
+                  domainConnect={verificationData.domainConnect}
+                  domain={domain}
+                  workspaceId={workspaceId ?? undefined}
+                  workspaceSlug={slug ?? undefined}
+                />
               )
             ) : (
               <div className="mt-6 h-6 w-32 animate-pulse rounded-md bg-neutral-200" />
