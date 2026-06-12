@@ -15,7 +15,7 @@ export async function createTremendousCampaign(
 
   const { data } = await campaignsApi.createCampaign({
     name: `${program.name} Partners`,
-    description: "A campaign for partners to earn rewards",
+    description: `Earn gift cards for referring new partners to ${program.name}`,
     products: TREMENDOUS_PRODUCT_IDS,
     fee_charged_to: "RECIPIENT",
     webpage_style: {

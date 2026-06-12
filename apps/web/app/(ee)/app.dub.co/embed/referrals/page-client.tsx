@@ -202,13 +202,11 @@ export function ReferralsEmbedPageClient({
     partner.country && TREMENDOUS_SUPPORTED_COUNTRIES.includes(partner.country),
   );
 
-  const usesTremendous = partner.defaultPayoutMethod === "tremendous";
-
   // Show Tremendous payout settings if the partner already uses Tremendous,
   // or hasn't selected a payout method yet and is eligible based on country.
   const showSettingsTab =
     TREMENDOUS_ENABLED_PROGRAM_IDS.includes(program.id) &&
-    (usesTremendous ||
+    (partner.defaultPayoutMethod === "tremendous" ||
       (!partner.defaultPayoutMethod && isTremendousCountrySupported));
 
   const tabs = useMemo(
