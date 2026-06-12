@@ -6,9 +6,9 @@ import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import type { ReactNode } from "react";
-import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
-import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
+import { PartnerRiskIndicator } from "./fraud-risks/partner-risk-indicator";
 import { PartnerAvatar } from "./partner-avatar";
+import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
 import {
   getPayoutMethodIconConfig,
   getPayoutMethodLabel,
@@ -232,7 +232,7 @@ export function PartnerRowItem({
 
       {suffix}
 
-      {showFraudIndicator && <PartnerFraudIndicator partnerId={partner.id} />}
+      {showFraudIndicator && <PartnerRiskIndicator partnerId={partner.id} />}
     </div>
   );
 }

@@ -51,7 +51,7 @@ export const POST = withCron(async ({ rawBody }) => {
           lastCheckedAt: null,
         },
       ],
-      // only check partners that are approved or trusted
+      // only check partners approved/trusted in the network
       partner: {
         networkStatus: {
           in: ["approved", "trusted"],

@@ -1,5 +1,5 @@
 model OAuthApp {
-  id                  String  @id @default(cuid())
+  id                  String  @id
   integrationId       String  @unique
   clientId            String  @unique
   hashedClientSecret  String

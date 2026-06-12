@@ -1,5 +1,5 @@
-import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { DubApiError } from "@/lib/api/errors";
+import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { payoutsQuerySchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";

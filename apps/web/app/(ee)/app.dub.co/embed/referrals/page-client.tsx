@@ -9,13 +9,20 @@ import {
   ProgramEnrollmentProps,
   RewardProps,
 } from "@/lib/types";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Partner, PlatformType, Program } from "@dub/prisma/client";
+import {
+  Partner,
+  PlatformType,
+  Program,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -23,6 +30,7 @@ import {
   Copy,
   Directions,
   Popover,
+  StatusBadge,
   TabSelect,
   useCopyToClipboard,
   useLocalStorage,
@@ -66,7 +74,9 @@ type ReferralsEmbedData = {
     | "embedData"
     | "resources"
   >;
-  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
+  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt"> & {
+    status: ProgramEnrollmentStatus;
+  };
   partner: Pick<Partner, "id" | "name" | "email">;
   partnerPlatforms: Array<{
     type: PlatformType;
@@ -169,6 +179,9 @@ export function ReferralsEmbedPageClient({
   );
 
   const activeBountiesCount = bounties.length;
+  const hasEmbedAccess = ACTIVE_ENROLLMENT_STATUSES.includes(
+    programEnrollment.status,
+  );
 
   const tabs = useMemo(
     () => [
@@ -225,6 +238,17 @@ export function ReferralsEmbedPageClient({
       bounties,
     ],
   );
+
+  if (!hasEmbedAccess) {
+    return (
+      <ReferralsEmbedUnapproved
+        status={programEnrollment.status}
+        programName={program.name}
+        themeOptions={themeOptions}
+        dynamicHeight={dynamicHeight}
+      />
+    );
+  }
 
   return (
     <ReferralsEmbedDataProvider value={embedData}>
@@ -367,6 +391,54 @@ export function ReferralsEmbedPageClient({
         </div>
       </div>
     </ReferralsEmbedDataProvider>
+  );
+}
+
+function ReferralsEmbedUnapproved({
+  status,
+  programName,
+  themeOptions,
+  dynamicHeight,
+}: {
+  status: ProgramEnrollmentStatus;
+  programName: string;
+  themeOptions: ThemeOptions;
+  dynamicHeight: boolean;
+}) {
+  const badge = PartnerStatusBadges[status];
+  const isPending = status === "pending";
+
+  return (
+    <div
+      style={{
+        backgroundColor: themeOptions.backgroundColor || "transparent",
+      }}
+      className={cn(
+        "flex flex-col items-center justify-center p-8 text-center",
+        !dynamicHeight && "min-h-screen",
+      )}
+    >
+      <StatusBadge
+        variant={badge.variant}
+        icon={badge.icon}
+        className="px-1.5 py-0.5"
+      >
+        {badge.label}
+      </StatusBadge>
+      <h2 className="text-content-default mt-4 text-base font-semibold">
+        {isPending ? "Application in review" : "Program unavailable"}
+      </h2>
+      <p className="text-content-subtle [&_strong]:text-content-default mt-2 max-w-sm text-balance text-sm font-medium [&_strong]:font-semibold">
+        {isPending ? (
+          <>
+            You&apos;ll be notified when <strong>{programName}</strong> has
+            finished reviewing your application.
+          </>
+        ) : (
+          "You don't have access to this program."
+        )}
+      </p>
+    </div>
   );
 }
 
