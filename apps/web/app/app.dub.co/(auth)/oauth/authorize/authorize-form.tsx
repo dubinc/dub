@@ -21,7 +21,7 @@ export const AuthorizeForm = ({
   code_challenge_method,
 }: z.infer<typeof authorizeRequestSchema>) => {
   const { data: session } = useSession();
-  const { workspaces } = useWorkspaces();
+  const { workspaces, loading: workspacesLoading } = useWorkspaces();
   const [submitting, setSubmitting] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] = useState<string | null>(
     null,
@@ -31,30 +31,55 @@ export const AuthorizeForm = ({
     setSelectedWorkspace(session?.user?.["defaultWorkspace"] || null);
   }, [session]);
 
-  const { permissionsError, missingScopes } = useMemo(() => {
-    const workspace = workspaces?.find(
-      (workspace) => workspace.slug === selectedWorkspace,
-    );
+  const { permissionsError, missingScopes, workspaceUnresolvedMessage } =
+    useMemo(() => {
+      if (!selectedWorkspace) {
+        return {
+          permissionsError: undefined,
+          missingScopes: [] as string[],
+          workspaceUnresolvedMessage: undefined,
+        };
+      }
 
-    if (!workspace) {
-      return { permissionsError: undefined, missingScopes: [] as string[] };
-    }
+      if (workspacesLoading || workspaces === undefined) {
+        return {
+          permissionsError: undefined,
+          missingScopes: [] as string[],
+          workspaceUnresolvedMessage: "Loading workspaces...",
+        };
+      }
 
-    const userRole = workspace.users[0].role;
+      const workspace = workspaces.find(
+        (workspace) => workspace.slug === selectedWorkspace,
+      );
 
-    const permissionsError = clientAccessCheck({
-      action: "integrations.write",
-      role: userRole,
-      customPermissionDescription: "install this integration",
-    }).error;
+      if (!workspace) {
+        return {
+          permissionsError: undefined,
+          missingScopes: [] as string[],
+          workspaceUnresolvedMessage: "Please select a valid workspace",
+        };
+      }
 
-    const scopesForRole = getScopesForRole(userRole);
-    const missingScopes = consolidateScopes(scope).filter(
-      (scope) => !scopesForRole.includes(scope) && scope !== "user.read",
-    );
+      const userRole = workspace.users[0].role;
 
-    return { permissionsError, missingScopes };
-  }, [workspaces, selectedWorkspace, scope]);
+      const permissionsError = clientAccessCheck({
+        action: "integrations.write",
+        role: userRole,
+        customPermissionDescription: "install this integration",
+      }).error;
+
+      const scopesForRole = getScopesForRole(userRole);
+      const missingScopes = consolidateScopes(scope).filter(
+        (scope) => !scopesForRole.includes(scope) && scope !== "user.read",
+      );
+
+      return {
+        permissionsError,
+        missingScopes,
+        workspaceUnresolvedMessage: undefined,
+      };
+    }, [workspaces, workspacesLoading, selectedWorkspace, scope]);
 
   // Decline the request
   const onDecline = () => {
@@ -75,11 +100,16 @@ export const AuthorizeForm = ({
       return;
     }
 
-    setSubmitting(true);
-
     const workspaceId = workspaces?.find(
       (workspace) => workspace.slug === selectedWorkspace,
     )?.id;
+
+    if (!workspaceId) {
+      toast.error("Please select a workspace to continue");
+      return;
+    }
+
+    setSubmitting(true);
 
     const response = await fetch(
       `/api/oauth/authorize?workspaceId=${workspaceId}`,
@@ -139,12 +169,16 @@ export const AuthorizeForm = ({
           type="submit"
           loading={submitting}
           disabled={
-            !selectedWorkspace || !!permissionsError || missingScopes.length > 0
+            !selectedWorkspace ||
+            !!workspaceUnresolvedMessage ||
+            !!permissionsError ||
+            missingScopes.length > 0
           }
           disabledTooltip={
             !selectedWorkspace
               ? "Please select a workspace to continue"
-              : permissionsError ||
+              : workspaceUnresolvedMessage ||
+                permissionsError ||
                 (missingScopes.length > 0
                   ? "You don't have the permission to install this integration"
                   : undefined)
