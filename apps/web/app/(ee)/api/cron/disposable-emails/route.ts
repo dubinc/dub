@@ -8,58 +8,59 @@ export const dynamic = "force-dynamic";
 // Sync disposable and Tremendous prohibited email domain blocklists into Redis.
 // Runs every Monday at noon UTC (0 12 * * 1)
 export const POST = withCron(async () => {
-  const [disposableRes, tremendousRes] = await Promise.all([
+  const [disposableRes, tremendousRes] = await Promise.allSettled([
     fetch(
       "https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf",
     ),
     fetch("https://api.tremendous.com/prohibited_email_domains.txt"),
   ]);
 
-  if (!disposableRes.ok) {
-    throw new Error(
-      `Failed to fetch disposable email domains list: ${disposableRes.status} ${disposableRes.statusText} (${disposableRes.url})`,
+  if (disposableRes.status === "rejected") {
+    console.warn(
+      `Failed to fetch disposable email domains list: ${disposableRes.status} ${disposableRes.reason}`,
     );
   }
 
-  if (!tremendousRes.ok) {
-    throw new Error(
-      `Failed to fetch Tremendous prohibited email domains list: ${tremendousRes.status} ${tremendousRes.statusText} (${tremendousRes.url})`,
+  if (tremendousRes.status === "rejected") {
+    console.warn(
+      `Failed to fetch Tremendous prohibited email domains list: ${tremendousRes.status} ${tremendousRes.reason}`,
     );
   }
 
-  const disposableDomains = (await disposableRes.text())
-    .split("\n")
-    .filter(Boolean);
-  const tremendousDomains = (await tremendousRes.text())
-    .split("\n")
-    .map((d) => d.trim().toLowerCase())
-    .filter(Boolean);
+  const disposableDomains =
+    disposableRes.status === "fulfilled"
+      ? (await disposableRes.value.text()).split("\n").filter(Boolean)
+      : [];
 
-  if (disposableDomains.length < 100) {
-    throw new Error("Disposable email domains list is too short.");
+  const tremendousDomains =
+    tremendousRes.status === "fulfilled"
+      ? (await tremendousRes.value.text())
+          .split("\n")
+          .map((d) => d.trim().toLowerCase())
+          .filter(Boolean)
+      : [];
+
+  if (disposableDomains.length > 0) {
+    // Use temporary sets to avoid emptying the old sets
+    await redis.del("disposableEmailDomainsTmp");
+    await redis.sadd(
+      "disposableEmailDomainsTmp",
+      ...(disposableDomains as [string]),
+    );
+    await redis.rename("disposableEmailDomainsTmp", "disposableEmailDomains");
   }
 
-  if (tremendousDomains.length < 100) {
-    throw new Error("Tremendous prohibited email domains list is too short.");
+  if (tremendousDomains.length > 0) {
+    await redis.del("tremendousProhibitedEmailDomainsTmp");
+    await redis.sadd(
+      "tremendousProhibitedEmailDomainsTmp",
+      ...(tremendousDomains as [string]),
+    );
+    await redis.rename(
+      "tremendousProhibitedEmailDomainsTmp",
+      "tremendousProhibitedEmailDomains",
+    );
   }
-
-  // Use temporary sets to avoid emptying the old sets
-  await redis.del("disposableEmailDomainsTmp");
-  await redis.sadd(
-    "disposableEmailDomainsTmp",
-    ...(disposableDomains as [string]),
-  );
-  await redis.rename("disposableEmailDomainsTmp", "disposableEmailDomains");
-
-  await redis.del("tremendousProhibitedEmailDomainsTmp");
-  await redis.sadd(
-    "tremendousProhibitedEmailDomainsTmp",
-    ...(tremendousDomains as [string]),
-  );
-  await redis.rename(
-    "tremendousProhibitedEmailDomainsTmp",
-    "tremendousProhibitedEmailDomains",
-  );
 
   return logAndRespond(
     `Synced ${disposableDomains.length} disposable and ${tremendousDomains.length} Tremendous prohibited email domains.`,
