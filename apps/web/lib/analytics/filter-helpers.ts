@@ -186,6 +186,10 @@ export function hasExactlyOneLinkIdFilter(
   linkId: string | ParsedFilter | undefined,
 ): boolean {
   if (!linkId) return false;
-  if (typeof linkId === "string") return true;
-  return linkId.sqlOperator === "IN" && linkId.values.length === 1;
+  if (typeof linkId === "string") return linkId.length > 0;
+  return (
+    linkId.sqlOperator === "IN" &&
+    linkId.values.length === 1 &&
+    linkId.values[0].length > 0
+  );
 }

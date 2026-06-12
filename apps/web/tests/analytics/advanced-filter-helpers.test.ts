@@ -641,5 +641,19 @@ describe("Advanced Filters - Unit Tests", () => {
         }),
       ).toBe(false);
     });
+
+    test("returns false for an empty string link id", () => {
+      expect(hasExactlyOneLinkIdFilter("")).toBe(false);
+    });
+
+    test("returns false for a single empty included link id", () => {
+      expect(
+        hasExactlyOneLinkIdFilter({
+          operator: "IS",
+          sqlOperator: "IN",
+          values: [""],
+        }),
+      ).toBe(false);
+    });
   });
 });
