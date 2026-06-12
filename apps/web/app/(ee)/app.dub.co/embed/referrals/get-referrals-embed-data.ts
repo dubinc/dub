@@ -149,6 +149,7 @@ export const getReferralsEmbedData = async (token: string) => {
     },
     programEnrollment: {
       createdAt: programEnrollment.createdAt,
+      status: programEnrollment.status,
     },
     group: {
       id: group.id,

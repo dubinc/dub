@@ -51,8 +51,8 @@ export const GET = withWorkspace(
       pageSize,
       country,
       starred,
+      sortBy,
       platform,
-      subscribers,
     } = getNetworkPartnersQuerySchema.parse(searchParams);
 
     if (status !== "discover") {
@@ -60,7 +60,6 @@ export const GET = withWorkspace(
         partnerIds,
         country,
         platform,
-        subscribers,
       });
 
       const partners = await prisma.discoveredPartner.findMany({
@@ -126,8 +125,8 @@ export const GET = withWorkspace(
       page,
       pageSize,
       starred: starred ?? undefined,
+      sortBy,
       platform: platform ?? undefined,
-      subscribers: subscribers ?? undefined,
       similarPrograms,
     });
     console.timeEnd("calculatePartnerRanking");

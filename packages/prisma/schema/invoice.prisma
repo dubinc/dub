@@ -18,7 +18,7 @@ enum PaymentMethod {
 }
 
 model Invoice {
-  id                   String            @id @default(cuid())
+  id                   String            @id
   programId            String?
   workspaceId          String
   number               String?           @unique // This starts with the customer's unique invoicePrefix

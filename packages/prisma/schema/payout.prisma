@@ -14,7 +14,7 @@ enum PayoutMode {
 }
 
 model Payout {
-  id                  String               @id @default(cuid())
+  id                  String               @id
   programId           String
   partnerId           String
   invoiceId           String?

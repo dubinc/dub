@@ -12,6 +12,7 @@ export const fraudEventContext = z.object({
   }),
   programEnrollment: ProgramEnrollmentSchema.pick({
     status: true,
+    riskMonitoringDisabledAt: true,
   }),
   customer: z.object({
     id: z.string(),
