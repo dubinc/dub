@@ -360,7 +360,9 @@ export default function IntegrationPageClient({
                         cta="Upgrade to Advanced"
                         href={`/${slug}/settings/billing/upgrade?plan=advanced`}
                       />
-                    ) : undefined
+                    ) : (
+                      permissionsError || undefined
+                    )
                   }
                 />
               )}
