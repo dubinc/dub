@@ -1,5 +1,8 @@
 import { exportAnalyticsToZip } from "@/lib/analytics/export-analytics-to-zip";
-import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
+import {
+  getFirstFilterValue,
+  hasExactlyOneLinkIdFilter,
+} from "@/lib/analytics/filter-helpers";
 import { formatProgramAnalyticsForExport } from "@/lib/analytics/utils/format-program-analytics-for-export";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
@@ -95,29 +98,27 @@ export const GET = withWorkspace(
       workspace.plan,
     ).canTrackConversions;
 
-    if (useComposite) {
-      const { success } = await ratelimit(1, "30 s").limit(
-        `analytics-export:${workspace.id}`,
-      );
+    const { success } = await ratelimit(1, "30 s").limit(
+      `analytics-export:${workspace.id}`,
+    );
 
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message:
-            "Analytics export is limited to once every 30 seconds. Please try again shortly.",
-        });
-      }
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message:
+          "Analytics export is limited to once every 30 seconds. Please try again shortly.",
+      });
     }
 
     const { domain: _domain, key: _key, ...filterParams } = parsedParams;
-    const hasSingleLinkFilter = Boolean(parsedParams.linkId);
-    const analyticsParams = hasSingleLinkFilter ? filterParams : parsedParams;
+    const hasLinkIdFilter = Boolean(parsedParams.linkId);
+    const analyticsParams = hasLinkIdFilter ? filterParams : parsedParams;
 
     const zipData = await exportAnalyticsToZip({
       params: analyticsParams,
       workspaceId: workspace.id,
       useComposite,
-      skipTopLinksForSingleLink: hasSingleLinkFilter,
+      skipTopLinksForSingleLink: hasExactlyOneLinkIdFilter(parsedParams.linkId),
       getDataAvailableFrom: (endpoint) =>
         endpoint === "timeseries"
           ? programStartedAt ?? workspace.createdAt

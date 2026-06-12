@@ -2,7 +2,10 @@ import {
   exportAnalyticsToZip,
   PARTNER_PROFILE_SKIP_ENDPOINTS,
 } from "@/lib/analytics/export-analytics-to-zip";
-import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
+import {
+  getFirstFilterValue,
+  hasExactlyOneLinkIdFilter,
+} from "@/lib/analytics/filter-helpers";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
@@ -112,14 +115,13 @@ export const GET = withPartnerProfile(
     }
 
     const dataAvailableFrom = program.startedAt ?? program.createdAt;
-    const hasSingleLinkFilter = Boolean(parsedParams.linkId);
 
     const zipData = await exportAnalyticsToZip({
       params: parsedParams,
       workspaceId: program.workspaceId,
       useComposite: true,
       skipEndpoints: PARTNER_PROFILE_SKIP_ENDPOINTS,
-      skipTopLinksForSingleLink: hasSingleLinkFilter,
+      skipTopLinksForSingleLink: hasExactlyOneLinkIdFilter(parsedParams.linkId),
       getAnalyticsParams: () =>
         parsedParams.linkId
           ? { linkId: parsedParams.linkId }

@@ -176,3 +176,16 @@ export function buildAdvancedFilters(
 
   return filters;
 }
+
+/**
+ * Returns true when the linkId filter scopes analytics to exactly one link.
+ * Used to omit top_links.csv from exports, since that breakdown is redundant
+ * for a single-link view.
+ */
+export function hasExactlyOneLinkIdFilter(
+  linkId: string | ParsedFilter | undefined,
+): boolean {
+  if (!linkId) return false;
+  if (typeof linkId === "string") return true;
+  return linkId.sqlOperator === "IN" && linkId.values.length === 1;
+}
