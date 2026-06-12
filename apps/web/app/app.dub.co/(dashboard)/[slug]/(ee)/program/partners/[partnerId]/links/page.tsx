@@ -17,6 +17,7 @@ import { useAddDiscountCodeModal } from "@/ui/modals/add-discount-code-modal";
 import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
 import { DeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
+import { ButtonLink } from "@/ui/placeholders/button-link";
 import { DiscountProvider } from "@dub/prisma/client";
 import {
   Button,
@@ -295,6 +296,9 @@ const PartnerDiscountCodes = ({
   partner: EnrolledPartnerExtendedProps;
 }) => {
   const { slug, stripeConnectId, shopifyStoreId } = useWorkspace();
+  const { group } = useGroup({
+    groupIdOrSlug: partner.groupId ?? undefined,
+  });
 
   const [selectedDiscountCode, setSelectedDiscountCode] =
     useState<DiscountCodeProps | null>(null);
@@ -416,6 +420,33 @@ const PartnerDiscountCodes = ({
     shopifyStoreId,
   ]);
 
+  const groupDiscount = group?.discount ?? partner.discount;
+
+  const discountCodeEmptyState = groupDiscount
+    ? {
+        description:
+          "Referral links apply your discount, and checkout codes are optional",
+        buttonText: "Learn more",
+        buttonHref: "https://dub.co/help/article/dual-sided-incentives",
+        buttonVariant: "outline" as const,
+        buttonClassName:
+          "border-transparent bg-neutral-200/60 hover:bg-neutral-200",
+        target: "_blank" as const,
+        rel: "noopener noreferrer",
+      }
+    : {
+        description:
+          "A customer discount is required before creating a discount code",
+        buttonText: "Group discounts",
+        buttonHref: group?.slug
+          ? `/${slug}/program/groups/${group.slug}/discounts`
+          : `/${slug}/program/groups`,
+        buttonVariant: "secondary" as const,
+        buttonClassName: undefined,
+        target: undefined,
+        rel: undefined,
+      };
+
   return (
     <>
       <div className="flex items-end justify-between gap-4">
@@ -438,13 +469,29 @@ const PartnerDiscountCodes = ({
         </div>
       ) : !error && (!discountCodes || discountCodes.length === 0) ? (
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 py-6">
-          <Tag className="mb-2 size-6 text-neutral-900" />
-          <h3 className="text-content-emphasis text-sm font-semibold leading-5">
-            No codes created
-          </h3>
-          <p className="text-content-default -mt-1 text-sm font-medium leading-5">
-            Create a discount code for each link
-          </p>
+          <div className="flex max-w-[300px] flex-col items-center gap-2 text-center">
+            <Tag className="mb-2 size-6 text-neutral-900" />
+            <h3 className="text-content-emphasis text-sm font-semibold leading-5">
+              No codes created
+            </h3>
+            <p className="text-content-default -mt-1 text-sm font-medium leading-5">
+              {discountCodeEmptyState.description}
+            </p>
+            {discountCodeEmptyState.buttonHref && (
+              <ButtonLink
+                href={discountCodeEmptyState.buttonHref}
+                target={discountCodeEmptyState.target}
+                rel={discountCodeEmptyState.rel}
+                variant={discountCodeEmptyState.buttonVariant}
+                className={cn(
+                  "mt-2 h-7 rounded-md px-3 text-sm font-medium",
+                  discountCodeEmptyState.buttonClassName,
+                )}
+              >
+                {discountCodeEmptyState.buttonText}
+              </ButtonLink>
+            )}
+          </div>
         </div>
       ) : error ? (
         <div className="flex justify-center py-16">
