@@ -113,8 +113,7 @@ export default function PartnerTremendousPayout({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Click the button below to redeem your reward and choose from
-              available gift card options.
+              Click the button below to redeem your reward.
             </Text>
 
             <Section className="my-8">
@@ -122,7 +121,7 @@ export default function PartnerTremendousPayout({
                 className="rounded-lg bg-neutral-900 px-4 py-2.5 text-[12px] font-semibold text-white no-underline"
                 href={redeemUrl}
               >
-                Redeem
+                Redeem reward
               </Link>
             </Section>
 
