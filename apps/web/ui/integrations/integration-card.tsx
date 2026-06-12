@@ -34,8 +34,12 @@ export default function IntegrationCard(
           </div>
         </Badge>
       ) : undefined}
-      <IntegrationLogo src={integration.logo ?? null} alt={integration.name} />
-      <h3 className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-neutral-800">
+      <IntegrationLogo
+        src={integration.logo ?? null}
+        alt={integration.name}
+        className="size-12 rounded-[10px]"
+      />
+      <h3 className="mt-4 flex items-center gap-1.5 text-base font-semibold text-neutral-800">
         {integration.name}
         {dubCrafted && (
           <Tooltip content="This is an official integration built and maintained by Dub">
@@ -61,7 +65,7 @@ function Wrapper({
   const { slug } = useWorkspace();
 
   const className = cn(
-    "group relative rounded-lg border border-neutral-200 bg-white p-4 transition-[filter]",
+    "group relative rounded-xl border border-neutral-200 bg-white p-5 transition-[filter]",
     integration.comingSoon ? "cursor-default" : "hover:drop-shadow-card-hover",
   );
 
@@ -85,7 +89,7 @@ function Badge({ className, ...rest }: HTMLProps<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "absolute right-4 top-4 flex items-center rounded px-2 py-1 text-[0.625rem] font-semibold uppercase leading-none",
+        "absolute right-5 top-5 flex items-center rounded-md px-2 py-1 text-[0.625rem] font-semibold uppercase leading-none",
         className,
       )}
       {...rest}
