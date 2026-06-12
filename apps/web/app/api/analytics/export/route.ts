@@ -22,6 +22,18 @@ export const maxDuration = 300;
 // GET /api/analytics/export – get export data for analytics
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
+    const { success } = await ratelimit(1, "30 s").limit(
+      `analytics-export:${workspace.id}`,
+    );
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message:
+          "Analytics export is limited to once every 30 seconds. Please try again shortly.",
+      });
+    }
+
     throwIfClicksUsageExceeded(workspace);
 
     const parsedParams = parseAnalyticsQuery(searchParams);
@@ -97,18 +109,6 @@ export const GET = withWorkspace(
     const useComposite = getPlanCapabilities(
       workspace.plan,
     ).canTrackConversions;
-
-    const { success } = await ratelimit(1, "30 s").limit(
-      `analytics-export:${workspace.id}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message:
-          "Analytics export is limited to once every 30 seconds. Please try again shortly.",
-      });
-    }
 
     const { domain: _domain, key: _key, ...filterParams } = parsedParams;
     const hasLinkIdFilter = Boolean(parsedParams.linkId);

@@ -48,6 +48,7 @@ export function AnalyticsExportButton({
       a.href = url;
       a.download = `Dub Analytics Export - ${new Date().toISOString()}.zip`;
       a.click();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       throw error instanceof Error ? error : new Error(String(error));
     } finally {

@@ -23,6 +23,18 @@ export const maxDuration = 300;
 // GET /api/partner-profile/programs/[programId]/analytics/export – get export data for partner profile analytics
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
+    const { success } = await ratelimit(1, "30 s").limit(
+      `analytics-export:partner:${partner.id}:${params.programId}`,
+    );
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message:
+          "Analytics export is limited to once every 30 seconds. Please try again shortly.",
+      });
+    }
+
     const { program, links, totalCommissions } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
@@ -100,18 +112,6 @@ export const GET = withPartnerProfile(
         sqlOperator: "IN",
         values: [link.id],
       };
-    }
-
-    const { success } = await ratelimit(1, "30 s").limit(
-      `analytics-export:partner:${partner.id}:${params.programId}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message:
-          "Analytics export is limited to once every 30 seconds. Please try again shortly.",
-      });
     }
 
     const dataAvailableFrom = program.startedAt ?? program.createdAt;
