@@ -24,7 +24,7 @@
     "@types/react-dom": "^19.1.9",
     "typescript": "^5.4.4",
     "@react-email/preview-server": "5.2.8",
-    "esbuild": "0.25.10"
+    "esbuild": "0.28.1"
   },
   "peerDependencies": {
     "react": "^19.0.0",
