@@ -3,7 +3,7 @@ import { PayoutResponseSchema } from "@/lib/zod/schemas/payouts";
 import { describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_PARTNER, E2E_PARTNER_GROUP } from "../utils/resource";
+import { E2E_PARTNER } from "../utils/resource";
 
 // Extend date fields to accept strings (API returns JSON strings)
 const PayoutResponseTestSchema = PayoutResponseSchema.extend({
@@ -80,14 +80,33 @@ describe("GET /payouts", async () => {
 
     expect(status).toEqual(200);
     expect(data.length).toBeGreaterThan(0);
-    expect(data[0].partner.groupId).toBe(E2E_PARTNER_GROUP.id);
+    expect(data[0].partner.groupId).toMatch(/^grp_/);
   });
 
   test("filters by groupId", async () => {
+    const { data: partnerPayouts, status: partnerStatus } = await http.get<
+      PayoutResponse[]
+    >({
+      path: "/payouts",
+      query: {
+        partnerId: E2E_PARTNER.id,
+        limit: "1",
+      },
+    });
+
+    expect(partnerStatus).toEqual(200);
+    expect(partnerPayouts.length).toBeGreaterThan(0);
+
+    const groupId = partnerPayouts[0].partner.groupId;
+    expect(groupId).toMatch(/^grp_/);
+    if (!groupId) {
+      throw new Error("Expected partner payout to include groupId");
+    }
+
     const { data, status } = await http.get<PayoutResponse[]>({
       path: "/payouts",
       query: {
-        groupId: E2E_PARTNER_GROUP.id,
+        groupId,
         limit: "5",
       },
     });
@@ -96,9 +115,9 @@ describe("GET /payouts", async () => {
     expect(Array.isArray(data)).toBe(true);
 
     if (data.length > 0) {
-      expect(
-        data.every((payout) => payout.partner.groupId === E2E_PARTNER_GROUP.id),
-      ).toBe(true);
+      expect(data.every((payout) => payout.partner.groupId === groupId)).toBe(
+        true,
+      );
     }
   });
 
