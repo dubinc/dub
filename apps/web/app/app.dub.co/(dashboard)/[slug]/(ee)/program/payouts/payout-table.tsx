@@ -429,7 +429,6 @@ function PayoutFilters() {
     onSelect,
     onRemove,
     onRemoveAll,
-    onToggleOperator,
     setSearch,
     setSelectedFilter,
   } = usePayoutFilters();
@@ -444,7 +443,6 @@ function PayoutFilters() {
         onRemove={onRemove}
         onSearchChange={setSearch}
         onSelectedFilterChange={setSelectedFilter}
-        isAdvancedFilter
       />
       <AnimatedSizeContainer height>
         <div>
@@ -456,7 +454,6 @@ function PayoutFilters() {
                 onSelect={onSelect}
                 onRemove={onRemove}
                 onRemoveAll={onRemoveAll}
-                onToggleOperator={onToggleOperator}
               />
             </div>
           )}

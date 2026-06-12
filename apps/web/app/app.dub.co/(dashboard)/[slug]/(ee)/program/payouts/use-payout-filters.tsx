@@ -8,11 +8,9 @@ import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, InvoiceDollar, Users, Users6 } from "@dub/ui/icons";
-import { cn, nFormatter, parseFilterValue } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
-
-const MULTI_VALUE_FILTER_KEYS = ["groupId"] as const;
 
 export function usePayoutFilters() {
   const { slug } = useWorkspace();
@@ -100,99 +98,37 @@ export function usePayoutFilters() {
   );
 
   const activeFilters = useMemo(() => {
-    const { status, partnerId, invoiceId } = searchParamsObj;
-
-    const singleValueFilters = [
-      ...(status ? [{ key: "status" as const, value: status }] : []),
-      ...(partnerId ? [{ key: "partnerId" as const, value: partnerId }] : []),
-      ...(invoiceId ? [{ key: "invoiceId" as const, value: invoiceId }] : []),
+    const { status, partnerId, groupId, invoiceId } = searchParamsObj;
+    return [
+      ...(status ? [{ key: "status", value: status }] : []),
+      ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
+      ...(groupId ? [{ key: "groupId", value: groupId }] : []),
+      ...(invoiceId ? [{ key: "invoiceId", value: invoiceId }] : []),
     ];
-
-    const groupIdRaw = searchParamsObj.groupId;
-    const parsedGroupId = groupIdRaw ? parseFilterValue(groupIdRaw) : null;
-    const multiValueFilters = parsedGroupId
-      ? [
-          {
-            key: "groupId" as const,
-            operator: parsedGroupId.operator,
-            values: parsedGroupId.values,
-          },
-        ]
-      : [];
-
-    return [...singleValueFilters, ...multiValueFilters];
   }, [
     searchParamsObj.status,
     searchParamsObj.partnerId,
-    searchParamsObj.invoiceId,
     searchParamsObj.groupId,
+    searchParamsObj.invoiceId,
   ]);
 
   const onSelect = useCallback(
-    (key: string, value: string) => {
-      if (
-        MULTI_VALUE_FILTER_KEYS.includes(
-          key as (typeof MULTI_VALUE_FILTER_KEYS)[number],
-        )
-      ) {
-        const currentParam = searchParamsObj[key];
-        if (!currentParam) {
-          queryParams({ set: { [key]: value }, del: "page" });
-          return;
-        }
-        const parsed = parseFilterValue(currentParam);
-        if (parsed && !parsed.values.includes(value)) {
-          const newValues = [...parsed.values, value];
-          const newParam = parsed.operator.includes("NOT")
-            ? `-${newValues.join(",")}`
-            : newValues.join(",");
-          queryParams({ set: { [key]: newParam }, del: "page" });
-        }
-        return;
-      }
-
+    (key: string, value: any) =>
       queryParams({
         set: {
           [key]: value,
         },
         del: "page",
-      });
-    },
-    [searchParamsObj, queryParams],
+      }),
+    [queryParams],
   );
 
   const onRemove = useCallback(
-    (key: string, value?: string) => {
-      if (
-        MULTI_VALUE_FILTER_KEYS.includes(
-          key as (typeof MULTI_VALUE_FILTER_KEYS)[number],
-        ) &&
-        value
-      ) {
-        const currentParam = searchParamsObj[key];
-        if (!currentParam) return;
-        const parsed = parseFilterValue(currentParam);
-        if (!parsed) {
-          queryParams({ del: [key, "page"] });
-          return;
-        }
-        const newValues = parsed.values.filter((v) => v !== value);
-        if (newValues.length === 0) {
-          queryParams({ del: [key, "page"] });
-        } else {
-          const newParam = parsed.operator.includes("NOT")
-            ? `-${newValues.join(",")}`
-            : newValues.join(",");
-          queryParams({ set: { [key]: newParam }, del: "page" });
-        }
-        return;
-      }
-
+    (key: string) =>
       queryParams({
         del: [key, "page"],
-      });
-    },
-    [searchParamsObj, queryParams],
+      }),
+    [queryParams],
   );
 
   const onRemoveAll = useCallback(
@@ -203,27 +139,12 @@ export function usePayoutFilters() {
     [queryParams],
   );
 
-  const onToggleOperator = useCallback(
-    (key: string) => {
-      const currentParam = searchParamsObj[key];
-      if (!currentParam) return;
-      const isNegated = currentParam.startsWith("-");
-      const cleanValue = isNegated ? currentParam.slice(1) : currentParam;
-      queryParams({
-        set: { [key]: isNegated ? cleanValue : `-${cleanValue}` },
-        del: "page",
-      });
-    },
-    [searchParamsObj, queryParams],
-  );
-
   return {
     filters,
     activeFilters,
     onSelect,
     onRemove,
     onRemoveAll,
-    onToggleOperator,
     setSearch,
     setSelectedFilter,
   };
