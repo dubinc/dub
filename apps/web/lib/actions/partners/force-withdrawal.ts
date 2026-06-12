@@ -3,6 +3,7 @@
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { createStablecoinPayout } from "@/lib/partners/create-stablecoin-payout";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
+import { sendTremendousPayouts } from "@/lib/tremendous/send-tremendous-payouts";
 import { redis } from "@/lib/upstash";
 import { Partner } from "@dub/prisma/client";
 import { authPartnerActionClient } from "../safe-action";
@@ -57,6 +58,11 @@ export const forceWithdrawal = async (
       });
     } else if (partner.defaultPayoutMethod === "connect") {
       await createStripeTransfer({
+        partnerId: partner.id,
+        forceWithdrawal: true,
+      });
+    } else if (partner.defaultPayoutMethod === "tremendous") {
+      await sendTremendousPayouts({
         partnerId: partner.id,
         forceWithdrawal: true,
       });

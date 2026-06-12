@@ -1,12 +1,19 @@
 import { sendEmail } from "@dub/email";
 import PartnerTremendousPayout from "@dub/email/templates/partner-tremendous-payout";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, currencyFormatter } from "@dub/utils";
+import { Prisma } from "@dub/prisma/client";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  chunk,
+  currencyFormatter,
+  log,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { CreateOrder200Response, OrdersApi } from "tremendous";
 import { trackCommissionStatusUpdatesByProgram } from "../api/commissions/track-commission-update-activity-log";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
+import { markPayoutsAsProcessed } from "../payouts/mark-payouts-as-processed";
 import { tremendousConfiguration } from "./configuration";
 import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "./constants";
 
@@ -44,40 +51,66 @@ export async function sendTremendousPayouts({
     );
   }
 
-  const payouts = await prisma.payout.findMany({
-    where: {
-      partnerId,
-      invoiceId,
-      status: "processing",
-      mode: "internal",
-      method: "tremendous",
-      tremendousOrderId: null,
-      amount: {
-        lte: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+  const commonInclude: Prisma.PayoutInclude = {
+    program: {
+      select: {
+        id: true,
+        name: true,
+        logo: true,
+        workspaceId: true,
+        tremendousCampaignId: true,
       },
     },
-    include: {
-      program: {
-        select: {
-          id: true,
-          name: true,
-          logo: true,
-          workspaceId: true,
-          tremendousCampaignId: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
+  };
 
-  if (payouts.length === 0) {
+  const [previouslyProcessedPayouts, currentInvoicePayouts] = await Promise.all(
+    [
+      prisma.payout.findMany({
+        where: {
+          partnerId: partner.id,
+          status: "processed",
+          tremendousOrderId: null,
+          mode: "internal",
+          method: "tremendous",
+          amount: {
+            lte: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+          },
+        },
+        orderBy: {
+          id: "asc",
+        },
+        include: commonInclude,
+      }),
+      invoiceId
+        ? prisma.payout.findMany({
+            where: {
+              partnerId: partner.id,
+              invoiceId,
+              status: "processing",
+              mode: "internal",
+              method: "tremendous",
+              tremendousOrderId: null,
+              amount: {
+                lte: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+              },
+            },
+            orderBy: {
+              id: "asc",
+            },
+            include: commonInclude,
+          })
+        : Promise.resolve([]),
+    ],
+  );
+
+  const allPayouts = [...previouslyProcessedPayouts, ...currentInvoicePayouts];
+
+  if (allPayouts.length === 0) {
     console.log("No payouts for sending via Tremendous, skipping...");
     return;
   }
 
-  const totalTransferableAmount = payouts.reduce(
+  const totalTransferableAmount = allPayouts.reduce(
     (acc, payout) => acc + payout.amount,
     0,
   );
@@ -93,7 +126,7 @@ export async function sendTremendousPayouts({
     );
   }
 
-  const payoutIds = payouts.map((p) => p.id);
+  const payoutIds = allPayouts.map((p) => p.id);
 
   const idempotencyKey = createPayoutsIdempotencyKey({
     partnerId: partner.id,
@@ -101,7 +134,7 @@ export async function sendTremendousPayouts({
     payoutIds,
   });
 
-  const program = payouts[0].program;
+  const program = allPayouts[0].program;
 
   if (!program.tremendousCampaignId) {
     throw new Error(
@@ -129,7 +162,7 @@ export async function sendTremendousPayouts({
       delivery: {
         method: "LINK",
         meta: {
-          message: `Dub Partners payout (${[...new Set(payouts.map((p) => p.program.name))].join(", ")})`,
+          message: `Dub Partners payout (${[...new Set(allPayouts.map((p) => p.program.name))].join(", ")})`,
         },
       },
     },
@@ -140,13 +173,17 @@ export async function sendTremendousPayouts({
   const redeemUrl = reward?.delivery?.link;
 
   if (order.status !== "EXECUTED") {
-    throw new Error(
+    console.error(
       `Tremendous order ${order.id} status is not EXECUTED: ${order.status}`,
     );
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+    return;
   }
 
   if (!redeemUrl) {
-    throw new Error(`No redeem URL found for Tremendous order: ${order.id}`);
+    console.error(`No redeem URL found for Tremendous order: ${order.id}`);
+    await markPayoutsAsProcessed(currentInvoicePayouts);
+    return;
   }
 
   console.log("Tremendous order created", order);
@@ -166,38 +203,56 @@ export async function sendTremendousPayouts({
     },
   });
 
-  await prisma.$transaction([
-    prisma.payout.updateMany({
-      where: {
-        id: {
-          in: payoutIds,
-        },
+  await prisma.payout.updateMany({
+    where: {
+      id: {
+        in: payoutIds,
       },
-      data: {
-        tremendousOrderId: order.id,
-        status: "completed",
-        paidAt: new Date(),
-        method: "tremendous",
-      },
-    }),
+    },
+    data: {
+      tremendousOrderId: order.id,
+      status: "completed",
+      paidAt: new Date(),
+      method: "tremendous",
+    },
+  });
 
-    prisma.commission.updateMany({
-      where: {
-        payoutId: {
-          in: payoutIds,
+  const commissionIds = commissions.map((c) => c.id);
+
+  let totalUpdatedCommissions = 0;
+  for (const commissionIdsBatch of chunk(commissionIds, 250)) {
+    try {
+      const { count } = await prisma.commission.updateMany({
+        where: {
+          id: {
+            in: commissionIdsBatch,
+          },
         },
-      },
-      data: {
-        status: "paid",
-      },
-    }),
-  ]);
+        data: {
+          status: "paid",
+        },
+      });
+
+      totalUpdatedCommissions += count;
+      console.log(
+        `Marked ${totalUpdatedCommissions}/${commissionIds.length} commissions as paid`,
+      );
+    } catch (error) {
+      await log({
+        message: `[createStripeTransfer] Failed to mark commissions as paid for payouts ${payoutIds.join(
+          ", ",
+        )}: ${error.message}`,
+        type: "errors",
+        mention: true,
+      });
+    }
+  }
 
   waitUntil(
     Promise.allSettled([
       trackCommissionStatusUpdatesByProgram({
         commissions,
-        payouts,
+        payouts: allPayouts,
         newStatus: "paid",
       }),
 
@@ -214,7 +269,7 @@ export async function sendTremendousPayouts({
   );
 
   if (partner.email) {
-    const payout = payouts[0];
+    const payout = allPayouts[0];
     const formattedAmount = currencyFormatter(totalTransferableAmount);
 
     await sendEmail({
