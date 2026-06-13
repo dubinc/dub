@@ -197,17 +197,6 @@ export function validateReward(
             });
           }
         }
-
-        const hasModifierSpendLimitAmount = modifier.spendLimitAmount != null;
-        const hasModifierSpendLimitInterval =
-          modifier.spendLimitInterval != null;
-
-        if (hasModifierSpendLimitAmount !== hasModifierSpendLimitInterval) {
-          throw new DubApiError({
-            code: "bad_request",
-            message: `Modifier ${index + 1}: both "spendLimitAmount" and "spendLimitInterval" are required together. Provide both fields or omit both.`,
-          });
-        }
       });
     }
   }

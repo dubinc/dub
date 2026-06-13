@@ -166,14 +166,6 @@ export const getRewardPayload = ({ data }: { data: FormData }) => {
           amountInPercentage:
             type === "percentage" ? m.amountInPercentage : undefined,
           maxDuration: maxDuration === Infinity ? null : maxDuration,
-          spendLimitAmount:
-            m.spendLimitAmount == null || m.spendLimitInterval == null
-              ? null
-              : Math.round(Number(m.spendLimitAmount) * 100),
-          spendLimitInterval:
-            m.spendLimitAmount == null || m.spendLimitInterval == null
-              ? null
-              : m.spendLimitInterval,
         };
       }),
     );
@@ -276,9 +268,6 @@ function RewardSheetContent({
                   : undefined,
               amountInPercentage: m.amountInPercentage ?? undefined,
               maxDuration: m.maxDuration === null ? Infinity : maxDuration,
-              spendLimitAmount:
-                m.spendLimitAmount != null ? m.spendLimitAmount / 100 : null,
-              spendLimitInterval: m.spendLimitInterval ?? null,
             };
           })
         : undefined,
@@ -317,11 +306,6 @@ function RewardSheetContent({
   const hasIncompleteMainSpendLimit =
     spendLimitInterval != null &&
     (spendLimitAmount == null || isNaN(spendLimitAmount));
-  const hasIncompleteModifierSpendLimit = modifiers?.some(
-    (m) =>
-      m.spendLimitInterval != null &&
-      (m.spendLimitAmount == null || isNaN(m.spendLimitAmount)),
-  );
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -758,7 +742,6 @@ function RewardSheetContent({
               disabled={
                 amount == null ||
                 hasIncompleteMainSpendLimit ||
-                hasIncompleteModifierSpendLimit ||
                 isDeleting ||
                 isCreating ||
                 isUpdating

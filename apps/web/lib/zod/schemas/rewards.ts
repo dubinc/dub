@@ -325,7 +325,6 @@ export const rewardConditionsSchema = z.object({
   amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
   type: z.enum(RewardStructure).optional(),
   maxDuration: maxDurationSchema,
-  ...rewardSpendLimitSchema.shape,
 });
 
 export const rewardConditionsArraySchema = z

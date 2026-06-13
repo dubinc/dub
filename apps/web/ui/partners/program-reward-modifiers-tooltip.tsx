@@ -100,8 +100,6 @@ export function ProgramRewardModifiersTooltipContent({
                   modifier.maxDuration === undefined
                     ? reward.maxDuration
                     : modifier.maxDuration, // fallback to primary
-                spendLimitAmount: modifier.spendLimitAmount ?? null,
-                spendLimitInterval: modifier.spendLimitInterval ?? null,
               }}
               conditions={modifier.conditions}
               operator={modifier.operator}

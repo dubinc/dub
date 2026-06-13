@@ -33,8 +33,6 @@ export function resolveClickReward({
             matchedCondition.amountInCents != null
               ? matchedCondition.amountInCents
               : null,
-          spendLimitAmount: matchedCondition.spendLimitAmount ?? null,
-          spendLimitInterval: matchedCondition.spendLimitInterval ?? null,
         };
       }
     }
