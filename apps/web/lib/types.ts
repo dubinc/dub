@@ -58,6 +58,7 @@ import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
+import { MessageAttachmentSchema, MessageSchema } from "./messages/schemas";
 import { POSTBACK_TRIGGERS } from "./postback/constants";
 import { postbackEventInputSchemaTB, postbackSchema } from "./postback/schemas";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
@@ -132,7 +133,6 @@ import {
   ABTestVariantsSchema,
   createLinkBodySchema,
 } from "./zod/schemas/links";
-import { MessageSchema } from "./zod/schemas/messages";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   NetworkPartnerSchema,
@@ -146,6 +146,7 @@ import {
   partnerPlatformSchema,
   PartnerRewindSchema,
   PartnerSchema,
+  partnerSharedPlatformSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
 import {
@@ -522,6 +523,10 @@ export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerPlatformProps = z.infer<typeof partnerPlatformSchema>;
 
+export type PartnerSharedPlatformProps = z.infer<
+  typeof partnerSharedPlatformSchema
+>;
+
 export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
@@ -754,6 +759,8 @@ export type BountySubmissionsQueryFilters = z.infer<
 >;
 
 export type Message = z.infer<typeof MessageSchema>;
+
+export type MessageAttachment = z.infer<typeof MessageAttachmentSchema>;
 
 export type CampaignList = z.infer<typeof CampaignListSchema>;
 

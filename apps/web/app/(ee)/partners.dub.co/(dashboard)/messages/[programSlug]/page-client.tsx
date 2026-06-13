@@ -1,14 +1,16 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { markProgramMessagesReadAction } from "@/lib/actions/partners/mark-program-messages-read";
-import { messageProgramAction } from "@/lib/actions/partners/message-program";
+import { PARTNER_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
+import { useProgramMessages } from "@/lib/messages/hooks/use-program-messages";
+import { markProgramMessagesReadAction } from "@/lib/messages/mark-program-messages-read";
+import { messageProgramAction } from "@/lib/messages/message-program";
+import { uploadPartnerMessageAttachmentAction } from "@/lib/messages/upload-partner-message-attachment";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { useProgramMessages } from "@/lib/swr/use-program-messages";
 import useUser from "@/lib/swr/use-user";
 import { ProgramEnrollmentProps } from "@/lib/types";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
@@ -18,6 +20,7 @@ import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { ProgramHelpLinks } from "@/ui/partners/program-help-links";
 import { ProgramRewardsPanel } from "@/ui/partners/program-rewards-panel";
 import { X } from "@/ui/shared/icons";
+import { PendingAttachment } from "@/ui/shared/message-input";
 import { Button, Grid, useCopyToClipboard } from "@dub/ui";
 import {
   Check,
@@ -38,7 +41,7 @@ import {
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
@@ -137,6 +140,84 @@ export function PartnerMessagesProgramPageClient() {
     },
   });
 
+  const { executeAsync: uploadAttachment } = useAction(
+    uploadPartnerMessageAttachmentAction,
+    {
+      onError({ error }) {
+        toast.error(parseActionError(error, "Failed to upload file"));
+      },
+    },
+  );
+
+  const [pendingAttachments, setPendingAttachments] = useState<
+    PendingAttachment[]
+  >([]);
+
+  const handleAddFiles = useCallback(
+    async (files: File[]) => {
+      for (const file of files) {
+        const id = uuid();
+        const pending: PendingAttachment = {
+          id,
+          file,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          uploading: true,
+        };
+
+        setPendingAttachments((prev) => [...prev, pending]);
+
+        try {
+          const result = await uploadAttachment({
+            programSlug,
+            fileName: file.name,
+            contentType:
+              file.type as (typeof PARTNER_ALLOWED_ATTACHMENT_TYPES)[number],
+            contentLength: file.size,
+          });
+
+          if (!result?.data) {
+            setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
+            continue;
+          }
+
+          const { signedUrl, storageKey } = result.data;
+
+          const uploadResponse = await fetch(signedUrl, {
+            method: "PUT",
+            body: file,
+            headers: {
+              "Content-Type": file.type,
+            },
+          });
+
+          if (!uploadResponse.ok) {
+            toast.error("Failed to upload file");
+            setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
+            continue;
+          }
+
+          setPendingAttachments((prev) =>
+            prev.map((a) =>
+              a.id === id ? { ...a, uploading: false, storageKey } : a,
+            ),
+          );
+        } catch (error) {
+          toast.error(
+            error instanceof Error ? error.message : "Failed to upload file",
+          );
+          setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
+        }
+      }
+    },
+    [programSlug, uploadAttachment],
+  );
+
+  const handleRemoveAttachment = useCallback((id: string) => {
+    setPendingAttachments((prev) => prev.filter((a) => a.id !== id));
+  }, []);
+
   const { setCurrentPanel } = useMessagesContext();
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
@@ -210,6 +291,10 @@ export function PartnerMessagesProgramPageClient() {
               currentUserType="partner"
               currentUserId={partner?.id || ""}
               program={program}
+              pendingAttachments={pendingAttachments}
+              onAddFiles={handleAddFiles}
+              onRemoveAttachment={handleRemoveAttachment}
+              allowedFileTypes={PARTNER_ALLOWED_ATTACHMENT_TYPES}
               {...(shouldShowExternalSupportEmptyState && messages?.length
                 ? {
                     footerSlot: (
@@ -219,7 +304,7 @@ export function PartnerMessagesProgramPageClient() {
                     ),
                   }
                 : {})}
-              onSendMessage={async (message) => {
+              onSendMessage={async (message, attachments) => {
                 const createdAt = new Date();
 
                 try {
@@ -228,6 +313,7 @@ export function PartnerMessagesProgramPageClient() {
                       const result = await sendMessage({
                         programSlug,
                         text: message,
+                        attachments,
                       });
 
                       if (result?.data?.message) {
@@ -276,6 +362,12 @@ export function PartnerMessagesProgramPageClient() {
                                       name: partner!.name,
                                       image: partner!.image || null,
                                     },
+                                    attachments: attachments.map((a, i) => ({
+                                      id: `tmp_att_${i}`,
+                                      messageId: "",
+                                      ...a,
+                                      createdAt,
+                                    })),
                                   },
                                 ],
                               },
@@ -285,6 +377,7 @@ export function PartnerMessagesProgramPageClient() {
                     },
                   );
 
+                  setPendingAttachments([]);
                   mutatePrefix("/api/partner-profile/messages");
                 } catch (e) {
                   console.log(`Failed to send message: ${e}`);

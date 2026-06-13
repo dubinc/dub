@@ -19,6 +19,7 @@ const updatePartnerEnrollmentSchema = z.object({
   tenantId: z.string().nullable(),
   customerDataSharingEnabledAt: z.coerce.date().nullable(),
   groupMoveDisabledAt: z.coerce.date().nullable(),
+  riskMonitoringDisabledAt: z.coerce.date().nullable(),
 });
 
 // Update a partner's program enrollment data
@@ -31,6 +32,7 @@ export const updatePartnerEnrollmentAction = authActionClient
       tenantId,
       customerDataSharingEnabledAt,
       groupMoveDisabledAt,
+      riskMonitoringDisabledAt,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -77,6 +79,7 @@ export const updatePartnerEnrollmentAction = authActionClient
           tenantId,
           customerDataSharingEnabledAt,
           groupMoveDisabledAt,
+          riskMonitoringDisabledAt,
         },
         include: {
           links: {

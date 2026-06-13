@@ -1,6 +1,7 @@
 enum FraudEventStatus {
   pending
   resolved
+  expired
 }
 
 enum FraudRuleType {
@@ -13,7 +14,7 @@ enum FraudRuleType {
 }
 
 model FraudRule {
-  id         String        @id @default(cuid())
+  id         String        @id
   programId  String
   type       FraudRuleType
   config     Json?         @db.Json
@@ -27,7 +28,7 @@ model FraudRule {
 }
 
 model FraudEventGroup {
-  id               String           @id @default(cuid())
+  id               String           @id
   programId        String
   partnerId        String
   type             FraudRuleType
@@ -49,10 +50,11 @@ model FraudEventGroup {
   @@index([programId, partnerId, type, status])
   @@index(partnerId)
   @@index(userId)
+  @@index(lastEventAt)
 }
 
 model FraudEvent {
-  id                String   @id @default(cuid())
+  id                String   @id
   fraudEventGroupId String
   programId         String
   partnerId         String
@@ -72,6 +74,7 @@ model FraudEvent {
   sourceProgram   Program?        @relation("SourceFraudEvents", fields: [sourceProgramId], references: [id])
 
   @@index([programId, partnerId, customerId])
+  @@index(fraudEventGroupId)
   @@index(partnerId)
   @@index(customerId)
   @@index(linkId)

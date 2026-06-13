@@ -1,4 +1,7 @@
-import { getPayouts, ParsedPayoutsFilters } from "@/lib/api/payouts/get-payouts";
+import {
+  getPayouts,
+  ParsedPayoutsFilters,
+} from "@/lib/api/payouts/get-payouts";
 
 export async function* fetchPayoutsBatch(
   {

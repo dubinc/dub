@@ -34,7 +34,7 @@ function TagLinkModal(props: TagLinkModalProps) {
 }
 
 function TagLinkModalInner({ setShowTagLinkModal, links }: TagLinkModalProps) {
-  const { id: workspaceId, slug, plan } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   const [updating, setUpdating] = useState(false);
 
@@ -91,10 +91,7 @@ function TagLinkModalInner({ setShowTagLinkModal, links }: TagLinkModalProps) {
   };
 
   return (
-    <LinkBuilderProvider
-      workspace={{ id: workspaceId, slug, plan }}
-      modal={true}
-    >
+    <LinkBuilderProvider modal={true}>
       <FormProvider {...form}>
         <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
           {links.length === 1 && (
