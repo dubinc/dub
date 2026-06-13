@@ -377,14 +377,16 @@ async function stepCreateCommission(
   }
 
   if (
+    customerId &&
     reward &&
     reward.spendLimitAmount != null &&
     reward.spendLimitInterval != null
   ) {
     earnings = await getCappedEarnings({
-      programEnrollment,
       reward,
       earnings,
+      partnerId,
+      customerId,
     });
 
     // If spend limit clamped earnings to 0, skip commission creation

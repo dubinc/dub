@@ -1,6 +1,6 @@
 import { RewardProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { ProgramEnrollment, SpendLimitInterval } from "@dub/prisma/client";
+import { SpendLimitInterval } from "@dub/prisma/client";
 import {
   endOfDay,
   endOfMonth,
@@ -41,16 +41,18 @@ export function getSpendLimitWindow(spendLimitInterval: SpendLimitInterval) {
 }
 
 export async function getCappedEarnings({
-  programEnrollment,
   reward,
   earnings,
+  partnerId,
+  customerId,
 }: {
-  programEnrollment: Pick<ProgramEnrollment, "programId" | "partnerId">;
   reward: Pick<
     RewardProps,
     "event" | "spendLimitAmount" | "spendLimitInterval"
   >;
   earnings: number;
+  partnerId: string;
+  customerId: string;
 }) {
   if (
     earnings === 0 ||
@@ -63,12 +65,13 @@ export async function getCappedEarnings({
 
   const { startDate, endDate } = getSpendLimitWindow(reward.spendLimitInterval);
 
+  // Find the commission earnings for the partner and customer for the spend limit window
   const {
     _sum: { earnings: totalEarnings },
   } = await prisma.commission.aggregate({
     where: {
-      programId: programEnrollment.programId,
-      partnerId: programEnrollment.partnerId,
+      partnerId,
+      customerId,
       type: reward.event,
       status: {
         in: ["pending", "processed", "paid"],
