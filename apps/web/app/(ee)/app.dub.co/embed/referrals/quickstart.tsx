@@ -137,7 +137,7 @@ export function ReferralsEmbedQuickstart({
                 }
                 onClick={() => {
                   const isTremendousCountrySupported = Boolean(
-                    partner.country &&
+                    !partner.country ||
                       TREMENDOUS_SUPPORTED_COUNTRIES.includes(partner.country),
                   );
 

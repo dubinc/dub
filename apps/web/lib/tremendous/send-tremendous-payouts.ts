@@ -239,7 +239,7 @@ export async function sendTremendousPayouts({
       );
     } catch (error) {
       await log({
-        message: `[createStripeTransfer] Failed to mark commissions as paid for payouts ${payoutIds.join(
+        message: `[sendTremendousPayouts] Failed to mark commissions as paid for payouts ${payoutIds.join(
           ", ",
         )}: ${error.message}`,
         type: "errors",

@@ -199,7 +199,8 @@ export function ReferralsEmbedPageClient({
   );
 
   const isTremendousCountrySupported = Boolean(
-    partner.country && TREMENDOUS_SUPPORTED_COUNTRIES.includes(partner.country),
+    !partner.country ||
+      TREMENDOUS_SUPPORTED_COUNTRIES.includes(partner.country),
   );
 
   // Show Tremendous payout settings if the partner already uses Tremendous,
