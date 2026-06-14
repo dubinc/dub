@@ -86,10 +86,7 @@ export function NetworkPartnerCard({
             label: field.label,
             icon: field.icon,
             ...field.data(partner.platforms),
-          })).sort(
-            (a, b) =>
-              getPlatformSortOrder(a) - getPlatformSortOrder(b),
-          )
+          })).sort((a, b) => getPlatformSortOrder(a) - getPlatformSortOrder(b))
         : null,
     [partner],
   );
@@ -231,7 +228,7 @@ export function NetworkPartnerCard({
                   ),
                 )
               : [...Array(6)].map((_, idx) => (
-                  <div key={idx} className="bg-bg-subtle h-14 rounded-lg" />
+                  <div key={idx} className="bg-bg-subtle h-10 rounded-lg" />
                 ))}
           </div>
         </div>

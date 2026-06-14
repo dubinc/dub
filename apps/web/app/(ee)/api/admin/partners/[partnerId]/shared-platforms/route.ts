@@ -41,18 +41,18 @@ export const GET = withAdmin(async ({ params }) => {
       // so match on the domain instead of the exact identifier
       if (websiteDomain) {
         matchConditions.push({
-          type: platform.type,
           identifier: {
             contains: websiteDomain,
           },
+          type: platform.type,
         });
       }
       continue;
     }
 
     matchConditions.push({
-      type: platform.type,
       identifier: platform.identifier,
+      type: platform.type,
     });
   }
 
@@ -62,13 +62,13 @@ export const GET = withAdmin(async ({ params }) => {
 
   const sharedPlatformMatches = await prisma.partnerPlatform.findMany({
     where: {
+      OR: matchConditions,
       partnerId: {
         not: partner.id,
       },
       verifiedAt: {
         not: null,
       },
-      OR: matchConditions,
     },
     include: {
       partner: {
