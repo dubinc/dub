@@ -1,10 +1,10 @@
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
 import { Gift, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import * as HoverCard from "@radix-ui/react-hover-card";
-import { REWARD_EVENT_ICON } from "../rewards/reward-event-icon";
 import { ProgramRewardIcon } from "./program-reward-icon";
 
 type RewardItem = {
