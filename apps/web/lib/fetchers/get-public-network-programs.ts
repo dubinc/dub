@@ -81,7 +81,6 @@ export const getPublicNetworkPrograms = cache(
           },
         },
         categories: true,
-        invoices: true,
       },
       orderBy:
         sortBy === "popularity"
@@ -95,30 +94,19 @@ export const getPublicNetworkPrograms = cache(
     });
 
     return z.array(NetworkProgramSchema).parse(
-      programs
-        .sort((a, b) =>
-          featured
-            ? (a.marketplaceRanking ?? 0) - (b.marketplaceRanking ?? 0)
-            : sortBy === "popularity"
-              ? (a.marketplaceRanking ?? 0) - (b.marketplaceRanking ?? 0) ||
-                b.invoices.reduce((acc, invoice) => acc + invoice.amount, 0) -
-                  a.invoices.reduce((acc, invoice) => acc + invoice.amount, 0)
-              : 0,
-        )
-        .map((program) => ({
-          ...program,
-          rewards:
-            program.groups.length > 0
-              ? [
-                  program.groups[0].clickReward,
-                  program.groups[0].leadReward,
-                  program.groups[0].saleReward,
-                ].filter(Boolean)
-              : [],
-          discount:
-            program.groups.length > 0 ? program.groups[0].discount : null,
-          categories: program.categories.map(({ category }) => category),
-        })),
+      programs.map((program) => ({
+        ...program,
+        rewards:
+          program.groups.length > 0
+            ? [
+                program.groups[0].clickReward,
+                program.groups[0].leadReward,
+                program.groups[0].saleReward,
+              ].filter(Boolean)
+            : [],
+        discount: program.groups.length > 0 ? program.groups[0].discount : null,
+        categories: program.categories.map(({ category }) => category),
+      })),
     );
   },
 );
