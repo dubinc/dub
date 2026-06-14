@@ -4,7 +4,7 @@ import {
   getMarketplaceCategoryHref,
   getMarketplaceHref,
   getMarketplaceProgramHref,
-} from "@/ui/partners/program-marketplace/utils/urls";
+} from "@/ui/program-marketplace/utils/urls";
 import { prisma } from "@dub/prisma";
 import { Category, Prisma } from "@dub/prisma/client";
 import { PARTNERS_HOSTNAMES, SHORT_DOMAIN } from "@dub/utils";

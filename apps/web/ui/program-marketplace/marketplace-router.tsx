@@ -4,7 +4,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import {
   getMarketplaceHref,
   slugToCategory,
-} from "@/ui/partners/program-marketplace/utils/urls";
+} from "@/ui/program-marketplace/utils/urls";
 import { Category } from "@dub/prisma/client";
 import { ChevronRight, Shop } from "@dub/ui";
 import Link from "next/link";

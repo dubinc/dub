@@ -1,8 +1,8 @@
 "use client";
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { useProgramMarketplacePromo } from "@/ui/partners/program-marketplace/use-program-marketplace-promo";
-import { getMarketplaceHref } from "@/ui/partners/program-marketplace/utils/urls";
+import { useProgramMarketplacePromo } from "@/ui/program-marketplace/use-program-marketplace-promo";
+import { getMarketplaceHref } from "@/ui/program-marketplace/utils/urls";
 import { X } from "@/ui/shared/icons";
 import { Button, Grid, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";

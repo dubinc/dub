@@ -1,4 +1,4 @@
-import { MarketplaceExternalHeader } from "@/ui/partners/program-marketplace/external/marketplace-external-header";
+import { MarketplaceExternalHeader } from "@/ui/program-marketplace/external/marketplace-external-header";
 import { Footer } from "@dub/ui";
 import { PropsWithChildren } from "react";
 

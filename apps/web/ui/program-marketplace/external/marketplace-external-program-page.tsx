@@ -1,13 +1,13 @@
 import { getNetworkProgram } from "@/lib/fetchers/get-network-program";
 import { ApplicationAnalytics } from "@/ui/application-analytics";
-import { MarketplaceProgramDetailBody } from "@/ui/partners/program-marketplace/marketplace-program-detail-body";
-import { MarketplaceProgramDetailsLayout } from "@/ui/partners/program-marketplace/marketplace-program-details-layout";
-import { MarketplaceProgramHero } from "@/ui/partners/program-marketplace/marketplace-program-hero";
+import { MarketplaceProgramDetailBody } from "@/ui/program-marketplace/marketplace-program-detail-body";
+import { MarketplaceProgramDetailsLayout } from "@/ui/program-marketplace/marketplace-program-details-layout";
+import { MarketplaceProgramHero } from "@/ui/program-marketplace/marketplace-program-hero";
 import {
   getMarketplaceAllHref,
   getMarketplaceHref,
   getMarketplacePublicApplyHref,
-} from "@/ui/partners/program-marketplace/utils/urls";
+} from "@/ui/program-marketplace/utils/urls";
 import { Button, ChevronLeft } from "@dub/ui";
 import Link from "next/link";
 import { redirect } from "next/navigation";

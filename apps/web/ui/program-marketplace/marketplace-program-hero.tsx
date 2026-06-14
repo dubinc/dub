@@ -1,8 +1,8 @@
 "use client";
 
 import { NetworkProgramExtendedProps } from "@/lib/types";
-import { marketplaceProgramDetailsColumnClassName } from "@/ui/partners/program-marketplace/marketplace-program-details-layout";
-import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
+import { marketplaceProgramDetailsColumnClassName } from "@/ui/program-marketplace/marketplace-program-details-layout";
+import { ProgramCategory } from "@/ui/program-marketplace/program-category";
 import { Globe } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn, getDomainWithoutWWW } from "@dub/utils";
 import Link from "next/link";

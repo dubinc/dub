@@ -1,5 +1,5 @@
-import { ProgramMarketplaceLogosCluster } from "@/ui/partners/program-marketplace/program-marketplace-logos";
-import { getMarketplaceAllHref } from "@/ui/partners/program-marketplace/utils/urls";
+import { ProgramMarketplaceLogosCluster } from "@/ui/program-marketplace/program-marketplace-logos";
+import { getMarketplaceAllHref } from "@/ui/program-marketplace/utils/urls";
 import { Grid } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";

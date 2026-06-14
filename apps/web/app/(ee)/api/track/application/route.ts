@@ -18,7 +18,7 @@ import {
   recordClickZodSchema,
 } from "@/lib/tinybird/record-click-zod";
 import { ratelimit } from "@/lib/upstash";
-import { MARKETPLACE_RESERVED_SLUGS } from "@/ui/partners/program-marketplace/utils/urls";
+import { MARKETPLACE_RESERVED_SLUGS } from "@/ui/program-marketplace/utils/urls";
 import { prisma } from "@dub/prisma";
 import { Partner, Program } from "@dub/prisma/client";
 import {

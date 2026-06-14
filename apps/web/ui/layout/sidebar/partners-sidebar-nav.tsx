@@ -6,9 +6,9 @@ import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bountie
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { getProgramsAreaNavItems } from "@/ui/layout/sidebar/programs-area-nav";
-import { MarketplaceSidebarPanel } from "@/ui/partners/program-marketplace/marketplace-sidebar-panel";
-import { ProgramsPromoCard } from "@/ui/partners/program-marketplace/programs-promo-card";
-import { isMarketplaceFilterSidebarPath } from "@/ui/partners/program-marketplace/utils/urls";
+import { MarketplaceSidebarPanel } from "@/ui/program-marketplace/marketplace-sidebar-panel";
+import { ProgramsPromoCard } from "@/ui/program-marketplace/programs-promo-card";
+import { isMarketplaceFilterSidebarPath } from "@/ui/program-marketplace/utils/urls";
 import { type Icon, useRouterStuff } from "@dub/ui";
 import {
   Bell,

@@ -2,13 +2,13 @@ import { NetworkProgramProps } from "@/lib/types";
 import {
   ProgramCategory,
   programCategorySurfaceClassName,
-} from "@/ui/partners/program-marketplace/program-category";
-import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
+} from "@/ui/program-marketplace/program-category";
+import { ProgramRewardsDisplay } from "@/ui/program-marketplace/program-rewards-display";
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,
   getMarketplaceProgramHref,
-} from "@/ui/partners/program-marketplace/utils/urls";
+} from "@/ui/program-marketplace/utils/urls";
 import { Tooltip } from "@dub/ui";
 import { ArrowUpRight, Link4 } from "@dub/ui/icons";
 import { OG_AVATAR_URL, getDomainWithoutWWW } from "@dub/utils";

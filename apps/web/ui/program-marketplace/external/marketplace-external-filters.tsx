@@ -2,8 +2,8 @@ import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import {
   MARKETPLACE_REWARD_TYPES,
   type MarketplaceRewardType,
-} from "@/ui/partners/program-marketplace/constants";
-import { buildExternalMarketplaceFilterHref } from "@/ui/partners/program-marketplace/utils/urls";
+} from "@/ui/program-marketplace/constants";
+import { buildExternalMarketplaceFilterHref } from "@/ui/program-marketplace/utils/urls";
 import { Category } from "@dub/prisma/client";
 import { Check } from "@dub/ui";
 import { cn } from "@dub/utils";

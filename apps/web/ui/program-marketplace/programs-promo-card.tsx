@@ -2,7 +2,7 @@
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { IdentityVerificationCard } from "@/ui/partners/identity-verification/identity-verification-card";
-import { ProgramMarketplaceCard } from "@/ui/partners/program-marketplace/program-marketplace-card";
+import { ProgramMarketplaceCard } from "@/ui/program-marketplace/program-marketplace-card";
 
 // Single promo card slot for the sidebar
 export function ProgramsPromoCard() {
