@@ -65,6 +65,7 @@ async function PayoutRSC() {
       stripeRecipientId: true,
       paypalEmail: true,
       defaultPayoutMethod: true,
+      tremendousEmail: true,
     },
   });
 
