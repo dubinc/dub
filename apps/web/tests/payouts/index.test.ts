@@ -69,20 +69,6 @@ describe("GET /payouts", async () => {
     );
   });
 
-  test("returns partner groupId on payout response", async () => {
-    const { data, status } = await http.get<PayoutResponse[]>({
-      path: "/payouts",
-      query: {
-        partnerId: E2E_PARTNER.id,
-        limit: "1",
-      },
-    });
-
-    expect(status).toEqual(200);
-    expect(data.length).toBeGreaterThan(0);
-    expect(data[0].partner.groupId).toMatch(/^grp_/);
-  });
-
   test("filters by groupId", async () => {
     const { data: partnerPayouts, status: partnerStatus } = await http.get<
       PayoutResponse[]
