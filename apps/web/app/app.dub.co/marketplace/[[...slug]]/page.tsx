@@ -32,7 +32,7 @@ export async function generateMetadata(props: {
   const year = new Date().getFullYear();
 
   let title = `Best SaaS affiliate programs in ${year}`;
-  let description = `Browse and apply to the best SaaS affiliate programs in ${year} on Dub's Partner Network.`;
+  let description = `Browse and apply to the best SaaS affiliate programs on Dub's Partner Network.`;
   let image: string | undefined;
 
   if (segments.length === 1 && segments[0] === "all") {

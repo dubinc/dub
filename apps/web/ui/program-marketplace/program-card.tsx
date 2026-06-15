@@ -60,7 +60,6 @@ export function MarketplaceProgramCard({
                 Rewards
               </span>
               <ProgramRewardsDisplay
-                iconsOnly
                 rewards={program.rewards}
                 discount={program.discount}
                 onRewardClick={(reward) =>
@@ -71,7 +70,7 @@ export function MarketplaceProgramCard({
                 onDiscountClick={() =>
                   router.push(getMarketplaceAllHref({ rewardType: "discount" }))
                 }
-                className="mt-1.5"
+                className="mt-2"
               />
             </div>
           )}
@@ -86,7 +85,6 @@ export function MarketplaceProgramCard({
                   ?.map((category) => (
                     <ProgramCategory
                       key={category}
-                      variant="pill"
                       category={category}
                       onClick={() =>
                         router.push(getMarketplaceCategoryHref(category))
@@ -100,7 +98,6 @@ export function MarketplaceProgramCard({
                         {program.categories.slice(1).map((category) => (
                           <ProgramCategory
                             key={category}
-                            variant="pill"
                             category={category}
                             onClick={() =>
                               router.push(getMarketplaceCategoryHref(category))

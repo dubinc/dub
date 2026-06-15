@@ -39,7 +39,7 @@ export function MarketplaceExternalShell({
   const resolvedDescription =
     description ??
     (variant === "home"
-      ? `Browse and apply to the best SaaS affiliate programs in ${year} on Dub's Partner Network.`
+      ? `Browse and apply to the best SaaS affiliate programs on Dub's Partner Network.`
       : "Explore the Dub Partner marketplace and start earning.");
 
   return (
