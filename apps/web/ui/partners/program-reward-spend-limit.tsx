@@ -2,7 +2,7 @@ import { RewardProps } from "@/lib/types";
 import { RewardSpendLimitInterval } from "@dub/prisma/client";
 import { cn, currencyFormatter } from "@dub/utils";
 
-function getSpendLimitDescriptionParts({
+export function getSpendLimitDescriptionParts({
   spendLimitAmount,
   spendLimitInterval,
 }: Pick<RewardProps, "spendLimitAmount" | "spendLimitInterval">) {
