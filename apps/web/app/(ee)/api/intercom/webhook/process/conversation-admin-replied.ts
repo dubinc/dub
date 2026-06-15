@@ -48,24 +48,6 @@ export async function handleConversationAdminReplied({
     return `No partners found for ${pluralize("contact", data.item.contacts.contacts.length)} ${data.item.contacts.contacts.map((contact) => contact.id).join(", ")}. Skipping message forwarding.`;
   }
 
-  const workspaceUsers = await prisma.projectUsers.findMany({
-    where: {
-      projectId: program.workspaceId,
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          email: true,
-        },
-      },
-    },
-  });
-
-  if (workspaceUsers.length === 0) {
-    return "No workspace users found.";
-  }
-
   const { conversation_parts: conversations } = data.item.conversation_parts;
   const createdMessages: Pick<Message, "id" | "programId" | "partnerId">[] = [];
 
@@ -85,28 +67,19 @@ export async function handleConversationAdminReplied({
 
     // Nothing to forward: no text and no attachments
     if (attachments.length === 0 && originalMessage.trim() === "") {
+      console.warn("No attachments and no text. Skipping.");
       continue;
     }
 
-    // Resolve the sender before doing any upload work
-    let workspaceUser = workspaceUsers.find(
-      ({ user }) => user.email === author.email,
-    );
+    const workspaceUser = await resolveWorkspaceUser({
+      workspaceId: program.workspaceId,
+      authorEmail: author.email,
+      installationUserId: installation.userId,
+    });
 
     if (!workspaceUser) {
-      // Fallback to the person who installed the integration
-      workspaceUser = workspaceUsers.find(
-        ({ user }) => user.id === installation.userId,
-      );
-
-      // Fallback to the first owner
-      if (!workspaceUser) {
-        workspaceUser = workspaceUsers.find(({ role }) => role === "owner");
-      }
-
-      if (!workspaceUser) {
-        continue;
-      }
+      console.warn("No workspace user found. Skipping.");
+      continue;
     }
 
     // Download Intercom attachments and store them in the private R2 bucket
@@ -134,7 +107,7 @@ export async function handleConversationAdminReplied({
           id: messageId,
           programId: program.id,
           partnerId,
-          senderUserId: workspaceUser.userId,
+          senderUserId: workspaceUser.id,
           text: originalMessage,
           ...(storedAttachments.length > 0 && {
             attachments: {
@@ -174,6 +147,56 @@ export async function handleConversationAdminReplied({
   );
 
   return `Message forwarded to ${pluralize("partner", partners.length)}.`;
+}
+
+async function resolveWorkspaceUser({
+  workspaceId,
+  authorEmail,
+  installationUserId,
+}: {
+  workspaceId: string;
+  authorEmail: string;
+  installationUserId: string;
+}) {
+  const workspaceUsers = await prisma.projectUsers.findMany({
+    where: {
+      projectId: workspaceId,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
+    },
+  });
+
+  if (workspaceUsers.length === 0) {
+    return null;
+  }
+
+  let workspaceUser = workspaceUsers.find(
+    ({ user }) => user.email === authorEmail,
+  );
+
+  if (!workspaceUser) {
+    // Fallback to the person who installed the integration
+    workspaceUser = workspaceUsers.find(
+      ({ user }) => user.id === installationUserId,
+    );
+
+    // Fallback to the first owner
+    if (!workspaceUser) {
+      workspaceUser = workspaceUsers.find(({ role }) => role === "owner");
+    }
+  }
+
+  if (!workspaceUser) {
+    return null;
+  }
+
+  return workspaceUser.user;
 }
 
 // Identify partner from Intercom contact ID
