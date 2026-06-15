@@ -41,7 +41,7 @@ export class Intercom {
     const { admins } = await this.client.admins.list();
 
     const admin = admins?.find(
-      (admin) => admin?.email.toLowerCase() === email.toLowerCase(),
+      (admin) => admin?.email?.toLowerCase() === email.toLowerCase(),
     );
 
     if (!admin?.id) {

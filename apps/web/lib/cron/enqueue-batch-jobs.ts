@@ -22,12 +22,6 @@ export async function enqueueBatchJobs(jobs: EnqueueBatchJobsProps[]) {
     try {
       return await qstash.batchJSON(jobs);
     } catch (error) {
-      console.error("[enqueueBatchJobs] Failed to enqueue batch jobs", {
-        error: JSON.stringify(error, null, 2),
-        jobs,
-        attempt,
-      });
-
       if (attempt < maxRetries) {
         await new Promise((resolve) =>
           setTimeout(resolve, 1000 * Math.pow(2, attempt)),

@@ -28,9 +28,19 @@ export async function verifyWebhookSignature(req: Request): Promise<string> {
       .update(rawBody)
       .digest("hex");
 
+  const providedSignature = Buffer.from(signature, "utf8");
+  const expectedSignatureBuffer = Buffer.from(expectedSignature, "utf8");
+
+  if (providedSignature.length !== expectedSignatureBuffer.length) {
+    throw new DubApiError({
+      code: "unauthorized",
+      message: "Invalid webhook signature.",
+    });
+  }
+
   const isSignatureValid = crypto.timingSafeEqual(
-    Uint8Array.from(Buffer.from(signature, "utf8")),
-    Uint8Array.from(Buffer.from(expectedSignature, "utf8")),
+    Uint8Array.from(providedSignature),
+    Uint8Array.from(expectedSignatureBuffer),
   );
 
   if (!isSignatureValid) {

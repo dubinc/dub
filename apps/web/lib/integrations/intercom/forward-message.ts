@@ -45,7 +45,7 @@ export async function forwardPartnerMessageToIntercom({
   });
 
   const contact = await intercom.getOrCreateContact(partner);
-  const redisKey = `intercom:thread:${program.id}:${partner.id}`;
+  const redisKey = `intercom:thread:${credentials.appId}:${program.id}:${partner.id}`;
   let conversationId = await redis.get<string>(redisKey);
 
   const { attachmentUrls, attachmentFiles } = await buildIntercomAttachments(
@@ -128,7 +128,7 @@ export async function forwardProgramMessageToIntercom({
   }
 
   const contact = await intercom.getOrCreateContact(partner);
-  const redisKey = `intercom:thread:${program.id}:${partner.id}`;
+  const redisKey = `intercom:thread:${credentials.appId}:${program.id}:${partner.id}`;
   let conversationId = await redis.get<string>(redisKey);
 
   const { attachmentUrls, attachmentFiles } = await buildIntercomAttachments(

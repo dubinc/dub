@@ -132,11 +132,21 @@ export async function handleConversationAdminReplied({
     }
   }
 
-  await Promise.all(
-    createdMessages.map((message) =>
+  // Find the latest message for each partner
+  const latestMessageByPartner = new Map<
+    string,
+    (typeof createdMessages)[number]
+  >();
+
+  for (const message of createdMessages) {
+    latestMessageByPartner.set(message.partnerId, message);
+  }
+
+  await Promise.allSettled(
+    [...latestMessageByPartner.values()].map((message) =>
       qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-partner`,
-        delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
+        delay: 60 * 3,
         deduplicationId: `${message.programId}-${message.partnerId}`,
         body: {
           programId: message.programId,
@@ -310,7 +320,7 @@ async function uploadIntercomAttachments({
         body: blob,
         bucket: "private",
         opts: {
-          contentType: attachment.type,
+          contentType: attachment.content_type,
         },
       });
 

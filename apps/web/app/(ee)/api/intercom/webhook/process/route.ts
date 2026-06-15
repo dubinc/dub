@@ -62,12 +62,13 @@ export const POST = withAxiom(async (req) => {
       );
     }
 
+    workspaceId = installation.projectId;
+
     const {
-      project: { programs, ...workspace },
+      project: { programs },
     } = installation;
 
     const program = programs?.[0];
-    workspaceId = workspace.id;
 
     if (!program) {
       return logAndRespond(
