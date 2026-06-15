@@ -10,7 +10,7 @@ import {
 import { parseUrlSchema } from "./utils";
 
 // Getting started
-export const programInfoSchema = z.object({
+const programInfoSchema = z.object({
   name: z.string().max(100),
   logo: z.string(),
   domain: z.string(),
@@ -20,7 +20,7 @@ export const programInfoSchema = z.object({
 });
 
 // Configure rewards
-export const programRewardSchema = z.object({
+const programRewardSchema = z.object({
   defaultRewardType: z.enum(["lead", "sale"]).default("lead"),
   type: z.enum(RewardStructure).nullish(),
   amountInCents: FLAT_REWARD_AMOUNT_SCHEMA.nullish(),
@@ -29,7 +29,7 @@ export const programRewardSchema = z.object({
 });
 
 // Invite partners
-export const programInvitePartnersSchema = z.object({
+const programInvitePartnersSchema = z.object({
   partners: z
     .array(
       z.object({
@@ -47,13 +47,16 @@ export const programInvitePartnersSchema = z.object({
 });
 
 // Help and support
-export const programSupportSchema = updateProgramSchema.pick({
-  supportEmail: true,
-  helpUrl: true,
-  termsUrl: true,
-});
+const programSupportSchema = updateProgramSchema
+  .pick({
+    helpUrl: true,
+    termsUrl: true,
+  })
+  .extend({
+    supportEmail: z.email().max(255),
+  });
 
-export const onboardingStepSchema = z.enum([
+const onboardingStepSchema = z.enum([
   "get-started",
   "configure-reward",
   "invite-partners",
