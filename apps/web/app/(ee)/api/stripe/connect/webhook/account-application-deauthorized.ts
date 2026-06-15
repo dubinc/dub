@@ -23,6 +23,7 @@ export async function accountApplicationDeauthorized(
       paypalEmail: true,
       payoutsEnabledAt: true,
       defaultPayoutMethod: true,
+      tremendousEmail: true,
     },
   });
 

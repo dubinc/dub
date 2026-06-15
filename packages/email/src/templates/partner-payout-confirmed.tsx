@@ -20,6 +20,7 @@ const PAYOUT_METHOD_LABELS: Record<PartnerPayoutMethod, string> = {
   connect: "Stripe Express",
   stablecoin: "USDC wallet",
   paypal: "PayPal",
+  tremendous: "Gift card",
 } as const;
 
 // Send this email when the payout is confirmed when payment is send using ACH
