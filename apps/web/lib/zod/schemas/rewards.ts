@@ -1,8 +1,8 @@
 import { PARTNER_REFERRAL_TRIGGER } from "@/lib/partner-referrals/constants";
 import {
   EventType,
+  RewardSpendLimitInterval,
   RewardStructure,
-  SpendLimitInterval,
 } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
@@ -314,7 +314,7 @@ const rewardSpendLimitSchema = z.object({
       message: "Spend limit amount cannot be greater than $999,999.99",
     })
     .nullish(),
-  spendLimitInterval: z.enum(SpendLimitInterval).nullish(),
+  spendLimitInterval: z.enum(RewardSpendLimitInterval).nullish(),
 });
 
 export const rewardConditionsSchema = z.object({

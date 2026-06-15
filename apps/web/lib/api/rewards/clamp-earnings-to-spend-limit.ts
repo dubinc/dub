@@ -1,6 +1,6 @@
 import { RewardProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { SpendLimitInterval } from "@dub/prisma/client";
+import { RewardSpendLimitInterval } from "@dub/prisma/client";
 import {
   endOfDay,
   endOfMonth,
@@ -10,7 +10,9 @@ import {
   startOfWeek,
 } from "date-fns";
 
-export function getSpendLimitWindow(spendLimitInterval: SpendLimitInterval) {
+export function getSpendLimitWindow(
+  spendLimitInterval: RewardSpendLimitInterval,
+) {
   const date = new Date();
 
   if (spendLimitInterval === "day") {

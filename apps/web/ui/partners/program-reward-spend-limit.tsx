@@ -1,5 +1,5 @@
 import { RewardProps } from "@/lib/types";
-import { SpendLimitInterval } from "@dub/prisma/client";
+import { RewardSpendLimitInterval } from "@dub/prisma/client";
 import { cn, currencyFormatter } from "@dub/utils";
 
 function getSpendLimitDescriptionParts({
@@ -27,7 +27,7 @@ export function ProgramRewardSpendLimit({
   className,
 }: {
   spendLimitAmount?: number | null;
-  spendLimitInterval?: SpendLimitInterval | null;
+  spendLimitInterval?: RewardSpendLimitInterval | null;
   className?: string;
 }) {
   const parts = getSpendLimitDescriptionParts({
