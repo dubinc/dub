@@ -63,7 +63,8 @@ export async function handleConversationAdminReplied({
       continue;
     }
 
-    let originalMessage = body.replaceAll(/\[(Image|Attachment|GIF)\]/g, "");
+    let originalMessage =
+      body?.replaceAll(/\[(Image|Attachment|GIF)\]/g, "") || "";
 
     // Nothing to forward: no text and no attachments
     if (attachments.length === 0 && originalMessage.trim() === "") {
