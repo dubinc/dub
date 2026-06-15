@@ -6,7 +6,7 @@ enum ProgramApplicationRejectionReason {
 }
 
 model ProgramApplication {
-  id              String                             @id @default(cuid())
+  id              String                             @id
   programId       String
   groupId         String?
   name            String

@@ -11,12 +11,9 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import * as z from "zod/v4";
-import {
-  MessageSchema,
-  messagePartnerSchema,
-} from "../../zod/schemas/messages";
-import { authActionClient } from "../safe-action";
-import { throwIfNoPermission } from "../throw-if-no-permission";
+import { authActionClient } from "../actions/safe-action";
+import { throwIfNoPermission } from "../actions/throw-if-no-permission";
+import { MessageSchema, messagePartnerSchema } from "./schemas";
 
 const schema = messagePartnerSchema
   .extend({

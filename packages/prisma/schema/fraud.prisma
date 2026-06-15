@@ -14,7 +14,7 @@ enum FraudRuleType {
 }
 
 model FraudRule {
-  id         String        @id @default(cuid())
+  id         String        @id
   programId  String
   type       FraudRuleType
   config     Json?         @db.Json
@@ -28,7 +28,7 @@ model FraudRule {
 }
 
 model FraudEventGroup {
-  id               String           @id @default(cuid())
+  id               String           @id
   programId        String
   partnerId        String
   type             FraudRuleType
@@ -54,7 +54,7 @@ model FraudEventGroup {
 }
 
 model FraudEvent {
-  id                String   @id @default(cuid())
+  id                String   @id
   fraudEventGroupId String
   programId         String
   partnerId         String

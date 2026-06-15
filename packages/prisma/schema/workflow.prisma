@@ -10,7 +10,7 @@ enum WorkflowTrigger {
 }
 
 model Workflow {
-  id                String          @id @default(cuid())
+  id                String          @id
   programId         String
   name              String?
   trigger           WorkflowTrigger

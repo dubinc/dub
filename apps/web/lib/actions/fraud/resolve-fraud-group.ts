@@ -73,7 +73,7 @@ export const resolveFraudGroupAction = authActionClient
           },
         },
         data: {
-          riskDetectionDisabledAt: new Date(),
+          riskMonitoringDisabledAt: new Date(),
         },
       });
     }

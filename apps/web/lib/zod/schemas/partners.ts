@@ -46,6 +46,9 @@ export const INACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
   ProgramEnrollmentStatus.rejected,
 ];
 
+export const COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] =
+  [...ACTIVE_ENROLLMENT_STATUSES, ProgramEnrollmentStatus.invited];
+
 export const exportPartnerColumns = [
   { id: "id", label: "ID", default: true },
   { id: "name", label: "Name", default: true },
@@ -509,7 +512,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
       group: true,
       customerDataSharingEnabledAt: true,
       groupMoveDisabledAt: true,
-      riskDetectionDisabledAt: true,
+      riskMonitoringDisabledAt: true,
     }).shape,
   )
   .extend({
@@ -592,7 +595,7 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   lastConversionAt: z.date().nullish(),
   customerDataSharingEnabledAt: z.date().nullish(),
   groupMoveDisabledAt: z.date().nullish(),
-  riskDetectionDisabledAt: z.date().nullish(),
+  riskMonitoringDisabledAt: z.date().nullish(),
   platforms: z.array(partnerPlatformSchema).nullable(),
   discount: DiscountSchema.pick({
     id: true,
@@ -1046,4 +1049,17 @@ export const partnerCrossProgramSummarySchema = z.object({
   totalPrograms: z.number(),
   activePrograms: z.number(),
   bannedPrograms: z.number(),
+});
+
+export const partnerSharedPlatformSchema = z.object({
+  type: z.enum(PlatformType),
+  identifier: z.string(),
+  partners: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      email: z.email().nullable(),
+      image: z.string().nullable(),
+    }),
+  ),
 });

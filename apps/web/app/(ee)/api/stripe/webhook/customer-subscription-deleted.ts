@@ -15,7 +15,10 @@ import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-down
 import { prisma } from "@dub/prisma";
 import { capitalize, FREE_PLAN, log } from "@dub/utils";
 import Stripe from "stripe";
-import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
+import {
+  CANCELLATION_FEEDBACK_EMAIL_TYPE,
+  sendCancellationFeedback,
+} from "./utils/send-cancellation-feedback";
 import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 
 export async function customerSubscriptionDeleted(
@@ -175,6 +178,7 @@ export async function customerSubscriptionDeleted(
       }),
 
     sendCancellationFeedback({
+      workspace,
       owners: workspaceUsers,
     }),
 
@@ -202,6 +206,14 @@ export async function customerSubscriptionDeleted(
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
   ]);
+
+  // Reset cancellation feedback dedupe so a future resubscribe + cancel can send again
+  await prisma.sentEmail.deleteMany({
+    where: {
+      projectId: workspace.id,
+      type: CANCELLATION_FEEDBACK_EMAIL_TYPE,
+    },
+  });
 
   // Update the webhooks cache
   const webhooks = await prisma.webhook.findMany({

@@ -186,7 +186,7 @@ export function PartnerApplicationRiskSummaryUpsell() {
               Application risk review and event detection are available on the
               Advanced plan{" "}
               <Link
-                href="https://dub.co/help/article/fraud-detection"
+                href="https://dub.co/help/article/risk-monitoring"
                 target="_blank"
                 className="underline underline-offset-2 hover:text-neutral-800"
               >

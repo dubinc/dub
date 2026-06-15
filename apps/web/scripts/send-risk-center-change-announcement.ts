@@ -1,10 +1,9 @@
 import "dotenv-flow/config";
 
-import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
-import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import type RiskCenterChangeAnnouncement from "@dub/email/templates/broadcasts/risk-center-change-announcement";
 import { prisma } from "@dub/prisma";
+import { FRAUD_RULES_BY_TYPE } from "../lib/api/fraud/constants";
+import { queueBatchEmail } from "../lib/email/queue-batch-email";
 
 const BATCH_SIZE = 50;
 
@@ -32,6 +31,23 @@ async function main() {
         workspace: {
           select: {
             slug: true,
+            users: {
+              select: {
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+              where: {
+                user: {
+                  isMachine: false,
+                  email: {
+                    not: null,
+                  },
+                },
+              },
+            },
           },
         },
         fraudEventGroups: {
@@ -76,10 +92,7 @@ async function main() {
           continue;
         }
 
-        const { users } = await getWorkspaceUsers({
-          programId: program.id,
-          role: "owner",
-        });
+        const users = program.workspace.users.map(({ user }) => user);
 
         if (users.length === 0) {
           console.log(`No owners found for program ${program.name}, skipping.`);
@@ -97,12 +110,12 @@ async function main() {
 
         await queueBatchEmail<typeof RiskCenterChangeAnnouncement>(
           users.map((user) => ({
-            to: user.email,
+            to: user.email!,
             subject: `[Action Required]: Review unresolved risk events for ${program.name}`,
             variant: "notifications",
             templateName: "RiskCenterChangeAnnouncement",
             templateProps: {
-              email: user.email,
+              email: user.email!,
               workspace: program.workspace,
               program: {
                 name: program.name,
@@ -116,7 +129,7 @@ async function main() {
         );
 
         console.log(
-          `Queued emails for program ${program.name} (${users.length} owner(s))`,
+          `Queued emails for program ${program.name} (${users.length} users(s))`,
         );
       } catch (error) {
         console.error(

@@ -107,6 +107,7 @@ export async function customerSubscriptionUpdated(
     const cancelReason = updatedSubscription.cancellation_details?.feedback;
 
     await sendCancellationFeedback({
+      workspace,
       owners,
       reason: cancelReason,
     });

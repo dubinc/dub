@@ -1,13 +1,12 @@
 import {
+  MAX_ATTACHMENTS_PER_MESSAGE,
+  MAX_MESSAGE_LENGTH,
+} from "@/lib/messages/constants";
+import { messageAttachmentInputSchema } from "@/lib/messages/schemas";
+import {
   getAttachmentTypeLabel,
   isPreviewableImageType,
 } from "@/lib/messages/utils";
-import {
-  ATTACHMENT_MIME_TYPE_COLOR,
-  MAX_ATTACHMENTS_PER_MESSAGE,
-  MAX_MESSAGE_LENGTH,
-  messageAttachmentInputSchema,
-} from "@/lib/zod/schemas/messages";
 import {
   ArrowTurnLeft,
   Button,
@@ -33,6 +32,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import * as z from "zod/v4";
+import { ATTACHMENT_MIME_TYPE_COLOR } from "../messages/message-attachments";
 import { EmojiPicker } from "../shared/emoji-picker";
 
 export type PendingAttachment = Omit<
@@ -130,6 +130,22 @@ export function MessageInput({
       if (!onAddFiles) return;
 
       const fileArray = Array.from(files);
+      const allowedFileTypeSet = allowedFileTypes
+        ? new Set(allowedFileTypes)
+        : null;
+      const supportedFiles = allowedFileTypeSet
+        ? fileArray.filter((file) => allowedFileTypeSet.has(file.type))
+        : fileArray;
+      const unsupportedFiles = allowedFileTypeSet
+        ? fileArray.filter((file) => !allowedFileTypeSet.has(file.type))
+        : [];
+
+      if (unsupportedFiles.length > 0 && allowedFileTypes) {
+        toast.error(getUnsupportedFileTypeMessage(allowedFileTypes));
+      }
+
+      if (supportedFiles.length === 0) return;
+
       const remaining = maxAttachments - attachments.length;
 
       if (remaining <= 0) {
@@ -137,14 +153,14 @@ export function MessageInput({
         return;
       }
 
-      const filesToAdd = fileArray.slice(0, remaining);
-      if (fileArray.length > remaining) {
+      const filesToAdd = supportedFiles.slice(0, remaining);
+      if (supportedFiles.length > remaining) {
         toast.error(`Maximum ${maxAttachments} attachments per message`);
       }
 
       onAddFiles(filesToAdd);
     },
-    [onAddFiles, attachments.length, maxAttachments],
+    [onAddFiles, attachments.length, maxAttachments, allowedFileTypes],
   );
 
   const handleDragEvent = useCallback((e: DragEvent) => {
@@ -313,6 +329,7 @@ export function MessageInput({
                   </span>
                 </span>
               }
+              disabled={isSendDisabled}
               disabledTooltip={
                 isTooLong
                   ? `Message must be less than ${nFormatter(MAX_MESSAGE_LENGTH)} characters`
@@ -345,6 +362,29 @@ export function MessageInput({
       )}
     </div>
   );
+}
+
+function getUnsupportedFileTypeMessage(allowedFileTypes: readonly string[]) {
+  if (allowedFileTypes.length === 0) {
+    return "File type not supported.";
+  }
+
+  const allowedLabels = formatList(
+    allowedFileTypes.map((type) => getAttachmentTypeLabel(type)),
+  );
+
+  return `File type not supported. Upload a ${allowedLabels}.`;
+}
+
+function formatList(items: string[]) {
+  const uniqueItems = Array.from(new Set(items));
+
+  if (uniqueItems.length <= 1) return uniqueItems[0] || "";
+  if (uniqueItems.length === 2) return uniqueItems.join(" or ");
+
+  return `${uniqueItems.slice(0, -1).join(", ")}, or ${
+    uniqueItems[uniqueItems.length - 1]
+  }`;
 }
 
 function AttachmentChip({
@@ -391,7 +431,7 @@ function AttachmentChip({
   }
 
   return (
-    <div className="relative flex shrink-0 items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5">
+    <div className="relative flex h-14 shrink-0 items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-1 pr-8">
       {attachment.uploading && (
         <div className="absolute inset-0 z-[1] flex items-center justify-center rounded-lg bg-white/80">
           <LoadingCircle className="size-4" />
@@ -400,19 +440,19 @@ function AttachmentChip({
 
       <div
         className={cn(
-          "flex size-8 shrink-0 flex-col items-center justify-center gap-0.5 rounded text-[8px] font-semibold uppercase text-white",
+          "flex size-12 shrink-0 flex-col items-center justify-center gap-0.5 rounded-md text-xs font-semibold uppercase text-white",
           ATTACHMENT_MIME_TYPE_COLOR[attachment.type] || "bg-neutral-500",
         )}
       >
-        <File className="size-2.5 shrink-0" />
+        <File className="size-3 shrink-0" />
         <span>{getAttachmentTypeLabel(attachment.type)}</span>
       </div>
 
-      <div className="flex max-w-[120px] flex-col">
-        <span className="truncate text-xs font-medium text-neutral-700">
+      <div className="flex min-w-0 max-w-[120px] flex-col">
+        <span className="truncate text-sm font-medium text-neutral-700">
           {attachment.name}
         </span>
-        <span className="text-[10px] text-neutral-400">
+        <span className="text-xs text-neutral-400">
           {formatFileSize(attachment.size, 1)}
         </span>
       </div>
@@ -420,7 +460,7 @@ function AttachmentChip({
       <button
         type="button"
         onClick={onRemove}
-        className="ml-1 rounded-full p-0.5 text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-600"
+        className="absolute -right-1.5 -top-1.5 z-[2] flex size-5 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-400 shadow-sm transition-colors hover:text-neutral-600"
       >
         <X className="size-3" />
       </button>
@@ -565,14 +605,11 @@ function MessageInputToolbar({
       }
       toolsEnd={
         onAttachClick ? (
-          <button
-            type="button"
+          <RichTextToolbarButton
+            icon={Paperclip}
+            label="Attach file"
             onClick={onAttachClick}
-            className="flex size-7 items-center justify-center rounded-md text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
-            title="Attach file"
-          >
-            <Paperclip className="size-4" />
-          </button>
+          />
         ) : undefined
       }
     />

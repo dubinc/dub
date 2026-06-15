@@ -100,7 +100,10 @@ export function PartnerStarButton({
           <Star className={cn("text-content-subtle", iconSize)} />
         )
       }
-      className={cn("rounded-lg p-0", className)}
+      className={cn(
+        "border-border-subtle shrink-0 rounded-lg border p-0",
+        className,
+      )}
     />
   );
 }

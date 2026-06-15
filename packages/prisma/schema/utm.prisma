@@ -1,5 +1,5 @@
 model UtmTemplate {
-  id   String @id @default(cuid())
+  id   String @id
   name String
 
   // Parameters

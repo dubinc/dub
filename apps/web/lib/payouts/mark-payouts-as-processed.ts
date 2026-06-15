@@ -6,7 +6,7 @@ export const markPayoutsAsProcessed = async (payouts: Pick<Payout, "id">[]) => {
     return;
   }
 
-  await prisma.payout.updateMany({
+  const { count } = await prisma.payout.updateMany({
     where: {
       id: {
         in: payouts.map((p) => p.id),
@@ -17,4 +17,6 @@ export const markPayoutsAsProcessed = async (payouts: Pick<Payout, "id">[]) => {
       paidAt: new Date(),
     },
   });
+
+  console.log(`Marked ${count} payouts as processed`);
 };

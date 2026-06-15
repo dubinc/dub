@@ -97,8 +97,8 @@ export default function RiskCenterChangeAnnouncement({
 
             <Text className="text-sm leading-6 text-neutral-600">
               We've made some important changes to the fraud detection tools for
-              the <strong className="text-black">{program.name}</strong> program
-              that we wanted to let you know about.
+              your <strong className="text-black">{program.name}</strong>{" "}
+              program on Dub that we wanted to let you know about.
             </Text>
 
             <Text className="mt-0 text-sm leading-6 text-neutral-600">

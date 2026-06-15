@@ -361,7 +361,7 @@ export function RiskEventsTable() {
               <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
             </>
           )}
-          learnMoreHref="https://dub.co/help/article/fraud-detection"
+          learnMoreHref="https://dub.co/help/article/risk-monitoring"
           learnMoreTarget="_blank"
           learnMoreText="Learn more"
         />
