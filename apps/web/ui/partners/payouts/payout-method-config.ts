@@ -3,6 +3,7 @@ import type { PartnerPayoutMethod } from "@dub/prisma/client";
 import {
   Calendar6,
   CircleDollar,
+  Gift,
   Globe,
   GreekTemple,
   Paypal,
@@ -53,6 +54,14 @@ export const PAYOUT_METHODS = [
         text: "PayPal + local bank account required",
       },
     ],
+  },
+  {
+    id: "tremendous" as const,
+    title: "Gift card",
+    recommended: false,
+    icon: Gift,
+    iconWrapperClass: "border-[#1717171A] bg-white",
+    features: [],
   },
 ] as const;
 

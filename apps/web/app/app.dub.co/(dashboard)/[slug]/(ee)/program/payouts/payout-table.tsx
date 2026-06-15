@@ -6,13 +6,18 @@ import useGroups from "@/lib/swr/use-groups";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
 import { FraudGroupCountByPartner, PayoutResponse } from "@/lib/types";
 import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicator";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { PayoutStatus, ProgramPayoutMode } from "@dub/prisma/client";
+import {
+  PartnerPayoutMethod,
+  PayoutStatus,
+  ProgramPayoutMode,
+} from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -78,6 +83,13 @@ function isPayoutEligibleForBatchConfirm(
   }
 
   if (canManageFraudEvents && partnersWithPendingFraud.has(payout.partner.id)) {
+    return false;
+  }
+
+  if (
+    payout.partner.defaultPayoutMethod === PartnerPayoutMethod.tremendous &&
+    payout.amount > TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS
+  ) {
     return false;
   }
 
@@ -328,6 +340,13 @@ export function PayoutTable() {
           (payout) => !isPayoutEligibleForBatchConfirm(payout, eligibilityCtx),
         );
 
+      const maxGiftCardPayoutAmount = currencyFormatter(
+        TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+        {
+          trailingZeroDisplay: "stripIfInteger",
+        },
+      );
+
       return (
         <Button
           variant="primary"
@@ -353,6 +372,10 @@ export function PayoutTable() {
                     </a>
                   </li>
                   <li>Partner has not connected payouts</li>
+                  <li>
+                    Exceeds the {maxGiftCardPayoutAmount} cap for gift card
+                    payouts
+                  </li>
                   <li>
                     On hold due to{" "}
                     <Link
@@ -543,6 +566,28 @@ function AmountRowItem({
       return (
         <Tooltip
           content={`This partner's payouts are on hold due to [unresolved risk events](${`/${slug}/program/risks?partnerId=${payout.partner.id}`}). They cannot be paid out until resolved.`}
+        >
+          <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+            {display}
+          </span>
+        </Tooltip>
+      );
+    }
+
+    if (
+      payout.partner.defaultPayoutMethod === PartnerPayoutMethod.tremendous &&
+      payout.amount > TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS
+    ) {
+      const maxPayoutAmount = currencyFormatter(
+        TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+        {
+          trailingZeroDisplay: "stripIfInteger",
+        },
+      );
+
+      return (
+        <Tooltip
+          content={`This payout exceeds the ${maxPayoutAmount} cap for gift card payouts. The partner must connect another payout method to receive this amount.`}
         >
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
             {display}
