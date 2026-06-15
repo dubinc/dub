@@ -6,16 +6,18 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
+import { updateProgramSchema } from "@/lib/zod/schemas/programs";
 import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
 import { Button, CrownSmall, Switch, TooltipContent } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import * as z from "zod/v4";
 import { SettingsRow } from "../program-settings-row";
 
 type FormData = Pick<
-  ProgramProps,
+  z.infer<typeof updateProgramSchema>,
   "supportEmail" | "helpUrl" | "termsUrl" | "messagingEnabledAt"
 >;
 
@@ -57,7 +59,7 @@ export function ProgramHelpAndSupportContent({
   } = useForm<FormData>({
     mode: "onBlur",
     defaultValues: {
-      supportEmail: program?.supportEmail,
+      supportEmail: program?.supportEmail || undefined,
       helpUrl: program?.helpUrl,
       termsUrl: program?.termsUrl,
       messagingEnabledAt: program?.messagingEnabledAt,
