@@ -42,6 +42,9 @@ export function getSpendLimitWindow(
   };
 }
 
+// Reward cap scope:
+// - Sales: partner and customer level
+// - Clicks & Leads: partner level only
 export async function getCappedEarnings({
   reward,
   earnings,
@@ -67,13 +70,13 @@ export async function getCappedEarnings({
 
   const { startDate, endDate } = getSpendLimitWindow(reward.spendLimitInterval);
 
-  // Find the commission earnings for the partner and customer for the spend limit window
+  // Find the commission earnings for the partner and customer (if applicable) for the spend limit window
   const {
     _sum: { earnings: totalEarnings },
   } = await prisma.commission.aggregate({
     where: {
       partnerId,
-      customerId,
+      ...(reward.event === "sale" ? { customerId } : {}),
       type: reward.event,
       status: {
         in: ["pending", "processed", "paid"],
