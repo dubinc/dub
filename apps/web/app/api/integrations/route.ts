@@ -1,4 +1,5 @@
 import { withWorkspace } from "@/lib/auth";
+import { installedIntegrationSchema } from "@/lib/zod/schemas/integration";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -28,7 +29,11 @@ export const GET = withWorkspace(
       },
     });
 
-    return NextResponse.json(integrations);
+    return NextResponse.json(
+      integrations.map((integration) =>
+        installedIntegrationSchema.parse(integration),
+      ),
+    );
   },
   {
     requiredPermissions: ["workspaces.read"],

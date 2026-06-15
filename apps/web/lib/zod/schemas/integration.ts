@@ -22,6 +22,18 @@ export const integrationSchema = z.object({
   installations: z.number().default(0),
 });
 
+export const installedIntegrationSchema = integrationSchema.pick({
+  id: true,
+  projectId: true,
+  name: true,
+  slug: true,
+  description: true,
+  logo: true,
+  verified: true,
+  guideUrl: true,
+  comingSoon: true,
+});
+
 export const createIntegrationSchema = z.object({
   name: z.string().min(1).max(100),
   slug: z.string().min(1).max(100),

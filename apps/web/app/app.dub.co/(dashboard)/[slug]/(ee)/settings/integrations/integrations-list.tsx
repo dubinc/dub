@@ -51,7 +51,7 @@ async function IntegrationsListRSC() {
   return (
     <>
       <SearchBoxPersisted debounceTimeoutMs={250} />
-      <EnabledIntegrations integrations={integrations} />
+      <EnabledIntegrations />
       <FeaturedIntegrations integrations={integrations} />
       <IntegrationsCards integrations={integrations} />
     </>
