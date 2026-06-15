@@ -10,9 +10,11 @@ export const GET = withWorkspace(
         id: true,
         name: true,
         slug: true,
+        verified: true,
+        projectId: true,
+        logo: true,
       },
       where: {
-        verified: true,
         installations: {
           some: {
             project: {
@@ -20,6 +22,9 @@ export const GET = withWorkspace(
             },
           },
         },
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
 

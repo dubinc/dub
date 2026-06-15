@@ -2,6 +2,7 @@
 
 import useIntegrations from "@/lib/swr/use-integrations";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { IntegrationStatusBadge } from "@/ui/integrations/integration-status-badge";
 import { IntegrationLogo } from "@/ui/integrations/integration-logo";
 import { Integration } from "@dub/prisma/client";
 import { cn } from "@dub/utils";
@@ -77,8 +78,12 @@ function IntegrationRow({ integration }: { integration: Integration }) {
           alt={`Logo for ${integration.name}`}
         />
 
-        <span className="text-sm font-medium text-neutral-800">
+        <span className="flex items-center gap-1.5 text-sm font-medium text-neutral-800">
           {integration.name}
+          <IntegrationStatusBadge
+            projectId={integration.projectId}
+            verified={integration.verified}
+          />
         </span>
       </div>
       <ChevronRight className="size-4 text-neutral-400 transition-all duration-150 group-hover:translate-x-0.5 group-hover:text-neutral-600" />
