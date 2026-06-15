@@ -22,13 +22,15 @@ export function MarketplaceExternalShell({
     );
   }
 
+  const year = new Date().getFullYear();
+
   const resolvedTitle =
     title ??
     (variant === "home" ? (
       <>
-        Dub Program
+        Best SaaS affiliate
         <br />
-        Marketplace
+        programs in {year}
       </>
     ) : (
       "Find your next partnership"
@@ -37,7 +39,7 @@ export function MarketplaceExternalShell({
   const resolvedDescription =
     description ??
     (variant === "home"
-      ? "Discover partnerships on Dub and start earning."
+      ? `Browse and apply to the best SaaS affiliate programs in ${year} on Dub's Partner Network.`
       : "Explore the Dub Partner marketplace and start earning.");
 
   return (

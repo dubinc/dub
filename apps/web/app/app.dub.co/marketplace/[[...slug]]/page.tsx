@@ -6,12 +6,10 @@ import {
   categoryToSlug,
   getMarketplaceCanonicalUrl,
   getMarketplacePathFromSlug,
-  getMarketplacePopularRedirectHref,
 } from "@/ui/program-marketplace/utils/urls";
 import { Category } from "@dub/prisma/client";
 import { constructMetadata } from "@dub/utils";
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 export const revalidate = 3600;
 
@@ -31,9 +29,10 @@ export async function generateMetadata(props: {
   const pathname = getMarketplacePathFromSlug(slug);
   const segments = slug ?? [];
 
-  let title = "Program Marketplace";
-  let description =
-    "Discover and apply to partner programs on Dub's Partner Network.";
+  const year = new Date().getFullYear();
+
+  let title = `Best SaaS affiliate programs in ${year}`;
+  let description = `Browse and apply to the best SaaS affiliate programs in ${year} on Dub's Partner Network.`;
   let image: string | undefined;
 
   if (segments.length === 1 && segments[0] === "all") {
@@ -80,14 +79,8 @@ export async function generateMetadata(props: {
 
 export default async function MarketplaceExternalPage(props: {
   params: Promise<{ slug?: string[] }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { slug } = await props.params;
-  const searchParams = await props.searchParams;
 
-  if (slug?.length === 1 && slug[0] === "popular") {
-    redirect(getMarketplacePopularRedirectHref(searchParams));
-  }
-
-  return <MarketplaceExternalRouter slug={slug} searchParams={searchParams} />;
+  return <MarketplaceExternalRouter slug={slug} />;
 }
