@@ -13,6 +13,12 @@ interface IntercomConversation {
   id: string;
 }
 
+export interface IntercomAttachmentFile {
+  content_type: string;
+  data: string;
+  name: string;
+}
+
 export class Intercom {
   private client: IntercomClient;
 
@@ -95,12 +101,14 @@ export class Intercom {
     return contact;
   }
 
-  async createConversation({
+  async createConversationAsContact({
     contact,
     message,
+    attachmentUrls,
   }: {
     contact: IntercomContact;
     message: Pick<Message, "text">;
+    attachmentUrls?: string[];
   }) {
     return await this.client.conversations.create({
       from: {
@@ -108,17 +116,24 @@ export class Intercom {
         id: contact.id,
       },
       body: message.text,
-    });
+      // The SDK's CreateConversationRequest type omits attachment_urls, but Intercom's
+      // API (OpenAPI 2.14) supports it and the SDK sends the request body as-is.
+      ...(attachmentUrls?.length && { attachment_urls: attachmentUrls }),
+    } as Parameters<IntercomClient["conversations"]["create"]>[0]);
   }
 
-  async sendMessageAsContact({
+  async replyAsContact({
     message,
     contact,
     conversation,
+    attachmentUrls,
+    attachmentFiles,
   }: {
     message: Pick<Message, "text">;
     contact: IntercomContact;
     conversation: IntercomConversation;
+    attachmentUrls?: string[];
+    attachmentFiles?: IntercomAttachmentFile[];
   }) {
     return await this.client.conversations.reply({
       conversation_id: conversation.id,
@@ -127,11 +142,13 @@ export class Intercom {
         type: "user",
         intercom_user_id: contact.id,
         body: message.text,
+        attachment_urls: attachmentUrls?.length ? attachmentUrls : undefined,
+        attachment_files: attachmentFiles?.length ? attachmentFiles : undefined,
       },
     });
   }
 
-  async sendMessageAsAdmin({
+  async createConversationAsAdmin({
     admin,
     contact,
     message,
@@ -160,10 +177,14 @@ export class Intercom {
     admin,
     message,
     conversation,
+    attachmentUrls,
+    attachmentFiles,
   }: {
     admin: IntercomAdmin;
     message: Pick<Message, "text">;
     conversation: IntercomConversation;
+    attachmentUrls?: string[];
+    attachmentFiles?: IntercomAttachmentFile[];
   }) {
     return await this.client.conversations.reply({
       conversation_id: conversation.id,
@@ -171,7 +192,9 @@ export class Intercom {
         message_type: "comment",
         type: "admin",
         admin_id: admin.id,
-        body: message.text,
+        body: message.text || undefined,
+        attachment_urls: attachmentUrls?.length ? attachmentUrls : undefined,
+        attachment_files: attachmentFiles?.length ? attachmentFiles : undefined,
       },
     });
   }

@@ -43,7 +43,7 @@ export const intercomWebhookSchema = z.object({
           z.object({
             type: z.string(),
             id: z.string(),
-            body: z.string(),
+            body: z.string().nullable(),
             author: z.object({
               type: z.string(),
               id: z.string(),
