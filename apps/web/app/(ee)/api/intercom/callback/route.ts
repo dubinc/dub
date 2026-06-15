@@ -8,6 +8,7 @@ import { intercomCredentialsSchema } from "@/lib/integrations/intercom/schema";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
+import { INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -86,7 +87,7 @@ export const GET = async (req: Request) => {
 
     const integration = await prisma.integration.findUniqueOrThrow({
       where: {
-        slug: "intercom",
+        id: INTERCOM_INTEGRATION_ID,
       },
       select: {
         id: true,
@@ -101,7 +102,7 @@ export const GET = async (req: Request) => {
 
     if (!admin.app?.id_code) {
       throw new DubApiError({
-        code: "bad_request",
+        code: "internal_server_error",
         message: "Failed to retrieve Intercom workspace ID.",
       });
     }

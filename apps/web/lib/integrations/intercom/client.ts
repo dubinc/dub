@@ -15,11 +15,9 @@ interface IntercomConversation {
 
 export class Intercom {
   private client: IntercomClient;
-  private token: string;
 
   constructor({ token }: { token: string }) {
     this.client = new IntercomClient({ token });
-    this.token = token;
   }
 
   // Get currently authorised admin

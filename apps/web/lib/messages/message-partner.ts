@@ -6,7 +6,7 @@ import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-u
 import { partnerReachableByProgramWhereInput } from "@/lib/api/partners/partner-reachable-by-program-where-input";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
-import { sendMessageAsAdmin } from "@/lib/integrations/intercom/forward-message";
+import { forwardProgramMessageToIntercom } from "@/lib/integrations/intercom/forward-message";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, INTERCOM_INTEGRATION_ID } from "@dub/utils";
@@ -177,7 +177,7 @@ export const messagePartnerAction = authActionClient
         }),
 
         intercomInstallation &&
-          sendMessageAsAdmin({
+          forwardProgramMessageToIntercom({
             program: { id: programId, workspaceId: workspace.id },
             partner,
             message,

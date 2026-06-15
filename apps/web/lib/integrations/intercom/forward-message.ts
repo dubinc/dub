@@ -10,7 +10,7 @@ import {
 import { Intercom } from "./client";
 import { intercomCredentialsSchema } from "./schema";
 
-export async function sendMessageAsContact({
+export async function forwardPartnerMessageToIntercom({
   program,
   partner,
   message,
@@ -69,7 +69,7 @@ export async function sendMessageAsContact({
   });
 }
 
-export async function sendMessageAsAdmin({
+export async function forwardProgramMessageToIntercom({
   program,
   partner,
   message,

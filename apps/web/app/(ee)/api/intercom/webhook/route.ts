@@ -2,16 +2,16 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { intercomWebhookSchema } from "@/lib/integrations/intercom/schema";
-import { verifyIntercomWebhookSignature } from "@/lib/integrations/intercom/verify-webhook";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { logAndRespond } from "../../cron/utils";
+import { verifyWebhookSignature } from "./verify-webhook";
 
 const relevantTopics = new Set(["conversation.admin.replied"]);
 
 // POST /api/intercom/webhook – listen to webhook events from Intercom
 export const POST = withAxiom(async (req) => {
   try {
-    const rawBody = await verifyIntercomWebhookSignature(req);
+    const rawBody = await verifyWebhookSignature(req);
     const body = JSON.parse(rawBody);
 
     const { topic } = intercomWebhookSchema.parse(body);
