@@ -16,7 +16,7 @@ import { LeadEventTB } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
-import { MAX_BATCHES, rewardfulImporter } from "./importer";
+import { REWARDFUL_MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulCommission, RewardfulImportPayload } from "./types";
 
 const toDubStatus: Record<RewardfulCommission["state"], CommissionStatus> = {
@@ -45,7 +45,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
   let hasMore = true;
   let processedBatches = 0;
 
-  while (hasMore && processedBatches < MAX_BATCHES) {
+  while (hasMore && processedBatches < REWARDFUL_MAX_BATCHES) {
     const commissions = await rewardfulApi.listCommissions({
       page: currentPage,
     });

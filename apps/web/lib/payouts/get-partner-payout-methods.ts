@@ -13,6 +13,7 @@ export async function getPartnerPayoutMethods(
     | "stripeRecipientId"
     | "paypalEmail"
     | "defaultPayoutMethod"
+    | "tremendousEmail"
   >,
 ) {
   const availablePayoutMethods = getPayoutMethodsForCountry({
@@ -80,6 +81,17 @@ export async function getPartnerPayoutMethods(
       default: partner.defaultPayoutMethod === PartnerPayoutMethod.paypal,
       connected: Boolean(partner.paypalEmail),
       identifier: partner.paypalEmail ?? null,
+    });
+  }
+
+  // Tremendous (gift cards) — only when connected via the referral embed
+  if (partner.tremendousEmail) {
+    payoutMethods.push({
+      type: PartnerPayoutMethod.tremendous,
+      label: "Gift Cards",
+      default: partner.defaultPayoutMethod === PartnerPayoutMethod.tremendous,
+      connected: true,
+      identifier: partner.tremendousEmail,
     });
   }
 

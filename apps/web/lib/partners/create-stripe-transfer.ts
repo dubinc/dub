@@ -77,18 +77,20 @@ export const createStripeTransfer = async ({
         },
         include: commonInclude,
       }),
-      prisma.payout.findMany({
-        where: {
-          partnerId: partner.id,
-          invoiceId,
-          status: "processing",
-          method: "connect",
-        },
-        orderBy: {
-          id: "asc",
-        },
-        include: commonInclude,
-      }),
+      invoiceId
+        ? prisma.payout.findMany({
+            where: {
+              partnerId: partner.id,
+              invoiceId,
+              status: "processing",
+              method: "connect",
+            },
+            orderBy: {
+              id: "asc",
+            },
+            include: commonInclude,
+          })
+        : Promise.resolve([]),
     ],
   );
 
