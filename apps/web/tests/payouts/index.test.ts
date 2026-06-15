@@ -84,10 +84,10 @@ describe("GET /payouts", async () => {
     expect(partnerPayouts.length).toBeGreaterThan(0);
 
     const groupId = partnerPayouts[0].partner.groupId;
-    expect(groupId).toMatch(/^grp_/);
     if (!groupId) {
       throw new Error("Expected partner payout to include groupId");
     }
+    expect(groupId).toMatch(/^grp_/);
 
     const { data, status } = await http.get<PayoutResponse[]>({
       path: "/payouts",
