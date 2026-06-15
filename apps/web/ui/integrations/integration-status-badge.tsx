@@ -12,9 +12,9 @@ export function IntegrationStatusBadge({
   if (projectId === DUB_WORKSPACE_ID) {
     return (
       <Tooltip content="This is an official integration built and maintained by Dub">
-        <div>
+        <span>
           <DubCraftedShield className="size-4 shrink-0 -translate-y-px" />
-        </div>
+        </span>
       </Tooltip>
     );
   }
@@ -43,9 +43,9 @@ export function IntegrationStatusBadge({
 
   return (
     <Tooltip content="Dub hasn't verified this integration. Install it at your own risk.">
-      <div>
+      <span>
         <CircleWarning className="size-4 shrink-0 text-neutral-500" invert />
-      </div>
+      </span>
     </Tooltip>
   );
 }
