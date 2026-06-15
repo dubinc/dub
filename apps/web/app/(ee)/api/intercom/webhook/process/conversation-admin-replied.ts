@@ -3,14 +3,28 @@ import { qstash } from "@/lib/cron";
 import { decrypt } from "@/lib/encryption";
 import { Intercom } from "@/lib/integrations/intercom/client";
 import {
+  IntercomAttachment,
   IntercomContact,
   IntercomCredentials,
   intercomCredentialsSchema,
   intercomWebhookSchema,
 } from "@/lib/integrations/intercom/schema";
+import { PROGRAM_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
+import { sanitizeFileName } from "@/lib/messages/utils";
+import { storage } from "@/lib/storage";
 import { prisma } from "@dub/prisma";
-import { InstalledIntegration, Prisma, Program } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
+import {
+  InstalledIntegration,
+  Message,
+  MessageAttachment,
+  Program,
+} from "@dub/prisma/client";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  fetchWithTimeout,
+  nanoid,
+  pluralize,
+} from "@dub/utils";
 import * as z from "zod/v4";
 
 export async function handleConversationAdminReplied({
@@ -48,13 +62,12 @@ export async function handleConversationAdminReplied({
     },
   });
 
-  // This should never happen
   if (workspaceUsers.length === 0) {
     return "No workspace users found.";
   }
 
   const { conversation_parts: conversations } = data.item.conversation_parts;
-  const messagesToCreate: Prisma.MessageCreateManyInput[] = [];
+  const createdMessages: Pick<Message, "id" | "programId" | "partnerId">[] = [];
 
   for (const {
     body,
@@ -70,14 +83,12 @@ export async function handleConversationAdminReplied({
 
     let originalMessage = body.replaceAll(/\[(Image|Attachment|GIF)\]/g, "");
 
-    if (attachments.length > 0) {
-      originalMessage += `\n\n${attachments.map((attachment) => attachment.url).join(", ")}`;
-    }
-
-    if (originalMessage.trim() === "") {
+    // Nothing to forward: no text and no attachments
+    if (attachments.length === 0 && originalMessage.trim() === "") {
       continue;
     }
 
+    // Resolve the sender before doing any upload work
     let workspaceUser = workspaceUsers.find(
       ({ user }) => user.email === author.email,
     );
@@ -98,23 +109,57 @@ export async function handleConversationAdminReplied({
       }
     }
 
-    messagesToCreate.push(
-      ...partners.map(({ partnerId }) => ({
-        id: createId({ prefix: "msg_" }),
+    // Download Intercom attachments and store them in the private R2 bucket
+    const { storedAttachments, externalAttachments } =
+      await uploadIntercomAttachments({
+        attachments,
+        programId: program.id,
+      });
+
+    // Graceful degradation: only append the URLs we couldn't store
+    if (externalAttachments.length > 0) {
+      originalMessage += `\n\n${externalAttachments.map((attachment) => `[${attachment.name}](${attachment.url})`).join(", ")}`;
+    }
+
+    // Keep the part if it has text or at least one stored attachment
+    if (originalMessage.trim() === "" && storedAttachments.length === 0) {
+      continue;
+    }
+
+    for (const { partnerId } of partners) {
+      const messageId = createId({ prefix: "msg_" });
+
+      await prisma.message.create({
+        data: {
+          id: messageId,
+          programId: program.id,
+          partnerId,
+          senderUserId: workspaceUser.userId,
+          text: originalMessage,
+          ...(storedAttachments.length > 0 && {
+            attachments: {
+              create: storedAttachments.map((attachment) => ({
+                id: createId({ prefix: "msa_" }),
+                storageKey: attachment.storageKey,
+                name: attachment.name,
+                size: attachment.size,
+                type: attachment.type,
+              })),
+            },
+          }),
+        },
+      });
+
+      createdMessages.push({
+        id: messageId,
         programId: program.id,
         partnerId,
-        senderUserId: workspaceUser.userId,
-        text: originalMessage,
-      })),
-    );
+      });
+    }
   }
 
-  await prisma.message.createMany({
-    data: messagesToCreate,
-  });
-
   await Promise.all(
-    messagesToCreate.map((message) =>
+    createdMessages.map((message) =>
       qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-partner`,
         delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
@@ -189,4 +234,83 @@ async function identifyPartnersFromContacts({
   });
 
   return programEnrollments.map(({ partnerId }) => ({ partnerId }));
+}
+
+// Download Intercom attachments and upload them to the private R2 bucket so they
+// can be stored as MessageAttachment rows
+async function uploadIntercomAttachments({
+  attachments,
+  programId,
+}: {
+  attachments: IntercomAttachment[];
+  programId: string;
+}) {
+  const storedAttachments: Pick<
+    MessageAttachment,
+    "name" | "type" | "size" | "storageKey"
+  >[] = [];
+
+  const externalAttachments: { name: string; url: string }[] = [];
+
+  for (const attachment of attachments) {
+    try {
+      const response = await fetchWithTimeout(
+        attachment.url,
+        {
+          redirect: "error",
+        },
+        30000,
+      );
+
+      if (
+        !PROGRAM_ALLOWED_ATTACHMENT_TYPES.includes(
+          attachment.content_type as (typeof PROGRAM_ALLOWED_ATTACHMENT_TYPES)[number],
+        )
+      ) {
+        throw new Error(
+          `Unsupported attachment type: ${attachment.content_type}`,
+        );
+      }
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch attachment: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+
+      const name = (attachment.name.trim() || "attachment").slice(0, 191);
+      const storageKey = `messages/${programId}/${nanoid(10)}/${sanitizeFileName(name)}`;
+
+      await storage.upload({
+        key: storageKey,
+        body: blob,
+        bucket: "private",
+        opts: {
+          contentType: attachment.type,
+        },
+      });
+
+      storedAttachments.push({
+        name: attachment.name?.trim() || "attachment",
+        type: attachment.content_type,
+        size: attachment.filesize,
+        storageKey,
+      });
+    } catch (error) {
+      console.error(
+        `[Intercom] Failed to store attachment ${attachment.url}`,
+        error,
+      );
+
+      externalAttachments.push({
+        name: attachment.name?.trim() || "attachment",
+        url: attachment.url,
+      });
+    }
+  }
+
+  return {
+    storedAttachments,
+    externalAttachments,
+  };
 }

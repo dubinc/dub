@@ -5,7 +5,7 @@ export const intercomAuthTokenSchema = z.object({
   token_type: z.string(),
 });
 
-// Integration credentials
+// Integration credentials Dub stores
 export const intercomCredentialsSchema = z.object({
   accessToken: z.string(),
   appId: z.string().describe("Intercom workspace ID."),
@@ -18,6 +18,14 @@ export const intercomContactSchema = z.object({
 
 export const intercomUninstallWebhookSchema = z.object({
   app_id: z.string().describe("Intercom workspace ID."),
+});
+
+export const intercomAttachmentSchema = z.object({
+  type: z.string(),
+  name: z.string(),
+  url: z.url(),
+  content_type: z.string(),
+  filesize: z.number(),
 });
 
 export const intercomWebhookSchema = z.object({
@@ -42,14 +50,7 @@ export const intercomWebhookSchema = z.object({
               name: z.string(),
               email: z.string(),
             }),
-            attachments: z.array(
-              z.object({
-                type: z.string(),
-                name: z.string(),
-                url: z.url(),
-                content_type: z.string(),
-              }),
-            ),
+            attachments: z.array(intercomAttachmentSchema),
             app_package_code: z
               .string()
               .nullable()
@@ -66,3 +67,5 @@ export const intercomWebhookSchema = z.object({
 export type IntercomCredentials = z.infer<typeof intercomCredentialsSchema>;
 
 export type IntercomContact = z.infer<typeof intercomContactSchema>;
+
+export type IntercomAttachment = z.infer<typeof intercomAttachmentSchema>;
