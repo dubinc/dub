@@ -10,15 +10,15 @@ import { IntegrationsWithInstallations } from "./integrations-list";
 
 const CATEGORY_ORDER = [
   "Payments",
-  "Automations",
+  "Automation",
   "Analytics",
-  "Scheduling",
+  "Support",
   "Authentication",
   "Social Media",
   "Productivity",
+  "Scheduling",
   "CMS",
   "Miscellaneous",
-  "Communication",
 ] as const;
 
 const PRESENCE_ANIMATION = {

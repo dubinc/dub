@@ -14,7 +14,7 @@ async function main() {
       website: "https://dub.co",
       verified: true,
       projectId: DUB_WORKSPACE_ID,
-      category: "Communication",
+      category: "Support",
     },
   });
 
