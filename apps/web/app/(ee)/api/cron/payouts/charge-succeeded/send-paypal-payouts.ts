@@ -9,12 +9,13 @@ import { waitUntil } from "@vercel/functions";
 
 export async function sendPaypalPayouts({
   invoice,
-  fundsAvailable,
 }: {
-  invoice: Pick<Invoice, "id">;
-  fundsAvailable: boolean;
+  invoice: Pick<Invoice, "id" | "payoutMode">;
 }) {
-  if (!fundsAvailable) {
+  if (invoice.payoutMode === "external") {
+    console.log(
+      `Invoice ${invoice.id} is paid externally, skipping PayPal payouts...`,
+    );
     return;
   }
 

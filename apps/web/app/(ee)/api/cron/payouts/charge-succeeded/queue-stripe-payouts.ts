@@ -23,8 +23,10 @@ export async function queueStripePayouts({
   >;
   fundsAvailable: boolean;
 }) {
-  // All payouts are processed externally, hence no need to queue Stripe payouts
   if (invoice.payoutMode === "external") {
+    console.log(
+      `Invoice ${invoice.id} is paid externally, skipping Stripe payouts...`,
+    );
     return;
   }
 

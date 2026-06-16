@@ -65,55 +65,60 @@ export async function POST(req: Request) {
       AND p.status = 'processing' AND p.method IS NULL
     `;
 
-    const fundSettlement = await getFundSettlementTiming(invoice);
+    let fundsAvailable = true;
 
-    if (!fundSettlement.fundsAvailable) {
-      const postSettlementPayoutMethods: PartnerPayoutMethod[] = [
-        PartnerPayoutMethod.stablecoin,
-        PartnerPayoutMethod.paypal,
-        PartnerPayoutMethod.tremendous,
-      ];
+    // if invoice payment method is card, we need to check if the funds have settled yet
+    if (invoice.paymentMethod === "card") {
+      const fundSettlementTiming = await getFundSettlementTiming(invoice);
+      if (!fundSettlementTiming.fundsAvailable) {
+        // set fundsAvailable to false so we don't queue any payouts that require funds to be available
+        fundsAvailable = false;
 
-      const payoutsCount = await prisma.payout.count({
-        where: {
-          invoiceId: invoice.id,
-          status: "processing",
-          method: {
-            in: postSettlementPayoutMethods,
+        const postSettlementPayoutMethods = [
+          PartnerPayoutMethod.stablecoin,
+          PartnerPayoutMethod.paypal,
+          PartnerPayoutMethod.tremendous,
+        ];
+
+        const postSettlementPayoutsCount = await prisma.payout.count({
+          where: {
+            invoiceId: invoice.id,
+            status: "processing",
+            method: {
+              in: postSettlementPayoutMethods,
+            },
           },
-        },
-      });
-
-      if (payoutsCount > 0) {
-        await scheduleDelayedPayouts({
-          invoice,
-          executeAt: fundSettlement.scheduledAt,
         });
+
+        if (postSettlementPayoutsCount > 0) {
+          await scheduleDelayedPayouts({
+            invoice,
+            executeAt: fundSettlementTiming.scheduledAt,
+          });
+        }
       }
     }
 
-    const { fundsAvailable } = fundSettlement;
-
     await Promise.allSettled([
-      // Queue Stripe payouts
+      // Queue Stripe payouts (need to pass along fundsAvailable to handle stablecoin payouts)
       queueStripePayouts({
         invoice,
         fundsAvailable,
       }),
 
-      // Send PayPal payouts
-      sendPaypalPayouts({
-        invoice,
-        fundsAvailable,
-      }),
+      // only send PayPal and Tremendous payouts if funds are available
+      ...(fundsAvailable
+        ? [
+            sendPaypalPayouts({
+              invoice,
+            }),
+            queueTremendousPayouts({
+              invoice,
+            }),
+          ]
+        : []),
 
-      // Queue Tremendous payouts
-      queueTremendousPayouts({
-        invoice,
-        fundsAvailable,
-      }),
-
-      // Queue external payouts
+      // Queue external payouts (doesn't rely on fundsAvailable)
       queueExternalPayouts(invoice),
     ]);
 
