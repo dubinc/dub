@@ -139,9 +139,8 @@ export const trackSale = async ({
     }
   }
 
-  // If no existing customer is found and a click event is found, create a new customer (for direct sale tracking)
+  // If no existing customer is found and a click event is found, upsert a new customer (for direct sale tracking)
   if (!existingCustomer && clickData) {
-    // Create a new customer
     const link = await prisma.link.findUnique({
       where: {
         id: clickData.link_id,
@@ -182,39 +181,33 @@ export const trackSale = async ({
         ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
         : customerAvatar;
 
-    try {
-      newCustomer = await prisma.customer.create({
-        data: {
-          id: finalCustomerId,
-          name: finalCustomerName,
-          email: customerEmail,
-          avatar: finalCustomerAvatar,
-          externalId: customerExternalId,
-          linkId: clickData.link_id,
-          clickId: clickData.click_id,
-          country: clickData.country,
+    const upsertedCustomer = await prisma.customer.upsert({
+      where: {
+        projectId_externalId: {
           projectId: workspace.id,
-          projectConnectId: workspace.stripeConnectId,
-          clickedAt: new Date(clickData.timestamp + "Z"),
+          externalId: customerExternalId,
         },
-      });
-    } catch (error) {
-      if (error.code !== "P2002") {
-        throw error;
-      }
+      },
+      create: {
+        id: finalCustomerId,
+        name: finalCustomerName,
+        email: customerEmail,
+        avatar: finalCustomerAvatar,
+        externalId: customerExternalId,
+        linkId: clickData.link_id,
+        clickId: clickData.click_id,
+        country: clickData.country,
+        projectId: workspace.id,
+        projectConnectId: workspace.stripeConnectId,
+        clickedAt: new Date(clickData.timestamp + "Z"),
+      },
+      update: {},
+    });
 
-      existingCustomer = await prisma.customer.findUnique({
-        where: {
-          projectId_externalId: {
-            projectId: workspace.id,
-            externalId: customerExternalId,
-          },
-        },
-      });
-
-      if (!existingCustomer) {
-        throw error;
-      }
+    if (upsertedCustomer.id === finalCustomerId) {
+      newCustomer = upsertedCustomer;
+    } else {
+      existingCustomer = upsertedCustomer;
     }
 
     if (newCustomer) {
