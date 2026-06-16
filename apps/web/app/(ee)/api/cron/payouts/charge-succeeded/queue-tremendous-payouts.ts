@@ -29,22 +29,6 @@ export async function queueTremendousPayouts({
     return;
   }
 
-  const program = await prisma.program.findUniqueOrThrow({
-    where: {
-      id: invoice.programId,
-    },
-    select: {
-      id: true,
-      name: true,
-      logo: true,
-      tremendousCampaignId: true,
-    },
-  });
-
-  if (!program.tremendousCampaignId) {
-    await createTremendousCampaign(program);
-  }
-
   const partnersInCurrentInvoice = await prisma.payout.groupBy({
     by: ["partnerId"],
     where: {
@@ -69,6 +53,23 @@ export async function queueTremendousPayouts({
   if (partnersInCurrentInvoice.length === 0) {
     console.log("No partners for sending via Tremendous, skipping...");
     return;
+  }
+
+  // if there are partners to send via Tremendous, we need to make sure the program has tremendousCampaignId set
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: invoice.programId,
+    },
+    select: {
+      id: true,
+      name: true,
+      logo: true,
+      tremendousCampaignId: true,
+    },
+  });
+
+  if (!program.tremendousCampaignId) {
+    await createTremendousCampaign(program);
   }
 
   const chunkedPartners = chunk(partnersInCurrentInvoice, 100);

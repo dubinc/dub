@@ -282,7 +282,6 @@ export function usePartnerFilters(
                           label: groupData.name,
                           icon: <GroupColorCircle group={groupData} />,
                           right: nFormatter(_count || 0, { full: true }),
-                          permalink: `/${slug}/program/groups/${groupData.slug}/rewards`,
                         };
                       })
                       .filter((group) => group !== null)
