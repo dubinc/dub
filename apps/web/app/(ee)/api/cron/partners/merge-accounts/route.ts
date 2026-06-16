@@ -9,8 +9,7 @@ import { conn } from "@/lib/planetscale";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { sendBatchEmail, sendEmail } from "@dub/email";
-import PartnerAccountMergeFailed from "@dub/email/templates/partner-account-merge-failed";
+import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType, Prisma, ProgramEnrollment } from "@dub/prisma/client";
@@ -556,21 +555,6 @@ export async function POST(req: Request) {
       type: "alerts",
       mention: true,
     });
-
-    if (targetEmail) {
-      try {
-        await sendEmail({
-          variant: "notifications",
-          to: targetEmail,
-          subject: "We couldn't merge your Dub partner accounts",
-          react: PartnerAccountMergeFailed({ email: targetEmail }),
-        });
-      } catch (emailError) {
-        console.error(
-          `Error sending merge failure email: ${emailError.message}`,
-        );
-      }
-    }
 
     return handleAndReturnErrorResponse(error);
   }
