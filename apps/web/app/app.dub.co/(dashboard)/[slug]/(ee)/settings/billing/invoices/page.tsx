@@ -59,7 +59,7 @@ export default function WorkspaceInvoices() {
           >
             Billing
           </Link>
-          <ChevronRight className="text-content-muted size-4" />
+          <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
           <h1>Invoices</h1>
         </div>
       }
