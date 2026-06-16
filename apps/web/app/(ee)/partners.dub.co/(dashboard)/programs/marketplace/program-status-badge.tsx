@@ -49,9 +49,7 @@ export function ProgramStatusBadge({
 
   const statusBadge = programEnrollmentStatus
     ? ProgramNetworkStatusBadges[programEnrollmentStatus]
-    : (partner?.networkStatus &&
-          !["approved", "trusted"].includes(partner.networkStatus)) ||
-        reason === "requirementsNotMet"
+    : reason === "requirementsNotMet"
       ? notEligibleBadge
       : null;
 
