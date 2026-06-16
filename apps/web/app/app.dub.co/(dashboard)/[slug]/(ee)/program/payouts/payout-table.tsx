@@ -99,7 +99,7 @@ function isPayoutEligibleForBatchConfirm(
 const PAYOUTS_MAX_PAGE_SIZE = 50;
 
 const payoutsColumns = {
-  all: ["periodEnd", "partner", "status", "initiatedAt", "amount", "group"],
+  all: ["periodEnd", "partner", "group", "status", "initiatedAt", "amount"],
   defaultVisible: ["periodEnd", "partner", "status", "initiatedAt", "amount"],
 };
 
@@ -197,6 +197,35 @@ export function PayoutTable() {
           },
         },
         {
+          id: "group",
+          header: "Partner Group",
+          cell: ({ row }) => {
+            if (!groups) return "-";
+
+            const group = groups.find(
+              (g) => g.id === row.original.partner.groupId,
+            );
+
+            if (!group) return "-";
+
+            return (
+              <div className="flex items-center gap-2">
+                <GroupColorCircle group={group} />
+                <Link
+                  href={`/${workspaceSlug}/program/groups/${group.slug}`}
+                  target="_blank"
+                  onClick={(e) => e.stopPropagation()}
+                  onAuxClick={(e) => e.stopPropagation()}
+                  className="min-w-0 cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+                  title={group.name}
+                >
+                  {group.name}
+                </Link>
+              </div>
+            );
+          },
+        },
+        {
           id: "status",
           header: "Status",
           cell: ({ row }) => {
@@ -256,35 +285,13 @@ export function PayoutTable() {
           ),
         },
         {
-          id: "group",
-          header: "Group",
-          cell: ({ row }) => {
-            if (!groups) return "-";
-
-            const group = groups.find(
-              (g) => g.id === row.original.partner.groupId,
-            );
-
-            if (!group) return "-";
-
-            return (
-              <div className="flex items-center gap-2">
-                <GroupColorCircle group={group} />
-                <span className="truncate text-sm font-medium">
-                  {group.name}
-                </span>
-              </div>
-            );
-          },
-        },
-        {
           id: "menu",
           enableHiding: false,
           header: ({ table }) => <EditColumnsButton table={table} />,
           cell: () => null,
         },
       ].filter((c) => c.id === "menu" || payoutsColumns.all.includes(c.id)),
-    [canManageFraudEvents, fraudGroupCountMap, groups],
+    [canManageFraudEvents, fraudGroupCountMap, groups, workspaceSlug],
   );
 
   const { table, ...tableProps } = useTable({

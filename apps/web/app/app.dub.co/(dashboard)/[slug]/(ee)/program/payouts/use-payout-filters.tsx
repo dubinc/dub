@@ -56,7 +56,6 @@ export function usePayoutFilters() {
               value: group.id,
               label: group.name,
               icon: <GroupColorCircle group={group} />,
-              permalink: `/${slug}/program/groups/${group.slug}/rewards`,
             };
           }) ?? null,
       },
