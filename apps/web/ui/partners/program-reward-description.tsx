@@ -86,7 +86,6 @@ export function ProgramRewardDescription({
           <ProgramRewardSpendLimit
             spendLimitAmount={reward.spendLimitAmount}
             spendLimitInterval={reward.spendLimitInterval}
-            className={periodClassName}
           />
 
           {/* Modifiers */}

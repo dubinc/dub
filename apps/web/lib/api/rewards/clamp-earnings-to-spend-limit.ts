@@ -45,11 +45,14 @@ export function getSpendLimitWindow(
 // Reward cap scope:
 // - Sales: partner and customer level
 // - Clicks & Leads: partner level only
+type SpendLimitDbClient = Pick<typeof prisma, "commission">;
+
 export async function getCappedEarnings({
   reward,
   earnings,
   partnerId,
   customerId,
+  tx = prisma,
 }: {
   reward: Pick<
     RewardProps,
@@ -58,6 +61,7 @@ export async function getCappedEarnings({
   earnings: number;
   partnerId: string;
   customerId: string;
+  tx?: SpendLimitDbClient;
 }) {
   if (
     earnings === 0 ||
@@ -73,7 +77,7 @@ export async function getCappedEarnings({
   // Find the commission earnings for the partner and customer (if applicable) for the spend limit window
   const {
     _sum: { earnings: totalEarnings },
-  } = await prisma.commission.aggregate({
+  } = await tx.commission.aggregate({
     where: {
       partnerId,
       ...(reward.event === "sale" ? { customerId } : {}),
