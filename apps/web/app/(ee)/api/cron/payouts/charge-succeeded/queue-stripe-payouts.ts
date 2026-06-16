@@ -42,6 +42,7 @@ export async function queueStripePayouts({
       where: {
         invoiceId: invoice.id,
         method: "stablecoin",
+        status: "processing",
         // only transfer funds for stablecoin payouts >= minimum withdrawal amount
         // for payouts below the minimum withdrawal amount, we will just mark them as processed
         // and users can force withdraw them manually later (which triggers another fundFinancialAccount call)
