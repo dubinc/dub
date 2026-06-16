@@ -7,11 +7,11 @@ function pickString(value: string | string[] | undefined) {
   return typeof value === "string" ? value : undefined;
 }
 
-export function parsePublicMarketplaceQuery(
-  searchParams: Record<string, string | string[] | undefined> = {},
+function toQueryInput(
+  searchParams: Record<string, string | string[] | undefined>,
   fixedCategory?: Category,
 ) {
-  const input = {
+  return {
     rewardType: pickString(searchParams.rewardType),
     search: pickString(searchParams.search),
     sortBy: pickString(searchParams.sortBy),
@@ -20,8 +20,24 @@ export function parsePublicMarketplaceQuery(
     pageSize: EXTERNAL_MARKETPLACE_PAGE_SIZE,
     category: fixedCategory ?? pickString(searchParams.category),
   };
+}
 
-  const parsed = getPublicNetworkProgramsQuerySchema.safeParse(input);
+export function isValidPublicMarketplaceQuery(
+  searchParams: Record<string, string | string[] | undefined> = {},
+  fixedCategory?: Category,
+) {
+  return getPublicNetworkProgramsQuerySchema.safeParse(
+    toQueryInput(searchParams, fixedCategory),
+  ).success;
+}
+
+export function parsePublicMarketplaceQuery(
+  searchParams: Record<string, string | string[] | undefined> = {},
+  fixedCategory?: Category,
+) {
+  const parsed = getPublicNetworkProgramsQuerySchema.safeParse(
+    toQueryInput(searchParams, fixedCategory),
+  );
 
   if (parsed.success) {
     return parsed.data;

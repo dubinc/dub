@@ -1,4 +1,5 @@
 import { getNetworkProgram } from "@/lib/fetchers/get-network-program";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -20,6 +21,14 @@ export async function generateMarketplaceProgramStaticParams() {
     where: {
       addedToMarketplaceAt: {
         not: null,
+      },
+      groups: {
+        some: {
+          slug: DEFAULT_PARTNER_GROUP.slug,
+          applicationFormPublishedAt: {
+            not: null,
+          },
+        },
       },
     },
     select: {

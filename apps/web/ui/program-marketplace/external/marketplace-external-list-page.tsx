@@ -3,10 +3,14 @@ import {
   getPublicNetworkPrograms,
   getPublicNetworkProgramsCount,
 } from "@/lib/fetchers/get-public-network-programs";
-import { parsePublicMarketplaceQuery } from "@/lib/marketplace/parse-public-marketplace-query";
+import {
+  isValidPublicMarketplaceQuery,
+  parsePublicMarketplaceQuery,
+} from "@/lib/marketplace/parse-public-marketplace-query";
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { Category } from "@dub/prisma/client";
 import { unstable_cache } from "next/cache";
+import { redirect } from "next/navigation";
 import { getMarketplaceExternalBasePath } from "./marketplace-external-filters";
 import {
   MarketplaceExternalListPageClient,
@@ -40,6 +44,11 @@ export async function MarketplaceExternalListPage({
   searchParams?: { [key: string]: string | string[] | undefined };
 }) {
   const basePath = getMarketplaceExternalBasePath({ slug });
+
+  if (!isValidPublicMarketplaceQuery(searchParams ?? {}, fixedCategory)) {
+    redirect(basePath);
+  }
+
   const categoryMeta = fixedCategory
     ? PROGRAM_CATEGORIES_MAP[fixedCategory]
     : undefined;

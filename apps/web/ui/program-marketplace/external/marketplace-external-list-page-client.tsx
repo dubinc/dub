@@ -124,8 +124,7 @@ export function MarketplaceExternalListPageClient({
       revalidateOnFocus: false,
       revalidateOnMount: !shouldUseInitialData,
       keepPreviousData: true,
-      // Always seed the sidebar so it never pops in; SWR revalidates for filtered views.
-      fallbackData: initialData.filterCounts,
+      fallbackData: shouldUseInitialData ? initialData.filterCounts : undefined,
     },
   );
 
@@ -135,7 +134,11 @@ export function MarketplaceExternalListPageClient({
 
   const { rewardType, search, sortBy, sortOrder, page = 1 } = parsed.data;
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-  const resolvedFilterCounts = filterCounts ?? initialData.filterCounts;
+  const resolvedFilterCounts =
+    filterCounts ??
+    (shouldUseInitialData
+      ? initialData.filterCounts
+      : { categories: [], rewardTypes: [] });
 
   return (
     <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
