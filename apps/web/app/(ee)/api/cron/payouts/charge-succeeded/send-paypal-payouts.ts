@@ -7,7 +7,17 @@ import { Invoice } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 
-export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
+export async function sendPaypalPayouts({
+  invoice,
+  fundsAvailable,
+}: {
+  invoice: Pick<Invoice, "id">;
+  fundsAvailable: boolean;
+}) {
+  if (!fundsAvailable) {
+    return;
+  }
+
   const payouts = await prisma.payout.findMany({
     where: {
       invoiceId: invoice.id,
