@@ -52,6 +52,7 @@ const GENERIC_EMAIL_DOMAINS = [
   "t-mail.asia",
   "adras.org",
   "emailinbo.live",
+  "kw.com",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [
