@@ -83,9 +83,6 @@ export class Intercom {
       email: partner.email!,
       role: "user",
       avatar: partner.image ?? undefined,
-      custom_attributes: {
-        dubPartnerId: partner.id,
-      },
     });
   }
 
