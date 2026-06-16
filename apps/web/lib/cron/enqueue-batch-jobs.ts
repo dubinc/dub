@@ -10,7 +10,8 @@ type EnqueueBatchJobsProps = PublishBatchRequest<unknown> & {
     | "sync-bounty-social-metrics"
     | "process-hubspot-webhook"
     | "delete-discount-code"
-    | "create-referral-commissions";
+    | "create-referral-commissions"
+    | "aggregate-clicks";
 };
 
 // Generic helper to enqueue a batch of QStash jobs.

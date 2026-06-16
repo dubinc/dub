@@ -1,0 +1,333 @@
+import { createId } from "@/lib/api/create-id";
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
+import { getSpendLimitWindow } from "@/lib/api/rewards/clamp-earnings-to-spend-limit";
+import { qstash } from "@/lib/cron";
+import { withCron } from "@/lib/cron/with-cron";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
+import { getTopLinksByCountries } from "@/lib/tinybird/get-top-links-by-countries";
+import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
+import { CommissionType, EventType, Prisma, Reward } from "@dub/prisma/client";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  currencyFormatter,
+  getPrettyUrl,
+} from "@dub/utils";
+import * as z from "zod/v4";
+import { logAndRespond } from "../../utils";
+import { resolveClickReward } from "../resolve-click-reward-amount";
+
+export const dynamic = "force-dynamic";
+
+const inputSchema = z.object({
+  clickRewardId: z.string(),
+  startDate: z.coerce.date(),
+  endDate: z.coerce.date(),
+  startingAfter: z.string().optional(),
+});
+
+const BATCH_SIZE = 200;
+
+type LinkEarnings = {
+  clicks: number;
+  earnings: number;
+  partnerId: string;
+};
+
+// POST /api/cron/aggregate-clicks/process
+export const POST = withCron(async ({ rawBody }) => {
+  const input = inputSchema.parse(JSON.parse(rawBody));
+
+  const { clickRewardId, startDate, endDate, startingAfter } = input;
+
+  const clickReward = await prisma.reward.findUnique({
+    where: {
+      id: clickRewardId,
+    },
+  });
+
+  if (!clickReward) {
+    return logAndRespond(`Reward not found for ${clickRewardId}. Skipping...`);
+  }
+
+  if (clickReward.event !== EventType.click) {
+    return logAndRespond(
+      `Reward ${clickRewardId} is not a click reward. Skipping...`,
+    );
+  }
+
+  const links = await prisma.link.findMany({
+    where: {
+      programEnrollment: {
+        status: {
+          in: COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
+        },
+        clickRewardId,
+      },
+      clicks: {
+        gt: 0,
+      },
+      lastClicked: {
+        gte: startDate, // links that were clicked on after the start date
+      },
+    },
+    select: {
+      id: true,
+      shortLink: true,
+      programId: true,
+      partnerId: true,
+      programEnrollment: {
+        select: {
+          clickReward: true,
+        },
+      },
+    },
+    ...(startingAfter && {
+      skip: 1,
+      cursor: {
+        id: startingAfter,
+      },
+    }),
+    orderBy: {
+      id: "asc",
+    },
+    take: BATCH_SIZE,
+  });
+
+  if (links.length === 0) {
+    return logAndRespond(
+      `No more links found for ${clickRewardId}. Skipping...`,
+    );
+  }
+
+  const clicksByCountries = await getTopLinksByCountries({
+    linkIds: links.map(({ id }) => id),
+    start: startDate,
+    end: endDate,
+  });
+
+  if (clicksByCountries.length === 0) {
+    return logAndRespond("No clicks found for the links. Skipping...");
+  }
+
+  // Group clicks by link
+  const clicksByLinkId = new Map<string, typeof clicksByCountries>();
+
+  for (const click of clicksByCountries) {
+    const existing = clicksByLinkId.get(click.link_id) || [];
+    existing.push(click);
+    clicksByLinkId.set(click.link_id, existing);
+  }
+
+  // Calculate earnings per link considering geo CPC
+  const linkEarningsMap = new Map<string, LinkEarnings>();
+
+  for (const {
+    id: linkId,
+    shortLink,
+    programId,
+    partnerId,
+    programEnrollment,
+  } of links) {
+    if (!programEnrollment?.clickReward || !programId || !partnerId) {
+      console.log(`No click reward for link ${linkId}.`);
+      continue;
+    }
+
+    const linkClicksByCountry = clicksByLinkId.get(linkId) || [];
+
+    // Calculate earnings per country for each link
+    for (const { country, clicks } of linkClicksByCountry) {
+      const reward = resolveClickReward({
+        reward: programEnrollment.clickReward,
+        country,
+      });
+
+      const existing = linkEarningsMap.get(linkId) || {
+        clicks: 0,
+        earnings: 0,
+      };
+
+      const amountInCents = getRewardAmount(serializeReward(reward));
+
+      linkEarningsMap.set(linkId, {
+        clicks: existing.clicks + clicks,
+        earnings: existing.earnings + amountInCents * clicks,
+        partnerId,
+      });
+
+      if (programEnrollment.clickReward.modifiers) {
+        console.log(
+          `Earnings for link ${getPrettyUrl(shortLink)} for ${country}: ${currencyFormatter(amountInCents)} * ${clicks} = ${currencyFormatter(
+            amountInCents * clicks,
+          )}`,
+        );
+      }
+    }
+  }
+
+  // Apply reward spend limit
+  const uniquePartners = new Set(
+    Array.from(linkEarningsMap.values(), ({ partnerId }) => partnerId),
+  );
+
+  const historicalEarningsByPartner = await getHistoricalEarnings({
+    clickReward,
+    partnerIds: Array.from(uniquePartners),
+  });
+
+  const usedSpendLimitByPartner = new Map<string, number>();
+  const idempotencyKey = new Date().toISOString().split("T")[0];
+  let commissionsToCreate: Prisma.CommissionCreateManyInput[] = [];
+
+  // Create commissions for each link
+  commissionsToCreate = links
+    .map(({ id, programId, partnerId, programEnrollment }) => {
+      if (!programId || !partnerId || !programEnrollment?.clickReward) {
+        return null;
+      }
+
+      const linkEarnings = linkEarningsMap.get(id);
+
+      if (!linkEarnings) {
+        return null;
+      }
+
+      let { clicks, earnings } = linkEarnings;
+
+      if (clicks === 0 || earnings === 0) {
+        return null;
+      }
+
+      // Cap earnings to spend limit
+      if (clickReward.spendLimitAmount && clickReward.spendLimitInterval) {
+        const usedThisBatch = usedSpendLimitByPartner.get(partnerId) ?? 0;
+        const historicalEarnings =
+          historicalEarningsByPartner.get(partnerId) ?? 0;
+
+        const remainingSpendLimit =
+          clickReward.spendLimitAmount - historicalEarnings - usedThisBatch;
+
+        earnings = Math.max(0, Math.min(earnings, remainingSpendLimit));
+
+        if (earnings === 0) {
+          return null;
+        }
+
+        usedSpendLimitByPartner.set(partnerId, usedThisBatch + earnings);
+      }
+
+      return {
+        id: createId({ prefix: "cm_" }),
+        programId,
+        partnerId,
+        rewardId: clickReward.id,
+        linkId: id,
+        quantity: clicks,
+        type: CommissionType.click,
+        amount: 0,
+        earnings,
+        invoiceId: `link-${id}-${idempotencyKey}`,
+      };
+    })
+    .filter((c): c is NonNullable<typeof c> => c !== null);
+
+  console.table(commissionsToCreate);
+
+  await prisma.commission.createMany({
+    data: commissionsToCreate,
+    skipDuplicates: true,
+  });
+
+  // Sync total commissions for each partner that we created commissions for
+  for (const { partnerId, programId } of commissionsToCreate) {
+    await syncTotalCommissions({
+      partnerId,
+      programId,
+    });
+  }
+
+  console.log(
+    `Synced total commissions count for ${commissionsToCreate.length} partners`,
+  );
+
+  // Schedule next batch if we have more links to process
+  if (links.length === BATCH_SIZE) {
+    const nextStartingAfter = links[links.length - 1].id;
+
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/aggregate-clicks/process`,
+      method: "POST",
+      body: {
+        ...input,
+        startingAfter: nextStartingAfter,
+      },
+    });
+
+    return logAndRespond(
+      `Enqueued next batch for aggregate clicks cron (startingAfter: ${nextStartingAfter}).`,
+    );
+  }
+
+  return logAndRespond("Aggregate clicks job processed successfully.");
+});
+
+async function getHistoricalEarnings({
+  clickReward,
+  partnerIds,
+}: {
+  clickReward: Pick<
+    Reward,
+    "spendLimitAmount" | "spendLimitInterval" | "programId"
+  >;
+  partnerIds: string[];
+}) {
+  if (
+    !clickReward.spendLimitAmount ||
+    !clickReward.spendLimitInterval ||
+    !clickReward.programId
+  ) {
+    return new Map<string, number>();
+  }
+
+  const { startDate, endDate } = getSpendLimitWindow(
+    clickReward.spendLimitInterval,
+  );
+
+  const commissions = await prisma.commission.groupBy({
+    by: ["programId", "partnerId"],
+    where: {
+      programId: clickReward.programId,
+      partnerId: {
+        in: partnerIds,
+      },
+      type: CommissionType.click,
+      status: {
+        in: ["pending", "processed", "paid"],
+      },
+      ...(startDate && endDate
+        ? {
+            createdAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          }
+        : {}),
+    },
+    _sum: {
+      earnings: true,
+    },
+  });
+
+  const historicalEarningsByPartner = new Map<string, number>();
+
+  for (const commission of commissions) {
+    historicalEarningsByPartner.set(
+      commission.partnerId,
+      commission._sum.earnings ?? 0,
+    );
+  }
+
+  return historicalEarningsByPartner;
+}
