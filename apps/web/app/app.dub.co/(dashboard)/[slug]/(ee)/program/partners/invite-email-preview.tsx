@@ -42,7 +42,7 @@ export function InviteEmailPreview({
   fromAddress: string;
   // Persists the sanitized content; returning false keeps the edit mode open
   onSave: (content: EmailContent) => Promise<boolean> | boolean;
-  onGenerate?: () => Promise<void>;
+  onGenerate?: () => Promise<EmailContent | void> | EmailContent | void;
   onReset?: () => void;
   onEditingChange?: (isEditing: boolean) => void;
   isSaving?: boolean;
@@ -97,7 +97,25 @@ export function InviteEmailPreview({
     }
   };
 
+  const handleResetEmail = () => {
+    onReset?.();
+    setDraftEmailContent(defaultEmailContent);
+    richTextRef.current?.setContent(defaultEmailContent.body);
+  };
+
+  const handleGenerateEmail = async () => {
+    const generatedContent = await onGenerate?.();
+
+    if (!generatedContent) {
+      return;
+    }
+
+    setDraftEmailContent(generatedContent);
+    richTextRef.current?.setContent(generatedContent.body);
+  };
+
   const displayContent = isEditing ? draftEmailContent : emailContent;
+  const showGeneratedActions = showReset && Boolean(onGenerate);
 
   // Update editor content when switching to edit mode
   const prevIsEditing = useRef(isEditing);
@@ -135,31 +153,27 @@ export function InviteEmailPreview({
             </>
           ) : (
             <>
-              {onGenerate && (
+              {showReset && onReset && (
+                <InviteEmailIconButton
+                  icon={<RotateCcw className="size-3.5" />}
+                  label="Reset to the default invite"
+                  tooltip="Reset to the default invite"
+                  onClick={handleResetEmail}
+                  disabled={isGenerating}
+                />
+              )}
+              {onGenerate && !showGeneratedActions && (
                 <Button
                   type="button"
                   variant="secondary"
                   text="Personalize"
                   icon={<Sparkle3 className="size-3.5" />}
                   className="h-7 w-fit rounded-lg px-2.5 text-sm"
-                  onClick={onGenerate}
+                  onClick={handleGenerateEmail}
                   loading={isGenerating}
                   disabled={isGenerating}
                   disabledTooltip={generateDisabledTooltip}
                 />
-              )}
-              {showReset && onReset && (
-                <Tooltip content="Reset to the default invite">
-                  <button
-                    type="button"
-                    aria-label="Reset to the default invite"
-                    className="flex size-7 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
-                    onClick={onReset}
-                    disabled={isGenerating}
-                  >
-                    <RotateCcw className="size-3.5" />
-                  </button>
-                </Tooltip>
               )}
               <Button
                 type="button"
@@ -227,12 +241,43 @@ export function InviteEmailPreview({
               </div>
 
               <div>
-                <label
-                  htmlFor="email-body"
-                  className="block text-sm font-medium text-neutral-900"
-                >
-                  Content
-                </label>
+                <div className="flex items-center justify-between gap-3">
+                  <label
+                    htmlFor="email-body"
+                    className="block text-sm font-medium text-neutral-900"
+                  >
+                    Body
+                  </label>
+
+                  {(showReset || onGenerate) && (
+                    <div className="flex items-center gap-2">
+                      {showReset && onReset && (
+                        <InviteEmailIconButton
+                          icon={<RotateCcw className="size-3.5" />}
+                          label="Reset to the default invite"
+                          tooltip="Reset to the default invite"
+                          onClick={handleResetEmail}
+                          disabled={isGenerating}
+                        />
+                      )}
+                      {onGenerate && (
+                        <InviteEmailIconButton
+                          icon={<Sparkle3 className="size-3.5" />}
+                          label="Personalize invite"
+                          tooltip={
+                            generateDisabledTooltip ||
+                            "Personalize this invite"
+                          }
+                          onClick={handleGenerateEmail}
+                          disabled={
+                            isGenerating || Boolean(generateDisabledTooltip)
+                          }
+                          loading={isGenerating}
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
                 <div className="mt-1.5">
                   <RichTextProvider
                     key="edit-email-body"
@@ -241,7 +286,7 @@ export function InviteEmailPreview({
                     markdown
                     placeholder="Start typing..."
                     initialValue={draftEmailContent.body}
-                    editorClassName="block max-h-48 overflow-auto scrollbar-hide w-full resize-none border-none p-3 text-base sm:text-sm"
+                    editorClassName="min-h-full w-full border-none px-3 pb-3 pt-2 text-base sm:text-sm"
                     onChange={(editor) => {
                       const markdown = (editor as any).getMarkdown() || null;
                       setDraftEmailContent((prev) => ({
@@ -267,12 +312,12 @@ export function InviteEmailPreview({
                   >
                     <div
                       className={cn(
-                        "overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+                        "h-80 min-h-56 max-h-[70vh] resize-y overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
                       )}
                     >
-                      <div className="flex flex-col">
-                        <RichTextArea />
-                        <RichTextToolbar className="px-1 pb-1" />
+                      <div className="flex h-full min-h-0 flex-col">
+                        <RichTextToolbar className="border-b border-neutral-200 px-2 py-1" />
+                        <RichTextArea className="min-h-0 flex-1 overflow-auto scrollbar-hide" />
                       </div>
                     </div>
                   </RichTextProvider>
@@ -323,6 +368,38 @@ export function InviteEmailPreview({
         )}
       </div>
     </div>
+  );
+}
+
+function InviteEmailIconButton({
+  icon,
+  label,
+  tooltip,
+  onClick,
+  disabled,
+  loading,
+}: {
+  icon: ReactNode;
+  label: string;
+  tooltip: string;
+  onClick?: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+}) {
+  return (
+    <Tooltip content={tooltip}>
+      <span className="inline-flex">
+        <button
+          type="button"
+          aria-label={label}
+          className="flex size-7 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-900 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
+          onClick={onClick}
+          disabled={disabled || loading}
+        >
+          {icon}
+        </button>
+      </span>
+    </Tooltip>
   );
 }
 

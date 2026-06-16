@@ -165,6 +165,8 @@ function InviteNetworkPartnerSheetContent({
     mutateWorkspace();
 
     toast.success("Invite personalized.");
+
+    return result.data;
   };
 
   return (
