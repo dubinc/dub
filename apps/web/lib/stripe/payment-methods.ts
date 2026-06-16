@@ -1,4 +1,7 @@
-import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
+import {
+  CARD_PAYOUT_HARD_COST_RATE,
+  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
+} from "@/lib/constants/payouts";
 import { CreditCard, GreekTemple } from "@dub/ui";
 import Stripe from "stripe";
 
@@ -14,7 +17,7 @@ export const calculatePayoutFeeForMethod = ({
   }
 
   if (["link", "card"].includes(paymentMethod)) {
-    return payoutFee + 0.03;
+    return payoutFee + CARD_PAYOUT_HARD_COST_RATE;
   }
 
   if (DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod)) {
