@@ -7,14 +7,6 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace }) => {
     const integrations = await prisma.integration.findMany({
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        verified: true,
-        projectId: true,
-        logo: true,
-      },
       where: {
         installations: {
           some: {
