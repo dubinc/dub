@@ -162,7 +162,7 @@ export const POST = withCron(async ({ rawBody }) => {
     partnerIds: Array.from(uniquePartners),
   });
 
-  const idempotencyKey = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split("T")[0];
   const usedSpendLimitByPartner = new Map<string, number>();
   let commissionsToCreate: Prisma.CommissionCreateManyInput[] = [];
 
@@ -214,7 +214,7 @@ export const POST = withCron(async ({ rawBody }) => {
         type: CommissionType.click,
         amount: 0,
         earnings,
-        invoiceId: `link-${linkId}-${idempotencyKey}`,
+        invoiceId: `link-${linkId}-${today}`,
       };
     })
     .filter((c): c is NonNullable<typeof c> => c !== null);
