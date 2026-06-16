@@ -13,6 +13,7 @@ import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { queueExternalPayouts } from "./queue-external-payouts";
 import { queueStripePayouts } from "./queue-stripe-payouts";
+import { queueTremendousPayouts } from "./queue-tremendous-payouts";
 import { sendPaypalPayouts } from "./send-paypal-payouts";
 import { scheduleDelayedStablecoinPayouts } from "./utils";
 
@@ -143,6 +144,9 @@ export async function POST(req: Request) {
 
             // Send PayPal payouts
             sendPaypalPayouts(invoice),
+
+            // Queue Tremendous payouts
+            queueTremendousPayouts(invoice),
           ]
         : []),
 

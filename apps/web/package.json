@@ -3,7 +3,7 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
-    "dev": "concurrently --kill-others \"pnpm prisma:generate && next dev --turbopack --port 8888\" \"pnpm prisma:generate && pnpm prisma:studio --browser none\"",
+    "dev": "pnpm prisma:generate && concurrently --kill-others \"next dev --turbopack --port 8888\"",
     "build": "pnpm prisma:generate && next build",
     "lint": "next lint",
     "start": "next start",
@@ -133,6 +133,7 @@
     "stripe": "^18.2.0",
     "svix": "^1.76.1",
     "swr": "^2.1.5",
+    "tremendous": "4.12.0",
     "unique-names-generator": "^4.7.1",
     "unsplash-js": "^7.0.18",
     "use-debounce": "^10.0.4",

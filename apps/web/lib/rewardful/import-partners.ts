@@ -6,7 +6,7 @@ import { bulkCreateLinks } from "../api/links";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
 import { RewardfulApi } from "./api";
-import { MAX_BATCHES, rewardfulImporter } from "./importer";
+import { REWARDFUL_MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate, RewardfulImportPayload } from "./types";
 
 export async function importPartners(payload: RewardfulImportPayload) {
@@ -47,7 +47,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
     entity: "partner",
   } as const;
 
-  while (hasMore && processedBatches < MAX_BATCHES) {
+  while (hasMore && processedBatches < REWARDFUL_MAX_BATCHES) {
     const affiliates = await rewardfulApi.listPartners({
       page: currentPage,
     });

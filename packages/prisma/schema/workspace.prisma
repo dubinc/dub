@@ -12,7 +12,7 @@ enum WorkspaceEnvironment {
 }
 
 model Project {
-  id               String  @id @default(cuid())
+  id               String  @id
   name             String
   slug             String  @unique
   logo             String?

@@ -14,7 +14,7 @@ enum PayoutMode {
 }
 
 model Payout {
-  id                  String               @id @default(cuid())
+  id                  String               @id
   programId           String
   partnerId           String
   invoiceId           String?
@@ -30,6 +30,7 @@ model Payout {
   stripeTransferId    String?
   stripePayoutId      String?
   stripePayoutTraceId String?              @db.Text
+  tremendousOrderId   String?
   failureReason       String?              @db.Text
   webhookEventId      String?              @unique // only for external payouts
   createdAt           DateTime             @default(now())
@@ -55,4 +56,5 @@ model Payout {
   @@index(userId)
   @@index(stripePayoutId)
   @@index(stripeTransferId)
+  @@index(tremendousOrderId)
 }

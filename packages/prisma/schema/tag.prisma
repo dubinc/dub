@@ -1,5 +1,5 @@
 model Tag {
-  id        String    @id @default(cuid())
+  id        String    @id
   name      String
   color     String    @default("blue")
   createdAt DateTime  @default(now())
@@ -26,7 +26,7 @@ model LinkTag {
 }
 
 model PartnerTag {
-  id        String   @id @default(cuid())
+  id        String   @id
   programId String?
   name      String
   createdAt DateTime @default(now())

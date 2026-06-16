@@ -25,7 +25,7 @@ enum ProgramPayoutMode {
 }
 
 model Program {
-  id                 String            @id @default(cuid())
+  id                 String            @id
   workspaceId        String
   defaultFolderId    String
   defaultGroupId     String
@@ -47,6 +47,7 @@ model Program {
   termsUrl                String? @db.Text
   helpUrl                 String? @db.Text
   supportEmail            String?
+  tremendousCampaignId    String?
 
   messagingEnabledAt      DateTime?
   partnerNetworkEnabledAt DateTime?
@@ -104,7 +105,7 @@ enum ReapplicationTimeframe {
 }
 
 model ProgramEnrollment {
-  id               String                  @id @default(cuid())
+  id               String                  @id
   partnerId        String
   programId        String
   tenantId         String?
@@ -144,6 +145,7 @@ model ProgramEnrollment {
   bannedAt                     DateTime?
   bannedReason                 PartnerBannedReason?
   reapplicationTimeframe       ReapplicationTimeframe @default(standard)
+  riskMonitoringDisabledAt     DateTime?
 
   partner            Partner                  @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program            Program                  @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)

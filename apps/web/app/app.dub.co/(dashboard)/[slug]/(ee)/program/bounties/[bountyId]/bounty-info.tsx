@@ -66,15 +66,17 @@ export function BountyInfo() {
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
       <div className="relative flex h-[100px] w-full items-center justify-center rounded-lg bg-neutral-100 p-4 sm:h-[128px] sm:w-[100px] sm:shrink-0">
         <BountyThumbnailImage bounty={bounty} />
-        <div className="absolute right-2 top-2 sm:hidden">
-          <BountyActionButton bounty={bounty} />
-        </div>
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <h3 className="break-words text-base font-semibold leading-6 text-neutral-900 sm:truncate">
-          {bounty.name}
-        </h3>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="break-words text-base font-semibold leading-6 text-neutral-900 sm:truncate">
+            {bounty.name}
+          </h3>
+          <div className="shrink-0 sm:hidden">
+            <BountyActionButton bounty={bounty} />
+          </div>
+        </div>
 
         <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
           <Calendar6 className="size-4 shrink-0" />
@@ -186,7 +188,13 @@ function BountyInfoSkeleton() {
     <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start sm:gap-6">
       <div className="relative flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg bg-neutral-100 p-3 sm:h-[128px]" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <div className="h-6 w-48 animate-pulse rounded-md bg-neutral-200" />
+        <div className="flex items-start justify-between gap-3">
+          <div className="h-6 w-48 animate-pulse rounded-md bg-neutral-200" />
+          <div className="flex shrink-0 items-start gap-2 sm:hidden">
+            <div className="h-9 w-16 animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-9 w-9 animate-pulse rounded-md bg-neutral-200" />
+          </div>
+        </div>
         <div className="flex items-center space-x-2">
           <div className="size-4 animate-pulse rounded bg-neutral-200" />
           <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
@@ -200,8 +208,9 @@ function BountyInfoSkeleton() {
           <div className="h-5 w-40 animate-pulse rounded bg-neutral-200" />
         </div>
       </div>
-      <div className="flex items-start">
-        <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
+      <div className="hidden items-start gap-2 sm:flex">
+        <div className="h-9 w-16 animate-pulse rounded-md bg-neutral-200" />
+        <div className="h-9 w-9 animate-pulse rounded-md bg-neutral-200" />
       </div>
     </div>
   );

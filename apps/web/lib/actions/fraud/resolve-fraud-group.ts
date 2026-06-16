@@ -12,7 +12,7 @@ export const resolveFraudGroupAction = authActionClient
   .inputSchema(resolveFraudGroupSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
-    const { groupId, resolutionReason } = parsedInput;
+    const { groupId, resolutionReason, disableRiskDetection } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -60,6 +60,20 @@ export const resolveFraudGroupAction = authActionClient
           partnerId: fraudGroup.partnerId,
           userId: user.id,
           text: resolutionReason,
+        },
+      });
+    }
+
+    if (disableRiskDetection) {
+      await prisma.programEnrollment.update({
+        where: {
+          partnerId_programId: {
+            partnerId: fraudGroup.partnerId,
+            programId,
+          },
+        },
+        data: {
+          riskMonitoringDisabledAt: new Date(),
         },
       });
     }
