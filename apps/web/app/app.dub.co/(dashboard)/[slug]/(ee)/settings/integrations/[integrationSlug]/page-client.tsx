@@ -13,8 +13,8 @@ import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
-import { IntegrationStatusBadge } from "@/ui/integrations/integration-status-badge";
 import { IntegrationLogo } from "@/ui/integrations/integration-logo";
+import { IntegrationStatusBadge } from "@/ui/integrations/integration-status-badge";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
 import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
 import { Markdown } from "@/ui/shared/markdown";
@@ -32,7 +32,6 @@ import {
   Logo,
   MaxWidthWrapper,
   Popover,
-  Tooltip,
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
