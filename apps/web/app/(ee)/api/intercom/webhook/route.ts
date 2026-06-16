@@ -6,7 +6,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { logAndRespond } from "../../cron/utils";
 import { verifyWebhookSignature } from "./verify-webhook";
 
-const relevantTopics = new Set(["conversation.admin.replied"]);
+const relevantTopics = new Set(["conversation.admin.replied", "ping"]);
 
 // POST /api/intercom/webhook – listen to webhook events from Intercom
 export const POST = withAxiom(async (req) => {
@@ -18,6 +18,10 @@ export const POST = withAxiom(async (req) => {
 
     if (!relevantTopics.has(topic)) {
       return logAndRespond(`[Intercom] Unsupported topic: ${topic}.`);
+    }
+
+    if (topic === "ping") {
+      return logAndRespond("Received ping event. No action required.");
     }
 
     const qstashResponse = await enqueueBatchJobs([
