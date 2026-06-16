@@ -9,10 +9,11 @@ import { conn } from "@/lib/planetscale";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { sendBatchEmail } from "@dub/email";
+import { sendBatchEmail, sendEmail } from "@dub/email";
+import PartnerAccountMergeFailed from "@dub/email/templates/partner-account-merge-failed";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType, Prisma, ProgramEnrollment } from "@dub/prisma/client";
 import { log, prettyPrint, R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 
@@ -26,10 +27,145 @@ const schema = z.object({
 
 const CACHE_KEY_PREFIX = "merge-partner-accounts";
 
+async function transferPartnerProgramData(
+  tx: Prisma.TransactionClient,
+  {
+    sourcePartnerId,
+    targetPartnerId,
+    programId,
+  }: {
+    sourcePartnerId: string;
+    targetPartnerId: string;
+    programId: string;
+  },
+) {
+  const payload = {
+    where: {
+      programId,
+      partnerId: sourcePartnerId,
+    },
+    data: {
+      partnerId: targetPartnerId,
+    },
+  };
+
+  await Promise.all([
+    tx.link.updateMany(payload),
+    tx.customer.updateMany(payload),
+    tx.commission.updateMany(payload),
+    tx.payout.updateMany(payload),
+    tx.discountCode.updateMany(payload),
+    tx.notificationEmail.updateMany(payload),
+    tx.message.updateMany(payload),
+    tx.partnerComment.updateMany(payload),
+  ]);
+}
+
+async function mergeOverlappingProgramEnrollment(
+  tx: Prisma.TransactionClient,
+  {
+    sourceEnrollment,
+    targetEnrollment,
+    mergeSourcePartnerId,
+    mergeTargetPartnerId,
+  }: {
+    sourceEnrollment: ProgramEnrollment;
+    targetEnrollment: ProgramEnrollment;
+    mergeSourcePartnerId: string;
+    mergeTargetPartnerId: string;
+  },
+) {
+  await transferPartnerProgramData(tx, {
+    sourcePartnerId: mergeSourcePartnerId,
+    targetPartnerId: mergeTargetPartnerId,
+    programId: sourceEnrollment.programId,
+  });
+
+  if (
+    sourceEnrollment.status === "approved" &&
+    ["pending", "invited"].includes(targetEnrollment.status)
+  ) {
+    await tx.programEnrollment.update({
+      where: {
+        partnerId_programId: {
+          partnerId: mergeTargetPartnerId,
+          programId: sourceEnrollment.programId,
+        },
+      },
+      data: { status: "approved" },
+    });
+  }
+
+  if (sourceEnrollment.applicationId) {
+    await tx.programEnrollment.update({
+      where: { id: sourceEnrollment.id },
+      data: { applicationId: null },
+    });
+  }
+
+  await tx.programEnrollment.delete({
+    where: { id: sourceEnrollment.id },
+  });
+
+  const tenantIdToCopy = targetEnrollment.tenantId ?? sourceEnrollment.tenantId;
+
+  if (tenantIdToCopy && tenantIdToCopy !== targetEnrollment.tenantId) {
+    const existingTenantEnrollment = await tx.programEnrollment.findUnique({
+      where: {
+        tenantId_programId: {
+          tenantId: tenantIdToCopy,
+          programId: sourceEnrollment.programId,
+        },
+      },
+    });
+
+    if (!existingTenantEnrollment) {
+      await tx.programEnrollment.update({
+        where: {
+          partnerId_programId: {
+            partnerId: mergeTargetPartnerId,
+            programId: sourceEnrollment.programId,
+          },
+        },
+        data: { tenantId: tenantIdToCopy },
+      });
+    }
+  }
+}
+
+async function transferProgramEnrollment(
+  tx: Prisma.TransactionClient,
+  {
+    sourceEnrollment,
+    mergeSourcePartnerId,
+    mergeTargetPartnerId,
+  }: {
+    sourceEnrollment: ProgramEnrollment;
+    mergeSourcePartnerId: string;
+    mergeTargetPartnerId: string;
+  },
+) {
+  await tx.programEnrollment.update({
+    where: { id: sourceEnrollment.id },
+    data: { partnerId: mergeTargetPartnerId },
+  });
+
+  await transferPartnerProgramData(tx, {
+    sourcePartnerId: mergeSourcePartnerId,
+    targetPartnerId: mergeTargetPartnerId,
+    programId: sourceEnrollment.programId,
+  });
+}
+
 // POST /api/cron/partners/merge-accounts
 // This route is used to merge a partner account into another account
 export async function POST(req: Request) {
   let userId: string | null = null;
+  let sourceEmail: string | null = null;
+  let targetEmail: string | null = null;
+  let sourcePartnerId: string | null = null;
+  let targetPartnerId: string | null = null;
+  let mergedProgramIds: string[] = [];
 
   try {
     const rawBody = await req.text();
@@ -41,11 +177,13 @@ export async function POST(req: Request) {
 
     const {
       userId: parsedUserId,
-      sourceEmail,
-      targetEmail,
+      sourceEmail: parsedSourceEmail,
+      targetEmail: parsedTargetEmail,
     } = schema.parse(JSON.parse(rawBody));
 
     userId = parsedUserId;
+    sourceEmail = parsedSourceEmail;
+    targetEmail = parsedTargetEmail;
 
     console.log({
       userId,
@@ -63,13 +201,6 @@ export async function POST(req: Request) {
         id: true,
         email: true,
         image: true,
-        programs: {
-          select: {
-            programId: true,
-            tenantId: true,
-            status: true,
-          },
-        },
         users: {
           select: {
             userId: true,
@@ -84,11 +215,11 @@ export async function POST(req: Request) {
     }
 
     const sourceAccount = partnerAccounts.find(
-      ({ email }) => email?.toLowerCase() === sourceEmail.toLowerCase(),
+      ({ email }) => email?.toLowerCase() === sourceEmail!.toLowerCase(),
     );
 
     const targetAccount = partnerAccounts.find(
-      ({ email }) => email?.toLowerCase() === targetEmail.toLowerCase(),
+      ({ email }) => email?.toLowerCase() === targetEmail!.toLowerCase(),
     );
 
     if (!sourceAccount) {
@@ -109,93 +240,90 @@ export async function POST(req: Request) {
       );
     }
 
-    const {
-      id: sourcePartnerId,
-      users: sourcePartnerUsers,
-      programs: sourcePartnerEnrollments,
-    } = sourceAccount;
+    const mergeSourcePartnerId = sourceAccount.id;
+    const mergeTargetPartnerId = targetAccount.id;
+    sourcePartnerId = mergeSourcePartnerId;
+    targetPartnerId = mergeTargetPartnerId;
 
-    const { id: targetPartnerId, programs: targetPartnerEnrollments } =
-      targetAccount;
+    const { users: sourcePartnerUsers } = sourceAccount;
 
-    // Find new enrollments that are not in the target partner enrollments
-    const newEnrollments = sourcePartnerEnrollments.filter(
-      ({ programId }) =>
-        !targetPartnerEnrollments.some(
-          ({ programId: targetProgramId }) => programId === targetProgramId,
-        ),
+    const [sourceEnrollments, targetEnrollments] = await Promise.all([
+      prisma.programEnrollment.findMany({
+        where: { partnerId: mergeSourcePartnerId },
+      }),
+      prisma.programEnrollment.findMany({
+        where: { partnerId: mergeTargetPartnerId },
+      }),
+    ]);
+
+    const targetEnrollmentByProgramId = new Map(
+      targetEnrollments.map((enrollment) => [enrollment.programId, enrollment]),
     );
 
-    // Update program enrollments
-    if (newEnrollments.length > 0) {
-      await prisma.programEnrollment.updateMany({
-        where: {
-          programId: {
-            in: newEnrollments.map(({ programId }) => programId),
+    const overlappingEnrollments = sourceEnrollments.filter((enrollment) =>
+      targetEnrollmentByProgramId.has(enrollment.programId),
+    );
+
+    const transferEnrollments = sourceEnrollments.filter(
+      (enrollment) => !targetEnrollmentByProgramId.has(enrollment.programId),
+    );
+
+    // Overlaps first, then transfers. Re-check target enrollment inside each
+    // transaction so a stale read cannot trigger [partnerId, programId] errors.
+    for (const sourceEnrollment of [
+      ...overlappingEnrollments,
+      ...transferEnrollments,
+    ]) {
+      let mergedAsOverlap = false;
+
+      await prisma.$transaction(async (tx) => {
+        const targetEnrollment = await tx.programEnrollment.findUnique({
+          where: {
+            partnerId_programId: {
+              partnerId: mergeTargetPartnerId,
+              programId: sourceEnrollment.programId,
+            },
           },
-          partnerId: sourcePartnerId,
-        },
-        data: {
-          partnerId: targetPartnerId,
-        },
+        });
+
+        if (targetEnrollment) {
+          mergedAsOverlap = true;
+          await mergeOverlappingProgramEnrollment(tx, {
+            sourceEnrollment,
+            targetEnrollment,
+            mergeSourcePartnerId,
+            mergeTargetPartnerId,
+          });
+          return;
+        }
+
+        await transferProgramEnrollment(tx, {
+          sourceEnrollment,
+          mergeSourcePartnerId,
+          mergeTargetPartnerId,
+        });
       });
+
+      mergedProgramIds.push(sourceEnrollment.programId);
+
+      console.log(
+        mergedAsOverlap
+          ? `Merged overlapping enrollment for program ${sourceEnrollment.programId}`
+          : `Transferred enrollment for program ${sourceEnrollment.programId}`,
+      );
     }
 
-    const programIdsToTransfer = sourcePartnerEnrollments.map(
+    const programIdsToTransfer = sourceEnrollments.map(
       ({ programId }) => programId,
     );
 
-    const updateManyPayload = {
-      where: {
-        programId: {
-          in: programIdsToTransfer,
-        },
-        partnerId: sourcePartnerId,
-      },
-      data: {
-        partnerId: targetPartnerId,
-      },
-    };
-
-    // update links, commissions, bounty submissions, and payouts
     if (programIdsToTransfer.length > 0) {
-      const [
-        updatedLinksRes,
-        updatedCustomersRes,
-        updatedCommissionsRes,
-        updatedPayoutsRes,
-      ] = await Promise.all([
-        prisma.link.updateMany(updateManyPayload),
-        prisma.customer.updateMany(updateManyPayload),
-        prisma.commission.updateMany(updateManyPayload),
-        prisma.payout.updateMany(updateManyPayload),
-      ]);
-      console.log(
-        `Updated ${updatedLinksRes.count} links, ${updatedCustomersRes.count} customers, ${updatedCommissionsRes.count} commissions, and ${updatedPayoutsRes.count} payouts`,
-      );
-
-      // update discount codes, notification emails, messages, and partner comments
-      const [
-        updatedDiscountCodesRes,
-        updatedNotificationEmailsRes,
-        updatedMessagesRes,
-        updatedPartnerCommentsRes,
-      ] = await Promise.all([
-        prisma.discountCode.updateMany(updateManyPayload),
-        prisma.notificationEmail.updateMany(updateManyPayload),
-        prisma.message.updateMany(updateManyPayload),
-        prisma.partnerComment.updateMany(updateManyPayload),
-      ]);
-      console.log(
-        `Updated ${updatedDiscountCodesRes.count} discount codes, ${updatedNotificationEmailsRes.count} notification emails, ${updatedMessagesRes.count} messages, and ${updatedPartnerCommentsRes.count} partner comments`,
-      );
-
       const updatedLinks = await prisma.link.findMany({
         where: {
           programId: {
             in: programIdsToTransfer,
           },
-          partnerId: targetPartnerId,
+          partnerId: mergeTargetPartnerId,
         },
         include: {
           ...includeTags,
@@ -208,7 +336,7 @@ export async function POST(req: Request) {
         by: ["bountyId"],
         where: {
           partnerId: {
-            in: [sourcePartnerId, targetPartnerId],
+            in: [mergeSourcePartnerId, mergeTargetPartnerId],
           },
         },
         _count: {
@@ -224,10 +352,10 @@ export async function POST(req: Request) {
           await prisma.bountySubmission.updateMany({
             where: {
               bountyId: { in: bountiesToTransfer },
-              partnerId: sourcePartnerId,
+              partnerId: mergeSourcePartnerId,
             },
             data: {
-              partnerId: targetPartnerId,
+              partnerId: mergeTargetPartnerId,
             },
           });
         console.log(
@@ -243,7 +371,7 @@ export async function POST(req: Request) {
         // Sync total commissions for the target partner in each program
         ...programIdsToTransfer.map((programId) =>
           syncTotalCommissions({
-            partnerId: targetPartnerId,
+            partnerId: mergeTargetPartnerId,
             programId,
           }),
         ),
@@ -251,71 +379,11 @@ export async function POST(req: Request) {
       console.log(prettyPrint(res));
     }
 
-    const existingEnrollments = sourcePartnerEnrollments.filter(
-      ({ programId }) =>
-        targetPartnerEnrollments.some(
-          ({ programId: targetProgramId }) => programId === targetProgramId,
-        ),
-    );
-
-    if (existingEnrollments.length > 0) {
-      for (const sourceEnrollment of existingEnrollments) {
-        const targetEnrollment = targetPartnerEnrollments.find(
-          ({ programId }) => programId === sourceEnrollment.programId,
-        );
-
-        await prisma.$transaction(async (tx) => {
-          if (
-            targetEnrollment &&
-            sourceEnrollment.status === "approved" &&
-            ["pending", "invited"].includes(targetEnrollment.status)
-          ) {
-            await tx.programEnrollment.update({
-              where: {
-                partnerId_programId: {
-                  partnerId: targetPartnerId,
-                  programId: sourceEnrollment.programId,
-                },
-              },
-              data: { status: "approved" },
-            });
-          }
-
-          await tx.programEnrollment.delete({
-            where: {
-              partnerId_programId: {
-                partnerId: sourcePartnerId,
-                programId: sourceEnrollment.programId,
-              },
-            },
-          });
-
-          // update target enrollment with source enrollment's tenantId if target enrollment does not have a tenantId
-          if (sourceEnrollment.tenantId && !targetEnrollment?.tenantId) {
-            await tx.programEnrollment.update({
-              where: {
-                partnerId_programId: {
-                  partnerId: targetPartnerId,
-                  programId: sourceEnrollment.programId,
-                },
-              },
-              data: {
-                tenantId: sourceEnrollment.tenantId,
-              },
-            });
-          }
-        });
-        console.log(
-          `Deleted old source enrollment for program ${sourceEnrollment.programId}.${sourceEnrollment.tenantId ? ` Since there was a tenantId, we updated the target enrollment with the same tenantId: ${sourceEnrollment.tenantId}` : ""}`,
-        );
-      }
-    }
-
     // If source account has rewind, need to delete and recalculate for the target account
     if (sourceAccount.partnerRewinds.length > 0) {
       const deletedRewinds = await prisma.partnerRewind.deleteMany({
         where: {
-          partnerId: sourcePartnerId,
+          partnerId: mergeSourcePartnerId,
         },
       });
       console.log(`Deleted ${deletedRewinds.count} partner rewinds`);
@@ -361,7 +429,7 @@ export async function POST(req: Request) {
 
     const fraudEventsToDelete = await prisma.fraudEvent.findMany({
       where: {
-        partnerId: sourcePartnerId,
+        partnerId: mergeSourcePartnerId,
         fraudEventGroup: {
           type: FraudRuleType.partnerDuplicateAccount,
         },
@@ -398,7 +466,7 @@ export async function POST(req: Request) {
       where: {
         OR: [
           {
-            partnerId: sourcePartnerId,
+            partnerId: mergeSourcePartnerId,
           },
           ...(fraudEventGroupsToResolve.length > 0
             ? [
@@ -420,7 +488,9 @@ export async function POST(req: Request) {
 
     try {
       // Finally, delete the partner account
-      await conn.execute(`DELETE FROM Partner WHERE id = ?`, [sourcePartnerId]);
+      await conn.execute(`DELETE FROM Partner WHERE id = ?`, [
+        mergeSourcePartnerId,
+      ]);
       console.log(
         `Deleted partner ${sourceAccount.email} (${sourceAccount.id})`,
       );
@@ -432,7 +502,7 @@ export async function POST(req: Request) {
       }
     } catch (error) {
       console.error(
-        `Error deleting partner ${sourcePartnerId}: ${error.message}`,
+        `Error deleting partner ${mergeSourcePartnerId}: ${error.message}`,
       );
     }
 
@@ -476,10 +546,31 @@ export async function POST(req: Request) {
       await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
     }
 
+    const partialMergeNote =
+      mergedProgramIds.length > 0
+        ? ` Partial merge: ${mergedProgramIds.length} program(s) already merged (${mergedProgramIds.join(", ")}). Manual cleanup may be required.`
+        : "";
+
     await log({
-      message: `Error merging partner accounts: ${error.message}`,
+      message: `Error merging partner accounts: userId=${userId}, sourcePartnerId=${sourcePartnerId}, targetPartnerId=${targetPartnerId}, error=${error.message}.${partialMergeNote}`,
       type: "alerts",
+      mention: true,
     });
+
+    if (targetEmail) {
+      try {
+        await sendEmail({
+          variant: "notifications",
+          to: targetEmail,
+          subject: "We couldn't merge your Dub partner accounts",
+          react: PartnerAccountMergeFailed({ email: targetEmail }),
+        });
+      } catch (emailError) {
+        console.error(
+          `Error sending merge failure email: ${emailError.message}`,
+        );
+      }
+    }
 
     return handleAndReturnErrorResponse(error);
   }
