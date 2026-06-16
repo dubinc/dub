@@ -24,20 +24,20 @@ export const GET = withCron(async () => {
   });
 
   if (clickRewards.length === 0) {
-    return logAndRespond("No click rewards found.");
+    return logAndRespond("No click rewards found. Skipping...");
   }
 
   const now = new Date();
 
   // set 'start' to the beginning of the previous day (00:00:00)
-  const start = new Date(now);
-  start.setDate(start.getDate() - 1);
-  start.setHours(0, 0, 0, 0);
+  const startDate = new Date(now);
+  startDate.setDate(startDate.getDate() - 1);
+  startDate.setHours(0, 0, 0, 0);
 
   // set 'end' to the end of the previous day (23:59:59)
-  const end = new Date(now);
-  end.setDate(end.getDate() - 1);
-  end.setHours(23, 59, 59, 999);
+  const endDate = new Date(now);
+  endDate.setDate(endDate.getDate() - 1);
+  endDate.setHours(23, 59, 59, 999);
 
   for (const clickRewardsChunk of chunk(clickRewards, 50)) {
     await enqueueBatchJobs(
@@ -47,8 +47,8 @@ export const GET = withCron(async () => {
         deduplicationId: `aggregate-clicks-${clickReward.id}`,
         body: {
           clickRewardId: clickReward.id,
-          start,
-          end,
+          startDate,
+          endDate,
         },
       })),
     );

@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getSpendLimitWindow } from "@/lib/api/rewards/clamp-earnings-to-spend-limit";
-import { qstash } from "@/lib/cron";
+import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { getTopLinksByCountries } from "@/lib/tinybird/get-top-links-by-countries";
@@ -36,10 +36,10 @@ type LinkEarnings = {
 };
 
 // POST /api/cron/aggregate-clicks/process
+// Process a batch of links for a given click reward
 export const POST = withCron(async ({ rawBody }) => {
-  const input = inputSchema.parse(JSON.parse(rawBody));
-
-  const { clickRewardId, startDate, endDate, startingAfter } = input;
+  const { clickRewardId, startDate, endDate, startingAfter } =
+    inputSchema.parse(JSON.parse(rawBody));
 
   const clickReward = await prisma.reward.findUnique({
     where: {
@@ -77,11 +77,6 @@ export const POST = withCron(async ({ rawBody }) => {
       shortLink: true,
       programId: true,
       partnerId: true,
-      programEnrollment: {
-        select: {
-          clickReward: true,
-        },
-      },
     },
     ...(startingAfter && {
       skip: 1,
@@ -123,14 +118,8 @@ export const POST = withCron(async ({ rawBody }) => {
   // Calculate earnings per link considering geo CPC
   const linkEarningsMap = new Map<string, LinkEarnings>();
 
-  for (const {
-    id: linkId,
-    shortLink,
-    programId,
-    partnerId,
-    programEnrollment,
-  } of links) {
-    if (!programEnrollment?.clickReward || !programId || !partnerId) {
+  for (const { id: linkId, shortLink, programId, partnerId } of links) {
+    if (!programId || !partnerId) {
       console.log(`No click reward for link ${linkId}.`);
       continue;
     }
@@ -139,8 +128,8 @@ export const POST = withCron(async ({ rawBody }) => {
 
     // Calculate earnings per country for each link
     for (const { country, clicks } of linkClicksByCountry) {
-      const reward = resolveClickReward({
-        reward: programEnrollment.clickReward,
+      const finalReward = resolveClickReward({
+        reward: clickReward,
         country,
       });
 
@@ -149,7 +138,7 @@ export const POST = withCron(async ({ rawBody }) => {
         earnings: 0,
       };
 
-      const amountInCents = getRewardAmount(serializeReward(reward));
+      const amountInCents = getRewardAmount(serializeReward(finalReward));
 
       linkEarningsMap.set(linkId, {
         clicks: existing.clicks + clicks,
@@ -157,7 +146,7 @@ export const POST = withCron(async ({ rawBody }) => {
         partnerId,
       });
 
-      if (programEnrollment.clickReward.modifiers) {
+      if (clickReward.modifiers) {
         console.log(
           `Earnings for link ${getPrettyUrl(shortLink)} for ${country}: ${currencyFormatter(amountInCents)} * ${clicks} = ${currencyFormatter(
             amountInCents * clicks,
@@ -177,18 +166,18 @@ export const POST = withCron(async ({ rawBody }) => {
     partnerIds: Array.from(uniquePartners),
   });
 
-  const usedSpendLimitByPartner = new Map<string, number>();
   const idempotencyKey = new Date().toISOString().split("T")[0];
+  const usedSpendLimitByPartner = new Map<string, number>();
   let commissionsToCreate: Prisma.CommissionCreateManyInput[] = [];
 
   // Create commissions for each link
   commissionsToCreate = links
-    .map(({ id, programId, partnerId, programEnrollment }) => {
-      if (!programId || !partnerId || !programEnrollment?.clickReward) {
+    .map(({ id: linkId, programId, partnerId }) => {
+      if (!programId || !partnerId) {
         return null;
       }
 
-      const linkEarnings = linkEarningsMap.get(id);
+      const linkEarnings = linkEarningsMap.get(linkId);
 
       if (!linkEarnings) {
         return null;
@@ -223,12 +212,12 @@ export const POST = withCron(async ({ rawBody }) => {
         programId,
         partnerId,
         rewardId: clickReward.id,
-        linkId: id,
+        linkId,
         quantity: clicks,
         type: CommissionType.click,
         amount: 0,
         earnings,
-        invoiceId: `link-${id}-${idempotencyKey}`,
+        invoiceId: `link-${linkId}-${idempotencyKey}`,
       };
     })
     .filter((c): c is NonNullable<typeof c> => c !== null);
@@ -256,14 +245,18 @@ export const POST = withCron(async ({ rawBody }) => {
   if (links.length === BATCH_SIZE) {
     const nextStartingAfter = links[links.length - 1].id;
 
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/aggregate-clicks/process`,
-      method: "POST",
-      body: {
-        ...input,
-        startingAfter: nextStartingAfter,
+    await enqueueBatchJobs([
+      {
+        queueName: "aggregate-clicks",
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/aggregate-clicks/process`,
+        body: {
+          clickRewardId: clickReward.id,
+          startDate,
+          endDate,
+          startingAfter: nextStartingAfter,
+        },
       },
-    });
+    ]);
 
     return logAndRespond(
       `Enqueued next batch for aggregate clicks cron (startingAfter: ${nextStartingAfter}).`,
