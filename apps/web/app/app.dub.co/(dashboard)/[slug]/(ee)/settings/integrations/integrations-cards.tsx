@@ -18,6 +18,7 @@ const CATEGORY_ORDER = [
   "Productivity",
   "CMS",
   "Miscellaneous",
+  "Communication",
 ] as const;
 
 const PRESENCE_ANIMATION = {
