@@ -1,19 +1,19 @@
-"use client";
-
+import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { NetworkProgramProps } from "@/lib/types";
+import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
 import { ProgramCategory } from "@/ui/program-marketplace/program-category";
-import { ProgramRewardsDisplay } from "@/ui/program-marketplace/program-rewards-display";
-import {
-  getMarketplaceAllHref,
-  getMarketplaceCategoryHref,
-  getMarketplaceProgramHref,
-} from "@/ui/program-marketplace/utils/urls";
-import { Tooltip } from "@dub/ui";
+import { getMarketplaceProgramHref } from "@/ui/program-marketplace/utils/urls";
+import { Gift, type Icon } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ProgramStatusBadge } from "./program-status-badge";
 
+// Non-interactive, server-renderable card. The whole card is a single <Link>;
+// the category/reward/`+N` are plain, non-interactive labels. Do NOT add nested
+// links/buttons/Radix triggers inside the card — interactive content inside an
+// <a> is invalid HTML and breaks server rendering (the browser reparents it).
 export function MarketplaceProgramCard({
   program,
   showStatus = true,
@@ -23,7 +23,9 @@ export function MarketplaceProgramCard({
   showStatus?: boolean;
   className?: string;
 }) {
-  const router = useRouter();
+  const hiddenCategoryLabels = program.categories
+    .slice(1)
+    .map(getProgramCategoryLabel);
 
   return (
     <Link
@@ -59,19 +61,7 @@ export function MarketplaceProgramCard({
               <span className="text-content-muted block text-xs font-medium">
                 Rewards
               </span>
-              <ProgramRewardsDisplay
-                rewards={program.rewards}
-                discount={program.discount}
-                onRewardClick={(reward) =>
-                  router.push(
-                    getMarketplaceAllHref({ rewardType: reward.event }),
-                  )
-                }
-                onDiscountClick={() =>
-                  router.push(getMarketplaceAllHref({ rewardType: "discount" }))
-                }
-                className="mt-2"
-              />
+              <MarketplaceProgramCardRewards program={program} />
             </div>
           )}
           {Boolean(program.categories.length) && (
@@ -80,37 +70,17 @@ export function MarketplaceProgramCard({
                 Category
               </span>
               <div className="mt-2 flex items-center gap-1.5">
-                {program.categories
-                  .slice(0, 1)
-                  ?.map((category) => (
-                    <ProgramCategory
-                      key={category}
-                      category={category}
-                      onClick={() =>
-                        router.push(getMarketplaceCategoryHref(category))
-                      }
-                    />
-                  ))}
+                <ProgramCategory
+                  category={program.categories[0]}
+                  variant="default"
+                />
                 {program.categories.length > 1 && (
-                  <Tooltip
-                    content={
-                      <div className="flex flex-col gap-0.5 p-2">
-                        {program.categories.slice(1).map((category) => (
-                          <ProgramCategory
-                            key={category}
-                            category={category}
-                            onClick={() =>
-                              router.push(getMarketplaceCategoryHref(category))
-                            }
-                          />
-                        ))}
-                      </div>
-                    }
+                  <div
+                    className="text-content-subtle -ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium"
+                    title={hiddenCategoryLabels.join(", ")}
                   >
-                    <div className="text-content-subtle -ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium">
-                      +{program.categories.length - 1}
-                    </div>
-                  </Tooltip>
+                    +{program.categories.length - 1}
+                  </div>
                 )}
               </div>
             </div>
@@ -118,6 +88,80 @@ export function MarketplaceProgramCard({
         </div>
       </div>
     </Link>
+  );
+}
+
+function getProgramCategoryLabel(
+  category: NetworkProgramProps["categories"][number],
+) {
+  return (
+    PROGRAM_CATEGORIES_MAP[category]?.label ?? category.replaceAll("_", " ")
+  );
+}
+
+// Mirrors ProgramRewardsDisplay's resting appearance (reward icon + truncated
+// description) but without the Radix HoverCard trigger, so it's a valid,
+// non-interactive descendant of the card's <a>.
+function MarketplaceProgramCardRewards({
+  program,
+}: {
+  program: NetworkProgramProps;
+}) {
+  const items: { id: string; icon: Icon; description: string }[] = [];
+
+  program.rewards?.forEach((reward) => {
+    items.push({
+      id: reward.id,
+      icon: REWARD_EVENT_ICON[reward.event],
+      description: formatRewardDescription(reward, {
+        includeEarnPrefix: false,
+      }),
+    });
+  });
+
+  if (program.discount) {
+    items.push({
+      id: "discount",
+      icon: Gift,
+      description: formatDiscountDescription(program.discount),
+    });
+  }
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  if (items.length === 1) {
+    const item = items[0];
+    const RewardIcon = item.icon;
+
+    return (
+      <div className="-ml-1 mt-2 flex items-center gap-1 pr-1">
+        <div className="text-content-default flex size-6 items-center justify-center rounded-md">
+          <RewardIcon className="size-4" />
+        </div>
+        <span className="text-content-default max-w-[120px] truncate text-sm font-medium sm:max-w-[160px]">
+          {item.description}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="-ml-1 mt-2 flex min-h-6 items-center gap-1.5">
+      {items.map((item) => {
+        const RewardIcon = item.icon;
+
+        return (
+          <div
+            key={item.id}
+            className="text-content-default flex size-6 items-center justify-center rounded-md"
+          >
+            <RewardIcon className="size-4" />
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

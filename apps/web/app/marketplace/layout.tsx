@@ -1,4 +1,5 @@
 import { MarketplaceExternalHeader } from "@/ui/program-marketplace/external/marketplace-external-header";
+import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { Footer } from "@dub/ui";
 import { PropsWithChildren } from "react";
 
@@ -7,6 +8,15 @@ export default function MarketplaceExternalLayout({
 }: PropsWithChildren) {
   return (
     <div className="flex min-h-screen flex-col bg-white">
+      <DubAnalytics
+        apiHost="/_proxy/dub"
+        cookieOptions={{
+          domain: process.env.VERCEL === "1" ? ".dub.co" : "localhost",
+        }}
+        domainsConfig={{
+          refer: "refer.dub.co",
+        }}
+      />
       <MarketplaceExternalHeader />
       <div className="relative flex flex-1 flex-col">
         <MarketplaceExternalGridLines />

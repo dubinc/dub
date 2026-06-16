@@ -18,7 +18,7 @@ export function parsePublicMarketplaceQuery(
     sortOrder: pickString(searchParams.sortOrder),
     page: pickString(searchParams.page),
     pageSize: EXTERNAL_MARKETPLACE_PAGE_SIZE,
-    ...(fixedCategory ? { category: fixedCategory } : {}),
+    category: fixedCategory ?? pickString(searchParams.category),
   };
 
   const parsed = getPublicNetworkProgramsQuerySchema.safeParse(input);

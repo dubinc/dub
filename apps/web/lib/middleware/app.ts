@@ -27,8 +27,9 @@ export async function AppMiddleware(req: NextRequest) {
     );
   }
 
+  // Keep app.dub.co/marketplace public and let it resolve the top-level marketplace route.
   if (path === "/marketplace" || path.startsWith("/marketplace/")) {
-    return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
+    return NextResponse.next();
   }
 
   const user = await getUserViaToken(req);
