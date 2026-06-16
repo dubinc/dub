@@ -12,6 +12,4 @@ export default async function ProgramCustomerPage({
   }
 
   redirect(`/${slug}/program/customers/${customerId}/sales`);
-
-  return null;
 }

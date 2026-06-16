@@ -82,11 +82,7 @@ export function IntegrationsCards({
                 </h2>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {groupedIntegrations[category]!.map((integration) => (
-                    <IntegrationCard
-                      key={integration.id}
-                      {...integration}
-                      installations={integration._count.installations}
-                    />
+                    <IntegrationCard key={integration.id} {...integration} />
                   ))}
                 </div>
               </div>
