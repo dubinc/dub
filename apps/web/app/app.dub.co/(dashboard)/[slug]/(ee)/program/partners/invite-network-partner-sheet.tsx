@@ -62,9 +62,6 @@ function InviteNetworkPartnerSheetContent({
   const [emailContent, setEmailContent] = useState<EmailContent | null>(
     initialEmailContent ?? null,
   );
-  const [showResetEmail, setShowResetEmail] = useState(
-    Boolean(initialEmailContent),
-  );
 
   const {
     register,
@@ -137,14 +134,12 @@ function InviteNetworkPartnerSheetContent({
   // to the parent) instead of being persisted to the server
   const handleSaveEmail = (content: EmailContent) => {
     setEmailContent(content);
-    setShowResetEmail(true);
     onEmailContentChange?.(content);
     return true;
   };
 
   const handleResetEmail = () => {
     setEmailContent(null);
-    setShowResetEmail(false);
     onEmailContentChange?.(null);
   };
 
@@ -157,7 +152,6 @@ function InviteNetworkPartnerSheetContent({
     const result = await generatePartnerNetworkInviteEmail({
       workspaceId,
       partnerId: partner.id,
-      groupId: watch("groupId") || null,
     }).catch(() => null);
 
     if (!result?.data) {
@@ -165,7 +159,6 @@ function InviteNetworkPartnerSheetContent({
     }
 
     setEmailContent(result.data);
-    setShowResetEmail(true);
     onEmailContentChange?.(result.data);
 
     // Refresh AI usage so exceededAI reflects the credit we just spent
@@ -203,9 +196,6 @@ function InviteNetworkPartnerSheetContent({
                     shouldDirty: true,
                   });
                 }}
-                // The generated email is group-specific, so prevent switching
-                // groups while a personalization is in flight
-                disabled={isGeneratingEmail}
               />
             </div>
 
@@ -225,7 +215,7 @@ function InviteNetworkPartnerSheetContent({
             onReset={handleResetEmail}
             onEditingChange={setIsEditingEmail}
             isGenerating={isGeneratingEmail}
-            showReset={showResetEmail}
+            showReset={Boolean(emailContent)}
             generationAvatar={
               <PartnerAvatar partner={partner} className="size-16 shrink-0" />
             }

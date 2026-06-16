@@ -124,5 +124,4 @@ export const generatedPartnerNetworkInviteEmailSchema = z.object({
 export const generatePartnerNetworkInviteEmailSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
-  groupId: z.string().nullish().default(null),
 });

@@ -101,12 +101,10 @@ export function GroupField({
   optional,
   selectedGroupId,
   setSelectedGroupId,
-  disabled,
 }: {
   optional?: boolean;
   selectedGroupId: string | null;
   setSelectedGroupId: (groupId: string) => void;
-  disabled?: boolean;
 }) {
   return (
     <>
@@ -118,7 +116,6 @@ export function GroupField({
         <GroupSelector
           selectedGroupId={selectedGroupId}
           setSelectedGroupId={setSelectedGroupId}
-          disabled={disabled}
         />
       </div>
     </>
