@@ -1,6 +1,6 @@
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { payoutIdSelectionWhere } from "@/lib/api/payouts/payout-id-selection-where";
-import { FAST_ACH_FEE_CENTS, FOREX_MARKUP_RATE } from "@/lib/constants/payouts";
+import { FOREX_MARKUP_RATE } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import {
@@ -165,7 +165,7 @@ export async function processPayouts({
     payoutFee,
     payoutFeeWaiverLimit: workspace.payoutFeeWaiverLimit,
     payoutFeeWaiverUsage: workspace.payoutFeeWaiverUsage,
-    fastAchFee: invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0,
+    paymentMethod: invoice.paymentMethod!,
   });
 
   const invoiceTotal = totalPayoutAmount + invoiceFee;
