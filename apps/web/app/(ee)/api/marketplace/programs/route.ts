@@ -1,5 +1,6 @@
 import { getPublicNetworkPrograms } from "@/lib/fetchers/get-public-network-programs";
 import { parsePublicMarketplaceQuery } from "@/lib/marketplace/parse-public-marketplace-query";
+import { PUBLIC_MARKETPLACE_CACHE_HEADERS } from "@/lib/marketplace/public-marketplace-api";
 import { NextResponse } from "next/server";
 
 // GET /api/marketplace/programs - public marketplace program list
@@ -9,5 +10,7 @@ export async function GET(req: Request) {
 
   const programs = await getPublicNetworkPrograms(params);
 
-  return NextResponse.json(programs);
+  return NextResponse.json(programs, {
+    headers: PUBLIC_MARKETPLACE_CACHE_HEADERS,
+  });
 }
