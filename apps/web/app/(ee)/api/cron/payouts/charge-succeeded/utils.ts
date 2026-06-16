@@ -13,7 +13,7 @@ type FundSettlementTiming =
       scheduledAt: Date;
     };
 
-const stripeChargeMetadataSchema = z.object({
+export const stripeChargeMetadataSchema = z.object({
   id: z.string(),
 });
 

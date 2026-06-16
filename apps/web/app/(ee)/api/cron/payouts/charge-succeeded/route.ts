@@ -89,12 +89,7 @@ export async function POST(req: Request) {
         },
       });
 
-      const shouldSchedulePayouts = payoutsByMethod.some(
-        (p) =>
-          p.method !== null && postSettlementPayoutMethods.includes(p.method),
-      );
-
-      if (shouldSchedulePayouts) {
+      if (payoutsByMethod.length > 0) {
         await scheduleDelayedPayouts({
           invoice,
           executeAt: fundSettlement.scheduledAt,

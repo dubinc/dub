@@ -7,11 +7,7 @@ import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
 import { prisma } from "@dub/prisma";
 import { Invoice, PartnerPayoutMethod } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
-import * as z from "zod/v4";
-
-const stripeChargeMetadataSchema = z.object({
-  id: z.string(), // Stripe charge id
-});
+import { stripeChargeMetadataSchema } from "./utils";
 
 const queue = qstash.queue({
   queueName: "send-stripe-payout",
