@@ -101,7 +101,8 @@ export async function getFundSettlementTiming(invoice: {
     };
   }
 
-  const scheduledAt = new Date(availableOnMs + 15 * 60 * 1000); // 15 minutes from now
+  // 15 minutes from now (QStash deduplication window is 10 minutes)
+  const scheduledAt = new Date(availableOnMs + 15 * 60 * 1000);
 
   console.log(
     `Funds are not available for charge ${chargeId}, scheduling payout for ${scheduledAt.toISOString()}`,
