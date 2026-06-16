@@ -1,7 +1,4 @@
-import {
-  EnrolledPartnerExtendedProps,
-  EnrolledPartnerProps,
-} from "@/lib/types";
+import { EnrolledPartnerProps } from "@/lib/types";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { PartnerGroup } from "@dub/prisma/client";
 import { randomValue } from "@dub/utils";
@@ -497,9 +494,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
     const slug = "e2e-target-skip-partner-move";
 
     // Get the current group of E2E_PARTNER
-    // (GET /partners/:id responds with EnrolledPartnerSchemaExtended)
     const { data: partner, status: partnerStatus } =
-      await http.get<EnrolledPartnerExtendedProps>({
+      await http.get<EnrolledPartnerProps>({
         path: `/partners/${E2E_PARTNER.id}`,
       });
 
@@ -551,11 +547,9 @@ describe.sequential("Workflow - MoveGroup", async () => {
       expectedGroupId: partner.groupId!,
     });
 
-    const { data: partnerAfter } = await http.get<EnrolledPartnerExtendedProps>(
-      {
-        path: `/partners/${partner.id}`,
-      },
-    );
+    const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
+      path: `/partners/${partner.id}`,
+    });
 
     expect(partnerAfter.groupId).toBe(partner.groupId);
     expect(partnerAfter.groupMoveDisabledAt).not.toBeNull();
