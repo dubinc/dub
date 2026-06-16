@@ -1,4 +1,5 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
 import { Prisma, Program, Project } from "@dub/prisma/client";
 
 export function getPayoutEligibilityFilter({
@@ -23,6 +24,15 @@ export function getPayoutEligibilityFilter({
         },
       },
     }),
+    // Gift card payouts are capped at $2,000 per payout
+    NOT: {
+      partner: {
+        defaultPayoutMethod: "tremendous",
+      },
+      amount: {
+        gt: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+      },
+    },
   };
 
   switch (program.payoutMode) {

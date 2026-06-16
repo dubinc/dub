@@ -58,6 +58,8 @@ const failureTooltips: Record<PartnerPayoutMethod, string> = {
     "Payout failures are usually due to incorrect wallet configuration. Once you've [updated your account](/payouts?settings=true), you can retry the payout.",
   paypal:
     "Payout failures are usually due to incorrect PayPal account configuration. Once you've [updated your account](/payouts?settings=true), you can retry the payout.",
+  tremendous:
+    "Payout failures are usually due to an invalid gift card email or delivery issue. Once you've [updated your account](/payouts?settings=true), you can retry the payout.",
 };
 
 function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {

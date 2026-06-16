@@ -9,7 +9,7 @@ import { recordClick } from "../tinybird/record-click";
 import { recordLeadWithTimestamp } from "../tinybird/record-lead";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
-import { MAX_BATCHES, rewardfulImporter } from "./importer";
+import { REWARDFUL_REFERRALS_MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulImportPayload, RewardfulReferral } from "./types";
 
 export async function importCustomers(payload: RewardfulImportPayload) {
@@ -32,7 +32,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
   let hasMore = true;
   let processedBatches = 0;
 
-  while (hasMore && processedBatches < MAX_BATCHES) {
+  while (hasMore && processedBatches < REWARDFUL_REFERRALS_MAX_BATCHES) {
     const referrals = await rewardfulApi.listCustomers({
       page: currentPage,
     });

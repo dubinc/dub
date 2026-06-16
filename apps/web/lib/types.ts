@@ -122,7 +122,10 @@ import {
   GroupWithFormDataSchema,
   PartnerGroupDefaultLinkSchema,
 } from "./zod/schemas/groups";
-import { integrationSchema } from "./zod/schemas/integration";
+import {
+  installedIntegrationSchema,
+  integrationSchema,
+} from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
   leadEventResponseSchema,
@@ -431,22 +434,9 @@ export type NewOrExistingIntegration = Omit<
   id?: string;
 };
 
-export type InstalledIntegrationProps = Pick<
-  IntegrationProps,
-  | "id"
-  | "projectId"
-  | "slug"
-  | "logo"
-  | "name"
-  | "developer"
-  | "description"
-  | "verified"
-  | "comingSoon"
-  | "guideUrl"
-> & {
-  installations: number;
-  installed?: boolean;
-};
+export type InstalledIntegrationProps = z.infer<
+  typeof installedIntegrationSchema
+>;
 
 export type InstalledIntegrationInfoProps = Pick<
   IntegrationProps,
@@ -532,6 +522,7 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
   userId: string;
   platforms: PartnerPlatformProps[];
   defaultPayoutMethod: PartnerPayoutMethod | null;
+  tremendousEmail: string | null;
 };
 
 export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;

@@ -8,6 +8,7 @@ const PAYOUT_METHOD_PRIORITY: PartnerPayoutMethod[] = [
   PartnerPayoutMethod.stablecoin,
   PartnerPayoutMethod.connect,
   PartnerPayoutMethod.paypal,
+  PartnerPayoutMethod.tremendous,
 ];
 
 /**
@@ -23,6 +24,7 @@ export async function recomputePartnerPayoutState(
     | "paypalEmail"
     | "payoutsEnabledAt"
     | "defaultPayoutMethod"
+    | "tremendousEmail"
   >,
 ) {
   const [connectAccount, stablecoinAccount] = await Promise.all([
@@ -61,6 +63,8 @@ export async function recomputePartnerPayoutState(
 
   const paypalActive = Boolean(partner.paypalEmail);
 
+  const tremendousActive = Boolean(partner.tremendousEmail);
+
   const activePayoutMethods = PAYOUT_METHOD_PRIORITY.filter((method) => {
     switch (method) {
       case PartnerPayoutMethod.stablecoin:
@@ -69,6 +73,8 @@ export async function recomputePartnerPayoutState(
         return connectActive;
       case PartnerPayoutMethod.paypal:
         return paypalActive;
+      case PartnerPayoutMethod.tremendous:
+        return tremendousActive;
       default:
         return false;
     }
@@ -102,6 +108,7 @@ export async function recomputePartnerPayoutState(
       connectActive,
       stablecoinActive,
       paypalActive,
+      tremendousActive,
       payoutsEnabledAt,
       defaultPayoutMethod,
     }),

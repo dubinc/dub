@@ -130,6 +130,22 @@ export function MessageInput({
       if (!onAddFiles) return;
 
       const fileArray = Array.from(files);
+      const allowedFileTypeSet = allowedFileTypes
+        ? new Set(allowedFileTypes)
+        : null;
+      const supportedFiles = allowedFileTypeSet
+        ? fileArray.filter((file) => allowedFileTypeSet.has(file.type))
+        : fileArray;
+      const unsupportedFiles = allowedFileTypeSet
+        ? fileArray.filter((file) => !allowedFileTypeSet.has(file.type))
+        : [];
+
+      if (unsupportedFiles.length > 0 && allowedFileTypes) {
+        toast.error(getUnsupportedFileTypeMessage(allowedFileTypes));
+      }
+
+      if (supportedFiles.length === 0) return;
+
       const remaining = maxAttachments - attachments.length;
 
       if (remaining <= 0) {
@@ -137,14 +153,14 @@ export function MessageInput({
         return;
       }
 
-      const filesToAdd = fileArray.slice(0, remaining);
-      if (fileArray.length > remaining) {
+      const filesToAdd = supportedFiles.slice(0, remaining);
+      if (supportedFiles.length > remaining) {
         toast.error(`Maximum ${maxAttachments} attachments per message`);
       }
 
       onAddFiles(filesToAdd);
     },
-    [onAddFiles, attachments.length, maxAttachments],
+    [onAddFiles, attachments.length, maxAttachments, allowedFileTypes],
   );
 
   const handleDragEvent = useCallback((e: DragEvent) => {
@@ -346,6 +362,29 @@ export function MessageInput({
       )}
     </div>
   );
+}
+
+function getUnsupportedFileTypeMessage(allowedFileTypes: readonly string[]) {
+  if (allowedFileTypes.length === 0) {
+    return "File type not supported.";
+  }
+
+  const allowedLabels = formatList(
+    allowedFileTypes.map((type) => getAttachmentTypeLabel(type)),
+  );
+
+  return `File type not supported. Upload a ${allowedLabels}.`;
+}
+
+function formatList(items: string[]) {
+  const uniqueItems = Array.from(new Set(items));
+
+  if (uniqueItems.length <= 1) return uniqueItems[0] || "";
+  if (uniqueItems.length === 2) return uniqueItems.join(" or ");
+
+  return `${uniqueItems.slice(0, -1).join(", ")}, or ${
+    uniqueItems[uniqueItems.length - 1]
+  }`;
 }
 
 function AttachmentChip({
