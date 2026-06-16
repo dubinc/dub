@@ -102,10 +102,6 @@ export const POST = withCron(async ({ rawBody }) => {
     end: endDate,
   });
 
-  if (clicksByCountries.length === 0) {
-    return logAndRespond("No clicks found for the links. Skipping...");
-  }
-
   // Group clicks by link
   const clicksByLinkId = new Map<string, typeof clicksByCountries>();
 
