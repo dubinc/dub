@@ -43,6 +43,7 @@ export async function MarketplaceExternalListPage({
   const categoryMeta = fixedCategory
     ? PROGRAM_CATEGORIES_MAP[fixedCategory]
     : undefined;
+  const year = new Date().getFullYear();
 
   const params = parsePublicMarketplaceQuery(searchParams ?? {}, fixedCategory);
 
@@ -66,7 +67,9 @@ export async function MarketplaceExternalListPage({
     <MarketplaceExternalShell
       variant="list"
       title={
-        categoryMeta ? `${categoryMeta.label} partner programs` : undefined
+        categoryMeta
+          ? `Best ${categoryMeta.label} Affiliate Programs in ${year}`
+          : undefined
       }
       description={categoryMeta?.listPageDescription}
     >

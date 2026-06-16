@@ -9,7 +9,7 @@ export function generateMetadata(): Metadata {
   const year = new Date().getFullYear();
 
   return constructMetadata({
-    title: `Best SaaS affiliate programs in ${year}`,
+    title: `Best SaaS Affiliate Programs in ${year}`,
     description: `Browse and apply to the best SaaS affiliate programs on Dub's Partner Network.`,
     canonicalUrl: getMarketplaceCanonicalUrl("/marketplace"),
   });

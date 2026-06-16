@@ -15,6 +15,7 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata(props: {
   params: Promise<{ categorySlug: string }>;
 }): Promise<Metadata> {
+  const year = new Date().getFullYear();
   const { categorySlug } = await props.params;
   const category = slugToCategory(categorySlug);
 
@@ -26,10 +27,10 @@ export async function generateMetadata(props: {
   const label = categoryMeta?.label ?? category.replaceAll("_", " ");
 
   return constructMetadata({
-    title: `${label} Programs`,
+    title: `Best ${label} Affiliate Programs in ${year}`,
     description:
       categoryMeta?.listPageDescription ??
-      `Partner programs in ${label.toLowerCase()}.`,
+      `Browse and apply to ${label.toLowerCase()} affiliate programs on Dub's Partner Network.`,
     canonicalUrl: getMarketplaceCanonicalUrl(`/marketplace/c/${categorySlug}`),
   });
 }

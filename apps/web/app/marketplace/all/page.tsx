@@ -9,8 +9,8 @@ export const dynamic = "force-dynamic";
 
 export function generateMetadata(): Metadata {
   return constructMetadata({
-    title: "All Programs",
-    description: "Browse all partner programs on Dub.",
+    title: "All Affiliate Programs",
+    description: "Browse all affiliate programs on Dub.",
     canonicalUrl: getMarketplaceCanonicalUrl("/marketplace/all"),
   });
 }
