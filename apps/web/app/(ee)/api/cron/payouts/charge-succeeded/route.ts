@@ -65,10 +65,9 @@ export async function POST(req: Request) {
       AND p.status = 'processing' AND p.method IS NULL
     `;
 
-    // Get the fund settlement timing
-    const fundSettlementTiming = await getFundSettlementTiming(invoice);
+    const fundSettlement = await getFundSettlementTiming(invoice);
 
-    if (!fundSettlementTiming.fundsAvailable) {
+    if (!fundSettlement.fundsAvailable) {
       const postSettlementPayoutMethods: PartnerPayoutMethod[] = [
         PartnerPayoutMethod.stablecoin,
         PartnerPayoutMethod.paypal,
@@ -98,12 +97,12 @@ export async function POST(req: Request) {
       if (shouldSchedulePayouts) {
         await scheduleDelayedPayouts({
           invoice,
-          executeAt: fundSettlementTiming.scheduledAt,
+          executeAt: fundSettlement.scheduledAt,
         });
       }
     }
 
-    const { fundsAvailable } = fundSettlementTiming;
+    const { fundsAvailable } = fundSettlement;
 
     await Promise.allSettled([
       // Queue Stripe payouts
