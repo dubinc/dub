@@ -74,22 +74,17 @@ export async function POST(req: Request) {
         PartnerPayoutMethod.tremendous,
       ];
 
-      const payoutsByMethod = await prisma.payout.groupBy({
-        by: ["method"],
-        _count: {
-          id: true,
-        },
+      const payoutsCount = await prisma.payout.count({
         where: {
           invoiceId: invoice.id,
           status: "processing",
-          mode: "internal",
           method: {
             in: postSettlementPayoutMethods,
           },
         },
       });
 
-      if (payoutsByMethod.length > 0) {
+      if (payoutsCount > 0) {
         await scheduleDelayedPayouts({
           invoice,
           executeAt: fundSettlement.scheduledAt,
