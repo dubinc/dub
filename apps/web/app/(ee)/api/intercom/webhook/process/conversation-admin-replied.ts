@@ -5,9 +5,9 @@ import { Intercom } from "@/lib/integrations/intercom/client";
 import {
   IntercomAttachment,
   IntercomContact,
+  intercomConversationRepliedSchema,
   IntercomCredentials,
   intercomCredentialsSchema,
-  intercomWebhookSchema,
 } from "@/lib/integrations/intercom/schema";
 import { PROGRAM_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
 import { sanitizeFileName } from "@/lib/messages/utils";
@@ -32,7 +32,7 @@ export async function handleConversationAdminReplied({
   program,
   installation,
 }: {
-  data: z.infer<typeof intercomWebhookSchema>["data"];
+  data: z.infer<typeof intercomConversationRepliedSchema>;
   program: Pick<Program, "id" | "workspaceId">;
   installation: Pick<InstalledIntegration, "credentials" | "userId">;
 }): Promise<string> {

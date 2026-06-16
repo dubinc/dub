@@ -46,7 +46,7 @@ export const intercomAttachmentSchema = z.object({
   filesize: z.number(),
 });
 
-const intercomConversationRepliedSchema = z.object({
+export const intercomConversationRepliedSchema = z.object({
   item: z.object({
     id: z.string(),
     type: z.string(),
@@ -81,11 +81,14 @@ const intercomConversationRepliedSchema = z.object({
 export const intercomWebhookSchema = z.discriminatedUnion("topic", [
   z.object({
     topic: z.literal("conversation.admin.replied"),
+    app_id: z.string(),
     data: intercomConversationRepliedSchema,
   }),
 
   z.object({
     topic: z.literal("ping"),
+    app_id: z.string(),
+    data: z.unknown(),
   }),
 ]);
 
