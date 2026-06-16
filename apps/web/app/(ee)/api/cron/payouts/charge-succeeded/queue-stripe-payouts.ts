@@ -105,7 +105,7 @@ export async function queueStripePayouts({
       method: {
         in: [
           PartnerPayoutMethod.connect,
-          ...(!fundsAvailable ? [PartnerPayoutMethod.stablecoin] : []),
+          ...(fundsAvailable ? [PartnerPayoutMethod.stablecoin] : []),
         ],
       },
       partner: {
