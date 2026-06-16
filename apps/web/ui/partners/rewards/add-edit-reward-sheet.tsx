@@ -919,7 +919,7 @@ function SpendLimitAmountInput() {
         {...register("spendLimitAmount", {
           required: true,
           setValueAs: (value: string) => (value === "" ? null : +value),
-          min: 0,
+          min: 1,
           onChange: handleMoneyInputChange,
         })}
         onKeyDown={(e) => {

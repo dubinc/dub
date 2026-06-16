@@ -201,6 +201,7 @@ export const POST = withCron(async ({ rawBody }) => {
         earnings = Math.max(0, Math.min(earnings, remainingSpendLimit));
 
         if (earnings === 0) {
+          console.log(`Reached spend limit for partner ${partnerId}.`);
           return null;
         }
 
@@ -222,24 +223,30 @@ export const POST = withCron(async ({ rawBody }) => {
     })
     .filter((c): c is NonNullable<typeof c> => c !== null);
 
-  console.table(commissionsToCreate);
-
-  await prisma.commission.createMany({
+  const { count } = await prisma.commission.createMany({
     data: commissionsToCreate,
     skipDuplicates: true,
   });
 
-  // Sync total commissions for each partner that we created commissions for
-  for (const { partnerId, programId } of commissionsToCreate) {
-    await syncTotalCommissions({
-      partnerId,
-      programId,
-    });
-  }
-
   console.log(
-    `Synced total commissions count for ${commissionsToCreate.length} partners`,
+    `Created ${count} commissions for click reward ${clickRewardId}.`,
   );
+
+  if (count > 0) {
+    console.table(commissionsToCreate);
+
+    // Sync total commissions for each partner that we created commissions for
+    for (const { partnerId, programId } of commissionsToCreate) {
+      await syncTotalCommissions({
+        partnerId,
+        programId,
+      });
+    }
+
+    console.log(
+      `Synced total commissions count for ${commissionsToCreate.length} partners`,
+    );
+  }
 
   // Schedule next batch if we have more links to process
   if (links.length === BATCH_SIZE) {
