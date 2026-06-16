@@ -29,7 +29,7 @@ export type RewardConditionEntityAttribute = {
   }[];
 };
 
-export type RewardConditionEntity = {
+type RewardConditionEntity = {
   id: "partner" | "customer" | "sale" | "lead";
   label: string;
   attributes: RewardConditionEntityAttribute[];
@@ -225,7 +225,7 @@ export const REWARD_CONDITIONS: Record<
   },
 };
 
-export const REWARD_CONDITION_ENTITIES = [
+const REWARD_CONDITION_ENTITIES = [
   ...new Set(
     Object.values(REWARD_CONDITIONS).flatMap(({ entities }) => entities),
   ),
@@ -235,11 +235,11 @@ export const REWARD_CONDITION_ATTRIBUTES = Object.values(
   REWARD_CONDITIONS,
 ).flatMap(({ entities }) => entities.flatMap(({ attributes }) => attributes));
 
-export const REWARD_CONDITION_ATTRIBUTE_IDS = [
+const REWARD_CONDITION_ATTRIBUTE_IDS = [
   ...new Set(REWARD_CONDITION_ATTRIBUTES.map(({ id }) => id)),
 ];
 
-export const REWARD_METADATA_CONDITION_ENTITIES = ["lead", "sale"] as const;
+const REWARD_METADATA_CONDITION_ENTITIES = ["lead", "sale"] as const;
 
 export const CONDITION_OPERATORS = [
   "equals_to",
@@ -310,10 +310,8 @@ export const CONDITION_OPERATOR_LABELS = {
 } as const;
 
 export const rewardConditionBaseSchema = z.object({
-  entity: z.enum(
-    REWARD_CONDITION_ENTITIES.map(({ id }) => id) as [string, ...string[]],
-  ),
-  attribute: z.enum(REWARD_CONDITION_ATTRIBUTE_IDS as [string, ...string[]]),
+  entity: z.enum(REWARD_CONDITION_ENTITIES.map(({ id }) => id)),
+  attribute: z.enum(REWARD_CONDITION_ATTRIBUTE_IDS),
   operator: z.enum(CONDITION_OPERATORS),
   value: z.union([
     z.string(),
@@ -345,6 +343,7 @@ export const rewardConditionSchema = rewardConditionBaseSchema.superRefine(
 
     const metadataEntities =
       REWARD_METADATA_CONDITION_ENTITIES as readonly string[];
+
     if (!metadataEntities.includes(data.entity)) {
       ctx.addIssue({
         code: "custom",

@@ -489,11 +489,7 @@ const _trackSale = async ({
             sale: {
               productId: metadata?.productId,
               amount: saleData.amount,
-              ...(metadata != null
-                ? {
-                    metadata: metadata as Record<string, unknown>,
-                  }
-                : {}),
+              ...(metadata && { metadata }),
             },
           },
           clickEvent: {

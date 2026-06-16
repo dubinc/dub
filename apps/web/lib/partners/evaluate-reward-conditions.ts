@@ -26,7 +26,10 @@ export const evaluateRewardConditions = ({
   for (const conditionGroup of conditions) {
     // Evaluate each condition in the group
     const conditionResults = conditionGroup.conditions.map((condition) => {
-      const fieldValue = resolveConditionFieldValue({ condition, context });
+      const fieldValue = resolveConditionFieldValue({
+        condition,
+        context,
+      });
 
       if (fieldValue === undefined) {
         return false;
@@ -98,68 +101,16 @@ function resolveConditionFieldValue({
   if (condition.entity === "customer") {
     return context.customer?.[condition.attribute];
   }
+
   if (condition.entity === "sale") {
     return context.sale?.[condition.attribute];
   }
+
   if (condition.entity === "partner") {
     return context.partner?.[condition.attribute];
   }
-  if (condition.entity === "lead") {
-    return undefined;
-  }
 
   return undefined;
-}
-
-function parseMetadataNumeric(raw: unknown): number | undefined {
-  if (raw == null) {
-    return undefined;
-  }
-  if (typeof raw === "number" && !Number.isNaN(raw)) {
-    return raw;
-  }
-  if (typeof raw === "string") {
-    if (raw.trim() === "" || Number.isNaN(Number(raw))) {
-      return undefined;
-    }
-    return Number(raw);
-  }
-  if (typeof raw === "boolean") {
-    return undefined;
-  }
-  const n = Number(raw);
-  return Number.isNaN(n) ? undefined : n;
-}
-
-function metadataRawToString(raw: unknown): string {
-  return typeof raw === "string" ? raw : String(raw);
-}
-
-function prepareMetadataFieldValue(
-  raw: unknown,
-  condition: RewardCondition,
-): string | number | string[] | number[] | undefined {
-  if (raw == null) return undefined;
-
-  const op = condition.operator;
-  const equalsOrNot = op === "equals_to" || op === "not_equals";
-
-  if (METADATA_TEXT_CONDITION_OPERATORS.includes(op) && !equalsOrNot) {
-    return metadataRawToString(raw);
-  }
-
-  const ordering = METADATA_NUMBER_CONDITION_OPERATORS.includes(op);
-  if (!ordering && !equalsOrNot) return undefined;
-
-  const numeric = parseMetadataNumeric(raw);
-  if (ordering) return numeric;
-
-  // For equals_to / not_equals, match the coercion to condition.value's type
-  // so that strict === in evaluateCondition sees the same type on both sides.
-  if (typeof condition.value === "number") {
-    return numeric !== undefined ? numeric : metadataRawToString(raw);
-  }
-  return metadataRawToString(raw);
 }
 
 const evaluateCondition = ({
@@ -269,3 +220,60 @@ const evaluateCondition = ({
 
   return false;
 };
+
+function parseMetadataNumeric(raw: unknown): number | undefined {
+  if (raw == null) {
+    return undefined;
+  }
+
+  if (typeof raw === "number" && !Number.isNaN(raw)) {
+    return raw;
+  }
+
+  if (typeof raw === "string") {
+    if (raw.trim() === "" || Number.isNaN(Number(raw))) {
+      return undefined;
+    }
+
+    return Number(raw);
+  }
+
+  if (typeof raw === "boolean") {
+    return undefined;
+  }
+
+  const n = Number(raw);
+  return Number.isNaN(n) ? undefined : n;
+}
+
+function metadataRawToString(raw: unknown): string {
+  return typeof raw === "string" ? raw : String(raw);
+}
+
+function prepareMetadataFieldValue(
+  raw: unknown,
+  condition: RewardCondition,
+): string | number | string[] | number[] | undefined {
+  if (raw == null) return undefined;
+
+  const op = condition.operator;
+  const equalsOrNot = op === "equals_to" || op === "not_equals";
+
+  if (METADATA_TEXT_CONDITION_OPERATORS.includes(op) && !equalsOrNot) {
+    return metadataRawToString(raw);
+  }
+
+  const ordering = METADATA_NUMBER_CONDITION_OPERATORS.includes(op);
+  if (!ordering && !equalsOrNot) return undefined;
+
+  const numeric = parseMetadataNumeric(raw);
+  if (ordering) return numeric;
+
+  // For equals_to / not_equals, match the coercion to condition.value's type
+  // so that strict === in evaluateCondition sees the same type on both sides.
+  if (typeof condition.value === "number") {
+    return numeric !== undefined ? numeric : metadataRawToString(raw);
+  }
+
+  return metadataRawToString(raw);
+}
