@@ -7,6 +7,7 @@ import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { getNetworkPartnerDisplayName } from "@/lib/network/get-program-network-invite-email-defaults";
 import { PlanProps } from "@/lib/types";
+import { emailSchema } from "@/lib/zod/schemas/auth";
 import {
   generatedPartnerNetworkInviteEmailSchema,
   generatePartnerNetworkInviteEmailSchema,
@@ -141,6 +142,10 @@ export const generatePartnerNetworkInviteEmailAction = authActionClient
 
     if (!partner) {
       throw new Error("Partner not found or already enrolled in this program.");
+    }
+
+    if (!emailSchema.safeParse(partner.email).success) {
+      throw new Error("Partner does not have a valid email address.");
     }
 
     const partnerName = getNetworkPartnerDisplayName(partner.name);
