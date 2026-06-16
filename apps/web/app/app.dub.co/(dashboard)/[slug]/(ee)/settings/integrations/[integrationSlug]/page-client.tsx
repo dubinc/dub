@@ -13,9 +13,9 @@ import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
+import { IntegrationStatusBadge } from "@/ui/integrations/integration-status-badge";
 import { IntegrationLogo } from "@/ui/integrations/integration-logo";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
-import { BackLink } from "@/ui/shared/back-link";
 import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
 import { Markdown } from "@/ui/shared/markdown";
 import { UserAvatar } from "@/ui/users/user-avatar";
@@ -37,9 +37,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import {
-  CircleWarning,
   ConnectedDots,
-  DubCraftedShield,
   Flask,
   Globe,
   OfficeBuilding,
@@ -159,7 +157,6 @@ export default function IntegrationPageClient({
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg grid-cols-1 gap-6">
       {integration.installed && <UninstallIntegrationModal />}
-      <BackLink href={`/${slug}/settings/integrations`}>Integrations</BackLink>
       <div className="flex justify-between gap-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <IntegrationLogo
@@ -169,22 +166,13 @@ export default function IntegrationPageClient({
           />
           <div>
             <div className="flex items-center gap-1.5">
-              <h1 className="text-base font-semibold leading-none text-neutral-800">
+              <div className="text-base font-semibold leading-none text-neutral-800">
                 {integration.name}
-              </h1>
-              {integration.projectId === DUB_WORKSPACE_ID ? (
-                <Tooltip content="This is an official integration built and maintained by Dub">
-                  <div>
-                    <DubCraftedShield className="size-4 -translate-y-px" />
-                  </div>
-                </Tooltip>
-              ) : !integration.verified ? (
-                <Tooltip content="Dub hasn't verified this integration. Install it at your own risk.">
-                  <div>
-                    <CircleWarning className="size-5 text-neutral-500" invert />
-                  </div>
-                </Tooltip>
-              ) : null}
+              </div>
+              <IntegrationStatusBadge
+                projectId={integration.projectId}
+                verified={integration.verified}
+              />
             </div>
             <p className="mt-1 text-[0.8125rem] leading-snug text-neutral-600">
               {integration.description}
