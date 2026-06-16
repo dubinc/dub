@@ -1,3 +1,4 @@
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   getMarketplaceAllHref,
   getMarketplaceCanonicalUrl,
@@ -61,6 +62,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       where: {
         addedToMarketplaceAt: {
           not: null,
+        },
+        groups: {
+          some: {
+            slug: DEFAULT_PARTNER_GROUP.slug,
+            applicationFormPublishedAt: {
+              not: null,
+            },
+          },
         },
       },
       select: {

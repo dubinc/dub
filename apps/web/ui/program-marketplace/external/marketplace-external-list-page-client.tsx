@@ -29,6 +29,19 @@ type FilterCounts = {
   }[];
 };
 
+export type MarketplaceExternalListInitialData = {
+  programs: NetworkProgramProps[];
+  totalCount: number;
+  filterCounts: FilterCounts;
+  params: {
+    rewardType?: string;
+    search?: string;
+    sortBy: string;
+    sortOrder: string;
+    page: number;
+  };
+};
+
 function pickString(value: string | string[] | undefined) {
   return typeof value === "string" ? value : undefined;
 }
@@ -36,9 +49,11 @@ function pickString(value: string | string[] | undefined) {
 export function MarketplaceExternalListPageClient({
   basePath,
   fixedCategory,
+  initialData,
 }: {
   basePath: string;
   fixedCategory?: Category;
+  initialData: MarketplaceExternalListInitialData;
 }) {
   const router = useRouter();
   const { getQueryString, searchParamsObj } = useRouterStuff();
@@ -69,17 +84,35 @@ export function MarketplaceExternalListPageClient({
         pageSize: String(PAGE_SIZE),
       })
     : null;
+  const shouldUseInitialData =
+    parsed.success &&
+    parsed.data.rewardType === initialData.params.rewardType &&
+    parsed.data.search === initialData.params.search &&
+    parsed.data.sortBy === initialData.params.sortBy &&
+    parsed.data.sortOrder === initialData.params.sortOrder &&
+    (parsed.data.page ?? 1) === initialData.params.page;
 
+  // The server renders the initial URL state; SWR fetches after it changes.
   const { data: programs, isValidating } = useSWR<NetworkProgramProps[]>(
     queryString ? `/api/marketplace/programs${queryString}` : null,
     fetcher,
-    { revalidateOnFocus: false, keepPreviousData: true },
+    {
+      revalidateOnFocus: false,
+      revalidateOnMount: !shouldUseInitialData,
+      keepPreviousData: true,
+      fallbackData: shouldUseInitialData ? initialData.programs : undefined,
+    },
   );
 
   const { data: totalCount = 0 } = useSWR<number>(
     queryString ? `/api/marketplace/programs/count${queryString}` : null,
     fetcher,
-    { revalidateOnFocus: false },
+    {
+      revalidateOnFocus: false,
+      revalidateOnMount: !shouldUseInitialData,
+      keepPreviousData: true,
+      fallbackData: shouldUseInitialData ? initialData.totalCount : undefined,
+    },
   );
 
   const { data: filterCounts } = useSWR<FilterCounts>(
@@ -87,7 +120,12 @@ export function MarketplaceExternalListPageClient({
       ? `/api/marketplace/programs/filter-counts${queryString}`
       : null,
     fetcher,
-    { revalidateOnFocus: false },
+    {
+      revalidateOnFocus: false,
+      revalidateOnMount: !shouldUseInitialData,
+      keepPreviousData: true,
+      fallbackData: shouldUseInitialData ? initialData.filterCounts : undefined,
+    },
   );
 
   if (!parsed.success) {
@@ -96,31 +134,34 @@ export function MarketplaceExternalListPageClient({
 
   const { rewardType, search, sortBy, sortOrder, page = 1 } = parsed.data;
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const resolvedFilterCounts =
+    filterCounts ??
+    (shouldUseInitialData
+      ? initialData.filterCounts
+      : { categories: [], rewardTypes: [] });
 
   return (
     <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
-      {filterCounts ? (
-        <div className="hidden shrink-0 lg:block">
-          <MarketplaceExternalFilterSidebar
-            basePath={basePath}
-            activeCategory={fixedCategory}
-            activeRewardType={rewardType}
-            categoryCounts={filterCounts.categories}
-            rewardTypeCounts={filterCounts.rewardTypes}
-            search={search}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-          />
-        </div>
-      ) : null}
+      <div className="hidden shrink-0 lg:block">
+        <MarketplaceExternalFilterSidebar
+          basePath={basePath}
+          activeCategory={fixedCategory}
+          activeRewardType={rewardType}
+          categoryCounts={resolvedFilterCounts.categories}
+          rewardTypeCounts={resolvedFilterCounts.rewardTypes}
+          search={search}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+        />
+      </div>
 
       <div className="@container/page flex min-w-0 flex-1 flex-col gap-6">
         <MarketplaceListToolbar
           variant="external"
           basePath={basePath}
           activeCategory={fixedCategory}
-          categoryCounts={filterCounts?.categories ?? []}
-          rewardTypeCounts={filterCounts?.rewardTypes ?? []}
+          categoryCounts={resolvedFilterCounts.categories}
+          rewardTypeCounts={resolvedFilterCounts.rewardTypes}
         />
 
         {!programs ? (

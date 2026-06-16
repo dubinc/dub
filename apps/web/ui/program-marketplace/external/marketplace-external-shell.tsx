@@ -28,9 +28,9 @@ export function MarketplaceExternalShell({
     title ??
     (variant === "home" ? (
       <>
-        Best SaaS affiliate
+        Best SaaS Affiliate
         <br />
-        programs in {year}
+        Programs in {year}
       </>
     ) : (
       "Find your next partnership"

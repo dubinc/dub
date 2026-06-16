@@ -1,5 +1,6 @@
 import { getPublicNetworkProgramsCount } from "@/lib/fetchers/get-public-network-programs";
 import { parsePublicMarketplaceQuery } from "@/lib/marketplace/parse-public-marketplace-query";
+import { PUBLIC_MARKETPLACE_CACHE_HEADERS } from "@/lib/marketplace/public-marketplace-api";
 import { NextResponse } from "next/server";
 
 // GET /api/marketplace/programs/count - public marketplace program count
@@ -14,5 +15,7 @@ export async function GET(req: Request) {
     search,
   });
 
-  return NextResponse.json(count);
+  return NextResponse.json(count, {
+    headers: PUBLIC_MARKETPLACE_CACHE_HEADERS,
+  });
 }

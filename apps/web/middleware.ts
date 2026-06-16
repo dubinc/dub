@@ -34,7 +34,7 @@ export const config = {
 };
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
-  const { domain, path, key, fullKey, fullPath, searchParamsObj } = parse(req);
+  const { domain, path, key, fullKey, searchParamsObj } = parse(req);
 
   // Axiom logging
   logger.info(...transformMiddlewareRequest(req));
@@ -94,7 +94,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
       );
     }
 
-    return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
+    return NextResponse.next();
   }
 
   if (isValidUrl(fullKey)) {
