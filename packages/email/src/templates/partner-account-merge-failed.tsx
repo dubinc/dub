@@ -40,13 +40,13 @@ export default function PartnerAccountMergeFailed({
             </Heading>
 
             <Text className="text-base text-neutral-600">
-              We ran into an issue while merging your Dub partner accounts. Both
-              accounts are unchanged - no data was merged or deleted.
+              We ran into an issue while merging your Dub partner accounts and
+              the merge could not be completed. Please do not try again on your
+              own — contact support and we'll help you resolve this.
             </Text>
 
             <Text className="text-base text-neutral-600">
-              Please <Link href="https://dub.co/support">contact support</Link>{" "}
-              and we'll help you complete the merge.
+              <Link href="https://dub.co/support">Contact support</Link>
             </Text>
 
             <Footer email={email} />
