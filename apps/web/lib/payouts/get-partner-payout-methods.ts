@@ -95,16 +95,5 @@ export async function getPartnerPayoutMethods(
     });
   }
 
-  const stablecoinConnected = payoutMethods.some(
-    (m) => m.type === PartnerPayoutMethod.stablecoin && m.connected,
-  );
-
-  // When Stablecoin is connected: Show only Stablecoin + any other method that is already connected
-  if (stablecoinConnected) {
-    payoutMethods = payoutMethods.filter(
-      (m) => m.type === PartnerPayoutMethod.stablecoin || m.connected,
-    );
-  }
-
   return payoutMethods;
 }
