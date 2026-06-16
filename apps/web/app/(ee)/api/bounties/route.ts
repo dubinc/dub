@@ -4,6 +4,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { throwIfInvalidPartnerTagIds } from "@/lib/api/tags/throw-if-invalid-partner-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
@@ -85,8 +86,14 @@ export const GET = withWorkspace(
               groupId: true,
             },
           },
+          partnerTags: {
+            select: {
+              partnerTagId: true,
+            },
+          },
         },
       }),
+
       includeSubmissionsCount
         ? prisma.bountySubmission.groupBy({
             by: ["bountyId", "status"],
@@ -131,6 +138,9 @@ export const GET = withWorkspace(
       return BountyListSchema.parse({
         ...bounty,
         groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
+        partnerTags: bounty.partnerTags.map(({ partnerTagId }) => ({
+          id: partnerTagId,
+        })),
         ...(allBountiesSubmissionsCount && {
           submissionsCountData: aggregateSubmissionsCountForBounty(bounty.id),
         }),
@@ -171,6 +181,7 @@ export const POST = withWorkspace(
       maxSubmissions,
       submissionRequirements,
       groupIds,
+      partnerTagIds,
       performanceCondition,
       performanceScope,
       sendNotificationEmails,
@@ -191,10 +202,17 @@ export const POST = withWorkspace(
       });
     }
 
-    const partnerGroups = await throwIfInvalidGroupIds({
-      programId,
-      groupIds,
-    });
+    const [partnerGroups, partnerTags] = await Promise.all([
+      throwIfInvalidGroupIds({
+        programId,
+        groupIds,
+      }),
+
+      throwIfInvalidPartnerTagIds({
+        programId,
+        partnerTagIds,
+      }),
+    ]);
 
     // Bounty name
     let bountyName = name;
@@ -268,10 +286,20 @@ export const POST = withWorkspace(
               },
             },
           }),
+          ...(partnerTags.length && {
+            partnerTags: {
+              createMany: {
+                data: partnerTags.map(({ id }) => ({
+                  partnerTagId: id,
+                })),
+              },
+            },
+          }),
         },
         include: {
-          workflow: true,
           groups: true,
+          partnerTags: true,
+          workflow: true,
         },
       });
     });
@@ -279,6 +307,9 @@ export const POST = withWorkspace(
     const createdBounty = BountySchema.parse({
       ...bounty,
       groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
+      partnerTags: bounty.partnerTags.map(({ partnerTagId }) => ({
+        id: partnerTagId,
+      })),
       performanceCondition: bounty.workflow?.triggerConditions?.[0],
     });
 

@@ -163,6 +163,7 @@ export const partnerBountySubmissionSchema = BountySubmissionSchema.extend({
 
 export const PartnerBountySchema = BountySchema.omit({
   groups: true,
+  partnerTags: true,
   socialMetricsLastSyncedAt: true,
 }).extend({
   submissions: z.array(partnerBountySubmissionSchema),

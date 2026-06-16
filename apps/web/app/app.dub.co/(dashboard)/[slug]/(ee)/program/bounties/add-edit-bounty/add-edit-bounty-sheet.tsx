@@ -14,6 +14,7 @@ import {
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
+import { PartnerTagsMultiSelect } from "@/ui/partners/tags/partner-tags-multi-select";
 import { X } from "@/ui/shared/icons";
 import {
   InlineBadgePopover,
@@ -517,6 +518,28 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                       <GroupsMultiSelect
                         selectedGroupIds={field.value}
                         setSelectedGroupIds={(ids) => field.onChange(ids)}
+                      />
+                    )}
+                  />
+                </ProgramSheetAccordionContent>
+              </ProgramSheetAccordionItem>
+
+              <ProgramSheetAccordionItem value="partnerTags">
+                <ProgramSheetAccordionTrigger>
+                  Tags
+                </ProgramSheetAccordionTrigger>
+                <ProgramSheetAccordionContent>
+                  <p className="text-content-subtle mb-3 text-sm">
+                    Partners in the selected groups or with the selected tags
+                    are eligible for this bounty.
+                  </p>
+                  <Controller
+                    control={control}
+                    name="partnerTagIds"
+                    render={({ field }) => (
+                      <PartnerTagsMultiSelect
+                        selectedTagIds={field.value}
+                        setSelectedTagIds={(ids) => field.onChange(ids)}
                       />
                     )}
                   />

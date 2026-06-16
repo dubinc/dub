@@ -34,6 +34,7 @@ model PartnerTag {
 
   program            Program?            @relation(fields: [programId], references: [id], onDelete: Cascade)
   programPartnerTags ProgramPartnerTag[]
+  bounties           BountyPartnerTag[]
 
   @@unique([programId, name])
   @@index(programId)

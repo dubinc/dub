@@ -2,6 +2,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { throwIfInvalidPartnerTagIds } from "@/lib/api/tags/throw-if-invalid-partner-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
@@ -17,7 +18,7 @@ import {
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
-import { PartnerGroup, Prisma } from "@dub/prisma/client";
+import { PartnerGroup, PartnerTag, Prisma } from "@dub/prisma/client";
 import { arrayEqual, deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -69,6 +70,7 @@ export const PATCH = withWorkspace(
       submissionRequirements,
       performanceCondition,
       groupIds,
+      partnerTagIds,
     } = updateBountySchema.parse(await parseRequestBody(req));
 
     const bounty = await prisma.bounty.findUniqueOrThrow({
@@ -78,6 +80,7 @@ export const PATCH = withWorkspace(
       },
       include: {
         groups: true,
+        partnerTags: true,
         workflow: true,
         _count: {
           select: {
@@ -130,6 +133,21 @@ export const PATCH = withWorkspace(
       updatedPartnerGroups = await throwIfInvalidGroupIds({
         programId,
         groupIds,
+      });
+    }
+
+    // if partnerTagIds is provided and is different from the current partnerTagIds, update the partner tags
+    let updatedPartnerTags: PartnerTag[] | undefined = undefined;
+    if (
+      partnerTagIds &&
+      !arrayEqual(
+        bounty.partnerTags.map((tag) => tag.partnerTagId),
+        partnerTagIds,
+      )
+    ) {
+      updatedPartnerTags = await throwIfInvalidPartnerTagIds({
+        programId,
+        partnerTagIds,
       });
     }
 
@@ -219,10 +237,19 @@ export const PATCH = withWorkspace(
               })),
             },
           }),
+          ...(updatedPartnerTags && {
+            partnerTags: {
+              deleteMany: {},
+              create: updatedPartnerTags.map((tag) => ({
+                partnerTagId: tag.id,
+              })),
+            },
+          }),
         },
         include: {
-          workflow: true,
           groups: true,
+          partnerTags: true,
+          workflow: true,
         },
       });
 
@@ -246,6 +273,9 @@ export const PATCH = withWorkspace(
     const updatedBounty = BountySchema.parse({
       ...data,
       groups: data.groups.map(({ groupId }) => ({ id: groupId })),
+      partnerTags: data.partnerTags.map(({ partnerTagId }) => ({
+        id: partnerTagId,
+      })),
       performanceCondition: data.workflow?.triggerConditions?.[0],
     });
 
@@ -302,6 +332,7 @@ export const DELETE = withWorkspace(
       },
       include: {
         groups: true,
+        partnerTags: true,
         workflow: true,
         _count: {
           select: {
@@ -338,6 +369,9 @@ export const DELETE = withWorkspace(
     const deletedBounty = BountySchema.parse({
       ...bounty,
       groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
+      partnerTags: bounty.partnerTags.map(({ partnerTagId }) => ({
+        id: partnerTagId,
+      })),
       performanceCondition: bounty.workflow?.triggerConditions?.[0],
     });
 

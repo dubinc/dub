@@ -25,6 +25,7 @@ const ACCORDION_ITEMS = [
   "bounty-details",
   "bounty-criteria",
   "groups",
+  "partnerTags",
 ];
 
 const isEmpty = (value: unknown) =>
@@ -96,6 +97,7 @@ export function useAddEditBountyForm({
       type: bounty?.type || "performance",
       submissionRequirements: initialSubmissionRequirements,
       groupIds: bounty?.groups?.map(({ id }) => id) || null,
+      partnerTagIds: bounty?.partnerTags?.map(({ id }) => id) || null,
       performanceCondition: bounty?.performanceCondition
         ? {
             ...bounty.performanceCondition,
@@ -137,6 +139,7 @@ export function useAddEditBountyForm({
     description,
     performanceCondition,
     groupIds,
+    partnerTagIds,
     rewardType,
     submissionRequirements,
   ] = watch([
@@ -149,6 +152,7 @@ export function useAddEditBountyForm({
     "description",
     "performanceCondition",
     "groupIds",
+    "partnerTagIds",
     "rewardType",
     "submissionRequirements",
   ]);
@@ -536,6 +540,7 @@ export function useAddEditBountyForm({
             rewardDescription: rewardDescription || null,
             submissionRequirements: submissionRequirements ?? null,
             groups: groupIds?.map((id) => ({ id })) || [],
+            partnerTags: partnerTagIds?.map((id) => ({ id })) || [],
           }
         : undefined,
       onConfirm: async ({ sendNotificationEmails }) => {
