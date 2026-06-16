@@ -35,6 +35,7 @@ export async function scheduleDelayedPayouts({
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
     delay: delaySeconds,
+    deduplicationId: `retry-delayed-payouts-${invoice.id}`, // The deduplication window is 10 minutes
     flowControl: {
       key: invoice.id,
       rate: 1,
@@ -93,13 +94,21 @@ export async function getFundSettlementTiming(invoice: {
   const availableOnMs = balanceTransaction.available_on * 1000;
 
   if (availableOnMs <= now) {
+    console.log(`Funds are available for charge ${chargeId}`);
+
     return {
       fundsAvailable: true,
     };
   }
 
+  const scheduledAt = new Date(availableOnMs + 15 * 60 * 1000); // 15 minutes from now
+
+  console.log(
+    `Funds are not available for charge ${chargeId}, scheduling payout for ${scheduledAt.toISOString()}`,
+  );
+
   return {
     fundsAvailable: false,
-    scheduledAt: new Date(availableOnMs + 15 * 60 * 1000), // 15 minutes from now
+    scheduledAt,
   };
 }
