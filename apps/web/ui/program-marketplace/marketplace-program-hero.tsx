@@ -3,6 +3,7 @@
 import { NetworkProgramExtendedProps } from "@/lib/types";
 import { marketplaceProgramDetailsColumnClassName } from "@/ui/program-marketplace/marketplace-program-details-layout";
 import { ProgramCategory } from "@/ui/program-marketplace/program-category";
+import { getMarketplaceCategoryHref } from "@/ui/program-marketplace/utils/urls";
 import { Globe } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn, getDomainWithoutWWW } from "@dub/utils";
 import Link from "next/link";
@@ -89,6 +90,7 @@ export function MarketplaceProgramHero({
                     key={category}
                     category={category}
                     variant="surface"
+                    href={getMarketplaceCategoryHref(category)}
                   />
                 ))}
               </div>
