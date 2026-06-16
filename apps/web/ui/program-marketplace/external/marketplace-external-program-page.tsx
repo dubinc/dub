@@ -5,12 +5,11 @@ import { MarketplaceProgramDetailsLayout } from "@/ui/program-marketplace/market
 import { MarketplaceProgramHero } from "@/ui/program-marketplace/marketplace-program-hero";
 import {
   getMarketplaceAllHref,
-  getMarketplaceHref,
   getMarketplacePublicApplyHref,
 } from "@/ui/program-marketplace/utils/urls";
 import { Button, ChevronLeft } from "@dub/ui";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { MarketplaceExternalShell } from "./marketplace-external-shell";
 
 export async function MarketplaceExternalProgramPage({
@@ -23,7 +22,7 @@ export async function MarketplaceExternalProgramPage({
   });
 
   if (!program) {
-    redirect(getMarketplaceHref());
+    notFound();
   }
 
   return (
