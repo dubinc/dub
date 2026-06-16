@@ -1226,7 +1226,11 @@ function buildPayoutFeeTooltip({
     payoutFeeWaiverLimit > 0 && payoutFeeWaiverUsage < payoutFeeWaiverLimit;
 
   const fastAchFeeText =
-    fastAchFee > 0 ? ` + ${currencyFormatter(fastAchFee)} Fast ACH fee` : "";
+    fastAchFee > 0
+      ? isWithinWaiver
+        ? ` A ${currencyFormatter(fastAchFee)} Fast ACH fee still applies.`
+        : ` + ${currencyFormatter(fastAchFee)} Fast ACH fee`
+      : "";
 
   const isDirectDebit = DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(
     selectedPaymentMethod.type as any,
@@ -1234,7 +1238,7 @@ function buildPayoutFeeTooltip({
 
   const directDebitSuggestion = isDirectDebit
     ? ""
-    : " Switch to Direct Debit for a reduced fee.";
+    : ` [Switch to Direct Debit](https://dub.co/help/article/how-to-set-up-bank-account) for ${isWithinWaiver ? "0% fees" : "a reduced fee"}.`;
 
   if (isWithinWaiver) {
     const effectiveFeePercentage = isDirectDebit
