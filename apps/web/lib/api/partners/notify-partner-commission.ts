@@ -8,6 +8,7 @@ import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-progra
 import { prisma } from "@dub/prisma";
 import {
   Commission,
+  Customer,
   PartnerGroup,
   Program,
   Project,
@@ -28,8 +29,8 @@ export async function notifyPartnerCommission({
   workspace: Pick<Project, "id" | "slug" | "name">;
   commission: Pick<
     Commission,
-    "type" | "amount" | "earnings" | "partnerId" | "linkId"
-  >;
+    "type" | "amount" | "earnings" | "partnerId" | "linkId" | "customerId"
+  > & { customer?: Pick<Customer, "name" | "email"> | null };
   isFirstCommission?: boolean;
 }) {
   // Workspace owner emails are sent:
@@ -104,6 +105,24 @@ export async function notifyPartnerCommission({
     return;
   }
 
+  const customer =
+    shouldNotifyProgram && commission.customer
+      ? {
+          name: commission.customer.name,
+          email: commission.customer.email,
+        }
+      : shouldNotifyProgram && commission.customerId
+        ? await prisma.customer.findUnique({
+            where: {
+              id: commission.customerId,
+            },
+            select: {
+              name: true,
+              email: true,
+            },
+          })
+        : null;
+
   const data = {
     program: {
       name: program.name,
@@ -161,6 +180,7 @@ export async function notifyPartnerCommission({
                   email: user.email!,
                 },
                 workspace,
+                customer,
               }),
             }) as ResendEmailOptions,
         )

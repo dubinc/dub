@@ -37,6 +37,10 @@ export default function NewSaleAlertProgramOwner({
     name: "Steven",
     email: "steven@dub.co",
   },
+  customer = {
+    name: "Jane Smith",
+    email: "jane@example.com",
+  },
   commission = {
     amount: 1330,
     earnings: 399,
@@ -62,6 +66,10 @@ export default function NewSaleAlertProgramOwner({
     name: string | null;
     email: string | null;
   };
+  customer?: {
+    name?: string | null;
+    email?: string | null;
+  } | null;
   commission: {
     amount: number;
     earnings: number;
@@ -77,6 +85,12 @@ export default function NewSaleAlertProgramOwner({
   const profitInDollars = currencyFormatter(
     commission.amount - commission.earnings,
   );
+
+  const customerLabel = customer
+    ? customer.name && customer.email
+      ? `${customer.name} (${customer.email})`
+      : customer.email ?? customer.name
+    : null;
 
   let formattedDueDate = "";
 
@@ -129,6 +143,21 @@ export default function NewSaleAlertProgramOwner({
 
             <Section className="my-8 w-full">
               <div className="rounded-lg">
+                {customerLabel && (
+                  <Row>
+                    <Column>
+                      <Text className="m-0 text-sm leading-6 text-neutral-600">
+                        Customer
+                      </Text>
+                    </Column>
+                    <Column align="right">
+                      <Text className="m-0 text-sm font-medium leading-6 text-neutral-600">
+                        {customerLabel}
+                      </Text>
+                    </Column>
+                  </Row>
+                )}
+
                 <Row>
                   <Column>
                     <Text className="m-0 text-sm leading-6 text-neutral-600">
