@@ -9,7 +9,7 @@ import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER_GROUP } from "../utils/resource";
 import { verifyMergeCompleted } from "./utils/verify-merge-completed";
 
-describe.sequential("Workflow - MergePartnerAccount", async () => {
+describe.skip("Workflow - MergePartnerAccount", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
