@@ -54,8 +54,16 @@ export class TapfiliateApi {
     return tapfiliatePartnerSchema.array().parse(data);
   }
 
-  async listCustomers({ page = 1 }: { page?: number }) {
-    const data = await this.fetch(`/customers/?page=${page}`);
+  async listCustomers({
+    programId,
+    page = 1,
+  }: {
+    programId: string;
+    page?: number;
+  }) {
+    const data = await this.fetch(
+      `/customers?program_id=${programId}&page=${page}`,
+    );
 
     return tapfiliateCustomerSchema.array().parse(data);
   }

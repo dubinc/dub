@@ -27,23 +27,36 @@ export const tapfiliatePartnerSchema = z.object({
   firstname: z.string().nullable(),
   lastname: z.string().nullable(),
   affiliate_group_id: z.string().nullable(),
-  address: z.object({
-    country: z.object({
-      code: z.string(),
-    }),
-  }),
+  address: z
+    .object({
+      country: z.object({
+        code: z.string(),
+      }),
+    })
+    .nullable(),
 });
 
 export const tapfiliateCustomerSchema = z.object({
   id: z.string(),
-  customer_id: z
-    .string()
-    .nullish()
-    .describe("External customer ID in the merchant's app."),
-  status: z.string().nullish(),
+  customer_id: z.string().describe("External customer ID."),
   created_at: z.string(),
-  affiliate: tapfiliatePartnerSchema.nullish(),
-  program: tapfiliateProgramSchema.nullish(),
+  click: z
+    .object({
+      created_at: z.string(),
+      referrer: z.string().nullable(),
+      landing_page: z.string().nullable(),
+    })
+    .nullable(),
+  program: tapfiliateProgramSchema
+    .pick({
+      id: true,
+    })
+    .nullable(),
+  affiliate: tapfiliatePartnerSchema
+    .pick({
+      id: true,
+    })
+    .nullable(),
 });
 
 // Tapfiliate returns monetary amounts either as a number or a numeric string.

@@ -5,7 +5,7 @@ import * as z from "zod/v4";
 import { tapfiliateImportPayloadSchema } from "./schemas";
 import { TapfiliateCredentials } from "./types";
 
-export const TAPFILIATE_MAX_BATCHES = 20;
+export const TAPFILIATE_MAX_BATCHES = 10;
 export const CACHE_EXPIRY = 60 * 60 * 24;
 export const CACHE_KEY_PREFIX = "tapfiliate:import";
 
