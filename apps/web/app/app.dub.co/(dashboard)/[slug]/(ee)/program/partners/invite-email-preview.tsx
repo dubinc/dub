@@ -42,7 +42,7 @@ export function InviteEmailPreview({
   fromAddress: string;
   // Persists the sanitized content; returning false keeps the edit mode open
   onSave: (content: EmailContent) => Promise<boolean> | boolean;
-  onGenerate?: () => Promise<EmailContent | void> | EmailContent | void;
+  onGenerate?: () => Promise<EmailContent | void>;
   onReset?: () => void;
   onEditingChange?: (isEditing: boolean) => void;
   isSaving?: boolean;
@@ -154,24 +154,16 @@ export function InviteEmailPreview({
           ) : (
             <>
               {showReset && onReset && (
-                <InviteEmailIconButton
-                  icon={<RotateCcw className="size-3.5" />}
-                  label="Reset to the default invite"
-                  tooltip="Reset to the default invite"
+                <ResetInviteButton
                   onClick={handleResetEmail}
                   disabled={isGenerating}
                 />
               )}
               {onGenerate && !showGeneratedActions && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  text="Personalize"
-                  icon={<Sparkle3 className="size-3.5" />}
-                  className="h-7 w-fit rounded-lg px-2.5 text-sm"
+                <PersonalizeButton
+                  variant="full"
                   onClick={handleGenerateEmail}
-                  loading={isGenerating}
-                  disabled={isGenerating}
+                  isGenerating={isGenerating}
                   disabledTooltip={generateDisabledTooltip}
                 />
               )}
@@ -211,6 +203,7 @@ export function InviteEmailPreview({
                     }
                     className="block w-full rounded-md border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
                     placeholder="Email subject"
+                    maxLength={255}
                     autoFocus={!isMobile}
                   />
                 </div>
@@ -236,6 +229,7 @@ export function InviteEmailPreview({
                     }
                     className="block w-full rounded-md border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
                     placeholder="Email title"
+                    maxLength={255}
                   />
                 </div>
               </div>
@@ -252,27 +246,17 @@ export function InviteEmailPreview({
                   {(showReset || onGenerate) && (
                     <div className="flex items-center gap-2">
                       {showReset && onReset && (
-                        <InviteEmailIconButton
-                          icon={<RotateCcw className="size-3.5" />}
-                          label="Reset to the default invite"
-                          tooltip="Reset to the default invite"
+                        <ResetInviteButton
                           onClick={handleResetEmail}
                           disabled={isGenerating}
                         />
                       )}
                       {onGenerate && (
-                        <InviteEmailIconButton
-                          icon={<Sparkle3 className="size-3.5" />}
-                          label="Personalize invite"
-                          tooltip={
-                            generateDisabledTooltip ||
-                            "Personalize this invite"
-                          }
+                        <PersonalizeButton
+                          variant="icon"
                           onClick={handleGenerateEmail}
-                          disabled={
-                            isGenerating || Boolean(generateDisabledTooltip)
-                          }
-                          loading={isGenerating}
+                          isGenerating={isGenerating}
+                          disabledTooltip={generateDisabledTooltip}
                         />
                       )}
                     </div>
@@ -400,6 +384,66 @@ function InviteEmailIconButton({
         </button>
       </span>
     </Tooltip>
+  );
+}
+
+function ResetInviteButton({
+  onClick,
+  disabled,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <InviteEmailIconButton
+      icon={<RotateCcw className="size-3.5" />}
+      label="Reset to the default invite"
+      tooltip="Reset to the default invite"
+      onClick={onClick}
+      disabled={disabled}
+    />
+  );
+}
+
+function PersonalizeButton({
+  variant,
+  onClick,
+  isGenerating,
+  disabledTooltip,
+}: {
+  variant: "full" | "icon";
+  onClick: () => void;
+  isGenerating: boolean;
+  disabledTooltip?: string;
+}) {
+  // Single source of truth for when personalization is unavailable
+  const disabled = isGenerating || Boolean(disabledTooltip);
+
+  if (variant === "icon") {
+    return (
+      <InviteEmailIconButton
+        icon={<Sparkle3 className="size-3.5" />}
+        label="Personalize invite"
+        tooltip={disabledTooltip || "Personalize this invite"}
+        onClick={onClick}
+        disabled={disabled}
+        loading={isGenerating}
+      />
+    );
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      text="Personalize"
+      icon={<Sparkle3 className="size-3.5" />}
+      className="h-7 w-fit rounded-lg px-2.5 text-sm"
+      onClick={onClick}
+      loading={isGenerating}
+      disabled={disabled}
+      disabledTooltip={disabledTooltip}
+    />
   );
 }
 

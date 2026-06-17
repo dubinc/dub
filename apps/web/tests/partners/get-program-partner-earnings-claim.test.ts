@@ -34,8 +34,8 @@ describe("formatProgramPartnerEarningsClaim", () => {
   it("handles bigint values", () => {
     expect(
       formatProgramPartnerEarningsClaim({
-        topMonthlyEarnings: 2_500_000n,
-        distinctEarningPartners: 5n,
+        topMonthlyEarnings: BigInt(2_500_000),
+        distinctEarningPartners: BigInt(5),
       }),
     ).toBe(
       "In recent months, some of our top partners have earned over $25K in a month.",

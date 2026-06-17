@@ -28,7 +28,7 @@ Your goal is to write an email that maximizes the chances of the partner joining
 Come up with a specific subject line that is likely to make the recipient open the email. The title should be engaging and make the affiliate feel included.
 
 **Rules:**
-- Greet the partner directly. If you can identify a person, greet them by their first name.  If all you have a is a company name, then you can use the company name.  If nothing usable is available, greet generically with "Hey there".
+- Greet the partner directly. If you can identify a person, greet them by their first name.  If all you have is a company name, then you can greet by company name.  If nothing usable is available, greet generically with "Hey there".
 - Treat companyName as context about the partner's business, not as the person you are writing to.
 - Example: if name is "Jordan Lee" and companyName is "Northstar Tutorials", address the email to "Jordan", not "Northstar Tutorials".
 - If a sender name is provided, use the sender's first name in place of [Sender Name], but if there is no sender name provided omit this entirely.
