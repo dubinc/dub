@@ -17,6 +17,9 @@ export const GET = withCron(async () => {
       clickEnrollments: {
         some: {},
       },
+      programId: {
+        not: null,
+      },
     },
     select: {
       id: true,
