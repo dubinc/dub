@@ -55,6 +55,16 @@ export const { POST } = serve<Input>(
 
     if (!plan.proceed) {
       console.log(`Skipping merge: ${plan.reason}`);
+
+      // Clear the verification cache so the user can cleanly retry (sendTokens
+      // rejects a new request while this key is still set).
+      await context.run("clear-cache-after-skip", async () => {
+        await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
+        return logAndReturn({
+          outputLog: `Cleared merge cache after skipped merge: ${plan.reason}`,
+        });
+      });
+
       return;
     }
 
@@ -437,6 +447,16 @@ async function mergeSingleEnrollment({
     });
   }
 
+  // Another process could have reassigned this enrollment away from the source
+  // partner; only the source partner's own enrollments should be merged.
+  if (sourceEnrollment.partnerId !== sourcePartnerId) {
+    return logAndReturn({
+      programId: sourceEnrollment.programId,
+      action: "skip",
+      outputLog: `Enrollment ${enrollmentId} no longer belongs to ${sourcePartnerId} (now ${sourceEnrollment.partnerId}), skipping`,
+    });
+  }
+
   const { programId } = sourceEnrollment;
 
   const targetEnrollment = await prisma.programEnrollment.findUnique({
@@ -472,14 +492,14 @@ async function mergeSingleEnrollment({
       }
 
       if (sourceEnrollment.applicationId) {
-        await tx.programEnrollment.update({
-          where: { id: sourceEnrollment.id },
+        await tx.programEnrollment.updateMany({
+          where: { id: sourceEnrollment.id, partnerId: sourcePartnerId },
           data: { applicationId: null },
         });
       }
 
-      await tx.programEnrollment.delete({
-        where: { id: sourceEnrollment.id },
+      await tx.programEnrollment.deleteMany({
+        where: { id: sourceEnrollment.id, partnerId: sourcePartnerId },
       });
 
       const tenantIdToCopy =
@@ -516,10 +536,20 @@ async function mergeSingleEnrollment({
     });
   }
 
-  await prisma.programEnrollment.update({
-    where: { id: sourceEnrollment.id },
+  // Scope the transfer to the source partner so a concurrent reassignment
+  // can't make us steal another partner's enrollment.
+  const { count } = await prisma.programEnrollment.updateMany({
+    where: { id: sourceEnrollment.id, partnerId: sourcePartnerId },
     data: { partnerId: targetPartnerId },
   });
+
+  if (count === 0) {
+    return logAndReturn({
+      programId,
+      action: "skip",
+      outputLog: `Enrollment ${sourceEnrollment.id} no longer owned by ${sourcePartnerId}, skipping transfer`,
+    });
+  }
 
   return logAndReturn({
     programId,
@@ -600,6 +630,20 @@ async function syncLinksAndCommissions({
       }),
     ),
   ]);
+
+  // Fail the step (so QStash retries it) if any sync rejected. All of these
+  // ops are idempotent, so re-running the step is safe.
+  const rejected = res.filter(
+    (result): result is PromiseRejectedResult => result.status === "rejected",
+  );
+
+  if (rejected.length > 0) {
+    throw new Error(
+      `Failed to sync links/commissions: ${prettyPrint(
+        rejected.map(({ reason }) => reason),
+      )}`,
+    );
+  }
 
   return logAndReturn({
     outputLog: `Synced ${updatedLinks.length} links and commissions. ${prettyPrint(res)}`,
@@ -725,21 +769,23 @@ async function deleteSourcePartner({
   sourceEmail: string;
   sourceImage: string | null;
 }) {
-  try {
-    await conn.execute(`DELETE FROM Partner WHERE id = ?`, [sourcePartnerId]);
+  await conn.execute(`DELETE FROM Partner WHERE id = ?`, [sourcePartnerId]);
 
-    if (sourceImage) {
+  if (sourceImage) {
+    try {
       await storage.delete({
         key: sourceImage.replace(`${R2_URL}/`, ""),
       });
+    } catch (error) {
+      logger.error("partner.image_delete_failed", {
+        sourcePartnerId,
+        sourceImage,
+        error,
+      });
     }
-
-    return logAndReturn({
-      outputLog: `Deleted partner ${sourceEmail} (${sourcePartnerId})`,
-    });
-  } catch (error) {
-    return logAndReturn({
-      outputLog: `Error deleting partner ${sourcePartnerId}: ${error.message}`,
-    });
   }
+
+  return logAndReturn({
+    outputLog: `Deleted partner ${sourceEmail} (${sourcePartnerId})`,
+  });
 }
