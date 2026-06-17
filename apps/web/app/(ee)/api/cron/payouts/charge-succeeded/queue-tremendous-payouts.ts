@@ -17,7 +17,7 @@ const queue = qstash.queue({
 export async function queueTremendousPayouts({
   invoice,
 }: {
-  invoice: Pick<Invoice, "id" | "paymentMethod" | "payoutMode" | "programId">;
+  invoice: Pick<Invoice, "id" | "payoutMode" | "programId">;
 }) {
   if (invoice.payoutMode === "external") {
     console.log(

@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       SET p.method = pn.defaultPayoutMethod
       WHERE p.invoiceId = ${invoice.id}
       AND pn.defaultPayoutMethod IS NOT NULL
-      AND p.status = 'processing' AND p.method IS NULL
+      AND p.status = 'processing'
     `;
 
     let fundsAvailable = true;

@@ -17,7 +17,6 @@ export const stripeChargeMetadataSchema = z.object({
   id: z.string(),
 });
 
-// Schedule the QStash job
 export async function scheduleDelayedPayouts({
   invoice,
   executeAt,
@@ -82,7 +81,9 @@ export async function getFundSettlementTiming(invoice: {
   const now = Date.now();
 
   if (balanceTransactions.data.length === 0) {
-    console.log(`No balance transaction found for charge ${chargeId}`);
+    console.log(
+      `No balance transaction found for charge ${chargeId}, retrying in 1 hour...`,
+    );
 
     return {
       fundsAvailable: false,
@@ -101,7 +102,7 @@ export async function getFundSettlementTiming(invoice: {
     };
   }
 
-  // 15 minutes from now (QStash deduplication window is 10 minutes)
+  // schedule the qstash job 15 minutes after the funds will be available (to give some buffer)
   const scheduledAt = new Date(availableOnMs + 15 * 60 * 1000);
 
   console.log(
