@@ -14,27 +14,24 @@ const queue = qstash.queue({
   queueName: "send-tremendous-payout",
 });
 
-export async function queueTremendousPayouts(
-  invoice: Pick<Invoice, "id" | "paymentMethod" | "payoutMode" | "programId">,
-) {
-  if (invoice.payoutMode === "external" || !invoice.programId) {
+export async function queueTremendousPayouts({
+  invoice,
+}: {
+  invoice: Pick<Invoice, "id" | "payoutMode" | "programId">;
+}) {
+  if (invoice.payoutMode === "external") {
+    console.log(
+      `Invoice ${invoice.id} is paid externally, skipping Tremendous payouts...`,
+    );
     return;
   }
 
-  const program = await prisma.program.findUniqueOrThrow({
-    where: {
-      id: invoice.programId,
-    },
-    select: {
-      id: true,
-      name: true,
-      logo: true,
-      tremendousCampaignId: true,
-    },
-  });
-
-  if (!program.tremendousCampaignId) {
-    await createTremendousCampaign(program);
+  // should never happen, but just in case
+  if (!invoice.programId) {
+    console.log(
+      `Invoice ${invoice.id} has no program ID, skipping Tremendous payouts...`,
+    );
+    return;
   }
 
   const partnersInCurrentInvoice = await prisma.payout.groupBy({
@@ -61,6 +58,23 @@ export async function queueTremendousPayouts(
   if (partnersInCurrentInvoice.length === 0) {
     console.log("No partners for sending via Tremendous, skipping...");
     return;
+  }
+
+  // if there are partners to send via Tremendous, we need to make sure the program has tremendousCampaignId set
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: invoice.programId,
+    },
+    select: {
+      id: true,
+      name: true,
+      logo: true,
+      tremendousCampaignId: true,
+    },
+  });
+
+  if (!program.tremendousCampaignId) {
+    await createTremendousCampaign(program);
   }
 
   const chunkedPartners = chunk(partnersInCurrentInvoice, 100);

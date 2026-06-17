@@ -73,6 +73,7 @@ import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { memo, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -223,9 +224,16 @@ export function PartnersTable() {
             return (
               <div className="flex items-center gap-2">
                 <GroupColorCircle group={group} />
-                <span className="truncate text-sm font-medium">
+                <Link
+                  href={`/${workspaceSlug}/program/groups/${group.slug}`}
+                  target="_blank"
+                  onClick={(e) => e.stopPropagation()}
+                  onAuxClick={(e) => e.stopPropagation()}
+                  className="min-w-0 cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+                  title={group.name}
+                >
                   {group.name}
-                </span>
+                </Link>
               </div>
             );
           },
@@ -438,7 +446,7 @@ export function PartnersTable() {
           ),
         },
       ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
-    [workspaceId, groups, columnVisibility, searchParams],
+    [workspaceId, groups, columnVisibility, searchParams, workspaceSlug],
   );
 
   const { table, ...tableProps } = useTable({
