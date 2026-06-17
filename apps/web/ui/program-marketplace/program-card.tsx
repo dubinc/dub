@@ -54,21 +54,17 @@ export function MarketplaceProgramCard({
         </div>
 
         <div className="mt-5 flex gap-4">
-          {Boolean(program.rewards?.length || program.discount) && (
+          {Boolean(program.rewards?.length) && (
             <div>
               <span className="text-content-muted block text-xs font-medium">
                 Rewards
               </span>
               <ProgramRewardsDisplay
                 rewards={program.rewards}
-                discount={program.discount}
                 onRewardClick={(reward) =>
                   router.push(
                     getMarketplaceAllHref({ rewardType: reward.event }),
                   )
-                }
-                onDiscountClick={() =>
-                  router.push(getMarketplaceAllHref({ rewardType: "discount" }))
                 }
                 className="mt-2"
               />

@@ -89,7 +89,7 @@ export function FeaturedProgramCard({
           </div>
 
           <div className="mt-5 flex flex-wrap gap-x-8 gap-y-4">
-            {Boolean(program.rewards?.length || program.discount) && (
+            {Boolean(program.rewards?.length) && (
               <div>
                 <span className="block text-xs font-medium text-neutral-400">
                   Rewards
@@ -97,15 +97,9 @@ export function FeaturedProgramCard({
                 <ProgramRewardsDisplay
                   iconsOnly
                   rewards={program.rewards}
-                  discount={program.discount}
                   onRewardClick={(reward) =>
                     router.push(
                       getMarketplaceAllHref({ rewardType: reward.event }),
-                    )
-                  }
-                  onDiscountClick={() =>
-                    router.push(
-                      getMarketplaceAllHref({ rewardType: "discount" }),
                     )
                   }
                   className="mt-2 min-h-6"
