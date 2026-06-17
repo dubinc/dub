@@ -98,12 +98,15 @@ function resolveConditionFieldValue({
   if (condition.entity === "customer") {
     return context.customer?.[condition.attribute];
   }
+
   if (condition.entity === "sale") {
     return context.sale?.[condition.attribute];
   }
+
   if (condition.entity === "partner") {
     return context.partner?.[condition.attribute];
   }
+
   if (condition.entity === "lead") {
     return undefined;
   }
@@ -115,18 +118,23 @@ function parseMetadataNumeric(raw: unknown): number | undefined {
   if (raw == null) {
     return undefined;
   }
+
   if (typeof raw === "number" && !Number.isNaN(raw)) {
     return raw;
   }
+
   if (typeof raw === "string") {
     if (raw.trim() === "" || Number.isNaN(Number(raw))) {
       return undefined;
     }
+
     return Number(raw);
   }
+
   if (typeof raw === "boolean") {
     return undefined;
   }
+
   const n = Number(raw);
   return Number.isNaN(n) ? undefined : n;
 }
