@@ -1,9 +1,13 @@
-// Some network partners have an email address (or nothing) stored as their
-// name; fall back to a generic greeting rather than leaking it
-export const getNetworkPartnerDisplayName = (name?: string | null) => {
+// Some network partners have an email address stored as their name; treat those
+// as missing rather than leaking them into invite copy.
+export const getUsableNetworkPartnerName = (name?: string | null) => {
   const trimmedName = name?.trim();
 
-  return trimmedName && !trimmedName.includes("@") ? trimmedName : "there";
+  return trimmedName && !trimmedName.includes("@") ? trimmedName : null;
+};
+
+export const getNetworkPartnerDisplayName = (name?: string | null) => {
+  return getUsableNetworkPartnerName(name) ?? "there";
 };
 
 export const getProgramNetworkInviteEmailDefaults = ({

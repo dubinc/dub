@@ -54,16 +54,24 @@ export function formatProgramPartnerEarningsClaim({
     return null;
   }
 
+  const monthlyEarningsCents = toNumber(topMonthlyEarningsCents);
   const flooredMonthlyEarningsCents =
-    Math.floor(toNumber(topMonthlyEarningsCents) / ROUNDING_INCREMENT_CENTS) *
+    Math.floor(monthlyEarningsCents / ROUNDING_INCREMENT_CENTS) *
     ROUNDING_INCREMENT_CENTS;
 
   if (flooredMonthlyEarningsCents < MIN_MONTHLY_EARNINGS_CENTS) {
     return null;
   }
 
-  return `In recent months, some of our top partners have earned over $${nFormatter(
-    floorToCompactDisplayUnit(flooredMonthlyEarningsCents / 100),
+  const displayEarningsDollars = floorToCompactDisplayUnit(
+    flooredMonthlyEarningsCents / 100,
+  );
+  const displayEarningsCents = displayEarningsDollars * 100;
+  const earningsPrefix =
+    monthlyEarningsCents > displayEarningsCents ? "over " : "";
+
+  return `In recent months, some of our top partners have earned ${earningsPrefix}$${nFormatter(
+    displayEarningsDollars,
     { digits: 0 },
   )} in a month.`;
 }

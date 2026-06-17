@@ -5,7 +5,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramPartnerEarningsClaim } from "@/lib/api/programs/get-program-partner-earnings-claim";
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
-import { getNetworkPartnerDisplayName } from "@/lib/network/get-program-network-invite-email-defaults";
+import { getUsableNetworkPartnerName } from "@/lib/network/get-program-network-invite-email-defaults";
 import { PlanProps } from "@/lib/types";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import {
@@ -29,6 +29,7 @@ Come up with a specific subject line that is likely to make the recipient open t
 
 **Rules:**
 - Greet the partner directly. If you can identify a person, greet them by their first name.  If all you have is a company name, then you can greet by company name.  If nothing usable is available, greet generically with "Hey there".
+- Do not use generic greetings like "there" in the subject or title lines.
 - Treat companyName as context about the partner's business, not as the person you are writing to.
 - Example: if name is "Jordan Lee" and companyName is "Northstar Tutorials", address the email to "Jordan", not "Northstar Tutorials".
 - If a sender name is provided, use the sender's first name in place of [Sender Name], but if there is no sender name provided omit this entirely.
@@ -154,12 +155,13 @@ export const generatePartnerNetworkInviteEmailAction = authActionClient
       throw new Error("Partner does not have a valid email address.");
     }
 
-    const partnerName = getNetworkPartnerDisplayName(partner.name);
+    const partnerName = getUsableNetworkPartnerName(partner.name);
     // Don't leak an email address if one is stored as the company name
     const companyName =
       partner.companyName && !partner.companyName.includes("@")
         ? partner.companyName
         : null;
+    const partnerGreetingName = partnerName ?? companyName ?? "there";
 
     await reserveAIUsageCredit({
       workspaceId: workspace.id,
@@ -192,6 +194,7 @@ ${JSON.stringify({
 Partner:
 ${JSON.stringify({
   name: partnerName,
+  greetingName: partnerGreetingName,
   companyName,
   description: partner.description,
   profileType: partner.profileType,

@@ -20,6 +20,17 @@ describe("formatProgramPartnerEarningsClaim", () => {
     ).toBeNull();
   });
 
+  it("omits over when monthly earnings exactly match the displayed threshold", () => {
+    expect(
+      formatProgramPartnerEarningsClaim({
+        topMonthlyEarningsCents: 100_000,
+        distinctEarningPartnerCount: 5,
+      }),
+    ).toBe(
+      "In recent months, some of our top partners have earned $1K in a month.",
+    );
+  });
+
   it("floors down to the nearest thousand dollars", () => {
     expect(
       formatProgramPartnerEarningsClaim({
@@ -51,7 +62,7 @@ describe("formatProgramPartnerEarningsClaim", () => {
         distinctEarningPartnerCount: BigInt(5),
       }),
     ).toBe(
-      "In recent months, some of our top partners have earned over $25K in a month.",
+      "In recent months, some of our top partners have earned $25K in a month.",
     );
   });
 });
