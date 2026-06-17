@@ -21,6 +21,7 @@ import {
 } from "@/lib/zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { getSpendLimitCommissionDescription } from "@/ui/partners/program-reward-spend-limit";
 import { prisma } from "@dub/prisma";
 import {
   Commission,
@@ -382,6 +383,7 @@ async function stepCreateCommission(
     reward.spendLimitAmount != null &&
     reward.spendLimitInterval != null
   ) {
+    const uncappedEarnings = earnings;
     earnings = await getCappedEarnings({
       reward,
       earnings,
@@ -394,6 +396,14 @@ async function stepCreateCommission(
       return logAndReturn({
         commission: null,
         outputLog: `Partner ${partnerId} has reached spend limit (${currencyFormatter(reward.spendLimitAmount)} ${reward.spendLimitInterval === "allTime" ? "in total" : `per ${reward.spendLimitInterval}`}) for ${event} event, skipping commission creation...`,
+      });
+    }
+
+    if (!description) {
+      description = getSpendLimitCommissionDescription({
+        uncappedEarnings,
+        cappedEarnings: earnings,
+        reward,
       });
     }
   }

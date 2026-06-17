@@ -39,3 +39,43 @@ export function ProgramRewardSpendLimit({
 
   return ` up to ${parts.amount} ${parts.interval}`;
 }
+
+export function getSpendLimitCommissionDescription({
+  uncappedEarnings,
+  cappedEarnings,
+  reward,
+}: {
+  uncappedEarnings: number;
+  cappedEarnings: number;
+  reward: Pick<
+    RewardProps,
+    | "event"
+    | "type"
+    | "amountInCents"
+    | "amountInPercentage"
+    | "spendLimitAmount"
+    | "spendLimitInterval"
+  >;
+}) {
+  if (uncappedEarnings <= cappedEarnings) {
+    return null;
+  }
+
+  const limitParts = getSpendLimitDescriptionParts({
+    spendLimitAmount: reward.spendLimitAmount,
+    spendLimitInterval: reward.spendLimitInterval,
+  });
+
+  if (!limitParts) {
+    return null;
+  }
+
+  const amount =
+    reward.type === "percentage"
+      ? `${reward.amountInPercentage ?? 0}%`
+      : currencyFormatter(reward.amountInCents ?? 0, {
+          trailingZeroDisplay: "stripIfInteger",
+        });
+
+  return `Earn ${amount} per ${reward.event} up to ${limitParts.amount} ${limitParts.interval}`;
+}

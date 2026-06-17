@@ -7,6 +7,7 @@ import { withCron } from "@/lib/cron/with-cron";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { getTopLinksByCountries } from "@/lib/tinybird/get-top-links-by-countries";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { getSpendLimitCommissionDescription } from "@/ui/partners/program-reward-spend-limit";
 import { prisma } from "@dub/prisma";
 import { CommissionType, EventType, Prisma, Reward } from "@dub/prisma/client";
 import {
@@ -188,6 +189,7 @@ export const POST = withCron(async ({ rawBody }) => {
       }
 
       let { clicks, earnings } = linkEarnings;
+      const uncappedEarnings = earnings;
 
       if (clicks === 0 || earnings === 0) {
         return null;
@@ -212,6 +214,12 @@ export const POST = withCron(async ({ rawBody }) => {
         usedSpendLimitByPartner.set(partnerId, usedThisBatch + earnings);
       }
 
+      const description = getSpendLimitCommissionDescription({
+        uncappedEarnings,
+        cappedEarnings: earnings,
+        reward: serializeReward(clickReward),
+      });
+
       return {
         id: createId({ prefix: "cm_" }),
         programId,
@@ -222,6 +230,7 @@ export const POST = withCron(async ({ rawBody }) => {
         type: CommissionType.click,
         amount: 0,
         earnings,
+        description,
         createdAt: endDate,
         invoiceId: `${linkId}-${aggregationDate}`, // used as a idempotency key
       };
