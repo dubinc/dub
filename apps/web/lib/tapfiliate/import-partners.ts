@@ -44,6 +44,11 @@ export async function importPartners(payload: TapfiliateImportPayload) {
     return;
   }
 
+  if (!program.domain || !program.url) {
+    console.error("Program domain or url not found", program.id);
+    return;
+  }
+
   const defaultGroup = program.groups[0];
   const workspace = program.workspace as WorkspaceProps;
 
@@ -89,8 +94,6 @@ export async function importPartners(payload: TapfiliateImportPayload) {
 
     currentPage++;
     processedBatches++;
-
-    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   await tapfiliateImporter.queue({
@@ -175,11 +178,6 @@ async function createPartnerAndLinks({
     },
   });
 
-  if (!program.domain || !program.url) {
-    console.error("Program domain or url not found", program.id);
-    return;
-  }
-
   try {
     const partnerLink = await generatePartnerLink({
       workspace,
@@ -190,8 +188,8 @@ async function createPartnerAndLinks({
         email: partner.email!,
       },
       link: {
-        domain: program.domain,
-        url: program.url,
+        domain: program.domain!,
+        url: program.url!,
         key: affiliate.id,
       },
       userId,

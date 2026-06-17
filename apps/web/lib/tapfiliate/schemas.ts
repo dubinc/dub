@@ -4,6 +4,7 @@ export const tapfiliateImportSteps = z.enum([
   "import-partners",
   "import-customers",
   "import-commissions",
+  "update-stripe-customers",
 ]);
 
 export const tapfiliateImportPayloadSchema = z.object({
@@ -59,29 +60,32 @@ export const tapfiliateCustomerSchema = z.object({
     .nullable(),
 });
 
-// Tapfiliate returns monetary amounts either as a number or a numeric string.
-const tapfiliateAmount = z.union([z.number(), z.string()]).nullish();
-
 export const tapfiliateCommissionSchema = z.object({
-  id: z.union([z.number(), z.string()]).nullish(),
-  amount: tapfiliateAmount,
-  // approved: true = approved, false = disapproved, null = pending
-  approved: z.boolean().nullish(),
-  // payout is set once the commission has been paid out
-  payout: z.any(),
-  currency: z.string().nullish(),
-  affiliate: tapfiliatePartnerSchema.nullish(),
+  id: z.number(),
+  currency: z.string(),
+  created_at: z.string(),
+  approved: z.boolean().nullable(),
+  amount: z.number(),
+  conversion_sub_amount: z.number(),
+  final: z.boolean(),
 });
 
 export const tapfiliateConversionSchema = z.object({
-  id: z.union([z.number(), z.string()]),
-  external_id: z.string().nullish(),
-  amount: tapfiliateAmount,
-  currency: z.string().nullish(),
-  commissions: z.array(tapfiliateCommissionSchema).nullish(),
-  affiliate: tapfiliatePartnerSchema.nullish(),
-  customer: tapfiliateCustomerSchema.nullish(),
-  program: tapfiliateProgramSchema.nullish(),
-  coupon: z.string().nullish(),
-  created_at: z.string(),
+  id: z.number(),
+  program: tapfiliateProgramSchema
+    .pick({
+      id: true,
+    })
+    .nullable(),
+  affiliate: tapfiliatePartnerSchema
+    .pick({
+      id: true,
+    })
+    .nullable(),
+  customer: tapfiliateCustomerSchema
+    .pick({
+      customer_id: true,
+    })
+    .nullable(),
+  commissions: z.array(tapfiliateCommissionSchema).nullable(),
 });

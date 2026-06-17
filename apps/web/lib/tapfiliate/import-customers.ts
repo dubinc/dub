@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Link, Project } from "@dub/prisma/client";
+import { Customer, Link, Project } from "@dub/prisma/client";
 import { chunk, nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
@@ -62,6 +62,7 @@ export async function importCustomers(payload: TapfiliateImportPayload) {
       break;
     }
 
+    // Filter customers by program and affiliate
     customers = customers.filter(
       (customer) =>
         customer.program?.id === tapfiliateProgramId && customer.affiliate?.id,
@@ -92,9 +93,13 @@ export async function importCustomers(payload: TapfiliateImportPayload) {
       });
 
       const affiliateIdToLink = new Map(links.map((link) => [link.key, link]));
-      const customerExternalIds = customers
-        .map((customer) => customer.customer_id)
-        .filter((id): id is string => id !== null);
+      const customerExternalIds = [
+        ...new Set(
+          customers
+            .map((customer) => customer.customer_id)
+            .filter((id): id is string => id !== null),
+        ),
+      ];
 
       // Find the existing customers by their external customer_id
       const existingCustomers = await prisma.customer.findMany({
@@ -133,8 +138,6 @@ export async function importCustomers(payload: TapfiliateImportPayload) {
         }
       }
     }
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     currentPage++;
     processedBatches++;
@@ -217,11 +220,14 @@ async function createCustomer({
     qr: 0,
   });
 
+  let createdCustomer: Customer | null = null;
+
   try {
-    const createdCustomer = await prisma.customer.create({
+    createdCustomer = await prisma.customer.create({
       data: {
         id: createId({ prefix: "cus_" }),
         name: externalId,
+        externalId,
         projectId: workspace.id,
         projectConnectId: workspace.stripeConnectId,
         clickId: clickEvent.click_id,
@@ -231,46 +237,53 @@ async function createCustomer({
         country: clickEvent.country,
         clickedAt,
         createdAt: new Date(customer.created_at),
-        externalId,
       },
     });
-
-    await Promise.all([
-      recordLeadWithTimestamp({
-        ...clickEvent,
-        event_id: nanoid(16),
-        event_name: "Sign up",
-        customer_id: createdCustomer.id,
-        timestamp: new Date(customer.created_at).toISOString(),
-      }),
-
-      prisma.link.update({
-        where: {
-          id: link.id,
-        },
-        data: {
-          leads: {
-            increment: 1,
-          },
-          lastLeadAt: updateLinkStatsForImporter({
-            currentTimestamp: link.lastLeadAt,
-            newTimestamp: new Date(customer.created_at),
-          }),
-        },
-      }),
-
-      // partner links should always have a partnerId and programId, but we're doing this to make TS happy
-      ...(link.partnerId && link.programId
-        ? [
-            syncPartnerLinksStats({
-              partnerId: link.partnerId,
-              programId: link.programId,
-              eventType: "lead",
-            }),
-          ]
-        : []),
-    ]);
   } catch (error) {
-    console.error("Error creating customer", customer, error);
+    if (error.code === "P2002") {
+      console.warn(
+        `Customer with external ID ${externalId} already exists. Skipping...`,
+      );
+    } else {
+      console.error("Error creating customer", customer, error);
+    }
+
+    return;
   }
+
+  await Promise.all([
+    recordLeadWithTimestamp({
+      ...clickEvent,
+      event_id: nanoid(16),
+      event_name: "Sign up",
+      customer_id: createdCustomer.id,
+      timestamp: new Date(customer.created_at).toISOString(),
+    }),
+
+    prisma.link.update({
+      where: {
+        id: link.id,
+      },
+      data: {
+        leads: {
+          increment: 1,
+        },
+        lastLeadAt: updateLinkStatsForImporter({
+          currentTimestamp: link.lastLeadAt,
+          newTimestamp: new Date(customer.created_at),
+        }),
+      },
+    }),
+
+    // partner links should always have a partnerId and programId, but we're doing this to make TS happy
+    ...(link.partnerId && link.programId
+      ? [
+          syncPartnerLinksStats({
+            partnerId: link.partnerId,
+            programId: link.programId,
+            eventType: "lead",
+          }),
+        ]
+      : []),
+  ]);
 }

@@ -5,10 +5,8 @@ import {
   tapfiliateProgramSchema,
 } from "./schemas";
 
-const TAPFILIATE_API_BASE_URL = "https://api.tapfiliate.com/1.6";
-
 export class TapfiliateApi {
-  private readonly baseUrl = TAPFILIATE_API_BASE_URL;
+  private readonly baseUrl = "https://api.tapfiliate.com/1.6";
   private readonly apiKey: string;
 
   constructor({ apiKey }: { apiKey: string }) {
@@ -61,13 +59,17 @@ export class TapfiliateApi {
     programId: string;
     page?: number;
   }) {
-    const data = await this.fetch(
-      `/customers?program_id=${programId}&page=${page}`,
-    );
+    const searchParams = new URLSearchParams({
+      program_id: programId,
+      page: page.toString(),
+    });
+
+    const data = await this.fetch(`/customers?${searchParams.toString()}`);
 
     return tapfiliateCustomerSchema.array().parse(data);
   }
 
+  // Fetch conversions and commissions
   async listConversions({
     programId,
     page = 1,

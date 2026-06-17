@@ -1,4 +1,5 @@
 import { withCron } from "@/lib/cron/with-cron";
+import { importCommissions } from "@/lib/tapfiliate/import-commissions";
 import { importCustomers } from "@/lib/tapfiliate/import-customers";
 import { importPartners } from "@/lib/tapfiliate/import-partners";
 import { tapfiliateImportPayloadSchema } from "@/lib/tapfiliate/schemas";
@@ -16,9 +17,9 @@ export const POST = withCron(async ({ rawBody }) => {
     case "import-customers":
       await importCustomers(payload);
       break;
-    // case "import-commissions":
-    //   await importCommissions(payload);
-    //   break;
+    case "import-commissions":
+      await importCommissions(payload);
+      break;
   }
 
   return logAndRespond("OK");
