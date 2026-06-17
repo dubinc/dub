@@ -15,7 +15,7 @@ export function getSpendLimitWindow({
   referenceDate,
 }: {
   spendLimitInterval: RewardSpendLimitInterval;
-  referenceDate: Date;
+  referenceDate: Date; // when calculating historical earnings, this is the start date of the aggregation
 }) {
   const date = referenceDate;
 
