@@ -201,7 +201,9 @@ export const trackSale = async ({
         projectConnectId: workspace.stripeConnectId,
         clickedAt: new Date(clickData.timestamp + "Z"),
       },
-      update: {},
+      update: {
+        //
+      },
     });
 
     if (upsertedCustomer.id === finalCustomerId) {
