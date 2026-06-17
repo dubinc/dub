@@ -14,10 +14,23 @@ const queue = qstash.queue({
   queueName: "send-tremendous-payout",
 });
 
-export async function queueTremendousPayouts(
-  invoice: Pick<Invoice, "id" | "paymentMethod" | "payoutMode" | "programId">,
-) {
-  if (invoice.payoutMode === "external" || !invoice.programId) {
+export async function queueTremendousPayouts({
+  invoice,
+}: {
+  invoice: Pick<Invoice, "id" | "payoutMode" | "programId">;
+}) {
+  if (invoice.payoutMode === "external") {
+    console.log(
+      `Invoice ${invoice.id} is paid externally, skipping Tremendous payouts...`,
+    );
+    return;
+  }
+
+  // should never happen, but just in case
+  if (!invoice.programId) {
+    console.log(
+      `Invoice ${invoice.id} has no program ID, skipping Tremendous payouts...`,
+    );
     return;
   }
 
