@@ -36,13 +36,11 @@ const MERGE_BATCH_SIZE = 500;
  * 2. merge-enrollment-<id> (one per enrollment): transfer the enrollment's
  *    program data to the target and either merge into the existing target
  *    enrollment (overlap) or move the enrollment over (transfer).
- * 3. transfer-bounty-submissions
- * 4. sync-links-and-commissions
- * 5. delete-partner-rewinds
- * 6. delete-source-user
- * 7. cleanup-fraud-events
- * 8. delete-source-partner
- * 9. send-merged-emails
+ * 3. finalize-transfers: transfer bounty submissions + sync transferred links
+ *    (Tinybird/cache) and total commissions.
+ * 4. cleanup-source-account: delete the source partner's rewinds, source user,
+ *    duplicate-account fraud events, and finally the source partner itself.
+ * 5. send-merged-emails: clear the verification cache + notify both accounts.
  */
 
 // POST /api/workflows/merge-partner-account
@@ -83,67 +81,64 @@ export const { POST } = serve<Input>(
       });
     }
 
-    // Step 3: Transfer bounty submissions (only when the target has none for the same bounty)
-    await context.run("transfer-bounty-submissions", async () => {
+    // Step 3: Finalize the transfers. Both the bounty transfer and the
+    // link/commission sync are idempotent post-transfer reconciliation
+    await context.run("finalize-transfers", async () => {
       if (programIdsToTransfer.length === 0) {
-        return logAndReturn({
-          outputLog: "No programs to transfer bounties for.",
-        });
+        return logAndReturn({ outputLog: "No programs to finalize." });
       }
 
-      return await transferBountySubmissions({
+      // Transfer bounty submissions
+      const { outputLog: bountyLog } = await transferBountySubmissions({
         sourcePartnerId,
         targetPartnerId,
       });
-    });
 
-    // Step 4: Sync transferred links (Tinybird + cache) and total commissions
-    await context.run("sync-links-and-commissions", async () => {
-      if (programIdsToTransfer.length === 0) {
-        return logAndReturn({ outputLog: "No programs to sync." });
-      }
-
-      return await syncLinksAndCommissions({
+      // Sync transferred links (Tinybird + cache) and total commissions
+      const { outputLog: syncLog } = await syncLinksAndCommissions({
         targetPartnerId,
         programIdsToTransfer,
       });
+
+      return logAndReturn({ outputLog: `${bountyLog} | ${syncLog}` });
     });
 
-    // Step 5: Delete the source partner's rewinds (target will be recalculated separately)
-    if (hasRewinds) {
-      await context.run("delete-partner-rewinds", async () => {
+    // Step 4: Tear down the source account
+    await context.run("cleanup-source-account", async () => {
+      const logs: string[] = [];
+
+      // Delete the source partner's rewinds
+      if (hasRewinds) {
         const deletedRewinds = await prisma.partnerRewind.deleteMany({
           where: { partnerId: sourcePartnerId },
         });
+        logs.push(`Deleted ${deletedRewinds.count} partner rewinds`);
+      }
 
-        return logAndReturn({
-          outputLog: `Deleted ${deletedRewinds.count} partner rewinds`,
-        });
+      // Remove the source user if there are no workspaces left
+      if (sourceUserId) {
+        const { outputLog } = await deleteSourceUser({ sourceUserId });
+        logs.push(outputLog);
+      }
+
+      // Clean up duplicate-account fraud events + resolve their groups
+      const { outputLog: fraudLog } = await cleanupFraudEvents({
+        sourcePartnerId,
       });
-    }
+      logs.push(fraudLog);
 
-    // Step 6: Remove the source user if there are no workspaces left
-    if (sourceUserId) {
-      await context.run("delete-source-user", async () => {
-        return await deleteSourceUser({ sourceUserId });
-      });
-    }
-
-    // Step 7: Clean up duplicate-account fraud events + resolve their groups
-    await context.run("cleanup-fraud-events", async () => {
-      return await cleanupFraudEvents({ sourcePartnerId });
-    });
-
-    // Step 8: Delete the source partner account
-    await context.run("delete-source-partner", async () => {
-      return await deleteSourcePartner({
+      // Delete the source partner account (must be last)
+      const { outputLog: partnerLog } = await deleteSourcePartner({
         sourcePartnerId,
         sourceEmail,
         sourceImage,
       });
+      logs.push(partnerLog);
+
+      return logAndReturn({ outputLog: logs.join(" | ") });
     });
 
-    // Step 9: Clear the verification cache and notify both accounts
+    // Step 5: Clear the verification cache and notify both accounts
     await context.run("send-merged-emails", async () => {
       await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
 
