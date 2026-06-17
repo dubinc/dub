@@ -77,11 +77,6 @@ export const tapfiliateConversionSchema = z.object({
       id: true,
     })
     .nullable(),
-  affiliate: tapfiliatePartnerSchema
-    .pick({
-      id: true,
-    })
-    .nullable(),
   customer: tapfiliateCustomerSchema
     .pick({
       customer_id: true,

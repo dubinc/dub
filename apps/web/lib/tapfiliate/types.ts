@@ -12,6 +12,10 @@ export interface TapfiliateCredentials {
   apiKey: string;
 }
 
+export type TapfiliateImportPayload = z.infer<
+  typeof tapfiliateImportPayloadSchema
+>;
+
 export type TapfiliateProgram = z.infer<typeof tapfiliateProgramSchema>;
 
 export type TapfiliatePartner = z.infer<typeof tapfiliatePartnerSchema>;
@@ -22,6 +26,9 @@ export type TapfiliateCommission = z.infer<typeof tapfiliateCommissionSchema>;
 
 export type TapfiliateConversion = z.infer<typeof tapfiliateConversionSchema>;
 
-export type TapfiliateImportPayload = z.infer<
-  typeof tapfiliateImportPayloadSchema
->;
+export type TapfiliateConversionWithCommission = Omit<
+  TapfiliateConversion,
+  "commissions"
+> & {
+  commission: TapfiliateCommission;
+};
