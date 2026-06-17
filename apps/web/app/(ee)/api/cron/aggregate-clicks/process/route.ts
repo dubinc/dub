@@ -51,6 +51,13 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`Reward not found for ${clickRewardId}. Skipping...`);
   }
 
+  // When soft deleted
+  if (!clickReward.programId) {
+    return logAndRespond(
+      `Reward ${clickRewardId} is not associated with a program. Skipping...`,
+    );
+  }
+
   if (clickReward.event !== EventType.click) {
     return logAndRespond(
       `Reward ${clickRewardId} is not a click reward. Skipping...`,
