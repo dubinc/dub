@@ -86,11 +86,7 @@ export default function NewSaleAlertProgramOwner({
     commission.amount - commission.earnings,
   );
 
-  const customerLabel = customer
-    ? customer.name && customer.email
-      ? `${customer.name} (${customer.email})`
-      : customer.email ?? customer.name
-    : null;
+  const customerLabel = customer?.email ?? customer?.name ?? null;
 
   let formattedDueDate = "";
 
