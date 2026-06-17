@@ -144,9 +144,9 @@ function InviteNetworkPartnerSheetContent({
   };
 
   const handleGenerateEmail = async ({
-    commit = true,
+    applyGeneratedEmail = true,
   }: {
-    commit?: boolean;
+    applyGeneratedEmail?: boolean;
   } = {}) => {
     if (!workspaceId || !program?.id) {
       return;
@@ -162,7 +162,7 @@ function InviteNetworkPartnerSheetContent({
       return;
     }
 
-    if (commit) {
+    if (applyGeneratedEmail) {
       setEmailContent(result.data);
       onEmailContentChange?.(result.data);
     }

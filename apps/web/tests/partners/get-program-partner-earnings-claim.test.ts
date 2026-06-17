@@ -5,37 +5,50 @@ describe("formatProgramPartnerEarningsClaim", () => {
   it("returns null when there are not enough distinct earning partners", () => {
     expect(
       formatProgramPartnerEarningsClaim({
-        topMonthlyEarnings: 1_000_000,
-        distinctEarningPartners: 4,
+        topMonthlyEarningsCents: 1_000_000,
+        distinctEarningPartnerCount: 4,
       }),
     ).toBeNull();
   });
 
-  it("returns null when rounded monthly earnings are below the minimum", () => {
+  it("returns null when floored monthly earnings are below the minimum", () => {
     expect(
       formatProgramPartnerEarningsClaim({
-        topMonthlyEarnings: 99_999,
-        distinctEarningPartners: 5,
+        topMonthlyEarningsCents: 99_999,
+        distinctEarningPartnerCount: 5,
       }),
     ).toBeNull();
   });
 
-  it("rounds down to the nearest thousand dollars", () => {
+  it("floors down to the nearest thousand dollars", () => {
     expect(
       formatProgramPartnerEarningsClaim({
-        topMonthlyEarnings: 1_095_000,
-        distinctEarningPartners: 5,
+        topMonthlyEarningsCents: 1_095_000,
+        distinctEarningPartnerCount: 5,
       }),
     ).toBe(
       "In recent months, some of our top partners have earned over $10K in a month.",
     );
   });
 
+  it("floors to the displayed unit so the claim never rounds up", () => {
+    // $2.5M would round up to "$3M" via the formatter; the claim must not
+    // overstate, so it floors to "$2M".
+    expect(
+      formatProgramPartnerEarningsClaim({
+        topMonthlyEarningsCents: 250_000_000,
+        distinctEarningPartnerCount: 5,
+      }),
+    ).toBe(
+      "In recent months, some of our top partners have earned over $2M in a month.",
+    );
+  });
+
   it("handles bigint values", () => {
     expect(
       formatProgramPartnerEarningsClaim({
-        topMonthlyEarnings: BigInt(2_500_000),
-        distinctEarningPartners: BigInt(5),
+        topMonthlyEarningsCents: BigInt(2_500_000),
+        distinctEarningPartnerCount: BigInt(5),
       }),
     ).toBe(
       "In recent months, some of our top partners have earned over $25K in a month.",

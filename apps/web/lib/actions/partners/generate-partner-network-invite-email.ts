@@ -37,7 +37,7 @@ Come up with a specific subject line that is likely to make the recipient open t
 - If the selected channel has no description, infer the content space from the partner description, industry interests, sales channels, platform type, and identifier. Do not say "channel description".
 - Pick the angle most relevant to the program's customer base. Avoid generic phrases like "resonates well with our customers" unless you make the connection specific.
 - Adapt the content to fit the program + partner, but keep the overall length the same.
-- If Program.partnerEarningsClaim is present and non-null, you may mention it at most once in the body, naturally and without changing the meaning.
+- If Program.partnerEarningsClaim is present and non-null, you should mention it once in the body, naturally and without changing the meaning.
 - If Program.partnerEarningsClaim is missing or null, do not mention earnings, payouts, top partners, or partner performance.
 - Never name specific partners, imply guaranteed future earnings, mention payouts, or invent amounts when using Program.partnerEarningsClaim.
 - 80 words maximum. Plain text only: no markdown, links, bold, or em dashes.
@@ -82,14 +82,20 @@ function getPlatformDescription(metadata: unknown) {
     bio?: unknown;
   };
 
-  const value = typeof description === "string" ? description : bio;
+  const value =
+    typeof description === "string" && description.trim().length > 0
+      ? description
+      : bio;
 
   return typeof value === "string" && value.trim().length > 0
     ? value.trim()
     : null;
 }
 
-async function getPartnerForInvite(partnerId: string, programId: string) {
+async function getEligibleNetworkPartnerForInvite(
+  partnerId: string,
+  programId: string,
+) {
   return await prisma.partner.findFirst({
     where: {
       id: partnerId,
@@ -132,7 +138,7 @@ export const generatePartnerNetworkInviteEmailAction = authActionClient
           categories: true,
         },
       }),
-      getPartnerForInvite(partnerId, programId),
+      getEligibleNetworkPartnerForInvite(partnerId, programId),
       getProgramPartnerEarningsClaim(programId),
     ]);
 
@@ -216,7 +222,9 @@ ${JSON.stringify({
       // Output.object above
       return output;
     } catch (error) {
-      await refundAIUsageCredit(workspace.id).catch(() => null);
+      await refundAIUsageCredit(workspace.id).catch((e) =>
+        console.error("Failed to refund AI credit", e),
+      );
       throw error;
     }
   });
@@ -257,9 +265,14 @@ async function reserveAIUsageCredit({
 }
 
 async function refundAIUsageCredit(workspaceId: string) {
-  await prisma.project.update({
+  // Guard against driving aiUsage negative (e.g. if the monthly cron reset the
+  // counter to 0 between reserving and refunding the credit).
+  await prisma.project.updateMany({
     where: {
       id: normalizeWorkspaceId(workspaceId),
+      aiUsage: {
+        gt: 0,
+      },
     },
     data: {
       aiUsage: {

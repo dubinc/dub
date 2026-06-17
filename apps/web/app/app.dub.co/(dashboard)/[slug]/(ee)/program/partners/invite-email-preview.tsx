@@ -9,7 +9,7 @@ import {
   Trophy,
   useMediaQuery,
 } from "@dub/ui";
-import { Lock } from "@dub/ui/icons";
+import { LoadingSpinner, Lock } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { RotateCcw } from "lucide-react";
 import { ReactNode, useEffect, useRef, useState } from "react";
@@ -22,7 +22,7 @@ export type EmailContent = {
 };
 
 type GenerateEmailOptions = {
-  commit?: boolean;
+  applyGeneratedEmail?: boolean;
 };
 
 const INVITE_GENERATION_STEPS = ["Analyzing profile", "Constructing invite"];
@@ -123,7 +123,9 @@ export function InviteEmailPreview({
   };
 
   const handleGenerateEmail = async () => {
-    const generatedContent = await onGenerate?.({ commit: !isEditing });
+    const generatedContent = await onGenerate?.({
+      applyGeneratedEmail: !isEditing,
+    });
 
     if (!generatedContent) {
       return;
@@ -400,7 +402,7 @@ function InviteEmailIconButton({
           onClick={onClick}
           disabled={disabled || loading}
         >
-          {icon}
+          {loading ? <LoadingSpinner className="size-3.5" /> : icon}
         </button>
       </span>
     </Tooltip>
