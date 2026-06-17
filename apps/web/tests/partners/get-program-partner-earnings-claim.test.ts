@@ -1,5 +1,12 @@
-import { formatProgramPartnerEarningsClaim } from "@/lib/api/programs/get-program-partner-earnings-claim";
+import {
+  formatProgramPartnerEarningsClaim,
+  getActiveMonthCount,
+} from "@/lib/api/programs/get-program-partner-earnings-claim";
 import { describe, expect, it } from "vitest";
+
+// endDate is always a UTC month start (the current month), spanning a 6-month
+// lookback back to January.
+const END_DATE = new Date(Date.UTC(2026, 6, 1)); // 2026-07-01
 
 describe("formatProgramPartnerEarningsClaim", () => {
   it("returns null when there are not enough distinct earning partners", () => {
@@ -26,9 +33,7 @@ describe("formatProgramPartnerEarningsClaim", () => {
         topMonthlyEarningsCents: 100_000,
         distinctEarningPartnerCount: 5,
       }),
-    ).toBe(
-      "In recent months, some of our top partners have earned $1K in a month.",
-    );
+    ).toBe("Some of our top partners earn $1K per month on average.");
   });
 
   it("floors down to the nearest thousand dollars", () => {
@@ -37,9 +42,7 @@ describe("formatProgramPartnerEarningsClaim", () => {
         topMonthlyEarningsCents: 1_095_000,
         distinctEarningPartnerCount: 5,
       }),
-    ).toBe(
-      "In recent months, some of our top partners have earned over $10K in a month.",
-    );
+    ).toBe("Some of our top partners earn over $10K per month on average.");
   });
 
   it("floors to the displayed unit so the claim never rounds up", () => {
@@ -50,19 +53,47 @@ describe("formatProgramPartnerEarningsClaim", () => {
         topMonthlyEarningsCents: 250_000_000,
         distinctEarningPartnerCount: 5,
       }),
-    ).toBe(
-      "In recent months, some of our top partners have earned over $2M in a month.",
+    ).toBe("Some of our top partners earn over $2M per month on average.");
+  });
+
+  it("floors fractional averaged earnings down to the displayed unit", () => {
+    // The top partner's lookback total divided by LOOKBACK_MONTHS can be
+    // fractional (e.g. $155k over 6 months ≈ $25,833.33/mo); flooring must
+    // still produce a clean, conservative figure.
+    expect(
+      formatProgramPartnerEarningsClaim({
+        topMonthlyEarningsCents: 2_583_333.33,
+        distinctEarningPartnerCount: 5,
+      }),
+    ).toBe("Some of our top partners earn over $25K per month on average.");
+  });
+});
+
+describe("getActiveMonthCount", () => {
+  it("uses the full lookback when the program earned across the whole window", () => {
+    // Earliest earning at or before the window start -> full 6 months.
+    expect(getActiveMonthCount(new Date(Date.UTC(2026, 0, 15)), END_DATE)).toBe(
+      6,
     );
   });
 
-  it("handles bigint values", () => {
-    expect(
-      formatProgramPartnerEarningsClaim({
-        topMonthlyEarningsCents: BigInt(2_500_000),
-        distinctEarningPartnerCount: BigInt(5),
-      }),
-    ).toBe(
-      "In recent months, some of our top partners have earned $25K in a month.",
+  it("counts only the months a newer program has been earning", () => {
+    // First earning in May -> May and June are complete -> 2 months.
+    expect(getActiveMonthCount(new Date(Date.UTC(2026, 4, 20)), END_DATE)).toBe(
+      2,
+    );
+  });
+
+  it("returns at least 1 for a program that just started earning", () => {
+    // First earning in the final complete month -> 1 month, never 0.
+    expect(getActiveMonthCount(new Date(Date.UTC(2026, 5, 10)), END_DATE)).toBe(
+      1,
+    );
+  });
+
+  it("caps at the lookback even when earnings predate the window", () => {
+    expect(getActiveMonthCount(new Date(Date.UTC(2025, 2, 1)), END_DATE)).toBe(
+      6,
     );
   });
 });
