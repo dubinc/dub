@@ -62,6 +62,7 @@ export const trackSale = async ({
   let existingCustomer: Customer | null = null;
   let newCustomer: Customer | null = null;
   let leadEventData: LeadEventTB | null = null;
+  let shouldTrackDirectSaleLead = false;
 
   // Return idempotent response if invoiceId is already processed
   if (invoiceId) {
@@ -267,9 +268,6 @@ export const trackSale = async ({
         eventName: leadEventName,
       });
 
-      // TODO:
-      // _trackLead is never called on the P2002 fallback path — lead event is silently dropped
-
       leadEventData = leadEvent
         ? {
             ...leadEvent,
@@ -282,6 +280,16 @@ export const trackSale = async ({
             customer_id: existingCustomer.id,
             metadata: metadata ? JSON.stringify(metadata) : "",
           };
+    }
+
+    if (leadEventData) {
+      // Deduplicate lead events across concurrent direct sale requests
+      shouldTrackDirectSaleLead =
+        (await redis.set(
+          `trackLead:${workspace.id}:${customerExternalId}:${finalLeadEventName.toLowerCase().replaceAll(" ", "-")}`,
+          { timestamp: Date.now() },
+          { ex: 60 * 60 * 24 * 7, nx: true },
+        )) !== null;
     }
   }
 
@@ -297,11 +305,11 @@ export const trackSale = async ({
   }
 
   const [_, trackedSale] = await Promise.all([
-    newCustomer &&
+    shouldTrackDirectSaleLead &&
       _trackLead({
         workspace,
         leadEventData,
-        customer: newCustomer,
+        customer,
       }),
 
     _trackSale({
