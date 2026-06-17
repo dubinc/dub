@@ -12,7 +12,7 @@ describe("formatProgramPartnerEarningsClaim", () => {
   it("returns null when there are not enough distinct earning partners", () => {
     expect(
       formatProgramPartnerEarningsClaim({
-        topMonthlyEarningsCents: 1_000_000,
+        avgMonthlyEarningsCents: 1_000_000,
         distinctEarningPartnerCount: 4,
       }),
     ).toBeNull();
@@ -21,7 +21,7 @@ describe("formatProgramPartnerEarningsClaim", () => {
   it("returns null when floored monthly earnings are below the minimum", () => {
     expect(
       formatProgramPartnerEarningsClaim({
-        topMonthlyEarningsCents: 99_999,
+        avgMonthlyEarningsCents: 99_999,
         distinctEarningPartnerCount: 5,
       }),
     ).toBeNull();
@@ -30,7 +30,7 @@ describe("formatProgramPartnerEarningsClaim", () => {
   it("omits over when monthly earnings exactly match the displayed threshold", () => {
     expect(
       formatProgramPartnerEarningsClaim({
-        topMonthlyEarningsCents: 100_000,
+        avgMonthlyEarningsCents: 100_000,
         distinctEarningPartnerCount: 5,
       }),
     ).toBe("Some of our top partners earn $1K per month on average.");
@@ -39,7 +39,7 @@ describe("formatProgramPartnerEarningsClaim", () => {
   it("floors down to the nearest thousand dollars", () => {
     expect(
       formatProgramPartnerEarningsClaim({
-        topMonthlyEarningsCents: 1_095_000,
+        avgMonthlyEarningsCents: 1_095_000,
         distinctEarningPartnerCount: 5,
       }),
     ).toBe("Some of our top partners earn over $10K per month on average.");
@@ -50,19 +50,19 @@ describe("formatProgramPartnerEarningsClaim", () => {
     // overstate, so it floors to "$2M".
     expect(
       formatProgramPartnerEarningsClaim({
-        topMonthlyEarningsCents: 250_000_000,
+        avgMonthlyEarningsCents: 250_000_000,
         distinctEarningPartnerCount: 5,
       }),
     ).toBe("Some of our top partners earn over $2M per month on average.");
   });
 
   it("floors fractional averaged earnings down to the displayed unit", () => {
-    // The top partner's lookback total divided by LOOKBACK_MONTHS can be
+    // The top partner's lookback total divided by their active months can be
     // fractional (e.g. $155k over 6 months ≈ $25,833.33/mo); flooring must
     // still produce a clean, conservative figure.
     expect(
       formatProgramPartnerEarningsClaim({
-        topMonthlyEarningsCents: 2_583_333.33,
+        avgMonthlyEarningsCents: 2_583_333.33,
         distinctEarningPartnerCount: 5,
       }),
     ).toBe("Some of our top partners earn over $25K per month on average.");
@@ -70,21 +70,21 @@ describe("formatProgramPartnerEarningsClaim", () => {
 });
 
 describe("getActiveMonthCount", () => {
-  it("uses the full lookback when the program earned across the whole window", () => {
+  it("uses the full lookback when the partner earned across the whole window", () => {
     // Earliest earning at or before the window start -> full 6 months.
     expect(getActiveMonthCount(new Date(Date.UTC(2026, 0, 15)), END_DATE)).toBe(
       6,
     );
   });
 
-  it("counts only the months a newer program has been earning", () => {
+  it("counts only the months a newer partner has been earning", () => {
     // First earning in May -> May and June are complete -> 2 months.
     expect(getActiveMonthCount(new Date(Date.UTC(2026, 4, 20)), END_DATE)).toBe(
       2,
     );
   });
 
-  it("returns at least 1 for a program that just started earning", () => {
+  it("returns at least 1 for a partner that just started earning", () => {
     // First earning in the final complete month -> 1 month, never 0.
     expect(getActiveMonthCount(new Date(Date.UTC(2026, 5, 10)), END_DATE)).toBe(
       1,

@@ -25,9 +25,9 @@ function getLookbackUtcMonthRange(date = new Date()) {
   return { startDate, endDate };
 }
 
-// Complete months the program has actually been earning within the lookback
-// window, capped at LOOKBACK_MONTHS. Used as the divisor so programs younger
-// than the window aren't diluted by months before they existed.
+// Complete months between the earliest earning and the window end, capped at
+// LOOKBACK_MONTHS and floored at 1. Used as the average's divisor so an earner
+// younger than the window isn't diluted by months before they started earning.
 export function getActiveMonthCount(earliestEarningAt: Date, endDate: Date) {
   const earliestMonth = getUtcMonthStart(earliestEarningAt);
   const monthsElapsed =
@@ -38,10 +38,10 @@ export function getActiveMonthCount(earliestEarningAt: Date, endDate: Date) {
 }
 
 export function formatProgramPartnerEarningsClaim({
-  topMonthlyEarningsCents,
+  avgMonthlyEarningsCents,
   distinctEarningPartnerCount,
 }: {
-  topMonthlyEarningsCents: number;
+  avgMonthlyEarningsCents: number;
   distinctEarningPartnerCount: number;
 }) {
   if (distinctEarningPartnerCount < MIN_DISTINCT_EARNING_PARTNERS) {
@@ -49,7 +49,7 @@ export function formatProgramPartnerEarningsClaim({
   }
 
   const flooredMonthlyEarningsCents =
-    Math.floor(topMonthlyEarningsCents / ROUNDING_INCREMENT_CENTS) *
+    Math.floor(avgMonthlyEarningsCents / ROUNDING_INCREMENT_CENTS) *
     ROUNDING_INCREMENT_CENTS;
 
   if (flooredMonthlyEarningsCents < MIN_MONTHLY_EARNINGS_CENTS) {
@@ -61,7 +61,7 @@ export function formatProgramPartnerEarningsClaim({
   );
   const displayEarningsCents = displayEarningsDollars * 100;
   const earningsPrefix =
-    topMonthlyEarningsCents > displayEarningsCents ? "over " : "";
+    avgMonthlyEarningsCents > displayEarningsCents ? "over " : "";
 
   return `Some of our top partners earn ${earningsPrefix}$${nFormatter(
     displayEarningsDollars,
@@ -97,27 +97,18 @@ export async function getProgramPartnerEarningsClaim(programId: string) {
     orderBy: { _sum: { earnings: "desc" } },
   });
 
-  const topPartnerLookbackEarningsCents =
-    partnerEarnings[0]?._sum.earnings ?? 0;
+  const topPartner = partnerEarnings[0];
+  const topPartnerLookbackEarningsCents = topPartner?._sum.earnings ?? 0;
 
-  const earliestEarningAt = partnerEarnings.reduce<Date | null>(
-    (earliest, { _min }) => {
-      if (!_min.createdAt) return earliest;
-      return !earliest || _min.createdAt.getTime() < earliest.getTime()
-        ? _min.createdAt
-        : earliest;
-    },
-    null,
-  );
-
-  // Divide by the months the program has actually been earning, not a flat
-  // LOOKBACK_MONTHS, so newer programs aren't diluted by months before they existed.
-  const activeMonths = earliestEarningAt
-    ? getActiveMonthCount(earliestEarningAt, endDate)
+  // Divide by the months the top partner has actually been earning, not a flat
+  // LOOKBACK_MONTHS, so a top earner who started mid-window isn't diluted by
+  // months before they began earning.
+  const activeMonths = topPartner?._min.createdAt
+    ? getActiveMonthCount(topPartner._min.createdAt, endDate)
     : LOOKBACK_MONTHS;
 
   return formatProgramPartnerEarningsClaim({
-    topMonthlyEarningsCents: topPartnerLookbackEarningsCents / activeMonths,
+    avgMonthlyEarningsCents: topPartnerLookbackEarningsCents / activeMonths,
     distinctEarningPartnerCount: partnerEarnings.length,
   });
 }
