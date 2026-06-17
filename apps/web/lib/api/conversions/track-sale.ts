@@ -173,12 +173,12 @@ export const trackSale = async ({
       });
     }
 
-    const customerId = createId({ prefix: "cus_" });
+    const newCustomerId = createId({ prefix: "cus_" });
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
     const finalCustomerAvatar =
       customerAvatar && !isStored(customerAvatar)
-        ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
+        ? `${R2_URL}/customers/${newCustomerId}/avatar_${nanoid(7)}`
         : customerAvatar;
 
     const upsertedCustomer = await prisma.customer.upsert({
@@ -189,7 +189,7 @@ export const trackSale = async ({
         },
       },
       create: {
-        id: customerId,
+        id: newCustomerId,
         name: finalCustomerName,
         email: customerEmail,
         avatar: finalCustomerAvatar,
@@ -206,7 +206,7 @@ export const trackSale = async ({
       },
     });
 
-    if (upsertedCustomer.id === customerId) {
+    if (upsertedCustomer.id === newCustomerId) {
       newCustomer = upsertedCustomer;
     } else {
       existingCustomer = upsertedCustomer;
