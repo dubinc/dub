@@ -173,12 +173,12 @@ export const trackSale = async ({
       });
     }
 
-    const finalCustomerId = createId({ prefix: "cus_" });
+    const customerId = createId({ prefix: "cus_" });
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
     const finalCustomerAvatar =
       customerAvatar && !isStored(customerAvatar)
-        ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
+        ? `${R2_URL}/customers/${customerId}/avatar_${nanoid(7)}`
         : customerAvatar;
 
     const upsertedCustomer = await prisma.customer.upsert({
@@ -189,7 +189,7 @@ export const trackSale = async ({
         },
       },
       create: {
-        id: finalCustomerId,
+        id: customerId,
         name: finalCustomerName,
         email: customerEmail,
         avatar: finalCustomerAvatar,
@@ -206,15 +206,15 @@ export const trackSale = async ({
       },
     });
 
-    if (upsertedCustomer.id === finalCustomerId) {
+    if (upsertedCustomer.id === customerId) {
       newCustomer = upsertedCustomer;
     } else {
       existingCustomer = upsertedCustomer;
     }
 
     if (newCustomer) {
+      // persist customer avatar to R2 if it's not already stored
       if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
-        // persist customer avatar to R2 if it's not already stored
         waitUntil(
           storage
             .upload({
@@ -227,11 +227,16 @@ export const trackSale = async ({
             })
             .catch(async (error) => {
               console.error("Error persisting customer avatar to R2", error);
+
               // if the avatar fails to upload to R2, set the avatar to null in the database
               if (newCustomer) {
                 await prisma.customer.update({
-                  where: { id: newCustomer.id },
-                  data: { avatar: null },
+                  where: {
+                    id: newCustomer.id,
+                  },
+                  data: {
+                    avatar: null,
+                  },
                 });
               }
             }),
