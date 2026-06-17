@@ -213,42 +213,47 @@ export const trackSale = async ({
       }
     }
 
+    // Persist customer avatar to R2 if it's not already stored
+    if (
+      customerAvatar &&
+      !isStored(customerAvatar) &&
+      finalCustomerAvatar &&
+      newCustomer
+    ) {
+      waitUntil(
+        storage
+          .upload({
+            key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+            body: customerAvatar,
+            opts: {
+              width: 128,
+              height: 128,
+            },
+          })
+          .catch(async (error) => {
+            console.error("Error persisting customer avatar to R2", error);
+
+            // if the avatar fails to upload to R2, set the avatar to null in the database
+            if (newCustomer) {
+              await prisma.customer.update({
+                where: {
+                  id: newCustomer.id,
+                },
+                data: {
+                  avatar: null,
+                },
+              });
+            }
+          }),
+      );
+    }
+
     // if leadEventName is provided, use it
     // otherwise use "Direct sale tracking lead event" (since it's for direct sale tracking)
     const finalLeadEventName =
       leadEventName ?? "Direct sale tracking lead event";
 
     if (newCustomer) {
-      // persist customer avatar to R2 if it's not already stored
-      if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
-        waitUntil(
-          storage
-            .upload({
-              key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-              body: customerAvatar,
-              opts: {
-                width: 128,
-                height: 128,
-              },
-            })
-            .catch(async (error) => {
-              console.error("Error persisting customer avatar to R2", error);
-
-              // if the avatar fails to upload to R2, set the avatar to null in the database
-              if (newCustomer) {
-                await prisma.customer.update({
-                  where: {
-                    id: newCustomer.id,
-                  },
-                  data: {
-                    avatar: null,
-                  },
-                });
-              }
-            }),
-        );
-      }
-
       leadEventData = {
         ...clickData,
         event_id: nanoid(16),
@@ -259,7 +264,7 @@ export const trackSale = async ({
     } else if (existingCustomer) {
       const leadEvent = await getLeadEvent({
         customerId: existingCustomer.id,
-        eventName: finalLeadEventName,
+        eventName: leadEventName,
       });
 
       leadEventData = leadEvent
