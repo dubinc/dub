@@ -20,10 +20,10 @@ import {
 import { CircleDotted, FlagWavy } from "@dub/ui/icons";
 import { cn, COUNTRIES, fetcher, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
-import { NetworkPartnerApplicationSheet } from "app/(ee)/admin.dub.co/(dashboard)/partners/network/network-partner-application-sheet";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { NetworkPartnerApplicationSheet } from "./network-partner-application-sheet";
 
 const SOCIAL_FIELDS = [
   { id: "website", label: "Website" },
@@ -254,8 +254,6 @@ export default function NetworkApplicationsPage() {
             : "Partner rejected from the network.",
       );
 
-      await mutate();
-
       if (fallbackPartnerId) {
         queryParams({
           set: {
@@ -266,6 +264,8 @@ export default function NetworkApplicationsPage() {
         setDetailsSheetState({ open: false, partnerId: null });
         queryParams({ del: "partnerId" });
       }
+
+      mutate();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to review partner.",

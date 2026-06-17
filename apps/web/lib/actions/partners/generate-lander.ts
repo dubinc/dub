@@ -102,7 +102,7 @@ export const generateLanderAction = authActionClient
       : null;
 
     const { output } = await generateText({
-      model: anthropic("claude-sonnet-4-6"),
+      model: anthropic("claude-opus-4-8"),
       output: Output.object({
         schema: landerData ? programLanderSchema : programLanderSimpleSchema,
       }),

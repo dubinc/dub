@@ -28,6 +28,14 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     return;
   }
 
+  // Skip if risk monitoring is disabled
+  if (programEnrollment.riskMonitoringDisabledAt) {
+    console.info(
+      `[detectAndRecordFraudEvent] Risk monitoring is disabled for this partner, skipping...`,
+    );
+    return;
+  }
+
   // Get program-specific rule overrides
   const programRules = await prisma.fraudRule.findMany({
     where: {

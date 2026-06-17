@@ -79,7 +79,7 @@ export function useCommissionFilters() {
           customers?.map((customer) => {
             return {
               value: customer.id,
-              label: customer.email ?? customer.name,
+              label: customer.email ?? customer.name ?? customer.id,
               icon: <CustomerAvatar customer={customer} className="size-4" />,
             };
           }) ?? null,
@@ -108,7 +108,6 @@ export function useCommissionFilters() {
               value: group.id,
               label: group.name,
               icon: <GroupColorCircle group={group} />,
-              permalink: `/${slug}/program/groups/${group.slug}/rewards`,
             };
           }) ?? null,
       },

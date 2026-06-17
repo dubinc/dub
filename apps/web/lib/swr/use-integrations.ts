@@ -8,14 +8,16 @@ export default function useIntegrations({
 }: { swrOpts?: SWRConfiguration } = {}) {
   const { id } = useWorkspace();
 
-  const { data: integrations, error } = useSWR<
-    Pick<InstalledIntegrationProps, "id" | "name" | "slug">[]
-  >(`/api/integrations?workspaceId=${id}`, fetcher, {
-    dedupingInterval: 20000,
-    revalidateOnFocus: false,
-    keepPreviousData: true,
-    ...swrOpts,
-  });
+  const { data: integrations, error } = useSWR<InstalledIntegrationProps[]>(
+    `/api/integrations?workspaceId=${id}`,
+    fetcher,
+    {
+      dedupingInterval: 20000,
+      revalidateOnFocus: false,
+      keepPreviousData: true,
+      ...swrOpts,
+    },
+  );
 
   return {
     integrations,

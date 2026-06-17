@@ -1,7 +1,6 @@
 "use client";
 
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
-import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
@@ -11,13 +10,24 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import type { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
+  Button,
   Filter,
   PaginationControls,
+  ToggleGroup,
   usePagination,
   useRouterStuff,
 } from "@dub/ui";
-import type { Icon } from "@dub/ui/icons";
-import { Star, StarFill } from "@dub/ui/icons";
+import {
+  Globe,
+  Instagram,
+  LinkedIn,
+  Star,
+  StarFill,
+  TikTok,
+  Twitter,
+  User,
+  YouTube,
+} from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
@@ -29,6 +39,7 @@ import {
 } from "./network-content-search-results";
 import { NetworkEmptyState } from "./network-empty-state";
 import { NetworkPartnerCard } from "./network-partner-card";
+import { PartnerNetworkSort } from "./partner-network-sort";
 import { usePartnerNetworkFilters } from "./use-partner-network-filters";
 
 const tabs = [
@@ -46,17 +57,18 @@ const tabs = [
   },
 ] as const;
 
-const platformFilters = PARTNER_PLATFORM_FIELDS.filter(
-  ({ label }) => label !== "Website",
-).map(({ label, icon: Icon }) => ({
-  label,
-  value: label === "X/Twitter" ? "twitter" : label.toLowerCase(),
-  icon: Icon,
-})) as {
-  label: string;
-  value: PlatformType;
-  icon: Icon;
-}[];
+const PLATFORM_TOGGLE_OPTIONS: {
+  value: PlatformType | "all";
+  icon: typeof User;
+}[] = [
+  { value: "all", icon: User },
+  { value: "website", icon: Globe },
+  { value: "youtube", icon: YouTube },
+  { value: "twitter", icon: Twitter },
+  { value: "linkedin", icon: LinkedIn },
+  { value: "instagram", icon: Instagram },
+  { value: "tiktok", icon: TikTok },
+];
 
 const PARTNER_CONTENT_SEARCH_PARTNER_LIMIT = 50;
 
@@ -69,7 +81,8 @@ export function ProgramPartnerNetworkPageClient({
 }: ProgramPartnerNetworkPageClientProps = {}) {
   const { id: workspaceId } = useWorkspace();
   const { searchParams, getQueryString, queryParams } = useRouterStuff();
-  const selectedPlatform = searchParams.get("platform") as PlatformType | null;
+  const selectedPlatform =
+    (searchParams.get("platform") as PlatformType | null) ?? "all";
   const search = searchParams.get("search")?.trim() ?? "";
   const starred = searchParams.get("starred") === "true";
 
@@ -94,7 +107,7 @@ export function ProgramPartnerNetworkPageClient({
       string,
       string,
       string,
-      PlatformType | null,
+      PlatformType | "all",
       boolean,
     ]) => {
       const response = await fetch(
@@ -158,12 +171,16 @@ export function ProgramPartnerNetworkPageClient({
     PARTNER_NETWORK_MAX_PAGE_SIZE,
   );
 
-  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
-    usePartnerNetworkFilters({ status });
-  const nonPlatformFilters = filters.filter(({ key }) => key !== "platform");
-  const listedActiveFilters = activeFilters.filter(
-    ({ key }) => key !== "platform",
-  );
+  const {
+    filters,
+    activeFilters,
+    isFiltered,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+  } = usePartnerNetworkFilters({ status });
+
+  const isStarred = searchParams.get("starred") === "true";
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; partnerId: string | null }
@@ -241,7 +258,7 @@ export function ProgramPartnerNetworkPageClient({
                 onClick={() => {
                   queryParams({
                     set: { tab: tab.id },
-                    del: ["page", "starred"],
+                    del: ["page", "starred", "sortBy"],
                   });
                 }}
               >
@@ -264,50 +281,76 @@ export function ProgramPartnerNetworkPageClient({
       {status === "discover" && (
         <div className="mt-[17px]">
           <div className="@3xl/page:flex-row @3xl/page:items-center @3xl/page:justify-between flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-col items-center gap-4 md:flex-row">
               <Filter.Select
-                className="h-9 w-full rounded-lg sm:w-fit"
-                filters={nonPlatformFilters}
-                activeFilters={listedActiveFilters}
+                className="h-10 w-full shrink-0 rounded-lg md:w-fit"
+                filters={filters}
+                activeFilters={activeFilters}
                 onSelect={onSelect}
                 onRemove={onRemove}
               />
-              <PlatformFilterBar
-                selectedPlatform={selectedPlatform}
-                onSelect={(platform) => {
-                  const isActive = selectedPlatform === platform;
-
-                  queryParams({
-                    set: isActive ? undefined : { platform },
-                    del: ["page", ...(isActive ? ["platform"] : [])],
-                  });
-                }}
-              />
-              <StarredFilterButton
-                active={searchParams.get("starred") == "true"}
-                onClick={() => {
-                  const isActive = searchParams.get("starred") == "true";
-
-                  queryParams({
-                    set: isActive ? undefined : { starred: "true" },
-                    del: ["page", ...(isActive ? ["starred"] : [])],
-                  });
-                }}
-              />
+              <div className="flex items-center gap-4">
+                <ToggleGroup
+                  className="h-10 w-full rounded-lg border-neutral-200 bg-neutral-50 p-0 md:w-fit"
+                  optionClassName="rounded-lg px-3 py-2.5"
+                  indicatorClassName="rounded-lg bg-white border-none shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_3px_0_rgba(0,0,0,0.08)]"
+                  options={PLATFORM_TOGGLE_OPTIONS.map(
+                    ({ value, icon: Icon }) => ({
+                      value,
+                      label: <Icon className="size-4" />,
+                    }),
+                  )}
+                  selected={selectedPlatform}
+                  selectAction={(option) => {
+                    if (option === "all") {
+                      queryParams({
+                        del: ["platform", "page"],
+                      });
+                    } else {
+                      queryParams({
+                        set: { platform: option },
+                        del: "page",
+                      });
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    queryParams({
+                      set: !isStarred ? { starred: "true" } : undefined,
+                      del: ["page", ...(!isStarred ? [] : ["starred"])],
+                    });
+                  }}
+                  icon={
+                    isStarred ? (
+                      <StarFill className="size-4 text-amber-500" />
+                    ) : (
+                      <Star className="text-content-subtle size-4" />
+                    )
+                  }
+                  className="size-10 shrink-0 rounded-lg"
+                />
+              </div>
             </div>
+            <PartnerNetworkSort
+              selectedPlatform={selectedPlatform}
+              className="md:ml-auto"
+            />
             <div className="@3xl/page:w-[373px] w-full">
               <SearchBoxPersisted
                 placeholder="Search partners or content..."
-                inputClassName="h-9"
+                inputClassName="h-10"
               />
             </div>
           </div>
           <AnimatedSizeContainer height>
-            {listedActiveFilters.length > 0 && (
+            {activeFilters.length > 0 && (
               <div className="pt-4">
                 <Filter.List
-                  filters={nonPlatformFilters}
-                  activeFilters={listedActiveFilters}
+                  filters={filters}
+                  activeFilters={activeFilters}
                   onSelect={onSelect}
                   onRemove={onRemove}
                   onRemoveAll={onRemoveAll}
@@ -413,76 +456,13 @@ export function ProgramPartnerNetworkPageClient({
         </div>
       ) : (
         <NetworkEmptyState
-          isFiltered={activeFilters.length > 0 || Boolean(search)}
-          isStarred={
-            variant === "ignored"
-              ? false
-              : searchParams.get("starred") == "true"
-          }
+          isFiltered={isFiltered}
+          isStarred={variant === "ignored" ? false : isStarred}
           onClearAllFilters={onRemoveAll}
           variant={variant === "ignored" ? "ignored" : "default"}
         />
       )}
     </div>
-  );
-}
-
-function PlatformFilterBar({
-  selectedPlatform,
-  onSelect,
-}: {
-  selectedPlatform: PlatformType | null;
-  onSelect: (platform: PlatformType) => void;
-}) {
-  return (
-    <div className="border-border-subtle flex h-9 overflow-hidden rounded-lg border bg-white">
-      {platformFilters.map(({ label, value, icon: Icon }) => {
-        const isActive = selectedPlatform === value;
-
-        return (
-          <button
-            key={value}
-            type="button"
-            aria-pressed={isActive}
-            aria-label={`Filter by ${label}`}
-            className={cn(
-              "text-content-subtle hover:bg-bg-muted hover:text-content-emphasis flex size-9 items-center justify-center border-r border-neutral-200 transition-colors last:border-r-0",
-              isActive && "bg-bg-muted text-content-emphasis shadow-sm",
-            )}
-            onClick={() => onSelect(value)}
-          >
-            <Icon className="size-4" />
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function StarredFilterButton({
-  active,
-  onClick,
-}: {
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      aria-label="Show starred partners"
-      className={cn(
-        "border-border-subtle hover:bg-bg-muted flex size-9 items-center justify-center rounded-lg border bg-white transition-colors",
-        active && "border-amber-300 bg-amber-50 text-amber-600",
-      )}
-      onClick={onClick}
-    >
-      {active ? (
-        <StarFill className="size-4 text-amber-500" />
-      ) : (
-        <Star className="text-content-subtle size-4" />
-      )}
-    </button>
   );
 }
 

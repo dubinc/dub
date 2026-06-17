@@ -8,10 +8,11 @@ import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-u
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerFromNetworkSchema } from "@/lib/zod/schemas/partner-network";
 import { sendEmail } from "@dub/email";
-import ProgramNetworkInvite from "@dub/email/templates/program-network-invite";
+import ProgramInvite from "@dub/email/templates/program-invite";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
+import { getProgramNetworkInviteEmailDefaults } from "../../network/get-program-network-invite-email-defaults";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
@@ -33,7 +34,14 @@ export const invitePartnerFromNetworkAction = authActionClient
       );
     }
 
-    const { partnerId, groupId } = parsedInput;
+    const {
+      partnerId,
+      groupId,
+      username,
+      emailSubject,
+      emailTitle,
+      emailBody,
+    } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -63,6 +71,9 @@ export const invitePartnerFromNetworkAction = authActionClient
       program,
       partner: {
         email: partner.email,
+        name: partner.name,
+        image: partner.image,
+        username: username || undefined,
         ...(groupId && { groupId }),
       },
       userId: user.id,
@@ -97,11 +108,16 @@ export const invitePartnerFromNetworkAction = authActionClient
             programId,
             groupId: enrolledPartner.groupId || program.defaultGroupId,
           });
+          const emailDefaults = getProgramNetworkInviteEmailDefaults({
+            programName: program.name,
+            partnerName: partner.name,
+          });
+
           await sendEmail({
-            subject: `${program.name} invited you to join on Dub Partners`,
+            subject: emailSubject || emailDefaults.subject,
             variant: "notifications",
             to: partner.email,
-            react: ProgramNetworkInvite({
+            react: ProgramInvite({
               email: partner.email,
               name: partner.name,
               program: {
@@ -112,6 +128,9 @@ export const invitePartnerFromNetworkAction = authActionClient
               },
               rewards,
               bounties,
+              subject: emailSubject || emailDefaults.subject,
+              title: emailTitle || emailDefaults.title,
+              body: emailBody || emailDefaults.body,
             }),
           });
         })(),

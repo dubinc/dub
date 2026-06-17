@@ -7,6 +7,7 @@ import {
   MarkdownIcon,
   Plus,
   Popover,
+  PopoverProps,
   RichTextArea,
   RichTextProvider,
   RichTextToolbar,
@@ -41,6 +42,7 @@ export function InlineBadgePopover({
   text,
   invalid,
   showOptional,
+  align = "start",
   disabled,
   children,
   buttonClassName,
@@ -49,6 +51,7 @@ export function InlineBadgePopover({
   text: ReactNode;
   invalid?: boolean;
   showOptional?: boolean;
+  align?: PopoverProps["align"];
   disabled?: boolean;
   buttonClassName?: string;
   contentClassName?: string;
@@ -59,7 +62,7 @@ export function InlineBadgePopover({
     <Popover
       openPopover={isOpen}
       setOpenPopover={setIsOpen}
-      align="start"
+      align={align}
       content={
         <InlineBadgePopoverContext.Provider value={{ isOpen, setIsOpen }}>
           <AnimatedSizeContainer height width>
@@ -95,9 +98,10 @@ export function InlineBadgePopover({
   );
 }
 
-type MenuItem<T> = {
+export type InlineBadgePopoverMenuItem<T> = {
   icon?: ReactNode;
   text: string;
+  description?: string;
   value: T;
   onSelect?: () => void;
   preventClose?: boolean;
@@ -109,7 +113,7 @@ export function InlineBadgePopoverMenu<T extends any>({
   selectedValue,
   search,
 }: {
-  items: MenuItem<T>[];
+  items: InlineBadgePopoverMenuItem<T>[];
   onSelect?: (value: T) => void;
   selectedValue?: T | T[];
   search?: boolean;
@@ -146,7 +150,9 @@ export function InlineBadgePopoverMenu<T extends any>({
   );
 
   const [displayedItems, setDisplayedItems] =
-    useState<MenuItem<T>[]>(sortedItems);
+    useState<InlineBadgePopoverMenuItem<T>[]>(sortedItems);
+
+  const hasDescriptions = items.some((item) => item.description);
 
   // Update the displayed items to sorted when closed
   useEffect(() => {
@@ -166,32 +172,66 @@ export function InlineBadgePopoverMenu<T extends any>({
       <AnimatedSizeContainer height>
         <div className="relative">
           <Command.List
-            className="scrollbar-hide flex max-h-64 max-w-52 flex-col gap-1 overflow-y-auto transition-all"
+            className={cn(
+              "scrollbar-hide flex max-h-64 flex-col gap-1 overflow-y-auto transition-all",
+              hasDescriptions ? "max-w-72" : "max-w-52",
+            )}
             ref={scrollRef}
             onScroll={updateScrollProgress}
           >
             {displayedItems.map(
-              ({ icon, text, value, onSelect: itemOnSelect, preventClose }) => (
+              ({
+                icon,
+                text,
+                description,
+                value,
+                onSelect: itemOnSelect,
+                preventClose,
+              }) => (
                 <Command.Item
-                  key={text}
-                  value={`${text} ${value}`}
+                  key={String(value)}
+                  value={`${text} ${description ?? ""} ${value}`}
                   onSelect={() => {
                     itemOnSelect?.();
                     onSelect?.(value);
                     !isMultiSelect && !preventClose && setIsOpen(false);
                   }}
-                  className="flex cursor-pointer items-center justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100"
+                  className={cn(
+                    "flex cursor-pointer justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100",
+                    description ? "items-start gap-2 py-1.5" : "items-center",
+                  )}
                 >
-                  <div className="flex items-center gap-2">
+                  <div
+                    className={cn(
+                      "flex min-w-0 gap-2",
+                      description ? "items-start" : "items-center",
+                    )}
+                  >
                     {icon}
-                    <span className="text-content-default pr-3 text-left text-sm font-medium">
-                      {text}
-                    </span>
+                    {description ? (
+                      <div className="flex min-w-0 flex-col gap-0.5 pr-2">
+                        <span className="text-content-default text-left text-sm font-medium">
+                          {text}
+                        </span>
+                        <span className="text-content-subtle text-left text-xs font-normal leading-snug">
+                          {description}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-content-default pr-3 text-left text-sm font-medium">
+                        {text}
+                      </span>
+                    )}
                   </div>
                   {(Array.isArray(selectedValue)
                     ? selectedValue.includes(value)
                     : selectedValue === value) && (
-                    <Check2 className="text-content-emphasis size-3.5 shrink-0" />
+                    <Check2
+                      className={cn(
+                        "text-content-emphasis size-3.5 shrink-0",
+                        description && "mt-0.5",
+                      )}
+                    />
                   )}
                 </Command.Item>
               ),

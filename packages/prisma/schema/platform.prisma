@@ -29,5 +29,6 @@ model PartnerPlatform {
   partnerContentItems PartnerContentItem[]
 
   @@unique([partnerId, type])
-  @@index(type)
+  @@index([type, verifiedAt, lastCheckedAt])
+  @@index(identifier)
 }

@@ -99,6 +99,7 @@ export const resolveFraudGroupSchema = z.object({
     )
     .nullable()
     .default(null),
+  disableRiskDetection: z.boolean().default(false),
 });
 
 export const bulkResolveFraudGroupsSchema = z.object({

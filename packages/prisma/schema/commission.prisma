@@ -17,7 +17,7 @@ enum CommissionType {
 }
 
 model Commission {
-  id                 String           @id @default(cuid())
+  id                 String           @id
   programId          String
   partnerId          String
   rewardId           String?
@@ -54,7 +54,7 @@ model Commission {
   @@index([programId, partnerId]) // for programEnrollment relation (used in cron/payouts/aggregate-due-commissions)
   @@index([programId, status, createdAt, amount, earnings]) // for program/commissions (scoped by programId)
   @@index([createdAt, status, programId, earnings]) // for admin/commissions
-  @@index([partnerId, customerId])
+  @@index([partnerId, customerId, type, createdAt]) // for finding the firstCommission in create-partner-commission workflow
   @@index(payoutId)
   @@index(customerId)
   @@index(linkId)

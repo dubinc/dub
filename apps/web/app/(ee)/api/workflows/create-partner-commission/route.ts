@@ -1,3 +1,4 @@
+import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/trigger-aggregate-due-commissions";
 import { createId } from "@/lib/api/create-id";
 import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { notifyPartnerCommission } from "@/lib/api/partners/notify-partner-commission";
@@ -8,7 +9,7 @@ import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
 import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { determinePartnerRewards } from "@/lib/partners/determine-partner-reward";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { RewardProps } from "@/lib/types";
@@ -18,6 +19,7 @@ import {
   createPartnerCommissionSchema,
 } from "@/lib/zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import {
   Commission,
@@ -179,6 +181,16 @@ async function stepCreateCommission(
     amount = 0;
   }
 
+  if (
+    ["click", "lead", "sale"].includes(event) &&
+    !COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES.includes(programEnrollment.status)
+  ) {
+    return logAndReturn({
+      commission: null,
+      outputLog: `Partner ${partnerId} is not eligible for commissions (status: ${programEnrollment.status}) in program ${programId}, skipping ${event} commission creation...`,
+    });
+  }
+
   let earnings = 0;
   let reward: RewardProps | null = null;
   let firstCommission: Pick<
@@ -233,11 +245,17 @@ async function stepCreateCommission(
       };
     }
 
-    reward = determinePartnerReward({
+    const rewards = determinePartnerRewards({
       event,
       programEnrollment,
-      ...(context ? { context } : {}),
+      context,
+      amount,
+      quantity,
     });
+
+    if (rewards.length > 0) {
+      reward = rewards[0].reward;
+    }
 
     // if there is no reward, skip commission creation
     if (!reward) {
@@ -247,7 +265,8 @@ async function stepCreateCommission(
       });
     }
 
-    // for click events, it's super simple – just multiply the reward amount by the quantity
+    // Click commissions are created by /api/cron/aggregate-clicks, not this workflow.
+    // TODO: Confirm whether any caller still queues event === "click" here; if not, remove this branch.
     if (event === "click") {
       earnings = getRewardAmount(reward) * quantity;
 
@@ -332,15 +351,18 @@ async function stepCreateCommission(
       // for lead events, we just multiply the reward amount by the quantity
       if (event === "lead") {
         earnings = getRewardAmount(reward) * quantity;
-        // for sale events, we need to calculate the earnings based on the sale amount
-      } else {
-        earnings = calculateSaleEarnings({
-          reward,
-          sale: {
-            quantity,
-            amount,
-          },
-        });
+      }
+      // for sale events, we need to calculate the earnings based on the sale amount
+      else {
+        earnings = rewards.reduce(
+          (acc, { reward, sale }) =>
+            acc +
+            calculateSaleEarnings({
+              reward,
+              sale,
+            }),
+          0,
+        );
       }
     }
   }
@@ -422,6 +444,7 @@ async function stepRunSideEffects(
     skipWorkflow,
     clickEvent,
     isFirstConversion,
+    triggerAggregateDueCommissions,
   } = input;
 
   if (!_commission) {
@@ -543,7 +566,10 @@ async function stepRunSideEffects(
       detectAndRecordFraudEvent({
         program: { id: programId },
         partner: pick(programEnrollment.partner, ["id", "email", "name"]),
-        programEnrollment: pick(programEnrollment, ["status"]),
+        programEnrollment: pick(programEnrollment, [
+          "status",
+          "riskMonitoringDisabledAt",
+        ]),
         customer: {
           ...pick(commission.customer, ["id", "email", "name"]),
           // only pass along isFirstConversion if it's a boolean
@@ -553,6 +579,10 @@ async function stepRunSideEffects(
         click: pick(clickEvent, ["url", "referer"]),
         event: { id: eventId },
       }),
+
+    // Aggregate due commissions immediately for manual commission
+    triggerAggregateDueCommissions &&
+      triggerAggregateDueCommissionsCronJob(programId),
   ]);
 
   return [

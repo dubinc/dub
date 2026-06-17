@@ -13,6 +13,7 @@ export async function getPartnerPayoutMethods(
     | "stripeRecipientId"
     | "paypalEmail"
     | "defaultPayoutMethod"
+    | "tremendousEmail"
   >,
 ) {
   const availablePayoutMethods = getPayoutMethodsForCountry({
@@ -83,15 +84,15 @@ export async function getPartnerPayoutMethods(
     });
   }
 
-  const stablecoinConnected = payoutMethods.some(
-    (m) => m.type === PartnerPayoutMethod.stablecoin && m.connected,
-  );
-
-  // When Stablecoin is connected: Show only Stablecoin + any other method that is already connected
-  if (stablecoinConnected) {
-    payoutMethods = payoutMethods.filter(
-      (m) => m.type === PartnerPayoutMethod.stablecoin || m.connected,
-    );
+  // Tremendous (gift cards) — only when connected via the referral embed
+  if (partner.tremendousEmail) {
+    payoutMethods.push({
+      type: PartnerPayoutMethod.tremendous,
+      label: "Gift Cards",
+      default: partner.defaultPayoutMethod === PartnerPayoutMethod.tremendous,
+      connected: true,
+      identifier: partner.tremendousEmail,
+    });
   }
 
   return payoutMethods;

@@ -4,7 +4,7 @@ enum DiscountProvider {
 }
 
 model Discount {
-  id                     String           @id @default(cuid())
+  id                     String           @id
   programId              String
   amount                 Int              @default(0)
   type                   RewardStructure  @default(percentage)
@@ -26,7 +26,7 @@ model Discount {
 }
 
 model DiscountCode {
-  id         String   @id @default(cuid())
+  id         String   @id
   code       String
   programId  String
   discountId String?
@@ -39,7 +39,7 @@ model DiscountCode {
   discount          Discount?          @relation(fields: [discountId], references: [id], onDelete: SetNull)
   partner           Partner            @relation(fields: [partnerId], references: [id])
   link              Link               @relation(fields: [linkId], references: [id])
-  programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
 
   @@unique([programId, code])
   @@index([programId, partnerId])

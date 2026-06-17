@@ -23,6 +23,10 @@ import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced
 import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import {
+  consumeAdminImpersonation,
+  markAdminImpersonation,
+} from "./admin-impersonation";
+import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
 } from "./lock-account";
@@ -65,6 +69,26 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
           session_state: account.session_state,
         },
       }),
+    // simplified version of https://github.com/nextauthjs/next-auth/blob/main/packages/adapter-prisma/src/index.ts#L80
+    useVerificationToken: async ({ identifier, token }) => {
+      try {
+        const verificationToken = await p.verificationToken.delete({
+          where: { identifier_token: { identifier, token } },
+        });
+
+        if (verificationToken.isAdminImpersonation) {
+          markAdminImpersonation(identifier);
+        }
+
+        return verificationToken;
+      } catch (error: any) {
+        if (error.code === "P2025") {
+          return null;
+        }
+
+        throw error;
+      }
+    },
   };
 };
 
@@ -376,11 +400,15 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (user?.lockedAt) {
-        return false;
+        throw new Error("exceeded-login-attempts");
       }
+
+      const isAdminImpersonation =
+        account?.provider === "email" && consumeAdminImpersonation(user.email);
 
       // If the user is not using SAML, we need to check if SAML is enforced for the email domain
       if (
+        !isAdminImpersonation &&
         account?.provider !== "saml" &&
         account?.provider !== "saml-idp" &&
         account?.provider !== "credentials" // for credentials, we do the check in the CredentialsProvider

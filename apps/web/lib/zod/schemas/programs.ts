@@ -199,6 +199,7 @@ export const ProgramEnrollmentSchema = z.object({
   application: ProgramEnrollmentApplicationSchema.nullish().describe(
     "Linked program application, including review outcome when applicable.",
   ),
+  riskMonitoringDisabledAt: z.date().nullable(),
 });
 
 export const ProgramInviteSchema = z.object({
