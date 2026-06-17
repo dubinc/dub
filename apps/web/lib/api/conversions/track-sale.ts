@@ -30,7 +30,7 @@ import {
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
-import { Customer } from "@dub/prisma/client";
+import { Customer, Prisma } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -200,7 +200,10 @@ export const trackSale = async ({
         },
       });
     } catch (error) {
-      if (error.code === "P2002") {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
         existingCustomer = await prisma.customer.findUniqueOrThrow({
           where: {
             projectId_externalId: {
