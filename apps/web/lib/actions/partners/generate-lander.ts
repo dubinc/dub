@@ -142,7 +142,6 @@ export const generateLanderAction = authActionClient
         (pricingPageMarkdown
           ? `\n\nCompany pricing page:\n\n${pricingPageMarkdown}`
           : ""),
-      temperature: 0.4,
     });
 
     return programLanderSchema.parse(output);
