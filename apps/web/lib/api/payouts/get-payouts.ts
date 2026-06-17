@@ -4,6 +4,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { payoutsQuerySchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { FraudEventStatus, PayoutStatus, Prisma } from "@dub/prisma/client";
+import { parseFilterValue } from "@dub/utils";
 import * as z from "zod/v4";
 
 export type PayoutsQueryFilters = z.infer<typeof payoutsQuerySchema>;
@@ -20,6 +21,7 @@ function pickPayoutQueryParams(
     partnerId,
     tenantId,
     invoiceId,
+    groupId,
     sortBy,
     sortOrder,
     page,
@@ -31,6 +33,7 @@ function pickPayoutQueryParams(
     partnerId,
     tenantId,
     invoiceId,
+    groupId,
     sortBy,
     sortOrder,
     page,
@@ -62,6 +65,36 @@ export function parsePayoutsQuery(
   };
 }
 
+export function buildProgramEnrollmentFilter({
+  groupId,
+  isHoldStatus,
+}: {
+  groupId?: string;
+  isHoldStatus?: boolean;
+}): Prisma.ProgramEnrollmentWhereInput | undefined {
+  const groupFilter = groupId ? parseFilterValue(groupId) : null;
+
+  if (!groupFilter && !isHoldStatus) {
+    return undefined;
+  }
+
+  return {
+    ...(groupFilter && {
+      groupId:
+        groupFilter.sqlOperator === "NOT IN"
+          ? { notIn: groupFilter.values }
+          : { in: groupFilter.values },
+    }),
+    ...(isHoldStatus && {
+      fraudEventGroups: {
+        some: {
+          status: FraudEventStatus.pending,
+        },
+      },
+    }),
+  };
+}
+
 export function buildPayoutWhere({
   programId,
   filters,
@@ -69,25 +102,21 @@ export function buildPayoutWhere({
   programId: string;
   filters: Pick<
     ParsedPayoutsFilters,
-    "status" | "partnerId" | "invoiceId" | "isHoldStatus"
+    "status" | "partnerId" | "invoiceId" | "groupId" | "isHoldStatus"
   >;
 }): Prisma.PayoutWhereInput {
-  const { status, partnerId, invoiceId, isHoldStatus } = filters;
+  const { status, partnerId, invoiceId, groupId, isHoldStatus } = filters;
+  const programEnrollment = buildProgramEnrollmentFilter({
+    groupId,
+    isHoldStatus,
+  });
 
   return {
     programId,
     ...(status && { status }),
     ...(partnerId && { partnerId }),
     ...(invoiceId && { invoiceId }),
-    ...(isHoldStatus && {
-      programEnrollment: {
-        fraudEventGroups: {
-          some: {
-            status: FraudEventStatus.pending,
-          },
-        },
-      },
-    }),
+    ...(programEnrollment && { programEnrollment }),
   };
 }
 
@@ -159,6 +188,7 @@ export async function getPayouts({
         status: rest.status,
         partnerId,
         invoiceId: rest.invoiceId,
+        groupId: rest.groupId,
         isHoldStatus,
       },
     }),
@@ -189,6 +219,7 @@ export async function getPayouts({
       partner: {
         ...partner,
         tenantId: programEnrollment.tenantId,
+        groupId: programEnrollment.groupId,
       },
       user,
     };
@@ -217,6 +248,7 @@ export async function getPayoutsCount({
         status: rest.status,
         partnerId,
         invoiceId: rest.invoiceId,
+        groupId: rest.groupId,
         isHoldStatus,
       },
     }),
