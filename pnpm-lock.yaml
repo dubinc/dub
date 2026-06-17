@@ -101,6 +101,12 @@ importers:
       '@planetscale/database':
         specifier: ^1.18.0
         version: 1.18.0
+      '@prisma/adapter-planetscale':
+        specifier: 6.19.1
+        version: 6.19.1
+      '@prisma/client':
+        specifier: 6.19.1
+        version: 6.19.1(prisma@6.19.1(typescript@5.4.4))(typescript@5.4.4)
       '@prisma/nextjs-monorepo-workaround-plugin':
         specifier: ^6.19.1
         version: 6.19.1
@@ -694,20 +700,20 @@ importers:
         version: 6.19.1
       '@prisma/client':
         specifier: 6.19.1
-        version: 6.19.1(prisma@6.19.1(typescript@5.2.2))(typescript@5.2.2)
+        version: 6.19.1(prisma@6.19.1(typescript@5.4.4))(typescript@5.4.4)
     devDependencies:
       '@types/node':
         specifier: 18.11.9
         version: 18.11.9
       prisma:
         specifier: 6.19.1
-        version: 6.19.1(typescript@5.2.2)
+        version: 6.19.1(typescript@5.4.4)
       tsx:
         specifier: ^4.11.0
         version: 4.11.0
       typescript:
-        specifier: 5.2.2
-        version: 5.2.2
+        specifier: 5.4.4
+        version: 5.4.4
 
   packages/stripe-app:
     dependencies:
@@ -12889,11 +12895,6 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
-  typescript@5.2.2:
-    resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
-    engines: {node: '>=14.17'}
-    hasBin: true
-
   typescript@5.4.4:
     resolution: {integrity: sha512-dGE2Vv8cpVvw28v8HCPqyb08EzbBURxDpuhJvTrusShUfGnhHBafDsLdS1EhhxyL6BJQE+2cT3dDPAv+MQ6oLw==}
     engines: {node: '>=14.17'}
@@ -16544,11 +16545,6 @@ snapshots:
       '@planetscale/database': 1.19.0
       '@prisma/driver-adapter-utils': 6.19.1
       async-mutex: 0.5.0
-
-  '@prisma/client@6.19.1(prisma@6.19.1(typescript@5.2.2))(typescript@5.2.2)':
-    optionalDependencies:
-      prisma: 6.19.1(typescript@5.2.2)
-      typescript: 5.2.2
 
   '@prisma/client@6.19.1(prisma@6.19.1(typescript@5.4.4))(typescript@5.4.4)':
     optionalDependencies:
@@ -26085,15 +26081,6 @@ snapshots:
 
   pretty-format@3.8.0: {}
 
-  prisma@6.19.1(typescript@5.2.2):
-    dependencies:
-      '@prisma/config': 6.19.1
-      '@prisma/engines': 6.19.1
-    optionalDependencies:
-      typescript: 5.2.2
-    transitivePeerDependencies:
-      - magicast
-
   prisma@6.19.1(typescript@5.4.4):
     dependencies:
       '@prisma/config': 6.19.1
@@ -26102,7 +26089,6 @@ snapshots:
       typescript: 5.4.4
     transitivePeerDependencies:
       - magicast
-    optional: true
 
   prismjs@1.30.0: {}
 
@@ -28526,8 +28512,6 @@ snapshots:
   typescript@4.9.5: {}
 
   typescript@5.1.6: {}
-
-  typescript@5.2.2: {}
 
   typescript@5.4.4: {}
 

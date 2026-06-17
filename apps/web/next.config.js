@@ -32,6 +32,13 @@ module.exports = withPlausibleProxy({
     "@dub/email",
     "@boxyhq/saml-jackson",
   ],
+  // Load one shared Prisma instance from node_modules instead of letting
+  // Turbopack bundle (and duplicate) it, which breaks $queryRaw `instanceof Sql`.
+  serverExternalPackages: [
+    "@prisma/client",
+    "@prisma/adapter-planetscale",
+    "@planetscale/database",
+  ],
   outputFileTracingIncludes: {
     "/api/auth/saml/token": [
       "./node_modules/jose/**/*",

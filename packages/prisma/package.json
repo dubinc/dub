@@ -22,7 +22,7 @@
     "@types/node": "18.11.9",
     "prisma": "6.19.1",
     "tsx": "^4.11.0",
-    "typescript": "5.2.2"
+    "typescript": "5.4.4"
   },
   "exports": {
     ".": "./index.ts",
