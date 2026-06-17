@@ -214,7 +214,7 @@ export const POST = withCron(async ({ rawBody }) => {
         type: CommissionType.click,
         amount: 0,
         earnings,
-        invoiceId: `link-${linkId}-${aggregationDate}`,
+        invoiceId: `link-${linkId}-${aggregationDate}`, // used as a idempotency key
       };
     })
     .filter((c): c is NonNullable<typeof c> => c !== null);
