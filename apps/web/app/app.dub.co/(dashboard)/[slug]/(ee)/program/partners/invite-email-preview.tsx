@@ -21,6 +21,10 @@ export type EmailContent = {
   body: string;
 };
 
+type GenerateEmailOptions = {
+  commit?: boolean;
+};
+
 const INVITE_GENERATION_STEPS = ["Analyzing profile", "Constructing invite"];
 
 export function InviteEmailPreview({
@@ -42,7 +46,7 @@ export function InviteEmailPreview({
   fromAddress: string;
   // Persists the sanitized content; returning false keeps the edit mode open
   onSave: (content: EmailContent) => Promise<boolean> | boolean;
-  onGenerate?: () => Promise<EmailContent | void>;
+  onGenerate?: (options?: GenerateEmailOptions) => Promise<EmailContent | void>;
   onReset?: () => void;
   onEditingChange?: (isEditing: boolean) => void;
   isSaving?: boolean;
@@ -91,6 +95,18 @@ export function InviteEmailPreview({
       body: sanitizedBody || defaultEmailContent.body,
     };
 
+    if (
+      onReset &&
+      finalContent.subject === defaultEmailContent.subject &&
+      finalContent.title === defaultEmailContent.title &&
+      finalContent.body === defaultEmailContent.body
+    ) {
+      onReset();
+      setDraftEmailContent(defaultEmailContent);
+      updateIsEditing(false);
+      return;
+    }
+
     if (await onSave(finalContent)) {
       setDraftEmailContent(finalContent);
       updateIsEditing(false);
@@ -98,13 +114,16 @@ export function InviteEmailPreview({
   };
 
   const handleResetEmail = () => {
-    onReset?.();
+    if (!isEditing) {
+      onReset?.();
+    }
+
     setDraftEmailContent(defaultEmailContent);
     richTextRef.current?.setContent(defaultEmailContent.body);
   };
 
   const handleGenerateEmail = async () => {
-    const generatedContent = await onGenerate?.();
+    const generatedContent = await onGenerate?.({ commit: !isEditing });
 
     if (!generatedContent) {
       return;
@@ -140,6 +159,7 @@ export function InviteEmailPreview({
                 text="Cancel"
                 className="h-7 w-fit rounded-lg px-2.5 text-sm"
                 onClick={handleCancelEditing}
+                disabled={isGenerating}
               />
               <Button
                 type="button"
@@ -148,7 +168,7 @@ export function InviteEmailPreview({
                 className="h-7 w-fit rounded-lg px-2.5 text-sm"
                 onClick={handleSaveEmail}
                 loading={isSaving}
-                disabled={isSaving}
+                disabled={isSaving || isGenerating}
               />
             </>
           ) : (

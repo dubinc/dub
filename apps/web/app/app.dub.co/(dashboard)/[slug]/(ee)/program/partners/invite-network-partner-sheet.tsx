@@ -143,7 +143,11 @@ function InviteNetworkPartnerSheetContent({
     onEmailContentChange?.(null);
   };
 
-  const handleGenerateEmail = async () => {
+  const handleGenerateEmail = async ({
+    commit = true,
+  }: {
+    commit?: boolean;
+  } = {}) => {
     if (!workspaceId || !program?.id) {
       return;
     }
@@ -158,8 +162,10 @@ function InviteNetworkPartnerSheetContent({
       return;
     }
 
-    setEmailContent(result.data);
-    onEmailContentChange?.(result.data);
+    if (commit) {
+      setEmailContent(result.data);
+      onEmailContentChange?.(result.data);
+    }
 
     // Refresh AI usage so exceededAI reflects the credit we just spent
     mutateWorkspace();
