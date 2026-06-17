@@ -267,6 +267,9 @@ export const trackSale = async ({
         eventName: leadEventName,
       });
 
+      // TODO:
+      // _trackLead is never called on the P2002 fallback path — lead event is silently dropped
+
       leadEventData = leadEvent
         ? {
             ...leadEvent,
