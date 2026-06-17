@@ -9,6 +9,7 @@ type EnqueueBatchJobsProps = PublishBatchRequest<unknown> & {
     | "create-discount-code"
     | "sync-bounty-social-metrics"
     | "process-hubspot-webhook"
+    | "process-intercom-webhook"
     | "delete-discount-code"
     | "create-referral-commissions"
     | "aggregate-clicks";
@@ -16,32 +17,28 @@ type EnqueueBatchJobsProps = PublishBatchRequest<unknown> & {
 
 // Generic helper to enqueue a batch of QStash jobs.
 export async function enqueueBatchJobs(jobs: EnqueueBatchJobsProps[]) {
-  try {
-    const result = await qstash.batchJSON(jobs);
+  const maxRetries = 3;
 
-    console.log(
-      `[enqueueBatchJobs] ${result.length} batch jobs enqueued successfully.`,
-      {
-        result,
-        jobs,
-      },
-    );
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await qstash.batchJSON(jobs);
+    } catch (error) {
+      if (attempt < maxRetries) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 1000 * Math.pow(2, attempt)),
+        );
+        continue;
+      }
 
-    return result;
-  } catch (error) {
-    console.error("[enqueueBatchJobs] Failed to enqueue batch jobs", {
-      error: JSON.stringify(error, null, 2),
-      jobs,
-    });
+      await log({
+        message: `[enqueueBatchJobs] Failed to enqueue batch jobs: ${JSON.stringify(error, null, 2)}`,
+        type: "errors",
+        mention: true,
+      });
 
-    await log({
-      message: `[enqueueBatchJobs] Failed to enqueue batch jobs: ${JSON.stringify(error, null, 2)}`,
-      type: "errors",
-      mention: true,
-    });
-
-    throw new Error(
-      `Failed to enqueue batch jobs: ${JSON.stringify(error, null, 2)}`,
-    );
+      throw new Error(
+        `Failed to enqueue batch jobs: ${JSON.stringify(error, null, 2)}`,
+      );
+    }
   }
 }
