@@ -10,10 +10,14 @@ import {
   startOfWeek,
 } from "date-fns";
 
-export function getSpendLimitWindow(
-  spendLimitInterval: RewardSpendLimitInterval,
-) {
-  const date = new Date();
+export function getSpendLimitWindow({
+  spendLimitInterval,
+  referenceDate,
+}: {
+  spendLimitInterval: RewardSpendLimitInterval;
+  referenceDate: Date;
+}) {
+  const date = referenceDate;
 
   if (spendLimitInterval === "day") {
     return {
@@ -72,7 +76,10 @@ export async function getCappedEarnings({
     return earnings;
   }
 
-  const { startDate, endDate } = getSpendLimitWindow(reward.spendLimitInterval);
+  const { startDate, endDate } = getSpendLimitWindow({
+    spendLimitInterval: reward.spendLimitInterval,
+    referenceDate: new Date(),
+  });
 
   // Find the commission earnings for the partner and customer (if applicable) for the spend limit window
   const {

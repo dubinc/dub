@@ -160,6 +160,7 @@ export const POST = withCron(async ({ rawBody }) => {
   const historicalEarningsByPartner = await getHistoricalEarnings({
     clickReward,
     partnerIds: Array.from(uniquePartners),
+    aggregationStartDate: startDate,
   });
 
   const aggregationDate = startDate.toISOString().split("T")[0];
@@ -214,6 +215,7 @@ export const POST = withCron(async ({ rawBody }) => {
         type: CommissionType.click,
         amount: 0,
         earnings,
+        createdAt: endDate,
         invoiceId: `link-${linkId}-${aggregationDate}`, // used as a idempotency key
       };
     })
@@ -272,12 +274,14 @@ export const POST = withCron(async ({ rawBody }) => {
 async function getHistoricalEarnings({
   clickReward,
   partnerIds,
+  aggregationStartDate,
 }: {
   clickReward: Pick<
     Reward,
     "spendLimitAmount" | "spendLimitInterval" | "programId"
   >;
   partnerIds: string[];
+  aggregationStartDate: Date;
 }) {
   if (
     !clickReward.spendLimitAmount ||
@@ -287,9 +291,10 @@ async function getHistoricalEarnings({
     return new Map<string, number>();
   }
 
-  const { startDate, endDate } = getSpendLimitWindow(
-    clickReward.spendLimitInterval,
-  );
+  const { startDate, endDate } = getSpendLimitWindow({
+    spendLimitInterval: clickReward.spendLimitInterval,
+    referenceDate: aggregationStartDate,
+  });
 
   const commissions = await prisma.commission.groupBy({
     by: ["programId", "partnerId"],
