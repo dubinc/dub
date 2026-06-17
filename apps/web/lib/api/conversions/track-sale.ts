@@ -139,7 +139,8 @@ export const trackSale = async ({
     }
   }
 
-  // If no existing customer is found and a click event is found, upsert a new customer (for direct sale tracking)
+  // Direct sale tracking: create the customer from the click event.
+  // On concurrent requests, fall back to fetching the existing row (P2002) instead of failing.
   if (!existingCustomer && clickData) {
     const link = await prisma.link.findUnique({
       where: {
@@ -181,36 +182,41 @@ export const trackSale = async ({
         ? `${R2_URL}/customers/${newCustomerId}/avatar_${nanoid(7)}`
         : customerAvatar;
 
-    const upsertedCustomer = await prisma.customer.upsert({
-      where: {
-        projectId_externalId: {
-          projectId: workspace.id,
+    try {
+      newCustomer = await prisma.customer.create({
+        data: {
+          id: newCustomerId,
+          name: finalCustomerName,
+          email: customerEmail,
+          avatar: finalCustomerAvatar,
           externalId: customerExternalId,
+          linkId: clickData.link_id,
+          clickId: clickData.click_id,
+          country: clickData.country,
+          projectId: workspace.id,
+          projectConnectId: workspace.stripeConnectId,
+          clickedAt: new Date(clickData.timestamp + "Z"),
         },
-      },
-      create: {
-        id: newCustomerId,
-        name: finalCustomerName,
-        email: customerEmail,
-        avatar: finalCustomerAvatar,
-        externalId: customerExternalId,
-        linkId: clickData.link_id,
-        clickId: clickData.click_id,
-        country: clickData.country,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-        clickedAt: new Date(clickData.timestamp + "Z"),
-      },
-      update: {
-        //
-      },
-    });
-
-    if (upsertedCustomer.id === newCustomerId) {
-      newCustomer = upsertedCustomer;
-    } else {
-      existingCustomer = upsertedCustomer;
+      });
+    } catch (error) {
+      if (error.code === "P2002") {
+        existingCustomer = await prisma.customer.findUniqueOrThrow({
+          where: {
+            projectId_externalId: {
+              projectId: workspace.id,
+              externalId: customerExternalId,
+            },
+          },
+        });
+      } else {
+        throw error;
+      }
     }
+
+    // if leadEventName is provided, use it
+    // otherwise use "Direct sale tracking lead event" (since it's for direct sale tracking)
+    const finalLeadEventName =
+      leadEventName ?? "Direct sale tracking lead event";
 
     if (newCustomer) {
       // persist customer avatar to R2 if it's not already stored
@@ -246,16 +252,14 @@ export const trackSale = async ({
       leadEventData = {
         ...clickData,
         event_id: nanoid(16),
-        // if leadEventName is provided, use it
-        // otherwise use "Direct sale tracking lead event" (since it's for direct sale tracking)
-        event_name: leadEventName ?? "Direct sale tracking lead event",
+        event_name: finalLeadEventName,
         customer_id: newCustomer.id,
         metadata: metadata ? JSON.stringify(metadata) : "",
       };
     } else if (existingCustomer) {
       const leadEvent = await getLeadEvent({
         customerId: existingCustomer.id,
-        eventName: leadEventName,
+        eventName: finalLeadEventName,
       });
 
       leadEventData = leadEvent
@@ -266,7 +270,7 @@ export const trackSale = async ({
         : {
             ...clickData,
             event_id: nanoid(16),
-            event_name: leadEventName ?? "Direct sale tracking lead event",
+            event_name: finalLeadEventName,
             customer_id: existingCustomer.id,
             metadata: metadata ? JSON.stringify(metadata) : "",
           };
