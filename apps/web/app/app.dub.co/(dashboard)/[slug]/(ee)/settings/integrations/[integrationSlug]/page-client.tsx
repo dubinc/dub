@@ -54,7 +54,10 @@ import {
   STRIPE_INTEGRATION_ID,
   ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
-import { HUBSPOT_INTEGRATION_ID } from "@dub/utils/src/constants/integrations";
+import {
+  HUBSPOT_INTEGRATION_ID,
+  INTERCOM_INTEGRATION_ID,
+} from "@dub/utils/src/constants/integrations";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -340,9 +343,12 @@ export default function IntegrationPageClient({
                   className="h-9 px-3"
                   icon={<ConnectedDots className="size-4" />}
                   disabledTooltip={
-                    [HUBSPOT_INTEGRATION_ID, APPSFLYER_INTEGRATION_ID].includes(
-                      integration.id,
-                    ) && !canInstallAdvancedIntegrations ? (
+                    [
+                      HUBSPOT_INTEGRATION_ID,
+                      APPSFLYER_INTEGRATION_ID,
+                      INTERCOM_INTEGRATION_ID,
+                    ].includes(integration.id) &&
+                    !canInstallAdvancedIntegrations ? (
                       <TooltipContent
                         title="This integration is only available on Advanced and Enterprise plans."
                         cta="Upgrade to Advanced"

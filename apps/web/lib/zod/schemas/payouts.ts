@@ -52,6 +52,14 @@ export const payoutsQuerySchema = z
       .describe(
         "Filter the list of payouts by invoice ID (the unique ID of the invoice you receive for each batch payout you process on Dub). Pending payouts will not have an invoice ID.",
       ),
+    groupId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of payouts by the associated partner group. " +
+          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+          "Examples: `group_abc`, `group_abc,group_xyz`, `-group_abc`.",
+      ),
     sortBy: z
       .enum(["amount", "initiatedAt", "paidAt"])
       .default("amount")
@@ -68,6 +76,7 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     status: true,
     partnerId: true,
     invoiceId: true,
+    groupId: true,
   })
   .extend({
     programId: z.string().optional(),
