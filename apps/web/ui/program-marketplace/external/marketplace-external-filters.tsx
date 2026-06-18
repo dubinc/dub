@@ -83,6 +83,35 @@ export function MarketplaceExternalFilterSidebar({
   );
 }
 
+export function MarketplaceExternalFilterSidebarSkeleton() {
+  return (
+    <aside className="w-full shrink-0 lg:w-56">
+      <div className="flex flex-col gap-6">
+        {[4, 6].map((rows, sectionIndex) => (
+          <div key={sectionIndex} className="flex flex-col gap-1">
+            <div className="px-2 py-2">
+              <div className="h-4 w-20 animate-pulse rounded bg-neutral-200" />
+            </div>
+            <div className="flex flex-col gap-1">
+              {[...Array(rows)].map((_, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-3 px-2 py-2"
+                  aria-hidden
+                >
+                  <div className="size-4 shrink-0 animate-pulse rounded border border-neutral-200 bg-neutral-200" />
+                  <div className="h-3 flex-1 animate-pulse rounded bg-neutral-200" />
+                  <div className="h-3 w-4 shrink-0 animate-pulse rounded bg-neutral-200" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
 function FilterSection({
   title,
   children,

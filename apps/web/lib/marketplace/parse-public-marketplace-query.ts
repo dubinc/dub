@@ -12,13 +12,13 @@ export function parsePublicMarketplaceQuery(
   fixedCategory?: Category,
 ) {
   const input = {
+    category: fixedCategory ?? pickString(searchParams.category),
     rewardType: pickString(searchParams.rewardType),
     search: pickString(searchParams.search),
     sortBy: pickString(searchParams.sortBy),
     sortOrder: pickString(searchParams.sortOrder),
     page: pickString(searchParams.page),
     pageSize: EXTERNAL_MARKETPLACE_PAGE_SIZE,
-    ...(fixedCategory ? { category: fixedCategory } : {}),
   };
 
   const parsed = getPublicNetworkProgramsQuerySchema.safeParse(input);

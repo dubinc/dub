@@ -1,18 +1,21 @@
-import { getPublicNetworkProgramsCount } from "@/lib/fetchers/get-public-network-programs";
+import { getNetworkProgramCounts } from "@/lib/fetchers/get-network-program-counts";
 import { parsePublicMarketplaceQuery } from "@/lib/marketplace/parse-public-marketplace-query";
 import { NextResponse } from "next/server";
 
-// GET /api/marketplace/programs/count - public marketplace program count
+// cache filtered/searched count responses at the edge (public, not partner-scoped)
+export const revalidate = 3600;
+
+// GET /api/marketplace/programs/counts - public marketplace total + filter counts
 export async function GET(req: Request) {
   const searchParams = Object.fromEntries(new URL(req.url).searchParams);
   const { category, rewardType, search } =
     parsePublicMarketplaceQuery(searchParams);
 
-  const count = await getPublicNetworkProgramsCount({
+  const counts = await getNetworkProgramCounts({
     category,
     rewardType,
     search,
   });
 
-  return NextResponse.json(count);
+  return NextResponse.json(counts);
 }

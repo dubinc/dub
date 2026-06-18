@@ -17,7 +17,10 @@ import {
   MarketplaceProgramGridEmpty,
   MarketplaceProgramGridSkeleton,
 } from "../marketplace-program-grid";
-import { MarketplaceExternalFilterSidebar } from "./marketplace-external-filters";
+import {
+  MarketplaceExternalFilterSidebar,
+  MarketplaceExternalFilterSidebarSkeleton,
+} from "./marketplace-external-filters";
 
 const PAGE_SIZE = EXTERNAL_MARKETPLACE_PAGE_SIZE;
 
@@ -29,6 +32,10 @@ type FilterCounts = {
   }[];
 };
 
+type ProgramCounts = FilterCounts & { total: number };
+
+const PARAM_KEYS = ["rewardType", "search", "sortBy", "sortOrder", "page"];
+
 function pickString(value: string | string[] | undefined) {
   return typeof value === "string" ? value : undefined;
 }
@@ -36,12 +43,21 @@ function pickString(value: string | string[] | undefined) {
 export function MarketplaceExternalListPageClient({
   basePath,
   fixedCategory,
+  initialPrograms,
+  initialCounts,
 }: {
   basePath: string;
   fixedCategory?: Category;
+  initialPrograms: NetworkProgramProps[];
+  initialCounts: ProgramCounts;
 }) {
   const router = useRouter();
   const { getQueryString, searchParamsObj } = useRouterStuff();
+
+  const hasParams = PARAM_KEYS.some((key) => {
+    const value = searchParamsObj[key];
+    return typeof value === "string" && value !== "";
+  });
 
   const parsed = useMemo(
     () =>
@@ -63,31 +79,25 @@ export function MarketplaceExternalListPageClient({
     }
   }, [basePath, parsed.success, router]);
 
-  const queryString = parsed.success
+  const shouldFetch = parsed.success && hasParams;
+
+  const queryString = shouldFetch
     ? getQueryString({
         ...(fixedCategory ? { category: fixedCategory } : {}),
         pageSize: String(PAGE_SIZE),
       })
     : null;
 
-  const { data: programs, isValidating } = useSWR<NetworkProgramProps[]>(
+  const { data: fetchedPrograms, isValidating } = useSWR<NetworkProgramProps[]>(
     queryString ? `/api/marketplace/programs${queryString}` : null,
     fetcher,
     { revalidateOnFocus: false, keepPreviousData: true },
   );
 
-  const { data: totalCount = 0 } = useSWR<number>(
-    queryString ? `/api/marketplace/programs/count${queryString}` : null,
+  const { data: fetchedCounts } = useSWR<ProgramCounts>(
+    queryString ? `/api/marketplace/programs/counts${queryString}` : null,
     fetcher,
-    { revalidateOnFocus: false },
-  );
-
-  const { data: filterCounts } = useSWR<FilterCounts>(
-    queryString
-      ? `/api/marketplace/programs/filter-counts${queryString}`
-      : null,
-    fetcher,
-    { revalidateOnFocus: false },
+    { revalidateOnFocus: false, keepPreviousData: true },
   );
 
   if (!parsed.success) {
@@ -95,35 +105,44 @@ export function MarketplaceExternalListPageClient({
   }
 
   const { rewardType, search, sortBy, sortOrder, page = 1 } = parsed.data;
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+  const programs = hasParams ? fetchedPrograms : initialPrograms;
+  const isLoadingPrograms = hasParams && !fetchedPrograms;
+
+  const counts = (hasParams ? fetchedCounts : initialCounts) ?? initialCounts;
+  const isLoadingCounts = hasParams && !fetchedCounts;
+
+  const totalPages = Math.max(1, Math.ceil(counts.total / PAGE_SIZE));
 
   return (
     <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
-      {filterCounts ? (
-        <div className="hidden shrink-0 lg:block">
+      <div className="hidden shrink-0 lg:block">
+        {isLoadingCounts ? (
+          <MarketplaceExternalFilterSidebarSkeleton />
+        ) : (
           <MarketplaceExternalFilterSidebar
             basePath={basePath}
             activeCategory={fixedCategory}
             activeRewardType={rewardType}
-            categoryCounts={filterCounts.categories}
-            rewardTypeCounts={filterCounts.rewardTypes}
+            categoryCounts={counts.categories}
+            rewardTypeCounts={counts.rewardTypes}
             search={search}
             sortBy={sortBy}
             sortOrder={sortOrder}
           />
-        </div>
-      ) : null}
+        )}
+      </div>
 
       <div className="@container/page flex min-w-0 flex-1 flex-col gap-6">
         <MarketplaceListToolbar
           variant="external"
           basePath={basePath}
           activeCategory={fixedCategory}
-          categoryCounts={filterCounts?.categories ?? []}
-          rewardTypeCounts={filterCounts?.rewardTypes ?? []}
+          categoryCounts={counts.categories}
+          rewardTypeCounts={counts.rewardTypes}
         />
 
-        {!programs ? (
+        {isLoadingPrograms || !programs ? (
           <MarketplaceProgramGridSkeleton />
         ) : programs.length > 0 ? (
           <MarketplaceProgramGrid
