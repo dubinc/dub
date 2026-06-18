@@ -32,6 +32,19 @@ export const NetworkProgramExtendedSchema = NetworkProgramSchema.extend({
 
 export const PROGRAM_NETWORK_MAX_PAGE_SIZE = 100;
 
+export const getPublicNetworkProgramsQuerySchema = z
+  .object({
+    category: z.enum(Category).optional(),
+    rewardType: z.enum(["sale", "lead", "click", "discount"]).optional(),
+    featured: z.coerce.boolean().optional(),
+    search: z.string().optional(),
+    sortBy: z.enum(["name", "recency", "popularity"]).default("popularity"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  })
+  .extend(
+    getPaginationQuerySchema({ pageSize: PROGRAM_NETWORK_MAX_PAGE_SIZE }),
+  );
+
 export const getNetworkProgramsQuerySchema = z
   .object({
     category: z.enum(Category).optional(),

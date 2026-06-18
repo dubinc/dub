@@ -4,6 +4,7 @@ import { getUserViaToken } from "./utils/get-user-via-token";
 import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
 import { parse } from "./utils/parse";
 import {
+  partnersMarketplaceRedirects,
   partnersProgramRedirects,
   partnersRedirect,
 } from "./utils/partners-redirect";
@@ -45,7 +46,19 @@ export async function PartnersMiddleware(req: NextRequest) {
         status: 301,
       },
     );
-  } else if (!user && isAuthenticatedPath) {
+  }
+
+  const marketplaceDestination = partnersMarketplaceRedirects(
+    path,
+    searchParamsObj,
+  );
+  if (marketplaceDestination) {
+    return NextResponse.redirect(new URL(marketplaceDestination, req.url), {
+      status: 301,
+    });
+  }
+
+  if (!user && isAuthenticatedPath) {
     if (path.startsWith("/programs/")) {
       const programSlug = path.split("/")[2];
       return NextResponse.redirect(new URL(`/${programSlug}/login`, req.url));

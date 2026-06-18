@@ -1,33 +1,26 @@
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
-import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
+import { Category } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Gift, Suitcase } from "@dub/ui/icons";
-import { capitalize, cn, nFormatter } from "@dub/utils";
+import { capitalize, nFormatter } from "@dub/utils";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
+import { MARKETPLACE_REWARD_TYPES } from "./constants";
 import { ProgramNetworkStatusBadges } from "./program-status-badge";
-
-const REWARD_TYPES = {
-  sale: {
-    icon: REWARD_EVENT_ICON.sale,
-    label: "Sale reward (CPS)",
-  },
-  lead: {
-    icon: REWARD_EVENT_ICON.lead,
-    label: "Lead reward (CPL)",
-  },
-  click: {
-    icon: REWARD_EVENT_ICON.click,
-    label: "Click reward (CPC)",
-  },
-  discount: {
-    icon: Gift,
-    label: "Dual-sided incentives",
-  },
-};
+import {
+  getMarketplaceAllHref,
+  getMarketplaceCategoryFromPathname,
+  getMarketplaceCategoryHref,
+  getPreservedMarketplaceSearchParams,
+} from "./utils/urls";
 
 export function useProgramNetworkFilters() {
+  const router = useRouter();
+  const pathname = usePathname();
   const { searchParamsObj, queryParams } = useRouterStuff();
+
+  const routeCategory = getMarketplaceCategoryFromPathname(pathname);
 
   const { data: categoriesCount } = useNetworkProgramsCount<
     | {
@@ -74,11 +67,11 @@ export function useProgramNetworkFilters() {
         key: "rewardType",
         icon: Gift,
         label: "Reward type",
-        options: Object.entries(REWARD_TYPES).map(
-          ([key, { label, icon: Icon }]) => ({
+        singleSelect: true,
+        options: Object.entries(MARKETPLACE_REWARD_TYPES).map(
+          ([key, label]) => ({
             value: key,
             label,
-            icon: <Icon className="size-4" />,
             right: nFormatter(
               rewardTypesCount?.find(({ type }) => type === key)?._count || 0,
               { full: true },
@@ -91,10 +84,7 @@ export function useProgramNetworkFilters() {
         icon: Suitcase,
         label: "Category",
         labelPlural: "categories",
-        getOptionIcon: (value) => {
-          const Icon = PROGRAM_CATEGORIES_MAP[value]?.icon || Suitcase;
-          return <Icon className="size-4" />;
-        },
+        singleSelect: true,
         getOptionLabel: (value) =>
           PROGRAM_CATEGORIES_MAP[value]?.label || value.replaceAll("_", " "),
         options:
@@ -108,25 +98,18 @@ export function useProgramNetworkFilters() {
         key: "status",
         icon: CircleDotted,
         label: "Status",
+        singleSelect: true,
         options:
           statusCount?.map(({ status, _count }) => {
-            const {
-              label,
-              icon: Icon,
-              className,
-            } = status
-              ? ProgramNetworkStatusBadges[status]
-              : {
-                  label: "Not applied",
-                  icon: CircleDotted,
-                  className: "text-neutral-500",
-                };
+            const label = status
+              ? ProgramNetworkStatusBadges[
+                  status as keyof typeof ProgramNetworkStatusBadges
+                ]?.label ?? capitalize(status)
+              : "Not applied";
+
             return {
               value: status ?? "null",
-              label: label || capitalize(status),
-              icon: (
-                <Icon className={cn("size-4", className, "bg-transparent")} />
-              ),
+              label,
               right: nFormatter(_count, { full: true }),
             };
           }) ?? null,
@@ -136,42 +119,89 @@ export function useProgramNetworkFilters() {
   );
 
   const activeFilters = useMemo(() => {
-    const { rewardType, category, status } = searchParamsObj;
+    const { rewardType, status } = searchParamsObj;
 
     return [
       ...(rewardType ? [{ key: "rewardType", value: rewardType }] : []),
-      ...(category ? [{ key: "category", value: category }] : []),
+      ...(routeCategory ? [{ key: "category", value: routeCategory }] : []),
       ...(status ? [{ key: "status", value: status }] : []),
     ];
-  }, [searchParamsObj]);
+  }, [routeCategory, searchParamsObj]);
+
+  const setCategoryFilter = useCallback(
+    (category: Category | null) => {
+      const preserved = getPreservedMarketplaceSearchParams(searchParamsObj);
+
+      router.replace(
+        category
+          ? getMarketplaceCategoryHref(category, preserved)
+          : getMarketplaceAllHref(preserved),
+      );
+    },
+    [router, searchParamsObj],
+  );
 
   const onSelect = useCallback(
-    (key: string, value: any) =>
+    (key: string, value: string) => {
+      if (key === "category") {
+        setCategoryFilter(value as Category);
+        return;
+      }
+
       queryParams({
         set: {
           [key]: value,
         },
         del: "page",
-      }),
-    [queryParams],
+      });
+    },
+    [queryParams, setCategoryFilter],
   );
 
   const onRemove = useCallback(
-    (key: string) => {
+    (key: string, _value?: string) => {
+      if (key === "category") {
+        setCategoryFilter(null);
+        return;
+      }
+
       queryParams({
         del: [key, "page"],
       });
     },
-    [queryParams],
+    [queryParams, setCategoryFilter],
   );
 
-  const onRemoveAll = useCallback(
-    () =>
-      queryParams({
-        del: ["rewardType", "category", "status", "search", "page"],
-      }),
-    [queryParams],
-  );
+  const onClearFilters = useCallback(() => {
+    const preserved = getPreservedMarketplaceSearchParams(searchParamsObj);
+
+    if (routeCategory) {
+      router.replace(
+        getMarketplaceAllHref({
+          rewardType: preserved.rewardType,
+          search: preserved.search,
+          sortBy: preserved.sortBy,
+          sortOrder: preserved.sortOrder,
+        }),
+      );
+      return;
+    }
+
+    queryParams({
+      del: ["rewardType", "category", "status", "page"],
+    });
+  }, [queryParams, routeCategory, router, searchParamsObj]);
+
+  const onRemoveAll = useCallback(() => {
+    if (routeCategory) {
+      router.replace(getMarketplaceAllHref());
+      return;
+    }
+
+    queryParams({
+      del: ["rewardType", "category", "status", "search", "page"],
+    });
+  }, [queryParams, routeCategory, router]);
 
   const isFiltered = Boolean(
     activeFilters.length > 0 || searchParamsObj.search,
@@ -182,6 +212,7 @@ export function useProgramNetworkFilters() {
     activeFilters,
     onSelect,
     onRemove,
+    onClearFilters,
     onRemoveAll,
     isFiltered,
   };
