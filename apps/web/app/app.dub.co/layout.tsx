@@ -2,7 +2,7 @@
 
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { SessionProvider } from "next-auth/react";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
@@ -16,7 +16,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           refer: "refer.dub.co",
         }}
       />
-      {children}
+      <Suspense>{children}</Suspense>
     </SessionProvider>
   );
 }

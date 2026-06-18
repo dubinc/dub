@@ -3,7 +3,14 @@ import { getPublicNetworkPrograms } from "@/lib/fetchers/get-public-network-prog
 import { EXTERNAL_MARKETPLACE_PAGE_SIZE } from "@/lib/marketplace/parse-public-marketplace-query";
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { Category } from "@dub/prisma/client";
-import { getMarketplaceExternalBasePath } from "./marketplace-external-filters";
+import {
+  MarketplaceProgramGrid,
+  MarketplaceProgramGridEmpty,
+} from "../marketplace-program-grid";
+import {
+  getMarketplaceExternalBasePath,
+  MarketplaceExternalFilterSidebar,
+} from "./marketplace-external-filters";
 import { MarketplaceExternalListPageClient } from "./marketplace-external-list-page-client";
 import { MarketplaceExternalShell } from "./marketplace-external-shell";
 
@@ -28,6 +35,22 @@ export async function MarketplaceExternalListPage({
     getNetworkProgramCounts({ category: fixedCategory }),
   ]);
 
+  const defaultSidebar = (
+    <MarketplaceExternalFilterSidebar
+      basePath={basePath}
+      activeCategory={fixedCategory}
+      categoryCounts={initialCounts.categories}
+      rewardTypeCounts={initialCounts.rewardTypes}
+    />
+  );
+
+  const defaultGrid =
+    initialPrograms.length > 0 ? (
+      <MarketplaceProgramGrid programs={initialPrograms} showStatus={false} />
+    ) : (
+      <MarketplaceProgramGridEmpty />
+    );
+
   return (
     <MarketplaceExternalShell
       variant="list"
@@ -45,8 +68,9 @@ export async function MarketplaceExternalListPage({
       <MarketplaceExternalListPageClient
         basePath={basePath}
         fixedCategory={fixedCategory}
-        initialPrograms={initialPrograms}
         initialCounts={initialCounts}
+        defaultGrid={defaultGrid}
+        defaultSidebar={defaultSidebar}
       />
     </MarketplaceExternalShell>
   );

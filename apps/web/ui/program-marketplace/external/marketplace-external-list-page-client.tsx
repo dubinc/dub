@@ -8,7 +8,7 @@ import { useRouterStuff } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { ReactNode, Suspense, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { type MarketplaceRewardType } from "../constants";
 import { MarketplaceListToolbar } from "../marketplace-list-toolbar";
@@ -34,23 +34,154 @@ type FilterCounts = {
 
 type ProgramCounts = FilterCounts & { total: number };
 
+// query params that switch the page from its server-rendered default into a
+// client-fetched (SWR) view; `category` is part of the static route, not a param
 const PARAM_KEYS = ["rewardType", "search", "sortBy", "sortOrder", "page"];
 
 function pickString(value: string | string[] | undefined) {
   return typeof value === "string" ? value : undefined;
 }
 
-export function MarketplaceExternalListPageClient({
-  basePath,
-  fixedCategory,
-  initialPrograms,
-  initialCounts,
-}: {
+type SharedProps = {
   basePath: string;
   fixedCategory?: Category;
-  initialPrograms: NetworkProgramProps[];
   initialCounts: ProgramCounts;
+  defaultGrid: ReactNode;
+  defaultSidebar: ReactNode;
+};
+
+export function MarketplaceExternalListPageClient(props: SharedProps) {
+  return (
+    <Suspense fallback={<MarketplaceListDefault {...props} />}>
+      <MarketplaceListInteractive {...props} />
+    </Suspense>
+  );
+}
+
+function ListShell({
+  sidebar,
+  toolbar,
+  children,
+}: {
+  sidebar: ReactNode;
+  toolbar: ReactNode;
+  children: ReactNode;
 }) {
+  return (
+    <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
+      <div className="hidden shrink-0 lg:block">{sidebar}</div>
+      <div className="@container/page flex min-w-0 flex-1 flex-col gap-6">
+        {toolbar}
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function MarketplaceListToolbarSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-4 lg:flex lg:items-center lg:justify-between lg:gap-6">
+      <div className="h-9 w-full animate-pulse rounded-lg bg-neutral-100 lg:hidden" />
+      <div className="hidden h-9 w-44 animate-pulse rounded-lg bg-neutral-100 lg:block" />
+      <div className="h-9 w-full animate-pulse rounded-lg bg-neutral-100 lg:w-[19rem]" />
+    </div>
+  );
+}
+
+function MarketplacePagination({
+  basePath,
+  totalPages,
+  page,
+  rewardType,
+  search,
+  sortBy,
+  sortOrder,
+}: {
+  basePath: string;
+  totalPages: number;
+  page: number;
+  rewardType?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: string;
+}) {
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="flex items-center justify-center gap-2">
+      {Array.from({ length: totalPages }, (_, index) => {
+        const pageNumber = index + 1;
+        const queryParams = new URLSearchParams();
+
+        if (rewardType) queryParams.set("rewardType", rewardType);
+        if (search) queryParams.set("search", search);
+        if (sortBy && sortBy !== "popularity")
+          queryParams.set("sortBy", sortBy);
+        if (sortOrder && sortOrder !== "desc")
+          queryParams.set("sortOrder", sortOrder);
+        if (pageNumber > 1) queryParams.set("page", String(pageNumber));
+
+        const query = queryParams.toString();
+
+        return (
+          <Link
+            key={pageNumber}
+            href={`${basePath}${query ? `?${query}` : ""}`}
+            className={
+              pageNumber === page
+                ? "rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white"
+                : "border-border-subtle hover:bg-bg-subtle rounded-lg border px-3 py-1.5 text-sm font-medium"
+            }
+          >
+            {pageNumber}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+function MarketplaceListDefault({
+  basePath,
+  fixedCategory,
+  initialCounts,
+  defaultGrid,
+  defaultSidebar,
+}: SharedProps) {
+  const totalPages = Math.max(1, Math.ceil(initialCounts.total / PAGE_SIZE));
+
+  return (
+    <ListShell
+      sidebar={defaultSidebar}
+      toolbar={
+        <Suspense fallback={<MarketplaceListToolbarSkeleton />}>
+          <MarketplaceListToolbar
+            variant="external"
+            basePath={basePath}
+            activeCategory={fixedCategory}
+            categoryCounts={initialCounts.categories}
+            rewardTypeCounts={initialCounts.rewardTypes}
+          />
+        </Suspense>
+      }
+    >
+      {defaultGrid}
+      <MarketplacePagination
+        basePath={basePath}
+        totalPages={totalPages}
+        page={1}
+      />
+    </ListShell>
+  );
+}
+
+function MarketplaceListInteractive({
+  basePath,
+  fixedCategory,
+  initialCounts,
+  defaultGrid,
+  defaultSidebar,
+}: SharedProps) {
   const router = useRouter();
   const { getQueryString, searchParamsObj } = useRouterStuff();
 
@@ -100,40 +231,52 @@ export function MarketplaceExternalListPageClient({
     { revalidateOnFocus: false, keepPreviousData: true },
   );
 
-  if (!parsed.success) {
-    return <MarketplaceProgramGridSkeleton />;
-  }
-
-  const { rewardType, search, sortBy, sortOrder, page = 1 } = parsed.data;
-
-  const programs = hasParams ? fetchedPrograms : initialPrograms;
-  const isLoadingPrograms = hasParams && !fetchedPrograms;
+  const parsedData = parsed.success ? parsed.data : undefined;
+  const rewardType = parsedData?.rewardType;
+  const search = parsedData?.search;
+  const sortBy = parsedData?.sortBy;
+  const sortOrder = parsedData?.sortOrder;
+  const page = parsedData?.page ?? 1;
 
   const counts = (hasParams ? fetchedCounts : initialCounts) ?? initialCounts;
   const isLoadingCounts = hasParams && !fetchedCounts;
-
   const totalPages = Math.max(1, Math.ceil(counts.total / PAGE_SIZE));
 
-  return (
-    <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
-      <div className="hidden shrink-0 lg:block">
-        {isLoadingCounts ? (
-          <MarketplaceExternalFilterSidebarSkeleton />
-        ) : (
-          <MarketplaceExternalFilterSidebar
-            basePath={basePath}
-            activeCategory={fixedCategory}
-            activeRewardType={rewardType}
-            categoryCounts={counts.categories}
-            rewardTypeCounts={counts.rewardTypes}
-            search={search}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-          />
-        )}
-      </div>
+  const sidebar = !hasParams ? (
+    defaultSidebar
+  ) : isLoadingCounts ? (
+    <MarketplaceExternalFilterSidebarSkeleton />
+  ) : (
+    <MarketplaceExternalFilterSidebar
+      basePath={basePath}
+      activeCategory={fixedCategory}
+      activeRewardType={rewardType}
+      categoryCounts={counts.categories}
+      rewardTypeCounts={counts.rewardTypes}
+      search={search}
+      sortBy={sortBy}
+      sortOrder={sortOrder}
+    />
+  );
 
-      <div className="@container/page flex min-w-0 flex-1 flex-col gap-6">
+  const grid = !hasParams ? (
+    defaultGrid
+  ) : !parsed.success || !fetchedPrograms ? (
+    <MarketplaceProgramGridSkeleton />
+  ) : fetchedPrograms.length > 0 ? (
+    <MarketplaceProgramGrid
+      programs={fetchedPrograms}
+      showStatus={false}
+      className={cn(isValidating && "opacity-50")}
+    />
+  ) : (
+    <MarketplaceProgramGridEmpty />
+  );
+
+  return (
+    <ListShell
+      sidebar={sidebar}
+      toolbar={
         <MarketplaceListToolbar
           variant="external"
           basePath={basePath}
@@ -141,50 +284,18 @@ export function MarketplaceExternalListPageClient({
           categoryCounts={counts.categories}
           rewardTypeCounts={counts.rewardTypes}
         />
-
-        {isLoadingPrograms || !programs ? (
-          <MarketplaceProgramGridSkeleton />
-        ) : programs.length > 0 ? (
-          <MarketplaceProgramGrid
-            programs={programs}
-            showStatus={false}
-            className={cn(isValidating && "opacity-50")}
-          />
-        ) : (
-          <MarketplaceProgramGridEmpty />
-        )}
-
-        {totalPages > 1 ? (
-          <div className="flex items-center justify-center gap-2">
-            {Array.from({ length: totalPages }, (_, index) => {
-              const pageNumber = index + 1;
-              const queryParams = new URLSearchParams();
-
-              if (rewardType) queryParams.set("rewardType", rewardType);
-              if (search) queryParams.set("search", search);
-              if (sortBy !== "popularity") queryParams.set("sortBy", sortBy);
-              if (sortOrder !== "desc") queryParams.set("sortOrder", sortOrder);
-              if (pageNumber > 1) queryParams.set("page", String(pageNumber));
-
-              const query = queryParams.toString();
-
-              return (
-                <Link
-                  key={pageNumber}
-                  href={`${basePath}${query ? `?${query}` : ""}`}
-                  className={
-                    pageNumber === page
-                      ? "rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white"
-                      : "border-border-subtle hover:bg-bg-subtle rounded-lg border px-3 py-1.5 text-sm font-medium"
-                  }
-                >
-                  {pageNumber}
-                </Link>
-              );
-            })}
-          </div>
-        ) : null}
-      </div>
-    </div>
+      }
+    >
+      {grid}
+      <MarketplacePagination
+        basePath={basePath}
+        totalPages={totalPages}
+        page={page}
+        rewardType={rewardType}
+        search={search}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+      />
+    </ListShell>
   );
 }
