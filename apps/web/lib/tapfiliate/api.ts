@@ -1,6 +1,7 @@
 import {
   tapfiliateConversionSchema,
   tapfiliateCustomerSchema,
+  tapfiliateGroupSchema,
   tapfiliatePartnerSchema,
   tapfiliateProgramSchema,
 } from "./schemas";
@@ -44,6 +45,12 @@ export class TapfiliateApi {
     const data = await this.fetch(`/programs/${programId}/`);
 
     return tapfiliateProgramSchema.parse(data);
+  }
+
+  async listGroups() {
+    const data = await this.fetch(`/affiliate-groups/`);
+
+    return tapfiliateGroupSchema.array().parse(data);
   }
 
   async listPartners({ page = 1 }: { page?: number }) {

@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { PartnerGroup, Program } from "@dub/prisma/client";
+import slugify from "@sindresorhus/slugify";
 import { createId } from "../api/create-id";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
@@ -19,11 +20,9 @@ export async function importPartners(payload: TapfiliateImportPayload) {
     },
     include: {
       groups: {
-        where: {
-          slug: DEFAULT_PARTNER_GROUP.slug,
-        },
         select: {
           id: true,
+          slug: true,
           clickRewardId: true,
           leadRewardId: true,
           saleRewardId: true,
@@ -49,7 +48,12 @@ export async function importPartners(payload: TapfiliateImportPayload) {
     return;
   }
 
-  const defaultGroup = program.groups[0];
+  const groupsBySlug = Object.fromEntries(
+    program.groups.map((group) => [group.slug, group]),
+  );
+
+  const defaultGroup = groupsBySlug[DEFAULT_PARTNER_GROUP.slug];
+
   const workspace = program.workspace as WorkspaceProps;
 
   if (!defaultGroup) {
@@ -80,20 +84,60 @@ export async function importPartners(payload: TapfiliateImportPayload) {
     }
 
     await Promise.all(
-      affiliates.map((affiliate) =>
-        createPartnerAndLinks({
+      affiliates.map((affiliate) => {
+        let group = defaultGroup;
+
+        if (affiliate.affiliate_group_id) {
+          const groupSlug = `tapfiliate-${slugify(affiliate.affiliate_group_id)}`;
+          group = groupsBySlug[groupSlug] ?? defaultGroup;
+        }
+
+        return createPartnerAndLinks({
           workspace,
           program,
           affiliate,
-          group: defaultGroup,
+          group,
           userId,
           importId,
-        }),
-      ),
+        });
+      }),
     );
 
     currentPage++;
     processedBatches++;
+  }
+
+  // After importing partners, clean up by deleting any groups that have no assigned partners
+  if (!hasMore) {
+    const groups = await prisma.partnerGroup.findMany({
+      where: {
+        programId,
+        slug: {
+          not: DEFAULT_PARTNER_GROUP.slug,
+          startsWith: "tapfiliate-",
+        },
+        partners: {
+          none: {},
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (groups.length > 0) {
+      console.log(
+        `Found ${groups.length} Tapfiliate groups with no partners, deleting...`,
+      );
+
+      await prisma.partnerGroup.deleteMany({
+        where: {
+          id: {
+            in: groups.map(({ id }) => id),
+          },
+        },
+      });
+    }
   }
 
   await tapfiliateImporter.queue({

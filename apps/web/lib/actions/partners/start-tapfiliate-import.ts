@@ -66,6 +66,6 @@ export const startTapfiliateImportAction = authActionClient
       userId: user.id,
       programId: program.id,
       tapfiliateProgramId,
-      action: "import-partners",
+      action: "import-groups",
     });
   });

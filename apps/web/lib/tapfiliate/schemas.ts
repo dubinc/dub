@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
 
 export const tapfiliateImportSteps = z.enum([
+  "import-groups",
   "import-partners",
   "import-customers",
   "import-commissions",
@@ -14,6 +15,12 @@ export const tapfiliateImportPayloadSchema = z.object({
   tapfiliateProgramId: z.string(),
   action: tapfiliateImportSteps,
   page: z.number().optional(),
+});
+
+export const tapfiliateGroupSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  affiliate_count: z.number(),
 });
 
 export const tapfiliateProgramSchema = z.object({
