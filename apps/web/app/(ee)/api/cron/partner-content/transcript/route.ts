@@ -1,7 +1,4 @@
 import { createId } from "@/lib/api/create-id";
-import { getInstagramMediaTranscript } from "@/lib/api/scrape-creators/get-instagram-media-transcript";
-import { getTikTokVideoTranscript } from "@/lib/api/scrape-creators/get-tiktok-video-transcript";
-import { getYouTubeVideoTranscript } from "@/lib/api/scrape-creators/get-youtube-video-transcript";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import {
@@ -16,15 +13,11 @@ import {
   parsePartnerContentCronPayload,
   PARTNER_CONTENT_EMBED_FLOW_CONTROL,
   PARTNER_CONTENT_SEARCH_ROUTES,
-  PartnerContentIngestionMode,
   partnerContentTranscriptPayloadSchema,
+  type PartnerContentIngestionMode,
 } from "@/lib/partner-content-search/ingestion/enqueue";
-import {
-  normalizeInstagramTranscriptSegments,
-  normalizeTikTokTranscriptSegments,
-  normalizeYouTubeTranscriptSegments,
-} from "@/lib/partner-content-search/ingestion/normalize-content";
-import { PartnerContentPlatform } from "@/lib/partner-content-search/types";
+import { fetchPlatformTranscriptSegments } from "@/lib/partner-content-search/ingestion/platforms";
+import type { PartnerContentPlatform } from "@/lib/partner-content-search/types";
 import { prisma } from "@dub/prisma";
 import { logAndRespond } from "../../utils";
 
@@ -136,7 +129,7 @@ async function writeTranscriptChunks(contentItem: {
   url: string;
   platform: PartnerContentPlatform;
 }) {
-  const transcriptSegments = await fetchTranscriptSegments({
+  const transcriptSegments = await fetchPlatformTranscriptSegments({
     platform: contentItem.platform,
     url: contentItem.url,
   });
@@ -236,29 +229,6 @@ async function writeTranscriptChunks(contentItem: {
     chunksDeleted: deletedChunks.count,
     chunksCreated: createChunksResult.count,
   };
-}
-
-async function fetchTranscriptSegments({
-  platform,
-  url,
-}: {
-  platform: PartnerContentPlatform;
-  url: string;
-}) {
-  switch (platform) {
-    case "youtube": {
-      const transcriptResponse = await getYouTubeVideoTranscript({ url });
-      return normalizeYouTubeTranscriptSegments(transcriptResponse.transcript);
-    }
-    case "tiktok": {
-      const transcriptResponse = await getTikTokVideoTranscript({ url });
-      return normalizeTikTokTranscriptSegments(transcriptResponse.transcript);
-    }
-    case "instagram": {
-      const transcriptResponse = await getInstagramMediaTranscript({ url });
-      return normalizeInstagramTranscriptSegments(transcriptResponse);
-    }
-  }
 }
 
 async function enqueueEmbedJob({
