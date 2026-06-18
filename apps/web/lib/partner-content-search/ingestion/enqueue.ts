@@ -1,9 +1,13 @@
 import { qstash } from "@/lib/cron";
+import type { Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
-import type { Prisma } from "@dub/prisma/client";
+import "server-only";
 import * as z from "zod/v4";
-import { PartnerContentPlatform, PARTNER_CONTENT_SEARCH_PLATFORMS } from "../types";
+import {
+  PARTNER_CONTENT_SEARCH_PLATFORMS,
+  PartnerContentPlatform,
+} from "../types";
 
 // Partners enumerated per page / per page-worker job. Defaults to 500; override
 // with the PARTNER_CONTENT_ENUMERATE_PAGE_SIZE env var (e.g. 3) to exercise the
@@ -95,6 +99,10 @@ export const partnerContentTranscriptPayloadSchema = z.object({
   mode: partnerContentIngestionModeSchema,
   runStamp: z.string().min(1),
   dryRun: z.boolean().default(false),
+  // Re-fetch the transcript even if one was already fetched. Off by default so
+  // QStash redelivery doesn't re-burn ScrapeCreators credits; set by admin
+  // re-ingestion.
+  forceRefetch: z.boolean().default(false),
   partnerId: z.string().min(1),
   partnerPlatformId: z.string().min(1),
   partnerContentItemId: z.string().min(1),

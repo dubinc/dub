@@ -1,14 +1,23 @@
-import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { parseRequestBody } from "@/lib/api/utils";
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
+  PARTNER_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER,
   PARTNER_CONTENT_SEARCH_LIMITS,
   PARTNER_CONTENT_SEARCH_MODELS,
+  PARTNER_CONTENT_SEARCH_PARTNER_LIMIT,
+  PARTNER_CONTENT_SEARCH_VOYAGE_QUERY_TIMEOUT_MS,
 } from "@/lib/partner-content-search/constants";
+import {
+  groupPartnerSearchResults,
+  toScore,
+  type PartnerContentSearchRow,
+} from "@/lib/partner-content-search/search-utils";
 import {
   embedPartnerContentTexts,
   serializeEmbeddingForVector,
+  VoyageTimeoutError,
 } from "@/lib/partner-content-search/voyage";
 import { prisma } from "@dub/prisma";
 import { PlatformType, Prisma } from "@dub/prisma/client";
@@ -19,19 +28,23 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
 const DEFAULT_PARTNER_LIMIT = 20;
-const DEFAULT_CHUNKS_PER_PARTNER = 2;
 
 const partnerNetworkContentSearchSchema = z.object({
   query: z.string().trim().max(500).optional(),
   platform: z.enum(PlatformType),
   starred: z.boolean().optional(),
-  limit: z.number().int().positive().max(50).default(DEFAULT_PARTNER_LIMIT),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .max(PARTNER_CONTENT_SEARCH_PARTNER_LIMIT)
+    .default(DEFAULT_PARTNER_LIMIT),
   chunksPerPartner: z
     .number()
     .int()
     .positive()
     .max(4)
-    .default(DEFAULT_CHUNKS_PER_PARTNER),
+    .default(PARTNER_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER),
   candidateChunkCount: z
     .number()
     .int()
@@ -40,92 +53,67 @@ const partnerNetworkContentSearchSchema = z.object({
     .optional(),
 });
 
-type PartnerNetworkContentSearchRow = {
-  chunkId: string;
-  partnerContentItemId: string;
-  partnerId: string;
-  partnerName: string;
-  partnerUsername: string | null;
-  partnerImage: string | null;
-  partnerDescription: string | null;
-  platformType: string;
-  platformIdentifier: string;
-  platformContentId: string;
-  contentUrl: string;
-  contentTitle: string | null;
-  contentThumbnailUrl: string | null;
-  contentPublishedAt: Date | null;
-  chunkText: string;
-  startMs: number | null;
-  endMs: number | null;
-  distance: number | string;
-};
-
 // POST /api/network/partners/content-search - semantic search over indexed partner content
 export const POST = withWorkspace(
   async ({ workspace, req }) => {
-    try {
-      const programId = getDefaultProgramIdOrThrow(workspace);
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-      const { partnerNetworkEnabledAt } =
-        await prisma.program.findUniqueOrThrow({
-          select: {
-            partnerNetworkEnabledAt: true,
-          },
-          where: {
-            id: programId,
-          },
-        });
+    const { partnerNetworkEnabledAt } = await prisma.program.findUniqueOrThrow({
+      select: {
+        partnerNetworkEnabledAt: true,
+      },
+      where: {
+        id: programId,
+      },
+    });
 
-      if (!partnerNetworkEnabledAt) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "Partner network is not enabled for this program.",
-        });
-      }
-
-      const body = partnerNetworkContentSearchSchema.parse(
-        await parseRequestBody(req),
-      );
-      const candidateChunkCount = body.query
-        ? (body.candidateChunkCount ??
-          Math.min(
-            PARTNER_CONTENT_SEARCH_LIMITS.chunkCandidateCount,
-            Math.max(25, body.limit * body.chunksPerPartner * 6),
-          ))
-        : body.limit * body.chunksPerPartner * 2;
-
-      const rows = body.query
-        ? await searchPartnerNetworkContent({
-            programId,
-            query: body.query,
-            platform: body.platform,
-            starred: body.starred,
-            limit: candidateChunkCount,
-          })
-        : await listPartnerNetworkContent({
-            programId,
-            platform: body.platform,
-            starred: body.starred,
-            limit: candidateChunkCount,
-          });
-
-      return NextResponse.json({
-        success: true,
-        query: body.query ?? null,
-        platform: body.platform,
-        candidateChunkCount,
-        embeddingModel: PARTNER_CONTENT_SEARCH_MODELS.embedding.model,
-        resultCount: rows.length,
-        partners: groupPartnerSearchResults({
-          rows,
-          limit: body.limit,
-          chunksPerPartner: body.chunksPerPartner,
-        }),
+    if (!partnerNetworkEnabledAt) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Partner network is not enabled for this program.",
       });
-    } catch (error) {
-      return handleAndReturnErrorResponse(error);
     }
+
+    const body = partnerNetworkContentSearchSchema.parse(
+      await parseRequestBody(req),
+    );
+    const candidateChunkCount = body.query
+      ? body.candidateChunkCount ??
+        Math.min(
+          PARTNER_CONTENT_SEARCH_LIMITS.chunkCandidateCount,
+          Math.max(25, body.limit * body.chunksPerPartner * 6),
+        )
+      : body.limit * body.chunksPerPartner * 2;
+
+    const rows = body.query
+      ? await searchPartnerNetworkContent({
+          programId,
+          query: body.query,
+          platform: body.platform,
+          starred: body.starred,
+          limit: candidateChunkCount,
+        })
+      : await listPartnerNetworkContent({
+          programId,
+          platform: body.platform,
+          starred: body.starred,
+          limit: candidateChunkCount,
+        });
+
+    return NextResponse.json({
+      success: true,
+      query: body.query ?? null,
+      platform: body.platform,
+      candidateChunkCount,
+      embeddingModel: PARTNER_CONTENT_SEARCH_MODELS.embedding.id,
+      resultCount: rows.length,
+      partners: groupPartnerSearchResults({
+        rows,
+        limit: body.limit,
+        chunksPerPartner: body.chunksPerPartner,
+        toChunkResult,
+      }),
+    });
   },
   {
     requiredPlan: ["enterprise", "advanced"],
@@ -145,10 +133,22 @@ async function searchPartnerNetworkContent({
   starred?: boolean;
   limit: number;
 }) {
-  const [queryEmbedding] = await embedPartnerContentTexts({
-    input: [query],
-    inputType: "query",
-  });
+  let queryEmbedding: number[];
+  try {
+    [queryEmbedding] = await embedPartnerContentTexts({
+      input: [query],
+      inputType: "query",
+      timeoutMs: PARTNER_CONTENT_SEARCH_VOYAGE_QUERY_TIMEOUT_MS,
+    });
+  } catch (error) {
+    if (error instanceof VoyageTimeoutError) {
+      throw new DubApiError({
+        code: "internal_server_error",
+        message: "Partner content search timed out. Please try again.",
+      });
+    }
+    throw error;
+  }
   const queryVector = serializeEmbeddingForVector(queryEmbedding);
   const starredFilter =
     starred === true
@@ -157,7 +157,7 @@ async function searchPartnerNetworkContent({
         ? Prisma.sql`AND (dp.starredAt IS NULL OR dp.id IS NULL)`
         : Prisma.empty;
 
-  return await prisma.$queryRaw<PartnerNetworkContentSearchRow[]>(Prisma.sql`
+  return await prisma.$queryRaw<PartnerContentSearchRow[]>(Prisma.sql`
     SELECT
       c.id AS chunkId,
       c.partnerContentItemId,
@@ -173,7 +173,8 @@ async function searchPartnerNetworkContent({
       pci.title AS contentTitle,
       pci.thumbnailUrl AS contentThumbnailUrl,
       pci.publishedAt AS contentPublishedAt,
-      c.text AS chunkText,
+      c.source AS chunkSource,
+      c.chunkText,
       c.startMs,
       c.endMs,
       DISTANCE(TO_VECTOR(${queryVector}), c.embedding, 'cosine') AS distance
@@ -188,6 +189,7 @@ async function searchPartnerNetworkContent({
       ON dp.partnerId = p.id
       AND dp.programId = ${programId}
     WHERE c.embedding IS NOT NULL
+      AND c.embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.id}
       AND pp.type = ${platform}
       AND p.networkStatus IN ("approved", "trusted")
       AND enrolled.id IS NULL
@@ -216,7 +218,7 @@ async function listPartnerNetworkContent({
         ? Prisma.sql`AND (dp.starredAt IS NULL OR dp.id IS NULL)`
         : Prisma.empty;
 
-  return await prisma.$queryRaw<PartnerNetworkContentSearchRow[]>(Prisma.sql`
+  return await prisma.$queryRaw<PartnerContentSearchRow[]>(Prisma.sql`
     SELECT
       MIN(c.id) AS chunkId,
       pci.id AS partnerContentItemId,
@@ -232,6 +234,7 @@ async function listPartnerNetworkContent({
       pci.title AS contentTitle,
       pci.thumbnailUrl AS contentThumbnailUrl,
       pci.publishedAt AS contentPublishedAt,
+      MIN(c.source) AS chunkSource,
       "" AS chunkText,
       NULL AS startMs,
       NULL AS endMs,
@@ -247,6 +250,7 @@ async function listPartnerNetworkContent({
       ON dp.partnerId = p.id
       AND dp.programId = ${programId}
     WHERE c.embedding IS NOT NULL
+      AND c.embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.id}
       AND pp.type = ${platform}
       AND p.networkStatus IN ("approved", "trusted")
       AND enrolled.id IS NULL
@@ -271,58 +275,7 @@ async function listPartnerNetworkContent({
   `);
 }
 
-function groupPartnerSearchResults({
-  rows,
-  limit,
-  chunksPerPartner,
-}: {
-  rows: PartnerNetworkContentSearchRow[];
-  limit: number;
-  chunksPerPartner: number;
-}) {
-  const partners = new Map<
-    string,
-    {
-      partnerId: string;
-      name: string;
-      username: string | null;
-      image: string | null;
-      description: string | null;
-      bestDistance: number;
-      score: number;
-      chunks: ReturnType<typeof toChunkResult>[];
-    }
-  >();
-
-  for (const row of rows) {
-    const distance = Number(row.distance);
-    const partner = partners.get(row.partnerId) ?? {
-      partnerId: row.partnerId,
-      name: row.partnerName,
-      username: row.partnerUsername,
-      image: row.partnerImage,
-      description: row.partnerDescription,
-      bestDistance: distance,
-      score: toScore(distance),
-      chunks: [],
-    };
-
-    partner.bestDistance = Math.min(partner.bestDistance, distance);
-    partner.score = toScore(partner.bestDistance);
-
-    if (partner.chunks.length < chunksPerPartner) {
-      partner.chunks.push(toChunkResult(row, distance));
-    }
-
-    partners.set(row.partnerId, partner);
-  }
-
-  return Array.from(partners.values())
-    .sort((a, b) => a.bestDistance - b.bestDistance)
-    .slice(0, limit);
-}
-
-function toChunkResult(row: PartnerNetworkContentSearchRow, distance: number) {
+function toChunkResult(row: PartnerContentSearchRow, distance: number) {
   return {
     chunkId: row.chunkId,
     partnerContentItemId: row.partnerContentItemId,
@@ -338,6 +291,7 @@ function toChunkResult(row: PartnerNetworkContentSearchRow, distance: number) {
       publishedAt: row.contentPublishedAt?.toISOString() ?? null,
     },
     chunk: {
+      source: row.chunkSource,
       text: row.chunkText,
       startMs: row.startMs,
       endMs: row.endMs,
@@ -345,8 +299,4 @@ function toChunkResult(row: PartnerNetworkContentSearchRow, distance: number) {
     distance,
     score: toScore(distance),
   };
-}
-
-function toScore(distance: number) {
-  return Number((1 - distance).toFixed(6));
 }

@@ -1,3 +1,4 @@
+import "server-only";
 import {
   PARTNER_CONTENT_SEARCH_LIMITS,
   PARTNER_CONTENT_SEARCH_MODELS,
@@ -37,6 +38,27 @@ export class VoyageApiError extends Error {
     super(`Voyage ${endpoint} request failed: ${status}`);
     this.name = "VoyageApiError";
   }
+}
+
+// Thrown when a Voyage request exceeds the caller-supplied timeout. User-facing
+// search routes catch this to fail fast (through the normal error path, with
+// rate-limit headers + logging) instead of hanging until Vercel kills the
+// function at maxDuration.
+export class VoyageTimeoutError extends Error {
+  constructor(
+    readonly endpoint: string,
+    readonly timeoutMs: number,
+  ) {
+    super(`Voyage ${endpoint} request timed out after ${timeoutMs}ms`);
+    this.name = "VoyageTimeoutError";
+  }
+}
+
+function isAbortOrTimeoutError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (error.name === "TimeoutError" || error.name === "AbortError")
+  );
 }
 
 // Serialize an embedding for use in raw SQL TO_VECTOR(...) statements. Shared by
@@ -115,23 +137,36 @@ export async function embedPartnerContentTexts({
   inputType,
   apiKey = process.env.VOYAGE_API_KEY,
   fetchImpl = fetch,
+  timeoutMs,
 }: {
   input: string[];
   inputType: VoyageInputType;
   apiKey?: string;
   fetchImpl?: VoyageFetch;
+  // When set, aborts the request after this many ms (opt-in: the bulk embed cron
+  // omits it so large batches aren't cut off; user-facing search routes pass it).
+  timeoutMs?: number;
 }) {
   if (!apiKey) throw new Error("VOYAGE_API_KEY is not set.");
   if (input.length === 0) return [];
 
-  const response = await fetchImpl(`${VOYAGE_API_BASE_URL}/embeddings`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(buildVoyageEmbeddingRequest({ input, inputType })),
-  });
+  let response: Awaited<ReturnType<VoyageFetch>>;
+  try {
+    response = await fetchImpl(`${VOYAGE_API_BASE_URL}/embeddings`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(buildVoyageEmbeddingRequest({ input, inputType })),
+      signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
+    });
+  } catch (error) {
+    if (timeoutMs && isAbortOrTimeoutError(error)) {
+      throw new VoyageTimeoutError("embeddings", timeoutMs);
+    }
+    throw error;
+  }
 
   if (!response.ok) {
     throw new VoyageApiError(response.status, "embeddings");

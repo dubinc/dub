@@ -12,6 +12,7 @@ export const PARTNER_CONTENT_SEARCH_MODELS = {
     model: "voyage-4",
     dimensions: 1024,
     outputDtype: "float",
+    id: "voyage:voyage-4:1024:float",
   },
   reranker: {
     provider: "voyage",
@@ -36,3 +37,15 @@ export const PARTNER_CONTENT_SEARCH_FUSION_WEIGHTS = {
   semantic: 0.6,
   existingPartnerRank: 0.4,
 } as const;
+
+// Max number of partners returned by the network content search (and the cap the
+// route enforces). Shared so the client request and the route stay in sync.
+export const PARTNER_CONTENT_SEARCH_PARTNER_LIMIT = 50;
+
+// Default number of chunks surfaced per partner in the network content search.
+export const PARTNER_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER = 2;
+
+// Timeout for the query-embedding call on user-facing search routes. Fails fast
+// through the normal error path instead of hanging until the function's
+// maxDuration (30s) is hit.
+export const PARTNER_CONTENT_SEARCH_VOYAGE_QUERY_TIMEOUT_MS = 10_000;

@@ -2,8 +2,12 @@ import { createFetch, createSchema } from "@better-fetch/fetch";
 import { PlatformType } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import {
+  instagramMediaTranscriptSchema,
+  instagramUserPostsSchema,
   socialContentSchema,
   socialProfileSchema,
+  tiktokProfileVideosSchema,
+  tiktokTranscriptSchema,
   youtubeChannelVideosSchema,
   youtubeTranscriptSchema,
 } from "./schema";
@@ -72,6 +76,51 @@ export const scrapeCreatorsFetch = createFetch({
           language: z.string().length(2).optional(),
         }),
         output: youtubeTranscriptSchema,
+      },
+
+      // Fetch recent TikTok profile videos
+      "/v3/tiktok/profile/videos": {
+        method: "get",
+        query: z.object({
+          handle: z.string(),
+          user_id: z.string().optional(),
+          sort_by: z.enum(["latest", "popular"]).optional(),
+          max_cursor: z.string().optional(),
+          region: z.string().optional(),
+          trim: z.boolean().optional(),
+        }),
+        output: tiktokProfileVideosSchema,
+      },
+
+      // Fetch a TikTok video transcript
+      "/v1/tiktok/video/transcript": {
+        method: "get",
+        query: z.object({
+          url: z.string(),
+          language: z.string().length(2).optional(),
+          use_ai_as_fallback: z.enum(["true", "false"]).optional(),
+        }),
+        output: tiktokTranscriptSchema,
+      },
+
+      // Fetch recent Instagram user posts
+      "/v2/instagram/user/posts": {
+        method: "get",
+        query: z.object({
+          handle: z.string(),
+          next_max_id: z.string().optional(),
+          trim: z.boolean().optional(),
+        }),
+        output: instagramUserPostsSchema,
+      },
+
+      // Fetch an Instagram video/reel transcript
+      "/v2/instagram/media/transcript": {
+        method: "get",
+        query: z.object({
+          url: z.string(),
+        }),
+        output: instagramMediaTranscriptSchema,
       },
     },
     {

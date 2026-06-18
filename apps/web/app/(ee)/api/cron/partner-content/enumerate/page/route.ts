@@ -4,11 +4,12 @@ import {
   buildEligiblePartnerPlatformWhere,
   createPartnerContentDeduplicationId,
   getPartnerContentUrl,
-  PARTNER_CONTENT_SEARCH_ROUTES,
   parsePartnerContentCronPayload,
+  PARTNER_CONTENT_SEARCH_ROUTES,
   partnerContentEnumeratePagePayloadSchema,
 } from "@/lib/partner-content-search/ingestion/enqueue";
 import { prisma } from "@dub/prisma";
+import { chunk } from "@dub/utils";
 import { logAndRespond } from "../../../utils";
 
 export const dynamic = "force-dynamic";
@@ -93,7 +94,9 @@ export const POST = withCron(async ({ rawBody }) => {
   }));
 
   if (!payload.dryRun) {
-    await qstash.batchJSON(fetchMessages);
+    for (const slice of chunk(fetchMessages, 100)) {
+      await qstash.batchJSON(slice);
+    }
   }
 
   return logAndRespond(

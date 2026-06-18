@@ -1,12 +1,13 @@
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { PARTNER_CONTENT_SEARCH_MODELS } from "@/lib/partner-content-search/constants";
+import { refreshPartnerContentItemChunkCounts } from "@/lib/partner-content-search/ingestion/chunk-counts";
 import {
   createPartnerContentDeduplicationId,
   getPartnerContentUrl,
+  parsePartnerContentCronPayload,
   PARTNER_CONTENT_EMBED_FLOW_CONTROL,
   PARTNER_CONTENT_SEARCH_ROUTES,
-  parsePartnerContentCronPayload,
   partnerContentEmbedPayloadSchema,
   PartnerContentIngestionMode,
 } from "@/lib/partner-content-search/ingestion/enqueue";
@@ -16,20 +17,18 @@ import {
   VoyageApiError,
 } from "@/lib/partner-content-search/voyage";
 import { prisma } from "@dub/prisma";
+import { chunk } from "@dub/utils";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const EMBED_RATE_LIMIT_RETRY_DELAY_SECONDS = 120;
+const EMBED_UPDATE_BATCH_SIZE = 16;
 
 type UnembeddedChunk = {
   id: string;
   chunkText: string;
-};
-
-type EmbeddedChunkCount = {
-  embeddedChunkCount: bigint;
 };
 
 // POST /api/cron/partner-content/embed
@@ -51,7 +50,6 @@ export const POST = withCron(async ({ rawBody }) => {
     select: {
       id: true,
       partnerId: true,
-      transcriptFetchStatus: true,
       totalChunkCount: true,
       embeddedChunkCount: true,
     },
@@ -71,12 +69,9 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  if (
-    contentItem.transcriptFetchStatus !== "fetched" ||
-    contentItem.totalChunkCount === 0
-  ) {
+  if (contentItem.totalChunkCount === 0) {
     return logAndRespond(
-      `[PartnerContentSearch] Skipping embed for content item ${contentItem.id}: no fetched transcript chunks for ${payload.mode} run ${payload.runStamp}.`,
+      `[PartnerContentSearch] Skipping embed for content item ${contentItem.id}: no chunks for ${payload.mode} run ${payload.runStamp}.`,
     );
   }
 
@@ -85,7 +80,8 @@ export const POST = withCron(async ({ rawBody }) => {
     FROM PartnerContentChunk
     WHERE partnerContentItemId = ${contentItem.id}
       AND embedding IS NULL
-    ORDER BY chunkIndex ASC
+      AND embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.id}
+    ORDER BY source ASC, chunkIndex ASC
     LIMIT ${payload.maxChunks}
   `;
 
@@ -138,16 +134,19 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  await Promise.all(
-    chunks.map((chunk, index) =>
+  const updates = chunks.map(
+    (contentChunk, index) =>
       prisma.$executeRaw`
         UPDATE PartnerContentChunk
         SET embedding = TO_VECTOR(${serializeEmbeddingForVector(embeddings[index])}),
-            embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.model}
-        WHERE id = ${chunk.id}
+            embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.id}
+        WHERE id = ${contentChunk.id}
       `,
-    ),
   );
+
+  for (const batch of chunk(updates, EMBED_UPDATE_BATCH_SIZE)) {
+    await Promise.all(batch);
+  }
 
   const embeddedChunkCount = await refreshEmbeddedChunkCount(contentItem.id);
   const remainingChunkCount = Math.max(
@@ -208,7 +207,6 @@ async function enqueueEmbedJobsForPartnerPlatform({
     where: {
       partnerId,
       partnerPlatformId,
-      transcriptFetchStatus: "fetched",
       totalChunkCount: {
         gt: 0,
       },
@@ -258,24 +256,8 @@ async function enqueueEmbedJobsForPartnerPlatform({
 }
 
 async function refreshEmbeddedChunkCount(partnerContentItemId: string) {
-  const [result] = await prisma.$queryRaw<EmbeddedChunkCount[]>`
-    SELECT COUNT(*) AS embeddedChunkCount
-    FROM PartnerContentChunk
-    WHERE partnerContentItemId = ${partnerContentItemId}
-      AND embedding IS NOT NULL
-  `;
-
-  const embeddedChunkCount = Number(result?.embeddedChunkCount ?? 0);
-
-  await prisma.partnerContentItem.update({
-    where: {
-      id: partnerContentItemId,
-    },
-    data: {
-      embeddedChunkCount,
-      embeddingModel: PARTNER_CONTENT_SEARCH_MODELS.embedding.model,
-    },
-  });
+  const { embeddedChunkCount } =
+    await refreshPartnerContentItemChunkCounts(partnerContentItemId);
 
   return embeddedChunkCount;
 }

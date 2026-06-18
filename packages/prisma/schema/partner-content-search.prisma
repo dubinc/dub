@@ -1,15 +1,11 @@
 // Partner natural-language search schema.
 //
-// PlanetScale recommends using Prisma's Unsupported type for VECTOR columns,
-// then using raw SQL for vector writes/searches/indexes until Prisma supports
-// custom MySQL types directly:
-// https://planetscale.com/docs/vitess/vectors/using-with-an-orm#prisma
-//
-// Keep vector fields optional in Prisma even when they are logically required
-// for indexed rows. Required Unsupported fields disable generated Prisma Client
-// create/update/upsert methods, and vector values still need TO_VECTOR(...),
-// DISTANCE(...), and CREATE VECTOR INDEX statements outside Prisma's generated
-// query API.
+// The PartnerContentChunk.embedding VECTOR(1024) column is intentionally not in
+// this Prisma schema. Plain MySQL cannot parse VECTOR DDL, so keeping it here
+// breaks CI/local db push jobs that use non-PlanetScale databases. Create and
+// index that column with packages/prisma/manual/partner-content-search-vector-index.sql
+// on PlanetScale branches that support vectors, and keep all vector writes/search
+// operations in raw SQL.
 
 enum PartnerContentTranscriptFetchStatus {
   pending
@@ -18,31 +14,36 @@ enum PartnerContentTranscriptFetchStatus {
   error
 }
 
+enum PartnerContentChunkSource {
+  metadata
+  transcript
+}
+
 model PartnerContentItem {
-  id                   String                         @id @default(cuid())
-  partnerId            String
-  partnerPlatformId    String
-  platformContentId    String
-  url                  String                         @db.Text
-  contentType          String
-  title                String?                        @db.Text
-  description          String?                        @db.Text
-  thumbnailUrl         String?                        @db.Text // may require internal image cache for long-term storage; MVP field
-  publishedAt          DateTime?
-  durationMs           Int?
-  viewCount            BigInt?
-  transcriptFetchStatus PartnerContentTranscriptFetchStatus @default(pending)
-  transcriptCreditsUsed Int?
+  id                        String                              @id
+  partnerId                 String
+  partnerPlatformId         String
+  platformContentId         String
+  url                       String                              @db.Text
+  contentType               String
+  title                     String?                             @db.Text
+  description               String?                             @db.Text
+  thumbnailUrl              String?                             @db.Text // may require internal image cache for long-term storage; MVP field
+  publishedAt               DateTime?
+  durationMs                Int?
+  viewCount                 BigInt?
+  transcriptFetchStatus     PartnerContentTranscriptFetchStatus @default(pending)
+  transcriptCreditsUsed     Int?
   transcriptLastAttemptedAt DateTime?
-  transcriptHasTimestamps Boolean                     @default(false)
-  normalizedTranscript String?                        @db.LongText
-  transcriptHash       String?
-  embeddingModel       String?
-  totalChunkCount      Int                            @default(0)
-  embeddedChunkCount   Int                            @default(0)
-  lastFetchedAt        DateTime?
-  createdAt            DateTime                       @default(now())
-  updatedAt            DateTime                       @updatedAt
+  transcriptHasTimestamps   Boolean                             @default(false)
+  normalizedTranscript      String?                             @db.LongText
+  transcriptHash            String?
+  embeddingModel            String?
+  totalChunkCount           Int                                 @default(0)
+  embeddedChunkCount        Int                                 @default(0)
+  lastFetchedAt             DateTime?
+  createdAt                 DateTime                            @default(now())
+  updatedAt                 DateTime                            @updatedAt
 
   partner         Partner               @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   partnerPlatform PartnerPlatform       @relation(fields: [partnerPlatformId], references: [id], onDelete: Cascade)
@@ -54,23 +55,27 @@ model PartnerContentItem {
 }
 
 model PartnerContentChunk {
-  id                   String                      @id @default(cuid())
+  id                   String                    @id
   partnerContentItemId String
   partnerId            String
+  source               PartnerContentChunkSource @default(transcript)
   chunkIndex           Int
-  chunkText            String                      @db.Text
+  chunkText            String                    @db.Text
   startMs              Int?
   endMs                Int?
-  transcriptHash       String
-  embedding            Unsupported("vector(1024)")?
+  textHash             String
   embeddingModel       String
-  createdAt            DateTime                    @default(now())
-  updatedAt            DateTime                    @updatedAt
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
 
   partnerContentItem PartnerContentItem @relation(fields: [partnerContentItemId], references: [id], onDelete: Cascade)
   partner            Partner            @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
-  @@unique([partnerContentItemId, chunkIndex, transcriptHash, embeddingModel])
+  @@unique([partnerContentItemId, source, chunkIndex, embeddingModel])
   @@index(partnerId)
   @@index(partnerContentItemId)
+  @@index([partnerContentItemId, source])
+  // Covers the empty-query "recent content" list path, which filters on
+  // embeddingModel while joining chunks by partnerContentItemId.
+  @@index([partnerContentItemId, embeddingModel])
 }

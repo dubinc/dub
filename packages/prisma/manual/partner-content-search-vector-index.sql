@@ -1,14 +1,17 @@
 -- Manual PlanetScale DDL for partner natural-language search.
 --
--- Prisma can create the PartnerContentChunk.embedding VECTOR(1024) column via
--- `prisma db push`, but it cannot express PlanetScale VECTOR INDEX DDL. Run
--- this after the PartnerContentChunk table and embedding column exist on the
--- target PlanetScale branch.
+-- Prisma intentionally does not manage the PartnerContentChunk.embedding
+-- VECTOR(1024) column because plain MySQL cannot parse VECTOR DDL in CI/local
+-- `prisma db push` jobs. Run this after Prisma has created the
+-- PartnerContentChunk table on the target PlanetScale branch.
 --
 -- Keep the index distance in sync with the search query in:
 -- apps/web/app/(ee)/api/admin/partner-content/search/route.ts
 -- That query currently uses DISTANCE(..., 'cosine'); if these metrics differ,
 -- PlanetScale cannot use the vector index and will fall back to a full scan.
+
+ALTER TABLE PartnerContentChunk
+  ADD COLUMN embedding VECTOR(1024) NULL;
 
 CREATE /*vt+ QUERY_TIMEOUT_MS=0 */
   VECTOR INDEX partner_content_chunk_embedding_cosine_idx

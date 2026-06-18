@@ -33,7 +33,13 @@ export function hashTranscript(segments: TranscriptSegment[]) {
     )
     .join("\n");
 
-  return createHash("sha256").update(normalized).digest("hex");
+  return hashText(normalized);
+}
+
+export function hashText(text: string) {
+  return createHash("sha256")
+    .update(normalizeTranscriptText(text))
+    .digest("hex");
 }
 
 export function estimateTokenCount(text: string) {

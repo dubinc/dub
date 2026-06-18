@@ -1,13 +1,20 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withAdmin } from "@/lib/auth";
 import {
   PARTNER_CONTENT_SEARCH_LIMITS,
   PARTNER_CONTENT_SEARCH_MODELS,
+  PARTNER_CONTENT_SEARCH_VOYAGE_QUERY_TIMEOUT_MS,
 } from "@/lib/partner-content-search/constants";
+import {
+  groupPartnerSearchResults,
+  toScore,
+  type PartnerContentSearchRow,
+} from "@/lib/partner-content-search/search-utils";
 import {
   embedPartnerContentTexts,
   serializeEmbeddingForVector,
+  VoyageTimeoutError,
 } from "@/lib/partner-content-search/voyage";
 import { prisma } from "@dub/prisma";
 import { PlatformType, Prisma } from "@dub/prisma/client";
@@ -39,28 +46,6 @@ const partnerContentSearchSchema = z.object({
   platform: z.enum(PlatformType).optional(),
 });
 
-type PartnerContentSearchRow = {
-  chunkId: string;
-  partnerContentItemId: string;
-  partnerId: string;
-  partnerName: string;
-  partnerUsername: string | null;
-  partnerImage: string | null;
-  partnerDescription: string | null;
-  platformType: string;
-  platformIdentifier: string;
-  platformContentId: string;
-  contentUrl: string;
-  contentTitle: string | null;
-  contentThumbnailUrl: string | null;
-  contentPublishedAt: Date | null;
-  chunkIndex: number;
-  chunkText: string;
-  startMs: number | null;
-  endMs: number | null;
-  distance: number | string;
-};
-
 // POST /api/admin/partner-content/search
 export const POST = withAdmin(
   async ({ req }) => {
@@ -75,10 +60,22 @@ export const POST = withAdmin(
           Math.max(25, body.limit * body.chunksPerPartner * 5),
         );
 
-      const [queryEmbedding] = await embedPartnerContentTexts({
-        input: [body.query],
-        inputType: "query",
-      });
+      let queryEmbedding: number[];
+      try {
+        [queryEmbedding] = await embedPartnerContentTexts({
+          input: [body.query],
+          inputType: "query",
+          timeoutMs: PARTNER_CONTENT_SEARCH_VOYAGE_QUERY_TIMEOUT_MS,
+        });
+      } catch (error) {
+        if (error instanceof VoyageTimeoutError) {
+          throw new DubApiError({
+            code: "internal_server_error",
+            message: "Partner content search timed out. Please try again.",
+          });
+        }
+        throw error;
+      }
 
       const queryVector = serializeEmbeddingForVector(queryEmbedding);
       const rows = await searchPartnerContentChunks({
@@ -92,12 +89,13 @@ export const POST = withAdmin(
         success: true,
         query: body.query,
         candidateChunkCount,
-        embeddingModel: PARTNER_CONTENT_SEARCH_MODELS.embedding.model,
+        embeddingModel: PARTNER_CONTENT_SEARCH_MODELS.embedding.id,
         resultCount: rows.length,
         partners: groupPartnerSearchResults({
           rows,
           limit: body.limit,
           chunksPerPartner: body.chunksPerPartner,
+          toChunkResult,
         }),
       });
     } catch (error) {
@@ -143,6 +141,7 @@ async function searchPartnerContentChunks({
       pci.title AS contentTitle,
       pci.thumbnailUrl AS contentThumbnailUrl,
       pci.publishedAt AS contentPublishedAt,
+      c.source AS chunkSource,
       c.chunkIndex,
       c.chunkText,
       c.startMs,
@@ -153,62 +152,12 @@ async function searchPartnerContentChunks({
     INNER JOIN Partner p ON p.id = c.partnerId
     INNER JOIN PartnerPlatform pp ON pp.id = pci.partnerPlatformId
     WHERE c.embedding IS NOT NULL
+      AND c.embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.id}
       ${partnerFilter}
       ${platformFilter}
     ORDER BY distance ASC
     LIMIT ${limit}
   `);
-}
-
-function groupPartnerSearchResults({
-  rows,
-  limit,
-  chunksPerPartner,
-}: {
-  rows: PartnerContentSearchRow[];
-  limit: number;
-  chunksPerPartner: number;
-}) {
-  const partners = new Map<
-    string,
-    {
-      partnerId: string;
-      name: string;
-      username: string | null;
-      image: string | null;
-      description: string | null;
-      bestDistance: number;
-      score: number;
-      chunks: ReturnType<typeof toChunkResult>[];
-    }
-  >();
-
-  for (const row of rows) {
-    const distance = Number(row.distance);
-    const partner = partners.get(row.partnerId) ?? {
-      partnerId: row.partnerId,
-      name: row.partnerName,
-      username: row.partnerUsername,
-      image: row.partnerImage,
-      description: row.partnerDescription,
-      bestDistance: distance,
-      score: toScore(distance),
-      chunks: [],
-    };
-
-    partner.bestDistance = Math.min(partner.bestDistance, distance);
-    partner.score = toScore(partner.bestDistance);
-
-    if (partner.chunks.length < chunksPerPartner) {
-      partner.chunks.push(toChunkResult(row, distance));
-    }
-
-    partners.set(row.partnerId, partner);
-  }
-
-  return Array.from(partners.values())
-    .sort((a, b) => a.bestDistance - b.bestDistance)
-    .slice(0, limit);
 }
 
 function toChunkResult(row: PartnerContentSearchRow, distance: number) {
@@ -227,6 +176,7 @@ function toChunkResult(row: PartnerContentSearchRow, distance: number) {
       publishedAt: row.contentPublishedAt?.toISOString() ?? null,
     },
     chunk: {
+      source: row.chunkSource,
       index: row.chunkIndex,
       chunkText: row.chunkText,
       startMs: row.startMs,
@@ -235,8 +185,4 @@ function toChunkResult(row: PartnerContentSearchRow, distance: number) {
     distance,
     score: toScore(distance),
   };
-}
-
-function toScore(distance: number) {
-  return Number((1 - distance).toFixed(6));
 }

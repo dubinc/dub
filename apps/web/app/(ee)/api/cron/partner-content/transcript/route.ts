@@ -1,21 +1,30 @@
+import { createId } from "@/lib/api/create-id";
+import { getInstagramMediaTranscript } from "@/lib/api/scrape-creators/get-instagram-media-transcript";
+import { getTikTokVideoTranscript } from "@/lib/api/scrape-creators/get-tiktok-video-transcript";
 import { getYouTubeVideoTranscript } from "@/lib/api/scrape-creators/get-youtube-video-transcript";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
-import { PARTNER_CONTENT_SEARCH_MODELS } from "@/lib/partner-content-search/constants";
 import {
   chunkTranscriptSegments,
   hashTranscript,
 } from "@/lib/partner-content-search/chunk-transcript";
+import { PARTNER_CONTENT_SEARCH_MODELS } from "@/lib/partner-content-search/constants";
+import { refreshPartnerContentItemChunkCounts } from "@/lib/partner-content-search/ingestion/chunk-counts";
 import {
   createPartnerContentDeduplicationId,
   getPartnerContentUrl,
+  parsePartnerContentCronPayload,
   PARTNER_CONTENT_EMBED_FLOW_CONTROL,
   PARTNER_CONTENT_SEARCH_ROUTES,
-  parsePartnerContentCronPayload,
-  partnerContentTranscriptPayloadSchema,
   PartnerContentIngestionMode,
+  partnerContentTranscriptPayloadSchema,
 } from "@/lib/partner-content-search/ingestion/enqueue";
-import { normalizeYouTubeTranscriptSegments } from "@/lib/partner-content-search/ingestion/normalize-content";
+import {
+  normalizeInstagramTranscriptSegments,
+  normalizeTikTokTranscriptSegments,
+  normalizeYouTubeTranscriptSegments,
+} from "@/lib/partner-content-search/ingestion/normalize-content";
+import { PartnerContentPlatform } from "@/lib/partner-content-search/types";
 import { prisma } from "@dub/prisma";
 import { logAndRespond } from "../../utils";
 
@@ -62,19 +71,33 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  if (payload.platform !== "youtube") {
+  // QStash delivers at least once. If this transcript was already fetched and
+  // chunked, skip the (credit-burning) ScrapeCreators re-fetch — but still
+  // (re-)enqueue the embed job so a previously-failed enqueue is recovered on
+  // redelivery. Admin re-ingestion can force a fresh fetch via forceRefetch.
+  if (
+    contentItem.transcriptFetchStatus === "fetched" &&
+    !payload.forceRefetch
+  ) {
+    await enqueueEmbedJob({
+      mode: payload.mode,
+      runStamp: payload.runStamp,
+      partnerId: contentItem.partnerId,
+      partnerContentItemId: contentItem.id,
+    });
+
     return logAndRespond(
-      `[PartnerContentSearch] Transcript fetch only supports YouTube right now. Received ${payload.platform} for ${payload.mode} run ${payload.runStamp}.`,
-      { status: 501, logLevel: "warn" },
+      `[PartnerContentSearch] Content item ${contentItem.id} already transcribed; re-enqueued embed for ${payload.mode} run ${payload.runStamp}.`,
     );
   }
 
-  let transcriptWriteResult: Awaited<
-    ReturnType<typeof writeTranscriptChunks>
-  >;
+  let transcriptWriteResult: Awaited<ReturnType<typeof writeTranscriptChunks>>;
 
   try {
-    transcriptWriteResult = await writeTranscriptChunks(contentItem);
+    transcriptWriteResult = await writeTranscriptChunks({
+      ...contentItem,
+      platform: payload.platform,
+    });
   } catch (error) {
     await prisma.partnerContentItem.update({
       where: {
@@ -95,7 +118,7 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const { embedEnqueueStatus } = await enqueueEmbedJob({
+  await enqueueEmbedJob({
     mode: payload.mode,
     runStamp: payload.runStamp,
     partnerId: contentItem.partnerId,
@@ -103,7 +126,7 @@ export const POST = withCron(async ({ rawBody }) => {
   });
 
   return logAndRespond(
-    `[PartnerContentSearch] Transcribed content item ${contentItem.id}: ${transcriptWriteResult.chunkCount} chunks (${transcriptWriteResult.chunksCreated} created), embed enqueue ${embedEnqueueStatus} for ${payload.mode} run ${payload.runStamp}.`,
+    `[PartnerContentSearch] Transcribed content item ${contentItem.id}: ${transcriptWriteResult.chunkCount} chunks (${transcriptWriteResult.chunksCreated} created), embed enqueued for ${payload.mode} run ${payload.runStamp}.`,
   );
 });
 
@@ -111,14 +134,12 @@ async function writeTranscriptChunks(contentItem: {
   id: string;
   partnerId: string;
   url: string;
+  platform: PartnerContentPlatform;
 }) {
-  const transcriptResponse = await getYouTubeVideoTranscript({
+  const transcriptSegments = await fetchTranscriptSegments({
+    platform: contentItem.platform,
     url: contentItem.url,
   });
-
-  const transcriptSegments = normalizeYouTubeTranscriptSegments(
-    transcriptResponse.transcript,
-  );
   const normalizedTranscript = transcriptSegments
     .map(({ text }) => text.trim())
     .filter(Boolean)
@@ -145,8 +166,11 @@ async function writeTranscriptChunks(contentItem: {
     await prisma.partnerContentChunk.deleteMany({
       where: {
         partnerContentItemId: contentItem.id,
+        source: "transcript",
       },
     });
+
+    await refreshPartnerContentItemChunkCounts(contentItem.id);
 
     return {
       transcriptAvailable: false,
@@ -162,7 +186,7 @@ async function writeTranscriptChunks(contentItem: {
   const transcriptHasTimestamps = transcriptSegments.some(
     ({ startMs, endMs }) => startMs !== null || endMs !== null,
   );
-  const embeddingModel = PARTNER_CONTENT_SEARCH_MODELS.embedding.model;
+  const embeddingModel = PARTNER_CONTENT_SEARCH_MODELS.embedding.id;
 
   const [, deletedChunks, createChunksResult] = await prisma.$transaction([
     prisma.partnerContentItem.update({
@@ -176,29 +200,32 @@ async function writeTranscriptChunks(contentItem: {
         transcriptHash,
         transcriptHasTimestamps,
         embeddingModel,
-        totalChunkCount: chunks.length,
-        embeddedChunkCount: 0,
         lastFetchedAt: new Date(),
       },
     }),
     prisma.partnerContentChunk.deleteMany({
       where: {
         partnerContentItemId: contentItem.id,
+        source: "transcript",
       },
     }),
     prisma.partnerContentChunk.createMany({
       data: chunks.map((chunk) => ({
+        id: createId({ prefix: "pcc_" }),
         partnerContentItemId: contentItem.id,
         partnerId: contentItem.partnerId,
+        source: "transcript",
         chunkIndex: chunk.chunkIndex,
         chunkText: chunk.text,
         startMs: chunk.startMs,
         endMs: chunk.endMs,
-        transcriptHash,
+        textHash: transcriptHash,
         embeddingModel,
       })),
     }),
   ]);
+
+  await refreshPartnerContentItemChunkCounts(contentItem.id);
 
   return {
     transcriptAvailable: true,
@@ -209,6 +236,29 @@ async function writeTranscriptChunks(contentItem: {
     chunksDeleted: deletedChunks.count,
     chunksCreated: createChunksResult.count,
   };
+}
+
+async function fetchTranscriptSegments({
+  platform,
+  url,
+}: {
+  platform: PartnerContentPlatform;
+  url: string;
+}) {
+  switch (platform) {
+    case "youtube": {
+      const transcriptResponse = await getYouTubeVideoTranscript({ url });
+      return normalizeYouTubeTranscriptSegments(transcriptResponse.transcript);
+    }
+    case "tiktok": {
+      const transcriptResponse = await getTikTokVideoTranscript({ url });
+      return normalizeTikTokTranscriptSegments(transcriptResponse.transcript);
+    }
+    case "instagram": {
+      const transcriptResponse = await getInstagramMediaTranscript({ url });
+      return normalizeInstagramTranscriptSegments(transcriptResponse);
+    }
+  }
 }
 
 async function enqueueEmbedJob({
@@ -240,9 +290,12 @@ async function enqueueEmbedJob({
         partnerContentItemId,
       ),
     });
-
-    return { embedEnqueueStatus: "enqueued" as const };
   } catch (error) {
+    // Don't swallow this: the transcript chunks are already committed, so a
+    // dropped embed job leaves them permanently unsearchable. Rethrow so
+    // withCron returns 500 and QStash retries the whole transcript job — the
+    // forceRefetch=false guard above makes that retry skip the re-fetch and
+    // just re-enqueue here, and the embed deduplicationId keeps it idempotent.
     console.error("[PartnerContentSearch] Failed to enqueue embed job", {
       error,
       mode,
@@ -251,6 +304,6 @@ async function enqueueEmbedJob({
       partnerContentItemId,
     });
 
-    return { embedEnqueueStatus: "failed" as const };
+    throw error;
   }
 }

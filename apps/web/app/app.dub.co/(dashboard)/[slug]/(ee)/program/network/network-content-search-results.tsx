@@ -1,54 +1,38 @@
 "use client";
 
-import { EnvelopeArrowRight, Star } from "@dub/ui/icons";
+import type { PartnerContentSearchPartner } from "@/lib/swr/use-partner-content-search";
+import type { PlatformType } from "@dub/prisma/client";
+import { Button } from "@dub/ui";
+import { ArrowUpRight, EnvelopeArrowRight } from "@dub/ui/icons";
+import { memo } from "react";
 
-export type PartnerContentSearchResponse = {
-  success: boolean;
-  partners: PartnerContentSearchPartner[];
+const PLATFORM_LABELS: Partial<Record<PlatformType, string>> = {
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  instagram: "Instagram",
 };
 
-export type PartnerContentSearchPartner = {
-  partnerId: string;
-  name: string;
-  username: string | null;
-  image: string | null;
-  description: string | null;
-  score: number;
-  chunks: {
-    chunkId: string;
-    platform: {
-      type: string;
-      identifier: string;
-    };
-    content: {
-      platformContentId: string;
-      url: string;
-      title: string | null;
-      thumbnailUrl: string | null;
-      publishedAt: string | null;
-    };
-    chunk: {
-      text: string;
-      startMs: number | null;
-      endMs: number | null;
-    };
-    score: number;
-  }[];
-};
+function platformLabel(platform: PlatformType) {
+  return PLATFORM_LABELS[platform] ?? "partner";
+}
 
 export function NetworkContentSearchResults({
   error,
   hasQuery,
   isLoading,
   partners,
+  platform,
   onOpenPartner,
 }: {
   error: unknown;
   hasQuery: boolean;
   isLoading: boolean;
   partners?: PartnerContentSearchPartner[];
+  platform: PlatformType;
   onOpenPartner: (partnerId: string) => void;
 }) {
+  const label = platformLabel(platform);
+
   if (error) {
     return (
       <div className="text-content-subtle py-12 text-sm">
@@ -83,8 +67,8 @@ export function NetworkContentSearchResults({
       <div className="py-24 text-center">
         <h3 className="text-content-emphasis text-base font-semibold">
           {hasQuery
-            ? "No matching YouTube content found"
-            : "No indexed YouTube content found"}
+            ? `No matching ${label} content found`
+            : `No indexed ${label} content found`}
         </h3>
         <p className="text-content-subtle mt-2 text-sm">
           {hasQuery
@@ -102,6 +86,7 @@ export function NetworkContentSearchResults({
           key={partner.partnerId}
           hasQuery={hasQuery}
           partner={partner}
+          platform={platform}
           onOpenPartner={onOpenPartner}
         />
       ))}
@@ -109,15 +94,18 @@ export function NetworkContentSearchResults({
   );
 }
 
-function NetworkContentSearchCard({
+const NetworkContentSearchCard = memo(function NetworkContentSearchCard({
   hasQuery,
   partner,
+  platform,
   onOpenPartner,
 }: {
   hasQuery: boolean;
   partner: PartnerContentSearchPartner;
+  platform: PlatformType;
   onOpenPartner: (partnerId: string) => void;
 }) {
+  const label = platformLabel(platform);
   const contentPreviews = Array.from(
     new Map(
       partner.chunks.map((chunk) => [chunk.content.platformContentId, chunk]),
@@ -173,37 +161,45 @@ function NetworkContentSearchCard({
               <span className="text-content-subtle">content match</span>
             </>
           ) : (
-            <span className="text-content-subtle">Recent YouTube content</span>
+            <span className="text-content-subtle">Recent {label} content</span>
           )}
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3">
-          {contentPreviews.map((chunk) => (
-            <a
-              key={chunk.chunkId}
-              href={chunk.content.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={chunk.content.title ?? "Open YouTube content"}
-              className="group relative overflow-hidden rounded-lg"
-            >
-              <img
-                src={getYouTubePreviewThumbnail(chunk)}
-                alt=""
-                className="aspect-square w-full rounded-lg object-cover transition-transform duration-150 group-hover:scale-105"
-              />
-              {chunk.chunk.text && (
-                <div className="absolute inset-0 flex flex-col justify-between bg-black/75 p-2 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                  <span className="w-fit rounded bg-white/15 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-                    {formatChunkTimeRange(chunk.chunk)}
-                  </span>
-                  <p className="line-clamp-5 text-xs leading-4 text-white">
-                    {chunk.chunk.text}
-                  </p>
-                </div>
-              )}
-            </a>
-          ))}
+          {contentPreviews.map((chunk) => {
+            const thumbnail = getPreviewThumbnail(chunk, platform);
+
+            return (
+              <a
+                key={chunk.chunkId}
+                href={chunk.content.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={chunk.content.title ?? `Open ${label} content`}
+                className="group relative overflow-hidden rounded-lg"
+              >
+                {thumbnail ? (
+                  <img
+                    src={thumbnail}
+                    alt=""
+                    className="aspect-square w-full rounded-lg object-cover transition-transform duration-150 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="bg-bg-muted aspect-square w-full rounded-lg" />
+                )}
+                {chunk.chunk.text && (
+                  <div className="absolute inset-0 flex flex-col justify-between bg-black/75 p-2 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                    <span className="w-fit rounded bg-white/15 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+                      {formatChunkTimeRange(chunk.chunk)}
+                    </span>
+                    <p className="line-clamp-5 text-xs leading-4 text-white">
+                      {chunk.chunk.text}
+                    </p>
+                  </div>
+                )}
+              </a>
+            );
+          })}
           {contentPreviews.length === 1 && (
             <div className="aspect-square rounded-lg bg-transparent" />
           )}
@@ -239,25 +235,27 @@ function NetworkContentSearchCard({
           aria-label={`Open ${partner.name}`}
           onClick={() => onOpenPartner(partner.partnerId)}
         >
-          <Star className="text-content-subtle size-4" />
+          <ArrowUpRight className="text-content-subtle size-4" />
         </button>
-        <button
+        <Button
           type="button"
-          className="flex h-9 flex-1 items-center justify-center gap-2 rounded-lg bg-black px-3 text-sm font-semibold text-white transition-colors hover:bg-neutral-800"
+          variant="primary"
+          text="Invite"
+          icon={<EnvelopeArrowRight className="size-4" />}
           onClick={() => onOpenPartner(partner.partnerId)}
-        >
-          <EnvelopeArrowRight className="size-4" />
-          Invite
-        </button>
+          className="h-9 flex-1 rounded-lg"
+        />
       </div>
     </div>
   );
-}
+});
 
 function formatChunkTimeRange({
+  source,
   startMs,
   endMs,
 }: PartnerContentSearchPartner["chunks"][number]["chunk"]) {
+  if (source === "metadata") return "Description match";
   if (startMs === null && endMs === null) return "Transcript match";
 
   if (startMs !== null && endMs !== null) {
@@ -275,11 +273,17 @@ function formatTimestamp(ms: number) {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-function getYouTubePreviewThumbnail(
+function getPreviewThumbnail(
   chunk: PartnerContentSearchPartner["chunks"][number],
+  platform: PlatformType,
 ) {
-  return (
-    chunk.content.thumbnailUrl ??
-    `https://i.ytimg.com/vi/${chunk.content.platformContentId}/hqdefault.jpg`
-  );
+  if (chunk.content.thumbnailUrl) return chunk.content.thumbnailUrl;
+
+  // YouTube exposes a deterministic thumbnail URL from the video id; other
+  // platforms don't, so fall back to a placeholder when there's no stored URL.
+  if (platform === "youtube") {
+    return `https://i.ytimg.com/vi/${chunk.content.platformContentId}/hqdefault.jpg`;
+  }
+
+  return null;
 }

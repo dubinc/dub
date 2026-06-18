@@ -2,6 +2,7 @@
 
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
+import usePartnerContentSearch from "@/lib/swr/use-partner-content-search";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
 import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
@@ -33,10 +34,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import {
-  NetworkContentSearchResults,
-  type PartnerContentSearchResponse,
-} from "./network-content-search-results";
+import { NetworkContentSearchResults } from "./network-content-search-results";
 import { NetworkEmptyState } from "./network-empty-state";
 import { NetworkPartnerCard } from "./network-partner-card";
 import { PartnerNetworkSort } from "./partner-network-sort";
@@ -70,8 +68,6 @@ const PLATFORM_TOGGLE_OPTIONS: {
   { value: "tiktok", icon: TikTok },
 ];
 
-const PARTNER_CONTENT_SEARCH_PARTNER_LIMIT = 50;
-
 type ProgramPartnerNetworkPageClientProps = {
   variant?: "default" | "ignored";
 };
@@ -99,45 +95,12 @@ export function ProgramPartnerNetworkPageClient({
     data: contentSearchResults,
     error: contentSearchError,
     isLoading: isSearchingContent,
-  } = useSWR<PartnerContentSearchResponse>(
-    workspaceId && isYouTubeContentSearchMode
-      ? ["partner-content-search", search, workspaceId, selectedPlatform, starred]
-      : null,
-    async ([, query]: readonly [
-      string,
-      string,
-      string,
-      PlatformType | "all",
-      boolean,
-    ]) => {
-      const response = await fetch(
-        `/api/network/partners/content-search?workspaceId=${workspaceId}`,
-        {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            query,
-            limit: PARTNER_CONTENT_SEARCH_PARTNER_LIMIT,
-            chunksPerPartner: 2,
-            platform: "youtube",
-            starred: starred || undefined,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to search partner content");
-      }
-
-      return response.json();
-    },
-    {
-      keepPreviousData: true,
-      revalidateOnFocus: false,
-    },
-  );
+  } = usePartnerContentSearch({
+    enabled: isYouTubeContentSearchMode,
+    query: search,
+    platform: "youtube",
+    starred,
+  });
 
   const {
     data: partners,
@@ -367,6 +330,7 @@ export function ProgramPartnerNetworkPageClient({
           hasQuery={search.length > 0}
           isLoading={isSearchingContent}
           partners={contentSearchResults?.partners}
+          platform="youtube"
           onOpenPartner={(partnerId) => {
             queryParams({
               set: { partnerId },
