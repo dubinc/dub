@@ -3,7 +3,9 @@ import crypto from "crypto";
 
 const INTERCOM_CLIENT_SECRET = process.env.INTERCOM_CLIENT_SECRET || "";
 
-export async function verifyWebhookSignature(req: Request): Promise<string> {
+export async function verifyIntercomWebhookSignature(
+  req: Request,
+): Promise<string> {
   const rawBody = await req.text();
   const signature = req.headers.get("X-Hub-Signature");
 
