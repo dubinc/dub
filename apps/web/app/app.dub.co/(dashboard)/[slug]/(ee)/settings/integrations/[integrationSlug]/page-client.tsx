@@ -154,6 +154,12 @@ export default function IntegrationPageClient({
     return variants[mode];
   }, [integration.id, integration.installed, integration.settings]);
 
+  const uninstallDisabledIntegrations = {
+    stripe: `https://dashboard.stripe.com/${stripeConnectId}/${stripeConnectionBannerConfig?.title === "Test Mode" ? "test/" : ""}apps/installed/dub.co`,
+    intercom:
+      "https://app.intercom.com/a/apps/ry6jfr8i/settings/app-settings/app-store?installed=true&app_package_code=dub-ejgb",
+  };
+
   const { canInstallAdvancedIntegrations } = getPlanCapabilities(plan);
 
   return (
@@ -196,11 +202,11 @@ export default function IntegrationPageClient({
                     setShowUninstallIntegrationModal(true);
                   }}
                   disabledTooltip={
-                    integration.slug === "stripe" ? (
+                    uninstallDisabledIntegrations[integration.slug] ? (
                       <TooltipContent
-                        title="You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
-                        cta="Go to Stripe"
-                        href={`https://dashboard.stripe.com/${stripeConnectId}/apps/installed/dub.co`}
+                        title={`You cannot uninstall the ${integration.name} integration from here. Please uninstall from your ${integration.name} dashboard instead.`}
+                        cta={`Go to ${integration.name}`}
+                        href={uninstallDisabledIntegrations[integration.slug]}
                         target="_blank"
                       />
                     ) : (
