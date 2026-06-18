@@ -33,7 +33,11 @@ export function MarketplaceExternalShell({
         programs in {year}
       </>
     ) : (
-      "Find your next partnership"
+      <>
+        Find your next
+        <br />
+        partnership
+      </>
     ));
 
   const resolvedDescription =
