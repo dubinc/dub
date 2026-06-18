@@ -52,6 +52,9 @@ const GENERIC_EMAIL_DOMAINS = [
   "t-mail.asia",
   "adras.org",
   "emailinbo.live",
+  "kw.com",
+  "bluewin.ch",
+  "web-library.net",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [
@@ -61,6 +64,7 @@ const GENERIC_EMAIL_DOMAIN_PREFIXES = [
   "gmx.",
   "yandex.",
   "live.",
+  "student.",
 ];
 
 const GENERIC_EMAIL_DOMAIN_SUFFIXES = [
