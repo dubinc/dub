@@ -1,8 +1,8 @@
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
-import { prisma } from "@dub/prisma";
-import { EventType } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
+import { EventType } from "@prisma/client";
 import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";

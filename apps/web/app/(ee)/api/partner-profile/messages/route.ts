@@ -4,7 +4,7 @@ import {
   ProgramMessagesSchema,
   getProgramMessagesQuerySchema,
 } from "@/lib/messages/schemas";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/messages - get messages grouped by program

@@ -1,4 +1,4 @@
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus } from "@prisma/client";
 import Stripe from "stripe";
 import { PaymentMethodOption } from "../types";
 

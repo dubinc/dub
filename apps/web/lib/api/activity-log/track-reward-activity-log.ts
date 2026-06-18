@@ -1,7 +1,7 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import type { RewardConditions, RewardProps } from "@/lib/types";
 import { REWARD_EVENT_TO_RESOURCE_TYPE } from "@/lib/zod/schemas/activity-log";
-import type { Reward } from "@dub/prisma/client";
+import type { Reward } from "@prisma/client";
 import { getResourceDiff } from "./get-resource-diff";
 import type { TrackActivityLogInput } from "./track-activity-log";
 import { trackActivityLog } from "./track-activity-log";

@@ -9,7 +9,6 @@ import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-app
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { X } from "@/ui/shared/icons";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { FraudRuleType } from "@dub/prisma/client";
 import {
   ArrowUpRight2,
   Button,
@@ -23,6 +22,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, fetcher, formatDateTime } from "@dub/utils";
+import { FraudRuleType } from "@prisma/client";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
 import useSWR from "swr";

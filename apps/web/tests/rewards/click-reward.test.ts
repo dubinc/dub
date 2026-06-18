@@ -1,6 +1,6 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
-import { Reward } from "@dub/prisma/client";
+import { Reward } from "@prisma/client";
 import { describe, expect, test, vi } from "vitest";
 import { resolveClickReward } from "../../app/(ee)/api/cron/aggregate-clicks/resolve-click-reward-amount";
 import { IntegrationHarness } from "../utils/integration";

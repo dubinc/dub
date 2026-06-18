@@ -1,7 +1,7 @@
+import { prisma } from "@/lib/prisma";
 import { getNetworkPartnersQuerySchema } from "@/lib/zod/schemas/partner-network";
-import { prisma } from "@dub/prisma";
-import { PlatformType, Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
+import { PlatformType, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 
 type PartnerRankingFilters = z.infer<typeof getNetworkPartnersQuerySchema>;

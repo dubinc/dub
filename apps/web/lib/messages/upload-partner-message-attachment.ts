@@ -6,10 +6,10 @@ import {
   PARTNER_ALLOWED_ATTACHMENT_TYPES,
 } from "@/lib/messages/constants";
 import { sanitizeFileName } from "@/lib/messages/utils";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
-import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../actions/safe-action";

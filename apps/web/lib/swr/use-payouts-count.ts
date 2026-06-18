@@ -27,7 +27,9 @@ export function usePayoutsCount({
           workspaceId,
         },
         {
-          include: ignoreParams ? [] : ["status", "partnerId", "invoiceId", "groupId"],
+          include: ignoreParams
+            ? []
+            : ["status", "partnerId", "invoiceId", "groupId"],
         },
       )}`,
     fetcher,

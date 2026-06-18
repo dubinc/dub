@@ -1,14 +1,14 @@
 import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
 import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
 import { getSession } from "@/lib/auth/utils";
+import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash/redis";
-import { prisma } from "@dub/prisma";
-import { PlatformType } from "@dub/prisma/client";
 import {
   getSearchParams,
   PARTNERS_DOMAIN,
   PARTNERS_DOMAIN_WITH_NGROK,
 } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

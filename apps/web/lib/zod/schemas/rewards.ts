@@ -3,7 +3,7 @@ import {
   EventType,
   RewardSpendLimitInterval,
   RewardStructure,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 import { centsSchema } from "./utils";

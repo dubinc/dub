@@ -6,10 +6,10 @@ import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-par
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-usage";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@/lib/prisma";
 import { invitePartnerFromNetworkSchema } from "@/lib/zod/schemas/partner-network";
 import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { getProgramNetworkInviteEmailDefaults } from "../../network/get-program-network-invite-email-defaults";

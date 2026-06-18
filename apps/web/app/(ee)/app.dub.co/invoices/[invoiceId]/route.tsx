@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { DomainRenewalInvoice } from "./domain-renewal-invoice";
 import { PartnerPayoutInvoice } from "./partner-payout-invoice";
 

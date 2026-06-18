@@ -1,4 +1,4 @@
-import { prismaEdge } from "@dub/prisma/edge";
+import { prismaEdge } from "@/lib/prisma/edge";
 import { DUB_WORKSPACE_ID } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserViaToken } from "./utils/get-user-via-token";

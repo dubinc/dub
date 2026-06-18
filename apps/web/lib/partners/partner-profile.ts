@@ -1,9 +1,3 @@
-import {
-  IndustryInterest,
-  MonthlyTraffic,
-  PreferredEarningStructure,
-  SalesChannel,
-} from "@dub/prisma/client";
 import type { Icon } from "@dub/ui/icons";
 import {
   Apple,
@@ -31,6 +25,12 @@ import {
   TV,
   UsersSettings,
 } from "@dub/ui/icons";
+import {
+  IndustryInterest,
+  MonthlyTraffic,
+  PreferredEarningStructure,
+  SalesChannel,
+} from "@prisma/client";
 
 export const industryInterests: {
   id: IndustryInterest;

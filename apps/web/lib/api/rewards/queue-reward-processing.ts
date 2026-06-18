@@ -1,7 +1,7 @@
 import { logger } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
-import { EventType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { EventType } from "@prisma/client";
 import * as z from "zod/v4";
 import { incrementRewardVersion } from "./reward-version";
 

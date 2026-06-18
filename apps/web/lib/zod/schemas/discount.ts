@@ -1,4 +1,4 @@
-import { DiscountProvider, RewardStructure } from "@dub/prisma/client";
+import { DiscountProvider, RewardStructure } from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 

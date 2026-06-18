@@ -5,9 +5,9 @@ import {
   processOrder,
 } from "@/lib/integrations/shopify/process-order";
 import { orderSchema } from "@/lib/integrations/shopify/schema";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
 export async function ordersPaid({

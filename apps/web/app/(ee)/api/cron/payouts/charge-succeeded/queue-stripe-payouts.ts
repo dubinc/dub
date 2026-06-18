@@ -3,10 +3,10 @@ import {
   STABLECOIN_PAYOUT_FIXED_FEE_CENTS,
 } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
-import { prisma } from "@dub/prisma";
-import { Invoice, PartnerPayoutMethod } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
+import { Invoice, PartnerPayoutMethod } from "@prisma/client";
 import { stripeChargeMetadataSchema } from "./utils";
 
 const queue = qstash.queue({

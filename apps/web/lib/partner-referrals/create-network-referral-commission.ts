@@ -1,11 +1,4 @@
-import { prisma } from "@dub/prisma";
-import {
-  Commission,
-  CommissionType,
-  Partner,
-  Payout,
-  Prisma,
-} from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import {
   ACME_PROGRAM_ID,
   currencyFormatter,
@@ -14,6 +7,13 @@ import {
   NETWORK_PROGRAM_ID,
   NETWORK_WORKSPACE_ID,
 } from "@dub/utils";
+import {
+  Commission,
+  CommissionType,
+  Partner,
+  Payout,
+  Prisma,
+} from "@prisma/client";
 import { differenceInMonths } from "date-fns";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
