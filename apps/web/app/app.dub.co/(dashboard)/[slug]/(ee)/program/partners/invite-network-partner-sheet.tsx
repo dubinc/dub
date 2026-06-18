@@ -1,5 +1,5 @@
-import { generatePartnerNetworkInviteEmailAction } from "@/lib/actions/partners/generate-partner-network-invite-email";
 import { invitePartnerFromNetworkAction } from "@/lib/actions/partners/invite-partner-from-network";
+import { generatePartnerNetworkInviteEmailAction } from "@/lib/ai/generate-partner-network-invite-email";
 import { getProgramNetworkInviteEmailDefaults } from "@/lib/network/get-program-network-invite-email-defaults";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";

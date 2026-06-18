@@ -13,7 +13,7 @@ describe("formatProgramPartnerEarningsClaim", () => {
     expect(
       formatProgramPartnerEarningsClaim({
         avgMonthlyEarningsCents: 1_000_000,
-        distinctEarningPartnerCount: 4,
+        distinctEarningPartnerCount: 1,
       }),
     ).toBeNull();
   });

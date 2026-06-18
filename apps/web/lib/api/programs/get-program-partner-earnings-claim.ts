@@ -3,7 +3,7 @@ import { CommissionStatus } from "@dub/prisma/client";
 import { nFormatter } from "@dub/utils";
 
 const LOOKBACK_MONTHS = 6;
-const MIN_DISTINCT_EARNING_PARTNERS = 5;
+const MIN_DISTINCT_EARNING_PARTNERS = 2;
 const MIN_MONTHLY_EARNINGS_CENTS = 100_000;
 const ROUNDING_INCREMENT_CENTS = 100_000;
 const EARNINGS_STATUSES = [CommissionStatus.processed, CommissionStatus.paid];
