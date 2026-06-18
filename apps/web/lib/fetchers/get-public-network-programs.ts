@@ -1,10 +1,10 @@
+import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   getPublicNetworkProgramsQuerySchema,
   NetworkProgramSchema,
   PROGRAM_NETWORK_MAX_PAGE_SIZE,
 } from "@/lib/zod/schemas/program-network";
-import { prisma } from "@dub/prisma";
 import { cache } from "react";
 import * as z from "zod/v4";
 
