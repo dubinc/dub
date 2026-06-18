@@ -1,8 +1,8 @@
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
-import { prisma } from "@dub/prisma";
-import { PlatformType } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { youtubeChannelSchema } from "./youtube-channel-schema";

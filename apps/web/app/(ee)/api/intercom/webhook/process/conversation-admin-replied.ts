@@ -11,20 +11,20 @@ import {
 } from "@/lib/integrations/intercom/schema";
 import { PROGRAM_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
 import { sanitizeFileName } from "@/lib/messages/utils";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
-import { prisma } from "@dub/prisma";
-import {
-  InstalledIntegration,
-  Message,
-  MessageAttachment,
-  Program,
-} from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   fetchWithTimeout,
   nanoid,
   pluralize,
 } from "@dub/utils";
+import {
+  InstalledIntegration,
+  Message,
+  MessageAttachment,
+  Program,
+} from "@prisma/client";
 import * as z from "zod/v4";
 
 export async function handleConversationAdminReplied({

@@ -1,5 +1,5 @@
-import { Link } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
+import { Link } from "@prisma/client";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { recordClick } from "./record-click";
 

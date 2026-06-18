@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { getDomainWithoutWWW } from "@dub/utils";
 import dns from "dns";
 import { authPartnerActionClient } from "../safe-action";

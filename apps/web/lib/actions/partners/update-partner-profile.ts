@@ -5,6 +5,7 @@ import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { qstash } from "@/lib/cron";
 import { isReservedUsername } from "@/lib/edge-config";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
@@ -12,8 +13,6 @@ import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
   PartnerProfileDetailsSchema,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { Partner, PartnerProfileType } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   deepEqual,
@@ -22,6 +21,7 @@ import {
   RESERVED_SLUGS,
   validSlugRegex,
 } from "@dub/utils";
+import { Partner, PartnerProfileType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { uploadedImageSchema } from "../../zod/schemas/images";

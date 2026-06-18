@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Partner, Program } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Partner, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { logImportError } from "../tinybird/log-import-error";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";

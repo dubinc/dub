@@ -1,5 +1,5 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import { Link } from "@dub/prisma/client";
+import { Link } from "@prisma/client";
 import { expect, onTestFinished, test } from "vitest";
 import * as z from "zod/v4";
 import { randomId } from "../utils/helpers";

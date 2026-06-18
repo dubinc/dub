@@ -9,7 +9,6 @@ import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { X } from "@/ui/shared/icons";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import {
   Button,
   ChevronLeft,
@@ -24,6 +23,7 @@ import {
   Users,
 } from "@dub/ui";
 import { cn, COUNTRIES, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";

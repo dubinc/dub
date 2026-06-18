@@ -2,11 +2,11 @@ import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { DOMAIN_REGISTRATION_ELIGIBLE_WORKSPACES } from "@/lib/dynadot/constants";
 import { searchDomainsAvailability } from "@/lib/dynadot/search-domains";
+import { prisma } from "@/lib/prisma";
 import {
   DomainStatusSchema,
   searchDomainSchema,
 } from "@/lib/zod/schemas/domains";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

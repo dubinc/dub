@@ -1,7 +1,7 @@
+import { prisma } from "@/lib/prisma";
 import { CreateFraudEventInput, PartnerProps, ProgramProps } from "@/lib/types";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType } from "@prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
 import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
 

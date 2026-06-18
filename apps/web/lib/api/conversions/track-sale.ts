@@ -5,6 +5,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import {
   getClickEvent,
@@ -29,9 +30,8 @@ import {
   trackSaleRequestSchema,
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
-import { prisma } from "@dub/prisma";
-import { Customer } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
+import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";

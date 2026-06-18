@@ -2,7 +2,7 @@ import { bulkReactivatePartners } from "@/lib/api/partners/bulk-reactivate-partn
 import { CRON_BATCH_SIZE, qstash } from "@/lib/cron";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";

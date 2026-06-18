@@ -1,6 +1,6 @@
 import { withAdmin } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

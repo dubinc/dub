@@ -9,13 +9,13 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
 import {
   createRewardSchema,
   REWARD_EVENT_COLUMN_MAPPING,
 } from "@/lib/zod/schemas/rewards";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";

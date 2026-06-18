@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_HOSTNAMES } from "@dub/utils";
 import { headers } from "next/headers";
 import { isGenericEmail } from "../../is-generic-email";

@@ -4,6 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { CustomerSource, WorkspaceProps } from "@/lib/types";
@@ -14,9 +15,8 @@ import {
   trackLeadRequestSchema,
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
-import { prisma } from "@dub/prisma";
-import { Link } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
+import { Link } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";

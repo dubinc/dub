@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { CreateFraudEventInput, FraudEventContext } from "@/lib/types";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import { prettyPrint } from "@dub/utils";
 import { fraudEventContext } from "../../zod/schemas/schemas";
 import { createFraudEvents } from "./create-fraud-events";

@@ -2,8 +2,8 @@ import {
   MIN_WITHDRAWAL_AMOUNT_CENTS,
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
-import { PartnerPayoutMethod, PayoutStatus } from "@dub/prisma/client";
 import { currencyFormatter } from "@dub/utils";
+import { PartnerPayoutMethod, PayoutStatus } from "@prisma/client";
 
 export const PAYOUT_STATUS_DESCRIPTIONS: Record<
   PartnerPayoutMethod,

@@ -1,5 +1,5 @@
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   DeleteWorkspacePayload,
   enqueueNextWorkspaceDeleteStep,

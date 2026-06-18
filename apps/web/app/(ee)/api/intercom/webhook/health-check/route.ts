@@ -5,15 +5,15 @@ import {
   IntercomHealthCheckResponse,
   intercomHealthCheckWebhookSchema,
 } from "@/lib/integrations/intercom/schema";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
-import { verifyWebhookSignature } from "../verify-webhook";
+import { verifyIntercomWebhookSignature } from "../verify-webhook-signature";
 
 // POST /api/intercom/webhook/health-check – health check for the Intercom webhook
 export const POST = withAxiom(async (req) => {
   try {
-    const rawBody = await verifyWebhookSignature(req);
+    const rawBody = await verifyIntercomWebhookSignature(req);
     const body = JSON.parse(rawBody);
 
     const { workspace_id: intercomWorkspaceId } =

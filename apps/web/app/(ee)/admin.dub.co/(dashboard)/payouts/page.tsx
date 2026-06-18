@@ -5,7 +5,6 @@ import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinne
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { InvoiceStatus } from "@dub/prisma/client";
 import {
   Badge,
   Button,
@@ -26,6 +25,7 @@ import {
   OG_AVATAR_URL,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
+import { InvoiceStatus } from "@prisma/client";
 import Link from "next/link";
 import { Fragment, Suspense, useCallback, useMemo } from "react";
 import useSWR from "swr";

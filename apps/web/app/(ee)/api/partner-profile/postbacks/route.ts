@@ -14,7 +14,7 @@ import {
   postbackSchema,
 } from "@/lib/postback/schemas";
 import { identifyPostbackChannel } from "@/lib/postback/utils";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

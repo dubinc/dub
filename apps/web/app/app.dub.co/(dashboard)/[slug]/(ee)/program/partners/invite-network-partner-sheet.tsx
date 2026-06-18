@@ -1,4 +1,5 @@
 import { invitePartnerFromNetworkAction } from "@/lib/actions/partners/invite-partner-from-network";
+import { generatePartnerNetworkInviteEmailAction } from "@/lib/ai/generate-partner-network-invite-email";
 import { getProgramNetworkInviteEmailDefaults } from "@/lib/network/get-program-network-invite-email-defaults";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -24,7 +25,7 @@ interface InviteNetworkPartnerSheetProps {
   // Customized email content is owned by the parent so it survives the sheet
   // being closed and reopened (it's never persisted to the server)
   emailContent?: EmailContent | null;
-  onEmailContentChange?: (content: EmailContent) => void;
+  onEmailContentChange?: (content: EmailContent | null) => void;
   onSuccess: () => void;
   onInviteLimitError?: () => void;
 }
@@ -44,7 +45,11 @@ function InviteNetworkPartnerSheetContent({
   onInviteLimitError,
 }: InviteNetworkPartnerSheetProps) {
   const { program } = useProgram();
-  const { id: workspaceId } = useWorkspace();
+  const {
+    exceededAI,
+    id: workspaceId,
+    mutate: mutateWorkspace,
+  } = useWorkspace();
 
   const defaultEmailContent = useMemo<EmailContent>(() => {
     return getProgramNetworkInviteEmailDefaults({
@@ -94,6 +99,15 @@ function InviteNetworkPartnerSheetContent({
     },
   );
 
+  const {
+    executeAsync: generatePartnerNetworkInviteEmail,
+    isPending: isGeneratingEmail,
+  } = useAction(generatePartnerNetworkInviteEmailAction, {
+    onError({ error }) {
+      toast.error(error.serverError || "Failed to personalize invite.");
+    },
+  });
+
   const onSubmit = async (data: InviteNetworkPartnerFormData) => {
     if (!workspaceId || !program?.id) {
       return;
@@ -122,6 +136,43 @@ function InviteNetworkPartnerSheetContent({
     setEmailContent(content);
     onEmailContentChange?.(content);
     return true;
+  };
+
+  const handleResetEmail = () => {
+    setEmailContent(null);
+    onEmailContentChange?.(null);
+  };
+
+  const handleGenerateEmail = async ({
+    applyGeneratedEmail = true,
+  }: {
+    applyGeneratedEmail?: boolean;
+  } = {}) => {
+    if (!workspaceId || !program?.id) {
+      return;
+    }
+
+    // Failures (thrown or returned) are toasted by the action's onError handler
+    const result = await generatePartnerNetworkInviteEmail({
+      workspaceId,
+      partnerId: partner.id,
+    }).catch(() => null);
+
+    if (!result?.data) {
+      return;
+    }
+
+    if (applyGeneratedEmail) {
+      setEmailContent(result.data);
+      onEmailContentChange?.(result.data);
+    }
+
+    // Refresh AI usage so exceededAI reflects the credit we just spent
+    mutateWorkspace();
+
+    toast.success("Invite personalized.");
+
+    return result.data;
   };
 
   return (
@@ -168,7 +219,17 @@ function InviteNetworkPartnerSheetContent({
             // Network invites are always sent from the default address
             fromAddress="notifications@mail.dub.co"
             onSave={handleSaveEmail}
+            onGenerate={handleGenerateEmail}
+            onReset={handleResetEmail}
             onEditingChange={setIsEditingEmail}
+            isGenerating={isGeneratingEmail}
+            showReset={Boolean(emailContent)}
+            generationAvatar={
+              <PartnerAvatar partner={partner} className="size-16 shrink-0" />
+            }
+            generateDisabledTooltip={
+              exceededAI ? "You've exceeded your AI usage limit." : undefined
+            }
           />
         </div>
       </div>
@@ -177,7 +238,7 @@ function InviteNetworkPartnerSheetContent({
         onCancel={() => setIsOpen(false)}
         isPending={isPending}
         isSubmitting={isSubmitting}
-        isSubmitDisabled={isEditingEmail}
+        isSubmitDisabled={isEditingEmail || isGeneratingEmail}
       />
     </form>
   );

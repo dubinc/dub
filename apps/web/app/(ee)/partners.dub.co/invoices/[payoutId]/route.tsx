@@ -4,7 +4,7 @@ import {
   INVOICE_AVAILABLE_PAYOUT_STATUSES,
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   currencyFormatter,
   DUB_WORDMARK,
