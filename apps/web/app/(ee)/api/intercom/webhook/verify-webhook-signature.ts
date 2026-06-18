@@ -7,14 +7,8 @@ export async function verifyIntercomWebhookSignature(
   req: Request,
 ): Promise<string> {
   const rawBody = await req.text();
-  const signature = req.headers.get("X-Hub-Signature");
-
-  if (!signature) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "Missing X-Hub-Signature header.",
-    });
-  }
+  const hubSignature = req.headers.get("X-Hub-Signature");
+  const bodySignature = req.headers.get("X-Body-Signature");
 
   if (!INTERCOM_CLIENT_SECRET) {
     throw new DubApiError({
@@ -23,17 +17,44 @@ export async function verifyIntercomWebhookSignature(
     });
   }
 
-  const expectedSignature =
-    "sha1=" +
-    crypto
-      .createHmac("sha1", INTERCOM_CLIENT_SECRET)
+  // Uninstall and health-check use X-Body-Signature
+  if (!hubSignature && !bodySignature) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Missing X-Hub-Signature or X-Body-Signature header.",
+    });
+  }
+
+  let expectedSignature: string;
+  let providedSignature: string;
+
+  if (hubSignature) {
+    expectedSignature =
+      "sha1=" +
+      crypto
+        .createHmac("sha1", INTERCOM_CLIENT_SECRET)
+        .update(rawBody)
+        .digest("hex");
+
+    providedSignature = hubSignature;
+  } else if (bodySignature) {
+    expectedSignature = crypto
+      .createHmac("sha256", INTERCOM_CLIENT_SECRET)
       .update(rawBody)
       .digest("hex");
 
-  const providedSignature = Buffer.from(signature, "utf8");
-  const expectedSignatureBuffer = Buffer.from(expectedSignature, "utf8");
+    providedSignature = bodySignature;
+  } else {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Missing X-Hub-Signature or X-Body-Signature header.",
+    });
+  }
 
-  if (providedSignature.length !== expectedSignatureBuffer.length) {
+  const providedBuffer = Buffer.from(providedSignature, "utf8");
+  const expectedBuffer = Buffer.from(expectedSignature, "utf8");
+
+  if (providedBuffer.length !== expectedBuffer.length) {
     throw new DubApiError({
       code: "unauthorized",
       message: "Invalid webhook signature.",
@@ -41,8 +62,8 @@ export async function verifyIntercomWebhookSignature(
   }
 
   const isSignatureValid = crypto.timingSafeEqual(
-    Uint8Array.from(providedSignature),
-    Uint8Array.from(expectedSignatureBuffer),
+    Uint8Array.from(providedBuffer),
+    Uint8Array.from(expectedBuffer),
   );
 
   if (!isSignatureValid) {
