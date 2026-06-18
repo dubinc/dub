@@ -4,7 +4,7 @@ import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
 import { prisma } from "@dub/prisma";
 import { Invoice, Project, RegisteredDomain } from "@dub/prisma/client";
-import { log } from "@dub/utils";
+import { ACME_WORKSPACE_ID, DUB_WORKSPACE_ID, log } from "@dub/utils";
 import { addDays, endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";
 
@@ -129,7 +129,25 @@ export async function GET(req: Request) {
 
     // Create payment intent for each invoice
     for (const invoice of invoices) {
-      const { workspace } = groupedByWorkspace[invoice.workspaceId];
+      let { workspace } = groupedByWorkspace[invoice.workspaceId];
+
+      // If Acme workspace, use Dub workspace stripeId
+      if (workspace.id === ACME_WORKSPACE_ID) {
+        workspace = await prisma.project.findUniqueOrThrow({
+          where: {
+            id: DUB_WORKSPACE_ID,
+          },
+          select: {
+            id: true,
+            stripeId: true,
+            invoicePrefix: true,
+          },
+        });
+
+        console.log(
+          `Using Dub workspace stripeId for Acme workspace domains...`,
+        );
+      }
 
       if (!workspace.stripeId) {
         console.log(`Workspace ${workspace.id} has no stripeId, skipping...`);
@@ -137,7 +155,7 @@ export async function GET(req: Request) {
       }
 
       const res = await createPaymentIntent({
-        stripeId: workspace.stripeId!,
+        stripeId: workspace.stripeId,
         amount: invoice.total,
         invoiceId: invoice.id,
         statementDescriptor: "DUB.CO DOMAIN RENEWAL",
