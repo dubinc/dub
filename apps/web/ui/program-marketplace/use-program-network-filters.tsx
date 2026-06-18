@@ -1,9 +1,9 @@
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
-import { Category } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Gift, Suitcase } from "@dub/ui/icons";
 import { capitalize, nFormatter } from "@dub/utils";
+import { Category } from "@prisma/client";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { MARKETPLACE_REWARD_TYPES } from "./constants";

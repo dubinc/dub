@@ -1,5 +1,5 @@
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
-import { Category } from "@dub/prisma/client";
+import { Category } from "@prisma/client";
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,

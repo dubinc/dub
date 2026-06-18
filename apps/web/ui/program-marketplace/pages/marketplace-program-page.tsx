@@ -1,11 +1,11 @@
 import { getNetworkProgram } from "@/lib/fetchers/get-network-program";
+import { prisma } from "@/lib/prisma";
 import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { MarketplaceProgramDetailBody } from "@/ui/program-marketplace/marketplace-program-detail-body";
 import { MarketplaceProgramDetailsLayout } from "@/ui/program-marketplace/marketplace-program-details-layout";
 import { MarketplaceProgramHero } from "@/ui/program-marketplace/marketplace-program-hero";
-import { prisma } from "@dub/prisma";
 import { ChevronRight, Shop } from "@dub/ui";
 import Link from "next/link";
 import { redirect } from "next/navigation";

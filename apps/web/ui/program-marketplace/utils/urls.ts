@@ -1,5 +1,5 @@
 import { MarketplaceRewardType } from "@/ui/program-marketplace/constants";
-import { Category } from "@dub/prisma/client";
+import { Category } from "@prisma/client";
 
 const MARKETPLACE_BASE = "/marketplace";
 

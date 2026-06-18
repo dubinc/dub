@@ -1,10 +1,10 @@
 "use client";
 
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { Category } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { FilterBars } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { Category } from "@prisma/client";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import {

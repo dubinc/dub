@@ -5,8 +5,8 @@ import {
   getMarketplaceHref,
   slugToCategory,
 } from "@/ui/program-marketplace/utils/urls";
-import { Category } from "@dub/prisma/client";
 import { ChevronRight, Shop } from "@dub/ui";
+import { Category } from "@prisma/client";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReactNode } from "react";

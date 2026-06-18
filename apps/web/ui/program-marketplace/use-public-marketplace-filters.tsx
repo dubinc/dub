@@ -1,9 +1,9 @@
 "use client";
 
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
-import { Category } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { Gift, Suitcase } from "@dub/ui/icons";
+import { Category } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import {
