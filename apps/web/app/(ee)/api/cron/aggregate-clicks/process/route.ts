@@ -1,13 +1,13 @@
 import { createId } from "@/lib/api/create-id";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
-import { getSpendLimitWindow } from "@/lib/api/rewards/clamp-earnings-to-spend-limit";
+import { getRewardSpendLimitWindow } from "@/lib/api/rewards/reward-spend-limit-window";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { getTopLinksByCountries } from "@/lib/tinybird/get-top-links-by-countries";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { getSpendLimitCommissionDescription } from "@/ui/partners/program-reward-spend-limit";
+import { buildCommissionDescription } from "@/ui/partners/program-reward-spend-limit";
 import { prisma } from "@dub/prisma";
 import { CommissionType, EventType, Prisma, Reward } from "@dub/prisma/client";
 import {
@@ -189,11 +189,12 @@ export const POST = withCron(async ({ rawBody }) => {
       }
 
       let { clicks, earnings } = linkEarnings;
-      const uncappedEarnings = earnings;
 
       if (clicks === 0 || earnings === 0) {
         return null;
       }
+
+      let description: string | null = null;
 
       // Cap earnings to spend limit
       if (clickReward.spendLimitAmount && clickReward.spendLimitInterval) {
@@ -204,21 +205,26 @@ export const POST = withCron(async ({ rawBody }) => {
         const remainingSpendLimit =
           clickReward.spendLimitAmount - historicalEarnings - usedThisBatch;
 
-        earnings = Math.max(0, Math.min(earnings, remainingSpendLimit));
+        const cappedEarnings = Math.max(
+          0,
+          Math.min(earnings, remainingSpendLimit),
+        );
 
-        if (earnings === 0) {
+        if (cappedEarnings === 0) {
           console.log(`Reached spend limit for partner ${partnerId}.`);
           return null;
         }
 
-        usedSpendLimitByPartner.set(partnerId, usedThisBatch + earnings);
-      }
+        usedSpendLimitByPartner.set(partnerId, usedThisBatch + cappedEarnings);
 
-      const description = getSpendLimitCommissionDescription({
-        uncappedEarnings,
-        cappedEarnings: earnings,
-        reward: serializeReward(clickReward),
-      });
+        description = buildCommissionDescription({
+          earnings,
+          cappedEarnings,
+          reward: serializeReward(clickReward),
+        });
+
+        earnings = cappedEarnings;
+      }
 
       return {
         id: createId({ prefix: "cm_" }),
@@ -307,7 +313,7 @@ async function getHistoricalEarnings({
     return new Map<string, number>();
   }
 
-  const { startDate, endDate } = getSpendLimitWindow({
+  const { startDate, endDate } = getRewardSpendLimitWindow({
     spendLimitInterval: clickReward.spendLimitInterval,
     referenceDate: aggregationStartDate,
   });

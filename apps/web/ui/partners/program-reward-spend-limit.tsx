@@ -40,12 +40,12 @@ export function ProgramRewardSpendLimit({
   return ` up to ${parts.amount} ${parts.interval}`;
 }
 
-export function getSpendLimitCommissionDescription({
-  uncappedEarnings,
+export function buildCommissionDescription({
+  earnings,
   cappedEarnings,
   reward,
 }: {
-  uncappedEarnings: number;
+  earnings: number;
   cappedEarnings: number;
   reward: Pick<
     RewardProps,
@@ -57,7 +57,7 @@ export function getSpendLimitCommissionDescription({
     | "spendLimitInterval"
   >;
 }) {
-  if (uncappedEarnings <= cappedEarnings) {
+  if (earnings <= cappedEarnings) {
     return null;
   }
 

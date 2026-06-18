@@ -4,7 +4,7 @@ import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-e
 import { notifyPartnerCommission } from "@/lib/api/partners/notify-partner-commission";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { getCappedEarnings } from "@/lib/api/rewards/clamp-earnings-to-spend-limit";
+import { getRewardSpendLimitWindow } from "@/lib/api/rewards/reward-spend-limit-window";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
@@ -21,7 +21,7 @@ import {
 } from "@/lib/zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { getSpendLimitCommissionDescription } from "@/ui/partners/program-reward-spend-limit";
+import { buildCommissionDescription } from "@/ui/partners/program-reward-spend-limit";
 import { prisma } from "@dub/prisma";
 import {
   Commission,
@@ -383,16 +383,16 @@ async function stepCreateCommission(
     reward.spendLimitAmount != null &&
     reward.spendLimitInterval != null
   ) {
-    const uncappedEarnings = earnings;
-    earnings = await getCappedEarnings({
+    const cappedEarnings = await clampEarningsToSpendLimit({
       reward,
       earnings,
+      programId,
       partnerId,
       customerId,
     });
 
     // If spend limit clamped earnings to 0, skip commission creation
-    if (earnings === 0) {
+    if (cappedEarnings === 0) {
       return logAndReturn({
         commission: null,
         outputLog: `Partner ${partnerId} has reached spend limit (${currencyFormatter(reward.spendLimitAmount)} ${reward.spendLimitInterval === "allTime" ? "in total" : `per ${reward.spendLimitInterval}`}) for ${event} event, skipping commission creation...`,
@@ -400,12 +400,14 @@ async function stepCreateCommission(
     }
 
     if (!description) {
-      description = getSpendLimitCommissionDescription({
-        uncappedEarnings,
-        cappedEarnings: earnings,
+      description = buildCommissionDescription({
+        earnings,
+        cappedEarnings,
         reward,
       });
     }
+
+    earnings = cappedEarnings;
   }
 
   try {
@@ -629,4 +631,65 @@ async function stepRunSideEffects(
     step,
     result: results[index],
   }));
+}
+
+// Reward cap scope:
+// - Sales: partner and customer level
+// - Clicks & Leads: partner level only
+async function clampEarningsToSpendLimit({
+  reward,
+  earnings,
+  programId,
+  partnerId,
+  customerId,
+}: {
+  reward: Pick<
+    RewardProps,
+    "event" | "spendLimitAmount" | "spendLimitInterval"
+  >;
+  earnings: number;
+  programId: string;
+  partnerId: string;
+  customerId: string;
+}) {
+  if (
+    earnings === 0 ||
+    reward.spendLimitAmount == null ||
+    reward.spendLimitInterval == null ||
+    reward.event === "referral"
+  ) {
+    return earnings;
+  }
+
+  const { startDate, endDate } = getRewardSpendLimitWindow({
+    spendLimitInterval: reward.spendLimitInterval,
+    referenceDate: new Date(),
+  });
+
+  // Find the commission earnings for the partner and customer (if applicable) for the spend limit window
+  const {
+    _sum: { earnings: totalEarnings },
+  } = await prisma.commission.aggregate({
+    where: {
+      programId,
+      partnerId,
+      ...(reward.event === "sale" ? { customerId } : {}),
+      type: reward.event,
+      status: {
+        in: ["pending", "processed", "paid"],
+      },
+      createdAt: {
+        ...(startDate ? { gte: startDate } : {}),
+        ...(endDate ? { lte: endDate } : {}),
+      },
+    },
+    _sum: {
+      earnings: true,
+    },
+  });
+
+  return Math.max(
+    0,
+    Math.min(earnings, reward.spendLimitAmount - (totalEarnings ?? 0)),
+  );
 }
