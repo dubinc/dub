@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { Invoice, Project } from "@/lib/prisma/client";
 import { stripe } from "@/lib/stripe";
 import { currencyFormatter, DUB_WORDMARK, formatDate } from "@dub/utils";
+import { Invoice, Project } from "@prisma/client";
 import {
   Document,
   Image,

@@ -1,6 +1,5 @@
 "use client";
 
-import { PlatformType } from "@/lib/prisma/client";
 import {
   PartnerBountyProps,
   PartnerBountySubmission,
@@ -17,6 +16,7 @@ import { BountyStatusBadge } from "@/ui/partners/bounties/bounty-status-badge";
 import { BountySubmissionRequirements } from "@/ui/partners/bounties/bounty-submission-requirements";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { ChevronRight, Trophy } from "@dub/ui";
+import { PlatformType } from "@prisma/client";
 import { useState } from "react";
 import {
   BountyEndDate,

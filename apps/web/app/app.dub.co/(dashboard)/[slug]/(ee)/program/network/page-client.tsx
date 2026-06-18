@@ -1,7 +1,6 @@
 "use client";
 
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
-import { PlatformType } from "@/lib/prisma/client";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
@@ -28,6 +27,7 @@ import {
   YouTube,
 } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";

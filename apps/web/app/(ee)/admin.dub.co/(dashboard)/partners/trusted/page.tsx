@@ -1,7 +1,6 @@
 "use client";
 
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
-import { PlatformType } from "@/lib/prisma/client";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, CopyText, Sheet, TimestampTooltip, Tooltip } from "@dub/ui";
@@ -15,6 +14,7 @@ import {
   YouTube,
 } from "@dub/ui/icons";
 import { cn, fetcher, formatDateSmart } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";

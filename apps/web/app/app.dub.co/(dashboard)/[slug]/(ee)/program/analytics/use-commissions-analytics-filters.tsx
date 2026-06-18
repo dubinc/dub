@@ -1,6 +1,5 @@
 "use client";
 
-import { CommissionType } from "@/lib/prisma/client";
 import useCommissionAnalytics from "@/lib/swr/use-commission-analytics";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -16,6 +15,7 @@ import {
   nFormatter,
   parseFilterValue,
 } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { useParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";

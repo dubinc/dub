@@ -1,13 +1,13 @@
 import "dotenv-flow/config";
 
 import { prisma } from "@/lib/prisma";
-import type { Prisma } from "@/lib/prisma/client";
 import {
   DUB_TRIAL_PERIOD_DAYS,
   getWorkspaceLimitsForStripeSubscriptionStatus,
   PLANS,
 } from "@dub/utils";
 import type { Page, Request } from "@playwright/test";
+import type { Prisma } from "@prisma/client";
 
 function getTrialingLimitsForPlan(planId: string) {
   const planDetails = PLANS.find(

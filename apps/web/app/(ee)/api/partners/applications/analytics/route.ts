@@ -7,10 +7,10 @@ import {
 import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
 import { ApplicationEventAnalyticsQuery } from "@/lib/types";
 import { TZDate, tz } from "@date-fns/tz";
 import { parseFilterValue } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { format } from "date-fns/format";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

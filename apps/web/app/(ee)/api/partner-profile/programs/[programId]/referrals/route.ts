@@ -7,7 +7,7 @@ import {
   referredPartnerSchema,
 } from "@/lib/partner-referrals/schemas";
 import { prisma } from "@/lib/prisma";
-import { CommissionType } from "@/lib/prisma/client";
+import { CommissionType } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

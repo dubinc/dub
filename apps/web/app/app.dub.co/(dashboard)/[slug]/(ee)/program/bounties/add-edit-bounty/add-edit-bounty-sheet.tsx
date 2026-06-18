@@ -3,7 +3,6 @@ import {
   SUBMISSION_FREQUENCY_OPTIONS,
 } from "@/lib/bounty/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { BountySubmissionFrequency } from "@/lib/prisma/client";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps, CreateBountyInput } from "@/lib/types";
@@ -42,6 +41,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, FormProvider } from "react-hook-form";
 import { BountyCriteria } from "./bounty-criteria";

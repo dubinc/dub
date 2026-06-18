@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { PartnerGroup } from "@/lib/prisma/client";
+import { PartnerGroup } from "@prisma/client";
 import { DubApiError } from "../errors";
 
 export async function throwIfInvalidGroupIds({

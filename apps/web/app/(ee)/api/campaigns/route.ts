@@ -4,7 +4,6 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { CampaignStatus } from "@/lib/prisma/client";
 import { WorkflowAction, WorkflowCondition } from "@/lib/types";
 import {
   CampaignSchema,
@@ -15,6 +14,7 @@ import {
   WORKFLOW_ACTION_TYPES,
   WORKFLOW_ATTRIBUTE_TRIGGER,
 } from "@/lib/zod/schemas/workflows";
+import { CampaignStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/campaigns - get all email campaigns for a program

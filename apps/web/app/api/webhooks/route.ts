@@ -3,7 +3,6 @@ import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { WebhookReceiver } from "@/lib/prisma/client";
 import { webhookCache } from "@/lib/webhook/cache";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
@@ -18,6 +17,7 @@ import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { sendEmail } from "@dub/email";
 import WebhookAdded from "@dub/email/templates/webhook-added";
 import { ZAPIER_INTEGRATION_ID } from "@dub/utils/src/constants";
+import { WebhookReceiver } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

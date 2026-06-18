@@ -9,7 +9,6 @@ import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-
 import { generateOTP } from "@/lib/auth/utils";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { isGenericEmail } from "@/lib/is-generic-email";
-import { PlatformType } from "@/lib/prisma/client";
 import {
   sanitizeSocialHandle,
   SOCIAL_PLATFORM_CONFIGS,
@@ -22,6 +21,7 @@ import {
   nanoid,
   PARTNERS_DOMAIN_WITH_NGROK,
 } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";

@@ -1,5 +1,5 @@
-import { Prisma } from "@/lib/prisma/client";
 import { currencyFormatter } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { BountyProps, BountySubmissionProps } from "../types";
 import { resolveBountyDetails } from "./utils";
 

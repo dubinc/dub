@@ -1,9 +1,9 @@
 "use client";
 
-import { CampaignType } from "@/lib/prisma/client";
 import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
 import { Button } from "@dub/ui";
 import { nFormatter } from "@dub/utils";
+import { CampaignType } from "@prisma/client";
 import { CampaignTypeIcon } from "./campaign-type-icon";
 import { CampaignsPageContent } from "./campaigns-page-content";
 

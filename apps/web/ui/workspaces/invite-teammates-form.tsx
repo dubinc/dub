@@ -1,6 +1,5 @@
 "use client";
 
-import { WorkspaceRole } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -12,6 +11,7 @@ import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-mod
 import { Button, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { cn, isWorkspaceBillingTrialActive, pluralize } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import { Plus } from "lucide-react";
 import { useMemo } from "react";
 import { useFieldArray, useForm } from "react-hook-form";

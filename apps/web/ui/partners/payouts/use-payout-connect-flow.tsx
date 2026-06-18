@@ -3,9 +3,9 @@
 import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
 import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
 import { generateStripeRecipientAccountLink } from "@/lib/actions/partners/generate-stripe-recipient-account-link";
-import { PartnerPayoutMethod } from "@/lib/prisma/client";
 import { useBankAccountRequirementsModal } from "@/ui/partners/payouts/bank-account-requirements-modal";
 import { useStablecoinPayoutModal } from "@/ui/partners/payouts/stablecoin-payout-modal";
+import { PartnerPayoutMethod } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";

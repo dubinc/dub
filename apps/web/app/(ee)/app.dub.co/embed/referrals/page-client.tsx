@@ -2,12 +2,6 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
-import {
-  Partner,
-  PlatformType,
-  Program,
-  ProgramEnrollmentStatus,
-} from "@/lib/prisma/client";
 import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
 import {
   DiscountProps,
@@ -44,6 +38,12 @@ import {
   getPrettyUrl,
   TREMENDOUS_SUPPORTED_COUNTRIES,
 } from "@dub/utils";
+import {
+  Partner,
+  PlatformType,
+  Program,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import {

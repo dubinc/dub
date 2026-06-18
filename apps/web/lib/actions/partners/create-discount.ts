@@ -7,10 +7,10 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { qstash } from "@/lib/cron";
 import { getDiscountProvider } from "@/lib/discounts/discount-provider";
 import { prisma } from "@/lib/prisma";
-import { DiscountProvider } from "@/lib/prisma/client";
 import { DubDiscountAttributes } from "@/lib/stripe/coupon-discount-converter";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { DiscountProvider } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";

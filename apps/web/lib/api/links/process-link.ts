@@ -2,7 +2,6 @@ import { isBlacklistedDomain } from "@/lib/edge-config";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
-import { Project, WorkspaceRole } from "@/lib/prisma/client";
 import { isNotHostedImage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
@@ -17,6 +16,7 @@ import {
   parseDateTime,
   pluralize,
 } from "@dub/utils";
+import { Project, WorkspaceRole } from "@prisma/client";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { businessFeaturesCheck, proFeaturesCheck } from "./plan-features-check";
 import { keyChecks, processKey } from "./utils";

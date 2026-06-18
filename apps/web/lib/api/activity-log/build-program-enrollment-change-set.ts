@@ -1,5 +1,5 @@
-import { PartnerGroup } from "@/lib/prisma/client";
 import type { ChangeSet } from "@/lib/types";
+import { PartnerGroup } from "@prisma/client";
 
 interface BuildProgramEnrollmentChangeSetInput {
   oldEnrollment:

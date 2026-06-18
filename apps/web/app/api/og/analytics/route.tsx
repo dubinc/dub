@@ -1,6 +1,5 @@
 import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import { Folder, Link } from "@/lib/prisma/client";
 import { prismaEdge } from "@/lib/prisma/edge";
 import {
   GOOGLE_FAVICON_URL,
@@ -8,6 +7,7 @@ import {
   linkConstructor,
   nFormatter,
 } from "@dub/utils";
+import { Folder, Link } from "@prisma/client";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { loadGoogleFont } from "../load-google-font";

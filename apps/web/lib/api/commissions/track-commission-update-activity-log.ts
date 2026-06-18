@@ -2,9 +2,9 @@ import {
   trackActivityLog,
   type TrackActivityLogInput,
 } from "@/lib/api/activity-log/track-activity-log";
-import type { Commission, CommissionStatus } from "@/lib/prisma/client";
 import { CommissionActivitySnapshot } from "@/lib/types";
 import { groupBy } from "@dub/utils";
+import type { Commission, CommissionStatus } from "@prisma/client";
 import { getResourceDiff } from "../activity-log/get-resource-diff";
 
 interface TrackActivityLogParams

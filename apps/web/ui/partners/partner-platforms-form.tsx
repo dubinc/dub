@@ -4,7 +4,6 @@ import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { startPartnerPlatformVerificationAction } from "@/lib/actions/partners/start-partner-platform-verification";
 import { updatePartnerPlatformsAction } from "@/lib/actions/partners/update-partner-platforms";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
-import { PlatformType } from "@/lib/prisma/client";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPlatformProps, PartnerProps } from "@/lib/types";
@@ -25,6 +24,7 @@ import {
 } from "@dub/ui";
 import { getPrettyUrl, nFormatter } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { PlatformType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { forwardRef, ReactNode, useCallback, useMemo, useState } from "react";
 import {

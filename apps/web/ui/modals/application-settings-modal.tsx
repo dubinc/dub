@@ -1,6 +1,5 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateApplicationSettingsAction } from "@/lib/actions/partners/update-application-settings";
-import { Category } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -13,6 +12,7 @@ import {
 } from "@/ui/partners/eligibility-requirements";
 import { Button, Modal, ToggleGroup, useEnterSubmit } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Category } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import {

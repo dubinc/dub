@@ -1,6 +1,5 @@
 "use client";
 
-import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import { usePartnerSubmittedLeads } from "@/lib/swr/use-partner-submitted-leads";
 import { usePartnerSubmittedLeadsCount } from "@/lib/swr/use-partner-submitted-leads-count";
 import { PartnerProfileSubmittedLeadsCountByStatus } from "@/lib/types";
@@ -23,6 +22,7 @@ import {
 } from "@dub/ui";
 import { CircleDotted } from "@dub/ui/icons";
 import { cn, formatDate, nFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { SubmittedLeadStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 

@@ -8,7 +8,6 @@ import {
   networkReferralSchema,
 } from "@/lib/partner-referrals/schemas";
 import { prisma } from "@/lib/prisma";
-import { CommissionType } from "@/lib/prisma/client";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import {
   NETWORK_PROGRAM_DEFAULT_GROUP_ID,
@@ -16,6 +15,7 @@ import {
   NETWORK_PROGRAM_ID,
   NETWORK_USER_ID,
 } from "@dub/utils/src/constants/main";
+import { CommissionType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

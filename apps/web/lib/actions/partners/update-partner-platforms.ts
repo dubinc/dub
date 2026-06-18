@@ -2,10 +2,10 @@
 
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { prisma } from "@/lib/prisma";
-import { PartnerPlatform, PlatformType } from "@/lib/prisma/client";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { getDomainWithoutWWW, getUrlFromString, isValidUrl } from "@dub/utils";
+import { PartnerPlatform, PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 

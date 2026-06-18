@@ -1,6 +1,5 @@
 "use client";
 
-import { CampaignStatus } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -22,6 +21,7 @@ import {
 } from "@dub/ui";
 import { Dots, Duplicate, LoadingCircle, Trash } from "@dub/ui/icons";
 import { fetcher, formatDateTimeSmart } from "@dub/utils";
+import { CampaignStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { Mail, Pause, Play } from "lucide-react";

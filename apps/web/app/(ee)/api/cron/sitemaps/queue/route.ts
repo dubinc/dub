@@ -1,8 +1,8 @@
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 

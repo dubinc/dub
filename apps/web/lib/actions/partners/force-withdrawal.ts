@@ -3,9 +3,9 @@
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { createStablecoinPayout } from "@/lib/partners/create-stablecoin-payout";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
-import { Partner } from "@/lib/prisma/client";
 import { sendTremendousPayouts } from "@/lib/tremendous/send-tremendous-payouts";
 import { redis } from "@/lib/upstash";
+import { Partner } from "@prisma/client";
 import { authPartnerActionClient } from "../safe-action";
 
 // Force a withdrawal for a partner (even if the total amount is below the minimum withdrawal amount)

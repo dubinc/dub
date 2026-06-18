@@ -1,4 +1,4 @@
-import { SubmittedLeadStatus } from "@/lib/prisma/client";
+import { SubmittedLeadStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";

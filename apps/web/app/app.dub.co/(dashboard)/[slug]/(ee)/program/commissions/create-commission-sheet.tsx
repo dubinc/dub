@@ -1,5 +1,4 @@
 import { handleMoneyKeyDown } from "@/lib/form-utils";
-import { CommissionType } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useRewards from "@/lib/swr/use-rewards";
@@ -30,6 +29,7 @@ import {
   ToggleGroup,
 } from "@dub/ui";
 import { cn, currencyFormatter, formatDate } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";

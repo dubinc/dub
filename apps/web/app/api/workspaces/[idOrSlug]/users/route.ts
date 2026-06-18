@@ -4,11 +4,11 @@ import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan"
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
-import { WorkspaceRole } from "@/lib/prisma/client";
 import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
+import { WorkspaceRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

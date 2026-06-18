@@ -1,11 +1,6 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import {
-  PartnerPayoutMethod,
-  PayoutStatus,
-  ProgramPayoutMode,
-} from "@/lib/prisma/client";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import useGroups from "@/lib/swr/use-groups";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
@@ -37,6 +32,11 @@ import { MoneyBill2 } from "@dub/ui/icons";
 import { cn, currencyFormatter } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
+import {
+  PartnerPayoutMethod,
+  PayoutStatus,
+  ProgramPayoutMode,
+} from "@prisma/client";
 import { PayoutPaidCell } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-paid-cell";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";

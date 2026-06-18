@@ -1,10 +1,10 @@
 import { formatMoneyCentsForExport } from "@/lib/api/utils/format-money-cents-for-export";
-import type { Customer, Link, ProgramEnrollment } from "@/lib/prisma/client";
 import {
   CUSTOMER_EXPORT_COLUMNS,
   CUSTOMER_EXPORT_DEFAULT_COLUMNS,
 } from "@/lib/zod/schemas/customers";
 import { toCentsNumber } from "@dub/utils";
+import type { Customer, Link, ProgramEnrollment } from "@prisma/client";
 
 type CustomerForExport = Customer & {
   link?: Pick<Link, "shortLink" | "url"> | null;

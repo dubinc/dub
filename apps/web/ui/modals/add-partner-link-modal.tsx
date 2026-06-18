@@ -1,5 +1,4 @@
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
-import { UtmTemplate } from "@/lib/prisma/client";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -14,6 +13,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { constructURLFromUTMParams } from "@dub/utils";
+import { UtmTemplate } from "@prisma/client";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";

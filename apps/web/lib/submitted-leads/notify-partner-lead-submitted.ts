@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { Partner, Program, SubmittedLead } from "@/lib/prisma/client";
 import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
 import { sendBatchEmail } from "@dub/email";
 import NewLeadSubmitted from "@dub/email/templates/new-lead-submitted";
+import { Partner, Program, SubmittedLead } from "@prisma/client";
 
 export async function notifyPartnerLeadSubmitted({
   lead,

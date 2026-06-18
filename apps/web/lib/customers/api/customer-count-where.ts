@@ -1,6 +1,6 @@
 import { sanitizeFullTextSearch } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
 import { getCustomersCountQuerySchema } from "@/lib/zod/schemas/customers";
+import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 
 type CustomerCountFilters = z.infer<typeof getCustomersCountQuerySchema> & {

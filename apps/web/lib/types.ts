@@ -1,3 +1,15 @@
+import type { SiteVisitTrackingSettingsValue } from "@/lib/sitemaps/site-visit-tracking";
+import {
+  PartnerBountySchema,
+  partnerBountySubmissionSchema,
+  PartnerEarningsSchema,
+  partnerPayoutMethodSchema,
+  PartnerProfileCustomerSchema,
+  PartnerProfileLinkSchema,
+  partnerSubmittedLeadsCountByStatusSchema,
+  partnerUserSchema,
+} from "@/lib/zod/schemas/partner-profile";
+import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
   Commission,
   CommissionStatus,
@@ -19,19 +31,7 @@ import {
   Webhook,
   WorkflowTrigger,
   WorkspaceRole,
-} from "@/lib/prisma/client";
-import type { SiteVisitTrackingSettingsValue } from "@/lib/sitemaps/site-visit-tracking";
-import {
-  PartnerBountySchema,
-  partnerBountySubmissionSchema,
-  PartnerEarningsSchema,
-  partnerPayoutMethodSchema,
-  PartnerProfileCustomerSchema,
-  PartnerProfileLinkSchema,
-  partnerSubmittedLeadsCountByStatusSchema,
-  partnerUserSchema,
-} from "@/lib/zod/schemas/partner-profile";
-import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import {

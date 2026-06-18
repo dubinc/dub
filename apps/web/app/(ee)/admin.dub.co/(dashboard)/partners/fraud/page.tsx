@@ -1,6 +1,5 @@
 "use client";
 
-import { FraudAlertStatus } from "@/lib/prisma/client";
 import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import {
@@ -14,6 +13,7 @@ import {
 } from "@dub/ui";
 import { CircleDotted, GridIcon } from "@dub/ui/icons";
 import { fetcher, formatDate, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
+import { FraudAlertStatus } from "@prisma/client";
 import { Suspense, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 import * as z from "zod/v4";

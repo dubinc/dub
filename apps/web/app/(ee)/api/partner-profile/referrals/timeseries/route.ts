@@ -6,8 +6,8 @@ import { networkReferralsTimeseriesSchema } from "@/lib/partner-referrals/schema
 import { NetworkReferralsTimeseries } from "@/lib/partner-referrals/types";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { prisma } from "@/lib/prisma";
-import { CommissionType, Prisma } from "@/lib/prisma/client";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
+import { CommissionType, Prisma } from "@prisma/client";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

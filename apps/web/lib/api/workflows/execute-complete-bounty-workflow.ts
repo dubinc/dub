@@ -1,15 +1,15 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { prisma } from "@/lib/prisma";
-import {
-  BountySubmissionStatus,
-  Workflow,
-  WorkspaceRole,
-} from "@/lib/prisma/client";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail, sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
+import {
+  BountySubmissionStatus,
+  Workflow,
+  WorkspaceRole,
+} from "@prisma/client";
 import { createId } from "../create-id";
 import { getWorkspaceUsers } from "../get-workspace-users";
 import { parseWorkflowConfig } from "./parse-workflow-config";

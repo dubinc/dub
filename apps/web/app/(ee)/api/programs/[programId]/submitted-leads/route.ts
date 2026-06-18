@@ -1,11 +1,11 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
-import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import {
   getSubmittedLeadsQuerySchema,
   submittedLeadSchema,
 } from "@/lib/zod/schemas/submitted-leads";
+import { SubmittedLeadStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

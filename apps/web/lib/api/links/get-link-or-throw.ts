@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { Link } from "@/lib/prisma/client";
+import { Link } from "@prisma/client";
 import { DubApiError } from "../errors";
 import { prefixWorkspaceId } from "../workspaces/workspace-id";
 import {

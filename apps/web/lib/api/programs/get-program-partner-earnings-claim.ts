@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { CommissionStatus } from "@/lib/prisma/client";
 import { nFormatter } from "@dub/utils";
+import { CommissionStatus } from "@prisma/client";
 
 const LOOKBACK_MONTHS = 6;
 const MIN_DISTINCT_EARNING_PARTNERS = 2;

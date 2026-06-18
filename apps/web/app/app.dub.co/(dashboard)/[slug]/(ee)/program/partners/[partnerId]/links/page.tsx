@@ -3,7 +3,6 @@
 import { usePartnerReferral } from "@/lib/partner-referrals/hooks/use-partner-referral";
 import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
-import { DiscountProvider } from "@/lib/prisma/client";
 import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import useGroup from "@/lib/swr/use-group";
 import usePartner from "@/lib/swr/use-partner";
@@ -30,6 +29,7 @@ import {
 } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
+import { DiscountProvider } from "@prisma/client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";

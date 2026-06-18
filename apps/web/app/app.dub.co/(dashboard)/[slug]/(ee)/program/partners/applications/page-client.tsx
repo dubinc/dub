@@ -1,6 +1,5 @@
 "use client";
 
-import { PlatformType } from "@/lib/prisma/client";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
@@ -36,6 +35,7 @@ import {
 } from "@dub/ui";
 import { Dots, UserCheck, Users, UserXmark } from "@dub/ui/icons";
 import { COUNTRIES, fetcher, formatDate } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import Link from "next/link";

@@ -1,4 +1,3 @@
-import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import useGroups from "@/lib/swr/use-groups";
 import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { usePartnerTagsCount } from "@/lib/swr/use-partner-tags-count";
@@ -34,6 +33,7 @@ import {
   type FilterOperator,
   type ParsedFilter,
 } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 

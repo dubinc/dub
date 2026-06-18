@@ -1,6 +1,5 @@
 import { uploadCampaignImageAction } from "@/lib/actions/partners/upload-campaign-image";
 import { CAMPAIGN_READONLY_STATUSES } from "@/lib/api/campaigns/constants";
-import { CampaignStatus } from "@/lib/prisma/client";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -22,6 +21,7 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
+import { CampaignStatus } from "@prisma/client";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";

@@ -1,4 +1,6 @@
 import { decrypt } from "@/lib/encryption";
+import { storage } from "@/lib/storage";
+import { redis } from "@/lib/upstash";
 import {
   InstalledIntegration,
   Message,
@@ -6,9 +8,7 @@ import {
   Partner,
   Program,
   User,
-} from "@/lib/prisma/client";
-import { storage } from "@/lib/storage";
-import { redis } from "@/lib/upstash";
+} from "@prisma/client";
 import { Intercom, IntercomAttachmentFile } from "./client";
 import { intercomCredentialsSchema } from "./schema";
 

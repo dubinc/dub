@@ -1,6 +1,5 @@
 "use client";
 
-import { PayoutStatus } from "@/lib/prisma/client";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { ConnectPayoutButton } from "@/ui/partners/payouts/connect-payout-button";
@@ -12,6 +11,7 @@ import {
   Tooltip,
 } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
+import { PayoutStatus } from "@prisma/client";
 import Link from "next/link";
 import { memo } from "react";
 

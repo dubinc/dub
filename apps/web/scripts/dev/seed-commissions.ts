@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
+import { Prisma } from "@prisma/client";
 import "dotenv-flow/config";
 
 async function main() {

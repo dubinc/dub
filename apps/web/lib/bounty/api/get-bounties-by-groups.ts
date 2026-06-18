@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { Bounty } from "@/lib/prisma/client";
+import { Bounty } from "@prisma/client";
 
 export async function getBountiesByGroups({
   programId,

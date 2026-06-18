@@ -8,12 +8,6 @@ import {
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
-import {
-  Invoice,
-  Program,
-  ProgramPayoutMode,
-  Project,
-} from "@/lib/prisma/client";
 import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
@@ -26,6 +20,7 @@ import {
   nFormatter,
   pluralize,
 } from "@dub/utils";
+import { Invoice, Program, ProgramPayoutMode, Project } from "@prisma/client";
 
 const nonUsdPaymentMethodTypes = {
   sepa_debit: "eur",

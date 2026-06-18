@@ -5,12 +5,12 @@ import { renderCampaignEmailHTML } from "@/lib/api/workflows/render-campaign-ema
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
-import { NotificationEmailType } from "@/lib/prisma/client";
 import { TiptapNode } from "@/lib/types";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
+import { NotificationEmailType } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import { headers } from "next/headers";
 import * as z from "zod/v4";

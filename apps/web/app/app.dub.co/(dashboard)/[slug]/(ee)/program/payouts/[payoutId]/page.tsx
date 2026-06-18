@@ -2,7 +2,6 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { PayoutStatus } from "@/lib/prisma/client";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePayout } from "@/lib/swr/use-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -48,6 +47,7 @@ import {
   formatDateTimeSmart,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { PayoutStatus } from "@prisma/client";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { useMemo } from "react";

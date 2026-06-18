@@ -1,5 +1,5 @@
-import { Program } from "@/lib/prisma/client";
 import { BlurImage } from "@dub/ui";
+import { Program } from "@prisma/client";
 import Link from "next/link";
 
 export function PartnerBanner({

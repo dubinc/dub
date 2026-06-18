@@ -1,12 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import {
-  Commission,
-  Customer,
-  PartnerGroup,
-  Program,
-  Project,
-  User,
-} from "@/lib/prisma/client";
 import { sendBatchEmail } from "@dub/email";
 import {
   ResendBulkEmailOptions,
@@ -15,6 +7,14 @@ import {
 import NewCommissionAlertPartner from "@dub/email/templates/new-commission-alert-partner";
 import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-program-owner";
 import { chunk, currencyFormatter } from "@dub/utils";
+import {
+  Commission,
+  Customer,
+  PartnerGroup,
+  Program,
+  Project,
+  User,
+} from "@prisma/client";
 
 // Send email to partner and program owners when a commission is created
 export async function notifyPartnerCommission({

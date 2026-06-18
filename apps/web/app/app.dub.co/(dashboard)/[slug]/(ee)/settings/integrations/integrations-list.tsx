@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { Integration } from "@/lib/prisma/client";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { Integration } from "@prisma/client";
 import { Suspense } from "react";
 import { EnabledIntegrations } from "./enabled-integrations";
 import {

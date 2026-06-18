@@ -3,12 +3,12 @@ import { trackApplicationEvents } from "@/lib/application-events/update-applicat
 import { withCron } from "@/lib/cron/with-cron";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@dub/email";
+import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
 import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
-} from "@/lib/prisma/client";
-import { sendEmail } from "@dub/email";
-import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 

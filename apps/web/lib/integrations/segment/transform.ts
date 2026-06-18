@@ -1,4 +1,3 @@
-import { Link } from "@/lib/prisma/client";
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import {
   ClickEventWebhookPayload,
@@ -7,6 +6,7 @@ import {
   SaleEventWebhookPayload,
 } from "@/lib/webhook/types";
 import { capitalize } from "@dub/utils";
+import { Link } from "@prisma/client";
 import * as z from "zod/v4";
 
 const integration = {

@@ -1,7 +1,7 @@
-import { Payout, Program } from "@/lib/prisma/client";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { StatusBadge, Tooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
+import { Payout, Program } from "@prisma/client";
 import { useMemo } from "react";
 import { PayoutStatusBadges } from "./payout-status-badges";
 import { PAYOUT_STATUS_DESCRIPTIONS } from "./payout-status-descriptions";

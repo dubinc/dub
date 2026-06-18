@@ -9,12 +9,12 @@ import {
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
 import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
-import { CommissionType } from "@/lib/prisma/client";
 import {
   PartnerProfileCustomerSchema,
   getPartnerCustomersQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { toCentsNumber } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

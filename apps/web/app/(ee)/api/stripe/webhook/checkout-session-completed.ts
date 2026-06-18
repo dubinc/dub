@@ -5,7 +5,6 @@ import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache"
 import { tokenCache } from "@/lib/auth/token-cache";
 import { wouldGainPartnerAccess } from "@/lib/plans/has-partner-access";
 import { prisma } from "@/lib/prisma";
-import { User } from "@/lib/prisma/client";
 import { stripe } from "@/lib/stripe";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
@@ -15,6 +14,7 @@ import {
   getWorkspaceLimitsForStripeSubscriptionStatus,
   log,
 } from "@dub/utils";
+import { User } from "@prisma/client";
 import Stripe from "stripe";
 import { getPlanPeriodFromStripeSubscription } from "./utils/stripe-plan-period";
 

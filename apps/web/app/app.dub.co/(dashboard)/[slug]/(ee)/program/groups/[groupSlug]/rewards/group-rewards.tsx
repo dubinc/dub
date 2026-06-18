@@ -1,7 +1,6 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { EventType } from "@/lib/prisma/client";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import type { GroupProps, RewardProps } from "@/lib/types";
@@ -22,6 +21,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
+import { EventType } from "@prisma/client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";

@@ -1,4 +1,4 @@
-import { Reward } from "@/lib/prisma/client";
+import { Reward } from "@prisma/client";
 import { describe, expect, test, vi } from "vitest";
 import { resolveClickRewardAmount } from "../../app/(ee)/api/cron/aggregate-clicks/resolve-click-reward-amount";
 import { IntegrationHarness } from "../utils/integration";

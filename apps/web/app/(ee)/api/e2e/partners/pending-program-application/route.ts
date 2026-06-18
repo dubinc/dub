@@ -4,7 +4,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 import { assertE2EWorkspace } from "../../guard";

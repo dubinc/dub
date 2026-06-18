@@ -1,7 +1,7 @@
 "use client";
 
-import { PartnerLinkStructure } from "@/lib/prisma/client";
 import { getDomainWithoutWWW } from "@dub/utils";
+import { PartnerLinkStructure } from "@prisma/client";
 
 export const getLinkStructureOptions = ({
   domain,

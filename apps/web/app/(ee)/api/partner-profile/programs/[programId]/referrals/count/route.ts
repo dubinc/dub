@@ -3,7 +3,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { getReferredPartnersCountQuerySchema } from "@/lib/partner-referrals/schemas";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/:programId/referrals/count

@@ -1,8 +1,8 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { evaluateRewardConditions } from "@/lib/partners/evaluate-reward-conditions";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
-import { Reward } from "@/lib/prisma/client";
 import { rewardConditionsArraySchema } from "@/lib/zod/schemas/rewards";
+import { Reward } from "@prisma/client";
 
 // Resolve the click reward amount for a given reward and country
 export function resolveClickRewardAmount({

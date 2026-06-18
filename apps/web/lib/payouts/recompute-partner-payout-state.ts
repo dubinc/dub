@@ -1,7 +1,7 @@
-import { Partner, PartnerPayoutMethod } from "@/lib/prisma/client";
 import { stripe } from "@/lib/stripe";
 import { getStripeRecipientAccount } from "@/lib/stripe/get-stripe-recipient-account";
 import { prettyPrint } from "@dub/utils";
+import { Partner, PartnerPayoutMethod } from "@prisma/client";
 import { getStripeRecipientPayoutMethod } from "../stripe/get-stripe-recipient-payout-method";
 
 const PAYOUT_METHOD_PRIORITY: PartnerPayoutMethod[] = [

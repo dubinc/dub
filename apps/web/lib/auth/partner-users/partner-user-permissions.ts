@@ -1,4 +1,4 @@
-import type { PartnerRole } from "@/lib/prisma/client";
+import type { PartnerRole } from "@prisma/client";
 
 export type Permission = (typeof PERMISSIONS)[number];
 

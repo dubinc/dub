@@ -1,4 +1,4 @@
-import { PartnerPlatform, PlatformType } from "@/lib/prisma/client";
+import { PartnerPlatform, PlatformType } from "@prisma/client";
 import { scrapeCreatorsFetch } from "./client";
 
 type SocialProfile = Pick<

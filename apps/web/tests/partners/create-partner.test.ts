@@ -1,7 +1,7 @@
 import { generateRandomName } from "@/lib/names";
-import { Partner } from "@/lib/prisma/client";
 import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
 import { R2_URL } from "@dub/utils";
+import { Partner } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { describe, expect, test } from "vitest";
 import { randomId, randomPartnerEmail } from "../utils/helpers";

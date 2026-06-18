@@ -1,4 +1,4 @@
-import { RewardStructure } from "@/lib/prisma/client";
+import { RewardStructure } from "@prisma/client";
 import { Stripe } from "stripe";
 
 /**

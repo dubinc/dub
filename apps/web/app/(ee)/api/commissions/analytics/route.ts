@@ -8,9 +8,9 @@ import {
 } from "@/lib/commissions/schema";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { prisma } from "@/lib/prisma";
-import { CommissionStatus, CommissionType, Prisma } from "@/lib/prisma/client";
 import type { CommissionAnalyticsQuery } from "@/lib/types";
 import { capitalize, parseFilterValue } from "@dub/utils";
+import { CommissionStatus, CommissionType, Prisma } from "@prisma/client";
 import { format } from "date-fns/format";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

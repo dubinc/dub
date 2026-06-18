@@ -1,7 +1,6 @@
 "use client";
 
 import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
-import { PayoutStatus } from "@/lib/prisma/client";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";
@@ -31,6 +30,7 @@ import {
   formatDateTimeSmart,
   formatPeriod,
 } from "@dub/utils";
+import { PayoutStatus } from "@prisma/client";
 import { addBusinessDays } from "date-fns";
 import Link from "next/link";
 import { useEffect, useState } from "react";

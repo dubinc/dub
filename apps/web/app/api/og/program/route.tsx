@@ -1,8 +1,8 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { prisma } from "@/lib/prisma";
-import { Reward } from "@/lib/prisma/client";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { Reward } from "@prisma/client";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { SVGProps } from "react";

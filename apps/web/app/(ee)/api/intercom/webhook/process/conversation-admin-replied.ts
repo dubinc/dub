@@ -12,12 +12,6 @@ import {
 import { PROGRAM_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
 import { sanitizeFileName } from "@/lib/messages/utils";
 import { prisma } from "@/lib/prisma";
-import {
-  InstalledIntegration,
-  Message,
-  MessageAttachment,
-  Program,
-} from "@/lib/prisma/client";
 import { storage } from "@/lib/storage";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -25,6 +19,12 @@ import {
   nanoid,
   pluralize,
 } from "@dub/utils";
+import {
+  InstalledIntegration,
+  Message,
+  MessageAttachment,
+  Program,
+} from "@prisma/client";
 import * as z from "zod/v4";
 
 export async function handleConversationAdminReplied({

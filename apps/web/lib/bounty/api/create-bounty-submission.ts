@@ -8,13 +8,6 @@ import { addFrequency, getCurrentPeriodNumber } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { prisma } from "@/lib/prisma";
 import {
-  BountySubmission,
-  Partner,
-  PlatformType,
-  Prisma,
-  WorkspaceRole,
-} from "@/lib/prisma/client";
-import {
   createBountySubmissionInputSchema,
   submissionRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
@@ -22,6 +15,13 @@ import { sendBatchEmail, sendEmail } from "@dub/email";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { getDomainWithoutWWW, isValidUrl, R2_URL } from "@dub/utils";
+import {
+  BountySubmission,
+  Partner,
+  PlatformType,
+  Prisma,
+  WorkspaceRole,
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";
 import * as z from "zod/v4";

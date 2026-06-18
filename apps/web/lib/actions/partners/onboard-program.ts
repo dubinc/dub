@@ -2,8 +2,8 @@
 
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@/lib/prisma";
-import { Project } from "@/lib/prisma/client";
 import { onboardProgramSchema } from "@/lib/zod/schemas/program-onboarding";
+import { Project } from "@prisma/client";
 import { redirect } from "next/navigation";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";

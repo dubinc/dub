@@ -1,12 +1,12 @@
 "use client";
 
-import { PartnerPayoutMethod } from "@/lib/prisma/client";
 import { AdminNetworkPartner } from "@/lib/types";
 import { NetworkStatusBadges } from "@/ui/partners/partner-network/network-status-badges";
 import { getPayoutMethodLabel } from "@/ui/partners/payouts/payout-method-config";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { StatusBadge, TimestampTooltip } from "@dub/ui";
 import { capitalize, COUNTRIES, formatDate } from "@dub/utils";
+import { PartnerPayoutMethod } from "@prisma/client";
 
 type PartnerChangeLogEntry = NonNullable<
   AdminNetworkPartner["changeHistoryLog"]

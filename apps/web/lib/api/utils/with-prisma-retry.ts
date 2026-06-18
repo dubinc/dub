@@ -1,4 +1,4 @@
-import { Prisma } from "@/lib/prisma/client";
+import { Prisma } from "@prisma/client";
 
 const DEFAULT_CONFIG = {
   maxRetries: 3,

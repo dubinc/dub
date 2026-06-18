@@ -5,12 +5,12 @@ import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { prisma } from "@/lib/prisma";
-import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import {
   ACTIVE_ENROLLMENT_STATUSES,
   bulkBanPartnersSchema,
 } from "@/lib/zod/schemas/partners";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";

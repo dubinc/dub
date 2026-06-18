@@ -6,7 +6,6 @@ import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { Program, Project, User } from "@/lib/prisma/client";
 import { storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
@@ -21,6 +20,7 @@ import ProgramInvite from "@dub/email/templates/program-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
 import { getDomainWithoutWWW, isLegacyBusinessPlan, nanoid } from "@dub/utils";
+import { Program, Project, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 

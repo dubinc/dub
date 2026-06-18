@@ -1,6 +1,5 @@
 "use client";
 
-import { Invoice } from "@/lib/prisma/client";
 import useProgram from "@/lib/swr/use-program";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -13,6 +12,7 @@ import {
   fetcher,
   pluralize,
 } from "@dub/utils";
+import { Invoice } from "@prisma/client";
 import Confetti from "canvas-confetti";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";

@@ -14,7 +14,7 @@ import {
   Reward,
   User,
   WorkspaceRole,
-} from "@/lib/prisma/client";
+} from "@prisma/client";
 import "dotenv-flow/config";
 import fs from "fs";
 import path from "path";

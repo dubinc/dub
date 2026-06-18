@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
 import { sendEmail } from "@dub/email";
 import PartnerTremendousPayout from "@dub/email/templates/partner-tremendous-payout";
 import {
@@ -8,6 +7,7 @@ import {
   currencyFormatter,
   log,
 } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { CreateOrder200Response, OrdersApi } from "tremendous";
 import { trackCommissionStatusUpdatesByProgram } from "../api/commissions/track-commission-update-activity-log";

@@ -1,6 +1,5 @@
 "use client";
 
-import { PartnerRole } from "@/lib/prisma/client";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerUserProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
@@ -30,6 +29,7 @@ import {
   UserCrown,
 } from "@dub/ui/icons";
 import { cn, fetcher, timeAgo } from "@dub/utils";
+import { PartnerRole } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus, UserPlus } from "lucide-react";

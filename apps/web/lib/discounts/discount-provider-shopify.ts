@@ -1,7 +1,7 @@
 import { decryptOrPassthrough } from "@/lib/encryption";
 import { prisma } from "@/lib/prisma";
-import { Discount, Project } from "@/lib/prisma/client";
 import { SHOPIFY_INTEGRATION_ID, nanoid } from "@dub/utils";
+import { Discount, Project } from "@prisma/client";
 import {
   ShopifyAdminGraphqlError,
   shopifyAdminGraphql,

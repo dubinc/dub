@@ -1,5 +1,5 @@
-import { PlatformType } from "@/lib/prisma/client";
 import { getUrlFromStringIfValid } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 
 interface SocialPlatformConfig {
   patterns: RegExp[];

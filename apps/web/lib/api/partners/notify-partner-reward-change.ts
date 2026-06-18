@@ -1,8 +1,8 @@
 import type { RewardJob } from "@/lib/api/rewards/queue-reward-processing";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
-import { Program, Reward, User } from "@/lib/prisma/client";
 import { RewardProps } from "@/lib/types";
 import type PartnerRewardUpdated from "@dub/email/templates/partner-reward-updated";
+import { Program, Reward, User } from "@prisma/client";
 
 const REWARD_ICONS: Record<RewardProps["event"], string> = {
   click: "https://assets.dub.co/email-assets/icons/cursor-rays.png",

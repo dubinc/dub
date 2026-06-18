@@ -11,7 +11,7 @@ import {
   PartnerRole,
   ProgramEnrollmentStatus,
   SubmittedLeadStatus,
-} from "@/lib/prisma/client";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
 import {

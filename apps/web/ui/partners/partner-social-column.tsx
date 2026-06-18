@@ -1,7 +1,7 @@
-import { PlatformType } from "@/lib/prisma/client";
 import { PartnerPlatformProps } from "@/lib/types";
 import { BadgeCheck2Fill, TimestampTooltip } from "@dub/ui";
 import { getDomainWithoutWWW } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 
 const PLATFORMS_WITH_AT: PlatformType[] = [
   "youtube",

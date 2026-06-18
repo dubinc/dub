@@ -1,4 +1,4 @@
-import { WorkspaceRole } from "@/lib/prisma/client";
+import { WorkspaceRole } from "@prisma/client";
 import {
   getPermissionsByRole,
   PermissionAction,

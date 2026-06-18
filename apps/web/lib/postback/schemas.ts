@@ -1,5 +1,5 @@
-import { PostbackReceiver } from "@/lib/prisma/client";
 import { parseUrlSchema } from "@/lib/zod/schemas/utils";
+import { PostbackReceiver } from "@prisma/client";
 import * as z from "zod/v4";
 import { clickEventSchema } from "../zod/schemas/clicks";
 import { CommissionSchema } from "../zod/schemas/commissions";

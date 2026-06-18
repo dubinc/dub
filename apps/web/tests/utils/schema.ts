@@ -1,5 +1,5 @@
-import { Link, Project, Tag } from "@/lib/prisma/client";
 import { LinkSchema as LinkSchemaOld } from "@/lib/zod/schemas/links";
+import { Link, Project, Tag } from "@prisma/client";
 import { expect } from "vitest";
 import * as z from "zod/v4";
 

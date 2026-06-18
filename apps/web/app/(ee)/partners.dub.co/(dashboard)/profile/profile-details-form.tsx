@@ -1,7 +1,6 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
-import { PartnerProfileType } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerProps } from "@/lib/types";
@@ -21,6 +20,7 @@ import {
   buttonVariants,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { PartnerProfileType } from "@prisma/client";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, RefObject, SetStateAction, useEffect, useRef } from "react";

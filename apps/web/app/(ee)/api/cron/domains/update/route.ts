@@ -8,9 +8,9 @@ import { includeProgramEnrollment } from "@/lib/api/links/include-program-enroll
 import { includeTags } from "@/lib/api/links/include-tags";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
-import { Link } from "@/lib/prisma/client";
 import { recordLink } from "@/lib/tinybird";
 import { linkConstructorSimple } from "@dub/utils";
+import { Link } from "@prisma/client";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";

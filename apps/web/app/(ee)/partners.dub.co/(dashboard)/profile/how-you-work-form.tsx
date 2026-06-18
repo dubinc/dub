@@ -12,9 +12,9 @@ import {
   preferredEarningStructures,
   salesChannels,
 } from "@/lib/partners/partner-profile";
-import { PreferredEarningStructure, SalesChannel } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { cn } from "@dub/utils";
+import { PreferredEarningStructure, SalesChannel } from "@prisma/client";
 
 type HowYouWorkFormData = {
   preferredEarningStructures: PreferredEarningStructure[];

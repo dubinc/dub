@@ -1,8 +1,8 @@
 import { isValidDomainFormatWithLocalhost } from "@/lib/api/domains/is-valid-domain";
 import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
-import { PartnerLinkStructure } from "@/lib/prisma/client";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { validSlugRegex } from "@dub/utils";
+import { PartnerLinkStructure } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";

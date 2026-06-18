@@ -1,7 +1,6 @@
 "use client";
 
 import { setDefaultPayoutMethodAction } from "@/lib/actions/partners/set-default-payout-method";
-import { PartnerPayoutMethod } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerPayoutSettings from "@/lib/swr/use-partner-payout-settings";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
@@ -10,6 +9,7 @@ import { partnerPayoutMethodSchema } from "@/lib/zod/schemas/partner-profile";
 import { getPayoutMethodIconConfig } from "@/ui/partners/payouts/payout-method-config";
 import { Button, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { PartnerPayoutMethod } from "@prisma/client";
 import { ChevronsUpDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback, useState } from "react";

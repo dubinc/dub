@@ -1,11 +1,11 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
-import { Prisma, SubmittedLeadStatus } from "@/lib/prisma/client";
 import {
   getPartnerSubmittedLeadsCountQuerySchema,
   partnerSubmittedLeadsCountResponseSchema,
 } from "@/lib/zod/schemas/partner-profile";
+import { Prisma, SubmittedLeadStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/submitted-leads/count

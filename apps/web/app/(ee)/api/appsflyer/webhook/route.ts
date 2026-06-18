@@ -9,10 +9,10 @@ import { appsflyerAmountToDubCents } from "@/lib/integrations/appsflyer/amount-t
 import { APPSFLYER_IP_RANGES } from "@/lib/integrations/appsflyer/constants";
 import { isIpInRange } from "@/lib/middleware/utils/is-ip-in-range";
 import { prisma } from "@/lib/prisma";
-import { Project } from "@/lib/prisma/client";
 import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
 import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
 import { APPSFLYER_INTEGRATION_ID, getSearchParams } from "@dub/utils";
+import { Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../cron/utils";

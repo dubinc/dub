@@ -1,6 +1,5 @@
 "use client";
 
-import { CommissionType } from "@/lib/prisma/client";
 import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -33,6 +32,7 @@ import {
   getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { Cell } from "@tanstack/react-table";
 import { useParams } from "next/navigation";
 import useSWR from "swr";

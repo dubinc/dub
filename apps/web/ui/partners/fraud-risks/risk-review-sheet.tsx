@@ -1,7 +1,6 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { FraudRuleType } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupProps } from "@/lib/types";
@@ -23,6 +22,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, fetcher, formatDateTime } from "@dub/utils";
+import { FraudRuleType } from "@prisma/client";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
 import useSWR from "swr";

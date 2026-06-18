@@ -1,11 +1,11 @@
 import { qstash } from "@/lib/cron";
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { prisma } from "@/lib/prisma";
-import { Invoice } from "@/lib/prisma/client";
 import { sendBatchEmail } from "@dub/email";
 import DomainExpired from "@dub/email/templates/domain-expired";
 import DomainRenewalFailed from "@dub/email/templates/domain-renewal-failed";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Invoice } from "@prisma/client";
 
 export async function processDomainRenewalFailure({
   invoice,

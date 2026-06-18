@@ -1,4 +1,4 @@
-import { Prisma } from "@/lib/prisma/client";
+import { Prisma } from "@prisma/client";
 
 /**
  * Prisma `where` input for partners reachable by a program: approved/trusted

@@ -1,5 +1,5 @@
-import { Postback } from "@/lib/prisma/client";
 import { PostbackTrigger } from "@/lib/types";
+import { Postback } from "@prisma/client";
 import type { z } from "zod/v4";
 import { PostbackAdapter } from "./postback-adapters";
 import {

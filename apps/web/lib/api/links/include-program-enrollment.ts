@@ -1,4 +1,4 @@
-import { Prisma } from "@/lib/prisma/client";
+import { Prisma } from "@prisma/client";
 
 export const includeProgramEnrollment = {
   programEnrollment: {

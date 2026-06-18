@@ -14,7 +14,6 @@ import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
 import { prisma } from "@/lib/prisma";
-import { Partner, Program } from "@/lib/prisma/client";
 import {
   recordClickZod,
   recordClickZodSchema,
@@ -32,6 +31,7 @@ import {
   NETWORK_PROGRAM_SLUG,
   NETWORK_WORKSPACE_ID,
 } from "@dub/utils";
+import { Partner, Program } from "@prisma/client";
 import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";

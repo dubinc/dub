@@ -1,4 +1,3 @@
-import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import { SubmittedLeadProps } from "@/lib/types";
 import { useConfirmSubmittedLeadStatusChangeModal } from "@/ui/modals/confirm-submitted-lead-status-change-modal";
 import { X } from "@/ui/shared/icons";
@@ -10,6 +9,7 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
+import { SubmittedLeadStatus } from "@prisma/client";
 import { Dispatch, SetStateAction, useState } from "react";
 import { SubmittedLeadActivitySection } from "../activity-logs/submitted-lead-activity-section";
 import { SubmittedLeadContactDetails } from "./submitted-lead-contact-details";

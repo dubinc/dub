@@ -1,4 +1,4 @@
-import { Tag } from "@/lib/prisma/client";
+import { Tag } from "@prisma/client";
 import { expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import { ActivityLog } from "@/lib/types";
+import { SubmittedLeadStatus } from "@prisma/client";
 import { ReactNode } from "react";
 import { ActorChip, SubmittedLeadStatusPill } from "../activity-entry-chips";
 

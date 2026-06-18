@@ -3,8 +3,8 @@
 import { trackSale } from "@/lib/api/conversions/track-sale";
 import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@/lib/prisma";
-import { Project } from "@/lib/prisma/client";
 import { SubmittedLeadWithCustomer } from "@/lib/types";
+import { Project } from "@prisma/client";
 
 interface MarkSubmittedLeadClosedWonInput {
   workspace: Pick<Project, "id" | "stripeConnectId" | "webhookEnabled">;

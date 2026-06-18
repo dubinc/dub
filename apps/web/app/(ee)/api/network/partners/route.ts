@@ -5,11 +5,11 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/constants/program";
 import { prisma } from "@/lib/prisma";
-import { PreferredEarningStructure, SalesChannel } from "@/lib/prisma/client";
 import {
   NetworkPartnerSchema,
   getNetworkPartnersQuerySchema,
 } from "@/lib/zod/schemas/partner-network";
+import { PreferredEarningStructure, SalesChannel } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

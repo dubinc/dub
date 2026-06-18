@@ -1,4 +1,4 @@
-import { Customer } from "@/lib/prisma/client";
+import { Customer } from "@prisma/client";
 
 export const isFirstConversion = ({
   customer,

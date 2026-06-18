@@ -1,6 +1,5 @@
 "use client";
 
-import { PartnerNetworkStatus, PlatformType } from "@/lib/prisma/client";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { AdminNetworkPartner } from "@/lib/types";
 import { NetworkStatusBadges } from "@/ui/partners/partner-network/network-status-badges";
@@ -19,6 +18,7 @@ import {
 } from "@dub/ui";
 import { CircleDotted, FlagWavy } from "@dub/ui/icons";
 import { cn, COUNTRIES, fetcher, formatDate } from "@dub/utils";
+import { PartnerNetworkStatus, PlatformType } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";

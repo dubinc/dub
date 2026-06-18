@@ -2,7 +2,6 @@
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
-import type { EventType } from "@/lib/prisma/client";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
@@ -10,6 +9,7 @@ import { COMMISSION_TYPES } from "@/lib/zod/schemas/rewards";
 import { RewardQualityFieldIndicator } from "@/ui/partners/rewards/reward-quality";
 import { Button, CircleCheckFill } from "@dub/ui";
 import { cn } from "@dub/utils";
+import type { EventType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";

@@ -1,6 +1,5 @@
 "use client";
 
-import { Category } from "@/lib/prisma/client";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import {
   Button,
@@ -13,6 +12,7 @@ import {
 } from "@dub/ui";
 import { Xmark } from "@dub/ui/icons";
 import { cn, fetcher, getDomainWithoutWWW, OG_AVATAR_URL } from "@dub/utils";
+import { Category } from "@prisma/client";
 import {
   ProgramCategoriesList,
   UpdateProgramCategoriesModal,

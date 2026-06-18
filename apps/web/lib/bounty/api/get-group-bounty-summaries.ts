@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { BountyType } from "@/lib/prisma/client";
+import { BountyType } from "@prisma/client";
 
 type BountyEligibilityCandidate = {
   id: string;

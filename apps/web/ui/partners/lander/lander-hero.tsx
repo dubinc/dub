@@ -1,6 +1,6 @@
-import { Program } from "@/lib/prisma/client";
 import { ProgramLanderData } from "@/lib/types";
 import { cn } from "@dub/utils";
+import { Program } from "@prisma/client";
 import { ElementType } from "react";
 
 export function LanderHero({

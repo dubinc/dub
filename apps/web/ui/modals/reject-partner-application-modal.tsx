@@ -3,7 +3,6 @@ import {
   getProgramApplicationRejectionReasonLabel,
   PROGRAM_APPLICATION_REJECTION_REASON_ORDER,
 } from "@/lib/partners/program-application-rejection";
-import { ProgramApplicationRejectionReason } from "@/lib/prisma/client";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import {
@@ -22,6 +21,7 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { ProgramApplicationRejectionReason } from "@prisma/client";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import {

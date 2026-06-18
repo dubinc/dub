@@ -1,7 +1,6 @@
 "use client";
 
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
-import { FraudAlertStatus } from "@/lib/prisma/client";
 import { PartnerPlatformProps } from "@/lib/types";
 import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
 import {
@@ -33,6 +32,7 @@ import {
   formatDateTimeSmart,
   OG_AVATAR_URL,
 } from "@dub/utils";
+import { FraudAlertStatus } from "@prisma/client";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";

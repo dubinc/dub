@@ -4,13 +4,13 @@ import {
   industryInterests,
   monthlyTrafficAmounts,
 } from "@/lib/partners/partner-profile";
-import { IndustryInterest, MonthlyTraffic } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { PartnerProps } from "@/lib/types";
 import { MAX_PARTNER_DESCRIPTION_LENGTH } from "@/lib/zod/schemas/partners";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, RadioGroup, RadioGroupItem, useEnterSubmit } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { IndustryInterest, MonthlyTraffic } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";

@@ -1,10 +1,10 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { FraudRuleType } from "@/lib/prisma/client";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupProps } from "@/lib/types";
 import { Button, Msgs } from "@dub/ui";
+import { FraudRuleType } from "@prisma/client";
 import Link from "next/link";
 
 export function RequestDetailsBanner({

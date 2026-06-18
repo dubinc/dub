@@ -2,7 +2,6 @@
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { RewardStructure } from "@/lib/prisma/client";
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -41,6 +40,7 @@ import {
   pluralize,
   truncate,
 } from "@dub/utils";
+import { RewardStructure } from "@prisma/client";
 import { Command } from "cmdk";
 import { Package } from "lucide-react";
 import { motion } from "motion/react";

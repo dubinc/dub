@@ -1,4 +1,4 @@
-import { WorkspaceRole } from "@/lib/prisma/client";
+import { WorkspaceRole } from "@prisma/client";
 import { PermissionAction } from "../rbac/permissions";
 import { ResourceKey } from "../rbac/resources";
 

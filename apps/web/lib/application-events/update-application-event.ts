@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
+import { Prisma } from "@prisma/client";
 import { cookies } from "next/headers";
 import { getApplicationEventCookieName } from "./utils";
 

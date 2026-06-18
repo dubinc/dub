@@ -1,9 +1,9 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { PartnerGroup, WorkflowTrigger } from "@/lib/prisma/client";
 import { WorkflowAction, WorkflowCondition, WorkspaceProps } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { pluralize } from "@dub/utils";
+import { PartnerGroup, WorkflowTrigger } from "@prisma/client";
 import { createId } from "../create-id";
 import { DubApiError } from "../errors";
 import { findGroupsWithMatchingRules } from "./find-groups-with-matching-rules";

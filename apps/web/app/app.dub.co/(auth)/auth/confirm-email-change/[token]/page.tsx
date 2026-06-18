@@ -1,11 +1,11 @@
 import { getSession, hashToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { VerificationToken } from "@/lib/prisma/client";
 import { redis } from "@/lib/upstash";
 import EmptyState from "@/ui/shared/empty-state";
 import { sendEmail } from "@dub/email";
 import EmailUpdated from "@dub/email/templates/email-updated";
 import { InputPassword, LoadingSpinner } from "@dub/ui";
+import { VerificationToken } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";

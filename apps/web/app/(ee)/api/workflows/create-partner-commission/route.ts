@@ -13,14 +13,6 @@ import { determinePartnerRewards } from "@/lib/partners/determine-partner-reward
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
-import {
-  Commission,
-  Link,
-  Partner,
-  PartnerGroup,
-  ProgramEnrollment,
-  Reward,
-} from "@/lib/prisma/client";
 import { RewardProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -30,6 +22,14 @@ import {
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { currencyFormatter, log, pick, toCentsNumber } from "@dub/utils";
+import {
+  Commission,
+  Link,
+  Partner,
+  PartnerGroup,
+  ProgramEnrollment,
+  Reward,
+} from "@prisma/client";
 import { WorkflowRetryAfterError } from "@upstash/workflow";
 import { serve } from "@upstash/workflow/nextjs";
 import { differenceInMonths } from "date-fns";

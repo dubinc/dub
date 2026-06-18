@@ -1,5 +1,5 @@
-import { Domain } from "@/lib/prisma/client";
 import { DomainStatusSchema } from "@/lib/zod/schemas/domains";
+import { Domain } from "@prisma/client";
 import { describe, expect, onTestFinished, test } from "vitest";
 import * as z from "zod/v4";
 import { randomId } from "../utils/helpers";

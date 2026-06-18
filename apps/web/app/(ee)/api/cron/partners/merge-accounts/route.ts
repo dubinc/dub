@@ -7,13 +7,13 @@ import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions"
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
-import { FraudRuleType } from "@/lib/prisma/client";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { log, prettyPrint, R2_URL } from "@dub/utils";
+import { FraudRuleType } from "@prisma/client";
 import * as z from "zod/v4";
 
 export const dynamic = "force-dynamic";

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { WorkspaceRole } from "@/lib/prisma/client";
 import { DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import { getSession, type Session } from "./utils";
 
 // Internal use only (for admin portal)

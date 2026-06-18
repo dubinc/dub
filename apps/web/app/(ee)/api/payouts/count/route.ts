@@ -4,8 +4,8 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { PayoutStatus, Prisma } from "@/lib/prisma/client";
 import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
+import { PayoutStatus, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/payouts/count

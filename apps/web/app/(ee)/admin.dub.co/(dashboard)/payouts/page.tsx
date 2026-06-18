@@ -1,7 +1,6 @@
 "use client";
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
-import { InvoiceStatus } from "@/lib/prisma/client";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
@@ -26,6 +25,7 @@ import {
   OG_AVATAR_URL,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
+import { InvoiceStatus } from "@prisma/client";
 import Link from "next/link";
 import { Fragment, Suspense, useCallback, useMemo } from "react";
 import useSWR from "swr";

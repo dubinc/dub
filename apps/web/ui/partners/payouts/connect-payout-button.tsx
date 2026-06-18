@@ -1,11 +1,11 @@
 "use client";
 
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
-import { PartnerPayoutMethod } from "@/lib/prisma/client";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { useConnectPayoutModal } from "@/ui/partners/payouts/connect-payout-modal";
 import { Button, ButtonProps, TooltipContent } from "@dub/ui";
 import { COUNTRIES } from "@dub/utils";
+import { PartnerPayoutMethod } from "@prisma/client";
 import { useCallback, useMemo } from "react";
 import { usePayoutConnectFlow } from "./use-payout-connect-flow";
 

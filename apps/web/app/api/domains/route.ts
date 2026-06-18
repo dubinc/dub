@@ -9,13 +9,13 @@ import { isNonEmptyJson } from "@/lib/api/utils/is-non-empty-json";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { prisma } from "@/lib/prisma";
-import { Link, Prisma } from "@/lib/prisma/client";
 import { storage } from "@/lib/storage";
 import {
   createDomainBodySchemaExtended,
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
 import { combineWords, DEFAULT_LINK_PROPS, nanoid } from "@dub/utils";
+import { Link, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace

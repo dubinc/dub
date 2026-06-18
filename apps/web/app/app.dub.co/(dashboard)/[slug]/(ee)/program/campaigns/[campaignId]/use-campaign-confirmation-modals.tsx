@@ -1,4 +1,3 @@
-import { CampaignStatus } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
@@ -6,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { pluralize } from "@dub/utils";
+import { CampaignStatus } from "@prisma/client";
 import { isFuture } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";

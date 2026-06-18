@@ -1,7 +1,6 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
-import { PayoutStatus } from "@/lib/prisma/client";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ConfirmPayoutsSheet } from "@/ui/partners/confirm-payouts-sheet";
@@ -13,6 +12,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
+import { PayoutStatus } from "@prisma/client";
 import Link from "next/link";
 
 export function PayoutStats() {

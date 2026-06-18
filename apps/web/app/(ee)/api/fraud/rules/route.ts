@@ -5,8 +5,8 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { FraudRuleType, Prisma } from "@/lib/prisma/client";
 import { updateFraudRuleSettingsSchema } from "@/lib/zod/schemas/fraud";
+import { FraudRuleType, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

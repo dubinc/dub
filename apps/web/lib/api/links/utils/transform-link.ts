@@ -1,10 +1,10 @@
-import { Dashboard, Link, Tag } from "@/lib/prisma/client";
 import {
   DiscountProps,
   PartnerProps,
   ProgramEnrollmentProps,
 } from "@/lib/types";
 import { toCentsNumber } from "@dub/utils";
+import { Dashboard, Link, Tag } from "@prisma/client";
 import { prefixWorkspaceId } from "../../workspaces/workspace-id";
 import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
 

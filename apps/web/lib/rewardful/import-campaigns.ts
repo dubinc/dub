@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { EventType, Prisma, RewardStructure } from "@/lib/prisma/client";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { randomValue } from "@dub/utils";
+import { EventType, Prisma, RewardStructure } from "@prisma/client";
 import { differenceInSeconds } from "date-fns";
 import { createId } from "../api/create-id";
 import { serializeReward } from "../api/partners/serialize-reward";

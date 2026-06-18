@@ -4,9 +4,9 @@ import {
 } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { Invoice, PartnerPayoutMethod } from "@/lib/prisma/client";
 import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
+import { Invoice, PartnerPayoutMethod } from "@prisma/client";
 import { stripeChargeMetadataSchema } from "./utils";
 
 const queue = qstash.queue({

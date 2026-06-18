@@ -1,6 +1,5 @@
 "use client";
 
-import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import { AdminNetworkPartner } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
@@ -24,6 +23,7 @@ import {
   Users,
 } from "@dub/ui";
 import { cn, COUNTRIES, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";

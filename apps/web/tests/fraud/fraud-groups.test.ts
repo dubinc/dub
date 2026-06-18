@@ -1,5 +1,5 @@
-import { FraudEventStatus, FraudRuleType } from "@/lib/prisma/client";
 import { fraudGroupSchema } from "@/lib/zod/schemas/fraud";
+import { FraudEventStatus, FraudRuleType } from "@prisma/client";
 import { describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 import { IntegrationHarness } from "../utils/integration";

@@ -1,5 +1,5 @@
-import { Message, MessageAttachment } from "@/lib/prisma/client";
 import { storage } from "@/lib/storage";
+import { Message, MessageAttachment } from "@prisma/client";
 
 export async function enrichMessage(
   message: Message & { attachments: MessageAttachment[] },

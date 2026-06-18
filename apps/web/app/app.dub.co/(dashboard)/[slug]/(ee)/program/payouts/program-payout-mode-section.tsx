@@ -1,9 +1,9 @@
 "use client";
 
-import { ProgramPayoutMode } from "@/lib/prisma/client";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CircleDollarOut, Webhook } from "@dub/ui";
+import { ProgramPayoutMode } from "@prisma/client";
 import Link from "next/link";
 
 export function ProgramPayoutModeSection() {

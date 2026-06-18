@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { PayoutStatus } from "@/lib/prisma/client";
+import { PayoutStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { PartnerSchema } from "../zod/schemas/partners";
 import { ProgramSchema } from "../zod/schemas/programs";

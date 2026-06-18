@@ -1,6 +1,5 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Project, ProjectInvite, User } from "@/lib/prisma/client";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   Book2Fill,
@@ -14,6 +13,7 @@ import {
   Wordmark,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { Project, ProjectInvite, User } from "@prisma/client";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AcceptInviteButton } from "./accept-invite-button";

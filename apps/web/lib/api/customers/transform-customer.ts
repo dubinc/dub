@@ -5,7 +5,7 @@ import {
   Link,
   Partner,
   ProgramEnrollment,
-} from "@/lib/prisma/client";
+} from "@prisma/client";
 
 export interface CustomerWithLink extends Customer {
   link?: Link | null;

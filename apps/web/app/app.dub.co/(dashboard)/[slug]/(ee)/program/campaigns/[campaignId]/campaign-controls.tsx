@@ -1,4 +1,3 @@
-import { CampaignStatus } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -18,6 +17,7 @@ import {
   Trash,
   useMediaQuery,
 } from "@dub/ui";
+import { CampaignStatus } from "@prisma/client";
 import { Command } from "cmdk";
 import { isFuture } from "date-fns";
 import { useRouter } from "next/navigation";

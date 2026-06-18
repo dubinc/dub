@@ -1,5 +1,5 @@
-import { FolderAccessLevel, FolderUserRole } from "@/lib/prisma/client";
 import { FolderPermission, FolderSummary } from "@/lib/types";
+import { FolderAccessLevel, FolderUserRole } from "@prisma/client";
 
 export const FOLDER_WORKSPACE_ACCESS: Record<FolderAccessLevel, string> = {
   write: "Can edit",
