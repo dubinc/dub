@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { getLeadEvents } from "../tinybird/get-lead-events";
 import { redis } from "../upstash";
 import { PartnerStackApi } from "./api";

@@ -1,4 +1,3 @@
-import { Category } from "@dub/prisma/client";
 import {
   BookOpen,
   Brush,
@@ -14,6 +13,7 @@ import {
   Sparkle3,
   User,
 } from "@dub/ui/icons";
+import { Category } from "@prisma/client";
 
 export const PROGRAM_CATEGORIES: {
   id: Category;

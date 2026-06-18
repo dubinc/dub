@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
-import { prisma } from "@dub/prisma";
-import { Discount, Link, Partner, Prisma, Project } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Discount, Link, Partner, Prisma, Project } from "@prisma/client";
 import { constructDiscountCode } from "./construct-discount-code";
 import { getDiscountProvider } from "./discount-provider";
 

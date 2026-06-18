@@ -2,6 +2,7 @@
 
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   programLanderSchema,
@@ -10,12 +11,11 @@ import {
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { anthropic } from "@ai-sdk/anthropic";
-import { prisma } from "@dub/prisma";
-import { Reward } from "@dub/prisma/client";
 import FireCrawlApp, {
   ErrorResponse,
   ScrapeResponse,
 } from "@mendable/firecrawl-js";
+import { Reward } from "@prisma/client";
 import { generateText, Output } from "ai";
 import * as z from "zod/v4";
 import { authActionClient } from "../actions/safe-action";

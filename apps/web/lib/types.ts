@@ -31,7 +31,7 @@ import {
   Webhook,
   WorkflowTrigger,
   WorkspaceRole,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import {

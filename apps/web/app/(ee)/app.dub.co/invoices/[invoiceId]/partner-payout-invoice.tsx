@@ -1,7 +1,6 @@
 import { FAST_ACH_FEE_CENTS } from "@/lib/constants/payouts";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { prisma } from "@dub/prisma";
-import { Invoice, Project } from "@dub/prisma/client";
 import {
   APP_DOMAIN,
   currencyFormatter,
@@ -11,6 +10,7 @@ import {
   nFormatter,
   OG_AVATAR_URL,
 } from "@dub/utils";
+import { Invoice, Project } from "@prisma/client";
 import {
   Document,
   Image,

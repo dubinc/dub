@@ -1,6 +1,6 @@
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
+import { prisma } from "@/lib/prisma";
 import { TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS } from "@/lib/tremendous/constants";
-import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { redis } from "../../../lib/upstash";
 

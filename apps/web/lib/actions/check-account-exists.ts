@@ -1,8 +1,8 @@
 "use server";
 
 import { getIP } from "@/lib/api/utils/get-ip";
+import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { shouldApplyRateLimit } from "../api/environment";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";

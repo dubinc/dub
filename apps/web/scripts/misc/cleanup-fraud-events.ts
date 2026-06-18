@@ -1,6 +1,6 @@
 import "dotenv-flow/config";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 
 async function main() {
   const fraudEvents = await prisma.fraudEvent.findMany({

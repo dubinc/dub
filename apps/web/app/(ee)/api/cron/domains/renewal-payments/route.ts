@@ -1,10 +1,10 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { prisma } from "@/lib/prisma";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
-import { prisma } from "@dub/prisma";
-import { Invoice, Project, RegisteredDomain } from "@dub/prisma/client";
 import { ACME_WORKSPACE_ID, DUB_WORKSPACE_ID, log } from "@dub/utils";
+import { Invoice, Project, RegisteredDomain } from "@prisma/client";
 import { addDays, endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";
 

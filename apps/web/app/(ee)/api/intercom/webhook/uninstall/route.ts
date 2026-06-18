@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
 import { intercomUninstallWebhookSchema } from "@/lib/integrations/intercom/schema";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { logAndRespond } from "../../../cron/utils";
 import { verifyIntercomWebhookSignature } from "../verify-webhook-signature";

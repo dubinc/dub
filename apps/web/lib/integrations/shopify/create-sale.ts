@@ -4,12 +4,12 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
 import { recordSale } from "@/lib/tinybird";
 import { LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
-import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";

@@ -2,10 +2,10 @@
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-profile-checklist-progress";
+import { prisma } from "@/lib/prisma";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import { sendEmail } from "@dub/email";
 import NetworkPartnerApplicationSubmitted from "@dub/email/templates/network-partner-application-submitted";
-import { prisma } from "@dub/prisma";
 import { authPartnerActionClient } from "../safe-action";
 
 // Submit a partner network profile

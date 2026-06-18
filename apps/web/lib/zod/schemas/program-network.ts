@@ -1,4 +1,4 @@
-import { Category, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { Category, ProgramEnrollmentStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { GroupBountySummarySchema } from "./group-bounties";

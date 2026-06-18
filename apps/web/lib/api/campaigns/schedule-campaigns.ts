@@ -1,8 +1,8 @@
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import { WORKFLOW_SCHEDULES } from "@/lib/zod/schemas/workflows";
-import { prisma } from "@dub/prisma";
-import { Campaign, Workflow } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Campaign, Workflow } from "@prisma/client";
 import { isScheduledWorkflow } from "../workflows/utils";
 
 // Schedule a marketing campaign

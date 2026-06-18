@@ -2,13 +2,13 @@ import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplica
 import { qstash } from "@/lib/cron";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
+import { prisma } from "@/lib/prisma";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
 import DuplicatePayoutMethod from "@dub/email/templates/duplicate-payout-method";
-import { prisma } from "@dub/prisma";
-import { PartnerProfileType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { PartnerProfileType } from "@prisma/client";
 import Stripe from "stripe";
 
 const stripePayoutQueue = qstash.queue({

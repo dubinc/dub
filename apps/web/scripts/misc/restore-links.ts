@@ -1,6 +1,6 @@
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { chunk, getParamsFromURL, linkConstructorSimple } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";

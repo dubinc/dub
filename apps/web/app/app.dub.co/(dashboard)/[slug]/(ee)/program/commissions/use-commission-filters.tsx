@@ -10,7 +10,6 @@ import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { CommissionType } from "@dub/prisma/client";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { Sliders, Tag, User, Users, Users6 } from "@dub/ui/icons";
 import {
@@ -20,6 +19,7 @@ import {
   nFormatter,
   parseFilterValue,
 } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 

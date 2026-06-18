@@ -1,5 +1,5 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import { Link } from "@dub/prisma/client";
+import { Link } from "@prisma/client";
 import { beforeAll, describe, expect, onTestFinished, test } from "vitest";
 import {
   expectNoOverlap,

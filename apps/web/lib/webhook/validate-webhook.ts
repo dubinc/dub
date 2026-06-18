@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Webhook } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Webhook } from "@prisma/client";
 import * as z from "zod/v4";
 import { DubApiError } from "../api/errors";
 import { getDefaultProgramIdOrThrow } from "../api/programs/get-default-program-id-or-throw";
