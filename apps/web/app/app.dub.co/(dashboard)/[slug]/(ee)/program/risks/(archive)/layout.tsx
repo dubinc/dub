@@ -7,7 +7,11 @@ import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
 import { RiskHistoryNav } from "./risk-history-nav";
 
-export default function RiskHistoryLayout({ children }: { children: ReactNode }) {
+export default function RiskHistoryLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const { slug } = useWorkspace();
   const pathname = usePathname();
 
@@ -16,10 +20,7 @@ export default function RiskHistoryLayout({ children }: { children: ReactNode })
     : "Resolved risk events";
 
   return (
-    <PageContent
-      title={title}
-      titleBackHref={`/${slug}/program/risks`}
-    >
+    <PageContent title={title} titleBackHref={`/${slug}/program/risks`}>
       <PageWidthWrapper>
         <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
           <RiskHistoryNav />

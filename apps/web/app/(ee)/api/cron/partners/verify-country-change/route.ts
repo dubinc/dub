@@ -1,4 +1,5 @@
 import { withCron } from "@/lib/cron/with-cron";
+import { prisma } from "@/lib/prisma";
 import { fetchVeriffSessionDecision } from "@/lib/veriff/fetch-veriff-session-decision";
 import {
   mergeVeriffMetadata,
@@ -7,7 +8,6 @@ import {
 import { sendEmail } from "@dub/email";
 import PartnerIdentityVerificationFailed from "@dub/email/templates/partner-identity-verification-failed";
 import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verified";
-import { prisma } from "@dub/prisma";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import * as z from "zod/v4";
 

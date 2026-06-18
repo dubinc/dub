@@ -1,12 +1,12 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import {
   PROGRAM_RESOURCE_TYPES,
   programResourcesSchema,
 } from "@/lib/zod/schemas/program-resources";
-import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../../safe-action";

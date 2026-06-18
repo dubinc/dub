@@ -24,7 +24,6 @@ import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
   ChevronRight,
@@ -48,6 +47,7 @@ import {
   formatDateTimeSmart,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { PayoutStatus } from "@prisma/client";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { useMemo } from "react";

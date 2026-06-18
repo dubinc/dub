@@ -1,4 +1,4 @@
-import { Message, Partner } from "@dub/prisma/client";
+import { Message, Partner } from "@prisma/client";
 import { IntercomClient } from "intercom-client";
 
 interface IntercomContact {

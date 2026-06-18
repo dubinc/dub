@@ -1,7 +1,7 @@
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { upsertPlainCustomer } from "@/lib/plain/upsert-plain-customer";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { capitalize, formatDate } from "@dub/utils";
 import { uiComponent } from "@team-plain/typescript-sdk";
 import { waitUntil } from "@vercel/functions";

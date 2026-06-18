@@ -1,6 +1,6 @@
 import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
+import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import * as z from "zod/v4";
 

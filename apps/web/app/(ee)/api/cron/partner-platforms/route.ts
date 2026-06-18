@@ -4,7 +4,7 @@ import {
 } from "@/lib/api/scrape-creators/get-social-profile";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { subDays } from "date-fns";
 import * as z from "zod/v4";

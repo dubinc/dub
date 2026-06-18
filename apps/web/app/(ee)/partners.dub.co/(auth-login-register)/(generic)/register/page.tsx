@@ -1,5 +1,5 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { constructMetadata } from "@dub/utils";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";

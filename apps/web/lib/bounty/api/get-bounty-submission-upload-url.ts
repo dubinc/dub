@@ -1,10 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollment } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
+import { ProgramEnrollment } from "@prisma/client";
 
 const MAX_ATTEMPTS = 25;
 const CACHE_KEY_PREFIX = "bounty:submission:file:upload";

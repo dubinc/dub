@@ -6,10 +6,10 @@ import { getProgramPartnerEarningsClaim } from "@/lib/api/programs/get-program-p
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { getUsableNetworkPartnerName } from "@/lib/network/get-program-network-invite-email-defaults";
+import { prisma } from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { anthropic } from "@ai-sdk/anthropic";
-import { prisma } from "@dub/prisma";
 import { generateText, Output } from "ai";
 import * as z from "zod/v4";
 import { authActionClient } from "../actions/safe-action";

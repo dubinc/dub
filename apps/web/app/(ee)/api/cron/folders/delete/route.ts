@@ -3,8 +3,8 @@ import { queueFolderDeletion } from "@/lib/api/folders/queue-folder-deletion";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 
 export const dynamic = "force-dynamic";

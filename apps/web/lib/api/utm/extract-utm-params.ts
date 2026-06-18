@@ -1,4 +1,4 @@
-import { UtmTemplate } from "@dub/prisma/client";
+import { UtmTemplate } from "@prisma/client";
 
 export const extractUtmParams = (
   utmTemplate?: Pick<

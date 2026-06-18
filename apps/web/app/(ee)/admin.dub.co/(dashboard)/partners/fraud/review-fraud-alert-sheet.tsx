@@ -14,7 +14,6 @@ import {
 } from "@/lib/zod/schemas/programs";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { FraudAlertStatus } from "@dub/prisma/client";
 import {
   Button,
   LoadingSpinner,
@@ -33,6 +32,7 @@ import {
   formatDateTimeSmart,
   OG_AVATAR_URL,
 } from "@dub/utils";
+import { FraudAlertStatus } from "@prisma/client";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";

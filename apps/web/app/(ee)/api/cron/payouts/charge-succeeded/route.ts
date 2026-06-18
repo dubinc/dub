@@ -1,8 +1,8 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@dub/prisma";
-import { PartnerPayoutMethod } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
+import { PartnerPayoutMethod } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { queueExternalPayouts } from "./queue-external-payouts";

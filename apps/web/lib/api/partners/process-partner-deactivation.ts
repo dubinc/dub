@@ -1,8 +1,8 @@
 import { Session } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { prisma } from "@dub/prisma";
-import { Partner, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Partner, ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { trackActivityLog } from "../activity-log/track-activity-log";
 

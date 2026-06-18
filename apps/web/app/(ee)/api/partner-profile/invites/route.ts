@@ -6,14 +6,14 @@ import {
   MAX_INVITES_PER_REQUEST,
   MAX_PARTNER_USERS,
 } from "@/lib/constants/partner-profile";
+import { prisma } from "@/lib/prisma";
 import {
   getPartnerUsersQuerySchema,
   invitePartnerUserSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
-import { PartnerRole } from "@dub/prisma/client";
 import { isRejected, pluralize } from "@dub/utils";
+import { PartnerRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
