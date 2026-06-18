@@ -149,8 +149,8 @@ async function createCommission({
     import_id: importId,
     source: "tapfiliate",
     entity: "commission",
-    entity_id: commission.id,
-  };
+    entity_id: commission.id.toString(),
+  } as const;
 
   const existingCommission = await prisma.commission.findUnique({
     where: {
