@@ -2,13 +2,18 @@ import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   getPublicNetworkProgramsQuerySchema,
   NetworkProgramSchema,
+  PROGRAM_NETWORK_MAX_PAGE_SIZE,
 } from "@/lib/zod/schemas/program-network";
 import { prisma } from "@dub/prisma";
 import { cache } from "react";
 import * as z from "zod/v4";
 
+// accepts already-parsed/typed params (untrusted query strings are validated by
+// the caller via parsePublicMarketplaceQuery), so we don't re-parse here
 export const getPublicNetworkPrograms = cache(
-  async (params: z.input<typeof getPublicNetworkProgramsQuerySchema> = {}) => {
+  async (
+    params: Partial<z.infer<typeof getPublicNetworkProgramsQuerySchema>> = {},
+  ) => {
     const {
       category,
       rewardType,
@@ -17,8 +22,8 @@ export const getPublicNetworkPrograms = cache(
       sortBy = "popularity",
       sortOrder = "desc",
       page = 1,
-      pageSize,
-    } = getPublicNetworkProgramsQuerySchema.parse(params);
+      pageSize = PROGRAM_NETWORK_MAX_PAGE_SIZE,
+    } = params;
 
     const programs = await prisma.program.findMany({
       where: {
