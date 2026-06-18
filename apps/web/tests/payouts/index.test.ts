@@ -69,6 +69,44 @@ describe("GET /payouts", async () => {
     );
   });
 
+  test("filters by groupId", async () => {
+    const { data: partnerPayouts, status: partnerStatus } = await http.get<
+      PayoutResponse[]
+    >({
+      path: "/payouts",
+      query: {
+        partnerId: E2E_PARTNER.id,
+        limit: "1",
+      },
+    });
+
+    expect(partnerStatus).toEqual(200);
+    expect(partnerPayouts.length).toBeGreaterThan(0);
+
+    const groupId = partnerPayouts[0].partner.groupId;
+    if (!groupId) {
+      throw new Error("Expected partner payout to include groupId");
+    }
+    expect(groupId).toMatch(/^grp_/);
+
+    const { data, status } = await http.get<PayoutResponse[]>({
+      path: "/payouts",
+      query: {
+        groupId,
+        limit: "5",
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(Array.isArray(data)).toBe(true);
+
+    if (data.length > 0) {
+      expect(data.every((payout) => payout.partner.groupId === groupId)).toBe(
+        true,
+      );
+    }
+  });
+
   test("filters by tenantId", async () => {
     const { data, status } = await http.get<PayoutResponse[]>({
       path: "/payouts",

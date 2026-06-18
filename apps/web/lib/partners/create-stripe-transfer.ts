@@ -77,6 +77,7 @@ export const createStripeTransfer = async ({
         },
         include: commonInclude,
       }),
+
       invoiceId
         ? prisma.payout.findMany({
             where: {
