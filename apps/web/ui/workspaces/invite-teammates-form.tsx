@@ -8,7 +8,7 @@ import {
 } from "@/lib/workspace-roles";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@/lib/prisma/client";
 import { Button, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { cn, isWorkspaceBillingTrialActive, pluralize } from "@dub/utils";

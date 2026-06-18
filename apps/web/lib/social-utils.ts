@@ -1,4 +1,4 @@
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@/lib/prisma/client";
 import { getUrlFromStringIfValid } from "@dub/utils";
 
 interface SocialPlatformConfig {

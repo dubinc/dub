@@ -1,7 +1,7 @@
 import "dotenv-flow/config";
 
-import { prisma } from "@dub/prisma";
-import type { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/lib/prisma/client";
 import {
   DUB_TRIAL_PERIOD_DAYS,
   getWorkspaceLimitsForStripeSubscriptionStatus,

@@ -1,6 +1,6 @@
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma, ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import * as z from "zod/v4";
 import {
   buildMetricRangeWhere,

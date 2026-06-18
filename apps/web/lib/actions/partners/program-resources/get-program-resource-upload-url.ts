@@ -3,7 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { storage } from "@/lib/storage";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";

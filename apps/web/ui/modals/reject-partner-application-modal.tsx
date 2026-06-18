@@ -10,7 +10,7 @@ import {
   PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH,
 } from "@/lib/zod/schemas/partners";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { ProgramApplicationRejectionReason } from "@dub/prisma/client";
+import { ProgramApplicationRejectionReason } from "@/lib/prisma/client";
 import {
   Button,
   Combobox,

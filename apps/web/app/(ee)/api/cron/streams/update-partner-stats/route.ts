@@ -5,8 +5,8 @@ import {
   PartnerActivityEvent,
   partnerActivityStream,
 } from "@/lib/upstash/redis-streams/partner-activity";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollment } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { ProgramEnrollment } from "@/lib/prisma/client";
 import { toCentsNumber } from "@dub/utils";
 import { differenceInDays, format } from "date-fns";
 import { NextResponse } from "next/server";

@@ -24,7 +24,7 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
-import { EventType, RewardStructure } from "@dub/prisma/client";
+import { EventType, RewardStructure } from "@/lib/prisma/client";
 import {
   BookOpen,
   Button,

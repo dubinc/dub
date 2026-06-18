@@ -14,8 +14,8 @@ import {
   REWARD_EVENT_COLUMN_MAPPING,
 } from "@/lib/zod/schemas/rewards";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";

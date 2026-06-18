@@ -6,7 +6,7 @@ import { withWorkspace } from "@/lib/auth";
 
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { deactivatePartnerApiSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // POST /api/partners/deactivate – Deactivate a partner via API

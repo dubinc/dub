@@ -1,7 +1,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { PartnerUserProps } from "@/lib/types";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { PartnerRole } from "@dub/prisma/client";
+import { PartnerRole } from "@/lib/prisma/client";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import {

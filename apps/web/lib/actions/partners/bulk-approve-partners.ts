@@ -7,7 +7,7 @@ import { trackApplicationEvents } from "@/lib/application-events/update-applicat
 import { triggerQStashWorkflow } from "@/lib/cron/qstash-workflow";
 import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";

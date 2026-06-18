@@ -10,8 +10,8 @@ import {
   FolderSchema,
   listFoldersQuerySchema,
 } from "@/lib/zod/schemas/folders";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/folders - get all folders for a workspace

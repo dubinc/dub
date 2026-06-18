@@ -4,7 +4,7 @@ import {
   PartnerPayoutMethod,
   PayoutMode,
   PayoutStatus,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";

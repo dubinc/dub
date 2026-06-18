@@ -6,8 +6,8 @@ import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
 import DuplicatePayoutMethod from "@dub/email/templates/duplicate-payout-method";
-import { prisma } from "@dub/prisma";
-import { PartnerProfileType } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { PartnerProfileType } from "@/lib/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import Stripe from "stripe";
 

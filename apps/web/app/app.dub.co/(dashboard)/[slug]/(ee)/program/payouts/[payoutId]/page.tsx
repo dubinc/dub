@@ -24,7 +24,7 @@ import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus } from "@/lib/prisma/client";
 import {
   Button,
   ChevronRight,

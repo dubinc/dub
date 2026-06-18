@@ -4,11 +4,11 @@ import { withCron } from "@/lib/cron/with-cron";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { sendEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 

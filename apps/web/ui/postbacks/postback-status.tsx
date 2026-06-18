@@ -1,4 +1,4 @@
-import { Postback } from "@dub/prisma/client";
+import { Postback } from "@/lib/prisma/client";
 import { Badge } from "@dub/ui";
 import { cn } from "@dub/utils";
 

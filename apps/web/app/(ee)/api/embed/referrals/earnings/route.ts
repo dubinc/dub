@@ -1,7 +1,7 @@
 import { getEarningsForPartner } from "@/lib/api/partner-profile/get-earnings-for-partner";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { getPartnerEarningsQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { randomInt } from "crypto";
 import { addSeconds, differenceInSeconds, subSeconds } from "date-fns";
 import "dotenv-flow/config";

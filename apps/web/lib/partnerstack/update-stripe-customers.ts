@@ -1,7 +1,7 @@
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
-import { prisma } from "@dub/prisma";
-import { Customer, Project } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Customer, Project } from "@/lib/prisma/client";
 import Stripe from "stripe";
 import { stripeAppClient } from "../stripe";
 import { logImportError } from "../tinybird/log-import-error";

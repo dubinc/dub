@@ -1,4 +1,4 @@
-import { PartnerPayoutMethod } from "@dub/prisma/client";
+import { PartnerPayoutMethod } from "@/lib/prisma/client";
 import {
   CONNECT_SUPPORTED_COUNTRIES,
   PAYPAL_SUPPORTED_COUNTRIES,

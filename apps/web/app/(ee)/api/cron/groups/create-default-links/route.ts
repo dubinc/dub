@@ -8,7 +8,7 @@ import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-para
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import { WorkspaceProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   constructURLFromUTMParams,

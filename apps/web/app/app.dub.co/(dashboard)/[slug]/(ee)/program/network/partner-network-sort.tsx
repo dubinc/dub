@@ -1,4 +1,4 @@
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@/lib/prisma/client";
 import { IconMenu, Popover, Tick, useRouterStuff } from "@dub/ui";
 import { ChartActivity2, Megaphone } from "@dub/ui/icons";
 import { cn } from "@dub/utils";

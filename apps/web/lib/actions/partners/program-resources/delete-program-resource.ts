@@ -6,7 +6,7 @@ import {
   PROGRAM_RESOURCE_TYPES,
   programResourcesSchema,
 } from "@/lib/zod/schemas/program-resources";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../../safe-action";

@@ -10,8 +10,8 @@ import {
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
-import { CommissionType } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { CommissionType } from "@/lib/prisma/client";
 import { toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

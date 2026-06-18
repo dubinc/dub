@@ -16,7 +16,7 @@ import {
 import { PartnerProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { redis } from "@/lib/upstash/redis";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@/lib/prisma/client";
 import {
   getDomainWithoutWWW,
   nanoid,

@@ -1,4 +1,4 @@
-import { SubmittedLeadStatus } from "@dub/prisma/client";
+import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import { StatusBadge } from "@dub/ui";
 import { SubmittedLeadStatusBadges } from "./submitted-lead-status-badges";
 

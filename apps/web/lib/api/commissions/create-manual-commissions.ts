@@ -13,14 +13,14 @@ import { CreatePartnerCommissionProps } from "@/lib/types";
 import { createManualCommissionBodySchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   CommissionType,
   Customer,
   Link,
   Partner,
   Project,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import { COUNTRIES_TO_CONTINENTS, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";

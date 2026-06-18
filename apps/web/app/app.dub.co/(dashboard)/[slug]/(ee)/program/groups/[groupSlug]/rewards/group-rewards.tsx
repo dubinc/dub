@@ -14,7 +14,7 @@ import {
 } from "@/ui/partners/rewards/add-edit-reward-sheet";
 import { REWARD_EVENT_DESCRIPTIONS } from "@/ui/partners/rewards/reward-event-descriptions";
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
-import { EventType } from "@dub/prisma/client";
+import { EventType } from "@/lib/prisma/client";
 import {
   Button,
   TimestampTooltip,

@@ -3,7 +3,7 @@
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
 import { paypalOAuthProvider } from "@/lib/paypal/oauth";
-import { PartnerPayoutMethod } from "@dub/prisma/client";
+import { PartnerPayoutMethod } from "@/lib/prisma/client";
 import { COUNTRIES } from "@dub/utils";
 import { authPartnerActionClient } from "../safe-action";
 

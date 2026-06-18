@@ -3,7 +3,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import { DEFAULT_PARTNER_GROUP, GroupSchema } from "@/lib/zod/schemas/groups";
 import { RESOURCE_COLORS } from "@/ui/colors";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { nanoid, randomValue } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";

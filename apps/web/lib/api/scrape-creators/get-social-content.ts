@@ -1,7 +1,7 @@
 import { BOUNTY_SOCIAL_PLATFORM_VALUES } from "@/lib/bounty/social-content";
 import { SocialContent } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@/lib/prisma/client";
 import { hashStringSHA256, isValidUrl } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { scrapeCreatorsFetch } from "./client";

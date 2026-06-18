@@ -1,4 +1,4 @@
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@/lib/prisma/client";
 import type { Icon } from "@dub/ui/icons";
 import { Eye, MoneyBill, User, UserCrown } from "@dub/ui/icons";
 import { PlanProps } from "./types";

@@ -19,7 +19,7 @@ import {
 } from "@/lib/zod/schemas/partner-profile";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { capitalize, log, parseFilterValue } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";

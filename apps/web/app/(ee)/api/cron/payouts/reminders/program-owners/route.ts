@@ -3,7 +3,7 @@ import { INVOICE_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/constants/payouts";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { sendBatchEmail } from "@dub/email";
 import ProgramPayoutReminder from "@dub/email/templates/program-payout-reminder";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { chunk, pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
 

@@ -3,7 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { qstash } from "@/lib/cron";
 import { forwardPartnerMessageToIntercom } from "@/lib/integrations/intercom/forward-message";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authPartnerActionClient } from "../actions/safe-action";

@@ -7,8 +7,8 @@ import { trackApplicationEvents } from "@/lib/application-events/update-applicat
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";

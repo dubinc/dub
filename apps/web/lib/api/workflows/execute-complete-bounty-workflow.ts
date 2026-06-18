@@ -4,12 +4,12 @@ import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail, sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   BountySubmissionStatus,
   Workflow,
   WorkspaceRole,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import { createId } from "../create-id";
 import { getWorkspaceUsers } from "../get-workspace-users";
 import { parseWorkflowConfig } from "./parse-workflow-config";

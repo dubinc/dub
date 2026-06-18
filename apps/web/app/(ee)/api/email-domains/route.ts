@@ -9,8 +9,8 @@ import {
   EmailDomainSchema,
 } from "@/lib/zod/schemas/email-domains";
 import { resend } from "@dub/email/resend";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

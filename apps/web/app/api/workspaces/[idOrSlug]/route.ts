@@ -16,8 +16,8 @@ import {
   WorkspaceSchema,
   WorkspaceSchemaExtended,
 } from "@/lib/zod/schemas/workspaces";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

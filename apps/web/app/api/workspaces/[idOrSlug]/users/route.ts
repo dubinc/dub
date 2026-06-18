@@ -7,8 +7,8 @@ import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
-import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { WorkspaceRole } from "@/lib/prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

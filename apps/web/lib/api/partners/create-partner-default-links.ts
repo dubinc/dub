@@ -7,7 +7,7 @@ import {
   UtmTemplateProps,
   WorkspaceProps,
 } from "@/lib/types";
-import { PartnerGroupDefaultLink } from "@dub/prisma/client";
+import { PartnerGroupDefaultLink } from "@/lib/prisma/client";
 import { constructURLFromUTMParams, isFulfilled } from "@dub/utils";
 import { bulkCreateLinks } from "../links";
 import { extractUtmParams } from "../utm/extract-utm-params";

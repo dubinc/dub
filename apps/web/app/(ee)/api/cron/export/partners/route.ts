@@ -8,7 +8,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { partnersExportQuerySchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";

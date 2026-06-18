@@ -5,7 +5,7 @@ import {
   activityLogSchema,
   getActivityLogsQuerySchema,
 } from "@/lib/zod/schemas/activity-log";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

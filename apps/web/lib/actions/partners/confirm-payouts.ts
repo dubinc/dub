@@ -19,7 +19,7 @@ import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
 import { checkPaymentMethodMandate } from "@/lib/stripe/check-payment-method-mandate";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";

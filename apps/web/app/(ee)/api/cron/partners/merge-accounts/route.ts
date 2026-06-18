@@ -11,8 +11,8 @@ import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
-import { prisma } from "@dub/prisma";
-import { FraudRuleType } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { FraudRuleType } from "@/lib/prisma/client";
 import { log, prettyPrint, R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 

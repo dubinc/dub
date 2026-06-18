@@ -8,7 +8,7 @@ import {
   onboardPartnerSchema,
 } from "@/lib/zod/schemas/partners";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { Partner } from "@dub/prisma/client";
+import { Partner } from "@/lib/prisma/client";
 import {
   Button,
   FileUpload,

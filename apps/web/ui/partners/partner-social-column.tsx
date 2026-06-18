@@ -1,5 +1,5 @@
 import { PartnerPlatformProps } from "@/lib/types";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@/lib/prisma/client";
 import { BadgeCheck2Fill, TimestampTooltip } from "@dub/ui";
 import { getDomainWithoutWWW } from "@dub/utils";
 

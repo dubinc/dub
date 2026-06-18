@@ -9,7 +9,7 @@ import { PARTNER_TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-tags";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { CountryFlag } from "@/ui/shared/country-flag";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import { encodeRangeToken, parseRangeToken, useRouterStuff } from "@dub/ui";
 import {
   CircleDotted,

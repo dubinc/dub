@@ -3,7 +3,7 @@ import {
   MonthlyTraffic,
   PreferredEarningStructure,
   SalesChannel,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import type { Icon } from "@dub/ui/icons";
 import {
   Apple,

@@ -18,7 +18,7 @@ import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
 import { DeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import { ButtonLink } from "@/ui/placeholders/button-link";
-import { DiscountProvider } from "@dub/prisma/client";
+import { DiscountProvider } from "@/lib/prisma/client";
 import {
   Button,
   CopyButton,

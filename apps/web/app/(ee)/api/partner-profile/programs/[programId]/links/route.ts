@@ -10,7 +10,7 @@ import {
   createPartnerLinkSchema,
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { getUTMParamsFromURL } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

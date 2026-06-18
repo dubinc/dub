@@ -16,7 +16,7 @@ import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,

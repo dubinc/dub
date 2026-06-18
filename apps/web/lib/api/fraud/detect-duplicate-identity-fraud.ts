@@ -5,8 +5,8 @@ import {
   veriffRiskLabels,
 } from "@/lib/veriff/schema";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { FraudRuleType, ProgramEnrollment } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { FraudRuleType, ProgramEnrollment } from "@/lib/prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
 import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
 

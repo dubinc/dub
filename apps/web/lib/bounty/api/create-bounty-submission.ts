@@ -13,14 +13,14 @@ import {
 import { sendBatchEmail, sendEmail } from "@dub/email";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   BountySubmission,
   Partner,
   PlatformType,
   Prisma,
   WorkspaceRole,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import { getDomainWithoutWWW, isValidUrl, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";

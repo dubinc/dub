@@ -11,7 +11,7 @@ import {
 } from "@/ui/partners/partner-platforms-form";
 import { CustomToast } from "@/ui/shared/custom-toast";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { PartnerProfileType } from "@dub/prisma/client";
+import { PartnerProfileType } from "@/lib/prisma/client";
 import {
   Button,
   DynamicTooltipWrapper,

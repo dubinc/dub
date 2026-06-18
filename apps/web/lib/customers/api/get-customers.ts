@@ -1,5 +1,5 @@
 import { getCustomersQuerySchemaExtended } from "@/lib/zod/schemas/customers";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
+import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
 import * as z from "zod/v4";
 import { DubApiError } from "../../api/errors";
 import { buildPaginationQuery } from "../../api/pagination";

@@ -4,7 +4,7 @@ import { withCron } from "@/lib/cron/with-cron";
 import { isDiscountIntegrationNotAvailableError } from "@/lib/discounts/discount-error";
 import { getDiscountProvider } from "@/lib/discounts/discount-provider";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";

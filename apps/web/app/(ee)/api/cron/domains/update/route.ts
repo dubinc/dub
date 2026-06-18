@@ -8,8 +8,8 @@ import { includeProgramEnrollment } from "@/lib/api/links/include-program-enroll
 import { includeTags } from "@/lib/api/links/include-tags";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
-import { Link } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Link } from "@/lib/prisma/client";
 import { linkConstructorSimple } from "@dub/utils";
 import { logAndRespond } from "../../utils";
 

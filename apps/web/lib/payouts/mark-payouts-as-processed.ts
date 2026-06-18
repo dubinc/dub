@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Payout } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Payout } from "@/lib/prisma/client";
 
 export const markPayoutsAsProcessed = async (payouts: Pick<Payout, "id">[]) => {
   if (payouts.length === 0) {

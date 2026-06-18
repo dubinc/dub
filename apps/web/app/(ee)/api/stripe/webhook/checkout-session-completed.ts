@@ -8,8 +8,8 @@ import { stripe } from "@/lib/stripe";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
-import { prisma } from "@dub/prisma";
-import { User } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { User } from "@/lib/prisma/client";
 import {
   getPlanAndTierFromPriceId,
   getWorkspaceLimitsForStripeSubscriptionStatus,

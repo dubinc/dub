@@ -19,7 +19,7 @@ import {
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import { DiscountProvider } from "@dub/prisma/client";
+import { DiscountProvider } from "@/lib/prisma/client";
 import {
   Button,
   InfoTooltip,

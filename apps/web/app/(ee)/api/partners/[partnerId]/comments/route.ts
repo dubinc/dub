@@ -1,7 +1,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { PartnerCommentSchema } from "@/lib/zod/schemas/programs";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

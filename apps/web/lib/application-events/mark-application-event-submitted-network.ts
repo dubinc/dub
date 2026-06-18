@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
-import { prisma } from "@dub/prisma";
-import { Partner } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Partner } from "@/lib/prisma/client";
 import { nanoid, NETWORK_PROGRAM_ID, NETWORK_WORKSPACE_ID } from "@dub/utils";
 import { randomInt } from "crypto";
 import { addSeconds } from "date-fns";

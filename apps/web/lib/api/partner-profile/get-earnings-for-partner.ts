@@ -4,8 +4,8 @@ import {
   getPartnerEarningsQuerySchema,
   PartnerEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
-import { CommissionType, Partner } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { CommissionType, Partner } from "@/lib/prisma/client";
 import * as z from "zod/v4";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
 

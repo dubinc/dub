@@ -3,7 +3,7 @@ import {
   encodeKeyIfCaseSensitive,
 } from "@/lib/api/links/case-sensitivity";
 import { parseDeepViewData } from "@/lib/zod/schemas/deep-links";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { Grid, Wordmark } from "@dub/ui";
 import {
   AndroidLogo,

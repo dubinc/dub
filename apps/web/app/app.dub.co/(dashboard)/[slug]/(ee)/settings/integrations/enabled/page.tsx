@@ -3,7 +3,7 @@ import { IntegrationStatusBadge } from "@/ui/integrations/integration-status-bad
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { ConnectedDots, TimestampTooltip } from "@dub/ui";
 import { cn, formatDate, truncate } from "@dub/utils";
 import { ChevronRight } from "lucide-react";

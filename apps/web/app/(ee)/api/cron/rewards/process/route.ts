@@ -7,8 +7,8 @@ import { isStaleRewardVersion } from "@/lib/api/rewards/reward-version";
 import { withCron } from "@/lib/cron/with-cron";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";

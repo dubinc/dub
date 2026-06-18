@@ -4,7 +4,7 @@ import {
   mergeVeriffMetadata,
   parseVeriffMetadata,
 } from "@/lib/veriff/veriff-metadata";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { addDays } from "date-fns";
 import { NextResponse } from "next/server";
 

@@ -1,6 +1,6 @@
 import { decryptOrPassthrough, encrypt } from "@/lib/encryption";
-import { prisma } from "@dub/prisma";
-import { InstalledIntegration } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { InstalledIntegration } from "@/lib/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { OAuthProvider, OAuthProviderConfig } from "../oauth-provider";
 import { HubSpotAuthToken } from "../types";

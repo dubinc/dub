@@ -9,7 +9,7 @@ import {
   parseVeriffMetadata,
 } from "@/lib/veriff/veriff-metadata";
 import { MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { addDays } from "date-fns/addDays";
 import { authPartnerActionClient } from "../safe-action";
 

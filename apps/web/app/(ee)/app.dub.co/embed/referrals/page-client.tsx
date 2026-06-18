@@ -23,7 +23,7 @@ import {
   PlatformType,
   Program,
   ProgramEnrollmentStatus,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import {
   Button,
   Check,

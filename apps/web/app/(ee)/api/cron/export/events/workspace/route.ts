@@ -11,7 +11,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { capitalize, log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";

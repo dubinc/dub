@@ -4,7 +4,7 @@ import {
   fraudGroupQuerySchema,
   fraudGroupSchema,
 } from "@/lib/zod/schemas/fraud";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

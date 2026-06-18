@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Discount, DiscountCode } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Discount, DiscountCode } from "@/lib/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 

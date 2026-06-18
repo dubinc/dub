@@ -3,8 +3,8 @@ import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-pay
 import { paypalOAuthProvider } from "@/lib/paypal/oauth";
 import { sendEmail } from "@dub/email";
 import ConnectedPaypalAccount from "@dub/email/templates/connected-paypal-account";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { PARTNERS_DOMAIN } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";

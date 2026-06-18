@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { PlatformType, Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { PlatformType, Prisma } from "@/lib/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";

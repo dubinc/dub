@@ -13,7 +13,7 @@ import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   ProgramPayoutMode,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";

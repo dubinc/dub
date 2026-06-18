@@ -10,7 +10,7 @@ import {
   EligibilityRequirements,
   generateId,
 } from "@/ui/partners/eligibility-requirements";
-import { Category } from "@dub/prisma/client";
+import { Category } from "@/lib/prisma/client";
 import { Button, Modal, ToggleGroup, useEnterSubmit } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";

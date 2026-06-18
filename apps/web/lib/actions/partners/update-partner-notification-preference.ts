@@ -1,7 +1,7 @@
 "use server";
 
 import { partnerNotificationTypes } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 

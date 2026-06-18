@@ -12,13 +12,13 @@ import {
 import { PROGRAM_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
 import { sanitizeFileName } from "@/lib/messages/utils";
 import { storage } from "@/lib/storage";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   InstalledIntegration,
   Message,
   MessageAttachment,
   Program,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   fetchWithTimeout,

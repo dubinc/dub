@@ -7,7 +7,7 @@ import { ProgramData } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { COMMISSION_TYPES } from "@/lib/zod/schemas/rewards";
 import { RewardQualityFieldIndicator } from "@/ui/partners/rewards/reward-quality";
-import type { EventType } from "@dub/prisma/client";
+import type { EventType } from "@/lib/prisma/client";
 import { AnimatedSizeContainer, Button, CircleCheckFill } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
 import { usePlausible } from "next-plausible";

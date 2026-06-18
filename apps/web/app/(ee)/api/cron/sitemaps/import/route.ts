@@ -6,7 +6,7 @@ import {
   parseTrackedSitemaps,
   replaceTrackedSitemapsInColumn,
 } from "@/lib/sitemaps/site-visit-tracking";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 

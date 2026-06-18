@@ -17,7 +17,7 @@ import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { upsertPartnerLinkSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { deepEqual, getUTMParamsFromURL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

@@ -12,7 +12,7 @@ import { recordLink } from "@/lib/tinybird";
 import { webhookCache } from "@/lib/webhook/cache";
 import { sendEmail } from "@dub/email";
 import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { capitalize, FREE_PLAN, log } from "@dub/utils";
 import Stripe from "stripe";
 import {

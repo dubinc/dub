@@ -6,7 +6,7 @@ import {
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getNetworkPartnersCountQuerySchema } from "@/lib/zod/schemas/partner-network";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/network/partners/count - get the number of available partners in the network

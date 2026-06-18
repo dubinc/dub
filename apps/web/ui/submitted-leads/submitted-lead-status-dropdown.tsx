@@ -1,7 +1,7 @@
 "use client";
 
 import { SubmittedLeadProps } from "@/lib/types";
-import { SubmittedLeadStatus } from "@dub/prisma/client";
+import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import { Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Check, ChevronDown } from "lucide-react";

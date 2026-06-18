@@ -16,8 +16,8 @@ import {
   submissionRequirementsSchema,
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
-import { prisma } from "@dub/prisma";
-import { PartnerGroup, Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { PartnerGroup, Prisma } from "@/lib/prisma/client";
 import { arrayEqual, deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

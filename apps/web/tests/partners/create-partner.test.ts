@@ -1,6 +1,6 @@
 import { generateRandomName } from "@/lib/names";
 import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
-import { Partner } from "@dub/prisma/client";
+import { Partner } from "@/lib/prisma/client";
 import { R2_URL } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { describe, expect, test } from "vitest";

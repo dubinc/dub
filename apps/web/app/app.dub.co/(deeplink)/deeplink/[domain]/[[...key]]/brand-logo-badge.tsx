@@ -1,6 +1,6 @@
 "use client";
 
-import { Link } from "@dub/prisma/client";
+import { Link } from "@/lib/prisma/client";
 import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 
 export function BrandLogoBadge({

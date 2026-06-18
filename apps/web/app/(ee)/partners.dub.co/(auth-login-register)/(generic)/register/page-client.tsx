@@ -10,7 +10,7 @@ import {
 import { SignUpForm } from "@/ui/auth/register/signup-form";
 import { VerifyEmailForm } from "@/ui/auth/register/verify-email-form";
 import { AuthLayout } from "@/ui/layout/auth-layout";
-import { Program } from "@dub/prisma/client";
+import { Program } from "@/lib/prisma/client";
 import { truncate } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";

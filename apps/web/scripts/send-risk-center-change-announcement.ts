@@ -1,7 +1,7 @@
 import "dotenv-flow/config";
 
 import type RiskCenterChangeAnnouncement from "@dub/email/templates/broadcasts/risk-center-change-announcement";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { FRAUD_RULES_BY_TYPE } from "../lib/api/fraud/constants";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";
 

@@ -6,7 +6,7 @@ import {
   PartnerTagSchema,
   createPartnerTagSchema,
 } from "@/lib/zod/schemas/partner-tags";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { INFINITY_NUMBER } from "@dub/utils";
 import { authActionClient } from "../../safe-action";
 import { throwIfNoPermission } from "../../throw-if-no-permission";

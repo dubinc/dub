@@ -4,8 +4,8 @@ import {
   siteVisitTrackingSettingsValueSchema,
   trackedSitemapSchema,
 } from "@/lib/zod/schemas/site-visit-tracking";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import type { z } from "zod/v4";
 import * as zod from "zod/v4";
 

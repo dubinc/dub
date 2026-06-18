@@ -9,7 +9,7 @@ import {
   createOrUpdateDefaultLinkSchema,
   PartnerGroupDefaultLinkSchema,
 } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   constructURLFromUTMParams,

@@ -12,8 +12,8 @@ import {
   PartnerProfileCustomerSchema,
   getPartnerCustomersQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
-import { CommissionType } from "@dub/prisma/client";
+import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
+import { CommissionType } from "@/lib/prisma/client";
 import { toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

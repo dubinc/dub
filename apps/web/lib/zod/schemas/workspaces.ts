@@ -1,5 +1,5 @@
 import { workspaceSiteVisitTrackingSettingsFieldSchema } from "@/lib/sitemaps/site-visit-tracking";
-import { PlanPeriod, WorkspaceRole } from "@dub/prisma/client";
+import { PlanPeriod, WorkspaceRole } from "@/lib/prisma/client";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";

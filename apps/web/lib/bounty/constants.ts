@@ -1,4 +1,4 @@
-import { BountySubmissionFrequency } from "@dub/prisma/client";
+import { BountySubmissionFrequency } from "@/lib/prisma/client";
 
 export const BOUNTY_DESCRIPTION_MAX_LENGTH = 5000;
 

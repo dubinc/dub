@@ -1,4 +1,4 @@
-import { Link, Partner, ProgramEnrollment } from "@dub/prisma/client";
+import { Link, Partner, ProgramEnrollment } from "@/lib/prisma/client";
 import { toCentsNumber } from "@dub/utils";
 import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 

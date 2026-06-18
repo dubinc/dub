@@ -8,7 +8,7 @@ import { withCron } from "@/lib/cron/with-cron";
 import { payoutsExportCronInputSchema } from "@/lib/zod/schemas/payouts";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { logAndRespond } from "../../utils";
 import { fetchPayoutsBatch } from "./fetch-payouts-batch";
 

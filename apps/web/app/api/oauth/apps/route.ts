@@ -6,7 +6,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
 import { createOAuthAppSchema, oAuthAppSchema } from "@/lib/zod/schemas/oauth";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

@@ -25,7 +25,7 @@ import {
   bulkCreateLinksBodySchema,
   bulkUpdateLinksBodySchema,
 } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

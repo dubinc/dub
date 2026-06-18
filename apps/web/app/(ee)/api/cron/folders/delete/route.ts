@@ -4,7 +4,7 @@ import { includeProgramEnrollment } from "@/lib/api/links/include-program-enroll
 import { includeTags } from "@/lib/api/links/include-tags";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
 
 export const dynamic = "force-dynamic";

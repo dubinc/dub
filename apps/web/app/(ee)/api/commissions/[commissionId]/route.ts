@@ -9,7 +9,7 @@ import {
   CommissionEnrichedSchema,
   updateCommissionSchemaExtended,
 } from "@/lib/zod/schemas/commissions";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/commissions/:commissionId - get a single commission by ID

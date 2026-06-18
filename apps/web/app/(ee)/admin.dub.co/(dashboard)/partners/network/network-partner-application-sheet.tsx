@@ -9,7 +9,7 @@ import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { X } from "@/ui/shared/icons";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import {
   Button,
   ChevronLeft,

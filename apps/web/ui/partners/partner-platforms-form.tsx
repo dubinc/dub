@@ -10,7 +10,7 @@ import { PartnerPlatformProps, PartnerProps } from "@/lib/types";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import { SocialVerificationByCodeModal } from "@/ui/modals/social-verification-by-code-modal";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,

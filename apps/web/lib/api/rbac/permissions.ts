@@ -1,4 +1,4 @@
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@/lib/prisma/client";
 
 export const PERMISSION_ACTIONS = [
   "workspaces.read",

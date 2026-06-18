@@ -1,6 +1,6 @@
 import { getNetworkPartnersQuerySchema } from "@/lib/zod/schemas/partner-network";
-import { prisma } from "@dub/prisma";
-import { PlatformType, Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { PlatformType, Prisma } from "@/lib/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import * as z from "zod/v4";
 

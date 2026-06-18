@@ -5,8 +5,8 @@ import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
 import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   R2_URL,

@@ -3,8 +3,8 @@ import { withCron } from "@/lib/cron/with-cron";
 import { sendBatchEmail } from "@dub/email";
 import { ResendBulkEmailOptions } from "@dub/email/resend/types";
 import PendingApplicationsSummary from "@dub/email/templates/pending-applications-summary";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   chunk,

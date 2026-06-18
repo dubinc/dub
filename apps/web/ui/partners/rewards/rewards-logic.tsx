@@ -19,7 +19,7 @@ import {
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
-import { RewardStructure } from "@dub/prisma/client";
+import { RewardStructure } from "@/lib/prisma/client";
 import {
   ArrowTurnRight2,
   Button,

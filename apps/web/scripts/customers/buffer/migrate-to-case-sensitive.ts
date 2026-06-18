@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { linkConstructorSimple } from "@dub/utils";
 import "dotenv-flow/config";
 import { linkCache } from "../../../lib/api/links/cache";

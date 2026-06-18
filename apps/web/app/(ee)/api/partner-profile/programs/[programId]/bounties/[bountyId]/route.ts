@@ -3,7 +3,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/bounties/[bountyId] – get a single bounty for an enrolled program

@@ -4,8 +4,8 @@ import {
   ActivityLogResourceType,
   ChangeSet,
 } from "@/lib/types";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { prettyPrint } from "@dub/utils";
 
 const ACTIONS_WITHOUT_CHANGE_SET: ActivityLogAction[] = [

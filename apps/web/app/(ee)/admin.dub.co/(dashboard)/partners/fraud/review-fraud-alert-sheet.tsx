@@ -14,7 +14,7 @@ import {
 } from "@/lib/zod/schemas/programs";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { FraudAlertStatus } from "@dub/prisma/client";
+import { FraudAlertStatus } from "@/lib/prisma/client";
 import {
   Button,
   LoadingSpinner,

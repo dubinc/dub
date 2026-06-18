@@ -1,7 +1,7 @@
 import { FOLDER_WORKSPACE_ACCESS } from "@/lib/folder/constants";
 import { tb } from "@/lib/tinybird";
 import { FolderAccessLevel } from "@/lib/types";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { linkConstructor, punyEncode } from "@dub/utils";
 import * as z from "zod/v4";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";

@@ -2,8 +2,8 @@ import { SubmittedLeadStatusBadges } from "@/ui/submitted-leads/submitted-lead-s
 import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
 import { sendEmail } from "@dub/email";
 import LeadStatusUpdated from "@dub/email/templates/lead-status-updated";
-import { prisma } from "@dub/prisma";
-import { SubmittedLead } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { SubmittedLead } from "@/lib/prisma/client";
 
 export async function notifySubmittedLeadStatusUpdate({
   lead,

@@ -1,5 +1,5 @@
 import { groupRulesSchema } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 
 export const getGroupMoveRules = async (programId: string) => {
   const groups = await prisma.partnerGroup.findMany({

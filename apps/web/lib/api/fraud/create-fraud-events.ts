@@ -1,6 +1,6 @@
 import { CreateFraudEventInput } from "@/lib/types";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { prettyPrint } from "@dub/utils";
 import { createId } from "../create-id";
 import {

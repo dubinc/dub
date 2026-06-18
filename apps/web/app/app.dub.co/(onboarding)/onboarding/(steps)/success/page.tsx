@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth";
 import { WorkspaceProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { SuccessPageClient } from "./page-client";
 

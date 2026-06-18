@@ -1,7 +1,7 @@
 "use server";
 
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";

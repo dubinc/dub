@@ -1,8 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { networkReferralsStatsSchema } from "@/lib/partner-referrals/schemas";
-import { prisma } from "@dub/prisma";
-import { CommissionType } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { CommissionType } from "@/lib/prisma/client";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 

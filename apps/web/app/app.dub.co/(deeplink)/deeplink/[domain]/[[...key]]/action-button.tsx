@@ -1,7 +1,7 @@
 "use client";
 
 import { DeepViewData } from "@/lib/zod/schemas/deep-links";
-import { Link } from "@dub/prisma/client";
+import { Link } from "@/lib/prisma/client";
 import { Button, useCopyToClipboard } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import { getTranslations, Language } from "./translations";

@@ -1,8 +1,8 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getCampaignsCountQuerySchema } from "@/lib/zod/schemas/campaigns";
-import { prisma } from "@dub/prisma";
-import { CampaignStatus, CampaignType, Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { CampaignStatus, CampaignType, Prisma } from "@/lib/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/campaigns/count - get the count of campaigns for a program

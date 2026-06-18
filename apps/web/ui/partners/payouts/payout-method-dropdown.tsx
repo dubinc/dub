@@ -7,7 +7,7 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import type { PartnerPayoutMethodSetting } from "@/lib/types";
 import { partnerPayoutMethodSchema } from "@/lib/zod/schemas/partner-profile";
 import { getPayoutMethodIconConfig } from "@/ui/partners/payouts/payout-method-config";
-import { PartnerPayoutMethod } from "@dub/prisma/client";
+import { PartnerPayoutMethod } from "@/lib/prisma/client";
 import { Button, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";

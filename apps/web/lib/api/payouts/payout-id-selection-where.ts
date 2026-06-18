@@ -1,4 +1,4 @@
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@/lib/prisma/client";
 
 /** Narrow payouts by explicit selection or by exclusions (mutually exclusive). */
 export function payoutIdSelectionWhere({

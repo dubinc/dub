@@ -1,7 +1,7 @@
 import { withWorkspace } from "@/lib/auth";
 import { listFoldersQuerySchema } from "@/lib/zod/schemas/folders";
-import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { WorkspaceRole } from "@/lib/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/folders/count - get count of folders

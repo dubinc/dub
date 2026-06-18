@@ -1,11 +1,11 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   Commission,
   CommissionType,
   Partner,
   Payout,
   Prisma,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import {
   ACME_PROGRAM_ID,
   currencyFormatter,

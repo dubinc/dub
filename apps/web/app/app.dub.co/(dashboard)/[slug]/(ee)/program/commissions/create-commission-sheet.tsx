@@ -19,7 +19,7 @@ import {
 } from "@/ui/partners/program-sheet-accordion";
 import { X } from "@/ui/shared/icons";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { CommissionType } from "@dub/prisma/client";
+import { CommissionType } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,

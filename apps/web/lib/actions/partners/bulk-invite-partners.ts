@@ -11,7 +11,7 @@ import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { bulkInvitePartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { constructURLFromUTMParams, nanoid } from "@dub/utils";
 import { prettyPrint } from "@dub/utils/src";
 import slugify from "@sindresorhus/slugify";

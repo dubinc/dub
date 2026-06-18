@@ -2,8 +2,8 @@
 
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
-import { prisma } from "@dub/prisma";
-import { Project, SubmittedLead } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Project, SubmittedLead } from "@/lib/prisma/client";
 import { pick } from "@dub/utils";
 
 interface MarkSubmittedLeadQualifiedInput {

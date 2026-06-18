@@ -18,8 +18,8 @@ import {
   recordClickZodSchema,
 } from "@/lib/tinybird/record-click-zod";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
-import { Partner, Program } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Partner, Program } from "@/lib/prisma/client";
 import {
   capitalize,
   EU_COUNTRY_CODES,

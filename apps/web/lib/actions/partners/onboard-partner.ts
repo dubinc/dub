@@ -7,8 +7,8 @@ import { markApplicationEventSubmittedNetwork } from "@/lib/application-events/m
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";

@@ -1,8 +1,8 @@
 import { reportCrossProgramBanToNetwork } from "@/lib/api/fraud/report-cross-program-ban-to-network";
 import { withAdmin } from "@/lib/auth";
 import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

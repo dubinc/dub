@@ -8,7 +8,7 @@ import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import { WorkspaceProps } from "@/lib/types";
 import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   isFulfilled,

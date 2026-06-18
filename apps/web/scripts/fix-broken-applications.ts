@@ -1,6 +1,6 @@
 import { sendBatchEmail } from "@dub/email";
 import NotifyPartnerReapply from "@dub/email/templates/notify-partner-reapply";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { chunk, groupBy } from "@dub/utils";
 import "dotenv-flow/config";
 

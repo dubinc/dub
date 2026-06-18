@@ -20,7 +20,7 @@ import {
   InlineBadgePopoverInput,
 } from "@/ui/shared/inline-badge-popover";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { BountySubmissionFrequency } from "@dub/prisma/client";
+import { BountySubmissionFrequency } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,

@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { decryptOrPassthrough } from "@/lib/encryption";
-import { InstalledIntegration } from "@dub/prisma/client";
+import { InstalledIntegration } from "@/lib/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { OAuthProvider, OAuthProviderConfig } from "../oauth-provider";
 import { SlackAuthToken } from "../types";

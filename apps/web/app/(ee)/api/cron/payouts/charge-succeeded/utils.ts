@@ -1,6 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { stripe } from "@/lib/stripe";
-import { Invoice } from "@dub/prisma/client";
+import { Invoice } from "@/lib/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 

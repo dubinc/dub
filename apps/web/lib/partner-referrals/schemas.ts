@@ -1,4 +1,4 @@
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import { COUNTRIES } from "@dub/utils";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "../zod/schemas/misc";

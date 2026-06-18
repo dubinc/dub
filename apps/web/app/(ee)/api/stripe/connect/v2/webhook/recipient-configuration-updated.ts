@@ -2,7 +2,7 @@ import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplica
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 
 export async function recipientConfigurationUpdated(event: Stripe.ThinEvent) {

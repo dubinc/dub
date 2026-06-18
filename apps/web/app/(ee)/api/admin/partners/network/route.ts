@@ -3,7 +3,7 @@ import {
   adminNetworkPartnerQuerySchema,
   adminNetworkPartnerSchema,
 } from "@/lib/zod/schemas/admin";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/admin/partners/network

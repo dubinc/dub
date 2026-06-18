@@ -6,8 +6,8 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { getTopLinksByCountries } from "@/lib/tinybird/get-top-links-by-countries";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { CommissionType, Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { CommissionType, Prisma } from "@/lib/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,

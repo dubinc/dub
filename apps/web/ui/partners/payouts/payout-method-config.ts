@@ -1,5 +1,5 @@
 import { STABLECOIN_PAYOUT_FEE_RATE } from "@/lib/constants/payouts";
-import type { PartnerPayoutMethod } from "@dub/prisma/client";
+import type { PartnerPayoutMethod } from "@/lib/prisma/client";
 import {
   Calendar6,
   CircleDollar,

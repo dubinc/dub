@@ -20,7 +20,7 @@ import { webhookCache } from "@/lib/webhook/cache";
 import { sendBatchEmail } from "@dub/email";
 import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   getPlanAndTierFromPriceId,
   getWorkspaceLimitsForStripeSubscriptionStatus,

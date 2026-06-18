@@ -4,8 +4,8 @@ import {
   getPartnerSubmittedLeadsCountQuerySchema,
   partnerSubmittedLeadsCountResponseSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
-import { Prisma, SubmittedLeadStatus } from "@dub/prisma/client";
+import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
+import { Prisma, SubmittedLeadStatus } from "@/lib/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/submitted-leads/count

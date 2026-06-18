@@ -20,7 +20,7 @@ import {
 } from "@/lib/zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   Commission,
   Link,
@@ -28,7 +28,7 @@ import {
   PartnerGroup,
   ProgramEnrollment,
   Reward,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import { currencyFormatter, log, pick, toCentsNumber } from "@dub/utils";
 import { WorkflowRetryAfterError } from "@upstash/workflow";
 import { serve } from "@upstash/workflow/nextjs";

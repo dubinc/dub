@@ -1,4 +1,4 @@
-import { PartnerNetworkStatus } from "@dub/prisma/client";
+import { PartnerNetworkStatus } from "@/lib/prisma/client";
 import { BadgeCheck2Fill, Tooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { TrustedPartnerBadge } from "../trusted-partner-badge";

@@ -10,7 +10,7 @@ import {
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyApproved from "@dub/email/templates/bounty-approved";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 

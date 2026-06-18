@@ -2,7 +2,7 @@ import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { isGenericEmail } from "@/lib/is-generic-email";
 import { FraudEventContext } from "@/lib/types";
 import { CustomerEmailMatchType } from "@/lib/zod/schemas/fraud";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { defineFraudRule } from "../define-fraud-rule";
 import { normalizeEmail } from "../utils";
 

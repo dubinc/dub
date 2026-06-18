@@ -7,7 +7,7 @@ import {
 import { orderSchema } from "@/lib/integrations/shopify/schema";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
 export async function ordersPaid({

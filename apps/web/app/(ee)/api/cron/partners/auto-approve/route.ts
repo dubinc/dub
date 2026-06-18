@@ -3,7 +3,7 @@ import { approvePartner } from "@/lib/api/partners/applications/approve-partner"
 import { withCron } from "@/lib/cron/with-cron";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 

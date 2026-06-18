@@ -1,7 +1,7 @@
 import { withAdmin } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, COUNTRIES } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

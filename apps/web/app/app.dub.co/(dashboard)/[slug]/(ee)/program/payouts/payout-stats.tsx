@@ -4,7 +4,7 @@ import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ConfirmPayoutsSheet } from "@/ui/partners/confirm-payouts-sheet";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus } from "@/lib/prisma/client";
 import {
   Button,
   buttonVariants,

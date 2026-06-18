@@ -8,8 +8,8 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { qstash } from "@/lib/cron";
 import { UserProps, WorkspaceProps } from "@/lib/types";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";

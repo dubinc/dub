@@ -2,7 +2,7 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { updatePartnerTagSchema } from "@/lib/zod/schemas/partner-tags";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { authActionClient } from "../../safe-action";
 import { throwIfNoPermission } from "../../throw-if-no-permission";
 

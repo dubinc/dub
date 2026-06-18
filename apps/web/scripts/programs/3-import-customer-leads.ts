@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { generateRandomName } from "@/lib/names";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { chunk, nanoid, prettyPrint } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";

@@ -4,7 +4,7 @@ import {
   getPartnerSubmittedLeadsQuerySchema,
   partnerProfileSubmittedLeadSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
+import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

@@ -9,8 +9,8 @@ import {
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
-import { prisma } from "@dub/prisma";
-import { NotificationEmailType, Prisma, Workflow } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { NotificationEmailType, Prisma, Workflow } from "@/lib/prisma/client";
 import { chunk } from "@dub/utils";
 import { addHours, differenceInDays, subDays } from "date-fns";
 import { validateCampaignFromAddress } from "../campaigns/validate-campaign";

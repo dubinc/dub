@@ -1,6 +1,6 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { partnerProfileProgramsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 

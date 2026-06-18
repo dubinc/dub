@@ -30,7 +30,7 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,

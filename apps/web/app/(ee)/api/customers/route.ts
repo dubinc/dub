@@ -14,7 +14,7 @@ import {
   getCustomersQuerySchemaExtended,
 } from "@/lib/zod/schemas/customers";
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

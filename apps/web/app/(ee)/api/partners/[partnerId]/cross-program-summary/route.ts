@@ -5,7 +5,7 @@ import {
   ACTIVE_ENROLLMENT_STATUSES,
   partnerCrossProgramSummarySchema,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/partners/:partnerId/cross-program-summary - get cross-program summary for a partner

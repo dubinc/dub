@@ -2,7 +2,7 @@ import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commiss
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { stripeAppClient } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
 
 // Handle event "charge.refunded"

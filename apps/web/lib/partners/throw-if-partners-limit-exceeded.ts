@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { Project } from "@dub/prisma/client";
+import { Project } from "@/lib/prisma/client";
 import { isWorkspaceBillingTrialActive } from "@dub/utils";
 
 export function throwIfPartnersLimitExceeded({

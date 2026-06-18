@@ -13,8 +13,8 @@ import {
   submittedLeadRequiredFieldsSchema,
 } from "@/lib/zod/schemas/submitted-lead-form";
 import { submitLeadSchema } from "@/lib/zod/schemas/submitted-leads";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { COUNTRIES } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";

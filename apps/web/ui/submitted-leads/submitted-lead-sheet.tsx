@@ -1,7 +1,7 @@
 import { SubmittedLeadProps } from "@/lib/types";
 import { useConfirmSubmittedLeadStatusChangeModal } from "@/ui/modals/confirm-submitted-lead-status-change-modal";
 import { X } from "@/ui/shared/icons";
-import { SubmittedLeadStatus } from "@dub/prisma/client";
+import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import {
   Button,
   ChevronLeft,

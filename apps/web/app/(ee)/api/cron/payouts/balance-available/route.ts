@@ -7,7 +7,7 @@ import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutWithdrawalFailed from "@dub/email/templates/partner-payout-withdrawal-failed";
 import PartnerPayoutWithdrawalInitiated from "@dub/email/templates/partner-payout-withdrawal-initiated";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,

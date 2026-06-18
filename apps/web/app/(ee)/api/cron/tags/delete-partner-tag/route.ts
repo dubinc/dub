@@ -5,7 +5,7 @@ import { queuePartnerTagDeletion } from "@/lib/api/tags/queue-tag-deletion";
 import { CRON_BATCH_SIZE } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 

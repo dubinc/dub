@@ -1,8 +1,8 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withAdmin } from "@/lib/auth";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { prisma } from "@dub/prisma";
-import { InvoiceStatus } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { InvoiceStatus } from "@/lib/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

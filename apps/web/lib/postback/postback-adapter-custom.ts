@@ -1,4 +1,4 @@
-import { Postback } from "@dub/prisma/client";
+import { Postback } from "@/lib/prisma/client";
 import { PostbackAdapter, PostbackPayload } from "./postback-adapters";
 
 export class PostbackCustomAdapter extends PostbackAdapter {

@@ -6,7 +6,7 @@ import { generateDiscountCodeForPartner } from "@/lib/discounts/generate-discoun
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";

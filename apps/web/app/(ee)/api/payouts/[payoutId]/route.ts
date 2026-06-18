@@ -4,7 +4,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { PayoutResponseSchema } from "@/lib/zod/schemas/payouts";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/payouts/[payoutId] - get a single payout by ID

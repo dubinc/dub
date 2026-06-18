@@ -7,7 +7,7 @@ import { limiter } from "@/lib/cron/limiter";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird/record-link";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";

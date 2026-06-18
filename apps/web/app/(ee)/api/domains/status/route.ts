@@ -6,7 +6,7 @@ import {
   DomainStatusSchema,
   searchDomainSchema,
 } from "@/lib/zod/schemas/domains";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

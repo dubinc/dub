@@ -1,7 +1,7 @@
 import { ProcessedLinkProps } from "@/lib/types";
 import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { getParamsFromURL, linkConstructorSimple, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";

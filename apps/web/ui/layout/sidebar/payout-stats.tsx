@@ -4,7 +4,7 @@ import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { ConnectPayoutButton } from "@/ui/partners/payouts/connect-payout-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   ChevronRight,

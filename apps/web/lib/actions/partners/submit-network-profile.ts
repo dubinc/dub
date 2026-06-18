@@ -5,7 +5,7 @@ import { getNetworkProfileChecklistProgress } from "@/lib/network/get-network-pr
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import { sendEmail } from "@dub/email";
 import NetworkPartnerApplicationSubmitted from "@dub/email/templates/network-partner-application-submitted";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { authPartnerActionClient } from "../safe-action";
 
 // Submit a partner network profile

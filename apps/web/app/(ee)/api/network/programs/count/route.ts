@@ -1,8 +1,8 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { getNetworkProgramsCountQuerySchema } from "@/lib/zod/schemas/program-network";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { NextResponse } from "next/server";
 
 const rewardTypeMap = {

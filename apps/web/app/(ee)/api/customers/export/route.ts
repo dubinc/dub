@@ -6,7 +6,7 @@ import { buildCustomerCountWhere } from "@/lib/customers/api/customer-count-wher
 import { formatCustomersForExport } from "@/lib/customers/api/format-customers-export";
 import { getCustomers } from "@/lib/customers/api/get-customers";
 import { customersExportQuerySchema } from "@/lib/zod/schemas/customers";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 

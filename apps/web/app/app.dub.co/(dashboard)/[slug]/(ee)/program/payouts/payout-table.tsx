@@ -17,7 +17,7 @@ import {
   PartnerPayoutMethod,
   PayoutStatus,
   ProgramPayoutMode,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,

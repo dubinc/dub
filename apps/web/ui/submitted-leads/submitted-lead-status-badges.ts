@@ -1,4 +1,4 @@
-import { SubmittedLeadStatus } from "@dub/prisma/client";
+import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import { CircleCheck, CircleHalfDottedClock, CircleXmark } from "@dub/ui/icons";
 
 export const SubmittedLeadStatusBadges: Record<

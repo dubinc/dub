@@ -1,4 +1,4 @@
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@/lib/prisma/client";
 import { combineWords } from "@dub/utils";
 import { PermissionAction, ROLE_PERMISSIONS } from "./api/rbac/permissions";
 

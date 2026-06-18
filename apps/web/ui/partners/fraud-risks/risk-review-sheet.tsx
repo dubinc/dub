@@ -9,7 +9,7 @@ import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-app
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { X } from "@/ui/shared/icons";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType } from "@/lib/prisma/client";
 import {
   ArrowUpRight2,
   Button,

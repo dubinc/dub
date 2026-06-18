@@ -15,7 +15,7 @@ import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
 import { CreatePartnerCommissionProps } from "@/lib/types";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, nanoid, prettyPrint } from "@dub/utils";
 import "dotenv-flow/config";
 import * as z from "zod/v4";

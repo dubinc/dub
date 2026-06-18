@@ -2,7 +2,7 @@ import {
   CampaignWorkflowAttributeConfig,
   WorkflowAttribute,
 } from "@/lib/types";
-import { CampaignStatus, CampaignType } from "@dub/prisma/client";
+import { CampaignStatus, CampaignType } from "@/lib/prisma/client";
 import * as z from "zod/v4";
 import { GroupSchema } from "./groups";
 import { getPaginationQuerySchema } from "./misc";

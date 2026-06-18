@@ -1,5 +1,5 @@
 import { isStored, storage } from "@/lib/storage";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { R2_URL } from "@dub/utils";
 import {
   DeleteWorkspacePayload,

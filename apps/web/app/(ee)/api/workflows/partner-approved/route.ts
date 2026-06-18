@@ -14,7 +14,7 @@ import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";

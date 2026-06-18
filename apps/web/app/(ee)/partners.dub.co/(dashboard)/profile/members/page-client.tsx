@@ -9,7 +9,7 @@ import { useRemovePartnerUserModal } from "@/ui/modals/remove-partner-user-modal
 import { useUpdatePartnerUserModal } from "@/ui/modals/update-partner-user-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { PartnerRole } from "@dub/prisma/client";
+import { PartnerRole } from "@/lib/prisma/client";
 import {
   Button,
   Filter,

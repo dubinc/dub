@@ -16,7 +16,7 @@ import {
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
-import { PartnerPayoutMethod, PayoutStatus } from "@dub/prisma/client";
+import { PartnerPayoutMethod, PayoutStatus } from "@/lib/prisma/client";
 import {
   Button,
   CircleArrowRight,

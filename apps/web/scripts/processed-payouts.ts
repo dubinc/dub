@@ -1,6 +1,6 @@
 import { MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/constants/payouts";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { currencyFormatter } from "@dub/utils";
 import "dotenv-flow/config";
 

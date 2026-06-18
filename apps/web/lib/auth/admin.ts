@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { WorkspaceRole } from "@/lib/prisma/client";
 import { DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { getSession, type Session } from "./utils";
 

@@ -29,8 +29,8 @@ import {
   trackSaleRequestSchema,
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
-import { prisma } from "@dub/prisma";
-import { Customer } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Customer } from "@/lib/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";

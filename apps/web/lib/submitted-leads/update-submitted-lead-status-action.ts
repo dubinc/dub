@@ -13,8 +13,8 @@ import { markSubmittedLeadQualified } from "@/lib/submitted-leads/mark-submitted
 import { notifySubmittedLeadStatusUpdate } from "@/lib/submitted-leads/notify-submitted-lead-status-update";
 import { SubmittedLeadWithCustomer } from "@/lib/types";
 import { updateSubmittedLeadStatusSchema } from "@/lib/zod/schemas/submitted-leads";
-import { prisma } from "@dub/prisma";
-import { SubmittedLeadStatus } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../actions/safe-action";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";

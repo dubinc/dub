@@ -12,7 +12,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
 import { bountyPerformanceConditionSchema } from "@/lib/zod/schemas/bounties";
-import { BountySubmissionFrequency } from "@dub/prisma/client";
+import { BountySubmissionFrequency } from "@/lib/prisma/client";
 import { formatDate } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";

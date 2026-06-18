@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Project } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Project } from "@/lib/prisma/client";
 import { DUB_WORKSPACE_ID, isDubDomain } from "@dub/utils";
 import { DubApiError } from "../errors";
 import { prefixWorkspaceId } from "../workspaces/workspace-id";

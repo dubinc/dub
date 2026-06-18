@@ -6,7 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, CampaignList } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { CampaignStatus } from "@dub/prisma/client";
+import { CampaignStatus } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,

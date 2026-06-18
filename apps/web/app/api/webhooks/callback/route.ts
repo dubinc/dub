@@ -7,7 +7,7 @@ import {
 } from "@/lib/webhook/failure";
 import { handleExternalPayoutEvent } from "@/lib/webhook/handle-external-payout-event";
 import { webhookCallbackSchema } from "@/lib/zod/schemas/webhooks";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { getSearchParams } from "@dub/utils";
 import * as z from "zod/v4";
 

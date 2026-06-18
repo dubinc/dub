@@ -1,5 +1,5 @@
 import { PartnerGroupAdditionalLink } from "@/lib/types";
-import { PartnerGroup } from "@dub/prisma/client";
+import { PartnerGroup } from "@/lib/prisma/client";
 import { getUrlObjFromString } from "@dub/utils";
 import { DubApiError } from "../errors";
 

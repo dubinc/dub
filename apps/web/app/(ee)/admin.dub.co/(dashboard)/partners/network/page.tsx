@@ -7,7 +7,7 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PartnerNetworkStatus, PlatformType } from "@dub/prisma/client";
+import { PartnerNetworkStatus, PlatformType } from "@/lib/prisma/client";
 import {
   Filter,
   StatusBadge,

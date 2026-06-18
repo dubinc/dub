@@ -7,7 +7,7 @@ import {
   createDashboardQuerySchema,
   dashboardSchema,
 } from "@/lib/zod/schemas/dashboard";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

@@ -1,6 +1,6 @@
 import { stripe } from "@/lib/stripe";
 import { getStripeRecipientAccount } from "@/lib/stripe/get-stripe-recipient-account";
-import { Partner, PartnerPayoutMethod } from "@dub/prisma/client";
+import { Partner, PartnerPayoutMethod } from "@/lib/prisma/client";
 import { prettyPrint } from "@dub/utils";
 import { getStripeRecipientPayoutMethod } from "../stripe/get-stripe-recipient-payout-method";
 

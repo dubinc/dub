@@ -1,4 +1,4 @@
-import { EventType, Link, Prisma, Reward } from "@dub/prisma/client";
+import { EventType, Link, Prisma, Reward } from "@/lib/prisma/client";
 import { toCentsNumber } from "@dub/utils";
 import { serializeReward } from "../api/partners/serialize-reward";
 import { RewardContext, RewardProps } from "../types";

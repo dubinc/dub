@@ -3,7 +3,7 @@ import {
   programApplicationFormSiteSchema,
   programApplicationFormWebsiteAndSocialsFieldSchema,
 } from "@/lib/zod/schemas/program-application-form";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@/lib/prisma/client";
 import { cn } from "@dub/utils";
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";

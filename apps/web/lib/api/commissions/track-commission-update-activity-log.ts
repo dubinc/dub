@@ -3,7 +3,7 @@ import {
   type TrackActivityLogInput,
 } from "@/lib/api/activity-log/track-activity-log";
 import { CommissionActivitySnapshot } from "@/lib/types";
-import type { Commission, CommissionStatus } from "@dub/prisma/client";
+import type { Commission, CommissionStatus } from "@/lib/prisma/client";
 import { groupBy } from "@dub/utils";
 import { getResourceDiff } from "../activity-log/get-resource-diff";
 

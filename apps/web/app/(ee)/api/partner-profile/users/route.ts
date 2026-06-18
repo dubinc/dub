@@ -6,8 +6,8 @@ import {
   getPartnerUsersQuerySchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
-import { PartnerRole } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { PartnerRole } from "@/lib/prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

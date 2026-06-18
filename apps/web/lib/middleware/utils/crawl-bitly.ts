@@ -3,7 +3,7 @@ import { linkCache } from "@/lib/api/links/cache";
 import { encodeKeyIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
 import { recordLink } from "@/lib/tinybird";
 import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   DUB_HEADERS,
   getUrlFromStringIfValid,

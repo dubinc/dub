@@ -17,7 +17,7 @@ import { useRemoveWorkspaceUserModal } from "@/ui/modals/remove-workspace-user-m
 import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@/lib/prisma/client";
 import {
   Button,
   DynamicTooltipWrapper,

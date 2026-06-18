@@ -3,7 +3,7 @@ import { linkCache } from "@/lib/api/links/cache";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

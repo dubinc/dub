@@ -3,7 +3,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withWorkspace } from "@/lib/auth";
 import { tb } from "@/lib/tinybird";
 import { usageQuerySchema, usageResponse } from "@/lib/zod/schemas/usage";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { subYears } from "date-fns";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

@@ -12,7 +12,7 @@ import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "@dub/email";
 import PartnerTremendousVerifyEmail from "@dub/email/templates/partner-tremendous-verify-email";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { TREMENDOUS_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

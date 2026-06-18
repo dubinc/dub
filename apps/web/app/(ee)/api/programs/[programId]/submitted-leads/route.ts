@@ -4,8 +4,8 @@ import {
   getSubmittedLeadsQuerySchema,
   submittedLeadSchema,
 } from "@/lib/zod/schemas/submitted-leads";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
-import { SubmittedLeadStatus } from "@dub/prisma/client";
+import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
+import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

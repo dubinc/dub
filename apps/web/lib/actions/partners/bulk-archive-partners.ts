@@ -6,7 +6,7 @@ import {
   ACTIVE_ENROLLMENT_STATUSES,
   bulkArchivePartnersSchema,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";

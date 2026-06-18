@@ -3,7 +3,7 @@ import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { SimpleLinkProps } from "@/lib/types";
 import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // POST /api/links/sync – sync user's publicly created links to their accounts

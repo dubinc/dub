@@ -1,13 +1,13 @@
 "server-only";
 
 import { Folder, FolderPermission } from "@/lib/types";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   FolderUser,
   FolderUserRole,
   Project,
   WorkspaceRole,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import { DubApiError } from "../api/errors";
 import { getPlanCapabilities } from "../plan-capabilities";
 import {

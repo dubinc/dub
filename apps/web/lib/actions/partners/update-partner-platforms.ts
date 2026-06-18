@@ -3,8 +3,8 @@
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
-import { prisma } from "@dub/prisma";
-import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { PartnerPlatform, PlatformType } from "@/lib/prisma/client";
 import { getDomainWithoutWWW, getUrlFromString, isValidUrl } from "@dub/utils";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";

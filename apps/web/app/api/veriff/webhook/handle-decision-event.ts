@@ -11,8 +11,8 @@ import {
 import { sendEmail } from "@dub/email";
 import PartnerIdentityVerificationFailed from "@dub/email/templates/partner-identity-verification-failed";
 import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verified";
-import { prisma } from "@dub/prisma";
-import { IdentityVerificationStatus, Partner } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { IdentityVerificationStatus, Partner } from "@/lib/prisma/client";
 import { DUPLICATE_IDENTITY_DECLINE_REASON } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { logAndRespond } from "app/(ee)/api/cron/utils";

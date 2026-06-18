@@ -1,4 +1,4 @@
-import { Program } from "@dub/prisma/client";
+import { Program } from "@/lib/prisma/client";
 import { BlurImage } from "@dub/ui";
 import Link from "next/link";
 

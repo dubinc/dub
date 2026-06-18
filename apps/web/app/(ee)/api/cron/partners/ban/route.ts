@@ -8,7 +8,7 @@ import { recordLink } from "@/lib/tinybird";
 import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { cancelCommissions } from "./cancel-commissions";

@@ -9,7 +9,7 @@ import { PartnerProfileSubmittedLeadSheet } from "@/ui/submitted-leads/partner-p
 import { PartnerProfileSubmittedLeadsEmptyState } from "@/ui/submitted-leads/partner-profile-submitted-leads-empty-state";
 import { SubmittedLeadStatusBadges } from "@/ui/submitted-leads/submitted-lead-status-badges";
 import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
-import { SubmittedLeadStatus } from "@dub/prisma/client";
+import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Filter,

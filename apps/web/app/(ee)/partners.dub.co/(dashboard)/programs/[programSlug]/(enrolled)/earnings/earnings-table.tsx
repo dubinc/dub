@@ -11,7 +11,7 @@ import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
-import { CommissionType } from "@dub/prisma/client";
+import { CommissionType } from "@/lib/prisma/client";
 import {
   CopyText,
   LinkLogo,

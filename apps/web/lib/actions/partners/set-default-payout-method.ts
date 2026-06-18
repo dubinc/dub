@@ -10,7 +10,7 @@ import {
 import { getPayoutMethodLabel } from "@/ui/partners/payouts/payout-method-config";
 import { sendEmail } from "@dub/email";
 import DefaultPayoutMethodChanged from "@dub/email/templates/default-payout-method-changed";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authPartnerActionClient } from "../safe-action";
 

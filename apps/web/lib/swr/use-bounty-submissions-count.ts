@@ -1,4 +1,4 @@
-import { BountySubmissionStatus } from "@dub/prisma/client";
+import { BountySubmissionStatus } from "@/lib/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";

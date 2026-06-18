@@ -1,6 +1,6 @@
 import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
-import { sanitizeFullTextSearch } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { sanitizeFullTextSearch } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import * as z from "zod/v4";
 
 /**

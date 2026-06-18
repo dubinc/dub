@@ -8,7 +8,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";

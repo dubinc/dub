@@ -1,13 +1,13 @@
 import { qstash } from "@/lib/cron";
 import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
 import { createTremendousCampaign } from "@/lib/tremendous/create-tremendous-campaign";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   Invoice,
   PartnerPayoutMethod,
   PayoutMode,
   PayoutStatus,
-} from "@dub/prisma/client";
+} from "@/lib/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 
 const queue = qstash.queue({

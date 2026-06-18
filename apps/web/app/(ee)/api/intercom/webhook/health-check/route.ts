@@ -5,7 +5,7 @@ import {
   IntercomHealthCheckResponse,
   intercomHealthCheckWebhookSchema,
 } from "@/lib/integrations/intercom/schema";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { verifyIntercomWebhookSignature } from "../verify-webhook-signature";

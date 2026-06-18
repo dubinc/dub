@@ -7,7 +7,7 @@ import {
   WorkspaceLinksUsageEvent,
   workspaceLinksUsageStream,
 } from "@/lib/upstash/redis-streams/workspace-links-usage";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 
