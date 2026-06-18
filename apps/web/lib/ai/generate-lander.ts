@@ -18,8 +18,8 @@ import FireCrawlApp, {
 } from "@mendable/firecrawl-js";
 import { generateText, Output } from "ai";
 import * as z from "zod/v4";
-import { authActionClient } from "../safe-action";
-import { throwIfNoPermission } from "../throw-if-no-permission";
+import { authActionClient } from "../actions/safe-action";
+import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
