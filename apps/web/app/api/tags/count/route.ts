@@ -1,6 +1,6 @@
 import { withWorkspace } from "@/lib/auth";
-import { getTagsCountQuerySchema } from "@/lib/zod/schemas/tags";
 import { prisma } from "@/lib/prisma";
+import { getTagsCountQuerySchema } from "@/lib/zod/schemas/tags";
 import { NextResponse } from "next/server";
 
 // GET /api/tags/count - get count of tags

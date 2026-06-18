@@ -2,6 +2,14 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { Session } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
+import { prisma } from "@/lib/prisma";
+import {
+  CommissionType,
+  Customer,
+  Link,
+  Partner,
+  Project,
+} from "@/lib/prisma/client";
 import { isStored, storage } from "@/lib/storage";
 import {
   recordClickZod,
@@ -13,14 +21,6 @@ import { CreatePartnerCommissionProps } from "@/lib/types";
 import { createManualCommissionBodySchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
-import { prisma } from "@/lib/prisma";
-import {
-  CommissionType,
-  Customer,
-  Link,
-  Partner,
-  Project,
-} from "@/lib/prisma/client";
 import { COUNTRIES_TO_CONTINENTS, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";

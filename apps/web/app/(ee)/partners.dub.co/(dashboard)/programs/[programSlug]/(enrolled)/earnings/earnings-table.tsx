@@ -1,5 +1,6 @@
 "use client";
 
+import { CommissionType } from "@/lib/prisma/client";
 import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -11,7 +12,6 @@ import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
-import { CommissionType } from "@/lib/prisma/client";
 import {
   CopyText,
   LinkLogo,

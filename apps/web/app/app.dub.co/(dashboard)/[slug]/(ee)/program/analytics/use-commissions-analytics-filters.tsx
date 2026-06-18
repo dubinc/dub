@@ -1,5 +1,6 @@
 "use client";
 
+import { CommissionType } from "@/lib/prisma/client";
 import useCommissionAnalytics from "@/lib/swr/use-commission-analytics";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -7,7 +8,6 @@ import { GroupProps } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { CommissionType } from "@/lib/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { Sliders, Tag, Users, Users6 } from "@dub/ui/icons";
 import {

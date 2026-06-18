@@ -1,10 +1,10 @@
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { sendBatchEmail } from "@dub/email";
 import { ResendBulkEmailOptions } from "@dub/email/resend/types";
 import PendingApplicationsSummary from "@dub/email/templates/pending-applications-summary";
-import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   chunk,

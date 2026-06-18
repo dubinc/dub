@@ -3,6 +3,8 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import {
   recordLeadWithTimestamp,
   recordSaleWithTimestamp,
@@ -11,8 +13,6 @@ import {
 import { redis } from "@/lib/upstash";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { parseDateSchema } from "@/lib/zod/schemas/utils";
-import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
 import { linkConstructorSimple, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

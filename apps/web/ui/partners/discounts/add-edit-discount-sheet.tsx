@@ -5,6 +5,7 @@ import { deleteDiscountAction } from "@/lib/actions/partners/delete-discount";
 import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
 import { constructDiscountAmount } from "@/lib/api/sales/construct-discount-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import { DiscountProvider } from "@/lib/prisma/client";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -19,7 +20,6 @@ import {
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import { DiscountProvider } from "@/lib/prisma/client";
 import {
   Button,
   InfoTooltip,

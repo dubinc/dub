@@ -1,7 +1,7 @@
 import { withAdmin } from "@/lib/auth";
-import { anthropic } from "@ai-sdk/anthropic";
 import { prisma } from "@/lib/prisma";
 import { Category } from "@/lib/prisma/client";
+import { anthropic } from "@ai-sdk/anthropic";
 import FireCrawlApp from "@mendable/firecrawl-js";
 import { generateText, Output } from "ai";
 import { NextResponse } from "next/server";

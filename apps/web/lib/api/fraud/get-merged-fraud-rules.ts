@@ -1,5 +1,5 @@
-import { FraudRuleProps } from "@/lib/types";
 import { FraudRule, FraudRuleType } from "@/lib/prisma/client";
+import { FraudRuleProps } from "@/lib/types";
 import { CONFIGURABLE_FRAUD_RULES } from "./constants";
 
 // Merges global fraud rules with program-specific overrides.

@@ -1,7 +1,7 @@
-import { sendBatchEmail } from "@dub/email";
-import PartnerReactivated from "@dub/email/templates/partner-reactivated";
 import { prisma } from "@/lib/prisma";
 import { Partner, Program, ProgramEnrollment } from "@/lib/prisma/client";
+import { sendBatchEmail } from "@dub/email";
+import PartnerReactivated from "@dub/email/templates/partner-reactivated";
 import { waitUntil } from "@vercel/functions";
 import { trackActivityLog } from "../activity-log/track-activity-log";
 import { linkCache } from "../links/cache";

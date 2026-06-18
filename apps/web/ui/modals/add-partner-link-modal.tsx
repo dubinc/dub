@@ -1,10 +1,10 @@
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { UtmTemplate } from "@/lib/prisma/client";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { UtmTemplate } from "@/lib/prisma/client";
 import {
   ArrowTurnLeft,
   Button,

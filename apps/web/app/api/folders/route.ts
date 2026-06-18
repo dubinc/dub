@@ -5,13 +5,13 @@ import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { getFolders } from "@/lib/folder/get-folders";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import {
   createFolderSchema,
   FolderSchema,
   listFoldersQuerySchema,
 } from "@/lib/zod/schemas/folders";
-import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/folders - get all folders for a workspace

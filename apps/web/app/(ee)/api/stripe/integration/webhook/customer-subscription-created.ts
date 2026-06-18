@@ -1,8 +1,8 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
-import { StripeMode } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
 import { Customer } from "@/lib/prisma/client";
+import { StripeMode } from "@/lib/types";
 import { pick, STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";

@@ -3,9 +3,9 @@ import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@/lib/prisma";
 import { PayoutStatus, Prisma } from "@/lib/prisma/client";
+import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
 import { NextResponse } from "next/server";
 
 // GET /api/payouts/count

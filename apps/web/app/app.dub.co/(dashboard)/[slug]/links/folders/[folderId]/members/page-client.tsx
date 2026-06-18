@@ -6,6 +6,7 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { FolderUserRole } from "@/lib/prisma/client";
 import { useFolderLinkCount } from "@/lib/swr/use-folder-link-count";
 import {
   useCheckFolderPermission,
@@ -16,7 +17,6 @@ import { Folder, FolderUser } from "@/lib/types";
 import { FolderIcon } from "@/ui/folders/folder-icon";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { FolderUserRole } from "@/lib/prisma/client";
 import { BlurImage, Globe } from "@dub/ui";
 import { cn, fetcher, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";

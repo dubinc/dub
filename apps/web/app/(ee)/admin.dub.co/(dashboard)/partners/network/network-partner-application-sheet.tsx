@@ -1,5 +1,6 @@
 "use client";
 
+import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import { AdminNetworkPartner } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
@@ -9,7 +10,6 @@ import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { X } from "@/ui/shared/icons";
-import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import {
   Button,
   ChevronLeft,

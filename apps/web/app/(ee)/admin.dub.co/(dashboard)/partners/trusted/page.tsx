@@ -1,9 +1,9 @@
 "use client";
 
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
+import { PlatformType } from "@/lib/prisma/client";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { PlatformType } from "@/lib/prisma/client";
 import { Button, CopyText, Sheet, TimestampTooltip, Tooltip } from "@dub/ui";
 import {
   BadgeCheck2Fill,

@@ -7,11 +7,6 @@ import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
-import { stripe } from "@/lib/stripe";
-import { createFxQuote } from "@/lib/stripe/create-fx-quote";
-import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
-import { sendEmail } from "@dub/email";
-import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
 import { prisma } from "@/lib/prisma";
 import {
   Invoice,
@@ -19,6 +14,11 @@ import {
   ProgramPayoutMode,
   Project,
 } from "@/lib/prisma/client";
+import { stripe } from "@/lib/stripe";
+import { createFxQuote } from "@/lib/stripe/create-fx-quote";
+import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
+import { sendEmail } from "@dub/email";
+import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,

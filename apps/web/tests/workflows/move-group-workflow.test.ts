@@ -1,6 +1,6 @@
+import { PartnerGroup } from "@/lib/prisma/client";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { RESOURCE_COLORS } from "@/ui/colors";
-import { PartnerGroup } from "@/lib/prisma/client";
 import { randomValue } from "@dub/utils";
 import { E2E_PARTNER } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";

@@ -1,6 +1,7 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
+import { PartnerProfileType } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerProps } from "@/lib/types";
@@ -11,7 +12,6 @@ import {
 } from "@/ui/partners/partner-platforms-form";
 import { CustomToast } from "@/ui/shared/custom-toast";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { PartnerProfileType } from "@/lib/prisma/client";
 import {
   Button,
   DynamicTooltipWrapper,

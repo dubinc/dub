@@ -1,6 +1,6 @@
+import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { CountryFlag } from "@/ui/shared/country-flag";
-import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Globe } from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";

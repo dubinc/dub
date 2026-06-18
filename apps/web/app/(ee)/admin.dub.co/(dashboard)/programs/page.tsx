@@ -1,7 +1,7 @@
 "use client";
 
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { Category } from "@/lib/prisma/client";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import {
   Button,
   CrownSmall,

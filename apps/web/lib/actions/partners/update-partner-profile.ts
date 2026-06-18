@@ -5,6 +5,8 @@ import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { qstash } from "@/lib/cron";
 import { isReservedUsername } from "@/lib/edge-config";
+import { prisma } from "@/lib/prisma";
+import { Partner, PartnerProfileType } from "@/lib/prisma/client";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
@@ -12,8 +14,6 @@ import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
   PartnerProfileDetailsSchema,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@/lib/prisma";
-import { Partner, PartnerProfileType } from "@/lib/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   deepEqual,

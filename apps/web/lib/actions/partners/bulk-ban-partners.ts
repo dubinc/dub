@@ -4,12 +4,12 @@ import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
+import { prisma } from "@/lib/prisma";
+import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import {
   ACTIVE_ENROLLMENT_STATUSES,
   bulkBanPartnersSchema,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@/lib/prisma";
-import { ProgramEnrollmentStatus } from "@/lib/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";

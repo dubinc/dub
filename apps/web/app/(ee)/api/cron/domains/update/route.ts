@@ -7,9 +7,9 @@ import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@/lib/prisma";
 import { Link } from "@/lib/prisma/client";
+import { recordLink } from "@/lib/tinybird";
 import { linkConstructorSimple } from "@dub/utils";
 import { logAndRespond } from "../../utils";
 

@@ -1,6 +1,11 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import {
+  PartnerPayoutMethod,
+  PayoutStatus,
+  ProgramPayoutMode,
+} from "@/lib/prisma/client";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import useGroups from "@/lib/swr/use-groups";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
@@ -13,11 +18,6 @@ import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import {
-  PartnerPayoutMethod,
-  PayoutStatus,
-  ProgramPayoutMode,
-} from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,

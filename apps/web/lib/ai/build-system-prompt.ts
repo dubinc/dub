@@ -1,5 +1,5 @@
-import { SupportChatContext } from "@/ui/support/types";
 import { Program, Project } from "@/lib/prisma/client";
+import { SupportChatContext } from "@/ui/support/types";
 
 export type GlobalChatContext = {
   chatLocation?: SupportChatContext;

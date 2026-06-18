@@ -1,8 +1,8 @@
 import { withAdmin } from "@/lib/auth/admin";
-import { PartnerSchema } from "@/lib/zod/schemas/partners";
-import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@/lib/prisma";
 import { PayoutStatus } from "@/lib/prisma/client";
+import { PartnerSchema } from "@/lib/zod/schemas/partners";
+import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

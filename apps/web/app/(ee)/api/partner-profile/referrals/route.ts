@@ -7,9 +7,9 @@ import {
   getNetworkReferralsQuerySchema,
   networkReferralSchema,
 } from "@/lib/partner-referrals/schemas";
-import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@/lib/prisma";
 import { CommissionType } from "@/lib/prisma/client";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import {
   NETWORK_PROGRAM_DEFAULT_GROUP_ID,
   NETWORK_PROGRAM_DEFAULT_SALE_REWARD_ID,

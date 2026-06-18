@@ -1,9 +1,9 @@
 "use client";
 
+import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import { SubmittedLeadProps } from "@/lib/types";
 import { useConfirmSubmittedLeadStatusChangeModal } from "@/ui/modals/confirm-submitted-lead-status-change-modal";
 import { useEditSubmittedLeadModal } from "@/ui/modals/edit-submitted-lead-modal";
-import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import { Button, Envelope, OfficeBuilding } from "@dub/ui";
 import { OG_AVATAR_URL } from "@dub/utils";
 import { Pencil } from "lucide-react";

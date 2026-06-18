@@ -1,6 +1,8 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getSession } from "@/lib/auth";
 import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
+import { prisma } from "@/lib/prisma";
+import { Reward } from "@/lib/prisma/client";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -8,8 +10,6 @@ import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { prisma } from "@/lib/prisma";
-import { Reward } from "@/lib/prisma/client";
 import { CircleCheckFill } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { redirect } from "next/navigation";

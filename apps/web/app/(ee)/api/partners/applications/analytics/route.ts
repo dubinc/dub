@@ -6,10 +6,10 @@ import {
 } from "@/lib/application-events/schema";
 import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
-import { ApplicationEventAnalyticsQuery } from "@/lib/types";
-import { TZDate, tz } from "@date-fns/tz";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/prisma/client";
+import { ApplicationEventAnalyticsQuery } from "@/lib/types";
+import { TZDate, tz } from "@date-fns/tz";
 import { parseFilterValue } from "@dub/utils";
 import { format } from "date-fns/format";
 import { NextResponse } from "next/server";

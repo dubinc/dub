@@ -3,12 +3,12 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
+import { Partner } from "@/lib/prisma/client";
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
   onboardPartnerSchema,
 } from "@/lib/zod/schemas/partners";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { Partner } from "@/lib/prisma/client";
 import {
   Button,
   FileUpload,

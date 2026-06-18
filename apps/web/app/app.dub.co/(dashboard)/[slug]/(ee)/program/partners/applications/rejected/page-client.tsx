@@ -1,6 +1,7 @@
 "use client";
 
 import { approvePartnerApplicationAction } from "@/lib/actions/partners/approve-partner-application";
+import { PlatformType } from "@/lib/prisma/client";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
@@ -16,7 +17,6 @@ import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PlatformType } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,

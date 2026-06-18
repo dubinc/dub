@@ -1,5 +1,6 @@
 import { uploadCampaignImageAction } from "@/lib/actions/partners/upload-campaign-image";
 import { CAMPAIGN_READONLY_STATUSES } from "@/lib/api/campaigns/constants";
+import { CampaignStatus } from "@/lib/prisma/client";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -7,7 +8,6 @@ import { Campaign, UpdateCampaignFormData } from "@/lib/types";
 import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
 import { PageContentWithSidePanel } from "@/ui/layout/page-content/page-content-with-side-panel";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { CampaignStatus } from "@/lib/prisma/client";
 import {
   ChevronRight,
   Lock,

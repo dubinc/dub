@@ -2,8 +2,8 @@ import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
-import { FolderAccessLevel } from "@/lib/types";
 import { FolderType, FolderUserRole } from "@/lib/prisma/client";
+import { FolderAccessLevel } from "@/lib/types";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 

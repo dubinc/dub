@@ -1,5 +1,5 @@
-import { ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
+import { ProcessedLinkProps } from "@/lib/types";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";

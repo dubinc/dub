@@ -1,8 +1,8 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { createUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
 import { prisma } from "@/lib/prisma";
+import { createUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
 import { NextResponse } from "next/server";
 
 // GET /api/utm - get all UTM templates for a workspace

@@ -2,11 +2,11 @@ import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   PAYOUT_FAILURE_FEE_CENTS,
 } from "@/lib/constants/payouts";
+import { prisma } from "@/lib/prisma";
+import { Invoice } from "@/lib/prisma/client";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
 import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutFailed from "@dub/email/templates/partner-payout-failed";
-import { prisma } from "@/lib/prisma";
-import { Invoice } from "@/lib/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";
 

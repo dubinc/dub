@@ -3,6 +3,7 @@ import {
   SUBMISSION_FREQUENCY_OPTIONS,
 } from "@/lib/bounty/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { BountySubmissionFrequency } from "@/lib/prisma/client";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps, CreateBountyInput } from "@/lib/types";
@@ -20,7 +21,6 @@ import {
   InlineBadgePopoverInput,
 } from "@/ui/shared/inline-badge-popover";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { BountySubmissionFrequency } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,

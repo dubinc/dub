@@ -1,3 +1,4 @@
+import { CommissionType } from "@/lib/prisma/client";
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useCustomers from "@/lib/swr/use-customers";
 import useGroups from "@/lib/swr/use-groups";
@@ -10,7 +11,6 @@ import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { CommissionType } from "@/lib/prisma/client";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { Sliders, Tag, User, Users, Users6 } from "@dub/ui/icons";
 import {

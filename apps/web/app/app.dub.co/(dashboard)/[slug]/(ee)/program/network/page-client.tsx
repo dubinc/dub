@@ -1,12 +1,12 @@
 "use client";
 
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
+import { PlatformType } from "@/lib/prisma/client";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
 import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
 import { NetworkPartnerSheet } from "@/ui/partners/partner-network/network-partner-sheet";
-import { PlatformType } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,

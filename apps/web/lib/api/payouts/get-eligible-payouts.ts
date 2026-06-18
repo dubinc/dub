@@ -1,10 +1,10 @@
 import { CUTOFF_PERIOD } from "@/lib/partners/cutoff-period";
+import { prisma } from "@/lib/prisma";
+import { Program, Project } from "@/lib/prisma/client";
 import {
   eligiblePayoutsQuerySchema,
   PayoutResponseSchema,
 } from "@/lib/zod/schemas/payouts";
-import { prisma } from "@/lib/prisma";
-import { Program, Project } from "@/lib/prisma/client";
 import * as z from "zod/v4";
 import { getEffectivePayoutMode } from "./get-effective-payout-mode";
 import { getPayoutEligibilityFilter } from "./payout-eligibility-filter";

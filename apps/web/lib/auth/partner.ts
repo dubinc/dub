@@ -1,9 +1,9 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
-import { PartnerBetaFeatures, PartnerProps } from "@/lib/types";
-import { flattenVeriffMetadata } from "@/lib/veriff/veriff-metadata";
 import { prisma } from "@/lib/prisma";
 import { PartnerUser } from "@/lib/prisma/client";
+import { PartnerBetaFeatures, PartnerProps } from "@/lib/types";
+import { flattenVeriffMetadata } from "@/lib/veriff/veriff-metadata";
 import {
   getSearchParams,
   NETWORK_PROGRAM_ID,

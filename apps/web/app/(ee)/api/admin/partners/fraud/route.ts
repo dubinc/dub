@@ -1,7 +1,7 @@
 import { withAdmin } from "@/lib/auth";
-import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
 import { prisma } from "@/lib/prisma";
 import { FraudAlertStatus } from "@/lib/prisma/client";
+import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

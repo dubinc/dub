@@ -1,10 +1,3 @@
-import { sendBatchEmail } from "@dub/email";
-import {
-  ResendBulkEmailOptions,
-  ResendEmailOptions,
-} from "@dub/email/resend/types";
-import NewCommissionAlertPartner from "@dub/email/templates/new-commission-alert-partner";
-import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-program-owner";
 import { prisma } from "@/lib/prisma";
 import {
   Commission,
@@ -14,6 +7,13 @@ import {
   Project,
   User,
 } from "@/lib/prisma/client";
+import { sendBatchEmail } from "@dub/email";
+import {
+  ResendBulkEmailOptions,
+  ResendEmailOptions,
+} from "@dub/email/resend/types";
+import NewCommissionAlertPartner from "@dub/email/templates/new-commission-alert-partner";
+import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-program-owner";
 import { chunk, currencyFormatter } from "@dub/utils";
 
 // Send email to partner and program owners when a commission is created

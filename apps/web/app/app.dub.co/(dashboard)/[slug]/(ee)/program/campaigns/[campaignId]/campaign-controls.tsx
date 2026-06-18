@@ -1,9 +1,9 @@
+import { CampaignStatus } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign } from "@/lib/types";
 import { ThreeDots } from "@/ui/shared/icons";
-import { CampaignStatus } from "@/lib/prisma/client";
 import {
   Button,
   CircleXmark,

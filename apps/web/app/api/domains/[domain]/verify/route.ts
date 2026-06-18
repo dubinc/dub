@@ -3,8 +3,8 @@ import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
 import { verifyDomain } from "@/lib/api/domains/verify-domain";
 import { withWorkspace } from "@/lib/auth";
-import { DomainVerificationStatusProps } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
+import { DomainVerificationStatusProps } from "@/lib/types";
 import { NextResponse } from "next/server";
 
 export const maxDuration = 30;

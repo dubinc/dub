@@ -1,9 +1,9 @@
 import { captureRequestLog } from "@/lib/api-logs/capture-request-log";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
-import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@/lib/prisma";
 import { Project } from "@/lib/prisma/client";
+import { ratelimit } from "@/lib/upstash";
 import { getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";

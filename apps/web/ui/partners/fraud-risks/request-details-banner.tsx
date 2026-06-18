@@ -1,9 +1,9 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { FraudRuleType } from "@/lib/prisma/client";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupProps } from "@/lib/types";
-import { FraudRuleType } from "@/lib/prisma/client";
 import { Button, Msgs } from "@dub/ui";
 import Link from "next/link";
 

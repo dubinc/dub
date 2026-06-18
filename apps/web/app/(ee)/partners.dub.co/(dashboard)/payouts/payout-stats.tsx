@@ -7,6 +7,7 @@ import {
   MIN_WITHDRAWAL_AMOUNT_CENTS,
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
+import { PartnerPayoutMethod, PayoutStatus } from "@/lib/prisma/client";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
@@ -14,7 +15,6 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PAYOUT_STATUS_DESCRIPTIONS } from "@/ui/partners/payout-status-descriptions";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { PartnerPayoutMethod, PayoutStatus } from "@/lib/prisma/client";
 import { Button, Tooltip } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import { HelpCircle } from "lucide-react";

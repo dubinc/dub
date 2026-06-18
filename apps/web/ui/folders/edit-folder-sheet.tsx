@@ -4,6 +4,7 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { FolderUserRole, WorkspaceRole } from "@/lib/prisma/client";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
@@ -12,7 +13,6 @@ import { useFolderUsers } from "@/lib/swr/use-folder-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { FolderUserRole, WorkspaceRole } from "@/lib/prisma/client";
 import {
   BlurImage,
   Button,

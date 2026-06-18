@@ -1,13 +1,13 @@
 "use client";
 
 import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
+import { PayoutStatus } from "@/lib/prisma/client";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutRowMenu } from "@/ui/partners/payout-row-menu";
 import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { PayoutStatus } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Filter,

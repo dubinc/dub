@@ -3,8 +3,8 @@ import {
   getDueTrialEmailTypes,
   getTrialEmailSubject,
 } from "@/lib/email/trial-email-schedule";
-import { sendBatchEmail as defaultSendBatchEmail } from "@dub/email";
 import type { PrismaClient } from "@/lib/prisma/client";
+import { sendBatchEmail as defaultSendBatchEmail } from "@dub/email";
 import { chunk, log } from "@dub/utils";
 import { createHash } from "crypto";
 

@@ -1,7 +1,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@/lib/prisma";
+import { RewardSchema } from "@/lib/zod/schemas/rewards";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

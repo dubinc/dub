@@ -2,10 +2,10 @@ import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-upd
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
-import { sendBatchEmail } from "@dub/email";
-import BountyCompleted from "@dub/email/templates/bounty-completed";
 import { prisma } from "@/lib/prisma";
 import { Partner, Prisma } from "@/lib/prisma/client";
+import { sendBatchEmail } from "@dub/email";
+import BountyCompleted from "@dub/email/templates/bounty-completed";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";

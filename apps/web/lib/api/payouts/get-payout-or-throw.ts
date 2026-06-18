@@ -1,5 +1,5 @@
-import { PayoutSchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@/lib/prisma";
+import { PayoutSchema } from "@/lib/zod/schemas/payouts";
 import { DubApiError } from "../errors";
 
 export async function getPayoutOrThrow({

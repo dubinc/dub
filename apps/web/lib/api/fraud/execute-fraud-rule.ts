@@ -1,5 +1,5 @@
-import { FraudTriggeredRule } from "@/lib/types";
 import { FraudRuleType } from "@/lib/prisma/client";
+import { FraudTriggeredRule } from "@/lib/types";
 import { defineFraudRule } from "./define-fraud-rule";
 import { checkCustomerEmailMatch } from "./rules/check-customer-email-match";
 import { checkCustomerEmailSuspicious } from "./rules/check-customer-email-suspicious";

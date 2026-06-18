@@ -2,8 +2,8 @@
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
-import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@/lib/prisma";
+import { ratelimit } from "@/lib/upstash";
 import { nanoid } from "@dub/utils";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";

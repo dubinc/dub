@@ -1,6 +1,7 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { EventType } from "@/lib/prisma/client";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import type { GroupProps, RewardProps } from "@/lib/types";
@@ -14,7 +15,6 @@ import {
 } from "@/ui/partners/rewards/add-edit-reward-sheet";
 import { REWARD_EVENT_DESCRIPTIONS } from "@/ui/partners/rewards/reward-event-descriptions";
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
-import { EventType } from "@/lib/prisma/client";
 import {
   Button,
   TimestampTooltip,

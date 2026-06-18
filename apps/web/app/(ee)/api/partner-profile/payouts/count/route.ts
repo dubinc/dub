@@ -1,7 +1,7 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@/lib/prisma";
 import { PayoutStatus, Prisma } from "@/lib/prisma/client";
+import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/payouts/count – get payouts count for a partner

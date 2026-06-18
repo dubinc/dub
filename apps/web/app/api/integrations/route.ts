@@ -1,6 +1,6 @@
 import { withWorkspace } from "@/lib/auth";
-import { installedIntegrationSchema } from "@/lib/zod/schemas/integration";
 import { prisma } from "@/lib/prisma";
+import { installedIntegrationSchema } from "@/lib/zod/schemas/integration";
 import { NextResponse } from "next/server";
 
 // GET /api/integrations - get all active integrations

@@ -1,10 +1,10 @@
 "use client";
 
+import { PartnerPayoutMethod } from "@/lib/prisma/client";
 import { AdminNetworkPartner } from "@/lib/types";
 import { NetworkStatusBadges } from "@/ui/partners/partner-network/network-status-badges";
 import { getPayoutMethodLabel } from "@/ui/partners/payouts/payout-method-config";
 import { CountryFlag } from "@/ui/shared/country-flag";
-import { PartnerPayoutMethod } from "@/lib/prisma/client";
 import { StatusBadge, TimestampTooltip } from "@dub/ui";
 import { capitalize, COUNTRIES, formatDate } from "@dub/utils";
 

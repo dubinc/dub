@@ -1,6 +1,6 @@
 import { withAdmin } from "@/lib/auth";
-import { adminNetworkPartnerQuerySchema } from "@/lib/zod/schemas/admin";
 import { prisma } from "@/lib/prisma";
+import { adminNetworkPartnerQuerySchema } from "@/lib/zod/schemas/admin";
 import { NextResponse } from "next/server";
 
 // GET /api/admin/partners/network

@@ -11,7 +11,6 @@ import {
 } from "@/lib/integrations/intercom/schema";
 import { PROGRAM_ALLOWED_ATTACHMENT_TYPES } from "@/lib/messages/constants";
 import { sanitizeFileName } from "@/lib/messages/utils";
-import { storage } from "@/lib/storage";
 import { prisma } from "@/lib/prisma";
 import {
   InstalledIntegration,
@@ -19,6 +18,7 @@ import {
   MessageAttachment,
   Program,
 } from "@/lib/prisma/client";
+import { storage } from "@/lib/storage";
 import {
   APP_DOMAIN_WITH_NGROK,
   fetchWithTimeout,

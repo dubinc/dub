@@ -3,9 +3,9 @@ import {
   STABLECOIN_PAYOUT_FIXED_FEE_CENTS,
 } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
-import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
 import { prisma } from "@/lib/prisma";
 import { Invoice, PartnerPayoutMethod } from "@/lib/prisma/client";
+import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
 import { stripeChargeMetadataSchema } from "./utils";
 

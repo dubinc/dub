@@ -15,52 +15,54 @@ import { NextResponse } from "next/server";
 const MAX_PAYOUTS_TO_EXPORT = 1000;
 
 // GET /api/payouts/export – export payouts to CSV
-export const GET = withWorkspace(async ({ searchParams, workspace, session }) => {
-  const programId = getDefaultProgramIdOrThrow(workspace);
+export const GET = withWorkspace(
+  async ({ searchParams, workspace, session }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const isHoldStatus = searchParams.status === "hold";
-  const { status: _status, ...restSearchParams } = searchParams;
+    const isHoldStatus = searchParams.status === "hold";
+    const { status: _status, ...restSearchParams } = searchParams;
 
-  const { columns } = payoutsExportQuerySchema.parse(
-    isHoldStatus ? restSearchParams : searchParams,
-  );
+    const { columns } = payoutsExportQuerySchema.parse(
+      isHoldStatus ? restSearchParams : searchParams,
+    );
 
-  const filters = parsePayoutsQuery(searchParams);
+    const filters = parsePayoutsQuery(searchParams);
 
-  const count = await getPayoutsCount({
-    programId,
-    filters,
-  });
-
-  if (count > MAX_PAYOUTS_TO_EXPORT) {
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/payouts`,
-      body: {
-        ...searchParams,
-        columns: columns.join(","),
-        workspaceId: workspace.id,
-        programId,
-        userId: session.user.id,
-      },
+    const count = await getPayoutsCount({
+      programId,
+      filters,
     });
 
-    return NextResponse.json({}, { status: 202 });
-  }
+    if (count > MAX_PAYOUTS_TO_EXPORT) {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/payouts`,
+        body: {
+          ...searchParams,
+          columns: columns.join(","),
+          workspaceId: workspace.id,
+          programId,
+          userId: session.user.id,
+        },
+      });
 
-  const payouts = await getPayouts({
-    workspaceId: workspace.id,
-    programId,
-    filters,
-    page: 1,
-    pageSize: MAX_PAYOUTS_TO_EXPORT,
-  });
+      return NextResponse.json({}, { status: 202 });
+    }
 
-  const rows = formatPayoutsForExport(payouts, columns);
+    const payouts = await getPayouts({
+      workspaceId: workspace.id,
+      programId,
+      filters,
+      page: 1,
+      pageSize: MAX_PAYOUTS_TO_EXPORT,
+    });
 
-  return new Response(convertToCSV(rows), {
-    headers: {
-      "Content-Type": "text/csv",
-      "Content-Disposition": "attachment",
-    },
-  });
-});
+    const rows = formatPayoutsForExport(payouts, columns);
+
+    return new Response(convertToCSV(rows), {
+      headers: {
+        "Content-Type": "text/csv",
+        "Content-Disposition": "attachment",
+      },
+    });
+  },
+);

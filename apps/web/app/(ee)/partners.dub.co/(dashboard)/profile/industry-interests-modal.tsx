@@ -1,6 +1,6 @@
 import { industryInterests } from "@/lib/partners/partner-profile";
-import { MAX_PARTNER_INDUSTRY_INTERESTS } from "@/lib/zod/schemas/partners";
 import { IndustryInterest } from "@/lib/prisma/client";
+import { MAX_PARTNER_INDUSTRY_INTERESTS } from "@/lib/zod/schemas/partners";
 import { Button, Modal, useScrollProgress } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useRef, useState } from "react";

@@ -1,7 +1,7 @@
 import { withAdmin } from "@/lib/auth";
-import { partnerSharedPlatformSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/prisma/client";
+import { partnerSharedPlatformSchema } from "@/lib/zod/schemas/partners";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

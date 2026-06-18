@@ -1,11 +1,11 @@
 import { logger } from "@/lib/axiom/server";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import {
   ActivityLogAction,
   ActivityLogResourceType,
   ChangeSet,
 } from "@/lib/types";
-import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
 import { prettyPrint } from "@dub/utils";
 
 const ACTIONS_WITHOUT_CHANGE_SET: ActivityLogAction[] = [

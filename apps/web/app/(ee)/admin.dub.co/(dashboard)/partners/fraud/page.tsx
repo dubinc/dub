@@ -1,8 +1,8 @@
 "use client";
 
+import { FraudAlertStatus } from "@/lib/prisma/client";
 import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { FraudAlertStatus } from "@/lib/prisma/client";
 import {
   Filter,
   StatusBadge,

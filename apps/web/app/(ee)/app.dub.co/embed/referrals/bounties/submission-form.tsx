@@ -2,9 +2,9 @@
 
 import { getPeriodLabel } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { PlatformType } from "@/lib/prisma/client";
 import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { SocialAccountNotVerifiedWarning } from "@/ui/partners/bounties/bounty-social-content";
-import { PlatformType } from "@/lib/prisma/client";
 import { Button, ChevronRight, Popover, Trophy } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

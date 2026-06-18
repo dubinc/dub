@@ -1,12 +1,12 @@
 import { qstash } from "@/lib/cron";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
 import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
-import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   R2_URL,

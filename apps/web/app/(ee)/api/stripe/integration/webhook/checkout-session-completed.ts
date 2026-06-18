@@ -6,6 +6,8 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
+import { Customer } from "@/lib/prisma/client";
 import {
   getClickEvent,
   getLeadEvent,
@@ -16,8 +18,6 @@ import { ClickEventTB, LeadEventTB, StripeMode } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
-import { prisma } from "@/lib/prisma";
-import { Customer } from "@/lib/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";

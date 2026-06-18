@@ -9,6 +9,8 @@ import { getBountyWithDetails } from "@/lib/bounty/api/get-bounty-with-details";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
+import { PartnerGroup, Prisma } from "@/lib/prisma/client";
 import { WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -16,8 +18,6 @@ import {
   submissionRequirementsSchema,
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
-import { prisma } from "@/lib/prisma";
-import { PartnerGroup, Prisma } from "@/lib/prisma/client";
 import { arrayEqual, deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

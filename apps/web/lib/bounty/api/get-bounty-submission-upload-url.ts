@@ -1,9 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
+import { prisma } from "@/lib/prisma";
+import { ProgramEnrollment } from "@/lib/prisma/client";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
-import { prisma } from "@/lib/prisma";
-import { ProgramEnrollment } from "@/lib/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 
 const MAX_ATTEMPTS = 25;

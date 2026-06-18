@@ -1,5 +1,5 @@
-import AddEditIntegrationForm from "@/ui/oauth-apps/add-edit-integration-form";
 import { prisma } from "@/lib/prisma";
+import AddEditIntegrationForm from "@/ui/oauth-apps/add-edit-integration-form";
 import { MaxWidthWrapper } from "@dub/ui";
 import { redirect } from "next/navigation";
 

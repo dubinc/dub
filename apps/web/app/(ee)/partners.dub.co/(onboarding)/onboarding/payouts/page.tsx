@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { getPartnerPayoutMethods } from "@/lib/payouts/get-partner-payout-methods";
-import { PayoutMethodSelector } from "@/ui/partners/payouts/payout-method-cards";
 import { prisma } from "@/lib/prisma";
+import { PayoutMethodSelector } from "@/ui/partners/payouts/payout-method-cards";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";

@@ -1,8 +1,8 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
-import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceRole } from "@/lib/prisma/client";
+import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
+import { ratelimit } from "@/lib/upstash";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";

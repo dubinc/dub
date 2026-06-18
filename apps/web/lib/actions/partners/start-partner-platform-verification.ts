@@ -9,6 +9,7 @@ import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-
 import { generateOTP } from "@/lib/auth/utils";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { isGenericEmail } from "@/lib/is-generic-email";
+import { PlatformType } from "@/lib/prisma/client";
 import {
   sanitizeSocialHandle,
   SOCIAL_PLATFORM_CONFIGS,
@@ -16,7 +17,6 @@ import {
 import { PartnerProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { redis } from "@/lib/upstash/redis";
-import { PlatformType } from "@/lib/prisma/client";
 import {
   getDomainWithoutWWW,
   nanoid,

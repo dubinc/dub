@@ -3,6 +3,7 @@
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
+import { CommissionType } from "@/lib/prisma/client";
 import usePartnerEarningsCount from "@/lib/swr/use-partner-earnings-count";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import usePartnerLinks from "@/lib/swr/use-partner-links";
@@ -10,7 +11,6 @@ import { LinkIcon } from "@/ui/links/link-icon";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { CommissionType } from "@/lib/prisma/client";
 import { Filter, LoadingSpinner, ToggleGroup, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { CircleDotted, Hyperlink, Sliders, User } from "@dub/ui/icons";

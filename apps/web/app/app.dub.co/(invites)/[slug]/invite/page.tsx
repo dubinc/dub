@@ -1,7 +1,7 @@
 import { getSession } from "@/lib/auth";
-import { UserAvatar } from "@/ui/users/user-avatar";
 import { prisma } from "@/lib/prisma";
 import { Project, ProjectInvite, User } from "@/lib/prisma/client";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   Book2Fill,
   CircleCheckFill,

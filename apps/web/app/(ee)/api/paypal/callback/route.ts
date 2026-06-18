@@ -1,10 +1,10 @@
 import { getSession } from "@/lib/auth";
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
 import { paypalOAuthProvider } from "@/lib/paypal/oauth";
-import { sendEmail } from "@dub/email";
-import ConnectedPaypalAccount from "@dub/email/templates/connected-paypal-account";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/prisma/client";
+import { sendEmail } from "@dub/email";
+import ConnectedPaypalAccount from "@dub/email/templates/connected-paypal-account";
 import { PARTNERS_DOMAIN } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";

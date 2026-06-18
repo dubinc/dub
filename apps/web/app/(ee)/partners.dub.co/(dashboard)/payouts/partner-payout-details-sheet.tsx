@@ -5,6 +5,7 @@ import {
   PAYOUTS_SHEET_ITEMS_LIMIT,
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
+import { PartnerPayoutMethod, PayoutStatus } from "@/lib/prisma/client";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
@@ -16,7 +17,6 @@ import {
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
-import { PartnerPayoutMethod, PayoutStatus } from "@/lib/prisma/client";
 import {
   Button,
   CircleArrowRight,

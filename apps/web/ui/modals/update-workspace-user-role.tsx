@@ -1,8 +1,8 @@
+import { WorkspaceRole } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { WorkspaceRole } from "@/lib/prisma/client";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { useSearchParams } from "next/navigation";
 import {

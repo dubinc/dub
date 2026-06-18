@@ -1,8 +1,8 @@
+import { Domain } from "@/lib/prisma/client";
 import {
   DomainSchema,
   RegisteredDomainSchema,
 } from "@/lib/zod/schemas/domains";
-import { Domain } from "@/lib/prisma/client";
 import * as z from "zod/v4";
 
 type RegisteredDomain = z.infer<typeof RegisteredDomainSchema>;

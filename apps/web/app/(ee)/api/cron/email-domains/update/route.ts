@@ -1,6 +1,6 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { resend } from "@dub/email/resend/client";
 import { prisma } from "@/lib/prisma";
+import { resend } from "@dub/email/resend/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 

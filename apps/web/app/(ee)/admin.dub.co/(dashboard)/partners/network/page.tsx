@@ -1,5 +1,6 @@
 "use client";
 
+import { PartnerNetworkStatus, PlatformType } from "@/lib/prisma/client";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { AdminNetworkPartner } from "@/lib/types";
 import { NetworkStatusBadges } from "@/ui/partners/partner-network/network-status-badges";
@@ -7,7 +8,6 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PartnerNetworkStatus, PlatformType } from "@/lib/prisma/client";
 import {
   Filter,
   StatusBadge,

@@ -1,9 +1,9 @@
+import { PlatformType } from "@/lib/prisma/client";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import {
   programApplicationFormSiteSchema,
   programApplicationFormWebsiteAndSocialsFieldSchema,
 } from "@/lib/zod/schemas/program-application-form";
-import { PlatformType } from "@/lib/prisma/client";
 import { cn } from "@dub/utils";
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";

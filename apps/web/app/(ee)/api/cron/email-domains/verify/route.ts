@@ -1,10 +1,10 @@
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { withCron } from "@/lib/cron/with-cron";
+import { prisma } from "@/lib/prisma";
+import { EmailDomain } from "@/lib/prisma/client";
 import { sendBatchEmail } from "@dub/email";
 import { resend } from "@dub/email/resend/client";
 import EmailDomainStatusChanged from "@dub/email/templates/email-domain-status-changed";
-import { prisma } from "@/lib/prisma";
-import { EmailDomain } from "@/lib/prisma/client";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";

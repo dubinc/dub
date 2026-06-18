@@ -15,6 +15,14 @@ import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
 } from "@/lib/partners/format-application-form-data";
+import { prisma } from "@/lib/prisma";
+import {
+  Partner,
+  PartnerGroup,
+  Program,
+  ProgramEnrollment,
+  Project,
+} from "@/lib/prisma/client";
 import {
   ProgramApplicationFormData,
   ProgramApplicationFormDataWithValues,
@@ -24,14 +32,6 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
-import { prisma } from "@/lib/prisma";
-import {
-  Partner,
-  PartnerGroup,
-  Program,
-  ProgramEnrollment,
-  Project,
-} from "@/lib/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { addDays } from "date-fns";

@@ -1,9 +1,9 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { applicationRequirementsSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@/lib/prisma";
 import { Category } from "@/lib/prisma/client";
+import { applicationRequirementsSchema } from "@/lib/zod/schemas/programs";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";

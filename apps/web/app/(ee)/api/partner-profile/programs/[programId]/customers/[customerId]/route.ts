@@ -9,9 +9,9 @@ import {
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
 import { generateRandomName } from "@/lib/names";
-import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@/lib/prisma";
 import { CommissionType } from "@/lib/prisma/client";
+import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
 import { toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

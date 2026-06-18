@@ -1,8 +1,8 @@
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { qstash } from "@/lib/cron";
-import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@/lib/prisma";
 import { PartnerGroup, WorkspaceRole } from "@/lib/prisma/client";
+import { recordLink } from "@/lib/tinybird";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { buildProgramEnrollmentChangeSet } from "../activity-log/build-program-enrollment-change-set";

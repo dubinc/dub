@@ -2,6 +2,7 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { WorkspaceRole } from "@/lib/prisma/client";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { WorkspaceUserProps } from "@/lib/types";
@@ -17,7 +18,6 @@ import { useRemoveWorkspaceUserModal } from "@/ui/modals/remove-workspace-user-m
 import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { WorkspaceRole } from "@/lib/prisma/client";
 import {
   Button,
   DynamicTooltipWrapper,

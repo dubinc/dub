@@ -1,12 +1,12 @@
 "use client";
 
+import { CampaignStatus } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, CampaignList } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { CampaignStatus } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,

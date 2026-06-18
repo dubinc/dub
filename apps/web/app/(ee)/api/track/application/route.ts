@@ -13,13 +13,13 @@ import { getSession } from "@/lib/auth";
 import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
+import { prisma } from "@/lib/prisma";
+import { Partner, Program } from "@/lib/prisma/client";
 import {
   recordClickZod,
   recordClickZodSchema,
 } from "@/lib/tinybird/record-click-zod";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@/lib/prisma";
-import { Partner, Program } from "@/lib/prisma/client";
 import {
   capitalize,
   EU_COUNTRY_CODES,

@@ -1,7 +1,4 @@
 import { formatApplicationFormData } from "@/lib/partners/format-application-form-data";
-import { sendBatchEmail } from "@dub/email";
-import { ResendBulkEmailOptions } from "@dub/email/resend/types";
-import PartnerApplicationReceived from "@dub/email/templates/partner-application-received";
 import { prisma } from "@/lib/prisma";
 import {
   Partner,
@@ -9,6 +6,9 @@ import {
   Program,
   ProgramApplication,
 } from "@/lib/prisma/client";
+import { sendBatchEmail } from "@dub/email";
+import { ResendBulkEmailOptions } from "@dub/email/resend/types";
+import PartnerApplicationReceived from "@dub/email/templates/partner-application-received";
 import { chunk } from "@dub/utils";
 
 export async function notifyPartnerApplication({

@@ -40,8 +40,8 @@ import {
   timeAgo,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
-import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";

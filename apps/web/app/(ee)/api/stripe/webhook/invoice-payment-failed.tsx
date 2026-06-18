@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import FailedPayment from "@dub/email/templates/failed-payment";
-import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 
 export async function invoicePaymentFailed(

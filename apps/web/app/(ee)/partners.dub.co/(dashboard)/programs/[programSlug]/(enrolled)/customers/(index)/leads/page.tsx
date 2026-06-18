@@ -1,5 +1,6 @@
 "use client";
 
+import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import { usePartnerSubmittedLeads } from "@/lib/swr/use-partner-submitted-leads";
 import { usePartnerSubmittedLeadsCount } from "@/lib/swr/use-partner-submitted-leads-count";
 import { PartnerProfileSubmittedLeadsCountByStatus } from "@/lib/types";
@@ -9,7 +10,6 @@ import { PartnerProfileSubmittedLeadSheet } from "@/ui/submitted-leads/partner-p
 import { PartnerProfileSubmittedLeadsEmptyState } from "@/ui/submitted-leads/partner-profile-submitted-leads-empty-state";
 import { SubmittedLeadStatusBadges } from "@/ui/submitted-leads/submitted-lead-status-badges";
 import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
-import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Filter,

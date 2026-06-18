@@ -1,4 +1,5 @@
 import { getNetworkProgram } from "@/lib/fetchers/get-network-program";
+import { prisma } from "@/lib/prisma";
 import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -8,7 +9,6 @@ import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramEligibilityCard } from "@/ui/partners/program-eligibility-card";
 import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
 import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
-import { prisma } from "@/lib/prisma";
 import { ChevronRight, Shop, Tooltip } from "@dub/ui";
 import { Globe } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn, getDomainWithoutWWW } from "@dub/utils";

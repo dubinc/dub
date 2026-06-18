@@ -2,6 +2,7 @@
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { RewardStructure } from "@/lib/prisma/client";
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -19,7 +20,6 @@ import {
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
-import { RewardStructure } from "@/lib/prisma/client";
 import {
   ArrowTurnRight2,
   Button,

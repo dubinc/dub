@@ -1,6 +1,7 @@
 "use client";
 
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
+import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import { updateSubmittedLeadStatusAction } from "@/lib/submitted-leads/update-submitted-lead-status-action";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -9,7 +10,6 @@ import {
   UpdateSubmittedLeadStatusPayload,
 } from "@/lib/types";
 import { SubmittedLeadStatusBadge } from "@/ui/submitted-leads/submitted-lead-status-badge";
-import { SubmittedLeadStatus } from "@/lib/prisma/client";
 import { AnimatedSizeContainer, Button, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ArrowRight, ChevronDown } from "lucide-react";

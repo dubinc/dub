@@ -5,6 +5,8 @@ import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-par
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
+import { Program, Project, User } from "@/lib/prisma/client";
 import { storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
@@ -18,8 +20,6 @@ import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
-import { prisma } from "@/lib/prisma";
-import { Program, Project, User } from "@/lib/prisma/client";
 import { getDomainWithoutWWW, isLegacyBusinessPlan, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";

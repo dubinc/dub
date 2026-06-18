@@ -10,6 +10,8 @@ import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-perform
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { qstash } from "@/lib/cron";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
+import { Workflow } from "@/lib/prisma/client";
 import { WorkflowAction } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -22,8 +24,6 @@ import {
   WORKFLOW_ACTION_TYPES,
   WORKFLOW_ATTRIBUTE_TRIGGER,
 } from "@/lib/zod/schemas/workflows";
-import { prisma } from "@/lib/prisma";
-import { Workflow } from "@/lib/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

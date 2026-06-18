@@ -1,5 +1,5 @@
-import { UserProps } from "@/lib/types";
 import { prismaEdge } from "@/lib/prisma/edge";
+import { UserProps } from "@/lib/types";
 
 export async function getDefaultPartnerId(user: UserProps) {
   let defaultPartnerId = user?.defaultPartnerId;

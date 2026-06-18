@@ -1,7 +1,7 @@
 import { getHighestSeverity } from "@/lib/get-highest-severity";
-import { ExtendedFraudRuleType, PartnerProps } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
 import { Program } from "@/lib/prisma/client";
+import { ExtendedFraudRuleType, PartnerProps } from "@/lib/types";
 import { FRAUD_RULES } from "./constants";
 import { checkPartnerEmailDomainMismatch } from "./rules/check-partner-email-domain-mismatch";
 import { checkPartnerEmailMasked } from "./rules/check-partner-email-masked";

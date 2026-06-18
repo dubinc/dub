@@ -1,6 +1,6 @@
+import { Program } from "@/lib/prisma/client";
 import { ProgramApplicationFormData } from "@/lib/types";
 import { BlockMarkdown } from "@/ui/partners/lander/blocks/block-markdown";
-import { Program } from "@/lib/prisma/client";
 
 export function ApplicationFormHero({
   program,

@@ -2,9 +2,9 @@ import {
   aggregatePartnerLinksStats,
   PartnerLink,
 } from "@/lib/partners/aggregate-partner-links-stats";
-import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@/lib/prisma";
 import { Program, ProgramEnrollment } from "@/lib/prisma/client";
+import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import * as z from "zod/v4";
 
 type GetBountiesForPartnerParams = Pick<

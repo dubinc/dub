@@ -1,10 +1,10 @@
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { LinkProps, ProcessedLinkProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
-import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
 import {
   R2_URL,
   getParamsFromURL,

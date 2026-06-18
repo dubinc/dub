@@ -1,5 +1,5 @@
-import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import { prisma } from "@/lib/prisma";
+import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import { toCentsNumber } from "@dub/utils";
 import * as z from "zod/v4";
 import { buildProgramEnrollmentWhereForList } from "./program-enrollment-query";

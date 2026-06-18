@@ -1,5 +1,5 @@
-import { redis } from "@/lib/upstash";
 import { EventType } from "@/lib/prisma/client";
+import { redis } from "@/lib/upstash";
 
 const REWARD_VERSION_TTL_SECONDS = 24 * 60 * 60; // 24 hours
 

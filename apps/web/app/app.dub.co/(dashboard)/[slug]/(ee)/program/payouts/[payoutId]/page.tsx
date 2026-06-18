@@ -2,6 +2,7 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { PayoutStatus } from "@/lib/prisma/client";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePayout } from "@/lib/swr/use-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -24,7 +25,6 @@ import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { PayoutStatus } from "@/lib/prisma/client";
 import {
   Button,
   ChevronRight,

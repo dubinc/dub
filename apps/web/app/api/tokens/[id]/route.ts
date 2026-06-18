@@ -3,8 +3,8 @@ import { validateScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { tokenCache } from "@/lib/auth/token-cache";
-import { tokenSchema, updateTokenSchema } from "@/lib/zod/schemas/token";
 import { prisma } from "@/lib/prisma";
+import { tokenSchema, updateTokenSchema } from "@/lib/zod/schemas/token";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

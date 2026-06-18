@@ -1,5 +1,6 @@
 "use client";
 
+import { PartnerRole } from "@/lib/prisma/client";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerUserProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
@@ -9,7 +10,6 @@ import { useRemovePartnerUserModal } from "@/ui/modals/remove-partner-user-modal
 import { useUpdatePartnerUserModal } from "@/ui/modals/update-partner-user-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { PartnerRole } from "@/lib/prisma/client";
 import {
   Button,
   Filter,

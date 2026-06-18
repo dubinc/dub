@@ -1,10 +1,10 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { sendBatchEmail } from "@dub/email";
-import NewMessageFromPartner from "@dub/email/templates/new-message-from-partner";
 import { prisma } from "@/lib/prisma";
 import { NotificationEmailType } from "@/lib/prisma/client";
+import { sendBatchEmail } from "@dub/email";
+import NewMessageFromPartner from "@dub/email/templates/new-message-from-partner";
 import { log } from "@dub/utils";
 import { subDays } from "date-fns";
 import * as z from "zod/v4";

@@ -12,8 +12,8 @@ import {
   preferredEarningStructures,
   salesChannels,
 } from "@/lib/partners/partner-profile";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import { PreferredEarningStructure, SalesChannel } from "@/lib/prisma/client";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { cn } from "@dub/utils";
 
 type HowYouWorkFormData = {

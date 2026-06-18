@@ -1,5 +1,5 @@
-import { ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
+import { ProcessedLinkProps } from "@/lib/types";
 import "dotenv-flow/config";
 import { createId } from "../../lib/api/create-id";
 import { bulkCreateLinks } from "../../lib/api/links/bulk-create-links";

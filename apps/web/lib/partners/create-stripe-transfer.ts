@@ -4,12 +4,12 @@ import {
   MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
 } from "@/lib/constants/payouts";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/prisma/client";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-force-withdrawal";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
-import { prisma } from "@/lib/prisma";
-import { Prisma } from "@/lib/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   chunk,

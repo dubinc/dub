@@ -3,10 +3,10 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { getBountiesForPartner } from "@/lib/bounty/api/get-bounties-for-partner";
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
-import { PartnerGroupAdditionalLink } from "@/lib/types";
-import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@/lib/prisma";
 import { Reward } from "@/lib/prisma/client";
+import { PartnerGroupAdditionalLink } from "@/lib/types";
+import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { notFound } from "next/navigation";
 import * as z from "zod/v4";
 

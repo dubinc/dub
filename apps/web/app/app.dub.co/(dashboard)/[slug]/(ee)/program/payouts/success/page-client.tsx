@@ -1,10 +1,10 @@
 "use client";
 
+import { Invoice } from "@/lib/prisma/client";
 import useProgram from "@/lib/swr/use-program";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { X } from "@/ui/shared/icons";
-import { Invoice } from "@/lib/prisma/client";
 import { buttonVariants, CircleCheckFill, Grid, Receipt2 } from "@dub/ui";
 import {
   cn,

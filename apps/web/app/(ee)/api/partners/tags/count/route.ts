@@ -1,7 +1,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { getPartnerTagsCountQuerySchema } from "@/lib/zod/schemas/partner-tags";
 import { prisma } from "@/lib/prisma";
+import { getPartnerTagsCountQuerySchema } from "@/lib/zod/schemas/partner-tags";
 import { NextResponse } from "next/server";
 
 // GET /api/partners/tags/count - get count of partner tags

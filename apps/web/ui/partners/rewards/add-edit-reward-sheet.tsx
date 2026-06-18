@@ -8,6 +8,7 @@ import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { ReferralRewardConfig } from "@/lib/partner-referrals/types";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { EventType, RewardStructure } from "@/lib/prisma/client";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -24,7 +25,6 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
-import { EventType, RewardStructure } from "@/lib/prisma/client";
 import {
   BookOpen,
   Button,

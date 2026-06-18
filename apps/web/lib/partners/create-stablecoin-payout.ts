@@ -1,9 +1,9 @@
 import { trackCommissionStatusUpdatesByProgram } from "@/lib/api/commissions/track-commission-update-activity-log";
+import { prisma } from "@/lib/prisma";
+import { PartnerPayoutMethod, Prisma } from "@/lib/prisma/client";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-force-withdrawal";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
-import { prisma } from "@/lib/prisma";
-import { PartnerPayoutMethod, Prisma } from "@/lib/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   chunk,

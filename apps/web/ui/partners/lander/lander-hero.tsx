@@ -1,5 +1,5 @@
-import { ProgramLanderData } from "@/lib/types";
 import { Program } from "@/lib/prisma/client";
+import { ProgramLanderData } from "@/lib/types";
 import { cn } from "@dub/utils";
 import { ElementType } from "react";
 

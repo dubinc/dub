@@ -1,6 +1,6 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
 import { Prisma, Program, Project } from "@/lib/prisma/client";
+import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
 
 export function getPayoutEligibilityFilter({
   program,

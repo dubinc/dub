@@ -2,8 +2,8 @@ import {
   decodeLinkIfCaseSensitive,
   encodeKeyIfCaseSensitive,
 } from "@/lib/api/links/case-sensitivity";
-import { parseDeepViewData } from "@/lib/zod/schemas/deep-links";
 import { prisma } from "@/lib/prisma";
+import { parseDeepViewData } from "@/lib/zod/schemas/deep-links";
 import { Grid, Wordmark } from "@dub/ui";
 import {
   AndroidLogo,

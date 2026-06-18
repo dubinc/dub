@@ -1,8 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
 import { markLinkTagDeleted } from "@/lib/api/tags/mark-link-tag-deleted";
 import { withWorkspace } from "@/lib/auth";
-import { LinkTagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
 import { prisma } from "@/lib/prisma";
+import { LinkTagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
 import { NextResponse } from "next/server";
 
 // PATCH /api/tags/[id] – update a tag for a workspace

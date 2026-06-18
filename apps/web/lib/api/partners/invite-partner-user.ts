@@ -1,9 +1,9 @@
 import { Session, hashToken } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { PartnerRole } from "@/lib/prisma/client";
 import { PartnerProps } from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import PartnerUserInvited from "@dub/email/templates/partner-user-invited";
-import { prisma } from "@/lib/prisma";
-import { PartnerRole } from "@/lib/prisma/client";
 import { PARTNERS_DOMAIN, TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { DubApiError } from "../errors";

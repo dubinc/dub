@@ -3,6 +3,7 @@
 import { usePartnerReferral } from "@/lib/partner-referrals/hooks/use-partner-referral";
 import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { DiscountProvider } from "@/lib/prisma/client";
 import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import useGroup from "@/lib/swr/use-group";
 import usePartner from "@/lib/swr/use-partner";
@@ -18,7 +19,6 @@ import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
 import { DeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import { ButtonLink } from "@/ui/placeholders/button-link";
-import { DiscountProvider } from "@/lib/prisma/client";
 import {
   Button,
   CopyButton,

@@ -1,10 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { createLink } from "@/lib/api/links";
 import { registerDomain } from "@/lib/dynadot/register-domain";
-import { sendBatchEmail } from "@dub/email";
-import DomainClaimed from "@dub/email/templates/domain-claimed";
 import { prisma } from "@/lib/prisma";
 import { Project } from "@/lib/prisma/client";
+import { sendBatchEmail } from "@dub/email";
+import DomainClaimed from "@dub/email/templates/domain-claimed";
 import { DEFAULT_LINK_PROPS, isWorkspaceBillingTrialActive } from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import { waitUntil } from "@vercel/functions";

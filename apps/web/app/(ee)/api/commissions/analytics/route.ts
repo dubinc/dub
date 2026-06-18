@@ -7,9 +7,9 @@ import {
   commissionAnalyticsSchema,
 } from "@/lib/commissions/schema";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
-import type { CommissionAnalyticsQuery } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
 import { CommissionStatus, CommissionType, Prisma } from "@/lib/prisma/client";
+import type { CommissionAnalyticsQuery } from "@/lib/types";
 import { capitalize, parseFilterValue } from "@dub/utils";
 import { format } from "date-fns/format";
 import { NextResponse } from "next/server";

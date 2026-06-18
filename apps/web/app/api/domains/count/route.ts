@@ -1,6 +1,6 @@
 import { withWorkspace } from "@/lib/auth";
-import { getDomainsCountQuerySchema } from "@/lib/zod/schemas/domains";
 import { prisma } from "@/lib/prisma";
+import { getDomainsCountQuerySchema } from "@/lib/zod/schemas/domains";
 import { NextResponse } from "next/server";
 
 // GET /api/domains/count – get the number of domains for a workspace

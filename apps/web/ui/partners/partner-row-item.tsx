@@ -1,5 +1,5 @@
-import useProgram from "@/lib/swr/use-program";
 import { PartnerNetworkStatus, PartnerPayoutMethod } from "@/lib/prisma/client";
+import useProgram from "@/lib/swr/use-program";
 import { CircleArrowRight, DynamicTooltipWrapper, GreekTemple } from "@dub/ui";
 import { cn, formatDateTimeSmart } from "@dub/utils";
 import { CircleMinus } from "lucide-react";

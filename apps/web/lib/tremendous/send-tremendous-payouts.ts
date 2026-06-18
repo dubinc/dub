@@ -1,7 +1,7 @@
-import { sendEmail } from "@dub/email";
-import PartnerTremendousPayout from "@dub/email/templates/partner-tremendous-payout";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/prisma/client";
+import { sendEmail } from "@dub/email";
+import PartnerTremendousPayout from "@dub/email/templates/partner-tremendous-payout";
 import {
   APP_DOMAIN_WITH_NGROK,
   chunk,

@@ -3,6 +3,7 @@ import {
   getProgramApplicationRejectionReasonLabel,
   PROGRAM_APPLICATION_REJECTION_REASON_ORDER,
 } from "@/lib/partners/program-application-rejection";
+import { ProgramApplicationRejectionReason } from "@/lib/prisma/client";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import {
@@ -10,7 +11,6 @@ import {
   PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH,
 } from "@/lib/zod/schemas/partners";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { ProgramApplicationRejectionReason } from "@/lib/prisma/client";
 import {
   Button,
   Combobox,

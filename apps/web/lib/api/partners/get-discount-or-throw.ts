@@ -1,5 +1,5 @@
-import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@/lib/prisma";
+import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { DubApiError } from "../errors";
 
 export async function getDiscountOrThrow({

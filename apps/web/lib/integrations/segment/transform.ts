@@ -1,3 +1,4 @@
+import { Link } from "@/lib/prisma/client";
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import {
   ClickEventWebhookPayload,
@@ -5,7 +6,6 @@ import {
   PartnerEventWebhookPayload,
   SaleEventWebhookPayload,
 } from "@/lib/webhook/types";
-import { Link } from "@/lib/prisma/client";
 import { capitalize } from "@dub/utils";
 import * as z from "zod/v4";
 

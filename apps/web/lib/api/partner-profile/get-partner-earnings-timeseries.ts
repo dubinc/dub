@@ -1,9 +1,9 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
-import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/lib/prisma/client";
+import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
 import { format } from "date-fns";
 import * as z from "zod/v4";
 

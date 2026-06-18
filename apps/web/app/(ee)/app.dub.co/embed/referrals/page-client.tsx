@@ -2,6 +2,12 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
+import {
+  Partner,
+  PlatformType,
+  Program,
+  ProgramEnrollmentStatus,
+} from "@/lib/prisma/client";
 import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
 import {
   DiscountProps,
@@ -18,12 +24,6 @@ import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
 import { ThreeDots } from "@/ui/shared/icons";
-import {
-  Partner,
-  PlatformType,
-  Program,
-  ProgramEnrollmentStatus,
-} from "@/lib/prisma/client";
 import {
   Button,
   Check,

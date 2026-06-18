@@ -1,10 +1,10 @@
 import { isBlacklistedDomain } from "@/lib/edge-config";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
-import { isNotHostedImage } from "@/lib/storage";
-import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
 import { Project, WorkspaceRole } from "@/lib/prisma/client";
+import { isNotHostedImage } from "@/lib/storage";
+import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
   DUB_DOMAINS,
   UTMTags,

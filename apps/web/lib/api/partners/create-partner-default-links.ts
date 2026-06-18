@@ -1,13 +1,13 @@
 import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
+import { PartnerGroupDefaultLink } from "@/lib/prisma/client";
 import {
   CreatePartnerProps,
   ProgramProps,
   UtmTemplateProps,
   WorkspaceProps,
 } from "@/lib/types";
-import { PartnerGroupDefaultLink } from "@/lib/prisma/client";
 import { constructURLFromUTMParams, isFulfilled } from "@dub/utils";
 import { bulkCreateLinks } from "../links";
 import { extractUtmParams } from "../utm/extract-utm-params";

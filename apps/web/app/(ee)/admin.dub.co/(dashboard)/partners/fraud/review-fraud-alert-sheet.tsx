@@ -1,6 +1,7 @@
 "use client";
 
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
+import { FraudAlertStatus } from "@/lib/prisma/client";
 import { PartnerPlatformProps } from "@/lib/types";
 import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
 import {
@@ -14,7 +15,6 @@ import {
 } from "@/lib/zod/schemas/programs";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { FraudAlertStatus } from "@/lib/prisma/client";
 import {
   Button,
   LoadingSpinner,

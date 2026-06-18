@@ -1,6 +1,6 @@
 import { verifySocialAccountByCodeAction } from "@/lib/actions/partners/verify-social-account-by-code";
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PlatformType } from "@/lib/prisma/client";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Button, buttonVariants, CopyButton, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { X } from "lucide-react";

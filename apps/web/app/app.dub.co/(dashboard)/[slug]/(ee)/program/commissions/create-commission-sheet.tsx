@@ -1,4 +1,5 @@
 import { handleMoneyKeyDown } from "@/lib/form-utils";
+import { CommissionType } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useRewards from "@/lib/swr/use-rewards";
@@ -19,7 +20,6 @@ import {
 } from "@/ui/partners/program-sheet-accordion";
 import { X } from "@/ui/shared/icons";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { CommissionType } from "@/lib/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,

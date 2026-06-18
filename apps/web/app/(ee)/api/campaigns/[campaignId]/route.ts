@@ -10,13 +10,13 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
+import { PartnerGroup } from "@/lib/prisma/client";
 import {
   CampaignSchema,
   updateCampaignSchema,
 } from "@/lib/zod/schemas/campaigns";
 import { WORKFLOW_ATTRIBUTE_TRIGGER } from "@/lib/zod/schemas/workflows";
-import { prisma } from "@/lib/prisma";
-import { PartnerGroup } from "@/lib/prisma/client";
 import { arrayEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

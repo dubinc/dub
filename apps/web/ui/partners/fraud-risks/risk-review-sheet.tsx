@@ -1,6 +1,7 @@
 "use client";
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
+import { FraudRuleType } from "@/lib/prisma/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupProps } from "@/lib/types";
@@ -9,7 +10,6 @@ import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-app
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { X } from "@/ui/shared/icons";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { FraudRuleType } from "@/lib/prisma/client";
 import {
   ArrowUpRight2,
   Button,

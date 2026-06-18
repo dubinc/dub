@@ -1,9 +1,9 @@
 "use server";
 
 import { trackLead } from "@/lib/api/conversions/track-lead";
-import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
 import { prisma } from "@/lib/prisma";
 import { Project, SubmittedLead } from "@/lib/prisma/client";
+import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
 import { pick } from "@dub/utils";
 
 interface MarkSubmittedLeadQualifiedInput {
