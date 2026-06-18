@@ -379,6 +379,7 @@ async function stepCreateCommission(
 
   if (
     customerId &&
+    event !== "custom" &&
     reward &&
     reward.spendLimitAmount != null &&
     reward.spendLimitInterval != null
