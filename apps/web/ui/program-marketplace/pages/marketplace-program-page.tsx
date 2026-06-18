@@ -16,7 +16,7 @@ import { MarketplaceProgramHeaderControls } from "../marketplace-program-header-
 import { ProgramStatusBadge } from "../program-status-badge";
 import { getMarketplaceHref } from "../utils/urls";
 
-export const revalidate = 3600; // 1 hour
+export const revalidate = 3600;
 
 export async function generateMarketplaceProgramStaticParams() {
   const programs = await prisma.program.findMany({

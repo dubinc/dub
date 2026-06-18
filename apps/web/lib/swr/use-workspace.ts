@@ -10,8 +10,13 @@ export default function useWorkspace({
 }: {
   swrOpts?: SWRConfiguration;
 } = {}) {
-  let { slug } = useParams() as { slug: string | null };
+  let { slug } = useParams() as { slug: string | string[] | null };
   const searchParams = useSearchParams();
+  // catch-all routes (e.g. /marketplace/[[...slug]]) surface `slug` as an array,
+  // which is never a workspace slug - ignore it so we don't fetch /api/workspaces/<segment>
+  if (Array.isArray(slug)) {
+    slug = null;
+  }
   if (!slug) {
     slug = searchParams.get("slug") || searchParams.get("workspace");
   }

@@ -1,10 +1,7 @@
 import { MarketplaceRouter } from "@/ui/program-marketplace/marketplace-router";
-import {
-  generateMarketplaceProgramStaticParams,
-  revalidate,
-} from "@/ui/program-marketplace/pages/marketplace-program-page";
+import { generateMarketplaceProgramStaticParams } from "@/ui/program-marketplace/pages/marketplace-program-page";
 
-export { revalidate };
+export const revalidate = 3600;
 
 export async function generateStaticParams() {
   return generateMarketplaceProgramStaticParams();

@@ -1,6 +1,5 @@
 "use client";
 
-import { ModalProvider } from "@/ui/modals/modal-provider";
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { SessionProvider } from "next-auth/react";
 import { ReactNode } from "react";
@@ -17,7 +16,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           refer: "refer.dub.co",
         }}
       />
-      <ModalProvider>{children}</ModalProvider>
+      {children}
     </SessionProvider>
   );
 }
