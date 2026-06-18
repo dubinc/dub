@@ -51,6 +51,9 @@ export const generatePartnerNetworkInviteEmailAction = authActionClient
       prisma.partner.findFirst({
         where: {
           id: partnerId,
+          networkStatus: {
+            in: ["approved", "trusted"],
+          },
         },
         include: {
           industryInterests: true,
@@ -90,7 +93,7 @@ export const generatePartnerNetworkInviteEmailAction = authActionClient
 
     try {
       const { output } = await generateText({
-        model: anthropic("claude-sonnet-4-6"),
+        model: anthropic("claude-opus-4-8"),
         output: Output.object({
           schema: responseSchema,
         }),
@@ -137,11 +140,7 @@ ${JSON.stringify({
     verified: Boolean(platform.verifiedAt),
   })),
 })}`,
-        temperature: 0.4,
       });
-
-      // Already validated against generatedPartnerNetworkInviteEmailSchema by
-      // Output.object above
       return output;
     } catch (error) {
       await refundAIUsageCredit(workspace.id).catch((e) =>
