@@ -172,7 +172,7 @@ function TokenForm({
         <p className="mt-1.5 text-xs text-neutral-500">
           You can find your API key in your{" "}
           <a
-            href="https://rendairai.tapfiliate.com/a/profile"
+            href="https://support.tapfiliate.com/en/articles/12793297-how-to-find-account-id-and-api-key"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500 hover:text-blue-600"
