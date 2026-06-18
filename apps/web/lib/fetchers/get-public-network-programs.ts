@@ -8,8 +8,6 @@ import { prisma } from "@dub/prisma";
 import { cache } from "react";
 import * as z from "zod/v4";
 
-// accepts already-parsed/typed params (untrusted query strings are validated by
-// the caller via parsePublicMarketplaceQuery), so we don't re-parse here
 export const getPublicNetworkPrograms = cache(
   async (
     params: Partial<z.infer<typeof getPublicNetworkProgramsQuerySchema>> = {},
