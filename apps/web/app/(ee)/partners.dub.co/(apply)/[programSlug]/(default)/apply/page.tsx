@@ -6,7 +6,7 @@ import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { ApplicationFormHero } from "@/ui/partners/groups/design/application-form/application-hero-preview";
 import { ProgramApplicationForm } from "@/ui/partners/groups/design/application-form/program-application-form";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
-import { WorkspaceEnvironment } from "@dub/prisma/client";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyHeader } from "../header";

@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 

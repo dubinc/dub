@@ -1,6 +1,6 @@
 import "dotenv-flow/config";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 
 async function main() {

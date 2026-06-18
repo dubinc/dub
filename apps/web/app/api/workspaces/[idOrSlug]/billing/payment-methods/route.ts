@@ -8,9 +8,9 @@ import {
 } from "@/lib/constants/payouts";
 import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
 import { stripe } from "@/lib/stripe";
-import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { APP_DOMAIN } from "@dub/utils";
 import { capitalize } from "@dub/utils/src";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import * as z from "zod/v4";

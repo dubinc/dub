@@ -1,7 +1,7 @@
+import { prisma } from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
-import { User, WorkspaceEnvironment, WorkspaceRole } from "@dub/prisma/client";
 import { nanoid, TRIAL_LIMITS } from "@dub/utils";
+import { User, WorkspaceEnvironment, WorkspaceRole } from "@prisma/client";
 import { generateRandomString } from "../api/utils/generate-random-string";
 import { createWorkspaceId } from "../api/workspaces/create-workspace-id";
 

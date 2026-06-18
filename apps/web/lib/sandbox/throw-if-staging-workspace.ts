@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { Project, WorkspaceEnvironment } from "@dub/prisma/client";
+import { Project, WorkspaceEnvironment } from "@prisma/client";
 
 export function throwIfStagingWorkspace(
   workspace: Pick<Project, "environment">,

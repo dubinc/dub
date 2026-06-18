@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Project, WorkspaceRole } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Project, WorkspaceRole } from "@prisma/client";
 
 // We don't sync the machine user from the production workspace to the staging workspace
 

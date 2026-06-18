@@ -1,8 +1,8 @@
 "use client";
 
 import { WorkspaceProps } from "@/lib/types";
-import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { IsolatedCube } from "@dub/ui/icons";
+import { WorkspaceEnvironment } from "@prisma/client";
 import Link from "next/link";
 
 const buttonClassName =

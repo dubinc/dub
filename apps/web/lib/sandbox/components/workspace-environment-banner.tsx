@@ -3,10 +3,10 @@
 import { useDashboardBannerVisible } from "@/lib/hooks/use-dashboard-banner-visible";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
-import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { IsolatedCube } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { capitalize } from "@dub/utils/src";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

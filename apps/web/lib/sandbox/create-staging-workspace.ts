@@ -1,7 +1,7 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { prisma } from "@dub/prisma";
-import { WorkspaceEnvironment } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { TRIAL_LIMITS } from "@dub/utils";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { generateRandomString } from "../api/utils/generate-random-string";
 import { createWorkspaceId } from "../api/workspaces/create-workspace-id";
 

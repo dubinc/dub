@@ -1,7 +1,7 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
-import { WorkspaceEnvironment } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../actions/safe-action";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";

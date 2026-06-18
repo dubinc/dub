@@ -1,7 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { WorkspaceEnvironment } from "@dub/prisma/client";
+import { WorkspaceEnvironment } from "@prisma/client";
 
 export function useDashboardBannerVisible() {
   const {

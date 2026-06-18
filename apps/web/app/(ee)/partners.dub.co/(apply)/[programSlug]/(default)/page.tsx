@@ -6,7 +6,7 @@ import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
-import { WorkspaceEnvironment } from "@dub/prisma/client";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyButton } from "./apply-button";

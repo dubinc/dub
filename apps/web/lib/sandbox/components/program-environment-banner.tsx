@@ -1,6 +1,6 @@
-import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { IsolatedCube } from "@dub/ui/icons";
 import { capitalize, cn } from "@dub/utils";
+import { WorkspaceEnvironment } from "@prisma/client";
 
 export function ProgramEnvironmentBanner({
   environment,

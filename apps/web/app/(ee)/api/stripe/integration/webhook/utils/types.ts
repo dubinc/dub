@@ -1,5 +1,5 @@
 import { StripeMode } from "@/lib/types";
-import { Project } from "@dub/prisma/client";
+import { Project } from "@prisma/client";
 
 export type StripeWebhookInput = {
   mode: StripeMode;

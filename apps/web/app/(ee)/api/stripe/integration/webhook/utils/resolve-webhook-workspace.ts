@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { StripeMode } from "@/lib/types";
-import { prisma } from "@dub/prisma";
 
 export async function resolveWebhookWorkspace({
   stripeAccountId,

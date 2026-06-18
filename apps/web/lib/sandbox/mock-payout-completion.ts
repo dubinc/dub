@@ -1,8 +1,8 @@
+import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
-import { prisma } from "@dub/prisma";
-import { Invoice, Project, WorkspaceEnvironment } from "@dub/prisma/client";
 import { currencyFormatter } from "@dub/utils";
+import { Invoice, Project, WorkspaceEnvironment } from "@prisma/client";
 import { trackCommissionStatusUpdatesByProgram } from "../api/commissions/track-commission-update-activity-log";
 
 interface MockPayoutCompletionParams {

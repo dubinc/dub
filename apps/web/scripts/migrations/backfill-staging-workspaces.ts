@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { createStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
-import { prisma } from "@dub/prisma";
-import { WorkspaceEnvironment } from "@dub/prisma/client";
+import { WorkspaceEnvironment } from "@prisma/client";
 import "dotenv-flow/config";
 
 const BATCH_SIZE = 50;

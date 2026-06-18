@@ -1,7 +1,7 @@
 import useWorkspaces from "@/lib/swr/use-workspaces";
-import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { Button, Combobox } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { useMemo, useState } from "react";
 import { useAddWorkspaceModal } from "../modals/add-workspace-modal";
 
