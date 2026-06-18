@@ -57,17 +57,20 @@ export function FeaturedProgramCard({
   const backgroundColor = accentColor ?? getFeaturedCardBackground(colorIndex);
 
   return (
-    <Link
-      href={getMarketplaceProgramHref(program.slug)}
-      className="relative flex h-full flex-col-reverse gap-4 overflow-hidden rounded-2xl p-2 sm:min-h-[340px] sm:flex-row"
-    >
+    <article className="relative flex h-full flex-col-reverse gap-4 overflow-hidden rounded-2xl p-2 sm:min-h-[340px] sm:flex-row">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 transition-opacity duration-500 ease-out"
+        className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-500 ease-out"
         style={{ backgroundColor, opacity: accentReady ? 1 : 0 }}
       />
 
-      <div className="relative z-20 flex min-w-0 flex-1 flex-col p-6">
+      <Link
+        href={getMarketplaceProgramHref(program.slug)}
+        className="absolute inset-0 z-10 rounded-2xl"
+        aria-label={`View ${program.name}`}
+      />
+
+      <div className="pointer-events-none relative z-20 flex min-w-0 flex-1 flex-col p-6">
         <div className="-mt-16 flex justify-between gap-4 sm:mt-0">
           <img
             src={program.logo || `${OG_AVATAR_URL}${program.name}`}
@@ -88,7 +91,7 @@ export function FeaturedProgramCard({
               `${program.name} is a program in the Dub Partner Network. Join the network to start partnering with them.`}
           </div>
 
-          <div className="mt-5 flex flex-wrap gap-x-8 gap-y-4">
+          <div className="pointer-events-auto relative z-30 mt-5 flex flex-wrap gap-x-8 gap-y-4">
             {Boolean(program.rewards?.length) && (
               <div>
                 <span className="block text-xs font-medium text-neutral-400">
@@ -160,9 +163,7 @@ export function FeaturedProgramCard({
                 <button
                   type="button"
                   aria-label={`Visit ${getDomainWithoutWWW(program.url)}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  onClick={() => {
                     window.open(
                       program.url as string,
                       "_blank",
@@ -184,15 +185,15 @@ export function FeaturedProgramCard({
       </div>
 
       {program.marketplaceHeaderImage && (
-        <div className="relative z-10 h-44 w-full shrink-0 overflow-hidden rounded-xl sm:h-auto sm:w-[55%] sm:self-stretch">
+        <div className="pointer-events-none relative z-10 h-44 w-full shrink-0 overflow-hidden rounded-xl sm:h-auto sm:w-[55%] sm:self-stretch">
           <img
             src={program.marketplaceHeaderImage}
-            alt={program.name}
+            alt=""
             className="absolute inset-0 size-full object-cover"
           />
         </div>
       )}
-    </Link>
+    </article>
   );
 }
 

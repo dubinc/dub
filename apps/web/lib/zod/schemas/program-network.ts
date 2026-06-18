@@ -32,11 +32,16 @@ export const NetworkProgramExtendedSchema = NetworkProgramSchema.extend({
 
 export const PROGRAM_NETWORK_MAX_PAGE_SIZE = 100;
 
+const queryBooleanSchema = z
+  .enum(["true", "false"])
+  .transform((v) => v === "true")
+  .optional();
+
 export const getPublicNetworkProgramsQuerySchema = z
   .object({
     category: z.enum(Category).optional(),
     rewardType: z.enum(["sale", "lead", "click", "discount"]).optional(),
-    featured: z.coerce.boolean().optional(),
+    featured: queryBooleanSchema,
     search: z.string().optional(),
     sortBy: z.enum(["name", "recency", "popularity"]).default("popularity"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
@@ -53,7 +58,7 @@ export const getNetworkProgramsQuerySchema = z
       (v) => (v === "null" ? null : v),
       z.enum(ProgramEnrollmentStatus).nullish(),
     ),
-    featured: z.coerce.boolean().optional(),
+    featured: queryBooleanSchema,
     search: z.string().optional(),
     sortBy: z.enum(["name", "recency", "popularity"]).default("popularity"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),

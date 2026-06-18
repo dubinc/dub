@@ -80,6 +80,10 @@ export type ImageAccentColor = {
 
 export function useImageAccentColor(src?: string | null): ImageAccentColor {
   const [state, setState] = useState<ImageAccentColor>(() => {
+    if (!src) {
+      return { color: null, ready: true };
+    }
+
     if (src && cache.has(src)) {
       return { color: cache.get(src) ?? null, ready: true };
     }

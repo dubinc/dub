@@ -192,15 +192,22 @@ export function useProgramNetworkFilters() {
   }, [queryParams, routeCategory, router, searchParamsObj]);
 
   const onRemoveAll = useCallback(() => {
+    const preserved = getPreservedMarketplaceSearchParams(searchParamsObj);
+
     if (routeCategory) {
-      router.replace(getMarketplaceAllHref());
+      router.replace(
+        getMarketplaceAllHref({
+          sortBy: preserved.sortBy,
+          sortOrder: preserved.sortOrder,
+        }),
+      );
       return;
     }
 
     queryParams({
       del: ["rewardType", "category", "status", "search", "page"],
     });
-  }, [queryParams, routeCategory, router]);
+  }, [queryParams, routeCategory, router, searchParamsObj]);
 
   const isFiltered = Boolean(
     activeFilters.length > 0 || searchParamsObj.search,

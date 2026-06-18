@@ -10,10 +10,7 @@ import {
   MARKETPLACE_REWARD_TYPES,
   type MarketplaceRewardType,
 } from "./constants";
-import {
-  buildExternalMarketplaceFilterHref,
-  getMarketplaceAllHref,
-} from "./utils/urls";
+import { buildExternalMarketplaceFilterHref } from "./utils/urls";
 
 export function usePublicMarketplaceFilters({
   basePath,
@@ -137,11 +134,12 @@ export function usePublicMarketplaceFilters({
 
   const onClearFilters = useCallback(() => {
     router.push(
-      getMarketplaceAllHref({
-        search,
+      buildHref({
+        category: activeCategory ? null : undefined,
+        rewardType: null,
       }),
     );
-  }, [router, search]);
+  }, [activeCategory, buildHref, router]);
 
   const onSortChange = useCallback(
     (nextSortBy: string, nextSortOrder: string) => {

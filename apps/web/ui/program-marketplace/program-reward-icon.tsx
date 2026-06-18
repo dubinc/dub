@@ -39,26 +39,21 @@ export const ProgramRewardIcon = ({
         </HoverCard.Content>
       </HoverCard.Portal>
       <HoverCard.Trigger asChild>
-        {onClick ? (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onClick();
-            }}
-            className={cn(
-              "inline-flex shrink-0 border-0 bg-transparent p-0",
-              className,
-            )}
-          >
-            {iconSurface}
-          </button>
-        ) : (
-          <div className={cn("inline-flex shrink-0", className)}>
-            {iconSurface}
-          </div>
-        )}
+        <button
+          type="button"
+          onClick={(e) => {
+            if (!onClick) return;
+            e.preventDefault();
+            e.stopPropagation();
+            onClick();
+          }}
+          className={cn(
+            "inline-flex shrink-0 border-0 bg-transparent p-0",
+            className,
+          )}
+        >
+          {iconSurface}
+        </button>
       </HoverCard.Trigger>
     </HoverCard.Root>
   );

@@ -24,6 +24,7 @@ function MarketplaceListTitle({ category }: { category?: Category }) {
       <div className="flex items-center gap-1">
         <Link
           href={getMarketplaceHref()}
+          aria-label="Back to marketplace"
           className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
         >
           <Shop className="text-content-default size-4" />

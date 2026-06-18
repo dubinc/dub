@@ -258,7 +258,9 @@ function SidebarAreasPanel<T extends Record<any, any>>({
                           title
                         ))}
                       {panel ? (
-                        panel
+                        area === currentArea ? (
+                          panel
+                        ) : null
                       ) : (
                         <div className="flex flex-col gap-8">
                           {content.map(({ name, items }, idx) => (
@@ -308,7 +310,9 @@ function SidebarAreasPanel<T extends Record<any, any>>({
                   visible={area === currentArea}
                   direction={direction ?? "right"}
                 >
-                  <div className="flex flex-col gap-2">{footer}</div>
+                  {area === currentArea ? (
+                    <div className="flex flex-col gap-2">{footer}</div>
+                  ) : null}
                 </Area>
               );
             })}
