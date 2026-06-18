@@ -390,6 +390,7 @@ async function stepCreateCommission(
       programId,
       partnerId,
       customerId,
+      referenceDate: createdAt ?? new Date(),
     });
 
     // If spend limit clamped earnings to 0, skip commission creation
@@ -643,6 +644,7 @@ async function clampEarningsToSpendLimit({
   programId,
   partnerId,
   customerId,
+  referenceDate,
 }: {
   reward: Pick<
     RewardProps,
@@ -652,6 +654,7 @@ async function clampEarningsToSpendLimit({
   programId: string;
   partnerId: string;
   customerId: string;
+  referenceDate: Date; // When creating a manual commission, the reference date is the createdAt date
 }) {
   if (
     earnings === 0 ||
@@ -664,7 +667,7 @@ async function clampEarningsToSpendLimit({
 
   const { startDate, endDate } = getRewardSpendLimitWindow({
     spendLimitInterval: reward.spendLimitInterval,
-    referenceDate: new Date(),
+    referenceDate,
   });
 
   // Find the commission earnings for the partner and customer (if applicable) for the spend limit window
