@@ -133,16 +133,19 @@ export async function GET(req: Request) {
 
       // If Acme workspace, use Dub workspace stripeId
       if (workspace.id === ACME_WORKSPACE_ID) {
-        workspace = await prisma.project.findUniqueOrThrow({
+        const dubWorkspace = await prisma.project.findUniqueOrThrow({
           where: {
             id: DUB_WORKSPACE_ID,
           },
           select: {
-            id: true,
             stripeId: true,
-            invoicePrefix: true,
           },
         });
+
+        workspace = {
+          ...workspace,
+          stripeId: dubWorkspace.stripeId,
+        };
 
         console.log(
           `Using Dub workspace stripeId for Acme workspace domains...`,
