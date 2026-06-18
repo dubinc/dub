@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { Customer, Link, Program } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { chunk, nanoid } from "@dub/utils";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
@@ -97,28 +97,33 @@ export async function importCommissions(payload: TapfiliateImportPayload) {
       })),
     );
 
-    await Promise.allSettled(
-      flattenedConversions.map((conversion) =>
-        createCommission({
-          program,
-          conversion,
-          fxRates,
-          importId,
-          customersData,
-          customerLeadEvents,
-        }),
-      ),
-    );
+    if (flattenedConversions.length > 0) {
+      const conversionChunks = chunk(flattenedConversions, 10);
+
+      for (const conversionChunk of conversionChunks) {
+        await Promise.all(
+          conversionChunk.map((conversion) =>
+            createCommission({
+              program,
+              conversion,
+              fxRates,
+              importId,
+              customersData,
+              customerLeadEvents,
+            }),
+          ),
+        );
+      }
+    }
 
     currentPage++;
     processedBatches++;
-    break;
   }
 
   await tapfiliateImporter.queue({
     ...payload,
     action: hasMore ? "import-commissions" : "update-stripe-customers",
-    page: currentPage,
+    page: hasMore ? currentPage : undefined,
   });
 }
 
@@ -137,7 +142,7 @@ async function createCommission({
   customersData: (Customer & { link: Link | null })[];
   customerLeadEvents: LeadEventTB[];
 }) {
-  const { id, commission, customer } = conversion;
+  const { commission, customer } = conversion;
 
   const commonImportLogInputs = {
     workspace_id: program.workspaceId,
@@ -154,6 +159,9 @@ async function createCommission({
         programId: program.id,
       },
     },
+    select: {
+      id: true,
+    },
   });
 
   if (existingCommission) {
@@ -165,7 +173,7 @@ async function createCommission({
     await logImportError({
       ...commonImportLogInputs,
       code: "CUSTOMER_NOT_FOUND",
-      message: `No customer found for commission ${commission.id}.`,
+      message: `A customer is not associated with this commission ${commission.id}, skipping...`,
     });
 
     return;
@@ -185,8 +193,8 @@ async function createCommission({
     return;
   }
 
-  let saleAmount = Number(commission.amount ?? 0);
-  let earnings = Number(commission.conversion_sub_amount);
+  let saleAmount = Math.round(commission.conversion_sub_amount * 100);
+  let earnings = Math.round(commission.amount * 100);
 
   if (commission.currency.toUpperCase() !== "USD" && fxRates) {
     const { amount: convertedSaleAmount } = convertCurrencyWithFxRates({
@@ -204,8 +212,6 @@ async function createCommission({
     saleAmount = convertedSaleAmount;
     earnings = convertedEarnings;
   }
-
-  console.log("existingCustomer", existingCustomer);
 
   if (!existingCustomer.linkId) {
     await logImportError({
@@ -269,10 +275,9 @@ async function createCommission({
         customerId: existingCustomer.id,
         amount: saleAmount,
         earnings,
-        // TODO: allow custom "defaultCurrency" on workspace table in the future
         currency: "usd",
         quantity: 1,
-        // status: toDubStatus[commission.status],
+        status: commission.approved ? "paid" : "pending",
         invoiceId: commission.id.toString(), // this is not the actual invoice ID, but we use this to deduplicate the sales
         createdAt: new Date(commission.created_at),
       },

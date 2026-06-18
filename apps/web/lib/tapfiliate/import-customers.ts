@@ -125,7 +125,7 @@ export async function importCustomers(payload: TapfiliateImportPayload) {
         const customerChunks = chunk(newCustomers, 10);
 
         for (const customerChunk of customerChunks) {
-          await Promise.allSettled(
+          await Promise.all(
             customerChunk.map((customer) =>
               createCustomer({
                 workspace,

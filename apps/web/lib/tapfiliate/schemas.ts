@@ -67,7 +67,6 @@ export const tapfiliateCommissionSchema = z.object({
   approved: z.boolean().nullable(),
   amount: z.number(),
   conversion_sub_amount: z.number(),
-  final: z.boolean(),
 });
 
 export const tapfiliateConversionSchema = z.object({

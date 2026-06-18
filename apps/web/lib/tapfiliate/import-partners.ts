@@ -155,7 +155,7 @@ async function createPartnerAndLinks({
     update: {},
   });
 
-  await prisma.programEnrollment.upsert({
+  const { links } = await prisma.programEnrollment.upsert({
     where: {
       partnerId_programId: {
         partnerId: partner.id,
@@ -176,7 +176,21 @@ async function createPartnerAndLinks({
     update: {
       status: "approved",
     },
+    select: {
+      links: {
+        select: {
+          key: true,
+        },
+      },
+    },
   });
+
+  if (links.length > 0 && links.some((link) => link.key === affiliate.id)) {
+    console.log(
+      `Partner ${partner.email} already has a link with key ${affiliate.id}, skipping...`,
+    );
+    return;
+  }
 
   try {
     const partnerLink = await generatePartnerLink({
