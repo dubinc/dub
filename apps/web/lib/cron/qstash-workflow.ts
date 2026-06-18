@@ -8,7 +8,10 @@ const client = new Client({
   token: process.env.QSTASH_TOKEN || "",
 });
 
-type WorkflowType = "partner-approved" | "create-partner-commission";
+type WorkflowType =
+  | "partner-approved"
+  | "create-partner-commission"
+  | "merge-partner-account";
 
 interface QStashWorkflow {
   workflowType: WorkflowType;
@@ -98,6 +101,16 @@ export function getWorkflowConfig({
           partnerId: body.partnerId,
           customerId: body.customerId,
           bountySubmissionId: body.bountySubmissionId,
+        },
+      };
+    }
+
+    case "merge-partner-account": {
+      return {
+        correlation: {
+          userId: body.userId,
+          sourceEmail: body.sourceEmail,
+          targetEmail: body.targetEmail,
         },
       };
     }
