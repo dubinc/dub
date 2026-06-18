@@ -1,5 +1,12 @@
+import {
+  getMarketplaceAllHref,
+  getMarketplaceCanonicalUrl,
+  getMarketplaceCategoryHref,
+  getMarketplaceHref,
+  getMarketplaceProgramHref,
+} from "@/ui/program-marketplace/utils/urls";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Category, Prisma } from "@dub/prisma/client";
 import { PARTNERS_HOSTNAMES, SHORT_DOMAIN } from "@dub/utils";
 import { MetadataRoute } from "next";
 import { headers } from "next/headers";
@@ -39,10 +46,53 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   }
 
-  return [
+  const entries: MetadataRoute.Sitemap = [
     {
       url: `https://${domain}`,
       lastModified: new Date(),
     },
   ];
+
+  if (
+    process.env.NEXT_PUBLIC_APP_DOMAIN &&
+    domain === process.env.NEXT_PUBLIC_APP_DOMAIN
+  ) {
+    const marketplacePrograms = await prisma.program.findMany({
+      where: {
+        addedToMarketplaceAt: {
+          not: null,
+        },
+      },
+      select: {
+        slug: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        slug: "asc",
+      },
+    });
+
+    entries.push(
+      {
+        url: getMarketplaceCanonicalUrl(getMarketplaceHref()),
+        lastModified: new Date(),
+      },
+      {
+        url: getMarketplaceCanonicalUrl(getMarketplaceAllHref()),
+        lastModified: new Date(),
+      },
+      ...Object.values(Category).map((category) => ({
+        url: getMarketplaceCanonicalUrl(getMarketplaceCategoryHref(category)),
+        lastModified: new Date(),
+      })),
+      ...marketplacePrograms.map((program) => ({
+        url: getMarketplaceCanonicalUrl(
+          getMarketplaceProgramHref(program.slug),
+        ),
+        lastModified: program.updatedAt,
+      })),
+    );
+  }
+
+  return entries;
 }

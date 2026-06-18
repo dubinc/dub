@@ -70,7 +70,7 @@ export default function NetworkPartnerApplicationApproved({
 
             <Section className="mb-8 text-center">
               <Link
-                href="https://partners.dub.co/programs/marketplace"
+                href="https://partners.dub.co/marketplace"
                 className="box-border inline-block rounded-lg bg-neutral-900 px-6 py-3 text-center text-sm font-medium text-white no-underline"
               >
                 View the marketplace
