@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
 import { redirect } from "next/navigation";
 import { ProgramPageClient } from "./page-client";
 

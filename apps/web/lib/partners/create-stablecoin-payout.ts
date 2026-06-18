@@ -1,13 +1,8 @@
 import { trackCommissionStatusUpdatesByProgram } from "@/lib/api/commissions/track-commission-update-activity-log";
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-force-withdrawal";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
-import { prisma } from "@dub/prisma";
-import {
-  PartnerPayoutMethod,
-  Prisma,
-  WorkspaceEnvironment,
-} from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   chunk,
@@ -15,6 +10,11 @@ import {
   log,
   prettyPrint,
 } from "@dub/utils";
+import {
+  PartnerPayoutMethod,
+  Prisma,
+  WorkspaceEnvironment,
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,

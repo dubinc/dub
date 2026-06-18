@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Program } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Program } from "@prisma/client";
 import { CampaignsApi, CreateCampaign200Response } from "tremendous";
 import { tremendousConfiguration } from "./configuration";
 import { TREMENDOUS_PRODUCT_IDS } from "./constants";

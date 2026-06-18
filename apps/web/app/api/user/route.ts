@@ -1,10 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { uploadedImageSchema } from "@/lib/zod/schemas/images";
-import { prisma } from "@dub/prisma";
-import { WorkspaceEnvironment } from "@dub/prisma/client";
 import {
   APP_DOMAIN,
   APP_HOSTNAMES,
@@ -13,6 +12,7 @@ import {
   nanoid,
   trim,
 } from "@dub/utils";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

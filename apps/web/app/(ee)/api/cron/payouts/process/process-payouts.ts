@@ -1,6 +1,6 @@
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { payoutIdSelectionWhere } from "@/lib/api/payouts/payout-id-selection-where";
-import { FAST_ACH_FEE_CENTS, FOREX_MARKUP_RATE } from "@/lib/constants/payouts";
+import { FOREX_MARKUP_RATE } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import {
@@ -13,13 +13,6 @@ import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { sendEmail } from "@dub/email";
 import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
-import { prisma } from "@dub/prisma";
-import {
-  Invoice,
-  Program,
-  ProgramPayoutMode,
-  Project,
-} from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,
@@ -27,6 +20,7 @@ import {
   nFormatter,
   pluralize,
 } from "@dub/utils";
+import { Invoice, Program, ProgramPayoutMode, Project } from "@prisma/client";
 
 const nonUsdPaymentMethodTypes = {
   sepa_debit: "eur",
@@ -171,7 +165,7 @@ export async function processPayouts({
     payoutFee,
     payoutFeeWaiverLimit: workspace.payoutFeeWaiverLimit,
     payoutFeeWaiverUsage: workspace.payoutFeeWaiverUsage,
-    fastAchFee: invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0,
+    paymentMethod: invoice.paymentMethod!,
   });
 
   const invoiceTotal = totalPayoutAmount + invoiceFee;

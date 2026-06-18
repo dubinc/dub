@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { WorkspaceProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   DUB_DOMAINS_ARRAY,

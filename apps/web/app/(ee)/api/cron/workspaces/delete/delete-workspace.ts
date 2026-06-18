@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { cancelSubscription } from "@/lib/stripe/cancel-subscription";
-import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { logAndRespond } from "../../utils";
 import { DeleteWorkspacePayload } from "./utils";

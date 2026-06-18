@@ -1,7 +1,7 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
+import { prisma } from "@/lib/prisma";
 import { stripeAppClient } from "@/lib/stripe";
-import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
 import { StripeWebhookInput, StripeWebhookOutput } from "./utils/types";
 

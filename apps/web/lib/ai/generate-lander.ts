@@ -2,6 +2,7 @@
 
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   programLanderSchema,
@@ -10,16 +11,15 @@ import {
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { anthropic } from "@ai-sdk/anthropic";
-import { prisma } from "@dub/prisma";
-import { Reward } from "@dub/prisma/client";
 import FireCrawlApp, {
   ErrorResponse,
   ScrapeResponse,
 } from "@mendable/firecrawl-js";
+import { Reward } from "@prisma/client";
 import { generateText, Output } from "ai";
 import * as z from "zod/v4";
-import { authActionClient } from "../safe-action";
-import { throwIfNoPermission } from "../throw-if-no-permission";
+import { authActionClient } from "../actions/safe-action";
+import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -102,7 +102,7 @@ export const generateLanderAction = authActionClient
       : null;
 
     const { output } = await generateText({
-      model: anthropic("claude-sonnet-4-6"),
+      model: anthropic("claude-opus-4-8"),
       output: Output.object({
         schema: landerData ? programLanderSchema : programLanderSimpleSchema,
       }),
@@ -142,7 +142,6 @@ export const generateLanderAction = authActionClient
         (pricingPageMarkdown
           ? `\n\nCompany pricing page:\n\n${pricingPageMarkdown}`
           : ""),
-      temperature: 0.4,
     });
 
     return programLanderSchema.parse(output);

@@ -12,6 +12,7 @@ import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner
 import { determinePartnerRewards } from "@/lib/partners/determine-partner-reward";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
 import { RewardProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -20,7 +21,7 @@ import {
 } from "@/lib/zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { currencyFormatter, log, pick, toCentsNumber } from "@dub/utils";
 import {
   Commission,
   Link,
@@ -28,8 +29,7 @@ import {
   PartnerGroup,
   ProgramEnrollment,
   Reward,
-} from "@dub/prisma/client";
-import { currencyFormatter, log, pick, toCentsNumber } from "@dub/utils";
+} from "@prisma/client";
 import { WorkflowRetryAfterError } from "@upstash/workflow";
 import { serve } from "@upstash/workflow/nextjs";
 import { differenceInMonths } from "date-fns";

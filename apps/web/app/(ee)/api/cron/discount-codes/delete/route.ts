@@ -1,8 +1,8 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { isDiscountIntegrationNotAvailableError } from "@/lib/discounts/discount-error";
 import { getDiscountProvider } from "@/lib/discounts/discount-provider";
-import { prisma } from "@dub/prisma";
-import { DiscountProvider } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { DiscountProvider } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 

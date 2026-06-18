@@ -4,6 +4,7 @@ import { generateOTP } from "@/lib/auth";
 import { EMAIL_OTP_EXPIRY_IN } from "@/lib/auth/constants";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
+import { prisma } from "@/lib/prisma";
 import {
   TREMENDOUS_ENABLED_PROGRAM_IDS,
   TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS,
@@ -12,7 +13,6 @@ import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "@dub/email";
 import PartnerTremendousVerifyEmail from "@dub/email/templates/partner-tremendous-verify-email";
-import { prisma } from "@dub/prisma";
 import { TREMENDOUS_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

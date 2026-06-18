@@ -6,7 +6,7 @@ import {
   PartnerMessagesSchema,
   getPartnerMessagesQuerySchema,
 } from "@/lib/messages/schemas";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/messages - get messages grouped by partner

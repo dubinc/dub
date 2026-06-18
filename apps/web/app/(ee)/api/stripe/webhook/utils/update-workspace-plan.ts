@@ -12,6 +12,7 @@ import {
   wouldLosePartnerAccess,
 } from "@/lib/plans/has-partner-access";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
+import { prisma } from "@/lib/prisma";
 import {
   getSubscriptionCancellationFields,
   getSubscriptionTrialEndsAt,
@@ -21,7 +22,6 @@ import { webhookCache } from "@/lib/webhook/cache";
 import { sendBatchEmail } from "@dub/email";
 import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
-import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   getPlanAndTierFromPriceId,

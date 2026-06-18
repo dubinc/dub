@@ -1,11 +1,11 @@
 import { getProgram } from "@/lib/fetchers/get-program";
+import { prisma } from "@/lib/prisma";
 import { ProgramEnvironmentBanner } from "@/lib/sandbox/components/program-environment-banner";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
-import { WorkspaceEnvironment } from "@dub/prisma/client";
 import { Logo } from "@dub/ui";
 import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
 import { OG_AVATAR_URL } from "@dub/utils";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { Store } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";

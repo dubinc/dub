@@ -2,29 +2,28 @@
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
+import useGroups from "@/lib/swr/use-groups";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
 import { FraudGroupCountByPartner, PayoutResponse } from "@/lib/types";
 import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicator";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
-  PartnerPayoutMethod,
-  PayoutStatus,
-  ProgramPayoutMode,
-} from "@dub/prisma/client";
-import {
   AnimatedSizeContainer,
   Button,
   DynamicTooltipWrapper,
+  EditColumnsButton,
   Filter,
   StatusBadge,
   Table,
   Tooltip,
   TooltipContent,
+  useColumnVisibility,
   usePagination,
   useRouterStuff,
   useTable,
@@ -33,6 +32,11 @@ import { MoneyBill2 } from "@dub/ui/icons";
 import { cn, currencyFormatter } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
+import {
+  PartnerPayoutMethod,
+  PayoutStatus,
+  ProgramPayoutMode,
+} from "@prisma/client";
 import { PayoutPaidCell } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-paid-cell";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -94,6 +98,11 @@ function isPayoutEligibleForBatchConfirm(
 
 const PAYOUTS_MAX_PAGE_SIZE = 50;
 
+const payoutsColumns = {
+  all: ["periodEnd", "partner", "group", "status", "initiatedAt", "amount"],
+  defaultVisible: ["periodEnd", "partner", "status", "initiatedAt", "amount"],
+};
+
 export function PayoutTable() {
   const router = useRouter();
   const { queryParams, searchParams, searchParamsObj, getQueryString } =
@@ -107,7 +116,16 @@ export function PayoutTable() {
   } = useWorkspace();
 
   const { program } = useProgram();
+  const { groups } = useGroups();
   const minPayoutAmount = program?.minPayoutAmount ?? 0;
+
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "payouts-table-columns",
+    {
+      all: payoutsColumns.all,
+      defaultVisible: payoutsColumns.defaultVisible,
+    },
+  );
 
   const sortBy = searchParams.get("sortBy") || "amount";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
@@ -163,80 +181,126 @@ export function PayoutTable() {
     (key) => !["sortBy", "sortOrder", "page"].includes(key),
   );
 
+  const columns = useMemo(
+    () =>
+      [
+        {
+          id: "periodEnd",
+          header: "Period",
+          accessorFn: (d: PayoutResponse) => formatPeriod(d),
+        },
+        {
+          id: "partner",
+          header: "Partner",
+          cell: ({ row }) => {
+            return <PartnerRowItem partner={row.original.partner} />;
+          },
+        },
+        {
+          id: "group",
+          header: "Partner Group",
+          cell: ({ row }) => {
+            if (!groups) return "-";
+
+            const group = groups.find(
+              (g) => g.id === row.original.partner.groupId,
+            );
+
+            if (!group) return "-";
+
+            return (
+              <div className="flex items-center gap-2">
+                <GroupColorCircle group={group} />
+                <Link
+                  href={`/${workspaceSlug}/program/groups/${group.slug}`}
+                  target="_blank"
+                  onClick={(e) => e.stopPropagation()}
+                  onAuxClick={(e) => e.stopPropagation()}
+                  className="min-w-0 cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+                  title={group.name}
+                >
+                  {group.name}
+                </Link>
+              </div>
+            );
+          },
+        },
+        {
+          id: "status",
+          header: "Status",
+          cell: ({ row }) => {
+            const hasPendingFraudEvents =
+              canManageFraudEvents &&
+              fraudGroupCountMap.has(row.original.partner.id);
+
+            const status =
+              hasPendingFraudEvents && row.original.status === "pending"
+                ? "hold"
+                : row.original.status;
+
+            const badge = PayoutStatusBadges[status];
+
+            return badge ? (
+              <StatusBadge icon={badge.icon} variant={badge.variant}>
+                <DynamicTooltipWrapper
+                  tooltipProps={
+                    row.original.status === "failed" &&
+                    row.original.failureReason
+                      ? {
+                          content: row.original.failureReason,
+                        }
+                      : undefined
+                  }
+                >
+                  {badge.label}
+                </DynamicTooltipWrapper>
+              </StatusBadge>
+            ) : (
+              "-"
+            );
+          },
+        },
+        {
+          id: "initiatedAt",
+          header: "Paid",
+          cell: ({ row }) => (
+            <PayoutPaidCell
+              initiatedAt={row.original.initiatedAt}
+              paidAt={row.original.paidAt}
+              user={row.original.user}
+            />
+          ),
+        },
+        {
+          id: "amount",
+          header: "Amount",
+          cell: ({ row }) => (
+            <AmountRowItem
+              payout={row.original}
+              hasPendingFraudEvents={
+                canManageFraudEvents &&
+                fraudGroupCountMap.has(row.original.partner.id)
+              }
+            />
+          ),
+        },
+        {
+          id: "menu",
+          enableHiding: false,
+          header: ({ table }) => <EditColumnsButton table={table} />,
+          cell: () => null,
+        },
+      ].filter((c) => c.id === "menu" || payoutsColumns.all.includes(c.id)),
+    [canManageFraudEvents, fraudGroupCountMap, groups, workspaceSlug],
+  );
+
   const { table, ...tableProps } = useTable({
     data: payouts || [],
     loading: isLoading,
     error: error || countError ? "Failed to load payouts" : undefined,
-    columns: [
-      {
-        id: "periodEnd",
-        header: "Period",
-        accessorFn: (d) => formatPeriod(d),
-      },
-      {
-        header: "Partner",
-        cell: ({ row }) => {
-          return <PartnerRowItem partner={row.original.partner} />;
-        },
-      },
-      {
-        header: "Status",
-        cell: ({ row }) => {
-          const hasPendingFraudEvents =
-            canManageFraudEvents &&
-            fraudGroupCountMap.has(row.original.partner.id);
-
-          const status =
-            hasPendingFraudEvents && row.original.status === "pending"
-              ? "hold"
-              : row.original.status;
-
-          const badge = PayoutStatusBadges[status];
-
-          return badge ? (
-            <StatusBadge icon={badge.icon} variant={badge.variant}>
-              <DynamicTooltipWrapper
-                tooltipProps={
-                  row.original.status === "failed" && row.original.failureReason
-                    ? {
-                        content: row.original.failureReason,
-                      }
-                    : undefined
-                }
-              >
-                {badge.label}
-              </DynamicTooltipWrapper>
-            </StatusBadge>
-          ) : (
-            "-"
-          );
-        },
-      },
-      {
-        id: "initiatedAt",
-        header: "Paid",
-        cell: ({ row }) => (
-          <PayoutPaidCell
-            initiatedAt={row.original.initiatedAt}
-            paidAt={row.original.paidAt}
-            user={row.original.user}
-          />
-        ),
-      },
-      {
-        id: "amount",
-        header: "Amount",
-        cell: ({ row }) => (
-          <AmountRowItem
-            payout={row.original}
-            hasPendingFraudEvents={
-              canManageFraudEvents &&
-              fraudGroupCountMap.has(row.original.partner.id)
-            }
-          />
-        ),
-      },
-    ],
+    columns,
+    columnVisibility,
+    onColumnVisibilityChange: setColumnVisibility,
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["amount", "initiatedAt"],

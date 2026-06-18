@@ -1,6 +1,6 @@
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { throwIfStagingWorkspace } from "@/lib/sandbox/throw-if-staging-workspace";
-import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 

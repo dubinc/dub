@@ -7,15 +7,15 @@ import {
   getNetworkReferralsQuerySchema,
   networkReferralSchema,
 } from "@/lib/partner-referrals/schemas";
+import { prisma } from "@/lib/prisma";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { CommissionType } from "@dub/prisma/client";
 import {
   NETWORK_PROGRAM_DEFAULT_GROUP_ID,
   NETWORK_PROGRAM_DEFAULT_SALE_REWARD_ID,
   NETWORK_PROGRAM_ID,
   NETWORK_USER_ID,
 } from "@dub/utils/src/constants/main";
+import { CommissionType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
