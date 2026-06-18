@@ -178,7 +178,6 @@ export function useProgramNetworkFilters() {
     if (routeCategory) {
       router.replace(
         getMarketplaceAllHref({
-          rewardType: preserved.rewardType,
           search: preserved.search,
           sortBy: preserved.sortBy,
           sortOrder: preserved.sortOrder,

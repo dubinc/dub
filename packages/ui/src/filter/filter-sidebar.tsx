@@ -70,11 +70,6 @@ export function FilterSidebar({
         return;
       }
 
-      if (filter.singleSelect) {
-        onSelect(filterKey, value);
-        return;
-      }
-
       onSelect(filterKey, value);
     },
     [isOptionSelected, onRemove, onSelect],

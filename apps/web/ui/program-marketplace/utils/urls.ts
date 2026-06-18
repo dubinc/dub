@@ -94,9 +94,7 @@ export function getMarketplacePopularRedirectHref(
     rewardType,
     search,
     sortBy,
-    sortOrder:
-      sortOrder ??
-      (sortBy === "recency" || sortBy === "popularity" ? "desc" : undefined),
+    sortOrder: sortOrder ?? (sortBy === "recency" ? "desc" : undefined),
   });
 }
 
