@@ -285,14 +285,21 @@ export const trackSale = async ({
           };
     }
 
+    // Deduplicate lead events across concurrent direct sale requests
     if (leadEventData) {
-      // Deduplicate lead events across concurrent direct sale requests
-      shouldTrackDirectSaleLead =
-        (await redis.set(
-          `trackLead:${workspace.id}:${customerExternalId}:${finalLeadEventName.toLowerCase().replaceAll(" ", "-")}`,
-          { timestamp: Date.now() },
-          { ex: 60 * 60 * 24 * 7, nx: true },
-        )) !== null;
+      const cacheKey = `directSaleTrackLead:${workspace.id}:${customerExternalId}:${finalLeadEventName.toLowerCase().replaceAll(" ", "-")}`;
+      const cachedLeadEvent = await redis.set(
+        cacheKey,
+        {
+          timestamp: Date.now(),
+        },
+        {
+          ex: 30, // 30 seconds
+          nx: true,
+        },
+      );
+
+      shouldTrackDirectSaleLead = cachedLeadEvent !== null;
     }
   }
 
