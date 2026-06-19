@@ -124,22 +124,26 @@ const evaluateCondition = ({
 
   // Starts with
   if (condition.operator === "starts_with") {
-    if (typeof fieldValue !== "string" || typeof condition.value !== "string") {
+    if (
+      typeof fieldValue !== "string" ||
+      typeof condition.value !== "string" ||
+      condition.value === ""
+    ) {
       return false;
     }
-
-    if (condition.value === "") return false;
 
     return fieldValue.startsWith(condition.value);
   }
 
   // Ends with
   if (condition.operator === "ends_with") {
-    if (typeof fieldValue !== "string" || typeof condition.value !== "string") {
+    if (
+      typeof fieldValue !== "string" ||
+      typeof condition.value !== "string" ||
+      condition.value === ""
+    ) {
       return false;
     }
-
-    if (condition.value === "") return false;
 
     return fieldValue.endsWith(condition.value);
   }
@@ -150,10 +154,13 @@ const evaluateCondition = ({
       return false;
     }
 
-    const needle = condition.value.trim();
-    if (needle === "") return false;
+    const trimmedValue = condition.value.trim();
 
-    return String(fieldValue).includes(needle);
+    if (trimmedValue === "") {
+      return false;
+    }
+
+    return String(fieldValue).includes(trimmedValue);
   }
 
   // Not contains
@@ -162,10 +169,13 @@ const evaluateCondition = ({
       return false;
     }
 
-    const needle = condition.value.trim();
-    if (needle === "") return false;
+    const trimmedValue = condition.value.trim();
 
-    return !String(fieldValue).includes(needle);
+    if (trimmedValue === "") {
+      return false;
+    }
+
+    return !String(fieldValue).includes(trimmedValue);
   }
 
   // In
