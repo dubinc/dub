@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
+import { prisma } from "@/lib/prisma";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
-import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import "dotenv-flow/config";
 import * as z from "zod/v4";

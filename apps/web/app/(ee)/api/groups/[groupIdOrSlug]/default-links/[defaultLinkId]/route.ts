@@ -5,11 +5,11 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import {
   createOrUpdateDefaultLinkSchema,
   PartnerGroupDefaultLinkSchema,
 } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   constructURLFromUTMParams,

@@ -1,6 +1,6 @@
 import { transformLink } from "@/lib/api/links";
 import { withAdmin } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { DUB_DOMAINS_ARRAY, LEGAL_USER_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 

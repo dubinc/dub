@@ -1,5 +1,5 @@
 import { filterActiveGroupBounties } from "@/lib/bounty/api/get-group-bounty-summaries";
-import { BountyType } from "@dub/prisma/client";
+import { BountyType } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 
 const GROUP_ID = "grp_test_123";

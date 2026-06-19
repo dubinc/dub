@@ -25,8 +25,8 @@ Then, replace `prisma as prismaOld` below with just `prismaOld`
 
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
-// import { prisma, prismaOld } from "@dub/prisma";
-import { prisma, prisma as prismaOld } from "@dub/prisma";
+// import { prisma, prismaOld } from "@/lib/prisma";
+import { prisma, prisma as prismaOld } from "@/lib/prisma";
 import "dotenv-flow/config";
 import { stripeAppClient } from "../../lib/stripe";
 import { recordLink } from "../../lib/tinybird";

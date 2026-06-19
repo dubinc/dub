@@ -1,11 +1,11 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { generateRandomName } from "@/lib/names";
+import { prisma } from "@/lib/prisma";
 import {
   getPartnerEarningsQuerySchema,
   PartnerEarningsSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
-import { CommissionType, Partner } from "@dub/prisma/client";
+import { CommissionType, Partner } from "@prisma/client";
 import * as z from "zod/v4";
 import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
 

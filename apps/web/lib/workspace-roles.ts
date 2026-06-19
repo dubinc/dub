@@ -1,6 +1,6 @@
-import { WorkspaceRole } from "@dub/prisma/client";
 import type { Icon } from "@dub/ui/icons";
 import { Eye, MoneyBill, User, UserCrown } from "@dub/ui/icons";
+import { WorkspaceRole } from "@prisma/client";
 import { PlanProps } from "./types";
 
 export const WORKSPACE_ROLES = [

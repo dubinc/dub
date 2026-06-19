@@ -1,11 +1,11 @@
 "use server";
 
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
+import { prisma } from "@/lib/prisma";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
-import { prisma } from "@dub/prisma";
-import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
 import { getDomainWithoutWWW, getUrlFromString, isValidUrl } from "@dub/utils";
+import { PartnerPlatform, PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 

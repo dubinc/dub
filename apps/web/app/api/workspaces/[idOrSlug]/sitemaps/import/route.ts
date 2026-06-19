@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { importTrackedSitemaps } from "@/lib/sitemaps/import-tracked-sitemaps";
 import {
   getOrCreateSiteLinksFolder,
@@ -8,7 +9,6 @@ import {
   replaceTrackedSitemapsInColumn,
 } from "@/lib/sitemaps/site-visit-tracking";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

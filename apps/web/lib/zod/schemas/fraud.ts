@@ -1,5 +1,5 @@
 import { PAID_TRAFFIC_PLATFORMS } from "@/lib/api/fraud/constants";
-import { FraudEventStatus, FraudRuleType } from "@dub/prisma/client";
+import { FraudEventStatus, FraudRuleType } from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema, PartnerSchema } from "./partners";

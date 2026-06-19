@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
 // script to remove fraud events for cross-program bans

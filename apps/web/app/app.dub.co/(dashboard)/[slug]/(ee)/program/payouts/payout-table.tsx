@@ -14,11 +14,6 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
-  PartnerPayoutMethod,
-  PayoutStatus,
-  ProgramPayoutMode,
-} from "@dub/prisma/client";
-import {
   AnimatedSizeContainer,
   Button,
   DynamicTooltipWrapper,
@@ -37,6 +32,11 @@ import { MoneyBill2 } from "@dub/ui/icons";
 import { cn, currencyFormatter } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
+import {
+  PartnerPayoutMethod,
+  PayoutStatus,
+  ProgramPayoutMode,
+} from "@prisma/client";
 import { PayoutPaidCell } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-paid-cell";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";

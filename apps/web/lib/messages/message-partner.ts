@@ -8,7 +8,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { qstash } from "@/lib/cron";
 import { forwardProgramMessageToIntercom } from "@/lib/integrations/intercom/forward-message";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../actions/safe-action";

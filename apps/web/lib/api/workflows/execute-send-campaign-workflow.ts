@@ -1,5 +1,6 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import { prisma } from "@/lib/prisma";
 import {
   CampaignTriggerCondition,
   TiptapNode,
@@ -9,9 +10,8 @@ import {
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
-import { prisma } from "@dub/prisma";
-import { NotificationEmailType, Prisma, Workflow } from "@dub/prisma/client";
 import { chunk } from "@dub/utils";
+import { NotificationEmailType, Prisma, Workflow } from "@prisma/client";
 import { addHours, differenceInDays, subDays } from "date-fns";
 import { validateCampaignFromAddress } from "../campaigns/validate-campaign";
 import { createId } from "../create-id";

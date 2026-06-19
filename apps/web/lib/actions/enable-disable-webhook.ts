@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { webhookCache } from "../webhook/cache";

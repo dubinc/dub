@@ -4,12 +4,12 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
+import { prisma } from "@/lib/prisma";
 import {
   createReferralsEmbedTokenSchema,
   ReferralsEmbedTokenSchema,
 } from "@/lib/zod/schemas/token";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollment } from "@dub/prisma/client";
+import { ProgramEnrollment } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // POST /api/tokens/embed/referrals - create a new embed token for the given partner/tenant

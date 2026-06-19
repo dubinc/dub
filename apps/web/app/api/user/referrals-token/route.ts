@@ -5,7 +5,7 @@ import {
   partnerIsNotBanned,
   type ProgramEnrollmentsForDiscoverability,
 } from "@/lib/network/get-network-approval-requirements";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export const GET = withSession(async ({ session }) => {

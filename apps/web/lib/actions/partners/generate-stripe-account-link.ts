@@ -2,11 +2,11 @@
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
-import { prisma } from "@dub/prisma";
-import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { COUNTRIES, PARTNERS_DOMAIN } from "@dub/utils";
+import { PartnerPayoutMethod } from "@prisma/client";
 import { authPartnerActionClient } from "../safe-action";
 
 export const generateStripeAccountLink = authPartnerActionClient.action(
