@@ -9,8 +9,8 @@ export const dynamic = "force-dynamic";
 
 // This route is used aggregate clicks events on daily basis for Program links and add to the Commission table
 // Runs every day at 00:00 (0 0 * * *)
-// GET /api/cron/aggregate-clicks
-export const GET = withCron(async () => {
+// POST /api/cron/aggregate-clicks
+export const POST = withCron(async () => {
   const clickRewards = await prisma.reward.findMany({
     where: {
       event: EventType.click,
