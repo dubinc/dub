@@ -6,6 +6,7 @@ export const tapfiliateImportSteps = z.enum([
   "import-customers",
   "import-commissions",
   "update-stripe-customers",
+  "cleanup-partners",
 ]);
 
 export const tapfiliateImportPayloadSchema = z.object({
@@ -14,7 +15,8 @@ export const tapfiliateImportPayloadSchema = z.object({
   programId: z.string(),
   tapfiliateProgramId: z.string(),
   action: tapfiliateImportSteps,
-  page: z.number().optional(),
+  page: z.number().optional(), // Tapfiliate pagination
+  startingAfter: z.string().optional(), // Dub pagination
 });
 
 export const tapfiliateGroupSchema = z.object({
