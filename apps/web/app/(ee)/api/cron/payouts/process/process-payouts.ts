@@ -7,6 +7,7 @@ import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
+import { prisma } from "@/lib/prisma";
 import { mockPaymentProvider } from "@/lib/sandbox/mock-payment-provider";
 import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
