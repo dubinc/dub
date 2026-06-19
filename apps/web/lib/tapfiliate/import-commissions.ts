@@ -125,6 +125,10 @@ export async function importCommissions(payload: TapfiliateImportPayload) {
     processedBatches++;
   }
 
+  if (!hasMore) {
+    await tapfiliateImporter.deleteCredentials(program.workspaceId);
+  }
+
   await tapfiliateImporter.queue({
     ...payload,
     action: hasMore ? "import-commissions" : "update-stripe-customers",
