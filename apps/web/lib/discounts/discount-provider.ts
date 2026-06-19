@@ -1,4 +1,4 @@
-import { DiscountProvider } from "@dub/prisma/client";
+import { DiscountProvider } from "@prisma/client";
 import { shopifyDiscountProvider } from "./discount-provider-shopify";
 import { stripeDiscountProvider } from "./discount-provider-stripe";
 

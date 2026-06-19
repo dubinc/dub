@@ -1,5 +1,5 @@
 import { qstash } from "@/lib/cron";
-import type { Prisma } from "@dub/prisma/client";
+import type { Prisma } from "@prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import "server-only";

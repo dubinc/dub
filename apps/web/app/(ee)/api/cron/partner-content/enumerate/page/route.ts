@@ -8,7 +8,7 @@ import {
   PARTNER_CONTENT_SEARCH_ROUTES,
   partnerContentEnumeratePagePayloadSchema,
 } from "@/lib/partner-content-search/ingestion/enqueue";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { chunk } from "@dub/utils";
 import { logAndRespond } from "../../../utils";
 

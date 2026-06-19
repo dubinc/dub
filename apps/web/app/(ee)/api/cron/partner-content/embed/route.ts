@@ -16,7 +16,7 @@ import {
   serializeEmbeddingForVector,
   VoyageApiError,
 } from "@/lib/partner-content-search/voyage";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { chunk } from "@dub/utils";
 import { logAndRespond } from "../../utils";
 

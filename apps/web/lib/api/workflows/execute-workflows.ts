@@ -1,8 +1,8 @@
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import { prisma } from "@/lib/prisma";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
-import { prisma } from "@dub/prisma";
-import { Workflow } from "@dub/prisma/client";
+import { Workflow } from "@prisma/client";
 import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
 import { executeMoveGroupWorkflow } from "./execute-move-group-workflow";
 import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";

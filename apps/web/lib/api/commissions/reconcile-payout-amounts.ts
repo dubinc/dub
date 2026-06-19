@@ -1,5 +1,5 @@
 import { MUTABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function reconcilePayoutAmounts(payoutIds: string[]) {
   const uniquePayoutIds = [...new Set(payoutIds)];

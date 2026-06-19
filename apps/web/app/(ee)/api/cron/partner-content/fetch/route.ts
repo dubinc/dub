@@ -8,7 +8,7 @@ import {
   isTranscriptEligibleContentItem,
   writeFetchedContentItems,
 } from "@/lib/partner-content-search/ingestion/write-fetched-content-items";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";

@@ -8,7 +8,6 @@ import { NetworkPartnerProps } from "@/lib/types";
 import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
 import { NetworkPartnerSheet } from "@/ui/partners/partner-network/network-partner-sheet";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import type { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -30,6 +29,7 @@ import {
   YouTube,
 } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";

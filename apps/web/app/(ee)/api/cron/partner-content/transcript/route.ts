@@ -18,7 +18,7 @@ import {
 } from "@/lib/partner-content-search/ingestion/enqueue";
 import { fetchPlatformTranscriptSegments } from "@/lib/partner-content-search/ingestion/platforms";
 import type { PartnerContentPlatform } from "@/lib/partner-content-search/types";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";

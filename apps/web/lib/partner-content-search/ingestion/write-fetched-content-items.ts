@@ -15,8 +15,8 @@ import {
 } from "@/lib/partner-content-search/ingestion/enqueue";
 import type { NormalizedPartnerContentItem } from "@/lib/partner-content-search/ingestion/normalize-content";
 import type { PartnerContentPlatform } from "@/lib/partner-content-search/types";
-import { prisma } from "@dub/prisma";
-import type { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 export function isTranscriptEligibleContentItem(
   item: NormalizedPartnerContentItem,

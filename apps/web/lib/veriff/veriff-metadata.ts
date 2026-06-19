@@ -1,4 +1,4 @@
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 
 const veriffMetadataSchema = z.object({

@@ -2,11 +2,11 @@
 
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@/lib/prisma";
 import {
   PartnerTagSchema,
   createPartnerTagSchema,
 } from "@/lib/zod/schemas/partner-tags";
-import { prisma } from "@dub/prisma";
 import { INFINITY_NUMBER } from "@dub/utils";
 import { authActionClient } from "../../safe-action";
 import { throwIfNoPermission } from "../../throw-if-no-permission";

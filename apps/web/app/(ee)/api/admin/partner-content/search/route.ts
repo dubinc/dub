@@ -16,8 +16,8 @@ import {
   serializeEmbeddingForVector,
   VoyageTimeoutError,
 } from "@/lib/partner-content-search/voyage";
-import { prisma } from "@dub/prisma";
-import { PlatformType, Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { PlatformType, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

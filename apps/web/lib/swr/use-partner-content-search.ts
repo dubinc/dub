@@ -2,7 +2,7 @@ import {
   PARTNER_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER,
   PARTNER_CONTENT_SEARCH_PARTNER_LIMIT,
 } from "@/lib/partner-content-search/constants";
-import type { PlatformType } from "@dub/prisma/client";
+import type { PlatformType } from "@prisma/client";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 

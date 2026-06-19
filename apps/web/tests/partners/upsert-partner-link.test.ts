@@ -1,5 +1,5 @@
-import { Link } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
+import { Link } from "@prisma/client";
 import { randomId } from "tests/utils/helpers";
 import { afterAll, describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";

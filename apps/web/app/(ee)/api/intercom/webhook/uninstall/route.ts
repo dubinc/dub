@@ -1,15 +1,15 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
 import { intercomUninstallWebhookSchema } from "@/lib/integrations/intercom/schema";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { logAndRespond } from "../../../cron/utils";
-import { verifyWebhookSignature } from "../verify-webhook";
+import { verifyIntercomWebhookSignature } from "../verify-webhook-signature";
 
 // POST /api/intercom/webhook/uninstall – notified when someone uninstalls the app or revokes access through any means
 export const POST = withAxiom(async (req) => {
   try {
-    const rawBody = await verifyWebhookSignature(req);
+    const rawBody = await verifyIntercomWebhookSignature(req);
     const body = JSON.parse(rawBody);
 
     const { app_id: intercomWorkspaceId } =

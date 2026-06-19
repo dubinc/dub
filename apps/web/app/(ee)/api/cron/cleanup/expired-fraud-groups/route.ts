@@ -1,6 +1,6 @@
 import { FRAUD_GROUP_EXPIRY_DAYS } from "@/lib/api/fraud/constants";
 import { withCron } from "@/lib/cron/with-cron";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { subDays } from "date-fns";
 import { logAndRespond } from "../../utils";
 

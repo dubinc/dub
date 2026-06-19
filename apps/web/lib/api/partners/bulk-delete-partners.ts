@@ -1,5 +1,5 @@
 import { conn } from "@/lib/planetscale";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import { deleteDiscountCodes } from "../../discounts/delete-discount-code";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";

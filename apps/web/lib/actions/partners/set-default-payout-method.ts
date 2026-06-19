@@ -3,6 +3,7 @@
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { getPartnerPayoutMethods } from "@/lib/payouts/get-partner-payout-methods";
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
+import { prisma } from "@/lib/prisma";
 import {
   partnerProfileChangeHistoryLogSchema,
   setDefaultPayoutMethodSchema,
@@ -10,7 +11,6 @@ import {
 import { getPayoutMethodLabel } from "@/ui/partners/payouts/payout-method-config";
 import { sendEmail } from "@dub/email";
 import DefaultPayoutMethodChanged from "@dub/email/templates/default-payout-method-changed";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authPartnerActionClient } from "../safe-action";
 

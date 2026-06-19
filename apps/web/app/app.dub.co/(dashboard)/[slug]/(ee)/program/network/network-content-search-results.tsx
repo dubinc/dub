@@ -1,7 +1,7 @@
 "use client";
 
 import type { PartnerContentSearchPartner } from "@/lib/swr/use-partner-content-search";
-import type { PlatformType } from "@dub/prisma/client";
+import type { PlatformType } from "@prisma/client";
 import { Button } from "@dub/ui";
 import { ArrowUpRight, EnvelopeArrowRight } from "@dub/ui/icons";
 import { memo } from "react";

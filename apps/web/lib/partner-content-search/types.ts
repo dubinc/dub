@@ -1,4 +1,4 @@
-import type { PlatformType } from "@dub/prisma/client";
+import type { PlatformType } from "@prisma/client";
 
 export const PARTNER_CONTENT_SEARCH_PLATFORMS = [
   "youtube",

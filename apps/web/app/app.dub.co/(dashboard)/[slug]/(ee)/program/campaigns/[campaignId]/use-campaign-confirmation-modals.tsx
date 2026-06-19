@@ -4,8 +4,8 @@ import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-grou
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import { CampaignStatus } from "@dub/prisma/client";
 import { pluralize } from "@dub/utils";
+import { CampaignStatus } from "@prisma/client";
 import { isFuture } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";

@@ -11,8 +11,8 @@ import {
   PartnerContentIngestionMode,
 } from "@/lib/partner-content-search/ingestion/enqueue";
 import { PartnerContentPlatform } from "@/lib/partner-content-search/types";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";

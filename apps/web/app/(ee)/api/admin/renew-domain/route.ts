@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { withAdmin } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

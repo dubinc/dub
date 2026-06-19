@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import "server-only";
 import { PARTNER_CONTENT_SEARCH_MODELS } from "../constants";
 
