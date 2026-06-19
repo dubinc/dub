@@ -45,6 +45,8 @@ export const VerifyEmailForm = () => {
           `/onboarding${next ? `?next=${encodeURIComponent(next)}` : ""}`,
         );
       } else {
+        isSubmittingRef.current = false;
+        setIsRedirecting(false);
         toast.error(
           "Failed to sign in with credentials. Please try again or contact support.",
         );
