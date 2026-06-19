@@ -3,10 +3,7 @@ import { RESOURCE_COLORS } from "@/ui/colors";
 import { getDomainWithoutWWW, randomValue } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { createId } from "../api/create-id";
-import {
-  DEFAULT_ADDITIONAL_PARTNER_LINKS,
-  DEFAULT_PARTNER_GROUP,
-} from "../zod/schemas/groups";
+import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "../zod/schemas/groups";
 import { TapfiliateApi } from "./api";
 import { tapfiliateImporter } from "./importer";
 import { TapfiliateImportPayload } from "./types";
@@ -18,10 +15,17 @@ export async function importGroups(payload: TapfiliateImportPayload) {
     where: {
       id: programId,
     },
-    include: {
+    select: {
+      workspaceId: true,
+      domain: true,
+      url: true,
+      defaultGroupId: true,
       groups: {
-        where: {
-          slug: DEFAULT_PARTNER_GROUP.slug,
+        select: {
+          id: true,
+          linkStructure: true,
+          holdingPeriodDays: true,
+          maxPartnerLinks: true,
         },
       },
     },
@@ -31,18 +35,9 @@ export async function importGroups(payload: TapfiliateImportPayload) {
     throw new Error("Program domain or URL is not set.");
   }
 
-  const {
-    logo,
-    wordmark,
-    brandColor,
-    holdingPeriodDays,
-    autoApprovePartnersEnabledAt,
-    additionalLinks,
-    maxPartnerLinks,
-    linkStructure,
-    applicationFormData,
-    landerData,
-  } = program.groups[0] ?? {};
+  const defaultGroup = program.groups.find(
+    (group) => group.id === program.defaultGroupId,
+  );
 
   const { apiKey } = await tapfiliateImporter.getCredentials(
     program.workspaceId,
@@ -76,7 +71,15 @@ export async function importGroups(payload: TapfiliateImportPayload) {
             validationMode: "domain",
           },
         ],
-        maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+        ...(defaultGroup
+          ? {
+              linkStructure: defaultGroup.linkStructure,
+              holdingPeriodDays: defaultGroup.holdingPeriodDays,
+              maxPartnerLinks: defaultGroup.maxPartnerLinks,
+            }
+          : {
+              maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+            }),
         partnerGroupDefaultLinks: {
           create: {
             id: createId({ prefix: "pgdl_" }),
