@@ -91,29 +91,31 @@ export async function cleanupPartners(payload: TapfiliateImportPayload) {
       );
 
       // Find partners that have no user account
-      const partnersWithoutUserAccount = await prisma.partner.findMany({
-        where: {
-          id: {
-            in: removablePartnerIds,
-          },
-          users: {
-            none: {},
-          },
-        },
-        select: {
-          id: true,
-          email: true,
-        },
-      });
-
-      if (partnersWithoutUserAccount.length > 0) {
-        await prisma.partner.deleteMany({
+      if (removablePartnerIds.length > 0) {
+        const partnersWithoutUserAccount = await prisma.partner.findMany({
           where: {
             id: {
-              in: partnersWithoutUserAccount.map(({ id }) => id),
+              in: removablePartnerIds,
+            },
+            users: {
+              none: {},
             },
           },
+          select: {
+            id: true,
+            email: true,
+          },
         });
+
+        if (partnersWithoutUserAccount.length > 0) {
+          await prisma.partner.deleteMany({
+            where: {
+              id: {
+                in: partnersWithoutUserAccount.map(({ id }) => id),
+              },
+            },
+          });
+        }
       }
     }
 
