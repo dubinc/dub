@@ -7,8 +7,8 @@ import {
   getMarketplaceCanonicalUrl,
   getMarketplacePathFromSlug,
 } from "@/ui/program-marketplace/utils/urls";
-import { Category } from "@dub/prisma/client";
 import { constructMetadata } from "@dub/utils";
+import { Category } from "@prisma/client";
 import { Metadata } from "next";
 
 export const revalidate = 3600;

@@ -4,9 +4,9 @@ import {
   type MarketplaceRewardType,
 } from "@/ui/program-marketplace/constants";
 import { buildExternalMarketplaceFilterHref } from "@/ui/program-marketplace/utils/urls";
-import { Category } from "@dub/prisma/client";
 import { Check } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Category } from "@prisma/client";
 import Link from "next/link";
 import type { ReactNode } from "react";
 

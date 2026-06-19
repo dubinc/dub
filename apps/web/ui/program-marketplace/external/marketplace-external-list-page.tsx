@@ -2,7 +2,7 @@ import { getNetworkProgramCounts } from "@/lib/fetchers/get-network-program-coun
 import { getPublicNetworkPrograms } from "@/lib/fetchers/get-public-network-programs";
 import { EXTERNAL_MARKETPLACE_PAGE_SIZE } from "@/lib/marketplace/parse-public-marketplace-query";
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
-import { Category } from "@dub/prisma/client";
+import { Category } from "@prisma/client";
 import {
   MarketplaceProgramGrid,
   MarketplaceProgramGridEmpty,

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { getPublicNetworkProgramsQuerySchema } from "@/lib/zod/schemas/program-network";
-import { Category, Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { Category, Prisma, ProgramEnrollmentStatus } from "@prisma/client";
 import { cache } from "react";
 import * as z from "zod/v4";
 

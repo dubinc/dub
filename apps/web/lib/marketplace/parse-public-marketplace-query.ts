@@ -1,5 +1,5 @@
 import { getPublicNetworkProgramsQuerySchema } from "@/lib/zod/schemas/program-network";
-import { Category } from "@dub/prisma/client";
+import { Category } from "@prisma/client";
 
 export const EXTERNAL_MARKETPLACE_PAGE_SIZE = 24;
 

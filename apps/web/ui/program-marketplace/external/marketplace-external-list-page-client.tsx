@@ -3,9 +3,9 @@
 import { EXTERNAL_MARKETPLACE_PAGE_SIZE } from "@/lib/marketplace/parse-public-marketplace-query";
 import { NetworkProgramProps } from "@/lib/types";
 import { getPublicNetworkProgramsQuerySchema } from "@/lib/zod/schemas/program-network";
-import { Category } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
+import { Category } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
