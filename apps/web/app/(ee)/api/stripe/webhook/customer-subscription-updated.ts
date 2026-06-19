@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { getPlanAndTierFromPriceId, TRIAL_LIMITS } from "@dub/utils";
 import { differenceInHours } from "date-fns";
 import Stripe from "stripe";

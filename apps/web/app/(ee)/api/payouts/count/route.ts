@@ -1,10 +1,11 @@
+import { buildProgramEnrollmentFilter } from "@/lib/api/payouts/get-payouts";
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
-import { prisma } from "@dub/prisma";
-import { FraudEventStatus, PayoutStatus, Prisma } from "@dub/prisma/client";
+import { PayoutStatus, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/payouts/count
@@ -14,7 +15,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const isHoldStatus = searchParams.status === "hold";
   const { status: _status, ...restSearchParams } = searchParams;
 
-  let { status, partnerId, groupBy, eligibility, invoiceId } =
+  let { status, partnerId, groupId, groupBy, eligibility, invoiceId } =
     payoutsCountQuerySchema.parse(
       isHoldStatus ? restSearchParams : searchParams,
     );
@@ -28,6 +29,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     programId,
   });
 
+  const programEnrollment = buildProgramEnrollmentFilter({
+    groupId,
+    isHoldStatus,
+  });
+
   const where: Prisma.PayoutWhereInput = {
     programId,
     ...(partnerId && { partnerId }),
@@ -35,15 +41,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       ...getPayoutEligibilityFilter({ program, workspace }),
     }),
     ...(invoiceId && { invoiceId }),
-    ...(isHoldStatus && {
-      programEnrollment: {
-        fraudEventGroups: {
-          some: {
-            status: FraudEventStatus.pending,
-          },
-        },
-      },
-    }),
+    ...(programEnrollment && { programEnrollment }),
   };
 
   // Get payout count by status

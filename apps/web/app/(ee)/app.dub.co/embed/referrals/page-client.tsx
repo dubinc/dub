@@ -2,6 +2,7 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
+import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
 import {
   DiscountProps,
   PartnerBountyProps,
@@ -18,12 +19,6 @@ import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
-  Partner,
-  PlatformType,
-  Program,
-  ProgramEnrollmentStatus,
-} from "@dub/prisma/client";
-import {
   Button,
   Check,
   Combobox,
@@ -37,7 +32,18 @@ import {
   Wordmark,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
-import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
+import {
+  cn,
+  getApexDomain,
+  getPrettyUrl,
+  TREMENDOUS_SUPPORTED_COUNTRIES,
+} from "@dub/utils";
+import {
+  Partner,
+  PlatformType,
+  Program,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import {
@@ -58,6 +64,7 @@ import { ReferralsEmbedLeaderboard } from "./leaderboard";
 import { ReferralsEmbedLinks } from "./links";
 import { ReferralsEmbedQuickstart } from "./quickstart";
 import { ReferralsEmbedResources } from "./resources";
+import { ReferralsEmbedSettings } from "./settings";
 import { ThemeOptions } from "./theme-options";
 import { ReferralsReferralsEmbedToken } from "./token";
 import { ReferralsEmbedLink } from "./types";
@@ -77,7 +84,15 @@ type ReferralsEmbedData = {
   programEnrollment: Pick<ProgramEnrollmentProps, "createdAt"> & {
     status: ProgramEnrollmentStatus;
   };
-  partner: Pick<Partner, "id" | "name" | "email">;
+  partner: Pick<
+    Partner,
+    | "id"
+    | "name"
+    | "email"
+    | "country"
+    | "tremendousEmail"
+    | "defaultPayoutMethod"
+  >;
   partnerPlatforms: Array<{
     type: PlatformType;
     identifier: string;
@@ -183,6 +198,18 @@ export function ReferralsEmbedPageClient({
     programEnrollment.status,
   );
 
+  const isTremendousCountrySupported = Boolean(
+    !partner.country ||
+      TREMENDOUS_SUPPORTED_COUNTRIES.includes(partner.country),
+  );
+
+  // Show Tremendous payout settings if the partner already uses Tremendous,
+  // or hasn't selected a payout method yet and is eligible based on country.
+  const showSettingsTab =
+    TREMENDOUS_ENABLED_PROGRAM_IDS.includes(program.id) &&
+    (partner.defaultPayoutMethod === "tremendous" ||
+      (!partner.defaultPayoutMethod && isTremendousCountrySupported));
+
   const tabs = useMemo(
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
@@ -194,6 +221,7 @@ export function ReferralsEmbedPageClient({
         : ["Leaderboard"]),
       "FAQ",
       ...(hasResources ? ["Resources"] : []),
+      ...(showSettingsTab ? ["Settings"] : []),
     ],
     [
       showQuickstart,
@@ -201,6 +229,7 @@ export function ReferralsEmbedPageClient({
       group.additionalLinks,
       programEmbedData,
       hasResources,
+      showSettingsTab,
     ],
   );
 
@@ -321,7 +350,10 @@ export function ReferralsEmbedPageClient({
           >
             <ReferralsEmbedActivity />
             {!programEmbedData?.hideEarnings && (
-              <ReferralsEmbedEarningsSummary />
+              <ReferralsEmbedEarningsSummary
+                showSettingsTab={showSettingsTab}
+                onSelectTab={setSelectedTab}
+              />
             )}
           </div>
           <div className="mt-4">
@@ -383,6 +415,8 @@ export function ReferralsEmbedPageClient({
                   <ReferralsEmbedFAQ />
                 ) : selectedTab === "Resources" ? (
                   <ReferralsEmbedResources resources={resources} />
+                ) : selectedTab === "Settings" ? (
+                  <ReferralsEmbedSettings />
                 ) : null}
               </AnimatePresence>
             </div>

@@ -7,7 +7,6 @@ import { Campaign, UpdateCampaignFormData } from "@/lib/types";
 import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
 import { PageContentWithSidePanel } from "@/ui/layout/page-content/page-content-with-side-panel";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { CampaignStatus } from "@dub/prisma/client";
 import {
   ChevronRight,
   Lock,
@@ -22,6 +21,7 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { capitalize, cn } from "@dub/utils";
+import { CampaignStatus } from "@prisma/client";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";

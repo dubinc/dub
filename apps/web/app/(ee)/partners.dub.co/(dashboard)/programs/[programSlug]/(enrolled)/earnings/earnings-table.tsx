@@ -11,7 +11,6 @@ import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
-import { CommissionType } from "@dub/prisma/client";
 import {
   CopyText,
   LinkLogo,
@@ -33,6 +32,7 @@ import {
   getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { Cell } from "@tanstack/react-table";
 import { useParams } from "next/navigation";
 import useSWR from "swr";

@@ -1,4 +1,4 @@
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus } from "@prisma/client";
 import Stripe from "stripe";
 import { PaymentMethodOption } from "../types";
 
@@ -9,6 +9,7 @@ export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;
 export const ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE = 500;
 export const CUTOFF_PERIOD_MAX_PAYOUTS = 1000;
 
+export const CARD_PAYOUT_HARD_COST_RATE = 0.03; // 3% Stripe card processing cost (non-waivable)
 export const STABLECOIN_PAYOUT_FEE_RATE = 0.005; // 0.5%
 export const STABLECOIN_PAYOUT_FIXED_FEE_CENTS = 50; // $0.50
 export const FAST_ACH_FEE_CENTS = 2500; // $25

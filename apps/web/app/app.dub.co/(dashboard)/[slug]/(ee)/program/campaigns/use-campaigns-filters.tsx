@@ -1,9 +1,9 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CampaignStatus, CampaignType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Sliders } from "@dub/ui/icons";
 import { nFormatter } from "@dub/utils";
 import { cn } from "@dub/utils/src";
+import { CampaignStatus, CampaignType } from "@prisma/client";
 import { useMemo } from "react";
 import { CAMPAIGN_STATUS_BADGES } from "./campaign-status-badges";
 import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";

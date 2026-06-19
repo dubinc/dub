@@ -40,6 +40,7 @@ import {
   timeAgo,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -51,7 +52,7 @@ import { useBountySubmissionFilters } from "./use-bounty-submission-filters";
 export function BountySubmissionsTable() {
   const { bounty, loading: isBountyLoading } = useBounty();
   const { groups } = useGroups();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
   const { bountyId } = useParams<{ bountyId: string }>();
   const { pagination, setPagination } = usePagination();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
@@ -217,7 +218,16 @@ export function BountySubmissionsTable() {
           return (
             <div className="flex items-center gap-2">
               <GroupColorCircle group={group} />
-              <span className="truncate text-sm font-medium">{group.name}</span>
+              <Link
+                href={`/${slug}/program/groups/${group.slug}`}
+                target="_blank"
+                onClick={(e) => e.stopPropagation()}
+                onAuxClick={(e) => e.stopPropagation()}
+                className="min-w-0 cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+                title={group.name}
+              >
+                {group.name}
+              </Link>
             </div>
           );
         },
@@ -374,6 +384,7 @@ export function BountySubmissionsTable() {
       performanceCondition,
       bountyInfo,
       workspaceId,
+      slug,
     ],
   );
 

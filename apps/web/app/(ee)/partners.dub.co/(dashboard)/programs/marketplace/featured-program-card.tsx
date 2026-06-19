@@ -71,7 +71,7 @@ export function FeaturedProgramCard({
           </div>
 
           <div className="mt-5 flex gap-8">
-            {Boolean(program.rewards?.length || program.discount) && (
+            {Boolean(program.rewards?.length) && (
               <div>
                 <span
                   className={cn(
@@ -83,20 +83,11 @@ export function FeaturedProgramCard({
                 </span>
                 <ProgramRewardsDisplay
                   rewards={program.rewards}
-                  discount={program.discount}
                   isDarkImage={isDarkImage}
                   onRewardClick={(reward) =>
                     queryParams({
                       set: {
                         rewardType: reward.event,
-                      },
-                      del: "page",
-                    })
-                  }
-                  onDiscountClick={() =>
-                    queryParams({
-                      set: {
-                        rewardType: "discount",
                       },
                       del: "page",
                     })

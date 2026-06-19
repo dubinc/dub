@@ -5,7 +5,7 @@ import {
   POSTBACK_SECRET_PREFIX,
 } from "@/lib/postback/constants";
 import { getPostbackOrThrow } from "@/lib/postback/get-postback-or-throw";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // POST /api/partner-profile/postbacks/[postbackId]/rotate-secret

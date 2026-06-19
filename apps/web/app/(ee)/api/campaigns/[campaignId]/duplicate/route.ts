@@ -4,8 +4,8 @@ import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
-import { CampaignStatus } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { CampaignStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // POST /api/campaigns/[campaignId]/duplicate - duplicate an existing campaign

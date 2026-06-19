@@ -490,7 +490,6 @@ function ListRow({
       setIsReady(false);
   }, [entry]);
 
-  if (items && items.length === 0) return null;
   return (
     <div
       ref={containerRef}
@@ -532,7 +531,7 @@ function ListRow({
           ) : (
             <div className="flex h-7 w-fit items-center rounded-full border border-dashed border-neutral-300 bg-neutral-50 px-2">
               <span className="text-content-subtle text-xs opacity-60">
-                Not specified
+                No categories
               </span>
             </div>
           )

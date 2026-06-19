@@ -4,17 +4,17 @@ import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { wouldGainPartnerAccess } from "@/lib/plans/has-partner-access";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
-import { prisma } from "@dub/prisma";
-import { User } from "@dub/prisma/client";
 import {
   getPlanAndTierFromPriceId,
   getWorkspaceLimitsForStripeSubscriptionStatus,
   log,
 } from "@dub/utils";
+import { User } from "@prisma/client";
 import Stripe from "stripe";
 import { getPlanPeriodFromStripeSubscription } from "./utils/stripe-plan-period";
 

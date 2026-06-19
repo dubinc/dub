@@ -9,7 +9,6 @@ import { PARTNER_TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-tags";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { CountryFlag } from "@/ui/shared/country-flag";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { encodeRangeToken, parseRangeToken, useRouterStuff } from "@dub/ui";
 import {
   CircleDotted,
@@ -34,6 +33,7 @@ import {
   type FilterOperator,
   type ParsedFilter,
 } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -282,7 +282,6 @@ export function usePartnerFilters(
                           label: groupData.name,
                           icon: <GroupColorCircle group={groupData} />,
                           right: nFormatter(_count || 0, { full: true }),
-                          permalink: `/${slug}/program/groups/${groupData.slug}/rewards`,
                         };
                       })
                       .filter((group) => group !== null)

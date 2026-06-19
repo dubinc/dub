@@ -1,10 +1,10 @@
 import { Session, hashToken } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceWithUsers } from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import WorkspaceInvite from "@dub/email/templates/workspace-invite";
-import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
 import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { DubApiError } from "./errors";
 

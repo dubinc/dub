@@ -1,12 +1,12 @@
-import { prisma } from "@dub/prisma";
-import { Payout } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Payout } from "@prisma/client";
 
 export const markPayoutsAsProcessed = async (payouts: Pick<Payout, "id">[]) => {
   if (payouts.length === 0) {
     return;
   }
 
-  await prisma.payout.updateMany({
+  const { count } = await prisma.payout.updateMany({
     where: {
       id: {
         in: payouts.map((p) => p.id),
@@ -17,4 +17,6 @@ export const markPayoutsAsProcessed = async (payouts: Pick<Payout, "id">[]) => {
       paidAt: new Date(),
     },
   });
+
+  console.log(`Marked ${count} payouts as processed`);
 };

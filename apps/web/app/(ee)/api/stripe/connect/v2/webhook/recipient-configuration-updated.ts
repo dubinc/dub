@@ -1,8 +1,8 @@
 import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
-import { prisma } from "@dub/prisma";
 import Stripe from "stripe";
 
 export async function recipientConfigurationUpdated(event: Stripe.ThinEvent) {
@@ -27,6 +27,7 @@ export async function recipientConfigurationUpdated(event: Stripe.ThinEvent) {
       payoutsEnabledAt: true,
       defaultPayoutMethod: true,
       cryptoWalletAddress: true,
+      tremendousEmail: true,
     },
   });
 

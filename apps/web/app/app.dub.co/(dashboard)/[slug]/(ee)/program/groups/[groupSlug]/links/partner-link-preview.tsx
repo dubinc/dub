@@ -1,8 +1,8 @@
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
-import { PartnerLinkStructure } from "@dub/prisma/client";
 import { LinkLogo } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
+import { PartnerLinkStructure } from "@prisma/client";
 import { useMemo } from "react";
 
 export function PartnerLinkPreview({

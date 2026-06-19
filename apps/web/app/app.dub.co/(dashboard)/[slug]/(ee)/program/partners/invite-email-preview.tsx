@@ -4,11 +4,14 @@ import {
   RichTextArea,
   RichTextProvider,
   RichTextToolbar,
+  Sparkle3,
+  Tooltip,
   Trophy,
   useMediaQuery,
 } from "@dub/ui";
-import { Lock } from "@dub/ui/icons";
+import { LoadingSpinner, Lock } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { RotateCcw } from "lucide-react";
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -18,21 +21,40 @@ export type EmailContent = {
   body: string;
 };
 
+type GenerateEmailOptions = {
+  applyGeneratedEmail?: boolean;
+};
+
+const INVITE_GENERATION_STEPS = ["Analyzing profile", "Constructing invite"];
+
 export function InviteEmailPreview({
   emailContent,
   defaultEmailContent,
   fromAddress,
   onSave,
+  onGenerate,
+  onReset,
   onEditingChange,
   isSaving = false,
+  isGenerating = false,
+  showReset = false,
+  generateDisabledTooltip,
+  generationAvatar,
 }: {
   emailContent: EmailContent;
   defaultEmailContent: EmailContent;
   fromAddress: string;
   // Persists the sanitized content; returning false keeps the edit mode open
   onSave: (content: EmailContent) => Promise<boolean> | boolean;
+  onGenerate?: (options?: GenerateEmailOptions) => Promise<EmailContent | void>;
+  onReset?: () => void;
   onEditingChange?: (isEditing: boolean) => void;
   isSaving?: boolean;
+  isGenerating?: boolean;
+  showReset?: boolean;
+  // When set, disables the generate button and explains why
+  generateDisabledTooltip?: string;
+  generationAvatar?: ReactNode;
 }) {
   const { isMobile } = useMediaQuery();
   const richTextRef = useRef<{ setContent: (content: any) => void }>(null);
@@ -73,13 +95,48 @@ export function InviteEmailPreview({
       body: sanitizedBody || defaultEmailContent.body,
     };
 
+    if (
+      onReset &&
+      finalContent.subject === defaultEmailContent.subject &&
+      finalContent.title === defaultEmailContent.title &&
+      finalContent.body === defaultEmailContent.body
+    ) {
+      onReset();
+      setDraftEmailContent(defaultEmailContent);
+      updateIsEditing(false);
+      return;
+    }
+
     if (await onSave(finalContent)) {
       setDraftEmailContent(finalContent);
       updateIsEditing(false);
     }
   };
 
+  const handleResetEmail = () => {
+    if (!isEditing) {
+      onReset?.();
+    }
+
+    setDraftEmailContent(defaultEmailContent);
+    richTextRef.current?.setContent(defaultEmailContent.body);
+  };
+
+  const handleGenerateEmail = async () => {
+    const generatedContent = await onGenerate?.({
+      applyGeneratedEmail: !isEditing,
+    });
+
+    if (!generatedContent) {
+      return;
+    }
+
+    setDraftEmailContent(generatedContent);
+    richTextRef.current?.setContent(generatedContent.body);
+  };
+
   const displayContent = isEditing ? draftEmailContent : emailContent;
+  const showGeneratedActions = showReset && Boolean(onGenerate);
 
   // Update editor content when switching to edit mode
   const prevIsEditing = useRef(isEditing);
@@ -104,6 +161,7 @@ export function InviteEmailPreview({
                 text="Cancel"
                 className="h-7 w-fit rounded-lg px-2.5 text-sm"
                 onClick={handleCancelEditing}
+                disabled={isGenerating}
               />
               <Button
                 type="button"
@@ -112,17 +170,34 @@ export function InviteEmailPreview({
                 className="h-7 w-fit rounded-lg px-2.5 text-sm"
                 onClick={handleSaveEmail}
                 loading={isSaving}
-                disabled={isSaving}
+                disabled={isSaving || isGenerating}
               />
             </>
           ) : (
-            <Button
-              type="button"
-              variant="secondary"
-              text="Edit"
-              className="h-7 w-fit rounded-lg px-2.5 text-sm"
-              onClick={handleStartEditing}
-            />
+            <>
+              {showReset && onReset && (
+                <ResetInviteButton
+                  onClick={handleResetEmail}
+                  disabled={isGenerating}
+                />
+              )}
+              {onGenerate && !showGeneratedActions && (
+                <PersonalizeButton
+                  variant="full"
+                  onClick={handleGenerateEmail}
+                  isGenerating={isGenerating}
+                  disabledTooltip={generateDisabledTooltip}
+                />
+              )}
+              <Button
+                type="button"
+                variant="secondary"
+                text="Edit"
+                className="h-7 w-fit rounded-lg px-2.5 text-sm"
+                onClick={handleStartEditing}
+                disabled={isGenerating}
+              />
+            </>
           )}
         </div>
       </div>
@@ -150,6 +225,7 @@ export function InviteEmailPreview({
                     }
                     className="block w-full rounded-md border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
                     placeholder="Email subject"
+                    maxLength={255}
                     autoFocus={!isMobile}
                   />
                 </div>
@@ -175,17 +251,39 @@ export function InviteEmailPreview({
                     }
                     className="block w-full rounded-md border-neutral-300 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
                     placeholder="Email title"
+                    maxLength={255}
                   />
                 </div>
               </div>
 
               <div>
-                <label
-                  htmlFor="email-body"
-                  className="block text-sm font-medium text-neutral-900"
-                >
-                  Content
-                </label>
+                <div className="flex items-center justify-between gap-3">
+                  <label
+                    htmlFor="email-body"
+                    className="block text-sm font-medium text-neutral-900"
+                  >
+                    Body
+                  </label>
+
+                  {(showReset || onGenerate) && (
+                    <div className="flex items-center gap-2">
+                      {showReset && onReset && (
+                        <ResetInviteButton
+                          onClick={handleResetEmail}
+                          disabled={isGenerating}
+                        />
+                      )}
+                      {onGenerate && (
+                        <PersonalizeButton
+                          variant="icon"
+                          onClick={handleGenerateEmail}
+                          isGenerating={isGenerating}
+                          disabledTooltip={generateDisabledTooltip}
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
                 <div className="mt-1.5">
                   <RichTextProvider
                     key="edit-email-body"
@@ -194,7 +292,7 @@ export function InviteEmailPreview({
                     markdown
                     placeholder="Start typing..."
                     initialValue={draftEmailContent.body}
-                    editorClassName="block max-h-48 overflow-auto scrollbar-hide w-full resize-none border-none p-3 text-base sm:text-sm"
+                    editorClassName="min-h-full w-full border-none px-3 pb-3 pt-2 text-base sm:text-sm"
                     onChange={(editor) => {
                       const markdown = (editor as any).getMarkdown() || null;
                       setDraftEmailContent((prev) => ({
@@ -208,7 +306,7 @@ export function InviteEmailPreview({
                           if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                             e.preventDefault();
                             e.stopPropagation();
-                            if (isSaving) {
+                            if (isSaving || isGenerating) {
                               return false;
                             }
                             handleSaveEmail();
@@ -220,12 +318,12 @@ export function InviteEmailPreview({
                   >
                     <div
                       className={cn(
-                        "overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+                        "h-80 max-h-[70vh] min-h-56 resize-y overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
                       )}
                     >
-                      <div className="flex flex-col">
-                        <RichTextArea />
-                        <RichTextToolbar className="px-1 pb-1" />
+                      <div className="flex h-full min-h-0 flex-col">
+                        <RichTextToolbar className="border-b border-neutral-200 px-2 py-1" />
+                        <RichTextArea className="scrollbar-hide min-h-0 flex-1 overflow-auto" />
                       </div>
                     </div>
                   </RichTextProvider>
@@ -248,26 +346,169 @@ export function InviteEmailPreview({
               </p>
             </div>
             <div className="grid grid-cols-1 gap-3 p-4 pb-6">
-              <h3 className="font-medium text-neutral-900">
-                {displayContent.title}
-              </h3>
-              <div className="prose prose-sm prose-neutral max-w-none text-neutral-500">
-                <RichTextProvider
-                  key={`preview-${displayContent.body}`}
-                  features={["bold", "italic", "links"]}
-                  style="condensed"
-                  markdown
-                  editable={false}
-                  initialValue={displayContent.body}
-                  editorClassName="text-sm leading-6 text-neutral-500 [&_a]:font-semibold [&_a]:text-neutral-800 [&_a]:underline [&_a]:underline-offset-2 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:marker:text-neutral-400"
-                >
-                  <RichTextArea />
-                </RichTextProvider>
-              </div>
-              <InvitePreviewProgramDetails />
+              {isGenerating ? (
+                <InviteGenerationProgress avatar={generationAvatar} />
+              ) : (
+                <>
+                  <h3 className="font-medium text-neutral-900">
+                    {displayContent.title}
+                  </h3>
+                  <div className="prose prose-sm prose-neutral max-w-none text-neutral-500">
+                    <RichTextProvider
+                      key={`preview-${displayContent.body}`}
+                      features={["bold", "italic", "links"]}
+                      style="condensed"
+                      markdown
+                      editable={false}
+                      initialValue={displayContent.body}
+                      editorClassName="text-sm leading-6 text-neutral-500 [&_a]:font-semibold [&_a]:text-neutral-800 [&_a]:underline [&_a]:underline-offset-2 [&_p]:my-0 [&_p:not(:last-child)]:mb-4 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_li]:marker:text-neutral-400"
+                    >
+                      <RichTextArea />
+                    </RichTextProvider>
+                  </div>
+                  <InvitePreviewProgramDetails />
+                </>
+              )}
             </div>
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+function InviteEmailIconButton({
+  icon,
+  label,
+  tooltip,
+  onClick,
+  disabled,
+  loading,
+}: {
+  icon: ReactNode;
+  label: string;
+  tooltip: string;
+  onClick?: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+}) {
+  return (
+    <Tooltip content={tooltip}>
+      <span className="inline-flex">
+        <button
+          type="button"
+          aria-label={label}
+          className="flex size-7 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-900 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
+          onClick={onClick}
+          disabled={disabled || loading}
+        >
+          {loading ? <LoadingSpinner className="size-3.5" /> : icon}
+        </button>
+      </span>
+    </Tooltip>
+  );
+}
+
+function ResetInviteButton({
+  onClick,
+  disabled,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <InviteEmailIconButton
+      icon={<RotateCcw className="size-3.5" />}
+      label="Reset to the default invite"
+      tooltip="Reset to the default invite"
+      onClick={onClick}
+      disabled={disabled}
+    />
+  );
+}
+
+function PersonalizeButton({
+  variant,
+  onClick,
+  isGenerating,
+  disabledTooltip,
+}: {
+  variant: "full" | "icon";
+  onClick: () => void;
+  isGenerating: boolean;
+  disabledTooltip?: string;
+}) {
+  // Single source of truth for when personalization is unavailable
+  const disabled = isGenerating || Boolean(disabledTooltip);
+
+  if (variant === "icon") {
+    return (
+      <InviteEmailIconButton
+        icon={<Sparkle3 className="size-3.5" />}
+        label="Personalize invite"
+        tooltip={disabledTooltip || "Personalize this invite"}
+        onClick={onClick}
+        disabled={disabled}
+        loading={isGenerating}
+      />
+    );
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      text="Personalize"
+      icon={<Sparkle3 className="size-3.5" />}
+      className="h-7 w-fit rounded-lg px-2.5 text-sm"
+      onClick={onClick}
+      loading={isGenerating}
+      disabled={disabled}
+      disabledTooltip={disabledTooltip}
+    />
+  );
+}
+
+function InviteGenerationProgress({ avatar }: { avatar?: ReactNode }) {
+  const [stepIndex, setStepIndex] = useState(0);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setStepIndex((current) =>
+        Math.min(current + 1, INVITE_GENERATION_STEPS.length - 1),
+      );
+    }, 1600);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  return (
+    <div className="flex min-h-80 items-center justify-center rounded-lg border border-neutral-200 bg-white px-6 py-12">
+      <div className="flex flex-col items-center">
+        {avatar ? (
+          <div className="overflow-hidden rounded-full shadow-md">{avatar}</div>
+        ) : (
+          <div className="flex size-14 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50 shadow-sm">
+            <Sparkle3 className="size-5 animate-pulse text-neutral-500" />
+          </div>
+        )}
+
+        <div
+          key={INVITE_GENERATION_STEPS[stepIndex]}
+          className="animate-text-appear mt-6 flex items-center gap-2 text-sm font-semibold text-neutral-900"
+        >
+          <Sparkle3 className="size-3.5 shrink-0 animate-pulse text-neutral-400" />
+          <span
+            className="animate-gradient-move bg-clip-text text-transparent"
+            style={{
+              backgroundImage:
+                "linear-gradient(90deg, #171717 0%, #171717 35%, #a3a3a3 50%, #171717 65%, #171717 100%)",
+              backgroundSize: "200% 100%",
+            }}
+          >
+            {INVITE_GENERATION_STEPS[stepIndex]}
+          </span>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { WebhookTrigger } from "../types";
 
 interface GetWebhooksProps {

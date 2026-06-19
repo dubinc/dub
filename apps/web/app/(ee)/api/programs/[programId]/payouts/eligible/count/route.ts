@@ -5,8 +5,8 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { CUTOFF_PERIOD } from "@/lib/partners/cutoff-period";
+import { prisma } from "@/lib/prisma";
 import { eligiblePayoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 /*
