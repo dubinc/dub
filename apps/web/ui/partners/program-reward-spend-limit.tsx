@@ -1,6 +1,6 @@
 import { RewardProps } from "@/lib/types";
-import { RewardSpendLimitInterval } from "@dub/prisma/client";
 import { currencyFormatter } from "@dub/utils";
+import { RewardSpendLimitInterval } from "@prisma/client";
 
 export function getSpendLimitDescriptionParts({
   spendLimitAmount,

@@ -5,16 +5,16 @@ import { getRewardSpendLimitWindow } from "@/lib/api/rewards/reward-spend-limit-
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
+import { prisma } from "@/lib/prisma";
 import { getTopLinksByCountries } from "@/lib/tinybird/get-top-links-by-countries";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { buildCommissionDescription } from "@/ui/partners/program-reward-spend-limit";
-import { prisma } from "@dub/prisma";
-import { CommissionType, EventType, Prisma, Reward } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,
   getPrettyUrl,
 } from "@dub/utils";
+import { CommissionType, EventType, Prisma, Reward } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { resolveClickReward } from "../resolve-click-reward-amount";

@@ -1,4 +1,4 @@
-import { RewardSpendLimitInterval } from "@dub/prisma/client";
+import { RewardSpendLimitInterval } from "@prisma/client";
 import {
   endOfDay,
   endOfMonth,

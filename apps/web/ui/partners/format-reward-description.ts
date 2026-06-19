@@ -6,8 +6,8 @@ import {
 } from "@/lib/partner-referrals/constants";
 import { RewardProps } from "@/lib/types";
 import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
-import { RewardSpendLimitInterval } from "@dub/prisma/client";
 import { currencyFormatter } from "@dub/utils";
+import { RewardSpendLimitInterval } from "@prisma/client";
 import { getSpendLimitDescriptionParts } from "./program-reward-spend-limit";
 
 export function formatRewardDescription(
