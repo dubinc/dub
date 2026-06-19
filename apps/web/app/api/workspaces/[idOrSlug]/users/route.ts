@@ -3,12 +3,12 @@ import { throwIfNoAccess } from "@/lib/api/tokens/throw-if-no-access";
 import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
+import { prisma } from "@/lib/prisma";
 import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
-import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

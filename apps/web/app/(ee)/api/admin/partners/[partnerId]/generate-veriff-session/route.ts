@@ -1,10 +1,10 @@
 import { withAdmin } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { createVeriffSession } from "@/lib/veriff/create-veriff-session";
 import {
   mergeVeriffMetadata,
   parseVeriffMetadata,
 } from "@/lib/veriff/veriff-metadata";
-import { prisma } from "@dub/prisma";
 import { addDays } from "date-fns";
 import { NextResponse } from "next/server";
 

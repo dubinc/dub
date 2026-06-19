@@ -3,8 +3,8 @@ import { createDiscountCode } from "@/lib/discounts/create-discount-code";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { isDiscountIntegrationNotAvailableError } from "@/lib/discounts/discount-error";
 import { isDiscountEquivalent } from "@/lib/discounts/is-discount-equivalent";
-import { prisma } from "@dub/prisma";
-import { Discount, DiscountCode } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Discount, DiscountCode } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 

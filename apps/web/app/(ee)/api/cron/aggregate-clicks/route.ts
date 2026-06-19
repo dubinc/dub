@@ -4,16 +4,16 @@ import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions"
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { prisma } from "@/lib/prisma";
 import { getTopLinksByCountries } from "@/lib/tinybird/get-top-links-by-countries";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { CommissionType, Prisma } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,
   getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
+import { CommissionType, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../utils";
 import { resolveClickRewardAmount } from "./resolve-click-reward-amount";

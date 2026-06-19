@@ -6,9 +6,9 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   isFulfilled,

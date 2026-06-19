@@ -1,5 +1,5 @@
 import { PARTNER_REFERRAL_TRIGGER } from "@/lib/partner-referrals/constants";
-import { EventType, RewardStructure } from "@dub/prisma/client";
+import { EventType, RewardStructure } from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 import { centsSchema } from "./utils";

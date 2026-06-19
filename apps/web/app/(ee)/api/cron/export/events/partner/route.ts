@@ -13,13 +13,13 @@ import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING } from "@/lib/constants/partner-profile";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { generateRandomName } from "@/lib/names";
+import { prisma } from "@/lib/prisma";
 import {
   partnerProfileEventsQuerySchema,
   PartnerProfileLinkSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
-import { prisma } from "@dub/prisma";
 import { capitalize, log, parseFilterValue } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";

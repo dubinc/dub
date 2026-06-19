@@ -4,10 +4,10 @@ import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflo
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import { prisma } from "@/lib/prisma";
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, log, toCentsNumber } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";

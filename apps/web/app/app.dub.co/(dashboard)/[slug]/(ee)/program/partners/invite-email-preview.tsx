@@ -318,12 +318,12 @@ export function InviteEmailPreview({
                   >
                     <div
                       className={cn(
-                        "h-80 min-h-56 max-h-[70vh] resize-y overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+                        "h-80 max-h-[70vh] min-h-56 resize-y overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
                       )}
                     >
                       <div className="flex h-full min-h-0 flex-col">
                         <RichTextToolbar className="border-b border-neutral-200 px-2 py-1" />
-                        <RichTextArea className="min-h-0 flex-1 overflow-auto scrollbar-hide" />
+                        <RichTextArea className="scrollbar-hide min-h-0 flex-1 overflow-auto" />
                       </div>
                     </div>
                   </RichTextProvider>

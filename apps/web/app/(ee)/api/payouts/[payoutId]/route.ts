@@ -3,8 +3,8 @@ import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-m
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { PayoutResponseSchema } from "@/lib/zod/schemas/payouts";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/payouts/[payoutId] - get a single payout by ID

@@ -1,10 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { prisma } from "@/lib/prisma";
 import { payoutsQuerySchema } from "@/lib/zod/schemas/payouts";
-import { prisma } from "@dub/prisma";
-import { FraudEventStatus, PayoutStatus, Prisma } from "@dub/prisma/client";
 import { parseFilterValue } from "@dub/utils";
+import { FraudEventStatus, PayoutStatus, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 
 export type PayoutsQueryFilters = z.infer<typeof payoutsQuerySchema>;

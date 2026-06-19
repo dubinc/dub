@@ -3,6 +3,7 @@ import { processLink, updateLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
+import { prisma } from "@/lib/prisma";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
@@ -10,7 +11,6 @@ import {
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
-import { prisma } from "@dub/prisma";
 import { getPrettyUrl } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

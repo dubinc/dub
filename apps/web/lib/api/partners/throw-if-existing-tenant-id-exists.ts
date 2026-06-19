@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { DubApiError } from "../errors";
 
 // check if the tenantId already exists for a different enrolled partner

@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
-import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
 import "dotenv-flow/config";
 import { readFileSync } from "fs";

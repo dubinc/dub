@@ -9,9 +9,9 @@ import {
   UpdateSubmittedLeadStatusPayload,
 } from "@/lib/types";
 import { SubmittedLeadStatusBadge } from "@/ui/submitted-leads/submitted-lead-status-badge";
-import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { AnimatedSizeContainer, Button, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { SubmittedLeadStatus } from "@prisma/client";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";

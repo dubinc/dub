@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { ProcessedLinkProps } from "../types";

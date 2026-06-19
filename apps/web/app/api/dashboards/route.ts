@@ -3,11 +3,11 @@ import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
 import {
   createDashboardQuerySchema,
   dashboardSchema,
 } from "@/lib/zod/schemas/dashboard";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

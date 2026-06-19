@@ -6,6 +6,7 @@ import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
 import { addFrequency, getCurrentPeriodNumber } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { prisma } from "@/lib/prisma";
 import {
   createBountySubmissionInputSchema,
   submissionRequirementsSchema,
@@ -13,15 +14,14 @@ import {
 import { sendBatchEmail, sendEmail } from "@dub/email";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
-import { prisma } from "@dub/prisma";
+import { getDomainWithoutWWW, isValidUrl, R2_URL } from "@dub/utils";
 import {
   BountySubmission,
   Partner,
   PlatformType,
   Prisma,
   WorkspaceRole,
-} from "@dub/prisma/client";
-import { getDomainWithoutWWW, isValidUrl, R2_URL } from "@dub/utils";
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";
 import * as z from "zod/v4";

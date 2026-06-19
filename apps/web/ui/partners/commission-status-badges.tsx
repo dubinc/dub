@@ -1,5 +1,4 @@
 import { PartnerProps } from "@/lib/types";
-import { Commission, PartnerGroup, Program } from "@dub/prisma/client";
 import {
   CircleCheck,
   CircleHalfDottedClock,
@@ -13,6 +12,7 @@ import {
   formatDateTimeSmart,
   PARTNERS_DOMAIN,
 } from "@dub/utils";
+import { Commission, PartnerGroup, Program } from "@prisma/client";
 import { addDays } from "date-fns";
 
 interface CommissionTooltipDataProps {

@@ -1,5 +1,5 @@
 import { FraudGroupProps } from "@/lib/types";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType } from "@prisma/client";
 import React from "react";
 import { FraudCrossProgramBanTable } from "./fraud-cross-program-ban-table";
 import { FraudMatchingCustomerEmailTable } from "./fraud-matching-customer-email-table";
