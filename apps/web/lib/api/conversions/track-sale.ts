@@ -175,18 +175,18 @@ export const trackSale = async ({
       });
     }
 
-    const newCustomerId = createId({ prefix: "cus_" });
+    const finalCustomerId = createId({ prefix: "cus_" });
     const finalCustomerName =
       customerName || customerEmail || generateRandomName();
     const finalCustomerAvatar =
       customerAvatar && !isStored(customerAvatar)
-        ? `${R2_URL}/customers/${newCustomerId}/avatar_${nanoid(7)}`
+        ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
         : customerAvatar;
 
     try {
       newCustomer = await prisma.customer.create({
         data: {
-          id: newCustomerId,
+          id: finalCustomerId,
           name: finalCustomerName,
           email: customerEmail,
           avatar: finalCustomerAvatar,
@@ -218,12 +218,7 @@ export const trackSale = async ({
     }
 
     // Persist customer avatar to R2 if it's not already stored
-    if (
-      customerAvatar &&
-      !isStored(customerAvatar) &&
-      finalCustomerAvatar &&
-      newCustomer
-    ) {
+    if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
       waitUntil(
         storage
           .upload({
