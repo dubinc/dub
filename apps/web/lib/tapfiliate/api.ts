@@ -15,12 +15,18 @@ export class TapfiliateApi {
   }
 
   private async fetch(path: string) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
     const response = await fetch(`${this.baseUrl}${path}`, {
       headers: {
         "X-Api-Key": this.apiKey,
         "Content-Type": "application/json",
       },
+      signal: controller.signal,
     });
+
+    clearTimeout(timeout);
 
     if (!response.ok) {
       const error = await response.text();

@@ -83,7 +83,7 @@ export async function importPartners(payload: TapfiliateImportPayload) {
       break;
     }
 
-    await Promise.all(
+    const partnersPromise = await Promise.allSettled(
       affiliates.map((affiliate) => {
         let group = defaultGroup;
 
@@ -102,6 +102,20 @@ export async function importPartners(payload: TapfiliateImportPayload) {
         });
       }),
     );
+
+    const partnerIds = partnersPromise
+      .filter(
+        (p): p is PromiseFulfilledResult<string> =>
+          p.status === "fulfilled" && p.value != null,
+      )
+      .map((p) => p.value);
+
+    if (partnerIds.length > 0) {
+      await tapfiliateImporter.trackImportedPartnerIds({
+        programId,
+        partnerIds,
+      });
+    }
 
     currentPage++;
     processedBatches++;
@@ -179,7 +193,7 @@ async function createPartnerAndLinks({
       message: `Affiliate ${affiliate.id} not imported because it has no email.`,
     });
 
-    return;
+    return undefined;
   }
 
   const name = [affiliate.firstname, affiliate.lastname]
@@ -233,7 +247,7 @@ async function createPartnerAndLinks({
     console.log(
       `Partner ${partner.email} already has a link with key ${affiliate.id}, skipping...`,
     );
-    return;
+    return partner.id;
   }
 
   try {
@@ -253,9 +267,11 @@ async function createPartnerAndLinks({
       userId,
     });
 
-    return createLink(partnerLink);
+    await createLink(partnerLink);
+
+    return partner.id;
   } catch (error) {
     console.error("Error creating partner link", error, affiliate);
-    return null;
+    return partner.id;
   }
 }

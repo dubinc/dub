@@ -84,7 +84,7 @@ export async function updateStripeCustomers(payload: TapfiliateImportPayload) {
   await tapfiliateImporter.queue({
     ...payload,
     startingAfter: hasMore ? startingAfter : undefined,
-    action: hasMore ? "update-stripe-customers" : "import-commissions",
+    action: hasMore ? "update-stripe-customers" : "cleanup-partners",
   });
 }
 

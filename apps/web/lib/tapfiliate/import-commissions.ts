@@ -48,6 +48,11 @@ export async function importCommissions(payload: TapfiliateImportPayload) {
 
   const fxRates = await redis.hgetall<Record<string, string>>("fxRates:usd");
 
+  if (!fxRates) {
+    console.error("No FX rates found, skipping commission import...");
+    return;
+  }
+
   let currentPage = page;
   let hasMore = true;
   let processedBatches = 0;
@@ -155,7 +160,7 @@ async function createCommission({
   const existingCommission = await prisma.commission.findUnique({
     where: {
       invoiceId_programId: {
-        invoiceId: `${commission.id}`,
+        invoiceId: commission.id.toString(),
         programId: program.id,
       },
     },
@@ -344,7 +349,9 @@ async function createCommission({
           saleAmount: {
             increment: saleAmount,
           },
-          firstSaleAt: existingCustomer.firstSaleAt ? undefined : new Date(),
+          firstSaleAt: existingCustomer.firstSaleAt
+            ? undefined
+            : new Date(commission.created_at),
         },
       }),
   ]);

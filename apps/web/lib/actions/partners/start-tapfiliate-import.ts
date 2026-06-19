@@ -42,12 +42,6 @@ export const startTapfiliateImportAction = authActionClient
 
     const credentials = await tapfiliateImporter.getCredentials(workspace.id);
 
-    if (!credentials) {
-      throw new Error(
-        "Tapfiliate credentials not found. Please restart the import process.",
-      );
-    }
-
     const tapfiliateApi = new TapfiliateApi({
       apiKey: credentials.apiKey,
     });

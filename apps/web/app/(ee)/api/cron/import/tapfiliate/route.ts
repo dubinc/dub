@@ -1,12 +1,12 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
+import { cleanupPartners } from "@/lib/tapfiliate/cleanup-partners";
 import { importCommissions } from "@/lib/tapfiliate/import-commissions";
 import { importCustomers } from "@/lib/tapfiliate/import-customers";
 import { importGroups } from "@/lib/tapfiliate/import-groups";
 import { importPartners } from "@/lib/tapfiliate/import-partners";
 import { tapfiliateImportPayloadSchema } from "@/lib/tapfiliate/schemas";
 import { updateStripeCustomers } from "@/lib/tapfiliate/update-stripe-customers";
-import { cleanupPartners } from "@/lib/tolt/cleanup-partners";
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
 import { logAndRespond } from "../../utils";

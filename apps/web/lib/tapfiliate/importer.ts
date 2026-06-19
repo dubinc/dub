@@ -8,6 +8,7 @@ import { TapfiliateCredentials } from "./types";
 export const TAPFILIATE_MAX_BATCHES = 10;
 export const CACHE_EXPIRY = 60 * 60 * 24;
 export const CACHE_KEY_PREFIX = "tapfiliate:import";
+export const PARTNER_IDS_KEY_PREFIX = "tapfiliate:import:partnerIds";
 
 class TapfiliateImporter {
   async setCredentials(
@@ -25,7 +26,9 @@ class TapfiliateImporter {
     );
 
     if (!credentials) {
-      throw new Error("Tapfiliate credentials not found.");
+      throw new Error(
+        "Tapfiliate credentials not found. Please restart the import process.",
+      );
     }
 
     return credentials;
@@ -45,6 +48,40 @@ class TapfiliateImporter {
       contentBasedDeduplication: true,
       ...(options?.delay != null && { delay: options.delay }),
     });
+  }
+
+  async trackImportedPartnerIds({
+    programId,
+    partnerIds,
+  }: {
+    programId: string;
+    partnerIds: string[];
+  }) {
+    if (!partnerIds || partnerIds.length === 0) {
+      return;
+    }
+
+    await redis.lpush(`${PARTNER_IDS_KEY_PREFIX}:${programId}`, ...partnerIds);
+  }
+
+  async listImportedPartnerIds({
+    programId,
+    start,
+    end,
+  }: {
+    programId: string;
+    start: number;
+    end: number;
+  }) {
+    return await redis.lrange(
+      `${PARTNER_IDS_KEY_PREFIX}:${programId}`,
+      start,
+      end,
+    );
+  }
+
+  async clearImportedPartnerIds(programId: string) {
+    return await redis.del(`${PARTNER_IDS_KEY_PREFIX}:${programId}`);
   }
 }
 
