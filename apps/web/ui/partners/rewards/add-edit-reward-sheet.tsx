@@ -302,8 +302,15 @@ function RewardSheetContent({
 
   // Compute amount based on type
   const amount = type === "flat" ? amountInCents : amountInPercentage;
-  const spendLimitEnabled = spendLimitInterval != null;
+  const {
+    canCreateReferralReward,
+    canSetRewardSpendLimit,
+    canUseAdvancedRewardLogic,
+  } = getPlanCapabilities(plan);
+  const spendLimitEnabled =
+    canSetRewardSpendLimit && spendLimitInterval != null;
   const hasIncompleteMainSpendLimit =
+    canSetRewardSpendLimit &&
     spendLimitInterval != null &&
     (spendLimitAmount == null || isNaN(spendLimitAmount));
 
@@ -353,19 +360,15 @@ function RewardSheetContent({
   );
 
   const [showAdvancedUpsell, setShowAdvancedUpsell] = useState(false);
-  const showReferralUpsell =
-    event === "referral" && !getPlanCapabilities(plan).canCreateReferralReward;
+  const showReferralUpsell = event === "referral" && !canCreateReferralReward;
 
   useEffect(() => {
-    if (
-      modifiers?.length &&
-      !getPlanCapabilities(plan).canUseAdvancedRewardLogic
-    ) {
+    if (modifiers?.length && !canUseAdvancedRewardLogic) {
       setShowAdvancedUpsell(true);
     } else {
       setShowAdvancedUpsell(false);
     }
-  }, [modifiers, plan]);
+  }, [modifiers, canUseAdvancedRewardLogic]);
 
   const onSubmit = async (data: FormData) => {
     if (
@@ -519,78 +522,93 @@ function RewardSheetContent({
                             </InlineBadgePopover>
                           </>
                         )}
-                        {", "}with{" "}
-                        <InlineBadgePopover
-                          text={
-                            spendLimitEnabled
-                              ? "a spend limit of"
-                              : "no spend limit"
-                          }
-                        >
-                          <InlineBadgePopoverMenu
-                            selectedValue={spendLimitEnabled ? "limit" : "none"}
-                            onSelect={(value) => {
-                              if (value === "none") {
-                                setValue("spendLimitAmount", null, {
-                                  shouldDirty: true,
-                                });
-                                setValue("spendLimitInterval", null, {
-                                  shouldDirty: true,
-                                });
-                              } else {
-                                setValue(
-                                  "spendLimitInterval",
-                                  spendLimitInterval ?? "allTime",
-                                  {
-                                    shouldDirty: true,
-                                  },
-                                );
-                              }
-                            }}
-                            items={[
-                              { text: "no spend limit", value: "none" },
-                              { text: "a spend limit of", value: "limit" },
-                            ]}
-                          />
-                        </InlineBadgePopover>{" "}
-                        {spendLimitEnabled ? (
+                        {canSetRewardSpendLimit ? (
                           <>
+                            {", "}with{" "}
                             <InlineBadgePopover
                               text={
-                                spendLimitAmount != null &&
-                                !isNaN(spendLimitAmount)
-                                  ? `$${spendLimitAmount}`
-                                  : "amount"
-                              }
-                              invalid={
-                                spendLimitAmount == null ||
-                                isNaN(spendLimitAmount)
-                              }
-                            >
-                              <SpendLimitAmountInput />
-                            </InlineBadgePopover>{" "}
-                            <InlineBadgePopover
-                              text={
-                                spendLimitInterval === "allTime"
-                                  ? "all-time"
-                                  : `per ${spendLimitInterval}`
+                                spendLimitEnabled
+                                  ? "a spend limit of"
+                                  : "no spend limit"
                               }
                             >
                               <InlineBadgePopoverMenu
-                                selectedValue={spendLimitInterval ?? "allTime"}
-                                onSelect={(value) =>
-                                  setValue("spendLimitInterval", value as any, {
-                                    shouldDirty: true,
-                                  })
+                                selectedValue={
+                                  spendLimitEnabled ? "limit" : "none"
                                 }
+                                onSelect={(value) => {
+                                  if (value === "none") {
+                                    setValue("spendLimitAmount", null, {
+                                      shouldDirty: true,
+                                    });
+                                    setValue("spendLimitInterval", null, {
+                                      shouldDirty: true,
+                                    });
+                                  } else {
+                                    setValue(
+                                      "spendLimitInterval",
+                                      spendLimitInterval ?? "allTime",
+                                      {
+                                        shouldDirty: true,
+                                      },
+                                    );
+                                  }
+                                }}
                                 items={[
-                                  { text: "all-time", value: "allTime" },
-                                  { text: "per day", value: "day" },
-                                  { text: "per week", value: "week" },
-                                  { text: "per month", value: "month" },
+                                  { text: "no spend limit", value: "none" },
+                                  {
+                                    text: "a spend limit of",
+                                    value: "limit",
+                                  },
                                 ]}
                               />
-                            </InlineBadgePopover>
+                            </InlineBadgePopover>{" "}
+                            {spendLimitEnabled ? (
+                              <>
+                                <InlineBadgePopover
+                                  text={
+                                    spendLimitAmount != null &&
+                                    !isNaN(spendLimitAmount)
+                                      ? `$${spendLimitAmount}`
+                                      : "amount"
+                                  }
+                                  invalid={
+                                    spendLimitAmount == null ||
+                                    isNaN(spendLimitAmount)
+                                  }
+                                >
+                                  <SpendLimitAmountInput />
+                                </InlineBadgePopover>{" "}
+                                <InlineBadgePopover
+                                  text={
+                                    spendLimitInterval === "allTime"
+                                      ? "all-time"
+                                      : `per ${spendLimitInterval}`
+                                  }
+                                >
+                                  <InlineBadgePopoverMenu
+                                    selectedValue={
+                                      spendLimitInterval ?? "allTime"
+                                    }
+                                    onSelect={(value) =>
+                                      setValue(
+                                        "spendLimitInterval",
+                                        value as any,
+                                        {
+                                          shouldDirty: true,
+                                        },
+                                      )
+                                    }
+                                    items={[
+                                      { text: "all-time", value: "allTime" },
+                                      { text: "per day", value: "day" },
+                                      { text: "per week", value: "week" },
+                                      { text: "per month", value: "month" },
+                                    ]}
+                                  />
+                                </InlineBadgePopover>
+                              </>
+                            ) : null}
                           </>
                         ) : null}
                         {modifiers?.length ? (

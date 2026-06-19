@@ -45,8 +45,11 @@ export const createRewardAction = authActionClient
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { canUseAdvancedRewardLogic, canCreateReferralReward } =
-      getPlanCapabilities(workspace.plan);
+    const {
+      canUseAdvancedRewardLogic,
+      canSetRewardSpendLimit,
+      canCreateReferralReward,
+    } = getPlanCapabilities(workspace.plan);
 
     if (event === "referral" && !canCreateReferralReward) {
       throw new Error(
@@ -57,6 +60,12 @@ export const createRewardAction = authActionClient
     if (modifiers && !canUseAdvancedRewardLogic) {
       throw new Error(
         "Advanced reward structures are only available on the Advanced plan and above.",
+      );
+    }
+
+    if ((spendLimitAmount || spendLimitInterval) && !canSetRewardSpendLimit) {
+      throw new Error(
+        "Spend limits are only available on the Advanced plan and above.",
       );
     }
 
