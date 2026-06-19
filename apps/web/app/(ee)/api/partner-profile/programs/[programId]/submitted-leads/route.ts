@@ -1,10 +1,10 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
 import {
   getPartnerSubmittedLeadsQuerySchema,
   partnerProfileSubmittedLeadSchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

@@ -1,11 +1,11 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
+import { isRejected, nanoid } from "@dub/utils";
 import {
   PartnerGroup,
   PartnerGroupDefaultLink,
   PlatformType,
   Program,
-} from "@dub/prisma/client";
-import { isRejected, nanoid } from "@dub/utils";
+} from "@prisma/client";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { upsertPartnerPlatform } from "../api/partner-profile/upsert-partner-platform";

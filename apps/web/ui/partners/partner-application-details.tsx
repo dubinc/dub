@@ -1,9 +1,9 @@
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramApplication } from "@dub/prisma/client";
 import { CircleHalfDottedClock, Combobox, ComboboxOption } from "@dub/ui";
 import { cn, fetcher, formatDate, formatDateTime } from "@dub/utils";
+import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";

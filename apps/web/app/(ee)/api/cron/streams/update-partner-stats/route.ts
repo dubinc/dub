@@ -1,13 +1,13 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { conn } from "@/lib/planetscale";
+import { prisma } from "@/lib/prisma";
 import {
   PartnerActivityEvent,
   partnerActivityStream,
 } from "@/lib/upstash/redis-streams/partner-activity";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollment } from "@dub/prisma/client";
 import { toCentsNumber } from "@dub/utils";
+import { ProgramEnrollment } from "@prisma/client";
 import { differenceInDays, format } from "date-fns";
 import { NextResponse } from "next/server";
 

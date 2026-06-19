@@ -19,7 +19,6 @@ import {
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
-import { DiscountProvider } from "@dub/prisma/client";
 import {
   Button,
   InfoTooltip,
@@ -30,6 +29,7 @@ import {
 } from "@dub/ui";
 import { CircleCheckFill, StripeIcon, Tag } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
+import { DiscountProvider } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import {
   ChangeEvent,

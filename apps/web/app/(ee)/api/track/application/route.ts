@@ -13,13 +13,12 @@ import { getSession } from "@/lib/auth";
 import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
+import { prisma } from "@/lib/prisma";
 import {
   recordClickZod,
   recordClickZodSchema,
 } from "@/lib/tinybird/record-click-zod";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
-import { Partner, Program } from "@dub/prisma/client";
 import {
   capitalize,
   EU_COUNTRY_CODES,
@@ -32,6 +31,7 @@ import {
   NETWORK_PROGRAM_SLUG,
   NETWORK_WORKSPACE_ID,
 } from "@dub/utils";
+import { Partner, Program } from "@prisma/client";
 import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";

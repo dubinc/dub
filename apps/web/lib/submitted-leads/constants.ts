@@ -1,7 +1,7 @@
 import { ActivityLogAction } from "@/lib/types";
 import { textFieldSchema } from "@/lib/zod/schemas/submitted-lead-form";
-import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
+import { SubmittedLeadStatus } from "@prisma/client";
 import * as z from "zod/v4";
 
 export const SUBMITTED_LEAD_FORM_REQUIRED_FIELDS: z.infer<

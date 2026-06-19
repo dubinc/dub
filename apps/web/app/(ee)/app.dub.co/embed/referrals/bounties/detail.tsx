@@ -15,8 +15,8 @@ import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-de
 import { BountyStatusBadge } from "@/ui/partners/bounties/bounty-status-badge";
 import { BountySubmissionRequirements } from "@/ui/partners/bounties/bounty-submission-requirements";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { PlatformType } from "@dub/prisma/client";
 import { ChevronRight, Trophy } from "@dub/ui";
+import { PlatformType } from "@prisma/client";
 import { useState } from "react";
 import {
   BountyEndDate,

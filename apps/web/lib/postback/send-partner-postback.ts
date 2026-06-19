@@ -1,6 +1,6 @@
 import { POSTBACK_EVENT_ID_PREFIX } from "@/lib/postback/constants";
+import { prisma } from "@/lib/prisma";
 import { PostbackTrigger } from "@/lib/types";
-import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { PostbackCustomAdapter } from "./postback-adapter-custom";
 import { PostbackSlackAdapter } from "./postback-adapter-slack";

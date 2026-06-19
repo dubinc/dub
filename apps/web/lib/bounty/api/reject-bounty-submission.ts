@@ -2,13 +2,13 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { Session } from "@/lib/auth";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
+import { prisma } from "@/lib/prisma";
 import {
   BountySubmissionSchema,
   rejectBountySubmissionBodySchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyRejected from "@dub/email/templates/bounty-rejected";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
