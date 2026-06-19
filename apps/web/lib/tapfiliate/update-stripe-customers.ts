@@ -2,10 +2,16 @@ import { prisma } from "@/lib/prisma";
 import { Customer, Project } from "@prisma/client";
 import Stripe from "stripe";
 import * as z from "zod/v4";
-import { stripe } from "../stripe";
+import { stripeAppClient } from "../stripe";
 import { logImportError } from "../tinybird/log-import-error";
 import { TAPFILIATE_MAX_BATCHES, tapfiliateImporter } from "./importer";
 import { TapfiliateImportPayload } from "./types";
+
+const CUSTOMERS_PER_BATCH = 20;
+
+const stripe = stripeAppClient({
+  ...(process.env.VERCEL_ENV && { mode: "live" }),
+});
 
 export async function updateStripeCustomers(payload: TapfiliateImportPayload) {
   const { importId, programId } = payload;
@@ -51,7 +57,7 @@ export async function updateStripeCustomers(payload: TapfiliateImportPayload) {
       orderBy: {
         id: "asc",
       },
-      take: 20,
+      take: CUSTOMERS_PER_BATCH,
       ...(startingAfter && {
         skip: 1,
         cursor: {
@@ -114,57 +120,62 @@ async function searchStripeAndUpdateCustomer({
 
   const { success: isEmail } = z.email().safeParse(customer.externalId);
 
-  // If externalId is a valid email
-  if (isEmail) {
-    const stripeCustomers = await stripe.customers.search(
-      {
-        query: `email:'${customer.externalId}'`,
-        expand: ["data.subscriptions"],
-      },
-      {
-        stripeAccount: workspace.stripeConnectId!,
-      },
-    );
-
-    // No customers found
-    if (stripeCustomers.data.length === 0) {
-      await logImportError({
-        ...commonImportLogInputs,
-        code: "STRIPE_CUSTOMER_NOT_FOUND",
-        message: `Stripe search returned no customer for ${customer.email}`,
-      });
-      return null;
-    }
-
-    // Single customer found
-    else if (stripeCustomers.data.length === 1) {
-      stripeCustomer = stripeCustomers.data[0];
-    }
-
-    // More than one customer found, look for the one with subscriptions
-    else {
-      const customerWithSubcription = stripeCustomers.data.find(
-        ({ subscriptions }) => subscriptions && subscriptions.data.length > 0,
+  try {
+    // If externalId is a valid email
+    if (isEmail) {
+      const stripeCustomers = await stripe.customers.search(
+        {
+          query: `email:'${customer.externalId}'`,
+          expand: ["data.subscriptions"],
+        },
+        {
+          stripeAccount: workspace.stripeConnectId!,
+        },
       );
 
-      if (!customerWithSubcription) {
+      // No customers found
+      if (stripeCustomers.data.length === 0) {
         await logImportError({
           ...commonImportLogInputs,
           code: "STRIPE_CUSTOMER_NOT_FOUND",
-          message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had subscriptions`,
+          message: `Stripe search returned no customer for ${customer.email}`,
         });
         return null;
       }
 
-      stripeCustomer = customerWithSubcription;
-    }
-  }
+      // Single customer found
+      else if (stripeCustomers.data.length === 1) {
+        stripeCustomer = stripeCustomers.data[0];
+      }
 
-  // If externalId is a valid Stripe customer ID
-  else if (customer.externalId.startsWith("cus_")) {
-    stripeCustomer = await stripe.customers.retrieve(customer.externalId, {
-      stripeAccount: workspace.stripeConnectId!,
-    });
+      // More than one customer found, look for the one with subscriptions
+      else {
+        const customerWithSubcription = stripeCustomers.data.find(
+          ({ subscriptions }) => subscriptions && subscriptions.data.length > 0,
+        );
+
+        if (!customerWithSubcription) {
+          await logImportError({
+            ...commonImportLogInputs,
+            code: "STRIPE_CUSTOMER_NOT_FOUND",
+            message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had subscriptions`,
+          });
+          return null;
+        }
+
+        stripeCustomer = customerWithSubcription;
+      }
+    }
+
+    // If externalId is a valid Stripe customer ID
+    else if (customer.externalId.startsWith("cus_")) {
+      stripeCustomer = await stripe.customers.retrieve(customer.externalId, {
+        stripeAccount: workspace.stripeConnectId!,
+      });
+    }
+  } catch (error) {
+    console.error("Error searching Stripe customer", error);
+    return null;
   }
 
   if (!stripeCustomer) {
@@ -175,6 +186,8 @@ async function searchStripeAndUpdateCustomer({
     });
     return null;
   }
+
+  console.log(`Stripe customer found for ${customer.id}: ${stripeCustomer.id}`);
 
   await prisma.customer.update({
     where: {
