@@ -54,6 +54,9 @@ export const invitePartnerFromNetworkAction = authActionClient
       prisma.partner.findFirst({
         where: {
           id: partnerId,
+          networkStatus: {
+            in: ["approved", "trusted"],
+          },
           programs: {
             none: {
               programId,
@@ -62,6 +65,10 @@ export const invitePartnerFromNetworkAction = authActionClient
         },
       }),
     ]);
+
+    if (!program.partnerNetworkEnabledAt) {
+      throw new Error("Partner network is not enabled for this program.");
+    }
 
     if (!partner || !partner.email)
       throw new Error("Partner not found or already enrolled in this program.");
