@@ -125,7 +125,7 @@ export async function cleanupPartners(payload: TapfiliateImportPayload) {
   await tapfiliateImporter.clearImportedPartnerIds(programId);
 
   // Import is finished, send the email to the workspace user
-  const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
+  const program = await prisma.program.findUnique({
     where: {
       id: programId,
     },
@@ -140,11 +140,16 @@ export async function cleanupPartners(payload: TapfiliateImportPayload) {
     },
   });
 
+  if (!program) {
+    console.error(`Program ${programId} not found.`);
+    return;
+  }
+
   const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
     where: {
       userId_projectId: {
         userId,
-        projectId: workspace.id,
+        projectId: program.workspace.id,
       },
     },
     select: {
@@ -162,7 +167,7 @@ export async function cleanupPartners(payload: TapfiliateImportPayload) {
       subject: "Tapfiliate program imported",
       react: ProgramImported({
         email: workspaceUser.user.email,
-        workspace,
+        workspace: program.workspace,
         program,
         provider: "Tapfiliate",
         importId,

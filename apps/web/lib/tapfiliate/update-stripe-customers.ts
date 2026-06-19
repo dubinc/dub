@@ -114,11 +114,11 @@ async function searchStripeAndUpdateCustomer({
 
   const { success: isEmail } = z.email().safeParse(customer.externalId);
 
-  // If externalId is a valid email, do a search by email
+  // If externalId is a valid email
   if (isEmail) {
     const stripeCustomers = await stripe.customers.search(
       {
-        query: `email:'${customer.email}'`,
+        query: `email:'${customer.externalId}'`,
         expand: ["data.subscriptions"],
       },
       {
@@ -160,7 +160,7 @@ async function searchStripeAndUpdateCustomer({
     }
   }
 
-  // If externalId is a valid Stripe customer ID, do a retrieve
+  // If externalId is a valid Stripe customer ID
   else if (customer.externalId.startsWith("cus_")) {
     stripeCustomer = await stripe.customers.retrieve(customer.externalId, {
       stripeAccount: workspace.stripeConnectId!,
