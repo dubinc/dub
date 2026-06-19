@@ -243,9 +243,7 @@ function SelectProgram({
     <form onSubmit={onSubmit} className="flex flex-col space-y-6">
       <div className="space-y-2">
         <label className="block text-sm font-medium text-neutral-700">
-          {programs.length === 1
-            ? "Program to import"
-            : "Choose a program to import"}
+          Choose a program to import
         </label>
 
         <ScrollContainer className="max-h-[280px] rounded-lg border border-neutral-200 bg-white">
@@ -283,9 +281,6 @@ function SelectProgram({
                     </span>
                     <span className="text-xs text-neutral-500">
                       {program.id}
-                      {program.currency
-                        ? ` • ${program.currency.toUpperCase()}`
-                        : ""}
                     </span>
                   </div>
                 </button>
