@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import * as z from "zod/v4";
 import { tb } from "../../lib/tinybird/client";

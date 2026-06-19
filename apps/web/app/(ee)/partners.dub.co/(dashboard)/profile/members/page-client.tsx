@@ -9,7 +9,6 @@ import { useRemovePartnerUserModal } from "@/ui/modals/remove-partner-user-modal
 import { useUpdatePartnerUserModal } from "@/ui/modals/update-partner-user-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { PartnerRole } from "@dub/prisma/client";
 import {
   Button,
   Filter,
@@ -30,6 +29,7 @@ import {
   UserCrown,
 } from "@dub/ui/icons";
 import { cn, fetcher, timeAgo } from "@dub/utils";
+import { PartnerRole } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus, UserPlus } from "lucide-react";

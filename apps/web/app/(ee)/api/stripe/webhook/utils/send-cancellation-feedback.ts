@@ -1,6 +1,6 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
-import { prisma } from "@dub/prisma";
 import Stripe from "stripe";
 
 export const CANCELLATION_FEEDBACK_EMAIL_TYPE = "cancellationFeedbackEmail";

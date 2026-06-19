@@ -1,13 +1,13 @@
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import PartnerTremendousPayout from "@dub/email/templates/partner-tremendous-payout";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   chunk,
   currencyFormatter,
   log,
 } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { CreateOrder200Response, OrdersApi } from "tremendous";
 import { trackCommissionStatusUpdatesByProgram } from "../api/commissions/track-commission-update-activity-log";

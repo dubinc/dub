@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { webhookCache } from "./cache";
 
 // Based on the webhook count, we toggle the webhook status for the workspace

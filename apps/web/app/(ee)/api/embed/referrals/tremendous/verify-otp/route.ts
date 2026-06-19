@@ -2,13 +2,13 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
+import { prisma } from "@/lib/prisma";
 import {
   TREMENDOUS_ENABLED_PROGRAM_IDS,
   TREMENDOUS_PROHIBITED_TOP_LEVEL_DOMAINS,
 } from "@/lib/tremendous/constants";
 import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
-import { prisma } from "@dub/prisma";
 import { TREMENDOUS_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

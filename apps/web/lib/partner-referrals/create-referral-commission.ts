@@ -1,7 +1,7 @@
+import { prisma } from "@/lib/prisma";
 import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
-import { prisma } from "@dub/prisma";
-import { Commission, CommissionType, Prisma, Reward } from "@dub/prisma/client";
 import { currencyFormatter, log, NETWORK_PROGRAM_ID } from "@dub/utils";
+import { Commission, CommissionType, Prisma, Reward } from "@prisma/client";
 import { differenceInMonths } from "date-fns";
 import { createId } from "../api/create-id";
 import { notifyPartnerCommission } from "../api/partners/notify-partner-commission";

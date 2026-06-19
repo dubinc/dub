@@ -2,7 +2,7 @@ import {
   CARD_PAYOUT_HARD_COST_RATE,
   FAST_ACH_FEE_CENTS,
 } from "@/lib/constants/payouts";
-import { PaymentMethod } from "@dub/prisma/client";
+import { PaymentMethod } from "@prisma/client";
 
 export interface PayoutFeeWithWaiverParams {
   payoutAmount: number;

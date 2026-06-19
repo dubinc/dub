@@ -1,9 +1,9 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { MUTABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { prisma } from "@/lib/prisma";
 import { updateCommissionSchemaExtended } from "@/lib/zod/schemas/commissions";
-import { prisma } from "@dub/prisma";
-import { Commission } from "@dub/prisma/client";
+import { Commission } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";

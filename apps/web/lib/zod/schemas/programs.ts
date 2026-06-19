@@ -6,6 +6,7 @@ import {
   ALLOWED_MIN_PAYOUT_AMOUNTS,
   PAYOUT_HOLDING_PERIOD_DAYS,
 } from "@/lib/constants/payouts";
+import { COUNTRY_CODES } from "@dub/utils";
 import {
   Category,
   EventType,
@@ -13,8 +14,7 @@ import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   ProgramPayoutMode,
-} from "@dub/prisma/client";
-import { COUNTRY_CODES } from "@dub/utils";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";

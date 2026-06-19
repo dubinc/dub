@@ -5,6 +5,7 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { qstash } from "@/lib/cron";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
+import { prisma } from "@/lib/prisma";
 import { getCustomerEventsTB } from "@/lib/tinybird/get-customer-events-tb";
 import {
   recordClickZod,
@@ -15,7 +16,6 @@ import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
 import { CreatePartnerCommissionProps } from "@/lib/types";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, nanoid, prettyPrint } from "@dub/utils";
 import "dotenv-flow/config";
 import * as z from "zod/v4";

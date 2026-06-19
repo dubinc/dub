@@ -19,12 +19,6 @@ import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
-  Partner,
-  PlatformType,
-  Program,
-  ProgramEnrollmentStatus,
-} from "@dub/prisma/client";
-import {
   Button,
   Check,
   Combobox,
@@ -44,6 +38,12 @@ import {
   getPrettyUrl,
   TREMENDOUS_SUPPORTED_COUNTRIES,
 } from "@dub/utils";
+import {
+  Partner,
+  PlatformType,
+  Program,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import {

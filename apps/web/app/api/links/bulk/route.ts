@@ -19,13 +19,13 @@ import {
   verifyFolderAccess,
   verifyFolderAccessBulk,
 } from "@/lib/folder/permissions";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
   bulkCreateLinksBodySchema,
   bulkUpdateLinksBodySchema,
 } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

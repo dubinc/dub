@@ -13,7 +13,7 @@ import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   SalesChannel,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";

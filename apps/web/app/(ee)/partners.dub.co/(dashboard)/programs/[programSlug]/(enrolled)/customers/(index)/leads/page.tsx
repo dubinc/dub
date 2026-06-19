@@ -9,7 +9,6 @@ import { PartnerProfileSubmittedLeadSheet } from "@/ui/submitted-leads/partner-p
 import { PartnerProfileSubmittedLeadsEmptyState } from "@/ui/submitted-leads/partner-profile-submitted-leads-empty-state";
 import { SubmittedLeadStatusBadges } from "@/ui/submitted-leads/submitted-lead-status-badges";
 import { getCompanyLogoUrl } from "@/ui/submitted-leads/submitted-lead-utils";
-import { SubmittedLeadStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Filter,
@@ -23,6 +22,7 @@ import {
 } from "@dub/ui";
 import { CircleDotted } from "@dub/ui/icons";
 import { cn, formatDate, nFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { SubmittedLeadStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 

@@ -6,10 +6,10 @@ import { getProgramPartnerEarningsClaim } from "@/lib/api/programs/get-program-p
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { getUsableNetworkPartnerName } from "@/lib/network/get-program-network-invite-email-defaults";
+import { prisma } from "@/lib/prisma";
 import { PlanProps } from "@/lib/types";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { anthropic } from "@ai-sdk/anthropic";
-import { prisma } from "@dub/prisma";
 import { generateText, Output } from "ai";
 import * as z from "zod/v4";
 import { authActionClient } from "../actions/safe-action";
@@ -168,11 +168,12 @@ Come up with a specific subject line that is likely to make the recipient open t
 - Mention the selected platform by name, summarize the channel description/content space in plain language when available, and connect that audience back to the program's customers.
 - If the selected channel has no description, infer the content space from the partner description, industry interests, sales channels, platform type, and identifier. Do not say "channel description".
 - Pick the angle most relevant to the program's customer base. Avoid generic phrases like "resonates well with our customers" unless you make the connection specific.
-- Adapt the content to fit the program + partner, but keep the overall length the same.
-- If Program.partnerEarningsClaim is present and non-null, you should mention it once in the body, naturally and without changing the meaning.
+- Adapt the content to fit the program + partner.
+- If Program.partnerEarningsClaim is present and non-null, mention it once in the body naturally, without altering the claim.
 - If Program.partnerEarningsClaim is missing or null, do not mention earnings, payouts, top partners, or partner performance.
 - Never name specific partners, imply guaranteed future earnings, mention payouts, or invent amounts when using Program.partnerEarningsClaim.
 - 80 words maximum. Plain text only: no markdown, links, bold, or em dashes.
+- Reference statistics about the partner naturally. For example: Instead of saying "You have 273K subscribers", it's more natural to say "over 250K subscribers".
 - Only make claims supported by the program and partner data provided.
 - Do not mention rewards, discounts, or bounties; the template displays them below the body.
 - Do not imply the sender watched, read, or reviewed any specific content.
@@ -186,7 +187,7 @@ Subject: Acme + Jordan?
 
 Title: Jordan, we'd love to have you!
 
-Content:
+Content Example (note: add Program.partnerEarningsClaim when present, value-add, and natural):
 "Hey Jordan,
 
 I'm David with Acme. I came across your YouTube channel and liked how you make productivity and work systems feel practical. A lot of Acme users are trying to get better at the same kinds of workflows, so I thought there might be a good fit here.

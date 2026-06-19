@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { BountyType } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { BountyType } from "@prisma/client";
 
 type BountyEligibilityCandidate = {
   id: string;

@@ -1,4 +1,4 @@
-import { Tag } from "@dub/prisma/client";
+import { Tag } from "@prisma/client";
 import { expect, onTestFinished, test } from "vitest";
 import { randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";

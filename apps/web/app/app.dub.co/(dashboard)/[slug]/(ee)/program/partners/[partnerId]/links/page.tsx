@@ -18,7 +18,6 @@ import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
 import { DeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import { ButtonLink } from "@/ui/placeholders/button-link";
-import { DiscountProvider } from "@dub/prisma/client";
 import {
   Button,
   CopyButton,
@@ -30,6 +29,7 @@ import {
 } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
+import { DiscountProvider } from "@prisma/client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";

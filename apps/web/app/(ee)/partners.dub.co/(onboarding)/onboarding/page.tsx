@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { Suspense } from "react";
 import { OnboardingForm } from "./onboarding-form";
 

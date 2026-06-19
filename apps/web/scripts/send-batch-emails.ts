@@ -1,6 +1,6 @@
 import { EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
+import { prisma } from "@/lib/prisma";
 import DubLaunchWeekDay5 from "@dub/email/templates/broadcasts/launch-week-day-5";
-import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";

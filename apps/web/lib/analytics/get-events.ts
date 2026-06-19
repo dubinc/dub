@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { tb } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
-import { Link } from "@dub/prisma/client";
+import { Link } from "@prisma/client";
 import * as z from "zod/v4";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { transformLink } from "../api/links/utils/transform-link";
