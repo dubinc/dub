@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { PartnerGroup, Program } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { PartnerGroup, Program } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { createId } from "../api/create-id";
 import { createLink } from "../api/links";
