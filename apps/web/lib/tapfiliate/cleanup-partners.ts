@@ -114,11 +114,6 @@ export async function cleanupPartners(payload: TapfiliateImportPayload) {
             },
           },
         });
-
-        console.log(
-          "Removed the following partners",
-          partnersWithoutUserAccount,
-        );
       }
     }
 
