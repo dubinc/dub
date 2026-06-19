@@ -49,6 +49,14 @@ function ImportTapfiliateModal({
     }
   }, [searchParams]);
 
+  // Reset the step and programs when the modal is closed
+  useEffect(() => {
+    if (!showImportTapfiliateModal) {
+      setStep("set-token");
+      setPrograms([]);
+    }
+  }, [showImportTapfiliateModal]);
+
   return (
     <Modal
       showModal={showImportTapfiliateModal}

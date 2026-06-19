@@ -1,10 +1,15 @@
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@dub/email";
+import ProgramImported from "@dub/email/templates/program-imported";
 import { tapfiliateImporter } from "./importer";
+import { TapfiliateImportPayload } from "./types";
 
 const PARTNER_IDS_PER_BATCH = 100;
 
 // Remove partners with no leads and clean up orphaned partners
-export async function cleanupPartners({ programId }: { programId: string }) {
+export async function cleanupPartners(payload: TapfiliateImportPayload) {
+  const { programId, userId, importId } = payload;
+
   let hasMore = true;
   let start = 0;
 
@@ -121,4 +126,53 @@ export async function cleanupPartners({ programId }: { programId: string }) {
   }
 
   await tapfiliateImporter.clearImportedPartnerIds(programId);
+
+  // Import is finished, send the email to the workspace user
+  const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+    select: {
+      name: true,
+      workspace: {
+        select: {
+          id: true,
+          slug: true,
+        },
+      },
+    },
+  });
+
+  const workspaceUser = await prisma.projectUsers.findUniqueOrThrow({
+    where: {
+      userId_projectId: {
+        userId,
+        projectId: workspace.id,
+      },
+    },
+    select: {
+      user: {
+        select: {
+          email: true,
+        },
+      },
+    },
+  });
+
+  if (workspaceUser && workspaceUser.user.email) {
+    await sendEmail({
+      to: workspaceUser.user.email,
+      subject: "Tapfiliate program imported",
+      react: ProgramImported({
+        email: workspaceUser.user.email,
+        workspace,
+        program,
+        provider: "Tapfiliate",
+        importId,
+      }),
+      headers: {
+        "Idempotency-Key": importId,
+      },
+    });
+  }
 }
