@@ -4,7 +4,7 @@ import {
 } from "@/lib/api/scrape-creators/get-social-profile";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { subDays } from "date-fns";
 import * as z from "zod/v4";
@@ -51,7 +51,7 @@ export const POST = withCron(async ({ rawBody }) => {
           lastCheckedAt: null,
         },
       ],
-      // only check partners that are approved or trusted
+      // only check partners approved/trusted in the network
       partner: {
         networkStatus: {
           in: ["approved", "trusted"],

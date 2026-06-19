@@ -1,8 +1,8 @@
 import { qstash } from "@/lib/cron";
 import { PostbackTrigger } from "@/lib/types";
 import { createWebhookSignature } from "@/lib/webhook/signature";
-import { Postback } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Postback } from "@prisma/client";
 import { PostbackEventTransformers } from "./postback-event-transformers";
 
 export interface PostbackPayload {

@@ -1,28 +1,35 @@
 "use client";
 
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerNetworkInvitesUsage from "@/lib/swr/use-partner-network-invites-usage";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
+import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerStarButton } from "@/ui/partners/partner-star-button";
 import { TrustedPartnerBadge } from "@/ui/partners/trusted-partner-badge";
 import {
   BadgeCheck2Fill,
+  Button,
+  DynamicTooltipWrapper,
   Tooltip,
   UserPlus,
   useResizeObserver,
   useRouterStuff,
 } from "@dub/ui";
 import type { Icon } from "@dub/ui/icons";
-import { EnvelopeArrowRight, Globe } from "@dub/ui/icons";
+import { ChartActivity2, EnvelopeArrowRight, Globe } from "@dub/ui/icons";
 import {
   COUNTRIES,
   cn,
-  formatDate,
   isClickOnInteractiveChild,
+  isWorkspaceBillingTrialActive,
   timeAgo,
 } from "@dub/utils";
-import Link from "next/link";
+import { EmailContent } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/invite-email-preview";
+import { InviteNetworkPartnerSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/invite-network-partner-sheet";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export function NetworkPartnerCard({
@@ -34,6 +41,13 @@ export function NetworkPartnerCard({
 }) {
   const { slug: workspaceSlug } = useWorkspace();
   const { queryParams } = useRouterStuff();
+  const pathname = usePathname();
+
+  const showInvite =
+    !!partner &&
+    !partner.invitedAt &&
+    !partner.recruitedAt &&
+    !pathname.endsWith("/ignored");
 
   const basicFields = useMemo(
     () => [
@@ -56,9 +70,9 @@ export function NetworkPartnerCard({
       },
       {
         id: "joinedAt",
-        icon: <UserPlus className="size-3.5 shrink-0" />,
+        icon: <ChartActivity2 className="size-3.5 shrink-0" />,
         text: partner
-          ? `Joined ${formatDate(partner.createdAt, { month: "short" })}`
+          ? `Joined ${timeAgo(partner.createdAt, { withAgo: true })}`
           : undefined,
       },
     ],
@@ -72,7 +86,7 @@ export function NetworkPartnerCard({
             label: field.label,
             icon: field.icon,
             ...field.data(partner.platforms),
-          })).filter((field) => field.value && field.href)
+          })).sort((a, b) => getPlatformSortOrder(a) - getPlatformSortOrder(b))
         : null,
     [partner],
   );
@@ -120,116 +134,313 @@ export function NetworkPartnerCard({
           </span>
         </div>
       )}
-      <div className="border-border-subtle rounded-xl border bg-white p-4">
-        <div className="flex justify-between gap-4">
-          {/* Avatar + country icon */}
-          <div className="relative w-fit">
-            {partner ? (
-              <PartnerAvatar
+      <div className="border-border-subtle rounded-xl border bg-white">
+        <div className="p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="relative w-fit">
+              {partner ? (
+                <PartnerAvatar
+                  partner={partner}
+                  className="size-16 border border-neutral-100"
+                />
+              ) : (
+                <div className="size-16 animate-pulse rounded-full bg-neutral-200" />
+              )}
+              {partner?.networkStatus === "trusted" && (
+                <TrustedPartnerBadge size="large" />
+              )}
+            </div>
+
+            {partner && (onToggleStarred || showInvite) && (
+              <NetworkPartnerCardActions
                 partner={partner}
-                className="size-16 border border-neutral-100"
+                onToggleStarred={onToggleStarred}
+                showInvite={showInvite}
               />
-            ) : (
-              <div className="size-16 animate-pulse rounded-full bg-neutral-200" />
             )}
-            {partner?.networkStatus === "trusted" && <TrustedPartnerBadge />}
           </div>
 
-          {partner && onToggleStarred && (
-            <PartnerStarButton
-              partner={partner}
-              onToggleStarred={onToggleStarred}
-              className="size-6"
-              iconSize="size-3"
-            />
-          )}
-        </div>
+          <div className="mt-3.5 flex flex-col gap-3">
+            {partner ? (
+              <span className="text-content-emphasis text-base font-semibold">
+                {partner.name}
+              </span>
+            ) : (
+              <div className="h-6 w-32 animate-pulse rounded bg-neutral-200" />
+            )}
 
-        <div className="mt-3.5 flex flex-col gap-3">
-          {/* Name */}
-          {partner ? (
-            <span className="text-content-emphasis text-base font-semibold">
-              {partner.name}
-            </span>
-          ) : (
-            <div className="h-6 w-32 animate-pulse rounded bg-neutral-200" />
-          )}
-
-          {/* Basic details */}
-          <div className="flex flex-col items-start gap-1">
-            {basicFields
-              .filter(({ text }) => text !== null)
-              .map(({ id, icon, text }) => (
-                <div key={id}>
-                  <div className="text-content-subtle flex cursor-default items-center gap-2">
-                    {text !== undefined ? (
-                      <>
-                        {icon}
-                        <span className="text-xs font-medium">{text}</span>
-                      </>
-                    ) : (
-                      <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
-                    )}
+            <div className="flex flex-col items-start gap-1">
+              {basicFields
+                .filter(({ text }) => text !== null)
+                .map(({ id, icon, text }) => (
+                  <div key={id}>
+                    <div className="text-content-subtle flex cursor-default items-center gap-2">
+                      {text !== undefined ? (
+                        <>
+                          {icon}
+                          <span className="text-xs font-medium">{text}</span>
+                        </>
+                      ) : (
+                        <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-          </div>
+                ))}
+            </div>
 
-          {/* Platforms */}
+            <ListRow items={categoriesData} />
+          </div>
+        </div>
+        <div className="border-border-subtle border-t p-4 pt-2">
+          <span className="text-content-emphasis text-sm font-semibold">
+            Audience
+          </span>
+
           <div
             className={cn(
-              "flex flex-wrap items-center gap-1.5",
+              "mt-2 grid grid-cols-6 gap-1",
               !partner && "animate-pulse",
             )}
           >
-            {partnerPlatformsData?.length
+            {partnerPlatformsData
               ? partnerPlatformsData.map(
-                  ({ label, icon: Icon, verified, value, href }) => (
-                    <Tooltip
+                  ({
+                    label,
+                    icon: PlatformIcon,
+                    verified,
+                    stat,
+                    value,
+                    href,
+                    info,
+                    verifiedAt,
+                  }) => (
+                    <PlatformStatCard
                       key={label}
-                      content={
-                        <Link
-                          href={href ?? "#"}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-content-default hover:text-content-emphasis flex items-center gap-1 px-2 py-1 text-xs font-medium"
-                        >
-                          <Icon className="size-3 shrink-0" />
-                          <span>{value}</span>
-                          {verified && (
-                            <BadgeCheck2Fill className="size-3 text-green-600" />
-                          )}
-                        </Link>
-                      }
-                    >
-                      <Link
-                        key={label}
-                        href={href ?? "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="border-border-subtle hover:bg-bg-muted relative flex size-6 shrink-0 items-center justify-center rounded-full border"
-                      >
-                        <Icon className="size-3" />
-                        <span className="sr-only">{label}</span>
-
-                        {verified && (
-                          <BadgeCheck2Fill className="absolute -right-1 -top-1 size-3 text-green-600" />
-                        )}
-                      </Link>
-                    </Tooltip>
+                      label={label}
+                      icon={PlatformIcon}
+                      verified={verified}
+                      stat={stat}
+                      value={value}
+                      info={info}
+                      verifiedAt={verifiedAt}
+                      href={verified && href ? href : undefined}
+                    />
                   ),
                 )
-              : [...Array(3)].map((_, idx) => (
-                  <div
-                    key={idx}
-                    className="size-6 rounded-full bg-neutral-100"
-                  />
+              : [...Array(6)].map((_, idx) => (
+                  <div key={idx} className="bg-bg-subtle h-10 rounded-lg" />
                 ))}
           </div>
-
-          {/* Categories */}
-          <ListRow items={categoriesData} />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function getPlatformSortOrder({
+  verified,
+  value,
+}: {
+  verified: boolean;
+  value?: string | null;
+}) {
+  if (verified) return 0;
+  if (value) return 1;
+  return 2;
+}
+
+function NetworkPartnerCardActions({
+  partner,
+  onToggleStarred,
+  showInvite,
+}: {
+  partner: NetworkPartnerProps;
+  onToggleStarred?: (starred: boolean) => void;
+  showInvite: boolean;
+}) {
+  const { trialEndsAt } = useWorkspace();
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
+
+  const [showInviteSheet, setShowInviteSheet] = useState(false);
+  const [inviteEmailContent, setInviteEmailContent] =
+    useState<EmailContent | null>(null);
+
+  const { remaining: remainingInvites } = usePartnerNetworkInvitesUsage();
+  const atNetworkInviteLimit = remainingInvites === 0;
+  const disabled = atNetworkInviteLimit && !trialActive;
+
+  const handleInvitePress = () => {
+    if (trialActive && atNetworkInviteLimit) {
+      openTrialLimitModal("networkInvites");
+      return;
+    }
+    setShowInviteSheet(true);
+  };
+
+  return (
+    <>
+      <TrialLimitActivateModal />
+      <InviteNetworkPartnerSheet
+        nested
+        isOpen={showInviteSheet}
+        setIsOpen={setShowInviteSheet}
+        partner={partner}
+        emailContent={inviteEmailContent}
+        onEmailContentChange={setInviteEmailContent}
+        onSuccess={() => {
+          mutatePrefix("/api/network/partners");
+        }}
+        {...(trialActive && {
+          onInviteLimitError: () => openTrialLimitModal("networkInvites"),
+        })}
+      />
+      <div className="flex items-center gap-2">
+        {onToggleStarred && (
+          <PartnerStarButton
+            partner={partner}
+            onToggleStarred={onToggleStarred}
+            className="size-8"
+            iconSize="size-3.5"
+          />
+        )}
+        {showInvite && (
+          <Button
+            type="button"
+            variant="primary"
+            text="Invite"
+            disabled={disabled}
+            onClick={handleInvitePress}
+            className="h-8 rounded-lg px-3"
+          />
+        )}
+      </div>
+    </>
+  );
+}
+
+function PlatformStatCard({
+  label,
+  icon: PlatformIcon,
+  verified,
+  stat,
+  value,
+  info,
+  verifiedAt,
+  href,
+}: {
+  label: string;
+  icon: Icon;
+  verified: boolean;
+  stat?: string | null;
+  value?: string | null;
+  info?: string[];
+  verifiedAt?: Date | null;
+  href?: string | null;
+}) {
+  const content = (
+    <div
+      className={cn(
+        "bg-bg-subtle flex flex-col items-center gap-1 rounded-lg p-1 pt-2",
+        href && "hover:bg-bg-muted transition-colors",
+      )}
+    >
+      <div className="relative">
+        <PlatformIcon
+          className={cn("size-3.5", !value && "text-content-subtle opacity-40")}
+        />
+        {verified && (
+          <BadgeCheck2Fill className="absolute -right-1.5 -top-1.5 size-3 text-green-600" />
+        )}
+      </div>
+      <span
+        className={cn(
+          "text-[9px] font-medium leading-none",
+          verified && stat ? "text-content-default" : "text-content-subtle",
+        )}
+      >
+        {verified && stat ? stat : "—"}
+      </span>
+      <span className="sr-only">{label}</span>
+    </div>
+  );
+
+  const As = href ? "a" : "div";
+
+  return (
+    <DynamicTooltipWrapper
+      tooltipProps={
+        value
+          ? {
+              content: (
+                <PlatformStatTooltipContent
+                  icon={PlatformIcon}
+                  value={value}
+                  stat={stat}
+                  info={info}
+                  verifiedAt={verifiedAt}
+                />
+              ),
+            }
+          : undefined
+      }
+    >
+      <As
+        {...(href
+          ? {
+              href,
+              target: "_blank",
+              rel: "noopener noreferrer",
+            }
+          : {})}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {content}
+      </As>
+    </DynamicTooltipWrapper>
+  );
+}
+
+function PlatformStatTooltipContent({
+  icon: PlatformIcon,
+  value,
+  stat,
+  info,
+  verifiedAt,
+}: {
+  icon: Icon;
+  value?: string | null;
+  stat?: string | null;
+  info?: string[];
+  verifiedAt?: Date | null;
+}) {
+  return (
+    <div className="flex flex-col gap-2 text-xs">
+      <div className="flex items-center gap-2 p-3 pb-1.5">
+        <div className="border-border-subtle flex size-7 shrink-0 items-center justify-center rounded-full border">
+          <PlatformIcon className="size-3.5" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-content-emphasis truncate font-semibold">
+            {value}
+          </div>
+          {(info?.[0] ?? stat) && (
+            <div className="text-content-default font-medium">
+              {info?.[0] ?? stat}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="text-content-subtle border-border-subtle flex items-center gap-1.5 border-t px-3 py-1.5 font-medium">
+        {verifiedAt ? (
+          <>
+            <BadgeCheck2Fill className="size-3 shrink-0 text-green-600" />
+            Verified {timeAgo(verifiedAt, { withAgo: true })}
+          </>
+        ) : (
+          "Not verified"
+        )}
       </div>
     </div>
   );
@@ -260,7 +471,6 @@ function ListRow({
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Determine if we need to show less items
     if (
       shownItems?.length &&
       containerRef.current.scrollWidth > containerRef.current.clientWidth
@@ -272,7 +482,6 @@ function ListRow({
     }
   }, [shownItems]);
 
-  // Show less items if needed after resizing
   const entry = useResizeObserver(containerRef);
   useEffect(() => {
     if (!containerRef.current) return;
@@ -281,7 +490,6 @@ function ListRow({
       setIsReady(false);
   }, [entry]);
 
-  if (items && items.length === 0) return null;
   return (
     <div
       ref={containerRef}
@@ -314,7 +522,7 @@ function ListRow({
                     </div>
                   }
                 >
-                  <div className="text-content-default flex h-7 select-none items-center rounded-full bg-neutral-100 px-2 text-xs font-medium hover:bg-neutral-200">
+                  <div className="text-content-default flex h-7 select-none items-center rounded-full bg-neutral-100 px-2 text-xs font-medium transition-colors hover:bg-neutral-200">
                     +{items.length - (shownItems?.length ?? 0)}
                   </div>
                 </Tooltip>
@@ -323,7 +531,7 @@ function ListRow({
           ) : (
             <div className="flex h-7 w-fit items-center rounded-full border border-dashed border-neutral-300 bg-neutral-50 px-2">
               <span className="text-content-subtle text-xs opacity-60">
-                Not specified
+                No categories
               </span>
             </div>
           )

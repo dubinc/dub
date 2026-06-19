@@ -7,7 +7,6 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PartnerNetworkStatus, PlatformType } from "@dub/prisma/client";
 import {
   Filter,
   StatusBadge,
@@ -19,11 +18,12 @@ import {
 } from "@dub/ui";
 import { CircleDotted, FlagWavy } from "@dub/ui/icons";
 import { cn, COUNTRIES, fetcher, formatDate } from "@dub/utils";
+import { PartnerNetworkStatus, PlatformType } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
-import { NetworkPartnerApplicationSheet } from "app/(ee)/admin.dub.co/(dashboard)/partners/network/network-partner-application-sheet";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { NetworkPartnerApplicationSheet } from "./network-partner-application-sheet";
 
 const SOCIAL_FIELDS = [
   { id: "website", label: "Website" },

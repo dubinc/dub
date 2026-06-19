@@ -1,5 +1,5 @@
-import { EventType } from "@dub/prisma/client";
 import { CursorRays, Icon, InvoiceDollar, Nodes4, UserPlus } from "@dub/ui";
+import { EventType } from "@prisma/client";
 
 export const REWARD_EVENT_DESCRIPTIONS: Record<
   EventType,

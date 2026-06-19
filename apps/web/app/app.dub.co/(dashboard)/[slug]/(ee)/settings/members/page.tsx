@@ -1,7 +1,9 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import useWorkspace from "@/lib/swr/use-workspace";
+import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { WorkspaceUserProps } from "@/lib/types";
 import {
   getAvailableRolesForPlan,
@@ -15,7 +17,6 @@ import { useRemoveWorkspaceUserModal } from "@/ui/modals/remove-workspace-user-m
 import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { WorkspaceRole } from "@dub/prisma/client";
 import {
   Button,
   DynamicTooltipWrapper,
@@ -37,6 +38,7 @@ import {
   UserCheck,
 } from "@dub/ui/icons";
 import { cn, fetcher, timeAgo } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus } from "lucide-react";
@@ -51,9 +53,10 @@ export default function WorkspaceMembersPage() {
 
   const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
 
-  const { role, plan } = useWorkspace();
+  const { role, plan, usersLimit } = useWorkspace();
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
+  const { users: workspaceUsers } = useWorkspaceUsers();
 
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
@@ -85,6 +88,26 @@ export default function WorkspaceMembersPage() {
     fetcher,
   );
   const inviteCount = invitesForCount?.length ?? 0;
+
+  const activeUserCount =
+    workspaceUsers?.filter((user) => !user.isMachine).length ?? 0;
+
+  const isAtUserLimit =
+    usersLimit != null &&
+    workspaceUsers != null &&
+    invitesForCount != null &&
+    activeUserCount + inviteCount >= usersLimit;
+
+  const invitePermissionError = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    customPermissionDescription: "invite new teammates",
+  }).error;
+
+  const inviteUserLimitError =
+    isAtUserLimit && plan
+      ? exceededLimitError({ plan, limit: usersLimit, type: "users" })
+      : undefined;
 
   const availableRolesForPlan = useMemo(() => {
     return getAvailableRolesForPlan(plan);
@@ -143,7 +166,9 @@ export default function WorkspaceMembersPage() {
     return filters;
   }, [status, roleFilter]);
 
-  useKeyboardShortcut("m", () => setShowInviteWorkspaceUserModal(true));
+  useKeyboardShortcut("m", () => setShowInviteWorkspaceUserModal(true), {
+    enabled: !invitePermissionError && !isAtUserLimit,
+  });
 
   const columns = useMemo<ColumnDef<WorkspaceUserProps>[]>(
     () => [
@@ -260,11 +285,7 @@ export default function WorkspaceMembersPage() {
               className="h-9 w-fit"
               shortcut="M"
               disabledTooltip={
-                clientAccessCheck({
-                  action: "workspaces.write",
-                  role,
-                  customPermissionDescription: "invite new teammates",
-                }).error || undefined
+                invitePermissionError || inviteUserLimitError || undefined
               }
             />
             <Button

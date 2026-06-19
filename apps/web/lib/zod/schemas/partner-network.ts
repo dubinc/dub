@@ -1,5 +1,5 @@
 import { processKey } from "@/lib/api/links/utils";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema, partnerPlatformSchema } from "./partners";
@@ -41,10 +41,8 @@ export const getNetworkPartnersQuerySchema = z
     status: NetworkPartnersStatusSchema.default("discover"),
     country: z.string().optional(),
     starred: booleanQuerySchema.nullish(),
+    sortBy: z.enum(["relevance", "subscribers"]).default("relevance"),
     platform: z.enum(PlatformType).optional(),
-    subscribers: z
-      .enum(["<5000", "5000-25000", "25000-100000", "100000+"])
-      .optional(),
     partnerIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))

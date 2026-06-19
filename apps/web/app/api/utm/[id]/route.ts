@@ -2,8 +2,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
-import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   constructURLFromUTMParams,

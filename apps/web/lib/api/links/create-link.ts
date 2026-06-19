@@ -1,12 +1,11 @@
 import { qstash } from "@/lib/cron";
 import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
+import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
 import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   R2_URL,
@@ -14,6 +13,7 @@ import {
   truncate,
 } from "@dub/utils";
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
 import { combineTagIds } from "../tags/combine-tag-ids";

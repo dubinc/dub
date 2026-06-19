@@ -1,9 +1,9 @@
 import { getLinkedInPost } from "@/lib/api/scrape-creators/get-linkedin-post";
 import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
 import { withAdmin } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
-import { prisma } from "@dub/prisma";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

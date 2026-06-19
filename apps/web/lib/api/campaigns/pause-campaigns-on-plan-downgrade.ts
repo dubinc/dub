@@ -1,7 +1,7 @@
 import { scheduleTransactionalCampaign } from "@/lib/api/campaigns/schedule-campaigns";
 import { qstash } from "@/lib/cron";
-import { prisma } from "@dub/prisma";
-import { CampaignStatus, CampaignType } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { CampaignStatus, CampaignType } from "@prisma/client";
 
 export async function pauseOrCancelCampaignsForProgramOnPlanDowngrade({
   programId,

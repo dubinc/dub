@@ -13,7 +13,7 @@ import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { parseAnalyticsQuery } from "@/lib/zod/schemas/analytics";
-import { Link } from "@dub/prisma/client";
+import { Link } from "@prisma/client";
 import JSZip from "jszip";
 
 // GET /api/analytics/export – get export data for analytics

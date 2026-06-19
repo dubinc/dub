@@ -1,5 +1,5 @@
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
 
 export async function accountApplicationDeauthorized(
@@ -23,6 +23,7 @@ export async function accountApplicationDeauthorized(
       paypalEmail: true,
       payoutsEnabledAt: true,
       defaultPayoutMethod: true,
+      tremendousEmail: true,
     },
   });
 

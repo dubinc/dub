@@ -1,12 +1,12 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { prisma } from "@/lib/prisma";
 import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
-import { prisma } from "@dub/prisma";
+import { parseFilterValue } from "@dub/utils";
 import {
   CommissionStatus,
   CommissionType,
   FraudEventStatus,
-} from "@dub/prisma/client";
-import { parseFilterValue } from "@dub/utils";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
 import { buildPaginationQuery } from "../pagination";

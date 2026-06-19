@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { prisma } from "@/lib/prisma";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
-import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 
 export const dynamic = "force-dynamic";

@@ -13,7 +13,7 @@ import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   SalesChannel,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
@@ -1049,4 +1049,17 @@ export const partnerCrossProgramSummarySchema = z.object({
   totalPrograms: z.number(),
   activePrograms: z.number(),
   bannedPrograms: z.number(),
+});
+
+export const partnerSharedPlatformSchema = z.object({
+  type: z.enum(PlatformType),
+  identifier: z.string(),
+  partners: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      email: z.email().nullable(),
+      image: z.string().nullable(),
+    }),
+  ),
 });

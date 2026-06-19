@@ -1,11 +1,11 @@
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { trackActivityLog } from "../../activity-log/track-activity-log";

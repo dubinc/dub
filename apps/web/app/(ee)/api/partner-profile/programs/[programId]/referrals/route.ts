@@ -6,8 +6,8 @@ import {
   getReferredPartnersQuerySchema,
   referredPartnerSchema,
 } from "@/lib/partner-referrals/schemas";
-import { prisma } from "@dub/prisma";
-import { CommissionType } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { CommissionType } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

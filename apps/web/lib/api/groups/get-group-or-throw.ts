@@ -1,5 +1,5 @@
 import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { DubApiError } from "../errors";
 
 export const getGroupOrThrow = async ({

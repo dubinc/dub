@@ -14,7 +14,6 @@ import {
 } from "@/ui/partners/rewards/add-edit-reward-sheet";
 import { REWARD_EVENT_DESCRIPTIONS } from "@/ui/partners/rewards/reward-event-descriptions";
 import { REWARD_EVENT_ICON } from "@/ui/partners/rewards/reward-event-icon";
-import { EventType } from "@dub/prisma/client";
 import {
   Button,
   TimestampTooltip,
@@ -22,6 +21,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
+import { EventType } from "@prisma/client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";

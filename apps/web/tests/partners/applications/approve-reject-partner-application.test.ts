@@ -1,5 +1,5 @@
 import { generateRandomName } from "@/lib/names";
-import { Partner } from "@dub/prisma/client";
+import { Partner } from "@prisma/client";
 import { describe, expect, test } from "vitest";
 import { randomPartnerEmail } from "../../utils/helpers";
 import { IntegrationHarness } from "../../utils/integration";

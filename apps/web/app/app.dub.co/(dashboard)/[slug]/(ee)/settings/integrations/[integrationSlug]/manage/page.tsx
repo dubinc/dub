@@ -1,6 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import AddEditIntegrationForm from "@/ui/oauth-apps/add-edit-integration-form";
-import { BackLink } from "@/ui/shared/back-link";
-import { prisma } from "@dub/prisma";
 import { MaxWidthWrapper } from "@dub/ui";
 import { redirect } from "next/navigation";
 
@@ -25,10 +24,6 @@ export default async function IntegrationManagePage(props: {
   }
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
-      <BackLink href={`/${params.slug}/settings/integrations`}>
-        Back to integrations
-      </BackLink>
-
       <AddEditIntegrationForm
         integration={{
           ...integration,

@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { LEGAL_USER_ID } from "@dub/utils";
 import "dotenv-flow/config";
 import { linkCache } from "../../lib/api/links/cache";

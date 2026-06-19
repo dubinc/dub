@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";

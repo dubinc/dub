@@ -31,7 +31,7 @@ import {
   Webhook,
   WorkflowTrigger,
   WorkspaceRole,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import {
@@ -122,7 +122,10 @@ import {
   GroupWithFormDataSchema,
   PartnerGroupDefaultLinkSchema,
 } from "./zod/schemas/groups";
-import { integrationSchema } from "./zod/schemas/integration";
+import {
+  installedIntegrationSchema,
+  integrationSchema,
+} from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
   leadEventResponseSchema,
@@ -146,6 +149,7 @@ import {
   partnerPlatformSchema,
   PartnerRewindSchema,
   PartnerSchema,
+  partnerSharedPlatformSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
 import {
@@ -430,22 +434,9 @@ export type NewOrExistingIntegration = Omit<
   id?: string;
 };
 
-export type InstalledIntegrationProps = Pick<
-  IntegrationProps,
-  | "id"
-  | "projectId"
-  | "slug"
-  | "logo"
-  | "name"
-  | "developer"
-  | "description"
-  | "verified"
-  | "comingSoon"
-  | "guideUrl"
-> & {
-  installations: number;
-  installed?: boolean;
-};
+export type InstalledIntegrationProps = z.infer<
+  typeof installedIntegrationSchema
+>;
 
 export type InstalledIntegrationInfoProps = Pick<
   IntegrationProps,
@@ -522,11 +513,16 @@ export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerPlatformProps = z.infer<typeof partnerPlatformSchema>;
 
+export type PartnerSharedPlatformProps = z.infer<
+  typeof partnerSharedPlatformSchema
+>;
+
 export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
   platforms: PartnerPlatformProps[];
   defaultPayoutMethod: PartnerPayoutMethod | null;
+  tremendousEmail: string | null;
 };
 
 export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;
