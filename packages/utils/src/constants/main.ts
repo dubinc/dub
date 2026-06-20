@@ -1,5 +1,3 @@
-export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Dub";
-
 export const SHORT_DOMAIN = "dub.sh";
 
 export const APP_HOSTNAMES = new Set([

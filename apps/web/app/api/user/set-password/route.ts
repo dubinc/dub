@@ -38,7 +38,7 @@ export const POST = withSession(async ({ session }) => {
 
   // Send email with password reset link
   await sendEmail({
-    subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Password reset instructions`,
+    subject: "Dub: Password reset instructions",
     to: session.user.email,
     react: ResetPasswordLink({
       email: session.user.email,

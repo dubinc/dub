@@ -103,7 +103,7 @@ export const authOptions: NextAuthOptions = {
 
         sendEmail({
           to: identifier,
-          subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
+          subject: "Your Dub Login Link",
           react: LoginLink({ url, email: identifier }),
         });
       },

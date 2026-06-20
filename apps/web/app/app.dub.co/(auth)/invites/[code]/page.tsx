@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import EmptyState from "@/ui/shared/empty-state";
 import { LoadingSpinner } from "@dub/ui";
 import { LinkBroken, Users6 } from "@dub/ui/icons";
-import { APP_NAME } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -21,7 +20,7 @@ export default async function InvitesPage(props: {
           <EmptyState
             icon={LoadingSpinner}
             title="Verifying Invite"
-            description={`${APP_NAME} is verifying your invite link. This might take a few seconds...`}
+            description="Dub is verifying your invite link. This might take a few seconds..."
           />
         }
       >
