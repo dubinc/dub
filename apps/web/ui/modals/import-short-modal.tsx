@@ -105,8 +105,8 @@ function ImportShortModal({
         </div>
         <h3 className="text-lg font-medium">Import Your Short.io Links</h3>
         <p className="text-center text-sm text-neutral-500">
-          Easily import all your existing Short.io links into{" "}
-          {process.env.NEXT_PUBLIC_APP_NAME} with just a few clicks.
+          Easily import all your existing Short.io links into Dub with just a
+          few clicks.
         </p>
       </div>
 
