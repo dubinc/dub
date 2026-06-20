@@ -1,10 +1,10 @@
 import "server-only";
 
-import { logger } from "@/lib/axiom/server";
 import { createId } from "@/lib/api/create-id";
+import { logger } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
-import { PARTNER_CONTENT_SEARCH_MODELS } from "@/lib/partner-content-search/constants";
 import { hashText } from "@/lib/partner-content-search/chunk-transcript";
+import { PARTNER_CONTENT_SEARCH_MODELS } from "@/lib/partner-content-search/constants";
 import { refreshPartnerContentItemChunkCountsBulk } from "@/lib/partner-content-search/ingestion/chunk-counts";
 import {
   createPartnerContentDeduplicationId,
@@ -69,8 +69,11 @@ export async function writeFetchedContentItems({
         thumbnailUrl: item.thumbnailUrl,
         publishedAt: item.publishedAt,
         durationMs: item.durationMs,
-        viewCount:
-          item.viewCount === null ? null : BigInt(Math.trunc(item.viewCount)),
+        viewCount: toNullableBigInt(item.viewCount),
+        likeCount: toNullableBigInt(item.likeCount),
+        commentCount: toNullableBigInt(item.commentCount),
+        shareCount: toNullableBigInt(item.shareCount),
+        saveCount: toNullableBigInt(item.saveCount),
         transcriptFetchStatus: "pending",
         transcriptHasTimestamps: false,
         totalChunkCount: 0,
@@ -325,15 +328,17 @@ async function writeMetadataChunks({
           id,
         },
         data: {
+          url: sourceItem.url,
           title: sourceItem.title,
           description: sourceItem.description,
           thumbnailUrl: sourceItem.thumbnailUrl,
           publishedAt: sourceItem.publishedAt,
           durationMs: sourceItem.durationMs,
-          viewCount:
-            sourceItem.viewCount === null
-              ? null
-              : BigInt(Math.trunc(sourceItem.viewCount)),
+          viewCount: toNullableBigInt(sourceItem.viewCount),
+          likeCount: toNullableBigInt(sourceItem.likeCount),
+          commentCount: toNullableBigInt(sourceItem.commentCount),
+          shareCount: toNullableBigInt(sourceItem.shareCount),
+          saveCount: toNullableBigInt(sourceItem.saveCount),
         },
       }),
     ),
@@ -365,4 +370,8 @@ function createMetadataChunkText(item: NormalizedPartnerContentItem) {
   if (lines.length <= 1 && !item.title && !item.description) return null;
 
   return lines.join("\n");
+}
+
+function toNullableBigInt(value: number | null) {
+  return value === null ? null : BigInt(Math.trunc(value));
 }

@@ -1,12 +1,12 @@
 "use client";
 
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
+import { isPartnerContentSearchPlatform } from "@/lib/partner-content-search/types";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import usePartnerContentSearch from "@/lib/swr/use-partner-content-search";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
 import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
-import { NetworkPartnerSheet } from "@/ui/partners/partner-network/network-partner-sheet";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
@@ -37,6 +37,7 @@ import useSWR from "swr";
 import { NetworkContentSearchResults } from "./network-content-search-results";
 import { NetworkEmptyState } from "./network-empty-state";
 import { NetworkPartnerCard } from "./network-partner-card";
+import { NetworkPartnerDetailSheet } from "./network-partner-detail-sheet";
 import { PartnerNetworkSort } from "./partner-network-sort";
 import { usePartnerNetworkFilters } from "./use-partner-network-filters";
 
@@ -80,14 +81,22 @@ export function ProgramPartnerNetworkPageClient({
   const selectedPlatform =
     (searchParams.get("platform") as PlatformType | null) ?? "all";
   const search = searchParams.get("search")?.trim() ?? "";
+  const country = searchParams.get("country") ?? undefined;
   const starred = searchParams.get("starred") === "true";
 
   const status =
     variant === "ignored"
       ? "ignored"
       : tabs.find(({ id }) => id === searchParams.get("tab"))?.id || "discover";
-  const isYouTubeContentSearchMode =
-    status === "discover" && selectedPlatform === "youtube";
+  const contentSearchPlatform =
+    selectedPlatform !== "all" &&
+    isPartnerContentSearchPlatform(selectedPlatform)
+      ? selectedPlatform
+      : undefined;
+  const isContentSearchMode =
+    status === "discover" &&
+    search.length > 0 &&
+    (selectedPlatform === "all" || Boolean(contentSearchPlatform));
 
   const { data: partnerCounts, error: countError } = useNetworkPartnersCount();
 
@@ -95,10 +104,12 @@ export function ProgramPartnerNetworkPageClient({
     data: contentSearchResults,
     error: contentSearchError,
     isLoading: isSearchingContent,
+    mutate: mutateContentSearch,
   } = usePartnerContentSearch({
-    enabled: isYouTubeContentSearchMode,
+    enabled: isContentSearchMode,
     query: search,
-    platform: "youtube",
+    platform: contentSearchPlatform,
+    country,
     starred,
   });
 
@@ -108,7 +119,7 @@ export function ProgramPartnerNetworkPageClient({
     mutate: mutatePartners,
     isValidating,
   } = useSWR<NetworkPartnerProps[]>(
-    !isYouTubeContentSearchMode &&
+    !isContentSearchMode &&
       workspaceId &&
       `/api/network/partners${getQueryString(
         {
@@ -152,38 +163,56 @@ export function ProgramPartnerNetworkPageClient({
 
   useEffect(() => {
     const partnerId = searchParams.get("partnerId");
-    if (partnerId) setDetailsSheetState({ open: true, partnerId });
+    if (partnerId) {
+      setDetailsSheetState({ open: true, partnerId });
+    } else {
+      setDetailsSheetState({ open: false, partnerId: null });
+    }
   }, [searchParams]);
 
-  const { currentPartner } = useCurrentPartner({
-    partners,
-    partnerId: detailsSheetState.partnerId,
-    partnerListStatus: status,
-  });
+  const sheetPartnerIds = useMemo(
+    () =>
+      isContentSearchMode
+        ? contentSearchResults?.partners.map(({ partnerId }) => partnerId)
+        : partners?.map(({ id }) => id),
+    [contentSearchResults?.partners, isContentSearchMode, partners],
+  );
 
   const [previousPartnerId, nextPartnerId] = useMemo(() => {
-    if (!partners || !detailsSheetState.partnerId) return [null, null];
+    if (!sheetPartnerIds?.length || !detailsSheetState.partnerId) {
+      return [null, null];
+    }
 
-    const currentIndex = partners.findIndex(
-      ({ id }) => id === detailsSheetState.partnerId,
+    const currentIndex = sheetPartnerIds.findIndex(
+      (id) => id === detailsSheetState.partnerId,
     );
     if (currentIndex === -1) return [null, null];
 
     return [
-      currentIndex > 0 ? partners[currentIndex - 1].id : null,
-      currentIndex < partners.length - 1 ? partners[currentIndex + 1].id : null,
+      currentIndex > 0 ? sheetPartnerIds[currentIndex - 1] : null,
+      currentIndex < sheetPartnerIds.length - 1
+        ? sheetPartnerIds[currentIndex + 1]
+        : null,
     ];
-  }, [partners, detailsSheetState.partnerId]);
+  }, [detailsSheetState.partnerId, sheetPartnerIds]);
 
   return (
     <div className="flex flex-col">
-      {detailsSheetState.partnerId && currentPartner && (
-        <NetworkPartnerSheet
+      {detailsSheetState.partnerId && (
+        <NetworkPartnerDetailSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
-            setDetailsSheetState((s) => ({ ...s, open }) as any)
+            setDetailsSheetState((state) =>
+              open && state.partnerId
+                ? { open: true, partnerId: state.partnerId }
+                : { open: false, partnerId: state.partnerId },
+            )
           }
-          partner={currentPartner}
+          partnerId={detailsSheetState.partnerId}
+          partnerStatus={status}
+          searchPartner={contentSearchResults?.partners.find(
+            ({ partnerId }) => partnerId === detailsSheetState.partnerId,
+          )}
           onPrevious={
             previousPartnerId
               ? () =>
@@ -324,18 +353,71 @@ export function ProgramPartnerNetworkPageClient({
         </div>
       )}
 
-      {isYouTubeContentSearchMode ? (
+      {isContentSearchMode ? (
         <NetworkContentSearchResults
           error={contentSearchError}
           hasQuery={search.length > 0}
           isLoading={isSearchingContent}
           partners={contentSearchResults?.partners}
-          platform="youtube"
-          onOpenPartner={(partnerId) => {
-            queryParams({
-              set: { partnerId },
-            });
-          }}
+          platform={contentSearchPlatform}
+          onToggleStarred={
+            variant === "ignored"
+              ? undefined
+              : (partnerId, starred) => {
+                  mutateContentSearch(
+                    // @ts-ignore SWR doesn't seem to have proper typing for partial data results w/ `populateCache`
+                    async () => {
+                      const result = await updateDiscoveredPartner({
+                        workspaceId: workspaceId!,
+                        partnerId,
+                        starred,
+                      });
+                      if (!result?.data) {
+                        toast.error("Failed to star partner");
+                        throw new Error("Failed to star partner");
+                      }
+
+                      return result.data;
+                    },
+                    {
+                      optimisticData: (data) =>
+                        data && {
+                          ...data,
+                          partners: data.partners.map((p) =>
+                            p.partnerId === partnerId
+                              ? {
+                                  ...p,
+                                  partner: {
+                                    ...p.partner,
+                                    starredAt: starred ? new Date() : null,
+                                  },
+                                }
+                              : p,
+                          ),
+                        },
+                      populateCache: (
+                        result: { starredAt: Date | null },
+                        data,
+                      ) =>
+                        data && {
+                          ...data,
+                          partners: data.partners.map((p) =>
+                            p.partnerId === partnerId
+                              ? {
+                                  ...p,
+                                  partner: {
+                                    ...p.partner,
+                                    starredAt: result.starredAt,
+                                  },
+                                }
+                              : p,
+                          ),
+                        },
+                      revalidate: false,
+                    },
+                  );
+                }
+          }
         />
       ) : error || countError ? (
         <div className="text-content-subtle py-12 text-sm">
@@ -428,37 +510,4 @@ export function ProgramPartnerNetworkPageClient({
       )}
     </div>
   );
-}
-
-/** Gets the current partner from the loaded partners array if available, or a separate fetch if not */
-function useCurrentPartner({
-  partners,
-  partnerId,
-  partnerListStatus,
-}: {
-  partners?: NetworkPartnerProps[];
-  partnerId: string | null;
-  partnerListStatus: string;
-}) {
-  const { id: workspaceId } = useWorkspace();
-
-  let currentPartner = partnerId
-    ? partners?.find(({ id }) => id === partnerId)
-    : null;
-
-  const fetchPartnerId = partnerId && !currentPartner ? partnerId : null;
-
-  const { data: fetchedPartners, isLoading } = useSWR<NetworkPartnerProps[]>(
-    fetchPartnerId &&
-      `/api/network/partners?workspaceId=${workspaceId}&partnerIds=${fetchPartnerId}&status=${partnerListStatus}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
-
-  if (!currentPartner && fetchedPartners?.[0]?.id === partnerId)
-    currentPartner = fetchedPartners[0];
-
-  return { currentPartner, isLoading };
 }

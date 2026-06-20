@@ -13,7 +13,9 @@ type YouTubeChannelVideo = z.infer<
 type TikTokProfileVideo = z.infer<
   typeof tiktokProfileVideosSchema
 >["aweme_list"][number];
-type InstagramUserPost = z.infer<typeof instagramUserPostsSchema>["items"][number];
+type InstagramUserPost = z.infer<
+  typeof instagramUserPostsSchema
+>["items"][number];
 type InstagramMediaTranscript = z.infer<typeof instagramMediaTranscriptSchema>;
 
 export type NormalizedPartnerContentItem = {
@@ -26,6 +28,10 @@ export type NormalizedPartnerContentItem = {
   publishedAt: Date | null;
   durationMs: number | null;
   viewCount: number | null;
+  likeCount: number | null;
+  commentCount: number | null;
+  shareCount: number | null;
+  saveCount: number | null;
   transcriptEligible?: boolean;
 };
 
@@ -50,6 +56,10 @@ export function normalizeYouTubeChannelVideo(
       typeof video.viewCountInt === "number"
         ? Math.max(0, video.viewCountInt)
         : null,
+    likeCount: normalizeMetricCount(video.likeCountInt),
+    commentCount: normalizeMetricCount(video.commentCountInt),
+    shareCount: null,
+    saveCount: null,
   };
 }
 
@@ -97,6 +107,10 @@ export function normalizeTikTokProfileVideo(
       typeof video.statistics?.play_count === "number"
         ? Math.max(0, video.statistics.play_count)
         : null,
+    likeCount: normalizeMetricCount(video.statistics?.digg_count),
+    commentCount: normalizeMetricCount(video.statistics?.comment_count),
+    shareCount: normalizeMetricCount(video.statistics?.share_count),
+    saveCount: normalizeMetricCount(video.statistics?.collect_count),
     transcriptEligible: durationMs === null || durationMs <= 120_000,
   };
 }
@@ -110,13 +124,19 @@ export function normalizeTikTokTranscriptSegments(
 export function normalizeInstagramUserPost(
   post: InstagramUserPost,
 ): NormalizedPartnerContentItem | null {
-  const platformContentId = post.code ?? post.pk ?? post.id;
+  const shortcode = post.code ?? extractInstagramShortcode(post.url);
+  const platformContentId = shortcode ?? post.pk ?? post.id;
   if (!platformContentId) return null;
 
   const contentType = getInstagramContentType(post);
-  const url =
-    post.url ??
-    `https://www.instagram.com/${contentType === "reel" ? "reel" : "p"}/${platformContentId}/`;
+  const url = getInstagramContentUrl({
+    contentType,
+    fallbackUrl: post.url,
+    shortcode,
+  });
+  if (!url) return null;
+
+  const caption = post.caption?.text?.trim() || null;
   const durationMs =
     typeof post.video_duration === "number"
       ? Math.max(0, Math.round(post.video_duration * 1000))
@@ -126,8 +146,8 @@ export function normalizeInstagramUserPost(
     platformContentId,
     url,
     contentType,
-    title: null,
-    description: post.caption?.text ?? null,
+    title: normalizeCaptionTitle(caption),
+    description: caption,
     thumbnailUrl:
       post.display_uri ?? firstUrl(post.image_versions2?.candidates),
     publishedAt:
@@ -139,6 +159,10 @@ export function normalizeInstagramUserPost(
         : typeof post.ig_play_count === "number"
           ? Math.max(0, post.ig_play_count)
           : null,
+    likeCount: normalizeMetricCount(post.like_count),
+    commentCount: normalizeMetricCount(post.comment_count),
+    shareCount: null,
+    saveCount: null,
     transcriptEligible:
       isInstagramVideoContent(post) &&
       (durationMs === null || durationMs <= 120_000),
@@ -176,11 +200,15 @@ function normalizeTikTokDurationMs(value?: number | null) {
   return duration > 0 && duration < 1000 ? duration * 1000 : duration;
 }
 
+function normalizeMetricCount(value?: number | null) {
+  return typeof value === "number" ? Math.max(0, value) : null;
+}
+
 function firstUrl(values?: Array<{ url?: string | null } | string> | null) {
   const first = values?.[0];
   if (!first) return null;
 
-  return typeof first === "string" ? first : (first.url ?? null);
+  return typeof first === "string" ? first : first.url ?? null;
 }
 
 function getInstagramContentType(post: InstagramUserPost) {
@@ -206,6 +234,50 @@ function isInstagramVideoContent(post: InstagramUserPost) {
     post.media_type === 2 ||
     Boolean(post.video_versions?.length)
   );
+}
+
+function extractInstagramShortcode(url?: string | null) {
+  if (!url) return null;
+
+  try {
+    const pathname = new URL(url).pathname;
+    const shortcode = pathname.match(
+      /^\/(?:(?:[^/]+)\/)?(?:p|reel|tv)\/([^/?#]+)/,
+    )?.[1];
+    return shortcode || null;
+  } catch {
+    const shortcode = url.match(
+      /instagram\.com\/(?:(?:[^/]+)\/)?(?:p|reel|tv)\/([^/?#]+)/,
+    )?.[1];
+    return shortcode || null;
+  }
+}
+
+function getInstagramContentUrl({
+  contentType,
+  fallbackUrl,
+  shortcode,
+}: {
+  contentType: string;
+  fallbackUrl?: string | null;
+  shortcode?: string | null;
+}) {
+  if (shortcode) {
+    return `https://www.instagram.com/${contentType === "reel" ? "reel" : "p"}/${shortcode}/`;
+  }
+
+  return fallbackUrl ?? null;
+}
+
+function normalizeCaptionTitle(caption: string | null) {
+  if (!caption) return null;
+
+  const firstLine = caption.split(/\r?\n/)[0]?.trim();
+  if (!firstLine) return null;
+
+  return firstLine.length > 140
+    ? `${firstLine.slice(0, 137).trimEnd()}...`
+    : firstLine;
 }
 
 function parseWebVttTranscript(transcript: string): TranscriptSegment[] {

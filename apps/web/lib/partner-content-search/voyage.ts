@@ -185,32 +185,45 @@ export async function rerankPartnerContent({
   topK,
   apiKey = process.env.VOYAGE_API_KEY,
   fetchImpl = fetch,
+  timeoutMs,
 }: {
   query: string;
   documents: string[];
   topK?: number;
   apiKey?: string;
   fetchImpl?: VoyageFetch;
+  // When set, aborts the request after this many ms. User-facing search routes
+  // pass it so a slow rerank fails fast and falls back to cosine ordering.
+  timeoutMs?: number;
 }): Promise<VoyageRerankResult[]> {
   // AI SDK Core supports embeddings, but not Voyage reranking. Keep this direct
   // wrapper until Dub has a shared reranker abstraction.
   if (!apiKey) throw new Error("VOYAGE_API_KEY is not set.");
   if (documents.length === 0) return [];
 
-  const response = await fetchImpl(`${VOYAGE_API_BASE_URL}/rerank`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(
-      buildVoyageRerankRequest({
-        query,
-        documents,
-        topK,
-      }),
-    ),
-  });
+  let response: Awaited<ReturnType<VoyageFetch>>;
+  try {
+    response = await fetchImpl(`${VOYAGE_API_BASE_URL}/rerank`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(
+        buildVoyageRerankRequest({
+          query,
+          documents,
+          topK,
+        }),
+      ),
+      signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
+    });
+  } catch (error) {
+    if (timeoutMs && isAbortOrTimeoutError(error)) {
+      throw new VoyageTimeoutError("rerank", timeoutMs);
+    }
+    throw error;
+  }
 
   if (!response.ok) {
     throw new VoyageApiError(response.status, "rerank");

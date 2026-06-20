@@ -30,12 +30,21 @@ import {
 import { EmailContent } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/invite-email-preview";
 import { InviteNetworkPartnerSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/invite-network-partner-sheet";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+
+type PartnerPlatformDisplayData = ReturnType<
+  (typeof PARTNER_PLATFORM_FIELDS)[number]["data"]
+> & {
+  label: string;
+  icon: Icon;
+};
 
 export function NetworkPartnerCard({
+  bottomContent,
   partner,
   onToggleStarred,
 }: {
+  bottomContent?: ReactNode;
   partner?: NetworkPartnerProps;
   onToggleStarred?: (starred: boolean) => void;
 }) {
@@ -115,7 +124,9 @@ export function NetworkPartnerCard({
             "_blank",
           );
         } else {
-          queryParams({ set: { partnerId: partner.id } });
+          queryParams({
+            set: { partnerId: partner.id },
+          });
         }
       }}
     >
@@ -191,47 +202,64 @@ export function NetworkPartnerCard({
             <ListRow items={categoriesData} />
           </div>
         </div>
-        <div className="border-border-subtle border-t p-4 pt-2">
-          <span className="text-content-emphasis text-sm font-semibold">
-            Audience
-          </span>
+        {bottomContent ?? (
+          <NetworkPartnerAudienceSection
+            partner={partner}
+            partnerPlatformsData={partnerPlatformsData}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
 
-          <div
-            className={cn(
-              "mt-2 grid grid-cols-6 gap-1",
-              !partner && "animate-pulse",
-            )}
-          >
-            {partnerPlatformsData
-              ? partnerPlatformsData.map(
-                  ({
-                    label,
-                    icon: PlatformIcon,
-                    verified,
-                    stat,
-                    value,
-                    href,
-                    info,
-                    verifiedAt,
-                  }) => (
-                    <PlatformStatCard
-                      key={label}
-                      label={label}
-                      icon={PlatformIcon}
-                      verified={verified}
-                      stat={stat}
-                      value={value}
-                      info={info}
-                      verifiedAt={verifiedAt}
-                      href={verified && href ? href : undefined}
-                    />
-                  ),
-                )
-              : [...Array(6)].map((_, idx) => (
-                  <div key={idx} className="bg-bg-subtle h-10 rounded-lg" />
-                ))}
-          </div>
-        </div>
+function NetworkPartnerAudienceSection({
+  partner,
+  partnerPlatformsData,
+}: {
+  partner?: NetworkPartnerProps;
+  partnerPlatformsData: PartnerPlatformDisplayData[] | null;
+}) {
+  return (
+    <div className="border-border-subtle border-t p-4 pt-2">
+      <span className="text-content-emphasis text-sm font-semibold">
+        Audience
+      </span>
+
+      <div
+        className={cn(
+          "mt-2 grid grid-cols-6 gap-1",
+          !partner && "animate-pulse",
+        )}
+      >
+        {partnerPlatformsData
+          ? partnerPlatformsData.map(
+              ({
+                label,
+                icon: PlatformIcon,
+                verified,
+                stat,
+                value,
+                href,
+                info,
+                verifiedAt,
+              }) => (
+                <PlatformStatCard
+                  key={label}
+                  label={label}
+                  icon={PlatformIcon}
+                  verified={verified}
+                  stat={stat}
+                  value={value}
+                  info={info}
+                  verifiedAt={verifiedAt}
+                  href={verified && href ? href : undefined}
+                />
+              ),
+            )
+          : [...Array(6)].map((_, idx) => (
+              <div key={idx} className="bg-bg-subtle h-10 rounded-lg" />
+            ))}
       </div>
     </div>
   );
@@ -297,14 +325,6 @@ function NetworkPartnerCardActions({
         })}
       />
       <div className="flex items-center gap-2">
-        {onToggleStarred && (
-          <PartnerStarButton
-            partner={partner}
-            onToggleStarred={onToggleStarred}
-            className="size-8"
-            iconSize="size-3.5"
-          />
-        )}
         {showInvite && (
           <Button
             type="button"
@@ -313,6 +333,14 @@ function NetworkPartnerCardActions({
             disabled={disabled}
             onClick={handleInvitePress}
             className="h-8 rounded-lg px-3"
+          />
+        )}
+        {onToggleStarred && (
+          <PartnerStarButton
+            partner={partner}
+            onToggleStarred={onToggleStarred}
+            className="size-8"
+            iconSize="size-4"
           />
         )}
       </div>

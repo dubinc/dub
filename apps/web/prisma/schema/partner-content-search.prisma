@@ -1,11 +1,12 @@
 // Partner natural-language search schema.
 //
-// The PartnerContentChunk.embedding VECTOR(1024) column is intentionally not in
-// this Prisma schema. Plain MySQL cannot parse VECTOR DDL, so keeping it here
-// breaks CI/local db push jobs that use non-PlanetScale databases. Create and
-// index that column with apps/web/prisma/manual/partner-content-search-vector-index.sql
-// on PlanetScale branches that support vectors, and keep all vector writes/search
-// operations in raw SQL.
+// Prisma does not expose PartnerContentChunk.embedding in Prisma Client because
+// VECTOR is modeled as an unsupported database type. Prisma still manages the
+// column for schema drift, while all vector reads/writes stay in raw SQL.
+// Keep the matching @@index below so Prisma db push preserves the manual index,
+// but create/recreate the real cosine vector index with
+// apps/web/prisma/manual/partner-content-search-vector-index.sql because Prisma
+// cannot express PlanetScale VECTOR INDEX options.
 
 enum PartnerContentTranscriptFetchStatus {
   pending
@@ -32,6 +33,10 @@ model PartnerContentItem {
   publishedAt               DateTime?
   durationMs                Int?
   viewCount                 BigInt?
+  likeCount                 BigInt?
+  commentCount              BigInt?
+  shareCount                BigInt?
+  saveCount                 BigInt?
   transcriptFetchStatus     PartnerContentTranscriptFetchStatus @default(pending)
   transcriptCreditsUsed     Int?
   transcriptLastAttemptedAt DateTime?
@@ -55,18 +60,19 @@ model PartnerContentItem {
 }
 
 model PartnerContentChunk {
-  id                   String                    @id
+  id                   String                       @id
   partnerContentItemId String
   partnerId            String
-  source               PartnerContentChunkSource @default(transcript)
+  source               PartnerContentChunkSource    @default(transcript)
   chunkIndex           Int
-  chunkText            String                    @db.Text
+  chunkText            String                       @db.Text
   startMs              Int?
   endMs                Int?
   textHash             String
+  embedding            Unsupported("vector(1024)")?
   embeddingModel       String
-  createdAt            DateTime                  @default(now())
-  updatedAt            DateTime                  @updatedAt
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
 
   partnerContentItem PartnerContentItem @relation(fields: [partnerContentItemId], references: [id], onDelete: Cascade)
   partner            Partner            @relation(fields: [partnerId], references: [id], onDelete: Cascade)
@@ -78,4 +84,7 @@ model PartnerContentChunk {
   // Covers the empty-query "recent content" list path, which filters on
   // embeddingModel while joining chunks by partnerContentItemId.
   @@index([partnerContentItemId, embeddingModel])
+  // Drift guard only: Prisma cannot express PlanetScale VECTOR INDEX options.
+  // Create/recreate the real cosine ANN index with prisma/manual/partner-content-search-vector-index.sql.
+  @@index([embedding], map: "partner_content_chunk_embedding_cosine_idx")
 }

@@ -366,6 +366,8 @@ export const youtubeChannelVideosSchema = z.object({
         .number()
         .nullish()
         .transform((val) => val ?? 0),
+      likeCountInt: z.number().nullish(),
+      commentCountInt: z.number().nullish(),
       publishedTimeText: z.string().nullish(),
       publishedTime: z.string().nullish(),
       lengthText: z.string().nullish(),
@@ -403,6 +405,22 @@ const urlListSchema = z
   })
   .nullish();
 
+const stringFromStringOrNumberSchema = z
+  .union([z.string(), z.number()])
+  .nullish()
+  .transform((value) => (value == null ? value : String(value)));
+
+const booleanFromBooleanOrNumberSchema = z
+  .union([z.boolean(), z.number()])
+  .nullish()
+  .transform((value) => {
+    if (typeof value === "number") {
+      return value !== 0;
+    }
+
+    return value;
+  });
+
 export const tiktokProfileVideosSchema = z.object({
   aweme_list: z.array(
     z.object({
@@ -431,8 +449,8 @@ export const tiktokProfileVideosSchema = z.object({
         .nullish(),
     }),
   ),
-  max_cursor: z.string().nullish(),
-  has_more: z.boolean().nullish(),
+  max_cursor: stringFromStringOrNumberSchema,
+  has_more: booleanFromBooleanOrNumberSchema,
 });
 
 export const tiktokTranscriptSchema = z.object({

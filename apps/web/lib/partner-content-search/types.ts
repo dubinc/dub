@@ -9,6 +9,16 @@ export const PARTNER_CONTENT_SEARCH_PLATFORMS = [
 export type PartnerContentPlatform =
   (typeof PARTNER_CONTENT_SEARCH_PLATFORMS)[number];
 
+const PARTNER_CONTENT_SEARCH_PLATFORM_SET = new Set<string>(
+  PARTNER_CONTENT_SEARCH_PLATFORMS,
+);
+
+export function isPartnerContentSearchPlatform(
+  platform: string | null | undefined,
+): platform is PartnerContentPlatform {
+  return Boolean(platform && PARTNER_CONTENT_SEARCH_PLATFORM_SET.has(platform));
+}
+
 export type VoyageInputType = "document" | "query";
 
 export type TranscriptSegment = {

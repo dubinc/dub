@@ -1,10 +1,23 @@
 import {
   PARTNER_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER,
   PARTNER_CONTENT_SEARCH_PARTNER_LIMIT,
+  type PartnerContentTopicFitBand,
 } from "@/lib/partner-content-search/constants";
+import type { NetworkPartnerProps } from "@/lib/types";
 import type { PlatformType } from "@prisma/client";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
+
+export type PartnerContentMatchSource = "transcript" | "creatorText";
+
+export type PartnerContentMatchEvidence = {
+  primarySource: PartnerContentMatchSource | null;
+  sources: PartnerContentMatchSource[];
+  transcriptScore: number | null;
+  creatorTextScore: number | null;
+  creatorTextWeight: number;
+  weight: number;
+};
 
 export type PartnerContentSearchPartner = {
   partnerId: string;
@@ -13,8 +26,13 @@ export type PartnerContentSearchPartner = {
   image: string | null;
   description: string | null;
   score: number;
+  // Debug comparison for validating reranker impact against raw vector search.
+  cosineScore?: number | null;
+  rerankScore?: number | null;
+  partner: NetworkPartnerProps;
   chunks: {
     chunkId: string;
+    partnerContentItemId: string;
     platform: {
       type: string;
       identifier: string;
@@ -22,9 +40,12 @@ export type PartnerContentSearchPartner = {
     content: {
       platformContentId: string;
       url: string;
+      type: string;
       title: string | null;
+      description: string | null;
       thumbnailUrl: string | null;
       publishedAt: string | null;
+      durationMs: number | null;
     };
     chunk: {
       source: "metadata" | "transcript" | string;
@@ -33,11 +54,51 @@ export type PartnerContentSearchPartner = {
       endMs: number | null;
     };
     score: number;
+    cosineScore?: number;
+    rerankScore?: number | null;
+    matchEvidence?: PartnerContentMatchEvidence;
   }[];
+  matchSummary: {
+    matchedContentCount: number;
+    transcriptMatchedContentCount: number;
+    creatorTextMatchedContentCount: number;
+    creatorTextOnlyContentCount: number;
+    weightedMatchedContentCount: number;
+    weightedMatchedContentScore: number;
+    recentContentCount: number;
+    totalContentCount: number;
+    // Aggregate card score (0-100) + its coverage-based band, and the partner's
+    // platforms ranked by matched-post frequency.
+    topicFit: number;
+    band: PartnerContentTopicFitBand;
+    topPlatforms: string[];
+    // Brand-facing reach/activity signals over the on-topic posts.
+    followers: number | null;
+    medianViews: number | null;
+    lastOnTopicAt: string | null;
+    platforms: string[];
+    sources: string[];
+    oldestPublishedAt: string | null;
+    newestPublishedAt: string | null;
+    contentBars: {
+      partnerContentItemId: string;
+      platform: string;
+      platformContentId: string;
+      title: string | null;
+      url: string | null;
+      durationMs: number | null;
+      publishedAt: string | null;
+      viewCount: number | null;
+      matched: boolean;
+      matchScore: number | null;
+      matchEvidence: PartnerContentMatchEvidence;
+    }[];
+  } | null;
 };
 
 export type PartnerContentSearchResponse = {
   success: boolean;
+  reranked?: boolean;
   partners: PartnerContentSearchPartner[];
 };
 
@@ -45,18 +106,39 @@ export default function usePartnerContentSearch({
   enabled,
   query,
   platform,
+  country,
   starred,
+  partnerIds,
+  candidateChunkCount,
+  limit = PARTNER_CONTENT_SEARCH_PARTNER_LIMIT,
+  chunksPerPartner = PARTNER_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER,
 }: {
   enabled: boolean;
   query: string;
-  platform: PlatformType;
+  platform?: PlatformType;
+  country?: string;
   starred: boolean;
+  partnerIds?: string[];
+  candidateChunkCount?: number;
+  limit?: number;
+  chunksPerPartner?: number;
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { data, error, isLoading } = useSWR<PartnerContentSearchResponse>(
+  const { data, error, isLoading, mutate } = useSWR<PartnerContentSearchResponse>(
     enabled && workspaceId
-      ? ["partner-content-search", workspaceId, query, platform, starred]
+      ? [
+          "partner-content-search",
+          workspaceId,
+          query,
+          platform,
+          country,
+          starred,
+          partnerIds?.join(",") ?? "",
+          candidateChunkCount,
+          limit,
+          chunksPerPartner,
+        ]
       : null,
     // The shared `fetcher` from @dub/utils is GET-only; this endpoint takes a
     // POST body, so it needs its own fetcher.
@@ -70,9 +152,12 @@ export default function usePartnerContentSearch({
           },
           body: JSON.stringify({
             query,
-            limit: PARTNER_CONTENT_SEARCH_PARTNER_LIMIT,
-            chunksPerPartner: PARTNER_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER,
-            platform,
+            limit,
+            chunksPerPartner,
+            ...(candidateChunkCount && { candidateChunkCount }),
+            ...(platform && { platform }),
+            ...(country && { country }),
+            ...(partnerIds?.length && { partnerIds }),
             starred: starred || undefined,
           }),
         },
@@ -91,5 +176,5 @@ export default function usePartnerContentSearch({
     },
   );
 
-  return { data, error, isLoading };
+  return { data, error, isLoading, mutate };
 }

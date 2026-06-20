@@ -90,6 +90,9 @@ export const partnerContentFetchPayloadSchema = z.object({
   runStamp: z.string().min(1),
   dryRun: z.boolean().default(false),
   forceTranscriptJobs: z.boolean().default(false),
+  // Manual/direct fetch escape hatch for linked-but-unverified platforms.
+  // Enumerated backfills still only enqueue verified platforms.
+  ignoreUnverified: z.boolean().default(false),
   partnerId: z.string().min(1),
   partnerPlatformId: z.string().min(1),
   platform: z.enum(PARTNER_CONTENT_SEARCH_PLATFORMS),

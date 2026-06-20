@@ -8,6 +8,7 @@ import {
 } from "@/lib/partner-content-search/constants";
 import {
   groupPartnerSearchResults,
+  rerankPartnerSearchRows,
   toScore,
   type PartnerContentSearchRow,
 } from "@/lib/partner-content-search/search-utils";
@@ -44,6 +45,9 @@ const partnerContentSearchSchema = z.object({
     .optional(),
   partnerIds: z.array(z.string()).min(1).max(100).optional(),
   platform: z.enum(PlatformType).optional(),
+  // Second-stage reranking is on by default; pass `false` to inspect cosine-only
+  // ranking for comparison.
+  rerank: z.boolean().default(true),
 });
 
 // POST /api/admin/partner-content/search
@@ -78,18 +82,28 @@ export const POST = withAdmin(
       }
 
       const queryVector = serializeEmbeddingForVector(queryEmbedding);
-      const rows = await searchPartnerContentChunks({
+      const candidateRows = await searchPartnerContentChunks({
         queryVector,
         limit: candidateChunkCount,
         partnerIds: body.partnerIds,
         platform: body.platform,
       });
+      const { rows, reranked } = body.rerank
+        ? await rerankPartnerSearchRows({
+            query: body.query,
+            rows: candidateRows,
+          })
+        : { rows: candidateRows, reranked: false };
 
       return NextResponse.json({
         success: true,
         query: body.query,
         candidateChunkCount,
         embeddingModel: PARTNER_CONTENT_SEARCH_MODELS.embedding.id,
+        reranked,
+        rerankModel: reranked
+          ? PARTNER_CONTENT_SEARCH_MODELS.reranker.model
+          : null,
         resultCount: rows.length,
         partners: groupPartnerSearchResults({
           rows,
@@ -138,9 +152,11 @@ async function searchPartnerContentChunks({
       pp.identifier AS platformIdentifier,
       pci.platformContentId,
       pci.url AS contentUrl,
+      pci.contentType,
       pci.title AS contentTitle,
       pci.thumbnailUrl AS contentThumbnailUrl,
       pci.publishedAt AS contentPublishedAt,
+      pci.durationMs AS contentDurationMs,
       c.source AS chunkSource,
       c.chunkIndex,
       c.chunkText,
@@ -174,6 +190,7 @@ function toChunkResult(row: PartnerContentSearchRow, distance: number) {
       title: row.contentTitle,
       thumbnailUrl: row.contentThumbnailUrl,
       publishedAt: row.contentPublishedAt?.toISOString() ?? null,
+      durationMs: row.contentDurationMs,
     },
     chunk: {
       source: row.chunkSource,
@@ -183,6 +200,8 @@ function toChunkResult(row: PartnerContentSearchRow, distance: number) {
       endMs: row.endMs,
     },
     distance,
-    score: toScore(distance),
+    score: row.rerankScore ?? toScore(distance),
+    cosineScore: toScore(distance),
+    rerankScore: row.rerankScore ?? null,
   };
 }

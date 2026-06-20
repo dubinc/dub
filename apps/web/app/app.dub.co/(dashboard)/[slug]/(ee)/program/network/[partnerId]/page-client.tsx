@@ -1,0 +1,1132 @@
+"use client";
+
+import {
+  PARTNER_CONTENT_SEARCH_LIMITS,
+  PARTNER_CONTENT_SEARCH_MAX_CHUNKS_PER_PARTNER,
+  PARTNER_CONTENT_SEARCH_TOP_CONTENT,
+  type PartnerContentTopicFitBand,
+} from "@/lib/partner-content-search/constants";
+import {
+  getBlendedTopContentScore,
+  getViewBaseline,
+} from "@/lib/partner-content-search/top-content-ranking";
+import { isPartnerContentSearchPlatform } from "@/lib/partner-content-search/types";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerContentSearch, {
+  type PartnerContentMatchEvidence,
+  type PartnerContentSearchPartner,
+} from "@/lib/swr/use-partner-content-search";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { NetworkPartnerProps } from "@/lib/types";
+import { PartnerAbout } from "@/ui/partners/partner-about";
+import { PartnerComments } from "@/ui/partners/partner-comments";
+import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
+import { PartnerSheetTabs } from "@/ui/partners/partner-sheet-tabs";
+import { Button, Tooltip } from "@dub/ui";
+import { EnvelopeArrowRight, Instagram, TikTok, YouTube } from "@dub/ui/icons";
+import { cn, fetcher, nFormatter } from "@dub/utils";
+import { EmailContent } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/invite-email-preview";
+import { InviteNetworkPartnerSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/invite-network-partner-sheet";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
+import useSWR from "swr";
+
+const DETAIL_CONTENT_INITIAL_MATCH_COUNT = 8;
+const DETAIL_CONTENT_MATCH_INCREMENT = 8;
+
+export function NetworkPartnerDetailPageClient({
+  partnerId,
+}: {
+  partnerId: string;
+}) {
+  return (
+    <NetworkPartnerDetailContent
+      partnerId={partnerId}
+      partnerStatus="discover"
+      showBackLink
+    />
+  );
+}
+
+export function NetworkPartnerDetailContent({
+  partnerId,
+  partnerStatus,
+  searchPartner: initialSearchPartner,
+  showBackLink = false,
+  nestedSheets = false,
+}: {
+  partnerId: string;
+  partnerStatus: string;
+  searchPartner?: PartnerContentSearchPartner;
+  showBackLink?: boolean;
+  nestedSheets?: boolean;
+}) {
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const [currentTabId, setCurrentTabId] = useState<string>("about");
+  const searchParams = useSearchParams();
+  const search = searchParams.get("search")?.trim() ?? "";
+  const country = searchParams.get("country") ?? undefined;
+  const selectedPlatform = searchParams.get("platform");
+  const contentSearchPlatform = isPartnerContentSearchPlatform(selectedPlatform)
+    ? selectedPlatform
+    : undefined;
+  const hasContentSearch =
+    search.length > 0 && (!selectedPlatform || Boolean(contentSearchPlatform));
+  const backHref = workspaceSlug
+    ? `/${workspaceSlug}/program/network${getBackQueryString(searchParams)}`
+    : "#";
+
+  const { data: partners, isLoading: isLoadingPartner } = useSWR<
+    NetworkPartnerProps[]
+  >(
+    workspaceId
+      ? getPartnerApiPath({ workspaceId, partnerStatus, partnerId, country })
+      : null,
+    fetcher,
+    { revalidateOnFocus: false },
+  );
+  const partner = partners?.[0];
+
+  // The results page already ran the (global) Voyage search and handed us this
+  // partner's match data on click, so render straight from it — opening the
+  // detail is instant and never re-runs Voyage. Re-running scoped to a single
+  // partner would also recompute the candidate cutoff against a one-partner set,
+  // drifting the bars/counts away from the list. We only hit Voyage again when
+  // there's a genuine reason to:
+  //   • a cold deep-link (?partnerId=… with no results-page data in hand), or
+  //   • the user explicitly asks to see the full matched-content list (the list
+  //     only ships the top couple of matched snippets per partner to stay light).
+  // Either way the displayed Topic Fit / bars / counts stay sourced from the
+  // cached summary, so the on-demand fetch can add cards but never shift scores.
+  const [showAllMatches, setShowAllMatches] = useState(false);
+  const needsSearchFallback = hasContentSearch && !initialSearchPartner;
+  const shouldFetchSearch =
+    needsSearchFallback || (hasContentSearch && showAllMatches);
+  const {
+    data: searchResults,
+    error: searchError,
+    isLoading: isLoadingSearch,
+  } = usePartnerContentSearch({
+    enabled: Boolean(workspaceId && shouldFetchSearch),
+    query: search,
+    platform: contentSearchPlatform,
+    country,
+    starred: false,
+    partnerIds: [partnerId],
+    limit: 1,
+    chunksPerPartner: PARTNER_CONTENT_SEARCH_MAX_CHUNKS_PER_PARTNER,
+    candidateChunkCount: PARTNER_CONTENT_SEARCH_LIMITS.chunkCandidateCount,
+  });
+
+  const fetchedPartner = searchResults?.partners?.[0];
+  // Chunks (snippet text) prefer the fuller fetched set once it arrives; the
+  // summary always prefers the cached one so scores never drift on click.
+  const searchPartner = fetchedPartner ?? initialSearchPartner;
+  const searchSummary =
+    initialSearchPartner?.matchSummary ?? fetchedPartner?.matchSummary;
+  // A deep-link has nothing cached → full skeleton. A "show all" fetch already
+  // has cards on screen → append-only loading, don't blank what's shown.
+  const isFallbackLoading = isLoadingSearch && !initialSearchPartner;
+  const isLoadingMoreMatches = isLoadingSearch && Boolean(initialSearchPartner);
+
+  if (!isLoadingPartner && !partner) {
+    return (
+      <div className="flex flex-col gap-6">
+        {showBackLink && (
+          <Link
+            href={backHref}
+            className="text-content-default hover:text-content-emphasis flex w-fit items-center gap-2 text-sm font-medium transition-colors"
+          >
+            <ArrowLeft className="size-4" />
+            Back to results
+          </Link>
+        )}
+        <section className="border-border-subtle rounded-xl border bg-white p-8 text-sm text-neutral-600">
+          Partner not found in the network results.
+        </section>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      {showBackLink && (
+        <Link
+          href={backHref}
+          className="text-content-default hover:text-content-emphasis flex w-fit items-center gap-2 text-sm font-medium transition-colors"
+        >
+          <ArrowLeft className="size-4" />
+          Back to results
+        </Link>
+      )}
+
+      <div className="grid grid-cols-1 gap-x-6 gap-y-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="lg:order-2">
+          <PartnerInfoCards
+            type="network"
+            partner={partner}
+            browseMode
+            hideStatuses={["pending"]}
+            showFraudIndicator={false}
+            controls={
+              partner ? (
+                <NetworkInviteControl
+                  partner={partner}
+                  nested={nestedSheets}
+                  onSuccess={() => mutatePrefix("/api/network/partners")}
+                />
+              ) : undefined
+            }
+          />
+        </div>
+
+        <div className="lg:order-1">
+          <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
+            <PartnerSheetTabs
+              partnerId={partnerId}
+              currentTabId={currentTabId}
+              setCurrentTabId={setCurrentTabId}
+              aboutLabel="Content matches"
+            />
+            <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
+              {currentTabId === "about" && (
+                <div className="grid grid-cols-1 gap-5 text-sm text-neutral-600">
+                  <PartnerAbout
+                    partner={partner}
+                    hideSocials
+                    hideDescription
+                    hideMonthlyTraffic
+                  />
+                  {hasContentSearch && (
+                    <SearchFitPanel
+                      error={searchError}
+                      isLoading={isFallbackLoading}
+                      isLoadingMore={isLoadingMoreMatches}
+                      hasLoadedAllMatches={
+                        showAllMatches || !initialSearchPartner
+                      }
+                      onLoadAllMatches={() => setShowAllMatches(true)}
+                      summary={searchSummary}
+                      searchPartner={searchPartner}
+                    />
+                  )}
+                </div>
+              )}
+              {currentTabId === "comments" && (
+                <div>
+                  <h3 className="text-content-emphasis text-lg font-semibold">
+                    Comments
+                  </h3>
+                  <PartnerComments partnerId={partnerId} />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Compact "Invite" action rendered in the sidebar card header (next to the star).
+function NetworkInviteControl({
+  partner,
+  nested,
+  onSuccess,
+}: {
+  partner: NetworkPartnerProps;
+  nested?: boolean;
+  onSuccess: () => void;
+}) {
+  const [showInviteSheet, setShowInviteSheet] = useState(false);
+  const [inviteEmailContent, setInviteEmailContent] =
+    useState<EmailContent | null>(null);
+
+  if (partner.invitedAt || partner.recruitedAt) return null;
+
+  return (
+    <>
+      <InviteNetworkPartnerSheet
+        nested={nested}
+        isOpen={showInviteSheet}
+        setIsOpen={setShowInviteSheet}
+        partner={partner}
+        emailContent={inviteEmailContent}
+        onEmailContentChange={setInviteEmailContent}
+        onSuccess={onSuccess}
+      />
+      <Button
+        type="button"
+        variant="primary"
+        text="Invite"
+        icon={<EnvelopeArrowRight className="size-4" />}
+        onClick={() => setShowInviteSheet(true)}
+        className="h-9 rounded-lg px-3"
+      />
+    </>
+  );
+}
+
+const TOPIC_FIT_BAND_LABELS: Record<PartnerContentTopicFitBand, string> = {
+  consistent: "Consistent",
+  frequent: "Frequent",
+  occasional: "Occasional",
+  "one-off": "One-off",
+  none: "No recent match",
+};
+
+const TOPIC_FIT_BAND_STYLES: Record<
+  PartnerContentTopicFitBand,
+  { number: string; chip: string }
+> = {
+  consistent: { number: "text-green-600", chip: "bg-green-50 text-green-700" },
+  frequent: { number: "text-blue-600", chip: "bg-blue-50 text-blue-700" },
+  occasional: { number: "text-amber-600", chip: "bg-amber-50 text-amber-700" },
+  "one-off": {
+    number: "text-neutral-500",
+    chip: "bg-neutral-100 text-neutral-600",
+  },
+  none: { number: "text-neutral-400", chip: "bg-neutral-100 text-neutral-500" },
+};
+
+// Coarse "Nd / Nw / Nmo ago" for the last on-topic post.
+function lastPostedLabel(iso: string | null) {
+  if (!iso) return null;
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (days <= 0) return "today";
+  if (days < 7) return `${days}d ago`;
+  if (days < 8 * 7) return `${Math.floor(days / 7)}w ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
+}
+
+// Per-post match bars: height encodes match magnitude, color hints at the
+// platform. The palette is intentionally muted + evenly weighted (no full-
+// saturation brand colors, no black) so platforms read as a calm spectrum
+// rather than high-contrast — and so no platform looks like a "non-match".
+const PLATFORM_BAR_COLORS: Record<string, string> = {
+  youtube: "bg-[#bd8488]",
+  instagram: "bg-[#b083a2]",
+  tiktok: "bg-[#74a09a]",
+  twitter: "bg-[#8589b3]",
+  x: "bg-[#8589b3]",
+  linkedin: "bg-[#7c9cbd]",
+  website: "bg-[#bda77c]",
+};
+
+// The bars are a glanceable recent-activity strip, not the full archive — cap
+// the visual to the most-recent N so columns stay wide enough to hover and the
+// row doesn't turn into 200 hairlines. Topic Fit + the "X of Y on topic" counts
+// still derive from the full server-side recent set, so scoring is unaffected.
+const MAX_VISIBLE_CONTENT_BARS = 40;
+
+function ContentMatchBars({
+  summary,
+}: {
+  summary: PartnerContentSearchPartner["matchSummary"] | undefined;
+}) {
+  const allBars = summary?.contentBars ?? [];
+  if (!allBars.length) return null;
+  const bars = allBars.slice(0, MAX_VISIBLE_CONTENT_BARS);
+
+  return (
+    <div className="mt-2.5 flex h-9 items-end gap-[3px]">
+      {bars.map((bar) => {
+        const score =
+          bar.matched && bar.matchScore != null
+            ? Math.min(1, Math.max(0, bar.matchScore))
+            : 0;
+        // Magnitude → height (matched posts get a floor so they stay legible).
+        const height = bar.matched ? Math.round(10 + score * 26) : 5;
+        const isCreatorTextOnlyVideoMatch =
+          bar.matchEvidence.primarySource === "creatorText" &&
+          bar.matchEvidence.weight < 1;
+        // The whole column (full height) is the hover/click target, not just the
+        // short bar — far easier to land on. On hover a gold wash fills the
+        // column and the bar itself turns gold, so the moused-over post is
+        // unmistakable.
+        const columnClassName = cn(
+          "group flex h-full min-w-[5px] flex-1 items-end rounded-[3px] transition-colors duration-75 hover:bg-amber-100/70",
+          bar.url && "cursor-pointer",
+        );
+        const fill = (
+          <span
+            style={{ height }}
+            className={cn(
+              "w-full rounded-full transition-[height,background-color] duration-75",
+              bar.matched
+                ? cn(
+                    PLATFORM_BAR_COLORS[bar.platform] ?? "bg-[#94a3b8]",
+                    isCreatorTextOnlyVideoMatch && "opacity-55",
+                  )
+                : "bg-neutral-200",
+              "group-hover:bg-amber-400 group-hover:opacity-100",
+            )}
+          />
+        );
+
+        return (
+          <Tooltip
+            key={bar.partnerContentItemId}
+            content={<BarTooltip bar={bar} />}
+            // Snappy bar-to-bar hover: open instantly, drop Radix's hoverable
+            // "safe polygon" grace area (so it switches the moment you cross to
+            // the next bar instead of lingering), and trim the 400ms slide-fade.
+            delayDuration={0}
+            disableHoverableContent
+            style={{ animationDuration: "100ms" }}
+          >
+            {bar.url ? (
+              <a
+                href={bar.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={columnClassName}
+                aria-label={bar.title ?? "Open post"}
+              >
+                {fill}
+              </a>
+            ) : (
+              <div className={columnClassName}>{fill}</div>
+            )}
+          </Tooltip>
+        );
+      })}
+    </div>
+  );
+}
+
+// Subtle hover card for a single content bar: platform, title, and the post's
+// date · length · views — all already on the cached summary, no extra fetch.
+function BarTooltip({
+  bar,
+}: {
+  bar: NonNullable<
+    PartnerContentSearchPartner["matchSummary"]
+  >["contentBars"][number];
+}) {
+  const title = bar.title?.trim() || "Untitled content";
+  const meta = [
+    formatPublishedDate(bar.publishedAt),
+    formatDuration(bar.durationMs),
+    bar.viewCount && bar.viewCount > 0
+      ? `${nFormatter(bar.viewCount)} views`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <div className="max-w-[240px] px-3 py-2">
+      <div className="flex items-center gap-1.5">
+        <PlatformIcon platform={bar.platform} className="size-3.5 shrink-0" />
+        <span className="text-content-emphasis line-clamp-2 text-xs font-semibold">
+          {title}
+        </span>
+      </div>
+      {meta && (
+        <div className="text-content-subtle mt-1 text-[11px]">{meta}</div>
+      )}
+    </div>
+  );
+}
+
+function SearchFitPanel({
+  error,
+  isLoading,
+  isLoadingMore = false,
+  hasLoadedAllMatches = false,
+  onLoadAllMatches,
+  summary: initialSummary,
+  searchPartner,
+}: {
+  error: unknown;
+  isLoading: boolean;
+  // The on-demand "show all" fetch is in flight (cards already on screen).
+  isLoadingMore?: boolean;
+  // The full matched-content set has been fetched (or we never needed to).
+  hasLoadedAllMatches?: boolean;
+  onLoadAllMatches?: () => void;
+  summary?: PartnerContentSearchPartner["matchSummary"];
+  searchPartner?: PartnerContentSearchPartner;
+}) {
+  const [visibleAllCount, setVisibleAllCount] = useState(
+    DETAIL_CONTENT_INITIAL_MATCH_COUNT,
+  );
+  const summary = initialSummary ?? searchPartner?.matchSummary;
+  // Both lists come from the cached summary's full matched set (instant, complete);
+  // loaded chunks only enrich a row with its snippet/thumbnail when available.
+  const items = buildMatchedContentItems(summary, searchPartner?.chunks ?? []);
+
+  // Top content: the relevance-led blend of relevance + reach (robust to a single
+  // viral post). All content: the same matched set, simply newest-first.
+  const topContent = [...items]
+    .sort((a, b) => b.blendedScore - a.blendedScore)
+    .slice(0, PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount);
+  const allContent = [...items].sort(
+    (a, b) => publishedAtMs(b.publishedAt) - publishedAtMs(a.publishedAt),
+  );
+  const visibleAll = allContent.slice(0, visibleAllCount);
+  const hiddenAllCount = Math.max(0, allContent.length - visibleAll.length);
+  // A separate "All content" list only earns its place when it adds rows beyond
+  // the top set; with ≤ topContentCount matches the top list already shows them all.
+  const showAllSection =
+    allContent.length > PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount;
+  // Some rows may still be missing their snippet preview (the list page only ships
+  // the top couple of chunks). The lists are already complete from the summary, so
+  // this fetch only enriches previews — it never changes ordering or scores.
+  const canLoadPreviews =
+    !hasLoadedAllMatches &&
+    Boolean(onLoadAllMatches) &&
+    items.some((item) => !item.chunk);
+
+  const band = summary?.band ?? "none";
+  const bandStyles = TOPIC_FIT_BAND_STYLES[band];
+  const topPlatforms = summary?.topPlatforms?.length
+    ? summary.topPlatforms
+    : summary?.platforms ?? [];
+  const lastOnTopic = lastPostedLabel(summary?.lastOnTopicAt ?? null);
+  const rankWindowPhrase = formatRankWindowPhrase(summary);
+  const topContentCaption = rankWindowPhrase
+    ? `Ranked by relevance + reach across ${rankWindowPhrase}.`
+    : "Ranked by relevance + reach.";
+
+  return (
+    <div className="flex flex-col">
+      {/* Topic fit summary row — layout adapted from the Partner Search hi-fi ref */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+        <div className="shrink-0">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
+            Topic fit
+          </div>
+          <div className="mt-1.5 flex items-end gap-2.5">
+            <span
+              className={cn(
+                "text-[34px] font-bold leading-none tabular-nums",
+                bandStyles.number,
+              )}
+            >
+              {summary?.topicFit ?? "—"}
+            </span>
+            <span
+              className={cn(
+                "mb-1 inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                bandStyles.chip,
+              )}
+            >
+              {TOPIC_FIT_BAND_LABELS[band]}
+            </span>
+          </div>
+        </div>
+
+        <div className="h-10 w-px shrink-0 bg-neutral-200" />
+
+        <div className="min-w-[200px] flex-1">
+          <div className="text-content-default flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-medium">
+            {summary?.followers ? (
+              <span>{nFormatter(summary.followers)} followers</span>
+            ) : null}
+            {summary?.followers && summary?.medianViews ? (
+              <span className="text-neutral-300">·</span>
+            ) : null}
+            {summary?.medianViews ? (
+              <span>{nFormatter(summary.medianViews)} median views</span>
+            ) : null}
+          </div>
+          <ContentMatchBars summary={summary} />
+          {summary && (
+            <div className="text-content-subtle mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+              <span>
+                {summary.matchedContentCount} of {summary.recentContentCount}{" "}
+                matching
+              </span>
+              {topPlatforms.length > 0 && (
+                <>
+                  <span className="text-neutral-300">·</span>
+                  <span>matched on</span>
+                  <span className="flex items-center gap-1">
+                    {topPlatforms.map((platform) => (
+                      <PlatformIcon
+                        key={platform}
+                        platform={platform}
+                        className="size-3.5"
+                      />
+                    ))}
+                  </span>
+                </>
+              )}
+              {lastOnTopic && (
+                <>
+                  <span className="text-neutral-300">·</span>
+                  <span>last post {lastOnTopic}</span>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="border-border-subtle mt-5 border-t pt-5">
+        {/* Top content — ranked by the relevance + reach blend */}
+        <div className="flex flex-col gap-1">
+          <h3 className="text-content-subtle text-[11px] font-semibold uppercase tracking-wide">
+            Top content
+          </h3>
+          <p className="text-content-muted text-[11px] font-medium">
+            {topContentCaption}
+          </p>
+        </div>
+
+        <div className="divide-border-subtle mt-3 divide-y">
+          {error ? (
+            <div className="text-content-subtle py-3.5 text-sm">
+              Failed to load search matches
+            </div>
+          ) : isLoading ? (
+            <ContentMatchSkeletons count={3} />
+          ) : topContent.length ? (
+            topContent.map((item) => (
+              <ContentMatchRow key={item.contentItemId} item={item} />
+            ))
+          ) : (
+            <div className="text-content-subtle py-3.5 text-sm">
+              No matching content found for this partner.
+            </div>
+          )}
+        </div>
+
+        {/* All content — same matched set, simply most-recent-first */}
+        {showAllSection && (
+          <div className="mt-6">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-content-subtle text-[11px] font-semibold uppercase tracking-wide">
+                All content
+              </h3>
+              <p className="text-content-muted text-[11px] font-medium">
+                Most recent first
+              </p>
+            </div>
+
+            <div className="divide-border-subtle mt-3 divide-y">
+              {visibleAll.map((item) => (
+                <ContentMatchRow key={item.contentItemId} item={item} />
+              ))}
+              {/* Preview-enrichment fetch in flight: append skeletons rather than
+                  blanking the cards already on screen. */}
+              {isLoadingMore && <ContentMatchSkeletons count={3} />}
+            </div>
+
+            {hiddenAllCount > 0 ? (
+              <div className="mt-4 flex justify-center">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  text={`Show ${Math.min(
+                    hiddenAllCount,
+                    DETAIL_CONTENT_MATCH_INCREMENT,
+                  )} more`}
+                  onClick={() =>
+                    setVisibleAllCount(
+                      (count) => count + DETAIL_CONTENT_MATCH_INCREMENT,
+                    )
+                  }
+                  className="h-9 rounded-lg px-4"
+                />
+              </div>
+            ) : canLoadPreviews ? (
+              // Fills in snippet previews for the rest of the matched set on
+              // demand (the one path that re-runs Voyage from the detail view).
+              <div className="mt-4 flex justify-center">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  text="Load full previews"
+                  loading={isLoadingMore}
+                  onClick={onLoadAllMatches}
+                  className="h-9 rounded-lg px-4"
+                />
+              </div>
+            ) : null}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ContentMatchSkeletons({ count }: { count: number }) {
+  return (
+    <>
+      {[...Array(count)].map((_, index) => (
+        <div key={index} className="flex items-center gap-3.5 py-3">
+          <div className="h-14 w-[88px] shrink-0 animate-pulse rounded-lg bg-neutral-100" />
+          <div className="flex-1">
+            <div className="h-4 w-48 animate-pulse rounded bg-neutral-200" />
+            <div className="mt-2 h-3 w-32 animate-pulse rounded bg-neutral-100" />
+            <div className="mt-2 h-3.5 w-72 animate-pulse rounded bg-neutral-100" />
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+// A matched post for the detail-pane lists. Built from the cached summary's
+// content bars (complete + instant) and enriched with a loaded chunk (snippet,
+// timed transcript, richer thumbnail) when one is available.
+type MatchedContentItem = {
+  contentItemId: string;
+  platform: string;
+  platformContentId: string;
+  title: string | null;
+  url: string | null;
+  durationMs: number | null;
+  publishedAt: string | null;
+  viewCount: number | null;
+  // The displayed relevance rating (0-1); also feeds the blend.
+  relevance: number;
+  // Relevance + reach blend, used only to order the Top content list.
+  blendedScore: number;
+  matchEvidence: PartnerContentMatchEvidence;
+  chunk?: PartnerContentSearchPartner["chunks"][number];
+};
+
+function buildMatchedContentItems(
+  summary: PartnerContentSearchPartner["matchSummary"] | undefined,
+  chunks: PartnerContentSearchPartner["chunks"],
+): MatchedContentItem[] {
+  const bars = summary?.contentBars ?? [];
+
+  // Best loaded chunk per content item, for snippet/thumbnail enrichment.
+  const chunkByContentItemId = new Map<
+    string,
+    PartnerContentSearchPartner["chunks"][number]
+  >();
+  for (const chunk of chunks) {
+    const current = chunkByContentItemId.get(chunk.partnerContentItemId);
+    if (!current || chunk.score > current.score) {
+      chunkByContentItemId.set(chunk.partnerContentItemId, chunk);
+    }
+  }
+
+  // Per-creator engagement baseline: median views across all recent posts
+  // (matched + unmatched), so a viral hit can't skew the normalization.
+  const baselineViews = getViewBaseline(bars.map((bar) => bar.viewCount));
+
+  return bars
+    .filter((bar) => bar.matched)
+    .map((bar) => {
+      const relevance =
+        getEvidenceDisplayScore(bar.matchEvidence) ?? bar.matchScore ?? 0;
+
+      return {
+        contentItemId: bar.partnerContentItemId,
+        platform: bar.platform,
+        platformContentId: bar.platformContentId,
+        title: bar.title,
+        url: bar.url,
+        durationMs: bar.durationMs,
+        publishedAt: bar.publishedAt,
+        viewCount: bar.viewCount,
+        relevance,
+        blendedScore: getBlendedTopContentScore({
+          relevance,
+          views: bar.viewCount,
+          baselineViews,
+        }),
+        matchEvidence: bar.matchEvidence,
+        chunk: chunkByContentItemId.get(bar.partnerContentItemId),
+      };
+    });
+}
+
+function publishedAtMs(iso: string | null) {
+  if (!iso) return -Infinity;
+  const ms = new Date(iso).getTime();
+  return Number.isNaN(ms) ? -Infinity : ms;
+}
+
+function ContentMatchRow({ item }: { item: MatchedContentItem }) {
+  const { chunk } = item;
+  const evidence = item.matchEvidence;
+  const isTimedTranscriptMatch = chunk
+    ? hasTimedTranscriptMatch(chunk.chunk)
+    : false;
+  const timeLabel =
+    chunk && isTimedTranscriptMatch
+      ? formatChunkTimeRange(chunk.chunk)
+      : formatDuration(item.durationMs);
+  const dateLabel = formatPublishedDate(item.publishedAt);
+  const matchTags = getMatchTags(
+    evidence,
+    chunk?.chunk.source ??
+      (evidence.primarySource === "creatorText" ? "metadata" : "transcript"),
+  );
+  const snippet = chunk ? getMatchSnippet(chunk) : null;
+  const excerpt = snippet ? `"…${snippet.slice(0, 130).trimEnd()}…"` : null;
+  const thumbnail = getItemThumbnail(item);
+  const meta = [timeLabel, dateLabel].filter(Boolean).join(" · ");
+  const score = item.relevance;
+  const title = getItemTitle(item);
+  const viewCount = item.viewCount;
+
+  return (
+    <a
+      href={getItemHref(item)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group hover:bg-bg-muted flex items-center gap-3.5 py-3 transition-colors"
+    >
+      {/* Preview image */}
+      <div className="bg-bg-subtle relative h-14 w-[88px] shrink-0 overflow-hidden rounded-lg">
+        {thumbnail ? (
+          <img
+            src={thumbnail}
+            alt=""
+            className="size-full object-cover transition-transform duration-150 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex size-full items-center justify-center">
+            <PlatformIcon platform={item.platform} className="size-5" />
+          </div>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          <PlatformIcon platform={item.platform} className="size-3.5 shrink-0" />
+          <span className="text-content-emphasis truncate text-sm font-semibold">
+            {title}
+          </span>
+        </div>
+        <div className="text-content-subtle mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs">
+          {meta && <span>{meta}</span>}
+          {matchTags.length > 0 && (
+            <>
+              {meta && <span className="text-content-muted">·</span>}
+              <span className="flex flex-wrap items-center gap-1">
+                {matchTags.map((tag) => (
+                  <span
+                    key={tag.source}
+                    className={cn(
+                      tag.source === "transcript"
+                        ? "text-blue-600"
+                        : "text-content-subtle",
+                    )}
+                  >
+                    {tag.label}
+                  </span>
+                ))}
+              </span>
+            </>
+          )}
+          {viewCount != null && viewCount > 0 && (
+            <>
+              <span className="text-content-muted">·</span>
+              <span>{nFormatter(viewCount)} views</span>
+            </>
+          )}
+        </div>
+        {excerpt && (
+          <p className="text-content-subtle mt-1 line-clamp-1 text-sm">
+            {excerpt}
+          </p>
+        )}
+      </div>
+      <div className="flex shrink-0 flex-col items-end gap-0.5">
+        <span className="inline-flex items-center rounded-md bg-blue-50 px-1.5 py-0.5 text-xs font-semibold tabular-nums text-blue-700">
+          {formatMatchPercent(score)}
+        </span>
+        <span className="text-content-muted text-[10px] font-medium uppercase tracking-wide">
+          match
+        </span>
+      </div>
+    </a>
+  );
+}
+
+function getEvidenceDisplayScore(
+  evidence: PartnerContentMatchEvidence | undefined,
+) {
+  if (!evidence || evidence.sources.length === 0) return null;
+
+  return Math.max(
+    evidence.transcriptScore ?? 0,
+    evidence.creatorTextScore ?? 0,
+  );
+}
+
+function getMatchTags(
+  evidence: PartnerContentMatchEvidence | undefined,
+  fallbackSource: string,
+) {
+  const sources = evidence?.sources.length
+    ? evidence.sources
+    : fallbackSource === "metadata"
+      ? ["creatorText" as const]
+      : ["transcript" as const];
+
+  return sources.map((source) => ({
+    source,
+    label: source === "transcript" ? "Transcript" : "Creator text",
+  }));
+}
+
+// The displayed snippet. Transcript chunks are real prose; creator-text chunks
+// store the raw embedding input ("Content type: video Title: … Description: …"),
+// so we surface just the creator-entered text for a cleaner preview.
+function getMatchSnippet(chunk: PartnerContentSearchPartner["chunks"][number]) {
+  const text = (chunk.chunk.text ?? "").trim();
+  if (!text) return null;
+  if (chunk.chunk.source !== "metadata") return text;
+
+  const description = text.match(/Description:\s*([\s\S]+)$/i)?.[1];
+  return (
+    (
+      description ?? text.replace(/^Content type:[\s\S]*?Title:\s*/i, "")
+    ).trim() || null
+  );
+}
+
+function PlatformIcon({
+  platform,
+  className,
+}: {
+  platform: string;
+  className?: string;
+}) {
+  const Icon =
+    platform === "youtube"
+      ? YouTube
+      : platform === "instagram"
+        ? Instagram
+        : platform === "tiktok"
+          ? TikTok
+          : null;
+
+  return Icon ? <Icon className={cn("size-4", className)} /> : null;
+}
+
+function getPreviewThumbnail(
+  chunk: PartnerContentSearchPartner["chunks"][number],
+) {
+  if (chunk.content.thumbnailUrl) return chunk.content.thumbnailUrl;
+  if (chunk.platform.type === "youtube") {
+    return `https://i.ytimg.com/vi/${chunk.content.platformContentId}/hqdefault.jpg`;
+  }
+  return null;
+}
+
+// Thumbnail for a matched item: the loaded chunk's preview when enriched,
+// otherwise a YouTube thumbnail derived from the content id (the only platform
+// with a stable URL pattern from the bar data alone).
+function getItemThumbnail(item: MatchedContentItem) {
+  if (item.chunk) return getPreviewThumbnail(item.chunk);
+  if (item.platform === "youtube" && item.platformContentId) {
+    return `https://i.ytimg.com/vi/${item.platformContentId}/hqdefault.jpg`;
+  }
+  return null;
+}
+
+function getItemTitle(item: MatchedContentItem) {
+  if (item.chunk) return getContentTitle(item.chunk);
+  return item.title?.trim() || "Untitled content";
+}
+
+// Link for a matched item: the chunk-aware href (YouTube deep-link timestamp,
+// Instagram normalization) when enriched, otherwise the bar's canonical URL.
+function getItemHref(item: MatchedContentItem) {
+  if (item.chunk) return getContentHref(item.chunk);
+  return item.url ?? "#";
+}
+
+// A noun phrase describing exactly what window the ranks are computed over, for
+// composing into the caption. The window is time-based (recencyWindowMonths) but
+// capped per partner (recentContentMaxPerPartner); when that cap bites, say so
+// explicitly instead of implying full coverage.
+function formatRankWindowPhrase(
+  summary: PartnerContentSearchPartner["matchSummary"] | undefined,
+) {
+  if (!summary || !summary.recentContentCount) return null;
+
+  const { recentContentCount, oldestPublishedAt, newestPublishedAt } = summary;
+  const oldest = formatMonthYear(oldestPublishedAt);
+  const newest = formatMonthYear(newestPublishedAt);
+  const countCapped =
+    recentContentCount >= PARTNER_CONTENT_SEARCH_LIMITS.recentContentMaxPerPartner;
+
+  if (countCapped) {
+    return oldest
+      ? `the ${recentContentCount} most recent posts, back to ${oldest}`
+      : `the ${recentContentCount} most recent posts`;
+  }
+
+  if (oldest && newest) {
+    return oldest === newest
+      ? `${recentContentCount} ${
+          recentContentCount === 1 ? "post" : "posts"
+        } from ${oldest}`
+      : `${recentContentCount} posts, ${oldest} – ${newest}`;
+  }
+
+  return `${recentContentCount} recent ${
+    recentContentCount === 1 ? "post" : "posts"
+  }`;
+}
+
+function formatMonthYear(iso: string | null) {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+function getContentTitle(chunk: PartnerContentSearchPartner["chunks"][number]) {
+  return (
+    chunk.content.title?.trim() ||
+    chunk.content.description?.trim().split(/\r?\n/)[0] ||
+    "Untitled content"
+  );
+}
+
+function getContentHref(chunk: PartnerContentSearchPartner["chunks"][number]) {
+  if (chunk.platform.type === "instagram") {
+    return getInstagramContentHref(chunk);
+  }
+
+  if (chunk.platform.type !== "youtube" || chunk.chunk.startMs === null) {
+    return chunk.content.url;
+  }
+
+  try {
+    const url = new URL(chunk.content.url);
+    url.searchParams.set("t", `${Math.floor(chunk.chunk.startMs / 1000)}s`);
+    return url.toString();
+  } catch {
+    return chunk.content.url;
+  }
+}
+
+function getInstagramContentHref(
+  chunk: PartnerContentSearchPartner["chunks"][number],
+) {
+  const shortcode =
+    extractInstagramShortcode(chunk.content.url) ||
+    chunk.content.platformContentId;
+
+  return `https://www.instagram.com/${chunk.content.type === "reel" ? "reel" : "p"}/${shortcode}/`;
+}
+
+function extractInstagramShortcode(url: string) {
+  try {
+    return (
+      new URL(url).pathname.match(
+        /^\/(?:(?:[^/]+)\/)?(?:p|reel|tv)\/([^/?#]+)/,
+      )?.[1] ?? null
+    );
+  } catch {
+    return (
+      url.match(
+        /instagram\.com\/(?:(?:[^/]+)\/)?(?:p|reel|tv)\/([^/?#]+)/,
+      )?.[1] ?? null
+    );
+  }
+}
+
+function hasTimedTranscriptMatch({
+  source,
+  startMs,
+  endMs,
+}: PartnerContentSearchPartner["chunks"][number]["chunk"]) {
+  return source !== "metadata" && (startMs !== null || endMs !== null);
+}
+
+function formatChunkTimeRange({
+  source,
+  startMs,
+  endMs,
+}: PartnerContentSearchPartner["chunks"][number]["chunk"]) {
+  if (source === "metadata") return "Creator text match";
+  if (startMs === null && endMs === null) return "Transcript match";
+  if (startMs !== null && endMs !== null) {
+    return `${formatTimestamp(startMs)} - ${formatTimestamp(endMs)}`;
+  }
+  return formatTimestamp(startMs ?? endMs ?? 0);
+}
+
+function formatTimestamp(ms: number) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function formatDuration(durationMs: number | null) {
+  if (!durationMs || durationMs <= 0) return null;
+
+  const totalSeconds = Math.floor(durationMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  }
+
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
+function formatPublishedDate(publishedAt: string | null) {
+  if (!publishedAt) return null;
+
+  const date = new Date(publishedAt);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+function formatMatchPercent(score: number) {
+  return `${Math.round(Math.min(1, Math.max(0, score)) * 100)}%`;
+}
+
+function getBackQueryString(searchParams: { toString(): string }) {
+  const params = new URLSearchParams(searchParams.toString());
+  const queryString = params.toString();
+
+  return queryString ? `?${queryString}` : "";
+}
+
+function getPartnerApiPath({
+  workspaceId,
+  partnerStatus,
+  partnerId,
+  country,
+}: {
+  workspaceId: string;
+  partnerStatus: string;
+  partnerId: string;
+  country?: string;
+}) {
+  const params = new URLSearchParams({
+    workspaceId,
+    status: partnerStatus,
+    partnerIds: partnerId,
+    pageSize: "1",
+  });
+
+  if (country) params.set("country", country);
+
+  return `/api/network/partners?${params}`;
+}

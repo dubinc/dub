@@ -19,6 +19,7 @@ import {
   CopyButton,
   Globe,
   Heart,
+  InfoTooltip,
   OfficeBuilding,
   TimestampTooltip,
   Trophy,
@@ -46,6 +47,8 @@ import {
 } from "./fraud-risks/partner-risk-banner";
 import { PartnerRiskIndicator } from "./fraud-risks/partner-risk-indicator";
 import { PartnerAvatar } from "./partner-avatar";
+import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
+import { monthlyTrafficAmountsMap } from "@/lib/partners/partner-profile";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
 import { PartnerStarButton } from "./partner-star-button";
@@ -72,6 +75,13 @@ type PartnerInfoCardsProps = {
   // Only used for a controlled group selector that doesn't persist the selection itself
   selectedGroupId?: string | null;
   setSelectedGroupId?: (groupId: string) => void;
+
+  /**
+   * Network-browse mode (marketplace discovery): the partner isn't enrolled in a
+   * group, so hide the group/rewards/bounties block and surface website & socials
+   * in the sidebar instead.
+   */
+  browseMode?: boolean;
 } & (
   | { type?: "enrolled"; partner?: EnrolledPartnerExtendedProps }
   | { type: "network"; partner?: NetworkPartnerProps }
@@ -97,6 +107,7 @@ export function PartnerInfoCards({
   setSelectedGroupId,
   showFraudIndicator = true,
   showApplicationRiskAnalysis = false,
+  browseMode = false,
 }: PartnerInfoCardsProps) {
   const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
 
@@ -241,6 +252,30 @@ export function PartnerInfoCards({
     ]);
   }
 
+  // Browse mode: website/socials rendered as compact rows (matching the detail
+  // rows above) instead of the bordered platform cards.
+  const socialFields =
+    browseMode && partner && "platforms" in partner
+      ? PARTNER_PLATFORM_FIELDS.map((field) => ({
+          label: field.label,
+          icon: field.icon,
+          ...field.data(partner.platforms),
+        })).filter((field) => field.value && field.href)
+      : [];
+
+  // Browse mode: description + monthly traffic move into the sidebar profile card.
+  const description =
+    browseMode && partner && "description" in partner
+      ? partner.description
+      : null;
+  const monthlyTrafficLabel =
+    browseMode &&
+    partner &&
+    "monthlyTraffic" in partner &&
+    partner.monthlyTraffic
+      ? (monthlyTrafficAmountsMap[partner.monthlyTraffic]?.label ?? null)
+      : null;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="overflow-hidden rounded-xl bg-red-100">
@@ -368,6 +403,60 @@ export function PartnerInfoCards({
                 );
               })}
           </div>
+
+          {description && (
+            <div className="flex flex-col gap-1.5 p-4">
+              <h3 className="text-content-subtle text-[11px] font-semibold uppercase tracking-wide">
+                About
+              </h3>
+              <p className="text-content-default line-clamp-4 text-xs leading-relaxed">
+                {description}
+              </p>
+            </div>
+          )}
+
+          {socialFields.length > 0 && (
+            <div className="flex flex-col gap-2.5 p-4">
+              <h3 className="text-content-subtle text-[11px] font-semibold uppercase tracking-wide">
+                Website and socials
+              </h3>
+              <div className="flex flex-col gap-2.5">
+                {socialFields.map(({ label, icon: Icon, value, href, info }) => (
+                  <a
+                    key={label}
+                    href={href ?? undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-content-subtle hover:text-content-default flex items-start gap-1.5 transition-colors"
+                  >
+                    <Icon className="size-3.5 shrink-0 translate-y-px" />
+                    <div className="min-w-0">
+                      <div className="truncate text-xs font-medium">{value}</div>
+                      {info && info.length > 0 && (
+                        <div className="text-content-muted truncate text-[11px] font-medium">
+                          {info.join(" · ")}
+                        </div>
+                      )}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {monthlyTrafficLabel && (
+            <div className="flex flex-col gap-1.5 p-4">
+              <div className="flex items-center gap-1">
+                <h3 className="text-content-subtle text-[11px] font-semibold uppercase tracking-wide">
+                  Monthly traffic
+                </h3>
+                <InfoTooltip content="Shared by the partner, not verified by Dub." />
+              </div>
+              <span className="text-content-default text-xs font-medium">
+                {monthlyTrafficLabel}
+              </span>
+            </div>
+          )}
           {isEnrolled && partner && <TagsList partner={partner} />}
 
           {partner && isEnrolled && showApplicationRiskAnalysis && (
@@ -376,7 +465,7 @@ export function PartnerInfoCards({
         </div>
       </div>
 
-      {!isAdmin && (
+      {!isAdmin && !browseMode && (
         <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
           {/* Group */}
           <div className="flex flex-col gap-2">

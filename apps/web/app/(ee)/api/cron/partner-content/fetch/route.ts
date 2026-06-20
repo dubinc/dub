@@ -55,6 +55,13 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
+  if (!partnerPlatform.verifiedAt && !payload.ignoreUnverified) {
+    return logAndRespond(
+      `[PartnerContentSearch] Partner platform ${partnerPlatform.id} is unverified; pass ignoreUnverified=true for a manual ${payload.mode} fetch on run ${payload.runStamp}.`,
+      { status: 400, logLevel: "warn" },
+    );
+  }
+
   const fetchedContentItems = await fetchRecentPlatformContent({
     platform: payload.platform,
     platformId: partnerPlatform.platformId ?? undefined,

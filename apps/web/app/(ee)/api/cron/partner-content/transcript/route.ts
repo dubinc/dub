@@ -106,8 +106,15 @@ export const POST = withCron(async ({ rawBody }) => {
   }
 
   if (!transcriptWriteResult.transcriptAvailable) {
+    await enqueueEmbedJob({
+      mode: payload.mode,
+      runStamp: payload.runStamp,
+      partnerId: contentItem.partnerId,
+      partnerContentItemId: contentItem.id,
+    });
+
     return logAndRespond(
-      `[PartnerContentSearch] No transcript available for content item ${contentItem.id} on ${payload.mode} run ${payload.runStamp}.`,
+      `[PartnerContentSearch] No transcript available for content item ${contentItem.id}; re-enqueued embed for existing chunks on ${payload.mode} run ${payload.runStamp}.`,
     );
   }
 
@@ -151,8 +158,6 @@ async function writeTranscriptChunks(contentItem: {
         normalizedTranscript: null,
         transcriptHash: null,
         transcriptHasTimestamps: false,
-        totalChunkCount: 0,
-        embeddedChunkCount: 0,
       },
     });
 
