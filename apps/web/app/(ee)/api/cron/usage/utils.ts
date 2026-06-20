@@ -160,7 +160,7 @@ export const updateUsage = async () => {
 
         await sendBatchEmail(
           emails.map((email) => ({
-            subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${workspace.name}`,
+            subject: `Your 30-day Dub summary for ${workspace.name}`,
             to: email,
             react: ClicksSummary({
               email,

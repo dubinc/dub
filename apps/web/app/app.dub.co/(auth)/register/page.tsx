@@ -3,7 +3,7 @@ import { APP_DOMAIN, constructMetadata } from "@dub/utils";
 import RegisterPageClient from "./page-client";
 
 export const metadata = constructMetadata({
-  title: `Create your ${process.env.NEXT_PUBLIC_APP_NAME} account`,
+  title: "Create your Dub account",
   canonicalUrl: `${APP_DOMAIN}/register`,
 });
 
