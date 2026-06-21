@@ -522,6 +522,9 @@ function RewardSheetContent({
                             </InlineBadgePopover>
                           </>
                         )}
+                        {modifiers?.length ? (
+                          <> for all other {selectedEvent}s</>
+                        ) : null}
                         {canSetRewardSpendLimit ? (
                           <>
                             {", "}with{" "}
@@ -610,9 +613,6 @@ function RewardSheetContent({
                               </>
                             ) : null}
                           </>
-                        ) : null}
-                        {modifiers?.length ? (
-                          <> for all other {selectedEvent}s</>
                         ) : null}
                       </span>
                     )}
