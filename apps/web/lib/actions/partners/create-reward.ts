@@ -65,7 +65,7 @@ export const createRewardAction = authActionClient
 
     if ((spendLimitAmount || spendLimitInterval) && !canSetRewardSpendLimit) {
       throw new Error(
-        "Spend limits are only available on the Advanced plan and above.",
+        "Spend limits are only available on the Enterprise plan.",
       );
     }
 

@@ -77,7 +77,8 @@ describe.concurrent("POST /commissions", async () => {
     expect(status).toEqual(202);
     expect(data).toStrictEqual(expectedQueuedResponse);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    // TODO: migrate this to use verifyCommission to be more robust
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     const { data: commissions } = await http.get<CommissionResponse[]>({
       path: "/commissions",
