@@ -10,7 +10,7 @@ import {
   getBlendedTopContentScore,
   getViewBaseline,
 } from "@/lib/partner-content-search/top-content-ranking";
-import { isPartnerContentSearchPlatform } from "@/lib/partner-content-search/types";
+import { getPartnerContentThumbnailUrl } from "@/lib/partner-content-search/thumbnail-url";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerContentSearch, {
   type PartnerContentMatchEvidence,
@@ -28,6 +28,11 @@ import { cn, fetcher, nFormatter } from "@dub/utils";
 import { EmailContent } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/invite-email-preview";
 import { InviteNetworkPartnerSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/invite-network-partner-sheet";
 import Link from "next/link";
+import {
+  getContentSearchPlatforms,
+  parseSelectedPlatforms,
+  platformFilterParam,
+} from "../platform-filter-utils";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
@@ -68,12 +73,12 @@ export function NetworkPartnerDetailContent({
   const searchParams = useSearchParams();
   const search = searchParams.get("search")?.trim() ?? "";
   const country = searchParams.get("country") ?? undefined;
-  const selectedPlatform = searchParams.get("platform");
-  const contentSearchPlatform = isPartnerContentSearchPlatform(selectedPlatform)
-    ? selectedPlatform
-    : undefined;
+  const selectedPlatforms = parseSelectedPlatforms(
+    searchParams.get("platform"),
+  );
+  const contentSearchPlatforms = getContentSearchPlatforms(selectedPlatforms);
   const hasContentSearch =
-    search.length > 0 && (!selectedPlatform || Boolean(contentSearchPlatform));
+    search.length > 0 && contentSearchPlatforms.length > 0;
   const backHref = workspaceSlug
     ? `/${workspaceSlug}/program/network${getBackQueryString(searchParams)}`
     : "#";
@@ -90,20 +95,20 @@ export function NetworkPartnerDetailContent({
   const partner = partners?.[0];
 
   // The results page already ran the (global) Voyage search and handed us this
-  // partner's match data on click, so render straight from it — opening the
-  // detail is instant and never re-runs Voyage. Re-running scoped to a single
-  // partner would also recompute the candidate cutoff against a one-partner set,
-  // drifting the bars/counts away from the list. We only hit Voyage again when
-  // there's a genuine reason to:
-  //   • a cold deep-link (?partnerId=… with no results-page data in hand), or
-  //   • the user explicitly asks to see the full matched-content list (the list
-  //     only ships the top couple of matched snippets per partner to stay light).
-  // Either way the displayed Topic Fit / bars / counts stay sourced from the
-  // cached summary, so the on-demand fetch can add cards but never shift scores.
-  const [showAllMatches, setShowAllMatches] = useState(false);
-  const needsSearchFallback = hasContentSearch && !initialSearchPartner;
-  const shouldFetchSearch =
-    needsSearchFallback || (hasContentSearch && showAllMatches);
+  // partner's match data on click, so we render straight from it — opening the
+  // detail is instant. In the background we also run a scoped, single-partner
+  // search whenever there's a content-search context, for one reason: to put the
+  // matched-content list on a SINGLE relevance scale. The global search only
+  // reranks items that made its top-N candidate pool, so a creator's other matched
+  // posts fall back to raw cosine — two incomparable scales mixed in one list (the
+  // tell-tale "65% vs 95%" banding). A per-partner rerank covers all of this
+  // creator's items, so every row shares the reranker scale.
+  //
+  // This is non-blocking: the cached summary paints immediately and the unified
+  // scores swap in when the scoped run resolves. Topic Fit / bars / counts stay
+  // sourced from the cached summary (re-running scoped would recompute the cutoff
+  // against a one-partner set and drift them), so the headline never shifts.
+  const shouldFetchSearch = hasContentSearch;
   const {
     data: searchResults,
     error: searchError,
@@ -111,7 +116,7 @@ export function NetworkPartnerDetailContent({
   } = usePartnerContentSearch({
     enabled: Boolean(workspaceId && shouldFetchSearch),
     query: search,
-    platform: contentSearchPlatform,
+    platforms: platformFilterParam(selectedPlatforms),
     country,
     starred: false,
     partnerIds: [partnerId],
@@ -126,10 +131,16 @@ export function NetworkPartnerDetailContent({
   const searchPartner = fetchedPartner ?? initialSearchPartner;
   const searchSummary =
     initialSearchPartner?.matchSummary ?? fetchedPartner?.matchSummary;
-  // A deep-link has nothing cached → full skeleton. A "show all" fetch already
-  // has cards on screen → append-only loading, don't blank what's shown.
+  // The matched-content list's per-row relevance comes from the scoped, fully
+  // reranked summary (one scale) once it lands; null until then, so the list
+  // shows cached scores and quietly upgrades. Everything else stays on the
+  // cached summary above.
+  const relevanceSummary = fetchedPartner?.matchSummary ?? null;
+  // A deep-link has nothing cached → full skeleton. With cached data in hand the
+  // scoped run is a silent, non-blocking relevance refinement.
   const isFallbackLoading = isLoadingSearch && !initialSearchPartner;
-  const isLoadingMoreMatches = isLoadingSearch && Boolean(initialSearchPartner);
+  const isRefiningRelevance =
+    isLoadingSearch && Boolean(initialSearchPartner) && !relevanceSummary;
 
   if (!isLoadingPartner && !partner) {
     return (
@@ -203,12 +214,9 @@ export function NetworkPartnerDetailContent({
                     <SearchFitPanel
                       error={searchError}
                       isLoading={isFallbackLoading}
-                      isLoadingMore={isLoadingMoreMatches}
-                      hasLoadedAllMatches={
-                        showAllMatches || !initialSearchPartner
-                      }
-                      onLoadAllMatches={() => setShowAllMatches(true)}
+                      isRefining={isRefiningRelevance}
                       summary={searchSummary}
+                      relevanceSummary={relevanceSummary}
                       searchPartner={searchPartner}
                     />
                   )}
@@ -436,29 +444,37 @@ function BarTooltip({
 function SearchFitPanel({
   error,
   isLoading,
-  isLoadingMore = false,
-  hasLoadedAllMatches = false,
-  onLoadAllMatches,
+  isRefining = false,
   summary: initialSummary,
+  relevanceSummary,
   searchPartner,
 }: {
   error: unknown;
   isLoading: boolean;
-  // The on-demand "show all" fetch is in flight (cards already on screen).
-  isLoadingMore?: boolean;
-  // The full matched-content set has been fetched (or we never needed to).
-  hasLoadedAllMatches?: boolean;
-  onLoadAllMatches?: () => void;
+  // The scoped single-partner rerank is in flight (cached scores still on screen);
+  // when it lands, every row's relevance moves onto one consistent scale.
+  isRefining?: boolean;
   summary?: PartnerContentSearchPartner["matchSummary"];
+  // Scoped, fully reranked summary used only to put the list's per-row relevance
+  // on a single scale. Null until the background rerank resolves.
+  relevanceSummary?: PartnerContentSearchPartner["matchSummary"] | null;
   searchPartner?: PartnerContentSearchPartner;
 }) {
   const [visibleAllCount, setVisibleAllCount] = useState(
     DETAIL_CONTENT_INITIAL_MATCH_COUNT,
   );
   const summary = initialSummary ?? searchPartner?.matchSummary;
+  // Per-item relevance on a single scale, from the scoped reranked summary. Until
+  // it lands this is empty and rows show the cached (possibly mixed-scale) score.
+  const unifiedRelevanceByItemId = buildUnifiedRelevanceMap(relevanceSummary);
   // Both lists come from the cached summary's full matched set (instant, complete);
-  // loaded chunks only enrich a row with its snippet/thumbnail when available.
-  const items = buildMatchedContentItems(summary, searchPartner?.chunks ?? []);
+  // loaded chunks only enrich a row with its snippet/thumbnail when available, and
+  // the unified-relevance map upgrades each row's score in place once available.
+  const items = buildMatchedContentItems(
+    summary,
+    searchPartner?.chunks ?? [],
+    unifiedRelevanceByItemId,
+  );
 
   // Top content: the relevance-led blend of relevance + reach (robust to a single
   // viral post). All content: the same matched set, simply newest-first.
@@ -474,13 +490,6 @@ function SearchFitPanel({
   // the top set; with ≤ topContentCount matches the top list already shows them all.
   const showAllSection =
     allContent.length > PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount;
-  // Some rows may still be missing their snippet preview (the list page only ships
-  // the top couple of chunks). The lists are already complete from the summary, so
-  // this fetch only enriches previews — it never changes ordering or scores.
-  const canLoadPreviews =
-    !hasLoadedAllMatches &&
-    Boolean(onLoadAllMatches) &&
-    items.some((item) => !item.chunk);
 
   const band = summary?.band ?? "none";
   const bandStyles = TOPIC_FIT_BAND_STYLES[band];
@@ -576,6 +585,9 @@ function SearchFitPanel({
           </h3>
           <p className="text-content-muted text-[11px] font-medium">
             {topContentCaption}
+            {isRefining && (
+              <span className="text-content-muted/70"> · refining match…</span>
+            )}
           </p>
         </div>
 
@@ -613,9 +625,6 @@ function SearchFitPanel({
               {visibleAll.map((item) => (
                 <ContentMatchRow key={item.contentItemId} item={item} />
               ))}
-              {/* Preview-enrichment fetch in flight: append skeletons rather than
-                  blanking the cards already on screen. */}
-              {isLoadingMore && <ContentMatchSkeletons count={3} />}
             </div>
 
             {hiddenAllCount > 0 ? (
@@ -632,19 +641,6 @@ function SearchFitPanel({
                       (count) => count + DETAIL_CONTENT_MATCH_INCREMENT,
                     )
                   }
-                  className="h-9 rounded-lg px-4"
-                />
-              </div>
-            ) : canLoadPreviews ? (
-              // Fills in snippet previews for the rest of the matched set on
-              // demand (the one path that re-runs Voyage from the detail view).
-              <div className="mt-4 flex justify-center">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  text="Load full previews"
-                  loading={isLoadingMore}
-                  onClick={onLoadAllMatches}
                   className="h-9 rounded-lg px-4"
                 />
               </div>
@@ -693,9 +689,25 @@ type MatchedContentItem = {
   chunk?: PartnerContentSearchPartner["chunks"][number];
 };
 
+// Per-item relevance from the scoped, fully reranked summary, keyed by content
+// item. Used to upgrade each list row onto a single reranker scale (the cached
+// global summary mixes reranker and cosine scores). Includes any item with
+// evidence — not just `matched` ones — so boundary items still get unified.
+function buildUnifiedRelevanceMap(
+  relevanceSummary: PartnerContentSearchPartner["matchSummary"] | null | undefined,
+) {
+  const map = new Map<string, number>();
+  for (const bar of relevanceSummary?.contentBars ?? []) {
+    const score = getEvidenceDisplayScore(bar.matchEvidence);
+    if (score != null) map.set(bar.partnerContentItemId, score);
+  }
+  return map;
+}
+
 function buildMatchedContentItems(
   summary: PartnerContentSearchPartner["matchSummary"] | undefined,
   chunks: PartnerContentSearchPartner["chunks"],
+  unifiedRelevanceByItemId?: Map<string, number>,
 ): MatchedContentItem[] {
   const bars = summary?.contentBars ?? [];
 
@@ -718,8 +730,13 @@ function buildMatchedContentItems(
   return bars
     .filter((bar) => bar.matched)
     .map((bar) => {
+      // Prefer the unified (single-scale) relevance when the scoped rerank has
+      // landed; otherwise fall back to the cached score so rows render instantly.
       const relevance =
-        getEvidenceDisplayScore(bar.matchEvidence) ?? bar.matchScore ?? 0;
+        unifiedRelevanceByItemId?.get(bar.partnerContentItemId) ??
+        getEvidenceDisplayScore(bar.matchEvidence) ??
+        bar.matchScore ??
+        0;
 
       return {
         contentItemId: bar.partnerContentItemId,
@@ -911,7 +928,9 @@ function PlatformIcon({
 function getPreviewThumbnail(
   chunk: PartnerContentSearchPartner["chunks"][number],
 ) {
-  if (chunk.content.thumbnailUrl) return chunk.content.thumbnailUrl;
+  if (chunk.content.thumbnailUrl) {
+    return getPartnerContentThumbnailUrl(chunk.content.thumbnailUrl);
+  }
   if (chunk.platform.type === "youtube") {
     return `https://i.ytimg.com/vi/${chunk.content.platformContentId}/hqdefault.jpg`;
   }

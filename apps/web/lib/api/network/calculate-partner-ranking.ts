@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { getNetworkPartnersQuerySchema } from "@/lib/zod/schemas/partner-network";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { PlatformType, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
+import { reachTiersToRanges } from "./reach-tiers";
 
 type PartnerRankingFilters = z.infer<typeof getNetworkPartnersQuerySchema>;
 
@@ -37,27 +38,9 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  * - clickToConversionRate: Average click-to-conversion rate across ALL programs the partner is enrolled in
  * - lastConversionAt: Most recent conversion date across ALL programs the partner is enrolled in
  */
-function buildOrderByClause({
-  starred,
-  sortBy,
-  platform,
-}: {
-  starred?: boolean | null;
-  sortBy?: "relevance" | "subscribers";
-  platform?: PlatformType;
-}) {
+function buildOrderByClause({ starred }: { starred?: boolean | null }) {
   if (starred === true) {
     return Prisma.sql`dp.starredAt ASC`;
-  }
-
-  if (sortBy === "subscribers" && platform) {
-    return Prisma.sql`(
-      SELECT COALESCE(MAX(pp_sort.subscribers), 0)
-      FROM PartnerPlatform pp_sort
-      WHERE pp_sort.partnerId = p.id
-        AND pp_sort.type = ${platform}
-        AND pp_sort.verifiedAt IS NOT NULL
-    ) DESC, p.id ASC`;
   }
 
   return Prisma.sql`finalScore DESC, p.id ASC`;
@@ -68,8 +51,8 @@ export async function calculatePartnerRanking({
   partnerIds,
   country,
   starred,
-  sortBy = "relevance",
   platform,
+  reach,
   page = 1,
   pageSize,
   similarPrograms = [],
@@ -89,21 +72,16 @@ export async function calculatePartnerRanking({
     conditions.push(Prisma.sql`p.country = ${country}`);
   }
 
-  // Filter by platform type (must have verified platform)
-  // Combine both filters into a single EXISTS clause so they apply to the same platform
-  if (platform) {
-    const platformConditions: Prisma.Sql[] = [
-      Prisma.sql`pp_filter.partnerId = p.id`,
-      Prisma.sql`pp_filter.verifiedAt IS NOT NULL`,
-    ];
-
-    platformConditions.push(Prisma.sql`pp_filter.type = ${platform}`);
-
+  // Filter by platform type (must have a verified platform of one of the selected
+  // types). Inclusion semantics: a partner qualifies if present on any selection.
+  if (platform && platform.length > 0) {
     conditions.push(
       Prisma.sql`EXISTS (
-        SELECT 1 
-        FROM PartnerPlatform pp_filter 
-        WHERE ${Prisma.join(platformConditions, " AND ")}
+        SELECT 1
+        FROM PartnerPlatform pp_filter
+        WHERE pp_filter.partnerId = p.id
+          AND pp_filter.verifiedAt IS NOT NULL
+          AND pp_filter.type IN (${Prisma.join(platform)})
       )`,
     );
   }
@@ -112,6 +90,37 @@ export async function calculatePartnerRanking({
     conditions.push(Prisma.sql`dp.starredAt IS NOT NULL`);
   } else if (starred === false) {
     conditions.push(Prisma.sql`(dp.starredAt IS NULL OR dp.id IS NULL)`);
+  }
+
+  // Filter by audience-size tier(s): the partner's MAX subscriber count across
+  // the selected platforms (their headline reach) must fall in one of the chosen
+  // tiers. Scoped to the same platform selection so reach reflects the audience
+  // the brand is actually filtering for.
+  if (reach && reach.length > 0) {
+    const ranges = reachTiersToRanges(reach);
+    const reachPlatformScope =
+      platform && platform.length > 0
+        ? Prisma.sql`AND pp_reach.type IN (${Prisma.join(platform)})`
+        : Prisma.empty;
+    const rangeConditions = ranges.map(({ min, max }) =>
+      max == null
+        ? Prisma.sql`reach_r.maxSubscribers >= ${min}`
+        : Prisma.sql`(reach_r.maxSubscribers >= ${min} AND reach_r.maxSubscribers < ${max})`,
+    );
+
+    conditions.push(
+      Prisma.sql`EXISTS (
+        SELECT 1
+        FROM (
+          SELECT MAX(pp_reach.subscribers) AS maxSubscribers
+          FROM PartnerPlatform pp_reach
+          WHERE pp_reach.partnerId = p.id
+            AND pp_reach.verifiedAt IS NOT NULL
+            ${reachPlatformScope}
+        ) reach_r
+        WHERE ${Prisma.join(rangeConditions, " OR ")}
+      )`,
+    );
   }
 
   const whereClause = Prisma.join(conditions, " AND ");
@@ -123,7 +132,7 @@ export async function calculatePartnerRanking({
     WHERE pp.partnerId = p.id
   )`;
 
-  const orderByClause = buildOrderByClause({ starred, sortBy, platform });
+  const orderByClause = buildOrderByClause({ starred });
 
   const offset = (page - 1) * pageSize;
 

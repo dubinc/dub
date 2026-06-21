@@ -4,7 +4,7 @@ import { PlatformType, Prisma } from "@prisma/client";
 export type PartnerNetworkListingParams = {
   partnerIds?: string[];
   country?: string;
-  platform?: PlatformType;
+  platform?: PlatformType[];
 };
 
 export type PartnerNetworkListingParts = {
@@ -17,10 +17,10 @@ function listingPlatformSomeFromParams({
 }: Pick<PartnerNetworkListingParams, "platform">):
   | Prisma.PartnerPlatformWhereInput
   | undefined {
-  return platform
+  return platform && platform.length
     ? {
         verifiedAt: { not: null },
-        ...(platform && { type: platform }),
+        type: { in: platform },
       }
     : undefined;
 }

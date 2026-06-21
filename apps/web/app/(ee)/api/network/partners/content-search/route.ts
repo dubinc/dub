@@ -45,6 +45,7 @@ import {
   serializeEmbeddingForVector,
   VoyageTimeoutError,
 } from "@/lib/partner-content-search/voyage";
+import { REACH_TIER_KEYS, type ReachTier } from "@/lib/api/network/reach-tiers";
 import { prisma } from "@/lib/prisma";
 import { PlatformType, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
@@ -55,9 +56,15 @@ export const maxDuration = 30;
 
 const DEFAULT_PARTNER_LIMIT = 20;
 
+type PartnerContentSearchTimingLogger = (
+  stage: string,
+  metadata?: Record<string, unknown>,
+) => void;
+
 const partnerNetworkContentSearchSchema = z.object({
   query: z.string().trim().max(500).optional(),
-  platform: z.enum(PlatformType).optional(),
+  platforms: z.array(z.enum(PlatformType)).min(1).optional(),
+  reach: z.array(z.enum(REACH_TIER_KEYS)).min(1).optional(),
   country: z.string().trim().min(1).optional(),
   partnerIds: z.array(z.string()).min(1).max(100).optional(),
   starred: z.boolean().optional(),
@@ -114,22 +121,39 @@ export const POST = withWorkspace(
           Math.max(25, body.limit * body.chunksPerPartner * 6),
         )
       : body.limit * body.chunksPerPartner * 2;
+    const logTiming = createPartnerContentSearchTimingLogger({
+      workspaceId: workspace.id,
+      programId,
+      hasQuery: Boolean(body.query),
+      queryLength: body.query?.length ?? 0,
+      platforms: body.platforms ?? null,
+      reach: body.reach ?? null,
+      country: body.country ?? null,
+      starred: body.starred ?? null,
+      limit: body.limit,
+      chunksPerPartner: body.chunksPerPartner,
+      candidateChunkCount,
+      rerank: body.rerank,
+    });
+
+    logTiming("request-parsed");
 
     const { rows, reranked, queryVector, cutoffDistance } = body.query
       ? await searchPartnerNetworkContent({
           programId,
           query: body.query,
-          platform: body.platform,
+          platforms: body.platforms,
           country: body.country,
           partnerIds: body.partnerIds,
           starred: body.starred,
           limit: candidateChunkCount,
           rerank: body.rerank,
+          logTiming,
         })
       : {
           rows: await listPartnerNetworkContent({
             programId,
-            platform: body.platform,
+            platforms: body.platforms,
             country: body.country,
             partnerIds: body.partnerIds,
             starred: body.starred,
@@ -139,6 +163,11 @@ export const POST = withWorkspace(
           queryVector: null,
           cutoffDistance: null,
         };
+    logTiming("content-rows-loaded", {
+      rowCount: rows.length,
+      reranked,
+      cutoffDistance,
+    });
     const partnerCandidateLimit = body.query
       ? Math.min(
           PARTNER_CONTENT_SEARCH_PARTNER_LIMIT,
@@ -153,20 +182,38 @@ export const POST = withWorkspace(
       dedupeKey: ({ partnerContentItemId }) => partnerContentItemId,
       getRowScore: getRowRelevanceScore,
     });
+    logTiming("partner-candidates-grouped", {
+      partnerCandidateCount: partnerCandidates.length,
+      partnerCandidateLimit,
+    });
+    logTiming("match-summaries-start", {
+      partnerCandidateCount: partnerCandidates.length,
+    });
     const matchSummaries = await getPartnerMatchSummaries({
       rows,
       partnerIds: partnerCandidates.map(({ partnerId }) => partnerId),
-      platform: body.platform,
+      platforms: body.platforms,
       query: body.query,
       queryVector,
       cutoffDistance,
+      logTiming,
+    });
+    logTiming("match-summaries-complete", {
+      summaryCount: matchSummaries.size,
+    });
+    logTiming("partner-hydration-start", {
+      partnerCandidateCount: partnerCandidates.length,
     });
     const networkPartners = await getNetworkPartnersById({
       programId,
       partnerIds: partnerCandidates.map(({ partnerId }) => partnerId),
-      platform: body.platform,
+      platforms: body.platforms,
+      reach: body.reach,
       country: body.country,
       starred: body.starred,
+    });
+    logTiming("partner-hydration-complete", {
+      hydratedPartnerCount: networkPartners.size,
     });
     const partners = partnerCandidates
       .map((partner) => {
@@ -183,11 +230,14 @@ export const POST = withWorkspace(
     const sortedPartners = body.query
       ? sortPartnersByTopicFit(partners)
       : partners;
+    logTiming("response-ready", {
+      returnedPartnerCount: Math.min(sortedPartners.length, body.limit),
+    });
 
     return NextResponse.json({
       success: true,
       query: body.query ?? null,
-      platform: body.platform ?? null,
+      platforms: body.platforms ?? null,
       country: body.country ?? null,
       candidateChunkCount,
       embeddingModel: PARTNER_CONTENT_SEARCH_MODELS.embedding.id,
@@ -203,6 +253,26 @@ export const POST = withWorkspace(
     requiredPlan: ["enterprise", "advanced"],
   },
 );
+
+function createPartnerContentSearchTimingLogger(
+  context: Record<string, unknown>,
+): PartnerContentSearchTimingLogger {
+  const startedAt = Date.now();
+  let previousAt = startedAt;
+
+  return (stage, metadata = {}) => {
+    const now = Date.now();
+
+    console.info("[partner-content-search:timing]", {
+      stage,
+      elapsedMs: now - startedAt,
+      deltaMs: now - previousAt,
+      ...context,
+      ...metadata,
+    });
+    previousAt = now;
+  };
+}
 
 function isNonNull<T>(value: T | null): value is T {
   return value !== null;
@@ -262,13 +332,15 @@ function sortPartnersByTopicFit<
 async function getNetworkPartnersById({
   programId,
   partnerIds,
-  platform,
+  platforms,
+  reach,
   country,
   starred,
 }: {
   programId: string;
   partnerIds: string[];
-  platform?: PlatformType;
+  platforms?: PlatformType[];
+  reach?: ReachTier[];
   country?: string;
   starred?: boolean;
 }) {
@@ -278,12 +350,12 @@ async function getNetworkPartnersById({
     programId,
     partnerIds,
     status: "discover",
-    sortBy: "relevance",
     page: 1,
     pageSize: partnerIds.length,
     country,
     starred: starred ?? undefined,
-    platform,
+    platform: platforms,
+    reach,
   });
   const partners = parseRankedNetworkPartners(rankedPartners);
 
@@ -293,23 +365,26 @@ async function getNetworkPartnersById({
 async function searchPartnerNetworkContent({
   programId,
   query,
-  platform,
+  platforms,
   country,
   partnerIds,
   starred,
   limit,
   rerank,
+  logTiming,
 }: {
   programId: string;
   query: string;
-  platform?: PlatformType;
+  platforms?: PlatformType[];
   country?: string;
   partnerIds?: string[];
   starred?: boolean;
   limit: number;
   rerank: boolean;
+  logTiming?: PartnerContentSearchTimingLogger;
 }) {
   let queryEmbedding: number[];
+  logTiming?.("query-embedding-start");
   try {
     [queryEmbedding] = await embedPartnerContentTexts({
       input: [query],
@@ -325,6 +400,9 @@ async function searchPartnerNetworkContent({
     }
     throw error;
   }
+  logTiming?.("query-embedding-complete", {
+    embeddingDimensions: queryEmbedding.length,
+  });
   const queryVector = serializeEmbeddingForVector(queryEmbedding);
   const starredFilter =
     starred === true
@@ -332,8 +410,8 @@ async function searchPartnerNetworkContent({
       : starred === false
         ? Prisma.sql`AND (dp.starredAt IS NULL OR dp.id IS NULL)`
         : Prisma.empty;
-  const platformFilter = platform
-    ? Prisma.sql`AND pp.type = ${platform}`
+  const platformFilter = platforms?.length
+    ? Prisma.sql`AND pp.type IN (${Prisma.join(platforms)})`
     : Prisma.empty;
   const countryFilter = country
     ? Prisma.sql`AND p.country = ${country}`
@@ -353,6 +431,9 @@ async function searchPartnerNetworkContent({
     limit,
     PARTNER_CONTENT_SEARCH_LIMITS.vectorSearchChunkPoolSize,
   );
+  logTiming?.("vector-search-start", {
+    poolSize,
+  });
   const poolRows = await prisma.$queryRaw<PartnerContentSearchRow[]>(Prisma.sql`
     SELECT
       c.id AS chunkId,
@@ -373,7 +454,7 @@ async function searchPartnerNetworkContent({
       pci.publishedAt AS contentPublishedAt,
       pci.durationMs AS contentDurationMs,
       c.source AS chunkSource,
-      c.chunkText,
+      "" AS chunkText,
       c.startMs,
       c.endMs,
       DISTANCE(TO_VECTOR(${queryVector}), c.embedding, 'cosine') AS distance
@@ -399,6 +480,9 @@ async function searchPartnerNetworkContent({
     ORDER BY distance ASC
     LIMIT ${poolSize}
   `);
+  logTiming?.("vector-search-complete", {
+    poolRowCount: poolRows.length,
+  });
 
   // Collapse to one best chunk per content item for the item-level cutoff, and
   // one best chunk per content item + source for reranking/source-aware evidence.
@@ -417,17 +501,47 @@ async function searchPartnerNetworkContent({
   const cutoffDistance = itemRows.length
     ? Number(itemRows[itemRows.length - 1].distance)
     : null;
+  logTiming?.("candidate-dedupe-complete", {
+    itemRowCount: itemRows.length,
+    sourceRowCount: rows.length,
+    cutoffDistance,
+  });
+
+  const rowsWithChunkText = await hydratePartnerContentChunkText({
+    rows,
+    maxRows: rerank
+      ? PARTNER_CONTENT_SEARCH_LIMITS.rerankerCandidateCount
+      : rows.length,
+    logTiming,
+  });
 
   if (!rerank) {
     return {
-      rows: sortRowsByRelevanceScore(rows),
+      rows: sortRowsByRelevanceScore(rowsWithChunkText),
       reranked: false,
       queryVector,
       cutoffDistance,
     };
   }
 
-  const rerankResult = await rerankPartnerSearchRows({ query, rows });
+  logTiming?.("rerank-start", {
+    rowCount: rowsWithChunkText.length,
+    rerankerCandidateCount: Math.min(
+      rowsWithChunkText.length,
+      PARTNER_CONTENT_SEARCH_LIMITS.rerankerCandidateCount,
+    ),
+  });
+  const rerankResult = await rerankPartnerSearchRows({
+    query,
+    rows: rowsWithChunkText,
+  });
+  logTiming?.("rerank-complete", {
+    reranked: rerankResult.reranked,
+    rowCount: rerankResult.rows.length,
+    rerankedRowCount: rerankResult.rows.filter(
+      ({ rerankScore }) => rerankScore != null,
+    ).length,
+  });
   return {
     ...rerankResult,
     rows: sortRowsByRelevanceScore(rerankResult.rows),
@@ -436,16 +550,62 @@ async function searchPartnerNetworkContent({
   };
 }
 
+async function hydratePartnerContentChunkText({
+  rows,
+  maxRows,
+  logTiming,
+}: {
+  rows: PartnerContentSearchRow[];
+  maxRows: number;
+  logTiming?: PartnerContentSearchTimingLogger;
+}) {
+  const rowsToHydrate = rows.slice(0, maxRows);
+  const chunkIds = rowsToHydrate.map(({ chunkId }) => chunkId);
+
+  if (chunkIds.length === 0) return rows;
+
+  logTiming?.("chunk-text-hydration-start", {
+    requestedRowCount: rowsToHydrate.length,
+    totalRowCount: rows.length,
+  });
+  const chunkTextRows = await prisma.partnerContentChunk.findMany({
+    where: {
+      id: {
+        in: chunkIds,
+      },
+    },
+    select: {
+      id: true,
+      chunkText: true,
+    },
+  });
+  const chunkTextById = new Map(
+    chunkTextRows.map((row) => [row.id, row.chunkText]),
+  );
+  logTiming?.("chunk-text-hydration-complete", {
+    hydratedRowCount: chunkTextById.size,
+  });
+
+  return rows.map((row, index) =>
+    index < maxRows
+      ? {
+          ...row,
+          chunkText: chunkTextById.get(row.chunkId) ?? row.chunkText,
+        }
+      : row,
+  );
+}
+
 async function listPartnerNetworkContent({
   programId,
-  platform,
+  platforms,
   country,
   partnerIds,
   starred,
   limit,
 }: {
   programId: string;
-  platform?: PlatformType;
+  platforms?: PlatformType[];
   country?: string;
   partnerIds?: string[];
   starred?: boolean;
@@ -499,9 +659,9 @@ async function listPartnerNetworkContent({
       embeddedChunkCount: {
         gt: 0,
       },
-      ...(platform && {
+      ...(platforms?.length && {
         partnerPlatform: {
-          type: platform,
+          type: { in: platforms },
         },
       }),
       partner: {
@@ -628,14 +788,15 @@ function median(values: number[]): number | null {
 async function getPartnerMatchSummaries({
   rows,
   partnerIds,
-  platform,
+  platforms,
   query,
   queryVector,
   cutoffDistance,
+  logTiming,
 }: {
   rows: PartnerContentSearchRow[];
   partnerIds: string[];
-  platform?: PlatformType;
+  platforms?: PlatformType[];
   query?: string | null;
   // Present only in query mode. When set, each shown partner's recent videos are
   // scored exactly against the query (bounded by their ids) and counted as matched
@@ -643,6 +804,7 @@ async function getPartnerMatchSummaries({
   // (list mode) we fall back to the retrieval rows for the match determination.
   queryVector?: string | null;
   cutoffDistance?: number | null;
+  logTiming?: PartnerContentSearchTimingLogger;
 }) {
   if (partnerIds.length === 0) return new Map<string, null>();
 
@@ -651,8 +813,8 @@ async function getPartnerMatchSummaries({
     querySignals.intent === "entity" && querySignals.normalizedQuery
       ? `%${querySignals.normalizedQuery}%`
       : null;
-  const platformFilter = platform
-    ? Prisma.sql`AND pp.type = ${platform}`
+  const platformFilter = platforms?.length
+    ? Prisma.sql`AND pp.type IN (${Prisma.join(platforms)})`
     : Prisma.empty;
 
   // "Recent" is a time window (last recencyWindowMonths), not a fixed post count.
@@ -681,9 +843,9 @@ async function getPartnerMatchSummaries({
       embeddedChunkCount: {
         gt: 0,
       },
-      ...(platform && {
+      ...(platforms?.length && {
         partnerPlatform: {
-          type: platform,
+          type: { in: platforms },
         },
       }),
     },
@@ -760,8 +922,8 @@ async function getPartnerMatchSummaries({
       partnerId: {
         in: partnerIds,
       },
-      ...(platform && {
-        type: platform,
+      ...(platforms?.length && {
+        type: { in: platforms },
       }),
     },
     _sum: {
@@ -769,11 +931,19 @@ async function getPartnerMatchSummaries({
     },
   });
 
+  logTiming?.("match-summary-base-queries-start", {
+    partnerCount: partnerIds.length,
+  });
   const [contentCounts, recentContentRows, followerRows] = await Promise.all([
     contentCountsPromise,
     recentContentRowsPromise,
     followerRowsPromise,
   ]);
+  logTiming?.("match-summary-base-queries-complete", {
+    contentCountRows: contentCounts.length,
+    recentContentRows: recentContentRows.length,
+    followerRows: followerRows.length,
+  });
   const followersByPartner = new Map(
     followerRows.map((row) => [
       row.partnerId,
@@ -816,25 +986,85 @@ async function getPartnerMatchSummaries({
       ({ partnerContentItemId }) => partnerContentItemId,
     );
     if (recentItemIds.length > 0) {
-      const itemScores = await prisma.$queryRaw<
-        {
-          partnerContentItemId: string;
-          source: string;
-          bestDistance: number | string;
-        }[]
-      >(Prisma.sql`
-        SELECT
-          c.partnerContentItemId,
-          c.source,
-          MIN(
-            DISTANCE(TO_VECTOR(${queryVector}), c.embedding, 'cosine')
-          ) AS bestDistance
-        FROM PartnerContentChunk c
-        WHERE c.partnerContentItemId IN (${Prisma.join(recentItemIds)})
-          AND c.embedding IS NOT NULL
-          AND c.embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.id}
-        GROUP BY c.partnerContentItemId, c.source
-      `);
+      logTiming?.("match-summary-item-vector-start", {
+        recentItemCount: recentItemIds.length,
+      });
+      const itemScoresPromise = prisma
+        .$queryRaw<
+          {
+            partnerContentItemId: string;
+            source: string;
+            bestDistance: number | string;
+          }[]
+        >(
+          Prisma.sql`
+          SELECT
+            c.partnerContentItemId,
+            c.source,
+            MIN(
+              DISTANCE(TO_VECTOR(${queryVector}), c.embedding, 'cosine')
+            ) AS bestDistance
+          FROM PartnerContentChunk c
+          WHERE c.partnerContentItemId IN (${Prisma.join(recentItemIds)})
+            AND c.embedding IS NOT NULL
+            AND c.embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.id}
+          GROUP BY c.partnerContentItemId, c.source
+        `,
+        )
+        .then((itemScores) => {
+          logTiming?.("match-summary-item-vector-complete", {
+            itemScoreRows: itemScores.length,
+          });
+          return itemScores;
+        });
+
+      const exactMentionRowsPromise = exactMentionPattern
+        ? (() => {
+            logTiming?.("match-summary-exact-mentions-start", {
+              recentItemCount: recentItemIds.length,
+              queryIntent: querySignals.intent,
+            });
+            return prisma
+              .$queryRaw<
+                {
+                  partnerContentItemId: string;
+                  source: string;
+                  exactMentionCount: bigint | number;
+                }[]
+              >(
+                Prisma.sql`
+                SELECT
+                  c.partnerContentItemId,
+                  c.source,
+                  COUNT(*) AS exactMentionCount
+                FROM PartnerContentChunk c
+                WHERE c.partnerContentItemId IN (${Prisma.join(recentItemIds)})
+                  AND c.embedding IS NOT NULL
+                  AND c.embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.id}
+                  AND LOWER(c.chunkText) LIKE ${exactMentionPattern}
+                GROUP BY c.partnerContentItemId, c.source
+              `,
+              )
+              .then((exactMentionRows) => {
+                logTiming?.("match-summary-exact-mentions-complete", {
+                  exactMentionRows: exactMentionRows.length,
+                });
+                return exactMentionRows;
+              });
+          })()
+        : Promise.resolve([]);
+
+      if (!exactMentionPattern) {
+        logTiming?.("match-summary-exact-mentions-skipped", {
+          queryIntent: querySignals.intent,
+        });
+      }
+
+      const [itemScores, exactMentionRows] = await Promise.all([
+        itemScoresPromise,
+        exactMentionRowsPromise,
+      ]);
+
       for (const row of itemScores) {
         setSourceDistance(
           recentItemSourceBestDistance,
@@ -844,34 +1074,13 @@ async function getPartnerMatchSummaries({
         );
       }
 
-      if (exactMentionPattern) {
-        const exactMentionRows = await prisma.$queryRaw<
-          {
-            partnerContentItemId: string;
-            source: string;
-            exactMentionCount: bigint | number;
-          }[]
-        >(Prisma.sql`
-          SELECT
-            c.partnerContentItemId,
-            c.source,
-            COUNT(*) AS exactMentionCount
-          FROM PartnerContentChunk c
-          WHERE c.partnerContentItemId IN (${Prisma.join(recentItemIds)})
-            AND c.embedding IS NOT NULL
-            AND c.embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.id}
-            AND LOWER(c.chunkText) LIKE ${exactMentionPattern}
-          GROUP BY c.partnerContentItemId, c.source
-        `);
-
-        for (const row of exactMentionRows) {
-          if (Number(row.exactMentionCount) === 0) continue;
-          setSourceExactMention(
-            recentItemSourceExactMentions,
-            row.partnerContentItemId,
-            getEvidenceSource(row.source),
-          );
-        }
+      for (const row of exactMentionRows) {
+        if (Number(row.exactMentionCount) === 0) continue;
+        setSourceExactMention(
+          recentItemSourceExactMentions,
+          row.partnerContentItemId,
+          getEvidenceSource(row.source),
+        );
       }
     }
   }
@@ -893,7 +1102,11 @@ async function getPartnerMatchSummaries({
     }
   }
 
-  return new Map(
+  logTiming?.("match-summary-aggregation-start", {
+    partnerCount: partnerIds.length,
+    recentContentRows: recentContentRows.length,
+  });
+  const summaries = new Map(
     partnerIds.map((partnerId) => {
       const partnerRows = rowsByPartnerId.get(partnerId) ?? [];
       const recentRows = recentRowsByPartnerId.get(partnerId) ?? [];
@@ -1156,6 +1369,11 @@ async function getPartnerMatchSummaries({
       ] as const;
     }),
   );
+  logTiming?.("match-summary-aggregation-complete", {
+    summaryCount: summaries.size,
+  });
+
+  return summaries;
 }
 
 function toChunkResult(row: PartnerContentSearchRow, distance: number) {

@@ -111,7 +111,9 @@ export const scrapeCreatorsFetch = createFetch({
           next_max_id: z.string().optional(),
           trim: z.boolean().optional(),
         }),
-        output: instagramUserPostsSchema,
+        // Parsed in getInstagramUserPosts so account-unavailable responses can
+        // be classified as empty results instead of strict-schema 500s.
+        output: z.unknown(),
       },
 
       // Fetch an Instagram video/reel transcript

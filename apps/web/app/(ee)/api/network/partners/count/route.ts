@@ -3,10 +3,12 @@ import {
   partnerNetworkListingParts,
   partnerWhereFromListingParts,
 } from "@/lib/api/network/partner-network-listing-where";
+import { reachTiersToRanges } from "@/lib/api/network/reach-tiers";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getNetworkPartnersCountQuerySchema } from "@/lib/zod/schemas/partner-network";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/network/partners/count - get the number of available partners in the network
@@ -30,7 +32,7 @@ export const GET = withWorkspace(
       });
     }
 
-    const { partnerIds, status, groupBy, country, starred, platform } =
+    const { partnerIds, status, groupBy, country, starred, platform, reach } =
       getNetworkPartnersCountQuerySchema.parse(searchParams);
 
     const listingParts = partnerNetworkListingParts({
@@ -40,6 +42,28 @@ export const GET = withWorkspace(
     });
 
     const commonWhere = partnerWhereFromListingParts(listingParts);
+
+    // Reach is a discover-only filter. Approximate the ranking's "max subscribers
+    // across selected platforms in tier" with a `some` test (a selected platform
+    // whose subscribers fall in a chosen tier) so pagination totals track the
+    // filtered discover results. Applied only to discover-scoped counts below.
+    const reachRanges = reach?.length ? reachTiersToRanges(reach) : [];
+    const reachWhere: Prisma.PartnerWhereInput = reachRanges.length
+      ? {
+          platforms: {
+            some: {
+              verifiedAt: { not: null },
+              ...(platform?.length && { type: { in: platform } }),
+              OR: reachRanges.map(({ min, max }) => ({
+                subscribers: {
+                  gte: BigInt(min),
+                  ...(max != null && { lt: BigInt(max) }),
+                },
+              })),
+            },
+          },
+        }
+      : {};
 
     const statusWheres = {
       discover: {
@@ -104,6 +128,7 @@ export const GET = withWorkspace(
               where: {
                 ...commonWhere,
                 ...statusWheres.discover,
+                ...reachWhere,
               },
             })
           : undefined,
@@ -143,7 +168,11 @@ export const GET = withWorkspace(
       const countries = await prisma.partner.groupBy({
         by: ["country"],
         _count: true,
-        where: { ...commonWhere, ...statusWhereForFacet },
+        where: {
+          ...commonWhere,
+          ...statusWhereForFacet,
+          ...(!status || status === "discover" ? reachWhere : {}),
+        },
         orderBy: {
           _count: {
             country: "desc",

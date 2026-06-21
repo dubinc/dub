@@ -21,8 +21,8 @@ export const PARTNER_CONTENT_INCREMENTAL_REFRESH_DAYS = 7;
 
 export const PARTNER_CONTENT_EMBED_FLOW_CONTROL = {
   key: "partner-content-embed-voyage",
-  parallelism: 5,
-  rate: 120,
+  parallelism: 20,
+  rate: 600,
   period: "1m",
 } as const;
 

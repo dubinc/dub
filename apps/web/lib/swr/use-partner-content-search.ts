@@ -1,3 +1,4 @@
+import type { ReachTier } from "@/lib/api/network/reach-tiers";
 import {
   PARTNER_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER,
   PARTNER_CONTENT_SEARCH_PARTNER_LIMIT,
@@ -6,6 +7,7 @@ import {
 import type { NetworkPartnerProps } from "@/lib/types";
 import type { PlatformType } from "@prisma/client";
 import useSWR from "swr";
+import { useDebounce } from "use-debounce";
 import useWorkspace from "./use-workspace";
 
 export type PartnerContentMatchSource = "transcript" | "creatorText";
@@ -105,40 +107,55 @@ export type PartnerContentSearchResponse = {
 export default function usePartnerContentSearch({
   enabled,
   query,
-  platform,
+  platforms,
+  reach,
   country,
   starred,
   partnerIds,
   candidateChunkCount,
   limit = PARTNER_CONTENT_SEARCH_PARTNER_LIMIT,
   chunksPerPartner = PARTNER_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER,
+  debounceMs = 0,
 }: {
   enabled: boolean;
   query: string;
-  platform?: PlatformType;
+  platforms?: PlatformType[];
+  reach?: ReachTier[];
   country?: string;
   starred: boolean;
   partnerIds?: string[];
   candidateChunkCount?: number;
   limit?: number;
   chunksPerPartner?: number;
+  // Coalesce rapid filter changes into one request. Voyage search is billed and
+  // ~seconds, so callers driving it from fast-changing filters pass a small delay.
+  debounceMs?: number;
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { data, error, isLoading, mutate } = useSWR<PartnerContentSearchResponse>(
+  // Stable string signature (not a fresh array each render) so the debounce timer
+  // only resets when the inputs actually change. The fetcher below reads the live
+  // values; by the time the debounced key settles they equal this signature.
+  const keySignature =
     enabled && workspaceId
-      ? [
-          "partner-content-search",
+      ? JSON.stringify([
           workspaceId,
           query,
-          platform,
+          platforms?.join(",") ?? "",
+          reach?.join(",") ?? "",
           country,
           starred,
           partnerIds?.join(",") ?? "",
           candidateChunkCount,
           limit,
           chunksPerPartner,
-        ]
+        ])
+      : null;
+  const [debouncedKeySignature] = useDebounce(keySignature, debounceMs);
+
+  const { data, error, isLoading, mutate } = useSWR<PartnerContentSearchResponse>(
+    debouncedKeySignature
+      ? ["partner-content-search", debouncedKeySignature]
       : null,
     // The shared `fetcher` from @dub/utils is GET-only; this endpoint takes a
     // POST body, so it needs its own fetcher.
@@ -155,7 +172,8 @@ export default function usePartnerContentSearch({
             limit,
             chunksPerPartner,
             ...(candidateChunkCount && { candidateChunkCount }),
-            ...(platform && { platform }),
+            ...(platforms?.length && { platforms }),
+            ...(reach?.length && { reach }),
             ...(country && { country }),
             ...(partnerIds?.length && { partnerIds }),
             starred: starred || undefined,

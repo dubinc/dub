@@ -1,7 +1,10 @@
 "use client";
 
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
-import { isPartnerContentSearchPlatform } from "@/lib/partner-content-search/types";
+import {
+  parseReachTiers,
+  type ReachTier,
+} from "@/lib/api/network/reach-tiers";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import usePartnerContentSearch from "@/lib/swr/use-partner-content-search";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -9,37 +12,39 @@ import { NetworkPartnerProps } from "@/lib/types";
 import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
-  AnimatedSizeContainer,
   Button,
-  Filter,
   PaginationControls,
-  ToggleGroup,
   usePagination,
   useRouterStuff,
 } from "@dub/ui";
-import {
-  Globe,
-  Instagram,
-  LinkedIn,
-  Star,
-  StarFill,
-  TikTok,
-  Twitter,
-  User,
-  YouTube,
-} from "@dub/ui/icons";
+import { Star, StarFill } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
 import { PlatformType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useDebounce } from "use-debounce";
 import useSWR from "swr";
 import { NetworkContentSearchResults } from "./network-content-search-results";
+import { NetworkCountryFilter } from "./network-country-filter";
 import { NetworkEmptyState } from "./network-empty-state";
 import { NetworkPartnerCard } from "./network-partner-card";
 import { NetworkPartnerDetailSheet } from "./network-partner-detail-sheet";
-import { PartnerNetworkSort } from "./partner-network-sort";
+import { NetworkPlatformFilter } from "./network-platform-filter";
+import { NetworkReachFilter } from "./network-reach-filter";
+import {
+  getContentSearchPlatforms,
+  isAllPlatformsSelected,
+  parseSelectedPlatforms,
+  platformFilterParam,
+} from "./platform-filter-utils";
 import { usePartnerNetworkFilters } from "./use-partner-network-filters";
+
+// Filter changes update the URL instantly (snappy controls) but the data fetch is
+// debounced so a rapid burst of toggles collapses into a single request — sparing
+// the heavy ranking SQL and (in search mode) the billed Voyage embed+rerank call.
+// keepPreviousData holds the prior results on screen during the brief wait.
+const FILTER_FETCH_DEBOUNCE_MS = 250;
 
 const tabs = [
   {
@@ -56,19 +61,6 @@ const tabs = [
   },
 ] as const;
 
-const PLATFORM_TOGGLE_OPTIONS: {
-  value: PlatformType | "all";
-  icon: typeof User;
-}[] = [
-  { value: "all", icon: User },
-  { value: "website", icon: Globe },
-  { value: "youtube", icon: YouTube },
-  { value: "twitter", icon: Twitter },
-  { value: "linkedin", icon: LinkedIn },
-  { value: "instagram", icon: Instagram },
-  { value: "tiktok", icon: TikTok },
-];
-
 type ProgramPartnerNetworkPageClientProps = {
   variant?: "default" | "ignored";
 };
@@ -78,8 +70,20 @@ export function ProgramPartnerNetworkPageClient({
 }: ProgramPartnerNetworkPageClientProps = {}) {
   const { id: workspaceId } = useWorkspace();
   const { searchParams, getQueryString, queryParams } = useRouterStuff();
-  const selectedPlatform =
-    (searchParams.get("platform") as PlatformType | null) ?? "all";
+  const selectedPlatforms = useMemo(
+    () => parseSelectedPlatforms(searchParams.get("platform")),
+    [searchParams],
+  );
+  const platformFilter = platformFilterParam(selectedPlatforms);
+  // The content-searchable subset of the selection. Semantic search runs only
+  // when at least one searchable platform is selected; otherwise we fall back to
+  // the ranked partner list (filtered to the chosen platforms).
+  const contentSearchPlatforms = getContentSearchPlatforms(selectedPlatforms);
+  const selectedReach = useMemo(
+    () => parseReachTiers(searchParams.get("reach")),
+    [searchParams],
+  );
+  const reachFilter = selectedReach.length ? selectedReach : undefined;
   const search = searchParams.get("search")?.trim() ?? "";
   const country = searchParams.get("country") ?? undefined;
   const starred = searchParams.get("starred") === "true";
@@ -88,15 +92,37 @@ export function ProgramPartnerNetworkPageClient({
     variant === "ignored"
       ? "ignored"
       : tabs.find(({ id }) => id === searchParams.get("tab"))?.id || "discover";
-  const contentSearchPlatform =
-    selectedPlatform !== "all" &&
-    isPartnerContentSearchPlatform(selectedPlatform)
-      ? selectedPlatform
-      : undefined;
   const isContentSearchMode =
     status === "discover" &&
     search.length > 0 &&
-    (selectedPlatform === "all" || Boolean(contentSearchPlatform));
+    contentSearchPlatforms.length > 0;
+
+  // Update filter params via the History API instead of router.push. These are
+  // query-only changes that drive client-side SWR; page.tsx reads no searchParams,
+  // so a full RSC navigation per click only adds latency before useSearchParams()
+  // (and thus the control's checked state) updates. pushState updates it
+  // synchronously — instant feedback — while SWR still refetches on key change.
+  const updateSearchParams = (opts: {
+    set?: Record<string, string | string[]>;
+    del?: string | string[];
+  }) => {
+    const newPath = queryParams({ ...opts, getNewPath: true }) as string;
+    window.history.pushState(null, "", newPath);
+  };
+
+  const onPlatformsChange = (platforms: PlatformType[]) =>
+    updateSearchParams(
+      isAllPlatformsSelected(platforms)
+        ? { del: ["platform", "page"] }
+        : { set: { platform: platforms.join(",") }, del: "page" },
+    );
+
+  const onReachChange = (tiers: ReachTier[]) =>
+    updateSearchParams(
+      tiers.length
+        ? { set: { reach: tiers.join(",") }, del: "page" }
+        : { del: ["reach", "page"] },
+    );
 
   const { data: partnerCounts, error: countError } = useNetworkPartnersCount();
 
@@ -108,34 +134,43 @@ export function ProgramPartnerNetworkPageClient({
   } = usePartnerContentSearch({
     enabled: isContentSearchMode,
     query: search,
-    platform: contentSearchPlatform,
+    platforms: platformFilter,
+    reach: reachFilter,
     country,
     starred,
+    debounceMs: FILTER_FETCH_DEBOUNCE_MS,
   });
+
+  const partnersKey =
+    !isContentSearchMode && workspaceId
+      ? `/api/network/partners${getQueryString(
+          {
+            workspaceId,
+            status,
+          },
+          {
+            exclude:
+              variant === "ignored"
+                ? ["tab", "partnerId", "starred", "search"]
+                : ["tab", "partnerId", "search"],
+          },
+        )}`
+      : null;
+  // Debounce the fetch key so rapid filter toggles coalesce into one request.
+  const [debouncedPartnersKey] = useDebounce(
+    partnersKey,
+    FILTER_FETCH_DEBOUNCE_MS,
+  );
 
   const {
     data: partners,
     error,
     mutate: mutatePartners,
     isValidating,
-  } = useSWR<NetworkPartnerProps[]>(
-    !isContentSearchMode &&
-      workspaceId &&
-      `/api/network/partners${getQueryString(
-        {
-          workspaceId,
-          status,
-        },
-        {
-          exclude:
-            variant === "ignored"
-              ? ["tab", "partnerId", "starred", "search"]
-              : ["tab", "partnerId", "search"],
-        },
-      )}`,
-    fetcher,
-    { revalidateOnFocus: false, keepPreviousData: true },
-  );
+  } = useSWR<NetworkPartnerProps[]>(debouncedPartnersKey, fetcher, {
+    revalidateOnFocus: false,
+    keepPreviousData: true,
+  });
 
   const { executeAsync: updateDiscoveredPartner } = useAction(
     updateDiscoveredPartnerAction,
@@ -145,14 +180,10 @@ export function ProgramPartnerNetworkPageClient({
     PARTNER_NETWORK_MAX_PAGE_SIZE,
   );
 
-  const {
-    filters,
-    activeFilters,
-    isFiltered,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-  } = usePartnerNetworkFilters({ status });
+  const { filters, isFiltered, onSelect, onRemove, onRemoveAll } =
+    usePartnerNetworkFilters({ status });
+
+  const countryFilter = filters.find((f) => f.key === "country");
 
   const isStarred = searchParams.get("starred") === "true";
 
@@ -250,7 +281,7 @@ export function ProgramPartnerNetworkPageClient({
                 onClick={() => {
                   queryParams({
                     set: { tab: tab.id },
-                    del: ["page", "starred", "sortBy"],
+                    del: ["page", "starred"],
                   });
                 }}
               >
@@ -272,84 +303,49 @@ export function ProgramPartnerNetworkPageClient({
 
       {status === "discover" && (
         <div className="mt-[17px]">
-          <div className="@3xl/page:flex-row @3xl/page:items-center @3xl/page:justify-between flex flex-col gap-3">
-            <div className="flex flex-col items-center gap-4 md:flex-row">
-              <Filter.Select
-                className="h-10 w-full shrink-0 rounded-lg md:w-fit"
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
+          <div className="@3xl/page:flex-row @3xl/page:items-center flex flex-col gap-3">
+            <div className="flex flex-col items-center gap-3 md:flex-row">
+              <NetworkCountryFilter
+                options={countryFilter?.options ?? []}
+                getOptionIcon={countryFilter?.getOptionIcon}
+                selectedValue={country}
+                onSelect={(value) => onSelect("country", value)}
+                onClear={() => country && onRemove("country", country)}
               />
-              <div className="flex items-center gap-4">
-                <ToggleGroup
-                  className="h-10 w-full rounded-lg border-neutral-200 bg-neutral-50 p-0 md:w-fit"
-                  optionClassName="rounded-lg px-3 py-2.5"
-                  indicatorClassName="rounded-lg bg-white border-none shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_3px_0_rgba(0,0,0,0.08)]"
-                  options={PLATFORM_TOGGLE_OPTIONS.map(
-                    ({ value, icon: Icon }) => ({
-                      value,
-                      label: <Icon className="size-4" />,
-                    }),
-                  )}
-                  selected={selectedPlatform}
-                  selectAction={(option) => {
-                    if (option === "all") {
-                      queryParams({
-                        del: ["platform", "page"],
-                      });
-                    } else {
-                      queryParams({
-                        set: { platform: option },
-                        del: "page",
-                      });
-                    }
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    queryParams({
-                      set: !isStarred ? { starred: "true" } : undefined,
-                      del: ["page", ...(!isStarred ? [] : ["starred"])],
-                    });
-                  }}
-                  icon={
-                    isStarred ? (
-                      <StarFill className="size-4 text-amber-500" />
-                    ) : (
-                      <Star className="text-content-subtle size-4" />
-                    )
-                  }
-                  className="size-10 shrink-0 rounded-lg"
-                />
-              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  updateSearchParams({
+                    set: !isStarred ? { starred: "true" } : undefined,
+                    del: ["page", ...(!isStarred ? [] : ["starred"])],
+                  });
+                }}
+                icon={
+                  isStarred ? (
+                    <StarFill className="size-4 text-amber-500" />
+                  ) : (
+                    <Star className="text-content-subtle size-4" />
+                  )
+                }
+                className="size-10 shrink-0 rounded-lg"
+              />
+              <NetworkReachFilter
+                selectedTiers={selectedReach}
+                onChange={onReachChange}
+              />
+              <NetworkPlatformFilter
+                selectedPlatforms={selectedPlatforms}
+                onChange={onPlatformsChange}
+              />
             </div>
-            <PartnerNetworkSort
-              selectedPlatform={selectedPlatform}
-              className="md:ml-auto"
-            />
-            <div className="@3xl/page:w-[373px] w-full">
+            <div className="@3xl/page:ml-auto @3xl/page:w-[373px] w-full">
               <SearchBoxPersisted
                 placeholder="Search partners or content..."
                 inputClassName="h-10"
               />
             </div>
           </div>
-          <AnimatedSizeContainer height>
-            {activeFilters.length > 0 && (
-              <div className="pt-4">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </AnimatedSizeContainer>
         </div>
       )}
 
@@ -359,7 +355,11 @@ export function ProgramPartnerNetworkPageClient({
           hasQuery={search.length > 0}
           isLoading={isSearchingContent}
           partners={contentSearchResults?.partners}
-          platform={contentSearchPlatform}
+          platform={
+            contentSearchPlatforms.length === 1
+              ? contentSearchPlatforms[0]
+              : undefined
+          }
           onToggleStarred={
             variant === "ignored"
               ? undefined

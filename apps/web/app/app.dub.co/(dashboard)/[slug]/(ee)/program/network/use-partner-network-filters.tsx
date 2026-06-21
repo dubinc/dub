@@ -12,6 +12,17 @@ export function usePartnerNetworkFilters({
 }) {
   const { searchParamsObj, queryParams } = useRouterStuff();
 
+  // Apply filter changes via the History API (instant) rather than router.push,
+  // which would trigger a full RSC navigation per click. See page-client for the
+  // rationale — all data here is client-side SWR keyed off useSearchParams.
+  const updateSearchParams = useCallback(
+    (opts: { set?: Record<string, string | string[]>; del?: string | string[] }) => {
+      const newPath = queryParams({ ...opts, getNewPath: true }) as string;
+      window.history.pushState(null, "", newPath);
+    },
+    [queryParams],
+  );
+
   const { data: countriesCount } = useNetworkPartnersCount<
     | {
         country: string;
@@ -65,7 +76,7 @@ export function usePartnerNetworkFilters({
 
   const onSelect = useCallback(
     (key: string, value: any) =>
-      queryParams({
+      updateSearchParams({
         set: Object.keys(multiFilters).includes(key)
           ? {
               [key]: multiFilters[key].concat(value).join(","),
@@ -75,7 +86,7 @@ export function usePartnerNetworkFilters({
             },
         del: "page",
       }),
-    [queryParams, multiFilters],
+    [updateSearchParams, multiFilters],
   );
 
   const onRemove = useCallback(
@@ -84,32 +95,33 @@ export function usePartnerNetworkFilters({
         Object.keys(multiFilters).includes(key) &&
         !(multiFilters[key].length === 1 && multiFilters[key][0] === value)
       ) {
-        queryParams({
+        updateSearchParams({
           set: {
             [key]: multiFilters[key].filter((id) => id !== value).join(","),
           },
           del: "page",
         });
       } else {
-        queryParams({
+        updateSearchParams({
           del: [key, "page"],
         });
       }
     },
-    [queryParams, multiFilters],
+    [updateSearchParams, multiFilters],
   );
 
   const onRemoveAll = useCallback(
     () =>
-      queryParams({
-        del: ["country", "starred", "platform", "sortBy"],
+      updateSearchParams({
+        del: ["country", "starred", "platform", "reach"],
       }),
-    [queryParams],
+    [updateSearchParams],
   );
 
   const isFiltered =
     activeFilters.length > 0 ||
     !!searchParamsObj.platform ||
+    !!searchParamsObj.reach ||
     !!searchParamsObj.search;
 
   return {

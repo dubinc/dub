@@ -1,3 +1,4 @@
+import { REACH_TIER_KEYS } from "@/lib/api/network/reach-tiers";
 import { processKey } from "@/lib/api/links/utils";
 import { PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
@@ -41,8 +42,16 @@ export const getNetworkPartnersQuerySchema = z
     status: NetworkPartnersStatusSchema.default("discover"),
     country: z.string().optional(),
     starred: booleanQuerySchema.nullish(),
-    sortBy: z.enum(["relevance", "subscribers"]).default("relevance"),
-    platform: z.enum(PlatformType).optional(),
+    platform: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .pipe(z.array(z.enum(PlatformType)))
+      .optional(),
+    reach: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .pipe(z.array(z.enum(REACH_TIER_KEYS)))
+      .optional(),
     partnerIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))

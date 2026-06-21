@@ -50,8 +50,8 @@ export const GET = withWorkspace(
       pageSize,
       country,
       starred,
-      sortBy,
       platform,
+      reach,
     } = getNetworkPartnersQuerySchema.parse(searchParams);
 
     if (status !== "discover") {
@@ -124,8 +124,8 @@ export const GET = withWorkspace(
       page,
       pageSize,
       starred: starred ?? undefined,
-      sortBy,
       platform: platform ?? undefined,
+      reach: reach ?? undefined,
       similarPrograms,
     });
     console.timeEnd("calculatePartnerRanking");
