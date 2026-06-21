@@ -73,7 +73,6 @@ export const { POST } = serve<Input>(
         links: true,
         partner: true,
         partnerGroup: true,
-        ...(event === "click" && { clickReward: true }),
         ...(event === "lead" && { leadReward: true }),
         ...(event === "sale" && { saleReward: true }),
       },
@@ -183,8 +182,17 @@ async function stepCreateCommission(
     amount = 0;
   }
 
+  // Skip invalid reward events (should never happen, but just in case)
+  if (event === "click" || event === "referral") {
+    return logAndReturn({
+      commission: null,
+      outputLog: `"${event}" commissions are not created via this workflow. Skipping commission creation...`,
+    });
+  }
+
+  // for lead / sale rewards, we need to check if the partner is eligible for commissions
   if (
-    ["click", "lead", "sale"].includes(event) &&
+    ["lead", "sale"].includes(event) &&
     !COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES.includes(programEnrollment.status)
   ) {
     return logAndReturn({
@@ -204,7 +212,7 @@ async function stepCreateCommission(
     earnings = amount;
     amount = 0;
   } else {
-    if (["lead", "sale"].includes(event) && customerId) {
+    if (customerId) {
       firstCommission = await prisma.commission.findFirst({
         where: {
           partnerId,
@@ -267,105 +275,98 @@ async function stepCreateCommission(
       });
     }
 
-    // Click commissions are created by /api/cron/aggregate-clicks, not this workflow.
-    // TODO: Confirm whether any caller still queues event === "click" here; if not, remove this branch.
-    if (event === "click") {
-      earnings = getRewardAmount(reward) * quantity;
-
-      // for lead and sale events, we need to check if this partner-customer combination was recorded already (for deduplication)
-      // for sale rewards specifically, we also need to check:
-      // 1. if the partner has reached the max duration for the reward (if applicable)
-      // 2. if the previous commission were marked as fraud or canceled
-    } else {
-      if (firstCommission) {
-        // if first commission is fraud or canceled, skip commission creation
-        if (["fraud", "canceled"].includes(firstCommission.status)) {
-          return logAndReturn({
-            commission: null,
-            outputLog: `Partner ${partnerId} has a first commission that is ${firstCommission.status}, skipping commission creation...`,
-          });
-        }
-
-        // for lead events, we need to check if the partner has already been issued a lead reward for this customer
-        if (event === "lead") {
-          return logAndReturn({
-            commission: null,
-            outputLog: `Partner ${partnerId} has already been issued a lead reward for this customer ${customerId}, skipping commission creation...`,
-          });
-
-          // for sale rewards, we need to check if partner's reward was updated and different from the first commission's reward
-          // we need to make sure it wasn't changed from one-time to recurring so we don't create a new commission
-        } else {
-          if (
-            firstCommission.rewardId &&
-            firstCommission.rewardId !== reward.id
-          ) {
-            const originalReward = await prisma.reward.findUnique({
-              where: {
-                id: firstCommission.rewardId,
-              },
-              select: {
-                id: true,
-                maxDuration: true,
-              },
-            });
-
-            if (
-              typeof originalReward?.maxDuration === "number" &&
-              originalReward.maxDuration === 0
-            ) {
-              return logAndReturn({
-                commission: null,
-                outputLog: `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`,
-              });
-            }
-          }
-
-          // for sale rewards with a max duration, we need to check if the first commission is within the max duration
-          // if it's beyond the max duration, we should not create a new commission
-          if (typeof reward?.maxDuration === "number") {
-            // One-time sale reward (maxDuration === 0)
-            if (reward.maxDuration === 0) {
-              return logAndReturn({
-                commission: null,
-                outputLog: `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
-              });
-            }
-
-            // Recurring sale reward (maxDuration > 0)
-            else {
-              const subscriptionDurationMonths = differenceInMonths(
-                createdAt ?? new Date(), // account for custom commission creation date
-                firstCommission.createdAt,
-              );
-
-              if (subscriptionDurationMonths >= reward.maxDuration) {
-                return logAndReturn({
-                  commission: null,
-                  outputLog: `Partner ${partnerId} has reached max duration for ${event} event (subscription duration: ${subscriptionDurationMonths} months, max duration: ${reward.maxDuration} months), skipping commission creation...`,
-                });
-              }
-            }
-          }
-        }
+    // for lead and sale events, we need to check if this partner-customer combination was recorded already (for deduplication)
+    // for sale rewards specifically, we also need to check:
+    // 1. if the partner has reached the max duration for the reward (if applicable)
+    // 2. if the previous commission were marked as fraud or canceled
+    if (firstCommission) {
+      // if first commission is fraud or canceled, skip commission creation
+      if (["fraud", "canceled"].includes(firstCommission.status)) {
+        return logAndReturn({
+          commission: null,
+          outputLog: `Partner ${partnerId} has a first commission that is ${firstCommission.status}, skipping commission creation...`,
+        });
       }
 
-      // for lead events, we just multiply the reward amount by the quantity
+      // for lead events, we need to check if the partner has already been issued a lead reward for this customer
       if (event === "lead") {
-        earnings = getRewardAmount(reward) * quantity;
+        return logAndReturn({
+          commission: null,
+          outputLog: `Partner ${partnerId} has already been issued a lead reward for this customer ${customerId}, skipping commission creation...`,
+        });
+
+        // for sale rewards, we need to check if partner's reward was updated and different from the first commission's reward
+        // we need to make sure it wasn't changed from one-time to recurring so we don't create a new commission
+      } else {
+        if (
+          firstCommission.rewardId &&
+          firstCommission.rewardId !== reward.id
+        ) {
+          const originalReward = await prisma.reward.findUnique({
+            where: {
+              id: firstCommission.rewardId,
+            },
+            select: {
+              id: true,
+              maxDuration: true,
+            },
+          });
+
+          if (
+            typeof originalReward?.maxDuration === "number" &&
+            originalReward.maxDuration === 0
+          ) {
+            return logAndReturn({
+              commission: null,
+              outputLog: `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`,
+            });
+          }
+        }
+
+        // for sale rewards with a max duration, we need to check if the first commission is within the max duration
+        // if it's beyond the max duration, we should not create a new commission
+        if (typeof reward?.maxDuration === "number") {
+          // One-time sale reward (maxDuration === 0)
+          if (reward.maxDuration === 0) {
+            return logAndReturn({
+              commission: null,
+              outputLog: `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
+            });
+          }
+
+          // Recurring sale reward (maxDuration > 0)
+          else {
+            const subscriptionDurationMonths = differenceInMonths(
+              createdAt ?? new Date(), // account for custom commission creation date
+              firstCommission.createdAt,
+            );
+
+            if (subscriptionDurationMonths >= reward.maxDuration) {
+              return logAndReturn({
+                commission: null,
+                outputLog: `Partner ${partnerId} has reached max duration for ${event} event (subscription duration: ${subscriptionDurationMonths} months, max duration: ${reward.maxDuration} months), skipping commission creation...`,
+              });
+            }
+          }
+        }
       }
-      // for sale events, we need to calculate the earnings based on the sale amount
-      else {
-        earnings = rewards.reduce(
-          (acc, { reward, sale }) =>
-            acc +
-            calculateSaleEarnings({
-              reward,
-              sale,
-            }),
-          0,
-        );
-      }
+    }
+
+    // for lead events, we just multiply the reward amount by the quantity
+    if (event === "lead") {
+      earnings = getRewardAmount(reward) * quantity;
+    }
+    // for sale events, we need to calculate the earnings based on the sale amount
+    else {
+      earnings = rewards.reduce(
+        (acc, { reward, sale }) =>
+          acc +
+          calculateSaleEarnings({
+            reward,
+            sale,
+          }),
+        0,
+      );
     }
   }
 
@@ -381,8 +382,8 @@ async function stepCreateCommission(
     customerId &&
     event !== "custom" &&
     reward &&
-    reward.spendLimitAmount != null &&
-    reward.spendLimitInterval != null
+    reward.spendLimitAmount &&
+    reward.spendLimitInterval
   ) {
     const cappedEarnings = await clampEarningsToSpendLimit({
       reward,
@@ -658,9 +659,8 @@ async function clampEarningsToSpendLimit({
 }) {
   if (
     earnings === 0 ||
-    reward.spendLimitAmount == null ||
-    reward.spendLimitInterval == null ||
-    reward.event === "referral"
+    !reward.spendLimitAmount ||
+    !reward.spendLimitInterval
   ) {
     return earnings;
   }
@@ -682,10 +682,15 @@ async function clampEarningsToSpendLimit({
       status: {
         in: ["pending", "processed", "paid"],
       },
-      createdAt: {
-        ...(startDate ? { gte: startDate } : {}),
-        ...(endDate ? { lte: endDate } : {}),
-      },
+      // only need to filter if not all-time spend limit (no startDate or endDate)
+      ...(startDate && endDate
+        ? {
+            createdAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          }
+        : {}),
     },
     _sum: {
       earnings: true,
