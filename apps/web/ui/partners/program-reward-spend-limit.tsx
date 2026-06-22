@@ -1,6 +1,6 @@
 import { RewardProps } from "@/lib/types";
 import { currencyFormatter } from "@dub/utils";
-import { RewardSpendLimitInterval } from "@prisma/client";
+import { EventType, RewardSpendLimitInterval } from "@prisma/client";
 
 export function getSpendLimitDescriptionParts({
   spendLimitAmount,
@@ -22,9 +22,11 @@ export function getSpendLimitDescriptionParts({
 }
 
 export function ProgramRewardSpendLimit({
+  event,
   spendLimitAmount,
   spendLimitInterval,
 }: {
+  event: EventType;
   spendLimitAmount?: number | null;
   spendLimitInterval?: RewardSpendLimitInterval | null;
 }) {
@@ -37,7 +39,7 @@ export function ProgramRewardSpendLimit({
     return null;
   }
 
-  return ` up to ${parts.amount} ${parts.interval}`;
+  return ` up to ${parts.amount} ${parts.interval} ${event === "sale" ? "per customer" : ""}`;
 }
 
 export function buildCommissionDescription({

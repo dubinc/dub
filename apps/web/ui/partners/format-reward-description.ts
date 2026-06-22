@@ -55,7 +55,7 @@ export function formatRewardDescription(
   let description = parts.join(" ");
 
   if (spendLimitParts && reward.spendLimitInterval) {
-    description += `, with a ${spendLimitParts.amount} ${formatSpendLimitIntervalLabel(reward.spendLimitInterval)} limit`;
+    description += `, with a ${spendLimitParts.amount} ${formatSpendLimitIntervalLabel(reward.spendLimitInterval)} limit ${reward.event === "sale" ? "per customer" : ""}`;
   }
 
   return description;
