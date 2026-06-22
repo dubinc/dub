@@ -139,6 +139,11 @@ export async function executeWorkflows({
             saleAmount: true,
           },
         },
+        programPartnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
       },
     }),
 
@@ -182,6 +187,9 @@ export async function executeWorkflows({
     identity: {
       ...identity,
       groupId: programEnrollment.groupId,
+      partnerTagIds: programEnrollment.programPartnerTags.map(
+        (t) => t.partnerTagId,
+      ),
     },
     metrics: {
       ...metrics,

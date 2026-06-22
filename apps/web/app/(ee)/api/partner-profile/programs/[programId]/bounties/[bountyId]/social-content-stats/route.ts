@@ -75,8 +75,8 @@ export const GET = withPartnerProfile(
 
     if (!isEligible) {
       throw new DubApiError({
-        code: "not_found",
-        message: "Bounty not found.",
+        code: "forbidden",
+        message: "You are not eligible for this bounty.",
       });
     }
 

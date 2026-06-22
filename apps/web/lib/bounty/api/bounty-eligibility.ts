@@ -57,12 +57,12 @@ export function isPartnerEligibleForBounty({
   bountyGroupIds,
   bountyTagIds,
   partnerGroupId,
-  partnerTagIds,
+  partnerTagIds = [],
 }: {
   bountyGroupIds: string[];
   bountyTagIds: string[];
   partnerGroupId: string | null;
-  partnerTagIds: string[];
+  partnerTagIds: string[] | undefined;
 }) {
   // No restrictions
   if (bountyGroupIds.length === 0 && bountyTagIds.length === 0) {
@@ -71,15 +71,13 @@ export function isPartnerEligibleForBounty({
 
   // Group restrictions
   const inGroup =
-    bountyGroupIds.length > 0 &&
-    partnerGroupId &&
-    bountyGroupIds.includes(partnerGroupId);
+    bountyGroupIds.length === 0 ||
+    (partnerGroupId && bountyGroupIds.includes(partnerGroupId));
 
   // Tag restrictions
   const hasTag =
-    bountyTagIds.length > 0 &&
-    partnerTagIds.length > 0 &&
-    bountyTagIds.some((id) => partnerTagIds.includes(id));
+    bountyTagIds.length === 0 ||
+    partnerTagIds.some((id) => bountyTagIds.includes(id));
 
   return inGroup && hasTag;
 }

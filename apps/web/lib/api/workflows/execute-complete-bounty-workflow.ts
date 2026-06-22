@@ -1,4 +1,5 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
+import { isPartnerEligibleForBounty } from "@/lib/bounty/api/bounty-eligibility";
 import { prisma } from "@/lib/prisma";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
@@ -38,7 +39,8 @@ export const executeCompleteBountyWorkflow = async ({
 
   const { bountyId } = action.data;
   const { identity, metrics } = context;
-  const { partnerId, groupId, customerId, customerFirstSaleAt } = identity;
+  const { partnerId, groupId, partnerTagIds, customerId, customerFirstSaleAt } =
+    identity;
 
   if (!groupId) {
     console.error("Partner groupId not set in the context.");
@@ -51,11 +53,31 @@ export const executeCompleteBountyWorkflow = async ({
       id: bountyId,
     },
     include: {
-      program: true,
-      groups: true,
       submissions: {
         where: {
           partnerId,
+        },
+        select: {
+          id: true,
+          status: true,
+        },
+      },
+      program: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          supportEmail: true,
+        },
+      },
+      groups: {
+        select: {
+          groupId: true,
+        },
+      },
+      partnerTags: {
+        select: {
+          partnerTagId: true,
         },
       },
     },
@@ -91,16 +113,27 @@ export const executeCompleteBountyWorkflow = async ({
 
   const { groups, submissions } = bounty;
 
-  // If the bounty is part of a group, check if the partner is in the group
-  if (groups.length > 0) {
-    const groupIds = groups.map(({ groupId }) => groupId);
+  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
+  const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
 
-    if (!groupIds.includes(groupId)) {
-      console.log(
-        `Partner ${partnerId} is not eligible for bounty ${bounty.id} because they are not in any of the assigned groups. Partner's groupId: ${groupId}. Assigned groupIds: ${groupIds.join(", ")}.`,
-      );
-      return;
-    }
+  const isEligible = isPartnerEligibleForBounty({
+    bountyGroupIds,
+    bountyTagIds,
+    partnerGroupId: groupId,
+    partnerTagIds,
+  });
+
+  if (!isEligible) {
+    console.log(
+      `Partner ${partnerId} is not eligible for bounty ${bounty.id} because they are not in any of the assigned groups or partner tags.`,
+      {
+        bountyGroupIds,
+        bountyTagIds,
+        partnerGroupId: groupId,
+        partnerTagIds,
+      },
+    );
+    return;
   }
 
   if (submissions.length > 0) {

@@ -1,10 +1,12 @@
-import {
-  aggregatePartnerLinksStats,
-  PartnerLink,
-} from "@/lib/partners/aggregate-partner-links-stats";
+import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
-import { Program, ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
+import {
+  Link,
+  Program,
+  ProgramEnrollment,
+  ProgramPartnerTag,
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { buildBountyEligibilityWhere } from "./bounty-eligibility";
 
@@ -13,7 +15,10 @@ type GetBountiesForPartnerParams = Pick<
   "groupId" | "partnerId" | "totalCommissions"
 > & {
   programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
-  links: PartnerLink[];
+  links: Pick<
+    Link,
+    "clicks" | "leads" | "conversions" | "sales" | "saleAmount"
+  >[];
   program: Pick<Program, "id" | "defaultGroupId">;
 };
 

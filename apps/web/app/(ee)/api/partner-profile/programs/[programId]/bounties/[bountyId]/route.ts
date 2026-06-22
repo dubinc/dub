@@ -75,7 +75,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   if (bounty.startsAt > new Date()) {
     throw new DubApiError({
       code: "not_found",
-      message: "Bounty not found.",
+      message: "Bounty has not started yet.",
     });
   }
 
@@ -94,8 +94,8 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 
   if (!isEligible) {
     throw new DubApiError({
-      code: "not_found",
-      message: "Bounty not found.",
+      code: "forbidden",
+      message: "You are not eligible for this bounty.",
     });
   }
 

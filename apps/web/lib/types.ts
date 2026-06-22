@@ -846,6 +846,7 @@ interface WorkflowIdentity {
   programId: string;
   partnerId: string;
   groupId?: string;
+  partnerTagIds?: string[];
   customerId?: string;
   customerFirstSaleAt?: Date;
 }

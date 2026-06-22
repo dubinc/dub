@@ -290,7 +290,7 @@ export class BountySubmissionHandler {
     if (!isEligible) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You are not allowed to submit this bounty.",
+        message: "You are not eligible for this bounty.",
       });
     }
 
