@@ -7,6 +7,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { throwIfInvalidPartnerTagIds } from "@/lib/api/tags/throw-if-invalid-partner-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { buildBountyEligibilityWhere } from "@/lib/bounty/api/bounty-eligibility";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { qstash } from "@/lib/cron";
@@ -43,9 +44,21 @@ export const GET = withWorkspace(
           programId,
           include: {
             program: true,
+            programPartnerTags: {
+              select: {
+                partnerTagId: true,
+              },
+            },
           },
         })
       : null;
+
+    const partnerGroupId =
+      programEnrollment?.groupId || programEnrollment?.program.defaultGroupId;
+    const partnerTagIds =
+      programEnrollment?.programPartnerTags.map(
+        ({ partnerTagId }) => partnerTagId,
+      ) || [];
 
     const [bounties, allBountiesSubmissionsCount] = await Promise.all([
       prisma.bounty.findMany({
@@ -58,24 +71,11 @@ export const GET = withWorkspace(
               {
                 OR: [{ endsAt: null }, { endsAt: { gt: new Date() } }],
               },
-              // Filter by partner's group eligibility
               {
-                OR: [
-                  {
-                    groups: {
-                      none: {},
-                    },
-                  },
-                  {
-                    groups: {
-                      some: {
-                        groupId:
-                          programEnrollment.groupId ||
-                          programEnrollment.program.defaultGroupId,
-                      },
-                    },
-                  },
-                ],
+                ...buildBountyEligibilityWhere({
+                  groupId: partnerGroupId,
+                  partnerTagIds,
+                }),
               },
             ],
           }),

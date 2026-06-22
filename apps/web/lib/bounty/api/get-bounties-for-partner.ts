@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { Program, ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
 import * as z from "zod/v4";
+import { buildBountyEligibilityWhere } from "./bounty-eligibility";
 
 type GetBountiesForPartnerParams = Pick<
   ProgramEnrollment,
@@ -35,32 +36,10 @@ export async function getBountiesForPartner({
       startsAt: {
         lte: now,
       },
-      OR: [
-        {
-          AND: [
-            {
-              groups: { none: {} },
-            },
-            {
-              partnerTags: { none: {} },
-            },
-          ],
-        },
-        {
-          groups: {
-            some: {
-              groupId: groupId || program.defaultGroupId,
-            },
-          },
-        },
-        {
-          partnerTags: {
-            some: {
-              partnerTagId: { in: partnerTagIds },
-            },
-          },
-        },
-      ],
+      ...buildBountyEligibilityWhere({
+        groupId: groupId || program.defaultGroupId,
+        partnerTagIds,
+      }),
     },
     include: {
       workflow: {
@@ -98,8 +77,4 @@ export async function getBountiesForPartner({
       },
     })),
   );
-}
-
-function buildBountyEligibilityWhere() {
-  //
 }

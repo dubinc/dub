@@ -6,7 +6,6 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps, CreateBountyInput } from "@/lib/types";
-import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
   ProgramSheetAccordion,
   ProgramSheetAccordionContent,
@@ -14,7 +13,6 @@ import {
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
-import { PartnerTagsMultiSelect } from "@/ui/partners/tags/partner-tags-multi-select";
 import { X } from "@/ui/shared/icons";
 import {
   InlineBadgePopover,
@@ -46,6 +44,7 @@ import { BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, FormProvider } from "react-hook-form";
 import { BountyCriteria } from "./bounty-criteria";
+import { BountyEligibility } from "./bounty-eligibility";
 import { useAddEditBountyForm } from "./use-add-edit-bounty-form";
 
 interface BountySheetProps {
@@ -506,45 +505,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
               <BountyCriteria />
 
-              <ProgramSheetAccordionItem value="groups">
-                <ProgramSheetAccordionTrigger>
-                  Groups
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <Controller
-                    control={control}
-                    name="groupIds"
-                    render={({ field }) => (
-                      <GroupsMultiSelect
-                        selectedGroupIds={field.value}
-                        setSelectedGroupIds={(ids) => field.onChange(ids)}
-                      />
-                    )}
-                  />
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
-
-              <ProgramSheetAccordionItem value="partnerTags">
-                <ProgramSheetAccordionTrigger>
-                  Tags
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <p className="text-content-subtle mb-3 text-sm">
-                    Partners in the selected groups or with the selected tags
-                    are eligible for this bounty.
-                  </p>
-                  <Controller
-                    control={control}
-                    name="partnerTagIds"
-                    render={({ field }) => (
-                      <PartnerTagsMultiSelect
-                        selectedTagIds={field.value}
-                        setSelectedTagIds={(ids) => field.onChange(ids)}
-                      />
-                    )}
-                  />
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
+              <BountyEligibility />
             </ProgramSheetAccordion>
           </div>
         </div>
