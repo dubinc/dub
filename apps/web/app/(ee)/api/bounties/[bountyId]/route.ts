@@ -122,32 +122,44 @@ export const PATCH = withWorkspace(
 
     // if groupIds is provided and is different from the current groupIds, update the groups
     let updatedPartnerGroups: PartnerGroup[] | undefined = undefined;
-    if (
-      groupIds &&
-      !arrayEqual(
-        bounty.groups.map((group) => group.groupId),
-        groupIds,
-      )
-    ) {
-      updatedPartnerGroups = await throwIfInvalidGroupIds({
-        programId,
-        groupIds,
-      });
+    let shouldUpdatePartnerGroups = false;
+
+    if (groupIds !== undefined) {
+      const currentGroupIds = bounty.groups.map((group) => group.groupId);
+      const newGroupIds = groupIds || [];
+
+      if (!arrayEqual(currentGroupIds, newGroupIds)) {
+        if (newGroupIds.length > 0) {
+          updatedPartnerGroups = await throwIfInvalidGroupIds({
+            programId,
+            groupIds: newGroupIds,
+          });
+        }
+
+        shouldUpdatePartnerGroups = true;
+      }
     }
 
     // if partnerTagIds is provided and is different from the current partnerTagIds, update the partner tags
     let updatedPartnerTags: PartnerTag[] | undefined = undefined;
-    if (
-      partnerTagIds &&
-      !arrayEqual(
-        bounty.partnerTags.map((tag) => tag.partnerTagId),
-        partnerTagIds,
-      )
-    ) {
-      updatedPartnerTags = await throwIfInvalidPartnerTagIds({
-        programId,
-        partnerTagIds,
-      });
+    let shouldUpdatePartnerTags = false;
+
+    if (partnerTagIds !== undefined) {
+      const currentPartnerTagIds = bounty.partnerTags.map(
+        (tag) => tag.partnerTagId,
+      );
+      const newPartnerTagIds = partnerTagIds || [];
+
+      if (!arrayEqual(currentPartnerTagIds, newPartnerTagIds)) {
+        if (newPartnerTagIds.length > 0) {
+          updatedPartnerTags = await throwIfInvalidPartnerTagIds({
+            programId,
+            partnerTagIds: newPartnerTagIds,
+          });
+        }
+
+        shouldUpdatePartnerTags = true;
+      }
     }
 
     // Prevent updates if `performanceCondition.attribute` differs from the current value if there are existing submissions
@@ -228,20 +240,26 @@ export const PATCH = withWorkspace(
             submissionRequirements !== undefined && {
               submissionRequirements: submissionRequirements ?? Prisma.DbNull,
             }),
-          ...(updatedPartnerGroups && {
+          ...(shouldUpdatePartnerGroups && {
             groups: {
               deleteMany: {},
-              create: updatedPartnerGroups.map((group) => ({
-                groupId: group.id,
-              })),
+              ...(updatedPartnerGroups &&
+                updatedPartnerGroups.length > 0 && {
+                  create: updatedPartnerGroups.map((group) => ({
+                    groupId: group.id,
+                  })),
+                }),
             },
           }),
-          ...(updatedPartnerTags && {
+          ...(shouldUpdatePartnerTags && {
             partnerTags: {
               deleteMany: {},
-              create: updatedPartnerTags.map((tag) => ({
-                partnerTagId: tag.id,
-              })),
+              ...(updatedPartnerTags &&
+                updatedPartnerTags.length > 0 && {
+                  create: updatedPartnerTags.map((tag) => ({
+                    partnerTagId: tag.id,
+                  })),
+                }),
             },
           }),
         },

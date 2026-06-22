@@ -324,8 +324,8 @@ function BountyEligibilityMultiSelect<T extends { id: string; name: string }>({
     setShouldSort(false);
   }, [shouldSort, items, selectedIds, selectedItems, sortItems, search]);
 
-  // Re-sort when the search-filtered items change
-  useEffect(() => setShouldSort(true), [items]);
+  // Re-sort when the search-filtered items or selection changes
+  useEffect(() => setShouldSort(true), [items, selectedIds]);
 
   return (
     <Command loop shouldFilter={!useAsync}>
