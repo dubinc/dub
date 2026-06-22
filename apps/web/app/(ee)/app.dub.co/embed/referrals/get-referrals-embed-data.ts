@@ -71,6 +71,11 @@ export const getReferralsEmbedData = async (token: string) => {
       saleReward: true,
       referralReward: true,
       discount: true,
+      programPartnerTags: {
+        select: {
+          partnerTagId: true,
+        },
+      },
     },
   });
 

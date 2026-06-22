@@ -26,3 +26,5 @@ export function isPartnerEligibleForBounty({
 
   return inGroup || hasTag;
 }
+
+// Note: not using

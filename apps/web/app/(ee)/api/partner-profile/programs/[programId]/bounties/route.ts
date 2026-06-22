@@ -11,6 +11,11 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     include: {
       program: true,
       links: true,
+      programPartnerTags: {
+        select: {
+          partnerTagId: true,
+        },
+      },
     },
   });
 
