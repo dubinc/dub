@@ -13,12 +13,16 @@ export const confirmEmailChange = async ({
   newEmail,
   identifier,
   isPartnerProfile = false,
+  syncIdentity = false,
+  redirectTo,
   hostName,
 }: {
   email: string;
   newEmail: string;
   identifier: string;
   isPartnerProfile?: boolean; // If true, the email is being changed for a partner profile
+  syncIdentity?: boolean; // If true, update both user and partner email on confirm
+  redirectTo?: "/profile" | "/account/settings";
   hostName: string;
 }) => {
   const { success } = await ratelimit(3, "1 d").limit(
@@ -59,6 +63,8 @@ export const confirmEmailChange = async ({
       email,
       newEmail,
       ...(isPartnerProfile && { isPartnerProfile }),
+      ...(syncIdentity && { syncIdentity }),
+      ...(redirectTo && { redirectTo }),
     },
     {
       px: expiresIn,

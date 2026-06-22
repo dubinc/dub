@@ -1,6 +1,13 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
+import {
+  assertEmailAvailableForIdentitySync,
+  isImageReferencedByPartner,
+  requestSyncedEmailChange,
+  syncNameAndImageToPartner,
+} from "@/lib/partners/sync-partner-identity";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { uploadedImageSchema } from "@/lib/zod/schemas/images";
@@ -22,6 +29,7 @@ const updateUserSchema = z.object({
   image: uploadedImageSchema.nullish(),
   source: z.preprocess(trim, z.string().min(1).max(32)).optional(),
   defaultWorkspace: z.preprocess(trim, z.string().min(1)).optional(),
+  syncIdentity: z.boolean().optional(),
 });
 
 // GET /api/user – get a specific user
@@ -64,8 +72,39 @@ export const GET = withSession(async ({ session }) => {
 
 // PATCH /api/user – edit a specific user
 export const PATCH = withSession(async ({ req, session }) => {
-  let { name, email, image, source, defaultWorkspace } =
+  let { name, email, image, source, defaultWorkspace, syncIdentity } =
     await updateUserSchema.parseAsync(await req.json());
+
+  const hostName = req.headers.get("host") || "";
+  const isPartnersDomain = !APP_HOSTNAMES.has(hostName);
+  const partnerId = session.user.defaultPartnerId;
+  const shouldSyncIdentity =
+    syncIdentity === true && isPartnersDomain && !!partnerId;
+
+  if (shouldSyncIdentity && partnerId) {
+    const partnerUser = await prisma.partnerUser.findUnique({
+      where: {
+        userId_partnerId: {
+          userId: session.user.id,
+          partnerId,
+        },
+      },
+      select: {
+        role: true,
+      },
+    });
+
+    if (
+      !partnerUser ||
+      !hasPermission(partnerUser.role, "partner_profile.update")
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You don't have permission to update the partner profile linked to this account.",
+      });
+    }
+  }
 
   if (image) {
     const { url } = await storage.upload({
@@ -95,27 +134,41 @@ export const PATCH = withSession(async ({ req, session }) => {
 
   // Verify email ownership if the email is being changed
   if (email && email !== session.user.email) {
-    const userWithEmail = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
+    if (shouldSyncIdentity && partnerId) {
+      await assertEmailAvailableForIdentitySync({
+        newEmail: email,
+        userId: session.user.id,
+        partnerId,
+      });
 
-    if (userWithEmail) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "Email is already in use.",
+      await requestSyncedEmailChange({
+        currentEmail: session.user.email!,
+        newEmail: email,
+        userId: session.user.id,
+        hostName: PARTNERS_DOMAIN,
+        redirectTo: "/account/settings",
+      });
+    } else {
+      const userWithEmail = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+
+      if (userWithEmail) {
+        throw new DubApiError({
+          code: "conflict",
+          message: "Email is already in use.",
+        });
+      }
+
+      await confirmEmailChange({
+        email: session.user.email,
+        newEmail: email,
+        identifier: session.user.id,
+        hostName: APP_HOSTNAMES.has(hostName) ? APP_DOMAIN : PARTNERS_DOMAIN,
       });
     }
-
-    const hostName = req.headers.get("host") || "";
-
-    await confirmEmailChange({
-      email: session.user.email,
-      newEmail: email,
-      identifier: session.user.id,
-      hostName: APP_HOSTNAMES.has(hostName) ? APP_DOMAIN : PARTNERS_DOMAIN,
-    });
   }
 
   const response = await prisma.user.update({
@@ -130,17 +183,36 @@ export const PATCH = withSession(async ({ req, session }) => {
     },
   });
 
+  if (shouldSyncIdentity && partnerId) {
+    await syncNameAndImageToPartner({
+      partnerId,
+      ...(name && { name }),
+      ...(image && { image }),
+    });
+  }
+
   waitUntil(
     (async () => {
-      // Delete only if a new image is uploaded and the old image exists
+      // Delete only if a new image is uploaded and the old image exists.
+      // Skip if the partner profile still references the old image (e.g. user
+      // chose to update login account only after a prior identity sync).
       if (
         image &&
         session.user.image &&
         session.user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`)
       ) {
-        await storage.delete({
-          key: session.user.image.replace(`${R2_URL}/`, ""),
-        });
+        const partnerStillUsesImage =
+          partnerId &&
+          (await isImageReferencedByPartner({
+            partnerId,
+            imageUrl: session.user.image,
+          }));
+
+        if (!partnerStillUsesImage) {
+          await storage.delete({
+            key: session.user.image.replace(`${R2_URL}/`, ""),
+          });
+        }
       }
     })(),
   );

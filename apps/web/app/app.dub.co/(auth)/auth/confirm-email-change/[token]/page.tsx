@@ -85,6 +85,8 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
     email: string;
     newEmail: string;
     isPartnerProfile?: boolean;
+    syncIdentity?: boolean;
+    redirectTo?: "/profile" | "/account/settings";
   }>(`email-change-request:user:${identifier}`);
 
   if (!data) {
@@ -97,8 +99,39 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
     );
   }
 
+  if (data.syncIdentity) {
+    if (!partnerId) {
+      return (
+        <EmptyState
+          icon={InputPassword}
+          title="No Partner Profile Found"
+          description="We couldn't find a partner profile for your account. Please make sure you're logged in with the correct account at https://partners.dub.co"
+        />
+      );
+    }
+
+    await prisma.$transaction([
+      prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          email: data.newEmail,
+        },
+      }),
+      prisma.partner.update({
+        where: {
+          id: partnerId,
+        },
+        data: {
+          email: data.newEmail,
+        },
+      }),
+    ]);
+  }
+
   // Update the partner profile email
-  if (data.isPartnerProfile) {
+  else if (data.isPartnerProfile) {
     if (!partnerId) {
       return (
         <EmptyState
@@ -148,7 +181,10 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
   );
 
   return (
-    <ConfirmEmailChangePageClient isPartnerProfile={!!data.isPartnerProfile} />
+    <ConfirmEmailChangePageClient
+      isPartnerProfile={!!data.isPartnerProfile}
+      redirectTo={data.redirectTo}
+    />
   );
 };
 

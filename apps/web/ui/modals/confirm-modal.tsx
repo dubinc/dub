@@ -76,9 +76,14 @@ function ConfirmModal({
           variant="secondary"
           className="h-8 w-fit"
           text={cancelText}
-          onClick={() => {
-            onCancel?.();
-            setShowConfirmModal(false);
+          onClick={async () => {
+            setIsLoading(true);
+            try {
+              await onCancel?.();
+              setShowConfirmModal(false);
+            } finally {
+              setIsLoading(false);
+            }
           }}
         />
         <Button
