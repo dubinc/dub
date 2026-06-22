@@ -8,14 +8,14 @@ import {
 export const MARKETPLACE_HOME_ROW_PAGE_SIZE = 5;
 
 export const MARKETPLACE_HOME_CATEGORIES = [
-  Category.Productivity,
   Category.Artificial_Intelligence,
-  Category.Marketing,
-  Category.Development,
-  Category.Design,
-  Category.Finance,
-  Category.Ecommerce,
   Category.Health,
+  Category.Marketing,
+  Category.Finance,
+  Category.Development,
+  Category.Productivity,
+  Category.Design,
+  Category.Ecommerce,
   Category.Consumer,
   Category.Education,
 ] as const;
