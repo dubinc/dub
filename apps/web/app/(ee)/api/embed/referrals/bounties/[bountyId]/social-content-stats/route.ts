@@ -1,5 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
+import {
+  bountyEligibilityIncludes,
+  isPartnerEligibleForBounty,
+} from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
@@ -32,21 +36,28 @@ export const GET = withReferralsEmbedToken(
       bountyId,
       programId: programEnrollment.programId,
       include: {
-        groups: true,
+        ...bountyEligibilityIncludes,
       },
     });
 
-    if (bounty.groups.length > 0) {
-      const isInGroup = bounty.groups.some(
-        ({ groupId }) => groupId === programEnrollment.groupId,
-      );
+    const bountyGroupIds = bounty.groups.map((g) => g.groupId);
+    const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
+    const partnerTagIds = programEnrollment.programPartnerTags.map(
+      (t) => t.partnerTagId,
+    );
 
-      if (!isInGroup) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "You are not allowed to access this bounty.",
-        });
-      }
+    const isEligible = isPartnerEligibleForBounty({
+      bountyGroupIds,
+      bountyTagIds,
+      partnerGroupId: programEnrollment.groupId,
+      partnerTagIds,
+    });
+
+    if (!isEligible) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not eligible for this bounty.",
+      });
     }
 
     const now = new Date();

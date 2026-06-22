@@ -291,9 +291,8 @@ export const POST = withWorkspace(
           }),
         },
         include: {
-          groups: true,
-          partnerTags: true,
           workflow: true,
+          ...bountyEligibilityIncludes,
         },
       });
     });

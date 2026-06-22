@@ -17,9 +17,6 @@ export const GET = withWorkspace(
     await getBountyOrThrow({
       bountyId,
       programId,
-      include: {
-        groups: true,
-      },
     });
 
     const {

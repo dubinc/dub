@@ -81,13 +81,15 @@ export async function POST(req: Request) {
       );
     }
 
-    // Find groupIds
     const groupIds = bounty.groups.map(({ groupId }) => groupId);
-    console.log(
-      `Bounty ${bountyId} is applicable to ${
-        groupIds.length === 0 ? "all" : groupIds.length
-      } groups (groupIds: ${JSON.stringify(groupIds)})`,
+    const partnerTagIds = bounty.partnerTags.map(
+      ({ partnerTagId }) => partnerTagId,
     );
+
+    console.log(`Bounty ${bountyId} eligibility:`, {
+      groupIds,
+      partnerTagIds,
+    });
 
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
@@ -95,6 +97,15 @@ export async function POST(req: Request) {
         ...(groupIds.length > 0 && {
           groupId: {
             in: groupIds,
+          },
+        }),
+        ...(partnerTagIds.length > 0 && {
+          programPartnerTags: {
+            some: {
+              partnerTagId: {
+                in: partnerTagIds,
+              },
+            },
           },
         }),
         status: {
