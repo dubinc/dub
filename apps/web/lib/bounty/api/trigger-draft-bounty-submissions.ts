@@ -71,6 +71,13 @@ export async function triggerDraftBountySubmissionCreation({
     return;
   }
 
+  console.log(
+    `Found ${eligibleBounties.length} eligible performance bounties for program ${programId}.`,
+    {
+      eligibleBounties,
+    },
+  );
+
   await Promise.allSettled(
     eligibleBounties.map(async (bounty) => {
       const bountyGroupIds = bounty.groups.map(({ groupId }) => groupId);

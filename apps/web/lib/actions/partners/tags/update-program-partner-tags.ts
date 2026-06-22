@@ -3,6 +3,7 @@
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { updatePartnerTagsSchema } from "@/lib/zod/schemas/partner-tags";
@@ -93,6 +94,15 @@ export const updateProgramPartnerTagsAction = authActionClient
         }),
       ]);
     });
+
+    if (addTagIds.length > 0) {
+      waitUntil(
+        triggerDraftBountySubmissionCreation({
+          programId,
+          partnerIds,
+        }),
+      );
+    }
 
     // Sync updated partner tags to Tinybird for analytics (top_partner_tags)
     waitUntil(
