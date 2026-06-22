@@ -125,7 +125,7 @@ export function SAML() {
             </h2>
             <p className="text-sm text-neutral-500">
               Set up SAML Single Sign-On (SSO) to allow your team to sign in to{" "}
-              {process.env.NEXT_PUBLIC_APP_NAME} with your identity provider.
+              Dub with your identity provider.
             </p>
           </div>
 

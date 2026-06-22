@@ -35,6 +35,8 @@ export const createRewardAction = authActionClient
       modifiers,
       config,
       groupId,
+      spendLimitAmount,
+      spendLimitInterval,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -43,8 +45,11 @@ export const createRewardAction = authActionClient
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { canUseAdvancedRewardLogic, canCreateReferralReward } =
-      getPlanCapabilities(workspace.plan);
+    const {
+      canUseAdvancedRewardLogic,
+      canSetRewardSpendLimit,
+      canCreateReferralReward,
+    } = getPlanCapabilities(workspace.plan);
 
     if (event === "referral" && !canCreateReferralReward) {
       throw new Error(
@@ -55,6 +60,12 @@ export const createRewardAction = authActionClient
     if (modifiers && !canUseAdvancedRewardLogic) {
       throw new Error(
         "Advanced reward structures are only available on the Advanced plan and above.",
+      );
+    }
+
+    if ((spendLimitAmount || spendLimitInterval) && !canSetRewardSpendLimit) {
+      throw new Error(
+        "Spend limits are only available on the Enterprise plan.",
       );
     }
 
@@ -85,6 +96,8 @@ export const createRewardAction = authActionClient
           tooltipDescription: tooltipDescription || null,
           modifiers: modifiers || Prisma.DbNull,
           config: config ?? Prisma.DbNull,
+          spendLimitAmount,
+          spendLimitInterval,
           ...(type === "flat"
             ? {
                 amountInCents,
