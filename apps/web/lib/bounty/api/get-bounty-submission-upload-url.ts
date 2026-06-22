@@ -4,20 +4,25 @@ import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
 import { nanoid, R2_URL } from "@dub/utils";
-import { ProgramEnrollment } from "@prisma/client";
+import { BountyPartnerTag, ProgramEnrollment } from "@prisma/client";
+import { isPartnerEligibleForBounty } from "./bounty-eligibility";
 
 const MAX_ATTEMPTS = 25;
 const CACHE_KEY_PREFIX = "bounty:submission:file:upload";
+
+type ProgramEnrollmentWithPartnerTags = Pick<
+  ProgramEnrollment,
+  "programId" | "partnerId" | "groupId"
+> & {
+  programPartnerTags: Pick<BountyPartnerTag, "partnerTagId">[];
+};
 
 type GetBountySubmissionUploadUrlParams = {
   bountyId: string;
   fileName: string;
   contentType: string;
   contentLength: number;
-  programEnrollment: Pick<
-    ProgramEnrollment,
-    "programId" | "partnerId" | "groupId"
-  >;
+  programEnrollment: ProgramEnrollmentWithPartnerTags;
 };
 
 const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024;
@@ -35,7 +40,8 @@ export async function getBountySubmissionUploadUrl({
   contentLength,
   programEnrollment,
 }: GetBountySubmissionUploadUrlParams) {
-  const { programId, partnerId } = programEnrollment;
+  const { programId, partnerId, groupId, programPartnerTags } =
+    programEnrollment;
 
   if (!fileName.trim()) {
     throw new DubApiError({
@@ -90,6 +96,11 @@ export async function getBountySubmissionUploadUrl({
           groupId: true,
         },
       },
+      partnerTags: {
+        select: {
+          partnerTagId: true,
+        },
+      },
     },
   });
 
@@ -100,17 +111,22 @@ export async function getBountySubmissionUploadUrl({
     });
   }
 
-  if (bounty.groups.length > 0) {
-    const isInGroup = bounty.groups.find(
-      ({ groupId }) => groupId === programEnrollment.groupId,
-    );
+  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
+  const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
+  const partnerTagIds = programPartnerTags.map((t) => t.partnerTagId);
 
-    if (!isInGroup) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "You are not allowed to submit this bounty.",
-      });
-    }
+  const isEligible = isPartnerEligibleForBounty({
+    bountyGroupIds,
+    bountyTagIds,
+    partnerGroupId: groupId,
+    partnerTagIds,
+  });
+
+  if (!isEligible) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You are not allowed to submit this bounty.",
+    });
   }
 
   // Validate the bounty dates

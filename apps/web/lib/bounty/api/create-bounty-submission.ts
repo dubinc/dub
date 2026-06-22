@@ -26,6 +26,7 @@ import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";
 import * as z from "zod/v4";
 import { SOCIAL_URL_HOST_TO_PLATFORM } from "../social-content";
+import { isPartnerEligibleForBounty } from "./bounty-eligibility";
 
 type CreateBountySubmissionParams = z.infer<
   typeof createBountySubmissionInputSchema
@@ -35,8 +36,17 @@ type CreateBountySubmissionParams = z.infer<
 
 type BountyWithRelations = Prisma.BountyGetPayload<{
   include: {
-    groups: true;
     submissions: true;
+    groups: {
+      select: {
+        groupId: true;
+      };
+    };
+    partnerTags: {
+      select: {
+        partnerTagId: true;
+      };
+    };
   };
 }>;
 
@@ -57,7 +67,13 @@ export class BountySubmissionHandler {
   private submissions: BountySubmission[];
   private submissionData: Partial<Prisma.BountySubmissionUncheckedCreateInput>;
   private programEnrollment: Prisma.ProgramEnrollmentGetPayload<{
-    include: {};
+    include: {
+      programPartnerTags: {
+        select: {
+          partnerTagId: true;
+        };
+      };
+    };
   }>;
 
   constructor(params: CreateBountySubmissionParams) {
@@ -99,7 +115,13 @@ export class BountySubmissionHandler {
       getProgramEnrollmentOrThrow({
         partnerId: this.partner.id,
         programId: this.programId,
-        include: {},
+        include: {
+          programPartnerTags: {
+            select: {
+              partnerTagId: true,
+            },
+          },
+        },
       }),
 
       prisma.bounty.findUniqueOrThrow({
@@ -107,10 +129,19 @@ export class BountySubmissionHandler {
           id: this.bountyId,
         },
         include: {
-          groups: true,
           submissions: {
             where: {
               partnerId: this.partner.id,
+            },
+          },
+          groups: {
+            select: {
+              groupId: true,
+            },
+          },
+          partnerTags: {
+            select: {
+              partnerTagId: true,
             },
           },
         },
@@ -243,18 +274,24 @@ export class BountySubmissionHandler {
       }
     }
 
-    // Check group membership
-    if (this.bounty.groups.length > 0) {
-      const isInGroup = this.bounty.groups.find(
-        ({ groupId }) => groupId === this.programEnrollment.groupId,
-      );
+    const bountyGroupIds = this.bounty.groups.map((g) => g.groupId);
+    const bountyTagIds = this.bounty.partnerTags.map((t) => t.partnerTagId);
+    const partnerTagIds = this.programEnrollment.programPartnerTags.map(
+      (t) => t.partnerTagId,
+    );
 
-      if (!isInGroup) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "You are not allowed to submit this bounty.",
-        });
-      }
+    const isEligible = isPartnerEligibleForBounty({
+      bountyGroupIds,
+      bountyTagIds,
+      partnerGroupId: this.programEnrollment.groupId,
+      partnerTagIds,
+    });
+
+    if (!isEligible) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not allowed to submit this bounty.",
+      });
     }
 
     // Validate bounty dates and status

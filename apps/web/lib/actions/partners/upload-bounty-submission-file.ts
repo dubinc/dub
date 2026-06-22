@@ -23,7 +23,13 @@ export const uploadBountySubmissionFileAction = authPartnerActionClient
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId,
-      include: {},
+      include: {
+        programPartnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
+      },
     });
 
     const { signedUrl, destinationUrl } = await getBountySubmissionUploadUrl({
