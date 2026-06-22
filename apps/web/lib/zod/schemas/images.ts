@@ -80,7 +80,10 @@ export const uploadedImageSchema = z
   .transform((v) => v || null);
 
 export const publicHostedImageSchema = z
-  .httpUrl({ error: "Image URL must start with http:// or https://" })
+  .httpUrl({
+    error:
+      "Image must be a publicly accessible http:// or https:// URL (localhost and IP addresses aren't allowed).",
+  })
   .trim();
 
 /** Coerce unusable preview strings (e.g. data:favicons) to null before create/update link validation. */

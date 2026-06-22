@@ -1,32 +1,31 @@
-export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Dub";
-
-export const SHORT_DOMAIN =
-  process.env.NEXT_PUBLIC_APP_SHORT_DOMAIN || "dub.sh";
+export const SHORT_DOMAIN = "dub.sh";
 
 export const APP_HOSTNAMES = new Set([
-  `app.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
-  `preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+  "app.dub.co",
+  "preview.dub.co",
   "localhost:8888",
   "localhost",
 ]);
 
 export const APP_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? `https://app.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+    ? "https://app.dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-      ? `https://preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+      ? "https://preview.dub.co"
       : "http://localhost:8888";
 
 export const APP_DOMAIN_WITH_NGROK =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? `https://app.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+    ? "https://app.dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-      ? `https://preview.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+      ? process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "https://preview.dub.co"
       : process.env.NEXT_PUBLIC_NGROK_URL || "http://localhost:8888";
 
 export const API_HOSTNAMES = new Set([
-  `api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
-  `api-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+  "api.dub.co",
+  "api-staging.dub.co",
   `api.${SHORT_DOMAIN}`,
   "api.localhost:8888",
   "api.localhost",
@@ -34,36 +33,36 @@ export const API_HOSTNAMES = new Set([
 
 export const API_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? `https://api.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+    ? "https://api.dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-      ? `https://api-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+      ? "https://api-staging.dub.co"
       : "http://api.localhost:8888";
 
 export const ADMIN_HOSTNAMES = new Set([
-  `admin.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+  "admin.dub.co",
   "admin.localhost:8888",
   "admin.localhost",
 ]);
 
 export const PARTNERS_HOSTNAMES = new Set([
-  `partners.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
-  `partners-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
+  "partners.dub.co",
+  "partners-staging.dub.co",
   "partners.localhost:8888",
   "partners.localhost",
 ]);
 
 export const PARTNERS_DOMAIN =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? `https://partners.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+    ? "https://partners.dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-      ? `https://partners-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+      ? "https://partners-staging.dub.co"
       : "http://partners.localhost:8888";
 
 export const PARTNERS_DOMAIN_WITH_NGROK =
   process.env.NEXT_PUBLIC_VERCEL_ENV === "production"
-    ? `https://partners.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+    ? "https://partners.dub.co"
     : process.env.NEXT_PUBLIC_VERCEL_ENV === "preview"
-      ? `https://partners-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+      ? "https://partners-staging.dub.co"
       : process.env.NEXT_PUBLIC_NGROK_URL || "http://partners.localhost:8888";
 
 export const DUB_LOGO = "https://assets.dub.co/logo.png";

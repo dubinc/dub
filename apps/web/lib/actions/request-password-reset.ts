@@ -61,7 +61,7 @@ export const requestPasswordResetAction = actionClient
     ]);
 
     await sendEmail({
-      subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Password reset instructions`,
+      subject: "Dub: Password reset instructions",
       to: email,
       react: ResetPasswordLink({
         email,
