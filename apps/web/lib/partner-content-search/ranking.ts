@@ -4,6 +4,14 @@ import { toScore, type PartnerContentSearchRow } from "./search-utils";
 
 export type PartnerContentMatchSource = "transcript" | "creatorText";
 
+// Best score (rerank or distance) per content item, split by evidence source.
+// Produced during retrieval and reused by the match-summary pass; the source-map
+// helpers below (get/set) all operate on exactly this shape.
+export type SourceScoreByContentItemId = Map<
+  string,
+  Map<PartnerContentMatchSource, number>
+>;
+
 export type PartnerContentSearchQueryIntent = "entity" | "semantic";
 
 export type PartnerContentSearchQuerySignals = {

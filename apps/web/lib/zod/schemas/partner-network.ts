@@ -1,5 +1,11 @@
 import { REACH_TIER_KEYS } from "@/lib/api/network/reach-tiers";
 import { processKey } from "@/lib/api/links/utils";
+import {
+  PARTNER_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER,
+  PARTNER_CONTENT_SEARCH_LIMITS,
+  PARTNER_CONTENT_SEARCH_MAX_CHUNKS_PER_PARTNER,
+  PARTNER_CONTENT_SEARCH_PARTNER_LIMIT,
+} from "@/lib/partner-content-search/constants";
 import { PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
@@ -122,4 +128,37 @@ export const invitePartnerFromNetworkSchema = z.object({
   emailSubject: z.string().trim().max(255).optional(),
   emailTitle: z.string().trim().max(255).optional(),
   emailBody: z.string().trim().max(3000).optional(),
+});
+
+const PARTNER_NETWORK_CONTENT_SEARCH_DEFAULT_PARTNER_LIMIT = 20;
+
+// Request body for POST /api/network/partners/content-search (semantic search
+// over indexed partner content).
+export const partnerNetworkContentSearchSchema = z.object({
+  query: z.string().trim().max(500).optional(),
+  platforms: z.array(z.enum(PlatformType)).min(1).optional(),
+  reach: z.array(z.enum(REACH_TIER_KEYS)).min(1).optional(),
+  country: z.string().trim().min(1).optional(),
+  partnerIds: z.array(z.string()).min(1).max(100).optional(),
+  starred: z.boolean().optional(),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .max(PARTNER_CONTENT_SEARCH_PARTNER_LIMIT)
+    .default(PARTNER_NETWORK_CONTENT_SEARCH_DEFAULT_PARTNER_LIMIT),
+  chunksPerPartner: z
+    .number()
+    .int()
+    .positive()
+    .max(PARTNER_CONTENT_SEARCH_MAX_CHUNKS_PER_PARTNER)
+    .default(PARTNER_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER),
+  candidateChunkCount: z
+    .number()
+    .int()
+    .positive()
+    .max(PARTNER_CONTENT_SEARCH_LIMITS.chunkCandidateCount)
+    .optional(),
+  // Second-stage reranking is on by default; pass `false` for diagnostics.
+  rerank: z.boolean().default(true),
 });
