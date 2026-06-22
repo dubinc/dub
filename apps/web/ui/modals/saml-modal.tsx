@@ -45,8 +45,7 @@ function SAMLModal({
         </div>
         <h3 className="text-lg font-medium">Configure SAML</h3>
         <p className="text-center text-sm text-neutral-500">
-          Select a provider to configure SAML for your{" "}
-          {process.env.NEXT_PUBLIC_APP_NAME} workspace.
+          Select a provider to configure SAML for your Dub workspace.
         </p>
       </div>
 

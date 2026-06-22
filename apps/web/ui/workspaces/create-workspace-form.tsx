@@ -139,7 +139,7 @@ export function CreateWorkspaceForm({
         </label>
         <div className="relative mt-2 flex rounded-md shadow-sm">
           <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-            app.{process.env.NEXT_PUBLIC_APP_DOMAIN}
+            app.dub.co
           </span>
           <input
             id="slug"

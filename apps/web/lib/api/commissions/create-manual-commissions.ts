@@ -221,8 +221,8 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
         amount: saleEvent.amount,
         currency: saleEvent.currency,
         invoiceId: saleEvent.invoiceId,
-        // if the invoice payment was refunded on Stripe, set the commission status to refunded as well
         createdAt: new Date(saleEvent.timestamp),
+        // if the invoice payment was refunded on Stripe, set the commission status to refunded as well
         ...(saleEvent.status === "refunded" && {
           status: "refunded" as const,
         }),
