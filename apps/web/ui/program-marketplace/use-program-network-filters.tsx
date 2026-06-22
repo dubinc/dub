@@ -1,13 +1,15 @@
-import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
+import { PROGRAM_CATEGORIES } from "@/lib/network/program-categories";
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Gift, Suitcase } from "@dub/ui/icons";
-import { capitalize, nFormatter } from "@dub/utils";
+import { nFormatter } from "@dub/utils";
 import { Category } from "@prisma/client";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
-import { MARKETPLACE_REWARD_TYPES } from "./constants";
-import { ProgramNetworkStatusBadges } from "./program-status-badge";
+import {
+  MARKETPLACE_ENROLLMENT_STATUSES,
+  MARKETPLACE_REWARD_TYPES,
+} from "./constants";
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryFromPathname,
@@ -72,10 +74,13 @@ export function useProgramNetworkFilters() {
           ([key, label]) => ({
             value: key,
             label,
-            right: nFormatter(
-              rewardTypesCount?.find(({ type }) => type === key)?._count || 0,
-              { full: true },
-            ),
+            right: rewardTypesCount
+              ? nFormatter(
+                  rewardTypesCount.find(({ type }) => type === key)?._count ||
+                    0,
+                  { full: true },
+                )
+              : undefined,
           }),
         ),
       },
@@ -85,34 +90,39 @@ export function useProgramNetworkFilters() {
         label: "Category",
         labelPlural: "categories",
         singleSelect: true,
-        getOptionLabel: (value) =>
-          PROGRAM_CATEGORIES_MAP[value]?.label || value.replaceAll("_", " "),
-        options:
-          categoriesCount?.map(({ category, _count }) => ({
-            value: category,
-            label: category.replaceAll("_", " "),
-            right: nFormatter(_count, { full: true }),
-          })) ?? [],
+        options: categoriesCount
+          ? categoriesCount.map(({ category, _count }) => ({
+              value: category,
+              label: category.replaceAll("_", " "),
+              right: nFormatter(_count, { full: true }),
+            }))
+          : Array.from({ length: PROGRAM_CATEGORIES.length }).map(
+              (_, index) => ({
+                value: index,
+                label: "",
+                disabled: categoriesCount === undefined,
+              }),
+            ),
       },
       {
         key: "status",
         icon: CircleDotted,
         label: "Status",
         singleSelect: true,
-        options:
-          statusCount?.map(({ status, _count }) => {
-            const label = status
-              ? ProgramNetworkStatusBadges[
-                  status as keyof typeof ProgramNetworkStatusBadges
-                ]?.label ?? capitalize(status)
-              : "Not applied";
-
-            return {
-              value: status ?? "null",
-              label,
-              right: nFormatter(_count, { full: true }),
-            };
-          }) ?? null,
+        options: Object.entries(MARKETPLACE_ENROLLMENT_STATUSES).map(
+          ([key, label]) => ({
+            value: key,
+            label,
+            right: statusCount
+              ? nFormatter(
+                  statusCount.find(({ status }) =>
+                    key === "null" ? status === null : status === key,
+                  )?._count ?? 0,
+                  { full: true },
+                )
+              : undefined,
+          }),
+        ),
       },
     ],
     [categoriesCount, rewardTypesCount, statusCount],

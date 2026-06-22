@@ -64,6 +64,11 @@ export function FilterSidebar({
   const toggleOption = useCallback(
     (filter: Filter, value: FilterOption["value"]) => {
       const filterKey = filter.key;
+      const option = filter.options?.find((o) => valuesMatch(o.value, value));
+
+      if (option?.disabled) {
+        return;
+      }
 
       if (isOptionSelected(filterKey, value)) {
         onRemove(filterKey, value);

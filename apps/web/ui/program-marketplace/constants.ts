@@ -14,6 +14,15 @@ export const MARKETPLACE_REWARD_TYPES = {
 
 export type MarketplaceRewardType = keyof typeof MARKETPLACE_REWARD_TYPES;
 
+export const MARKETPLACE_ENROLLMENT_STATUSES = {
+  null: "Not applied",
+  approved: "Enrolled",
+  deactivated: "Deactivated",
+} as const;
+
+export type MarketplaceEnrollmentStatus =
+  keyof typeof MARKETPLACE_ENROLLMENT_STATUSES;
+
 export const MARKETPLACE_SORT_OPTIONS = [
   {
     icon: Star,

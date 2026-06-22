@@ -9,7 +9,6 @@ import {
   Icon,
   MarketingTarget,
   MoneyBill,
-  ShieldKeyhole,
   Sparkle3,
   User,
 } from "@dub/ui/icons";
@@ -70,13 +69,13 @@ export const PROGRAM_CATEGORIES: {
     listPageDescription:
       "Browse partner programs for ecommerce platforms and online retail tools.",
   },
-  {
-    id: Category.Security,
-    label: "Security",
-    icon: ShieldKeyhole,
-    listPageDescription:
-      "Browse partner programs for security software and privacy tools.",
-  },
+  // {
+  //   id: Category.Security,
+  //   label: "Security",
+  //   icon: ShieldKeyhole,
+  //   listPageDescription:
+  //     "Browse partner programs for security software and privacy tools.",
+  // },
   {
     id: Category.Education,
     label: "Education",
