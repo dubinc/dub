@@ -38,9 +38,7 @@ function MarketplaceListTitle({ category }: { category?: Category }) {
   );
 }
 
-export function MarketplaceRouter({ slug }: { slug?: string[] }) {
-  const segments = slug ?? [];
-
+export function MarketplaceRouter({ segments = [] }: { segments?: string[] }) {
   if (segments.length === 0) {
     return (
       <PageContent title="Program marketplace">

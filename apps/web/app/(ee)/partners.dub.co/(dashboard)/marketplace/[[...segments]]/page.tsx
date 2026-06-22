@@ -11,9 +11,9 @@ export async function generateStaticParams() {
 }
 
 export default async function MarketplacePage(props: {
-  params: Promise<{ slug?: string[] }>;
+  params: Promise<{ segments?: string[] }>;
 }) {
-  const { slug } = await props.params;
+  const { segments } = await props.params;
 
-  return <MarketplaceRouter slug={slug} />;
+  return <MarketplaceRouter segments={segments} />;
 }
