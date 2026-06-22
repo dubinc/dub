@@ -52,6 +52,20 @@ export const POST = withCron(async ({ rawBody }) => {
       partnerId: true,
       totalChunkCount: true,
       embeddedChunkCount: true,
+      // Source values for the denormalized search pre-filter columns on
+      // PartnerContentChunk. The embed write is the single choke point that makes
+      // a chunk searchable, so we stamp these here to keep new chunks correctly
+      // filterable the moment they gain an embedding.
+      partner: {
+        select: {
+          country: true,
+        },
+      },
+      partnerPlatform: {
+        select: {
+          type: true,
+        },
+      },
     },
   });
 
@@ -134,12 +148,24 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
+  // Denormalized search pre-filter values, stamped alongside the embedding so a
+  // chunk is correctly filterable as soon as it becomes searchable. All chunks in
+  // this job share one content item, hence one partner/platform, so these are
+  // constant across the batch. Both are effectively static (platformType immutable,
+  // country ~never changes); a periodic reconcile catches the rare country edit.
+  // networkStatus is intentionally not denormalized — it stays a post-filter in the
+  // search query (ingestion already gates content on approved/trusted partners).
+  const country = contentItem.partner.country;
+  const platformType = contentItem.partnerPlatform.type;
+
   const updates = chunks.map(
     (contentChunk, index) =>
       prisma.$executeRaw`
         UPDATE PartnerContentChunk
         SET embedding = TO_VECTOR(${serializeEmbeddingForVector(embeddings[index])}),
-            embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.id}
+            embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.id},
+            country = ${country},
+            platformType = ${platformType}
         WHERE id = ${contentChunk.id}
       `,
   );

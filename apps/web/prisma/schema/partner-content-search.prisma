@@ -56,6 +56,7 @@ model PartnerContentItem {
 
   @@unique([partnerPlatformId, platformContentId])
   @@index([partnerId, partnerPlatformId])
+  @@index([partnerId, embeddingModel, publishedAt])
   @@index(publishedAt)
 }
 
@@ -71,6 +72,12 @@ model PartnerContentChunk {
   textHash             String
   embedding            Unsupported("vector(1024)")?
   embeddingModel       String
+
+  // Denormalized from Partner / PartnerPlatform so the vector ANN can pre-filter
+  // inline (no joins) on the index fast path; both fields are effectively static.
+  country              String?                      // denormalized from Partner.country
+  platformType         PlatformType?                // denormalized from PartnerPlatform.type
+
   createdAt            DateTime                     @default(now())
   updatedAt            DateTime                     @updatedAt
 
@@ -86,5 +93,8 @@ model PartnerContentChunk {
   @@index([partnerContentItemId, embeddingModel])
   // Drift guard only: Prisma cannot express PlanetScale VECTOR INDEX options.
   // Create/recreate the real cosine ANN index with prisma/manual/partner-content-search-vector-index.sql.
+  // The map name mirrors PARTNER_CONTENT_CHUNK_VECTOR_INDEX in
+  // apps/web/lib/partner-content-search/constants.ts (the FORCE INDEX hint); the
+  // match is enforced by tests/partner-content-search/vector-index-sync.test.ts.
   @@index([embedding], map: "partner_content_chunk_embedding_cosine_idx")
 }

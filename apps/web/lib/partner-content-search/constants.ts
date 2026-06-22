@@ -6,6 +6,17 @@ export const PARTNER_CONTENT_SEARCH_ENV_VARS = {
   voyageApiKey: "VOYAGE_API_KEY",
 } as const;
 
+// Name of the manually-created PlanetScale VECTOR index on
+// PartnerContentChunk.embedding, and the distance metric it's built with. These
+// are the single source of truth: the search routes feed them into the FORCE
+// INDEX hint and the DISTANCE() call, and they must match the @@index(map:) 
+// files that can't import this constant use a drift check test in 
+// tests/partner-content-search/vector-index-sync.test.ts.
+export const PARTNER_CONTENT_CHUNK_VECTOR_INDEX =
+  "partner_content_chunk_embedding_cosine_idx";
+
+export const PARTNER_CONTENT_CHUNK_VECTOR_DISTANCE = "cosine";
+
 export const PARTNER_CONTENT_SEARCH_MODELS = {
   embedding: {
     provider: "voyage",
@@ -34,12 +45,11 @@ export const PARTNER_CONTENT_SEARCH_LIMITS = {
   // per-partner item set so the exact per-item scoring query stays cheap for
   // extremely prolific creators.
   recentContentMaxPerPartner: 200,
-  // Pre-dedup ANN over-fetch for retrieval. We pull this many raw chunks via the
-  // vector index (flat `ORDER BY DISTANCE ... LIMIT`, which stays index-friendly),
-  // then collapse to the best chunk per content item in app code. Larger = better
-  // video/partner diversity when one high-volume creator dominates a query;
-  // bounded so the ANN fetch stays fast.
-  vectorSearchChunkPoolSize: 1000,
+  // Pre-dedup ANN over-fetch for retrieval. We pull limit * multiplier raw
+  // chunk candidates via the vector index, capped so the user-facing path does
+  // not request a large slice of the corpus as the chunk table grows.
+  vectorSearchChunkPoolMultiplier: 3,
+  vectorSearchChunkPoolMaxSize: 600,
   rerankerCandidateCount: 150,
   // Cap each document sent to the reranker. Chunks are <=800 tokens; trimming the
   // tail keeps the rerank payload (and thus latency) down with little quality loss.

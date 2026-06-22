@@ -30,6 +30,11 @@ export type PartnerContentSearchRow = {
   contentThumbnailUrl: string | null;
   contentPublishedAt: Date | null;
   contentDurationMs: number | null;
+  contentViewCount?: bigint | number | null;
+  contentLikeCount?: bigint | number | null;
+  contentCommentCount?: bigint | number | null;
+  contentShareCount?: bigint | number | null;
+  contentSaveCount?: bigint | number | null;
   chunkSource: string;
   // Only the admin query selects chunkIndex; the network query omits it.
   chunkIndex?: number;
@@ -57,9 +62,15 @@ export function effectiveRowScore(row: PartnerContentSearchRow) {
 // content item is its best chunk. This turns a top-k *chunk* pool into a per-video
 // candidate set in app code, avoiding a SQL window-function dedup that would force
 // a full distance scan and defeat the ANN vector index.
-export function dedupeBestChunkPerContentItem(rows: PartnerContentSearchRow[]) {
+//
+// Generic over the row shape so callers can dedup lightweight candidate rows
+// (chunkId + ids + distance) before the hydration join as well as fully-hydrated
+// rows.
+export function dedupeBestChunkPerContentItem<
+  T extends { partnerContentItemId: string },
+>(rows: T[]) {
   const seen = new Set<string>();
-  const deduped: PartnerContentSearchRow[] = [];
+  const deduped: T[] = [];
 
   for (const row of rows) {
     if (seen.has(row.partnerContentItemId)) continue;
@@ -70,11 +81,11 @@ export function dedupeBestChunkPerContentItem(rows: PartnerContentSearchRow[]) {
   return deduped;
 }
 
-export function dedupeBestChunkPerContentItemSource(
-  rows: PartnerContentSearchRow[],
-) {
+export function dedupeBestChunkPerContentItemSource<
+  T extends { partnerContentItemId: string; chunkSource: string },
+>(rows: T[]) {
   const seen = new Set<string>();
-  const deduped: PartnerContentSearchRow[] = [];
+  const deduped: T[] = [];
 
   for (const row of rows) {
     const key = `${row.partnerContentItemId}:${row.chunkSource}`;

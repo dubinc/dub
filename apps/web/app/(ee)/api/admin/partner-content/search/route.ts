@@ -2,6 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withAdmin } from "@/lib/auth";
 import {
+  PARTNER_CONTENT_CHUNK_VECTOR_DISTANCE,
   PARTNER_CONTENT_SEARCH_LIMITS,
   PARTNER_CONTENT_SEARCH_MODELS,
   PARTNER_CONTENT_SEARCH_VOYAGE_QUERY_TIMEOUT_MS,
@@ -162,7 +163,7 @@ async function searchPartnerContentChunks({
       c.chunkText,
       c.startMs,
       c.endMs,
-      DISTANCE(TO_VECTOR(${queryVector}), c.embedding, 'cosine') AS distance
+      DISTANCE(TO_VECTOR(${queryVector}), c.embedding, ${Prisma.raw(`'${PARTNER_CONTENT_CHUNK_VECTOR_DISTANCE}'`)}) AS distance
     FROM PartnerContentChunk c
     INNER JOIN PartnerContentItem pci ON pci.id = c.partnerContentItemId
     INNER JOIN Partner p ON p.id = c.partnerId

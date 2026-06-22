@@ -1,7 +1,8 @@
+import { REACH_TIER_KEYS, REACH_TIERS } from "@/lib/api/network/reach-tiers";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { useRouterStuff } from "@dub/ui";
-import { FlagWavy } from "@dub/ui/icons";
+import { FlagWavy, User } from "@dub/ui/icons";
 import { COUNTRIES, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 
@@ -56,19 +57,38 @@ export function usePartnerNetworkFilters({
               right: nFormatter(_count, { full: true }),
             })) ?? [],
       },
+      {
+        key: "reach",
+        icon: User,
+        label: "Creator size",
+        multiple: true,
+        // Range leads (objective); the muted descriptor sits on the right.
+        options: REACH_TIER_KEYS.map((tier) => ({
+          value: tier,
+          label: REACH_TIERS[tier].range,
+          right: REACH_TIERS[tier].descriptor,
+        })),
+      },
     ],
     [countriesCount],
   );
 
-  const multiFilters = useMemo(() => ({}), []) as Record<string, string[]>;
+  const multiFilters = useMemo(
+    () => ({
+      reach: searchParamsObj.reach?.split(",").filter(Boolean) ?? [],
+    }),
+    [searchParamsObj.reach],
+  ) as Record<string, string[]>;
 
   const activeFilters = useMemo(() => {
     const { country } = searchParamsObj;
 
     return [
+      // Multi-select filters use the plural `values` shape so the Filter component
+      // reflects each option's checked state and renders per-value labels/icons.
       ...Object.entries(multiFilters)
-        .map(([key, value]) => ({ key, value }))
-        .filter(({ value }) => value.length > 0),
+        .map(([key, values]) => ({ key, values }))
+        .filter(({ values }) => values.length > 0),
 
       ...(country ? [{ key: "country", value: country }] : []),
     ];

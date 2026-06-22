@@ -12,7 +12,9 @@ export function isInstagramCdnUrl(url: string) {
   try {
     const { hostname } = new URL(url);
     return (
-      hostname === "cdninstagram.com" || hostname.endsWith(".cdninstagram.com")
+      hostname === "cdninstagram.com" ||
+      hostname.endsWith(".cdninstagram.com") ||
+      (hostname.endsWith(".fbcdn.net") && hostname.startsWith("instagram."))
     );
   } catch {
     return false;

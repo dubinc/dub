@@ -72,6 +72,14 @@ export interface TooltipProps
   disabled?: boolean;
   disableHoverableContent?: TooltipPrimitive.TooltipProps["disableHoverableContent"];
   delayDuration?: TooltipPrimitive.TooltipProps["delayDuration"];
+  /**
+   * Controlled open state. Pass `open` and `onOpenChange` together to control
+   * it from the parent; omit both to let the tooltip manage its own.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Drop the entrance animation so the tooltip closes instantly without lingering. */
+  disableAnimation?: boolean;
 }
 
 export function Tooltip({
@@ -82,9 +90,16 @@ export function Tooltip({
   side = "top",
   disableHoverableContent,
   delayDuration = 0,
+  open: openProp,
+  onOpenChange,
+  disableAnimation,
   ...rest
 }: TooltipProps) {
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : uncontrolledOpen;
+  const setOpen = (next: boolean) =>
+    isControlled ? onOpenChange?.(next) : setUncontrolledOpen(next);
 
   return (
     <TooltipPrimitive.Root
@@ -108,7 +123,10 @@ export function Tooltip({
         <TooltipPrimitive.Content
           sideOffset={8}
           side={side}
-          className="animate-slide-up-fade border-border-default bg-bg-default pointer-events-auto z-[99] items-center overflow-hidden rounded-xl border shadow-sm"
+          className={cn(
+            "border-border-default bg-bg-default pointer-events-auto z-[99] items-center overflow-hidden rounded-xl border shadow-sm",
+            !disableAnimation && "animate-slide-up-fade",
+          )}
           collisionPadding={0}
           {...rest}
         >

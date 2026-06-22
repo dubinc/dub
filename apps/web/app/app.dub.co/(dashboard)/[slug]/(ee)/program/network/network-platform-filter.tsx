@@ -152,43 +152,23 @@ export function NetworkPlatformFilter({
           className,
         )}
       >
-        <span className="flex items-center">
-          {NETWORK_FILTER_PLATFORMS.map((platform, index) => {
+        <span className="flex items-center gap-1.5">
+          {NETWORK_FILTER_PLATFORMS.map((platform) => {
             const { icon: Icon } = PLATFORM_META[platform];
             const isSelected = selectedSet.has(platform);
 
             return (
-              <span
+              <Icon
                 key={platform}
-                style={{ zIndex: NETWORK_FILTER_PLATFORMS.length - index }}
                 className={cn(
-                  // Opaque fill matching the bar so overlapping icons cleanly
-                  // cover each other instead of showing through. Same color as
-                  // the button, so it reads as opaque icons — not visible circles.
-                  "flex size-5 items-center justify-center rounded-full bg-white",
-                  // Condensed/overlapping at rest; fans out on hover / when open.
-                  "transition-[margin] duration-200 ease-out",
-                  index !== 0 &&
-                    "-ml-2.5 group-hover:ml-[3px] group-data-[open=true]:ml-[3px]",
+                  "size-4 shrink-0 transition-[opacity,filter] duration-200",
+                  // Deselected platforms read as dimmed/desaturated.
+                  !isSelected && "opacity-40 grayscale",
                 )}
-              >
-                <Icon
-                  className={cn(
-                    "size-4 transition-[opacity,filter] duration-200",
-                    // Dim the glyph only — the fill stays opaque so it keeps
-                    // occluding the icon behind it.
-                    !isSelected && "opacity-40 grayscale",
-                  )}
-                />
-              </span>
+              />
             );
           })}
         </span>
-        {isFiltered && (
-          <span className="text-content-subtle text-xs font-medium tabular-nums">
-            {selectedPlatforms.length}/{NETWORK_FILTER_PLATFORMS.length}
-          </span>
-        )}
         <ChevronDown className="size-4 shrink-0 text-neutral-400 transition-transform duration-75 group-data-[open=true]:rotate-180" />
       </button>
     </Popover>

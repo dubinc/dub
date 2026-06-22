@@ -1,10 +1,7 @@
 "use client";
 
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
-import {
-  parseReachTiers,
-  type ReachTier,
-} from "@/lib/api/network/reach-tiers";
+import { parseReachTiers } from "@/lib/api/network/reach-tiers";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import usePartnerContentSearch from "@/lib/swr/use-partner-content-search";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -12,7 +9,9 @@ import { NetworkPartnerProps } from "@/lib/types";
 import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
+  AnimatedSizeContainer,
   Button,
+  Filter,
   PaginationControls,
   usePagination,
   useRouterStuff,
@@ -26,12 +25,10 @@ import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import useSWR from "swr";
 import { NetworkContentSearchResults } from "./network-content-search-results";
-import { NetworkCountryFilter } from "./network-country-filter";
 import { NetworkEmptyState } from "./network-empty-state";
 import { NetworkPartnerCard } from "./network-partner-card";
 import { NetworkPartnerDetailSheet } from "./network-partner-detail-sheet";
 import { NetworkPlatformFilter } from "./network-platform-filter";
-import { NetworkReachFilter } from "./network-reach-filter";
 import {
   getContentSearchPlatforms,
   isAllPlatformsSelected,
@@ -117,13 +114,6 @@ export function ProgramPartnerNetworkPageClient({
         : { set: { platform: platforms.join(",") }, del: "page" },
     );
 
-  const onReachChange = (tiers: ReachTier[]) =>
-    updateSearchParams(
-      tiers.length
-        ? { set: { reach: tiers.join(",") }, del: "page" }
-        : { del: ["reach", "page"] },
-    );
-
   const { data: partnerCounts, error: countError } = useNetworkPartnersCount();
 
   const {
@@ -180,26 +170,34 @@ export function ProgramPartnerNetworkPageClient({
     PARTNER_NETWORK_MAX_PAGE_SIZE,
   );
 
-  const { filters, isFiltered, onSelect, onRemove, onRemoveAll } =
-    usePartnerNetworkFilters({ status });
-
-  const countryFilter = filters.find((f) => f.key === "country");
+  const {
+    filters,
+    activeFilters,
+    isFiltered,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+  } = usePartnerNetworkFilters({ status });
 
   const isStarred = searchParams.get("starred") === "true";
+  const selectedPartnerId = searchParams.get("partnerId");
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; partnerId: string | null }
     | { open: true; partnerId: string }
-  >({ open: false, partnerId: null });
+  >(
+    selectedPartnerId
+      ? { open: true, partnerId: selectedPartnerId }
+      : { open: false, partnerId: null },
+  );
 
   useEffect(() => {
-    const partnerId = searchParams.get("partnerId");
-    if (partnerId) {
-      setDetailsSheetState({ open: true, partnerId });
+    if (selectedPartnerId) {
+      setDetailsSheetState({ open: true, partnerId: selectedPartnerId });
     } else {
       setDetailsSheetState({ open: false, partnerId: null });
     }
-  }, [searchParams]);
+  }, [selectedPartnerId]);
 
   const sheetPartnerIds = useMemo(
     () =>
@@ -305,12 +303,12 @@ export function ProgramPartnerNetworkPageClient({
         <div className="mt-[17px]">
           <div className="@3xl/page:flex-row @3xl/page:items-center flex flex-col gap-3">
             <div className="flex flex-col items-center gap-3 md:flex-row">
-              <NetworkCountryFilter
-                options={countryFilter?.options ?? []}
-                getOptionIcon={countryFilter?.getOptionIcon}
-                selectedValue={country}
-                onSelect={(value) => onSelect("country", value)}
-                onClear={() => country && onRemove("country", country)}
+              <Filter.Select
+                className="h-10 w-full shrink-0 rounded-lg md:w-fit"
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
               />
               <Button
                 type="button"
@@ -330,10 +328,6 @@ export function ProgramPartnerNetworkPageClient({
                 }
                 className="size-10 shrink-0 rounded-lg"
               />
-              <NetworkReachFilter
-                selectedTiers={selectedReach}
-                onChange={onReachChange}
-              />
               <NetworkPlatformFilter
                 selectedPlatforms={selectedPlatforms}
                 onChange={onPlatformsChange}
@@ -346,6 +340,19 @@ export function ProgramPartnerNetworkPageClient({
               />
             </div>
           </div>
+          <AnimatedSizeContainer height>
+            {activeFilters.length > 0 && (
+              <div className="pt-4">
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onSelect={onSelect}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            )}
+          </AnimatedSizeContainer>
         </div>
       )}
 

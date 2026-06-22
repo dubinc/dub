@@ -6,12 +6,12 @@
 -- The schema includes a same-named @@index only so Prisma db push preserves this
 -- manual index; Prisma cannot define the VECTOR INDEX distance/options below.
 --
--- Keep the index distance in sync with the search query in:
--- apps/web/app/(ee)/api/admin/partner-content/search/route.ts and
--- apps/web/app/(ee)/api/network/partners/content-search/route.ts.
--- That query currently uses DISTANCE(..., 'cosine'); if these metrics differ,
--- PlanetScale cannot use the vector index and will fall back to a full scan.
-
+-- The index name and distance metric below are the same values the search routes
+-- feed into their FORCE INDEX hint and DISTANCE() call (if they diverge, the
+-- planner falls back to a full scan). They mirror PARTNER_CONTENT_CHUNK_VECTOR_INDEX
+-- and PARTNER_CONTENT_CHUNK_VECTOR_DISTANCE in
+-- apps/web/lib/partner-content-search/constants.ts; the match is enforced by
+-- apps/web/tests/partner-content-search/vector-index-sync.test.ts.
 CREATE /*vt+ QUERY_TIMEOUT_MS=0 */
   VECTOR INDEX partner_content_chunk_embedding_cosine_idx
   ON PartnerContentChunk(embedding)

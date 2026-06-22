@@ -48,6 +48,11 @@ export type PartnerContentSearchPartner = {
       thumbnailUrl: string | null;
       publishedAt: string | null;
       durationMs: number | null;
+      viewCount: number | null;
+      likeCount: number | null;
+      commentCount: number | null;
+      shareCount: number | null;
+      saveCount: number | null;
     };
     chunk: {
       source: "metadata" | "transcript" | string;
@@ -91,6 +96,10 @@ export type PartnerContentSearchPartner = {
       durationMs: number | null;
       publishedAt: string | null;
       viewCount: number | null;
+      likeCount: number | null;
+      commentCount: number | null;
+      shareCount: number | null;
+      saveCount: number | null;
       matched: boolean;
       matchScore: number | null;
       matchEvidence: PartnerContentMatchEvidence;

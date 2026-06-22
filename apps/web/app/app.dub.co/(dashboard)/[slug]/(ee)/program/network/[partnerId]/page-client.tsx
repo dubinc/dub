@@ -92,7 +92,7 @@ export function NetworkPartnerDetailContent({
     fetcher,
     { revalidateOnFocus: false },
   );
-  const partner = partners?.[0];
+  const loadedPartner = partners?.[0];
 
   // The results page already ran the (global) Voyage search and handed us this
   // partner's match data on click, so we render straight from it — opening the
@@ -104,10 +104,10 @@ export function NetworkPartnerDetailContent({
   // tell-tale "65% vs 95%" banding). A per-partner rerank covers all of this
   // creator's items, so every row shares the reranker scale.
   //
-  // This is non-blocking: the cached summary paints immediately and the unified
-  // scores swap in when the scoped run resolves. Topic Fit / bars / counts stay
-  // sourced from the cached summary (re-running scoped would recompute the cutoff
-  // against a one-partner set and drift them), so the headline never shifts.
+  // This is non-blocking: cached summary data can paint the stable Topic Fit
+  // headline immediately, while content rows stay skeletoned until the scoped
+  // run resolves. That avoids showing global transcript snippets or row order and
+  // then swapping them for the single-partner reranked result.
   const shouldFetchSearch = hasContentSearch;
   const {
     data: searchResults,
@@ -126,6 +126,8 @@ export function NetworkPartnerDetailContent({
   });
 
   const fetchedPartner = searchResults?.partners?.[0];
+  const partner =
+    loadedPartner ?? initialSearchPartner?.partner ?? fetchedPartner?.partner;
   // Chunks (snippet text) prefer the fuller fetched set once it arrives; the
   // summary always prefers the cached one so scores never drift on click.
   const searchPartner = fetchedPartner ?? initialSearchPartner;
@@ -335,12 +337,20 @@ function ContentMatchBars({
 }: {
   summary: PartnerContentSearchPartner["matchSummary"] | undefined;
 }) {
+  // One open tooltip at a time: each bar is its own tooltip root that only
+  // closes on its own pointerleave, so a fast cursor flick can leave several
+  // open. Driving every bar's open state from one value prevents that.
+  const [openBarId, setOpenBarId] = useState<string | null>(null);
+
   const allBars = summary?.contentBars ?? [];
   if (!allBars.length) return null;
   const bars = allBars.slice(0, MAX_VISIBLE_CONTENT_BARS);
 
   return (
-    <div className="mt-2.5 flex h-9 items-end gap-[3px]">
+    <div
+      className="mt-2.5 flex h-9 items-end gap-[3px]"
+      onPointerLeave={() => setOpenBarId(null)}
+    >
       {bars.map((bar) => {
         const score =
           bar.matched && bar.matchScore != null
@@ -379,12 +389,22 @@ function ContentMatchBars({
           <Tooltip
             key={bar.partnerContentItemId}
             content={<BarTooltip bar={bar} />}
-            // Snappy bar-to-bar hover: open instantly, drop Radix's hoverable
-            // "safe polygon" grace area (so it switches the moment you cross to
-            // the next bar instead of lingering), and trim the 400ms slide-fade.
+            // Snappy bar-to-bar hover: open instantly, drop the hoverable grace
+            // area, and skip the animation so each tooltip closes immediately
+            // rather than lingering as you sweep across.
             delayDuration={0}
             disableHoverableContent
-            style={{ animationDuration: "100ms" }}
+            disableAnimation
+            open={openBarId === bar.partnerContentItemId}
+            onOpenChange={(nextOpen) =>
+              setOpenBarId((current) =>
+                nextOpen
+                  ? bar.partnerContentItemId
+                  : current === bar.partnerContentItemId
+                    ? null
+                    : current,
+              )
+            }
           >
             {bar.url ? (
               <a
@@ -464,15 +484,19 @@ function SearchFitPanel({
     DETAIL_CONTENT_INITIAL_MATCH_COUNT,
   );
   const summary = initialSummary ?? searchPartner?.matchSummary;
-  // Per-item relevance on a single scale, from the scoped reranked summary. Until
-  // it lands this is empty and rows show the cached (possibly mixed-scale) score.
+
+  if (isLoading && !summary) {
+    return <SearchFitPanelSkeleton />;
+  }
+
+  const isLoadingRows = isLoading || isRefining;
+  // Per-item relevance on a single scale, from the scoped reranked summary.
   const unifiedRelevanceByItemId = buildUnifiedRelevanceMap(relevanceSummary);
-  // Both lists come from the cached summary's full matched set (instant, complete);
-  // loaded chunks only enrich a row with its snippet/thumbnail when available, and
-  // the unified-relevance map upgrades each row's score in place once available.
+  // Keep cached summary data for the headline, but hold row rendering until the
+  // scoped run finishes so transcript snippets and row ordering do not swap in.
   const items = buildMatchedContentItems(
     summary,
-    searchPartner?.chunks ?? [],
+    isLoadingRows ? [] : (searchPartner?.chunks ?? []),
     unifiedRelevanceByItemId,
   );
 
@@ -489,6 +513,7 @@ function SearchFitPanel({
   // A separate "All content" list only earns its place when it adds rows beyond
   // the top set; with ≤ topContentCount matches the top list already shows them all.
   const showAllSection =
+    !isLoadingRows &&
     allContent.length > PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount;
 
   const band = summary?.band ?? "none";
@@ -596,8 +621,10 @@ function SearchFitPanel({
             <div className="text-content-subtle py-3.5 text-sm">
               Failed to load search matches
             </div>
-          ) : isLoading ? (
-            <ContentMatchSkeletons count={3} />
+          ) : isLoadingRows ? (
+            <ContentMatchSkeletons
+              count={PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount}
+            />
           ) : topContent.length ? (
             topContent.map((item) => (
               <ContentMatchRow key={item.contentItemId} item={item} />
@@ -652,16 +679,67 @@ function SearchFitPanel({
   );
 }
 
+function SearchFitPanelSkeleton() {
+  return (
+    <div className="flex flex-col" aria-busy="true">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+        <div className="shrink-0">
+          <div className="h-3 w-16 animate-pulse rounded bg-neutral-200" />
+          <div className="mt-2 flex items-end gap-2.5">
+            <div className="h-9 w-14 animate-pulse rounded bg-neutral-200" />
+            <div className="mb-1 h-6 w-20 animate-pulse rounded-full bg-neutral-100" />
+          </div>
+        </div>
+
+        <div className="h-10 w-px shrink-0 bg-neutral-200" />
+
+        <div className="min-w-[200px] flex-1">
+          <div className="h-4 w-64 max-w-full animate-pulse rounded bg-neutral-200" />
+          <div className="mt-2.5 flex h-9 items-end gap-[3px]">
+            {[...Array(18)].map((_, index) => (
+              <div
+                key={index}
+                className="min-w-[5px] flex-1 animate-pulse rounded-full bg-neutral-100"
+                style={{ height: 6 + (index % 5) * 6 }}
+              />
+            ))}
+          </div>
+          <div className="mt-2 h-3 w-72 max-w-full animate-pulse rounded bg-neutral-100" />
+        </div>
+      </div>
+
+      <div className="border-border-subtle mt-5 border-t pt-5">
+        <div className="flex flex-col gap-1">
+          <div className="h-3 w-20 animate-pulse rounded bg-neutral-200" />
+          <div className="h-3 w-72 max-w-full animate-pulse rounded bg-neutral-100" />
+        </div>
+        <div className="divide-border-subtle mt-3 divide-y">
+          <ContentMatchSkeletons
+            count={PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ContentMatchSkeletons({ count }: { count: number }) {
   return (
     <>
       {[...Array(count)].map((_, index) => (
         <div key={index} className="flex items-center gap-3.5 py-3">
           <div className="h-14 w-[88px] shrink-0 animate-pulse rounded-lg bg-neutral-100" />
-          <div className="flex-1">
-            <div className="h-4 w-48 animate-pulse rounded bg-neutral-200" />
-            <div className="mt-2 h-3 w-32 animate-pulse rounded bg-neutral-100" />
-            <div className="mt-2 h-3.5 w-72 animate-pulse rounded bg-neutral-100" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <div className="size-3.5 shrink-0 animate-pulse rounded-full bg-neutral-100" />
+              <div className="h-4 w-48 max-w-full animate-pulse rounded bg-neutral-200" />
+            </div>
+            <div className="mt-1 h-3 w-40 max-w-full animate-pulse rounded bg-neutral-100" />
+            <div className="mt-2 h-4 w-80 max-w-full animate-pulse rounded bg-neutral-100" />
+          </div>
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
+            <div className="h-2.5 w-8 animate-pulse rounded bg-neutral-100" />
           </div>
         </div>
       ))}
