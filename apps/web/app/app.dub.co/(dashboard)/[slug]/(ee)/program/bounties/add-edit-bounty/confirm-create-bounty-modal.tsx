@@ -33,6 +33,7 @@ type ConfirmCreateBountyModalProps = {
     | "rewardDescription"
     | "submissionRequirements"
     | "groups"
+    | "partnerTags"
   >;
   onConfirm: (data: { sendNotificationEmails: boolean }) => Promise<void>;
 };

@@ -24,8 +24,7 @@ const ACCORDION_ITEMS = [
   "bounty-type",
   "bounty-details",
   "bounty-criteria",
-  "groups",
-  "partnerTags",
+  "eligibility",
 ];
 
 const isEmpty = (value: unknown) =>
