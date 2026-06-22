@@ -15,9 +15,7 @@ export function getSpendLimitDescriptionParts({
       trailingZeroDisplay: "stripIfInteger",
     }),
     interval:
-      spendLimitInterval === "allTime"
-        ? "in total"
-        : `per ${spendLimitInterval}`,
+      spendLimitInterval === "allTime" ? "" : `per ${spendLimitInterval}`,
   };
 }
 
@@ -39,7 +37,7 @@ export function ProgramRewardSpendLimit({
     return null;
   }
 
-  return ` up to ${parts.amount} ${parts.interval} ${event === "sale" ? "per customer" : ""}`;
+  return `, up to ${parts.amount} ${parts.interval} ${event === "sale" ? "per customer" : ""}`;
 }
 
 export function buildCommissionDescription({

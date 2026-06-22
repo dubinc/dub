@@ -55,7 +55,7 @@ export function formatRewardDescription(
   let description = parts.join(" ");
 
   if (spendLimitParts && reward.spendLimitInterval) {
-    description += `, with a ${spendLimitParts.amount} ${formatSpendLimitIntervalLabel(reward.spendLimitInterval)} limit ${reward.event === "sale" ? "per customer" : ""}`;
+    description += `, up to ${spendLimitParts.amount} ${formatSpendLimitIntervalLabel(reward.spendLimitInterval)} ${reward.event === "sale" ? "per customer" : ""}`;
   }
 
   return description;
@@ -162,6 +162,6 @@ function formatSpendLimitIntervalLabel(interval: RewardSpendLimitInterval) {
     case "month":
       return "monthly";
     case "allTime":
-      return "in total";
+      return "";
   }
 }
