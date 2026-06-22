@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { isPartnerEligibleForBounty } from "@/lib/bounty/api/bounty-eligibility";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
@@ -17,6 +18,11 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       include: {
         program: true,
         links: true,
+        programPartnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
       },
     });
 
@@ -26,12 +32,21 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       programId: program.id,
     },
     include: {
+      groups: {
+        select: {
+          groupId: true,
+        },
+      },
+      partnerTags: {
+        select: {
+          partnerTagId: true,
+        },
+      },
       workflow: {
         select: {
           triggerConditions: true,
         },
       },
-      groups: true,
       submissions: {
         where: {
           partnerId: partner.id,
@@ -64,13 +79,20 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
-  const partnerGroupId = programEnrollment.groupId || program.defaultGroupId;
+  const partnerTagIds = programEnrollment.programPartnerTags.map(
+    (t) => t.partnerTagId,
+  );
   const bountyGroupIds = bounty.groups.map((g) => g.groupId);
-  const partnerCanSeeBounty =
-    bountyGroupIds.length === 0 ||
-    (partnerGroupId && bountyGroupIds.includes(partnerGroupId));
+  const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
 
-  if (!partnerCanSeeBounty) {
+  const isEligible = isPartnerEligibleForBounty({
+    bountyGroupIds,
+    bountyTagIds,
+    partnerGroupId: programEnrollment.groupId,
+    partnerTagIds,
+  });
+
+  if (!isEligible) {
     throw new DubApiError({
       code: "not_found",
       message: "Bounty not found.",

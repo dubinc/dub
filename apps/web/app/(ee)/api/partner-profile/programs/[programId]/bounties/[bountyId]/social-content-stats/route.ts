@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { isPartnerEligibleForBounty } from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { ratelimit } from "@/lib/upstash";
@@ -33,13 +34,51 @@ export const GET = withPartnerProfile(
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId,
-      include: {},
+      include: {
+        programPartnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
+      },
     });
 
     const bounty = await getBountyOrThrow({
       bountyId,
       programId: programEnrollment.programId,
+      include: {
+        groups: {
+          select: {
+            groupId: true,
+          },
+        },
+        partnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
+      },
     });
+
+    const bountyGroupIds = bounty.groups.map((g) => g.groupId);
+    const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
+    const partnerTagIds = programEnrollment.programPartnerTags.map(
+      (t) => t.partnerTagId,
+    );
+
+    const isEligible = isPartnerEligibleForBounty({
+      bountyGroupIds,
+      bountyTagIds,
+      partnerGroupId: programEnrollment.groupId,
+      partnerTagIds,
+    });
+
+    if (!isEligible) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Bounty not found.",
+      });
+    }
 
     const bountyInfo = resolveBountyDetails(bounty);
 

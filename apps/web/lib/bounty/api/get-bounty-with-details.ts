@@ -36,7 +36,19 @@ export const getBountyWithDetails = async ({
           WHERE bountyId = b.id
         ),
         JSON_ARRAY()
-      ) AS \`groups\`
+      ) AS \`groups\`,
+
+      --  Bounty partner tags
+      COALESCE(
+        (
+          SELECT JSON_ARRAYAGG(
+            JSON_OBJECT('id', partnerTagId)
+          )
+          FROM BountyPartnerTag
+          WHERE bountyId = b.id
+        ),
+        JSON_ARRAY()
+      ) AS \`partnerTags\`
 
     FROM Bounty b
     LEFT JOIN Workflow wf ON wf.id = b.workflowId
@@ -73,5 +85,6 @@ export const getBountyWithDetails = async ({
     performanceScope,
     performanceCondition,
     groups: bounty.groups.filter((group) => group !== null) ?? [],
+    partnerTags: bounty.partnerTags.filter((tag) => tag !== null) ?? [],
   };
 };
