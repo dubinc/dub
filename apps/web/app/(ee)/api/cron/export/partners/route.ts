@@ -5,10 +5,10 @@ import { formatPartnersForExport } from "@/lib/api/partners/format-partners-for-
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { prisma } from "@/lib/prisma";
 import { partnersExportQuerySchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
-import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -67,12 +67,14 @@ export async function POST(req: Request) {
 
     // Fetch partners in batches and build CSV
     const allPartners: any[] = [];
-    const partnersFilters = {
-      ...filters,
-      programId,
-    };
 
-    for await (const { partners } of fetchPartnersBatch(partnersFilters)) {
+    for await (const { partners } of fetchPartnersBatch({
+      filters: {
+        ...filters,
+        programId,
+      },
+      columns,
+    })) {
       allPartners.push(...formatPartnersForExport(partners, columns));
     }
 

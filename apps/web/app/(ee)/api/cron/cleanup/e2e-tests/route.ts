@@ -5,7 +5,7 @@ import { includeProgramEnrollment } from "@/lib/api/links/include-program-enroll
 import { includeTags } from "@/lib/api/links/include-tags";
 import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -161,15 +161,17 @@ export async function POST(req: Request) {
       });
     }
 
-    console.log("Removed the following items.", {
+    const removedItems = {
       links: links.length,
       domains: domains.length,
       tags: tags.length,
       partners: partners.length,
       users: users.length,
-    });
+    };
 
-    return NextResponse.json({ status: "OK" });
+    console.log("Removed the following items.", removedItems);
+
+    return NextResponse.json(removedItems);
   } catch (error) {
     await log({
       message: `/api/cron/cleanup/e2e-tests failed - ${error.message}`,

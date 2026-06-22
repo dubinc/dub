@@ -1,10 +1,9 @@
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import EmptyState from "@/ui/shared/empty-state";
-import { prisma } from "@dub/prisma";
 import { LoadingSpinner } from "@dub/ui";
 import { LinkBroken, Users6 } from "@dub/ui/icons";
-import { APP_NAME } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -21,7 +20,7 @@ export default async function InvitesPage(props: {
           <EmptyState
             icon={LoadingSpinner}
             title="Verifying Invite"
-            description={`${APP_NAME} is verifying your invite link. This might take a few seconds...`}
+            description="Dub is verifying your invite link. This might take a few seconds..."
           />
         }
       >

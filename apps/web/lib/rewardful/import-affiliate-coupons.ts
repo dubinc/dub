@@ -1,10 +1,10 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { ProcessedLinkProps } from "../types";
 import { redis } from "../upstash";
 import { RewardfulApi } from "./api";
-import { MAX_BATCHES, rewardfulImporter } from "./importer";
+import { REWARDFUL_MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
 
 export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
@@ -31,7 +31,7 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
   let hasMore = true;
   let processedBatches = 0;
 
-  while (hasMore && processedBatches < MAX_BATCHES) {
+  while (hasMore && processedBatches < REWARDFUL_MAX_BATCHES) {
     const affiliateCoupons = await rewardfulApi.listAffiliateCoupons({
       page: currentPage,
     });

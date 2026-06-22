@@ -1,13 +1,26 @@
 import "dotenv-flow/config";
 
-import { prisma } from "@dub/prisma";
-import type { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import {
-  BUSINESS_PLAN,
   DUB_TRIAL_PERIOD_DAYS,
   getWorkspaceLimitsForStripeSubscriptionStatus,
+  PLANS,
 } from "@dub/utils";
 import type { Page, Request } from "@playwright/test";
+import type { Prisma } from "@prisma/client";
+
+function getTrialingLimitsForPlan(planId: string) {
+  const planDetails = PLANS.find(
+    (p) => p.name.toLowerCase() === planId.toLowerCase(),
+  );
+  if (!planDetails) {
+    throw new Error(`applyMockTrialToWorkspace: unknown plan "${planId}"`);
+  }
+  return getWorkspaceLimitsForStripeSubscriptionStatus({
+    planLimits: planDetails.limits,
+    subscriptionStatus: "trialing",
+  });
+}
 
 const MOCK_CHECKOUT_SESSION_ID = "cs_test_e2e_mock_session";
 
@@ -74,9 +87,11 @@ const mockTrialWorkspaceColumns = {
   domainsLimit: true,
   aiLimit: true,
   tagsLimit: true,
+  partnerTagsLimit: true,
   foldersLimit: true,
   groupsLimit: true,
   networkInvitesLimit: true,
+  partnersLimit: true,
   usersLimit: true,
   paymentFailedAt: true,
 } as const;
@@ -115,23 +130,25 @@ export async function restoreWorkspaceBillingTrialSnapshot(
       domainsLimit: snapshot.domainsLimit,
       aiLimit: snapshot.aiLimit,
       tagsLimit: snapshot.tagsLimit,
+      partnerTagsLimit: snapshot.partnerTagsLimit,
       foldersLimit: snapshot.foldersLimit,
       groupsLimit: snapshot.groupsLimit,
       networkInvitesLimit: snapshot.networkInvitesLimit,
+      partnersLimit: snapshot.partnersLimit,
       usersLimit: snapshot.usersLimit,
       paymentFailedAt: snapshot.paymentFailedAt,
     },
   });
 }
 
-/**
- * Writes trialing Business state directly to the DB (mock path — no Stripe API or webhooks).
- */
-export async function applyMockTrialToWorkspace(slug: string) {
-  const limits = getWorkspaceLimitsForStripeSubscriptionStatus({
-    planLimits: BUSINESS_PLAN.limits,
-    subscriptionStatus: "trialing",
-  });
+/** Writes trialing state to the DB (mock path — no Stripe). Defaults to business. */
+export async function applyMockTrialToWorkspace(
+  slug: string,
+  options?: { plan?: string; period?: "monthly" | "yearly" },
+) {
+  const plan = (options?.plan ?? "business").toLowerCase();
+  const period = options?.period ?? "monthly";
+  const limits = getTrialingLimitsForPlan(plan);
 
   const trialEndsAt = new Date();
   trialEndsAt.setDate(trialEndsAt.getDate() + DUB_TRIAL_PERIOD_DAYS);
@@ -139,11 +156,11 @@ export async function applyMockTrialToWorkspace(slug: string) {
   await prisma.project.update({
     where: { slug },
     data: {
-      plan: "business",
+      plan,
       subscriptionCanceledAt: null,
       billingCycleEndsAt: null,
       planTier: 1,
-      planPeriod: "monthly",
+      planPeriod: period,
       trialEndsAt,
       billingCycleStart: new Date().getDate(),
       stripeId: `cus_e2e_mock_${slug}`,
@@ -153,12 +170,22 @@ export async function applyMockTrialToWorkspace(slug: string) {
       domainsLimit: limits.domains,
       aiLimit: limits.ai,
       tagsLimit: limits.tags,
+      partnerTagsLimit: limits.partnerTags,
       foldersLimit: limits.folders,
       groupsLimit: limits.groups,
       networkInvitesLimit: limits.networkInvites,
+      partnersLimit: limits.partners,
       usersLimit: limits.users,
       paymentFailedAt: null,
     },
+  });
+}
+
+/** Mirrors activate-paid-plan success: trial ended, subscription treated as active in UI. */
+export async function applyMockActivatedPaidPlan(slug: string) {
+  await prisma.project.update({
+    where: { slug },
+    data: { trialEndsAt: null },
   });
 }
 
@@ -244,8 +271,11 @@ export async function installBillingCheckoutMocks(
       await route.continue();
       return;
     }
-    await applyMockTrialToWorkspace(slug);
     const { onboarding, plan, period } = pendingCheckout;
+    await applyMockTrialToWorkspace(slug, {
+      plan,
+      period: period as "monthly" | "yearly",
+    });
     // Same path/query shape as stripe.checkout.sessions.create success_url in
     // app/api/workspaces/[idOrSlug]/billing/upgrade/route.ts — origin from baseURL
     // keeps Playwright on the app host (cookies), unlike APP_DOMAIN in local dev.

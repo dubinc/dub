@@ -3,7 +3,6 @@
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { PlatformType } from "@dub/prisma/client";
 import { Button, CopyText, Sheet, TimestampTooltip, Tooltip } from "@dub/ui";
 import {
   BadgeCheck2Fill,
@@ -15,6 +14,7 @@ import {
   YouTube,
 } from "@dub/ui/icons";
 import { cn, fetcher, formatDateSmart } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";

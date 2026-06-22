@@ -4,11 +4,11 @@ import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
+import { prisma } from "@/lib/prisma";
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -160,7 +160,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
                 },
                 rejectionReason: undefined,
                 additionalNotes: undefined,
-                canReapplyImmediately: false,
+                reapplicationTimeframe: "standard",
               }),
             })),
           );

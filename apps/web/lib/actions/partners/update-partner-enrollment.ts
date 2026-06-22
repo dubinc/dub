@@ -6,8 +6,8 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { throwIfExistingTenantEnrollmentExists } from "@/lib/api/partners/throw-if-existing-tenant-id-exists";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -19,6 +19,7 @@ const updatePartnerEnrollmentSchema = z.object({
   tenantId: z.string().nullable(),
   customerDataSharingEnabledAt: z.coerce.date().nullable(),
   groupMoveDisabledAt: z.coerce.date().nullable(),
+  riskMonitoringDisabledAt: z.coerce.date().nullable(),
 });
 
 // Update a partner's program enrollment data
@@ -31,6 +32,7 @@ export const updatePartnerEnrollmentAction = authActionClient
       tenantId,
       customerDataSharingEnabledAt,
       groupMoveDisabledAt,
+      riskMonitoringDisabledAt,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -77,6 +79,7 @@ export const updatePartnerEnrollmentAction = authActionClient
           tenantId,
           customerDataSharingEnabledAt,
           groupMoveDisabledAt,
+          riskMonitoringDisabledAt,
         },
         include: {
           links: {

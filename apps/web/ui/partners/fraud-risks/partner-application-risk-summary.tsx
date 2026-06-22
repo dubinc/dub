@@ -5,14 +5,14 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { usePartnerApplicationRisks } from "@/lib/swr/use-partner-application-risks";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudSeverity } from "@/lib/types";
-import { Button, ShieldKeyhole } from "@dub/ui";
+import { Button, Flag } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
-import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
 import { usePartnerApplicationRiskSummaryModal } from "./partner-application-risk-summary-modal";
 import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
+import { RiskDisclaimerBanner } from "./risk-disclaimer-banner";
 
 interface PartnerApplicationRiskSummaryProps {
   partner: {
@@ -95,7 +95,7 @@ export function PartnerApplicationRiskSummary({
         <PartnerCrossProgramSummary partnerId={partner.id} />
 
         {severity === "high" && (
-          <FraudDisclaimerBanner className="gap-2 px-3 py-2" />
+          <RiskDisclaimerBanner className="gap-2 px-3 py-2" />
         )}
       </div>
 
@@ -179,14 +179,14 @@ export function PartnerApplicationRiskSummaryUpsell() {
                 severityConfig.bg,
               )}
             >
-              <ShieldKeyhole className={cn("size-4", severityConfig.icon)} />
+              <Flag className={cn("size-4", severityConfig.icon)} />
             </div>
 
             <p className="text-content-default max-w-72 text-center text-xs font-medium">
               Application risk review and event detection are available on the
               Advanced plan{" "}
               <Link
-                href="https://dub.co/help/article/fraud-detection"
+                href="https://dub.co/help/article/risk-monitoring"
                 target="_blank"
                 className="underline underline-offset-2 hover:text-neutral-800"
               >

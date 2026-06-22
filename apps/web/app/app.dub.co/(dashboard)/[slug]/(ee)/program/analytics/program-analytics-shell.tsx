@@ -5,6 +5,7 @@ import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { AnalyticsOptions } from "@/ui/analytics/analytics-options";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { DeviceSection } from "@/ui/analytics/device-section";
 import { LocationSection } from "@/ui/analytics/location-section";
@@ -213,6 +214,9 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
                       }
                     />
                   </Link>
+                  {pageTab === "performance" && (
+                    <AnalyticsOptions page="analytics" />
+                  )}
                 </div>
               </div>
             </div>

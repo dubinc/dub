@@ -1,4 +1,4 @@
-import { ProgramApplicationRejectionReason } from "@dub/prisma/client";
+import { ProgramApplicationRejectionReason } from "@prisma/client";
 
 /**
  * Labels for `ProgramApplicationRejectionReason` (Prisma enum values as keys).

@@ -1,10 +1,10 @@
 "use server";
 
 import { getIP } from "@/lib/api/utils/get-ip";
+import { prisma } from "@/lib/prisma";
 import { ratelimit, redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import VerifyEmail from "@dub/email/templates/verify-email";
-import { prisma } from "@dub/prisma";
 import { get } from "@vercel/edge-config";
 import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";
@@ -122,7 +122,7 @@ export const sendOtpAction = actionClient
       }),
 
       sendEmail({
-        subject: `${process.env.NEXT_PUBLIC_APP_NAME}: OTP to verify your account`,
+        subject: "Dub: OTP to verify your account",
         to: email,
         react: VerifyEmail({
           email,

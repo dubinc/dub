@@ -1,6 +1,7 @@
 import { loadEnv } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vitest/config";
+import { VITEST_TEST_TIMEOUT_MS } from "./lib/constants/misc";
 
 export default defineConfig({
   plugins: [tsconfigPaths()],
@@ -8,7 +9,7 @@ export default defineConfig({
     dir: "./tests",
     reporters: ["verbose"],
     globals: true,
-    testTimeout: 50000,
+    testTimeout: VITEST_TEST_TIMEOUT_MS,
     env: loadEnv("", process.cwd(), ""),
     setupFiles: ["./tests/setupTests.ts"],
   },

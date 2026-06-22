@@ -1,8 +1,8 @@
 import { isValidDomainFormatWithLocalhost } from "@/lib/api/domains/is-valid-domain";
 import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { RESOURCE_COLORS } from "@/ui/colors";
-import { PartnerLinkStructure } from "@dub/prisma/client";
 import { validSlugRegex } from "@dub/utils";
+import { PartnerLinkStructure } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
@@ -159,6 +159,7 @@ export const PartnerGroupDefaultLinkSchema = z.object({
   id: z.string(),
   domain: z.string(),
   url: parseUrlSchema,
+  createdAt: z.coerce.date(),
 });
 
 export const getGroupsQuerySchema = z

@@ -1,6 +1,6 @@
-import { prisma } from "@dub/prisma";
-import { PartnerGroup, Project } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { nanoid, STRIPE_INTEGRATION_ID, truncate } from "@dub/utils";
+import { PartnerGroup, Project } from "@prisma/client";
 import * as z from "zod/v4";
 import { DubApiError } from "../api/errors";
 import { stripeIntegrationSettingsSchema } from "../integrations/stripe/schema";
@@ -161,7 +161,8 @@ function createStripeDiscountProvider() {
             coupon: discount.couponId,
             code: currentCode.toUpperCase(),
             restrictions: {
-              first_time_transaction: true,
+              first_time_transaction:
+                settings.discountCodeRestrictions.firstTimeTransaction,
             },
           },
           {

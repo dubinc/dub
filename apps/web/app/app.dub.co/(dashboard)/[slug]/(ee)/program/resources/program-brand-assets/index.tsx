@@ -279,7 +279,7 @@ export function ProgramBrandAssets() {
 
           <SettingsRow
             heading="Additional Files"
-            description="Any document or zip file, max size 10 MB"
+            description="Images, documents, or zip files, max size 10 MB"
           >
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-end">

@@ -5,12 +5,12 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { createDiscountCode } from "@/lib/discounts/create-discount-code";
+import { prisma } from "@/lib/prisma";
 import {
   createDiscountCodeSchema,
   DiscountCodeSchema,
   getDiscountCodesQuerySchema,
 } from "@/lib/zod/schemas/discount";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -96,7 +96,7 @@ export const POST = withWorkspace(
       const duplicateByCode = await prisma.discountCode.findUnique({
         where: {
           programId_code: {
-            programId,
+            programId: discount.programId,
             code,
           },
         },

@@ -2,9 +2,11 @@
 
 import { AdminNetworkPartner } from "@/lib/types";
 import { NetworkStatusBadges } from "@/ui/partners/partner-network/network-status-badges";
+import { getPayoutMethodLabel } from "@/ui/partners/payouts/payout-method-config";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { StatusBadge, TimestampTooltip } from "@dub/ui";
 import { capitalize, COUNTRIES, formatDate } from "@dub/utils";
+import { PartnerPayoutMethod } from "@prisma/client";
 
 type PartnerChangeLogEntry = NonNullable<
   AdminNetworkPartner["changeHistoryLog"]
@@ -14,6 +16,7 @@ const FIELD_LABELS: Record<PartnerChangeLogEntry["field"], string> = {
   country: "Country",
   profileType: "Profile type",
   networkStatus: "Network status",
+  defaultPayoutMethod: "Default payout method",
 };
 
 export function NetworkPartnerChangeHistoryItem({
@@ -77,6 +80,18 @@ function renderChangeValue(
       <span className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs font-medium text-neutral-700">
         <CountryFlag countryCode={value} className="size-3.5" />
         <span className="truncate">{COUNTRIES[value] || value}</span>
+      </span>
+    );
+  }
+
+  if (field === "defaultPayoutMethod") {
+    const label = value
+      ? getPayoutMethodLabel(value as PartnerPayoutMethod)
+      : "Not set";
+
+    return (
+      <span className="inline-flex min-w-0 max-w-full items-center rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-xs font-medium text-neutral-700">
+        <span className="truncate">{label}</span>
       </span>
     );
   }

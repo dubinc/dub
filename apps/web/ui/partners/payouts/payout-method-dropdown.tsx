@@ -1,15 +1,19 @@
 "use client";
 
+import { setDefaultPayoutMethodAction } from "@/lib/actions/partners/set-default-payout-method";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerPayoutSettings from "@/lib/swr/use-partner-payout-settings";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import type { PartnerPayoutMethodSetting } from "@/lib/types";
 import { partnerPayoutMethodSchema } from "@/lib/zod/schemas/partner-profile";
 import { getPayoutMethodIconConfig } from "@/ui/partners/payouts/payout-method-config";
-import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { Button, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { PartnerPayoutMethod } from "@prisma/client";
 import { ChevronsUpDown } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { usePayoutConnectFlow } from "./use-payout-connect-flow";
 
 export function PayoutMethodDropdown() {
@@ -23,8 +27,30 @@ export function PayoutMethodDropdown() {
     StablecoinPayoutModal,
   } = usePayoutConnectFlow();
 
-  const { payoutMethods: payoutMethodsData, isLoading: isSettingsLoading } =
-    usePartnerPayoutSettings();
+  const {
+    payoutMethods: payoutMethodsData,
+    isLoading: isSettingsLoading,
+    mutate: mutatePayoutSettings,
+  } = usePartnerPayoutSettings();
+
+  const [pendingDefaultType, setPendingDefaultType] =
+    useState<PartnerPayoutMethod | null>(null);
+
+  const { executeAsync: setDefaultPayoutMethod } = useAction(
+    setDefaultPayoutMethodAction,
+    {
+      onSuccess: async () => {
+        toast.success("Your default payout method has been updated.");
+        await Promise.all([
+          mutatePayoutSettings(),
+          mutatePrefix("/api/partner-profile"),
+        ]);
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
+    },
+  );
 
   const payoutMethods =
     !payoutMethodsData || !Array.isArray(payoutMethodsData)
@@ -35,10 +61,21 @@ export function PayoutMethodDropdown() {
 
   const handleAction = useCallback(
     (type: PartnerPayoutMethod, isManage: boolean) => {
-      setOpenPopover(false);
       connect(type, { isManage });
     },
     [connect],
+  );
+
+  const handleSetDefault = useCallback(
+    async (type: PartnerPayoutMethod) => {
+      setPendingDefaultType(type);
+      try {
+        await setDefaultPayoutMethod({ type });
+      } finally {
+        setPendingDefaultType(null);
+      }
+    },
+    [setDefaultPayoutMethod],
   );
 
   const selectedMethod =
@@ -67,7 +104,9 @@ export function PayoutMethodDropdown() {
                       key={method.type}
                       method={method}
                       onAction={handleAction}
+                      onSetDefault={handleSetDefault}
                       isActionPending={isPending}
+                      pendingDefaultType={pendingDefaultType}
                     />
                   ))}
                 </div>
@@ -101,13 +140,16 @@ export function PayoutMethodDropdown() {
 function PayoutMethodItem({
   method,
   onAction,
+  onSetDefault,
   isActionPending,
+  pendingDefaultType,
 }: {
   method: PartnerPayoutMethodSetting;
   onAction: (type: PartnerPayoutMethod, isManage: boolean) => void;
+  onSetDefault: (type: PartnerPayoutMethod) => void;
   isActionPending: boolean;
+  pendingDefaultType: PartnerPayoutMethod | null;
 }) {
-  const { partner } = usePartnerProfile();
   const { Icon, wrapperClass } = getPayoutMethodIconConfig(method.type);
 
   return (
@@ -127,30 +169,85 @@ function PayoutMethodItem({
               {method.label}
             </span>
 
-            {!partner?.payoutsEnabledAt ? (
-              <span className="rounded bg-red-100 px-1.5 py-0.5 text-[0.7rem] font-medium leading-none text-red-700">
-                Restricted
-              </span>
-            ) : method.default ? (
-              <span className="rounded-md bg-green-100 px-1.5 py-0.5 text-[0.7rem] font-semibold leading-none text-green-700">
-                Default
-              </span>
-            ) : null}
+            <PayoutMethodStatusBadge
+              method={method}
+              onSetDefault={onSetDefault}
+              pendingDefaultType={pendingDefaultType}
+            />
           </div>
           <span className="mt-0.5 block truncate text-xs text-neutral-500">
             {method.identifier ?? "Not connected"}
           </span>
         </div>
       </div>
-      <Button
-        variant={method.connected ? "secondary" : "primary"}
-        text={method.connected ? "Manage" : "Connect"}
-        onClick={() => onAction(method.type, method.connected)}
-        loading={isActionPending}
-        className="h-7 w-fit shrink-0 cursor-pointer text-xs"
-      />
+
+      {method.type === "tremendous" ? (
+        <Button
+          variant="secondary"
+          text="Manage"
+          disabled={true}
+          disabledTooltip="Contact support if you need to update this email."
+          className="h-7 w-fit shrink-0 cursor-pointer text-xs"
+        />
+      ) : (
+        <Button
+          variant={method.connected ? "secondary" : "primary"}
+          text={method.connected ? "Manage" : "Connect"}
+          onClick={() => onAction(method.type, method.connected)}
+          loading={isActionPending}
+          className="h-7 w-fit shrink-0 cursor-pointer text-xs"
+        />
+      )}
     </div>
   );
+}
+
+function PayoutMethodStatusBadge({
+  method,
+  onSetDefault,
+  pendingDefaultType,
+}: {
+  method: PartnerPayoutMethodSetting;
+  onSetDefault: (type: PartnerPayoutMethod) => void;
+  pendingDefaultType: PartnerPayoutMethod | null;
+}) {
+  const isSettingDefault = pendingDefaultType === method.type;
+  const { partner } = usePartnerProfile();
+
+  if (!partner?.payoutsEnabledAt) {
+    return (
+      <span className="rounded bg-red-100 px-1.5 py-0.5 text-[0.7rem] font-medium leading-none text-red-700">
+        Restricted
+      </span>
+    );
+  }
+
+  if (method.default) {
+    return (
+      <span className="rounded-md bg-green-100 px-1.5 py-0.5 text-[0.7rem] font-semibold leading-none text-green-700">
+        Default
+      </span>
+    );
+  }
+
+  if (method.connected) {
+    return (
+      <button
+        type="button"
+        onClick={() => onSetDefault(method.type)}
+        disabled={isSettingDefault}
+        className={cn(
+          "rounded-md border border-neutral-200 bg-white px-1.5 py-0.5 text-[0.7rem] font-medium leading-none text-neutral-600",
+          "cursor-pointer transition-colors hover:bg-neutral-50",
+          "disabled:cursor-not-allowed disabled:opacity-50",
+        )}
+      >
+        {isSettingDefault ? "Setting..." : "Set as default"}
+      </button>
+    );
+  }
+
+  return null;
 }
 
 function SelectedMethodDisplay({

@@ -3,9 +3,12 @@
 import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
+import { prisma } from "@/lib/prisma";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
-import { prisma } from "@dub/prisma";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -36,33 +39,46 @@ export const deleteRewardAction = authActionClient
 
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
-    const partnerGroup = await prisma.$transaction(async (tx) => {
-      const group = await tx.partnerGroup.update({
-        // @ts-ignore
-        where: {
-          [rewardIdColumn]: reward.id,
-        },
-        data: {
-          [rewardIdColumn]: null,
-        },
-      });
+    const { partnerGroup, deletedReward } = await prisma.$transaction(
+      async (tx) => {
+        const partnerGroup = await tx.partnerGroup.update({
+          // @ts-ignore
+          where: {
+            [rewardIdColumn]: reward.id,
+          },
+          data: {
+            [rewardIdColumn]: null,
+          },
+        });
 
-      await tx.programEnrollment.updateMany({
-        where: {
-          [rewardIdColumn]: reward.id,
-        },
-        data: {
-          [rewardIdColumn]: null,
-        },
-      });
+        // soft delete reward, we will hard delete it in the cron job
+        const deletedReward = await tx.reward.update({
+          where: {
+            id: reward.id,
+          },
+          data: {
+            programId: null,
+          },
+        });
 
-      await tx.reward.delete({
-        where: {
-          id: reward.id,
-        },
-      });
+        return {
+          partnerGroup,
+          deletedReward,
+        };
+      },
+    );
 
-      return group;
+    await queueRewardProcessing({
+      event: "reward-deleted",
+      groupId: partnerGroup.id,
+      occurredAt: new Date().toISOString(),
+      rewardSnapshot: {
+        id: deletedReward.id,
+        event: deletedReward.event,
+        description: formatRewardDescription(serializeReward(deletedReward), {
+          includeEarnPrefix: false,
+        }),
+      },
     });
 
     waitUntil(
@@ -88,7 +104,7 @@ export const deleteRewardAction = authActionClient
           userId: user.id,
           resourceId: reward.id,
           parentResourceType: "group",
-          parentResourceId: partnerGroup?.id,
+          parentResourceId: partnerGroup.id,
           old: reward,
           new: null,
         }),

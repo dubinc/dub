@@ -21,8 +21,8 @@ export const ProgramNetworkStatusBadges = {
 };
 
 const notEligibleBadge = {
-  variant: "new" as const,
-  className: "text-blue-600 bg-blue-100",
+  variant: "neutral" as const,
+  className: "text-neutral-600 bg-neutral-100",
   icon: Lock,
   label: "Not eligible",
 };

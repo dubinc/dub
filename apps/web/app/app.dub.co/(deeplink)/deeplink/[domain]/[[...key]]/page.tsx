@@ -2,8 +2,8 @@ import {
   decodeLinkIfCaseSensitive,
   encodeKeyIfCaseSensitive,
 } from "@/lib/api/links/case-sensitivity";
-import { deepViewDataSchema } from "@/lib/zod/schemas/deep-links";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
+import { parseDeepViewData } from "@/lib/zod/schemas/deep-links";
 import { Grid, Wordmark } from "@dub/ui";
 import {
   AndroidLogo,
@@ -12,14 +12,24 @@ import {
   IOSAppStore,
   MobilePhone,
 } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, getApexDomain } from "@dub/utils";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { userAgent } from "next/server";
-import { DeepLinkActionButtons } from "./action-buttons";
+import { DeepLinkActionButton } from "./action-button";
 import { BrandLogoBadge } from "./brand-logo-badge";
 import { getLanguage, getTranslations } from "./translations";
+
+const ANDROID_PACKAGE_NAME_REGEX =
+  /^[a-zA-Z][a-zA-Z0-9_]*(\.[a-zA-Z][a-zA-Z0-9_]*)+$/;
+
+interface AssetLink {
+  target?: {
+    namespace?: string;
+    package_name?: string;
+  };
+}
 
 export default async function DeepLinkPreviewPage(props: {
   params: Promise<{ domain: string; key?: string[] }>;
@@ -73,19 +83,22 @@ export default async function DeepLinkPreviewPage(props: {
     redirect(`https://${domain}`);
   }
 
-  const deepViewData = deepViewDataSchema.parse(link.shortDomain.deepviewData);
+  const { appleAppSiteAssociation, assetLinks, deepviewData } =
+    link.shortDomain;
 
   // if the domain isn't set up for deep linking on the user's platform, skip
   // the preview and forward to the platform-specific URL (or the canonical URL)
   if (platform === "android") {
-    if (!link.shortDomain.assetLinks || !deepViewData) {
+    if (!assetLinks || !deepviewData) {
       redirect(link.android ?? link.url);
     }
   } else {
-    if (!link.shortDomain.appleAppSiteAssociation || !deepViewData) {
+    if (!appleAppSiteAssociation || !deepviewData) {
       redirect(link.ios ?? link.url);
     }
   }
+
+  const deepViewData = parseDeepViewData(deepviewData);
 
   // decode the link if the domain is case sensitive
   link = decodeLinkIfCaseSensitive(link);
@@ -94,6 +107,32 @@ export default async function DeepLinkPreviewPage(props: {
   if (!link) {
     redirect(`https://${domain}`);
   }
+
+  let androidPackageName: string | null = null;
+
+  if (platform === "android" && Array.isArray(link.shortDomain.assetLinks)) {
+    for (const assetLink of link.shortDomain.assetLinks as Array<AssetLink>) {
+      const packageName = assetLink?.target?.package_name;
+
+      if (
+        assetLink?.target?.namespace === "android_app" &&
+        typeof packageName === "string" &&
+        ANDROID_PACKAGE_NAME_REGEX.test(packageName)
+      ) {
+        androidPackageName = packageName;
+        break;
+      }
+    }
+  }
+
+  const {
+    hidePoweredByBadge = false,
+    appName = getApexDomain(link.url),
+    variant,
+    buttonStyle,
+  } = deepViewData;
+
+  const description = t.description.replace("{appName}", appName);
 
   return (
     <>
@@ -107,82 +146,95 @@ export default async function DeepLinkPreviewPage(props: {
         </>
       )}
       <main className="mx-auto flex h-dvh w-full max-w-md flex-col bg-white">
-        <div className="absolute inset-0 isolate overflow-hidden bg-white">
-          <div
-            className={cn(
-              "absolute inset-y-0 left-1/2 w-[1200px] -translate-x-1/2",
-              "[mask-composite:intersect] [mask-image:linear-gradient(black,transparent_320px),linear-gradient(90deg,transparent,black_5%,black_95%,transparent)]",
-            )}
-          >
-            <Grid
-              cellSize={60}
-              patternOffset={[0.75, 0]}
-              className="text-neutral-200"
-            />
-          </div>
-
-          {[...Array(2)].map((_, idx) => (
+        {variant !== "minimal" && (
+          <div className="absolute inset-0 isolate overflow-hidden bg-white">
             <div
-              key={idx}
               className={cn(
-                "absolute left-1/2 top-6 size-[80px] -translate-x-1/2 -translate-y-1/2 scale-x-[1.6]",
-                idx === 0 ? "mix-blend-overlay" : "opacity-10",
+                "absolute inset-y-0 left-1/2 w-[1200px] -translate-x-1/2",
+                "[mask-composite:intersect] [mask-image:linear-gradient(black,transparent_320px),linear-gradient(90deg,transparent,black_5%,black_95%,transparent)]",
               )}
             >
-              {[...Array(idx === 0 ? 2 : 1)].map((_, idx) => (
-                <div
-                  key={idx}
-                  className={cn(
-                    "absolute -inset-16 mix-blend-overlay blur-[50px] saturate-[2]",
-                    "bg-[conic-gradient(from_90deg,#F00_5deg,#EAB308_63deg,#5CFF80_115deg,#1E00FF_170deg,#855AFC_220deg,#3A8BFD_286deg,#F00_360deg)]",
-                  )}
-                />
-              ))}
+              <Grid
+                cellSize={60}
+                patternOffset={[0.75, 0]}
+                className="text-neutral-200"
+              />
             </div>
-          ))}
-        </div>
+
+            {[...Array(2)].map((_, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "absolute left-1/2 top-6 size-[80px] -translate-x-1/2 -translate-y-1/2 scale-x-[1.6]",
+                  idx === 0 ? "mix-blend-overlay" : "opacity-10",
+                )}
+              >
+                {[...Array(idx === 0 ? 2 : 1)].map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={cn(
+                      "absolute -inset-16 mix-blend-overlay blur-[50px] saturate-[2]",
+                      "bg-[conic-gradient(from_90deg,#F00_5deg,#EAB308_63deg,#5CFF80_115deg,#1E00FF_170deg,#855AFC_220deg,#3A8BFD_286deg,#F00_360deg)]",
+                    )}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="relative z-10 flex flex-1 flex-col px-8 py-8">
-          <div className="flex justify-center">
-            <Link
-              href="https://dub.co/docs/concepts/deep-links/quickstart"
-              target="_blank"
-              className={cn(
-                "flex items-center gap-1 whitespace-nowrap text-sm font-medium text-neutral-900",
-                t["poweredByOrder"] === "inverted" ? "flex-row-reverse" : "",
-              )}
-            >
-              {t.poweredBy} <Wordmark className="text-content-emphasis h-3.5" />
-            </Link>
-          </div>
+          {!hidePoweredByBadge && (
+            <div className="flex justify-center">
+              <Link
+                href="https://dub.co/docs/concepts/deep-links/quickstart"
+                target="_blank"
+                className={cn(
+                  "flex items-center gap-1 whitespace-nowrap text-sm font-medium text-neutral-900",
+                  t["poweredByOrder"] === "inverted" ? "flex-row-reverse" : "",
+                )}
+              >
+                {t.poweredBy}{" "}
+                <Wordmark className="text-content-emphasis h-3.5" />
+              </Link>
+            </div>
+          )}
 
-          <div className="flex flex-1 flex-col justify-center gap-12">
-            <div className="flex flex-col items-center gap-y-6">
-              <BrandLogoBadge link={link} />
+          <div className="flex flex-1 flex-col justify-center gap-8">
+            <div className="flex flex-col items-center gap-y-3">
+              <BrandLogoBadge link={link} appName={appName} />
 
-              <div className="flex h-40 w-full max-w-xs flex-col gap-6 rounded-xl border border-neutral-300 px-10 py-8">
-                <p className="text-center text-sm font-normal leading-5 text-neutral-700">
-                  {t.description}
+              {variant === "minimal" ? (
+                <p className="text-pretty text-center font-light text-neutral-500">
+                  {description}
                 </p>
+              ) : (
+                <div className="flex h-40 w-full max-w-xs flex-col gap-6 rounded-xl border border-neutral-300 px-10 py-8">
+                  <p className="text-pretty text-center text-sm text-neutral-600">
+                    {description}
+                  </p>
 
-                <div className="flex items-center justify-center gap-3">
-                  <Copy className="text-content-default size-6" />
-                  <ArrowRight className="text-content-subtle size-3" />
-                  {platform === "android" ? (
-                    <AndroidLogo className="text-content-default size-6" />
-                  ) : (
-                    <IOSAppStore className="text-content-default size-6" />
-                  )}
-                  <ArrowRight className="text-content-subtle size-3" />
-                  <MobilePhone className="text-content-default size-6" />
+                  <div className="flex items-center justify-center gap-3">
+                    <Copy className="text-content-default size-6" />
+                    <ArrowRight className="text-content-subtle size-3" />
+                    {platform === "android" ? (
+                      <AndroidLogo className="text-content-default size-6" />
+                    ) : (
+                      <IOSAppStore className="text-content-default size-6" />
+                    )}
+                    <ArrowRight className="text-content-subtle size-3" />
+                    <MobilePhone className="text-content-default size-6" />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
-            <DeepLinkActionButtons
+            <DeepLinkActionButton
               link={link}
               language={language}
               platform={platform}
+              androidPackageName={androidPackageName}
+              buttonStyle={buttonStyle}
             />
           </div>
         </div>

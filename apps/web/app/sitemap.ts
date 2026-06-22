@@ -1,6 +1,6 @@
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { PARTNERS_HOSTNAMES, SHORT_DOMAIN } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { MetadataRoute } from "next";
 import { headers } from "next/headers";
 

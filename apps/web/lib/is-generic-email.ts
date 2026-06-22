@@ -16,6 +16,7 @@ const GENERIC_EMAIL_DOMAINS = [
   "protonmail.com",
   "proton.me",
   "pm.me",
+  "promail.ink",
   "passinbox.com",
   "passmail.net",
   "163.com",
@@ -48,6 +49,12 @@ const GENERIC_EMAIL_DOMAINS = [
   "ukr.net",
   "otona.uk",
   "instaddr.ch",
+  "t-mail.asia",
+  "adras.org",
+  "emailinbo.live",
+  "kw.com",
+  "bluewin.ch",
+  "web-library.net",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [
@@ -57,6 +64,21 @@ const GENERIC_EMAIL_DOMAIN_PREFIXES = [
   "gmx.",
   "yandex.",
   "live.",
+  "student.",
+];
+
+const GENERIC_EMAIL_DOMAIN_SUFFIXES = [
+  ".edu.pl",
+  ".edu.rs",
+  ".top",
+  ".cfd",
+  ".cyou",
+  ".icu",
+  ".xxx",
+  ".sbs",
+  ".click",
+  ".digital",
+  ".pro",
 ];
 
 export const isGenericEmail = (email: string) => {
@@ -69,6 +91,7 @@ export const isGenericEmail = (email: string) => {
     GENERIC_EMAIL_DOMAINS.includes(emailDomain) ||
     GENERIC_EMAIL_DOMAIN_PREFIXES.some((prefix) =>
       emailDomain.startsWith(prefix),
-    )
+    ) ||
+    GENERIC_EMAIL_DOMAIN_SUFFIXES.some((suffix) => emailDomain.endsWith(suffix))
   );
 };

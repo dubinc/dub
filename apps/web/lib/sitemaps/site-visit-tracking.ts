@@ -1,11 +1,11 @@
 import { createId } from "@/lib/api/create-id";
+import { prisma } from "@/lib/prisma";
 import {
   MAX_TRACKED_SITEMAPS_PER_WORKSPACE,
   siteVisitTrackingSettingsValueSchema,
   trackedSitemapSchema,
 } from "@/lib/zod/schemas/site-visit-tracking";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@prisma/client";
 import type { z } from "zod/v4";
 import * as zod from "zod/v4";
 

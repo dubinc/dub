@@ -10,7 +10,6 @@ import { PartnerPlatformProps, PartnerProps } from "@/lib/types";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import { SocialVerificationByCodeModal } from "@/ui/modals/social-verification-by-code-modal";
-import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -25,6 +24,7 @@ import {
 } from "@dub/ui";
 import { getPrettyUrl, nFormatter } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
+import { PlatformType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { forwardRef, ReactNode, useCallback, useMemo, useState } from "react";
 import {
@@ -684,6 +684,18 @@ function FormRow({
       const partnerWithPlatforms = partner as typeof partner & {
         platforms?: PartnerPlatformProps[];
       };
+
+      if (property === "website") {
+        const websitePlatform = getPlatformData(
+          partnerWithPlatforms.platforms,
+          "website",
+        );
+        const domainRating = websitePlatform?.subscribers ?? 0;
+
+        return [domainRating > 0 ? `${Number(domainRating)} DR` : null].filter(
+          Boolean,
+        ) as string[];
+      }
 
       if (property === "youtube") {
         const youtubePlatform = getPlatformData(

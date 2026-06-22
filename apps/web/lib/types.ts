@@ -31,7 +31,7 @@ import {
   Webhook,
   WorkflowTrigger,
   WorkspaceRole,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import {
@@ -58,6 +58,7 @@ import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
+import { MessageAttachmentSchema, MessageSchema } from "./messages/schemas";
 import { POSTBACK_TRIGGERS } from "./postback/constants";
 import { postbackEventInputSchemaTB, postbackSchema } from "./postback/schemas";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
@@ -96,6 +97,7 @@ import {
   CommissionDetailSchema,
   CommissionEnrichedSchema,
   CommissionSchema,
+  createPartnerCommissionSchema,
 } from "./zod/schemas/commissions";
 import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
@@ -120,7 +122,10 @@ import {
   GroupWithFormDataSchema,
   PartnerGroupDefaultLinkSchema,
 } from "./zod/schemas/groups";
-import { integrationSchema } from "./zod/schemas/integration";
+import {
+  installedIntegrationSchema,
+  integrationSchema,
+} from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
   leadEventResponseSchema,
@@ -131,7 +136,6 @@ import {
   ABTestVariantsSchema,
   createLinkBodySchema,
 } from "./zod/schemas/links";
-import { MessageSchema } from "./zod/schemas/messages";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   NetworkPartnerSchema,
@@ -145,6 +149,7 @@ import {
   partnerPlatformSchema,
   PartnerRewindSchema,
   PartnerSchema,
+  partnerSharedPlatformSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
 import {
@@ -429,22 +434,9 @@ export type NewOrExistingIntegration = Omit<
   id?: string;
 };
 
-export type InstalledIntegrationProps = Pick<
-  IntegrationProps,
-  | "id"
-  | "projectId"
-  | "slug"
-  | "logo"
-  | "name"
-  | "developer"
-  | "description"
-  | "verified"
-  | "comingSoon"
-  | "guideUrl"
-> & {
-  installations: number;
-  installed?: boolean;
-};
+export type InstalledIntegrationProps = z.infer<
+  typeof installedIntegrationSchema
+>;
 
 export type InstalledIntegrationInfoProps = Pick<
   IntegrationProps,
@@ -521,11 +513,16 @@ export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerPlatformProps = z.infer<typeof partnerPlatformSchema>;
 
+export type PartnerSharedPlatformProps = z.infer<
+  typeof partnerSharedPlatformSchema
+>;
+
 export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
   platforms: PartnerPlatformProps[];
   defaultPayoutMethod: PartnerPayoutMethod | null;
+  tremendousEmail: string | null;
 };
 
 export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;
@@ -754,6 +751,8 @@ export type BountySubmissionsQueryFilters = z.infer<
 
 export type Message = z.infer<typeof MessageSchema>;
 
+export type MessageAttachment = z.infer<typeof MessageAttachmentSchema>;
+
 export type CampaignList = z.infer<typeof CampaignListSchema>;
 
 export type Campaign = z.infer<typeof CampaignSchema>;
@@ -847,6 +846,8 @@ interface WorkflowIdentity {
   programId: string;
   partnerId: string;
   groupId?: string;
+  customerId?: string;
+  customerFirstSaleAt?: Date;
 }
 
 interface PartnerMetrics {
@@ -978,3 +979,7 @@ export type ApplicationAnalyticsByGroup = {
 };
 
 export type CommissionProps = z.infer<typeof CommissionSchema>;
+
+export type CreatePartnerCommissionProps = z.infer<
+  typeof createPartnerCommissionSchema
+>;

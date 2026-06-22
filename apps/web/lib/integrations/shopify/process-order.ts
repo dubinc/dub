@@ -4,16 +4,16 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
 import { getLeadEvent, recordLead } from "@/lib/tinybird";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
 import { WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
-import { prisma } from "@dub/prisma";
-import { Link } from "@dub/prisma/client";
 import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
+import { Link } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { createShopifyLead } from "./create-lead";
 import { createShopifySale } from "./create-sale";
@@ -88,14 +88,15 @@ export async function attributeViaDiscountCode({
   const { customer: orderCustomer, billing_address: billingAddress } =
     orderSchema.parse(event);
 
+  const billingAddressCountry = billingAddress?.country_code?.toUpperCase();
   // Record a fake click for this event
   const clickEvent = await recordFakeClick({
     link,
     customer: {
-      continent: billingAddress?.country_code
-        ? COUNTRIES_TO_CONTINENTS[billingAddress.country_code]
+      continent: billingAddressCountry
+        ? COUNTRIES_TO_CONTINENTS[billingAddressCountry] ?? "Unknown"
         : "Unknown",
-      country: billingAddress?.country_code ?? "Unknown",
+      country: billingAddressCountry ?? "Unknown",
       region: billingAddress?.province ?? "Unknown",
     },
   });
@@ -149,12 +150,12 @@ export async function attributeViaDiscountCode({
         include: includeTags,
       });
 
-      let createdCommission:
-        | Awaited<ReturnType<typeof createPartnerCommission>>
+      let result:
+        | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
         | undefined = undefined;
 
       if (link.programId && link.partnerId) {
-        createdCommission = await createPartnerCommission({
+        result = await queuePartnerCommissionCreation({
           event: "lead",
           programId: link.programId,
           partnerId: link.partnerId,
@@ -202,7 +203,7 @@ export async function attributeViaDiscountCode({
             eventName: "Checkout with discount code",
             link: linkUpdated,
             customer,
-            partner: createdCommission?.webhookPartner,
+            partner: result?.webhookPartner,
             metadata: null,
           }),
         }),

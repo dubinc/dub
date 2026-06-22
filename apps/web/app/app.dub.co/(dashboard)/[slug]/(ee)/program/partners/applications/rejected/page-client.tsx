@@ -16,7 +16,6 @@ import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -32,6 +31,7 @@ import {
 } from "@dub/ui";
 import { Check, Dots, LoadingSpinner, Users } from "@dub/ui/icons";
 import { COUNTRIES, fetcher, formatDate } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
@@ -323,7 +323,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         set: {
           partnerId: row.original.id,
         },
-        scroll: false,
       });
     },
     pagination,
@@ -340,7 +339,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
@@ -378,7 +376,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               ? () =>
                   queryParams({
                     set: { partnerId: previousPartnerId },
-                    scroll: false,
                   })
               : undefined
           }
@@ -387,7 +384,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               ? () =>
                   queryParams({
                     set: { partnerId: nextPartnerId },
-                    scroll: false,
                   })
               : undefined
           }

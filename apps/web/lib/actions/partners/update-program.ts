@@ -3,8 +3,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
 import { submittedLeadFormSchema } from "@/lib/zod/schemas/submitted-lead-form";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
@@ -62,27 +62,25 @@ export const updateProgramAction = authActionClient
       },
     });
 
-    waitUntil(
-      (async () => {
-        await recordAuditLog({
-          workspaceId: workspace.id,
-          programId: program.id,
-          action: "program.updated",
-          description: `Program ${program.name} updated`,
-          actor: user,
-          targets: [
-            {
-              type: "program",
-              id: program.id,
-              metadata: updatedProgram,
-            },
-          ],
-        });
+    if (updatedProgram.termsUrl !== program.termsUrl) {
+      revalidatePath(`/partners.dub.co/${program.slug}/apply`);
+    }
 
-        if (updatedProgram.termsUrl !== program.termsUrl) {
-          revalidatePath(`/partners.dub.co/${program.slug}/apply`);
-        }
-      })(),
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId: program.id,
+        action: "program.updated",
+        description: `Program ${program.name} updated`,
+        actor: user,
+        targets: [
+          {
+            type: "program",
+            id: program.id,
+            metadata: updatedProgram,
+          },
+        ],
+      }),
     );
 
     return {

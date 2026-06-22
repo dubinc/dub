@@ -1,5 +1,6 @@
-import DubLaunchWeekDay2 from "@dub/email/templates/broadcasts/launch-week-day-2";
-import { prisma } from "@dub/prisma";
+import { EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
+import { prisma } from "@/lib/prisma";
+import DubLaunchWeekDay5 from "@dub/email/templates/broadcasts/launch-week-day-5";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";
@@ -7,48 +8,83 @@ import { generateUnsubscribeToken } from "../lib/email/unsubscribe-token";
 
 async function main() {
   while (true) {
-    const usersToNotify = await prisma.user.findMany({
+    const usersWithPartners = await prisma.user.findMany({
       where: {
         sentMail: false,
-        projects: {
-          some: {
-            project: {
-              OR: [
-                {
-                  defaultProgramId: {
-                    not: null,
+        defaultPartnerId: {
+          not: null,
+        },
+        partners: {
+          some: {},
+        },
+        notificationPreferences: {
+          partnerAccount: true,
+        },
+      },
+      take: 5000,
+      include: {
+        partners: {
+          select: {
+            partner: {
+              select: {
+                id: true,
+                programs: {
+                  where: {
+                    programId: {
+                      in: EXCLUDED_PROGRAM_IDS,
+                    },
                   },
                 },
-                {
-                  plan: {
-                    not: "free",
-                  },
-                },
-              ],
+              },
             },
           },
         },
-        email: {
-          not: null,
-        },
-        notificationPreferences: {
-          dubPartners: true,
-        },
       },
-      take: 10000,
     });
-    if (usersToNotify.length === 0) {
+    if (usersWithPartners.length === 0) {
       console.log("No more users to notify");
       break;
     }
+
+    const programEnrollmentsByPartner = await prisma.programEnrollment.groupBy({
+      by: ["partnerId"],
+      where: {
+        partnerId: {
+          in: usersWithPartners.map((user) => user.defaultPartnerId!),
+        },
+      },
+      _count: {
+        programId: true,
+      },
+    });
+
+    const programEnrollmentCountsByPartnerId =
+      programEnrollmentsByPartner.reduce(
+        (acc, { partnerId, _count }) => {
+          acc[partnerId] = _count.programId;
+          return acc;
+        },
+        {} as Record<string, number>,
+      );
+
+    const usersToNotify = usersWithPartners.filter((user) =>
+      user.partners.every(
+        ({ partner }) =>
+          !(
+            partner.programs.length > 0 &&
+            programEnrollmentCountsByPartnerId[partner.id] === 1
+          ),
+      ),
+    );
+
     console.log(`Found ${usersToNotify.length} users to notify`);
 
-    const res = await queueBatchEmail<typeof DubLaunchWeekDay2>(
+    const res = await queueBatchEmail<typeof DubLaunchWeekDay5>(
       usersToNotify.map((user) => ({
         to: user.email!,
         variant: "marketing",
-        subject: "Dub Launch Week Day 2: Introducing Partner Tags",
-        templateName: "DubLaunchWeekDay2",
+        subject: "Introducing the Dub Network Referral Bonus",
+        templateName: "DubLaunchWeekDay5",
         templateProps: {
           email: user.email!,
           unsubscribeUrl: `https://app.dub.co/unsubscribe/${generateUnsubscribeToken(user.email!)}`,
@@ -58,8 +94,8 @@ async function main() {
 
     console.log(res);
 
-    const chunkedUsers = chunk(usersToNotify, 1000);
-    for (const cu of chunkedUsers) {
+    const chunkedUsersWithPartners = chunk(usersWithPartners, 1000);
+    for (const cu of chunkedUsersWithPartners) {
       const res = await prisma.user.updateMany({
         where: {
           id: {

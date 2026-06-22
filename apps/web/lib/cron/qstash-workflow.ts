@@ -1,62 +1,110 @@
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { logger } from "@/lib/axiom/server";
+import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
+import { FlowControl } from "@upstash/qstash";
 import { Client } from "@upstash/workflow";
 
 const client = new Client({
+  baseUrl: process.env.QSTASH_URL || "https://qstash-us-east-1.upstash.io",
   token: process.env.QSTASH_TOKEN || "",
 });
 
-const WORKFLOW_RETRIES = 3;
-const WORKFLOW_PARALLELISM = 20;
-
-type WorkflowIds = "partner-approved";
+type WorkflowType = "partner-approved" | "create-partner-commission";
 
 interface QStashWorkflow {
-  workflowId: WorkflowIds;
-  body?: Record<string, unknown>;
+  workflowType: WorkflowType;
+  workflowLabel: string;
+  body: Record<string, unknown>;
+  flowControl?: FlowControl;
 }
 
 // Run workflows
-export async function triggerWorkflows(
+export async function triggerQStashWorkflow(
   input: QStashWorkflow | QStashWorkflow[],
 ) {
-  try {
-    const workflows = Array.isArray(input) ? input : [input];
+  const workflows = Array.isArray(input) ? input : [input];
+  const maxRetries = 3;
 
-    const results = await client.trigger(
-      workflows.map((workflow) => ({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowId}`,
-        body: workflow.body,
-        retries: WORKFLOW_RETRIES,
-        flowControl: {
-          key: workflow.workflowId,
-          parallelism: WORKFLOW_PARALLELISM,
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await client.trigger(
+        workflows.map((workflow) => ({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowType}`,
+          body: workflow.body,
+          label: workflow.workflowLabel,
+          retries: 5,
+          flowControl: workflow.flowControl ?? {
+            key: workflow.workflowType,
+            parallelism: 15,
+          },
+        })),
+      );
+
+      console.log(
+        `${response.length} QStash ${pluralize("workflow", response.length)} triggered`,
+        response,
+      );
+
+      return response;
+    } catch (error) {
+      console.error("QStash workflow trigger failed", { error, workflows });
+
+      if (attempt < maxRetries) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 1000 * Math.pow(2, attempt)),
+        );
+        continue;
+      }
+
+      for (const workflow of workflows) {
+        const { correlation } = getWorkflowConfig(workflow);
+
+        logger.error("workflow.trigger_failed", {
+          service: "qstash",
+          event: "workflow.trigger_failed",
+          workflowType: workflow.workflowType,
+          errorName: error instanceof Error ? error.name : undefined,
+          errorStack: error instanceof Error ? error.stack : undefined,
+          correlation,
+        });
+      }
+
+      await logger.flush();
+
+      return null;
+    }
+  }
+}
+
+export function getWorkflowConfig({
+  workflowType,
+  body,
+}: Omit<QStashWorkflow, "workflowLabel">): {
+  correlation: Record<string, unknown>;
+} {
+  switch (workflowType) {
+    case "partner-approved":
+      return {
+        correlation: {
+          programId: body.programId,
+          partnerId: body.partnerId,
+          userId: body.userId,
         },
-      })),
-    );
+      };
 
-    if (process.env.NODE_ENV === "development") {
-      console.debug("[Upstash] Workflows triggered", {
-        count: workflows.length,
-        ids: workflows.map((w) => w.workflowId),
-        results,
-      });
+    case "create-partner-commission": {
+      return {
+        correlation: {
+          programId: body.programId,
+          partnerId: body.partnerId,
+          customerId: body.customerId,
+          bountySubmissionId: body.bountySubmissionId,
+        },
+      };
     }
 
-    return results;
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : JSON.stringify(error);
-
-    console.error("[Upstash] Failed to trigger workflows", {
-      error: message,
-      input,
-    });
-
-    await log({
-      message: `[Upstash] Failed to trigger QStash workflows. ${message}`,
-      type: "errors",
-    });
-
-    return null;
+    default:
+      return {
+        correlation: {},
+      };
   }
 }

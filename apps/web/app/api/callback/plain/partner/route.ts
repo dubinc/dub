@@ -1,6 +1,6 @@
 import { plain } from "@/lib/plain/client";
 import { upsertPlainCustomer } from "@/lib/plain/upsert-plain-customer";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   COUNTRIES,
   currencyFormatter,

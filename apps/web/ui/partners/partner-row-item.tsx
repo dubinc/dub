@@ -1,13 +1,14 @@
 import useProgram from "@/lib/swr/use-program";
-import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { CircleArrowRight, DynamicTooltipWrapper, GreekTemple } from "@dub/ui";
 import { cn, formatDateTimeSmart } from "@dub/utils";
+import { PartnerNetworkStatus, PartnerPayoutMethod } from "@prisma/client";
 import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import type { ReactNode } from "react";
-import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
+import { PartnerRiskIndicator } from "./fraud-risks/partner-risk-indicator";
 import { PartnerAvatar } from "./partner-avatar";
+import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
 import {
   getPayoutMethodIconConfig,
   getPayoutMethodLabel,
@@ -21,6 +22,7 @@ interface PartnerRowItemProps {
     id: string;
     name: string;
     image?: string | null;
+    networkStatus?: PartnerNetworkStatus | null;
     defaultPayoutMethod?: PartnerPayoutMethod | null;
     payoutsEnabledAt?: Date | null;
   };
@@ -208,23 +210,29 @@ export function PartnerRowItem({
         </DynamicTooltipWrapper>
       </div>
 
-      <As
-        href={`/${slug}/program/partners/${partner.id}`}
-        {...(showPermalink && { target: "_blank" })}
-        onClick={showPermalink ? (e) => e.stopPropagation() : undefined}
-        onAuxClick={showPermalink ? (e) => e.stopPropagation() : undefined}
-        className={cn(
-          "min-w-0 truncate",
-          showPermalink && "cursor-alias decoration-dotted hover:underline",
+      <div className="flex min-w-0 items-center gap-1">
+        <As
+          href={`/${slug}/program/partners/${partner.id}`}
+          {...(showPermalink && { target: "_blank" })}
+          onClick={showPermalink ? (e) => e.stopPropagation() : undefined}
+          onAuxClick={showPermalink ? (e) => e.stopPropagation() : undefined}
+          className={cn(
+            "min-w-0 truncate",
+            showPermalink && "cursor-alias decoration-dotted hover:underline",
+          )}
+          title={partner.name}
+        >
+          {partner.name}
+        </As>
+
+        {"networkStatus" in partner && partner.networkStatus && (
+          <PartnerNetworkStatusBadge networkStatus={partner.networkStatus} />
         )}
-        title={partner.name}
-      >
-        {partner.name}
-      </As>
+      </div>
 
       {suffix}
 
-      {showFraudIndicator && <PartnerFraudIndicator partnerId={partner.id} />}
+      {showFraudIndicator && <PartnerRiskIndicator partnerId={partner.id} />}
     </div>
   );
 }

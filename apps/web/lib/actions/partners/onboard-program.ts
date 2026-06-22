@@ -1,9 +1,9 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { prisma } from "@/lib/prisma";
 import { onboardProgramSchema } from "@/lib/zod/schemas/program-onboarding";
-import { prisma } from "@dub/prisma";
-import { Project } from "@dub/prisma/client";
+import { Project } from "@prisma/client";
 import { redirect } from "next/navigation";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";

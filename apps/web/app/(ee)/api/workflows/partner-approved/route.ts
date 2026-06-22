@@ -2,10 +2,12 @@ import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-def
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { logger } from "@/lib/axiom/server";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
-import { createWorkflowLogger } from "@/lib/cron/qstash-workflow-logger";
+import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { generateDiscountCodeForPartner } from "@/lib/discounts/generate-discount-code-for-partner";
 import { createReferralCommission } from "@/lib/partner-referrals/create-referral-commission";
+import { prisma } from "@/lib/prisma";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { PlanProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -13,18 +15,17 @@ import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
-import { prisma } from "@dub/prisma";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
 
-const payloadSchema = z.object({
+const inputSchema = z.object({
   programId: z.string(),
   partnerId: z.string(),
   userId: z.string(),
 });
 
-type Payload = z.infer<typeof payloadSchema>;
+type Input = z.infer<typeof inputSchema>;
 
 /**
  * Partner Approved Workflow
@@ -51,15 +52,10 @@ type Payload = z.infer<typeof payloadSchema>;
  */
 
 // POST /api/workflows/partner-approved
-export const { POST } = serve<Payload>(
+export const { POST } = serve<Input>(
   async (context) => {
     const input = context.requestPayload;
     const { programId, partnerId, userId } = input;
-
-    const logger = createWorkflowLogger({
-      workflowId: "partner-approved",
-      workflowRunId: context.workflowRunId,
-    });
 
     const {
       program,
@@ -83,15 +79,10 @@ export const { POST } = serve<Payload>(
 
     // Step 1: Create partner default links
     await context.run("create-default-links", async () => {
-      logger.info({
-        message: "Started executing workflow step 'create-default-links'.",
-        data: input,
-      });
-
       if (!groupId) {
-        logger.error({
-          message: `The partner ${partnerId} is not associated with any group.`,
-        });
+        console.error(
+          `The partner ${partnerId} is not associated with any group.`,
+        );
         return;
       }
 
@@ -107,9 +98,7 @@ export const { POST } = serve<Payload>(
         });
 
       if (partnerGroupDefaultLinks.length === 0) {
-        logger.error({
-          message: `Group ${groupId} does not have any default links.`,
-        });
+        console.error(`Group ${groupId} does not have any default links.`);
         return;
       }
 
@@ -123,9 +112,9 @@ export const { POST } = serve<Payload>(
       }
 
       if (partnerGroupDefaultLinks.length === 0) {
-        logger.error({
-          message: `Already created default links for partner ${partnerId}.`,
-        });
+        console.error(
+          `Already created default links for partner ${partnerId}.`,
+        );
         return;
       }
 
@@ -162,7 +151,7 @@ export const { POST } = serve<Payload>(
         userId,
       });
 
-      logger.info({
+      console.info({
         message: `Created ${partnerLinks.length} partner default links.`,
         data: partnerLinks.map(({ id, url, shortLink }) => ({
           id,
@@ -183,11 +172,6 @@ export const { POST } = serve<Payload>(
 
     // Step 2: Auto-provision discount code if enabled
     await context.run("create-discount-codes", async () => {
-      logger.info({
-        message: "Started executing workflow step 'create-discount-codes'.",
-        data: input,
-      });
-
       await generateDiscountCodeForPartner({
         workspaceId: program.workspaceId,
         partner: {
@@ -200,15 +184,10 @@ export const { POST } = serve<Payload>(
 
     // Step 3: Send email to partner application approved
     await context.run("send-email", async () => {
-      logger.info({
-        message: "Started executing workflow step 'send-email'.",
-        data: input,
-      });
-
       if (!groupId) {
-        logger.error({
-          message: `The partner ${partnerId} is not associated with any group.`,
-        });
+        console.error(
+          `The partner ${partnerId} is not associated with any group.`,
+        );
         return;
       }
 
@@ -236,16 +215,11 @@ export const { POST } = serve<Payload>(
       });
 
       if (partnerUsers.length === 0) {
-        logger.info({
-          message: `No partner users found for partner ${partnerId} to send email notification.`,
-        });
+        console.log(
+          `No partner users found for partner ${partnerId} to send email notification.`,
+        );
         return;
       }
-
-      logger.info({
-        message: `Sending email notification to ${partnerUsers.length} partner users.`,
-        data: partnerUsers,
-      });
 
       const rewardsAndBounties = await getGroupRewardsAndBounties({
         programId,
@@ -279,7 +253,7 @@ export const { POST } = serve<Payload>(
       );
 
       if (data) {
-        logger.info({
+        console.info({
           message: `Sent emails to ${partnerUsers.length} partner users.`,
           data: data,
         });
@@ -292,11 +266,6 @@ export const { POST } = serve<Payload>(
 
     // Step 4: Send webhook to workspace
     await context.run("send-webhook", async () => {
-      logger.info({
-        message: "Started executing workflow step 'send-webhook'.",
-        data: input,
-      });
-
       const partnerPlatforms = await prisma.partnerPlatform.findMany({
         where: {
           partnerId,
@@ -326,20 +295,10 @@ export const { POST } = serve<Payload>(
         trigger: "partner.enrolled",
         data: enrolledPartner,
       });
-
-      logger.info({
-        message: `Sent "partner.enrolled" webhook to workspace ${workspace.id}.`,
-      });
     });
 
     // Step 5: Trigger draft bounty submission creation
     await context.run("trigger-draft-bounty-submission-creation", async () => {
-      logger.info({
-        message:
-          "Started executing workflow step 'trigger-draft-bounty-submission-creation'.",
-        data: input,
-      });
-
       await triggerDraftBountySubmissionCreation({
         programId,
         partnerIds: [partnerId],
@@ -348,12 +307,6 @@ export const { POST } = serve<Payload>(
 
     // Step 6: Execute Dub workflows using the “partnerEnrolled” trigger.
     await context.run("execute-workflows", async () => {
-      logger.info({
-        message:
-          "Started executing workflow step 'execute-workflows' for the trigger 'partnerEnrolled'.",
-        data: input,
-      });
-
       await executeWorkflows({
         trigger: "partnerEnrolled",
         identity: {
@@ -366,12 +319,6 @@ export const { POST } = serve<Payload>(
 
     // Step 7: Create referral commission if enabled
     await context.run("create-referral-commission", async () => {
-      logger.info({
-        message:
-          "Started executing workflow step 'create-referral-commission'.",
-        data: input,
-      });
-
       await createReferralCommission({
         partnerId,
         programId,
@@ -380,7 +327,31 @@ export const { POST } = serve<Payload>(
   },
   {
     initialPayloadParser: (requestPayload) => {
-      return payloadSchema.parse(JSON.parse(requestPayload));
+      return inputSchema.parse(JSON.parse(requestPayload));
+    },
+    failureFunction: async ({
+      context,
+      failStatus,
+      failResponse,
+      failHeaders,
+    }) => {
+      const { correlation } = getWorkflowConfig({
+        workflowType: "partner-approved",
+        body: context.requestPayload,
+      });
+
+      logger.error("workflow.failed", {
+        service: "qstash",
+        event: "workflow.failed",
+        workflowType: "partner-approved",
+        workflowRunId: context.workflowRunId,
+        failStatus,
+        failResponse,
+        failHeaders,
+        correlation,
+      });
+
+      await logger.flush();
     },
   },
 );

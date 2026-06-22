@@ -1,7 +1,6 @@
 "use client";
 
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import { Category } from "@dub/prisma/client";
 import {
   Button,
   CrownSmall,
@@ -13,6 +12,7 @@ import {
 } from "@dub/ui";
 import { Xmark } from "@dub/ui/icons";
 import { cn, fetcher, getDomainWithoutWWW, OG_AVATAR_URL } from "@dub/utils";
+import { Category } from "@prisma/client";
 import {
   ProgramCategoriesList,
   UpdateProgramCategoriesModal,
@@ -342,7 +342,7 @@ export default function AdminProgramsPage() {
         }}
       />
 
-      <div className="mx-auto flex w-full max-w-screen-xl flex-col gap-4 p-6 pb-12 pt-4">
+      <div className="mx-auto flex w-full max-w-screen-xl flex-col gap-4">
         <div className="flex justify-end">
           <Button
             text="Add program"

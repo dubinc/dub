@@ -15,14 +15,13 @@ import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-de
 import { BountyStatusBadge } from "@/ui/partners/bounties/bounty-status-badge";
 import { BountySubmissionRequirements } from "@/ui/partners/bounties/bounty-submission-requirements";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { PlatformType } from "@dub/prisma/client";
 import { ChevronRight, Trophy } from "@dub/ui";
+import { PlatformType } from "@prisma/client";
 import { useState } from "react";
 import {
   BountyEndDate,
   BountyRewardsTable,
 } from "../../../../partners.dub.co/(dashboard)/programs/[programSlug]/(enrolled)/bounties/bounty-card";
-import { EmbedBountyPerformanceSection } from "./performance-section";
 import { EmbedBountySubmissionDetail } from "./submission-detail";
 import { EmbedBountySubmissionForm } from "./submission-form";
 import { EmbedBountySubmissionsTable } from "./submissions-table";
@@ -166,12 +165,13 @@ export function EmbedBountyDetail({
             </div>
           </div>
 
-          {bounty.type === "performance" ? (
-            <EmbedBountyPerformanceSection
-              bounty={bounty}
-              programEnrollment={programEnrollment}
-            />
-          ) : (
+          {bounty.type === "performance" ? null : (
+            // (
+            //   <EmbedBountyPerformanceSection
+            //     bounty={bounty}
+            //     programEnrollment={programEnrollment}
+            //   />
+            // )
             <EmbedBountySubmissionsTable
               bounty={bounty}
               onSubmit={(periodNumber) =>

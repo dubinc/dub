@@ -1,15 +1,15 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
+import { prisma } from "@/lib/prisma";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail, sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
-import { prisma } from "@dub/prisma";
 import {
   BountySubmissionStatus,
   Workflow,
   WorkspaceRole,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import { createId } from "../create-id";
 import { getWorkspaceUsers } from "../get-workspace-users";
 import { parseWorkflowConfig } from "./parse-workflow-config";
@@ -38,7 +38,7 @@ export const executeCompleteBountyWorkflow = async ({
 
   const { bountyId } = action.data;
   const { identity, metrics } = context;
-  const { partnerId, groupId } = identity;
+  const { partnerId, groupId, customerId, customerFirstSaleAt } = identity;
 
   if (!groupId) {
     console.error("Partner groupId not set in the context.");
@@ -116,6 +116,17 @@ export const executeCompleteBountyWorkflow = async ({
         return;
       }
     }
+  }
+
+  if (
+    bounty.performanceScope === "new" &&
+    customerFirstSaleAt &&
+    customerFirstSaleAt < bounty.startsAt
+  ) {
+    console.log(
+      `Bounty ${bounty.id} is for net-new revenue only and partner ${partnerId} referred customer ${customerId} before the bounty started, skipping...`,
+    );
+    return;
   }
 
   console.log(

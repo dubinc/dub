@@ -1,10 +1,10 @@
 import { qstash } from "@/lib/cron";
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
+import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import DomainRenewed from "@dub/email/templates/domain-renewed";
-import { prisma } from "@dub/prisma";
-import { Invoice } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
+import { Invoice } from "@prisma/client";
 import { addDays, startOfDay } from "date-fns";
 import Stripe from "stripe";
 
@@ -173,7 +173,7 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
     workspaceOwners.map(({ user }) => ({
       variant: "notifications",
       to: user.email!,
-      subject: `Your ${pluralize("domain", domains.length)} have been renewed`,
+      subject: `Your ${pluralize("domain", domains.length)} ${domains.length === 1 ? "has" : "have"} been renewed`,
       react: DomainRenewed({
         email: user.email!,
         workspace: {

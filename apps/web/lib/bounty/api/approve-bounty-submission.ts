@@ -3,14 +3,14 @@ import { DubApiError } from "@/lib/api/errors";
 import { Session } from "@/lib/auth";
 import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
+import { prisma } from "@/lib/prisma";
 import {
   approveBountySubmissionBodySchema,
   BountySubmissionSchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyApproved from "@dub/email/templates/bounty-approved";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
@@ -106,23 +106,6 @@ export async function approveBountySubmission({
     });
   }
 
-  const { commission } = await createPartnerCommission({
-    event: "custom",
-    partnerId: submission.partnerId,
-    programId: submission.programId,
-    amount: finalRewardAmount,
-    quantity: 1,
-    user,
-    description: `Commission for successfully completed "${bounty.name}" bounty.`,
-  });
-
-  if (!commission) {
-    throw new DubApiError({
-      code: "internal_server_error",
-      message: "Failed to create commission for the bounty submission.",
-    });
-  }
-
   const approvedSubmission = await prisma.bountySubmission.update({
     where: {
       id: submissionId,
@@ -133,7 +116,6 @@ export async function approveBountySubmission({
       userId: user.id,
       rejectionNote: null,
       rejectionReason: null,
-      commissionId: commission.id,
     },
     include: {
       partner: {
@@ -152,6 +134,17 @@ export async function approveBountySubmission({
         },
       },
     },
+  });
+
+  await queuePartnerCommissionCreation({
+    event: "custom",
+    partnerId: submission.partnerId,
+    programId: submission.programId,
+    amount: finalRewardAmount,
+    quantity: 1,
+    userId: user.id,
+    description: `Commission for successfully completed "${bounty.name}" bounty.`,
+    bountySubmissionId: submissionId,
   });
 
   const { program, partner } = approvedSubmission;

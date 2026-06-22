@@ -39,26 +39,17 @@ export function MarketplaceProgramCard({
         </div>
 
         <div className="mt-4 flex gap-4">
-          {Boolean(program.rewards?.length || program.discount) && (
+          {Boolean(program.rewards?.length) && (
             <div>
               <span className="text-content-muted block text-xs font-medium">
                 Rewards
               </span>
               <ProgramRewardsDisplay
                 rewards={program.rewards}
-                discount={program.discount}
                 onRewardClick={(reward) =>
                   queryParams({
                     set: {
                       rewardType: reward.event,
-                    },
-                    del: "page",
-                  })
-                }
-                onDiscountClick={() =>
-                  queryParams({
-                    set: {
-                      rewardType: "discount",
                     },
                     del: "page",
                   })

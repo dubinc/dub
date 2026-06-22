@@ -2,13 +2,13 @@ import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplica
 import { qstash } from "@/lib/cron";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
+import { prisma } from "@/lib/prisma";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
 import DuplicatePayoutMethod from "@dub/email/templates/duplicate-payout-method";
-import { prisma } from "@dub/prisma";
-import { PartnerProfileType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { PartnerProfileType } from "@prisma/client";
 import Stripe from "stripe";
 
 const stripePayoutQueue = qstash.queue({
@@ -39,6 +39,7 @@ export async function accountUpdated(event: Stripe.AccountUpdatedEvent) {
       payoutsEnabledAt: true,
       defaultPayoutMethod: true,
       payoutMethodHash: true,
+      tremendousEmail: true,
     },
   });
 
@@ -46,12 +47,8 @@ export async function accountUpdated(event: Stripe.AccountUpdatedEvent) {
     return `Partner with stripeConnectId ${account.id} not found, skipping...`;
   }
 
-  const { payoutsEnabledAt, defaultPayoutMethod } =
+  const { payoutsEnabledAt, defaultPayoutMethod, hasPayoutStateChanged } =
     await recomputePartnerPayoutState(partner);
-
-  const payoutStateChanged =
-    partner.payoutsEnabledAt !== payoutsEnabledAt ||
-    partner.defaultPayoutMethod !== defaultPayoutMethod;
 
   const nextProfileType: PartnerProfileType | undefined =
     business_type === "individual"
@@ -103,14 +100,14 @@ export async function accountUpdated(event: Stripe.AccountUpdatedEvent) {
       ...(partnerChangeHistoryLog.length > 0 && {
         changeHistoryLog: partnerChangeHistoryLog,
       }),
-      ...(payoutStateChanged && {
+      ...(hasPayoutStateChanged && {
         payoutsEnabledAt,
         defaultPayoutMethod,
       }),
     },
   });
 
-  if (!payoutStateChanged) {
+  if (!hasPayoutStateChanged) {
     return `No change in payout state for partner ${partner.email} (${partner.stripeConnectId}), skipping...`;
   }
 
@@ -130,9 +127,6 @@ export async function accountUpdated(event: Stripe.AccountUpdatedEvent) {
       stripeConnectId: account.id,
     },
     data: {
-      payoutsEnabledAt: partner.payoutsEnabledAt
-        ? undefined // Don't update if already set
-        : new Date(),
       payoutMethodHash: bankAccount.fingerprint,
     },
   });

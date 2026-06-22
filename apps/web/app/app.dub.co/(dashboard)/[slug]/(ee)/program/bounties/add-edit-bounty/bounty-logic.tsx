@@ -13,6 +13,11 @@ import { Controller } from "react-hook-form";
 import { BountyAmountInput } from "./bounty-amount-input";
 import { useBountyFormContext } from "./bounty-form-context";
 
+const PERFORMANCE_SCOPE_DESCRIPTIONS = {
+  new: "Only net-new stats after the bounty start date will be counted",
+  lifetime: "Include the partner's historical stats in your program",
+} as const;
+
 export function BountyLogic({ className }: { className?: string }) {
   const { control, watch } = useBountyFormContext();
 
@@ -33,13 +38,25 @@ export function BountyLogic({ className }: { className?: string }) {
             control={control}
             name="performanceScope"
             render={({ field }) => (
-              <InlineBadgePopover text={field.value} invalid={!field.value}>
+              <InlineBadgePopover
+                text={field.value}
+                invalid={!field.value}
+                align="center"
+              >
                 <InlineBadgePopoverMenu
                   selectedValue={field.value}
                   onSelect={field.onChange}
                   items={[
-                    { text: "new", value: "new" },
-                    { text: "lifetime", value: "lifetime" },
+                    {
+                      text: "new",
+                      value: "new",
+                      description: PERFORMANCE_SCOPE_DESCRIPTIONS.new,
+                    },
+                    {
+                      text: "lifetime",
+                      value: "lifetime",
+                      description: PERFORMANCE_SCOPE_DESCRIPTIONS.lifetime,
+                    },
                   ]}
                 />
               </InlineBadgePopover>
@@ -58,6 +75,7 @@ export function BountyLogic({ className }: { className?: string }) {
                     : "activity"
                 }
                 invalid={!field.value}
+                align="center"
               >
                 <InlineBadgePopoverMenu
                   selectedValue={field.value}

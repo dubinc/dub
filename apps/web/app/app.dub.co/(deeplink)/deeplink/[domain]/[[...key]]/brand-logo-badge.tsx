@@ -1,31 +1,25 @@
 "use client";
 
-import { Link } from "@dub/prisma/client";
-import { useCopyToClipboard } from "@dub/ui";
 import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
+import { Link } from "@prisma/client";
 
 export function BrandLogoBadge({
   link,
+  appName,
 }: {
   link: Pick<Link, "shortLink" | "url">;
+  appName: string;
 }) {
-  const [_copied, copyToClipboard] = useCopyToClipboard();
-
   return (
-    <button
-      onClick={async () => {
-        await copyToClipboard(link.shortLink);
-        window.location.href = `${link.shortLink}?skip_deeplink_preview=1`;
-      }}
-      className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-lg shadow-black/10 ring-1 ring-neutral-200"
-    >
-      <img
-        src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
-        className="size-8 shrink-0 overflow-visible rounded-full p-px"
-      />
-      <div className="pr-1.5 text-lg font-semibold text-neutral-900">
-        {getApexDomain(link.url)}
+    <div className="flex flex-col items-center justify-center gap-4">
+      <div className="flex size-20 items-center justify-center rounded-3xl bg-white shadow-[0px_1px_3px_0px_#0000000F,_0px_4px_14px_0px_#00000014]">
+        <img
+          src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
+          alt={`${appName} logo`}
+          className="size-10 shrink-0 overflow-visible rounded-full"
+        />
       </div>
-    </button>
+      <h1 className="text-xl font-semibold text-neutral-900">{appName}</h1>
+    </div>
   );
 }

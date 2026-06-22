@@ -1,5 +1,5 @@
 import { generateRandomName } from "@/lib/names";
-import { Partner } from "@dub/prisma/client";
+import { Partner } from "@prisma/client";
 import { describe, expect, test } from "vitest";
 import { randomPartnerEmail } from "../../utils/helpers";
 import { IntegrationHarness } from "../../utils/integration";
@@ -45,7 +45,7 @@ describe.sequential(
           partnerId,
           rejectionReason: "other",
           rejectionNote: "e2e: first rejection",
-          allowImmediateReapply: false,
+          reapplicationTimeframe: "standard" as const,
         },
       });
       expect(rejectStatus).toEqual(200);
@@ -57,7 +57,7 @@ describe.sequential(
           partnerId,
           rejectionReason: "other",
           rejectionNote: "e2e: should fail",
-          allowImmediateReapply: false,
+          reapplicationTimeframe: "standard" as const,
         },
       });
       expect(duplicateRejectStatus).toEqual(400);

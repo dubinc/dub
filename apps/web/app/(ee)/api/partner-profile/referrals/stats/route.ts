@@ -1,9 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { networkReferralsStatsSchema } from "@/lib/partner-referrals/schemas";
-import { prisma } from "@dub/prisma";
-import { CommissionType } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/referrals/stats
@@ -28,6 +28,7 @@ export const GET = withPartnerProfile(async ({ partner }) => {
         partnerId: partner.id,
         programId: NETWORK_PROGRAM_ID,
         type: CommissionType.referral,
+        status: { in: ["pending", "processed", "paid"] },
       },
       _sum: {
         earnings: true,

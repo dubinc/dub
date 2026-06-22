@@ -1,19 +1,20 @@
 import { stripe } from "@/lib/stripe";
 import { getStripeRecipientAccount } from "@/lib/stripe/get-stripe-recipient-account";
-import { Partner, PartnerPayoutMethod } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
+import { Partner, PartnerPayoutMethod } from "@prisma/client";
 import { getStripeRecipientPayoutMethod } from "../stripe/get-stripe-recipient-payout-method";
 
 const PAYOUT_METHOD_PRIORITY: PartnerPayoutMethod[] = [
   PartnerPayoutMethod.stablecoin,
   PartnerPayoutMethod.connect,
   PartnerPayoutMethod.paypal,
+  PartnerPayoutMethod.tremendous,
 ];
 
 /**
  * Computes payoutsEnabledAt and defaultPayoutMethod based on currently active
- * payout methods. The default is always selected from priority order:
- * stablecoin > connect > paypal.
+ * payout methods. Preserves the partner's existing default when it is still
+ * active; otherwise falls back to priority order: stablecoin > connect > paypal.
  */
 export async function recomputePartnerPayoutState(
   partner: Pick<
@@ -23,6 +24,7 @@ export async function recomputePartnerPayoutState(
     | "paypalEmail"
     | "payoutsEnabledAt"
     | "defaultPayoutMethod"
+    | "tremendousEmail"
   >,
 ) {
   const [connectAccount, stablecoinAccount] = await Promise.all([
@@ -61,6 +63,8 @@ export async function recomputePartnerPayoutState(
 
   const paypalActive = Boolean(partner.paypalEmail);
 
+  const tremendousActive = Boolean(partner.tremendousEmail);
+
   const activePayoutMethods = PAYOUT_METHOD_PRIORITY.filter((method) => {
     switch (method) {
       case PartnerPayoutMethod.stablecoin:
@@ -69,23 +73,33 @@ export async function recomputePartnerPayoutState(
         return connectActive;
       case PartnerPayoutMethod.paypal:
         return paypalActive;
+      case PartnerPayoutMethod.tremendous:
+        return tremendousActive;
       default:
         return false;
     }
   });
 
-  const defaultPayoutMethod = activePayoutMethods[0] ?? null;
+  const hasValidDefaultPayoutMethod =
+    partner.defaultPayoutMethod &&
+    activePayoutMethods.includes(partner.defaultPayoutMethod);
+
+  const defaultPayoutMethod = hasValidDefaultPayoutMethod
+    ? partner.defaultPayoutMethod
+    : activePayoutMethods[0] ?? null;
+
   let payoutsEnabledAt: Date | null = null;
 
   if (defaultPayoutMethod) {
     // if default payout method has changed, set payoutsEnabledAt to today
     // otherwise, use the existing payoutsEnabledAt (or today if null)
-    payoutsEnabledAt =
-      defaultPayoutMethod !== partner.defaultPayoutMethod
-        ? new Date()
-        : partner.payoutsEnabledAt ?? new Date();
-  } else {
-    payoutsEnabledAt = null;
+    if (defaultPayoutMethod !== partner.defaultPayoutMethod) {
+      payoutsEnabledAt = new Date();
+    } else if (partner.payoutsEnabledAt) {
+      payoutsEnabledAt = partner.payoutsEnabledAt;
+    } else {
+      payoutsEnabledAt = new Date();
+    }
   }
 
   console.log(
@@ -94,6 +108,7 @@ export async function recomputePartnerPayoutState(
       connectActive,
       stablecoinActive,
       paypalActive,
+      tremendousActive,
       payoutsEnabledAt,
       defaultPayoutMethod,
     }),
@@ -105,11 +120,17 @@ export async function recomputePartnerPayoutState(
       : cryptoWalletAddress
     : null;
 
+  const hasPayoutStateChanged =
+    partner.payoutsEnabledAt !== payoutsEnabledAt ||
+    partner.defaultPayoutMethod !== defaultPayoutMethod;
+
   return {
     payoutsEnabledAt,
     defaultPayoutMethod,
+    activePayoutMethods,
     cryptoWalletAddress,
     cryptoWalletNetwork,
     maskedCryptoWalletAddress,
+    hasPayoutStateChanged,
   };
 }

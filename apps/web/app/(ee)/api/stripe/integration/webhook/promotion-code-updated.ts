@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
 
 // Handle event "promotion_code.updated"
@@ -37,7 +37,7 @@ export async function promotionCodeUpdated(
 
   if (promotionCode.active) {
     return {
-      response: `Promotion code ${promotionCode.id} is active.`,
+      response: `Promotion code ${promotionCode.id} is active, no action needed.`,
       workspaceId,
     };
   }

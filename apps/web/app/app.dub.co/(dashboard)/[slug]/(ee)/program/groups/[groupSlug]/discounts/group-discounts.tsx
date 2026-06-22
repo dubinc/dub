@@ -3,7 +3,10 @@
 import useGroup from "@/lib/swr/use-group";
 import type { DiscountProps, GroupProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { useDiscountSheet } from "@/ui/partners/discounts/add-edit-discount-sheet";
+import {
+  DiscountSheet,
+  useDiscountSheet,
+} from "@/ui/partners/discounts/add-edit-discount-sheet";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { Button, useRouterStuff } from "@dub/ui";
 import { cn, isClickOnInteractiveChild } from "@dub/utils";
@@ -37,19 +40,18 @@ export const GroupDiscounts = () => {
       ? group.discount
       : undefined;
   const isNewDiscount = discountSheetState.discountId === "new";
-  const { DiscountSheet, setIsOpen: setDiscountSheetOpen } = useDiscountSheet({
-    ...(currentDiscount && { discount: currentDiscount }),
-  });
-
-  useEffect(() => {
-    setDiscountSheetOpen(discountSheetState.open);
-  }, [discountSheetState.open, setDiscountSheetOpen]);
 
   return (
     <div>
-      {discountSheetState.discountId &&
-        (currentDiscount || isNewDiscount) &&
-        DiscountSheet}
+      {discountSheetState.discountId && (currentDiscount || isNewDiscount) && (
+        <DiscountSheet
+          isOpen={discountSheetState.open}
+          setIsOpen={(open) =>
+            setDiscountSheetState((s) => ({ ...s, open }) as typeof s)
+          }
+          {...(currentDiscount && { discount: currentDiscount })}
+        />
+      )}
 
       {loading || !group ? (
         <DiscountSkeleton />
@@ -90,7 +92,6 @@ const DiscountItem = ({
           set: {
             discountId: discount?.id ?? "new",
           },
-          scroll: false,
         });
       }}
     >
@@ -125,7 +126,6 @@ const DiscountItem = ({
                 set: {
                   discountId: discount?.id ?? "new",
                 },
-                scroll: false,
               });
             }}
           />

@@ -1,4 +1,5 @@
-import { PlatformType } from "@dub/prisma/client";
+import { processKey } from "@/lib/api/links/utils";
+import { PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema, partnerPlatformSchema } from "./partners";
@@ -40,10 +41,8 @@ export const getNetworkPartnersQuerySchema = z
     status: NetworkPartnersStatusSchema.default("discover"),
     country: z.string().optional(),
     starred: booleanQuerySchema.nullish(),
+    sortBy: z.enum(["relevance", "subscribers"]).default("relevance"),
     platform: z.enum(PlatformType).optional(),
-    subscribers: z
-      .enum(["<5000", "5000-25000", "25000-100000", "100000+"])
-      .optional(),
     partnerIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -101,4 +100,17 @@ export const invitePartnerFromNetworkSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   groupId: z.string().nullish().default(null),
+  username: z
+    .string()
+    .max(100)
+    .nullish()
+    .refine(
+      (v) => (v ? processKey({ domain: "d.to", key: v }) !== null : true),
+      {
+        message: "Invalid username. Must be a URL-friendly string.",
+      },
+    ),
+  emailSubject: z.string().trim().max(255).optional(),
+  emailTitle: z.string().trim().max(255).optional(),
+  emailBody: z.string().trim().max(3000).optional(),
 });

@@ -1,7 +1,7 @@
 import { withAdmin } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, COUNTRIES } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -118,6 +118,7 @@ export const PATCH = withAdmin(async ({ params, req }) => {
       country: true,
       changeHistoryLog: true,
       veriffSessionId: true,
+      identityVerifiedAt: true,
     },
   });
 
@@ -159,7 +160,7 @@ export const PATCH = withAdmin(async ({ params, req }) => {
   });
 
   // if there was an existing veriff session, trigger a country change verification
-  if (partner.veriffSessionId) {
+  if (partner.identityVerifiedAt) {
     waitUntil(
       qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/verify-country-change`,

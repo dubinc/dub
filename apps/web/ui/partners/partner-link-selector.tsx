@@ -5,7 +5,7 @@ import { LinkProps } from "@/lib/types";
 import { Combobox, LinkLogo, Tooltip } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { cn, getApexDomain, linkConstructor } from "@dub/utils";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 const getLinkOption = (link: LinkProps) => ({
@@ -45,7 +45,7 @@ export function PartnerLinkSelector({
   const [debouncedSearch] = useDebounce(search, 500);
   const { program } = useProgram();
 
-  const { links } = useLinks(
+  const { links, isValidating } = useLinks(
     {
       folderId: program?.defaultFolderId ?? undefined,
       domain: program?.domain ?? undefined,
@@ -67,22 +67,40 @@ export function PartnerLinkSelector({
     [links],
   );
 
+  const preselectedLink = useMemo(() => {
+    if (!links?.length) return null;
+
+    return links.reduce((best, current) =>
+      current.saleAmount > best.saleAmount ? current : best,
+    );
+  }, [links]);
+
+  useEffect(() => {
+    if (selectedLinkId || !partnerId || !preselectedLink) return;
+    setSelectedLinkId(preselectedLink.id);
+  }, [preselectedLink, partnerId, selectedLinkId, setSelectedLinkId]);
+
   const selectedOption = useMemo(() => {
     if (!selectedLink) return null;
     return getLinkOption(selectedLink);
   }, [selectedLink]);
 
+  const showLoadingPlaceholder =
+    (selectedLinkId && !selectedLink) ||
+    (!selectedLinkId && isValidating && !links);
+
   return (
     <>
       <Combobox
         selected={selectedOption}
+        icon={selectedOption?.icon}
         setSelected={(option) => {
           if (option) setSelectedLinkId(option.value);
         }}
         options={options}
         caret={true}
         placeholder={
-          selectedLinkId && !selectedLink ? (
+          showLoadingPlaceholder ? (
             <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
           ) : (
             `Select${onCreate ? " or create" : ""} referral link${

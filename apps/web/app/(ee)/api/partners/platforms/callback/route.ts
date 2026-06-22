@@ -1,14 +1,14 @@
 import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
 import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
 import { getSession } from "@/lib/auth/utils";
+import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash/redis";
-import { prisma } from "@dub/prisma";
-import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
 import {
   getSearchParams,
   PARTNERS_DOMAIN,
   PARTNERS_DOMAIN_WITH_NGROK,
 } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -149,15 +149,7 @@ export async function GET(req: Request) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  let socialStats: Pick<
-    PartnerPlatform,
-    "subscribers" | "posts" | "views" | "avatarUrl"
-  > = {
-    subscribers: BigInt(0),
-    posts: BigInt(0),
-    views: BigInt(0),
-    avatarUrl: null,
-  };
+  let socialStats = {};
 
   if (["tiktok", "twitter"].includes(platform)) {
     try {
@@ -188,12 +180,9 @@ export async function GET(req: Request) {
       },
     },
     data: {
-      verifiedAt: new Date(),
+      ...socialStats,
       ...(metadata && { metadata }),
-      subscribers: socialStats.subscribers,
-      posts: socialStats.posts,
-      views: socialStats.views,
-      avatarUrl: socialStats.avatarUrl,
+      verifiedAt: new Date(),
     },
   });
 

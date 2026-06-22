@@ -6,6 +6,7 @@ import {
   ALLOWED_MIN_PAYOUT_AMOUNTS,
   PAYOUT_HOLDING_PERIOD_DAYS,
 } from "@/lib/constants/payouts";
+import { COUNTRY_CODES } from "@dub/utils";
 import {
   Category,
   EventType,
@@ -13,8 +14,7 @@ import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   ProgramPayoutMode,
-} from "@dub/prisma/client";
-import { COUNTRY_CODES } from "@dub/utils";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";
@@ -199,6 +199,7 @@ export const ProgramEnrollmentSchema = z.object({
   application: ProgramEnrollmentApplicationSchema.nullish().describe(
     "Linked program application, including review outcome when applicable.",
   ),
+  riskMonitoringDisabledAt: z.date().nullable(),
 });
 
 export const ProgramInviteSchema = z.object({
@@ -235,7 +236,7 @@ export const createProgramApplicationSchema = z.object({
   groupId: z.string().optional(),
   name: z.string().trim().min(1).max(100),
   email: z.email().trim().min(1).max(100),
-  country: z.enum(COUNTRY_CODES),
+  country: z.enum(COUNTRY_CODES).optional(),
   formData: programApplicationFormDataWithValuesSchema,
   inAppApplication: z.boolean().optional(),
 });

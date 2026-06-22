@@ -5,9 +5,9 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import { networkReferralsTimeseriesSchema } from "@/lib/partner-referrals/schemas";
 import { NetworkReferralsTimeseries } from "@/lib/partner-referrals/types";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
-import { prisma } from "@dub/prisma";
-import { CommissionType, Prisma } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
+import { CommissionType, Prisma } from "@prisma/client";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -63,6 +63,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           partnerId = ${partner.id}
           AND programId = ${NETWORK_PROGRAM_ID}
           AND type = ${CommissionType.referral}
+          AND status in ('pending', 'processed', 'paid')
           AND createdAt >= ${startDate}
           AND createdAt < ${endDate}
         GROUP BY start
