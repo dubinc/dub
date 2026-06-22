@@ -77,25 +77,18 @@ describe.concurrent("POST /commissions", async () => {
     expect(status).toEqual(202);
     expect(data).toStrictEqual(expectedQueuedResponse);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    const { data: commissions } = await http.get<CommissionResponse[]>({
-      path: "/commissions",
+    await verifyCommission({
+      http,
+      description,
+      expectedEarnings: 500,
+      expectedType: "custom",
       query: {
         partnerId: E2E_PARTNER.id,
         type: "custom",
         sortBy: "createdAt",
         sortOrder: "desc",
-        pageSize: "1",
       },
     });
-
-    const commissionFound = commissions.find(
-      (c) => c.description === description,
-    );
-    expect(commissionFound).toBeDefined();
-    expect(commissionFound!.earnings).toEqual(500);
-    expect(commissionFound!.type).toEqual("custom");
   });
 
   test("create lead commission", async () => {
