@@ -23,7 +23,7 @@ export const maxDuration = 300;
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     const { success } = await ratelimit(1, "30 s").limit(
-      `analytics-export:${workspace.id}`,
+      `analyticsExport:${workspace.id}`,
     );
 
     if (!success) {
@@ -106,9 +106,7 @@ export const GET = withWorkspace(
       end,
     });
 
-    const useComposite = getPlanCapabilities(
-      workspace.plan,
-    ).canTrackConversions;
+    const { canTrackConversions } = getPlanCapabilities(workspace.plan);
 
     const { domain: _domain, key: _key, ...filterParams } = parsedParams;
     const hasLinkIdFilter = Boolean(parsedParams.linkId);
@@ -117,7 +115,7 @@ export const GET = withWorkspace(
     const zipData = await exportAnalyticsToZip({
       params: analyticsParams,
       workspaceId: workspace.id,
-      useComposite,
+      useComposite: canTrackConversions,
       skipTopLinksForSingleLink: hasExactlyOneLinkIdFilter(parsedParams.linkId),
       getDataAvailableFrom: (endpoint) =>
         endpoint === "timeseries"

@@ -24,7 +24,7 @@ export const maxDuration = 300;
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { success } = await ratelimit(1, "30 s").limit(
-      `analytics-export:partner:${partner.id}:${params.programId}`,
+      `analyticsExport:partner:${partner.id}:${params.programId}`,
     );
 
     if (!success) {
