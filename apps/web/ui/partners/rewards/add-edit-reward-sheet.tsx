@@ -37,7 +37,7 @@ import {
   useLocalStorage,
   useRouterStuff,
 } from "@dub/ui";
-import { capitalize, cn, pluralize } from "@dub/utils";
+import { capitalize, cn, currencyFormatter, pluralize } from "@dub/utils";
 import { EventType, RewardStructure } from "@prisma/client";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
@@ -187,6 +187,10 @@ export const getRewardPayload = ({ data }: { data: FormData }) => {
     ...amount,
     maxDuration:
       Infinity === Number(data.maxDuration) ? null : data.maxDuration,
+    spendLimitAmount:
+      data.spendLimitAmount == null || data.spendLimitInterval == null
+        ? null
+        : Math.round(Number(data.spendLimitAmount) * 100),
     modifiers,
     config,
   };
@@ -231,6 +235,11 @@ function RewardSheetContent({
         defaultValuesSource?.amountInPercentage != null
           ? defaultValuesSource.amountInPercentage
           : undefined,
+      spendLimitAmount:
+        defaultValuesSource?.spendLimitAmount != null
+          ? defaultValuesSource.spendLimitAmount / 100
+          : null,
+      spendLimitInterval: defaultValuesSource?.spendLimitInterval ?? null,
       description: defaultValuesSource?.description ?? null,
       tooltipDescription: defaultValuesSource?.tooltipDescription ?? null,
       modifiers: Array.isArray(defaultValuesSource?.modifiers)
@@ -273,6 +282,8 @@ function RewardSheetContent({
     amountInPercentage,
     type,
     maxDuration,
+    spendLimitAmount,
+    spendLimitInterval,
     description,
     tooltipDescription,
     modifiers,
@@ -282,6 +293,8 @@ function RewardSheetContent({
     "amountInPercentage",
     "type",
     "maxDuration",
+    "spendLimitAmount",
+    "spendLimitInterval",
     "description",
     "tooltipDescription",
     "modifiers",
@@ -289,6 +302,17 @@ function RewardSheetContent({
 
   // Compute amount based on type
   const amount = type === "flat" ? amountInCents : amountInPercentage;
+  const {
+    canCreateReferralReward,
+    canSetRewardSpendLimit,
+    canUseAdvancedRewardLogic,
+  } = getPlanCapabilities(plan);
+  const spendLimitEnabled =
+    canSetRewardSpendLimit && spendLimitInterval != null;
+  const hasIncompleteMainSpendLimit =
+    canSetRewardSpendLimit &&
+    spendLimitInterval != null &&
+    (spendLimitAmount == null || isNaN(spendLimitAmount));
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -336,19 +360,15 @@ function RewardSheetContent({
   );
 
   const [showAdvancedUpsell, setShowAdvancedUpsell] = useState(false);
-  const showReferralUpsell =
-    event === "referral" && !getPlanCapabilities(plan).canCreateReferralReward;
+  const showReferralUpsell = event === "referral" && !canCreateReferralReward;
 
   useEffect(() => {
-    if (
-      modifiers?.length &&
-      !getPlanCapabilities(plan).canUseAdvancedRewardLogic
-    ) {
+    if (modifiers?.length && !canUseAdvancedRewardLogic) {
       setShowAdvancedUpsell(true);
     } else {
       setShowAdvancedUpsell(false);
     }
-  }, [modifiers, plan]);
+  }, [modifiers, canUseAdvancedRewardLogic]);
 
   const onSubmit = async (data: FormData) => {
     if (
@@ -505,6 +525,101 @@ function RewardSheetContent({
                         {modifiers?.length ? (
                           <> for all other {selectedEvent}s</>
                         ) : null}
+                        {canSetRewardSpendLimit ? (
+                          <>
+                            {", "}with{" "}
+                            <InlineBadgePopover
+                              text={
+                                spendLimitEnabled
+                                  ? "a spend limit of"
+                                  : "no spend limit"
+                              }
+                            >
+                              <InlineBadgePopoverMenu
+                                selectedValue={
+                                  spendLimitEnabled ? "limit" : "none"
+                                }
+                                onSelect={(value) => {
+                                  if (value === "none") {
+                                    setValue("spendLimitAmount", null, {
+                                      shouldDirty: true,
+                                    });
+                                    setValue("spendLimitInterval", null, {
+                                      shouldDirty: true,
+                                    });
+                                  } else {
+                                    setValue(
+                                      "spendLimitInterval",
+                                      spendLimitInterval ?? "allTime",
+                                      {
+                                        shouldDirty: true,
+                                      },
+                                    );
+                                  }
+                                }}
+                                items={[
+                                  { text: "no spend limit", value: "none" },
+                                  {
+                                    text: "a spend limit of",
+                                    value: "limit",
+                                  },
+                                ]}
+                              />
+                            </InlineBadgePopover>{" "}
+                            {spendLimitEnabled ? (
+                              <>
+                                <InlineBadgePopover
+                                  text={
+                                    spendLimitAmount != null &&
+                                    !isNaN(spendLimitAmount)
+                                      ? currencyFormatter(
+                                          spendLimitAmount * 100,
+                                          {
+                                            trailingZeroDisplay:
+                                              "stripIfInteger",
+                                          },
+                                        )
+                                      : "amount"
+                                  }
+                                  invalid={
+                                    spendLimitAmount == null ||
+                                    isNaN(spendLimitAmount)
+                                  }
+                                >
+                                  <SpendLimitAmountInput />
+                                </InlineBadgePopover>{" "}
+                                <InlineBadgePopover
+                                  text={
+                                    spendLimitInterval === "allTime"
+                                      ? "all-time"
+                                      : `per ${spendLimitInterval}`
+                                  }
+                                >
+                                  <InlineBadgePopoverMenu
+                                    selectedValue={
+                                      spendLimitInterval ?? "allTime"
+                                    }
+                                    onSelect={(value) =>
+                                      setValue(
+                                        "spendLimitInterval",
+                                        value as any,
+                                        {
+                                          shouldDirty: true,
+                                        },
+                                      )
+                                    }
+                                    items={[
+                                      { text: "all-time", value: "allTime" },
+                                      { text: "per day", value: "day" },
+                                      { text: "per week", value: "week" },
+                                      { text: "per month", value: "month" },
+                                    ]}
+                                  />
+                                </InlineBadgePopover>
+                              </>
+                            ) : null}
+                          </>
+                        ) : null}
                       </span>
                     )}
                   </div>
@@ -649,7 +764,11 @@ function RewardSheetContent({
               className="h-9 w-fit"
               loading={isCreating || isUpdating}
               disabled={
-                amount == null || isDeleting || isCreating || isUpdating
+                amount == null ||
+                hasIncompleteMainSpendLimit ||
+                isDeleting ||
+                isCreating ||
+                isUpdating
               }
               disabledTooltip={
                 showReferralUpsell ? (
@@ -805,6 +924,40 @@ function AmountInput() {
       />
       <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
         {type === "flat" ? "USD" : "%"}
+      </span>
+    </div>
+  );
+}
+
+function SpendLimitAmountInput() {
+  const { register } = useAddEditRewardForm();
+  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  return (
+    <div className="relative rounded-md shadow-sm">
+      <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
+        $
+      </span>
+      <input
+        className="block w-full rounded-md border-neutral-300 px-1.5 py-1 pl-4 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm"
+        {...register("spendLimitAmount", {
+          required: true,
+          setValueAs: (value: string) => (value === "" ? null : +value),
+          min: 1,
+          onChange: handleMoneyInputChange,
+        })}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            setIsOpen(false);
+            return;
+          }
+
+          handleMoneyKeyDown(e);
+        }}
+      />
+      <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
+        USD
       </span>
     </div>
   );

@@ -47,8 +47,7 @@ export default function UploadAvatar() {
         <div className="flex flex-col space-y-1">
           <h2 className="text-base font-semibold">Your Avatar</h2>
           <p className="text-sm text-neutral-500">
-            This is your avatar image on your {process.env.NEXT_PUBLIC_APP_NAME}{" "}
-            account.
+            This is your avatar image on your Dub account.
           </p>
           <p className="text-sm text-neutral-500">
             Click your avatar to upload a new image.
