@@ -86,8 +86,6 @@ model PartnerContentChunk {
 
   @@unique([partnerContentItemId, source, chunkIndex, embeddingModel])
   @@index(partnerId)
-  @@index(partnerContentItemId)
-  @@index([partnerContentItemId, source])
   // Covers the empty-query "recent content" list path, which filters on
   // embeddingModel while joining chunks by partnerContentItemId.
   @@index([partnerContentItemId, embeddingModel])
