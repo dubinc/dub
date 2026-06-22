@@ -26,7 +26,11 @@ import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";
 import * as z from "zod/v4";
 import { SOCIAL_URL_HOST_TO_PLATFORM } from "../social-content";
-import { isPartnerEligibleForBounty } from "./bounty-eligibility";
+import {
+  bountyEligibilityIncludes,
+  isPartnerEligibleForBounty,
+} from "./bounty-eligibility";
+import { getBountyOrThrow } from "./get-bounty-or-throw";
 
 type CreateBountySubmissionParams = z.infer<
   typeof createBountySubmissionInputSchema
@@ -124,26 +128,16 @@ export class BountySubmissionHandler {
         },
       }),
 
-      prisma.bounty.findUniqueOrThrow({
-        where: {
-          id: this.bountyId,
-        },
+      getBountyOrThrow({
+        bountyId: this.bountyId,
+        programId: this.programId,
         include: {
           submissions: {
             where: {
               partnerId: this.partner.id,
             },
           },
-          groups: {
-            select: {
-              groupId: true,
-            },
-          },
-          partnerTags: {
-            select: {
-              partnerTagId: true,
-            },
-          },
+          ...bountyEligibilityIncludes,
         },
       }),
     ]);

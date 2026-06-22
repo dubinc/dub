@@ -1,9 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { isPartnerEligibleForBounty } from "@/lib/bounty/api/bounty-eligibility";
+import {
+  bountyEligibilityIncludes,
+  isPartnerEligibleForBounty,
+} from "@/lib/bounty/api/bounty-eligibility";
+import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
-import { prisma } from "@/lib/prisma";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
 
@@ -26,22 +29,10 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       },
     });
 
-  const bounty = await prisma.bounty.findUnique({
-    where: {
-      id: bountyId,
-      programId: program.id,
-    },
+  const bounty = await getBountyOrThrow({
+    bountyId,
+    programId,
     include: {
-      groups: {
-        select: {
-          groupId: true,
-        },
-      },
-      partnerTags: {
-        select: {
-          partnerTagId: true,
-        },
-      },
       workflow: {
         select: {
           triggerConditions: true,
@@ -62,15 +53,9 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           },
         },
       },
+      ...bountyEligibilityIncludes,
     },
   });
-
-  if (!bounty) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Bounty not found.",
-    });
-  }
 
   if (bounty.startsAt > new Date()) {
     throw new DubApiError({

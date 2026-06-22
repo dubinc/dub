@@ -1,3 +1,5 @@
+import { Prisma } from "@prisma/client";
+
 export function buildBountyEligibilityWhere({
   groupId,
   partnerTagIds,
@@ -81,3 +83,16 @@ export function isPartnerEligibleForBounty({
 
   return inGroup && hasTag;
 }
+
+export const bountyEligibilityIncludes = {
+  groups: {
+    select: {
+      groupId: true,
+    },
+  },
+  partnerTags: {
+    select: {
+      partnerTagId: true,
+    },
+  },
+} satisfies Prisma.BountyInclude;

@@ -1,11 +1,14 @@
 import { DubApiError } from "@/lib/api/errors";
-import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
 import { nanoid, R2_URL } from "@dub/utils";
 import { BountyPartnerTag, ProgramEnrollment } from "@prisma/client";
-import { isPartnerEligibleForBounty } from "./bounty-eligibility";
+import {
+  bountyEligibilityIncludes,
+  isPartnerEligibleForBounty,
+} from "./bounty-eligibility";
+import { getBountyOrThrow } from "./get-bounty-or-throw";
 
 const MAX_ATTEMPTS = 25;
 const CACHE_KEY_PREFIX = "bounty:submission:file:upload";
@@ -80,27 +83,11 @@ export async function getBountySubmissionUploadUrl({
     });
   }
 
-  const bounty = await prisma.bounty.findUniqueOrThrow({
-    where: {
-      id: bountyId,
-    },
-    select: {
-      programId: true,
-      type: true,
-      startsAt: true,
-      endsAt: true,
-      archivedAt: true,
-      submissionRequirements: true,
-      groups: {
-        select: {
-          groupId: true,
-        },
-      },
-      partnerTags: {
-        select: {
-          partnerTagId: true,
-        },
-      },
+  const bounty = await getBountyOrThrow({
+    bountyId,
+    programId,
+    include: {
+      ...bountyEligibilityIncludes,
     },
   });
 

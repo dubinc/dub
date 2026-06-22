@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { bountyEligibilityIncludes } from "@/lib/bounty/api/bounty-eligibility";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
@@ -11,6 +12,9 @@ import { NotificationEmailType } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
+
+// TODO:
+// Fix this
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +54,6 @@ export async function POST(req: Request) {
         id: bountyId,
       },
       include: {
-        groups: true,
         program: {
           include: {
             emailDomains: {
@@ -60,6 +63,7 @@ export async function POST(req: Request) {
             },
           },
         },
+        ...bountyEligibilityIncludes,
       },
     });
 

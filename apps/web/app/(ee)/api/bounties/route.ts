@@ -7,7 +7,10 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { throwIfInvalidPartnerTagIds } from "@/lib/api/tags/throw-if-invalid-partner-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { buildBountyEligibilityWhere } from "@/lib/bounty/api/bounty-eligibility";
+import {
+  bountyEligibilityIncludes,
+  buildBountyEligibilityWhere,
+} from "@/lib/bounty/api/bounty-eligibility";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { qstash } from "@/lib/cron";
@@ -81,16 +84,7 @@ export const GET = withWorkspace(
           }),
         },
         include: {
-          groups: {
-            select: {
-              groupId: true,
-            },
-          },
-          partnerTags: {
-            select: {
-              partnerTagId: true,
-            },
-          },
+          ...bountyEligibilityIncludes,
         },
       }),
 

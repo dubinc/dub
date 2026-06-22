@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
+import { bountyEligibilityIncludes } from "@/lib/bounty/api/bounty-eligibility";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
@@ -11,6 +12,8 @@ import { Prisma } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
+
+// TODO: Fix this
 
 export const dynamic = "force-dynamic";
 
@@ -41,9 +44,9 @@ export async function POST(req: Request) {
         id: bountyId,
       },
       include: {
-        groups: true,
         program: true,
         workflow: true,
+        ...bountyEligibilityIncludes,
       },
     });
 

@@ -1,5 +1,8 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
-import { isPartnerEligibleForBounty } from "@/lib/bounty/api/bounty-eligibility";
+import {
+  bountyEligibilityIncludes,
+  isPartnerEligibleForBounty,
+} from "@/lib/bounty/api/bounty-eligibility";
 import { prisma } from "@/lib/prisma";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
@@ -70,16 +73,7 @@ export const executeCompleteBountyWorkflow = async ({
           supportEmail: true,
         },
       },
-      groups: {
-        select: {
-          groupId: true,
-        },
-      },
-      partnerTags: {
-        select: {
-          partnerTagId: true,
-        },
-      },
+      ...bountyEligibilityIncludes,
     },
   });
 

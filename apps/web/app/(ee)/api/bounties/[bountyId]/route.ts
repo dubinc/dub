@@ -5,7 +5,9 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { throwIfInvalidPartnerTagIds } from "@/lib/api/tags/throw-if-invalid-partner-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { bountyEligibilityIncludes } from "@/lib/bounty/api/bounty-eligibility";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
+import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getBountyWithDetails } from "@/lib/bounty/api/get-bounty-with-details";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
@@ -73,20 +75,17 @@ export const PATCH = withWorkspace(
       partnerTagIds,
     } = updateBountySchema.parse(await parseRequestBody(req));
 
-    const bounty = await prisma.bounty.findUniqueOrThrow({
-      where: {
-        id: bountyId,
-        programId,
-      },
+    const bounty = await getBountyOrThrow({
+      bountyId,
+      programId,
       include: {
-        groups: true,
-        partnerTags: true,
         workflow: true,
         _count: {
           select: {
             submissions: true,
           },
         },
+        ...bountyEligibilityIncludes,
       },
     });
 
@@ -325,20 +324,17 @@ export const DELETE = withWorkspace(
     const { bountyId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const bounty = await prisma.bounty.findUniqueOrThrow({
-      where: {
-        id: bountyId,
-        programId,
-      },
+    const bounty = await getBountyOrThrow({
+      bountyId,
+      programId,
       include: {
-        groups: true,
-        partnerTags: true,
         workflow: true,
         _count: {
           select: {
             submissions: true,
           },
         },
+        ...bountyEligibilityIncludes,
       },
     });
 
