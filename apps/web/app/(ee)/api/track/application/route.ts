@@ -428,7 +428,6 @@ async function getRequestContext(
 // Marketplace list routes (no program slug):
 //   - /marketplace
 //   - /marketplace/all
-//   - /marketplace/popular
 //   - /marketplace/c/{category}
 function identityProgramSlug(url: string) {
   try {
@@ -445,15 +444,15 @@ function identityProgramSlug(url: string) {
 
     if (parts[0] === "marketplace") {
       if (parts.length === 1) {
-        return { programSlug: null, isMarketplace: false };
+        return { programSlug: null, isMarketplace: true };
       }
 
       if (parts[1] === "c") {
-        return { programSlug: null, isMarketplace: false };
+        return { programSlug: null, isMarketplace: true };
       }
 
       if (parts.length === 2 && MARKETPLACE_RESERVED_SLUGS.has(parts[1])) {
-        return { programSlug: null, isMarketplace: false };
+        return { programSlug: null, isMarketplace: true };
       }
 
       if (parts.length === 2) {
@@ -463,7 +462,7 @@ function identityProgramSlug(url: string) {
         };
       }
 
-      return { programSlug: null, isMarketplace: false };
+      return { programSlug: null, isMarketplace: true };
     }
 
     if (parts[0] === "programs" && parts[1] === "marketplace") {

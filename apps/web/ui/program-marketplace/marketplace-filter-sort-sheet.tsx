@@ -14,7 +14,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Drawer } from "vaul";
-import { MARKETPLACE_SORT_OPTIONS } from "./constants";
+import { MARKETPLACE_SORT_OPTIONS } from "./utils/constants";
 
 export type MarketplaceFilterSortSheetProps = {
   open: boolean;

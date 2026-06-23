@@ -1,5 +1,5 @@
-import { MarketplaceRewardType } from "@/ui/program-marketplace/constants";
 import { Category } from "@prisma/client";
+import { MarketplaceRewardType } from "./constants";
 
 const MARKETPLACE_BASE = "/marketplace";
 
@@ -63,39 +63,6 @@ export function getPreservedMarketplaceSearchParams(
     sortBy: typeof sortBy === "string" ? sortBy : undefined,
     sortOrder: typeof sortOrder === "string" ? sortOrder : undefined,
   };
-}
-
-function parseMarketplaceSearchParam(
-  searchParams: Record<string, string | string[] | undefined>,
-  key: string,
-) {
-  const value = searchParams[key];
-  return typeof value === "string" ? value : undefined;
-}
-
-export function getMarketplacePopularRedirectHref(
-  searchParams: Record<string, string | string[] | undefined> = {},
-) {
-  const rewardType = parseMarketplaceSearchParam(searchParams, "rewardType");
-  const search = parseMarketplaceSearchParam(searchParams, "search");
-  const sortBy = parseMarketplaceSearchParam(searchParams, "sortBy");
-  const sortOrder = parseMarketplaceSearchParam(searchParams, "sortOrder");
-
-  if (!sortBy || sortBy === "popularity") {
-    return getMarketplaceAllHref({
-      rewardType,
-      search,
-      sortBy: "popularity",
-      sortOrder: sortOrder ?? "desc",
-    });
-  }
-
-  return getMarketplaceAllHref({
-    rewardType,
-    search,
-    sortBy,
-    sortOrder: sortOrder ?? (sortBy === "recency" ? "desc" : undefined),
-  });
 }
 
 export function getMarketplaceCategoryHref(

@@ -7,15 +7,15 @@ import { cn } from "@dub/utils";
 import { Category } from "@prisma/client";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import {
-  getMarketplaceToolbarBadgeCount,
-  type MarketplaceRewardType,
-} from "./constants";
 import { MarketplaceFilterControl } from "./marketplace-filter-control";
 import { MarketplaceFilterSortSheet } from "./marketplace-filter-sort-sheet";
 import ProgramSort from "./program-sort";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
 import { usePublicMarketplaceFilters } from "./use-public-marketplace-filters";
+import {
+  getMarketplaceToolbarBadgeCount,
+  type MarketplaceRewardType,
+} from "./utils/constants";
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryFromPathname,

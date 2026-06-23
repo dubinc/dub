@@ -9,7 +9,7 @@ import { useCallback, useMemo } from "react";
 import {
   MARKETPLACE_REWARD_TYPES,
   type MarketplaceRewardType,
-} from "./constants";
+} from "./utils/constants";
 import { buildExternalMarketplaceFilterHref } from "./utils/urls";
 
 export function usePublicMarketplaceFilters({

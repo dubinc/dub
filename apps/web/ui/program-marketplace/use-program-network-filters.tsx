@@ -9,7 +9,7 @@ import { useCallback, useMemo } from "react";
 import {
   MARKETPLACE_ENROLLMENT_STATUSES,
   MARKETPLACE_REWARD_TYPES,
-} from "./constants";
+} from "./utils/constants";
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryFromPathname,
