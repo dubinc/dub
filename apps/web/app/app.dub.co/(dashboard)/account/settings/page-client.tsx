@@ -84,7 +84,7 @@ function buildAccountSyncDescription(candidates: string[]) {
 export function SettingsPageClient() {
   const { data: session, update, status } = useSession();
   const { subdomain } = useCurrentSubdomain();
-  const isPartnerDomain = subdomain !== "app";
+  const isPartnerDomain = subdomain === "partners";
   const { partner } = usePartnerProfile();
   const pendingPatchRef = useRef<PendingUserPatch | null>(null);
   const [syncDescription, setSyncDescription] = useState<ReactNode>("");

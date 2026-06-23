@@ -305,7 +305,7 @@ function BasicInfoForm({
       mutatePrefix("/api/partner-profile");
     }, 0);
 
-    if (syncIdentity && !result.data.needsEmailVerification) {
+    if (syncIdentity) {
       await updateSession();
     }
   };
@@ -484,8 +484,7 @@ function BasicInfoForm({
               />
             </div>
             <p className="text-xs text-neutral-500">
-              3–30 characters. Lowercase letters, numbers, hyphens, and
-              underscores only.
+              3–30 characters. Lowercase letters, numbers, and hyphens only.
             </p>
           </label>
 

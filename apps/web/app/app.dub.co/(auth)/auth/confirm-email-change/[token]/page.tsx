@@ -86,6 +86,7 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
     newEmail: string;
     isPartnerProfile?: boolean;
     syncIdentity?: boolean;
+    partnerId?: string;
     redirectTo?: "/profile" | "/account/settings";
   }>(`email-change-request:user:${identifier}`);
 
@@ -100,12 +101,34 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
   }
 
   if (data.syncIdentity) {
-    if (!partnerId) {
+    const syncedPartnerId = data.partnerId;
+
+    if (!syncedPartnerId) {
       return (
         <EmptyState
           icon={InputPassword}
-          title="No Partner Profile Found"
-          description="We couldn't find a partner profile for your account. Please make sure you're logged in with the correct account at https://partners.dub.co"
+          title="Invalid Token"
+          description="This token is invalid. Please request a new one."
+        />
+      );
+    }
+
+    const partnerUser = await prisma.partnerUser.findUnique({
+      where: {
+        userId_partnerId: {
+          userId,
+          partnerId: syncedPartnerId,
+        },
+      },
+      select: { userId: true },
+    });
+
+    if (!partnerUser) {
+      return (
+        <EmptyState
+          icon={InputPassword}
+          title="Unauthorized"
+          description="You don't have access to update the partner profile associated with this email change request."
         />
       );
     }
@@ -121,7 +144,7 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
       }),
       prisma.partner.update({
         where: {
-          id: partnerId,
+          id: syncedPartnerId,
         },
         data: {
           email: data.newEmail,

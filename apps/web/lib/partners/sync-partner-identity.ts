@@ -32,9 +32,10 @@ export async function assertEmailAvailableForIdentitySync({
   }
 
   if (partnerWithEmail && partnerWithEmail.id !== partnerId) {
-    throw new Error(
-      `Email ${newEmail} is already in use. Do you want to merge your partner accounts instead? (https://d.to/merge-partners)`,
-    );
+    throw new DubApiError({
+      code: "conflict",
+      message: `Email ${newEmail} is already in use. Do you want to merge your partner accounts instead? (https://d.to/merge-partners)`,
+    });
   }
 }
 
@@ -149,12 +150,14 @@ export async function requestSyncedEmailChange({
   currentEmail,
   newEmail,
   userId,
+  partnerId,
   hostName,
   redirectTo,
 }: {
   currentEmail: string;
   newEmail: string;
   userId: string;
+  partnerId: string;
   hostName: string;
   redirectTo: "/profile" | "/account/settings";
 }) {
@@ -164,6 +167,7 @@ export async function requestSyncedEmailChange({
     identifier: userId,
     hostName,
     syncIdentity: true,
+    partnerId,
     redirectTo,
   });
 }

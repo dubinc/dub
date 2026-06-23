@@ -41,9 +41,23 @@ function ConfirmModal({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleConfirm = async () => {
+    if (isLoading) return;
+
     setIsLoading(true);
     try {
       await onConfirm();
+      setShowConfirmModal(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    try {
+      await onCancel?.();
       setShowConfirmModal(false);
     } finally {
       setIsLoading(false);
@@ -76,15 +90,8 @@ function ConfirmModal({
           variant="secondary"
           className="h-8 w-fit"
           text={cancelText}
-          onClick={async () => {
-            setIsLoading(true);
-            try {
-              await onCancel?.();
-              setShowConfirmModal(false);
-            } finally {
-              setIsLoading(false);
-            }
-          }}
+          disabled={isLoading}
+          onClick={handleCancel}
         />
         <Button
           variant={confirmVariant}

@@ -196,6 +196,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
             currentEmail: user.email!,
             newEmail,
             userId: user.id,
+            partnerId: partner.id,
             hostName: PARTNERS_DOMAIN,
             redirectTo: "/profile",
           });

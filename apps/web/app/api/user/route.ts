@@ -145,6 +145,7 @@ export const PATCH = withSession(async ({ req, session }) => {
         currentEmail: session.user.email!,
         newEmail: email,
         userId: session.user.id,
+        partnerId,
         hostName: PARTNERS_DOMAIN,
         redirectTo: "/account/settings",
       });
