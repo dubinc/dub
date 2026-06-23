@@ -193,6 +193,7 @@ const PartnerReferralLink = ({
 }: {
   partner: EnrolledPartnerProps;
 }) => {
+  const { slug } = useWorkspace();
   const {
     program,
     loading: loadingProgram,
@@ -245,7 +246,15 @@ const PartnerReferralLink = ({
         header: "Partners",
         size: 1,
         minSize: 1,
-        cell: ({ row }) => nFormatter(row.original.totalPartners),
+        cell: ({ row }) => (
+          <Link
+            href={`/${slug}/program/partners?referredByPartnerId=${partner.id}`}
+            target="_blank"
+            className="block w-full cursor-alias decoration-dotted hover:underline"
+          >
+            {nFormatter(row.original.totalPartners)}
+          </Link>
+        ),
       },
       {
         header: "Conversions",
