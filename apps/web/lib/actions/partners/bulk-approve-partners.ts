@@ -62,6 +62,7 @@ export const bulkApprovePartnersAction = authActionClient
           data: {
             status: "approved",
             createdAt: now,
+            groupJoinedAt: now,
             groupId: group.id,
             clickRewardId: group.clickRewardId,
             leadRewardId: group.leadRewardId,

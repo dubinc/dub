@@ -82,6 +82,7 @@ export async function movePartnersToGroup({
     },
     data: {
       groupId: group.id,
+      groupJoinedAt: new Date(),
       clickRewardId: group.clickRewardId,
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,

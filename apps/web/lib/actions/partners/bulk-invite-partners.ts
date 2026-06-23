@@ -131,6 +131,7 @@ export const bulkInvitePartnersAction = authActionClient
           partnerId: partner.id,
           status: "invited",
           groupId: group.id,
+          groupJoinedAt: new Date(),
           clickRewardId: group.clickRewardId,
           leadRewardId: group.leadRewardId,
           saleRewardId: group.saleRewardId,
