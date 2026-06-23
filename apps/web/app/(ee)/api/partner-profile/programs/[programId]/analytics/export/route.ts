@@ -6,6 +6,7 @@ import {
   getFirstFilterValue,
   hasExactlyOneLinkIdFilter,
 } from "@/lib/analytics/filter-helpers";
+import { formatPartnerAnalyticsForExport } from "@/lib/analytics/utils/format-analytics-export";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
@@ -122,6 +123,7 @@ export const GET = withPartnerProfile(
       useComposite: true,
       skipEndpoints: PARTNER_PROFILE_SKIP_ENDPOINTS,
       skipTopLinksForSingleLink: hasExactlyOneLinkIdFilter(parsedParams.linkId),
+      formatRows: formatPartnerAnalyticsForExport,
       getAnalyticsParams: () =>
         parsedParams.linkId
           ? { linkId: parsedParams.linkId }

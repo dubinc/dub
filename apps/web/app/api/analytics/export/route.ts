@@ -3,7 +3,7 @@ import {
   getFirstFilterValue,
   hasExactlyOneLinkIdFilter,
 } from "@/lib/analytics/filter-helpers";
-import { formatProgramAnalyticsForExport } from "@/lib/analytics/utils/format-program-analytics-for-export";
+import { formatProgramAnalyticsForExport } from "@/lib/analytics/utils/format-analytics-export";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
