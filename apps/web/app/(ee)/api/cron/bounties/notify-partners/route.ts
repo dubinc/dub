@@ -13,9 +13,6 @@ import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
-// TODO:
-// Fix this
-
 export const dynamic = "force-dynamic";
 
 const schema = z.object({
