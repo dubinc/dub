@@ -4,7 +4,11 @@ import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerProps } from "@/lib/types";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import {
+  IdentitySyncField,
+  IdentitySyncSnapshot,
+  useIdentitySyncConfirmModal,
+} from "@/ui/modals/identity-sync-confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import {
   PartnerPlatformsForm,
@@ -32,7 +36,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type ReactNode,
 } from "react";
 import {
   Controller,
@@ -70,7 +73,7 @@ function getProfileSyncCandidates({
   user?: { name?: string | null; email?: string | null; image?: string | null };
   imageChanged: boolean;
 }) {
-  const candidates: string[] = [];
+  const candidates: IdentitySyncField[] = [];
 
   if (data.name !== partner?.name && data.name !== user?.name) {
     candidates.push("name");
@@ -85,30 +88,6 @@ function getProfileSyncCandidates({
   }
 
   return candidates;
-}
-
-function buildProfileSyncDescription(candidates: string[]) {
-  const lines = candidates.map((field) => {
-    if (field === "name") return "Display name";
-    if (field === "email") {
-      return "Email (requires a confirmation email)";
-    }
-    return "Profile picture";
-  });
-
-  return (
-    <div className="space-y-2 text-left">
-      <p>
-        You&apos;re updating your partner profile. These fields differ from your
-        login account:
-      </p>
-      <ul className="list-inside list-disc">
-        {lines.map((line) => (
-          <li key={line}>{line}</li>
-        ))}
-      </ul>
-    </div>
-  );
 }
 
 export function ProfileDetailsForm({
@@ -251,7 +230,15 @@ function BasicInfoForm({
   const { profileType } = watch();
   const { data: session, update: updateSession } = useSession();
   const pendingSubmitRef = useRef<PendingProfileSubmit | null>(null);
-  const [syncDescription, setSyncDescription] = useState<ReactNode>("");
+  const [syncModalContent, setSyncModalContent] = useState<{
+    changedFields: IdentitySyncField[];
+    current: IdentitySyncSnapshot;
+    next: IdentitySyncSnapshot;
+  }>({
+    changedFields: [],
+    current: {},
+    next: {},
+  });
 
   const { executeAsync } = useAction(updatePartnerProfileAction, {
     onError({ error }) {
@@ -324,18 +311,21 @@ function BasicInfoForm({
     }
   };
 
-  const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Also update your login account?",
-    description: syncDescription,
-    confirmText: "Update both",
-    cancelText: "Only update profile",
-    onConfirm: async () => {
-      await submitProfile(true);
-    },
-    onCancel: async () => {
-      await submitProfile(false);
-    },
-  });
+  const { setShowModal: setShowConfirmModal, confirmModal } =
+    useIdentitySyncConfirmModal({
+      title: "Also update your login account?",
+      intro:
+        "You're updating your partner profile. These fields differ from your login account:",
+      changedFields: syncModalContent.changedFields,
+      current: syncModalContent.current,
+      next: syncModalContent.next,
+      onConfirm: async () => {
+        await submitProfile(true);
+      },
+      onCancel: async () => {
+        await submitProfile(false);
+      },
+    });
 
   return (
     <>
@@ -370,7 +360,20 @@ function BasicInfoForm({
           }
 
           pendingSubmitRef.current = { data, imageChanged };
-          setSyncDescription(buildProfileSyncDescription(syncCandidates));
+          setSyncModalContent({
+            changedFields: syncCandidates,
+            current: {
+              name: session?.user?.name,
+              email: session?.user?.email,
+              image: session?.user?.image,
+            },
+            next: {
+              name: data.name,
+              email: data.email,
+              image: data.image,
+              id: partner?.id,
+            },
+          });
           setShowConfirmModal(true);
         })}
       >

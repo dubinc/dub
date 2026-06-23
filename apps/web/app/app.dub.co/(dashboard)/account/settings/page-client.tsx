@@ -8,10 +8,14 @@ import UpdateSubscription from "@/ui/account/update-subscription";
 import UploadAvatar from "@/ui/account/upload-avatar";
 import UserId from "@/ui/account/user-id";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import {
+  IdentitySyncField,
+  IdentitySyncSnapshot,
+  useIdentitySyncConfirmModal,
+} from "@/ui/modals/identity-sync-confirm-modal";
 import { Form, useCurrentSubdomain } from "@dub/ui";
 import { useSession } from "next-auth/react";
-import { ReactNode, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 type PendingUserPatch = {
@@ -33,7 +37,7 @@ function getAccountSyncCandidates({
     email?: string | null;
     image?: string | null;
   };
-}) {
+}): IdentitySyncField[] {
   if (field === "name") {
     if (value === user?.name || value === partner?.name) {
       return [];
@@ -57,37 +61,21 @@ function getAccountSyncCandidates({
   return ["image"];
 }
 
-function buildAccountSyncDescription(candidates: string[]) {
-  const lines = candidates.map((field) => {
-    if (field === "name") return "Display name";
-    if (field === "email") {
-      return "Email (requires a confirmation email)";
-    }
-    return "Profile picture";
-  });
-
-  return (
-    <div className="space-y-2 text-left">
-      <p>
-        You&apos;re updating your login account. These fields differ from your
-        partner profile:
-      </p>
-      <ul className="list-inside list-disc">
-        {lines.map((line) => (
-          <li key={line}>{line}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 export function SettingsPageClient() {
   const { data: session, update, status } = useSession();
   const { subdomain } = useCurrentSubdomain();
   const isPartnerDomain = subdomain === "partners";
   const { partner } = usePartnerProfile();
   const pendingPatchRef = useRef<PendingUserPatch | null>(null);
-  const [syncDescription, setSyncDescription] = useState<ReactNode>("");
+  const [syncModalContent, setSyncModalContent] = useState<{
+    changedFields: IdentitySyncField[];
+    current: IdentitySyncSnapshot;
+    next: IdentitySyncSnapshot;
+  }>({
+    changedFields: [],
+    current: {},
+    next: {},
+  });
 
   const patchUser = async (body: Record<string, unknown>) => {
     const res = await fetch("/api/user", {
@@ -138,18 +126,21 @@ export function SettingsPageClient() {
     }
   };
 
-  const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Also update your partner profile?",
-    description: syncDescription,
-    confirmText: "Update both",
-    cancelText: "Only update login account",
-    onConfirm: async () => {
-      await finishPendingPatch(true);
-    },
-    onCancel: async () => {
-      await finishPendingPatch(false);
-    },
-  });
+  const { setShowModal: setShowConfirmModal, confirmModal } =
+    useIdentitySyncConfirmModal({
+      title: "Also update your partner profile?",
+      intro:
+        "You're updating your login account. These fields differ from your partner profile:",
+      changedFields: syncModalContent.changedFields,
+      current: syncModalContent.current,
+      next: syncModalContent.next,
+      onConfirm: async () => {
+        await finishPendingPatch(true);
+      },
+      onCancel: async () => {
+        await finishPendingPatch(false);
+      },
+    });
 
   const requestSubmit = ({
     body,
@@ -188,7 +179,20 @@ export function SettingsPageClient() {
     }
 
     pendingPatchRef.current = { body, onSuccess };
-    setSyncDescription(buildAccountSyncDescription(syncCandidates));
+    setSyncModalContent({
+      changedFields: syncCandidates,
+      current: {
+        name: partner?.name,
+        email: partner?.email,
+        image: partner?.image,
+        id: partner?.id,
+      },
+      next: {
+        name: field === "name" ? value : session?.user?.name,
+        email: field === "email" ? value : session?.user?.email,
+        image: field === "image" ? value : session?.user?.image,
+      },
+    });
     setShowConfirmModal(true);
 
     return Promise.resolve();
