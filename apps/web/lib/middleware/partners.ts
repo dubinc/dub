@@ -36,6 +36,18 @@ export async function PartnersMiddleware(req: NextRequest) {
     (p) => path.startsWith(p) || path.endsWith(p),
   );
 
+  if (partnersMarketplaceRedirects(path, searchParamsObj)) {
+    return NextResponse.redirect(
+      new URL(
+        `${partnersMarketplaceRedirects(path, searchParamsObj)}${searchParamsString}`,
+        req.url,
+      ),
+      {
+        status: 301,
+      },
+    );
+  }
+
   if (partnersProgramRedirects(path)) {
     return NextResponse.redirect(
       new URL(
@@ -46,16 +58,6 @@ export async function PartnersMiddleware(req: NextRequest) {
         status: 301,
       },
     );
-  }
-
-  const marketplaceDestination = partnersMarketplaceRedirects(
-    path,
-    searchParamsObj,
-  );
-  if (marketplaceDestination) {
-    return NextResponse.redirect(new URL(marketplaceDestination, req.url), {
-      status: 301,
-    });
   }
 
   if (!user && isAuthenticatedPath) {
