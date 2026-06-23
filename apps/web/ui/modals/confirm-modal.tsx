@@ -5,7 +5,7 @@ type PromptModelProps = {
   title: string;
   description: ReactNode | string;
 
-  onCancel?: () => void;
+  onCancel?: () => Promise<void> | void;
   cancelText?: string;
 
   onConfirm: () => Promise<void> | void;
