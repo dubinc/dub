@@ -78,7 +78,10 @@ export async function syncNameAndImageToPartner({
   name?: string;
   image?: string | null;
 }) {
-  if (!name && !image) {
+  const hasNameUpdate = name !== undefined;
+  const hasImageUpdate = image !== undefined;
+
+  if (!hasNameUpdate && !hasImageUpdate) {
     return;
   }
 
@@ -94,8 +97,8 @@ export async function syncNameAndImageToPartner({
   await prisma.partner.update({
     where: { id: partnerId },
     data: {
-      ...(name && { name }),
-      ...(partnerImage && { image: partnerImage }),
+      ...(hasNameUpdate && name && { name }),
+      ...(hasImageUpdate && { image: partnerImage ?? null }),
     },
   });
 }
@@ -109,7 +112,10 @@ export async function syncNameAndImageToUser({
   name?: string;
   image?: string | null;
 }) {
-  if (!name && !image) {
+  const hasNameUpdate = name !== undefined;
+  const hasImageUpdate = image !== undefined;
+
+  if (!hasNameUpdate && !hasImageUpdate) {
     return;
   }
 
@@ -122,8 +128,8 @@ export async function syncNameAndImageToUser({
   await prisma.user.update({
     where: { id: userId },
     data: {
-      ...(name && { name }),
-      ...(userImage && { image: userImage }),
+      ...(hasNameUpdate && name && { name }),
+      ...(hasImageUpdate && { image: userImage ?? null }),
     },
   });
 }

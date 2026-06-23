@@ -13,8 +13,8 @@ import { storage } from "@/lib/storage";
 import { uploadedImageSchema } from "@/lib/zod/schemas/images";
 import {
   APP_DOMAIN,
-  APP_HOSTNAMES,
   PARTNERS_DOMAIN,
+  PARTNERS_HOSTNAMES,
   R2_URL,
   nanoid,
   trim,
@@ -76,7 +76,8 @@ export const PATCH = withSession(async ({ req, session }) => {
     await updateUserSchema.parseAsync(await req.json());
 
   const hostName = req.headers.get("host") || "";
-  const isPartnersDomain = !APP_HOSTNAMES.has(hostName);
+  const isPartnersDomain = PARTNERS_HOSTNAMES.has(hostName);
+  const emailChangeHost = isPartnersDomain ? PARTNERS_DOMAIN : APP_DOMAIN;
   const partnerId = session.user.defaultPartnerId;
   const shouldSyncIdentity =
     syncIdentity === true && isPartnersDomain && !!partnerId;
@@ -167,7 +168,7 @@ export const PATCH = withSession(async ({ req, session }) => {
         email: session.user.email,
         newEmail: email,
         identifier: session.user.id,
-        hostName: APP_HOSTNAMES.has(hostName) ? APP_DOMAIN : PARTNERS_DOMAIN,
+        hostName: emailChangeHost,
       });
     }
   }
@@ -178,7 +179,7 @@ export const PATCH = withSession(async ({ req, session }) => {
     },
     data: {
       ...(name && { name }),
-      ...(image && { image }),
+      ...(image !== undefined && { image: image ?? null }),
       ...(source && { source }),
       ...(defaultWorkspace && { defaultWorkspace }),
     },
@@ -187,8 +188,8 @@ export const PATCH = withSession(async ({ req, session }) => {
   if (shouldSyncIdentity && partnerId) {
     await syncNameAndImageToPartner({
       partnerId,
-      ...(name && { name }),
-      ...(image && { image }),
+      ...(name !== undefined && name && { name }),
+      ...(image !== undefined && { image }),
     });
   }
 

@@ -93,17 +93,20 @@ export const updatePartnerProfileAction = authPartnerActionClient
       input: parsedInput,
     });
 
-    let imageUrl: string | null = null;
+    let imageUrl: string | null | undefined = undefined;
     let needsEmailVerification = false;
     const emailChanged = newEmail !== undefined && partner.email !== newEmail;
 
-    // Upload the new image
-    if (image) {
-      const uploaded = await storage.upload({
-        key: `partners/${partner.id}/image_${nanoid(7)}`,
-        body: image,
-      });
-      imageUrl = uploaded.url;
+    if (image !== undefined) {
+      if (image) {
+        const uploaded = await storage.upload({
+          key: `partners/${partner.id}/image_${nanoid(7)}`,
+          body: image,
+        });
+        imageUrl = uploaded.url;
+      } else {
+        imageUrl = null;
+      }
     }
 
     if (username && username !== partner.username) {
@@ -149,7 +152,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
         data: {
           name,
           description,
-          ...(imageUrl && { image: imageUrl }),
+          ...(imageUrl !== undefined && { image: imageUrl }),
           username,
           profileType,
           companyName,
@@ -186,6 +189,14 @@ export const updatePartnerProfileAction = authPartnerActionClient
       // If the email is being changed, we need to verify the new email address
       if (emailChanged) {
         if (syncIdentity) {
+          if (!user.email) {
+            throw new DubApiError({
+              code: "bad_request",
+              message:
+                "Your login account does not have an email address on file.",
+            });
+          }
+
           await assertEmailAvailableForIdentitySync({
             newEmail,
             userId: user.id,
@@ -193,7 +204,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
           });
 
           await requestSyncedEmailChange({
-            currentEmail: user.email!,
+            currentEmail: user.email,
             newEmail,
             userId: user.id,
             partnerId: partner.id,
@@ -201,6 +212,14 @@ export const updatePartnerProfileAction = authPartnerActionClient
             redirectTo: "/profile",
           });
         } else {
+          if (!partner.email) {
+            throw new DubApiError({
+              code: "bad_request",
+              message:
+                "Your partner profile does not have an email address on file.",
+            });
+          }
+
           const partnerWithEmail = await prisma.partner.findUnique({
             where: {
               email: newEmail,
@@ -214,7 +233,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
           }
 
           await confirmEmailChange({
-            email: partner.email!,
+            email: partner.email,
             newEmail,
             identifier: partner.id,
             isPartnerProfile: true,
@@ -228,8 +247,8 @@ export const updatePartnerProfileAction = authPartnerActionClient
       if (syncIdentity) {
         await syncNameAndImageToUser({
           userId: user.id,
-          ...(name && { name }),
-          ...(imageUrl && { image: imageUrl }),
+          ...(name !== undefined && name && { name }),
+          ...(imageUrl !== undefined && { image: imageUrl }),
         });
       }
 

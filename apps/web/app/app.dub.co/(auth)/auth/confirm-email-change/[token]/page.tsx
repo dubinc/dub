@@ -1,4 +1,5 @@
 import { getSession, hashToken } from "@/lib/auth";
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import EmptyState from "@/ui/shared/empty-state";
@@ -75,11 +76,41 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
     redirect(`/login?next=/auth/confirm-email-change/${token}`);
   }
 
-  const { id: userId, defaultPartnerId: partnerId } = session.user;
+  const { id: userId } = session.user;
+  const tokenIdentifier = tokenFound.identifier;
 
-  const identifier = tokenFound.identifier.startsWith("pn_")
-    ? partnerId
-    : userId;
+  if (tokenIdentifier.startsWith("pn_")) {
+    const partnerUser = await prisma.partnerUser.findUnique({
+      where: {
+        userId_partnerId: {
+          userId,
+          partnerId: tokenIdentifier,
+        },
+      },
+      select: { role: true },
+    });
+
+    if (
+      !partnerUser ||
+      !hasPermission(partnerUser.role, "partner_profile.update")
+    ) {
+      return (
+        <EmptyState
+          icon={InputPassword}
+          title="Invalid Token"
+          description="This token is invalid. Please request a new one."
+        />
+      );
+    }
+  } else if (tokenIdentifier !== userId) {
+    return (
+      <EmptyState
+        icon={InputPassword}
+        title="Invalid Token"
+        description="This token is invalid. Please request a new one."
+      />
+    );
+  }
 
   const data = await redis.get<{
     email: string;
@@ -88,7 +119,7 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
     syncIdentity?: boolean;
     partnerId?: string;
     redirectTo?: "/profile" | "/account/settings";
-  }>(`email-change-request:user:${identifier}`);
+  }>(`email-change-request:user:${tokenIdentifier}`);
 
   if (!data) {
     return (
@@ -120,10 +151,13 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
           partnerId: syncedPartnerId,
         },
       },
-      select: { userId: true },
+      select: { role: true },
     });
 
-    if (!partnerUser) {
+    if (
+      !partnerUser ||
+      !hasPermission(partnerUser.role, "partner_profile.update")
+    ) {
       return (
         <EmptyState
           icon={InputPassword}
@@ -155,19 +189,9 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
 
   // Update the partner profile email
   else if (data.isPartnerProfile) {
-    if (!partnerId) {
-      return (
-        <EmptyState
-          icon={InputPassword}
-          title="No Partner Profile Found"
-          description="We couldn’t find a partner profile for your account. Please make sure you’re logged in with the correct account at https://partners.dub.co"
-        />
-      );
-    }
-
     await prisma.partner.update({
       where: {
-        id: partnerId,
+        id: tokenIdentifier,
       },
       data: {
         email: data.newEmail,
@@ -198,6 +222,7 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
           oldEmail: data.email,
           newEmail: data.newEmail,
           isPartnerProfile: !!data.isPartnerProfile,
+          syncIdentity: !!data.syncIdentity,
         }),
       }),
     ]),

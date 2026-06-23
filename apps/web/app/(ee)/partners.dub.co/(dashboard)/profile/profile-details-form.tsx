@@ -285,7 +285,7 @@ function BasicInfoForm({
     const result = await executeAsync({
       ...data,
       username: data.username || undefined,
-      image: imageChanged ? data.image : null,
+      ...(imageChanged ? { image: data.image } : {}),
       syncIdentity,
     });
 
