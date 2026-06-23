@@ -6,6 +6,7 @@ import {
   PartnerMessagesSchema,
   getPartnerMessagesQuerySchema,
 } from "@/lib/messages/schemas";
+import { messageAttachmentsOrderBy } from "@/lib/messages/utils";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -47,7 +48,9 @@ export const GET = withWorkspace(
           include: {
             senderPartner: true,
             senderUser: true,
-            attachments: true,
+            attachments: {
+              orderBy: messageAttachmentsOrderBy,
+            },
           },
           orderBy: {
             [sortBy]: sortOrder,

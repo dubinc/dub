@@ -1,10 +1,4 @@
-import { isPreviewableImageType } from "@/lib/messages/utils";
-import {
-  Message,
-  MessageAttachment,
-  PartnerProps,
-  ProgramProps,
-} from "@/lib/types";
+import { Message, MessageAttachment, PartnerProps, ProgramProps } from "@/lib/types";
 import {
   AnimatedSizeContainer,
   Check2,
@@ -17,10 +11,7 @@ import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import { Fragment, ReactNode, useMemo, useRef, useState } from "react";
 import { MessageInput, PendingAttachment } from "../shared/message-input";
-import {
-  MessageFileAttachments,
-  MessageImageAttachments,
-} from "./message-attachments";
+import { MessageAttachmentsList } from "./message-attachments";
 import { MessageMarkdown } from "./message-markdown";
 
 interface Sender {
@@ -260,31 +251,13 @@ export function MessagesPanel({
                             </div>
                           )}
                           {/* Attachments — rendered outside the bubble */}
-                          {(() => {
-                            const imageAttachments =
-                              message.attachments?.filter((a) =>
-                                isPreviewableImageType(a.type),
-                              ) ?? [];
-                            const fileAttachments =
-                              message.attachments?.filter(
-                                (a) => !isPreviewableImageType(a.type),
-                              ) ?? [];
-
-                            return (
-                              <>
-                                {imageAttachments.length > 0 && (
-                                  <MessageImageAttachments
-                                    attachments={imageAttachments}
-                                  />
-                                )}
-                                {fileAttachments.length > 0 && (
-                                  <MessageFileAttachments
-                                    attachments={fileAttachments}
-                                  />
-                                )}
-                              </>
-                            );
-                          })()}
+                          {message.attachments &&
+                            message.attachments.length > 0 && (
+                              <MessageAttachmentsList
+                                attachments={message.attachments}
+                                isMySide={isMySide}
+                              />
+                            )}
                         </div>
                       </div>
                     )}
