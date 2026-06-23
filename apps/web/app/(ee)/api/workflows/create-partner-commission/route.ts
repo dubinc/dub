@@ -398,7 +398,7 @@ async function stepCreateCommission(
     if (cappedEarnings === 0) {
       return logAndReturn({
         commission: null,
-        outputLog: `Partner ${partnerId} has reached spend limit (${currencyFormatter(reward.spendLimitAmount)} ${reward.spendLimitInterval === "allTime" ? "in total" : `per ${reward.spendLimitInterval}`}) for ${event} event, skipping commission creation...`,
+        outputLog: `Partner ${partnerId} has reached spend limit (${currencyFormatter(reward.spendLimitAmount)} ${reward.spendLimitInterval === "allTime" ? "" : `per ${reward.spendLimitInterval}`}) for ${event} event, skipping commission creation...`,
       });
     }
 

@@ -3,7 +3,7 @@ import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
 import { nanoid, R2_URL } from "@dub/utils";
-import { BountyPartnerTag, ProgramEnrollment } from "@prisma/client";
+import { ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
 import {
   bountyEligibilityIncludes,
   isPartnerEligibleForBounty,
@@ -17,7 +17,7 @@ type ProgramEnrollmentWithPartnerTags = Pick<
   ProgramEnrollment,
   "programId" | "partnerId" | "groupId"
 > & {
-  programPartnerTags: Pick<BountyPartnerTag, "partnerTagId">[];
+  programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
 };
 
 type GetBountySubmissionUploadUrlParams = {

@@ -6,7 +6,7 @@ export function buildBountyEligibilityWhere({
 }: {
   groupId: string | undefined;
   partnerTagIds: string[];
-}) {
+}): Prisma.BountyWhereInput {
   return {
     AND: [
       {
@@ -65,7 +65,7 @@ export function isPartnerEligibleForBounty({
   bountyTagIds: string[];
   partnerGroupId: string | null;
   partnerTagIds: string[] | undefined;
-}) {
+}): boolean {
   // No restrictions
   if (bountyGroupIds.length === 0 && bountyTagIds.length === 0) {
     return true;
@@ -81,7 +81,7 @@ export function isPartnerEligibleForBounty({
     bountyTagIds.length === 0 ||
     partnerTagIds.some((id) => bountyTagIds.includes(id));
 
-  return inGroup && hasTag;
+  return Boolean(inGroup && hasTag);
 }
 
 export const bountyEligibilityIncludes = {

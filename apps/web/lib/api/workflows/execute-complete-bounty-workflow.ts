@@ -105,7 +105,7 @@ export const executeCompleteBountyWorkflow = async ({
     return;
   }
 
-  const { groups, submissions } = bounty;
+  const { submissions } = bounty;
 
   const bountyGroupIds = bounty.groups.map((g) => g.groupId);
   const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
