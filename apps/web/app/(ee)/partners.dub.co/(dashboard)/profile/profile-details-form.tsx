@@ -313,9 +313,9 @@ function BasicInfoForm({
 
   const { setShowModal: setShowConfirmModal, confirmModal } =
     useIdentitySyncConfirmModal({
-      title: "Also update your login account?",
+      title: "Also update your user account?",
       intro:
-        "You're updating your partner profile. These fields differ from your login account:",
+        "You're updating your partner account. These fields differ from your user account:",
       changedFields: syncModalContent.changedFields,
       current: syncModalContent.current,
       next: syncModalContent.next,

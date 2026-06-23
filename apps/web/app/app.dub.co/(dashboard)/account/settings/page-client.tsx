@@ -128,9 +128,9 @@ export function SettingsPageClient() {
 
   const { setShowModal: setShowConfirmModal, confirmModal } =
     useIdentitySyncConfirmModal({
-      title: "Also update your partner profile?",
+      title: "Also update your partner account?",
       intro:
-        "You're updating your login account. These fields differ from your partner profile:",
+        "You're updating your user account. These fields differ from your partner account:",
       changedFields: syncModalContent.changedFields,
       current: syncModalContent.current,
       next: syncModalContent.next,

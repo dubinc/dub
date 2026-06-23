@@ -26,9 +26,9 @@ export default function EmailUpdated({
   syncIdentity?: boolean;
 }) {
   const profileLabel = syncIdentity
-    ? "login account and partner profile"
+    ? "user account and partner account"
     : isPartnerProfile
-      ? "partner profile"
+      ? "partner account"
       : "account";
 
   return (
