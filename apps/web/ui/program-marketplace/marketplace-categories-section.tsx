@@ -7,7 +7,7 @@ import {
 import { CircleInfo } from "@dub/ui";
 import Link from "next/link";
 
-export function MarketplaceCategories() {
+export function MarketplaceCategoriesSection() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
