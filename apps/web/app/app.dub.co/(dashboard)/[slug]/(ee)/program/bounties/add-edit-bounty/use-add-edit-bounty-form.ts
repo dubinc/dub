@@ -2,6 +2,7 @@
 
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
+import { resolveBountyTiming } from "@/lib/bounty/bounty-timing";
 import {
   BOUNTY_DESCRIPTION_MAX_LENGTH,
   BOUNTY_MAX_SUBMISSIONS,
@@ -14,7 +15,15 @@ import { BountyProps } from "@/lib/types";
 import { bountyPerformanceConditionSchema } from "@/lib/zod/schemas/bounties";
 import { formatDate } from "@dub/utils";
 import { BountySubmissionFrequency } from "@prisma/client";
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import { addDays } from "date-fns";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { CreateBountyInputExtended } from "./bounty-form-context";
@@ -40,7 +49,11 @@ export function useAddEditBountyForm({
   const { id: workspaceId } = useWorkspace();
   const { makeRequest, isSubmitting } = useApiMutation<BountyProps>();
 
-  const [hasStartDate, setHasStartDate] = useState(!!bounty?.startsAt);
+  const defaultTiming = resolveBountyTiming({
+    startPreset: "today",
+    endPreset: "never",
+  });
+
   const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
   const [allowedSubmissions, setAllowedSubmissions] = useState<number>(
@@ -86,8 +99,10 @@ export function useAddEditBountyForm({
     defaultValues: {
       name: bounty?.name || undefined,
       description: bounty?.description || undefined,
-      startsAt: bounty?.startsAt || undefined,
-      endsAt: bounty?.endsAt || undefined,
+      startsAt: bounty?.startsAt || defaultTiming.startsAt,
+      endsAt: bounty?.endsAt ?? defaultTiming.endsAt,
+      startMode: bounty?.startMode ?? defaultTiming.startMode,
+      endDurationDays: bounty?.endDurationDays ?? defaultTiming.endDurationDays,
       submissionsOpenAt: bounty?.submissionsOpenAt || undefined,
       rewardAmount: bounty?.rewardAmount
         ? bounty.rewardAmount / 100
@@ -131,6 +146,8 @@ export function useAddEditBountyForm({
   const [
     startsAt,
     endsAt,
+    startMode,
+    endDurationDays,
     rewardAmount,
     rewardDescription,
     type,
@@ -144,6 +161,8 @@ export function useAddEditBountyForm({
   ] = watch([
     "startsAt",
     "endsAt",
+    "startMode",
+    "endDurationDays",
     "rewardAmount",
     "rewardDescription",
     "type",
@@ -156,36 +175,52 @@ export function useAddEditBountyForm({
     "submissionRequirements",
   ]);
 
-  const handleStartDateToggle = (checked: boolean) => {
-    setHasStartDate(checked);
-    if (!checked) {
-      setValue("startsAt", null, { shouldDirty: true, shouldValidate: true });
-    }
-  };
-
-  const handleEndDateToggle = (checked: boolean) => {
-    setHasEndDate(checked);
-    if (!checked) {
-      setValue("endsAt", null, { shouldDirty: true, shouldValidate: true });
-      setSubmissionWindow(null);
-      setValue("submissionsOpenAt", null, { shouldDirty: true });
-    }
-  };
-
-  const handleEndDateChange = (date: Date | null) => {
-    setValue("endsAt", date, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-    if (date && submissionWindow != null) {
-      const submissionsOpenAt = new Date(date);
-      submissionsOpenAt.setDate(submissionsOpenAt.getDate() - submissionWindow);
-      setValue("submissionsOpenAt", submissionsOpenAt, {
+  const handleTimingChange = useCallback(
+    ({
+      startMode: nextStartMode,
+      startsAt: nextStartsAt,
+      endsAt: nextEndsAt,
+      endDurationDays: nextEndDurationDays,
+    }: ReturnType<typeof resolveBountyTiming>) => {
+      setValue("startMode", nextStartMode, {
         shouldDirty: true,
         shouldValidate: true,
       });
-    }
-  };
+
+      setValue("startsAt", nextStartsAt, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+
+      setValue("endsAt", nextEndsAt, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+
+      setValue("endDurationDays", nextEndDurationDays, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+
+      setHasEndDate(Boolean(nextEndsAt));
+
+      if (!nextEndsAt) {
+        setSubmissionWindow(null);
+        setValue("submissionsOpenAt", null, { shouldDirty: true });
+      } else if (submissionWindow != null) {
+        const submissionsOpenAt = new Date(nextEndsAt);
+        submissionsOpenAt.setDate(
+          submissionsOpenAt.getDate() - submissionWindow,
+        );
+
+        setValue("submissionsOpenAt", submissionsOpenAt, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+    },
+    [setValue, submissionWindow],
+  );
 
   const getInitialSubmissionWindow = () => {
     if (!bounty?.submissionsOpenAt || !bounty?.endsAt) return null;
@@ -313,17 +348,21 @@ export function useAddEditBountyForm({
 
     const effectiveStartDate = startsAt ? new Date(startsAt) : now;
 
-    if (endsAt) {
-      const endDate = new Date(endsAt);
+    const effectiveEndDate = endDurationDays
+      ? addDays(effectiveStartDate, endDurationDays)
+      : endsAt
+        ? new Date(endsAt)
+        : null;
 
-      if (endDate <= effectiveStartDate) {
+    if (effectiveEndDate) {
+      if (effectiveEndDate <= effectiveStartDate) {
         return `Please choose an end date that is after the start date (${formatDate(effectiveStartDate)}).`;
       }
 
       const minEndDate = new Date(
         effectiveStartDate.getTime() + 60 * 60 * 1000,
       );
-      if (endDate < minEndDate) {
+      if (effectiveEndDate < minEndDate) {
         return "End date must be at least 1 hour after the start date.";
       }
     }
@@ -422,6 +461,7 @@ export function useAddEditBountyForm({
     bounty,
     startsAt,
     endsAt,
+    endDurationDays,
     submissionWindow,
     rewardAmount,
     rewardDescription,
@@ -557,10 +597,7 @@ export function useAddEditBountyForm({
 
   return {
     form,
-    hasStartDate,
-    setHasStartDate,
     hasEndDate,
-    handleEndDateToggle,
     openAccordions,
     setOpenAccordions,
     type,
@@ -571,8 +608,11 @@ export function useAddEditBountyForm({
     watch,
     errors,
     isDirty,
-    handleStartDateToggle,
-    handleEndDateChange,
+    startsAt,
+    endsAt,
+    startMode,
+    endDurationDays,
+    handleTimingChange,
     allowedSubmissions,
     handleAllowedSubmissionsChange,
     maxAllowedSubmissions,

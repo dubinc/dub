@@ -170,6 +170,8 @@ export const POST = withWorkspace(
       rewardDescription,
       startsAt,
       endsAt,
+      startMode,
+      endDurationDays,
       submissionsOpenAt,
       submissionFrequency,
       maxSubmissions,
@@ -260,6 +262,8 @@ export const POST = withWorkspace(
           type,
           startsAt,
           endsAt,
+          startMode,
+          endDurationDays,
           submissionsOpenAt: type === "submission" ? submissionsOpenAt : null,
           submissionFrequency:
             type === "submission" ? submissionFrequency : null,

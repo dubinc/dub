@@ -64,6 +64,8 @@ export const PATCH = withWorkspace(
       description,
       startsAt,
       endsAt,
+      startMode,
+      endDurationDays,
       submissionsOpenAt,
       submissionFrequency,
       maxSubmissions,
@@ -91,8 +93,13 @@ export const PATCH = withWorkspace(
 
     validateBounty({
       type: bounty.type,
-      startsAt,
+      startsAt: startsAt !== undefined ? startsAt : bounty.startsAt,
       endsAt: endsAt !== undefined ? endsAt : bounty.endsAt,
+      startMode: startMode !== undefined ? startMode : bounty.startMode,
+      endDurationDays:
+        endDurationDays !== undefined
+          ? endDurationDays
+          : bounty.endDurationDays,
       submissionsOpenAt,
       submissionFrequency:
         submissionFrequency !== undefined
@@ -223,8 +230,10 @@ export const PATCH = withWorkspace(
         data: {
           name: bountyName ?? undefined,
           description,
-          startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
-          endsAt,
+          ...(startsAt != null && { startsAt }),
+          ...(endsAt !== undefined && { endsAt }),
+          ...(startMode !== undefined && { startMode }),
+          ...(endDurationDays !== undefined && { endDurationDays }),
           submissionsOpenAt:
             bounty.type === "submission" ? submissionsOpenAt : null,
           ...(bounty.type === "submission" &&

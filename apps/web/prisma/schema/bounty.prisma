@@ -29,6 +29,11 @@ enum BountySubmissionFrequency {
   month
 }
 
+enum BountyStartMode {
+  absolute
+  relative
+}
+
 model Bounty {
   id                        String                     @id
   programId                 String
@@ -38,6 +43,8 @@ model Bounty {
   type                      BountyType
   startsAt                  DateTime
   endsAt                    DateTime?
+  startMode                 BountyStartMode            @default(absolute)
+  endDurationDays           Int?
   submissionsOpenAt         DateTime?
   submissionFrequency       BountySubmissionFrequency?
   maxSubmissions            Int                        @default(1)

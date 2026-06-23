@@ -5,6 +5,8 @@ export function validateBounty({
   type,
   startsAt,
   endsAt,
+  startMode,
+  endDurationDays,
   submissionsOpenAt,
   submissionFrequency,
   maxSubmissions,
@@ -13,6 +15,15 @@ export function validateBounty({
   performanceScope,
 }: Partial<CreateBountyInput>) {
   startsAt = startsAt || new Date();
+  startMode = startMode ?? "absolute";
+
+  if (endsAt && endDurationDays) {
+    throw new DubApiError({
+      message:
+        "Bounty cannot have both an end date (endsAt) and a duration end (endDurationDays).",
+      code: "bad_request",
+    });
+  }
 
   if (endsAt && endsAt < startsAt) {
     throw new DubApiError({

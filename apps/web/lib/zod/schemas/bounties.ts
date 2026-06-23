@@ -12,6 +12,7 @@ import {
 } from "@/lib/bounty/social-content";
 import {
   BountyPerformanceScope,
+  BountyStartMode,
   BountySubmissionFrequency,
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
@@ -101,8 +102,10 @@ export const createBountySchema = z.object({
     )
     .nullish(),
   type: z.enum(BountyType),
+  startMode: z.enum(BountyStartMode).optional(),
   startsAt: parseDateSchema.nullish(),
   endsAt: parseDateSchema.nullish(),
+  endDurationDays: z.number().int().positive().nullish(),
   submissionsOpenAt: parseDateSchema.nullish(),
   submissionFrequency: z.enum(BountySubmissionFrequency).nullish(),
   maxSubmissions: z
@@ -152,6 +155,8 @@ export const BountySchema = z.object({
   type: z.enum(BountyType),
   startsAt: z.date(),
   endsAt: z.date().nullable(),
+  startMode: z.enum(BountyStartMode),
+  endDurationDays: z.number().nullable(),
   submissionsOpenAt: z.date().nullable(),
   submissionFrequency: z.enum(BountySubmissionFrequency).nullable(),
   maxSubmissions: z.number(),
