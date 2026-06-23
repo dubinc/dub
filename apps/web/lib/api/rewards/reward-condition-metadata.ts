@@ -17,6 +17,10 @@ function toNumber(fieldKey: unknown): number | undefined {
     return undefined;
   }
 
+  if (Array.isArray(fieldKey)) {
+    return undefined;
+  }
+
   if (typeof fieldKey === "string") {
     if (fieldKey.trim() === "" || Number.isNaN(Number(fieldKey))) {
       return undefined;
