@@ -7,6 +7,7 @@ import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
+import { prisma } from "@/lib/prisma";
 import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
 import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
@@ -16,9 +17,8 @@ import {
   WorkspaceSchema,
   WorkspaceSchemaExtended,
 } from "@/lib/zod/schemas/workspaces";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

@@ -2,6 +2,7 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
+import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
 import {
   DiscountProps,
   PartnerBountyProps,
@@ -9,13 +10,14 @@ import {
   ProgramEnrollmentProps,
   RewardProps,
 } from "@/lib/types";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Partner, PlatformType, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -23,13 +25,25 @@ import {
   Copy,
   Directions,
   Popover,
+  StatusBadge,
   TabSelect,
   useCopyToClipboard,
   useLocalStorage,
   Wordmark,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
-import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
+import {
+  cn,
+  getApexDomain,
+  getPrettyUrl,
+  TREMENDOUS_SUPPORTED_COUNTRIES,
+} from "@dub/utils";
+import {
+  Partner,
+  PlatformType,
+  Program,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import {
@@ -50,6 +64,7 @@ import { ReferralsEmbedLeaderboard } from "./leaderboard";
 import { ReferralsEmbedLinks } from "./links";
 import { ReferralsEmbedQuickstart } from "./quickstart";
 import { ReferralsEmbedResources } from "./resources";
+import { ReferralsEmbedSettings } from "./settings";
 import { ThemeOptions } from "./theme-options";
 import { ReferralsReferralsEmbedToken } from "./token";
 import { ReferralsEmbedLink } from "./types";
@@ -66,8 +81,18 @@ type ReferralsEmbedData = {
     | "embedData"
     | "resources"
   >;
-  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
-  partner: Pick<Partner, "id" | "name" | "email">;
+  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt"> & {
+    status: ProgramEnrollmentStatus;
+  };
+  partner: Pick<
+    Partner,
+    | "id"
+    | "name"
+    | "email"
+    | "country"
+    | "tremendousEmail"
+    | "defaultPayoutMethod"
+  >;
   partnerPlatforms: Array<{
     type: PlatformType;
     identifier: string;
@@ -169,6 +194,21 @@ export function ReferralsEmbedPageClient({
   );
 
   const activeBountiesCount = bounties.length;
+  const hasEmbedAccess = ACTIVE_ENROLLMENT_STATUSES.includes(
+    programEnrollment.status,
+  );
+
+  const isTremendousCountrySupported = Boolean(
+    !partner.country ||
+      TREMENDOUS_SUPPORTED_COUNTRIES.includes(partner.country),
+  );
+
+  // Show Tremendous payout settings if the partner already uses Tremendous,
+  // or hasn't selected a payout method yet and is eligible based on country.
+  const showSettingsTab =
+    TREMENDOUS_ENABLED_PROGRAM_IDS.includes(program.id) &&
+    (partner.defaultPayoutMethod === "tremendous" ||
+      (!partner.defaultPayoutMethod && isTremendousCountrySupported));
 
   const tabs = useMemo(
     () => [
@@ -181,6 +221,7 @@ export function ReferralsEmbedPageClient({
         : ["Leaderboard"]),
       "FAQ",
       ...(hasResources ? ["Resources"] : []),
+      ...(showSettingsTab ? ["Settings"] : []),
     ],
     [
       showQuickstart,
@@ -188,6 +229,7 @@ export function ReferralsEmbedPageClient({
       group.additionalLinks,
       programEmbedData,
       hasResources,
+      showSettingsTab,
     ],
   );
 
@@ -225,6 +267,17 @@ export function ReferralsEmbedPageClient({
       bounties,
     ],
   );
+
+  if (!hasEmbedAccess) {
+    return (
+      <ReferralsEmbedUnapproved
+        status={programEnrollment.status}
+        programName={program.name}
+        themeOptions={themeOptions}
+        dynamicHeight={dynamicHeight}
+      />
+    );
+  }
 
   return (
     <ReferralsEmbedDataProvider value={embedData}>
@@ -297,7 +350,10 @@ export function ReferralsEmbedPageClient({
           >
             <ReferralsEmbedActivity />
             {!programEmbedData?.hideEarnings && (
-              <ReferralsEmbedEarningsSummary />
+              <ReferralsEmbedEarningsSummary
+                showSettingsTab={showSettingsTab}
+                onSelectTab={setSelectedTab}
+              />
             )}
           </div>
           <div className="mt-4">
@@ -359,6 +415,8 @@ export function ReferralsEmbedPageClient({
                   <ReferralsEmbedFAQ />
                 ) : selectedTab === "Resources" ? (
                   <ReferralsEmbedResources resources={resources} />
+                ) : selectedTab === "Settings" ? (
+                  <ReferralsEmbedSettings />
                 ) : null}
               </AnimatePresence>
             </div>
@@ -367,6 +425,54 @@ export function ReferralsEmbedPageClient({
         </div>
       </div>
     </ReferralsEmbedDataProvider>
+  );
+}
+
+function ReferralsEmbedUnapproved({
+  status,
+  programName,
+  themeOptions,
+  dynamicHeight,
+}: {
+  status: ProgramEnrollmentStatus;
+  programName: string;
+  themeOptions: ThemeOptions;
+  dynamicHeight: boolean;
+}) {
+  const badge = PartnerStatusBadges[status];
+  const isPending = status === "pending";
+
+  return (
+    <div
+      style={{
+        backgroundColor: themeOptions.backgroundColor || "transparent",
+      }}
+      className={cn(
+        "flex flex-col items-center justify-center p-8 text-center",
+        !dynamicHeight && "min-h-screen",
+      )}
+    >
+      <StatusBadge
+        variant={badge.variant}
+        icon={badge.icon}
+        className="px-1.5 py-0.5"
+      >
+        {badge.label}
+      </StatusBadge>
+      <h2 className="text-content-default mt-4 text-base font-semibold">
+        {isPending ? "Application in review" : "Program unavailable"}
+      </h2>
+      <p className="text-content-subtle [&_strong]:text-content-default mt-2 max-w-sm text-balance text-sm font-medium [&_strong]:font-semibold">
+        {isPending ? (
+          <>
+            You&apos;ll be notified when <strong>{programName}</strong> has
+            finished reviewing your application.
+          </>
+        ) : (
+          "You don't have access to this program."
+        )}
+      </p>
+    </div>
   );
 }
 

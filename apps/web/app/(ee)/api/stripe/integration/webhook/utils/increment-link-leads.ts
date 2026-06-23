@@ -1,5 +1,5 @@
 import { includeTags } from "@/lib/api/links/include-tags";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function incrementLinkLeads(linkId: string) {
   return prisma.link.update({

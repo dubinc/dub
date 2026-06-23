@@ -4,12 +4,12 @@ import { partnerNetworkListingWhere } from "@/lib/api/network/partner-network-li
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/constants/program";
+import { prisma } from "@/lib/prisma";
 import {
   NetworkPartnerSchema,
   getNetworkPartnersQuerySchema,
 } from "@/lib/zod/schemas/partner-network";
-import { prisma } from "@dub/prisma";
-import { PreferredEarningStructure, SalesChannel } from "@dub/prisma/client";
+import { PreferredEarningStructure, SalesChannel } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -51,8 +51,8 @@ export const GET = withWorkspace(
       pageSize,
       country,
       starred,
+      sortBy,
       platform,
-      subscribers,
     } = getNetworkPartnersQuerySchema.parse(searchParams);
 
     if (status !== "discover") {
@@ -60,7 +60,6 @@ export const GET = withWorkspace(
         partnerIds,
         country,
         platform,
-        subscribers,
       });
 
       const partners = await prisma.discoveredPartner.findMany({
@@ -126,8 +125,8 @@ export const GET = withWorkspace(
       page,
       pageSize,
       starred: starred ?? undefined,
+      sortBy,
       platform: platform ?? undefined,
-      subscribers: subscribers ?? undefined,
       similarPrograms,
     });
     console.timeEnd("calculatePartnerRanking");

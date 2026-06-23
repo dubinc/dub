@@ -3,9 +3,9 @@
 import { SubmittedLeadProps } from "@/lib/types";
 import { useConfirmSubmittedLeadStatusChangeModal } from "@/ui/modals/confirm-submitted-lead-status-change-modal";
 import { useEditSubmittedLeadModal } from "@/ui/modals/edit-submitted-lead-modal";
-import { SubmittedLeadStatus } from "@dub/prisma/client";
 import { Button, Envelope, OfficeBuilding } from "@dub/ui";
 import { OG_AVATAR_URL } from "@dub/utils";
+import { SubmittedLeadStatus } from "@prisma/client";
 import { Pencil } from "lucide-react";
 import { SubmittedLeadStatusBadge } from "./submitted-lead-status-badge";
 import { SubmittedLeadStatusDropdown } from "./submitted-lead-status-dropdown";

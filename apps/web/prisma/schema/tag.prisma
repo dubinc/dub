@@ -1,0 +1,57 @@
+model Tag {
+  id        String    @id
+  name      String
+  color     String    @default("blue")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  project   Project?  @relation(fields: [projectId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  projectId String?
+  links     LinkTag[]
+
+  @@unique([name, projectId])
+  @@index(projectId)
+}
+
+model LinkTag {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  link      Link     @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  linkId    String
+  tag       Tag      @relation(fields: [tagId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  tagId     String
+
+  @@unique([linkId, tagId])
+  @@index(tagId)
+}
+
+model PartnerTag {
+  id        String   @id
+  programId String?
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program            Program?            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programPartnerTags ProgramPartnerTag[]
+
+  @@unique([programId, name])
+  @@index(programId)
+}
+
+model ProgramPartnerTag {
+  id           String @id @default(cuid())
+  programId    String
+  partnerId    String
+  partnerTagId String
+
+  program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade, onUpdate: Cascade)
+  partnerTag        PartnerTag        @relation(fields: [partnerTagId], references: [id], onDelete: Cascade)
+  partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerTagId, partnerId])
+  @@index(partnerId)
+  @@index([programId, partnerId])
+  @@index([partnerTagId, programId])
+}

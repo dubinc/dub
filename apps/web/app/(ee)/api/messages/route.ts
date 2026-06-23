@@ -1,11 +1,12 @@
 import { partnerReachableByProgramWhereInput } from "@/lib/api/partners/partner-reachable-by-program-where-input";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { enrichMessage } from "@/lib/messages/enrich";
 import {
   PartnerMessagesSchema,
   getPartnerMessagesQuerySchema,
-} from "@/lib/zod/schemas/messages";
-import { prisma } from "@dub/prisma";
+} from "@/lib/messages/schemas";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/messages - get messages grouped by partner
@@ -46,6 +47,7 @@ export const GET = withWorkspace(
           include: {
             senderPartner: true,
             senderUser: true,
+            attachments: true,
           },
           orderBy: {
             [sortBy]: sortOrder,
@@ -55,35 +57,35 @@ export const GET = withWorkspace(
       },
     });
 
-    return NextResponse.json(
-      PartnerMessagesSchema.parse(
-        partners
-          // Sort by unread first, then by most recent message
-          .sort((a, b) => {
-            const aUnread = a.messages.some(
-              (m) => m.senderPartnerId && !m.readInApp,
-            );
-            const bUnread = b.messages.some(
-              (m) => m.senderPartnerId && !m.readInApp,
-            );
+    const sortedMessages = partners
+      // Sort by unread first, then by most recent message
+      .sort((a, b) => {
+        const aUnread = a.messages.some(
+          (m) => m.senderPartnerId && !m.readInApp,
+        );
+        const bUnread = b.messages.some(
+          (m) => m.senderPartnerId && !m.readInApp,
+        );
 
-            if (aUnread !== bUnread) {
-              return aUnread ? -1 : 1;
-            }
+        if (aUnread !== bUnread) {
+          return aUnread ? -1 : 1;
+        }
 
-            return sortOrder === "desc"
-              ? (b.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
-                  (a.messages?.[0]?.[sortBy]?.getTime() ?? 0)
-              : (a.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
-                  (b.messages?.[0]?.[sortBy]?.getTime() ?? 0);
-          })
-          // Map to {partner, messages}
-          .map(({ messages, ...partner }) => ({
-            partner,
-            messages,
-          })),
-      ),
+        return sortOrder === "desc"
+          ? (b.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
+              (a.messages?.[0]?.[sortBy]?.getTime() ?? 0)
+          : (a.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
+              (b.messages?.[0]?.[sortBy]?.getTime() ?? 0);
+      });
+
+    const enriched = await Promise.all(
+      sortedMessages.map(async ({ messages, ...partner }) => ({
+        partner,
+        messages: await Promise.all(messages.map(enrichMessage)),
+      })),
     );
+
+    return NextResponse.json(PartnerMessagesSchema.parse(enriched));
   },
   {
     requiredPermissions: ["messages.read"],

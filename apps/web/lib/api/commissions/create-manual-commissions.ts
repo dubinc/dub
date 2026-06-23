@@ -2,6 +2,7 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { Session } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
+import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import {
   recordClickZod,
@@ -13,15 +14,14 @@ import { CreatePartnerCommissionProps } from "@/lib/types";
 import { createManualCommissionBodySchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
-import { prisma } from "@dub/prisma";
+import { COUNTRIES_TO_CONTINENTS, nanoid, R2_URL } from "@dub/utils";
 import {
   CommissionType,
   Customer,
   Link,
   Partner,
   Project,
-} from "@dub/prisma/client";
-import { COUNTRIES_TO_CONTINENTS, nanoid, R2_URL } from "@dub/utils";
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";
@@ -221,8 +221,8 @@ export async function createManualCommissions(args: CreateCommissionsArgs) {
         amount: saleEvent.amount,
         currency: saleEvent.currency,
         invoiceId: saleEvent.invoiceId,
-        // if the invoice payment was refunded on Stripe, set the commission status to refunded as well
         createdAt: new Date(saleEvent.timestamp),
+        // if the invoice payment was refunded on Stripe, set the commission status to refunded as well
         ...(saleEvent.status === "refunded" && {
           status: "refunded" as const,
         }),

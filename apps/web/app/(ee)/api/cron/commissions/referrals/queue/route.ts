@@ -1,10 +1,10 @@
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
 import { createNetworkReferralCommission } from "@/lib/partner-referrals/create-network-referral-commission";
+import { prisma } from "@/lib/prisma";
 import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
-import { prisma } from "@dub/prisma";
-import { CommissionType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, NETWORK_PROGRAM_ID } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";
 

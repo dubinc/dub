@@ -10,7 +10,6 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
   buttonVariants,
   ChevronRight,
-  DynamicTooltipWrapper,
   Receipt2,
   StatusBadge,
   TabSelect,
@@ -59,7 +58,7 @@ export default function WorkspaceInvoices() {
           >
             Billing
           </Link>
-          <ChevronRight className="text-content-muted size-4" />
+          <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
           <h1>Invoices</h1>
         </div>
       }
@@ -175,21 +174,16 @@ const InvoiceCard = ({
                 (() => {
                   const badge = PayoutStatusBadges[invoice.status];
                   return (
-                    <DynamicTooltipWrapper
-                      tooltipProps={
-                        invoice.failedReason
-                          ? { content: invoice.failedReason }
-                          : undefined
-                      }
+                    <StatusBadge
+                      icon={invoice.status === "failed" ? AlertCircle : null}
+                      variant={badge.variant}
+                      className="rounded-md py-0.5"
+                      {...(invoice.status === "failed" && invoice.failedReason
+                        ? { tooltip: invoice.failedReason }
+                        : {})}
                     >
-                      <StatusBadge
-                        icon={invoice.status === "failed" ? AlertCircle : null}
-                        variant={badge.variant}
-                        className="rounded-md py-0.5"
-                      >
-                        {badge.label}
-                      </StatusBadge>
-                    </DynamicTooltipWrapper>
+                      {badge.label}
+                    </StatusBadge>
                   );
                 })()}
             </div>
@@ -242,21 +236,16 @@ const InvoiceCard = ({
               (() => {
                 const badge = PayoutStatusBadges[invoice.status];
                 return (
-                  <DynamicTooltipWrapper
-                    tooltipProps={
-                      invoice.failedReason
-                        ? { content: invoice.failedReason }
-                        : undefined
-                    }
+                  <StatusBadge
+                    icon={invoice.status === "failed" ? AlertCircle : null}
+                    variant={badge.variant}
+                    className="rounded-md py-0.5"
+                    {...(invoice.status === "failed" && invoice.failedReason
+                      ? { tooltip: invoice.failedReason }
+                      : {})}
                   >
-                    <StatusBadge
-                      icon={invoice.status === "failed" ? AlertCircle : null}
-                      variant={badge.variant}
-                      className="rounded-md py-0.5"
-                    >
-                      {badge.label}
-                    </StatusBadge>
-                  </DynamicTooltipWrapper>
+                    {badge.label}
+                  </StatusBadge>
                 );
               })()}
           </div>

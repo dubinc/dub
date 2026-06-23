@@ -8,10 +8,10 @@ import {
 } from "@/lib/workspace-roles";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
-import { WorkspaceRole } from "@dub/prisma/client";
 import { Button, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { cn, isWorkspaceBillingTrialActive, pluralize } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import { Plus } from "lucide-react";
 import { useMemo } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -34,7 +34,7 @@ export function InviteTeammatesForm({
   invites?: Invite[];
   className?: string;
 }) {
-  const { id, slug, plan, usersLimit, trialEndsAt } = useWorkspace();
+  const { id, plan, usersLimit, trialEndsAt } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const { queryParams } = useRouterStuff();
   const { openTrialLimitModal, TrialLimitActivateModal } =
@@ -66,16 +66,19 @@ export function InviteTeammatesForm({
       <form
         onSubmit={handleSubmit(async (data) => {
           const teammates = data.teammates.filter(({ email }) => email);
-          const res = await fetch(`/api/workspaces/${id}/invites`, {
+
+          const rawResponse = await fetch(`/api/workspaces/${id}/invites`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ teammates }),
           });
 
-          if (res.ok) {
-            await mutatePrefix(`/api/workspaces/${id}/invites`);
+          const response = await rawResponse.json();
 
+          if (rawResponse.ok) {
+            await mutatePrefix(`/api/workspaces/${id}/invites`);
             toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
+
             queryParams({
               set: {
                 status: "invited",
@@ -84,13 +87,14 @@ export function InviteTeammatesForm({
 
             onSuccess?.();
           } else {
-            const body = await res.json().catch(() => null);
-            const error = body?.error;
-            if (trialActive && error?.code === "exceeded_limit") {
+            const { code, message } = response.error;
+
+            if (trialActive && code === "exceeded_limit") {
               openTrialLimitModal("users");
-              return;
+              throw new Error(message);
             }
-            if (error?.message?.includes("upgrade")) {
+
+            if (message.includes("upgrade")) {
               if (trialActive) {
                 openTrialLimitModal("users");
               } else {
@@ -104,10 +108,11 @@ export function InviteTeammatesForm({
                   { duration: 4000 },
                 );
               }
-              return;
+              throw new Error(message);
             }
-            toast.error(error?.message ?? "Something went wrong");
-            if (error) throw error;
+
+            toast.error(message);
+            throw new Error(message);
           }
         })}
         className={cn("flex flex-col gap-8 text-left", className)}

@@ -16,12 +16,12 @@ import {
 import { PartnerProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { redis } from "@/lib/upstash/redis";
-import { PlatformType } from "@dub/prisma/client";
 import {
   getDomainWithoutWWW,
   nanoid,
   PARTNERS_DOMAIN_WITH_NGROK,
 } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";

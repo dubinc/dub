@@ -17,17 +17,17 @@ import useSWR from "swr";
 
 export type ConfigurableRuleType = keyof UpdateFraudRuleSettings;
 
-interface DisableFraudRulesModalProps {
+interface DisableRiskRulesModalProps {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-function DisableFraudRulesModal({
+function DisableRiskRulesModal({
   showModal,
   setShowModal,
   setIsOpen,
-}: DisableFraudRulesModalProps) {
+}: DisableRiskRulesModalProps) {
   const { id: workspaceId } = useWorkspace();
   const { isSubmitting, makeRequest } = useApiMutation();
 
@@ -189,7 +189,7 @@ export function getRulesBeingDisabled({
   );
 }
 
-export function useDisableFraudRulesModal({
+export function useDisableRiskRulesModal({
   setIsOpen,
 }: {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -202,8 +202,8 @@ export function useDisableFraudRulesModal({
 
   return {
     setShowDisableModal,
-    DisableFraudRulesModal: (
-      <DisableFraudRulesModal
+    DisableRiskRulesModal: (
+      <DisableRiskRulesModal
         showModal={showDisableModal}
         setShowModal={close}
         setIsOpen={setIsOpen}

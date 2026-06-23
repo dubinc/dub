@@ -1,14 +1,14 @@
 import useProgram from "@/lib/swr/use-program";
-import { PartnerNetworkStatus, PartnerPayoutMethod } from "@dub/prisma/client";
 import { CircleArrowRight, DynamicTooltipWrapper, GreekTemple } from "@dub/ui";
 import { cn, formatDateTimeSmart } from "@dub/utils";
+import { PartnerNetworkStatus, PartnerPayoutMethod } from "@prisma/client";
 import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import type { ReactNode } from "react";
-import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
-import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
+import { PartnerRiskIndicator } from "./fraud-risks/partner-risk-indicator";
 import { PartnerAvatar } from "./partner-avatar";
+import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
 import {
   getPayoutMethodIconConfig,
   getPayoutMethodLabel,
@@ -232,7 +232,7 @@ export function PartnerRowItem({
 
       {suffix}
 
-      {showFraudIndicator && <PartnerFraudIndicator partnerId={partner.id} />}
+      {showFraudIndicator && <PartnerRiskIndicator partnerId={partner.id} />}
     </div>
   );
 }

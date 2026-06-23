@@ -6,6 +6,7 @@ import { chargeFailed } from "./charge-failed";
 import { chargeRefunded } from "./charge-refunded";
 import { chargeSucceeded } from "./charge-succeeded";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
+import { customerSubscriptionCreated } from "./customer-subscription-created";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { customerSubscriptionUpdated } from "./customer-subscription-updated";
 import { invoicePaymentFailed } from "./invoice-payment-failed";
@@ -17,6 +18,7 @@ const relevantEvents = new Set([
   "charge.failed",
   "charge.refunded",
   "checkout.session.completed",
+  "customer.subscription.created",
   "customer.subscription.updated",
   "customer.subscription.deleted",
   "invoice.payment_failed",
@@ -61,6 +63,9 @@ export const POST = async (req: Request) => {
         break;
       case "checkout.session.completed":
         response = await checkoutSessionCompleted(event);
+        break;
+      case "customer.subscription.created":
+        response = await customerSubscriptionCreated(event);
         break;
       case "customer.subscription.updated":
         response = await customerSubscriptionUpdated(event);

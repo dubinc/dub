@@ -1,6 +1,8 @@
-import { Reward } from "@dub/prisma/client";
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
+import { Reward } from "@prisma/client";
 import { describe, expect, test, vi } from "vitest";
-import { resolveClickRewardAmount } from "../../app/(ee)/api/cron/aggregate-clicks/resolve-click-reward-amount";
+import { resolveClickReward } from "../../app/(ee)/api/cron/aggregate-clicks/resolve-click-reward-amount";
 import { IntegrationHarness } from "../utils/integration";
 
 // Mock server-only module
@@ -26,10 +28,12 @@ describe.sequential("Click reward resolution", async () => {
     const modifierCountries = ["US", "GB", "AU"];
 
     modifierCountries.forEach((country) => {
-      const amount = resolveClickRewardAmount({
+      const clickReward = resolveClickReward({
         reward,
         country,
       });
+
+      const amount = getRewardAmount(serializeReward(clickReward));
 
       expect(amount).toBe(100);
     });
@@ -41,10 +45,12 @@ describe.sequential("Click reward resolution", async () => {
     const otherCountries = ["CA", "FR", "DE", "JP"];
 
     otherCountries.forEach((country) => {
-      const amount = resolveClickRewardAmount({
+      const clickReward = resolveClickReward({
         reward,
         country,
       });
+
+      const amount = getRewardAmount(serializeReward(clickReward));
 
       expect(amount).toBe(20);
     });
@@ -63,10 +69,12 @@ describe.sequential("Click reward resolution", async () => {
     ];
 
     testCases.forEach(({ country, expected }) => {
-      const amount = resolveClickRewardAmount({
+      const clickReward = resolveClickReward({
         reward,
         country,
       });
+
+      const amount = getRewardAmount(serializeReward(clickReward));
 
       expect(amount).toBe(expected);
     });

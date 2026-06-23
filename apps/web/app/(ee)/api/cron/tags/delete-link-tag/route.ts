@@ -4,8 +4,8 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { queueLinkTagDeletion } from "@/lib/api/tags/queue-tag-deletion";
 import { CRON_BATCH_SIZE } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird/record-link";
-import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 

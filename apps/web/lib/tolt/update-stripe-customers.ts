@@ -1,5 +1,5 @@
-import { prisma } from "@dub/prisma";
-import { Customer, Project } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Customer, Project } from "@prisma/client";
 import Stripe from "stripe";
 import { stripeAppClient } from "../stripe";
 import { logImportError } from "../tinybird/log-import-error";

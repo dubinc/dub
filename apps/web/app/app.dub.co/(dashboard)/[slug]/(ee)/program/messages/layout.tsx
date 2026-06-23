@@ -1,7 +1,7 @@
 "use client";
 
+import { usePartnerMessages } from "@/lib/messages/hooks/use-partner-messages";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { usePartnerMessages } from "@/lib/swr/use-partner-messages";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import LayoutLoader from "@/ui/layout/layout-loader";

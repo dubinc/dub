@@ -1,14 +1,14 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
+import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
-import { prisma } from "@dub/prisma";
-import { PrismaClient } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { PrismaClient } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { User, type NextAuthOptions } from "next-auth";
 import { AdapterAccount, AdapterUser } from "next-auth/adapters";
@@ -22,6 +22,10 @@ import { isProduction, shouldApplyRateLimit } from "../api/environment";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
+import {
+  consumeAdminImpersonation,
+  markAdminImpersonation,
+} from "./admin-impersonation";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
@@ -65,6 +69,26 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
           session_state: account.session_state,
         },
       }),
+    // simplified version of https://github.com/nextauthjs/next-auth/blob/main/packages/adapter-prisma/src/index.ts#L80
+    useVerificationToken: async ({ identifier, token }) => {
+      try {
+        const verificationToken = await p.verificationToken.delete({
+          where: { identifier_token: { identifier, token } },
+        });
+
+        if (verificationToken.isAdminImpersonation) {
+          markAdminImpersonation(identifier);
+        }
+
+        return verificationToken;
+      } catch (error: any) {
+        if (error.code === "P2025") {
+          return null;
+        }
+
+        throw error;
+      }
+    },
   };
 };
 
@@ -79,7 +103,7 @@ export const authOptions: NextAuthOptions = {
 
         sendEmail({
           to: identifier,
-          subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
+          subject: "Your Dub Login Link",
           react: LoginLink({ url, email: identifier }),
         });
       },
@@ -358,9 +382,7 @@ export const authOptions: NextAuthOptions = {
         sameSite: "lax",
         path: "/",
         // When working on localhost, the cookie domain must be omitted entirely (https://stackoverflow.com/a/1188145)
-        domain: VERCEL_DEPLOYMENT
-          ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
-          : undefined,
+        domain: VERCEL_DEPLOYMENT ? ".dub.co" : undefined,
         secure: VERCEL_DEPLOYMENT,
       },
     },
@@ -376,11 +398,15 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (user?.lockedAt) {
-        return false;
+        throw new Error("exceeded-login-attempts");
       }
+
+      const isAdminImpersonation =
+        account?.provider === "email" && consumeAdminImpersonation(user.email);
 
       // If the user is not using SAML, we need to check if SAML is enforced for the email domain
       if (
+        !isAdminImpersonation &&
         account?.provider !== "saml" &&
         account?.provider !== "saml-idp" &&
         account?.provider !== "credentials" // for credentials, we do the check in the CredentialsProvider

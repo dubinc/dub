@@ -14,8 +14,8 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { IntegrationLogo } from "@/ui/integrations/integration-logo";
+import { IntegrationStatusBadge } from "@/ui/integrations/integration-status-badge";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
-import { BackLink } from "@/ui/shared/back-link";
 import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
 import { Markdown } from "@/ui/shared/markdown";
 import { UserAvatar } from "@/ui/users/user-avatar";
@@ -32,14 +32,11 @@ import {
   Logo,
   MaxWidthWrapper,
   Popover,
-  Tooltip,
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
 import {
-  CircleWarning,
   ConnectedDots,
-  DubCraftedShield,
   Flask,
   Globe,
   OfficeBuilding,
@@ -56,7 +53,10 @@ import {
   STRIPE_INTEGRATION_ID,
   ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
-import { HUBSPOT_INTEGRATION_ID } from "@dub/utils/src/constants/integrations";
+import {
+  HUBSPOT_INTEGRATION_ID,
+  INTERCOM_INTEGRATION_ID,
+} from "@dub/utils/src/constants/integrations";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -154,12 +154,17 @@ export default function IntegrationPageClient({
     return variants[mode];
   }, [integration.id, integration.installed, integration.settings]);
 
+  const uninstallDisabledIntegrations = {
+    stripe: `https://dashboard.stripe.com/${stripeConnectId}/${stripeConnectionBannerConfig?.title === "Test Mode" ? "test/" : ""}apps/installed/dub.co`,
+    intercom:
+      "https://app.intercom.com/a/apps/_/settings/app-settings/app-store?app_package_code=dub-ejgb",
+  };
+
   const { canInstallAdvancedIntegrations } = getPlanCapabilities(plan);
 
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg grid-cols-1 gap-6">
       {integration.installed && <UninstallIntegrationModal />}
-      <BackLink href={`/${slug}/settings/integrations`}>Integrations</BackLink>
       <div className="flex justify-between gap-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <IntegrationLogo
@@ -169,22 +174,13 @@ export default function IntegrationPageClient({
           />
           <div>
             <div className="flex items-center gap-1.5">
-              <h1 className="text-base font-semibold leading-none text-neutral-800">
+              <div className="text-base font-semibold leading-none text-neutral-800">
                 {integration.name}
-              </h1>
-              {integration.projectId === DUB_WORKSPACE_ID ? (
-                <Tooltip content="This is an official integration built and maintained by Dub">
-                  <div>
-                    <DubCraftedShield className="size-4 -translate-y-px" />
-                  </div>
-                </Tooltip>
-              ) : !integration.verified ? (
-                <Tooltip content="Dub hasn't verified this integration. Install it at your own risk.">
-                  <div>
-                    <CircleWarning className="size-5 text-neutral-500" invert />
-                  </div>
-                </Tooltip>
-              ) : null}
+              </div>
+              <IntegrationStatusBadge
+                projectId={integration.projectId}
+                verified={integration.verified}
+              />
             </div>
             <p className="mt-1 text-[0.8125rem] leading-snug text-neutral-600">
               {integration.description}
@@ -206,11 +202,11 @@ export default function IntegrationPageClient({
                     setShowUninstallIntegrationModal(true);
                   }}
                   disabledTooltip={
-                    integration.slug === "stripe" ? (
+                    uninstallDisabledIntegrations[integration.slug] ? (
                       <TooltipContent
-                        title="You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
-                        cta="Go to Stripe"
-                        href={`https://dashboard.stripe.com/${stripeConnectId}/apps/installed/dub.co`}
+                        title={`You cannot uninstall the ${integration.name} integration from here. Please uninstall from your ${integration.name} dashboard instead.`}
+                        cta={`Go to ${integration.name}`}
+                        href={uninstallDisabledIntegrations[integration.slug]}
                         target="_blank"
                       />
                     ) : (
@@ -352,15 +348,20 @@ export default function IntegrationPageClient({
                   className="h-9 px-3"
                   icon={<ConnectedDots className="size-4" />}
                   disabledTooltip={
-                    [HUBSPOT_INTEGRATION_ID, APPSFLYER_INTEGRATION_ID].includes(
-                      integration.id,
-                    ) && !canInstallAdvancedIntegrations ? (
+                    [
+                      HUBSPOT_INTEGRATION_ID,
+                      APPSFLYER_INTEGRATION_ID,
+                      INTERCOM_INTEGRATION_ID,
+                    ].includes(integration.id) &&
+                    !canInstallAdvancedIntegrations ? (
                       <TooltipContent
                         title="This integration is only available on Advanced and Enterprise plans."
                         cta="Upgrade to Advanced"
                         href={`/${slug}/settings/billing/upgrade?plan=advanced`}
                       />
-                    ) : undefined
+                    ) : (
+                      permissionsError || undefined
+                    )
                   }
                 />
               )}

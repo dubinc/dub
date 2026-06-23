@@ -1,7 +1,7 @@
-import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { conn } from "@/lib/planetscale/connection";
-import { InvoiceStatus } from "@dub/prisma/client";
+import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { ACME_PROGRAM_ID } from "@dub/utils";
+import { InvoiceStatus } from "@prisma/client";
 import { format } from "date-fns";
 
 interface TimeseriesPoint {

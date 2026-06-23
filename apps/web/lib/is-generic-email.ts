@@ -18,7 +18,6 @@ const GENERIC_EMAIL_DOMAINS = [
   "pm.me",
   "promail.ink",
   "passinbox.com",
-  "passmail.net",
   "163.com",
   "126.com",
   "duck.com",
@@ -52,6 +51,9 @@ const GENERIC_EMAIL_DOMAINS = [
   "t-mail.asia",
   "adras.org",
   "emailinbo.live",
+  "kw.com",
+  "bluewin.ch",
+  "web-library.net",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [
@@ -61,6 +63,8 @@ const GENERIC_EMAIL_DOMAIN_PREFIXES = [
   "gmx.",
   "yandex.",
   "live.",
+  "student.",
+  "passmail.",
 ];
 
 const GENERIC_EMAIL_DOMAIN_SUFFIXES = [

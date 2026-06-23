@@ -1,11 +1,11 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import NewMessageFromPartner from "@dub/email/templates/new-message-from-partner";
-import { prisma } from "@dub/prisma";
-import { NotificationEmailType } from "@dub/prisma/client";
 import { log } from "@dub/utils";
+import { NotificationEmailType } from "@prisma/client";
 import { subDays } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -56,6 +56,13 @@ export async function POST(req: Request) {
             },
             include: {
               senderPartner: true,
+              attachments: {
+                select: {
+                  name: true,
+                  size: true,
+                  type: true,
+                },
+              },
             },
           },
           workspace: {
@@ -120,6 +127,7 @@ export async function POST(req: Request) {
           messages: [...unreadMessages].reverse().map((message) => ({
             text: message.text,
             createdAt: message.createdAt,
+            attachments: message.attachments,
           })),
           email,
         }),

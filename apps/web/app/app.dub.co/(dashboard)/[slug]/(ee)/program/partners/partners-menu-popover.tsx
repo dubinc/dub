@@ -6,6 +6,7 @@ import { useExportPartnersModal } from "@/ui/modals/export-partners-modal";
 import { useImportFirstPromoterModal } from "@/ui/modals/import-firstpromoter-modal";
 import { useImportPartnerStackModal } from "@/ui/modals/import-partnerstack-modal";
 import { useImportRewardfulModal } from "@/ui/modals/import-rewardful-modal";
+import { useImportTapfiliateModal } from "@/ui/modals/import-tapfiliate-modal";
 import { useImportToltModal } from "@/ui/modals/import-tolt-modal";
 import { Download, ThreeDots } from "@/ui/shared/icons";
 import { Button, IconMenu, Popover } from "@dub/ui";
@@ -21,6 +22,7 @@ export function PartnersMenuPopover() {
   const { ImportRewardfulModal } = useImportRewardfulModal();
   const { ImportPartnerStackModal } = useImportPartnerStackModal();
   const { ImportFirstPromoterModal } = useImportFirstPromoterModal();
+  const { ImportTapfiliateModal } = useImportTapfiliateModal();
 
   const { ExportPartnersModal, setShowExportPartnersModal } =
     useExportPartnersModal();
@@ -31,6 +33,7 @@ export function PartnersMenuPopover() {
       <ImportRewardfulModal />
       <ImportFirstPromoterModal />
       <ImportPartnerStackModal />
+      <ImportTapfiliateModal />
       <ExportPartnersModal />
       <Popover
         content={

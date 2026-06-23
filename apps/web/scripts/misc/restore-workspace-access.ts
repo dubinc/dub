@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { LEGAL_USER_ID } from "@dub/utils";
 import "dotenv-flow/config";
 import { linkCache } from "../../lib/api/links/cache";
@@ -17,31 +17,38 @@ async function main() {
     },
   });
 
-  const linksToRestore = await prisma.link.findMany({
-    where: {
-      projectId: project.id,
-      disabledAt: {
-        not: null,
-      },
-    },
-  });
-
-  if (linksToRestore.length > 0) {
-    const restoredLinks = await prisma.link.updateMany({
+  while (true) {
+    const linksToRestore = await prisma.link.findMany({
       where: {
-        id: {
-          in: linksToRestore.map((link) => link.id),
+        projectId: project.id,
+        disabledAt: {
+          not: null,
         },
       },
-      data: {
-        disabledAt: null,
-      },
+      take: 100,
     });
+    if (linksToRestore.length === 0) {
+      console.log("No more links to restore. Exiting...");
+      break;
+    }
 
-    console.log(`Restored ${restoredLinks.count} links`);
+    if (linksToRestore.length > 0) {
+      const restoredLinks = await prisma.link.updateMany({
+        where: {
+          id: {
+            in: linksToRestore.map((link) => link.id),
+          },
+        },
+        data: {
+          disabledAt: null,
+        },
+      });
 
-    const res = await linkCache.expireMany(linksToRestore);
-    console.log(res);
+      console.log(`Restored ${restoredLinks.count} links`);
+
+      const res = await linkCache.expireMany(linksToRestore);
+      console.log(res);
+    }
   }
 
   await prisma.projectUsers.update({

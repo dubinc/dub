@@ -29,6 +29,10 @@
       "schedule": "*/2 * * * *"
     },
     {
+      "path": "/api/cron/partner-platforms/website",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/cron/partner-program-summary",
       "schedule": "0 13 1 * *"
     },

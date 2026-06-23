@@ -1,9 +1,9 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramApplicationReminder from "@dub/email/templates/program-application-reminder";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils/src/constants";
 
 // POST - /api/cron/program-application-reminder

@@ -2,13 +2,13 @@ import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { withCron } from "@/lib/cron/with-cron";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
-import { prisma } from "@dub/prisma";
 import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
