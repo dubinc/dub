@@ -161,13 +161,12 @@ function GroupsEligibilitySelect({
   });
 
   // Determine if we should use async loading
-  useEffect(
-    () =>
-      setUseAsync(
-        Boolean(groups && !useAsync && groups.length >= GROUPS_MAX_PAGE_SIZE),
-      ),
-    [groups, useAsync],
-  );
+  useEffect(() => {
+    setUseAsync(
+      (prev) =>
+        prev || Boolean(groups && groups.length >= GROUPS_MAX_PAGE_SIZE),
+    );
+  }, [groups]);
 
   return (
     <BountyEligibilityMultiSelect
@@ -225,17 +224,15 @@ function TagsEligibilitySelect({
   }, [partnersCount]);
 
   // Determine if we should use async loading
-  useEffect(
-    () =>
-      setUseAsync(
+  useEffect(() => {
+    setUseAsync(
+      (prev) =>
+        prev ||
         Boolean(
-          partnerTags &&
-            !useAsync &&
-            partnerTags.length >= PARTNER_TAGS_MAX_PAGE_SIZE,
+          partnerTags && partnerTags.length >= PARTNER_TAGS_MAX_PAGE_SIZE,
         ),
-      ),
-    [partnerTags, useAsync],
-  );
+    );
+  }, [partnerTags]);
 
   return (
     <BountyEligibilityMultiSelect
