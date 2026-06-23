@@ -52,8 +52,7 @@ export const POST = withCron(async ({ rawBody }) => {
       partnerId: true,
       totalChunkCount: true,
       embeddedChunkCount: true,
-      // Source values for the denormalized pre-filter columns (country, platformType),
-      // stamped on the chunk at embed time — the point it becomes searchable.
+      // need country and platform type for denormalized pre-filter columns
       partner: {
         select: {
           country: true,
@@ -146,8 +145,7 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  // Denormalized pre-filter values stamped with the embedding (constant across the
-  // batch — one content item → one partner/platform). Both are ~static
+  // Denormalized pre-filter values saved with embeddings. Both are ~static
   const country = contentItem.partner.country;
   const platformType = contentItem.partnerPlatform.type;
 

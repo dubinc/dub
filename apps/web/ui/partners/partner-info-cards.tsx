@@ -1,45 +1,15 @@
-import { useAttributeReferringPartnerModal } from "@/lib/partner-referrals/components/attribute-referring-partner-modal";
-import { usePartnerReferral } from "@/lib/partner-referrals/hooks/use-partner-referral";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AdminNetworkPartner,
-  BountyListProps,
   EnrolledPartnerExtendedProps,
   NetworkPartnerProps,
-  RewardProps,
 } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { usePartnerGroupHistorySheet } from "@/ui/activity-logs/partner-group-history-sheet";
-import {
-  Button,
-  CalendarIcon,
-  CopyButton,
-  Globe,
-  Heart,
-  InfoTooltip,
-  OfficeBuilding,
-  TimestampTooltip,
-  Trophy,
-} from "@dub/ui";
-import {
-  TriangleWarning,
-  UserArrowRight,
-  Users,
-  VerifiedBadge,
-} from "@dub/ui/icons";
-import {
-  COUNTRIES,
-  fetcher,
-  formatDate,
-  formatDateTimeSmart,
-} from "@dub/utils";
-import { CircleMinus } from "lucide-react";
-import Link from "next/link";
-import { Fragment, ReactNode, createElement } from "react";
-import useSWR from "swr";
+import { CopyButton, InfoTooltip, TimestampTooltip } from "@dub/ui";
+import { Fragment, ReactNode } from "react";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
 import {
   PartnerApplicationRiskBanner,
@@ -49,20 +19,12 @@ import { PartnerRiskIndicator } from "./fraud-risks/partner-risk-indicator";
 import { PartnerAvatar } from "./partner-avatar";
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
 import { monthlyTrafficAmountsMap } from "@/lib/partners/partner-profile";
-import { PartnerInfoGroup } from "./partner-info-group";
+import { getBasicFields } from "./partner-basic-fields";
+import { PartnerInfoRewardsCard } from "./partner-info-rewards-card";
+import { PartnerInfoTagsCard } from "./partner-info-tags-card";
 import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
 import { PartnerStarButton } from "./partner-star-button";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
-import { PartnerTagsList } from "./partner-tags-list";
-import {
-  getPayoutMethodIconConfig,
-  getPayoutMethodLabel,
-} from "./payouts/payout-method-config";
-import { ProgramRewardList } from "./program-reward-list";
-import {
-  UpdatePartnerTagsModal,
-  useUpdatePartnerTagsModal,
-} from "./update-partner-tags-modal";
 
 type PartnerInfoCardsProps = {
   showFraudIndicator?: boolean;
@@ -87,16 +49,6 @@ type PartnerInfoCardsProps = {
   | { type: "network"; partner?: NetworkPartnerProps }
   | { type: "admin"; partner?: AdminNetworkPartner }
 );
-
-type BasicField = {
-  id: string;
-  icon: React.ReactElement;
-  text: ReactNode | null | undefined;
-  /** When set, the row is wrapped in TimestampTooltip (local / UTC / unix). */
-  timestamp?: Date | string | number;
-  /** Optional outer wrapper (e.g. ConversionScoreTooltip) around the row content. */
-  wrapper?: React.ComponentType<{ children: React.ReactNode }>;
-};
 
 export function PartnerInfoCards({
   type,
@@ -134,123 +86,13 @@ export function PartnerInfoCards({
     { keepPreviousData: false },
   );
 
-  const { data: bounties, error: errorBounties } = useSWR<BountyListProps[]>(
-    workspaceId && partner && isEnrolled
-      ? `/api/bounties?workspaceId=${workspaceId}&partnerId=${partner.id}`
-      : null,
-    fetcher,
-  );
-
-  let basicFields: BasicField[] = [
-    {
-      id: "country",
-      icon: partner?.country ? (
-        <img
-          alt={`Flag of ${COUNTRIES[partner.country]}`}
-          src={`https://flag.vercel.app/m/${partner.country}.svg`}
-          className="size-3.5 rounded-full"
-        />
-      ) : (
-        <Globe className="size-3.5 shrink-0" />
-      ),
-      text: partner?.country ? COUNTRIES[partner.country] : "Planet Earth",
-    },
-    {
-      id: "companyName",
-      icon: <OfficeBuilding className="size-3.5" />,
-      text: partner ? partner.companyName || null : undefined,
-    },
-  ];
-
-  if ((isEnrolled || isAdmin) && partner) {
-    const isPendingApplication =
-      "status" in partner && partner.status === "pending";
-
-    basicFields = basicFields.concat([
-      {
-        id: "createdAt",
-        icon: isPendingApplication ? (
-          <CalendarIcon className="size-3.5" />
-        ) : (
-          <Users className="size-3.5" />
-        ),
-        text: isPendingApplication ? (
-          <span className="inline-flex flex-wrap items-center gap-1">
-            <TimestampTooltip
-              timestamp={partner.createdAt}
-              rows={["local", "utc", "unix"]}
-              side="left"
-              delayDuration={250}
-            >
-              <span>Applied {formatDate(partner.createdAt)}</span>
-            </TimestampTooltip>
-          </span>
-        ) : (
-          `${isPendingApplication ? "Applied" : "Partner since"} ${formatDate(partner.createdAt)}`
-        ),
-        timestamp: isPendingApplication ? undefined : partner.createdAt,
-      },
-      {
-        id: "payoutMethod" as const,
-        icon: partner.defaultPayoutMethod ? (
-          createElement(
-            getPayoutMethodIconConfig(partner.defaultPayoutMethod).Icon,
-            { className: "size-3.5 shrink-0" },
-          )
-        ) : (
-          <CircleMinus className="size-3.5 shrink-0" />
-        ),
-        text:
-          partner.defaultPayoutMethod && partner.payoutsEnabledAt
-            ? `${getPayoutMethodLabel(partner.defaultPayoutMethod)} connected ${formatDateTimeSmart(partner.payoutsEnabledAt)}`
-            : "No payout method connected",
-        ...(partner.payoutsEnabledAt
-          ? { timestamp: partner.payoutsEnabledAt }
-          : {}),
-      },
-      // TODO: once more partners verify their identity, we can show this by default
-      ...(partner.identityVerifiedAt
-        ? [
-            {
-              id: "identityVerifiedAt",
-              icon: partner.identityVerifiedAt ? (
-                <VerifiedBadge className="size-3.5 shrink-0" />
-              ) : (
-                <TriangleWarning className="size-3.5 shrink-0" />
-              ),
-              text: partner.identityVerifiedAt
-                ? `Identity verified ${formatDate(partner.identityVerifiedAt, { month: "short" })}`
-                : "Identity not verified",
-              ...(partner.identityVerifiedAt
-                ? { timestamp: partner.identityVerifiedAt }
-                : {}),
-            },
-          ]
-        : []),
-
-      // Referred by
-      ...(isEnrolled && canCreateReferralReward
-        ? [
-            {
-              id: "referredBy",
-              icon: <UserArrowRight className="size-3.5 shrink-0" />,
-              text: <ReferredByPartner partner={partner} />,
-            },
-          ]
-        : []),
-    ]);
-  }
-
-  if (isNetwork) {
-    basicFields = basicFields.concat([
-      {
-        id: "joinedAt",
-        icon: <CalendarIcon className="size-3.5" />,
-        text: partner ? `Joined ${formatDate(partner.createdAt!)}` : undefined,
-        timestamp: partner?.createdAt,
-      },
-    ]);
-  }
+  const basicFields = getBasicFields({
+    partner,
+    isEnrolled,
+    isAdmin,
+    isNetwork,
+    canCreateReferralReward,
+  });
 
   // Browse mode: website/socials rendered as compact rows (matching the detail
   // rows above) instead of the bordered platform cards.
@@ -457,7 +299,7 @@ export function PartnerInfoCards({
               </span>
             </div>
           )}
-          {isEnrolled && partner && <TagsList partner={partner} />}
+          {isEnrolled && partner && <PartnerInfoTagsCard partner={partner} />}
 
           {partner && isEnrolled && showApplicationRiskAnalysis && (
             <PartnerApplicationRiskSummary partner={partner} />
@@ -466,218 +308,19 @@ export function PartnerInfoCards({
       </div>
 
       {!isAdmin && !browseMode && (
-        <div className="border-border-subtle flex flex-col gap-4 rounded-xl border p-4">
-          {/* Group */}
-          <div className="flex flex-col gap-2">
-            {isEnrolled && (
-              <div className="flex min-h-7 items-center justify-between">
-                <h3 className="text-content-emphasis text-sm font-semibold">
-                  Group
-                </h3>
-
-                {partner && partner.status !== "pending" && hasActivityLogs && (
-                  <Button
-                    variant="outline"
-                    text="View history"
-                    className="h-7 w-fit rounded-lg px-1.5 text-xs font-medium text-neutral-400"
-                    onClick={() => setGroupHistoryOpen(true)}
-                  />
-                )}
-              </div>
-            )}
-
-            {partnerGroupHistorySheet}
-            {partner ? (
-              <PartnerInfoGroup
-                partner={partner}
-                changeButtonText="Change"
-                hideChangeButton={
-                  "status" in partner &&
-                  INACTIVE_ENROLLMENT_STATUSES.includes(partner.status)
-                }
-                className="rounded-lg bg-white shadow-sm"
-                selectedGroupId={selectedGroupId}
-                setSelectedGroupId={setSelectedGroupId}
-              />
-            ) : (
-              <div className="my-px h-11 w-full animate-pulse rounded-lg bg-neutral-200" />
-            )}
-          </div>
-
-          {isEnrolled && partner?.status === "approved" && (
-            <>
-              {/* Rewards */}
-              <div className="flex flex-col gap-2">
-                <h3 className="text-content-emphasis text-sm font-semibold">
-                  Rewards
-                </h3>
-                {group ? (
-                  group.clickReward ||
-                  group.leadReward ||
-                  group.saleReward ||
-                  group.discount ? (
-                    <ProgramRewardList
-                      rewards={[
-                        group.clickReward,
-                        group.leadReward,
-                        group.saleReward,
-                        group.referralReward,
-                      ].filter((r): r is RewardProps => r !== null)}
-                      discount={group.discount}
-                      variant="plain"
-                      className="text-content-subtle gap-2 text-xs leading-4"
-                      iconClassName="size-3.5"
-                    />
-                  ) : (
-                    <span className="text-content-subtle text-xs">
-                      No rewards
-                    </span>
-                  )
-                ) : (
-                  <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
-                )}
-              </div>
-              {/* Eligible bounties */}
-              <div className="flex flex-col gap-2">
-                <h3 className="text-content-emphasis text-sm font-semibold">
-                  Eligible Bounties
-                </h3>
-                {bounties ? (
-                  bounties.length ? (
-                    <div className="flex flex-col gap-2">
-                      {bounties.map((bounty) => {
-                        const Icon =
-                          bounty.type === "performance" ? Trophy : Heart;
-                        return (
-                          <Link
-                            key={bounty.id}
-                            target="_blank"
-                            href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
-                            className="text-content-subtle flex cursor-alias items-center gap-2 decoration-dotted underline-offset-2 hover:underline"
-                          >
-                            <Icon className="size-3.5 shrink-0" />
-                            <span className="text-xs font-medium">
-                              {bounty.name}
-                            </span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="text-content-subtle text-xs">
-                      No eligible bounties
-                    </p>
-                  )
-                ) : errorBounties ? (
-                  <p className="text-content-subtle text-xs">
-                    Failed to load bounties
-                  </p>
-                ) : (
-                  <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
-                )}
-              </div>
-            </>
-          )}
-        </div>
+        <PartnerInfoRewardsCard
+          partner={partner}
+          workspaceId={workspaceId}
+          workspaceSlug={workspaceSlug}
+          isEnrolled={isEnrolled}
+          group={group}
+          partnerGroupHistorySheet={partnerGroupHistorySheet}
+          setGroupHistoryOpen={setGroupHistoryOpen}
+          hasActivityLogs={hasActivityLogs}
+          selectedGroupId={selectedGroupId}
+          setSelectedGroupId={setSelectedGroupId}
+        />
       )}
     </div>
-  );
-}
-
-function TagsList({ partner }: { partner: EnrolledPartnerExtendedProps }) {
-  const { showUpdatePartnerTagsModal, setShowUpdatePartnerTagsModal } =
-    useUpdatePartnerTagsModal();
-
-  return (
-    <div className="border-border-subtle flex flex-col border-t p-4">
-      <UpdatePartnerTagsModal
-        showUpdatePartnerTagsModal={showUpdatePartnerTagsModal}
-        setShowUpdatePartnerTagsModal={setShowUpdatePartnerTagsModal}
-        partners={[partner]}
-      />
-      <div className="mb-2 flex justify-between gap-2">
-        <span className="text-content-emphasis block text-xs font-semibold">
-          Tags
-        </span>
-
-        <button
-          type="button"
-          onClick={() => setShowUpdatePartnerTagsModal(true)}
-          className="text-content-subtle hover:text-content-default text-xs font-medium"
-        >
-          Manage
-        </button>
-      </div>
-      <PartnerTagsList
-        tags={partner?.tags}
-        wrap
-        onAddTag={() => setShowUpdatePartnerTagsModal(true)}
-        mode="link"
-      />
-    </div>
-  );
-}
-
-function ReferredByPartner({
-  partner,
-}: {
-  partner: Pick<
-    EnrolledPartnerExtendedProps,
-    "id" | "name" | "image" | "email" | "groupId" | "totalCommissions"
-  >;
-}) {
-  const { slug } = useWorkspace();
-
-  const { referral, loading, error } = usePartnerReferral({
-    partnerId: partner?.id,
-  });
-
-  const {
-    AttributeReferringPartnerModal,
-    setShowAttributeReferringPartnerModal,
-  } = useAttributeReferringPartnerModal({ partner });
-
-  if (error) {
-    return null;
-  }
-
-  if (loading) {
-    return (
-      <span className="flex min-w-0 items-center gap-1">
-        <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
-        <div className="size-4 animate-pulse rounded-full bg-neutral-200" />
-        <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
-      </span>
-    );
-  }
-
-  // Has a referring partner
-  if (referral && referral.referredBy) {
-    return (
-      <span className="flex min-w-0 items-center gap-1">
-        Referred by
-        <Link
-          href={`/${slug}/program/partners/${referral.referredBy.id}`}
-          className="inline-flex min-w-0 max-w-full cursor-alias items-center gap-1 rounded decoration-dotted underline-offset-2 hover:underline"
-        >
-          <PartnerAvatar partner={referral.referredBy} className="size-3.5" />
-          <span className="truncate">{referral.referredBy.name}</span>
-        </Link>
-      </span>
-    );
-  }
-
-  return (
-    <>
-      <AttributeReferringPartnerModal />
-      <button
-        type="button"
-        onClick={() => setShowAttributeReferringPartnerModal(true)}
-        aria-label="Attribute referring partner"
-        className="bg-bg-inverted/5 text-content-default hover:bg-bg-inverted/10 -my-0.5 inline-flex h-5 min-w-0 select-none items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium transition-all"
-      >
-        Attribute referring partner
-      </button>
-    </>
   );
 }

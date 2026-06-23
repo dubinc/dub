@@ -10,7 +10,8 @@ export function getPartnerContentThumbnailUrl(thumbnailUrl: string | null) {
 
 export function isInstagramCdnUrl(url: string) {
   try {
-    const { hostname } = new URL(url);
+    const { hostname, protocol } = new URL(url);
+    if (protocol !== "https:") return false;
     return (
       hostname === "cdninstagram.com" ||
       hostname.endsWith(".cdninstagram.com") ||

@@ -57,6 +57,19 @@ export function formatMatchPercent(score: number) {
   return `${Math.round(Math.min(1, Math.max(0, score)) * 100)}%`;
 }
 
+// Coarse "Nd / Nw / Nmo ago" relative label for the last on-topic/published post.
+// timeAgo from @dub/utils goes absolute past ~23h, so we roll our own.
+export function lastPostedLabel(iso: string | null | undefined) {
+  if (!iso) return null;
+
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (days <= 0) return "today";
+  if (days < 7) return `${days}d ago`;
+  if (days < 8 * 7) return `${Math.floor(days / 7)}w ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
+}
+
 export function getContentThumbnail(chunk: ContentSearchChunk) {
   if (chunk.content.thumbnailUrl) {
     return getPartnerContentThumbnailUrl(chunk.content.thumbnailUrl);

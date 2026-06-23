@@ -121,7 +121,6 @@ export default function usePartnerContentSearch({
   country,
   starred,
   partnerIds,
-  candidateChunkCount,
   limit = PARTNER_CONTENT_SEARCH_PARTNER_LIMIT,
   chunksPerPartner = PARTNER_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER,
   debounceMs = 0,
@@ -133,7 +132,6 @@ export default function usePartnerContentSearch({
   country?: string;
   starred: boolean;
   partnerIds?: string[];
-  candidateChunkCount?: number;
   limit?: number;
   chunksPerPartner?: number;
   // Coalesce rapid filter changes into one request. Voyage search is billed and
@@ -155,7 +153,6 @@ export default function usePartnerContentSearch({
           country,
           starred,
           partnerIds?.join(",") ?? "",
-          candidateChunkCount,
           limit,
           chunksPerPartner,
         ])
@@ -180,7 +177,6 @@ export default function usePartnerContentSearch({
             query,
             limit,
             chunksPerPartner,
-            ...(candidateChunkCount && { candidateChunkCount }),
             ...(platforms?.length && { platforms }),
             ...(reach?.length && { reach }),
             ...(country && { country }),

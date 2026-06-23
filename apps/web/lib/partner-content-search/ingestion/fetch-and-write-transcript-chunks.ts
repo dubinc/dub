@@ -11,7 +11,7 @@ import { prisma } from "@/lib/prisma";
 
 // Fetch a content item's transcript, (re)chunk it, and replace its transcript chunks
 // in one transaction. Returns a summary; marks notAvailable when there's no transcript.
-export async function writeTranscriptChunks(contentItem: {
+export async function fetchAndWriteTranscriptChunks(contentItem: {
   id: string;
   partnerId: string;
   url: string;

@@ -4,7 +4,7 @@ import {
   parsePartnerContentCronPayload,
   partnerContentTranscriptPayloadSchema,
 } from "@/lib/partner-content-search/ingestion/enqueue";
-import { writeTranscriptChunks } from "@/lib/partner-content-search/ingestion/write-transcript-chunks";
+import { fetchAndWriteTranscriptChunks } from "@/lib/partner-content-search/ingestion/fetch-and-write-transcript-chunks";
 import { prisma } from "@/lib/prisma";
 import { logAndRespond } from "../../utils";
 
@@ -70,10 +70,12 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  let transcriptWriteResult: Awaited<ReturnType<typeof writeTranscriptChunks>>;
+  let transcriptResult: Awaited<
+    ReturnType<typeof fetchAndWriteTranscriptChunks>
+  >;
 
   try {
-    transcriptWriteResult = await writeTranscriptChunks({
+    transcriptResult = await fetchAndWriteTranscriptChunks({
       ...contentItem,
       platform: payload.platform,
     });
@@ -91,7 +93,7 @@ export const POST = withCron(async ({ rawBody }) => {
     throw error;
   }
 
-  if (!transcriptWriteResult.transcriptAvailable) {
+  if (!transcriptResult.transcriptAvailable) {
     await enqueueEmbedJob({
       mode: payload.mode,
       runStamp: payload.runStamp,
@@ -112,6 +114,6 @@ export const POST = withCron(async ({ rawBody }) => {
   });
 
   return logAndRespond(
-    `[PartnerContentSearch] Transcribed content item ${contentItem.id}: ${transcriptWriteResult.chunkCount} chunks (${transcriptWriteResult.chunksCreated} created), embed enqueued for ${payload.mode} run ${payload.runStamp}.`,
+    `[PartnerContentSearch] Transcribed content item ${contentItem.id}: ${transcriptResult.chunkCount} chunks (${transcriptResult.chunksCreated} created), embed enqueued for ${payload.mode} run ${payload.runStamp}.`,
   );
 });

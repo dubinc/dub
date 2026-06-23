@@ -14,10 +14,10 @@ import {
   sortRowsByRelevanceScore,
   type SourceScoreByContentItemId,
 } from "./ranking";
+import { rerankPartnerSearchRows } from "./rerank";
 import {
   dedupeBestChunkPerContentItem,
   dedupeBestChunkPerContentItemSource,
-  rerankPartnerSearchRows,
   type PartnerContentSearchRow,
 } from "./search-utils";
 import type { PartnerContentSearchTimingLogger } from "./timing";
@@ -502,61 +502,4 @@ async function hydratePartnerContentChunkText({
         }
       : row,
   );
-}
-
-// Single-phase admin diagnostics query: one raw ANN with inline hydration, no
-// eligibility/network pre-filtering (intentionally searches the full corpus).
-export async function searchAdminPartnerContentChunks({
-  queryVector,
-  limit,
-  partnerIds,
-  platform,
-}: {
-  queryVector: string;
-  limit: number;
-  partnerIds?: string[];
-  platform?: PlatformType;
-}) {
-  const partnerFilter = partnerIds?.length
-    ? Prisma.sql`AND c.partnerId IN (${Prisma.join(partnerIds)})`
-    : Prisma.empty;
-  const platformFilter = platform
-    ? Prisma.sql`AND pp.type = ${platform}`
-    : Prisma.empty;
-
-  return await prisma.$queryRaw<PartnerContentSearchRow[]>(Prisma.sql`
-    SELECT
-      c.id AS chunkId,
-      c.partnerContentItemId,
-      c.partnerId,
-      p.name AS partnerName,
-      p.username AS partnerUsername,
-      p.image AS partnerImage,
-      p.description AS partnerDescription,
-      pp.type AS platformType,
-      pp.identifier AS platformIdentifier,
-      pci.platformContentId,
-      pci.url AS contentUrl,
-      pci.contentType,
-      pci.title AS contentTitle,
-      pci.thumbnailUrl AS contentThumbnailUrl,
-      pci.publishedAt AS contentPublishedAt,
-      pci.durationMs AS contentDurationMs,
-      c.source AS chunkSource,
-      c.chunkIndex,
-      c.chunkText,
-      c.startMs,
-      c.endMs,
-      DISTANCE(TO_VECTOR(${queryVector}), c.embedding, ${Prisma.raw(`'${PARTNER_CONTENT_CHUNK_VECTOR_DISTANCE}'`)}) AS distance
-    FROM PartnerContentChunk c
-    INNER JOIN PartnerContentItem pci ON pci.id = c.partnerContentItemId
-    INNER JOIN Partner p ON p.id = c.partnerId
-    INNER JOIN PartnerPlatform pp ON pp.id = pci.partnerPlatformId
-    WHERE c.embedding IS NOT NULL
-      AND c.embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.id}
-      ${partnerFilter}
-      ${platformFilter}
-    ORDER BY distance ASC
-    LIMIT ${limit}
-  `);
 }

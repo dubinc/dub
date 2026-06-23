@@ -23,8 +23,6 @@ const backfillTriggerSchema = z.object({
 export const POST = withAdmin(
   async ({ req }) => {
     try {
-      // Fail loud on malformed JSON instead of silently widening to a
-      // full backfill; parseRequestBody throws a 400 DubApiError.
       const body = backfillTriggerSchema.parse(await parseRequestBody(req));
       const runStamp = body.runStamp ?? createPartnerContentRunStamp();
 
@@ -57,8 +55,6 @@ export const POST = withAdmin(
         qstashResponse,
       });
     } catch (error) {
-      // Normalize ZodError -> 422, DubApiError -> 4xx, QStash failure -> 500
-      // (the withAdmin wrapper does not do this for us).
       return handleAndReturnErrorResponse(error);
     }
   },

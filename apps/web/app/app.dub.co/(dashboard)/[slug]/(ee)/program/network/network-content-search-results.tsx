@@ -3,15 +3,7 @@
 import type { PartnerContentTopicFitBand } from "@/lib/partner-content-search/constants";
 import type { PartnerContentSearchPartner } from "@/lib/swr/use-partner-content-search";
 import { Tooltip } from "@dub/ui";
-import {
-  Globe,
-  Instagram,
-  LinkedIn,
-  TikTok,
-  Twitter,
-  User,
-  YouTube,
-} from "@dub/ui/icons";
+import { User } from "@dub/ui/icons";
 import { cn, nFormatter } from "@dub/utils";
 import type { PlatformType } from "@prisma/client";
 import { useEffect, useState } from "react";
@@ -25,8 +17,10 @@ import {
   getContentHref,
   getContentThumbnail,
   getContentTitle,
+  lastPostedLabel,
 } from "./content-display-utils";
 import { NetworkPartnerCard } from "./network-partner-card";
+import { PLATFORM_ICONS, PlatformIcon } from "./platform-icon";
 
 const PLATFORM_LABELS: Partial<Record<PlatformType, string>> = {
   youtube: "YouTube",
@@ -81,42 +75,10 @@ export function NetworkContentSearchResults({
     return (
       <div className="@5xl/page:grid-cols-4 @3xl/page:grid-cols-3 @xl/page:grid-cols-2 mt-4 grid grid-cols-1 gap-4 lg:gap-6">
         {[...Array(8)].map((_, idx) => (
-          <div
+          <NetworkPartnerCard
             key={idx}
-            className="border-border-subtle rounded-xl border bg-white"
-          >
-            <div className="p-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="size-16 animate-pulse rounded-full bg-neutral-200" />
-                <div className="h-7 w-20 animate-pulse rounded-full bg-neutral-100" />
-              </div>
-              <div className="mt-3.5 h-6 w-32 animate-pulse rounded bg-neutral-200" />
-              <div className="mt-3 flex flex-col gap-2">
-                <div className="h-4 w-40 animate-pulse rounded bg-neutral-100" />
-                <div className="h-4 w-32 animate-pulse rounded bg-neutral-100" />
-              </div>
-            </div>
-            <div className="border-border-subtle border-t p-4 pt-2">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1.5">
-                <div className="col-start-1 row-start-1 h-3 w-16 animate-pulse rounded bg-neutral-200" />
-                <div className="col-start-2 row-start-1 h-3 w-20 justify-self-start animate-pulse rounded bg-neutral-200" />
-                <div className="col-start-1 row-start-2 flex flex-col items-start gap-1">
-                  <div className="h-8 w-11 animate-pulse rounded bg-neutral-200" />
-                  <div className="h-6 w-20 animate-pulse rounded-full bg-neutral-100" />
-                </div>
-                <div className="col-start-2 row-start-2 flex items-center justify-start gap-1.5 justify-self-start">
-                  {[...Array(TOP_CONTENT_PREVIEW_COUNT)].map((_, index) => (
-                    <div
-                      key={index}
-                      className="size-11 animate-pulse rounded-lg bg-neutral-100"
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="mt-2.5 h-3 w-32 animate-pulse rounded bg-neutral-100" />
-              <div className="mt-2 h-3 w-40 animate-pulse rounded bg-neutral-100" />
-            </div>
-          </div>
+            bottomContent={<NetworkPartnerContentMatchSkeleton />}
+          />
         ))}
       </div>
     );
@@ -204,7 +166,7 @@ function NetworkPartnerContentMatch({
   const followers = summary?.followers ?? null;
   const medianViews = summary?.medianViews ?? null;
   const matchLabel = formatMatchEvidenceLabel(summary);
-  const lastOnTopic = lastPublishedLabel(summary?.lastOnTopicAt);
+  const lastOnTopic = lastPostedLabel(summary?.lastOnTopicAt);
   const previewItems = getContentPreviewItems(partner);
 
   return (
@@ -266,6 +228,31 @@ function NetworkPartnerContentMatch({
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function NetworkPartnerContentMatchSkeleton() {
+  return (
+    <div className="border-border-subtle border-t p-4 pt-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1.5">
+        <div className="col-start-1 row-start-1 h-3 w-16 animate-pulse rounded bg-neutral-200" />
+        <div className="col-start-2 row-start-1 h-3 w-20 justify-self-start animate-pulse rounded bg-neutral-200" />
+        <div className="col-start-1 row-start-2 flex flex-col items-start gap-1">
+          <div className="h-8 w-11 animate-pulse rounded bg-neutral-200" />
+          <div className="h-6 w-20 animate-pulse rounded-full bg-neutral-100" />
+        </div>
+        <div className="col-start-2 row-start-2 flex items-center justify-start gap-1.5 justify-self-start">
+          {[...Array(TOP_CONTENT_PREVIEW_COUNT)].map((_, index) => (
+            <div
+              key={index}
+              className="size-11 animate-pulse rounded-lg bg-neutral-100"
+            />
+          ))}
+        </div>
+      </div>
+      <div className="mt-2.5 h-3 w-32 animate-pulse rounded bg-neutral-100" />
+      <div className="mt-2 h-3 w-40 animate-pulse rounded bg-neutral-100" />
     </div>
   );
 }
@@ -453,18 +440,6 @@ function ContentPreviewTooltip({ item }: { item: ContentPreviewItem }) {
   );
 }
 
-function PlatformIcon({
-  platform,
-  className,
-}: {
-  platform: string;
-  className?: string;
-}) {
-  const Icon = PLATFORM_ICONS[platform as PlatformType] ?? User;
-
-  return <Icon className={cn("size-4", className)} />;
-}
-
 function getContentEngagementMetrics(
   chunk: ContentSearchChunk,
   bar: ContentSearchBar | undefined,
@@ -530,15 +505,6 @@ const BAND_STYLES: Record<
   },
 };
 
-const PLATFORM_ICONS: Partial<Record<PlatformType, typeof User>> = {
-  youtube: YouTube,
-  instagram: Instagram,
-  tiktok: TikTok,
-  twitter: Twitter,
-  linkedin: LinkedIn,
-  website: Globe,
-};
-
 function PlatformIcons({ platforms }: { platforms: string[] }) {
   const icons = platforms
     .map((platform) => PLATFORM_ICONS[platform as PlatformType])
@@ -556,18 +522,6 @@ function PlatformIcons({ platforms }: { platforms: string[] }) {
       ))}
     </span>
   );
-}
-
-// Coarse "Nd/Nw/Nmo ago" (timeAgo from @dub/utils goes absolute past ~23h).
-function lastPublishedLabel(iso: string | null | undefined) {
-  if (!iso) return null;
-
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (days <= 0) return "today";
-  if (days < 7) return `${days}d ago`;
-  if (days < 8 * 7) return `${Math.floor(days / 7)}w ago`;
-  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
-  return `${Math.floor(days / 365)}y ago`;
 }
 
 function formatMatchEvidenceLabel(

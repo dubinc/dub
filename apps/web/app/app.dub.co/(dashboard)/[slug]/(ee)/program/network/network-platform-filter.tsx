@@ -1,6 +1,7 @@
 import { Popover } from "@dub/ui";
 import {
   Globe,
+  GlobePointer,
   Instagram,
   LinkedIn,
   TikTok,
@@ -144,32 +145,27 @@ export function NetworkPlatformFilter({
       <button
         type="button"
         onClick={() => setOpenPopover(!openPopover)}
-        aria-label="Filter by platform"
+        aria-label="Filter by channel"
         data-open={openPopover}
         className={cn(
-          "group flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 pr-3 outline-none transition-all",
+          "group flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 text-sm outline-none transition-all",
           "focus-visible:border-neutral-500 data-[open=true]:border-neutral-500 data-[open=true]:ring-4 data-[open=true]:ring-neutral-200",
           className,
         )}
       >
-        <span className="flex items-center gap-1.5">
-          {NETWORK_FILTER_PLATFORMS.map((platform) => {
-            const { icon: Icon } = PLATFORM_META[platform];
-            const isSelected = selectedSet.has(platform);
-
-            return (
-              <Icon
-                key={platform}
-                className={cn(
-                  "size-4 shrink-0 transition-[opacity,filter] duration-200",
-                  // Deselected platforms read as dimmed/desaturated.
-                  !isSelected && "opacity-40 grayscale",
-                )}
-              />
-            );
-          })}
-        </span>
-        <ChevronDown className="size-4 shrink-0 text-neutral-400 transition-transform duration-75 group-data-[open=true]:rotate-180" />
+        <GlobePointer className="text-content-emphasis size-4 shrink-0" />
+        <span className="text-content-emphasis font-medium">Channels</span>
+        {isFiltered ? (
+          <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-black text-xs font-medium text-white">
+            {selectedPlatforms.length}
+          </span>
+        ) : (
+          // Same footprint as the count badge so the button width never drifts
+          // between states (no popover jump on first filter / clear).
+          <span className="flex size-5 shrink-0 items-center justify-center">
+            <ChevronDown className="size-4 text-neutral-400 transition-transform duration-75 group-data-[open=true]:rotate-180" />
+          </span>
+        )}
       </button>
     </Popover>
   );

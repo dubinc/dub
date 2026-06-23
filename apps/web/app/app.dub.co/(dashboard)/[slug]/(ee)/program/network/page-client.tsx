@@ -1,7 +1,5 @@
 "use client";
 
-import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
-import { parseReachTiers } from "@/lib/api/network/reach-tiers";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import usePartnerContentSearch from "@/lib/swr/use-partner-content-search";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -18,10 +16,6 @@ import {
 } from "@dub/ui";
 import { Star, StarFill } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
-import { PlatformType } from "@prisma/client";
-import { useAction } from "next-safe-action/hooks";
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import useSWR from "swr";
 import { NetworkContentSearchResults } from "./network-content-search-results";
@@ -29,19 +23,16 @@ import { NetworkEmptyState } from "./network-empty-state";
 import { NetworkPartnerCard } from "./network-partner-card";
 import { NetworkPartnerDetailSheet } from "./network-partner-detail-sheet";
 import { NetworkPlatformFilter } from "./network-platform-filter";
+import { useNetworkDetailSheet } from "./use-network-detail-sheet";
 import {
-  getContentSearchPlatforms,
-  isAllPlatformsSelected,
-  parseSelectedPlatforms,
-  platformFilterParam,
-} from "./platform-filter-utils";
+  FILTER_FETCH_DEBOUNCE_MS,
+  useNetworkPartnerFiltersState,
+} from "./use-network-partner-filters-state";
 import { usePartnerNetworkFilters } from "./use-partner-network-filters";
-
-// Filter changes update the URL instantly (snappy controls) but the data fetch is
-// debounced so a rapid burst of toggles collapses into a single request — sparing
-// the heavy ranking SQL and (in search mode) the billed Voyage embed+rerank call.
-// keepPreviousData holds the prior results on screen during the brief wait.
-const FILTER_FETCH_DEBOUNCE_MS = 250;
+import {
+  useToggleStarredContentSearch,
+  useToggleStarredRankedList,
+} from "./use-toggle-partner-starred";
 
 const tabs = [
   {
@@ -67,23 +58,18 @@ export function ProgramPartnerNetworkPageClient({
 }: ProgramPartnerNetworkPageClientProps = {}) {
   const { id: workspaceId } = useWorkspace();
   const { searchParams, getQueryString, queryParams } = useRouterStuff();
-  const selectedPlatforms = useMemo(
-    () => parseSelectedPlatforms(searchParams.get("platform")),
-    [searchParams],
-  );
-  const platformFilter = platformFilterParam(selectedPlatforms);
-  // The content-searchable subset of the selection. Semantic search runs only
-  // when at least one searchable platform is selected; otherwise we fall back to
-  // the ranked partner list (filtered to the chosen platforms).
-  const contentSearchPlatforms = getContentSearchPlatforms(selectedPlatforms);
-  const selectedReach = useMemo(
-    () => parseReachTiers(searchParams.get("reach")),
-    [searchParams],
-  );
-  const reachFilter = selectedReach.length ? selectedReach : undefined;
-  const search = searchParams.get("search")?.trim() ?? "";
-  const country = searchParams.get("country") ?? undefined;
-  const starred = searchParams.get("starred") === "true";
+
+  const {
+    selectedPlatforms,
+    platformFilter,
+    contentSearchPlatforms,
+    reachFilter,
+    search,
+    country,
+    starred,
+    updateSearchParams,
+    onPlatformsChange,
+  } = useNetworkPartnerFiltersState();
 
   const status =
     variant === "ignored"
@@ -93,26 +79,6 @@ export function ProgramPartnerNetworkPageClient({
     status === "discover" &&
     search.length > 0 &&
     contentSearchPlatforms.length > 0;
-
-  // Update filter params via the History API instead of router.push. These are
-  // query-only changes that drive client-side SWR; page.tsx reads no searchParams,
-  // so a full RSC navigation per click only adds latency before useSearchParams()
-  // (and thus the control's checked state) updates. pushState updates it
-  // synchronously — instant feedback — while SWR still refetches on key change.
-  const updateSearchParams = (opts: {
-    set?: Record<string, string | string[]>;
-    del?: string | string[];
-  }) => {
-    const newPath = queryParams({ ...opts, getNewPath: true }) as string;
-    window.history.pushState(null, "", newPath);
-  };
-
-  const onPlatformsChange = (platforms: PlatformType[]) =>
-    updateSearchParams(
-      isAllPlatformsSelected(platforms)
-        ? { del: ["platform", "page"] }
-        : { set: { platform: platforms.join(",") }, del: "page" },
-    );
 
   const { data: partnerCounts, error: countError } = useNetworkPartnersCount();
 
@@ -162,10 +128,6 @@ export function ProgramPartnerNetworkPageClient({
     keepPreviousData: true,
   });
 
-  const { executeAsync: updateDiscoveredPartner } = useAction(
-    updateDiscoveredPartnerAction,
-  );
-
   const { pagination, setPagination } = usePagination(
     PARTNER_NETWORK_MAX_PAGE_SIZE,
   );
@@ -182,48 +144,24 @@ export function ProgramPartnerNetworkPageClient({
   const isStarred = searchParams.get("starred") === "true";
   const selectedPartnerId = searchParams.get("partnerId");
 
-  const [detailsSheetState, setDetailsSheetState] = useState<
-    | { open: false; partnerId: string | null }
-    | { open: true; partnerId: string }
-  >(
-    selectedPartnerId
-      ? { open: true, partnerId: selectedPartnerId }
-      : { open: false, partnerId: null },
+  const {
+    detailsSheetState,
+    setDetailsSheetState,
+    previousPartnerId,
+    nextPartnerId,
+  } = useNetworkDetailSheet({
+    selectedPartnerId,
+    isContentSearchMode,
+    contentSearchPartners: contentSearchResults?.partners,
+    partners,
+  });
+
+  const toggleStarredContentSearch =
+    useToggleStarredContentSearch(mutateContentSearch);
+  const toggleStarredRankedList = useToggleStarredRankedList(
+    mutatePartners,
+    partners,
   );
-
-  useEffect(() => {
-    if (selectedPartnerId) {
-      setDetailsSheetState({ open: true, partnerId: selectedPartnerId });
-    } else {
-      setDetailsSheetState({ open: false, partnerId: null });
-    }
-  }, [selectedPartnerId]);
-
-  const sheetPartnerIds = useMemo(
-    () =>
-      isContentSearchMode
-        ? contentSearchResults?.partners.map(({ partnerId }) => partnerId)
-        : partners?.map(({ id }) => id),
-    [contentSearchResults?.partners, isContentSearchMode, partners],
-  );
-
-  const [previousPartnerId, nextPartnerId] = useMemo(() => {
-    if (!sheetPartnerIds?.length || !detailsSheetState.partnerId) {
-      return [null, null];
-    }
-
-    const currentIndex = sheetPartnerIds.findIndex(
-      (id) => id === detailsSheetState.partnerId,
-    );
-    if (currentIndex === -1) return [null, null];
-
-    return [
-      currentIndex > 0 ? sheetPartnerIds[currentIndex - 1] : null,
-      currentIndex < sheetPartnerIds.length - 1
-        ? sheetPartnerIds[currentIndex + 1]
-        : null,
-    ];
-  }, [detailsSheetState.partnerId, sheetPartnerIds]);
 
   return (
     <div className="flex flex-col">
@@ -368,62 +306,7 @@ export function ProgramPartnerNetworkPageClient({
               : undefined
           }
           onToggleStarred={
-            variant === "ignored"
-              ? undefined
-              : (partnerId, starred) => {
-                  mutateContentSearch(
-                    // @ts-ignore SWR doesn't seem to have proper typing for partial data results w/ `populateCache`
-                    async () => {
-                      const result = await updateDiscoveredPartner({
-                        workspaceId: workspaceId!,
-                        partnerId,
-                        starred,
-                      });
-                      if (!result?.data) {
-                        toast.error("Failed to star partner");
-                        throw new Error("Failed to star partner");
-                      }
-
-                      return result.data;
-                    },
-                    {
-                      optimisticData: (data) =>
-                        data && {
-                          ...data,
-                          partners: data.partners.map((p) =>
-                            p.partnerId === partnerId
-                              ? {
-                                  ...p,
-                                  partner: {
-                                    ...p.partner,
-                                    starredAt: starred ? new Date() : null,
-                                  },
-                                }
-                              : p,
-                          ),
-                        },
-                      populateCache: (
-                        result: { starredAt: Date | null },
-                        data,
-                      ) =>
-                        data && {
-                          ...data,
-                          partners: data.partners.map((p) =>
-                            p.partnerId === partnerId
-                              ? {
-                                  ...p,
-                                  partner: {
-                                    ...p.partner,
-                                    starredAt: result.starredAt,
-                                  },
-                                }
-                              : p,
-                          ),
-                        },
-                      revalidate: false,
-                    },
-                  );
-                }
+            variant === "ignored" ? undefined : toggleStarredContentSearch
           }
         />
       ) : error || countError ? (
@@ -446,47 +329,8 @@ export function ProgramPartnerNetworkPageClient({
                     onToggleStarred={
                       variant === "ignored"
                         ? undefined
-                        : (starred) => {
-                            mutatePartners(
-                              // @ts-ignore SWR doesn't seem to have proper typing for partial data results w/ `populateCache`
-                              async () => {
-                                const result = await updateDiscoveredPartner({
-                                  workspaceId: workspaceId!,
-                                  partnerId: partner.id,
-                                  starred,
-                                });
-                                if (!result?.data) {
-                                  toast.error("Failed to star partner");
-                                  throw new Error("Failed to star partner");
-                                }
-
-                                return result.data;
-                              },
-                              {
-                                optimisticData: (data) =>
-                                  (data || partners).map((p) =>
-                                    p.id === partner.id
-                                      ? {
-                                          ...p,
-                                          starredAt: starred
-                                            ? new Date()
-                                            : null,
-                                        }
-                                      : p,
-                                  ),
-                                populateCache: (
-                                  result: { starredAt: Date | null },
-                                  data,
-                                ) =>
-                                  (data || partners).map((p) =>
-                                    p.id === partner.id
-                                      ? { ...p, starredAt: result.starredAt }
-                                      : p,
-                                  ),
-                                revalidate: false,
-                              },
-                            );
-                          }
+                        : (starred) =>
+                            toggleStarredRankedList(partner.id, starred)
                     }
                   />
                 ))

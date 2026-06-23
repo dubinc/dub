@@ -3,7 +3,6 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
-  PARTNER_CONTENT_SEARCH_LIMITS,
   PARTNER_CONTENT_SEARCH_MODELS,
   PARTNER_CONTENT_SEARCH_PARTNER_LIMIT,
 } from "@/lib/partner-content-search/constants";
@@ -18,6 +17,7 @@ import {
 } from "@/lib/partner-content-search/ranking";
 import { searchPartnerNetworkContent } from "@/lib/partner-content-search/retrieval";
 import {
+  getCandidateChunkCount,
   groupPartnerSearchResults,
   toScore,
   type PartnerContentSearchRow,
@@ -30,7 +30,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
-// POST /api/network/partners/content-search - semantic search over indexed partner content
+// POST /api/network/partners/content-search - network discover content search; returns ranked partners with matching chunks
 export const POST = withWorkspace(
   async ({ workspace, req }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -54,13 +54,11 @@ export const POST = withWorkspace(
     const body = partnerNetworkContentSearchSchema.parse(
       await parseRequestBody(req),
     );
-    const candidateChunkCount = body.query
-      ? body.candidateChunkCount ??
-        Math.min(
-          PARTNER_CONTENT_SEARCH_LIMITS.chunkCandidateCount,
-          Math.max(25, body.limit * body.chunksPerPartner * 6),
-        )
-      : body.limit * body.chunksPerPartner * 2;
+    const candidateChunkCount = getCandidateChunkCount({
+      hasQuery: Boolean(body.query),
+      limit: body.limit,
+      chunksPerPartner: body.chunksPerPartner,
+    });
     const logTiming = createPartnerContentSearchTimingLogger({
       workspaceId: workspace.id,
       programId,

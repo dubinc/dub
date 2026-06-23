@@ -88,7 +88,7 @@ export const POST = withCron(async ({ rawBody }) => {
         partnerIds,
       },
     },
-    // Self-continuation hop: re-enter from the last id instead of draining in one go.
+    // Pick up the next batch on a separate run when there are more partners.
     ...(hasMore
       ? [
           {

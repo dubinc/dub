@@ -1,4 +1,6 @@
 import { PlatformType, Prisma } from "@prisma/client";
+import type { ReachTier } from "./reach-tiers";
+import { reachTiersToRanges } from "./reach-tiers";
 
 /** Query params shared by `/api/network/partners` and `/count` for listing. */
 export type PartnerNetworkListingParams = {
@@ -61,4 +63,51 @@ export function partnerNetworkListingWhere(
   params: PartnerNetworkListingParams,
 ): Prisma.PartnerWhereInput {
   return partnerWhereFromListingParts(partnerNetworkListingParts(params));
+}
+
+// Reach tier filter: the partner's MAX subscriber count across verified platforms
+// (optionally scoped to selected platform types) must fall in a chosen tier.
+// "some platform >= min" AND "no scoped platform >= max" matches
+// calculatePartnerRanking's MAX-subscribers semantics.
+export function partnerReachWhere({
+  reach,
+  platform,
+}: {
+  reach?: ReachTier[];
+  platform?: PlatformType[];
+}): Prisma.PartnerWhereInput {
+  if (!reach?.length) return {};
+
+  const ranges = reachTiersToRanges(reach);
+  const platformScope: Prisma.PartnerPlatformWhereInput = {
+    verifiedAt: { not: null },
+    ...(platform?.length && { type: { in: platform } }),
+  };
+
+  return {
+    OR: ranges.map(({ min, max }) => ({
+      AND: [
+        {
+          platforms: {
+            some: {
+              ...platformScope,
+              subscribers: { gte: BigInt(min) },
+            },
+          },
+        },
+        ...(max != null
+          ? [
+              {
+                platforms: {
+                  none: {
+                    ...platformScope,
+                    subscribers: { gte: BigInt(max) },
+                  },
+                },
+              },
+            ]
+          : []),
+      ],
+    })),
+  };
 }
