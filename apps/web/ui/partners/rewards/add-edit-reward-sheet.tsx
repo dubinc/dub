@@ -37,7 +37,7 @@ import {
   useLocalStorage,
   useRouterStuff,
 } from "@dub/ui";
-import { capitalize, cn, pluralize } from "@dub/utils";
+import { capitalize, cn, currencyFormatter, pluralize } from "@dub/utils";
 import { EventType, RewardStructure } from "@prisma/client";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
@@ -572,7 +572,13 @@ function RewardSheetContent({
                                   text={
                                     spendLimitAmount != null &&
                                     !isNaN(spendLimitAmount)
-                                      ? `$${spendLimitAmount}`
+                                      ? currencyFormatter(
+                                          spendLimitAmount * 100,
+                                          {
+                                            trailingZeroDisplay:
+                                              "stripIfInteger",
+                                          },
+                                        )
                                       : "amount"
                                   }
                                   invalid={
