@@ -84,6 +84,7 @@ export function ProgramRewardDescription({
             ))}
 
           <ProgramRewardSpendLimit
+            event={reward.event}
             spendLimitAmount={reward.spendLimitAmount}
             spendLimitInterval={reward.spendLimitInterval}
           />
