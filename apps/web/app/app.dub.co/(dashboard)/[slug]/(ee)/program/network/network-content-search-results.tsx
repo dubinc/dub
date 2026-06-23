@@ -1,7 +1,6 @@
 "use client";
 
 import type { PartnerContentTopicFitBand } from "@/lib/partner-content-search/constants";
-import { getPartnerContentThumbnailUrl } from "@/lib/partner-content-search/thumbnail-url";
 import type { PartnerContentSearchPartner } from "@/lib/swr/use-partner-content-search";
 import { Tooltip } from "@dub/ui";
 import {
@@ -16,6 +15,17 @@ import {
 import { cn, nFormatter } from "@dub/utils";
 import type { PlatformType } from "@prisma/client";
 import { useEffect, useState } from "react";
+import {
+  BAND_LABELS,
+  type ContentSearchChunk,
+  formatDuration,
+  formatMatchPercent,
+  formatPublishedDate,
+  formatTimestamp,
+  getContentHref,
+  getContentThumbnail,
+  getContentTitle,
+} from "./content-display-utils";
 import { NetworkPartnerCard } from "./network-partner-card";
 
 const PLATFORM_LABELS: Partial<Record<PlatformType, string>> = {
@@ -34,7 +44,6 @@ function contentLabel(platform?: PlatformType) {
 
 const TOP_CONTENT_PREVIEW_COUNT = 2;
 
-type ContentSearchChunk = PartnerContentSearchPartner["chunks"][number];
 type ContentSearchBar = NonNullable<
   PartnerContentSearchPartner["matchSummary"]
 >["contentBars"][number];
@@ -170,8 +179,7 @@ function NetworkPartnerContentMatch({
       : summary?.platforms ?? [platform].filter(Boolean)
   ) as string[];
 
-  // List mode (no query): there's no topic fit to score, so show the partner's
-  // platforms + how recently they've published.
+  // List mode (no query): no topic fit, so show platforms + last-published recency.
   if (!hasQuery) {
     return (
       <div className="border-border-subtle border-t p-4 pt-2">
@@ -457,67 +465,6 @@ function PlatformIcon({
   return <Icon className={cn("size-4", className)} />;
 }
 
-function getContentThumbnail(chunk: ContentSearchChunk) {
-  if (chunk.content.thumbnailUrl) {
-    return getPartnerContentThumbnailUrl(chunk.content.thumbnailUrl);
-  }
-
-  if (chunk.platform.type === "youtube") {
-    return `https://i.ytimg.com/vi/${chunk.content.platformContentId}/hqdefault.jpg`;
-  }
-
-  return null;
-}
-
-function getContentTitle(chunk: ContentSearchChunk) {
-  return (
-    chunk.content.title?.trim() ||
-    chunk.content.description?.trim().split(/\r?\n/)[0] ||
-    "Untitled content"
-  );
-}
-
-function getContentHref(chunk: ContentSearchChunk) {
-  if (chunk.platform.type === "instagram") {
-    return getInstagramContentHref(chunk);
-  }
-
-  if (chunk.platform.type !== "youtube" || chunk.chunk.startMs === null) {
-    return chunk.content.url;
-  }
-
-  try {
-    const url = new URL(chunk.content.url);
-    url.searchParams.set("t", `${Math.floor(chunk.chunk.startMs / 1000)}s`);
-    return url.toString();
-  } catch {
-    return chunk.content.url;
-  }
-}
-
-function getInstagramContentHref(chunk: ContentSearchChunk) {
-  const shortcode =
-    extractInstagramShortcode(chunk.content.url) || chunk.content.platformContentId;
-
-  return `https://www.instagram.com/${chunk.content.type === "reel" ? "reel" : "p"}/${shortcode}/`;
-}
-
-function extractInstagramShortcode(url: string) {
-  try {
-    return (
-      new URL(url).pathname.match(
-        /^\/(?:(?:[^/]+)\/)?(?:p|reel|tv)\/([^/?#]+)/,
-      )?.[1] ?? null
-    );
-  } catch {
-    return (
-      url.match(
-        /instagram\.com\/(?:(?:[^/]+)\/)?(?:p|reel|tv)\/([^/?#]+)/,
-      )?.[1] ?? null
-    );
-  }
-}
-
 function getContentEngagementMetrics(
   chunk: ContentSearchChunk,
   bar: ContentSearchBar | undefined,
@@ -556,54 +503,7 @@ function formatChunkMatchLocation(chunk: ContentSearchChunk) {
   )}`;
 }
 
-function formatTimestamp(ms: number) {
-  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-}
-
-function formatDuration(durationMs: number | null) {
-  if (!durationMs || durationMs <= 0) return null;
-
-  const totalSeconds = Math.floor(durationMs / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
-      .toString()
-      .padStart(2, "0")}`;
-  }
-
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-}
-
-function formatPublishedDate(publishedAt: string | null) {
-  if (!publishedAt) return null;
-
-  const date = new Date(publishedAt);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
-
-const BAND_LABELS: Record<PartnerContentTopicFitBand, string> = {
-  consistent: "Consistent",
-  frequent: "Frequent",
-  occasional: "Occasional",
-  "one-off": "One-off",
-  none: "No recent match",
-};
-
-// Number + chip colors per band. Number color follows the band tier so the score
-// reads at a glance (green = consistent, down to gray = one-off/none).
+// Number + chip colors per band (number color follows the tier).
 const BAND_STYLES: Record<
   PartnerContentTopicFitBand,
   { number: string; chip: string }
@@ -649,9 +549,7 @@ function PlatformIcons({ platforms }: { platforms: string[] }) {
   }
 
   return (
-    // No text-color override here: the YouTube/TikTok/Instagram icons carry their
-    // own brand colors, so we let them render in color rather than desaturating
-    // them to the surrounding muted text color.
+    // No text-color override: the brand icons carry their own colors.
     <span className="flex shrink-0 items-center gap-1">
       {icons.map((Icon, index) => (
         <Icon key={index} className="size-3.5" />
@@ -660,8 +558,7 @@ function PlatformIcons({ platforms }: { platforms: string[] }) {
   );
 }
 
-// Coarse "Nd / Nw / Nmo ago" label for the last publish date (timeAgo from
-// @dub/utils switches to absolute dates past ~23h, which we don't want here).
+// Coarse "Nd/Nw/Nmo ago" (timeAgo from @dub/utils goes absolute past ~23h).
 function lastPublishedLabel(iso: string | null | undefined) {
   if (!iso) return null;
 
@@ -673,22 +570,13 @@ function lastPublishedLabel(iso: string | null | undefined) {
   return `${Math.floor(days / 365)}y ago`;
 }
 
-function clampScore(score: number) {
-  return Math.min(1, Math.max(0, score));
-}
-
-function formatMatchPercent(score: number) {
-  return `${Math.round(clampScore(score) * 100)}%`;
-}
-
 function formatMatchEvidenceLabel(
   summary: PartnerContentSearchPartner["matchSummary"] | undefined,
 ) {
   const matchingPosts = summary?.matchedContentCount ?? 0;
   const recentPosts = summary?.recentContentCount ?? 0;
 
-  // Aggregate coverage rather than splitting evidence by source (transcript vs
-  // creator text), which read as noisy on the compact card.
+  // Aggregate coverage; splitting by source reads noisy on the compact card.
   if (recentPosts > 0) {
     return `${matchingPosts} of ${recentPosts} matching`;
   }

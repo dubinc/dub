@@ -1,7 +1,5 @@
-// Stage timing logger for the partner content search route. Emits one structured
-// console line per pipeline stage with the elapsed/delta timing plus a shared
-// request context, throttling noisy sub-5ms stages unless they're on the
-// always-log allowlist below.
+// Stage timing logger for the content search route: one structured console line
+// per pipeline stage (elapsed/delta), throttling sub-5ms stages off the allowlist.
 
 const MIN_PARTNER_CONTENT_SEARCH_TIMING_DELTA_MS = 5;
 const PARTNER_CONTENT_SEARCH_ALWAYS_LOG_TIMING_STAGES = new Set([

@@ -1,11 +1,11 @@
 import {
   createContentMatchEvidence,
   deriveTopicFit,
-  getEntityCreatorTextBoost,
   getEvidenceMatchScore,
   getEvidenceTopicScore,
-  getPartnerContentSearchQuerySignals,
+  getMatchedSourceScore,
 } from "@/lib/partner-content-search/ranking";
+import { PARTNER_CONTENT_SEARCH_TOPIC_FIT } from "@/lib/partner-content-search/constants";
 import { describe, expect, test, vi } from "vitest";
 
 // Mock server-only module (ranking.ts imports search-utils.ts -> voyage.ts).
@@ -37,55 +37,31 @@ describe("partner content ranking", () => {
     expect(getEvidenceTopicScore(transcriptVideo)).toBe(1);
   });
 
-  test("lets exact entity captions override the default creator text video discount", () => {
-    const evidence = createContentMatchEvidence({
-      contentType: "video",
-      transcriptScore: null,
-      creatorTextScore: 0.95,
-      creatorTextWeightOverride: 0.95,
-    });
+  test("gates a recent post as matched only via reranker threshold or cutoff distance", () => {
+    const { rerankMatchThreshold } = PARTNER_CONTENT_SEARCH_TOPIC_FIT;
 
-    expect(evidence.creatorTextWeight).toBe(0.95);
-    expect(evidence.weight).toBe(0.95);
-    expect(getEvidenceMatchScore(evidence)).toBe(0.95);
-    expect(getEvidenceTopicScore(evidence)).toBe(0.95);
-  });
-
-  test("only boosts exact creator text for entity-style queries", () => {
-    const entityQuery = getPartnerContentSearchQuerySignals("Framer");
-    const semanticQuery =
-      getPartnerContentSearchQuerySignals("fitness influencer");
-
-    expect(entityQuery.intent).toBe("entity");
-    expect(semanticQuery.intent).toBe("semantic");
-
+    // Reranker score is authoritative when present: at/above the threshold matches,
+    // below it does not — regardless of distance.
+    expect(getMatchedSourceScore({ rerankScore: rerankMatchThreshold })).toBe(
+      rerankMatchThreshold,
+    );
     expect(
-      getEntityCreatorTextBoost({
-        platformType: "tiktok",
-        contentType: "video",
-        transcriptFetchStatus: "pending",
-        titleHasExactQueryMention: false,
-        descriptionHasExactQueryMention: true,
-        chunkHasExactQueryMention: true,
-        transcriptScore: null,
-        queryIntent: entityQuery.intent,
-      }),
-    ).toEqual({
-      score: 0.95,
-      weight: 0.95,
-    });
-    expect(
-      getEntityCreatorTextBoost({
-        platformType: "tiktok",
-        contentType: "video",
-        transcriptFetchStatus: "pending",
-        titleHasExactQueryMention: false,
-        descriptionHasExactQueryMention: true,
-        chunkHasExactQueryMention: true,
-        transcriptScore: null,
-        queryIntent: semanticQuery.intent,
-      }),
+      getMatchedSourceScore({ rerankScore: rerankMatchThreshold - 0.01 }),
     ).toBeNull();
+
+    // Without a reranker score, fall back to the cosine cutoff: within cutoff
+    // matches (scored as 1 - distance), beyond it does not.
+    expect(
+      getMatchedSourceScore({ bestDistance: 0.3, cutoffDistance: 0.4 }),
+    ).toBe(0.7);
+    expect(
+      getMatchedSourceScore({ bestDistance: 0.5, cutoffDistance: 0.4 }),
+    ).toBeNull();
+
+    // No retrieval evidence at all → no match (lexical title/description text
+    // alone can no longer create or boost a match).
+    expect(getMatchedSourceScore({})).toBeNull();
+    expect(getMatchedSourceScore({ bestDistance: 0.3 })).toBeNull();
   });
 
   test("does not let high creator text override weaker transcript evidence at full weight", () => {
@@ -143,5 +119,45 @@ describe("partner content ranking", () => {
     });
 
     expect(topicFit.topicFit).toBeGreaterThanOrEqual(98);
+  });
+
+  test("topic fit demotes a thin one-off below a deep but diluted creator", () => {
+    // One on-topic post, nothing else: topically "pure" but unproven.
+    const oneOff = deriveTopicFit({
+      matchedContentCount: 1,
+      weightedMatchedContentCount: 1,
+      weightedMatchedContentScore: 0.9,
+      recentContentCount: 1,
+    });
+    // Many on-topic posts diluted by off-topic ones (the creator also posts
+    // about other things). Lower purity, but a real body of on-topic work.
+    const deepButDiluted = deriveTopicFit({
+      matchedContentCount: 30,
+      weightedMatchedContentCount: 30,
+      weightedMatchedContentScore: 30,
+      recentContentCount: 100,
+    });
+
+    expect(oneOff.band).toBe("one-off");
+    expect(oneOff.topicFit).toBeLessThan(50);
+    expect(deepButDiluted.topicFit).toBeGreaterThan(oneOff.topicFit);
+  });
+
+  test("topic fit rewards on-topic depth over a shallow diluted creator", () => {
+    const deepButDiluted = deriveTopicFit({
+      matchedContentCount: 30,
+      weightedMatchedContentCount: 30,
+      weightedMatchedContentScore: 30,
+      recentContentCount: 100,
+    });
+    // Only a couple of on-topic posts amid many off-topic ones: little evidence.
+    const shallowDiluted = deriveTopicFit({
+      matchedContentCount: 2,
+      weightedMatchedContentCount: 2,
+      weightedMatchedContentScore: 2,
+      recentContentCount: 50,
+    });
+
+    expect(deepButDiluted.topicFit).toBeGreaterThan(shallowDiluted.topicFit);
   });
 });

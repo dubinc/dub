@@ -1,23 +1,10 @@
-import { createId } from "@/lib/api/create-id";
-import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import {
-  chunkTranscriptSegments,
-  hashTranscript,
-} from "@/lib/partner-content-search/chunk-transcript";
-import { PARTNER_CONTENT_SEARCH_MODELS } from "@/lib/partner-content-search/constants";
-import { refreshPartnerContentItemChunkCounts } from "@/lib/partner-content-search/ingestion/chunk-counts";
-import {
-  createPartnerContentDeduplicationId,
-  getPartnerContentUrl,
+  enqueueEmbedJob,
   parsePartnerContentCronPayload,
-  PARTNER_CONTENT_EMBED_FLOW_CONTROL,
-  PARTNER_CONTENT_SEARCH_ROUTES,
   partnerContentTranscriptPayloadSchema,
-  type PartnerContentIngestionMode,
 } from "@/lib/partner-content-search/ingestion/enqueue";
-import { fetchPlatformTranscriptSegments } from "@/lib/partner-content-search/ingestion/platforms";
-import type { PartnerContentPlatform } from "@/lib/partner-content-search/types";
+import { writeTranscriptChunks } from "@/lib/partner-content-search/ingestion/write-transcript-chunks";
 import { prisma } from "@/lib/prisma";
 import { logAndRespond } from "../../utils";
 
@@ -64,10 +51,9 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  // QStash delivers at least once. If this transcript was already fetched and
-  // chunked, skip the (credit-burning) ScrapeCreators re-fetch — but still
-  // (re-)enqueue the embed job so a previously-failed enqueue is recovered on
-  // redelivery. Admin re-ingestion can force a fresh fetch via forceRefetch.
+  // QStash delivers at least once. If already fetched+chunked, skip the credit-burning
+  // re-fetch but still re-enqueue embed (recovers a previously-failed enqueue).
+  // forceRefetch forces a fresh fetch.
   if (
     contentItem.transcriptFetchStatus === "fetched" &&
     !payload.forceRefetch
@@ -129,156 +115,3 @@ export const POST = withCron(async ({ rawBody }) => {
     `[PartnerContentSearch] Transcribed content item ${contentItem.id}: ${transcriptWriteResult.chunkCount} chunks (${transcriptWriteResult.chunksCreated} created), embed enqueued for ${payload.mode} run ${payload.runStamp}.`,
   );
 });
-
-async function writeTranscriptChunks(contentItem: {
-  id: string;
-  partnerId: string;
-  url: string;
-  platform: PartnerContentPlatform;
-}) {
-  const transcriptSegments = await fetchPlatformTranscriptSegments({
-    platform: contentItem.platform,
-    url: contentItem.url,
-  });
-  const normalizedTranscript = transcriptSegments
-    .map(({ text }) => text.trim())
-    .filter(Boolean)
-    .join(" ");
-  const transcriptHash =
-    transcriptSegments.length > 0 ? hashTranscript(transcriptSegments) : null;
-
-  if (!transcriptHash) {
-    await prisma.partnerContentItem.update({
-      where: {
-        id: contentItem.id,
-      },
-      data: {
-        transcriptFetchStatus: "notAvailable",
-        transcriptLastAttemptedAt: new Date(),
-        normalizedTranscript: null,
-        transcriptHash: null,
-        transcriptHasTimestamps: false,
-      },
-    });
-
-    await prisma.partnerContentChunk.deleteMany({
-      where: {
-        partnerContentItemId: contentItem.id,
-        source: "transcript",
-      },
-    });
-
-    await refreshPartnerContentItemChunkCounts(contentItem.id);
-
-    return {
-      transcriptAvailable: false,
-      segmentCount: 0,
-      normalizedTranscriptLength: 0,
-      transcriptHash: null,
-      chunkCount: 0,
-      chunksCreated: 0,
-    };
-  }
-
-  const chunks = chunkTranscriptSegments(transcriptSegments);
-  const transcriptHasTimestamps = transcriptSegments.some(
-    ({ startMs, endMs }) => startMs !== null || endMs !== null,
-  );
-  const embeddingModel = PARTNER_CONTENT_SEARCH_MODELS.embedding.id;
-
-  const [, deletedChunks, createChunksResult] = await prisma.$transaction([
-    prisma.partnerContentItem.update({
-      where: {
-        id: contentItem.id,
-      },
-      data: {
-        transcriptFetchStatus: "fetched",
-        transcriptLastAttemptedAt: new Date(),
-        normalizedTranscript,
-        transcriptHash,
-        transcriptHasTimestamps,
-        embeddingModel,
-        lastFetchedAt: new Date(),
-      },
-    }),
-    prisma.partnerContentChunk.deleteMany({
-      where: {
-        partnerContentItemId: contentItem.id,
-        source: "transcript",
-      },
-    }),
-    prisma.partnerContentChunk.createMany({
-      data: chunks.map((chunk) => ({
-        id: createId({ prefix: "pcc_" }),
-        partnerContentItemId: contentItem.id,
-        partnerId: contentItem.partnerId,
-        source: "transcript",
-        chunkIndex: chunk.chunkIndex,
-        chunkText: chunk.text,
-        startMs: chunk.startMs,
-        endMs: chunk.endMs,
-        textHash: transcriptHash,
-        embeddingModel,
-      })),
-    }),
-  ]);
-
-  await refreshPartnerContentItemChunkCounts(contentItem.id);
-
-  return {
-    transcriptAvailable: true,
-    segmentCount: transcriptSegments.length,
-    normalizedTranscriptLength: normalizedTranscript.length,
-    transcriptHash,
-    chunkCount: chunks.length,
-    chunksDeleted: deletedChunks.count,
-    chunksCreated: createChunksResult.count,
-  };
-}
-
-async function enqueueEmbedJob({
-  mode,
-  runStamp,
-  partnerId,
-  partnerContentItemId,
-}: {
-  mode: PartnerContentIngestionMode;
-  runStamp: string;
-  partnerId: string;
-  partnerContentItemId: string;
-}) {
-  try {
-    await qstash.publishJSON({
-      url: getPartnerContentUrl(PARTNER_CONTENT_SEARCH_ROUTES.embed),
-      method: "POST",
-      body: {
-        mode,
-        runStamp,
-        partnerId,
-        partnerContentItemId,
-      },
-      flowControl: PARTNER_CONTENT_EMBED_FLOW_CONTROL,
-      deduplicationId: createPartnerContentDeduplicationId(
-        "partner-content-embed",
-        mode,
-        runStamp,
-        partnerContentItemId,
-      ),
-    });
-  } catch (error) {
-    // Don't swallow this: the transcript chunks are already committed, so a
-    // dropped embed job leaves them permanently unsearchable. Rethrow so
-    // withCron returns 500 and QStash retries the whole transcript job — the
-    // forceRefetch=false guard above makes that retry skip the re-fetch and
-    // just re-enqueue here, and the embed deduplicationId keeps it idempotent.
-    console.error("[PartnerContentSearch] Failed to enqueue embed job", {
-      error,
-      mode,
-      runStamp,
-      partnerId,
-      partnerContentItemId,
-    });
-
-    throw error;
-  }
-}

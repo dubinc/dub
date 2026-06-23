@@ -1,23 +1,18 @@
 import type { PartnerContentTopicFitBand } from "./constants";
 import { PARTNER_CONTENT_SEARCH_TOPIC_FIT } from "./constants";
-import { toScore, type PartnerContentSearchRow } from "./search-utils";
+import {
+  effectiveRowScore,
+  toScore,
+  type PartnerContentSearchRow,
+} from "./search-utils";
 
 export type PartnerContentMatchSource = "transcript" | "creatorText";
 
-// Best score (rerank or distance) per content item, split by evidence source.
-// Produced during retrieval and reused by the match-summary pass; the source-map
-// helpers below (get/set) all operate on exactly this shape.
+// Best score per content item, split by evidence source (get/set helpers below).
 export type SourceScoreByContentItemId = Map<
   string,
   Map<PartnerContentMatchSource, number>
 >;
-
-export type PartnerContentSearchQueryIntent = "entity" | "semantic";
-
-export type PartnerContentSearchQuerySignals = {
-  normalizedQuery: string;
-  intent: PartnerContentSearchQueryIntent;
-};
 
 export type PartnerContentMatchEvidence = {
   primarySource: PartnerContentMatchSource | null;
@@ -27,51 +22,6 @@ export type PartnerContentMatchEvidence = {
   creatorTextWeight: number;
   weight: number;
 };
-
-const ENTITY_EXACT_MATCH_SCORE = 0.95;
-
-const SEMANTIC_QUERY_TERMS = new Set([
-  "athlete",
-  "athletes",
-  "beauty",
-  "blogger",
-  "bloggers",
-  "coach",
-  "coaches",
-  "cooking",
-  "creator",
-  "creators",
-  "dad",
-  "fashion",
-  "finance",
-  "fitness",
-  "food",
-  "gamer",
-  "gamers",
-  "gaming",
-  "health",
-  "influencer",
-  "influencers",
-  "lifestyle",
-  "mom",
-  "music",
-  "nutrition",
-  "outdoor",
-  "outdoors",
-  "parenting",
-  "personal",
-  "photography",
-  "podcast",
-  "podcaster",
-  "recipe",
-  "recipes",
-  "running",
-  "skincare",
-  "sports",
-  "travel",
-  "wellness",
-  "yoga",
-]);
 
 export function deriveTopicFit({
   matchedContentCount,
@@ -88,22 +38,28 @@ export function deriveTopicFit({
     return { topicFit: 0, band: "none" };
   }
 
-  // Topic fit is driven by strength-adjusted weighted coverage. Transcript
-  // evidence and creator text on static posts get full credit; creator text on
-  // videos is weighted by source context so repeated descriptions stay weaker
-  // than transcript evidence while exact captions can still count. Small samples
-  // are discounted so 3/3 weak matches do not read as equivalent to 30/30 strong
-  // matches.
-  const rawCoverage = weightedMatchedContentScore / recentContentCount;
+  // Coverage blends two signals: purity (strength-weighted share of recent posts
+  // on-topic) and depthConfidence (how much on-topic evidence there is, saturating
+  // so one post can't read as strong). depthConfidence gates the score; purity only
+  // modulates it between dilutionForgiveness and 1, so a deep on-topic body scores
+  // well even when mixed with off-topic posts.
   const {
     coverageCurveExponent,
     bandThresholds,
-    sampleConfidenceContentCount,
+    depthSaturationScore,
+    dilutionForgiveness,
   } = PARTNER_CONTENT_SEARCH_TOPIC_FIT;
-  const sampleConfidence = Math.sqrt(
-    recentContentCount / (recentContentCount + sampleConfidenceContentCount),
+  const purity = Math.min(1, weightedMatchedContentScore / recentContentCount);
+  const depthConfidence =
+    1 - Math.exp(-weightedMatchedContentScore / depthSaturationScore);
+  const coverage = Math.min(
+    1,
+    Math.max(
+      0,
+      depthConfidence *
+        (dilutionForgiveness + (1 - dilutionForgiveness) * purity),
+    ),
   );
-  const coverage = Math.min(1, Math.max(0, rawCoverage * sampleConfidence));
   const topicFit = Math.round(100 * Math.pow(coverage, coverageCurveExponent));
 
   const band: PartnerContentTopicFitBand =
@@ -118,9 +74,8 @@ export function deriveTopicFit({
   return { topicFit, band };
 }
 
-export function getRowRelevanceScore(row: PartnerContentSearchRow) {
-  return row.rerankScore ?? toScore(Number(row.distance));
-}
+// Ranking-domain alias of effectiveRowScore (single implementation, no drift).
+export const getRowRelevanceScore = effectiveRowScore;
 
 export function getSourceAwareRowScore(row: PartnerContentSearchRow) {
   const score = getRowRelevanceScore(row);
@@ -142,142 +97,43 @@ export function sortRowsBySourceAwareScore(rows: PartnerContentSearchRow[]) {
   );
 }
 
+// Final query-mode partner ordering: topic fit, then match-strength tiebreakers,
+// then row score and reach. Generic so the route passes its candidate objects.
+export function sortPartnersByTopicFit<
+  T extends {
+    score: number;
+    matchSummary: {
+      topicFit: number;
+      weightedMatchedContentScore: number;
+      weightedMatchedContentCount: number;
+      transcriptMatchedContentCount: number;
+      matchedContentCount: number;
+      followers: number | null;
+    } | null;
+  },
+>(partners: T[]) {
+  return [...partners].sort((a, b) => {
+    const aSummary = a.matchSummary;
+    const bSummary = b.matchSummary;
+
+    return (
+      (bSummary?.topicFit ?? 0) - (aSummary?.topicFit ?? 0) ||
+      (bSummary?.weightedMatchedContentScore ?? 0) -
+        (aSummary?.weightedMatchedContentScore ?? 0) ||
+      (bSummary?.weightedMatchedContentCount ?? 0) -
+        (aSummary?.weightedMatchedContentCount ?? 0) ||
+      (bSummary?.transcriptMatchedContentCount ?? 0) -
+        (aSummary?.transcriptMatchedContentCount ?? 0) ||
+      (bSummary?.matchedContentCount ?? 0) -
+        (aSummary?.matchedContentCount ?? 0) ||
+      b.score - a.score ||
+      (bSummary?.followers ?? 0) - (aSummary?.followers ?? 0)
+    );
+  });
+}
+
 export function getEvidenceSource(source: string): PartnerContentMatchSource {
   return source === "transcript" ? "transcript" : "creatorText";
-}
-
-export function getPartnerContentSearchQuerySignals(
-  query?: string | null,
-): PartnerContentSearchQuerySignals {
-  const normalizedQuery = normalizeSearchText(query);
-  const terms = normalizedQuery.split(" ").filter(Boolean);
-  const intent: PartnerContentSearchQueryIntent =
-    normalizedQuery.length === 0 ||
-    terms.some((term) => SEMANTIC_QUERY_TERMS.has(term)) ||
-    terms.length > 3
-      ? "semantic"
-      : "entity";
-
-  return {
-    normalizedQuery,
-    intent,
-  };
-}
-
-export function normalizeSearchText(value?: string | null) {
-  return (value ?? "")
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim()
-    .replace(/\s+/g, " ");
-}
-
-export function hasExactQueryMention(
-  value: string | null | undefined,
-  querySignals: PartnerContentSearchQuerySignals,
-) {
-  return (
-    querySignals.normalizedQuery.length > 0 &&
-    normalizeSearchText(value).includes(querySignals.normalizedQuery)
-  );
-}
-
-export function getEntityTranscriptScore({
-  currentScore,
-  hasExactQueryMention,
-  queryIntent,
-}: {
-  currentScore: number | null;
-  hasExactQueryMention: boolean;
-  queryIntent: PartnerContentSearchQueryIntent;
-}) {
-  if (queryIntent !== "entity" || !hasExactQueryMention) return currentScore;
-  return maxNullableScore(currentScore, ENTITY_EXACT_MATCH_SCORE);
-}
-
-export function getEntityCreatorTextBoost({
-  platformType,
-  contentType,
-  transcriptFetchStatus,
-  titleHasExactQueryMention,
-  descriptionHasExactQueryMention,
-  chunkHasExactQueryMention,
-  transcriptScore,
-  queryIntent,
-}: {
-  platformType: string;
-  contentType: string;
-  transcriptFetchStatus?: string | null;
-  titleHasExactQueryMention: boolean;
-  descriptionHasExactQueryMention: boolean;
-  chunkHasExactQueryMention: boolean;
-  transcriptScore: number | null;
-  queryIntent: PartnerContentSearchQueryIntent;
-}): { score: number; weight: number } | null {
-  if (
-    queryIntent !== "entity" ||
-    (!titleHasExactQueryMention &&
-      !descriptionHasExactQueryMention &&
-      !chunkHasExactQueryMention)
-  ) {
-    return null;
-  }
-
-  if (isStaticContentType(contentType)) {
-    return {
-      score: ENTITY_EXACT_MATCH_SCORE,
-      weight: 1,
-    };
-  }
-
-  const platform = platformType.toLowerCase();
-  const transcriptUnavailable =
-    transcriptScore == null ||
-    isUnavailableTranscriptStatus(transcriptFetchStatus);
-
-  if (platform === "tiktok" || platform === "instagram") {
-    return transcriptUnavailable
-      ? {
-          score: ENTITY_EXACT_MATCH_SCORE,
-          weight: 0.95,
-        }
-      : {
-          score: 0.9,
-          weight: 0.85,
-        };
-  }
-
-  if (platform === "youtube") {
-    return titleHasExactQueryMention
-      ? {
-          score: 0.9,
-          weight: 0.85,
-        }
-      : {
-          score: 0.65,
-          weight: 0.35,
-        };
-  }
-
-  return titleHasExactQueryMention
-    ? {
-        score: 0.9,
-        weight: 0.85,
-      }
-    : {
-        score: 0.75,
-        weight: 0.6,
-      };
-}
-
-export function maxNullableScore(...scores: Array<number | null | undefined>) {
-  const numericScores = scores.filter(
-    (score): score is number => typeof score === "number",
-  );
-
-  return numericScores.length ? Math.max(...numericScores) : null;
 }
 
 function getCreatorTextWeight(contentType: string) {
@@ -292,28 +148,14 @@ function isVideoLikeContentType(contentType: string) {
   );
 }
 
-function isStaticContentType(contentType: string) {
-  return ["carousel", "image", "photo", "post"].includes(
-    contentType.toLowerCase(),
-  );
-}
-
-function isUnavailableTranscriptStatus(status?: string | null) {
-  return (
-    status === "pending" || status === "notAvailable" || status === "error"
-  );
-}
-
 export function createContentMatchEvidence({
   contentType,
   transcriptScore,
   creatorTextScore,
-  creatorTextWeightOverride,
 }: {
   contentType: string;
   transcriptScore: number | null;
   creatorTextScore: number | null;
-  creatorTextWeightOverride?: number | null;
 }): PartnerContentMatchEvidence {
   const sources: PartnerContentMatchSource[] = [];
   if (transcriptScore != null) sources.push("transcript");
@@ -325,8 +167,7 @@ export function createContentMatchEvidence({
       : creatorTextScore != null
         ? "creatorText"
         : null;
-  const creatorTextWeight =
-    creatorTextWeightOverride ?? getCreatorTextWeight(contentType);
+  const creatorTextWeight = getCreatorTextWeight(contentType);
   const weight =
     primarySource === null
       ? 0
@@ -361,9 +202,8 @@ export function getEvidenceTopicScore(evidence: PartnerContentMatchEvidence) {
 
   return Number(
     Math.max(
-      // A transcript/source-content match has already passed the relevance gate,
-      // so it gets full topic credit. Creator text uses the context-aware weight
-      // chosen when the evidence was created.
+      // Transcript match already passed the relevance gate → full credit; creator
+      // text uses its context-aware weight.
       evidence.transcriptScore != null ? 1 : 0,
       getEvidenceStrength(evidence.creatorTextScore) *
         evidence.creatorTextWeight,

@@ -28,8 +28,7 @@ type VoyageRerankResponse = {
 
 type VoyageFetch = typeof fetch;
 
-// Typed error so callers can branch on the HTTP status (e.g. 429 rate limits)
-// instead of string-matching the message.
+// Typed error so callers can branch on HTTP status (e.g. 429), not the message.
 export class VoyageApiError extends Error {
   constructor(
     readonly status: number,
@@ -40,10 +39,8 @@ export class VoyageApiError extends Error {
   }
 }
 
-// Thrown when a Voyage request exceeds the caller-supplied timeout. User-facing
-// search routes catch this to fail fast (through the normal error path, with
-// rate-limit headers + logging) instead of hanging until Vercel kills the
-// function at maxDuration.
+// Thrown when a Voyage request exceeds the caller's timeout. Search routes catch
+// it to fail fast instead of hanging until Vercel kills the function at maxDuration.
 export class VoyageTimeoutError extends Error {
   constructor(
     readonly endpoint: string,
@@ -61,8 +58,7 @@ function isAbortOrTimeoutError(error: unknown): boolean {
   );
 }
 
-// Serialize an embedding for use in raw SQL TO_VECTOR(...) statements. Shared by
-// the embed cron route (writes) and the admin search route (query vector).
+// Serialize an embedding for raw SQL TO_VECTOR(...). Used by the embed + search routes.
 export function serializeEmbeddingForVector(embedding: number[]) {
   const expectedDimensions = PARTNER_CONTENT_SEARCH_MODELS.embedding.dimensions;
 
@@ -143,8 +139,7 @@ export async function embedPartnerContentTexts({
   inputType: VoyageInputType;
   apiKey?: string;
   fetchImpl?: VoyageFetch;
-  // When set, aborts the request after this many ms (opt-in: the bulk embed cron
-  // omits it so large batches aren't cut off; user-facing search routes pass it).
+  // Opt-in abort timeout; the bulk embed cron omits it so large batches aren't cut off.
   timeoutMs?: number;
 }) {
   if (!apiKey) throw new Error("VOYAGE_API_KEY is not set.");
@@ -192,12 +187,10 @@ export async function rerankPartnerContent({
   topK?: number;
   apiKey?: string;
   fetchImpl?: VoyageFetch;
-  // When set, aborts the request after this many ms. User-facing search routes
-  // pass it so a slow rerank fails fast and falls back to cosine ordering.
+  // Opt-in abort timeout; search routes pass it so a slow rerank falls back to cosine.
   timeoutMs?: number;
 }): Promise<VoyageRerankResult[]> {
-  // AI SDK Core supports embeddings, but not Voyage reranking. Keep this direct
-  // wrapper until Dub has a shared reranker abstraction.
+  // AI SDK Core doesn't support Voyage reranking; direct wrapper until we share one.
   if (!apiKey) throw new Error("VOYAGE_API_KEY is not set.");
   if (documents.length === 0) return [];
 

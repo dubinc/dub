@@ -209,10 +209,8 @@ export async function writeFetchedContentItems({
   };
 }
 
-// Post-commit QStash dispatch. The content items are already written, so a
-// dropped batch would silently strand transcript/embed jobs. Log structured
-// context before rethrowing so the failure is observable + alertable (the
-// rethrow surfaces it as withCron's 500); deduplicationIds keep the retry safe.
+// Post-commit dispatch: items are already written, so a dropped batch strands
+// transcript/embed jobs. Log + rethrow (withCron 500); dedup ids keep retry safe.
 async function dispatchContentJobs<
   T extends Parameters<typeof qstash.batchJSON>[0],
 >({
@@ -274,10 +272,8 @@ async function writeMetadataChunks({
   const createdPlatformContentIds = new Set<string>();
   const embeddingModel = PARTNER_CONTENT_SEARCH_MODELS.embedding.id;
 
-  // Collect the items whose metadata actually changed, plus the new chunks to
-  // create, so we can write everything in one batched transaction instead of a
-  // per-item transaction + count refresh (which fanned out to ~100-250 serial
-  // DB round-trips on a full backfill).
+  // Batch changed items + new chunks into one transaction instead of per-item
+  // (which fanned out to ~100-250 serial round-trips on a full backfill).
   const changedItems: {
     id: string;
     sourceItem: NormalizedPartnerContentItem;

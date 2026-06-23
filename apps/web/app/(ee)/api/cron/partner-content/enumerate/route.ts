@@ -1,18 +1,15 @@
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import {
-  buildEligiblePartnerPlatformWhere,
+  buildEligiblePartnerWhere,
   createPartnerContentDeduplicationId,
   getPartnerContentUrl,
   PARTNER_CONTENT_ENUMERATE_PAGE_SIZE,
   PARTNER_CONTENT_SEARCH_ROUTES,
   parsePartnerContentCronPayload,
   partnerContentEnumeratePayloadSchema,
-  PartnerContentIngestionMode,
 } from "@/lib/partner-content-search/ingestion/enqueue";
-import { PartnerContentPlatform } from "@/lib/partner-content-search/types";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -26,9 +23,8 @@ export const POST = withCron(async ({ rawBody }) => {
   );
   if (payload instanceof Response) return payload;
 
-  // Process a single page per invocation and hand the next cursor back to
-  // this same route, rather than draining the whole partner set in one
-  // request (keeps each run well under maxDuration regardless of scale).
+  // One page per invocation, handing the next cursor back to this route — keeps
+  // each run under maxDuration regardless of scale.
   const remainingPartners =
     payload.remainingPartners ?? payload.filter.limitPartners;
 
@@ -92,8 +88,7 @@ export const POST = withCron(async ({ rawBody }) => {
         partnerIds,
       },
     },
-    // Self-continuation hop: re-enter this route from the last id instead of
-    // draining the whole partner set in a single invocation.
+    // Self-continuation hop: re-enter from the last id instead of draining in one go.
     ...(hasMore
       ? [
           {
@@ -132,35 +127,3 @@ export const POST = withCron(async ({ rawBody }) => {
     }${hasMore ? ` (continuing after ${lastPartnerId})` : " (final page)"}.`,
   );
 });
-
-function buildEligiblePartnerWhere({
-  mode,
-  filter,
-}: {
-  mode: PartnerContentIngestionMode;
-  filter: {
-    partnerId?: string;
-    partnerIds?: string[];
-    platforms: PartnerContentPlatform[];
-  };
-}): Prisma.PartnerWhereInput {
-  return {
-    networkStatus: {
-      in: ["approved", "trusted"],
-    },
-    ...(filter.partnerId && {
-      id: filter.partnerId,
-    }),
-    ...(filter.partnerIds?.length && {
-      id: {
-        in: filter.partnerIds,
-      },
-    }),
-    platforms: {
-      some: buildEligiblePartnerPlatformWhere({
-        mode,
-        platforms: filter.platforms,
-      }),
-    },
-  };
-}

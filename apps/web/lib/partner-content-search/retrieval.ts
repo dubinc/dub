@@ -52,11 +52,8 @@ function countDistinctContentItems(rows: { partnerContentItemId: string }[]) {
     .size;
 }
 
-// Resolves a program's partner-eligibility sets for inline ANN pre-filtering:
-// the deny-set (enrolled ∪ ignored partners) excluded from every query, plus the
-// starred set the starred filter includes/excludes. All are per-program and bounded
-// by the program's roster, so they ride into the flat ANN as id-set predicates
-// without dragging the relational joins onto the vector-index traversal path.
+// Partner-eligibility id-sets for inline ANN pre-filtering: the deny-set
+// (enrolled ∪ ignored) excluded from every query, plus the starred set.
 async function resolveProgramPartnerEligibility({
   programId,
   starred,
@@ -125,10 +122,8 @@ export async function searchPartnerNetworkContent({
   rerank: boolean;
   logTiming?: PartnerContentSearchTimingLogger;
 }) {
-  // Resolve the program's partner-eligibility sets in parallel with the query
-  // embedding — they need only programId, so they run under the Voyage round-trip
-  // and add little to no incremental time delay. (PrismaPromise.all kicks the queries off
-  // synchronously here, before we await the embedding below.)
+  // Runs under the Voyage embedding round-trip (needs only programId), so the
+  // eligibility queries add ~no latency.
   const eligibilityPromise = resolveProgramPartnerEligibility({
     programId,
     starred,
@@ -158,14 +153,10 @@ export async function searchPartnerNetworkContent({
   const queryVector = serializeEmbeddingForVector(queryEmbedding);
   const eligibility = await eligibilityPromise;
 
-  // Pre-filter eligibility + user filters INLINE on the flat ANN (no joins): exclude
-  // the program's enrolled + ignored partners, honor explicit partnerIds, apply the
-  // starred filter, and apply the country/platform user filters via the denormalized
-  // c.country / c.platformType columns. Pre-filtering (vs. the old post-hydration
-  // filter) keeps these from biasing/starving the candidate pool — enrolled partners
-  // are exactly a program's strongest matches, so post-filtering them silently
-  // dropped the best results as a program matured. networkStatus stays a post-filter
-  // (non-selective: ingestion only embeds approved/trusted partners).
+  // Eligibility + user filters are applied INLINE on the flat ANN (country/platform
+  // via the denormalized c.country / c.platformType columns). Post-filtering would
+  // starve the candidate pool — enrolled partners are a program's strongest matches.
+  // networkStatus stays a post-filter (ingestion already gates approved/trusted).
   const annFilters: Prisma.Sql[] = [];
   if (eligibility.excludedPartnerIds.length > 0) {
     annFilters.push(
@@ -198,12 +189,9 @@ export async function searchPartnerNetworkContent({
   const annFilter =
     annFilters.length > 0 ? Prisma.join(annFilters, " ") : Prisma.empty;
 
-  // Retrieval is split into two bounded phases. First, keep the ANN query flat so
-  // PlanetScale can use the vector index for a small chunk-candidate pool. Then
-  // hydrate/filter only those chunk ids through the relational partner/platform
-  // joins below. This keeps the expensive joins off the vector traversal path.
-  // The cheap phase also returns the content-item id + source so we can dedup to
-  // the best chunk per item+source BEFORE the join (see retrievePool).
+  // Two-phase retrieval: keep the ANN flat so PlanetScale uses the vector index,
+  // then hydrate only the returned chunk ids through the relational joins — keeping
+  // the joins off the vector traversal path.
   const fetchCandidateChunks = (poolSize: number) =>
     prisma.$queryRaw<PartnerContentSearchCandidateRow[]>(Prisma.sql`
       SELECT
@@ -219,12 +207,8 @@ export async function searchPartnerNetworkContent({
       LIMIT ${poolSize}
     `);
 
-  // Dedup to the best chunk per content-item + source BEFORE the relational
-  // hydration join. The post-ANN filters are all per-item/per-partner, so the
-  // surviving items are identical whether we filter-then-dedup or dedup-then-
-  // filter; this just keeps chunk-heavy items from sending redundant rows through
-  // the 5-way join. itemRows (cutoff) and rows (rerank) are both derived from the
-  // per-item+source set below, so nothing downstream changes.
+  // Dedup to the best chunk per item+source before the hydration join (filters are
+  // per-item, so this is equivalent and keeps chunk-heavy items off the join).
   const retrievePool = async (poolSize: number) => {
     const candidateRows = await fetchCandidateChunks(poolSize);
     logTiming?.("vector-candidate-search-complete", {
@@ -252,12 +236,9 @@ export async function searchPartnerNetworkContent({
   let poolSize = initialPoolSize;
   let { candidateRowCount, poolRows } = await retrievePool(poolSize);
 
-  // Eligibility + user filters run INLINE in the ANN, so the pool comes back
-  // already eligible; networkStatus is the only remaining post-ANN filter and it's
-  // non-selective (ingestion gates on approved/trusted), so the hydrated pool rarely
-  // shrinks. Keep a one-shot expansion as a safety net for the rare case it does
-  // (e.g. a cluster of demoted partners): if we under-filled and the ANN hadn't
-  // exhausted the index (it returned a full pool), widen to the cap once and retry.
+  // The pool comes back already eligible (filters run inline), so it rarely shrinks.
+  // Safety net for when it does (e.g. a cluster of demoted partners): if we
+  // under-filled but the ANN returned a full pool, widen to the cap once and retry.
   let distinctItemCount = countDistinctContentItems(poolRows);
   if (
     poolSize < maxPoolSize &&
@@ -284,11 +265,9 @@ export async function searchPartnerNetworkContent({
     retrievalShape: "two-phase",
   });
 
-  // Best cosine distance per content-item + evidence source across the candidate
-  // pool. getPartnerMatchSummaries reuses this to gate which recent posts count as
-  // "matched" instead of recomputing DISTANCE per item in SQL: cutoffDistance is
-  // itself a pool item's distance, so any item that could clear it is already in
-  // this map (an item missing here is provably beyond the cutoff — not matched).
+  // Best distance per item+source. getPartnerMatchSummaries reuses this to gate
+  // matched recent posts instead of a second per-item DISTANCE pass — any item that
+  // could clear the cutoff is already here (one missing is provably beyond it).
   const itemSourceBestDistance: SourceScoreByContentItemId = new Map();
   for (const row of poolRows) {
     setSourceDistance(
@@ -299,20 +278,15 @@ export async function searchPartnerNetworkContent({
     );
   }
 
-  // Collapse to one best chunk per content item for the item-level cutoff, and
-  // one best chunk per content item + source for reranking/source-aware evidence.
-  // This keeps metadata and transcript evidence separable without letting one
-  // chunk-heavy video flood the candidate pool.
+  // One best chunk per item for the cutoff; one per item+source for rerank/evidence
+  // (keeps metadata and transcript evidence separable).
   const itemRows = dedupeBestChunkPerContentItem(poolRows).slice(0, limit);
   const rows = dedupeBestChunkPerContentItemSource(poolRows).slice(
     0,
     Math.min(PARTNER_CONTENT_SEARCH_LIMITS.chunkCandidateCount, limit * 2),
   );
 
-  // Cosine-distance cutoff = the least-relevant candidate kept. getPartnerMatchSummaries
-  // uses this to decide which of a partner's recent videos count as "matched" (i.e.
-  // at least as relevant as the weakest video in the candidate pool), computed
-  // exactly per item, independent of which raw chunk survived the global cap.
+  // Cutoff = the least-relevant candidate kept; the match gate for recent posts.
   const cutoffDistance = itemRows.length
     ? Number(itemRows[itemRows.length - 1].distance)
     : null;
@@ -377,18 +351,9 @@ async function hydratePartnerContentSearchRows({
   if (candidateRows.length === 0) return [];
 
   const chunkIds = candidateRows.map(({ chunkId }) => chunkId);
-  // Eligibility + user filters (enrolled/ignored/starred/country/platform) are all
-  // pre-filtered in the ANN now, so hydration is a plain metadata fetch over
-  // already-eligible chunk ids. networkStatus is the one remaining post-filter
-  // (cheap and non-selective — see the search query note); the partner/platform
-  // joins stay only to supply display columns and that networkStatus check.
-
-  // Plain relational hydration over an already-eligible chunk-id set: the inner
-  // joins in the prior raw form were pure filters (all relations are required
-  // FKs), and the lone post-ANN predicate, networkStatus, maps to the partner
-  // relation filter below. `chunkText` is deliberately not selected here (it's
-  // hydrated separately in hydratePartnerContentChunkText); we backfill the ""
-  // placeholder when flattening to the row shape.
+  // Plain metadata fetch over already-eligible chunk ids (user/eligibility filters
+  // ran inline in the ANN). networkStatus is the one remaining post-filter, via the
+  // partner relation. chunkText is hydrated separately below, so we backfill "".
   const hydratedRows = await prisma.partnerContentChunk.findMany({
     where: {
       id: { in: chunkIds },
@@ -537,4 +502,61 @@ async function hydratePartnerContentChunkText({
         }
       : row,
   );
+}
+
+// Single-phase admin diagnostics query: one raw ANN with inline hydration, no
+// eligibility/network pre-filtering (intentionally searches the full corpus).
+export async function searchAdminPartnerContentChunks({
+  queryVector,
+  limit,
+  partnerIds,
+  platform,
+}: {
+  queryVector: string;
+  limit: number;
+  partnerIds?: string[];
+  platform?: PlatformType;
+}) {
+  const partnerFilter = partnerIds?.length
+    ? Prisma.sql`AND c.partnerId IN (${Prisma.join(partnerIds)})`
+    : Prisma.empty;
+  const platformFilter = platform
+    ? Prisma.sql`AND pp.type = ${platform}`
+    : Prisma.empty;
+
+  return await prisma.$queryRaw<PartnerContentSearchRow[]>(Prisma.sql`
+    SELECT
+      c.id AS chunkId,
+      c.partnerContentItemId,
+      c.partnerId,
+      p.name AS partnerName,
+      p.username AS partnerUsername,
+      p.image AS partnerImage,
+      p.description AS partnerDescription,
+      pp.type AS platformType,
+      pp.identifier AS platformIdentifier,
+      pci.platformContentId,
+      pci.url AS contentUrl,
+      pci.contentType,
+      pci.title AS contentTitle,
+      pci.thumbnailUrl AS contentThumbnailUrl,
+      pci.publishedAt AS contentPublishedAt,
+      pci.durationMs AS contentDurationMs,
+      c.source AS chunkSource,
+      c.chunkIndex,
+      c.chunkText,
+      c.startMs,
+      c.endMs,
+      DISTANCE(TO_VECTOR(${queryVector}), c.embedding, ${Prisma.raw(`'${PARTNER_CONTENT_CHUNK_VECTOR_DISTANCE}'`)}) AS distance
+    FROM PartnerContentChunk c
+    INNER JOIN PartnerContentItem pci ON pci.id = c.partnerContentItemId
+    INNER JOIN Partner p ON p.id = c.partnerId
+    INNER JOIN PartnerPlatform pp ON pp.id = pci.partnerPlatformId
+    WHERE c.embedding IS NOT NULL
+      AND c.embeddingModel = ${PARTNER_CONTENT_SEARCH_MODELS.embedding.id}
+      ${partnerFilter}
+      ${platformFilter}
+    ORDER BY distance ASC
+    LIMIT ${limit}
+  `);
 }

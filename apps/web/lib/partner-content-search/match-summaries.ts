@@ -7,23 +7,17 @@ import {
 import {
   createContentMatchEvidence,
   deriveTopicFit,
-  getEntityCreatorTextBoost,
-  getEntityTranscriptScore,
   getEvidenceMatchScore,
   getEvidenceSource,
   getEvidenceTopicScore,
   getMatchedSourceScore,
-  getPartnerContentSearchQuerySignals,
   getSourceScore,
-  hasExactQueryMention,
-  maxNullableScore,
   setSourceScore,
   type PartnerContentMatchEvidence,
   type PartnerContentMatchSource,
-  type PartnerContentSearchQuerySignals,
   type SourceScoreByContentItemId,
 } from "./ranking";
-import { toScore, type PartnerContentSearchRow } from "./search-utils";
+import { median, toScore, type PartnerContentSearchRow } from "./search-utils";
 import type { PartnerContentSearchTimingLogger } from "./timing";
 
 type PartnerRecentContentBarRow = {
@@ -33,10 +27,8 @@ type PartnerRecentContentBarRow = {
   platformContentId: string;
   contentType: string;
   contentTitle: string | null;
-  contentDescription: string | null;
   contentUrl: string | null;
   contentDurationMs: number | null;
-  transcriptFetchStatus: string | null;
   publishedAt: Date | null;
   viewCount: bigint | number | null;
   likeCount: bigint | number | null;
@@ -70,7 +62,6 @@ type PartnerContentMatchBar = {
 };
 
 type QueryContentMatchContext = {
-  querySignals: PartnerContentSearchQuerySignals;
   cutoffDistance?: number | null;
   recentItemSourceBestDistance: SourceScoreByContentItemId;
   rerankByItemSource: SourceScoreByContentItemId;
@@ -81,17 +72,6 @@ type ListContentMatchContext = {
 };
 
 type ContentMatchContext = QueryContentMatchContext | ListContentMatchContext;
-
-// Median of a numeric list (robust to viral outliers vs. a mean). Returns null
-// for an empty list so callers can omit the signal when there's no data.
-function median(values: number[]): number | null {
-  if (values.length === 0) return null;
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0
-    ? Math.round((sorted[mid - 1] + sorted[mid]) / 2)
-    : sorted[mid];
-}
 
 function groupRowsBy<T, K>(rows: T[], getKey: (row: T) => K) {
   const rowsByKey = new Map<K, T[]>();
@@ -148,30 +128,23 @@ function getQueryContentMatch({
   row: PartnerRecentContentBarRow;
   context: QueryContentMatchContext;
 }) {
-  // On-topic gate: prefer the reranker's calibrated relevance, which cleanly
-  // separates on- from off-topic. Fall back to the cosine cutoff only for items
-  // the reranker didn't score (rerank disabled/failed, or the item never reached
-  // the candidate pool).
-  const transcriptScore = getEntityTranscriptScore({
-    currentScore: getMatchedSourceScore({
-      rerankScore: getSourceScore(
-        context.rerankByItemSource,
-        row.partnerContentItemId,
-        "transcript",
-      ),
-      bestDistance: getSourceScore(
-        context.recentItemSourceBestDistance,
-        row.partnerContentItemId,
-        "transcript",
-      ),
-      cutoffDistance: context.cutoffDistance,
-    }),
-    // Transcript-level substring matching was removed from the search path; only
-    // title/description exact mentions (computed in memory below) feed scoring now.
-    hasExactQueryMention: false,
-    queryIntent: context.querySignals.intent,
+  // On-topic gate: prefer the reranker's calibrated relevance; fall back to the
+  // cosine cutoff only for items the reranker didn't score. Both sources rely
+  // solely on embedding retrieval + reranking — no lexical title/description boost.
+  const transcriptScore = getMatchedSourceScore({
+    rerankScore: getSourceScore(
+      context.rerankByItemSource,
+      row.partnerContentItemId,
+      "transcript",
+    ),
+    bestDistance: getSourceScore(
+      context.recentItemSourceBestDistance,
+      row.partnerContentItemId,
+      "transcript",
+    ),
+    cutoffDistance: context.cutoffDistance,
   });
-  const vectorCreatorTextScore = getMatchedSourceScore({
+  const creatorTextScore = getMatchedSourceScore({
     rerankScore: getSourceScore(
       context.rerankByItemSource,
       row.partnerContentItemId,
@@ -184,35 +157,11 @@ function getQueryContentMatch({
     ),
     cutoffDistance: context.cutoffDistance,
   });
-  const titleHasExactQueryMention = hasExactQueryMention(
-    row.contentTitle,
-    context.querySignals,
-  );
-  const descriptionHasExactQueryMention = hasExactQueryMention(
-    row.contentDescription,
-    context.querySignals,
-  );
-  const creatorTextBoost = getEntityCreatorTextBoost({
-    platformType: row.platformType,
-    contentType: row.contentType,
-    transcriptFetchStatus: row.transcriptFetchStatus,
-    titleHasExactQueryMention,
-    descriptionHasExactQueryMention,
-    // Chunk-level substring matching was removed from the search path (see above).
-    chunkHasExactQueryMention: false,
-    transcriptScore,
-    queryIntent: context.querySignals.intent,
-  });
-  const creatorTextScore = maxNullableScore(
-    vectorCreatorTextScore,
-    creatorTextBoost?.score,
-  );
 
   const matchEvidence = createContentMatchEvidence({
     contentType: row.contentType,
     transcriptScore,
     creatorTextScore,
-    creatorTextWeightOverride: creatorTextBoost?.weight,
   });
 
   return {
@@ -317,7 +266,6 @@ export async function getPartnerMatchSummaries({
   rows,
   partnerIds,
   platforms,
-  query,
   queryVector,
   cutoffDistance,
   itemSourceBestDistance,
@@ -326,42 +274,30 @@ export async function getPartnerMatchSummaries({
   rows: PartnerContentSearchRow[];
   partnerIds: string[];
   platforms?: PlatformType[];
-  query?: string | null;
-  // Present only in query mode. When set, each shown partner's recent videos are
-  // counted as matched when at least as relevant as the weakest candidate
-  // (cutoffDistance). When null (list mode) we fall back to the retrieval rows for
-  // the match determination.
+  // Query mode only: gates a partner's recent posts as matched when at least as
+  // relevant as the weakest candidate (cutoffDistance). Null in list mode.
   queryVector?: string | null;
   cutoffDistance?: number | null;
-  // Best cosine distance per content-item + source across the candidate pool,
-  // computed once during retrieval. Reused here to gate matched recent content
-  // without a second per-item DISTANCE pass (any item that clears the cutoff is
-  // already in this map — see the producer in searchPartnerNetworkContent).
+  // Best distance per item+source from retrieval, reused to gate matched recent
+  // content without a second per-item DISTANCE pass.
   itemSourceBestDistance?: SourceScoreByContentItemId;
   logTiming?: PartnerContentSearchTimingLogger;
 }) {
   if (partnerIds.length === 0) return new Map<string, null>();
 
-  const querySignals = getPartnerContentSearchQuerySignals(query);
   const platformFilter = platforms?.length
     ? Prisma.sql`AND pp.type IN (${Prisma.join(platforms)})`
     : Prisma.empty;
 
-  // "Recent" is a time window (last recencyWindowMonths), not a fixed post count.
-  // A count window means wildly different time spans per creator (a daily poster's
-  // 28 posts span a month; a monthly poster's span 2+ years), so coverage over it
-  // conflates active and dormant creators. A time window normalizes that and keeps
-  // every platform with content in the period (incl. ones the creator has since
-  // moved on from; those still count toward topical authority).
+  // "Recent" is a time window (recencyWindowMonths), not a post count — a count
+  // window spans wildly different time per creator, conflating active and dormant.
   const recencyCutoff = new Date();
   recencyCutoff.setMonth(
     recencyCutoff.getMonth() -
       PARTNER_CONTENT_SEARCH_LIMITS.recencyWindowMonths,
   );
 
-  // These three reads are independent, so issue them as one parallel wave rather
-  // than three serial round trips. (Prisma promises are lazy and don't execute
-  // until awaited, so they fan out together under the Promise.all below.)
+  // Independent reads — issued as one parallel wave (fan out under Promise.all).
   const contentCountsPromise = prisma.partnerContentItem
     .groupBy({
       by: ["partnerId"],
@@ -406,10 +342,8 @@ export async function getPartnerMatchSummaries({
           platformContentId,
           contentType,
           contentTitle,
-          contentDescription,
           contentUrl,
           contentDurationMs,
-          transcriptFetchStatus,
           publishedAt,
           viewCount,
           likeCount,
@@ -425,10 +359,8 @@ export async function getPartnerMatchSummaries({
             pci.platformContentId,
             pci.contentType,
             pci.title AS contentTitle,
-            pci.description AS contentDescription,
             pci.url AS contentUrl,
             pci.durationMs AS contentDurationMs,
-            pci.transcriptFetchStatus,
             pci.publishedAt,
             pci.viewCount,
             pci.likeCount,
@@ -461,8 +393,7 @@ export async function getPartnerMatchSummaries({
       return recentContentRows;
     });
 
-  // Reach: total followers across the partner's platforms (or just the filtered
-  // platform). The single signal brands most want and the card wasn't showing.
+  // Reach: total followers across the partner's platforms (or the filtered platform).
   const followerRowsPromise = prisma.partnerPlatform
     .groupBy({
       by: ["partnerId"],
@@ -514,20 +445,14 @@ export async function getPartnerMatchSummaries({
     ({ partnerId }) => partnerId,
   );
 
-  // Query mode only: gate which of each shown partner's recent videos count as
-  // "matched". A recent video is matched when its best chunk is at least as
-  // relevant as the weakest candidate (cutoffDistance). Because cutoffDistance is
-  // itself a candidate-pool item's distance, every recent video that could clear
-  // it is already in itemSourceBestDistance — so we reuse that map instead of
-  // re-running a per-item DISTANCE pass over the recent set. A recent video absent
-  // from the map is provably beyond the cutoff (not matched).
+  // Query mode: reuse itemSourceBestDistance to gate matched recent posts (a post
+  // absent from it is provably beyond the cutoff — see retrieval's producer).
   const recentItemSourceBestDistance =
     queryVector && itemSourceBestDistance
       ? itemSourceBestDistance
       : new Map<string, Map<PartnerContentMatchSource, number>>();
 
-  // Calibrated reranker score per item + source (from the candidate pool), used
-  // to gate which recent posts count as on-topic.
+  // Per-item+source reranker scores from the candidate pool, to gate on-topic posts.
   const rerankByItemSource: SourceScoreByContentItemId = new Map();
   for (const row of rows) {
     if (row.rerankScore != null) {
@@ -542,7 +467,6 @@ export async function getPartnerMatchSummaries({
 
   const queryMatchContext: QueryContentMatchContext | null = queryVector
     ? {
-        querySignals,
         cutoffDistance,
         recentItemSourceBestDistance,
         rerankByItemSource,
@@ -585,12 +509,12 @@ export async function getPartnerMatchSummaries({
         weightedMatchedContentScore,
         recentContentCount,
       });
-      // Brand-facing signals over the on-topic posts: typical reach (median views,
-      // robust to a viral outlier) and how recently they last posted on topic.
+      // Brand-facing signals over on-topic posts: median views + last on-topic date.
       const medianViews = median(
         matchedBars
           .map((bar) => bar.viewCount)
           .filter((views): views is number => views != null && views > 0),
+        { round: true },
       );
       const matchedTimestamps = matchedBars
         .map((bar) => bar.publishedAt)
@@ -600,8 +524,7 @@ export async function getPartnerMatchSummaries({
         ? new Date(Math.max(...matchedTimestamps)).toISOString()
         : null;
       const followers = followersByPartner.get(partnerId) ?? null;
-      // Top platforms ranked by matched-post frequency, falling back to all recent
-      // posts when nothing matched (so the card can still show a platform).
+      // Top platforms by matched-post frequency (falls back to all recent when none matched).
       const platformFrequency = new Map<string, number>();
       for (const bar of matchedBars.length ? matchedBars : contentBars) {
         platformFrequency.set(

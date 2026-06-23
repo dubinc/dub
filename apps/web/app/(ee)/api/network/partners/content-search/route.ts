@@ -14,6 +14,7 @@ import {
   createContentMatchEvidence,
   getEvidenceSource,
   getRowRelevanceScore,
+  sortPartnersByTopicFit,
 } from "@/lib/partner-content-search/ranking";
 import { searchPartnerNetworkContent } from "@/lib/partner-content-search/retrieval";
 import {
@@ -134,7 +135,6 @@ export const POST = withWorkspace(
       rows,
       partnerIds: partnerCandidates.map(({ partnerId }) => partnerId),
       platforms: body.platforms,
-      query: body.query,
       queryVector,
       cutoffDistance,
       itemSourceBestDistance,
@@ -198,39 +198,6 @@ export const POST = withWorkspace(
 
 function isNonNull<T>(value: T | null): value is T {
   return value !== null;
-}
-
-function sortPartnersByTopicFit<
-  T extends {
-    score: number;
-    matchSummary: {
-      topicFit: number;
-      weightedMatchedContentScore: number;
-      weightedMatchedContentCount: number;
-      transcriptMatchedContentCount: number;
-      matchedContentCount: number;
-      followers: number | null;
-    } | null;
-  },
->(partners: T[]) {
-  return [...partners].sort((a, b) => {
-    const aSummary = a.matchSummary;
-    const bSummary = b.matchSummary;
-
-    return (
-      (bSummary?.topicFit ?? 0) - (aSummary?.topicFit ?? 0) ||
-      (bSummary?.weightedMatchedContentScore ?? 0) -
-        (aSummary?.weightedMatchedContentScore ?? 0) ||
-      (bSummary?.weightedMatchedContentCount ?? 0) -
-        (aSummary?.weightedMatchedContentCount ?? 0) ||
-      (bSummary?.transcriptMatchedContentCount ?? 0) -
-        (aSummary?.transcriptMatchedContentCount ?? 0) ||
-      (bSummary?.matchedContentCount ?? 0) -
-        (aSummary?.matchedContentCount ?? 0) ||
-      b.score - a.score ||
-      (bSummary?.followers ?? 0) - (aSummary?.followers ?? 0)
-    );
-  });
 }
 
 function toChunkResult(row: PartnerContentSearchRow, distance: number) {

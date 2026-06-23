@@ -1,6 +1,5 @@
-// Shared helpers for the partner content search routes (admin + network).
-// Both routes run the same raw vector query and group rows by partner; only the
-// per-chunk shape differs, so each route passes its own `toChunkResult` mapper.
+// Shared helpers for the admin + network content search routes: per-partner
+// grouping (each route passes its own toChunkResult) and reranking.
 
 import {
   PARTNER_CONTENT_SEARCH_LIMITS,
@@ -42,8 +41,7 @@ export type PartnerContentSearchRow = {
   startMs: number | null;
   endMs: number | null;
   distance: number | string;
-  // Set by the reranker (second stage) when it runs; absent for cosine-only
-  // results. `rerankPartnerSearchRows` mutates rows in place to attach it.
+  // Attached by the reranker (second stage); absent for cosine-only results.
   rerankScore?: number | null;
 };
 
@@ -51,21 +49,28 @@ export function toScore(distance: number) {
   return Number((1 - distance).toFixed(6));
 }
 
-// The score used for ranking + display: the reranker's relevance score when
-// present, otherwise cosine similarity (1 - cosine distance).
+// Median of a numeric list (robust center; null when empty). `round` rounds the
+// even-length average for display; leave it off when the value feeds further math.
+export function median(
+  values: number[],
+  { round = false }: { round?: boolean } = {},
+): number | null {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 !== 0) return sorted[mid];
+  const average = (sorted[mid - 1] + sorted[mid]) / 2;
+  return round ? Math.round(average) : average;
+}
+
+// Effective score: reranker relevance when present, else cosine similarity.
 export function effectiveRowScore(row: PartnerContentSearchRow) {
   return row.rerankScore ?? toScore(Number(row.distance));
 }
 
-// Collapse a flat, distance-ascending chunk pool to the single best chunk per
-// content item. Because rows are sorted best-first, the first occurrence of each
-// content item is its best chunk. This turns a top-k *chunk* pool into a per-video
-// candidate set in app code, avoiding a SQL window-function dedup that would force
-// a full distance scan and defeat the ANN vector index.
-//
-// Generic over the row shape so callers can dedup lightweight candidate rows
-// (chunkId + ids + distance) before the hydration join as well as fully-hydrated
-// rows.
+// Collapse a distance-ascending chunk pool to the best chunk per content item (first
+// occurrence wins). Done in app code, not SQL, so a window-function dedup doesn't
+// defeat the ANN index. Generic so it works pre- or post-hydration.
 export function dedupeBestChunkPerContentItem<
   T extends { partnerContentItemId: string },
 >(rows: T[]) {
@@ -173,11 +178,8 @@ export function groupPartnerSearchResults<TChunk>({
     .map(({ chunkKeys, ...partner }) => partner);
 }
 
-// Re-score the top vector-search candidates with the Voyage reranker. Mutates
-// rows in place to attach `rerankScore`, then returns them sorted by effective
-// score (rerank when present) descending. Fails *soft*: on a reranker timeout or
-// API error it logs and returns the original cosine ordering, so the second-stage
-// call can never break search; it can only improve it.
+// Re-score the top candidates with the Voyage reranker, sorted by effective score.
+// Fails soft: on timeout/API error, returns the original cosine ordering.
 export async function rerankPartnerSearchRows({
   query,
   rows,
@@ -187,8 +189,7 @@ export async function rerankPartnerSearchRows({
 }): Promise<{ rows: PartnerContentSearchRow[]; reranked: boolean }> {
   if (rows.length === 0) return { rows, reranked: false };
 
-  // Only the top-N cosine candidates are reranked, to bound the rerank payload
-  // (and latency). Rows beyond the cap keep their cosine score.
+  // Only the top-N candidates are reranked, to bound payload/latency.
   const candidates = rows.slice(
     0,
     PARTNER_CONTENT_SEARCH_LIMITS.rerankerCandidateCount,
@@ -226,9 +227,8 @@ export async function rerankPartnerSearchRows({
     throw error;
   }
 
-  // Reranked candidates always sort ahead of the cosine-only tail (rows beyond
-  // the rerank cap): their cosine score was already higher, and we don't want a
-  // weak un-reranked row leapfrogging a reranked one on a different score scale.
+  // Reranked candidates sort ahead of the cosine-only tail (don't let an
+  // un-reranked row leapfrog a reranked one on a different score scale).
   const reranked = [...rows].sort((a, b) => {
     const aReranked = a.rerankScore != null;
     const bReranked = b.rerankScore != null;

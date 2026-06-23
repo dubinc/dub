@@ -1,8 +1,8 @@
 "use client";
 
 import {
+  PARTNER_CONTENT_SEARCH_DETAIL_CHUNKS_PER_PARTNER,
   PARTNER_CONTENT_SEARCH_LIMITS,
-  PARTNER_CONTENT_SEARCH_MAX_CHUNKS_PER_PARTNER,
   PARTNER_CONTENT_SEARCH_TOP_CONTENT,
   type PartnerContentTopicFitBand,
 } from "@/lib/partner-content-search/constants";
@@ -10,7 +10,6 @@ import {
   getBlendedTopContentScore,
   getViewBaseline,
 } from "@/lib/partner-content-search/top-content-ranking";
-import { getPartnerContentThumbnailUrl } from "@/lib/partner-content-search/thumbnail-url";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerContentSearch, {
   type PartnerContentMatchEvidence,
@@ -28,6 +27,16 @@ import { cn, fetcher, nFormatter } from "@dub/utils";
 import { EmailContent } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/invite-email-preview";
 import { InviteNetworkPartnerSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/partners/invite-network-partner-sheet";
 import Link from "next/link";
+import {
+  BAND_LABELS,
+  formatDuration,
+  formatMatchPercent,
+  formatPublishedDate,
+  formatTimestamp,
+  getContentHref,
+  getContentThumbnail,
+  getContentTitle,
+} from "../content-display-utils";
 import {
   getContentSearchPlatforms,
   parseSelectedPlatforms,
@@ -94,20 +103,11 @@ export function NetworkPartnerDetailContent({
   );
   const loadedPartner = partners?.[0];
 
-  // The results page already ran the (global) Voyage search and handed us this
-  // partner's match data on click, so we render straight from it — opening the
-  // detail is instant. In the background we also run a scoped, single-partner
-  // search whenever there's a content-search context, for one reason: to put the
-  // matched-content list on a SINGLE relevance scale. The global search only
-  // reranks items that made its top-N candidate pool, so a creator's other matched
-  // posts fall back to raw cosine — two incomparable scales mixed in one list (the
-  // tell-tale "65% vs 95%" banding). A per-partner rerank covers all of this
-  // creator's items, so every row shares the reranker scale.
-  //
-  // This is non-blocking: cached summary data can paint the stable Topic Fit
-  // headline immediately, while content rows stay skeletoned until the scoped
-  // run resolves. That avoids showing global transcript snippets or row order and
-  // then swapping them for the single-partner reranked result.
+  // The results page already ran the global search and handed us this partner's
+  // match data, so the detail opens instantly. In the background we run a scoped
+  // single-partner rerank so the matched list shares ONE relevance scale — the
+  // global search only reranks its top-N pool, mixing rerank + cosine otherwise.
+  // Non-blocking: the cached Topic Fit headline paints now; rows skeleton until it lands.
   const shouldFetchSearch = hasContentSearch;
   const {
     data: searchResults,
@@ -121,25 +121,21 @@ export function NetworkPartnerDetailContent({
     starred: false,
     partnerIds: [partnerId],
     limit: 1,
-    chunksPerPartner: PARTNER_CONTENT_SEARCH_MAX_CHUNKS_PER_PARTNER,
+    chunksPerPartner: PARTNER_CONTENT_SEARCH_DETAIL_CHUNKS_PER_PARTNER,
     candidateChunkCount: PARTNER_CONTENT_SEARCH_LIMITS.chunkCandidateCount,
   });
 
   const fetchedPartner = searchResults?.partners?.[0];
   const partner =
     loadedPartner ?? initialSearchPartner?.partner ?? fetchedPartner?.partner;
-  // Chunks (snippet text) prefer the fuller fetched set once it arrives; the
-  // summary always prefers the cached one so scores never drift on click.
+  // Chunks prefer the fuller fetched set; the summary keeps the cached one so scores don't drift.
   const searchPartner = fetchedPartner ?? initialSearchPartner;
   const searchSummary =
     initialSearchPartner?.matchSummary ?? fetchedPartner?.matchSummary;
-  // The matched-content list's per-row relevance comes from the scoped, fully
-  // reranked summary (one scale) once it lands; null until then, so the list
-  // shows cached scores and quietly upgrades. Everything else stays on the
-  // cached summary above.
+  // Per-row relevance comes from the scoped reranked summary once it lands (one
+  // scale); null until then, so rows show cached scores and quietly upgrade.
   const relevanceSummary = fetchedPartner?.matchSummary ?? null;
-  // A deep-link has nothing cached → full skeleton. With cached data in hand the
-  // scoped run is a silent, non-blocking relevance refinement.
+  // Deep-link with nothing cached → full skeleton; otherwise a silent refinement.
   const isFallbackLoading = isLoadingSearch && !initialSearchPartner;
   const isRefiningRelevance =
     isLoadingSearch && Boolean(initialSearchPartner) && !relevanceSummary;
@@ -279,14 +275,6 @@ function NetworkInviteControl({
   );
 }
 
-const TOPIC_FIT_BAND_LABELS: Record<PartnerContentTopicFitBand, string> = {
-  consistent: "Consistent",
-  frequent: "Frequent",
-  occasional: "Occasional",
-  "one-off": "One-off",
-  none: "No recent match",
-};
-
 const TOPIC_FIT_BAND_STYLES: Record<
   PartnerContentTopicFitBand,
   { number: string; chip: string }
@@ -312,10 +300,8 @@ function lastPostedLabel(iso: string | null) {
   return `${Math.floor(days / 365)}y ago`;
 }
 
-// Per-post match bars: height encodes match magnitude, color hints at the
-// platform. The palette is intentionally muted + evenly weighted (no full-
-// saturation brand colors, no black) so platforms read as a calm spectrum
-// rather than high-contrast — and so no platform looks like a "non-match".
+// Per-post match bars: height = match magnitude, color = platform. Muted, evenly-
+// weighted palette so platforms read as a calm spectrum (none looks like a non-match).
 const PLATFORM_BAR_COLORS: Record<string, string> = {
   youtube: "bg-[#bd8488]",
   instagram: "bg-[#b083a2]",
@@ -326,10 +312,8 @@ const PLATFORM_BAR_COLORS: Record<string, string> = {
   website: "bg-[#bda77c]",
 };
 
-// The bars are a glanceable recent-activity strip, not the full archive — cap
-// the visual to the most-recent N so columns stay wide enough to hover and the
-// row doesn't turn into 200 hairlines. Topic Fit + the "X of Y on topic" counts
-// still derive from the full server-side recent set, so scoring is unaffected.
+// Glanceable recent-activity strip, capped to the most-recent N so columns stay
+// hoverable. Topic Fit + the "X of Y" counts still use the full server-side set.
 const MAX_VISIBLE_CONTENT_BARS = 40;
 
 function ContentMatchBars({
@@ -337,9 +321,8 @@ function ContentMatchBars({
 }: {
   summary: PartnerContentSearchPartner["matchSummary"] | undefined;
 }) {
-  // One open tooltip at a time: each bar is its own tooltip root that only
-  // closes on its own pointerleave, so a fast cursor flick can leave several
-  // open. Driving every bar's open state from one value prevents that.
+  // One open tooltip at a time — driving every bar's open state from one value
+  // prevents a fast cursor flick leaving several open.
   const [openBarId, setOpenBarId] = useState<string | null>(null);
 
   const allBars = summary?.contentBars ?? [];
@@ -361,10 +344,8 @@ function ContentMatchBars({
         const isCreatorTextOnlyVideoMatch =
           bar.matchEvidence.primarySource === "creatorText" &&
           bar.matchEvidence.weight < 1;
-        // The whole column (full height) is the hover/click target, not just the
-        // short bar — far easier to land on. On hover a gold wash fills the
-        // column and the bar itself turns gold, so the moused-over post is
-        // unmistakable.
+        // The whole column is the hover/click target (easier to land on); on hover
+        // a gold wash fills it and the bar turns gold.
         const columnClassName = cn(
           "group flex h-full min-w-[5px] flex-1 items-end rounded-[3px] transition-colors duration-75 hover:bg-amber-100/70",
           bar.url && "cursor-pointer",
@@ -389,9 +370,7 @@ function ContentMatchBars({
           <Tooltip
             key={bar.partnerContentItemId}
             content={<BarTooltip bar={bar} />}
-            // Snappy bar-to-bar hover: open instantly, drop the hoverable grace
-            // area, and skip the animation so each tooltip closes immediately
-            // rather than lingering as you sweep across.
+            // Snappy bar-to-bar hover: open instantly, no grace area, no close animation.
             delayDuration={0}
             disableHoverableContent
             disableAnimation
@@ -426,8 +405,7 @@ function ContentMatchBars({
   );
 }
 
-// Subtle hover card for a single content bar: platform, title, and the post's
-// date · length · views — all already on the cached summary, no extra fetch.
+// Hover card for a content bar: platform, title, date · length · views (all cached).
 function BarTooltip({
   bar,
 }: {
@@ -471,12 +449,10 @@ function SearchFitPanel({
 }: {
   error: unknown;
   isLoading: boolean;
-  // The scoped single-partner rerank is in flight (cached scores still on screen);
-  // when it lands, every row's relevance moves onto one consistent scale.
+  // Scoped rerank in flight; when it lands, every row's relevance moves to one scale.
   isRefining?: boolean;
   summary?: PartnerContentSearchPartner["matchSummary"];
-  // Scoped, fully reranked summary used only to put the list's per-row relevance
-  // on a single scale. Null until the background rerank resolves.
+  // Scoped reranked summary, only to put per-row relevance on one scale. Null until it resolves.
   relevanceSummary?: PartnerContentSearchPartner["matchSummary"] | null;
   searchPartner?: PartnerContentSearchPartner;
 }) {
@@ -492,16 +468,14 @@ function SearchFitPanel({
   const isLoadingRows = isLoading || isRefining;
   // Per-item relevance on a single scale, from the scoped reranked summary.
   const unifiedRelevanceByItemId = buildUnifiedRelevanceMap(relevanceSummary);
-  // Keep cached summary data for the headline, but hold row rendering until the
-  // scoped run finishes so transcript snippets and row ordering do not swap in.
+  // Hold row rendering until the scoped run finishes so snippets/order don't swap in.
   const items = buildMatchedContentItems(
     summary,
     isLoadingRows ? [] : (searchPartner?.chunks ?? []),
     unifiedRelevanceByItemId,
   );
 
-  // Top content: the relevance-led blend of relevance + reach (robust to a single
-  // viral post). All content: the same matched set, simply newest-first.
+  // Top content: relevance + reach blend. All content: same set, newest-first.
   const topContent = [...items]
     .sort((a, b) => b.blendedScore - a.blendedScore)
     .slice(0, PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount);
@@ -510,8 +484,7 @@ function SearchFitPanel({
   );
   const visibleAll = allContent.slice(0, visibleAllCount);
   const hiddenAllCount = Math.max(0, allContent.length - visibleAll.length);
-  // A separate "All content" list only earns its place when it adds rows beyond
-  // the top set; with ≤ topContentCount matches the top list already shows them all.
+  // "All content" only earns its place when it adds rows beyond the top set.
   const showAllSection =
     !isLoadingRows &&
     allContent.length > PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount;
@@ -550,7 +523,7 @@ function SearchFitPanel({
                 bandStyles.chip,
               )}
             >
-              {TOPIC_FIT_BAND_LABELS[band]}
+              {BAND_LABELS[band]}
             </span>
           </div>
         </div>
@@ -747,9 +720,8 @@ function ContentMatchSkeletons({ count }: { count: number }) {
   );
 }
 
-// A matched post for the detail-pane lists. Built from the cached summary's
-// content bars (complete + instant) and enriched with a loaded chunk (snippet,
-// timed transcript, richer thumbnail) when one is available.
+// A matched post for the detail lists: from the cached summary's bars, enriched
+// with a loaded chunk (snippet, timed transcript, thumbnail) when available.
 type MatchedContentItem = {
   contentItemId: string;
   platform: string;
@@ -767,10 +739,8 @@ type MatchedContentItem = {
   chunk?: PartnerContentSearchPartner["chunks"][number];
 };
 
-// Per-item relevance from the scoped, fully reranked summary, keyed by content
-// item. Used to upgrade each list row onto a single reranker scale (the cached
-// global summary mixes reranker and cosine scores). Includes any item with
-// evidence — not just `matched` ones — so boundary items still get unified.
+// Per-item relevance from the scoped reranked summary (one scale; the cached global
+// summary mixes rerank + cosine). Includes any item with evidence, not just matched.
 function buildUnifiedRelevanceMap(
   relevanceSummary: PartnerContentSearchPartner["matchSummary"] | null | undefined,
 ) {
@@ -801,15 +771,13 @@ function buildMatchedContentItems(
     }
   }
 
-  // Per-creator engagement baseline: median views across all recent posts
-  // (matched + unmatched), so a viral hit can't skew the normalization.
+  // Per-creator engagement baseline: median recent views (matched + unmatched).
   const baselineViews = getViewBaseline(bars.map((bar) => bar.viewCount));
 
   return bars
     .filter((bar) => bar.matched)
     .map((bar) => {
-      // Prefer the unified (single-scale) relevance when the scoped rerank has
-      // landed; otherwise fall back to the cached score so rows render instantly.
+      // Prefer the unified single-scale relevance once the rerank lands; else cached.
       const relevance =
         unifiedRelevanceByItemId?.get(bar.partnerContentItemId) ??
         getEvidenceDisplayScore(bar.matchEvidence) ??
@@ -968,9 +936,8 @@ function getMatchTags(
   }));
 }
 
-// The displayed snippet. Transcript chunks are real prose; creator-text chunks
-// store the raw embedding input ("Content type: video Title: … Description: …"),
-// so we surface just the creator-entered text for a cleaner preview.
+// Displayed snippet. Transcript chunks are prose; creator-text chunks store the raw
+// embedding input, so we surface just the creator-entered text.
 function getMatchSnippet(chunk: PartnerContentSearchPartner["chunks"][number]) {
   const text = (chunk.chunk.text ?? "").trim();
   if (!text) return null;
@@ -1003,23 +970,9 @@ function PlatformIcon({
   return Icon ? <Icon className={cn("size-4", className)} /> : null;
 }
 
-function getPreviewThumbnail(
-  chunk: PartnerContentSearchPartner["chunks"][number],
-) {
-  if (chunk.content.thumbnailUrl) {
-    return getPartnerContentThumbnailUrl(chunk.content.thumbnailUrl);
-  }
-  if (chunk.platform.type === "youtube") {
-    return `https://i.ytimg.com/vi/${chunk.content.platformContentId}/hqdefault.jpg`;
-  }
-  return null;
-}
-
-// Thumbnail for a matched item: the loaded chunk's preview when enriched,
-// otherwise a YouTube thumbnail derived from the content id (the only platform
-// with a stable URL pattern from the bar data alone).
+// Item thumbnail: the loaded chunk's preview, else a YouTube thumbnail from the id.
 function getItemThumbnail(item: MatchedContentItem) {
-  if (item.chunk) return getPreviewThumbnail(item.chunk);
+  if (item.chunk) return getContentThumbnail(item.chunk);
   if (item.platform === "youtube" && item.platformContentId) {
     return `https://i.ytimg.com/vi/${item.platformContentId}/hqdefault.jpg`;
   }
@@ -1038,10 +991,8 @@ function getItemHref(item: MatchedContentItem) {
   return item.url ?? "#";
 }
 
-// A noun phrase describing exactly what window the ranks are computed over, for
-// composing into the caption. The window is time-based (recencyWindowMonths) but
-// capped per partner (recentContentMaxPerPartner); when that cap bites, say so
-// explicitly instead of implying full coverage.
+// Noun phrase for the rank window (time-based but capped per partner); says so
+// explicitly when the cap bites instead of implying full coverage.
 function formatRankWindowPhrase(
   summary: PartnerContentSearchPartner["matchSummary"] | undefined,
 ) {
@@ -1083,58 +1034,6 @@ function formatMonthYear(iso: string | null) {
   }).format(date);
 }
 
-function getContentTitle(chunk: PartnerContentSearchPartner["chunks"][number]) {
-  return (
-    chunk.content.title?.trim() ||
-    chunk.content.description?.trim().split(/\r?\n/)[0] ||
-    "Untitled content"
-  );
-}
-
-function getContentHref(chunk: PartnerContentSearchPartner["chunks"][number]) {
-  if (chunk.platform.type === "instagram") {
-    return getInstagramContentHref(chunk);
-  }
-
-  if (chunk.platform.type !== "youtube" || chunk.chunk.startMs === null) {
-    return chunk.content.url;
-  }
-
-  try {
-    const url = new URL(chunk.content.url);
-    url.searchParams.set("t", `${Math.floor(chunk.chunk.startMs / 1000)}s`);
-    return url.toString();
-  } catch {
-    return chunk.content.url;
-  }
-}
-
-function getInstagramContentHref(
-  chunk: PartnerContentSearchPartner["chunks"][number],
-) {
-  const shortcode =
-    extractInstagramShortcode(chunk.content.url) ||
-    chunk.content.platformContentId;
-
-  return `https://www.instagram.com/${chunk.content.type === "reel" ? "reel" : "p"}/${shortcode}/`;
-}
-
-function extractInstagramShortcode(url: string) {
-  try {
-    return (
-      new URL(url).pathname.match(
-        /^\/(?:(?:[^/]+)\/)?(?:p|reel|tv)\/([^/?#]+)/,
-      )?.[1] ?? null
-    );
-  } catch {
-    return (
-      url.match(
-        /instagram\.com\/(?:(?:[^/]+)\/)?(?:p|reel|tv)\/([^/?#]+)/,
-      )?.[1] ?? null
-    );
-  }
-}
-
 function hasTimedTranscriptMatch({
   source,
   startMs,
@@ -1154,48 +1053,6 @@ function formatChunkTimeRange({
     return `${formatTimestamp(startMs)} - ${formatTimestamp(endMs)}`;
   }
   return formatTimestamp(startMs ?? endMs ?? 0);
-}
-
-function formatTimestamp(ms: number) {
-  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-}
-
-function formatDuration(durationMs: number | null) {
-  if (!durationMs || durationMs <= 0) return null;
-
-  const totalSeconds = Math.floor(durationMs / 1000);
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
-      .toString()
-      .padStart(2, "0")}`;
-  }
-
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-}
-
-function formatPublishedDate(publishedAt: string | null) {
-  if (!publishedAt) return null;
-
-  const date = new Date(publishedAt);
-  if (Number.isNaN(date.getTime())) return null;
-
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
-
-function formatMatchPercent(score: number) {
-  return `${Math.round(Math.min(1, Math.max(0, score)) * 100)}%`;
 }
 
 function getBackQueryString(searchParams: { toString(): string }) {

@@ -46,8 +46,7 @@ export function estimateTokenCount(text: string) {
   const normalized = normalizeTranscriptText(text);
   if (!normalized) return 0;
 
-  // A lightweight approximation keeps this utility dependency-free. The
-  // ingestion job can swap in a provider tokenizer later if needed.
+  // Lightweight approximation keeps this dependency-free; swap in a tokenizer later if needed.
   const words = normalized.split(/\s+/).length;
   return Math.max(1, Math.ceil(words * 1.35));
 }

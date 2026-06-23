@@ -3,9 +3,8 @@ import { parseRankedNetworkPartners } from "@/lib/api/network/normalize-ranked-n
 import type { ReachTier } from "@/lib/api/network/reach-tiers";
 import type { PlatformType } from "@prisma/client";
 
-// Hydrate the shown partner candidates into full network-partner cards, applying
-// the same ranking + post-retrieval user filters (reach/country/starred/platform)
-// the listing endpoints use, keyed by id for the caller to merge back in.
+// Hydrate partner candidates into full network-partner cards (same ranking +
+// reach/country/starred/platform filters as the listing), keyed by id.
 export async function getNetworkPartnersById({
   programId,
   partnerIds,

@@ -3,9 +3,8 @@ import { PlatformType, Prisma } from "@prisma/client";
 import { PARTNER_CONTENT_SEARCH_MODELS } from "./constants";
 import type { PartnerContentSearchRow } from "./search-utils";
 
-// Empty-query path: the most recent embedded content across the eligible network,
-// shaped into the same per-chunk row as the vector search so the downstream
-// grouping/match-summary code is identical for both modes.
+// Empty-query path: most recent embedded content across the eligible network,
+// shaped into the same per-chunk row as the vector search so downstream is identical.
 export async function listPartnerNetworkContent({
   programId,
   platforms,

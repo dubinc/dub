@@ -40,10 +40,8 @@ export async function refreshPartnerContentItemChunkCounts(
   };
 }
 
-// Bulk variant of refreshPartnerContentItemChunkCounts: recomputes and writes
-// the chunk counts for many items in a single round-trip, so callers processing
-// a batch don't fan out to one query + one update per item. Covers items with
-// zero remaining chunks (counts reset to 0) via the correlated subqueries.
+// Bulk variant: recompute + write chunk counts for many items in one round-trip
+// (covers items reset to 0 via the correlated subqueries).
 export async function refreshPartnerContentItemChunkCountsBulk(
   partnerContentItemIds: string[],
 ) {

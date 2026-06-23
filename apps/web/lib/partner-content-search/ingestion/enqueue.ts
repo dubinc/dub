@@ -1,4 +1,5 @@
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
@@ -9,9 +10,8 @@ import {
   PartnerContentPlatform,
 } from "../types";
 
-// Partners enumerated per page / per page-worker job. Defaults to 500; override
-// with the PARTNER_CONTENT_ENUMERATE_PAGE_SIZE env var (e.g. 3) to exercise the
-// self-continuation chain locally without seeding 500+ eligible partners.
+// Partners per enumerate page (default 500). Override via env to exercise the
+// self-continuation chain locally without seeding 500+ partners.
 export const PARTNER_CONTENT_ENUMERATE_PAGE_SIZE = (() => {
   const raw = process.env.PARTNER_CONTENT_ENUMERATE_PAGE_SIZE;
   const parsed = raw ? Number.parseInt(raw, 10) : Number.NaN;
@@ -66,11 +66,9 @@ export const partnerContentEnumeratePayloadSchema = z.object({
   filter: partnerContentIngestionFilterSchema,
   runStamp: z.string().min(1),
   dryRun: z.boolean().default(false),
-  // Cursor handed back to this same route for self-continued enumeration;
-  // absent on the initial dispatch from the admin trigger.
+  // Cursor for self-continued enumeration; absent on the initial dispatch.
   startingAfter: z.string().optional(),
-  // Remaining partner budget carried across continuation hops. Seeded from
-  // filter.limitPartners on the first hop; omitted means unbounded.
+  // Partner budget carried across continuation hops; omitted = unbounded.
   remainingPartners: z.number().int().nonnegative().optional(),
 });
 
@@ -90,8 +88,7 @@ export const partnerContentFetchPayloadSchema = z.object({
   runStamp: z.string().min(1),
   dryRun: z.boolean().default(false),
   forceTranscriptJobs: z.boolean().default(false),
-  // Manual/direct fetch escape hatch for linked-but-unverified platforms.
-  // Enumerated backfills still only enqueue verified platforms.
+  // Escape hatch for linked-but-unverified platforms; backfills stay verified-only.
   ignoreUnverified: z.boolean().default(false),
   partnerId: z.string().min(1),
   partnerPlatformId: z.string().min(1),
@@ -102,9 +99,8 @@ export const partnerContentTranscriptPayloadSchema = z.object({
   mode: partnerContentIngestionModeSchema,
   runStamp: z.string().min(1),
   dryRun: z.boolean().default(false),
-  // Re-fetch the transcript even if one was already fetched. Off by default so
-  // QStash redelivery doesn't re-burn ScrapeCreators credits; set by admin
-  // re-ingestion.
+  // Re-fetch even if already fetched. Off by default so QStash redelivery doesn't
+  // re-burn ScrapeCreators credits.
   forceRefetch: z.boolean().default(false),
   partnerId: z.string().min(1),
   partnerPlatformId: z.string().min(1),
@@ -166,15 +162,136 @@ export async function enqueuePartnerContentEnumerate(
   });
 }
 
+// Enqueue one embed job for an already-chunked item. Throws on publish failure so
+// the caller fails the job and QStash retries (else chunks stay unsearchable).
+export async function enqueueEmbedJob({
+  mode,
+  runStamp,
+  partnerId,
+  partnerContentItemId,
+}: {
+  mode: PartnerContentIngestionMode;
+  runStamp: string;
+  partnerId: string;
+  partnerContentItemId: string;
+}) {
+  try {
+    await qstash.publishJSON({
+      url: getPartnerContentUrl(PARTNER_CONTENT_SEARCH_ROUTES.embed),
+      method: "POST",
+      body: {
+        mode,
+        runStamp,
+        partnerId,
+        partnerContentItemId,
+      },
+      flowControl: PARTNER_CONTENT_EMBED_FLOW_CONTROL,
+      deduplicationId: createPartnerContentDeduplicationId(
+        "partner-content-embed",
+        mode,
+        runStamp,
+        partnerContentItemId,
+      ),
+    });
+  } catch (error) {
+    // Don't swallow: chunks are already committed, so a dropped embed leaves them
+    // unsearchable. Rethrow → withCron 500 → QStash retries; forceRefetch=false skips
+    // the re-fetch and the embed dedup id keeps it idempotent.
+    console.error("[PartnerContentSearch] Failed to enqueue embed job", {
+      error,
+      mode,
+      runStamp,
+      partnerId,
+      partnerContentItemId,
+    });
+
+    throw error;
+  }
+}
+
+// Fan out one embed job per pending content item on a partner platform.
+export async function enqueueEmbedJobsForPartnerPlatform({
+  mode,
+  runStamp,
+  partnerId,
+  partnerPlatformId,
+  limitContentItems,
+  maxChunks,
+}: {
+  mode: PartnerContentIngestionMode;
+  runStamp: string;
+  partnerId: string;
+  partnerPlatformId?: string;
+  limitContentItems: number;
+  maxChunks: number;
+}) {
+  if (!partnerPlatformId) {
+    return logAndRespond(
+      `[PartnerContentSearch] Embed enqueue requires partnerPlatformId for ${mode} run ${runStamp}.`,
+      { status: 400, logLevel: "warn" },
+    );
+  }
+
+  const contentItems = await prisma.partnerContentItem.findMany({
+    where: {
+      partnerId,
+      partnerPlatformId,
+      totalChunkCount: {
+        gt: 0,
+      },
+    },
+    select: {
+      id: true,
+      totalChunkCount: true,
+      embeddedChunkCount: true,
+    },
+    orderBy: {
+      id: "asc",
+    },
+    take: limitContentItems,
+  });
+
+  const pendingContentItems = contentItems.filter(
+    ({ totalChunkCount, embeddedChunkCount }) =>
+      embeddedChunkCount < totalChunkCount,
+  );
+
+  const messages = pendingContentItems.map((contentItem) => ({
+    url: getPartnerContentUrl(PARTNER_CONTENT_SEARCH_ROUTES.embed),
+    method: "POST" as const,
+    flowControl: PARTNER_CONTENT_EMBED_FLOW_CONTROL,
+    body: {
+      mode,
+      runStamp,
+      partnerId,
+      partnerContentItemId: contentItem.id,
+      maxChunks,
+    },
+    deduplicationId: createPartnerContentDeduplicationId(
+      "partner-content-embed",
+      mode,
+      runStamp,
+      contentItem.id,
+    ),
+  }));
+
+  if (messages.length > 0) {
+    await qstash.batchJSON(messages);
+  }
+
+  return logAndRespond(
+    `[PartnerContentSearch] Enqueued ${messages.length} embed jobs (${pendingContentItems.length} pending of ${contentItems.length} inspected) for partner platform ${partnerPlatformId} on ${mode} run ${runStamp}.`,
+  );
+}
+
 export function getIncrementalRefreshCutoff() {
   return new Date(
     Date.now() - PARTNER_CONTENT_INCREMENTAL_REFRESH_DAYS * 24 * 60 * 60 * 1000,
   );
 }
 
-// Shared platform-eligibility predicate for the enumerate fan-out. The
-// partner-level (enumerate) and platform-level (enumerate/page) routes both
-// filter platforms on the same verified + incremental-recency rules.
+// Shared platform-eligibility predicate (verified + incremental-recency rules),
+// used by both the enumerate and enumerate/page routes.
 export function buildEligiblePartnerPlatformWhere({
   mode,
   platforms,
@@ -204,10 +321,42 @@ export function buildEligiblePartnerPlatformWhere({
   };
 }
 
-// Parse a QStash payload for a cron route. A malformed payload is a permanent
-// error QStash should not retry, so respond 400 rather than letting it bubble
-// to withCron's 500 + error alert. Returns the parsed payload, or a Response to
-// return directly from the handler.
+// Partner-level eligibility for the enumerate route — composes
+// buildEligiblePartnerPlatformWhere; gates on approved/trusted status.
+export function buildEligiblePartnerWhere({
+  mode,
+  filter,
+}: {
+  mode: PartnerContentIngestionMode;
+  filter: {
+    partnerId?: string;
+    partnerIds?: string[];
+    platforms: PartnerContentPlatform[];
+  };
+}): Prisma.PartnerWhereInput {
+  return {
+    networkStatus: {
+      in: ["approved", "trusted"],
+    },
+    ...(filter.partnerId && {
+      id: filter.partnerId,
+    }),
+    ...(filter.partnerIds?.length && {
+      id: {
+        in: filter.partnerIds,
+      },
+    }),
+    platforms: {
+      some: buildEligiblePartnerPlatformWhere({
+        mode,
+        platforms: filter.platforms,
+      }),
+    },
+  };
+}
+
+// Parse a cron payload. A malformed body is permanent, so respond 400 (not a
+// withCron 500 + alert). Returns the payload, or a Response to return directly.
 export function parsePartnerContentCronPayload<T extends z.ZodTypeAny>(
   schema: T,
   rawBody: string,

@@ -4,12 +4,12 @@ import { PARTNER_CONTENT_SEARCH_MODELS } from "@/lib/partner-content-search/cons
 import { refreshPartnerContentItemChunkCounts } from "@/lib/partner-content-search/ingestion/chunk-counts";
 import {
   createPartnerContentDeduplicationId,
+  enqueueEmbedJobsForPartnerPlatform,
   getPartnerContentUrl,
   parsePartnerContentCronPayload,
   PARTNER_CONTENT_EMBED_FLOW_CONTROL,
   PARTNER_CONTENT_SEARCH_ROUTES,
   partnerContentEmbedPayloadSchema,
-  PartnerContentIngestionMode,
 } from "@/lib/partner-content-search/ingestion/enqueue";
 import {
   embedPartnerContentTexts,
@@ -52,10 +52,8 @@ export const POST = withCron(async ({ rawBody }) => {
       partnerId: true,
       totalChunkCount: true,
       embeddedChunkCount: true,
-      // Source values for the denormalized search pre-filter columns on
-      // PartnerContentChunk. The embed write is the single choke point that makes
-      // a chunk searchable, so we stamp these here to keep new chunks correctly
-      // filterable the moment they gain an embedding.
+      // Source values for the denormalized pre-filter columns (country, platformType),
+      // stamped on the chunk at embed time — the point it becomes searchable.
       partner: {
         select: {
           country: true,
@@ -148,13 +146,8 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  // Denormalized search pre-filter values, stamped alongside the embedding so a
-  // chunk is correctly filterable as soon as it becomes searchable. All chunks in
-  // this job share one content item, hence one partner/platform, so these are
-  // constant across the batch. Both are effectively static (platformType immutable,
-  // country ~never changes); a periodic reconcile catches the rare country edit.
-  // networkStatus is intentionally not denormalized — it stays a post-filter in the
-  // search query (ingestion already gates content on approved/trusted partners).
+  // Denormalized pre-filter values stamped with the embedding (constant across the
+  // batch — one content item → one partner/platform). Both are ~static
   const country = contentItem.partner.country;
   const platformType = contentItem.partnerPlatform.type;
 
@@ -206,80 +199,6 @@ export const POST = withCron(async ({ rawBody }) => {
     `[PartnerContentSearch] Embedded ${chunks.length} chunks for content item ${contentItem.id} (${embeddedChunkCount}/${contentItem.totalChunkCount}, ${remainingChunkCount} remaining) on ${payload.mode} run ${payload.runStamp}.`,
   );
 });
-
-async function enqueueEmbedJobsForPartnerPlatform({
-  mode,
-  runStamp,
-  partnerId,
-  partnerPlatformId,
-  limitContentItems,
-  maxChunks,
-}: {
-  mode: PartnerContentIngestionMode;
-  runStamp: string;
-  partnerId: string;
-  partnerPlatformId?: string;
-  limitContentItems: number;
-  maxChunks: number;
-}) {
-  if (!partnerPlatformId) {
-    return logAndRespond(
-      `[PartnerContentSearch] Embed enqueue requires partnerPlatformId for ${mode} run ${runStamp}.`,
-      { status: 400, logLevel: "warn" },
-    );
-  }
-
-  const contentItems = await prisma.partnerContentItem.findMany({
-    where: {
-      partnerId,
-      partnerPlatformId,
-      totalChunkCount: {
-        gt: 0,
-      },
-    },
-    select: {
-      id: true,
-      totalChunkCount: true,
-      embeddedChunkCount: true,
-    },
-    orderBy: {
-      id: "asc",
-    },
-    take: limitContentItems,
-  });
-
-  const pendingContentItems = contentItems.filter(
-    ({ totalChunkCount, embeddedChunkCount }) =>
-      embeddedChunkCount < totalChunkCount,
-  );
-
-  const messages = pendingContentItems.map((contentItem) => ({
-    url: getPartnerContentUrl(PARTNER_CONTENT_SEARCH_ROUTES.embed),
-    method: "POST" as const,
-    flowControl: PARTNER_CONTENT_EMBED_FLOW_CONTROL,
-    body: {
-      mode,
-      runStamp,
-      partnerId,
-      partnerContentItemId: contentItem.id,
-      maxChunks,
-    },
-    deduplicationId: createPartnerContentDeduplicationId(
-      "partner-content-embed",
-      mode,
-      runStamp,
-      contentItem.id,
-    ),
-  }));
-
-  if (messages.length > 0) {
-    await qstash.batchJSON(messages);
-  }
-
-  return logAndRespond(
-    `[PartnerContentSearch] Enqueued ${messages.length} embed jobs (${pendingContentItems.length} pending of ${contentItems.length} inspected) for partner platform ${partnerPlatformId} on ${mode} run ${runStamp}.`,
-  );
-}
 
 async function refreshEmbeddedChunkCount(partnerContentItemId: string) {
   const { embeddedChunkCount } =

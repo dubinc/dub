@@ -162,3 +162,36 @@ export const partnerNetworkContentSearchSchema = z.object({
   // Second-stage reranking is on by default; pass `false` for diagnostics.
   rerank: z.boolean().default(true),
 });
+
+const PARTNER_ADMIN_CONTENT_SEARCH_DEFAULT_PARTNER_LIMIT = 10;
+const PARTNER_ADMIN_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER = 3;
+
+// Request body for the admin diagnostics route POST /api/admin/partner-content/search.
+// Simpler than the network schema: a required query, a single platform filter, and
+// it surfaces more chunks per partner for inspection.
+export const partnerAdminContentSearchSchema = z.object({
+  query: z.string().trim().min(1).max(500),
+  limit: z
+    .number()
+    .int()
+    .positive()
+    .max(50)
+    .default(PARTNER_ADMIN_CONTENT_SEARCH_DEFAULT_PARTNER_LIMIT),
+  chunksPerPartner: z
+    .number()
+    .int()
+    .positive()
+    .max(10)
+    .default(PARTNER_ADMIN_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER),
+  candidateChunkCount: z
+    .number()
+    .int()
+    .positive()
+    .max(PARTNER_CONTENT_SEARCH_LIMITS.chunkCandidateCount)
+    .optional(),
+  partnerIds: z.array(z.string()).min(1).max(100).optional(),
+  platform: z.enum(PlatformType).optional(),
+  // Second-stage reranking is on by default; pass `false` to inspect cosine-only
+  // ranking for comparison.
+  rerank: z.boolean().default(true),
+});
