@@ -1,5 +1,5 @@
 export function formatProgramAnalyticsForExport(rows: Record<string, any>[]) {
-  return rows.map(({ groupByField, ...row }) => {
+  return rows.map(({ groupByField, link, ...row }) => {
     if (row.partner) {
       row.partner = {
         name: row.partner.name,
