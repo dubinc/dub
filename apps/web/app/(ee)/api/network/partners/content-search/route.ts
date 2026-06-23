@@ -24,7 +24,10 @@ import {
 } from "@/lib/partner-content-search/search-utils";
 import { createPartnerContentSearchTimingLogger } from "@/lib/partner-content-search/timing";
 import { prisma } from "@/lib/prisma";
-import { partnerNetworkContentSearchSchema } from "@/lib/zod/schemas/partner-network";
+import {
+  partnerNetworkContentSearchResponseSchema,
+  partnerNetworkContentSearchSchema,
+} from "@/lib/zod/schemas/partner-network";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -174,20 +177,22 @@ export const POST = withWorkspace(
       returnedPartnerCount: Math.min(sortedPartners.length, body.limit),
     });
 
-    return NextResponse.json({
-      success: true,
-      query: body.query ?? null,
-      platforms: body.platforms ?? null,
-      country: body.country ?? null,
-      candidateChunkCount,
-      embeddingModel: PARTNER_CONTENT_SEARCH_MODELS.embedding.id,
-      reranked,
-      rerankModel: reranked
-        ? PARTNER_CONTENT_SEARCH_MODELS.reranker.model
-        : null,
-      resultCount: rows.length,
-      partners: sortedPartners.slice(0, body.limit),
-    });
+    return NextResponse.json(
+      partnerNetworkContentSearchResponseSchema.parse({
+        success: true,
+        query: body.query ?? null,
+        platforms: body.platforms ?? null,
+        country: body.country ?? null,
+        candidateChunkCount,
+        embeddingModel: PARTNER_CONTENT_SEARCH_MODELS.embedding.id,
+        reranked,
+        rerankModel: reranked
+          ? PARTNER_CONTENT_SEARCH_MODELS.reranker.model
+          : null,
+        resultCount: rows.length,
+        partners: sortedPartners.slice(0, body.limit),
+      }),
+    );
   },
   {
     requiredPlan: ["enterprise", "advanced"],

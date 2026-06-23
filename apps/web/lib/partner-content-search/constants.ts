@@ -23,18 +23,13 @@ export const PARTNER_CONTENT_SEARCH_MODELS = {
 export const PARTNER_CONTENT_SEARCH_LIMITS = {
   recencyWindowMonths: 12,
   contentItemsPerPartnerPlatform: 50,
-  lowTranscriptCoverageThreshold: 0.3,
-  maxTranscriptBytesInPlanetscale: 500_000,
   chunkMinTokens: 400,
   chunkMaxTokens: 800,
-  chunkOverlapTokens: 80,
-  chunkCandidateCount: 200,
-  recentContentMaxPerPartner: 200,
-  vectorSearchChunkPoolMultiplier: 3,
-  vectorSearchChunkPoolMaxSize: 600,
-  rerankerCandidateCount: 150,
-  rerankerMaxDocChars: 2_000,
-  partnerScorePoolSize: 3,
+  chunkOverlapTokens: 80, // Cross-chunk context.
+  recentContentMaxPerPartner: 200, // Detail topic-fit eval cap.
+  vectorSearchChunkPoolSize: 600, // Raw ANN pool.
+  rerankerCandidateCount: 150, // Query/rerank cap.
+  rerankerDocumentCharSafetyLimit: 20_000, // Bug guard.
 } as const;
 
 export const PARTNER_CONTENT_SEARCH_FUSION_WEIGHTS = {

@@ -30,12 +30,14 @@ export async function rerankPartnerSearchRows({
     0,
     PARTNER_CONTENT_SEARCH_LIMITS.rerankerCandidateCount,
   );
-  const documents = candidates.map((row) =>
-    (row.chunkText ?? "").slice(
-      0,
-      PARTNER_CONTENT_SEARCH_LIMITS.rerankerMaxDocChars,
-    ),
-  );
+  const documentCharSafetyLimit =
+    PARTNER_CONTENT_SEARCH_LIMITS.rerankerDocumentCharSafetyLimit;
+  const documents = candidates.map(({ chunkText }) => {
+    const document = chunkText ?? "";
+    return document.length > documentCharSafetyLimit
+      ? document.slice(0, documentCharSafetyLimit)
+      : document;
+  });
 
   try {
     const results = await rerankPartnerContent({
@@ -63,14 +65,14 @@ export async function rerankPartnerSearchRows({
     throw error;
   }
 
-  // Reranked candidates sort ahead of the cosine-only tail (don't let an
-  // un-reranked row leapfrog a reranked one on a different score scale).
-  const reranked = [...rows].sort((a, b) => {
-    const aReranked = a.rerankScore != null;
-    const bReranked = b.rerankScore != null;
-    if (aReranked !== bReranked) return aReranked ? -1 : 1;
-    return effectiveRowScore(b) - effectiveRowScore(a);
-  });
+  // Reranker-only ordering: return just the reranked candidates, sorted by their
+  // calibrated relevance. We drop the un-reranked cosine tail (rows beyond
+  // rerankerCandidateCount) rather than appending it — the cosine and rerank score
+  // scales must never be blended in one ordering. The fail-soft path above returns
+  // the full cosine ordering instead.
+  const reranked = candidates
+    .filter((row) => row.rerankScore != null)
+    .sort((a, b) => effectiveRowScore(b) - effectiveRowScore(a));
 
   return { rows: reranked, reranked: true };
 }

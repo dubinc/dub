@@ -1,7 +1,6 @@
-// Audience-size tiers for partner discovery. Reach is gauged as the partner's
-// MAX subscriber count across the *selected* platforms (their headline audience),
-// so the tier filter composes with topic relevance instead of overriding it and
-// stays well-defined for any platform selection (unlike a per-platform sort).
+// Audience-size tiers for partner discovery. Reach is the partner's max subscriber
+// count across the selected platforms, so the filter composes with topic relevance
+// and stays well-defined for any platform selection.
 
 export const REACH_TIER_KEYS = [
   "nano",

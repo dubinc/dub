@@ -38,11 +38,10 @@ export function deriveTopicFit({
     return { topicFit: 0, band: "none" };
   }
 
-  // Coverage blends two signals: purity (strength-weighted share of recent posts
-  // on-topic) and depthConfidence (how much on-topic evidence there is, saturating
-  // so one post can't read as strong). depthConfidence gates the score; purity only
-  // modulates it between dilutionForgiveness and 1, so a deep on-topic body scores
-  // well even when mixed with off-topic posts.
+  // Coverage = depthConfidence (saturating on-topic evidence, so one post can't read
+  // as strong) modulated by purity (strength-weighted on-topic share). depthConfidence
+  // gates the score; purity only moves it between dilutionForgiveness and 1, so a deep
+  // on-topic body still scores well when mixed with off-topic posts.
   const {
     coverageCurveExponent,
     bandThresholds,

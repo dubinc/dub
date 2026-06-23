@@ -37,11 +37,9 @@ export function useNetworkPartnerFiltersState() {
   const country = searchParams.get("country") ?? undefined;
   const starred = searchParams.get("starred") === "true";
 
-  // Update filter params via the History API instead of router.push. These are
-  // query-only changes that drive client-side SWR; page.tsx reads no searchParams,
-  // so a full RSC navigation per click only adds latency before useSearchParams()
-  // (and thus the control's checked state) updates. pushState updates it
-  // synchronously — instant feedback — while SWR still refetches on key change.
+  // Filter updates use history.pushState instead of router.push. Params only
+  // drive client-side SWR — page.tsx doesn't read them — so router.push would
+  // add an RSC round-trip for no gain. SWR refetches when the URL key changes.
   const updateSearchParams = (opts: {
     set?: Record<string, string | string[]>;
     del?: string | string[];

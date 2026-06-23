@@ -115,7 +115,6 @@ export const GET = withWorkspace(
       similarityScore: sp.similarityScore,
     }));
 
-    console.time("calculatePartnerRanking");
     const partners = await calculatePartnerRanking({
       programId,
       partnerIds,
@@ -128,7 +127,6 @@ export const GET = withWorkspace(
       reach: reach ?? undefined,
       similarPrograms,
     });
-    console.timeEnd("calculatePartnerRanking");
 
     return NextResponse.json(parseRankedNetworkPartners(partners));
   },

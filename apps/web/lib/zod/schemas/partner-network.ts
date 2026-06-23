@@ -155,3 +155,144 @@ export const partnerNetworkContentSearchSchema = z.object({
   // Second-stage reranking is on by default; pass `false` for diagnostics.
   rerank: z.boolean().default(true),
 });
+
+// ---- Response for POST /api/network/partners/content-search ----
+// Single source of truth: the route validates its response against this schema
+// and the SWR hook derives its types from it (no hand-maintained duplicate).
+
+export const partnerContentMatchSourceSchema = z.enum([
+  "transcript",
+  "creatorText",
+]);
+
+export const partnerContentMatchEvidenceSchema = z.object({
+  primarySource: partnerContentMatchSourceSchema.nullable(),
+  sources: z.array(partnerContentMatchSourceSchema),
+  transcriptScore: z.number().nullable(),
+  creatorTextScore: z.number().nullable(),
+  creatorTextWeight: z.number(),
+  weight: z.number(),
+});
+
+const partnerContentSearchChunkSchema = z.object({
+  chunkId: z.string(),
+  partnerContentItemId: z.string(),
+  platform: z.object({
+    type: z.string(),
+    identifier: z.string(),
+  }),
+  content: z.object({
+    platformContentId: z.string(),
+    url: z.string(),
+    type: z.string(),
+    title: z.string().nullable(),
+    description: z.string().nullable(),
+    thumbnailUrl: z.string().nullable(),
+    publishedAt: z.string().nullable(),
+    durationMs: z.number().nullable(),
+    viewCount: z.number().nullable(),
+    likeCount: z.number().nullable(),
+    commentCount: z.number().nullable(),
+    shareCount: z.number().nullable(),
+    saveCount: z.number().nullable(),
+  }),
+  chunk: z.object({
+    source: z.string(),
+    text: z.string(),
+    startMs: z.number().nullable(),
+    endMs: z.number().nullable(),
+  }),
+  score: z.number(),
+  cosineScore: z.number().nullish(),
+  rerankScore: z.number().nullish(),
+  matchEvidence: partnerContentMatchEvidenceSchema.optional(),
+});
+
+const partnerContentSearchContentBarSchema = z.object({
+  partnerContentItemId: z.string(),
+  platform: z.string(),
+  platformContentId: z.string(),
+  title: z.string().nullable(),
+  url: z.string().nullable(),
+  durationMs: z.number().nullable(),
+  publishedAt: z.string().nullable(),
+  viewCount: z.number().nullable(),
+  likeCount: z.number().nullable(),
+  commentCount: z.number().nullable(),
+  shareCount: z.number().nullable(),
+  saveCount: z.number().nullable(),
+  matched: z.boolean(),
+  matchScore: z.number().nullable(),
+  matchEvidence: partnerContentMatchEvidenceSchema,
+});
+
+const partnerContentTopicFitBandSchema = z.enum([
+  "consistent",
+  "frequent",
+  "occasional",
+  "one-off",
+  "none",
+]);
+
+const partnerContentSearchMatchSummarySchema = z.object({
+  matchedContentCount: z.number(),
+  transcriptMatchedContentCount: z.number(),
+  creatorTextMatchedContentCount: z.number(),
+  creatorTextOnlyContentCount: z.number(),
+  weightedMatchedContentCount: z.number(),
+  weightedMatchedContentScore: z.number(),
+  recentContentCount: z.number(),
+  totalContentCount: z.number(),
+  topicFit: z.number(),
+  band: partnerContentTopicFitBandSchema,
+  followers: z.number().nullable(),
+  medianViews: z.number().nullable(),
+  lastOnTopicAt: z.string().nullable(),
+  topPlatforms: z.array(z.string()),
+  platforms: z.array(z.string()),
+  sources: z.array(z.string()),
+  oldestPublishedAt: z.string().nullable(),
+  newestPublishedAt: z.string().nullable(),
+  contentBars: z.array(partnerContentSearchContentBarSchema),
+});
+
+const partnerContentSearchResponsePartnerSchema = z.object({
+  partnerId: z.string(),
+  name: z.string(),
+  username: z.string().nullable(),
+  image: z.string().nullable(),
+  description: z.string().nullable(),
+  score: z.number(),
+  cosineScore: z.number().nullish(),
+  rerankScore: z.number().nullish(),
+  // Already validated upstream by parseRankedNetworkPartners; pass through as-is
+  // so the partner subtree's schema transforms aren't re-applied here.
+  partner: z.custom<z.infer<typeof NetworkPartnerSchema>>(),
+  chunks: z.array(partnerContentSearchChunkSchema),
+  matchSummary: partnerContentSearchMatchSummarySchema.nullable(),
+});
+
+export const partnerNetworkContentSearchResponseSchema = z.object({
+  success: z.boolean(),
+  query: z.string().nullable(),
+  platforms: z.array(z.enum(PlatformType)).nullable(),
+  country: z.string().nullable(),
+  candidateChunkCount: z.number(),
+  embeddingModel: z.string(),
+  reranked: z.boolean(),
+  rerankModel: z.string().nullable(),
+  resultCount: z.number(),
+  partners: z.array(partnerContentSearchResponsePartnerSchema),
+});
+
+export type PartnerNetworkContentSearchResponse = z.infer<
+  typeof partnerNetworkContentSearchResponseSchema
+>;
+export type PartnerNetworkContentSearchPartner =
+  PartnerNetworkContentSearchResponse["partners"][number];
+export type PartnerContentMatchEvidence = z.infer<
+  typeof partnerContentMatchEvidenceSchema
+>;
+export type PartnerContentMatchSource = z.infer<
+  typeof partnerContentMatchSourceSchema
+>;

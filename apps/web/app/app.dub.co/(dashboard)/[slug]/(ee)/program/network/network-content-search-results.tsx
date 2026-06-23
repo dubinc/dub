@@ -49,14 +49,16 @@ type ContentPreviewItem = {
 export function NetworkContentSearchResults({
   error,
   hasQuery,
-  isLoading,
+  isFetching,
   partners,
   platform,
   onToggleStarred,
 }: {
   error: unknown;
   hasQuery: boolean;
-  isLoading: boolean;
+  // A search is pending or in flight. Drives the first-search skeletons (no
+  // results yet) and dims the prior results during a re-search.
+  isFetching: boolean;
   partners?: PartnerContentSearchPartner[];
   platform?: PlatformType;
   onToggleStarred?: (partnerId: string, starred: boolean) => void;
@@ -71,7 +73,9 @@ export function NetworkContentSearchResults({
     );
   }
 
-  if (!partners && isLoading) {
+  // First search (no results yet): skeletons. On re-search we keep the previous
+  // results on screen, dimmed, instead — see the grid below.
+  if (isFetching && !partners) {
     return (
       <div className="@5xl/page:grid-cols-4 @3xl/page:grid-cols-3 @xl/page:grid-cols-2 mt-4 grid grid-cols-1 gap-4 lg:gap-6">
         {[...Array(8)].map((_, idx) => (
@@ -102,7 +106,13 @@ export function NetworkContentSearchResults({
   }
 
   return (
-    <div className="@5xl/page:grid-cols-4 @3xl/page:grid-cols-3 @xl/page:grid-cols-2 mt-4 grid grid-cols-1 gap-4 lg:gap-6">
+    <div
+      className={cn(
+        "@5xl/page:grid-cols-4 @3xl/page:grid-cols-3 @xl/page:grid-cols-2 mt-4 grid grid-cols-1 gap-4 transition-opacity lg:gap-6",
+        // Re-search: keep prior results visible but dimmed while the next runs.
+        isFetching && "opacity-50",
+      )}
+    >
       {partners.map((partner) => (
         <NetworkPartnerCard
           key={partner.partnerId}
@@ -121,6 +131,31 @@ export function NetworkContentSearchResults({
           }
         />
       ))}
+    </div>
+  );
+}
+
+function NetworkPartnerContentMatchSkeleton() {
+  return (
+    <div className="border-border-subtle border-t p-4 pt-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1.5">
+        <div className="col-start-1 row-start-1 h-3 w-16 animate-pulse rounded bg-neutral-200" />
+        <div className="col-start-2 row-start-1 h-3 w-20 animate-pulse justify-self-start rounded bg-neutral-200" />
+        <div className="col-start-1 row-start-2 flex flex-col items-start gap-1">
+          <div className="h-8 w-11 animate-pulse rounded bg-neutral-200" />
+          <div className="h-6 w-20 animate-pulse rounded-full bg-neutral-100" />
+        </div>
+        <div className="col-start-2 row-start-2 flex items-center justify-start gap-1.5 justify-self-start">
+          {[...Array(TOP_CONTENT_PREVIEW_COUNT)].map((_, index) => (
+            <div
+              key={index}
+              className="size-11 animate-pulse rounded-lg bg-neutral-100"
+            />
+          ))}
+        </div>
+      </div>
+      <div className="mt-2.5 h-3 w-32 animate-pulse rounded bg-neutral-100" />
+      <div className="mt-2 h-3 w-40 animate-pulse rounded bg-neutral-100" />
     </div>
   );
 }
@@ -163,8 +198,6 @@ function NetworkPartnerContentMatch({
 
   const band = summary?.band ?? "none";
   const styles = BAND_STYLES[band];
-  const followers = summary?.followers ?? null;
-  const medianViews = summary?.medianViews ?? null;
   const matchLabel = formatMatchEvidenceLabel(summary);
   const lastOnTopic = lastPostedLabel(summary?.lastOnTopicAt);
   const previewItems = getContentPreviewItems(partner);
@@ -183,7 +216,7 @@ function NetworkPartnerContentMatch({
         <div className="col-start-1 row-start-2 flex min-w-0 flex-col items-start gap-1">
           <span
             className={cn(
-              "text-[28px] font-bold leading-none tabular-nums",
+              "text-[28px] font-bold tabular-nums leading-none",
               styles.number,
             )}
           >
@@ -201,21 +234,6 @@ function NetworkPartnerContentMatch({
 
         <ContentPreviewTiles items={previewItems} />
       </div>
-      {(followers || medianViews) && (
-        <div className="text-content-default mt-2.5 flex min-w-0 items-center gap-1.5 text-xs font-medium">
-          {followers ? (
-            <span className="shrink-0">{nFormatter(followers)} followers</span>
-          ) : null}
-          {followers && medianViews ? (
-            <span className="text-content-muted">·</span>
-          ) : null}
-          {medianViews ? (
-            <span className="shrink-0">
-              {nFormatter(medianViews)} median views
-            </span>
-          ) : null}
-        </div>
-      )}
       <div className="text-content-subtle mt-2 flex min-w-0 items-center gap-1.5 text-xs font-medium">
         <PlatformIcons platforms={platforms} />
         <span className="truncate">{matchLabel}</span>
@@ -228,31 +246,6 @@ function NetworkPartnerContentMatch({
           </>
         )}
       </div>
-    </div>
-  );
-}
-
-function NetworkPartnerContentMatchSkeleton() {
-  return (
-    <div className="border-border-subtle border-t p-4 pt-2">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1.5">
-        <div className="col-start-1 row-start-1 h-3 w-16 animate-pulse rounded bg-neutral-200" />
-        <div className="col-start-2 row-start-1 h-3 w-20 justify-self-start animate-pulse rounded bg-neutral-200" />
-        <div className="col-start-1 row-start-2 flex flex-col items-start gap-1">
-          <div className="h-8 w-11 animate-pulse rounded bg-neutral-200" />
-          <div className="h-6 w-20 animate-pulse rounded-full bg-neutral-100" />
-        </div>
-        <div className="col-start-2 row-start-2 flex items-center justify-start gap-1.5 justify-self-start">
-          {[...Array(TOP_CONTENT_PREVIEW_COUNT)].map((_, index) => (
-            <div
-              key={index}
-              className="size-11 animate-pulse rounded-lg bg-neutral-100"
-            />
-          ))}
-        </div>
-      </div>
-      <div className="mt-2.5 h-3 w-32 animate-pulse rounded bg-neutral-100" />
-      <div className="mt-2 h-3 w-40 animate-pulse rounded bg-neutral-100" />
     </div>
   );
 }
@@ -306,6 +299,11 @@ function ContentPreviewTile({ item }: { item: ContentPreviewItem }) {
     <Tooltip
       content={<ContentPreviewTooltip item={item} />}
       delayDuration={100}
+      // Content is informational (no links/buttons to hover onto), so skip
+      // Radix's hoverable "grace area". Otherwise the open tile's grace polygon
+      // — which spans up to its large content panel — covers the adjacent tile
+      // and suppresses its tooltip when you move between them.
+      disableHoverableContent
     >
       <a
         href={getContentHref(item.chunk)}
@@ -426,7 +424,7 @@ function ContentPreviewTooltip({ item }: { item: ContentPreviewItem }) {
               key={metric.label}
               className="flex h-10 min-w-0 flex-col items-center justify-center rounded-md bg-neutral-50 px-1"
             >
-              <span className="text-content-emphasis max-w-full truncate text-[11px] font-semibold leading-none tabular-nums">
+              <span className="text-content-emphasis max-w-full truncate text-[11px] font-semibold tabular-nums leading-none">
                 {metric.value}
               </span>
               <span className="text-content-muted mt-0.5 max-w-full truncate text-[9px] font-semibold uppercase leading-none tracking-wide">

@@ -42,10 +42,9 @@ export function toScore(distance: number) {
   return Number((1 - distance).toFixed(6));
 }
 
-// How many candidate chunks to retrieve to satisfy `limit` partners at
-// `chunksPerPartner` each. Query mode over-fetches (×6, floored at 25, capped at
-// the candidate ceiling) so reranking + topic-fit have a deep pool to work from;
-// list mode has no relevance gate, so a smaller pool (×2) suffices.
+// Candidate chunks to retrieve for `limit` partners at `chunksPerPartner` each.
+// Query mode over-fetches (×6, min 25, capped at rerank input size);
+// list mode has no relevance gate so ×2 is enough.
 export function getCandidateChunkCount({
   hasQuery,
   limit,
@@ -58,7 +57,7 @@ export function getCandidateChunkCount({
   if (!hasQuery) return limit * chunksPerPartner * 2;
 
   return Math.min(
-    PARTNER_CONTENT_SEARCH_LIMITS.chunkCandidateCount,
+    PARTNER_CONTENT_SEARCH_LIMITS.rerankerCandidateCount,
     Math.max(25, limit * chunksPerPartner * 6),
   );
 }

@@ -72,10 +72,7 @@ export interface TooltipProps
   disabled?: boolean;
   disableHoverableContent?: TooltipPrimitive.TooltipProps["disableHoverableContent"];
   delayDuration?: TooltipPrimitive.TooltipProps["delayDuration"];
-  /**
-   * Controlled open state. Pass `open` and `onOpenChange` together to control
-   * it from the parent; omit both to let the tooltip manage its own.
-   */
+  /** Controlled open state — pass with `onOpenChange`, or omit both to self-manage. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   /** Drop the entrance animation so the tooltip closes instantly without lingering. */

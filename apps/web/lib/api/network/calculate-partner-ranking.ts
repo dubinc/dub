@@ -12,6 +12,36 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
   similarPrograms?: Array<{ programId: string; similarityScore: number }>;
 }
 
+// Raw row from the ranking query: Partner columns (p.*) vary, so the base is an
+// index signature; `platforms` is the JSON_ARRAYAGG aggregate parsed below.
+type RankedPartnerRawRow = Record<string, unknown> & {
+  id: string;
+  platforms?: string | unknown[] | null;
+};
+
+// One platform inside the JSON aggregate. MySQL JSON returns BigInt as numbers and
+// DateTime as ISO strings.
+type RawPlatformAggregate = {
+  partnerId: string;
+  type: string;
+  identifier: string | null;
+  verifiedAt: string | null;
+  platformId: string | null;
+  subscribers: number | string | null;
+  posts: number | string | null;
+  views: number | string | null;
+};
+
+type SerializedPartnerPlatform = Omit<
+  RawPlatformAggregate,
+  "subscribers" | "posts" | "views" | "verifiedAt"
+> & {
+  subscribers: bigint;
+  posts: bigint;
+  views: bigint;
+  verifiedAt: Date | null;
+};
+
 /**
  * Partner Ranking Algorithm (only used for the "discover" tab)
  * Ranks partners based on performance in similar programs only.
@@ -92,10 +122,8 @@ export async function calculatePartnerRanking({
     conditions.push(Prisma.sql`(dp.starredAt IS NULL OR dp.id IS NULL)`);
   }
 
-  // Filter by audience-size tier(s): the partner's MAX subscriber count across
-  // the selected platforms (their headline reach) must fall in one of the chosen
-  // tiers. Scoped to the same platform selection so reach reflects the audience
-  // the brand is actually filtering for.
+  // Reach-tier filter: the partner's max subscriber count across the selected
+  // platforms must fall in a chosen tier (see reach-tiers.ts).
   if (reach && reach.length > 0) {
     const ranges = reachTiersToRanges(reach);
     const reachPlatformScope =
@@ -174,9 +202,10 @@ export async function calculatePartnerRanking({
     GROUP BY pe_all.partnerId
   ) allProgramMetrics ON allProgramMetrics.partnerId = p.id`;
 
-  const similarProgramMetricsJoin =
-    similarPrograms.length > 0
-      ? Prisma.sql`LEFT JOIN (
+  const hasSimilarPrograms = similarPrograms.length > 0;
+
+  const similarProgramMetricsJoin = hasSimilarPrograms
+    ? Prisma.sql`LEFT JOIN (
       SELECT 
         pe2.partnerId,
         -- Similarity score: Sum weighted performance (0-50 points, no averaging)
@@ -222,15 +251,18 @@ export async function calculatePartnerRanking({
         AND pe2.status = 'approved'
       GROUP BY pe2.partnerId
     ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`
-      : Prisma.sql`LEFT JOIN (
-          SELECT 
-            NULL as partnerId, 
-            NULL as similarityScore, 
-            NULL as programMatchScore
-            WHERE FALSE
-        ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`;
+      : Prisma.empty;
 
-  const partners = await prisma.$queryRaw<Array<any>>`
+  // No similar programs → omit the join entirely and score these contributions as 0.
+  // A `FROM`-less `SELECT NULL … WHERE FALSE` dual-derived table joined to another is
+  // a Vitess planner hazard (vtgate can emit "ERROR 1054 Unknown column"), so we drop
+  // the join rather than emit a degenerate one. See references/planetscale-mysql.md.
+  const similarProgramScore = hasSimilarPrograms
+    ? Prisma.sql`COALESCE(similarProgramMetrics.similarityScore, 0) +
+        COALESCE(similarProgramMetrics.programMatchScore, 0)`
+    : Prisma.sql`0`;
+
+  const partners = await prisma.$queryRaw<RankedPartnerRawRow[]>`
     SELECT 
       p.*,
       COALESCE(pe.lastConversionAt, allProgramMetrics.lastConversionAt) as lastConversionAt,
@@ -255,8 +287,7 @@ export async function calculatePartnerRanking({
         CASE WHEN ${hasProfileCheck} THEN 500 ELSE 0 END +
         -- Trusted partner bonus: 200 points for partners with networkStatus = "trusted"
         CASE WHEN p.networkStatus = "trusted" THEN 200 ELSE 0 END +
-        COALESCE(similarProgramMetrics.similarityScore, 0) +
-        COALESCE(similarProgramMetrics.programMatchScore, 0)
+        ${similarProgramScore}
       ) as finalScore
     FROM (
       -- OPTIMIZATION: Filter to discoverable partners FIRST using subquery
@@ -353,8 +384,8 @@ export async function calculatePartnerRanking({
     LIMIT ${pageSize} OFFSET ${offset}
   `;
 
-  return partners.map((partner: any) => {
-    let platforms: any[] = [];
+  return partners.map((partner) => {
+    let platforms: SerializedPartnerPlatform[] = [];
     if (partner.platforms) {
       try {
         // Handle both string and already-parsed JSON
@@ -365,20 +396,27 @@ export async function calculatePartnerRanking({
 
         // Transform platforms to match Prisma types
         // MySQL JSON returns BigInt as numbers and DateTime as strings
-        platforms = (Array.isArray(parsedPlatforms) ? parsedPlatforms : []).map(
-          (platform: any) => ({
-            ...platform,
-            subscribers: platform.subscribers
-              ? BigInt(platform.subscribers)
-              : BigInt(0),
-            posts: platform.posts ? BigInt(platform.posts) : BigInt(0),
-            views: platform.views ? BigInt(platform.views) : BigInt(0),
-            verifiedAt: platform.verifiedAt
-              ? new Date(platform.verifiedAt)
-              : null,
-          }),
+        platforms = (
+          Array.isArray(parsedPlatforms)
+            ? (parsedPlatforms as RawPlatformAggregate[])
+            : []
+        ).map((platform) => ({
+          ...platform,
+          subscribers: platform.subscribers
+            ? BigInt(platform.subscribers)
+            : BigInt(0),
+          posts: platform.posts ? BigInt(platform.posts) : BigInt(0),
+          views: platform.views ? BigInt(platform.views) : BigInt(0),
+          verifiedAt: platform.verifiedAt
+            ? new Date(platform.verifiedAt)
+            : null,
+        }));
+      } catch (error) {
+        // A malformed platform aggregate shouldn't silently drop the partner.
+        console.error(
+          `[calculatePartnerRanking] Failed to parse platforms JSON for partner ${partner.id}`,
+          error,
         );
-      } catch {
         platforms = [];
       }
     }

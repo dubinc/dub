@@ -1,10 +1,7 @@
 import { isPartnerContentSearchPlatform } from "@/lib/partner-content-search/types";
 import type { PlatformType } from "@prisma/client";
 
-// The platforms a partner can be filtered by, in display order. This is the
-// inclusion set: with all of them selected the filter is a no-op (we omit the
-// `platform` param entirely), and deselecting narrows results to partners
-// present on any of the still-selected platforms.
+// Filterable platforms, in display order. All selected = no filter
 export const NETWORK_FILTER_PLATFORMS = [
   "youtube",
   "instagram",

@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { DISCOVERABLE_NETWORK_STATUSES } from "@/lib/api/network/partner-network-listing-where";
 import { prisma } from "@/lib/prisma";
 import { PlatformType, Prisma } from "@prisma/client";
 import {
@@ -37,70 +38,6 @@ type PartnerContentSearchHydrationRow = Omit<
   "distance"
 >;
 
-function getVectorSearchChunkPoolSize(limit: number) {
-  return Math.max(
-    limit,
-    Math.min(
-      PARTNER_CONTENT_SEARCH_LIMITS.vectorSearchChunkPoolMaxSize,
-      limit * PARTNER_CONTENT_SEARCH_LIMITS.vectorSearchChunkPoolMultiplier,
-    ),
-  );
-}
-
-function countDistinctContentItems(rows: { partnerContentItemId: string }[]) {
-  return new Set(rows.map(({ partnerContentItemId }) => partnerContentItemId))
-    .size;
-}
-
-// Partner-eligibility id-sets for inline ANN pre-filtering: the deny-set
-// (enrolled ∪ ignored) excluded from every query, plus the starred set.
-async function resolveProgramPartnerEligibility({
-  programId,
-  starred,
-  logTiming,
-}: {
-  programId: string;
-  starred?: boolean;
-  logTiming?: PartnerContentSearchTimingLogger;
-}) {
-  const [enrolledRows, ignoredRows, starredRows] = await Promise.all([
-    prisma.programEnrollment.findMany({
-      where: { programId },
-      select: { partnerId: true },
-    }),
-    prisma.discoveredPartner.findMany({
-      where: { programId, ignoredAt: { not: null } },
-      select: { partnerId: true },
-    }),
-    // Only needed when the starred filter is active.
-    starred !== undefined
-      ? prisma.discoveredPartner.findMany({
-          where: { programId, starredAt: { not: null } },
-          select: { partnerId: true },
-        })
-      : Promise.resolve<{ partnerId: string }[]>([]),
-  ]);
-
-  const excludedPartnerIds = [
-    ...new Set([
-      ...enrolledRows.map(({ partnerId }) => partnerId),
-      ...ignoredRows.map(({ partnerId }) => partnerId),
-    ]),
-  ];
-  const starredPartnerIds = [
-    ...new Set(starredRows.map(({ partnerId }) => partnerId)),
-  ];
-
-  logTiming?.("partner-eligibility-resolved", {
-    enrolledCount: enrolledRows.length,
-    ignoredCount: ignoredRows.length,
-    excludedPartnerCount: excludedPartnerIds.length,
-    starredPartnerCount: starredPartnerIds.length,
-  });
-
-  return { excludedPartnerIds, starredPartnerIds };
-}
-
 export async function searchPartnerNetworkContent({
   programId,
   query,
@@ -122,14 +59,6 @@ export async function searchPartnerNetworkContent({
   rerank: boolean;
   logTiming?: PartnerContentSearchTimingLogger;
 }) {
-  // Runs under the Voyage embedding round-trip (needs only programId), so the
-  // eligibility queries add ~no latency.
-  const eligibilityPromise = resolveProgramPartnerEligibility({
-    programId,
-    starred,
-    logTiming,
-  });
-
   let queryEmbedding: number[];
   logTiming?.("query-embedding-start");
   try {
@@ -151,32 +80,43 @@ export async function searchPartnerNetworkContent({
     embeddingDimensions: queryEmbedding.length,
   });
   const queryVector = serializeEmbeddingForVector(queryEmbedding);
-  const eligibility = await eligibilityPromise;
 
-  // Eligibility + user filters are applied INLINE on the flat ANN (country/platform
-  // via the denormalized c.country / c.platformType columns). Post-filtering would
-  // starve the candidate pool — enrolled partners are a program's strongest matches.
-  // networkStatus stays a post-filter (ingestion already gates approved/trusted).
-  const annFilters: Prisma.Sql[] = [];
-  if (eligibility.excludedPartnerIds.length > 0) {
-    annFilters.push(
-      Prisma.sql`AND c.partnerId NOT IN (${Prisma.join(eligibility.excludedPartnerIds)})`,
-    );
-  }
+  // Push eligibility + user filters into the ANN (not after — post-filtering would
+  // starve the candidate pool). Eligibility rides as fixed-shape semi/anti-joins
+  // rather than materialized id-sets: the per-program enrolled/ignored/starred sets
+  // grow unbounded (some programs enroll 1k+ partners), so a NOT IN literal would
+  // balloon the SQL and can't reuse the cached plan. EXPLAIN confirms PlanetScale
+  // materializes each subquery once and probes it by hash while keeping the vector
+  // index (type=vector) under FORCE INDEX. networkStatus stays a post-filter since
+  // ingestion already gates approved/trusted. country/platformType are denormalized
+  // columns and partnerIds is a bounded UI selection, so those stay inline.
+  const annFilters: Prisma.Sql[] = [
+    Prisma.sql`AND NOT EXISTS (
+      SELECT 1 FROM ProgramEnrollment pe
+      WHERE pe.partnerId = c.partnerId AND pe.programId = ${programId}
+    )`,
+    Prisma.sql`AND NOT EXISTS (
+      SELECT 1 FROM DiscoveredPartner dpi
+      WHERE dpi.partnerId = c.partnerId AND dpi.programId = ${programId}
+        AND dpi.ignoredAt IS NOT NULL
+    )`,
+  ];
   if (partnerIds?.length) {
     annFilters.push(Prisma.sql`AND c.partnerId IN (${Prisma.join(partnerIds)})`);
   }
   if (starred === true) {
-    // starred filter on with no starred partners → no eligible candidates.
-    annFilters.push(
-      eligibility.starredPartnerIds.length > 0
-        ? Prisma.sql`AND c.partnerId IN (${Prisma.join(eligibility.starredPartnerIds)})`
-        : Prisma.sql`AND 1 = 0`,
-    );
-  } else if (starred === false && eligibility.starredPartnerIds.length > 0) {
-    annFilters.push(
-      Prisma.sql`AND c.partnerId NOT IN (${Prisma.join(eligibility.starredPartnerIds)})`,
-    );
+    // No starred partners → the EXISTS matches nothing → no candidates (intended).
+    annFilters.push(Prisma.sql`AND EXISTS (
+      SELECT 1 FROM DiscoveredPartner dps
+      WHERE dps.partnerId = c.partnerId AND dps.programId = ${programId}
+        AND dps.starredAt IS NOT NULL
+    )`);
+  } else if (starred === false) {
+    annFilters.push(Prisma.sql`AND NOT EXISTS (
+      SELECT 1 FROM DiscoveredPartner dps
+      WHERE dps.partnerId = c.partnerId AND dps.programId = ${programId}
+        AND dps.starredAt IS NOT NULL
+    )`);
   }
   if (country) {
     annFilters.push(Prisma.sql`AND c.country = ${country}`);
@@ -186,8 +126,7 @@ export async function searchPartnerNetworkContent({
       Prisma.sql`AND c.platformType IN (${Prisma.join(platforms)})`,
     );
   }
-  const annFilter =
-    annFilters.length > 0 ? Prisma.join(annFilters, " ") : Prisma.empty;
+  const annFilter = Prisma.join(annFilters, " ");
 
   // Two-phase retrieval: keep the ANN flat so PlanetScale uses the vector index,
   // then hydrate only the returned chunk ids through the relational joins — keeping
@@ -207,60 +146,33 @@ export async function searchPartnerNetworkContent({
       LIMIT ${poolSize}
     `);
 
-  // Dedup to the best chunk per item+source before the hydration join (filters are
-  // per-item, so this is equivalent and keeps chunk-heavy items off the join).
-  const retrievePool = async (poolSize: number) => {
-    const candidateRows = await fetchCandidateChunks(poolSize);
-    logTiming?.("vector-candidate-search-complete", {
-      candidateRowCount: candidateRows.length,
-      poolSize,
-      vectorIndex: PARTNER_CONTENT_CHUNK_VECTOR_INDEX,
-    });
-    const dedupedCandidates =
-      dedupeBestChunkPerContentItemSource(candidateRows);
-    const poolRows = await hydratePartnerContentSearchRows({
-      candidateRows: dedupedCandidates,
-      logTiming,
-    });
-    return { candidateRowCount: candidateRows.length, poolRows };
-  };
-
-  const initialPoolSize = getVectorSearchChunkPoolSize(limit);
-  const maxPoolSize = PARTNER_CONTENT_SEARCH_LIMITS.vectorSearchChunkPoolMaxSize;
+  // Fixed pool: the request-derived candidate count always resolves to the cap in
+  // practice, and the ANN refills the pool from deeper in the ranking when eligibility
+  // filters exclude near-neighbors (verified against PlanetScale SPANN), so there's no
+  // need to size it per-request or widen it adaptively.
+  const poolSize = PARTNER_CONTENT_SEARCH_LIMITS.vectorSearchChunkPoolSize;
   logTiming?.("vector-search-start", {
-    poolSize: initialPoolSize,
-    maxPoolSize,
+    poolSize,
     retrievalShape: "two-phase",
   });
 
-  let poolSize = initialPoolSize;
-  let { candidateRowCount, poolRows } = await retrievePool(poolSize);
-
-  // The pool comes back already eligible (filters run inline), so it rarely shrinks.
-  // Safety net for when it does (e.g. a cluster of demoted partners): if we
-  // under-filled but the ANN returned a full pool, widen to the cap once and retry.
-  let distinctItemCount = countDistinctContentItems(poolRows);
-  if (
-    poolSize < maxPoolSize &&
-    candidateRowCount === poolSize &&
-    distinctItemCount < limit
-  ) {
-    poolSize = maxPoolSize;
-    logTiming?.("vector-search-pool-expanded", {
-      previousPoolSize: initialPoolSize,
-      poolSize,
-      distinctItemCount,
-      limit,
-    });
-    ({ candidateRowCount, poolRows } = await retrievePool(poolSize));
-    distinctItemCount = countDistinctContentItems(poolRows);
-  }
-  logTiming?.("vector-search-complete", {
-    candidateRowCount,
-    poolRowCount: poolRows.length,
-    distinctItemCount,
+  const candidateRows = await fetchCandidateChunks(poolSize);
+  logTiming?.("vector-candidate-search-complete", {
+    candidateRowCount: candidateRows.length,
     poolSize,
-    expanded: poolSize !== initialPoolSize,
+    vectorIndex: PARTNER_CONTENT_CHUNK_VECTOR_INDEX,
+  });
+  // Dedup to the best chunk per item+source before the hydration join (filters are
+  // per-item, so this is equivalent and keeps chunk-heavy items off the join).
+  const dedupedCandidates = dedupeBestChunkPerContentItemSource(candidateRows);
+  const poolRows = await hydratePartnerContentSearchRows({
+    candidateRows: dedupedCandidates,
+    logTiming,
+  });
+  logTiming?.("vector-search-complete", {
+    candidateRowCount: candidateRows.length,
+    poolRowCount: poolRows.length,
+    poolSize,
     vectorIndex: PARTNER_CONTENT_CHUNK_VECTOR_INDEX,
     retrievalShape: "two-phase",
   });
@@ -283,7 +195,7 @@ export async function searchPartnerNetworkContent({
   const itemRows = dedupeBestChunkPerContentItem(poolRows).slice(0, limit);
   const rows = dedupeBestChunkPerContentItemSource(poolRows).slice(
     0,
-    Math.min(PARTNER_CONTENT_SEARCH_LIMITS.chunkCandidateCount, limit * 2),
+    Math.min(PARTNER_CONTENT_SEARCH_LIMITS.rerankerCandidateCount, limit * 2),
   );
 
   // Cutoff = the least-relevant candidate kept; the match gate for recent posts.
@@ -314,6 +226,12 @@ export async function searchPartnerNetworkContent({
     };
   }
 
+  // NOTE: reach / verified-platform / conversion filters run downstream in
+  // calculatePartnerRanking (via getNetworkPartnersById), after this rerank — so when
+  // they're active we pay to rerank chunks from partners that get dropped later. Left
+  // as-is on purpose: pre-filtering them here needs the canonical discover-eligibility
+  // predicate that only exists once calculatePartnerRanking is split into hydrate-card
+  // vs rank. Revisit at that consolidation.
   logTiming?.("rerank-start", {
     rowCount: rowsWithChunkText.length,
     rerankerCandidateCount: Math.min(
@@ -333,8 +251,10 @@ export async function searchPartnerNetworkContent({
     ).length,
   });
   return {
+    // rerankResult.rows is already reranker-ordered on success, or the full cosine
+    // ordering on fail-soft. Never re-sort here — sorting by effective score would
+    // blend the rerank and cosine scales we just took care to keep separate.
     ...rerankResult,
-    rows: sortRowsByRelevanceScore(rerankResult.rows),
     queryVector,
     cutoffDistance,
     itemSourceBestDistance,
@@ -359,7 +279,7 @@ async function hydratePartnerContentSearchRows({
       id: { in: chunkIds },
       embeddingModel: PARTNER_CONTENT_SEARCH_MODELS.embedding.id,
       partner: {
-        networkStatus: { in: ["approved", "trusted"] },
+        networkStatus: { in: DISCOVERABLE_NETWORK_STATUSES },
       },
     },
     select: {

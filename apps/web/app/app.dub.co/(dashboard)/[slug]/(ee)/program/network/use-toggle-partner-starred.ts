@@ -9,18 +9,11 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 import type { KeyedMutator } from "swr";
 
-// Two near-identical optimistic star-toggle mutations live here. They share the
-// same star-update action, toast-on-failure, optimisticData/populateCache/revalidate
-// semantics, and rollback-on-error — they differ only in the SWR cache shape they
-// mutate (the content-search response's nested `partner.starredAt` vs the ranked
-// list's flat `starredAt`). Kept as two hooks rather than one parameterized hook so
-// each cache transform stays verbatim and behavior is provably unchanged.
+// Two optimistic star-toggle hooks for the two cache shapes (content-search's nested
+// `partner.starredAt` vs the ranked list's flat `starredAt`). Left unparameterized so
+// each cache transform stays verbatim.
 
-/**
- * Optimistic star toggle for content-search mode. Mutates the
- * `PartnerContentSearchResponse` cache, locating the partner by `partnerId` and
- * updating its nested `partner.starredAt`.
- */
+// Content-search cache: find the partner by `partnerId`, update nested `partner.starredAt`.
 export function useToggleStarredContentSearch(
   mutateContentSearch: KeyedMutator<PartnerContentSearchResponse>,
 ) {
@@ -85,12 +78,8 @@ export function useToggleStarredContentSearch(
   );
 }
 
-/**
- * Optimistic star toggle for ranked-list mode. Mutates the
- * `NetworkPartnerProps[]` cache, locating the partner by `id` and updating its
- * flat `starredAt`. `partners` is used as the fallback when the cache is empty,
- * preserving the original closure's `data || partners` behavior.
- */
+// Ranked-list cache: find the partner by `id`, update flat `starredAt`. `partners`
+// is the fallback when the cache is empty (`data || partners`).
 export function useToggleStarredRankedList(
   mutatePartners: KeyedMutator<NetworkPartnerProps[]>,
   partners: NetworkPartnerProps[] | undefined,

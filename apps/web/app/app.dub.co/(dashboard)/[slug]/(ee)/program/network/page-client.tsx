@@ -10,14 +10,15 @@ import {
   AnimatedSizeContainer,
   Button,
   Filter,
+  InfoTooltip,
   PaginationControls,
   usePagination,
   useRouterStuff,
 } from "@dub/ui";
 import { Star, StarFill } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
-import { useDebounce } from "use-debounce";
 import useSWR from "swr";
+import { useDebounce } from "use-debounce";
 import { NetworkContentSearchResults } from "./network-content-search-results";
 import { NetworkEmptyState } from "./network-empty-state";
 import { NetworkPartnerCard } from "./network-partner-card";
@@ -85,7 +86,7 @@ export function ProgramPartnerNetworkPageClient({
   const {
     data: contentSearchResults,
     error: contentSearchError,
-    isLoading: isSearchingContent,
+    isPending: isContentSearchPending,
     mutate: mutateContentSearch,
   } = usePartnerContentSearch({
     enabled: isContentSearchMode,
@@ -271,11 +272,15 @@ export function ProgramPartnerNetworkPageClient({
                 onChange={onPlatformsChange}
               />
             </div>
-            <div className="@3xl/page:ml-auto @3xl/page:w-[373px] w-full">
-              <SearchBoxPersisted
-                placeholder="Search partners or content..."
-                inputClassName="h-10"
-              />
+            <div className="@3xl/page:ml-auto @3xl/page:w-auto flex w-full items-center gap-2">
+              <InfoTooltip content="Enter a topic, keyword, or phrase and we'll search across all partners' recent content for matches." />
+              <div className="@3xl/page:w-[373px] w-full">
+                <SearchBoxPersisted
+                  placeholder="Partner Content Search"
+                  inputClassName="h-10"
+                  loading={isContentSearchMode && isContentSearchPending}
+                />
+              </div>
             </div>
           </div>
           <AnimatedSizeContainer height>
@@ -298,7 +303,7 @@ export function ProgramPartnerNetworkPageClient({
         <NetworkContentSearchResults
           error={contentSearchError}
           hasQuery={search.length > 0}
-          isLoading={isSearchingContent}
+          isFetching={isContentSearchPending}
           partners={contentSearchResults?.partners}
           platform={
             contentSearchPlatforms.length === 1

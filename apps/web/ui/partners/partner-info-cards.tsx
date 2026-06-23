@@ -39,9 +39,8 @@ type PartnerInfoCardsProps = {
   setSelectedGroupId?: (groupId: string) => void;
 
   /**
-   * Network-browse mode (marketplace discovery): the partner isn't enrolled in a
-   * group, so hide the group/rewards/bounties block and surface website & socials
-   * in the sidebar instead.
+   * Network-browse (marketplace) mode: partner isn't enrolled, so hide the
+   * group/rewards/bounties block and show website & socials in the sidebar instead.
    */
   browseMode?: boolean;
 } & (

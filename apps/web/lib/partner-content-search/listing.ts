@@ -1,3 +1,4 @@
+import { DISCOVERABLE_NETWORK_STATUSES } from "@/lib/api/network/partner-network-listing-where";
 import { prisma } from "@/lib/prisma";
 import { PlatformType, Prisma } from "@prisma/client";
 import { PARTNER_CONTENT_SEARCH_MODELS } from "./constants";
@@ -75,7 +76,7 @@ export async function listPartnerNetworkContent({
       }),
       partner: {
         networkStatus: {
-          in: ["approved", "trusted"],
+          in: DISCOVERABLE_NETWORK_STATUSES,
         },
         ...(country && { country }),
         programs: {

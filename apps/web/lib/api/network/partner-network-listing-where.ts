@@ -1,6 +1,15 @@
-import { PlatformType, Prisma } from "@prisma/client";
+import { PartnerNetworkStatus, PlatformType, Prisma } from "@prisma/client";
 import type { ReachTier } from "./reach-tiers";
 import { reachTiersToRanges } from "./reach-tiers";
+
+// Partner network statuses that count as "discoverable" in the network. Ingestion
+// only embeds partners in these statuses, and the discover listing + content-search
+// hydrate filter on them. Single source of truth for the Prisma call sites; the raw
+// $queryRaw paths (e.g. calculatePartnerRanking) keep their own inline literals.
+export const DISCOVERABLE_NETWORK_STATUSES: PartnerNetworkStatus[] = [
+  "approved",
+  "trusted",
+];
 
 /** Query params shared by `/api/network/partners` and `/count` for listing. */
 export type PartnerNetworkListingParams = {
@@ -34,7 +43,7 @@ export function partnerNetworkListingParts(
 
   return {
     listingPartnerBase: {
-      networkStatus: { in: ["approved", "trusted"] },
+      networkStatus: { in: DISCOVERABLE_NETWORK_STATUSES },
       ...(params.partnerIds && {
         id: { in: params.partnerIds },
       }),
@@ -65,10 +74,8 @@ export function partnerNetworkListingWhere(
   return partnerWhereFromListingParts(partnerNetworkListingParts(params));
 }
 
-// Reach tier filter: the partner's MAX subscriber count across verified platforms
-// (optionally scoped to selected platform types) must fall in a chosen tier.
-// "some platform >= min" AND "no scoped platform >= max" matches
-// calculatePartnerRanking's MAX-subscribers semantics.
+// Reach-tier filter (see reach-tiers.ts). "some platform >= min AND no scoped
+// platform >= max" is the WHERE-clause equivalent of calculatePartnerRanking's max.
 export function partnerReachWhere({
   reach,
   platform,

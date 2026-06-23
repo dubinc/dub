@@ -78,11 +78,9 @@ export function NetworkPartnerDetailContent({
   );
   const loadedPartner = partners?.[0];
 
-  // The results page already ran the global search and handed us this partner's
-  // match data, so the detail opens instantly. In the background we run a scoped
-  // single-partner rerank so the matched list shares ONE relevance scale — the
-  // global search only reranks its top-N pool, mixing rerank + cosine otherwise.
-  // Non-blocking: the cached Topic Fit headline paints now; rows skeleton until it lands.
+  // Open instantly from the cached match data; the background refetch reranks just
+  // this partner so every row lands on one relevance scale (global search only
+  // reranks its top-N pool).
   const shouldFetchSearch = hasContentSearch;
   const {
     data: searchResults,

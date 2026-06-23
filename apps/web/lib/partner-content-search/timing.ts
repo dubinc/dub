@@ -4,10 +4,8 @@
 const MIN_PARTNER_CONTENT_SEARCH_TIMING_DELTA_MS = 5;
 const PARTNER_CONTENT_SEARCH_ALWAYS_LOG_TIMING_STAGES = new Set([
   "query-embedding-complete",
-  "partner-eligibility-resolved",
   "vector-candidate-search-complete",
   "vector-candidate-hydration-complete",
-  "vector-search-pool-expanded",
   "vector-search-complete",
   "candidate-dedupe-complete",
   "chunk-text-hydration-complete",

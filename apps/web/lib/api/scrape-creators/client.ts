@@ -1,4 +1,8 @@
+import "server-only";
+
+import { logger } from "@/lib/axiom/server";
 import { createFetch, createSchema } from "@better-fetch/fetch";
+import { prettyPrint } from "@dub/utils";
 import { PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import {
@@ -12,15 +16,19 @@ import {
   youtubeTranscriptSchema,
 } from "./schema";
 
+// Bound each request so a hung vendor call can't run past the caller's
+// (cron/route) maxDuration. Aborts the fetch; the single linear retry still applies.
+const SCRAPE_CREATORS_REQUEST_TIMEOUT_MS = 30_000;
 export const scrapeCreatorsFetch = createFetch({
   baseURL: "https://api.scrapecreators.com",
+  timeout: SCRAPE_CREATORS_REQUEST_TIMEOUT_MS,
   retry: {
     type: "linear",
     attempts: 1,
     delay: 3000,
   },
   headers: {
-    "x-api-key": process.env.SCRAPECREATORS_API_KEY!,
+    "x-api-key": process.env.SCRAPECREATORS_API_KEY ?? "",
   },
   schema: createSchema(
     {
@@ -130,6 +138,9 @@ export const scrapeCreatorsFetch = createFetch({
     },
   ),
   onError: ({ error }) => {
-    console.error("[ScrapeCreators] Error", error);
+    logger.error("[ScrapeCreators] Error", {
+      error: prettyPrint(error),
+    });
+    void logger.flush();
   },
 });

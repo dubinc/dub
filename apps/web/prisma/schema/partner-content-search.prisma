@@ -1,12 +1,8 @@
 // Partner natural-language search schema.
-//
-// Prisma does not expose PartnerContentChunk.embedding in Prisma Client because
-// VECTOR is modeled as an unsupported database type. Prisma still manages the
-// column for schema drift, while all vector reads/writes stay in raw SQL.
-// Keep the matching @@index below so Prisma db push preserves the manual index,
-// but create/recreate the real cosine vector index with
-// apps/web/prisma/manual/partner-content-search-vector-index.sql because Prisma
-// cannot express PlanetScale VECTOR INDEX options.
+// PartnerContentChunk.embedding is an Unsupported VECTOR column, so it's absent from
+// Prisma Client and all vector reads/writes are raw SQL. The real cosine index is
+// created via prisma/manual/partner-content-search-vector-index.sql (Prisma can't
+// express VECTOR INDEX options); the @@index below just preserves it across db push.
 
 enum PartnerContentTranscriptFetchStatus {
   pending
@@ -89,10 +85,7 @@ model PartnerContentChunk {
   // Covers the empty-query "recent content" list path, which filters on
   // embeddingModel while joining chunks by partnerContentItemId.
   @@index([partnerContentItemId, embeddingModel])
-  // Drift guard only: Prisma cannot express PlanetScale VECTOR INDEX options.
-  // Create/recreate the real cosine ANN index with prisma/manual/partner-content-search-vector-index.sql.
-  // The map name mirrors PARTNER_CONTENT_CHUNK_VECTOR_INDEX in
-  // apps/web/lib/partner-content-search/constants.ts (the FORCE INDEX hint); the
-  // match is enforced by tests/partner-content-search/vector-index-sync.test.ts.
+  // Drift guard so db push keeps the manual cosine index (see file header and
+  // partner-content-search-vector-index.sql). Name verified by vector-index-sync.test.ts.
   @@index([embedding], map: "partner_content_chunk_embedding_cosine_idx")
 }
