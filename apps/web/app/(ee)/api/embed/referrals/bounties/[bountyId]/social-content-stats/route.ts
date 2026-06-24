@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerNotEligibleForBounty,
+  throwIfPartnerNotAvailableForBounty,
 } from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
@@ -40,41 +40,10 @@ export const GET = withReferralsEmbedToken(
       },
     });
 
-    const bountyGroupIds = bounty.groups.map((g) => g.groupId);
-    const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
-    const partnerTagIds = programEnrollment.programPartnerTags.map(
-      (t) => t.partnerTagId,
-    );
-
-    throwIfPartnerNotEligibleForBounty({
-      bountyGroupIds,
-      bountyTagIds,
-      partnerGroupId: programEnrollment.groupId,
-      partnerTagIds,
+    throwIfPartnerNotAvailableForBounty({
+      programEnrollment,
+      bounty,
     });
-
-    const now = new Date();
-
-    if (bounty.startsAt && bounty.startsAt > now) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is not yet available.",
-      });
-    }
-
-    if (bounty.endsAt && bounty.endsAt < now) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is no longer available.",
-      });
-    }
-
-    if (bounty.archivedAt) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is archived.",
-      });
-    }
 
     const bountyInfo = resolveBountyDetails(bounty);
 

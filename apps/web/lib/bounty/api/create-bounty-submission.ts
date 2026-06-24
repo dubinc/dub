@@ -29,7 +29,7 @@ import { getEffectiveBountyDateRange } from "../bounty-timing";
 import { SOCIAL_URL_HOST_TO_PLATFORM } from "../social-content";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerNotEligibleForBounty,
+  throwIfPartnerNotAvailableForBounty,
 } from "./bounty-eligibility";
 import { getBountyOrThrow } from "./get-bounty-or-throw";
 
@@ -144,8 +144,8 @@ export class BountySubmissionHandler {
     ]);
 
     const { startsAt, endsAt } = getEffectiveBountyDateRange({
-      programEnrollment: this.programEnrollment,
-      bounty: this.bounty,
+      programEnrollment,
+      bounty,
     });
 
     this.bounty = {
@@ -279,42 +279,12 @@ export class BountySubmissionHandler {
       }
     }
 
-    const bountyGroupIds = this.bounty.groups.map((g) => g.groupId);
-    const bountyTagIds = this.bounty.partnerTags.map((t) => t.partnerTagId);
-    const partnerTagIds = this.programEnrollment.programPartnerTags.map(
-      (t) => t.partnerTagId,
-    );
-
-    throwIfPartnerNotEligibleForBounty({
-      bountyGroupIds,
-      bountyTagIds,
-      partnerGroupId: this.programEnrollment.groupId,
-      partnerTagIds,
+    throwIfPartnerNotAvailableForBounty({
+      programEnrollment: this.programEnrollment,
+      bounty: this.bounty,
     });
 
-    // Validate bounty dates and status
     const now = new Date();
-
-    if (this.bounty.startsAt && this.bounty.startsAt > now) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is not yet available.",
-      });
-    }
-
-    if (this.bounty.endsAt && this.bounty.endsAt < now) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is no longer available.",
-      });
-    }
-
-    if (this.bounty.archivedAt) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is archived.",
-      });
-    }
 
     if (this.bounty.type === "performance") {
       throw new DubApiError({

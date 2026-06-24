@@ -1,5 +1,13 @@
 import { DubApiError } from "@/lib/api/errors";
-import { Prisma } from "@prisma/client";
+import {
+  Bounty,
+  BountyGroup,
+  BountyPartnerTag,
+  Prisma,
+  ProgramEnrollment,
+  ProgramPartnerTag,
+} from "@prisma/client";
+import { getEffectiveBountyDateRange } from "../bounty-timing";
 
 export function buildBountyEligibilityWhere({
   groupId,
@@ -85,28 +93,85 @@ export function isPartnerEligibleForBounty({
   return Boolean(inGroup && hasTag);
 }
 
-export function throwIfPartnerNotEligibleForBounty({
-  bountyGroupIds,
-  bountyTagIds,
-  partnerGroupId,
-  partnerTagIds = [],
-}: {
-  bountyGroupIds: string[];
-  bountyTagIds: string[];
-  partnerGroupId: string | null;
-  partnerTagIds: string[] | undefined;
-}) {
+type ThrowIfPartnerNotAvailableForBountyParams = {
+  programEnrollment: Pick<
+    ProgramEnrollment,
+    "groupId" | "createdAt" | "groupJoinedAt" | "status"
+  > & {
+    programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
+  };
+  bounty: Pick<
+    Bounty,
+    "startsAt" | "endsAt" | "endDurationDays" | "startMode" | "archivedAt"
+  > & {
+    groups: Pick<BountyGroup, "groupId">[];
+    partnerTags: Pick<BountyPartnerTag, "partnerTagId">[];
+  };
+};
+
+export function throwIfPartnerNotAvailableForBounty({
+  programEnrollment,
+  bounty,
+}: ThrowIfPartnerNotAvailableForBountyParams) {
+  if (!["approved", "invited"].includes(programEnrollment.status)) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "You are not allowed to submit a bounty for this program.",
+    });
+  }
+
+  if (bounty.archivedAt) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "This bounty is not available.",
+    });
+  }
+
+  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
+  const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
+
+  const partnerTagIds = programEnrollment.programPartnerTags.map(
+    (t) => t.partnerTagId,
+  );
+
   const isEligible = isPartnerEligibleForBounty({
     bountyGroupIds,
     bountyTagIds,
-    partnerGroupId,
+    partnerGroupId: programEnrollment.groupId,
     partnerTagIds,
   });
 
   if (!isEligible) {
     throw new DubApiError({
-      code: "forbidden",
-      message: "You are not eligible for this bounty.",
+      code: "bad_request",
+      message:
+        "This bounty is not available to you. Please contact program support if you believe this is an error.",
+    });
+  }
+
+  const { startsAt, endsAt } = getEffectiveBountyDateRange({
+    programEnrollment,
+    bounty,
+  });
+
+  if (startsAt > new Date()) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "This bounty has not started yet.",
+    });
+  }
+
+  if (endsAt && endsAt < new Date()) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "This bounty has ended.",
+    });
+  }
+
+  if (bounty.archivedAt) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "This bounty is not available.",
     });
   }
 }

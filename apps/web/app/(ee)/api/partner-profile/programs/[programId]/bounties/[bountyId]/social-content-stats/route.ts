@@ -4,10 +4,9 @@ import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerNotEligibleForBounty,
+  throwIfPartnerNotAvailableForBounty,
 } from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
-import { getEffectiveBountyDateRange } from "@/lib/bounty/bounty-timing";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { ratelimit } from "@/lib/upstash";
 import { NextResponse } from "next/server";
@@ -55,36 +54,9 @@ export const GET = withPartnerProfile(
       },
     });
 
-    const { startsAt, endsAt } = getEffectiveBountyDateRange({
+    throwIfPartnerNotAvailableForBounty({
       programEnrollment,
       bounty,
-    });
-
-    if (startsAt > new Date()) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Bounty has not started yet.",
-      });
-    }
-
-    if (endsAt && endsAt < new Date()) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Bounty has ended.",
-      });
-    }
-
-    const bountyGroupIds = bounty.groups.map((g) => g.groupId);
-    const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
-    const partnerTagIds = programEnrollment.programPartnerTags.map(
-      (t) => t.partnerTagId,
-    );
-
-    throwIfPartnerNotEligibleForBounty({
-      bountyGroupIds,
-      bountyTagIds,
-      partnerGroupId: programEnrollment.groupId,
-      partnerTagIds,
     });
 
     const bountyInfo = resolveBountyDetails(bounty);

@@ -4,10 +4,9 @@ import { ratelimit } from "@/lib/upstash";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
 import { nanoid, R2_URL } from "@dub/utils";
 import { ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
-import { getEffectiveBountyDateRange } from "../bounty-timing";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerNotEligibleForBounty,
+  throwIfPartnerNotAvailableForBounty,
 } from "./bounty-eligibility";
 import { getBountyOrThrow } from "./get-bounty-or-throw";
 
@@ -16,7 +15,12 @@ const CACHE_KEY_PREFIX = "bounty:submission:file:upload";
 
 type ProgramEnrollmentWithPartnerTags = Pick<
   ProgramEnrollment,
-  "programId" | "partnerId" | "groupId" | "createdAt" | "groupJoinedAt"
+  | "programId"
+  | "partnerId"
+  | "groupId"
+  | "createdAt"
+  | "groupJoinedAt"
+  | "status"
 > & {
   programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
 };
@@ -92,45 +96,10 @@ export async function getBountySubmissionUploadUrl({
     },
   });
 
-  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
-  const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
-  const partnerTagIds = programPartnerTags.map((t) => t.partnerTagId);
-
-  throwIfPartnerNotEligibleForBounty({
-    bountyGroupIds,
-    bountyTagIds,
-    partnerGroupId: groupId,
-    partnerTagIds,
-  });
-
-  // Validate the bounty dates
-  const { startsAt, endsAt } = getEffectiveBountyDateRange({
+  throwIfPartnerNotAvailableForBounty({
     programEnrollment,
     bounty,
   });
-
-  const now = new Date();
-
-  if (startsAt && startsAt > now) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "This bounty is not yet available.",
-    });
-  }
-
-  if (endsAt && endsAt < now) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "This bounty is no longer available.",
-    });
-  }
-
-  if (bounty.archivedAt) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "This bounty is archived.",
-    });
-  }
 
   if (bounty.type === "performance") {
     throw new DubApiError({

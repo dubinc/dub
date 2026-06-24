@@ -1,12 +1,10 @@
-import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerNotEligibleForBounty,
+  throwIfPartnerNotAvailableForBounty,
 } from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
-import { getEffectiveBountyDateRange } from "@/lib/bounty/bounty-timing";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
@@ -58,32 +56,12 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     },
   });
 
-  if (bounty.startsAt > new Date()) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Bounty has not started yet.",
-    });
-  }
-
-  const partnerTagIds = programEnrollment.programPartnerTags.map(
-    (t) => t.partnerTagId,
-  );
-  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
-  const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
-
-  throwIfPartnerNotEligibleForBounty({
-    bountyGroupIds,
-    bountyTagIds,
-    partnerGroupId: programEnrollment.groupId,
-    partnerTagIds,
-  });
-
-  const { groups, ...bountyWithoutGroups } = bounty;
-
-  const { startsAt, endsAt } = getEffectiveBountyDateRange({
+  const { startsAt, endsAt } = throwIfPartnerNotAvailableForBounty({
     programEnrollment,
     bounty,
   });
+
+  const { groups, ...bountyWithoutGroups } = bounty;
 
   return NextResponse.json(
     PartnerBountySchema.parse({

@@ -223,14 +223,8 @@ export function getEffectiveBountyDateRange({
   const { createdAt, groupJoinedAt } = programEnrollment;
   const { startsAt, endsAt, endDurationDays, startMode } = bounty;
 
-  if (startMode === "absolute") {
-    return {
-      startsAt,
-      endsAt,
-    };
-  }
-
-  const bountyStartDate = groupJoinedAt || createdAt;
+  const bountyStartDate =
+    startMode === "absolute" ? startsAt : groupJoinedAt || createdAt;
 
   return {
     startsAt: bountyStartDate,
