@@ -1,6 +1,7 @@
 import { reconcilePayoutAmounts } from "@/lib/api/commissions/reconcile-payout-amounts";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
+import { MUTABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import { determinePartnerRewards } from "@/lib/partners/determine-partner-reward";
 import { prisma } from "@/lib/prisma";
 import { getSaleEvent } from "@/lib/tinybird/get-sale-event";
@@ -133,63 +134,88 @@ function mergeExcludedProductModifiers(
   return modifiers;
 }
 
-function parseSaleProductsFromMetadata(metadata: string): SaleProduct[] {
+function parseInvoiceLineProducts(lines: StripeInvoiceLine[]): SaleProduct[] {
+  return lines
+    .map((line) => {
+      const productId =
+        line.pricing?.price_details?.product ??
+        (typeof line.price?.product === "string"
+          ? line.price.product
+          : line.price?.product?.id);
+
+      if (!productId) {
+        return null;
+      }
+
+      return {
+        id: productId,
+        amount: line.amount ?? 0,
+        quantity: line.quantity ?? 1,
+      };
+    })
+    .filter((product): product is SaleProduct => product !== null);
+}
+
+function parseSaleProductsFromMetadata(
+  metadata: string,
+  commissionAmount: number,
+): SaleProduct[] {
   try {
     const parsed = JSON.parse(metadata) as {
       invoice?: { lines?: { data?: StripeInvoiceLine[] } };
       productId?: string;
     };
 
-    if (parsed.productId) {
+    const lines = parsed.invoice?.lines?.data ?? [];
+
+    if (lines.length > 0) {
+      const fromInvoice = parseInvoiceLineProducts(lines);
+      if (fromInvoice.length > 0) {
+        return fromInvoice;
+      }
+
+      // Invoice metadata present but line items could not be parsed — do not
+      // fall back to a bare productId, which would misrepresent multi-line sales.
+      return [];
+    }
+
+    if (parsed.productId && commissionAmount > 0) {
       return [
         {
           id: parsed.productId,
-          amount: 0,
+          amount: commissionAmount,
           quantity: 1,
         },
       ];
     }
 
-    const lines = parsed.invoice?.lines?.data ?? [];
-
-    return lines
-      .map((line) => {
-        const productId =
-          line.pricing?.price_details?.product ??
-          (typeof line.price?.product === "string"
-            ? line.price.product
-            : line.price?.product?.id);
-
-        if (!productId) {
-          return null;
-        }
-
-        return {
-          id: productId,
-          amount: line.amount ?? 0,
-          quantity: line.quantity ?? 1,
-        };
-      })
-      .filter((product): product is SaleProduct => product !== null);
+    return [];
   } catch {
     return [];
   }
 }
 
 async function getSaleProductsForCommission(
-  commission: Pick<Commission, "eventId" | "invoiceId">,
+  commission: Pick<Commission, "eventId" | "invoiceId" | "amount">,
 ): Promise<SaleProduct[]> {
   if (!commission.eventId) {
     return [];
   }
 
-  const { data } = await getSaleEvent({ eventId: commission.eventId });
+  try {
+    const { data } = await getSaleEvent({ eventId: commission.eventId });
 
-  if (data.length === 0 || !data[0].metadata) {
+    if (data.length === 0 || !data[0].metadata) {
+      return [];
+    }
+
+    return parseSaleProductsFromMetadata(data[0].metadata, commission.amount);
+  } catch (error) {
+    console.warn(
+      `get_sale_event failed for ${commission.eventId}: ${error instanceof Error ? error.message : error}`,
+    );
     return [];
   }
-
-  return parseSaleProductsFromMetadata(data[0].metadata);
 }
 
 async function recalculateSaleCommissionEarnings({
@@ -226,6 +252,19 @@ async function recalculateSaleCommissionEarnings({
     };
   }
 
+  const eligibleAmount = eligibleProducts.reduce(
+    (sum, product) => sum + product.amount,
+    0,
+  );
+
+  if (eligibleAmount === 0) {
+    return {
+      products,
+      newEarnings: null,
+      reason: "no_eligible_amount",
+    };
+  }
+
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       partnerId_programId: {
@@ -250,6 +289,7 @@ async function recalculateSaleCommissionEarnings({
 
   const firstCommission = await prisma.commission.findFirst({
     where: {
+      programId: commission.programId,
       partnerId: commission.partnerId,
       customerId: commission.customerId,
       type: "sale",
@@ -268,11 +308,6 @@ async function recalculateSaleCommissionEarnings({
   const subscriptionDurationMonths = differenceInMonths(
     commission.createdAt,
     subscriptionStartDate,
-  );
-
-  const eligibleAmount = eligibleProducts.reduce(
-    (sum, product) => sum + product.amount,
-    0,
   );
 
   const rewards = determinePartnerRewards({
@@ -327,11 +362,25 @@ async function updateRewards(excludedProductIds: string[]) {
     },
   });
 
+  const enrollmentSaleRewardIds = await prisma.programEnrollment.findMany({
+    where: {
+      programId: PROGRAM_ID,
+      saleRewardId: {
+        not: null,
+      },
+    },
+    select: {
+      saleRewardId: true,
+    },
+    distinct: ["saleRewardId"],
+  });
+
   const rewardIds = [
     ...new Set(
-      groups
-        .map((group) => group.saleRewardId)
-        .filter((rewardId): rewardId is string => Boolean(rewardId)),
+      [
+        ...groups.map((group) => group.saleRewardId),
+        ...enrollmentSaleRewardIds.map((enrollment) => enrollment.saleRewardId),
+      ].filter((rewardId): rewardId is string => Boolean(rewardId)),
     ),
   ];
 
@@ -413,6 +462,12 @@ async function updateCommissions(excludedProductIds: Set<string>) {
           createdAt: true,
         },
       },
+      payout: {
+        select: {
+          id: true,
+          status: true,
+        },
+      },
     },
     orderBy: {
       createdAt: "asc",
@@ -430,6 +485,17 @@ async function updateCommissions(excludedProductIds: Set<string>) {
   for (const [index, commission] of commissions.entries()) {
     if (index % 25 === 0) {
       console.log(`Processing commission ${index + 1}/${commissions.length}`);
+    }
+
+    if (
+      commission.payout &&
+      !MUTABLE_PAYOUT_STATUSES.includes(commission.payout.status)
+    ) {
+      skipped.push({
+        commissionId: commission.id,
+        reason: `payout_${commission.payout.status}`,
+      });
+      continue;
     }
 
     const result = await recalculateSaleCommissionEarnings({
@@ -586,6 +652,12 @@ async function updateCommissions(excludedProductIds: Set<string>) {
 async function main() {
   const excludedProductIds = [...new Set(EXCLUDED_PRODUCT_IDS)];
   const excludedProductIdSet = new Set(excludedProductIds);
+
+  if (excludedProductIds.length === 0) {
+    throw new Error(
+      "Set at least one excluded Stripe product ID before running.",
+    );
+  }
 
   const program = await prisma.program.findFirst({
     where: {
