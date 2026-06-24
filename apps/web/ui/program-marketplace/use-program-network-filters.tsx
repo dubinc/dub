@@ -1,4 +1,7 @@
-import { PROGRAM_CATEGORIES } from "@/lib/network/program-categories";
+import {
+  PROGRAM_CATEGORIES,
+  PROGRAM_CATEGORIES_MAP,
+} from "@/lib/network/program-categories";
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Gift, Suitcase } from "@dub/ui/icons";
@@ -93,7 +96,9 @@ export function useProgramNetworkFilters() {
         options: categoriesCount
           ? categoriesCount.map(({ category, _count }) => ({
               value: category,
-              label: category.replaceAll("_", " "),
+              label:
+                PROGRAM_CATEGORIES_MAP[category as Category]?.label ??
+                category.replaceAll("_", " "),
               right: nFormatter(_count, { full: true }),
             }))
           : Array.from({ length: PROGRAM_CATEGORIES.length }).map(

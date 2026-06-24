@@ -1,14 +1,25 @@
 "use client";
 
 import { getMarketplaceHref } from "@/ui/program-marketplace/utils/urls";
-import { ChevronLeft, Filter } from "@dub/ui";
+import { ChevronLeft, Filter, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
 
 export function MarketplaceSidebarFilters() {
-  const { filters, activeFilters, onSelect, onRemove } =
-    useProgramNetworkFilters();
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    isFiltered,
+  } = useProgramNetworkFilters();
+
+  useKeyboardShortcut("Escape", onRemoveAll, {
+    enabled: isFiltered,
+    priority: 1,
+  });
 
   return (
     <div className="flex flex-col gap-2">
