@@ -30,8 +30,8 @@ import {
   VoyageTimeoutError,
 } from "./voyage";
 
-// Cache query embeddings globally (list search + detail rerank share the same query).
-const QUERY_EMBEDDING_CACHE_TTL_SECONDS = 60 * 60 * 24;
+// cache query embeddings for 60 days (query, embedding model). refresh on read
+const QUERY_EMBEDDING_CACHE_TTL_SECONDS = 60 * 60 * 24 * 60; // 60 days
 
 function queryEmbeddingCacheKey(query: string) {
   const digest = createHash("sha256").update(query).digest("hex").slice(0, 32);
@@ -40,7 +40,10 @@ function queryEmbeddingCacheKey(query: string) {
 
 async function readCachedQueryEmbedding(key: string) {
   try {
-    const cached = await redis.get<number[]>(key);
+    // GETEX re-arms the TTL on every hit so frequently searched queries never expire.
+    const cached = await redis.getex<number[]>(key, {
+      ex: QUERY_EMBEDDING_CACHE_TTL_SECONDS,
+    });
     return Array.isArray(cached) && cached.length ? cached : null;
   } catch {
     return null;
