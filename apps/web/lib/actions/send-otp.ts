@@ -34,7 +34,10 @@ export const sendOtpAction = actionClient
 
     const [{ success: emailSuccess }, { success: ipSuccess }] =
       await Promise.all([
+        // Rate limit by email and IP
         ratelimit(2, "1 m").limit(`send-otp:${email}:${ip}`),
+
+        // Rate limit by IP
         ratelimit(15, "1 h").limit(`send-otp:${ip}`),
       ]);
 
@@ -99,6 +102,9 @@ export const sendOtpAction = actionClient
     const isExistingUser = await prisma.user.findUnique({
       where: {
         email,
+      },
+      select: {
+        id: true,
       },
     });
 
