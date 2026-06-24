@@ -6,21 +6,14 @@ import {
 } from "./constants";
 import type { PartnerContentSearchTimingLogger } from "./timing";
 
+// Slim bar row for aggregates only; display fields come from loaded chunks.
 export type PartnerRecentContentBarRow = {
   partnerId: string;
   partnerContentItemId: string;
   platformType: string;
-  platformContentId: string;
   contentType: string;
-  contentTitle: string | null;
-  contentUrl: string | null;
-  contentDurationMs: number | null;
   publishedAt: Date | null;
   viewCount: bigint | number | null;
-  likeCount: bigint | number | null;
-  commentCount: bigint | number | null;
-  shareCount: bigint | number | null;
-  saveCount: bigint | number | null;
   rowNumber: bigint | number;
 };
 
@@ -45,7 +38,6 @@ export async function fetchMatchSummaryBaseData({
       PARTNER_CONTENT_SEARCH_LIMITS.recencyWindowMonths,
   );
 
-  // Independent reads — issued as one parallel wave (fan out under Promise.all).
   const contentCountsPromise = prisma.partnerContentItem
     .groupBy({
       by: ["partnerId"],
@@ -87,34 +79,18 @@ export async function fetchMatchSummaryBaseData({
           partnerId,
           partnerContentItemId,
           platformType,
-          platformContentId,
           contentType,
-          contentTitle,
-          contentUrl,
-          contentDurationMs,
           publishedAt,
           viewCount,
-          likeCount,
-          commentCount,
-          shareCount,
-          saveCount,
           rowNumber
         FROM (
           SELECT
             pci.partnerId,
             pci.id AS partnerContentItemId,
             pp.type AS platformType,
-            pci.platformContentId,
             pci.contentType,
-            pci.title AS contentTitle,
-            pci.url AS contentUrl,
-            pci.durationMs AS contentDurationMs,
             pci.publishedAt,
             pci.viewCount,
-            pci.likeCount,
-            pci.commentCount,
-            pci.shareCount,
-            pci.saveCount,
             ROW_NUMBER() OVER (
               PARTITION BY pci.partnerId
               ORDER BY pci.publishedAt DESC, pci.createdAt DESC, pci.id ASC
@@ -141,7 +117,6 @@ export async function fetchMatchSummaryBaseData({
       return recentContentRows;
     });
 
-  // Reach: total followers across the partner's platforms (or the filtered platform).
   const followerRowsPromise = prisma.partnerPlatform
     .groupBy({
       by: ["partnerId"],

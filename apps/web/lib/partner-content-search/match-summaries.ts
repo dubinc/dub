@@ -42,12 +42,8 @@ export async function getPartnerMatchSummaries({
   rows: PartnerContentSearchRow[];
   partnerIds: string[];
   platforms?: PlatformType[];
-  // Query mode only: gates a partner's recent posts as matched when at least as
-  // relevant as the weakest candidate (cutoffDistance). Null in list mode.
   queryVector?: string | null;
   cutoffDistance?: number | null;
-  // Best distance per item+source from retrieval, reused to gate matched recent
-  // content without a second per-item DISTANCE pass.
   itemSourceBestDistance?: SourceScoreByContentItemId;
   logTiming?: PartnerContentSearchTimingLogger;
 }) {
@@ -75,14 +71,11 @@ export async function getPartnerMatchSummaries({
     ({ partnerId }) => partnerId,
   );
 
-  // Query mode: reuse itemSourceBestDistance to gate matched recent posts (a post
-  // absent from it is provably beyond the cutoff — see retrieval's producer).
   const recentItemSourceBestDistance =
     queryVector && itemSourceBestDistance
       ? itemSourceBestDistance
       : new Map<string, Map<PartnerContentMatchSource, number>>();
 
-  // Per-item+source reranker scores from the candidate pool, to gate on-topic posts.
   const rerankByItemSource: SourceScoreByContentItemId = new Map();
   for (const row of rows) {
     if (row.rerankScore != null) {
@@ -126,6 +119,8 @@ export async function getPartnerMatchSummaries({
       const {
         matchedBars,
         matchedContentCount,
+        strongMatchedContentCount,
+        partialMatchedContentCount,
         transcriptMatchedContentCount,
         creatorTextMatchedContentCount,
         creatorTextOnlyContentCount,
@@ -139,7 +134,6 @@ export async function getPartnerMatchSummaries({
         weightedMatchedContentScore,
         recentContentCount,
       });
-      // Brand-facing signals over on-topic posts: median views + last on-topic date.
       const medianViews = median(
         matchedBars
           .map((bar) => bar.viewCount)
@@ -154,7 +148,6 @@ export async function getPartnerMatchSummaries({
         ? new Date(Math.max(...matchedTimestamps)).toISOString()
         : null;
       const followers = followersByPartner.get(partnerId) ?? null;
-      // Top platforms by matched-post frequency (falls back to all recent when none matched).
       const platformFrequency = new Map<string, number>();
       for (const bar of matchedBars.length ? matchedBars : contentBars) {
         platformFrequency.set(
@@ -183,6 +176,8 @@ export async function getPartnerMatchSummaries({
         partnerId,
         {
           matchedContentCount,
+          strongMatchedContentCount,
+          partialMatchedContentCount,
           transcriptMatchedContentCount,
           creatorTextMatchedContentCount,
           creatorTextOnlyContentCount,

@@ -1,10 +1,7 @@
 "use client";
 
 import { PARTNER_CONTENT_SEARCH_LIMITS } from "@/lib/partner-content-search/constants";
-import {
-  type PartnerContentMatchEvidence,
-  type PartnerContentSearchPartner,
-} from "@/lib/swr/use-partner-content-search";
+import { type PartnerContentSearchPartner } from "@/lib/swr/use-partner-content-search";
 import { cn, nFormatter } from "@dub/utils";
 import {
   formatDuration,
@@ -16,6 +13,7 @@ import {
   getContentTitle,
 } from "../content-display-utils";
 import { PlatformIcon } from "../platform-icon";
+import { ContentThumbnail } from "./content-thumbnail";
 import { type MatchedContentItem } from "./search-fit-utils";
 
 export function ContentMatchSkeletons({ count }: { count: number }) {
@@ -44,49 +42,31 @@ export function ContentMatchSkeletons({ count }: { count: number }) {
 
 export function ContentMatchRow({ item }: { item: MatchedContentItem }) {
   const { chunk } = item;
-  const evidence = item.matchEvidence;
-  const isTimedTranscriptMatch = chunk
-    ? hasTimedTranscriptMatch(chunk.chunk)
-    : false;
-  const timeLabel =
-    chunk && isTimedTranscriptMatch
-      ? formatChunkTimeRange(chunk.chunk)
-      : formatDuration(item.durationMs);
-  const dateLabel = formatPublishedDate(item.publishedAt);
-  const matchTags = getMatchTags(
-    evidence,
-    chunk?.chunk.source ??
-      (evidence.primarySource === "creatorText" ? "metadata" : "transcript"),
-  );
-  const snippet = chunk ? getMatchSnippet(chunk) : null;
+  // Only transcript chunks display in UI.
+  const isTranscriptChunk = chunk.chunk.source !== "metadata";
+  const snippet = isTranscriptChunk ? getMatchSnippet(chunk) : null;
   const excerpt = snippet ? `"…${snippet.slice(0, 130).trimEnd()}…"` : null;
-  const thumbnail = getItemThumbnail(item);
-  const meta = [timeLabel, dateLabel].filter(Boolean).join(" · ");
+  const thumbnail = getContentThumbnail(chunk);
+  const baseMeta = [
+    formatDuration(chunk.content.durationMs),
+    formatPublishedDate(item.publishedAt),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const matchLocation = formatMatchLocation(chunk.chunk);
+  const engagement = formatEngagement(chunk.content);
   const score = item.relevance;
-  const title = getItemTitle(item);
-  const viewCount = item.viewCount;
+  const title = getContentTitle(chunk);
 
   return (
     <a
-      href={getItemHref(item)}
+      href={getContentHref(chunk)}
       target="_blank"
       rel="noopener noreferrer"
       className="group hover:bg-bg-muted flex items-center gap-3.5 py-3 transition-colors"
     >
       {/* Preview image */}
-      <div className="bg-bg-subtle relative h-14 w-[88px] shrink-0 overflow-hidden rounded-lg">
-        {thumbnail ? (
-          <img
-            src={thumbnail}
-            alt=""
-            className="size-full object-cover transition-transform duration-150 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex size-full items-center justify-center">
-            <PlatformIcon platform={item.platform} className="size-5" />
-          </div>
-        )}
-      </div>
+      <ContentThumbnail thumbnail={thumbnail} platform={item.platform} />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <PlatformIcon platform={item.platform} className="size-3.5 shrink-0" />
@@ -95,30 +75,25 @@ export function ContentMatchRow({ item }: { item: MatchedContentItem }) {
           </span>
         </div>
         <div className="text-content-subtle mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs">
-          {meta && <span>{meta}</span>}
-          {matchTags.length > 0 && (
+          {baseMeta && <span>{baseMeta}</span>}
+          {matchLocation && (
             <>
-              {meta && <span className="text-content-muted">·</span>}
-              <span className="flex flex-wrap items-center gap-1">
-                {matchTags.map((tag) => (
-                  <span
-                    key={tag.source}
-                    className={cn(
-                      tag.source === "transcript"
-                        ? "text-blue-600"
-                        : "text-content-subtle",
-                    )}
-                  >
-                    {tag.label}
-                  </span>
-                ))}
+              {baseMeta && <span className="text-content-muted">·</span>}
+              <span
+                className={cn(
+                  isTranscriptChunk ? "text-blue-600" : "text-content-subtle",
+                )}
+              >
+                {matchLocation}
               </span>
             </>
           )}
-          {viewCount != null && viewCount > 0 && (
+          {engagement && (
             <>
-              <span className="text-content-muted">·</span>
-              <span>{nFormatter(viewCount)} views</span>
+              {(baseMeta || matchLocation) && (
+                <span className="text-content-muted">·</span>
+              )}
+              <span>{engagement}</span>
             </>
           )}
         </div>
@@ -140,56 +115,38 @@ export function ContentMatchRow({ item }: { item: MatchedContentItem }) {
   );
 }
 
-function getMatchTags(
-  evidence: PartnerContentMatchEvidence | undefined,
-  fallbackSource: string,
-) {
-  const sources = evidence?.sources.length
-    ? evidence.sources
-    : fallbackSource === "metadata"
-      ? ["creatorText" as const]
-      : ["transcript" as const];
-
-  return sources.map((source) => ({
-    source,
-    label: source === "transcript" ? "Transcript" : "Creator text",
-  }));
-}
-
-// Displayed snippet. Transcript chunks are prose; creator-text chunks store the raw
-// embedding input, so we surface just the creator-entered text.
-function getMatchSnippet(chunk: PartnerContentSearchPartner["chunks"][number]) {
-  const text = (chunk.chunk.text ?? "").trim();
-  if (!text) return null;
-  if (chunk.chunk.source !== "metadata") return text;
-
-  const description = text.match(/Description:\s*([\s\S]+)$/i)?.[1];
-  return (
-    (
-      description ?? text.replace(/^Content type:[\s\S]*?Title:\s*/i, "")
-    ).trim() || null
-  );
-}
-
-// Item thumbnail: the loaded chunk's preview, else a YouTube thumbnail from the id.
-function getItemThumbnail(item: MatchedContentItem) {
-  if (item.chunk) return getContentThumbnail(item.chunk);
-  if (item.platform === "youtube" && item.platformContentId) {
-    return `https://i.ytimg.com/vi/${item.platformContentId}/hqdefault.jpg`;
+// Where the match was found, for the row meta: "Matched transcript 1:23 - 1:45",
+// "Matched transcript" (untimed), or "Matched creator text".
+function formatMatchLocation({
+  source,
+  startMs,
+  endMs,
+}: PartnerContentSearchPartner["chunks"][number]["chunk"]) {
+  if (source === "metadata") return "Matched creator text";
+  if (startMs === null && endMs === null) return "Matched transcript";
+  if (startMs !== null && endMs !== null) {
+    return `Matched transcript ${formatTimestamp(startMs)} - ${formatTimestamp(endMs)}`;
   }
-  return null;
+  return `Matched transcript ${formatTimestamp(startMs ?? endMs ?? 0)}`;
 }
 
-function getItemTitle(item: MatchedContentItem) {
-  if (item.chunk) return getContentTitle(item.chunk);
-  return item.title?.trim() || "Untitled content";
+// Reach + engagement we have for the post, in descending prominence.
+function formatEngagement(
+  content: PartnerContentSearchPartner["chunks"][number]["content"],
+) {
+  return [
+    content.viewCount ? `${nFormatter(content.viewCount)} views` : null,
+    content.likeCount ? `${nFormatter(content.likeCount)} likes` : null,
+    content.commentCount ? `${nFormatter(content.commentCount)} comments` : null,
+    content.shareCount ? `${nFormatter(content.shareCount)} shares` : null,
+    content.saveCount ? `${nFormatter(content.saveCount)} saves` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
-// Link for a matched item: the chunk-aware href (YouTube deep-link timestamp,
-// Instagram normalization) when enriched, otherwise the bar's canonical URL.
-function getItemHref(item: MatchedContentItem) {
-  if (item.chunk) return getContentHref(item.chunk);
-  return item.url ?? "#";
+function getMatchSnippet(chunk: PartnerContentSearchPartner["chunks"][number]) {
+  return (chunk.chunk.text ?? "").trim() || null;
 }
 
 // Noun phrase for the rank window (time-based but capped per partner); says so
@@ -233,25 +190,4 @@ function formatMonthYear(iso: string | null) {
     month: "short",
     year: "numeric",
   }).format(date);
-}
-
-function hasTimedTranscriptMatch({
-  source,
-  startMs,
-  endMs,
-}: PartnerContentSearchPartner["chunks"][number]["chunk"]) {
-  return source !== "metadata" && (startMs !== null || endMs !== null);
-}
-
-function formatChunkTimeRange({
-  source,
-  startMs,
-  endMs,
-}: PartnerContentSearchPartner["chunks"][number]["chunk"]) {
-  if (source === "metadata") return "Creator text match";
-  if (startMs === null && endMs === null) return "Transcript match";
-  if (startMs !== null && endMs !== null) {
-    return `${formatTimestamp(startMs)} - ${formatTimestamp(endMs)}`;
-  }
-  return formatTimestamp(startMs ?? endMs ?? 0);
 }

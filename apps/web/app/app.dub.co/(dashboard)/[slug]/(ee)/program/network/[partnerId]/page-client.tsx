@@ -19,6 +19,7 @@ import {
   platformFilterParam,
 } from "../platform-filter-utils";
 import { NetworkInviteControl } from "./network-invite-control";
+import { RecentContentPanel } from "./recent-content-panel";
 import { SearchFitPanel } from "./search-fit-panel";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -78,9 +79,7 @@ export function NetworkPartnerDetailContent({
   );
   const loadedPartner = partners?.[0];
 
-  // Open instantly from the cached match data; the background refetch reranks just
-  // this partner so every row lands on one relevance scale (global search only
-  // reranks its top-N pool).
+  // Background scoped rerank puts every row on one relevance scale.
   const shouldFetchSearch = hasContentSearch;
   const {
     data: searchResults,
@@ -97,6 +96,21 @@ export function NetworkPartnerDetailContent({
     chunksPerPartner: PARTNER_CONTENT_SEARCH_DETAIL_CHUNKS_PER_PARTNER,
   });
 
+  const {
+    data: recentResults,
+    error: recentError,
+    isLoading: isLoadingRecent,
+  } = usePartnerContentSearch({
+    enabled: Boolean(workspaceId && !hasContentSearch),
+    query: "",
+    country,
+    starred: false,
+    partnerIds: [partnerId],
+    limit: 1,
+    chunksPerPartner: PARTNER_CONTENT_SEARCH_DETAIL_CHUNKS_PER_PARTNER,
+  });
+  const recentPartner = recentResults?.partners?.[0];
+
   const fetchedPartner = searchResults?.partners?.[0];
   const partner =
     loadedPartner ?? initialSearchPartner?.partner ?? fetchedPartner?.partner;
@@ -104,8 +118,6 @@ export function NetworkPartnerDetailContent({
   const searchPartner = fetchedPartner ?? initialSearchPartner;
   const searchSummary =
     initialSearchPartner?.matchSummary ?? fetchedPartner?.matchSummary;
-  // Per-row relevance comes from the scoped reranked summary once it lands (one
-  // scale); null until then, so rows show cached scores and quietly upgrade.
   const relevanceSummary = fetchedPartner?.matchSummary ?? null;
   // Deep-link with nothing cached → full skeleton; otherwise a silent refinement.
   const isFallbackLoading = isLoadingSearch && !initialSearchPartner;
@@ -180,14 +192,22 @@ export function NetworkPartnerDetailContent({
                     hideDescription
                     hideMonthlyTraffic
                   />
-                  {hasContentSearch && (
+                  {hasContentSearch ? (
                     <SearchFitPanel
                       error={searchError}
                       isLoading={isFallbackLoading}
                       isRefining={isRefiningRelevance}
+                      query={search}
                       summary={searchSummary}
                       relevanceSummary={relevanceSummary}
                       searchPartner={searchPartner}
+                    />
+                  ) : (
+                    <RecentContentPanel
+                      partner={partner}
+                      searchPartner={recentPartner}
+                      isLoading={isLoadingRecent}
+                      error={recentError}
                     />
                   )}
                 </div>

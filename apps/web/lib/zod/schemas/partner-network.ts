@@ -207,16 +207,8 @@ const partnerContentSearchChunkSchema = z.object({
 const partnerContentSearchContentBarSchema = z.object({
   partnerContentItemId: z.string(),
   platform: z.string(),
-  platformContentId: z.string(),
-  title: z.string().nullable(),
-  url: z.string().nullable(),
-  durationMs: z.number().nullable(),
   publishedAt: z.string().nullable(),
   viewCount: z.number().nullable(),
-  likeCount: z.number().nullable(),
-  commentCount: z.number().nullable(),
-  shareCount: z.number().nullable(),
-  saveCount: z.number().nullable(),
   matched: z.boolean(),
   matchScore: z.number().nullable(),
   matchEvidence: partnerContentMatchEvidenceSchema,
@@ -232,6 +224,8 @@ const partnerContentTopicFitBandSchema = z.enum([
 
 const partnerContentSearchMatchSummarySchema = z.object({
   matchedContentCount: z.number(),
+  strongMatchedContentCount: z.number(),
+  partialMatchedContentCount: z.number(),
   transcriptMatchedContentCount: z.number(),
   creatorTextMatchedContentCount: z.number(),
   creatorTextOnlyContentCount: z.number(),

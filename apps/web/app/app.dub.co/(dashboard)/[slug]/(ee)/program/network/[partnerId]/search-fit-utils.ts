@@ -7,26 +7,18 @@ import {
   type PartnerContentSearchPartner,
 } from "@/lib/swr/use-partner-content-search";
 
-export const DETAIL_CONTENT_INITIAL_MATCH_COUNT = 8;
-export const DETAIL_CONTENT_MATCH_INCREMENT = 8;
+export const DETAIL_CONTENT_INITIAL_DISPLAY_COUNT = 8;
+export const DETAIL_CONTENT_PAGE_COUNT = 8;
 
-// A matched post for the detail lists: from the cached summary's bars, enriched
-// with a loaded chunk (snippet, timed transcript, thumbnail) when available.
 export type MatchedContentItem = {
   contentItemId: string;
   platform: string;
-  platformContentId: string;
-  title: string | null;
-  url: string | null;
-  durationMs: number | null;
   publishedAt: string | null;
   viewCount: number | null;
-  // The displayed relevance rating (0-1); also feeds the blend.
   relevance: number;
-  // Relevance + reach blend, used only to order the Top content list.
   blendedScore: number;
   matchEvidence: PartnerContentMatchEvidence;
-  chunk?: PartnerContentSearchPartner["chunks"][number];
+  chunk: PartnerContentSearchPartner["chunks"][number];
 };
 
 export function getEvidenceDisplayScore(
@@ -40,8 +32,7 @@ export function getEvidenceDisplayScore(
   );
 }
 
-// Per-item relevance from the scoped reranked summary (one scale; the cached global
-// summary mixes rerank + cosine). Includes any item with evidence, not just matched.
+// Per-item relevance on one scale from the scoped rerank (cached global summary mixes scales).
 export function buildUnifiedRelevanceMap(
   relevanceSummary: PartnerContentSearchPartner["matchSummary"] | null | undefined,
 ) {
@@ -60,25 +51,26 @@ export function buildMatchedContentItems(
 ): MatchedContentItem[] {
   const bars = summary?.contentBars ?? [];
 
-  // Best loaded chunk per content item, for snippet/thumbnail enrichment.
-  const chunkByContentItemId = new Map<
+  const bestChunkByContentItemId = new Map<
     string,
     PartnerContentSearchPartner["chunks"][number]
   >();
   for (const chunk of chunks) {
-    const current = chunkByContentItemId.get(chunk.partnerContentItemId);
-    if (!current || chunk.score > current.score) {
-      chunkByContentItemId.set(chunk.partnerContentItemId, chunk);
+    const current = bestChunkByContentItemId.get(chunk.partnerContentItemId);
+    if (!current || isBetterDisplayChunk(chunk, current)) {
+      bestChunkByContentItemId.set(chunk.partnerContentItemId, chunk);
     }
   }
 
-  // Per-creator engagement baseline: median recent views (matched + unmatched).
   const baselineViews = getViewBaseline(bars.map((bar) => bar.viewCount));
 
   return bars
     .filter((bar) => bar.matched)
-    .map((bar) => {
-      // Prefer the unified single-scale relevance once the rerank lands; else cached.
+    .map((bar): MatchedContentItem | null => {
+      // Skip rows we can't render; matched count in the header still comes from all matched bars.
+      const chunk = bestChunkByContentItemId.get(bar.partnerContentItemId);
+      if (!chunk) return null;
+
       const relevance =
         unifiedRelevanceByItemId?.get(bar.partnerContentItemId) ??
         getEvidenceDisplayScore(bar.matchEvidence) ??
@@ -88,10 +80,6 @@ export function buildMatchedContentItems(
       return {
         contentItemId: bar.partnerContentItemId,
         platform: bar.platform,
-        platformContentId: bar.platformContentId,
-        title: bar.title,
-        url: bar.url,
-        durationMs: bar.durationMs,
         publishedAt: bar.publishedAt,
         viewCount: bar.viewCount,
         relevance,
@@ -101,9 +89,21 @@ export function buildMatchedContentItems(
           baselineViews,
         }),
         matchEvidence: bar.matchEvidence,
-        chunk: chunkByContentItemId.get(bar.partnerContentItemId),
+        chunk,
       };
-    });
+    })
+    .filter((item): item is MatchedContentItem => item !== null);
+}
+
+// Prefer transcript chunks for display enrichment (excerpt + timed link).
+function isBetterDisplayChunk(
+  candidate: PartnerContentSearchPartner["chunks"][number],
+  current: PartnerContentSearchPartner["chunks"][number],
+) {
+  const candidateIsTranscript = candidate.chunk.source !== "metadata";
+  const currentIsTranscript = current.chunk.source !== "metadata";
+  if (candidateIsTranscript !== currentIsTranscript) return candidateIsTranscript;
+  return candidate.score > current.score;
 }
 
 export function publishedAtMs(iso: string | null) {

@@ -8,8 +8,7 @@ import { type PartnerContentSearchPartner } from "@/lib/swr/use-partner-content-
 import { Button } from "@dub/ui";
 import { cn, nFormatter } from "@dub/utils";
 import { useState } from "react";
-import { BAND_LABELS, lastPostedLabel } from "../content-display-utils";
-import { PlatformIcon } from "../platform-icon";
+import { lastPostedLabel } from "../content-display-utils";
 import {
   ContentMatchRow,
   ContentMatchSkeletons,
@@ -19,44 +18,57 @@ import { ContentMatchBars } from "./search-fit-bars";
 import {
   buildMatchedContentItems,
   buildUnifiedRelevanceMap,
-  DETAIL_CONTENT_INITIAL_MATCH_COUNT,
-  DETAIL_CONTENT_MATCH_INCREMENT,
+  DETAIL_CONTENT_INITIAL_DISPLAY_COUNT,
+  DETAIL_CONTENT_PAGE_COUNT,
   publishedAtMs,
 } from "./search-fit-utils";
 
-const TOPIC_FIT_BAND_STYLES: Record<
-  PartnerContentTopicFitBand,
-  { number: string; chip: string }
-> = {
-  consistent: { number: "text-green-600", chip: "bg-green-50 text-green-700" },
-  frequent: { number: "text-blue-600", chip: "bg-blue-50 text-blue-700" },
-  occasional: { number: "text-amber-600", chip: "bg-amber-50 text-amber-700" },
-  "one-off": {
-    number: "text-neutral-500",
-    chip: "bg-neutral-100 text-neutral-600",
-  },
-  none: { number: "text-neutral-400", chip: "bg-neutral-100 text-neutral-500" },
+const BAND_HEADLINE: Record<PartnerContentTopicFitBand, string> = {
+  consistent: "Consistently on-topic",
+  frequent: "Frequently on-topic",
+  occasional: "Occasionally on-topic",
+  "one-off": "One-off mention",
+  none: "No recent matches",
 };
+
+const TOPIC_FIT_BAND_CHIP: Record<PartnerContentTopicFitBand, string> = {
+  consistent: "bg-green-50 text-green-700",
+  frequent: "bg-blue-50 text-blue-700",
+  occasional: "bg-amber-50 text-amber-700",
+  "one-off": "bg-neutral-100 text-neutral-600",
+  none: "bg-neutral-100 text-neutral-500",
+};
+
+const MAX_QUERY_DISPLAY_LENGTH = 60;
+
+// The search box is natural-language, so a long query would wrap the headline. Trim
+// to a tidy length for inline display — the full query still drives the search.
+function truncateQuery(query: string) {
+  const trimmed = query.trim();
+  return trimmed.length > MAX_QUERY_DISPLAY_LENGTH
+    ? `${trimmed.slice(0, MAX_QUERY_DISPLAY_LENGTH).trimEnd()}…`
+    : trimmed;
+}
 
 export function SearchFitPanel({
   error,
   isLoading,
   isRefining = false,
+  query,
   summary: initialSummary,
   relevanceSummary,
   searchPartner,
 }: {
   error: unknown;
   isLoading: boolean;
-  // Scoped rerank in flight; when it lands, every row's relevance moves to one scale.
   isRefining?: boolean;
+  query?: string;
   summary?: PartnerContentSearchPartner["matchSummary"];
-  // Scoped reranked summary, only to put per-row relevance on one scale. Null until it resolves.
   relevanceSummary?: PartnerContentSearchPartner["matchSummary"] | null;
   searchPartner?: PartnerContentSearchPartner;
 }) {
   const [visibleAllCount, setVisibleAllCount] = useState(
-    DETAIL_CONTENT_INITIAL_MATCH_COUNT,
+    DETAIL_CONTENT_INITIAL_DISPLAY_COUNT,
   );
   const summary = initialSummary ?? searchPartner?.matchSummary;
 
@@ -65,16 +77,14 @@ export function SearchFitPanel({
   }
 
   const isLoadingRows = isLoading || isRefining;
-  // Per-item relevance on a single scale, from the scoped reranked summary.
   const unifiedRelevanceByItemId = buildUnifiedRelevanceMap(relevanceSummary);
-  // Hold row rendering until the scoped run finishes so snippets/order don't swap in.
+  // Hold rows until scoped rerank lands so scores/order don't swap in.
   const items = buildMatchedContentItems(
     summary,
     isLoadingRows ? [] : (searchPartner?.chunks ?? []),
     unifiedRelevanceByItemId,
   );
 
-  // Top content: relevance + reach blend. All content: same set, newest-first.
   const topContent = [...items]
     .sort((a, b) => b.blendedScore - a.blendedScore)
     .slice(0, PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount);
@@ -89,11 +99,14 @@ export function SearchFitPanel({
     allContent.length > PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount;
 
   const band = summary?.band ?? "none";
-  const bandStyles = TOPIC_FIT_BAND_STYLES[band];
-  const topPlatforms = summary?.topPlatforms?.length
-    ? summary.topPlatforms
-    : summary?.platforms ?? [];
   const lastOnTopic = lastPostedLabel(summary?.lastOnTopicAt ?? null);
+  const metaParts = [
+    summary?.followers ? `${nFormatter(summary.followers)} followers` : null,
+    summary?.medianViews
+      ? `${nFormatter(summary.medianViews)} median views`
+      : null,
+    lastOnTopic ? `last post ${lastOnTopic}` : null,
+  ].filter((part): part is string => Boolean(part));
   const rankWindowPhrase = formatRankWindowPhrase(summary);
   const topContentCaption = rankWindowPhrase
     ? `Ranked by relevance + reach across ${rankWindowPhrase}.`
@@ -101,77 +114,44 @@ export function SearchFitPanel({
 
   return (
     <div className="flex flex-col">
-      {/* Topic fit summary row — layout adapted from the Partner Search hi-fi ref */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
-        <div className="shrink-0">
-          <div className="text-[11px] font-bold uppercase tracking-wider text-neutral-500">
-            Topic fit
-          </div>
-          <div className="mt-1.5 flex items-end gap-2.5">
-            <span
-              className={cn(
-                "text-[34px] font-bold leading-none tabular-nums",
-                bandStyles.number,
-              )}
-            >
-              {summary?.topicFit ?? "—"}
+      <div className="flex flex-col gap-3">
+        <div>
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+            <span className="text-content-emphasis text-lg font-semibold">
+              {BAND_HEADLINE[band]}
             </span>
             <span
               className={cn(
-                "mb-1 inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                bandStyles.chip,
+                "inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                TOPIC_FIT_BAND_CHIP[band],
               )}
             >
-              {BAND_LABELS[band]}
+              Topic fit {summary?.topicFit ?? "—"}
             </span>
           </div>
-        </div>
-
-        <div className="h-10 w-px shrink-0 bg-neutral-200" />
-
-        <div className="min-w-[200px] flex-1">
-          <div className="text-content-default flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-medium">
-            {summary?.followers ? (
-              <span>{nFormatter(summary.followers)} followers</span>
-            ) : null}
-            {summary?.followers && summary?.medianViews ? (
-              <span className="text-neutral-300">·</span>
-            ) : null}
-            {summary?.medianViews ? (
-              <span>{nFormatter(summary.medianViews)} median views</span>
-            ) : null}
-          </div>
-          <ContentMatchBars summary={summary} />
           {summary && (
-            <div className="text-content-subtle mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-              <span>
-                {summary.matchedContentCount} of {summary.recentContentCount}{" "}
-                matching
-              </span>
-              {topPlatforms.length > 0 && (
-                <>
-                  <span className="text-neutral-300">·</span>
-                  <span>matched on</span>
-                  <span className="flex items-center gap-1">
-                    {topPlatforms.map((platform) => (
-                      <PlatformIcon
-                        key={platform}
-                        platform={platform}
-                        className="size-3.5"
-                      />
-                    ))}
-                  </span>
-                </>
+            <p className="text-content-subtle mt-1 text-sm">
+              {summary.matchedContentCount} of {summary.recentContentCount} recent
+              posts related to{" "}
+              {query ? (
+                <span className="text-content-emphasis font-medium">
+                  “{truncateQuery(query)}”
+                </span>
+              ) : (
+                "your search"
               )}
-              {lastOnTopic && (
-                <>
-                  <span className="text-neutral-300">·</span>
-                  <span>last post {lastOnTopic}</span>
-                </>
-              )}
-            </div>
+              .
+            </p>
           )}
         </div>
+
+        <ContentMatchBars summary={summary} />
+
+        {metaParts.length > 0 && (
+          <div className="text-content-subtle text-xs">
+            {metaParts.join(" · ")}
+          </div>
+        )}
       </div>
 
       <div className="border-border-subtle mt-5 border-t pt-5">
@@ -233,11 +213,11 @@ export function SearchFitPanel({
                   variant="secondary"
                   text={`Show ${Math.min(
                     hiddenAllCount,
-                    DETAIL_CONTENT_MATCH_INCREMENT,
+                    DETAIL_CONTENT_PAGE_COUNT,
                   )} more`}
                   onClick={() =>
                     setVisibleAllCount(
-                      (count) => count + DETAIL_CONTENT_MATCH_INCREMENT,
+                      (count) => count + DETAIL_CONTENT_PAGE_COUNT,
                     )
                   }
                   className="h-9 rounded-lg px-4"
@@ -254,30 +234,16 @@ export function SearchFitPanel({
 export function SearchFitPanelSkeleton() {
   return (
     <div className="flex flex-col" aria-busy="true">
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
-        <div className="shrink-0">
-          <div className="h-3 w-16 animate-pulse rounded bg-neutral-200" />
-          <div className="mt-2 flex items-end gap-2.5">
-            <div className="h-9 w-14 animate-pulse rounded bg-neutral-200" />
-            <div className="mb-1 h-6 w-20 animate-pulse rounded-full bg-neutral-100" />
+      <div className="flex flex-col gap-3">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <div className="h-6 w-44 max-w-full animate-pulse rounded bg-neutral-200" />
+            <div className="h-5 w-24 animate-pulse rounded-full bg-neutral-100" />
           </div>
+          <div className="mt-2 h-4 w-64 max-w-full animate-pulse rounded bg-neutral-100" />
         </div>
-
-        <div className="h-10 w-px shrink-0 bg-neutral-200" />
-
-        <div className="min-w-[200px] flex-1">
-          <div className="h-4 w-64 max-w-full animate-pulse rounded bg-neutral-200" />
-          <div className="mt-2.5 flex h-9 items-end gap-[3px]">
-            {[...Array(18)].map((_, index) => (
-              <div
-                key={index}
-                className="min-w-[5px] flex-1 animate-pulse rounded-full bg-neutral-100"
-                style={{ height: 6 + (index % 5) * 6 }}
-              />
-            ))}
-          </div>
-          <div className="mt-2 h-3 w-72 max-w-full animate-pulse rounded bg-neutral-100" />
-        </div>
+        <div className="h-2.5 w-full animate-pulse rounded-full bg-neutral-100" />
+        <div className="h-3 w-72 max-w-full animate-pulse rounded bg-neutral-100" />
       </div>
 
       <div className="border-border-subtle mt-5 border-t pt-5">

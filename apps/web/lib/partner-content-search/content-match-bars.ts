@@ -19,16 +19,8 @@ export type PartnerContentItemBestMatch = {
 export type PartnerContentMatchBar = {
   partnerContentItemId: string;
   platform: string;
-  platformContentId: string;
-  title: string | null;
-  url: string | null;
-  durationMs: number | null;
   publishedAt: string | null;
   viewCount: number | null;
-  likeCount: number | null;
-  commentCount: number | null;
-  shareCount: number | null;
-  saveCount: number | null;
   matched: boolean;
   matchScore: number | null;
   matchEvidence: PartnerContentMatchEvidence;
@@ -55,8 +47,6 @@ export function getBestMatchByContentItemId(rows: PartnerContentSearchRow[]) {
   >();
 
   for (const row of rows) {
-    // Use the effective score (rerank when present) so the content-match bars
-    // stay consistent with the reranked partner ordering.
     const score = row.rerankScore ?? toScore(Number(row.distance));
     const evidenceSource = getEvidenceSource(row.chunkSource);
     const existing = bestMatchByContentItemId.get(row.partnerContentItemId);
@@ -90,9 +80,7 @@ export function getQueryContentMatch({
   row: PartnerRecentContentBarRow;
   context: QueryContentMatchContext;
 }) {
-  // On-topic gate: prefer the reranker's calibrated relevance; fall back to the
-  // cosine cutoff only for items the reranker didn't score. Both sources rely
-  // solely on embedding retrieval + reranking — no lexical title/description boost.
+  // On-topic gate: rerank score when present, else cosine cutoff (no lexical boost).
   const transcriptScore = getMatchedSourceScore({
     rerankScore: getSourceScore(
       context.rerankByItemSource,
@@ -168,26 +156,25 @@ export function toContentMatchBar({
   return {
     partnerContentItemId: row.partnerContentItemId,
     platform: row.platformType,
-    platformContentId: row.platformContentId,
-    title: row.contentTitle,
-    url: row.contentUrl,
-    durationMs:
-      row.contentDurationMs != null ? Number(row.contentDurationMs) : null,
     publishedAt: row.publishedAt?.toISOString() ?? null,
     viewCount: row.viewCount != null ? Number(row.viewCount) : null,
-    likeCount: row.likeCount != null ? Number(row.likeCount) : null,
-    commentCount: row.commentCount != null ? Number(row.commentCount) : null,
-    shareCount: row.shareCount != null ? Number(row.shareCount) : null,
-    saveCount: row.saveCount != null ? Number(row.saveCount) : null,
     matched,
     matchScore,
     matchEvidence,
   };
 }
 
+// Strong vs partial split for the coverage bar (calibrated score ≥ 0.7).
+const STRONG_MATCH_DISPLAY_THRESHOLD = 0.7;
+
 export function getContentBarMatchStats(contentBars: PartnerContentMatchBar[]) {
   const matchedBars = contentBars.filter((bar) => bar.matched);
   const matchedContentCount = matchedBars.length;
+  const strongMatchedContentCount = matchedBars.filter(
+    (bar) => (bar.matchScore ?? 0) >= STRONG_MATCH_DISPLAY_THRESHOLD,
+  ).length;
+  const partialMatchedContentCount =
+    matchedContentCount - strongMatchedContentCount;
   const transcriptMatchedContentCount = contentBars.filter(
     ({ matchEvidence }) => matchEvidence.sources.includes("transcript"),
   ).length;
@@ -216,6 +203,8 @@ export function getContentBarMatchStats(contentBars: PartnerContentMatchBar[]) {
   return {
     matchedBars,
     matchedContentCount,
+    strongMatchedContentCount,
+    partialMatchedContentCount,
     transcriptMatchedContentCount,
     creatorTextMatchedContentCount,
     creatorTextOnlyContentCount,

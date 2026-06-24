@@ -443,14 +443,11 @@ function getContentEngagementMetrics(
   bar: ContentSearchBar | undefined,
 ) {
   return [
-    { label: "Views", value: chunk.content.viewCount ?? bar?.viewCount },
-    { label: "Likes", value: chunk.content.likeCount ?? bar?.likeCount },
-    {
-      label: "Comments",
-      value: chunk.content.commentCount ?? bar?.commentCount,
-    },
-    { label: "Shares", value: chunk.content.shareCount ?? bar?.shareCount },
-    { label: "Saves", value: chunk.content.saveCount ?? bar?.saveCount },
+    { label: "Views", value: chunk.content.viewCount ?? bar?.viewCount }, // views may still fall back to slim bar
+    { label: "Likes", value: chunk.content.likeCount },
+    { label: "Comments", value: chunk.content.commentCount },
+    { label: "Shares", value: chunk.content.shareCount },
+    { label: "Saves", value: chunk.content.saveCount },
   ]
     .filter((metric): metric is { label: string; value: number } => {
       return metric.value != null && metric.value > 0;
