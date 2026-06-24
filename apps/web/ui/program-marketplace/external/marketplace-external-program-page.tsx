@@ -6,11 +6,11 @@ import { MarketplaceProgramHero } from "@/ui/program-marketplace/marketplace-pro
 import {
   getMarketplaceAllHref,
   getMarketplaceHref,
-  getMarketplacePublicApplyHref,
 } from "@/ui/program-marketplace/utils/urls";
-import { Button, ChevronLeft } from "@dub/ui";
+import { ChevronLeft } from "@dub/ui";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { MarketplaceExternalApplyButton } from "./marketplace-external-apply-button";
 import { MarketplaceExternalShell } from "./marketplace-external-shell";
 
 export async function MarketplaceExternalProgramPage({
@@ -44,15 +44,7 @@ export async function MarketplaceExternalProgramPage({
             <MarketplaceProgramHero
               program={program}
               applySlot={
-                <Link
-                  href={getMarketplacePublicApplyHref(program.slug)}
-                  className="inline-block w-fit"
-                >
-                  <Button
-                    text="Apply"
-                    className="h-10 w-fit rounded-lg px-6 text-sm font-medium"
-                  />
-                </Link>
+                <MarketplaceExternalApplyButton programSlug={program.slug} />
               }
             />
           }

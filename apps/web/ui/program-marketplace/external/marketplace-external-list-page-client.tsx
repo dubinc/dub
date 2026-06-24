@@ -19,13 +19,13 @@ import {
 } from "react";
 import useSWR from "swr";
 import * as z from "zod/v4";
-import { type MarketplaceRewardType } from "../constants";
 import { MarketplaceListToolbar } from "../marketplace-list-toolbar";
 import {
   MarketplaceProgramGrid,
   MarketplaceProgramGridEmpty,
   MarketplaceProgramGridSkeleton,
 } from "../marketplace-program-grid";
+import { type MarketplaceRewardType } from "../utils/constants";
 import {
   MarketplaceExternalFilterSidebar,
   MarketplaceExternalFilterSidebarSkeleton,

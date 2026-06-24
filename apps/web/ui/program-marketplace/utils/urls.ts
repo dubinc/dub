@@ -83,14 +83,6 @@ export function getMarketplaceCanonicalUrl(pathname: string) {
   return `https://dub.co${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
 }
 
-function getMarketplacePartnersProgramUrl(programSlug: string) {
-  return `https://partners.dub.co${getMarketplaceProgramHref(programSlug)}`;
-}
-
-export function getMarketplacePublicApplyHref(programSlug: string) {
-  return getMarketplacePartnersProgramUrl(programSlug);
-}
-
 export function getMarketplaceCategoryFromPathname(
   pathname: string,
 ): Category | null {
