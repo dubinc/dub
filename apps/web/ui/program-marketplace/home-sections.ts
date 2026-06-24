@@ -1,37 +1,14 @@
+import { MARKETPLACE_HOME_CATEGORIES } from "@/lib/marketplace/home-sections";
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
-import { Category } from "@prisma/client";
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,
 } from "./utils/urls";
 
-export const MARKETPLACE_HOME_ROW_PAGE_SIZE = 5;
-
-export const MARKETPLACE_HOME_CATEGORIES = [
-  Category.AI,
-  Category.Health,
-  Category.Marketing,
-  Category.Finance,
-  Category.Development,
-  Category.Productivity,
-  Category.Design,
-  Category.Ecommerce,
-  Category.Consumer,
-  Category.Education,
-] as const;
-
-type MarketplaceHomeRowFetchParams = {
-  sortBy?: "name" | "recency" | "popularity";
-  category?: Category;
-  pageSize: number;
-};
-
 export type MarketplaceHomeRow = {
   key: string;
   title: string;
   viewAllHref: string;
-  apiPath: string;
-  fetchParams: MarketplaceHomeRowFetchParams;
   showViewAllCard: true;
 };
 
@@ -43,11 +20,6 @@ const featuredHomeRows: MarketplaceHomeRow[] = [
       sortBy: "popularity",
       sortOrder: "desc",
     }),
-    apiPath: `/api/network/programs?sortBy=popularity&pageSize=${MARKETPLACE_HOME_ROW_PAGE_SIZE}`,
-    fetchParams: {
-      sortBy: "popularity",
-      pageSize: MARKETPLACE_HOME_ROW_PAGE_SIZE,
-    },
     showViewAllCard: true,
   },
   {
@@ -57,11 +29,6 @@ const featuredHomeRows: MarketplaceHomeRow[] = [
       sortBy: "recency",
       sortOrder: "desc",
     }),
-    apiPath: `/api/network/programs?sortBy=recency&pageSize=${MARKETPLACE_HOME_ROW_PAGE_SIZE}`,
-    fetchParams: {
-      sortBy: "recency",
-      pageSize: MARKETPLACE_HOME_ROW_PAGE_SIZE,
-    },
     showViewAllCard: true,
   },
 ];
@@ -75,11 +42,6 @@ const categoryHomeRows: MarketplaceHomeRow[] = MARKETPLACE_HOME_CATEGORIES.map(
       key: category,
       title: label,
       viewAllHref: getMarketplaceCategoryHref(category),
-      apiPath: `/api/network/programs?category=${category}&pageSize=${MARKETPLACE_HOME_ROW_PAGE_SIZE}`,
-      fetchParams: {
-        category,
-        pageSize: MARKETPLACE_HOME_ROW_PAGE_SIZE,
-      },
       showViewAllCard: true,
     };
   },

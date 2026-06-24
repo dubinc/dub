@@ -75,3 +75,10 @@ export const getNetworkProgramsCountQuerySchema = getNetworkProgramsQuerySchema
   .extend({
     groupBy: z.enum(["category", "rewardType", "status"]).optional(),
   });
+
+export const MarketplaceProgramsSummarySchema = z.object({
+  featuredPrograms: z.array(NetworkProgramSchema),
+  mostPopular: z.array(NetworkProgramSchema),
+  newPrograms: z.array(NetworkProgramSchema),
+  categories: z.record(z.enum(Category), z.array(NetworkProgramSchema)),
+});

@@ -1,5 +1,5 @@
+import { MARKETPLACE_HOME_CATEGORIES } from "@/lib/marketplace/home-sections";
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
-import { MARKETPLACE_HOME_CATEGORIES } from "@/ui/program-marketplace/home-sections";
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,

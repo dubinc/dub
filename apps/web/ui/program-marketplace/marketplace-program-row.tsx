@@ -18,10 +18,9 @@ type MarketplaceProgramRowProps = {
   showViewAllCard?: boolean;
   showStatus?: boolean;
   variant?: "default" | "home";
-} & (
-  | { programs: NetworkProgramProps[]; apiPath?: never }
-  | { apiPath: string; programs?: never }
-);
+  programs?: NetworkProgramProps[];
+  apiPath?: string;
+};
 
 const marketplaceCarouselNavButtonClassName =
   "flex size-9 shrink-0 items-center justify-center rounded-lg text-neutral-800 transition-colors hover:bg-neutral-900/5 disabled:pointer-events-none disabled:opacity-40";
@@ -63,12 +62,12 @@ export function MarketplaceProgramRow({
   ...props
 }: MarketplaceProgramRowProps) {
   const { data: fetchedPrograms, error } = useSWR<NetworkProgramProps[]>(
-    "apiPath" in props && props.apiPath ? props.apiPath : null,
+    props.apiPath ?? null,
     fetcher,
     { revalidateOnFocus: false, keepPreviousData: true },
   );
 
-  const programs = "programs" in props ? props.programs : fetchedPrograms;
+  const programs = props.programs ?? fetchedPrograms;
   const isHome = variant === "home";
 
   const carouselItemClassName = cn(
