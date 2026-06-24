@@ -91,11 +91,19 @@ export const SearchBox = forwardRef(
             onChange(e.target.value);
             debounced(e.target.value);
           }}
+          onKeyDown={(e) => {
+            // Commit the search immediately on Enter rather than waiting out the
+            // debounce. isComposing guards against firing mid-IME-composition.
+            if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+              debounced.flush();
+            }
+          }}
           autoCapitalize="none"
         />
         {showClearButton && value.length > 0 && (
           <button
             onClick={() => {
+              debounced.cancel();
               onChange("");
               onChangeDebounced?.("");
             }}
