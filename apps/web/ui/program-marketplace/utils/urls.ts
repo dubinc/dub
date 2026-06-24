@@ -3,22 +3,14 @@ import { MarketplaceRewardType } from "./constants";
 
 const MARKETPLACE_BASE = "/marketplace";
 
-export const MARKETPLACE_RESERVED_SLUGS = new Set(["all", "popular", "c"]);
-
-export function categoryToSlug(category: Category): string {
-  return category.toLowerCase().replaceAll("_", "-");
-}
+export const MARKETPLACE_RESERVED_SLUGS = new Set(["all", "c"]);
 
 export function slugToCategory(slug: string): Category | null {
-  if (MARKETPLACE_RESERVED_SLUGS.has(slug)) {
-    return null;
-  }
-
   const normalizedSlug = slug.toLowerCase();
 
   return (
     (Object.values(Category) as Category[]).find(
-      (category) => categoryToSlug(category) === normalizedSlug,
+      (category) => category.toLowerCase() === normalizedSlug,
     ) ?? null
   );
 }
@@ -70,7 +62,7 @@ export function getMarketplaceCategoryHref(
   params?: Record<string, string | undefined>,
 ) {
   return buildMarketplaceHref(
-    `${MARKETPLACE_BASE}/c/${categoryToSlug(category)}`,
+    `${MARKETPLACE_BASE}/c/${category.toLowerCase()}`,
     params,
   );
 }
@@ -107,8 +99,8 @@ export function getMarketplaceCategoryFromPathname(
   const segments = pathname.split("/").filter(Boolean);
 
   if (
-    segments[0] === "marketplace" &&
     segments.length === 3 &&
+    segments[0] === "marketplace" &&
     segments[1] === "c"
   ) {
     return slugToCategory(segments[2]);

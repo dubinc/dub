@@ -21,7 +21,7 @@ export const PROGRAM_CATEGORIES: {
   listPageDescription: string;
 }[] = [
   {
-    id: Category.Artificial_Intelligence,
+    id: Category.AI,
     label: "AI",
     icon: Sparkle3,
     listPageDescription:

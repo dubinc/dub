@@ -8,7 +8,7 @@ import {
 export const MARKETPLACE_HOME_ROW_PAGE_SIZE = 5;
 
 export const MARKETPLACE_HOME_CATEGORIES = [
-  Category.Artificial_Intelligence,
+  Category.AI,
   Category.Health,
   Category.Marketing,
   Category.Finance,
