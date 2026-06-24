@@ -76,8 +76,8 @@ export async function POST(req: Request) {
       return logAndRespond(`Bounty ${bountyId} has no workflow.`);
     }
 
-    const groupIds = bounty.groups.map(({ groupId }) => groupId);
-    const partnerTagIds = bounty.partnerTags.map(
+    const bountyGroupIds = bounty.groups.map(({ groupId }) => groupId);
+    const bountyTagIds = bounty.partnerTags.map(
       ({ partnerTagId }) => partnerTagId,
     );
 
@@ -85,9 +85,9 @@ export async function POST(req: Request) {
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         programId: bounty.programId,
-        ...(groupIds.length > 0 && {
+        ...(bountyGroupIds.length > 0 && {
           groupId: {
-            in: groupIds,
+            in: bountyGroupIds,
           },
         }),
         ...(partnerIds && {
@@ -95,11 +95,11 @@ export async function POST(req: Request) {
             in: partnerIds,
           },
         }),
-        ...(partnerTagIds.length > 0 && {
+        ...(bountyTagIds.length > 0 && {
           programPartnerTags: {
             some: {
               partnerTagId: {
-                in: partnerTagIds,
+                in: bountyTagIds,
               },
             },
           },
