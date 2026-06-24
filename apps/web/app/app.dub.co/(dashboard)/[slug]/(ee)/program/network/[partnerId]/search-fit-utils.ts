@@ -37,9 +37,9 @@ export function buildUnifiedRelevanceMap(
   relevanceSummary: PartnerContentSearchPartner["matchSummary"] | null | undefined,
 ) {
   const map = new Map<string, number>();
-  for (const bar of relevanceSummary?.contentBars ?? []) {
-    const score = getEvidenceDisplayScore(bar.matchEvidence);
-    if (score != null) map.set(bar.partnerContentItemId, score);
+  for (const match of relevanceSummary?.contentMatches ?? []) {
+    const score = getEvidenceDisplayScore(match.matchEvidence);
+    if (score != null) map.set(match.partnerContentItemId, score);
   }
   return map;
 }
@@ -49,7 +49,7 @@ export function buildMatchedContentItems(
   chunks: PartnerContentSearchPartner["chunks"],
   unifiedRelevanceByItemId?: Map<string, number>,
 ): MatchedContentItem[] {
-  const bars = summary?.contentBars ?? [];
+  const matches = summary?.contentMatches ?? [];
 
   const bestChunkByContentItemId = new Map<
     string,
@@ -62,33 +62,33 @@ export function buildMatchedContentItems(
     }
   }
 
-  const baselineViews = getViewBaseline(bars.map((bar) => bar.viewCount));
+  const baselineViews = getViewBaseline(matches.map((match) => match.viewCount));
 
-  return bars
-    .filter((bar) => bar.matched)
-    .map((bar): MatchedContentItem | null => {
-      // Skip rows we can't render; matched count in the header still comes from all matched bars.
-      const chunk = bestChunkByContentItemId.get(bar.partnerContentItemId);
+  return matches
+    .filter((match) => match.matched)
+    .map((match): MatchedContentItem | null => {
+      // Skip rows we can't render; matched count in the header still comes from all matched content.
+      const chunk = bestChunkByContentItemId.get(match.partnerContentItemId);
       if (!chunk) return null;
 
       const relevance =
-        unifiedRelevanceByItemId?.get(bar.partnerContentItemId) ??
-        getEvidenceDisplayScore(bar.matchEvidence) ??
-        bar.matchScore ??
+        unifiedRelevanceByItemId?.get(match.partnerContentItemId) ??
+        getEvidenceDisplayScore(match.matchEvidence) ??
+        match.matchScore ??
         0;
 
       return {
-        contentItemId: bar.partnerContentItemId,
-        platform: bar.platform,
-        publishedAt: bar.publishedAt,
-        viewCount: bar.viewCount,
+        contentItemId: match.partnerContentItemId,
+        platform: match.platform,
+        publishedAt: match.publishedAt,
+        viewCount: match.viewCount,
         relevance,
         blendedScore: getBlendedTopContentScore({
           relevance,
-          views: bar.viewCount,
+          views: match.viewCount,
           baselineViews,
         }),
-        matchEvidence: bar.matchEvidence,
+        matchEvidence: match.matchEvidence,
         chunk,
       };
     })

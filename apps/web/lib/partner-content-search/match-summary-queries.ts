@@ -6,8 +6,8 @@ import {
 } from "./constants";
 import type { PartnerContentSearchTimingLogger } from "./timing";
 
-// Slim bar row for aggregates only; display fields come from loaded chunks.
-export type PartnerRecentContentBarRow = {
+// Slim content row for aggregates only; display fields come from loaded chunks.
+export type PartnerRecentContentRow = {
   partnerId: string;
   partnerContentItemId: string;
   platformType: string;
@@ -73,7 +73,7 @@ export async function fetchMatchSummaryBaseData({
     });
 
   const recentContentRowsPromise = prisma
-    .$queryRaw<PartnerRecentContentBarRow[]>(
+    .$queryRaw<PartnerRecentContentRow[]>(
       Prisma.sql`
         SELECT
           partnerId,

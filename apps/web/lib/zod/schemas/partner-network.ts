@@ -204,7 +204,7 @@ const partnerContentSearchChunkSchema = z.object({
   matchEvidence: partnerContentMatchEvidenceSchema.optional(),
 });
 
-const partnerContentSearchContentBarSchema = z.object({
+const partnerContentSearchContentMatchSchema = z.object({
   partnerContentItemId: z.string(),
   platform: z.string(),
   publishedAt: z.string().nullable(),
@@ -243,7 +243,7 @@ const partnerContentSearchMatchSummarySchema = z.object({
   sources: z.array(z.string()),
   oldestPublishedAt: z.string().nullable(),
   newestPublishedAt: z.string().nullable(),
-  contentBars: z.array(partnerContentSearchContentBarSchema),
+  contentMatches: z.array(partnerContentSearchContentMatchSchema),
 });
 
 const partnerContentSearchResponsePartnerSchema = z.object({

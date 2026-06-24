@@ -9,14 +9,14 @@ import {
   type SourceScoreByContentItemId,
 } from "./ranking";
 import { toScore, type PartnerContentSearchRow } from "./search-utils";
-import type { PartnerRecentContentBarRow } from "./match-summary-queries";
+import type { PartnerRecentContentRow } from "./match-summary-queries";
 
 export type PartnerContentItemBestMatch = {
   transcriptScore: number | null;
   creatorTextScore: number | null;
 };
 
-export type PartnerContentMatchBar = {
+export type PartnerContentMatch = {
   partnerContentItemId: string;
   platform: string;
   publishedAt: string | null;
@@ -77,7 +77,7 @@ export function getQueryContentMatch({
   row,
   context,
 }: {
-  row: PartnerRecentContentBarRow;
+  row: PartnerRecentContentRow;
   context: QueryContentMatchContext;
 }) {
   // On-topic gate: rerank score when present, else cosine cutoff (no lexical boost).
@@ -124,7 +124,7 @@ export function getListContentMatch({
   row,
   context,
 }: {
-  row: PartnerRecentContentBarRow;
+  row: PartnerRecentContentRow;
   context: ListContentMatchContext;
 }) {
   const match = context.bestMatchByContentItemId.get(row.partnerContentItemId);
@@ -140,13 +140,13 @@ export function getListContentMatch({
   };
 }
 
-export function toContentMatchBar({
+export function toContentMatch({
   row,
   context,
 }: {
-  row: PartnerRecentContentBarRow;
+  row: PartnerRecentContentRow;
   context: ContentMatchContext;
-}): PartnerContentMatchBar {
+}): PartnerContentMatch {
   const { matchEvidence, matchScore } =
     "bestMatchByContentItemId" in context
       ? getListContentMatch({ row, context })
@@ -167,41 +167,42 @@ export function toContentMatchBar({
 // Strong vs partial split for the coverage bar (calibrated score ≥ 0.7).
 const STRONG_MATCH_DISPLAY_THRESHOLD = 0.7;
 
-export function getContentBarMatchStats(contentBars: PartnerContentMatchBar[]) {
-  const matchedBars = contentBars.filter((bar) => bar.matched);
-  const matchedContentCount = matchedBars.length;
-  const strongMatchedContentCount = matchedBars.filter(
-    (bar) => (bar.matchScore ?? 0) >= STRONG_MATCH_DISPLAY_THRESHOLD,
+export function getContentMatchStats(contentMatches: PartnerContentMatch[]) {
+  const matchedContent = contentMatches.filter((match) => match.matched);
+  const matchedContentCount = matchedContent.length;
+  const strongMatchedContentCount = matchedContent.filter(
+    (match) => (match.matchScore ?? 0) >= STRONG_MATCH_DISPLAY_THRESHOLD,
   ).length;
   const partialMatchedContentCount =
     matchedContentCount - strongMatchedContentCount;
-  const transcriptMatchedContentCount = contentBars.filter(
+  const transcriptMatchedContentCount = contentMatches.filter(
     ({ matchEvidence }) => matchEvidence.sources.includes("transcript"),
   ).length;
-  const creatorTextMatchedContentCount = contentBars.filter(
+  const creatorTextMatchedContentCount = contentMatches.filter(
     ({ matchEvidence }) => matchEvidence.sources.includes("creatorText"),
   ).length;
-  const creatorTextOnlyContentCount = contentBars.filter(
+  const creatorTextOnlyContentCount = contentMatches.filter(
     ({ matchEvidence }) =>
       matchEvidence.primarySource === "creatorText" &&
       matchEvidence.sources.length === 1,
   ).length;
   const weightedMatchedContentCount = Number(
-    contentBars
-      .reduce((total, bar) => total + bar.matchEvidence.weight, 0)
+    contentMatches
+      .reduce((total, match) => total + match.matchEvidence.weight, 0)
       .toFixed(3),
   );
   const weightedMatchedContentScore = Number(
-    contentBars
+    contentMatches
       .reduce(
-        (total, bar) => total + (getEvidenceTopicScore(bar.matchEvidence) ?? 0),
+        (total, match) =>
+          total + (getEvidenceTopicScore(match.matchEvidence) ?? 0),
         0,
       )
       .toFixed(3),
   );
 
   return {
-    matchedBars,
+    matchedContent,
     matchedContentCount,
     strongMatchedContentCount,
     partialMatchedContentCount,

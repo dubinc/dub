@@ -3,14 +3,14 @@
 import { type PartnerContentSearchPartner } from "@/lib/swr/use-partner-content-search";
 import { cn } from "@dub/utils";
 
-// Coverage bar from summary counts (strong / partial / no match).
+// Single coverage summary bar from summary counts (strong / partial / no match).
 const SEGMENTS = [
   { key: "strong", label: "Strong", color: "bg-[#1D9E75]" },
   { key: "partial", label: "Partial", color: "bg-[#EF9F27]" },
   { key: "none", label: "No match", color: "bg-neutral-300" },
 ] as const;
 
-export function ContentMatchBars({
+export function CoverageSummaryBar({
   summary,
 }: {
   summary: PartnerContentSearchPartner["matchSummary"] | undefined;

@@ -57,7 +57,7 @@ export const PARTNER_CONTENT_SEARCH_TOPIC_FIT = {
 } as const;
 
 // Tuning for the detail-pane "Top content" list only — never feeds Topic Fit, the
-// bars, or partner ordering.
+// coverage summary, or partner ordering.
 export const PARTNER_CONTENT_SEARCH_TOP_CONTENT = {
   topContentCount: 5,
   relevanceWeight: 0.7,

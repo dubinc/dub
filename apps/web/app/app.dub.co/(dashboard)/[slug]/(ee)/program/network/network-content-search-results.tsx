@@ -38,12 +38,12 @@ function contentLabel(platform?: PlatformType) {
 
 const TOP_CONTENT_PREVIEW_COUNT = 2;
 
-type ContentSearchBar = NonNullable<
+type ContentMatch = NonNullable<
   PartnerContentSearchPartner["matchSummary"]
->["contentBars"][number];
+>["contentMatches"][number];
 type ContentPreviewItem = {
   chunk: ContentSearchChunk;
-  bar?: ContentSearchBar;
+  match?: ContentMatch;
 };
 
 export function NetworkContentSearchResults({
@@ -253,10 +253,10 @@ function NetworkPartnerContentMatch({
 function getContentPreviewItems(
   partner: PartnerContentSearchPartner,
 ): ContentPreviewItem[] {
-  const barsByContentItemId = new Map(
-    partner.matchSummary?.contentBars.map((bar) => [
-      bar.partnerContentItemId,
-      bar,
+  const matchByContentItemId = new Map(
+    partner.matchSummary?.contentMatches.map((match) => [
+      match.partnerContentItemId,
+      match,
     ]) ?? [],
   );
   const seenContentItems = new Set<string>();
@@ -268,7 +268,7 @@ function getContentPreviewItems(
     seenContentItems.add(chunk.partnerContentItemId);
     items.push({
       chunk,
-      bar: barsByContentItemId.get(chunk.partnerContentItemId),
+      match: matchByContentItemId.get(chunk.partnerContentItemId),
     });
 
     if (items.length === TOP_CONTENT_PREVIEW_COUNT) break;
@@ -373,7 +373,7 @@ function ContentPreviewImage({
 }
 
 function ContentPreviewTooltip({ item }: { item: ContentPreviewItem }) {
-  const { chunk, bar } = item;
+  const { chunk, match } = item;
   const title = getContentTitle(chunk);
   const metadata = [
     formatDuration(chunk.content.durationMs),
@@ -381,7 +381,7 @@ function ContentPreviewTooltip({ item }: { item: ContentPreviewItem }) {
   ]
     .filter(Boolean)
     .join(" · ");
-  const engagementMetrics = getContentEngagementMetrics(chunk, bar);
+  const engagementMetrics = getContentEngagementMetrics(chunk, match);
   const matchLocation = formatChunkMatchLocation(chunk);
   const matchScore = formatMatchPercent(chunk.rerankScore ?? chunk.score);
 
@@ -440,10 +440,10 @@ function ContentPreviewTooltip({ item }: { item: ContentPreviewItem }) {
 
 function getContentEngagementMetrics(
   chunk: ContentSearchChunk,
-  bar: ContentSearchBar | undefined,
+  match: ContentMatch | undefined,
 ) {
   return [
-    { label: "Views", value: chunk.content.viewCount ?? bar?.viewCount }, // views may still fall back to slim bar
+    { label: "Views", value: chunk.content.viewCount ?? match?.viewCount }, // views may still fall back to the slim content match
     { label: "Likes", value: chunk.content.likeCount },
     { label: "Comments", value: chunk.content.commentCount },
     { label: "Shares", value: chunk.content.shareCount },

@@ -14,7 +14,7 @@ import {
   ContentMatchSkeletons,
   formatRankWindowPhrase,
 } from "./content-match-row";
-import { ContentMatchBars } from "./search-fit-bars";
+import { CoverageSummaryBar } from "./coverage-summary-bar";
 import {
   buildMatchedContentItems,
   buildUnifiedRelevanceMap,
@@ -145,7 +145,7 @@ export function SearchFitPanel({
           )}
         </div>
 
-        <ContentMatchBars summary={summary} />
+        <CoverageSummaryBar summary={summary} />
 
         {metaParts.length > 0 && (
           <div className="text-content-subtle text-xs">

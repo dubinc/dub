@@ -1,6 +1,6 @@
 // Pure ranking helpers for the partner detail-pane "Top content" list. Dependency-
 // free (constants only) so it stays client-safe — no server-only code (voyage, db)
-// in the bundle. Orders that list only; never feeds Topic Fit, the bars, or counts.
+// in the bundle. Orders that list only; never feeds Topic Fit, the coverage summary, or counts.
 
 import { PARTNER_CONTENT_SEARCH_TOP_CONTENT } from "./constants";
 import { median } from "./search-utils";

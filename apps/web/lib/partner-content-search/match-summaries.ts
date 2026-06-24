@@ -2,10 +2,10 @@ import { PlatformType } from "@prisma/client";
 import {
   ContentMatchContext,
   getBestMatchByContentItemId,
-  getContentBarMatchStats,
+  getContentMatchStats,
   QueryContentMatchContext,
-  toContentMatchBar,
-} from "./content-match-bars";
+  toContentMatch,
+} from "./content-matches";
 import { fetchMatchSummaryBaseData } from "./match-summary-queries";
 import {
   deriveTopicFit,
@@ -110,14 +110,14 @@ export async function getPartnerMatchSummaries({
       const contentMatchContext: ContentMatchContext = queryMatchContext ?? {
         bestMatchByContentItemId,
       };
-      const contentBars = recentRows.map((row) =>
-        toContentMatchBar({
+      const contentMatches = recentRows.map((row) =>
+        toContentMatch({
           row,
           context: contentMatchContext,
         }),
       );
       const {
-        matchedBars,
+        matchedContent,
         matchedContentCount,
         strongMatchedContentCount,
         partialMatchedContentCount,
@@ -126,8 +126,8 @@ export async function getPartnerMatchSummaries({
         creatorTextOnlyContentCount,
         weightedMatchedContentCount,
         weightedMatchedContentScore,
-      } = getContentBarMatchStats(contentBars);
-      const recentContentCount = contentBars.length;
+      } = getContentMatchStats(contentMatches);
+      const recentContentCount = contentMatches.length;
       const { topicFit, band } = deriveTopicFit({
         matchedContentCount,
         weightedMatchedContentCount,
@@ -135,13 +135,13 @@ export async function getPartnerMatchSummaries({
         recentContentCount,
       });
       const medianViews = median(
-        matchedBars
-          .map((bar) => bar.viewCount)
+        matchedContent
+          .map((match) => match.viewCount)
           .filter((views): views is number => views != null && views > 0),
         { round: true },
       );
-      const matchedTimestamps = matchedBars
-        .map((bar) => bar.publishedAt)
+      const matchedTimestamps = matchedContent
+        .map((match) => match.publishedAt)
         .filter((publishedAt): publishedAt is string => Boolean(publishedAt))
         .map((publishedAt) => new Date(publishedAt).getTime());
       const lastOnTopicAt = matchedTimestamps.length
@@ -149,16 +149,18 @@ export async function getPartnerMatchSummaries({
         : null;
       const followers = followersByPartner.get(partnerId) ?? null;
       const platformFrequency = new Map<string, number>();
-      for (const bar of matchedBars.length ? matchedBars : contentBars) {
+      for (const match of matchedContent.length
+        ? matchedContent
+        : contentMatches) {
         platformFrequency.set(
-          bar.platform,
-          (platformFrequency.get(bar.platform) ?? 0) + 1,
+          match.platform,
+          (platformFrequency.get(match.platform) ?? 0) + 1,
         );
       }
       const topPlatforms = Array.from(platformFrequency.entries())
         .sort((a, b) => b[1] - a[1])
         .map(([platform]) => platform);
-      const publishedDates = contentBars
+      const publishedDates = contentMatches
         .map(({ publishedAt }) => (publishedAt ? new Date(publishedAt) : null))
         .filter((date): date is Date => Boolean(date));
       const oldestPublishedAt = publishedDates.length
@@ -208,7 +210,7 @@ export async function getPartnerMatchSummaries({
           ).sort(),
           oldestPublishedAt,
           newestPublishedAt,
-          contentBars,
+          contentMatches,
         },
       ] as const;
     }),
