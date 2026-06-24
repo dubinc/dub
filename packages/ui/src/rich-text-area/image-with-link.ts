@@ -1,7 +1,5 @@
 import Image, { type ImageOptions } from "@tiptap/extension-image";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { ReactNodeViewRenderer } from "@tiptap/react";
-import { ImageAltNodeView } from "./image-alt-node-view";
 
 const SAFE_LINK_SCHEMES = new Set(["http:", "https:", "mailto:"]);
 export function isSafeLinkHref(
@@ -32,17 +30,6 @@ const ImageWithLinkExtension = Image.extend({
       renderLink: false,
       imageAltControls: false,
     } as ImageOptions;
-  },
-
-  addNodeView() {
-    const { renderLink, imageAltControls } = this
-      .options as ConfigureImageWithLinkOptions;
-
-    if (renderLink || !imageAltControls) {
-      return null;
-    }
-
-    return ReactNodeViewRenderer(ImageAltNodeView);
   },
 
   addAttributes() {

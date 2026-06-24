@@ -17,7 +17,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { configureImageWithLink } from "./image-with-link";
+import { configureImageWithLinkEditor } from "./image-with-link-editor";
 import { suggestions } from "./variables";
 
 export const PROSE_STYLES = {
@@ -166,7 +166,7 @@ export const RichTextProvider = forwardRef<
           ? [
               ...(features.includes("imageControls")
                 ? [
-                    configureImageWithLink({
+                    configureImageWithLinkEditor({
                       inline: false,
                       renderLink: false,
                       imageAltControls: true,
