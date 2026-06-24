@@ -4,6 +4,7 @@ import { PARTNER_CONTENT_SEARCH_LIMITS } from "@/lib/partner-content-search/cons
 import { type PartnerContentSearchPartner } from "@/lib/swr/use-partner-content-search";
 import { cn, nFormatter } from "@dub/utils";
 import {
+  contentNoun,
   formatDuration,
   formatMatchPercent,
   formatPublishedDate,
@@ -157,6 +158,7 @@ export function formatRankWindowPhrase(
   if (!summary || !summary.recentContentCount) return null;
 
   const { recentContentCount, oldestPublishedAt, newestPublishedAt } = summary;
+  const noun = contentNoun(summary.platforms ?? [], recentContentCount);
   const oldest = formatMonthYear(oldestPublishedAt);
   const newest = formatMonthYear(newestPublishedAt);
   const countCapped =
@@ -164,21 +166,17 @@ export function formatRankWindowPhrase(
 
   if (countCapped) {
     return oldest
-      ? `the ${recentContentCount} most recent posts, back to ${oldest}`
-      : `the ${recentContentCount} most recent posts`;
+      ? `the ${recentContentCount} most recent ${noun}, back to ${oldest}`
+      : `the ${recentContentCount} most recent ${noun}`;
   }
 
   if (oldest && newest) {
     return oldest === newest
-      ? `${recentContentCount} ${
-          recentContentCount === 1 ? "post" : "posts"
-        } from ${oldest}`
-      : `${recentContentCount} posts, ${oldest} – ${newest}`;
+      ? `${recentContentCount} ${noun} from ${oldest}`
+      : `${recentContentCount} ${noun}, ${oldest} – ${newest}`;
   }
 
-  return `${recentContentCount} recent ${
-    recentContentCount === 1 ? "post" : "posts"
-  }`;
+  return `${recentContentCount} recent ${noun}`;
 }
 
 function formatMonthYear(iso: string | null) {

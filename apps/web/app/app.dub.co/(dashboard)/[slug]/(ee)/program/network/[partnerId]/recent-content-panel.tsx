@@ -72,7 +72,7 @@ export function RecentContentPanel({
   const metaParts = [
     followers ? `${nFormatter(followers)} followers` : null,
     medianViews ? `${nFormatter(medianViews)} median views` : null,
-    lastPublished ? `last post ${lastPublished}` : null,
+    lastPublished ? `last published ${lastPublished}` : null,
   ].filter((part): part is string => Boolean(part));
 
   return (

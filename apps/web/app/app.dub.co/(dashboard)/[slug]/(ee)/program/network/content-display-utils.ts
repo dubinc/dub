@@ -70,6 +70,39 @@ export function lastPostedLabel(iso: string | null | undefined) {
   return `${Math.floor(days / 365)}y ago`;
 }
 
+// Platform-aware noun for a partner's content so labels read naturally per type, and
+// only fall back to a generic term when the set spans types: YouTube/TikTok → "videos",
+// Instagram/X/LinkedIn → "posts", website → "pages", mixed/unknown → "content items".
+const PLATFORM_CONTENT_NOUN: Record<string, { one: string; many: string }> = {
+  youtube: { one: "video", many: "videos" },
+  tiktok: { one: "video", many: "videos" },
+  instagram: { one: "post", many: "posts" },
+  twitter: { one: "post", many: "posts" },
+  x: { one: "post", many: "posts" },
+  linkedin: { one: "post", many: "posts" },
+  website: { one: "page", many: "pages" },
+};
+
+export function contentNoun(platforms: string[], count: number) {
+  const plural = count !== 1;
+  const manyForms = new Set(
+    platforms
+      .map((platform) => PLATFORM_CONTENT_NOUN[platform]?.many)
+      .filter((noun): noun is string => Boolean(noun)),
+  );
+
+  if (manyForms.size === 1) {
+    const many = [...manyForms][0];
+    if (plural) return many;
+    const entry = Object.values(PLATFORM_CONTENT_NOUN).find(
+      (noun) => noun.many === many,
+    );
+    return entry?.one ?? "content item";
+  }
+
+  return plural ? "content items" : "content item";
+}
+
 export function getContentThumbnail(chunk: ContentSearchChunk) {
   if (chunk.content.thumbnailUrl) {
     return getPartnerContentThumbnailUrl(chunk.content.thumbnailUrl);

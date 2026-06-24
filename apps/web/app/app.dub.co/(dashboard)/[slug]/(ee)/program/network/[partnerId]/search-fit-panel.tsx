@@ -8,7 +8,7 @@ import { type PartnerContentSearchPartner } from "@/lib/swr/use-partner-content-
 import { Button } from "@dub/ui";
 import { cn, nFormatter } from "@dub/utils";
 import { useState } from "react";
-import { lastPostedLabel } from "../content-display-utils";
+import { contentNoun, lastPostedLabel } from "../content-display-utils";
 import {
   ContentMatchRow,
   ContentMatchSkeletons,
@@ -24,11 +24,11 @@ import {
 } from "./search-fit-utils";
 
 const BAND_HEADLINE: Record<PartnerContentTopicFitBand, string> = {
-  consistent: "Consistently on-topic",
-  frequent: "Frequently on-topic",
-  occasional: "Occasionally on-topic",
-  "one-off": "One-off mention",
-  none: "No recent matches",
+  consistent: "Consistently posts about this",
+  frequent: "Frequently posts about this",
+  occasional: "Occasionally posts about this",
+  "one-off": "Posted about this once",
+  none: "No recent posts about this",
 };
 
 const TOPIC_FIT_BAND_CHIP: Record<PartnerContentTopicFitBand, string> = {
@@ -105,7 +105,7 @@ export function SearchFitPanel({
     summary?.medianViews
       ? `${nFormatter(summary.medianViews)} median views`
       : null,
-    lastOnTopic ? `last post ${lastOnTopic}` : null,
+    lastOnTopic ? `last published ${lastOnTopic}` : null,
   ].filter((part): part is string => Boolean(part));
   const rankWindowPhrase = formatRankWindowPhrase(summary);
   const topContentCaption = rankWindowPhrase
@@ -131,8 +131,12 @@ export function SearchFitPanel({
           </div>
           {summary && (
             <p className="text-content-subtle mt-1 text-sm">
-              {summary.matchedContentCount} of {summary.recentContentCount} recent
-              posts related to{" "}
+              {summary.matchedContentCount} of {summary.recentContentCount} recent{" "}
+              {contentNoun(
+                summary.platforms ?? [],
+                summary.recentContentCount,
+              )}{" "}
+              related to{" "}
               {query ? (
                 <span className="text-content-emphasis font-medium">
                   “{truncateQuery(query)}”
@@ -155,10 +159,10 @@ export function SearchFitPanel({
       </div>
 
       <div className="border-border-subtle mt-5 border-t pt-5">
-        {/* Top content — ranked by the relevance + reach blend */}
+        {/* Top matches — ranked by the relevance + reach blend */}
         <div className="flex flex-col gap-1">
           <h3 className="text-content-subtle text-[11px] font-semibold uppercase tracking-wide">
-            Top content
+            Most relevant content
           </h3>
           <p className="text-content-muted text-[11px] font-medium">
             {topContentCaption}
@@ -188,12 +192,12 @@ export function SearchFitPanel({
           )}
         </div>
 
-        {/* All content — same matched set, simply most-recent-first */}
+        {/* All matches — same matched set, simply most-recent-first */}
         {showAllSection && (
           <div className="mt-6">
             <div className="flex flex-col gap-1">
               <h3 className="text-content-subtle text-[11px] font-semibold uppercase tracking-wide">
-                All content
+                All matching content
               </h3>
               <p className="text-content-muted text-[11px] font-medium">
                 Most recent first

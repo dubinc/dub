@@ -186,7 +186,7 @@ export function NetworkPartnerDetailContent({
               partnerId={partnerId}
               currentTabId={currentTabId}
               setCurrentTabId={setCurrentTabId}
-              aboutLabel="Content matches"
+              aboutLabel="Content"
             />
             <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
               {currentTabId === "about" && (
