@@ -161,6 +161,7 @@ function LinkButton() {
 
   const canLink =
     editorState?.isTextSelection ||
+    editorState?.isLinkActive ||
     (imageControlsEnabled && editorState?.isImageSelected);
 
   return (
