@@ -5,6 +5,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { renderCampaignEmailHTML } from "@/lib/api/workflows/render-campaign-email-html";
 import { withWorkspace } from "@/lib/auth";
+import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { TiptapNode } from "@/lib/types";
 import { CampaignSchema } from "@/lib/zod/schemas/campaigns";
 import { sendBatchEmail } from "@dub/email";
@@ -89,6 +90,10 @@ export const POST = withWorkspace(
                 PartnerName: "Partner",
                 PartnerEmail: "partner@acme.com",
                 PartnerLink: "https://acme.com/partner",
+                PartnerReferralLink: constructPartnerReferralLink({
+                  partner: { username: "partner-username" },
+                  program: { slug: program.slug },
+                }),
               },
             }),
           },

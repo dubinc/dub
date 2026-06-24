@@ -2,6 +2,7 @@ import { validateCampaignFromAddress } from "@/lib/api/campaigns/validate-campai
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { renderCampaignEmailHTML } from "@/lib/api/workflows/render-campaign-email-html";
+import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
@@ -166,6 +167,7 @@ export async function POST(req: Request) {
             id: true,
             name: true,
             email: true,
+            username: true,
             users: {
               where: {
                 notificationPreferences: {
@@ -259,6 +261,10 @@ export async function POST(req: Request) {
                     PartnerEmail: partnerUser.partner.email,
                     PartnerLink:
                       partnerUser.enrollment.links?.[0]?.shortLink ?? null,
+                    PartnerReferralLink: constructPartnerReferralLink({
+                      partner: partnerUser.partner,
+                      program: { slug: program.slug },
+                    }),
                   },
                 }),
               },

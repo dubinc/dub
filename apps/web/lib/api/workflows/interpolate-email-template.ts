@@ -42,7 +42,7 @@ function partnerLinkToAnchorOrText(raw: string): string {
  *
  * **Output**
  * - `PartnerName`, `PartnerEmail`, etc.: HTML-escaped (treat as plain text; no raw HTML).
- * - `PartnerLink`: valid `http:` / `https:` URL → clickable `<a>`; else escaped text.
+ * - `PartnerLink`, `PartnerReferralLink`: valid `http:` / `https:` URL → clickable `<a>`; else escaped text.
  *
  * @param text - HTML string containing `{{VariableName}}` or `{{Name | fallback}}`
  * @param variables - Map of template variable names to values
@@ -69,7 +69,7 @@ export function interpolateEmailTemplate({
     (_, key, fallback) => {
       const value = variables[key];
       const resolved = value != null ? String(value) : fallback?.trim() ?? "";
-      if (key === "PartnerLink") {
+      if (key === "PartnerLink" || key === "PartnerReferralLink") {
         return partnerLinkToAnchorOrText(resolved);
       }
       return escapeHtml(resolved);

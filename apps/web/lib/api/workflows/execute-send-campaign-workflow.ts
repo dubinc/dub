@@ -1,4 +1,5 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
+import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import {
@@ -176,6 +177,10 @@ export const executeSendCampaignWorkflow = async ({
                 PartnerEmail: partnerUser.partner.email,
                 PartnerLink:
                   partnerUser.enrollment.links?.[0]?.shortLink ?? null,
+                PartnerReferralLink: constructPartnerReferralLink({
+                  partner: partnerUser.partner,
+                  program: { slug: program.slug },
+                }),
               },
             }),
           },
