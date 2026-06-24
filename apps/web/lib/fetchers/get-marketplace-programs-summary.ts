@@ -114,7 +114,7 @@ export const getMarketplaceProgramsSummary = cache(async () => {
     .sort(() => Math.random() - 0.5)
     .map(formatNetworkProgram);
 
-  const usedProgramIds = new Set(featuredPrograms.map(({ id }) => id));
+  const usedProgramIds = new Set<string>();
 
   const mostPopular = selectPrograms(
     programs,
