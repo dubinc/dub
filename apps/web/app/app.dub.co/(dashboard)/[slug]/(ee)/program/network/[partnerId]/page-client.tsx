@@ -68,10 +68,12 @@ export function NetworkPartnerDetailContent({
     ? `/${workspaceSlug}/program/network${getBackQueryString(searchParams)}`
     : "#";
 
+  // Skip standalone partner fetch on cold deep-link only — otherwise we'd re-run ranking SQL.
+  const hasInitialPartner = Boolean(initialSearchPartner?.partner);
   const { data: partners, isLoading: isLoadingPartner } = useSWR<
     NetworkPartnerProps[]
   >(
-    workspaceId
+    workspaceId && !hasInitialPartner
       ? getPartnerApiPath({ workspaceId, partnerStatus, partnerId, country })
       : null,
     fetcher,
@@ -113,7 +115,10 @@ export function NetworkPartnerDetailContent({
 
   const fetchedPartner = searchResults?.partners?.[0];
   const partner =
-    loadedPartner ?? initialSearchPartner?.partner ?? fetchedPartner?.partner;
+    initialSearchPartner?.partner ??
+    loadedPartner ??
+    fetchedPartner?.partner ??
+    recentPartner?.partner;
   // Chunks prefer the fuller fetched set; the summary keeps the cached one so scores don't drift.
   const searchPartner = fetchedPartner ?? initialSearchPartner;
   const searchSummary =

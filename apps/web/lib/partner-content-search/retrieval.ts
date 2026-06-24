@@ -1,6 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
 import { DISCOVERABLE_NETWORK_STATUSES } from "@/lib/api/network/partner-network-listing-where";
 import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
+import { createHash } from "crypto";
 import { PlatformType, Prisma } from "@prisma/client";
 import {
   PARTNER_CONTENT_CHUNK_VECTOR_DISTANCE,
@@ -27,6 +29,30 @@ import {
   serializeEmbeddingForVector,
   VoyageTimeoutError,
 } from "./voyage";
+
+// Cache query embeddings globally (list search + detail rerank share the same query).
+const QUERY_EMBEDDING_CACHE_TTL_SECONDS = 60 * 60 * 24;
+
+function queryEmbeddingCacheKey(query: string) {
+  const digest = createHash("sha256").update(query).digest("hex").slice(0, 32);
+  return `pcs:query-embedding:${PARTNER_CONTENT_SEARCH_MODELS.embedding.id}:${digest}`;
+}
+
+async function readCachedQueryEmbedding(key: string) {
+  try {
+    const cached = await redis.get<number[]>(key);
+    return Array.isArray(cached) && cached.length ? cached : null;
+  } catch {
+    return null;
+  }
+}
+
+function cacheQueryEmbedding(key: string, embedding: number[]) {
+  // Fire-and-forget — never block the search on the cache write.
+  redis
+    .set(key, embedding, { ex: QUERY_EMBEDDING_CACHE_TTL_SECONDS })
+    .catch(() => {});
+}
 
 type PartnerContentSearchCandidateRow = Pick<
   PartnerContentSearchRow,
@@ -59,26 +85,36 @@ export async function searchPartnerNetworkContent({
   rerank: boolean;
   logTiming?: PartnerContentSearchTimingLogger;
 }) {
-  let queryEmbedding: number[];
+  const embeddingCacheKey = queryEmbeddingCacheKey(query);
   logTiming?.("query-embedding-start");
-  try {
-    [queryEmbedding] = await embedPartnerContentTexts({
-      input: [query],
-      inputType: "query",
-      timeoutMs: PARTNER_CONTENT_SEARCH_VOYAGE_QUERY_TIMEOUT_MS,
+  let queryEmbedding: number[];
+  const cachedEmbedding = await readCachedQueryEmbedding(embeddingCacheKey);
+  if (cachedEmbedding) {
+    queryEmbedding = cachedEmbedding;
+    logTiming?.("query-embedding-cache-hit", {
+      embeddingDimensions: queryEmbedding.length,
     });
-  } catch (error) {
-    if (error instanceof VoyageTimeoutError) {
-      throw new DubApiError({
-        code: "internal_server_error",
-        message: "Partner content search timed out. Please try again.",
+  } else {
+    try {
+      [queryEmbedding] = await embedPartnerContentTexts({
+        input: [query],
+        inputType: "query",
+        timeoutMs: PARTNER_CONTENT_SEARCH_VOYAGE_QUERY_TIMEOUT_MS,
       });
+    } catch (error) {
+      if (error instanceof VoyageTimeoutError) {
+        throw new DubApiError({
+          code: "internal_server_error",
+          message: "Partner content search timed out. Please try again.",
+        });
+      }
+      throw error;
     }
-    throw error;
+    cacheQueryEmbedding(embeddingCacheKey, queryEmbedding);
+    logTiming?.("query-embedding-complete", {
+      embeddingDimensions: queryEmbedding.length,
+    });
   }
-  logTiming?.("query-embedding-complete", {
-    embeddingDimensions: queryEmbedding.length,
-  });
   const queryVector = serializeEmbeddingForVector(queryEmbedding);
 
   // Eligibility filters inline in the ANN query; post-filtering would starve the candidate pool.
