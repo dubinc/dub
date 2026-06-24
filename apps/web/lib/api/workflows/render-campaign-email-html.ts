@@ -1,4 +1,4 @@
-import { configureImageWithLink } from "@/lib/tiptap/image-with-link";
+import { configureCampaignEmailImage } from "@/lib/tiptap/campaign-email-image";
 import { EmailTemplateVariables, TiptapNode } from "@/lib/types";
 import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
 import Mention from "@tiptap/extension-mention";
@@ -20,7 +20,7 @@ export function renderCampaignEmailHTML({
         levels: [1, 2],
       },
     }),
-    configureImageWithLink({
+    configureCampaignEmailImage({
       HTMLAttributes: {
         style: "max-width: 100%; height: auto; margin: 12px auto;",
       },

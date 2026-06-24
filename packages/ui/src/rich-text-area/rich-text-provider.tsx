@@ -17,7 +17,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { configureImageWithLinkEditor } from "./image-with-link";
+import { configureCampaignEditorImage } from "./campaign-editor-image";
 import { suggestions } from "./variables";
 
 export const PROSE_STYLES = {
@@ -168,7 +168,7 @@ export const RichTextProvider = forwardRef<
           ? [
               ...(features.includes("imageControls")
                 ? [
-                    configureImageWithLinkEditor({
+                    configureCampaignEditorImage({
                       inline: false,
                       imageAltControls: true,
                       HTMLAttributes: {

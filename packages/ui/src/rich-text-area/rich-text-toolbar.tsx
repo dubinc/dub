@@ -1,4 +1,4 @@
-import { cn } from "@dub/utils";
+import { cn, isSafeLinkHref } from "@dub/utils";
 import { useEditorState } from "@tiptap/react";
 import { ReactNode, forwardRef, useRef } from "react";
 import { toast } from "sonner";
@@ -13,7 +13,6 @@ import {
   TextItalic,
   TextStrike,
 } from "../icons";
-import { isSafeLinkHref } from "./image-with-link";
 import { useRichTextContext } from "./rich-text-provider";
 
 export function RichTextToolbar({

@@ -7,6 +7,22 @@ export const isValidUrl = (url: string) => {
   }
 };
 
+const SAFE_LINK_SCHEMES = new Set(["http:", "https:", "mailto:"]);
+
+export function isSafeLinkHref(
+  href: string | null | undefined,
+): href is string {
+  if (!href) {
+    return false;
+  }
+
+  try {
+    return SAFE_LINK_SCHEMES.has(new URL(href).protocol);
+  } catch {
+    return false;
+  }
+}
+
 export const getUrlFromString = (str: string) => {
   if (isValidUrl(str)) return str;
   try {

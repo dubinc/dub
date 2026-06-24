@@ -1,20 +1,7 @@
+import { isSafeLinkHref } from "@dub/utils";
 import Image, { type ImageOptions } from "@tiptap/extension-image";
 
-const SAFE_LINK_SCHEMES = new Set(["http:", "https:", "mailto:"]);
-
-function isSafeLinkHref(href: string | null | undefined): href is string {
-  if (!href) {
-    return false;
-  }
-
-  try {
-    return SAFE_LINK_SCHEMES.has(new URL(href).protocol);
-  } catch {
-    return false;
-  }
-}
-
-const ImageWithLinkExtension = Image.extend({
+const CampaignEmailImageExtension = Image.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -51,6 +38,6 @@ const ImageWithLinkExtension = Image.extend({
   },
 });
 
-export function configureImageWithLink(options: Partial<ImageOptions>) {
-  return ImageWithLinkExtension.configure(options);
+export function configureCampaignEmailImage(options: Partial<ImageOptions>) {
+  return CampaignEmailImageExtension.configure(options);
 }

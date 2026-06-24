@@ -1,31 +1,16 @@
 "use client";
 
+import { isSafeLinkHref } from "@dub/utils";
 import Image, { type ImageOptions } from "@tiptap/extension-image";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { ImageAltNodeView } from "./image-alt-node-view";
 
-const SAFE_LINK_SCHEMES = new Set(["http:", "https:", "mailto:"]);
-
-export function isSafeLinkHref(
-  href: string | null | undefined,
-): href is string {
-  if (!href) {
-    return false;
-  }
-
-  try {
-    return SAFE_LINK_SCHEMES.has(new URL(href).protocol);
-  } catch {
-    return false;
-  }
-}
-
-export type ConfigureImageWithLinkOptions = Partial<ImageOptions> & {
+export type ConfigureCampaignEditorImageOptions = Partial<ImageOptions> & {
   imageAltControls?: boolean;
 };
 
-const ImageWithLinkExtension = Image.extend({
+const CampaignEditorImageExtension = Image.extend({
   addOptions() {
     return {
       ...this.parent?.(),
@@ -34,7 +19,8 @@ const ImageWithLinkExtension = Image.extend({
   },
 
   addNodeView() {
-    const { imageAltControls } = this.options as ConfigureImageWithLinkOptions;
+    const { imageAltControls } = this
+      .options as ConfigureCampaignEditorImageOptions;
 
     if (!imageAltControls) {
       return null;
@@ -102,7 +88,7 @@ const ImageWithLinkExtension = Image.extend({
     return [
       ...(this.parent?.() ?? []),
       new Plugin({
-        key: new PluginKey("imageWithLinkClick"),
+        key: new PluginKey("campaignEditorImageLinkClick"),
         props: {
           handleDOMEvents: {
             mousedown: (view, event) => {
@@ -143,8 +129,10 @@ const ImageWithLinkExtension = Image.extend({
   },
 });
 
-export function configureImageWithLinkEditor(
-  options: ConfigureImageWithLinkOptions,
+export function configureCampaignEditorImage(
+  options: ConfigureCampaignEditorImageOptions,
 ) {
-  return ImageWithLinkExtension.configure(options as Partial<ImageOptions>);
+  return CampaignEditorImageExtension.configure(
+    options as Partial<ImageOptions>,
+  );
 }
