@@ -26,7 +26,7 @@ export const TagsListContext = createContext<{
 });
 
 export default function WorkspaceTagsClient() {
-  const { searchParams, queryParams } = useRouterStuff();
+  const { searchParams } = useRouterStuff();
 
   const { AddEditTagModal, AddTagButton } = useAddEditTagModal();
 
@@ -50,16 +50,7 @@ export default function WorkspaceTagsClient() {
     <div className="grid grid-cols-1 gap-4 pb-10">
       <AddEditTagModal />
       <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto">
-        <SearchBoxPersisted
-          loading={loading}
-          onChangeDebounced={(t) => {
-            if (t) {
-              queryParams({ set: { search: t }, del: "page" });
-            } else {
-              queryParams({ del: "search" });
-            }
-          }}
-        />
+        <SearchBoxPersisted loading={loading} />
       </div>
 
       {!loading && tags?.length === 0 ? (
