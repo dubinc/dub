@@ -90,7 +90,7 @@ export async function triggerDraftBountySubmissionCreation({
           isPartnerEligibleForBounty({
             bountyGroupIds,
             bountyTagIds,
-            partnerGroupId: enrollment.groupId ?? program.defaultGroupId,
+            partnerGroupId: enrollment.groupId,
             partnerTagIds: enrollment.programPartnerTags.map(
               ({ partnerTagId }) => partnerTagId,
             ),
