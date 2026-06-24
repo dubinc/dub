@@ -1,6 +1,6 @@
 import { formatDate } from "@dub/utils";
-import { BountyStartMode } from "@prisma/client";
-import { addMonths, addWeeks } from "date-fns";
+import { Bounty, BountyStartMode, ProgramEnrollment } from "@prisma/client";
+import { addDays, addMonths, addWeeks } from "date-fns";
 
 export type BountyStartPreset =
   | "today"
@@ -210,5 +210,30 @@ export function parseBountyTimingPresets({
     endPreset,
     customStartsAt,
     customEndsAt,
+  };
+}
+
+export function getEffectiveBountyDateRange({
+  programEnrollment,
+  bounty,
+}: {
+  programEnrollment: Pick<ProgramEnrollment, "groupJoinedAt" | "createdAt">;
+  bounty: Pick<Bounty, "startsAt" | "endsAt" | "endDurationDays" | "startMode">;
+}) {
+  const { createdAt, groupJoinedAt } = programEnrollment;
+  const { startsAt, endsAt, endDurationDays, startMode } = bounty;
+
+  if (startMode === "absolute") {
+    return {
+      startsAt,
+      endsAt,
+    };
+  }
+
+  const bountyStartDate = groupJoinedAt || createdAt;
+
+  return {
+    startsAt: groupJoinedAt,
+    endsAt: addDays(bountyStartDate, endDurationDays ?? 0),
   };
 }

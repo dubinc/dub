@@ -8,11 +8,12 @@ import {
   ProgramPartnerTag,
 } from "@prisma/client";
 import * as z from "zod/v4";
+import { getEffectiveBountyDateRange } from "../bounty-timing";
 import { buildBountyEligibilityWhere } from "./bounty-eligibility";
 
 type GetBountiesForPartnerParams = Pick<
   ProgramEnrollment,
-  "groupId" | "partnerId" | "totalCommissions"
+  "groupId" | "partnerId" | "totalCommissions" | "groupJoinedAt" | "createdAt"
 > & {
   programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
   links: Pick<
@@ -23,12 +24,14 @@ type GetBountiesForPartnerParams = Pick<
 };
 
 export async function getBountiesForPartner({
-  groupId,
-  programPartnerTags,
   partnerId,
+  groupId,
   totalCommissions,
+  createdAt,
+  groupJoinedAt,
   program,
   links,
+  programPartnerTags,
 }: GetBountiesForPartnerParams) {
   const now = new Date();
   const partnerTagIds = programPartnerTags.map(
@@ -73,13 +76,33 @@ export async function getBountiesForPartner({
   const partnerLinkStats = aggregatePartnerLinksStats(links);
 
   return z.array(PartnerBountySchema).parse(
-    bounties.map((bounty) => ({
-      ...bounty,
-      performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
-      partner: {
-        ...partnerLinkStats,
-        totalCommissions,
-      },
-    })),
+    bounties.map((bounty) => {
+      const performanceCondition =
+        bounty.workflow?.triggerConditions?.[0] || null;
+
+      const { startsAt, endsAt } = getEffectiveBountyDateRange({
+        programEnrollment: {
+          createdAt,
+          groupJoinedAt,
+        },
+        bounty: {
+          startsAt: bounty.startsAt,
+          endsAt: bounty.endsAt,
+          endDurationDays: bounty.endDurationDays,
+          startMode: bounty.startMode,
+        },
+      });
+
+      return {
+        ...bounty,
+        startsAt,
+        endsAt,
+        performanceCondition,
+        partner: {
+          ...partnerLinkStats,
+          totalCommissions,
+        },
+      };
+    }),
   );
 }
