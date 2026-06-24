@@ -6,7 +6,7 @@ import { nanoid, R2_URL } from "@dub/utils";
 import { ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
 import {
   bountyEligibilityIncludes,
-  isPartnerEligibleForBounty,
+  throwIfPartnerNotEligibleForBounty,
 } from "./bounty-eligibility";
 import { getBountyOrThrow } from "./get-bounty-or-throw";
 
@@ -91,30 +91,16 @@ export async function getBountySubmissionUploadUrl({
     },
   });
 
-  if (bounty.programId !== programId) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "This bounty is not for this program.",
-    });
-  }
-
   const bountyGroupIds = bounty.groups.map((g) => g.groupId);
   const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
   const partnerTagIds = programPartnerTags.map((t) => t.partnerTagId);
 
-  const isEligible = isPartnerEligibleForBounty({
+  throwIfPartnerNotEligibleForBounty({
     bountyGroupIds,
     bountyTagIds,
     partnerGroupId: groupId,
     partnerTagIds,
   });
-
-  if (!isEligible) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "You are not eligible for this bounty.",
-    });
-  }
 
   // Validate the bounty dates
   const now = new Date();

@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { Prisma } from "@prisma/client";
 
 export function buildBountyEligibilityWhere({
@@ -82,6 +83,32 @@ export function isPartnerEligibleForBounty({
     partnerTagIds.some((id) => bountyTagIds.includes(id));
 
   return Boolean(inGroup && hasTag);
+}
+
+export function throwIfPartnerNotEligibleForBounty({
+  bountyGroupIds,
+  bountyTagIds,
+  partnerGroupId,
+  partnerTagIds = [],
+}: {
+  bountyGroupIds: string[];
+  bountyTagIds: string[];
+  partnerGroupId: string | null;
+  partnerTagIds: string[] | undefined;
+}) {
+  const isEligible = isPartnerEligibleForBounty({
+    bountyGroupIds,
+    bountyTagIds,
+    partnerGroupId,
+    partnerTagIds,
+  });
+
+  if (!isEligible) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You are not eligible for this bounty.",
+    });
+  }
 }
 
 export const bountyEligibilityIncludes = {

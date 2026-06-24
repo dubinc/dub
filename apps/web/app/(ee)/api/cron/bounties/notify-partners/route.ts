@@ -83,11 +83,6 @@ export async function POST(req: Request) {
       ({ partnerTagId }) => partnerTagId,
     );
 
-    console.log(`Bounty ${bountyId} eligibility:`, {
-      groupIds,
-      partnerTagIds,
-    });
-
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         programId: bounty.programId,

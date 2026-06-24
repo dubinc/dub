@@ -3,7 +3,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   bountyEligibilityIncludes,
-  isPartnerEligibleForBounty,
+  throwIfPartnerNotEligibleForBounty,
 } from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
@@ -70,19 +70,12 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   const bountyGroupIds = bounty.groups.map((g) => g.groupId);
   const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
 
-  const isEligible = isPartnerEligibleForBounty({
+  throwIfPartnerNotEligibleForBounty({
     bountyGroupIds,
     bountyTagIds,
     partnerGroupId: programEnrollment.groupId,
     partnerTagIds,
   });
-
-  if (!isEligible) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "You are not eligible for this bounty.",
-    });
-  }
 
   const { groups, ...bountyWithoutGroups } = bounty;
 

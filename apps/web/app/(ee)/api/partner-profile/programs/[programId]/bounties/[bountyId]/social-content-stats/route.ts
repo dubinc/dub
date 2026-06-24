@@ -4,7 +4,7 @@ import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   bountyEligibilityIncludes,
-  isPartnerEligibleForBounty,
+  throwIfPartnerNotEligibleForBounty,
 } from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
@@ -60,19 +60,12 @@ export const GET = withPartnerProfile(
       (t) => t.partnerTagId,
     );
 
-    const isEligible = isPartnerEligibleForBounty({
+    throwIfPartnerNotEligibleForBounty({
       bountyGroupIds,
       bountyTagIds,
       partnerGroupId: programEnrollment.groupId,
       partnerTagIds,
     });
-
-    if (!isEligible) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "You are not eligible for this bounty.",
-      });
-    }
 
     const bountyInfo = resolveBountyDetails(bounty);
 
