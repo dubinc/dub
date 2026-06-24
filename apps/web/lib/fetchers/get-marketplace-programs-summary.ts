@@ -75,6 +75,30 @@ function byRecency(
   );
 }
 
+function selectPrograms(
+  candidates: ProgramRecord[],
+  excludeIds: Set<string>,
+  limit: number,
+  sortFn: (a: ProgramRecord, b: ProgramRecord) => number,
+) {
+  const selected: ProgramRecord[] = [];
+
+  for (const program of [...candidates].sort(sortFn)) {
+    if (excludeIds.has(program.id)) {
+      continue;
+    }
+
+    selected.push(program);
+    excludeIds.add(program.id);
+
+    if (selected.length >= limit) {
+      break;
+    }
+  }
+
+  return selected;
+}
+
 export const getMarketplaceProgramsSummary = cache(async () => {
   const programs = await prisma.program.findMany({
     where: {
@@ -90,15 +114,21 @@ export const getMarketplaceProgramsSummary = cache(async () => {
     .sort(() => Math.random() - 0.5)
     .map(formatNetworkProgram);
 
-  const mostPopular = [...programs]
-    .sort(byMarketplaceRanking)
-    .slice(0, MARKETPLACE_HOME_ROW_PAGE_SIZE)
-    .map(formatNetworkProgram);
+  const usedProgramIds = new Set(featuredPrograms.map(({ id }) => id));
 
-  const newPrograms = [...programs]
-    .sort(byRecency)
-    .slice(0, MARKETPLACE_HOME_ROW_PAGE_SIZE)
-    .map(formatNetworkProgram);
+  const mostPopular = selectPrograms(
+    programs,
+    usedProgramIds,
+    MARKETPLACE_HOME_ROW_PAGE_SIZE,
+    byMarketplaceRanking,
+  ).map(formatNetworkProgram);
+
+  const newPrograms = selectPrograms(
+    programs,
+    usedProgramIds,
+    MARKETPLACE_HOME_ROW_PAGE_SIZE,
+    byRecency,
+  ).map(formatNetworkProgram);
 
   const homeCategorySet = new Set<Category>(MARKETPLACE_HOME_CATEGORIES);
   const categoryBuckets = new Map<Category, ProgramRecord[]>();
@@ -125,10 +155,12 @@ export const getMarketplaceProgramsSummary = cache(async () => {
     Object.values(Category).map((category) => [
       category,
       homeCategorySet.has(category)
-        ? (categoryBuckets.get(category) ?? [])
-            .sort(byMarketplaceRanking)
-            .slice(0, MARKETPLACE_HOME_ROW_PAGE_SIZE)
-            .map(formatNetworkProgram)
+        ? selectPrograms(
+            categoryBuckets.get(category) ?? [],
+            usedProgramIds,
+            MARKETPLACE_HOME_ROW_PAGE_SIZE,
+            byMarketplaceRanking,
+          ).map(formatNetworkProgram)
         : [],
     ]),
   );
