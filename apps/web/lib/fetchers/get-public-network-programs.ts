@@ -49,26 +49,25 @@ export const getPublicNetworkPrograms = cache(
             },
           },
         }),
-        groups: {
-          some: {
-            slug: DEFAULT_PARTNER_GROUP.slug,
-            applicationFormPublishedAt: {
-              not: null,
+        ...(rewardType && {
+          groups: {
+            some: {
+              slug: DEFAULT_PARTNER_GROUP.slug,
+              ...(rewardType === "sale" && {
+                saleRewardId: { not: null },
+              }),
+              ...(rewardType === "lead" && {
+                leadRewardId: { not: null },
+              }),
+              ...(rewardType === "click" && {
+                clickRewardId: { not: null },
+              }),
+              ...(rewardType === "discount" && {
+                discountId: { not: null },
+              }),
             },
-            ...(rewardType === "sale" && {
-              saleRewardId: { not: null },
-            }),
-            ...(rewardType === "lead" && {
-              leadRewardId: { not: null },
-            }),
-            ...(rewardType === "click" && {
-              clickRewardId: { not: null },
-            }),
-            ...(rewardType === "discount" && {
-              discountId: { not: null },
-            }),
           },
-        },
+        }),
       },
       include: {
         groups: {

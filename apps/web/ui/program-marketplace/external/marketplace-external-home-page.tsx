@@ -18,7 +18,7 @@ async function fetchHomePrograms(
 
 export async function MarketplaceExternalHomePage() {
   const [featuredPrograms, ...rowPrograms] = await Promise.all([
-    fetchHomePrograms({ featured: true, pageSize: 6 }),
+    fetchHomePrograms({ featured: true }),
     ...MARKETPLACE_HOME_ROWS.map((row) => fetchHomePrograms(row.fetchParams)),
   ]);
 

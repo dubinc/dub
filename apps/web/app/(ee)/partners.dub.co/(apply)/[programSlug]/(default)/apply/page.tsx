@@ -29,8 +29,14 @@ export default async function ApplicationPage(props: {
     !program.group.applicationFormData ||
     !program.group.applicationFormPublishedAt
   ) {
-    // throw 404 if it's the default group, else redirect to the default group page
+    // for the default group:
+    // - if the program is found, redirect to the marketplace program page
+    // - otherwise, throw 404
+    // for other groups: redirect to the default group variant
     if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
+      if (program) {
+        redirect(`/marketplace/${programSlug}`);
+      }
       notFound();
     } else {
       redirect(`/${programSlug}/apply`);
