@@ -7,6 +7,7 @@ import {
   throwIfPartnerNotEligibleForBounty,
 } from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
+import { getEffectiveBountyDateRange } from "@/lib/bounty/bounty-timing";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { ratelimit } from "@/lib/upstash";
 import { NextResponse } from "next/server";
@@ -53,6 +54,25 @@ export const GET = withPartnerProfile(
         ...bountyEligibilityIncludes,
       },
     });
+
+    const { startsAt, endsAt } = getEffectiveBountyDateRange({
+      programEnrollment,
+      bounty,
+    });
+
+    if (startsAt > new Date()) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Bounty has not started yet.",
+      });
+    }
+
+    if (endsAt && endsAt < new Date()) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Bounty has ended.",
+      });
+    }
 
     const bountyGroupIds = bounty.groups.map((g) => g.groupId);
     const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);

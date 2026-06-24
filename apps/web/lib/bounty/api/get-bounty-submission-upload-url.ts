@@ -4,6 +4,7 @@ import { ratelimit } from "@/lib/upstash";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
 import { nanoid, R2_URL } from "@dub/utils";
 import { ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
+import { getEffectiveBountyDateRange } from "../bounty-timing";
 import {
   bountyEligibilityIncludes,
   throwIfPartnerNotEligibleForBounty,
@@ -15,7 +16,7 @@ const CACHE_KEY_PREFIX = "bounty:submission:file:upload";
 
 type ProgramEnrollmentWithPartnerTags = Pick<
   ProgramEnrollment,
-  "programId" | "partnerId" | "groupId"
+  "programId" | "partnerId" | "groupId" | "createdAt" | "groupJoinedAt"
 > & {
   programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
 };
@@ -103,16 +104,21 @@ export async function getBountySubmissionUploadUrl({
   });
 
   // Validate the bounty dates
+  const { startsAt, endsAt } = getEffectiveBountyDateRange({
+    programEnrollment,
+    bounty,
+  });
+
   const now = new Date();
 
-  if (bounty.startsAt && bounty.startsAt > now) {
+  if (startsAt && startsAt > now) {
     throw new DubApiError({
       code: "forbidden",
       message: "This bounty is not yet available.",
     });
   }
 
-  if (bounty.endsAt && bounty.endsAt < now) {
+  if (endsAt && endsAt < now) {
     throw new DubApiError({
       code: "forbidden",
       message: "This bounty is no longer available.",

@@ -233,7 +233,9 @@ export function getEffectiveBountyDateRange({
   const bountyStartDate = groupJoinedAt || createdAt;
 
   return {
-    startsAt: groupJoinedAt,
-    endsAt: addDays(bountyStartDate, endDurationDays ?? 0),
+    startsAt: bountyStartDate,
+    endsAt: endDurationDays
+      ? addDays(bountyStartDate, endDurationDays)
+      : endsAt,
   };
 }
