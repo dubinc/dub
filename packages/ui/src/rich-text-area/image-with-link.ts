@@ -3,6 +3,21 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { ImageAltNodeView } from "./image-alt-node-view";
 
+const SAFE_LINK_SCHEMES = new Set(["http:", "https:", "mailto:"]);
+export function isSafeLinkHref(
+  href: string | null | undefined,
+): href is string {
+  if (!href) {
+    return false;
+  }
+
+  try {
+    return SAFE_LINK_SCHEMES.has(new URL(href).protocol);
+  } catch {
+    return false;
+  }
+}
+
 export type ConfigureImageWithLinkOptions = Partial<ImageOptions> & {
   renderLink?: boolean;
   imageAltControls?: boolean;
@@ -37,7 +52,8 @@ const ImageWithLinkExtension = Image.extend({
         default: null,
         parseHTML: (element) => {
           const anchor = element.closest("a");
-          return anchor?.getAttribute("href") ?? null;
+          const href = anchor?.getAttribute("href");
+          return isSafeLinkHref(href) ? href : null;
         },
         renderHTML: () => ({}),
       },
@@ -56,7 +72,7 @@ const ImageWithLinkExtension = Image.extend({
           }
 
           const anchor = node.closest("a");
-          const href = anchor?.getAttribute("href") ?? null;
+          const href = anchor?.getAttribute("href");
 
           return {
             src: node.getAttribute("src"),
@@ -64,7 +80,7 @@ const ImageWithLinkExtension = Image.extend({
             title: node.getAttribute("title"),
             width: node.getAttribute("width"),
             height: node.getAttribute("height"),
-            href,
+            href: isSafeLinkHref(href) ? href : null,
           };
         },
       },
@@ -72,7 +88,7 @@ const ImageWithLinkExtension = Image.extend({
   },
 
   renderHTML({ HTMLAttributes, node }) {
-    const href = node.attrs.href;
+    const href = isSafeLinkHref(node.attrs.href) ? node.attrs.href : null;
     const { renderLink } = this.options as ConfigureImageWithLinkOptions;
     const img: [string, Record<string, unknown>] = [
       "img",
@@ -133,9 +149,11 @@ const ImageWithLinkExtension = Image.extend({
               const pos = view.posAtDOM(img, 0);
               const node = view.state.doc.nodeAt(pos);
 
-              if (node?.attrs.href) {
+              const href = node?.attrs.href;
+
+              if (isSafeLinkHref(href)) {
                 event.preventDefault();
-                window.open(node.attrs.href, "_blank", "noopener,noreferrer");
+                window.open(href, "_blank", "noopener,noreferrer");
                 return true;
               }
 

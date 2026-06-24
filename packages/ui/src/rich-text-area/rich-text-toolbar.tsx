@@ -12,6 +12,7 @@ import {
   TextItalic,
   TextStrike,
 } from "../icons";
+import { isSafeLinkHref } from "./image-with-link";
 import { useRichTextContext } from "./rich-text-provider";
 
 export function RichTextToolbar({
@@ -176,7 +177,9 @@ function LinkButton() {
           const url = window.prompt("Link URL", previousUrl);
           const nodePos = editor.state.selection.from;
 
-          if (!url?.trim()) {
+          if (url === null) return;
+
+          if (!url.trim()) {
             editor
               .chain()
               .focus()
@@ -186,10 +189,14 @@ function LinkButton() {
             return;
           }
 
+          if (!isSafeLinkHref(url.trim())) {
+            return;
+          }
+
           editor
             .chain()
             .focus()
-            .updateAttributes("image", { href: url })
+            .updateAttributes("image", { href: url.trim() })
             .setNodeSelection(nodePos)
             .run();
           return;
