@@ -1,6 +1,7 @@
 import { cn } from "@dub/utils";
 import { useEditorState } from "@tiptap/react";
 import { ReactNode, forwardRef, useRef } from "react";
+import { toast } from "sonner";
 import {
   AtSign,
   Heading1,
@@ -190,6 +191,10 @@ function LinkButton() {
           }
 
           if (!isSafeLinkHref(url.trim())) {
+            toast.error(
+              "Enter a full URL starting with http://, https://, or mailto: (e.g. https://dub.co).",
+            );
+            editor.chain().focus().setNodeSelection(nodePos).run();
             return;
           }
 
