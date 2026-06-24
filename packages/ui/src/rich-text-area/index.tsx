@@ -3,6 +3,7 @@ import { EditorContent, EditorContentProps } from "@tiptap/react";
 import { LoadingSpinner } from "../icons";
 import { useRichTextContext } from "./rich-text-provider";
 
+export * from "./image-with-link";
 export * from "./rich-text-provider";
 export * from "./rich-text-toolbar";
 

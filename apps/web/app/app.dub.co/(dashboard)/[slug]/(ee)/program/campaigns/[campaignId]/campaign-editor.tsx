@@ -509,6 +509,16 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   ref={editorRef}
                   editorClassName="-m-2 min-h-[200px] p-2"
                   style="relaxed"
+                  features={[
+                    "images",
+                    "variables",
+                    "links",
+                    "headings",
+                    "bold",
+                    "italic",
+                    "strike",
+                    "imageControls",
+                  ]}
                   initialValue={field.value}
                   onChange={(editor) => field.onChange(editor.getJSON())}
                   variables={[...EMAIL_TEMPLATE_VARIABLES]}

@@ -139,21 +139,62 @@ export function RichTextToolbar({
 }
 
 function LinkButton() {
-  const { editor } = useRichTextContext();
+  const { editor, features } = useRichTextContext();
+  const imageControlsEnabled = features?.includes("imageControls");
 
   const editorState = useEditorState({
     editor,
     selector: ({ editor }) => ({
-      isSelection: editor?.state.selection.from !== editor?.state.selection.to,
+      isTextSelection:
+        editor?.state.selection.from !== editor?.state.selection.to,
+      isImageSelected: Boolean(editor?.isActive("image")),
+      isLinkActive: Boolean(
+        editor?.isActive("link") ||
+          (imageControlsEnabled &&
+            editor?.isActive("image") &&
+            editor.getAttributes("image").href),
+      ),
     }),
   });
+
+  const canLink =
+    editorState?.isTextSelection ||
+    (imageControlsEnabled && editorState?.isImageSelected);
 
   return (
     <RichTextToolbarButton
       icon={Hyperlink}
       label="Link"
+      isActive={editorState?.isLinkActive}
       onClick={() => {
         if (!editor) return;
+
+        const isImageSelected = editor.isActive("image");
+
+        if (isImageSelected && imageControlsEnabled) {
+          const previousUrl = editor.getAttributes("image").href ?? "";
+          const url = window.prompt("Link URL", previousUrl);
+          const nodePos = editor.state.selection.from;
+
+          if (!url?.trim()) {
+            editor
+              .chain()
+              .focus()
+              .updateAttributes("image", { href: null })
+              .setNodeSelection(nodePos)
+              .run();
+            return;
+          }
+
+          editor
+            .chain()
+            .focus()
+            .updateAttributes("image", { href: url })
+            .setNodeSelection(nodePos)
+            .run();
+          return;
+        }
+
         const previousUrl = editor.getAttributes("link").href;
 
         const url = window.prompt("Link URL", previousUrl);
@@ -170,7 +211,7 @@ function LinkButton() {
           .setLink({ href: url })
           .run();
       }}
-      disabled={!editorState?.isSelection}
+      disabled={!canLink}
     />
   );
 }
