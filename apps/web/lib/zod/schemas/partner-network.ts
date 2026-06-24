@@ -131,8 +131,7 @@ export const invitePartnerFromNetworkSchema = z.object({
 
 const PARTNER_NETWORK_CONTENT_SEARCH_DEFAULT_PARTNER_LIMIT = 20;
 
-// Request body for POST /api/network/partners/content-search (semantic search
-// over indexed partner content).
+// POST /api/network/partners/content-search - semantic search over indexed partner content
 export const partnerNetworkContentSearchSchema = z.object({
   query: z.string().trim().max(500).optional(),
   platforms: z.array(z.enum(PlatformType)).min(1).optional(),
@@ -152,13 +151,10 @@ export const partnerNetworkContentSearchSchema = z.object({
     .positive()
     .max(PARTNER_CONTENT_SEARCH_MAX_CHUNKS_PER_PARTNER)
     .default(PARTNER_CONTENT_SEARCH_DEFAULT_CHUNKS_PER_PARTNER),
-  // Second-stage reranking is on by default; pass `false` for diagnostics.
   rerank: z.boolean().default(true),
 });
 
-// ---- Response for POST /api/network/partners/content-search ----
-// Single source of truth: the route validates its response against this schema
-// and the SWR hook derives its types from it (no hand-maintained duplicate).
+// Content-search response schema — shared by the route validator and SWR types.
 
 export const partnerContentMatchSourceSchema = z.enum([
   "transcript",
@@ -258,15 +254,10 @@ const partnerContentSearchMatchSummarySchema = z.object({
 
 const partnerContentSearchResponsePartnerSchema = z.object({
   partnerId: z.string(),
-  name: z.string(),
-  username: z.string().nullable(),
-  image: z.string().nullable(),
-  description: z.string().nullable(),
   score: z.number(),
   cosineScore: z.number().nullish(),
   rerankScore: z.number().nullish(),
-  // Already validated upstream by parseRankedNetworkPartners; pass through as-is
-  // so the partner subtree's schema transforms aren't re-applied here.
+  // Profile fields on `partner` only; z.custom skips re-parsing nested transforms.
   partner: z.custom<z.infer<typeof NetworkPartnerSchema>>(),
   chunks: z.array(partnerContentSearchChunkSchema),
   matchSummary: partnerContentSearchMatchSummarySchema.nullable(),

@@ -129,33 +129,33 @@ export const POST = withWorkspace(
       partnerCandidateCount: partnerCandidates.length,
       partnerCandidateLimit,
     });
-    logTiming("match-summaries-start", {
+    const partnerIdsToHydrate = partnerCandidates.map(
+      ({ partnerId }) => partnerId,
+    );
+    logTiming("partner-enrichment-start", {
       partnerCandidateCount: partnerCandidates.length,
     });
-    const matchSummaries = await getPartnerMatchSummaries({
-      rows,
-      partnerIds: partnerCandidates.map(({ partnerId }) => partnerId),
-      platforms: body.platforms,
-      queryVector,
-      cutoffDistance,
-      itemSourceBestDistance,
-      logTiming,
-    });
-    logTiming("match-summaries-complete", {
+    // Match summaries and card hydration share no inputs; run them in parallel    
+    const [matchSummaries, networkPartners] = await Promise.all([
+      getPartnerMatchSummaries({
+        rows,
+        partnerIds: partnerIdsToHydrate,
+        platforms: body.platforms,
+        queryVector,
+        cutoffDistance,
+        itemSourceBestDistance,
+        logTiming,
+      }),
+      getNetworkPartnersById({
+        programId,
+        partnerIds: partnerIdsToHydrate,
+        platforms: body.platforms,
+        reach: body.reach,
+        country: body.country,
+      }),
+    ]);
+    logTiming("partner-enrichment-complete", {
       summaryCount: matchSummaries.size,
-    });
-    logTiming("partner-hydration-start", {
-      partnerCandidateCount: partnerCandidates.length,
-    });
-    const networkPartners = await getNetworkPartnersById({
-      programId,
-      partnerIds: partnerCandidates.map(({ partnerId }) => partnerId),
-      platforms: body.platforms,
-      reach: body.reach,
-      country: body.country,
-      starred: body.starred,
-    });
-    logTiming("partner-hydration-complete", {
       hydratedPartnerCount: networkPartners.size,
     });
     const partners = partnerCandidates

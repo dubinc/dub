@@ -1,40 +1,109 @@
-import { calculatePartnerRanking } from "@/lib/api/network/calculate-partner-ranking";
-import { parseRankedNetworkPartners } from "@/lib/api/network/normalize-ranked-network-partner";
+import {
+  partnerNetworkListingWhere,
+  partnerReachWhere,
+} from "@/lib/api/network/partner-network-listing-where";
 import type { ReachTier } from "@/lib/api/network/reach-tiers";
+import { prisma } from "@/lib/prisma";
+import { NetworkPartnerSchema } from "@/lib/zod/schemas/partner-network";
 import type { PlatformType } from "@prisma/client";
+import type * as z from "zod/v4";
 
-// Hydrates ranked partner candidates into network-partner cards (keyed by id) with the
-// listing's reach/country/starred/platform filters. Only place search touches
-// calculatePartnerRanking; the ranking it returns is discarded (topicFit reorders).
+type NetworkPartnerCard = z.infer<typeof NetworkPartnerSchema>;
+
+// Hydrate partner cards for content search
 export async function getNetworkPartnersById({
   programId,
   partnerIds,
   platforms,
   reach,
   country,
-  starred,
 }: {
   programId: string;
   partnerIds: string[];
   platforms?: PlatformType[];
   reach?: ReachTier[];
   country?: string;
-  starred?: boolean;
-}) {
+}): Promise<Map<string, NetworkPartnerCard>> {
   if (partnerIds.length === 0) return new Map();
 
-  const rankedPartners = await calculatePartnerRanking({
-    programId,
-    partnerIds,
-    status: "discover",
-    page: 1,
-    pageSize: partnerIds.length,
-    country,
-    starred: starred ?? undefined,
-    platform: platforms,
-    reach,
+  const partners = await prisma.partner.findMany({
+    where: {
+      AND: [
+        partnerNetworkListingWhere({ partnerIds, country, platform: platforms }),
+        partnerReachWhere({ reach, platform: platforms }),
+      ],
+    },
+    select: {
+      id: true,
+      name: true,
+      companyName: true,
+      country: true,
+      profileType: true,
+      image: true,
+      description: true,
+      createdAt: true,
+      networkStatus: true,
+      monthlyTraffic: true,
+      identityVerificationStatus: true,
+      identityVerifiedAt: true,
+      platforms: {
+        select: {
+          type: true,
+          identifier: true,
+          verifiedAt: true,
+          platformId: true,
+          subscribers: true,
+          posts: true,
+          views: true,
+        },
+      },
+      programs: {
+        where: { status: "approved" },
+        select: {
+          program: { select: { categories: { select: { category: true } } } },
+        },
+      },
+      discoveredByPrograms: {
+        where: { programId },
+        select: { starredAt: true, invitedAt: true, ignoredAt: true },
+        take: 1,
+      },
+    },
   });
-  const partners = parseRankedNetworkPartners(rankedPartners);
 
-  return new Map(partners.map((partner) => [partner.id, partner]));
+  const cards = partners.map((partner): NetworkPartnerCard => {
+    const discovered = partner.discoveredByPrograms[0];
+    const categories = Array.from(
+      new Set(
+        partner.programs.flatMap(({ program }) =>
+          program.categories.map(({ category }) => category),
+        ),
+      ),
+    ).sort();
+
+    return {
+      id: partner.id,
+      name: partner.name,
+      companyName: partner.companyName,
+      country: partner.country,
+      profileType: partner.profileType,
+      image: partner.image,
+      description: partner.description,
+      createdAt: partner.createdAt,
+      networkStatus: partner.networkStatus,
+      monthlyTraffic: partner.monthlyTraffic,
+      identityVerificationStatus: partner.identityVerificationStatus,
+      identityVerifiedAt: partner.identityVerifiedAt,
+      preferredEarningStructures: [], // schema-required; UI doesn't read them
+      salesChannels: [],
+      starredAt: discovered?.starredAt ?? null,
+      invitedAt: discovered?.invitedAt ?? null,
+      ignoredAt: discovered?.ignoredAt ?? null,
+      recruitedAt: null, // discover candidates aren't enrolled in this program
+      categories,
+      platforms: partner.platforms,
+    };
+  });
+
+  return new Map(cards.map((card) => [card.id, card]));
 }

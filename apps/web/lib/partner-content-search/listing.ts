@@ -103,14 +103,6 @@ export async function listPartnerNetworkContent({
       commentCount: true,
       shareCount: true,
       saveCount: true,
-      partner: {
-        select: {
-          name: true,
-          username: true,
-          image: true,
-          description: true,
-        },
-      },
       partnerPlatform: {
         select: {
           type: true,
@@ -150,10 +142,6 @@ export async function listPartnerNetworkContent({
       chunkId: chunk.id,
       partnerContentItemId: contentItem.id,
       partnerId: contentItem.partnerId,
-      partnerName: contentItem.partner.name,
-      partnerUsername: contentItem.partner.username,
-      partnerImage: contentItem.partner.image,
-      partnerDescription: contentItem.partner.description,
       platformType: contentItem.partnerPlatform.type,
       platformIdentifier: contentItem.partnerPlatform.identifier,
       platformContentId: contentItem.platformContentId,

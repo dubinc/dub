@@ -1,6 +1,4 @@
-// Pure (client-safe) helpers for the admin + network content search routes:
-// per-partner grouping (each route passes its own toChunkResult), candidate
-// sizing, and score utilities. Server-only reranking lives in ./rerank.
+// Client-safe helpers for content search; server-only reranking lives in ./rerank.
 
 import { PARTNER_CONTENT_SEARCH_LIMITS } from "./constants";
 
@@ -8,10 +6,6 @@ export type PartnerContentSearchRow = {
   chunkId: string;
   partnerContentItemId: string;
   partnerId: string;
-  partnerName: string;
-  partnerUsername: string | null;
-  partnerImage: string | null;
-  partnerDescription: string | null;
   platformType: string;
   platformIdentifier: string;
   platformContentId: string;
@@ -28,23 +22,18 @@ export type PartnerContentSearchRow = {
   contentShareCount?: bigint | number | null;
   contentSaveCount?: bigint | number | null;
   chunkSource: string;
-  // Only the admin query selects chunkIndex; the network query omits it.
-  chunkIndex?: number;
   chunkText: string;
   startMs: number | null;
   endMs: number | null;
   distance: number | string;
-  // Attached by the reranker (second stage); absent for cosine-only results.
-  rerankScore?: number | null;
+  rerankScore?: number | null; // rerank stage only; absent for cosine-only
 };
 
 export function toScore(distance: number) {
   return Number((1 - distance).toFixed(6));
 }
 
-// Candidate chunks to retrieve for `limit` partners at `chunksPerPartner` each.
-// Query mode over-fetches (×6, min 25, capped at rerank input size);
-// list mode has no relevance gate so ×2 is enough.
+// Query mode over-fetches (×6, min 25, rerank cap); list mode uses ×2.
 export function getCandidateChunkCount({
   hasQuery,
   limit,
@@ -62,8 +51,6 @@ export function getCandidateChunkCount({
   );
 }
 
-// Median of a numeric list (robust center; null when empty). `round` rounds the
-// even-length average for display; leave it off when the value feeds further math.
 export function median(
   values: number[],
   { round = false }: { round?: boolean } = {},
@@ -76,14 +63,11 @@ export function median(
   return round ? Math.round(average) : average;
 }
 
-// Effective score: reranker relevance when present, else cosine similarity.
 export function effectiveRowScore(row: PartnerContentSearchRow) {
   return row.rerankScore ?? toScore(Number(row.distance));
 }
 
-// Collapse a distance-ascending chunk pool to the best chunk per content item (first
-// occurrence wins). Done in app code, not SQL, so a window-function dedup doesn't
-// defeat the ANN index. Generic so it works pre- or post-hydration.
+// dedupe in app to preserve ANN distance ordering without circumventing index
 export function dedupeBestChunkPerContentItem<
   T extends { partnerContentItemId: string },
 >(rows: T[]) {
@@ -134,10 +118,6 @@ export function groupPartnerSearchResults<TChunk>({
     string,
     {
       partnerId: string;
-      name: string;
-      username: string | null;
-      image: string | null;
-      description: string | null;
       score: number;
       cosineScore: number;
       rerankScore: number | null;
@@ -155,10 +135,6 @@ export function groupPartnerSearchResults<TChunk>({
     const existing = partners.get(row.partnerId);
     const partner = existing ?? {
       partnerId: row.partnerId,
-      name: row.partnerName,
-      username: row.partnerUsername,
-      image: row.partnerImage,
-      description: row.partnerDescription,
       score: effectiveScore,
       cosineScore,
       rerankScore,
