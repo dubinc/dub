@@ -123,11 +123,13 @@ export function NetworkPartnerDetailContent({
   const searchPartner = fetchedPartner ?? initialSearchPartner;
   const searchSummary =
     initialSearchPartner?.matchSummary ?? fetchedPartner?.matchSummary;
-  const relevanceSummary = fetchedPartner?.matchSummary ?? null;
+  // Relevance is sourced from the scoped fetch's chunks on a single scale (rerank,
+  // or cosine when the reranker failed) — never blended.
+  const reranked = searchResults?.reranked ?? false;
   // Deep-link with nothing cached → full skeleton; otherwise a silent refinement.
   const isFallbackLoading = isLoadingSearch && !initialSearchPartner;
   const isRefiningRelevance =
-    isLoadingSearch && Boolean(initialSearchPartner) && !relevanceSummary;
+    isLoadingSearch && Boolean(initialSearchPartner) && !fetchedPartner;
 
   if (!isLoadingPartner && !partner) {
     return (
@@ -204,7 +206,7 @@ export function NetworkPartnerDetailContent({
                       isRefining={isRefiningRelevance}
                       query={search}
                       summary={searchSummary}
-                      relevanceSummary={relevanceSummary}
+                      reranked={reranked}
                       searchPartner={searchPartner}
                     />
                   ) : (

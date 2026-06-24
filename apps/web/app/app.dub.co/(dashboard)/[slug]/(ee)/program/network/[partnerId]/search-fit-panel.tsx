@@ -16,8 +16,8 @@ import {
 } from "./content-match-row";
 import { CoverageSummaryBar } from "./coverage-summary-bar";
 import {
+  buildContentRelevanceMap,
   buildMatchedContentItems,
-  buildUnifiedRelevanceMap,
   DETAIL_CONTENT_INITIAL_DISPLAY_COUNT,
   DETAIL_CONTENT_PAGE_COUNT,
   publishedAtMs,
@@ -56,7 +56,7 @@ export function SearchFitPanel({
   isRefining = false,
   query,
   summary: initialSummary,
-  relevanceSummary,
+  reranked = false,
   searchPartner,
 }: {
   error: unknown;
@@ -64,7 +64,7 @@ export function SearchFitPanel({
   isRefining?: boolean;
   query?: string;
   summary?: PartnerContentSearchPartner["matchSummary"];
-  relevanceSummary?: PartnerContentSearchPartner["matchSummary"] | null;
+  reranked?: boolean;
   searchPartner?: PartnerContentSearchPartner;
 }) {
   const [visibleAllCount, setVisibleAllCount] = useState(
@@ -77,13 +77,10 @@ export function SearchFitPanel({
   }
 
   const isLoadingRows = isLoading || isRefining;
-  const unifiedRelevanceByItemId = buildUnifiedRelevanceMap(relevanceSummary);
-  // Hold rows until scoped rerank lands so scores/order don't swap in.
-  const items = buildMatchedContentItems(
-    summary,
-    isLoadingRows ? [] : (searchPartner?.chunks ?? []),
-    unifiedRelevanceByItemId,
-  );
+  // Hold rows until the scoped rerank lands so scores/order don't swap in.
+  const chunks = isLoadingRows ? [] : (searchPartner?.chunks ?? []);
+  const relevanceByItemId = buildContentRelevanceMap(chunks, reranked);
+  const items = buildMatchedContentItems(summary, chunks, relevanceByItemId);
 
   const topContent = [...items]
     .sort((a, b) => b.blendedScore - a.blendedScore)

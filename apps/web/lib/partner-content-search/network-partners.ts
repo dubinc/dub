@@ -29,7 +29,11 @@ export async function getNetworkPartnersById({
   const partners = await prisma.partner.findMany({
     where: {
       AND: [
-        partnerNetworkListingWhere({ partnerIds, country, platform: platforms }),
+        partnerNetworkListingWhere({ partnerIds, country }),
+        // do not require verified platforms for content search; move this out of partnerNetworkListingWhere
+        ...(platforms?.length
+          ? [{ platforms: { some: { type: { in: platforms } } } }]
+          : []),
         partnerReachWhere({ reach, platform: platforms }),
       ],
     },
