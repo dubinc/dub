@@ -91,13 +91,6 @@ export async function getBountySubmissionUploadUrl({
     },
   });
 
-  if (bounty.programId !== programId) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "This bounty is not for this program.",
-    });
-  }
-
   const bountyGroupIds = bounty.groups.map((g) => g.groupId);
   const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
   const partnerTagIds = programPartnerTags.map((t) => t.partnerTagId);
