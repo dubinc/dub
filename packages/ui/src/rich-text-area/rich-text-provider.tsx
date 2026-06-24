@@ -17,7 +17,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { configureImageWithLinkEditor } from "./image-with-link-editor";
+import { configureImageWithLinkEditor } from "./image-with-link";
 import { suggestions } from "./variables";
 
 export const PROSE_STYLES = {
@@ -36,6 +36,8 @@ const FEATURES = [
   "italic",
   "strike",
 ] as const;
+
+export const DEFAULT_RICH_TEXT_FEATURES = FEATURES;
 
 const OPTIONAL_FEATURES = ["imageControls"] as const;
 
@@ -168,7 +170,6 @@ export const RichTextProvider = forwardRef<
                 ? [
                     configureImageWithLinkEditor({
                       inline: false,
-                      renderLink: false,
                       imageAltControls: true,
                       HTMLAttributes: {
                         class: "rounded-lg max-w-full h-auto",

@@ -212,8 +212,17 @@ function LinkButton() {
 
         const url = window.prompt("Link URL", previousUrl);
 
-        if (!url?.trim()) {
+        if (url === null) return;
+
+        if (!url.trim()) {
           editor.chain().focus().extendMarkRange("link").unsetLink().run();
+          return;
+        }
+
+        if (!isSafeLinkHref(url.trim())) {
+          toast.error(
+            "Enter a full URL starting with http://, https://, or mailto: (e.g. https://dub.co).",
+          );
           return;
         }
 
@@ -221,7 +230,7 @@ function LinkButton() {
           .chain()
           .focus()
           .extendMarkRange("link")
-          .setLink({ href: url })
+          .setLink({ href: url.trim() })
           .run();
       }}
       disabled={!canLink}

@@ -1,7 +1,12 @@
+"use client";
+
 import Image, { type ImageOptions } from "@tiptap/extension-image";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+import { ImageAltNodeView } from "./image-alt-node-view";
 
 const SAFE_LINK_SCHEMES = new Set(["http:", "https:", "mailto:"]);
+
 export function isSafeLinkHref(
   href: string | null | undefined,
 ): href is string {
@@ -17,7 +22,6 @@ export function isSafeLinkHref(
 }
 
 export type ConfigureImageWithLinkOptions = Partial<ImageOptions> & {
-  renderLink?: boolean;
   imageAltControls?: boolean;
 };
 
@@ -25,11 +29,18 @@ const ImageWithLinkExtension = Image.extend({
   addOptions() {
     return {
       ...this.parent?.(),
-      // When false, the editor renders a plain <img> so clicks select the node.
-      // Set to true when exporting HTML (e.g. campaign emails).
-      renderLink: false,
       imageAltControls: false,
     } as ImageOptions;
+  },
+
+  addNodeView() {
+    const { imageAltControls } = this.options as ConfigureImageWithLinkOptions;
+
+    if (!imageAltControls) {
+      return null;
+    }
+
+    return ReactNodeViewRenderer(ImageAltNodeView);
   },
 
   addAttributes() {
@@ -76,38 +87,18 @@ const ImageWithLinkExtension = Image.extend({
 
   renderHTML({ HTMLAttributes, node }) {
     const href = isSafeLinkHref(node.attrs.href) ? node.attrs.href : null;
-    const { renderLink } = this.options as ConfigureImageWithLinkOptions;
-    const img: [string, Record<string, unknown>] = [
+
+    return [
       "img",
       {
         ...this.options.HTMLAttributes,
         ...HTMLAttributes,
-        ...(href && !renderLink ? { "data-linked-image": "" } : {}),
+        ...(href ? { "data-linked-image": "" } : {}),
       },
     ];
-
-    if (href && renderLink) {
-      return [
-        "a",
-        {
-          href,
-          target: "_blank",
-          rel: "noopener noreferrer nofollow",
-        },
-        img,
-      ];
-    }
-
-    return img;
   },
 
   addProseMirrorPlugins() {
-    const { renderLink } = this.options as ConfigureImageWithLinkOptions;
-
-    if (renderLink) {
-      return this.parent?.() ?? [];
-    }
-
     return [
       ...(this.parent?.() ?? []),
       new Plugin({
@@ -135,7 +126,6 @@ const ImageWithLinkExtension = Image.extend({
 
               const pos = view.posAtDOM(img, 0);
               const node = view.state.doc.nodeAt(pos);
-
               const href = node?.attrs.href;
 
               if (isSafeLinkHref(href)) {
@@ -153,8 +143,8 @@ const ImageWithLinkExtension = Image.extend({
   },
 });
 
-export const ImageWithLink = ImageWithLinkExtension;
-
-export function configureImageWithLink(options: ConfigureImageWithLinkOptions) {
+export function configureImageWithLinkEditor(
+  options: ConfigureImageWithLinkOptions,
+) {
   return ImageWithLinkExtension.configure(options as Partial<ImageOptions>);
 }
