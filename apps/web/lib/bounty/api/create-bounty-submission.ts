@@ -28,7 +28,7 @@ import * as z from "zod/v4";
 import { SOCIAL_URL_HOST_TO_PLATFORM } from "../social-content";
 import {
   bountyEligibilityIncludes,
-  isPartnerEligibleForBounty,
+  throwIfPartnerNotEligibleForBounty,
 } from "./bounty-eligibility";
 import { getBountyOrThrow } from "./get-bounty-or-throw";
 
@@ -274,19 +274,12 @@ export class BountySubmissionHandler {
       (t) => t.partnerTagId,
     );
 
-    const isEligible = isPartnerEligibleForBounty({
+    throwIfPartnerNotEligibleForBounty({
       bountyGroupIds,
       bountyTagIds,
       partnerGroupId: this.programEnrollment.groupId,
       partnerTagIds,
     });
-
-    if (!isEligible) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "You are not eligible for this bounty.",
-      });
-    }
 
     // Validate bounty dates and status
     const now = new Date();
