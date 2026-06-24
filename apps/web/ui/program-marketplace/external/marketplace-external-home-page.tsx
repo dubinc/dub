@@ -1,7 +1,7 @@
 import { getPublicNetworkPrograms } from "@/lib/fetchers/get-public-network-programs";
 import { FeaturedPrograms } from "../featured-programs";
 import { MARKETPLACE_HOME_ROWS } from "../home-sections";
-import { MarketplaceCategories } from "../marketplace-categories";
+import { MarketplaceCategoriesSection } from "../marketplace-categories-section";
 import { MarketplaceProgramRow } from "../marketplace-program-row";
 import { MarketplaceExternalShell } from "./marketplace-external-shell";
 
@@ -28,7 +28,7 @@ export async function MarketplaceExternalHomePage() {
         <div className="-mx-4 -mt-8 px-2 sm:-mx-6 lg:-mx-8">
           <FeaturedPrograms programs={featuredPrograms} showStatus={false} />
         </div>
-        <MarketplaceCategories />
+        <MarketplaceCategoriesSection />
         {MARKETPLACE_HOME_ROWS.map((row, index) => (
           <MarketplaceProgramRow
             key={row.key}

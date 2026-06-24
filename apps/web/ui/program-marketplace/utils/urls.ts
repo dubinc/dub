@@ -71,9 +71,7 @@ export function getMarketplaceProgramHref(programSlug: string) {
   return `${MARKETPLACE_BASE}/${programSlug}`;
 }
 
-export function getMarketplacePathFromSlug(slug?: string[]) {
-  const segments = slug ?? [];
-
+export function getMarketplacePathFromSegments(segments: string[]) {
   if (segments.length === 0) {
     return MARKETPLACE_BASE;
   }

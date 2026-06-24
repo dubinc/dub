@@ -1,5 +1,4 @@
 import { logger } from "@/lib/axiom/server";
-import { getMarketplacePopularRedirectHref } from "@/ui/program-marketplace/utils/urls";
 import { transformMiddlewareRequest } from "@axiomhq/nextjs";
 import {
   ADMIN_HOSTNAMES,
@@ -81,20 +80,6 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   if (PARTNERS_HOSTNAMES.has(domain)) {
     return PartnersMiddleware(req);
-  }
-
-  if (
-    (path === "/marketplace" || path.startsWith("/marketplace/")) &&
-    (domain === "dub.co" ||
-      domain === `staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`)
-  ) {
-    if (path === "/marketplace/popular") {
-      return NextResponse.redirect(
-        new URL(getMarketplacePopularRedirectHref(searchParamsObj), req.url),
-      );
-    }
-
-    return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
   }
 
   if (isValidUrl(fullKey)) {

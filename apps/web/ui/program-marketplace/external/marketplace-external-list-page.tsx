@@ -15,13 +15,13 @@ import { MarketplaceExternalListPageClient } from "./marketplace-external-list-p
 import { MarketplaceExternalShell } from "./marketplace-external-shell";
 
 export async function MarketplaceExternalListPage({
-  slug,
+  segments,
   fixedCategory,
 }: {
-  slug?: string[];
+  segments: string[];
   fixedCategory?: Category;
 }) {
-  const basePath = getMarketplaceExternalBasePath({ slug });
+  const basePath = getMarketplaceExternalBasePath({ segments });
   const categoryMeta = fixedCategory
     ? PROGRAM_CATEGORIES_MAP[fixedCategory]
     : undefined;

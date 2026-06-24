@@ -3,9 +3,8 @@ import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { MarketplaceExternalRouter } from "@/ui/program-marketplace/external/marketplace-external-router";
 import { generateMarketplaceProgramStaticParams } from "@/ui/program-marketplace/pages/marketplace-program-page";
 import {
-  categoryToSlug,
   getMarketplaceCanonicalUrl,
-  getMarketplacePathFromSlug,
+  getMarketplacePathFromSegments,
 } from "@/ui/program-marketplace/utils/urls";
 import { constructMetadata } from "@dub/utils";
 import { Category } from "@prisma/client";
@@ -16,18 +15,22 @@ export const revalidate = 3600;
 export async function generateStaticParams() {
   const programParams = await generateMarketplaceProgramStaticParams();
   const categoryParams = Object.values(Category).map((category) => ({
-    slug: ["c", categoryToSlug(category)],
+    segments: ["c", category.toLowerCase()],
   }));
 
-  return [{ slug: [] }, { slug: ["all"] }, ...categoryParams, ...programParams];
+  return [
+    { segments: [] },
+    { segments: ["all"] },
+    ...categoryParams,
+    ...programParams,
+  ];
 }
 
 export async function generateMetadata(props: {
-  params: Promise<{ slug?: string[] }>;
+  params: Promise<{ segments?: string[] }>;
 }): Promise<Metadata> {
-  const { slug } = await props.params;
-  const pathname = getMarketplacePathFromSlug(slug);
-  const segments = slug ?? [];
+  const { segments = [] } = await props.params;
+  const pathname = getMarketplacePathFromSegments(segments);
 
   const year = new Date().getFullYear();
 
@@ -56,7 +59,7 @@ export async function generateMetadata(props: {
     }
   } else if (segments.length === 2 && segments[0] === "c") {
     const category = Object.values(Category).find(
-      (value) => categoryToSlug(value) === segments[1],
+      (value) => value.toLowerCase() === segments[1],
     );
 
     if (category) {
@@ -78,9 +81,9 @@ export async function generateMetadata(props: {
 }
 
 export default async function MarketplaceExternalPage(props: {
-  params: Promise<{ slug?: string[] }>;
+  params: Promise<{ segments?: string[] }>;
 }) {
-  const { slug } = await props.params;
+  const { segments = [] } = await props.params;
 
-  return <MarketplaceExternalRouter slug={slug} />;
+  return <MarketplaceExternalRouter segments={segments} />;
 }

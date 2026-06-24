@@ -1,4 +1,3 @@
-import { getMarketplacePopularRedirectHref } from "@/ui/program-marketplace/utils/urls";
 import { NextRequest, NextResponse } from "next/server";
 import {
   ONBOARDING_WINDOW_SECONDS,
@@ -15,19 +14,13 @@ import { parse } from "./utils/parse";
 import { WorkspacesMiddleware } from "./workspaces";
 
 export async function AppMiddleware(req: NextRequest) {
-  const { path, fullPath, searchParamsObj, searchParamsString } = parse(req);
+  const { path, fullPath, searchParamsString } = parse(req);
 
   if (path.startsWith("/embed")) {
     return EmbedMiddleware(req);
   }
 
-  if (path === "/marketplace/popular") {
-    return NextResponse.redirect(
-      new URL(getMarketplacePopularRedirectHref(searchParamsObj), req.url),
-    );
-  }
-
-  if (path === "/marketplace" || path.startsWith("/marketplace/")) {
+  if (path.startsWith("/marketplace/")) {
     return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
   }
 

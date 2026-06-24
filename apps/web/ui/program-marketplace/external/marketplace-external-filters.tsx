@@ -2,7 +2,7 @@ import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import {
   MARKETPLACE_REWARD_TYPES,
   type MarketplaceRewardType,
-} from "@/ui/program-marketplace/constants";
+} from "@/ui/program-marketplace/utils/constants";
 import { buildExternalMarketplaceFilterHref } from "@/ui/program-marketplace/utils/urls";
 import { Check } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -164,9 +164,11 @@ function FilterLink({
   );
 }
 
-export function getMarketplaceExternalBasePath({ slug }: { slug?: string[] }) {
-  const segments = slug ?? [];
-
+export function getMarketplaceExternalBasePath({
+  segments,
+}: {
+  segments: string[];
+}) {
   if (segments.length === 1 && segments[0] === "all") {
     return "/marketplace/all";
   }
