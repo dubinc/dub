@@ -38,9 +38,9 @@ export async function recordFakeClick({
     headers: new Headers({
       "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
       "x-forwarded-for": "127.0.0.1",
-      "x-vercel-ip-country": toSafeHeaderValue(customer?.country) ?? "US",
-      "x-vercel-ip-country-region": toSafeHeaderValue(customer?.region) ?? "CA",
-      "x-vercel-ip-continent": toSafeHeaderValue(customer?.continent) ?? "NA",
+      "x-vercel-ip-country": toSafeHeaderValue(customer?.country) || "US",
+      "x-vercel-ip-country-region": toSafeHeaderValue(customer?.region) || "CA",
+      "x-vercel-ip-continent": toSafeHeaderValue(customer?.continent) || "NA",
     }),
   });
 
