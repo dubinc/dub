@@ -82,6 +82,7 @@ const DeleteGroupModal = ({
                       discount updated to the <strong>Default</strong> group
                       settings.
                     </li>
+                    <li>Partners in this group will be notified by email.</li>
                   </>
                 ) : null}
               </ul>

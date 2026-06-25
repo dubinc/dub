@@ -122,6 +122,9 @@ const RejectBountySubmissionModal = ({
                 )}
               </select>
             </div>
+            <p className="mt-1.5 text-xs text-neutral-500">
+              Included in rejection email
+            </p>
           </div>
 
           <div>
@@ -158,6 +161,9 @@ const RejectBountySubmissionModal = ({
                 placeholder="Provide additional context for the rejection..."
               />
             </div>
+            <p className="mt-1.5 text-xs text-neutral-500">
+              Included in rejection email
+            </p>
           </div>
         </div>
 

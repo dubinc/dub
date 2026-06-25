@@ -100,7 +100,7 @@ function DeactivatePartnerModal({
           <p className="text-sm text-neutral-600">
             This will deactivate the partner and disable all their active links.
             Their commissions and payouts will remain intact. You can reactivate
-            them later if needed.
+            them later if needed. This partner will be notified by email.
           </p>
 
           <div>

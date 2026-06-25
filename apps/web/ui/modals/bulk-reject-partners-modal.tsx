@@ -73,7 +73,11 @@ function BulkRejectPartnersModal({
           {pluralize("this application", partners.length, {
             plural: "these applications",
           })}
-          ?
+          ?{" "}
+          {pluralize("This partner", partners.length, {
+            plural: "These partners",
+          })}{" "}
+          will be notified by email.
         </p>
       </div>
 

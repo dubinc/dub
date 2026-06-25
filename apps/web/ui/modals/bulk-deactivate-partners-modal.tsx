@@ -3,7 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, Modal } from "@dub/ui";
-import { cn, pluralize } from "@dub/utils";
+import { cn, nFormatter, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -148,7 +148,10 @@ function BulkDeactivatePartnersModal({
           <p className="text-sm text-neutral-600">
             This will deactivate the {partnerWord} and disable all their active
             links. Their commissions and payouts will remain intact. You can
-            reactivate them later if needed.
+            reactivate them later if needed.{" "}
+            {partners.length === 1
+              ? "This partner will be notified by email."
+              : `${nFormatter(partners.length, { full: true })} ${pluralize("partner", partners.length)} will be notified by email.`}
           </p>
 
           <div>

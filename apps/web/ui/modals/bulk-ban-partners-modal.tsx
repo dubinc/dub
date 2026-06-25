@@ -201,7 +201,7 @@ function BulkBanPartnersModal({
           <p className="text-sm text-neutral-600">
             This will permanently ban the {partnerWord}, disable all their
             active links, and cancel all pending payouts. This action is not
-            reversible.
+            reversible and these partners will be notified by email.
           </p>
 
           <div>
