@@ -18,7 +18,7 @@ type PartnerBountyEligibilityParams = {
   };
   bounty: Pick<
     Bounty,
-    "startsAt" | "endsAt" | "endDurationDays" | "startMode" | "archivedAt"
+    "startsAt" | "endsAt" | "endsAfterDays" | "startMode" | "archivedAt"
   > & {
     groups: Pick<BountyGroup, "groupId">[];
     partnerTags: Pick<BountyPartnerTag, "partnerTagId">[];

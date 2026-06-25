@@ -57,7 +57,7 @@ export function resolveBountyTiming({
   }
 
   let endsAt: Date | null = null;
-  let endDurationDays: number | null = null;
+  let endsAfterDays: number | null = null;
 
   switch (endPreset) {
     case "never":
@@ -68,7 +68,7 @@ export function resolveBountyTiming({
       if (startMode === "absolute") {
         endsAt = addDays(startsAt, BOUNTY_DURATION_DAYS[endPreset]);
       } else {
-        endDurationDays = BOUNTY_DURATION_DAYS[endPreset];
+        endsAfterDays = BOUNTY_DURATION_DAYS[endPreset];
       }
       break;
     case "custom":
@@ -80,7 +80,7 @@ export function resolveBountyTiming({
     startMode,
     startsAt,
     endsAt,
-    endDurationDays,
+    endsAfterDays,
   };
 }
 
@@ -91,19 +91,17 @@ export function getEffectiveBountyDateRange({
   bounty,
 }: {
   programEnrollment: Pick<ProgramEnrollment, "groupJoinedAt" | "createdAt">;
-  bounty: Pick<Bounty, "startsAt" | "endsAt" | "endDurationDays" | "startMode">;
+  bounty: Pick<Bounty, "startsAt" | "endsAt" | "endsAfterDays" | "startMode">;
 }) {
   const { createdAt, groupJoinedAt } = programEnrollment;
-  const { startsAt, endsAt, endDurationDays, startMode } = bounty;
+  const { startsAt, endsAt, endsAfterDays, startMode } = bounty;
 
   const bountyStartDate =
     startMode === "absolute" ? startsAt : groupJoinedAt || createdAt;
 
   return {
     startsAt: bountyStartDate,
-    endsAt: endDurationDays
-      ? addDays(bountyStartDate, endDurationDays)
-      : endsAt,
+    endsAt: endsAfterDays ? addDays(bountyStartDate, endsAfterDays) : endsAt,
   };
 }
 

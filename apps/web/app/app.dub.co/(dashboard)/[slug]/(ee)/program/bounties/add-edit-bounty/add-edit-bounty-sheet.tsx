@@ -76,7 +76,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     startsAt,
     endsAt,
     startMode,
-    endDurationDays,
+    endsAfterDays,
     handleTimingChange,
     allowedSubmissions,
     handleAllowedSubmissionsChange,
@@ -253,7 +253,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                         startMode: startMode ?? "absolute",
                         startsAt: startsAt ? new Date(startsAt) : new Date(),
                         endsAt: endsAt ? new Date(endsAt) : null,
-                        endDurationDays: endDurationDays ?? null,
+                        endsAfterDays: endsAfterDays ?? null,
                       }}
                       onChange={handleTimingChange}
                     />

@@ -171,7 +171,7 @@ export const POST = withWorkspace(
       startsAt,
       endsAt,
       startMode,
-      endDurationDays,
+      endsAfterDays,
       submissionsOpenAt,
       submissionFrequency,
       maxSubmissions,
@@ -263,7 +263,7 @@ export const POST = withWorkspace(
           startsAt,
           endsAt,
           startMode,
-          endDurationDays,
+          endsAfterDays,
           submissionsOpenAt: type === "submission" ? submissionsOpenAt : null,
           submissionFrequency:
             type === "submission" ? submissionFrequency : null,

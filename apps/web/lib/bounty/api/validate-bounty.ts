@@ -6,7 +6,7 @@ export function validateBounty({
   startsAt,
   endsAt,
   startMode,
-  endDurationDays,
+  endsAfterDays,
   submissionsOpenAt,
   submissionFrequency,
   maxSubmissions,
@@ -17,18 +17,18 @@ export function validateBounty({
   startsAt = startsAt || new Date();
   startMode = startMode ?? "absolute";
 
-  if (endsAt && endDurationDays) {
+  if (endsAt && endsAfterDays) {
     throw new DubApiError({
       message:
-        "Bounty cannot have both an end date (endsAt) and a duration end (endDurationDays).",
+        "Bounty cannot have both an end date (endsAt) and endsAfterDays.",
       code: "bad_request",
     });
   }
 
-  if (startMode === "absolute" && endDurationDays) {
+  if (startMode === "absolute" && endsAfterDays) {
     throw new DubApiError({
       message:
-        "Duration-based end dates (endDurationDays) are only supported when the bounty starts when a partner joins.",
+        "endsAfterDays is only supported when the bounty starts when a partner joins.",
       code: "bad_request",
     });
   }

@@ -44,7 +44,7 @@ model Bounty {
   startsAt                  DateTime
   endsAt                    DateTime?
   startMode                 BountyStartMode            @default(absolute)
-  endDurationDays           Int?
+  endsAfterDays             Int? // Set only when startMode is relative
   submissionsOpenAt         DateTime?
   submissionFrequency       BountySubmissionFrequency?
   maxSubmissions            Int                        @default(1)

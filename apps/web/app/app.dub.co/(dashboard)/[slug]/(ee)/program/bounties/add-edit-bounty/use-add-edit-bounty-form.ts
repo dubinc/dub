@@ -42,18 +42,18 @@ const isEmpty = (value: unknown) =>
 function getEffectiveEndsAt({
   startsAt,
   endsAt,
-  endDurationDays,
+  endsAfterDays,
 }: {
   startsAt: Date;
   endsAt: Date | null;
-  endDurationDays: number | null;
+  endsAfterDays: number | null;
 }) {
   if (endsAt) {
     return endsAt;
   }
 
-  if (endDurationDays != null) {
-    return addDays(startsAt, endDurationDays);
+  if (endsAfterDays != null) {
+    return addDays(startsAt, endsAfterDays);
   }
 
   return null;
@@ -75,7 +75,7 @@ export function useAddEditBountyForm({
   });
 
   const [hasEndDate, setHasEndDate] = useState(
-    !!bounty?.endsAt || !!bounty?.endDurationDays,
+    !!bounty?.endsAt || !!bounty?.endsAfterDays,
   );
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
   const [allowedSubmissions, setAllowedSubmissions] = useState<number>(
@@ -124,7 +124,7 @@ export function useAddEditBountyForm({
       startsAt: bounty?.startsAt || defaultTiming.startsAt,
       endsAt: bounty?.endsAt ?? defaultTiming.endsAt,
       startMode: bounty?.startMode ?? defaultTiming.startMode,
-      endDurationDays: bounty?.endDurationDays ?? defaultTiming.endDurationDays,
+      endsAfterDays: bounty?.endsAfterDays ?? defaultTiming.endsAfterDays,
       submissionsOpenAt: bounty?.submissionsOpenAt || undefined,
       rewardAmount: bounty?.rewardAmount
         ? bounty.rewardAmount / 100
@@ -169,7 +169,7 @@ export function useAddEditBountyForm({
     startsAt,
     endsAt,
     startMode,
-    endDurationDays,
+    endsAfterDays,
     rewardAmount,
     rewardDescription,
     type,
@@ -184,7 +184,7 @@ export function useAddEditBountyForm({
     "startsAt",
     "endsAt",
     "startMode",
-    "endDurationDays",
+    "endsAfterDays",
     "rewardAmount",
     "rewardDescription",
     "type",
@@ -202,7 +202,7 @@ export function useAddEditBountyForm({
       startMode: nextStartMode,
       startsAt: nextStartsAt,
       endsAt: nextEndsAt,
-      endDurationDays: nextEndDurationDays,
+      endsAfterDays: nextEndsAfterDays,
     }: ReturnType<typeof resolveBountyTiming>) => {
       setValue("startMode", nextStartMode, {
         shouldDirty: true,
@@ -219,14 +219,14 @@ export function useAddEditBountyForm({
         shouldValidate: true,
       });
 
-      setValue("endDurationDays", nextEndDurationDays, {
+      setValue("endsAfterDays", nextEndsAfterDays, {
         shouldDirty: true,
         shouldValidate: true,
       });
 
       setHasEndDate(
         Boolean(nextEndsAt) ||
-          (nextStartMode === "relative" && Boolean(nextEndDurationDays)),
+          (nextStartMode === "relative" && Boolean(nextEndsAfterDays)),
       );
 
       if (!nextEndsAt) {
@@ -322,9 +322,9 @@ export function useAddEditBountyForm({
       getEffectiveEndsAt({
         startsAt: startsAt ? new Date(startsAt) : new Date(),
         endsAt: endsAt ? new Date(endsAt) : null,
-        endDurationDays: endDurationDays ?? null,
+        endsAfterDays: endsAfterDays ?? null,
       }),
-    [startsAt, endsAt, endDurationDays],
+    [startsAt, endsAt, endsAfterDays],
   );
 
   const maxAllowedSubmissions = useMemo(() => {
@@ -383,8 +383,8 @@ export function useAddEditBountyForm({
 
     const effectiveStartDate = startsAt ? new Date(startsAt) : now;
 
-    const effectiveEndDate = endDurationDays
-      ? addDays(effectiveStartDate, endDurationDays)
+    const effectiveEndDate = endsAfterDays
+      ? addDays(effectiveStartDate, endsAfterDays)
       : endsAt
         ? new Date(endsAt)
         : null;
@@ -496,7 +496,7 @@ export function useAddEditBountyForm({
     bounty,
     startsAt,
     endsAt,
-    endDurationDays,
+    endsAfterDays,
     submissionWindow,
     rewardAmount,
     rewardDescription,
@@ -646,7 +646,7 @@ export function useAddEditBountyForm({
     startsAt,
     endsAt,
     startMode,
-    endDurationDays,
+    endsAfterDays,
     handleTimingChange,
     allowedSubmissions,
     handleAllowedSubmissionsChange,

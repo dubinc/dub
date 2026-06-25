@@ -105,7 +105,7 @@ export const createBountySchema = z.object({
   startMode: z.enum(BountyStartMode).optional(),
   startsAt: parseDateSchema.nullish(),
   endsAt: parseDateSchema.nullish(),
-  endDurationDays: z.number().int().positive().nullish(),
+  endsAfterDays: z.number().int().positive().nullish(),
   submissionsOpenAt: parseDateSchema.nullish(),
   submissionFrequency: z.enum(BountySubmissionFrequency).nullish(),
   maxSubmissions: z
@@ -156,7 +156,7 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   startMode: z.enum(BountyStartMode),
-  endDurationDays: z.number().nullable(),
+  endsAfterDays: z.number().nullable(),
   submissionsOpenAt: z.date().nullable(),
   submissionFrequency: z.enum(BountySubmissionFrequency).nullable(),
   maxSubmissions: z.number(),

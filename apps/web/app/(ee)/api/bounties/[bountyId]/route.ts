@@ -65,7 +65,7 @@ export const PATCH = withWorkspace(
       startsAt,
       endsAt,
       startMode,
-      endDurationDays,
+      endsAfterDays,
       submissionsOpenAt,
       submissionFrequency,
       maxSubmissions,
@@ -96,10 +96,8 @@ export const PATCH = withWorkspace(
       startsAt: startsAt !== undefined ? startsAt : bounty.startsAt,
       endsAt: endsAt !== undefined ? endsAt : bounty.endsAt,
       startMode: startMode !== undefined ? startMode : bounty.startMode,
-      endDurationDays:
-        endDurationDays !== undefined
-          ? endDurationDays
-          : bounty.endDurationDays,
+      endsAfterDays:
+        endsAfterDays !== undefined ? endsAfterDays : bounty.endsAfterDays,
       submissionsOpenAt,
       submissionFrequency:
         submissionFrequency !== undefined
@@ -233,7 +231,7 @@ export const PATCH = withWorkspace(
           ...(startsAt != null && { startsAt }),
           ...(endsAt !== undefined && { endsAt }),
           ...(startMode !== undefined && { startMode }),
-          ...(endDurationDays !== undefined && { endDurationDays }),
+          ...(endsAfterDays !== undefined && { endsAfterDays }),
           submissionsOpenAt:
             bounty.type === "submission" ? submissionsOpenAt : null,
           ...(bounty.type === "submission" &&

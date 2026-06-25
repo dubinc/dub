@@ -118,8 +118,8 @@ function parsePresets(value: BountyTimingInput) {
   let endPreset: EndPreset;
   let customEndsAt: Date | null;
 
-  if (value.endDurationDays != null) {
-    const durationPreset = findDurationPresetByDays(value.endDurationDays);
+  if (value.endsAfterDays != null) {
+    const durationPreset = findDurationPresetByDays(value.endsAfterDays);
 
     if (durationPreset) {
       return {
@@ -186,7 +186,7 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
     setEndPreset(presets.endPreset);
     setCustomStartsAt(presets.customStartsAt);
     setCustomEndsAt(presets.customEndsAt);
-  }, [value.startMode, value.startsAt, value.endsAt, value.endDurationDays]);
+  }, [value.startMode, value.startsAt, value.endsAt, value.endsAfterDays]);
 
   const applyTiming = ({
     nextStartPreset = startPreset,
