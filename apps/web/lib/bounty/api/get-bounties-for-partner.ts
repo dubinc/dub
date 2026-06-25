@@ -85,12 +85,7 @@ export async function getBountiesForPartner({
           createdAt,
           groupJoinedAt,
         },
-        bounty: {
-          startsAt: bounty.startsAt,
-          endsAt: bounty.endsAt,
-          endDurationDays: bounty.endDurationDays,
-          startMode: bounty.startMode,
-        },
+        bounty,
       });
 
       return {

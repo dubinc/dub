@@ -6,7 +6,7 @@ import { nanoid, R2_URL } from "@dub/utils";
 import { ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerNotAvailableForBounty,
+  throwIfPartnerCannotAccessBounty,
 } from "./bounty-eligibility";
 import { getBountyOrThrow } from "./get-bounty-or-throw";
 
@@ -96,7 +96,7 @@ export async function getBountySubmissionUploadUrl({
     },
   });
 
-  throwIfPartnerNotAvailableForBounty({
+  throwIfPartnerCannotAccessBounty({
     programEnrollment,
     bounty,
   });

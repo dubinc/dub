@@ -9,6 +9,22 @@ import {
 } from "@prisma/client";
 import { getEffectiveBountyDateRange } from "../bounty-timing";
 
+type ThrowIfPartnerCannotAccessBountyParams = {
+  programEnrollment: Pick<
+    ProgramEnrollment,
+    "groupId" | "createdAt" | "groupJoinedAt" | "status"
+  > & {
+    programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
+  };
+  bounty: Pick<
+    Bounty,
+    "startsAt" | "endsAt" | "endDurationDays" | "startMode" | "archivedAt"
+  > & {
+    groups: Pick<BountyGroup, "groupId">[];
+    partnerTags: Pick<BountyPartnerTag, "partnerTagId">[];
+  };
+};
+
 export function buildBountyEligibilityWhere({
   groupId,
   partnerTagIds,
@@ -93,26 +109,10 @@ export function isPartnerEligibleForBounty({
   return Boolean(inGroup && hasTag);
 }
 
-type ThrowIfPartnerNotAvailableForBountyParams = {
-  programEnrollment: Pick<
-    ProgramEnrollment,
-    "groupId" | "createdAt" | "groupJoinedAt" | "status"
-  > & {
-    programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
-  };
-  bounty: Pick<
-    Bounty,
-    "startsAt" | "endsAt" | "endDurationDays" | "startMode" | "archivedAt"
-  > & {
-    groups: Pick<BountyGroup, "groupId">[];
-    partnerTags: Pick<BountyPartnerTag, "partnerTagId">[];
-  };
-};
-
-export function throwIfPartnerNotAvailableForBounty({
+export function throwIfPartnerCannotAccessBounty({
   programEnrollment,
   bounty,
-}: ThrowIfPartnerNotAvailableForBountyParams) {
+}: ThrowIfPartnerCannotAccessBountyParams) {
   if (!["approved", "invited"].includes(programEnrollment.status)) {
     throw new DubApiError({
       code: "bad_request",
@@ -129,7 +129,6 @@ export function throwIfPartnerNotAvailableForBounty({
 
   const bountyGroupIds = bounty.groups.map((g) => g.groupId);
   const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
-
   const partnerTagIds = programEnrollment.programPartnerTags.map(
     (t) => t.partnerTagId,
   );
@@ -165,13 +164,6 @@ export function throwIfPartnerNotAvailableForBounty({
     throw new DubApiError({
       code: "bad_request",
       message: "This bounty has ended.",
-    });
-  }
-
-  if (bounty.archivedAt) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "This bounty is not available.",
     });
   }
 }

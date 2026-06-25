@@ -29,7 +29,7 @@ import { getEffectiveBountyDateRange } from "../bounty-timing";
 import { SOCIAL_URL_HOST_TO_PLATFORM } from "../social-content";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerNotAvailableForBounty,
+  throwIfPartnerCannotAccessBounty,
 } from "./bounty-eligibility";
 import { getBountyOrThrow } from "./get-bounty-or-throw";
 
@@ -279,7 +279,7 @@ export class BountySubmissionHandler {
       }
     }
 
-    throwIfPartnerNotAvailableForBounty({
+    throwIfPartnerCannotAccessBounty({
       programEnrollment: this.programEnrollment,
       bounty: this.bounty,
     });

@@ -4,7 +4,7 @@ import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerNotAvailableForBounty,
+  throwIfPartnerCannotAccessBounty,
 } from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
@@ -54,7 +54,7 @@ export const GET = withPartnerProfile(
       },
     });
 
-    throwIfPartnerNotAvailableForBounty({
+    throwIfPartnerCannotAccessBounty({
       programEnrollment,
       bounty,
     });

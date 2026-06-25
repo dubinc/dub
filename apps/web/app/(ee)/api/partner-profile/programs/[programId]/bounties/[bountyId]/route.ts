@@ -2,9 +2,10 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerNotAvailableForBounty,
+  throwIfPartnerCannotAccessBounty,
 } from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
+import { getEffectiveBountyDateRange } from "@/lib/bounty/bounty-timing";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
@@ -56,7 +57,12 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     },
   });
 
-  const { startsAt, endsAt } = throwIfPartnerNotAvailableForBounty({
+  throwIfPartnerCannotAccessBounty({
+    programEnrollment,
+    bounty,
+  });
+
+  const { startsAt, endsAt } = getEffectiveBountyDateRange({
     programEnrollment,
     bounty,
   });
