@@ -451,11 +451,11 @@ function identityProgramSlug(url: string) {
         return { programSlug: null, isMarketplace: true };
       }
 
-      if (parts.length === 2 && MARKETPLACE_RESERVED_SLUGS.has(parts[1])) {
-        return { programSlug: null, isMarketplace: true };
-      }
-
       if (parts.length === 2) {
+        if (MARKETPLACE_RESERVED_SLUGS.has(parts[1])) {
+          return { programSlug: null, isMarketplace: true };
+        }
+
         return {
           programSlug: parts[1].toLowerCase(),
           isMarketplace: true,

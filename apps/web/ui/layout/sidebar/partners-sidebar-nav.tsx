@@ -5,11 +5,10 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
-import { getProgramsAreaNavItems } from "@/ui/layout/sidebar/programs-area-nav";
-import { MarketplaceSidebarPanel } from "@/ui/program-marketplace/marketplace-sidebar-panel";
+import { MarketplaceSidebarFilters } from "@/ui/program-marketplace/marketplace-sidebar-filters";
 import { ProgramsPromoCard } from "@/ui/program-marketplace/programs-promo-card";
 import { isMarketplaceFilterSidebarPath } from "@/ui/program-marketplace/utils/urls";
-import { type Icon, useRouterStuff } from "@dub/ui";
+import { type Icon, useMediaQuery, useRouterStuff } from "@dub/ui";
 import {
   Bell,
   CircleDollar,
@@ -22,6 +21,7 @@ import {
   Msgs,
   Nodes4,
   ShieldCheck,
+  Shop,
   SquareUserSparkle2,
   Trophy,
   UserCheck,
@@ -39,11 +39,17 @@ import { User } from "./icons/user";
 import { PartnerProgramDropdown } from "./partner-program-dropdown";
 import { PayoutStats } from "./payout-stats";
 import { ProgramHelpSupport } from "./program-help-support";
-import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
+import {
+  NavItemType,
+  SidebarNav,
+  SidebarNavAreas,
+  SidebarNavGroups,
+} from "./sidebar-nav";
 
 type SidebarNavData = {
   pathname: string;
   queryString?: string;
+  isMobile?: boolean;
   programSlug?: string;
   isUnapproved: boolean;
   invitationsCount?: number;
@@ -54,16 +60,6 @@ type SidebarNavData = {
   hasReferralReward?: boolean;
   newsContent?: ReactNode;
 };
-
-function ProgramsAreaFooter({ newsContent }: { newsContent?: ReactNode }) {
-  return (
-    <>
-      {newsContent}
-      <ProgramsPromoCard />
-      <PayoutStats />
-    </>
-  );
-}
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   pathname,
@@ -104,23 +100,49 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   },
 ];
 
-const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
-  // Top-level
-  programs: ({ invitationsCount, newsContent }) => ({
-    showNews: true,
-    direction: "left",
-    content: [
+const PROGRAMS_CONTENT = ({
+  invitationsCount,
+}: {
+  invitationsCount?: number;
+}): { items: NavItemType[] }[] => [
+  {
+    items: [
       {
-        items: getProgramsAreaNavItems(invitationsCount),
+        name: "Programs",
+        icon: GridIcon,
+        href: "/programs",
+        isActive: (pathname, href) =>
+          pathname.startsWith(href) && pathname !== "/programs/invitations",
+      },
+      {
+        name: "Marketplace",
+        icon: Shop,
+        href: "/marketplace",
+        isActive: (pathname) => pathname.startsWith("/marketplace"),
+        badge: "New",
+      },
+      {
+        name: "Invitations",
+        icon: UserCheck,
+        href: "/programs/invitations",
+        badge: invitationsCount || undefined,
       },
     ],
-    footer: <ProgramsAreaFooter newsContent={newsContent} />,
+  },
+];
+
+const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
+  // Top-level
+  programs: ({ invitationsCount }) => ({
+    showNews: true,
+    direction: "left",
+    content: PROGRAMS_CONTENT({ invitationsCount }),
   }),
 
-  programsMarketplace: ({ invitationsCount }) => ({
+  marketplace: ({ isMobile, invitationsCount }) => ({
     direction: "right",
-    content: [],
-    panel: <MarketplaceSidebarPanel invitationsCount={invitationsCount} />,
+    content: isMobile ? PROGRAMS_CONTENT({ invitationsCount }) : [],
+    panel: isMobile ? undefined : <MarketplaceSidebarFilters />,
   }),
 
   profile: ({ postbacksEnabled }) => ({
@@ -178,7 +200,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     hasReferralReward,
   }) => ({
     title: (
-      <div className="mb-3">
+      <div className="my-3">
         <PartnerProgramDropdown />
       </div>
     ),
@@ -332,7 +354,7 @@ export function PartnersSidebarNav({
           : isEnrolledProgramPage
             ? "program"
             : isMarketplaceFilterSidebarPage
-              ? "programsMarketplace"
+              ? "marketplace"
               : "programs";
   }, [pathname, isEnrolledProgramPage, isMarketplaceFilterSidebarPage]);
 
@@ -363,6 +385,8 @@ export function PartnersSidebarNav({
     },
   });
 
+  const { isMobile } = useMediaQuery();
+
   const { partner } = usePartnerProfile();
 
   const referralsActive =
@@ -389,7 +413,7 @@ export function PartnersSidebarNav({
       areas={NAV_AREAS}
       currentArea={currentArea}
       persistentAreaHeader={
-        currentArea === "programs" || currentArea === "programsMarketplace" ? (
+        currentArea === "programs" || currentArea === "marketplace" ? (
           <div className="mb-3">
             <PartnerProgramDropdown />
           </div>
@@ -398,6 +422,7 @@ export function PartnersSidebarNav({
       data={{
         pathname,
         queryString: getQueryString(),
+        isMobile,
         programSlug: programSlug || "",
         isUnapproved,
         invitationsCount,
@@ -410,7 +435,16 @@ export function PartnersSidebarNav({
       }}
       toolContent={composedToolContent}
       newsContent={newsContent}
-      bottom={isEnrolledProgramPage ? <ProgramHelpSupport /> : undefined}
+      bottom={
+        isEnrolledProgramPage ? (
+          <ProgramHelpSupport />
+        ) : (
+          <>
+            <ProgramsPromoCard />
+            <PayoutStats />
+          </>
+        )
+      }
     />
   );
 }

@@ -83,7 +83,7 @@ export function PartnerProgramDropdown() {
                 >
                   <GridIcon className="size-5 text-neutral-500 sm:size-4" />
                   <span className="text-content-default block truncate">
-                    All programs
+                    Your programs
                   </span>
                 </Link>
                 <Link
@@ -126,7 +126,7 @@ export function PartnerProgramDropdown() {
               />
             )}
             <div className="text-content-emphasis min-w-0 truncate text-lg font-semibold">
-              {selectedProgram?.name || "All programs"}
+              {selectedProgram?.name || "Your programs"}
             </div>
           </div>
           <ChevronsUpDown
