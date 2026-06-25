@@ -16,21 +16,6 @@ const TITLES: Record<RewardChangeAction, string> = {
   deleted: "Delete reward",
 };
 
-function getDescription(action: RewardChangeAction, partnerCount: number) {
-  const change = {
-    created: "added to",
-    updated: "updated for",
-    deleted: "removed from",
-  }[action];
-
-  const notification =
-    partnerCount === 1
-      ? "the partner will be notified by email"
-      : `${nFormatter(partnerCount, { full: true })} ${pluralize("partner", partnerCount)} will be notified by email`;
-
-  return `The reward below will be ${change} the group, and ${notification}.`;
-}
-
 const CONFIRM_TEXT: Record<RewardChangeAction, string> = {
   created: "Create reward",
   updated: "Update reward",
@@ -56,7 +41,7 @@ type ConfirmRewardChangeModalProps = {
     | "spendLimitAmount"
     | "spendLimitInterval"
   >;
-  partnerCount: number;
+  partnerCount?: number;
   onConfirm: () => Promise<void>;
   isPending?: boolean;
 };
@@ -73,6 +58,21 @@ export function ConfirmRewardChangeModal({
 }: ConfirmRewardChangeModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { icon: Icon, title } = REWARD_EVENT_DESCRIPTIONS[event];
+
+  const change = {
+    created: "added to",
+    updated: "updated for",
+    deleted: "removed from",
+  }[action];
+
+  const notification =
+    partnerCount === undefined
+      ? "partners in the group will be notified by email"
+      : partnerCount === 0
+        ? "no partners in the group will be notified by email"
+        : partnerCount === 1
+          ? "the partner will be notified by email"
+          : `${nFormatter(partnerCount, { full: true })} ${pluralize("partner", partnerCount)} will be notified by email`;
 
   const handleConfirm = async () => {
     setIsLoading(true);
@@ -95,7 +95,7 @@ export function ConfirmRewardChangeModal({
           {TITLES[action]}
         </h3>
         <p className="text-content-subtle mt-1 text-sm">
-          {getDescription(action, partnerCount)}
+          {`The reward below will be ${change} the group, and ${notification}.`}
         </p>
 
         <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-100 p-3">
@@ -140,7 +140,7 @@ export function useConfirmRewardChangeModal() {
     reward: ConfirmRewardChangeModalProps["reward"];
     onConfirm: () => Promise<void>;
     isPending?: boolean;
-    partnerCount: number;
+    partnerCount?: number;
   } | null>(null);
 
   return {
@@ -148,7 +148,7 @@ export function useConfirmRewardChangeModal() {
       action: RewardChangeAction;
       event: EventType;
       reward: ConfirmRewardChangeModalProps["reward"];
-      partnerCount: number;
+      partnerCount?: number;
       onConfirm: () => Promise<void>;
       isPending?: boolean;
     }) => setState(options),

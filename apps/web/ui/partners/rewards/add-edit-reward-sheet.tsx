@@ -205,10 +205,14 @@ function RewardSheetContent({
   defaultRewardValues,
 }: RewardSheetProps) {
   const { group, mutateGroup } = useGroup();
-  const { partnersCount } = usePartnersCount<number | undefined>({
+  const { partnersCount, loading, isValidating } = usePartnersCount<
+    number | undefined
+  >({
     groupId: group?.id,
     status: "approved",
   });
+  const partnerCountForConfirm =
+    group?.id && !loading && !isValidating ? partnersCount : undefined;
   const { openConfirmRewardChangeModal, ConfirmRewardChangeModal } =
     useConfirmRewardChangeModal();
   const {
@@ -412,7 +416,7 @@ function RewardSheetContent({
       action: reward ? "updated" : "created",
       event,
       reward: payload!,
-      partnerCount: partnersCount ?? 0,
+      partnerCount: partnerCountForConfirm,
       isPending: isCreating || isUpdating,
       onConfirm: async () => {
         if (!reward) {
@@ -439,7 +443,7 @@ function RewardSheetContent({
       action: "deleted",
       event: reward.event,
       reward,
-      partnerCount: partnersCount ?? 0,
+      partnerCount: partnerCountForConfirm,
       isPending: isDeleting,
       onConfirm: async () => {
         await deleteReward({

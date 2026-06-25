@@ -8,7 +8,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, Modal } from "@dub/ui";
-import { cn, pluralize } from "@dub/utils";
+import { cn, nFormatter, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -201,7 +201,10 @@ function BulkBanPartnersModal({
           <p className="text-sm text-neutral-600">
             This will permanently ban the {partnerWord}, disable all their
             active links, and cancel all pending payouts. This action is not
-            reversible and these partners will be notified by email.
+            reversible.{" "}
+            {partners.length === 1
+              ? "This partner will be notified by email."
+              : `${nFormatter(partners.length, { full: true })} ${pluralize("partner", partners.length)} will be notified by email.`}
           </p>
 
           <div>
