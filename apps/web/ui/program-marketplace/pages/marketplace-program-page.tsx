@@ -6,9 +6,12 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { MarketplaceProgramDetailBody } from "@/ui/program-marketplace/marketplace-program-detail-body";
 import { MarketplaceProgramDetailsLayout } from "@/ui/program-marketplace/marketplace-program-details-layout";
 import { MarketplaceProgramHero } from "@/ui/program-marketplace/marketplace-program-hero";
+import { MarketplaceProgramPageSkeleton } from "@/ui/program-marketplace/marketplace-program-page-skeleton";
 import { ChevronRight, Shop } from "@dub/ui";
+import { Category } from "@prisma/client";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { MarketplaceProgramHeaderControls } from "../marketplace-program-header-controls";
 import { ProgramStatusBadge } from "../program-status-badge";
 import { getMarketplaceHref } from "../utils/urls";
@@ -27,12 +30,35 @@ export async function generateMarketplaceProgramStaticParams() {
     },
   });
 
-  return programs.map((program) => ({
-    slug: [program.slug],
+  const categoryPages = Object.values(Category).map((category) => ({
+    segments: ["c", category.toLowerCase()],
   }));
+
+  const programPages = programs.map((program) => ({
+    segments: [program.slug],
+  }));
+
+  return [
+    { segments: [] },
+    { segments: ["all"] },
+    ...categoryPages,
+    ...programPages,
+  ];
 }
 
-export async function MarketplaceProgramPage({
+export function MarketplaceProgramPage({
+  programSlug,
+}: {
+  programSlug: string;
+}) {
+  return (
+    <Suspense fallback={<MarketplaceProgramPageSkeleton />}>
+      <MarketplaceProgramPageContent programSlug={programSlug} />
+    </Suspense>
+  );
+}
+
+async function MarketplaceProgramPageContent({
   programSlug,
 }: {
   programSlug: string;

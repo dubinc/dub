@@ -44,7 +44,7 @@ export function MarketplaceProgramsListPage() {
     PROGRAM_NETWORK_MAX_PAGE_SIZE,
   );
 
-  const { activeFilters, isFiltered, onRemoveAll } = useProgramNetworkFilters();
+  const { activeFilters, onRemoveAll } = useProgramNetworkFilters();
 
   const hasActiveFilters =
     activeFilters.length > 0 || Boolean(searchParamsObj.search);
