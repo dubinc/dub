@@ -32,7 +32,6 @@ export async function getWebhooks({
       secret: true,
       triggers: true,
       disabledAt: true,
-      links: true,
       receiver: true,
       installationId: true,
     },
