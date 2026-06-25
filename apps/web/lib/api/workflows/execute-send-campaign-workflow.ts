@@ -215,25 +215,6 @@ export const executeSendCampaignWorkflow = async ({
   }
 };
 
-const enrollmentLinksForEmail = {
-  select: { shortLink: true, key: true, url: true },
-  orderBy: { id: "asc" as const },
-};
-
-const enrollmentLinksForWorkflowStats = {
-  select: {
-    shortLink: true,
-    key: true,
-    url: true,
-    clicks: true,
-    leads: true,
-    conversions: true,
-    sales: true,
-    saleAmount: true,
-  },
-  orderBy: { id: "asc" as const },
-};
-
 const includePartnerUsers = {
   partner: {
     include: {
@@ -244,8 +225,21 @@ const includePartnerUsers = {
       },
     },
   },
-  partnerGroup: { select: { linkStructure: true } },
-  links: enrollmentLinksForEmail,
+  partnerGroup: {
+    select: {
+      linkStructure: true,
+    },
+  },
+  links: {
+    select: {
+      shortLink: true,
+      key: true,
+      url: true,
+    },
+    orderBy: {
+      id: "asc" as const,
+    },
+  },
 } satisfies Prisma.ProgramEnrollmentInclude;
 
 async function getProgramEnrollments({
@@ -284,7 +278,23 @@ async function getProgramEnrollments({
       include: {
         ...includePartnerUsers,
         ...(isPartnerLinkStatsAttribute
-          ? { links: enrollmentLinksForWorkflowStats }
+          ? {
+              links: {
+                select: {
+                  shortLink: true,
+                  key: true,
+                  url: true,
+                  clicks: true,
+                  leads: true,
+                  conversions: true,
+                  sales: true,
+                  saleAmount: true,
+                },
+                orderBy: {
+                  id: "asc",
+                },
+              },
+            }
           : {}),
       },
     });
