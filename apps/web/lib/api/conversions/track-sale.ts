@@ -499,10 +499,19 @@ const _trackSale = async ({
     metadata: metadata ? JSON.stringify(metadata) : "",
   };
 
-  const firstConversionFlag = isFirstConversion({
+  let claimedFirstConversion = isFirstConversion({
     customer,
     linkId: saleData.link_id,
   });
+
+  if (claimedFirstConversion) {
+    const claimed = await redis.set(
+      `firstConversion:${customer.id}:${saleData.link_id}`,
+      "1",
+      { nx: true },
+    );
+    claimedFirstConversion = claimed !== null;
+  }
 
   waitUntil(
     (async () => {
@@ -512,7 +521,7 @@ const _trackSale = async ({
           id: saleData.link_id,
         },
         data: {
-          ...(firstConversionFlag && {
+          ...(claimedFirstConversion && {
             conversions: {
               increment: 1,
             },
@@ -559,7 +568,7 @@ const _trackSale = async ({
             url: saleData.url,
             referer: saleData.referer,
           },
-          isFirstConversion: firstConversionFlag,
+          isFirstConversion: claimedFirstConversion,
         });
 
         await Promise.allSettled([
@@ -575,7 +584,7 @@ const _trackSale = async ({
             },
             metrics: {
               current: {
-                conversions: firstConversionFlag ? 1 : 0,
+                conversions: claimedFirstConversion ? 1 : 0,
                 saleAmount: saleData.amount,
               },
             },
