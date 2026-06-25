@@ -508,7 +508,10 @@ const _trackSale = async ({
     const claimed = await redis.set(
       `firstConversion:${customer.id}:${saleData.link_id}`,
       "1",
-      { nx: true },
+      {
+        ex: 30,
+        nx: true,
+      },
     );
     claimedFirstConversion = claimed !== null;
   }
