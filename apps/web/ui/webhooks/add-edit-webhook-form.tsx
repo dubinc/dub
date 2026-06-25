@@ -2,7 +2,6 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { EXTERNAL_PAYOUTS_PROGRAM_IDS } from "@/lib/constants/program";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
 import {
@@ -34,7 +33,6 @@ export default function AddEditWebhookForm({
   newSecret?: string;
 }) {
   const router = useRouter();
-  const { program } = useProgram();
   const [saving, setSaving] = useState(false);
   const {
     id: workspaceId,
@@ -52,8 +50,14 @@ export default function AddEditWebhookForm({
   const [linkIds, setLinkIds] = useState<string[]>([]);
   const [linkIdsInitialized, setLinkIdsInitialized] = useState(!webhook);
 
+  const { name, url, secret, triggers } = data;
+
+  const hasLinkLevelWebhook = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
+    triggers.includes(trigger),
+  );
+
   const { data: fetchedLinkIds } = useSWR<string[]>(
-    webhook
+    webhook && hasLinkLevelWebhook
       ? `/api/webhooks/${webhook.id}/links?workspaceId=${workspaceId}`
       : null,
     fetcher,
@@ -123,8 +127,6 @@ export default function AddEditWebhookForm({
     toast.success(endpoint.successMessage);
   };
 
-  const { name, url, secret, triggers } = data;
-
   const buttonDisabled = !name || !url || !triggers.length || saving;
 
   const updateDisabled =
@@ -136,10 +138,6 @@ export default function AddEditWebhookForm({
       : permissionsError
         ? permissionsError
         : undefined;
-
-  const enableLinkSelection = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
-    triggers.includes(trigger),
-  );
 
   const availableWebhookTriggers = useMemo(
     () => [
@@ -299,7 +297,7 @@ export default function AddEditWebhookForm({
             ))}
           </div>
 
-          {enableLinkSelection && linkIds.length < 1000 ? (
+          {hasLinkLevelWebhook && linkIds.length < 1000 ? (
             <div className="mt-4">
               <h2 className="text-sm font-medium text-neutral-900">
                 Choose links we should send events for
