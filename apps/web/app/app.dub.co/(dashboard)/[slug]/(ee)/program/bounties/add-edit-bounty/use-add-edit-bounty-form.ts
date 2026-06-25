@@ -2,10 +2,7 @@
 
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
-import {
-  getBountyFormEffectiveEndsAt,
-  resolveBountyTiming,
-} from "@/lib/bounty/bounty-timing";
+import { resolveBountyTiming } from "@/lib/bounty/bounty-timing";
 import {
   BOUNTY_DESCRIPTION_MAX_LENGTH,
   BOUNTY_MAX_SUBMISSIONS,
@@ -41,6 +38,26 @@ const ACCORDION_ITEMS = [
 
 const isEmpty = (value: unknown) =>
   value === undefined || value === null || value === "";
+
+function getEffectiveEndsAt({
+  startsAt,
+  endsAt,
+  endDurationDays,
+}: {
+  startsAt: Date;
+  endsAt: Date | null;
+  endDurationDays: number | null;
+}) {
+  if (endsAt) {
+    return endsAt;
+  }
+
+  if (endDurationDays != null) {
+    return addDays(startsAt, endDurationDays);
+  }
+
+  return null;
+}
 
 export function useAddEditBountyForm({
   bounty,
@@ -302,7 +319,7 @@ export function useAddEditBountyForm({
 
   const effectiveEndsAt = useMemo(
     () =>
-      getBountyFormEffectiveEndsAt({
+      getEffectiveEndsAt({
         startsAt: startsAt ? new Date(startsAt) : new Date(),
         endsAt: endsAt ? new Date(endsAt) : null,
         endDurationDays: endDurationDays ?? null,

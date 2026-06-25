@@ -25,6 +25,14 @@ export function validateBounty({
     });
   }
 
+  if (startMode === "absolute" && endDurationDays) {
+    throw new DubApiError({
+      message:
+        "Duration-based end dates (endDurationDays) are only supported when the bounty starts when a partner joins.",
+      code: "bad_request",
+    });
+  }
+
   if (endsAt && endsAt < startsAt) {
     throw new DubApiError({
       message:
@@ -83,7 +91,6 @@ export function validateBounty({
     });
   }
 
-  // submission bounty checks
   if (type === "submission") {
     if (submissionFrequency && maxSubmissions == null) {
       throw new DubApiError({

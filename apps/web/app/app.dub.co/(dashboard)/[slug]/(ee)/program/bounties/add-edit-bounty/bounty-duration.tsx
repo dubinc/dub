@@ -1,37 +1,174 @@
 "use client";
 
 import {
-  BOUNTY_END_PRESET_OPTIONS,
-  BOUNTY_START_PRESET_OPTIONS,
-  BountyEndPreset,
-  BountyStartPreset,
-  BountyTimingValue,
-  getBountyEndPresetLabel,
-  getBountyEndSuffix,
-  getBountyStartPresetLabel,
-  parseBountyTimingPresets,
+  BOUNTY_DURATION_DAYS,
+  BOUNTY_DURATION_PRESETS,
+  BountyTimingInput,
+  DurationPreset,
+  EndPreset,
   resolveBountyTiming,
+  StartPreset,
 } from "@/lib/bounty/bounty-timing";
 import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { CalendarIcon, SmartDateTimePicker } from "@dub/ui";
-import { useState } from "react";
+import { formatDate } from "@dub/utils";
+import { addDays, addMonths, addWeeks } from "date-fns";
+import { useEffect, useState } from "react";
+
+type PresetOption<T extends string> = { value: T; label: string };
+
+const DURATION_LABELS: Record<DurationPreset, { start: string; end: string }> =
+  {
+    twoWeeks: { start: "in 2 weeks", end: "2 weeks" },
+    oneMonth: { start: "in 1 month", end: "1 month" },
+    sixMonths: { start: "in 6 months", end: "6 months" },
+  };
+
+const START_OPTIONS = [
+  { value: "today", label: "today" },
+  ...BOUNTY_DURATION_PRESETS.map((p) => ({
+    value: p,
+    label: DURATION_LABELS[p].start,
+  })),
+  { value: "onPartnerJoin", label: "when a new partner joins" },
+  { value: "custom", label: "custom" },
+] satisfies PresetOption<StartPreset>[];
+
+const END_OPTIONS = [
+  { value: "never", label: "never" },
+  ...BOUNTY_DURATION_PRESETS.map((p) => ({
+    value: p,
+    label: DURATION_LABELS[p].end,
+  })),
+  { value: "custom", label: "custom" },
+] satisfies PresetOption<EndPreset>[];
+
+const START_DURATION_DATES: Record<DurationPreset, (now: Date) => Date> = {
+  twoWeeks: (now) => addWeeks(now, 2),
+  oneMonth: (now) => addMonths(now, 1),
+  sixMonths: (now) => addMonths(now, 6),
+};
+
+const DATE_TOLERANCE_MS = 60_000;
+
+function datesAreClose(a: Date, b: Date, toleranceMs = DATE_TOLERANCE_MS) {
+  return Math.abs(a.getTime() - b.getTime()) <= toleranceMs;
+}
+
+function isSameCalendarDay(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function findDurationPresetByDays(days: number): DurationPreset | null {
+  return (
+    (Object.entries(BOUNTY_DURATION_DAYS) as [DurationPreset, number][]).find(
+      ([, durationDays]) => durationDays === days,
+    )?.[0] ?? null
+  );
+}
+
+function getPresetLabel<T extends string>(
+  preset: T,
+  options: PresetOption<T>[],
+  customDate?: Date | null,
+  fallback?: string,
+) {
+  if (preset === "custom" && customDate) {
+    return formatDate(customDate, { month: "short" });
+  }
+
+  return options.find((option) => option.value === preset)?.label ?? fallback;
+}
+
+function parsePresets(value: BountyTimingInput) {
+  let startPreset: StartPreset;
+  let customStartsAt: Date | null;
+
+  if (value.startMode === "relative") {
+    startPreset = "onPartnerJoin";
+    customStartsAt = null;
+  } else {
+    const now = new Date();
+
+    if (isSameCalendarDay(value.startsAt, now)) {
+      startPreset = "today";
+      customStartsAt = null;
+    } else {
+      const matchedStartPreset = BOUNTY_DURATION_PRESETS.find((preset) =>
+        datesAreClose(value.startsAt, START_DURATION_DATES[preset](now)),
+      );
+
+      if (matchedStartPreset) {
+        startPreset = matchedStartPreset;
+        customStartsAt = null;
+      } else {
+        startPreset = "custom";
+        customStartsAt = value.startsAt;
+      }
+    }
+  }
+
+  let endPreset: EndPreset;
+  let customEndsAt: Date | null;
+
+  if (value.endDurationDays != null) {
+    const durationPreset = findDurationPresetByDays(value.endDurationDays);
+
+    if (durationPreset) {
+      return {
+        startPreset,
+        endPreset: durationPreset,
+        customStartsAt,
+        customEndsAt: null,
+      };
+    }
+  }
+
+  if (!value.endsAt) {
+    endPreset = "never";
+    customEndsAt = null;
+  } else if (value.startMode === "absolute") {
+    const matchedEndPreset = (
+      Object.entries(BOUNTY_DURATION_DAYS) as [DurationPreset, number][]
+    ).find(([, days]) =>
+      datesAreClose(value.endsAt!, addDays(value.startsAt, days)),
+    )?.[0];
+
+    if (matchedEndPreset) {
+      endPreset = matchedEndPreset;
+      customEndsAt = null;
+    } else {
+      endPreset = "custom";
+      customEndsAt = value.endsAt;
+    }
+  } else {
+    endPreset = "custom";
+    customEndsAt = value.endsAt;
+  }
+
+  return { startPreset, endPreset, customStartsAt, customEndsAt };
+}
 
 interface BountyDurationProps {
-  value: BountyTimingValue;
-  onChange: (value: BountyTimingValue) => void;
+  value: BountyTimingInput;
+  onChange: (value: BountyTimingInput) => void;
 }
 
 export function BountyDuration({ value, onChange }: BountyDurationProps) {
-  const initialPresets = parseBountyTimingPresets(value);
+  const initialPresets = parsePresets(value);
 
-  const [startPreset, setStartPreset] = useState<BountyStartPreset>(
+  const [startPreset, setStartPreset] = useState<StartPreset>(
     initialPresets.startPreset,
   );
 
-  const [endPreset, setEndPreset] = useState<BountyEndPreset>(
+  const [endPreset, setEndPreset] = useState<EndPreset>(
     initialPresets.endPreset,
   );
 
@@ -43,14 +180,22 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
     initialPresets.customEndsAt,
   );
 
+  useEffect(() => {
+    const presets = parsePresets(value);
+    setStartPreset(presets.startPreset);
+    setEndPreset(presets.endPreset);
+    setCustomStartsAt(presets.customStartsAt);
+    setCustomEndsAt(presets.customEndsAt);
+  }, [value.startMode, value.startsAt, value.endsAt, value.endDurationDays]);
+
   const applyTiming = ({
     nextStartPreset = startPreset,
     nextEndPreset = endPreset,
     nextCustomStartsAt = customStartsAt,
     nextCustomEndsAt = customEndsAt,
   }: {
-    nextStartPreset?: BountyStartPreset;
-    nextEndPreset?: BountyEndPreset;
+    nextStartPreset?: StartPreset;
+    nextEndPreset?: EndPreset;
     nextCustomStartsAt?: Date | null;
     nextCustomEndsAt?: Date | null;
   } = {}) => {
@@ -64,22 +209,26 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
     );
   };
 
-  const startLabel = getBountyStartPresetLabel({
+  const startLabel = getPresetLabel(
     startPreset,
-    customStartsAt,
-    startsAt: value.startsAt,
-  });
+    START_OPTIONS,
+    customStartsAt ?? value.startsAt,
+    "today",
+  );
 
-  const endLabel = getBountyEndPresetLabel({
+  const endLabel = getPresetLabel(
     endPreset,
-    customEndsAt,
-    endsAt: value.endsAt,
-  });
+    END_OPTIONS,
+    customEndsAt ?? value.endsAt,
+    "never",
+  );
 
-  const endSuffix = getBountyEndSuffix({
-    startMode: value.startMode,
-    endPreset,
-  });
+  const endSuffix =
+    endPreset !== "never" && endPreset !== "custom"
+      ? value.startMode === "relative"
+        ? "after joining"
+        : "from start date"
+      : null;
 
   return (
     <div className="space-y-3">
@@ -89,13 +238,19 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
           Starts{" "}
           <InlineBadgePopover text={startLabel} buttonClassName="mx-0.5">
             <InlineBadgePopoverMenu
-              items={BOUNTY_START_PRESET_OPTIONS.map((option) => ({
+              items={START_OPTIONS.map((option) => ({
                 value: option.value,
                 text: option.label,
               }))}
               selectedValue={startPreset}
               onSelect={(preset) => {
                 setStartPreset(preset);
+
+                if (preset === "custom") {
+                  setCustomStartsAt(customStartsAt ?? value.startsAt);
+                  return;
+                }
+
                 applyTiming({ nextStartPreset: preset });
               }}
             />
@@ -103,13 +258,21 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
           and ends{" "}
           <InlineBadgePopover text={endLabel} buttonClassName="mx-0.5">
             <InlineBadgePopoverMenu
-              items={BOUNTY_END_PRESET_OPTIONS.map((option) => ({
+              items={END_OPTIONS.map((option) => ({
                 value: option.value,
                 text: option.label,
               }))}
               selectedValue={endPreset}
               onSelect={(preset) => {
                 setEndPreset(preset);
+
+                if (preset === "custom") {
+                  setCustomEndsAt(
+                    customEndsAt ?? value.endsAt ?? addWeeks(value.startsAt, 2),
+                  );
+                  return;
+                }
+
                 applyTiming({ nextEndPreset: preset });
               }}
             />
@@ -126,7 +289,10 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
           onChange={(date) => {
             const nextCustomStartsAt = date ?? null;
             setCustomStartsAt(nextCustomStartsAt);
-            applyTiming({ nextCustomStartsAt });
+            applyTiming({
+              nextStartPreset: "custom",
+              nextCustomStartsAt,
+            });
           }}
           placeholder='E.g. "2026-02-28", "Last Thursday", "2 hours ago"'
         />
@@ -138,7 +304,10 @@ export function BountyDuration({ value, onChange }: BountyDurationProps) {
           onChange={(date) => {
             const nextCustomEndsAt = date ?? null;
             setCustomEndsAt(nextCustomEndsAt);
-            applyTiming({ nextCustomEndsAt });
+            applyTiming({
+              nextEndPreset: "custom",
+              nextCustomEndsAt,
+            });
           }}
           placeholder='E.g. "2026-12-01", "Next Thursday", "After 10 days"'
         />
