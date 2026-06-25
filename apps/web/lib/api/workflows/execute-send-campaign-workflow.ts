@@ -1,5 +1,6 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { prisma } from "@/lib/prisma";
 import {
   CampaignTriggerCondition,
@@ -175,7 +176,10 @@ export const executeSendCampaignWorkflow = async ({
                 PartnerName: partnerUser.partner.name,
                 PartnerEmail: partnerUser.partner.email,
                 PartnerLink:
-                  partnerUser.enrollment.links?.[0]?.shortLink ?? null,
+                  constructPartnerLink({
+                    group: partnerUser.enrollment.partnerGroup,
+                    link: partnerUser.enrollment.links?.[0],
+                  }) || null,
               },
             }),
           },
@@ -212,13 +216,15 @@ export const executeSendCampaignWorkflow = async ({
 };
 
 const enrollmentLinksForEmail = {
-  select: { shortLink: true },
+  select: { shortLink: true, key: true, url: true },
   orderBy: { id: "asc" as const },
 };
 
 const enrollmentLinksForWorkflowStats = {
   select: {
     shortLink: true,
+    key: true,
+    url: true,
     clicks: true,
     leads: true,
     conversions: true,
@@ -238,6 +244,7 @@ const includePartnerUsers = {
       },
     },
   },
+  partnerGroup: { select: { linkStructure: true } },
   links: enrollmentLinksForEmail,
 } satisfies Prisma.ProgramEnrollmentInclude;
 
