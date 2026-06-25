@@ -2,7 +2,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerCannotAccessBounty,
+  throwIfPartnerCannotViewBounty,
 } from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getEffectiveBountyDateRange } from "@/lib/bounty/bounty-timing";
@@ -57,7 +57,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     },
   });
 
-  throwIfPartnerCannotAccessBounty({
+  throwIfPartnerCannotViewBounty({
     programEnrollment,
     bounty,
   });

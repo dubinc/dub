@@ -29,7 +29,7 @@ import { getEffectiveBountyDateRange } from "../bounty-timing";
 import { SOCIAL_URL_HOST_TO_PLATFORM } from "../social-content";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerCannotAccessBounty,
+  throwIfPartnerCannotSubmitBounty,
 } from "./bounty-eligibility";
 import { getBountyOrThrow } from "./get-bounty-or-throw";
 
@@ -246,19 +246,10 @@ export class BountySubmissionHandler {
 
   // Validate the eligibility of the submission
   private validateEligibility() {
-    if (!["approved", "pending"].includes(this.programEnrollment.status)) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "You are not allowed to submit a bounty for this program.",
-      });
-    }
-
-    if (this.bounty.programId !== this.programId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is not for this program.",
-      });
-    }
+    throwIfPartnerCannotSubmitBounty({
+      programEnrollment: this.programEnrollment,
+      bounty: this.bounty,
+    });
 
     // Check existing submission for this period
     const existingSubmission = this.submissions.find(
@@ -278,11 +269,6 @@ export class BountySubmissionHandler {
         });
       }
     }
-
-    throwIfPartnerCannotAccessBounty({
-      programEnrollment: this.programEnrollment,
-      bounty: this.bounty,
-    });
 
     const now = new Date();
 

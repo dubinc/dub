@@ -6,7 +6,7 @@ import { nanoid, R2_URL } from "@dub/utils";
 import { ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerCannotAccessBounty,
+  throwIfPartnerCannotSubmitBounty,
 } from "./bounty-eligibility";
 import { getBountyOrThrow } from "./get-bounty-or-throw";
 
@@ -48,8 +48,7 @@ export async function getBountySubmissionUploadUrl({
   contentLength,
   programEnrollment,
 }: GetBountySubmissionUploadUrlParams) {
-  const { programId, partnerId, groupId, programPartnerTags } =
-    programEnrollment;
+  const { programId, partnerId } = programEnrollment;
 
   if (!fileName.trim()) {
     throw new DubApiError({
@@ -96,7 +95,7 @@ export async function getBountySubmissionUploadUrl({
     },
   });
 
-  throwIfPartnerCannotAccessBounty({
+  throwIfPartnerCannotSubmitBounty({
     programEnrollment,
     bounty,
   });

@@ -7,9 +7,9 @@ import {
   ProgramEnrollment,
   ProgramPartnerTag,
 } from "@prisma/client";
-import { getEffectiveBountyDateRange } from "../bounty-timing";
+import { getEffectiveBountyDateRange, isBountyExpired } from "../bounty-timing";
 
-type ThrowIfPartnerCannotAccessBountyParams = {
+type PartnerBountyEligibilityParams = {
   programEnrollment: Pick<
     ProgramEnrollment,
     "groupId" | "createdAt" | "groupJoinedAt" | "status"
@@ -109,21 +109,14 @@ export function isPartnerEligibleForBounty({
   return Boolean(inGroup && hasTag);
 }
 
-export function throwIfPartnerCannotAccessBounty({
+export function throwIfPartnerCannotViewBounty({
   programEnrollment,
   bounty,
-}: ThrowIfPartnerCannotAccessBountyParams) {
+}: PartnerBountyEligibilityParams) {
   if (!["approved", "invited"].includes(programEnrollment.status)) {
     throw new DubApiError({
       code: "bad_request",
       message: "You are not allowed to submit a bounty for this program.",
-    });
-  }
-
-  if (bounty.archivedAt) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "This bounty is not available.",
     });
   }
 
@@ -147,6 +140,23 @@ export function throwIfPartnerCannotAccessBounty({
         "This bounty is not available to you. Please contact program support if you believe this is an error.",
     });
   }
+}
+
+export function throwIfPartnerCannotSubmitBounty({
+  programEnrollment,
+  bounty,
+}: PartnerBountyEligibilityParams) {
+  throwIfPartnerCannotViewBounty({
+    programEnrollment,
+    bounty,
+  });
+
+  if (bounty.archivedAt) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "This bounty is not available.",
+    });
+  }
 
   const { startsAt, endsAt } = getEffectiveBountyDateRange({
     programEnrollment,
@@ -160,7 +170,7 @@ export function throwIfPartnerCannotAccessBounty({
     });
   }
 
-  if (endsAt && endsAt < new Date()) {
+  if (isBountyExpired(endsAt)) {
     throw new DubApiError({
       code: "bad_request",
       message: "This bounty has ended.",

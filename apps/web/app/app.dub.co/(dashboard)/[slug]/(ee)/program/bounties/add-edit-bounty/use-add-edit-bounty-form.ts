@@ -2,7 +2,10 @@
 
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
-import { resolveBountyTiming } from "@/lib/bounty/bounty-timing";
+import {
+  getBountyFormEffectiveEndsAt,
+  resolveBountyTiming,
+} from "@/lib/bounty/bounty-timing";
 import {
   BOUNTY_DESCRIPTION_MAX_LENGTH,
   BOUNTY_MAX_SUBMISSIONS,
@@ -54,7 +57,9 @@ export function useAddEditBountyForm({
     endPreset: "never",
   });
 
-  const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
+  const [hasEndDate, setHasEndDate] = useState(
+    !!bounty?.endsAt || !!bounty?.endDurationDays,
+  );
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
   const [allowedSubmissions, setAllowedSubmissions] = useState<number>(
     bounty?.maxSubmissions ?? 1,
@@ -202,7 +207,10 @@ export function useAddEditBountyForm({
         shouldValidate: true,
       });
 
-      setHasEndDate(Boolean(nextEndsAt));
+      setHasEndDate(
+        Boolean(nextEndsAt) ||
+          (nextStartMode === "relative" && Boolean(nextEndDurationDays)),
+      );
 
       if (!nextEndsAt) {
         setSubmissionWindow(null);
@@ -292,11 +300,21 @@ export function useAddEditBountyForm({
     }
   };
 
+  const effectiveEndsAt = useMemo(
+    () =>
+      getBountyFormEffectiveEndsAt({
+        startsAt: startsAt ? new Date(startsAt) : new Date(),
+        endsAt: endsAt ? new Date(endsAt) : null,
+        endDurationDays: endDurationDays ?? null,
+      }),
+    [startsAt, endsAt, endDurationDays],
+  );
+
   const maxAllowedSubmissions = useMemo(() => {
-    if (!submissionFrequency || !endsAt) return BOUNTY_MAX_SUBMISSIONS;
+    if (!submissionFrequency || !effectiveEndsAt) return BOUNTY_MAX_SUBMISSIONS;
 
     const start = startsAt ? new Date(startsAt) : new Date();
-    const end = new Date(endsAt);
+    const end = effectiveEndsAt;
 
     let count = 0;
     for (let i = 0; i < BOUNTY_MAX_SUBMISSIONS; i++) {
@@ -310,7 +328,7 @@ export function useAddEditBountyForm({
     }
 
     return count;
-  }, [submissionFrequency, startsAt, endsAt]);
+  }, [submissionFrequency, startsAt, effectiveEndsAt]);
 
   useEffect(() => {
     if (allowedSubmissions > maxAllowedSubmissions) {
@@ -574,7 +592,7 @@ export function useAddEditBountyForm({
                   })
                 : name || "New bounty",
             startsAt: startsAt || new Date(),
-            endsAt: endsAt || null,
+            endsAt: effectiveEndsAt,
             rewardAmount: rewardAmount ? rewardAmount * 100 : null,
             rewardDescription: rewardDescription || null,
             submissionRequirements: submissionRequirements ?? null,

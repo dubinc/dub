@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerCannotAccessBounty,
+  throwIfPartnerCannotSubmitBounty,
 } from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
@@ -40,7 +40,7 @@ export const GET = withReferralsEmbedToken(
       },
     });
 
-    throwIfPartnerCannotAccessBounty({
+    throwIfPartnerCannotSubmitBounty({
       programEnrollment,
       bounty,
     });
