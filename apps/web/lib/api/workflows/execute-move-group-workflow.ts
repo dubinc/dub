@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
+import {
+  WorkflowConditionAttribute,
+  WorkflowContextExtended,
+} from "@/lib/types";
 import { redis } from "@/lib/upstash/redis";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@prisma/client";
@@ -12,7 +15,7 @@ export const executeMoveGroupWorkflow = async ({
   context,
 }: {
   workflow: Workflow;
-  context: WorkflowContext;
+  context: WorkflowContextExtended;
 }) => {
   const { conditions, action } = parseWorkflowConfig(workflow);
 
@@ -23,8 +26,10 @@ export const executeMoveGroupWorkflow = async ({
     return;
   }
 
-  const { identity, metrics } = context;
-  const { workspaceId, programId, partnerId, groupId } = identity;
+  const { identity, metrics, programEnrollment } = context;
+  const { workspaceId } = identity;
+  const { programId, partnerId, groupId, groupMoveDisabledAt } =
+    programEnrollment;
 
   if (!groupId) {
     console.error("Partner groupId not set in the context. Skipping..");
@@ -34,20 +39,20 @@ export const executeMoveGroupWorkflow = async ({
   const { groupId: newGroupId } = action.data;
 
   // Fetch program enrollment to get fresh groupId
-  const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
-    where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
+  const programEnrollmentRefreshed =
+    await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId,
+        },
       },
-    },
-    select: {
-      groupId: true,
-      groupMoveDisabledAt: true,
-    },
-  });
+      select: {
+        groupId: true,
+      },
+    });
 
-  if (programEnrollment.groupId === newGroupId) {
+  if (programEnrollmentRefreshed.groupId === newGroupId) {
     console.log(
       `Partner ${partnerId} is already in target group ${newGroupId}. Skipping..`,
     );
@@ -55,7 +60,7 @@ export const executeMoveGroupWorkflow = async ({
   }
 
   // If the partner has group move rules disabled, skip the workflow
-  if (programEnrollment.groupMoveDisabledAt) {
+  if (groupMoveDisabledAt) {
     console.log(
       `Partner ${partnerId} has group move rules disabled. Skipping..`,
     );

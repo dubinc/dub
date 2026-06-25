@@ -271,8 +271,7 @@ export const PATCH = withWorkspace(
           }),
         },
         include: {
-          groups: true,
-          partnerTags: true,
+          ...bountyEligibilityIncludes,
           workflow: true,
         },
       });

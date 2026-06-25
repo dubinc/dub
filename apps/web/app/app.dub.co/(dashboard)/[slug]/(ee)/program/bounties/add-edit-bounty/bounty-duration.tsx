@@ -387,7 +387,7 @@ export function BountyDuration({
     <div>
       <div className="flex items-center gap-2.5 rounded-lg border border-neutral-200 bg-white px-3 py-2.5">
         <CalendarIcon className="size-4 shrink-0 text-neutral-500" />
-        <span className="text-content-default text-sm leading-relaxed">
+        <span className="text-sm font-medium leading-relaxed text-neutral-800">
           Starts{" "}
           <span className="inline-flex items-center gap-0.5">
             <InlineBadgePopover text={startLabel} buttonClassName="mx-0.5">
@@ -465,9 +465,7 @@ export function BountyDuration({
               />
             )}
           </span>
-          {endSuffix && (
-            <span className="text-content-subtle"> {endSuffix}</span>
-          )}
+          {endSuffix && <span> {endSuffix}</span>}
         </span>
       </div>
     </div>

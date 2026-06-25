@@ -1,10 +1,13 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import {
   bountyEligibilityIncludes,
-  isPartnerEligibleForBounty,
+  canPartnerSubmitBounty,
 } from "@/lib/bounty/api/bounty-eligibility";
 import { prisma } from "@/lib/prisma";
-import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
+import {
+  WorkflowConditionAttribute,
+  WorkflowContextExtended,
+} from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail, sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
@@ -32,7 +35,7 @@ export const executeCompleteBountyWorkflow = async ({
   context,
 }: {
   workflow: Workflow;
-  context: WorkflowContext;
+  context: WorkflowContextExtended;
 }) => {
   const { condition, action } = parseWorkflowConfig(workflow);
 
@@ -41,9 +44,9 @@ export const executeCompleteBountyWorkflow = async ({
   }
 
   const { bountyId } = action.data;
-  const { identity, metrics } = context;
-  const { partnerId, groupId, partnerTagIds, customerId, customerFirstSaleAt } =
-    identity;
+  const { identity, metrics, programEnrollment } = context;
+  const { customerId, customerFirstSaleAt } = identity;
+  const { programId, partnerId, groupId } = programEnrollment;
 
   if (!groupId) {
     console.error("Partner groupId not set in the context.");
@@ -93,45 +96,20 @@ export const executeCompleteBountyWorkflow = async ({
     return;
   }
 
-  const now = new Date();
-
-  // Check if bounty is active
-  if (
-    (bounty.startsAt && bounty.startsAt > now) ||
-    (bounty.endsAt && bounty.endsAt < now) ||
-    bounty.archivedAt
-  ) {
-    console.log(`Bounty ${bounty.id} is no longer active.`);
-    return;
-  }
-
-  const { submissions } = bounty;
-
-  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
-  const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
-
-  const isEligible = isPartnerEligibleForBounty({
-    bountyGroupIds,
-    bountyTagIds,
-    partnerGroupId: groupId,
-    partnerTagIds,
+  const canSubmitBounty = canPartnerSubmitBounty({
+    programEnrollment,
+    bounty,
   });
 
-  if (!isEligible) {
+  if (!canSubmitBounty) {
     console.log(
-      `Partner ${partnerId} is not eligible for bounty ${bounty.id} because they are not in any of the assigned groups or partner tags.`,
-      {
-        bountyGroupIds,
-        bountyTagIds,
-        partnerGroupId: groupId,
-        partnerTagIds,
-      },
+      `Partner ${partnerId} is not eligible to submit bounty ${bounty.id}.`,
     );
     return;
   }
 
-  if (submissions.length > 0) {
-    const submission = submissions[0];
+  if (bounty.submissions.length > 0) {
+    const submission = bounty.submissions[0];
 
     if (submission.status !== "draft") {
       const reason = terminalStatusReason[submission.status];
@@ -183,7 +161,7 @@ export const executeCompleteBountyWorkflow = async ({
     },
     create: {
       id: createId({ prefix: "bnty_sub_" }),
-      programId: bounty.programId,
+      programId,
       partnerId,
       bountyId: bounty.id,
       periodNumber,

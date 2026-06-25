@@ -23,7 +23,9 @@ import {
   PartnerRole,
   PayoutStatus,
   Prisma,
+  ProgramEnrollment,
   ProgramEnrollmentStatus,
+  ProgramPartnerTag,
   Project,
   SubmittedLead,
   User,
@@ -845,8 +847,6 @@ interface WorkflowIdentity {
   workspaceId: string;
   programId: string;
   partnerId: string;
-  groupId?: string;
-  partnerTagIds?: string[];
   customerId?: string;
   customerFirstSaleAt?: Date;
 }
@@ -865,6 +865,21 @@ export interface WorkflowContext {
   metrics?: {
     current?: PartnerMetrics;
     aggregated?: PartnerMetrics;
+  };
+}
+
+export interface WorkflowContextExtended extends WorkflowContext {
+  programEnrollment: Pick<
+    ProgramEnrollment,
+    | "groupJoinedAt"
+    | "createdAt"
+    | "groupId"
+    | "partnerId"
+    | "programId"
+    | "status"
+    | "groupMoveDisabledAt"
+  > & {
+    programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
   };
 }
 

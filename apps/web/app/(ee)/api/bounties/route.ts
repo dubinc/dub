@@ -311,7 +311,14 @@ export const POST = withWorkspace(
     });
 
     const shouldScheduleDraftSubmissions =
-      bounty.type === "performance" && bounty.performanceScope === "lifetime";
+      bounty.type === "performance" &&
+      bounty.performanceScope === "lifetime" &&
+      bounty.startMode !== "relative";
+
+    const shouldSchedulePartnerNotifications =
+      sendNotificationEmails &&
+      canSendEmailCampaigns &&
+      bounty.startMode !== "relative";
 
     waitUntil(
       Promise.allSettled([
@@ -336,8 +343,7 @@ export const POST = withWorkspace(
           data: createdBounty,
         }),
 
-        sendNotificationEmails &&
-          canSendEmailCampaigns &&
+        shouldSchedulePartnerNotifications &&
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
             body: {

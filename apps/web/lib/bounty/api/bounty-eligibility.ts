@@ -18,7 +18,7 @@ type PartnerBountyEligibilityParams = {
   };
   bounty: Pick<
     Bounty,
-    "startsAt" | "endsAt" | "endsAfterDays" | "startMode" | "archivedAt"
+    "startsAt" | "endsAt" | "endsAfterDays" | "startMode" | "archivedAt" | "id"
   > & {
     groups: Pick<BountyGroup, "groupId">[];
     partnerTags: Pick<BountyPartnerTag, "partnerTagId">[];
@@ -140,6 +140,53 @@ export function throwIfPartnerCannotViewBounty({
         "This bounty is not available to you. Please contact program support if you believe this is an error.",
     });
   }
+}
+
+export function canPartnerSubmitBounty({
+  programEnrollment,
+  bounty,
+}: PartnerBountyEligibilityParams): boolean {
+  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
+  const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
+  const partnerTagIds = programEnrollment.programPartnerTags.map(
+    (t) => t.partnerTagId,
+  );
+
+  const isEligible = isPartnerEligibleForBounty({
+    bountyGroupIds,
+    bountyTagIds,
+    partnerGroupId: programEnrollment.groupId,
+    partnerTagIds,
+  });
+
+  if (!isEligible) {
+    console.log(
+      `Partner is not eligible for bounty ${bounty.id} because they are not in any of the assigned groups or partner tags.`,
+    );
+    return false;
+  }
+
+  if (bounty.archivedAt) {
+    console.log(`Bounty ${bounty.id} is archived.`);
+    return false;
+  }
+
+  const { startsAt, endsAt } = getEffectiveBountyDateRange({
+    programEnrollment,
+    bounty,
+  });
+
+  if (startsAt > new Date()) {
+    console.log(`Bounty ${bounty.id} has not started yet.`);
+    return false;
+  }
+
+  if (isBountyExpired(endsAt)) {
+    console.log(`Bounty ${bounty.id} has ended.`);
+    return false;
+  }
+
+  return true;
 }
 
 export function throwIfPartnerCannotSubmitBounty({

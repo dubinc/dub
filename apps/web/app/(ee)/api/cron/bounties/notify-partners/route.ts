@@ -70,6 +70,12 @@ export async function POST(req: Request) {
       });
     }
 
+    if (bounty.startMode === "relative") {
+      return logAndRespond(
+        `Bounty ${bountyId} has dynamic start date, skipping...`,
+      );
+    }
+
     const diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
 
     if (diffMinutes >= 10) {
