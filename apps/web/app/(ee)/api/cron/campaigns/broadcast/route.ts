@@ -156,14 +156,20 @@ export async function POST(req: Request) {
       },
       select: {
         id: true,
-        partnerGroup: { select: { linkStructure: true } },
+        partnerGroup: {
+          select: {
+            linkStructure: true,
+          },
+        },
         links: {
           select: {
             shortLink: true,
             key: true,
             url: true,
           },
-          orderBy: { id: "asc" },
+          orderBy: {
+            id: "asc",
+          },
         },
         partner: {
           select: {
