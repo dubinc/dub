@@ -249,6 +249,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                     </div>
 
                     <BountyDuration
+                      isEditing={!!bounty}
                       value={{
                         startMode: startMode ?? "absolute",
                         startsAt: startsAt ? new Date(startsAt) : new Date(),
