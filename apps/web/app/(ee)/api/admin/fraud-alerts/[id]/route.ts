@@ -24,13 +24,8 @@ export const PATCH = withAdmin(
       where: {
         id,
       },
-      include: {
-        programEnrollment: {
-          select: {
-            bannedAt: true,
-            bannedReason: true,
-          },
-        },
+      select: {
+        partnerId: true,
       },
     });
 
@@ -73,6 +68,7 @@ export const PATCH = withAdmin(
       },
       select: {
         id: true,
+        createdAt: true,
         programEnrollment: {
           select: {
             programId: true,
@@ -105,12 +101,12 @@ export const PATCH = withAdmin(
 
     waitUntil(
       Promise.allSettled(
-        pendingFraudAlerts.map(({ programEnrollment }) =>
+        pendingFraudAlerts.map(({ programEnrollment, createdAt }) =>
           reportCrossProgramBanToNetwork({
             partnerId: programEnrollment.partnerId,
             programId: programEnrollment.programId,
-            bannedReason: programEnrollment.bannedReason,
-            bannedAt: programEnrollment.bannedAt,
+            bannedReason: programEnrollment.bannedReason ?? "fraud",
+            bannedAt: programEnrollment.bannedAt ?? createdAt,
           }),
         ),
       ),
