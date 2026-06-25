@@ -75,6 +75,11 @@ export const PATCH = withAdmin(
             partnerId: true,
             bannedReason: true,
             bannedAt: true,
+            application: {
+              select: {
+                reviewedAt: true,
+              },
+            },
           },
         },
       },
@@ -106,7 +111,10 @@ export const PATCH = withAdmin(
             partnerId: programEnrollment.partnerId,
             programId: programEnrollment.programId,
             bannedReason: programEnrollment.bannedReason ?? "fraud",
-            bannedAt: programEnrollment.bannedAt ?? createdAt,
+            bannedAt:
+              programEnrollment.bannedAt ??
+              programEnrollment.application?.reviewedAt ??
+              createdAt,
           }),
         ),
       ),
