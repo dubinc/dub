@@ -82,7 +82,6 @@ function ProgramMarketplaceLogoSprite({
   );
 }
 
-// Framer, Perplexity, Wispr Flow
 const VIEW_ALL_CLUSTER = {
   originLeft: 138.29,
   originTop: 56,
@@ -90,6 +89,7 @@ const VIEW_ALL_CLUSTER = {
   height: 120.75,
 } as const;
 
+// Wispr Flow, Granola, Framer
 const VIEW_ALL_LOGOS = [
   {
     index: 10,
@@ -102,7 +102,7 @@ const VIEW_ALL_LOGOS = [
     hoverClassName: "group-hover:-translate-y-1",
   },
   {
-    index: 0,
+    index: 11,
     left: 204.32 - VIEW_ALL_CLUSTER.originLeft,
     top: 74.82 - VIEW_ALL_CLUSTER.originTop,
     size: 71,
