@@ -216,6 +216,10 @@ export const DomainStatusSchema = z.object({
     .boolean()
     .nullable()
     .describe("Whether the domain is a premium domain."),
+  priceCents: z
+    .number()
+    .nullable()
+    .describe("The registration price in cents for premium domains."),
 });
 
 export const RegisterDomainSchema = z.object({

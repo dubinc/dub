@@ -23,7 +23,7 @@ export function RenewDomain() {
             );
             if (!confirmed) return;
 
-            const res = await fetch("/api/admin/renew-domain", {
+            const res = await fetch("/api/admin/domains/renew", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -91,24 +91,36 @@ const Form = () => {
   const { pending } = useFormStatus();
 
   return (
-    <div className="relative flex w-full rounded-md shadow-sm">
-      <input
-        name="domain"
-        id="renew-domain"
-        type="text"
-        required
-        disabled={pending}
-        autoComplete="off"
-        className={cn(
-          "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-          pending && "bg-neutral-100",
+    <div className="flex flex-col gap-3">
+      <div className="relative flex w-full rounded-md shadow-sm">
+        <input
+          name="domain"
+          id="renew-domain"
+          type="text"
+          required
+          disabled={pending}
+          autoComplete="off"
+          className={cn(
+            "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+            pending && "bg-neutral-100",
+          )}
+          placeholder="acme.link"
+          aria-invalid="true"
+        />
+        {pending && (
+          <LoadingSpinner className="absolute inset-y-0 right-2 my-auto h-full w-5 text-neutral-400" />
         )}
-        placeholder="acme.link"
-        aria-invalid="true"
-      />
-      {pending && (
-        <LoadingSpinner className="absolute inset-y-0 right-2 my-auto h-full w-5 text-neutral-400" />
-      )}
+      </div>
+      <button
+        type="submit"
+        disabled={pending}
+        className={cn(
+          "rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 focus:outline-none",
+          pending && "opacity-50",
+        )}
+      >
+        {pending ? "Renewing…" : "Renew domain"}
+      </button>
     </div>
   );
 };

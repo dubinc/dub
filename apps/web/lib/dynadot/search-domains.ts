@@ -2,6 +2,10 @@ import * as z from "zod/v4";
 import { DubApiError } from "../api/errors";
 import { DomainStatusSchema } from "../zod/schemas/domains";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
+import {
+  calculatePremiumDomainPriceCents,
+  parseDynadotRegistrationPriceUsd,
+} from "./premium-domain-price";
 
 const schema = z.object({
   SearchResponse: z.object({
@@ -56,13 +60,20 @@ export const searchDomainsAvailability = async ({
   }
 
   const result = data.SearchResponse.SearchResults.map((result) => {
-    const premium = result.Price && /is\s+a Premium Domain/.test(result.Price);
+    const premium = Boolean(
+      result.Price && /is\s+a Premium Domain/.test(result.Price),
+    );
+    const registrationPriceUsd = parseDynadotRegistrationPriceUsd(result.Price);
 
     return {
       domain: result.DomainName,
-      available: result.Available === "yes" && !premium,
+      available: result.Available === "yes",
       price: result.Price,
       premium,
+      priceCents:
+        premium && registrationPriceUsd
+          ? calculatePremiumDomainPriceCents(registrationPriceUsd)
+          : null,
     };
   });
 
