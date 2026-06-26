@@ -61,7 +61,6 @@ import {
 import { MessageAttachmentSchema, MessageSchema } from "./messages/schemas";
 import { POSTBACK_TRIGGERS } from "./postback/constants";
 import { postbackEventInputSchemaTB, postbackSchema } from "./postback/schemas";
-import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   activityLogActionSchema,
   activityLogResourceTypeSchema,
@@ -468,8 +467,6 @@ export type InstalledIntegrationInfoProps = Pick<
   settings?: Prisma.JsonValue;
   webhookId?: string; // Only if the webhook is managed by an integration
 };
-
-export type WebhookTrigger = keyof typeof WEBHOOK_TRIGGER_DESCRIPTIONS;
 
 export type WebhookProps = z.infer<typeof WebhookSchema>;
 

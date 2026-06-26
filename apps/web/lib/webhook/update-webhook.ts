@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { webhookCache } from "./cache";
 
-// Based on the webhook count, we toggle the webhook status for the workspace
-export const toggleWebhooksForWorkspace = async ({
+// Synchronize the workspace's webhook status with its active webhooks.
+export const syncWorkspaceWebhookStatus = async ({
   workspaceId,
 }: {
   workspaceId: string;
@@ -43,6 +43,7 @@ export const propagateWebhookTriggerChanges = async ({
     select: {
       id: true,
       triggers: true,
+      linkScope: true,
       url: true,
       secret: true,
       disabledAt: true,
@@ -54,29 +55,29 @@ export const propagateWebhookTriggerChanges = async ({
     },
   });
 
-  // Make the webhook a link-level
-  // If it has links + doesn't have link.clicked trigger
-  const linkLevelWebhooks = webhooks.filter(
+  // Promote to "links" scope: a webhook that now has links but isn't a link.clicked webhook yet
+  const promotedWebhooks = webhooks.filter(
     (webhook) =>
       webhook._count.links > 0 &&
       !(webhook.triggers as string[])?.includes("link.clicked"),
   );
 
-  // Add link.clicked trigger to the webhook and cache it
-  if (linkLevelWebhooks.length > 0) {
-    const toUpdate = linkLevelWebhooks.map((webhook) => ({
+  // Add the link.clicked trigger + links scope to the webhook and cache it
+  if (promotedWebhooks.length > 0) {
+    const toUpdate = promotedWebhooks.map((webhook) => ({
       ...webhook,
       triggers: [...(webhook.triggers as string[]), "link.clicked"],
     }));
 
     await Promise.all([
-      ...linkLevelWebhooks.map((webhook) =>
+      ...promotedWebhooks.map((webhook) =>
         prisma.webhook.update({
           where: {
             id: webhook.id,
           },
           data: {
             triggers: [...(webhook.triggers as string[]), "link.clicked"],
+            linkScope: "links",
           },
         }),
       ),
@@ -85,30 +86,33 @@ export const propagateWebhookTriggerChanges = async ({
     ]);
   }
 
-  // Check if there are any webhooks downgraded to workspace level
-  // If so, remove link.clicked trigger and remove it from the cache
-  const workspaceLevelWebhooks = webhooks.filter(
+  // Demote to workspace level: a "links" scope webhook that no longer has any links.
+  // "all" / "folders" scope webhooks intentionally have no links, so they're never demoted.
+  const demotedWebhooks = webhooks.filter(
     (webhook) =>
       webhook._count.links === 0 &&
+      webhook.linkScope !== "all" &&
+      webhook.linkScope !== "folders" &&
       (webhook.triggers as string[])?.includes("link.clicked"),
   );
 
-  if (workspaceLevelWebhooks.length > 0) {
+  if (demotedWebhooks.length > 0) {
     await Promise.all([
-      ...workspaceLevelWebhooks.map((webhook) =>
+      ...demotedWebhooks.map((webhook) =>
         prisma.webhook.update({
           where: {
             id: webhook.id,
           },
           data: {
-            triggers: (webhook.triggers as string[]) || [],
+            triggers: (webhook.triggers as string[]).filter(
+              (trigger) => trigger !== "link.clicked",
+            ),
+            linkScope: null,
           },
         }),
       ),
 
-      webhookCache.deleteMany(
-        workspaceLevelWebhooks.map((webhook) => webhook.id),
-      ),
+      webhookCache.deleteMany(demotedWebhooks.map((webhook) => webhook.id)),
     ]);
   }
 };

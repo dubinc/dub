@@ -1,9 +1,6 @@
 import { createId } from "@/lib/api/create-id";
-import { linkCache } from "@/lib/api/links/cache";
 import { prisma } from "@/lib/prisma";
-import { webhookCache } from "@/lib/webhook/cache";
 import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
-import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { Project, WebhookReceiver } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -15,7 +12,9 @@ export async function createWebhook({
   url,
   secret,
   triggers,
+  scope,
   linkIds,
+  folderIds,
   workspace,
   receiver,
   installationId,
@@ -23,6 +22,7 @@ export async function createWebhook({
   workspace: Pick<Project, "id" | "plan">;
   receiver: WebhookReceiver;
   installationId?: string;
+  secret?: string;
 }) {
   // Webhooks are only supported on Business plans and above
   if (["free", "pro"].includes(workspace.plan)) {
@@ -39,26 +39,27 @@ export async function createWebhook({
       installationId,
       projectId: workspace.id,
       secret: secret || createWebhookSecret(),
-      links: {
-        ...(linkIds &&
-          linkIds.length > 0 && {
-            create: linkIds.map((linkId) => ({
-              linkId,
-            })),
-          }),
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-      url: true,
-      secret: true,
-      triggers: true,
-      links: true,
-      disabledAt: true,
-      installationId: true,
+      scope,
     },
   });
+
+  if (scope === "links" && linkIds && linkIds.length > 0) {
+    await prisma.linkWebhook.createMany({
+      data: linkIds.map((linkId) => ({
+        linkId,
+        webhookId: webhook.id,
+      })),
+    });
+  }
+
+  if (scope === "folders" && folderIds && folderIds.length > 0) {
+    await prisma.folderWebhook.createMany({
+      data: folderIds.map((folderId) => ({
+        folderId,
+        webhookId: webhook.id,
+      })),
+    });
+  }
 
   await prisma.project.update({
     where: {
@@ -71,34 +72,7 @@ export async function createWebhook({
 
   waitUntil(
     (async () => {
-      const links = await prisma.link.findMany({
-        where: {
-          id: { in: linkIds },
-          projectId: workspace.id,
-        },
-        include: {
-          webhooks: {
-            select: {
-              webhookId: true,
-            },
-          },
-        },
-      });
-
-      const formatedLinks = links.map((link) => {
-        return {
-          ...link,
-          webhookIds: link.webhooks.map((webhook) => webhook.webhookId),
-        };
-      });
-
-      Promise.all([
-        ...(links && links.length > 0
-          ? [linkCache.mset(formatedLinks), []]
-          : []),
-
-        ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
-      ]);
+      //
     })(),
   );
 

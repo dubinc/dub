@@ -1,13 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
-import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { webhookCache } from "@/lib/webhook/cache";
-import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
-import { isLinkLevelWebhook } from "@/lib/webhook/utils";
+import { LINK_CLICK_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
+import { syncWorkspaceWebhookStatus } from "@/lib/webhook/update-webhook";
 import { validateWebhook } from "@/lib/webhook/validate-webhook";
 import { updateWebhookSchema, WebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { arrayEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -20,15 +19,6 @@ export const GET = withWorkspace(
       where: {
         id: webhookId,
         projectId: workspace.id,
-      },
-      select: {
-        id: true,
-        name: true,
-        url: true,
-        secret: true,
-        triggers: true,
-        disabledAt: true,
-        installationId: true,
       },
     });
 
@@ -59,9 +49,13 @@ export const PATCH = withWorkspace(
         id: webhookId,
         projectId: workspace.id,
       },
+      include: {
+        links: true,
+        folders: true,
+      },
     });
 
-    const { name, url, triggers, linkIds } = input;
+    const { name, url, triggers, scope, linkIds, folderIds } = input;
 
     // If the webhook is managed by an integration, only the linkIds & triggers can be updated manually.
     if (existingWebhook.installationId && (name || url)) {
@@ -79,115 +73,79 @@ export const PATCH = withWorkspace(
       user: session.user,
     });
 
-    const oldLinks = await prisma.linkWebhook.findMany({
-      where: {
-        webhookId,
-      },
-      select: {
-        linkId: true,
-      },
-    });
+    const hasLinkClicked =
+      triggers?.includes(LINK_CLICK_WEBHOOK_TRIGGER) ?? false;
+    const newScope = hasLinkClicked ? scope ?? null : null;
+    const existingLinkIds = existingWebhook.links.map((link) => link.linkId);
+    const existingFolderIds = existingWebhook.folders.map(
+      (folder) => folder.folderId,
+    );
 
-    const webhook = await prisma.webhook.update({
-      where: {
-        id: webhookId,
-        projectId: workspace.id,
-      },
-      data: {
-        ...(name && { name }),
-        ...(url && { url }),
-        ...(triggers && { triggers }),
-        ...(linkIds && {
-          links: {
-            deleteMany: {},
-            create: linkIds.map((linkId) => ({
-              linkId,
-            })),
-          },
-        }),
-      },
-      select: {
-        id: true,
-        name: true,
-        url: true,
-        secret: true,
-        triggers: true,
-        disabledAt: true,
-        installationId: true,
-        links: {
-          select: {
-            linkId: true,
-          },
+    const scopeChanged =
+      (triggers !== undefined || scope !== undefined) &&
+      newScope !== existingWebhook.scope;
+
+    const shouldSyncLinks =
+      (newScope !== "links" && existingLinkIds.length > 0) ||
+      (newScope === "links" &&
+        linkIds !== undefined &&
+        !arrayEqual(existingLinkIds, linkIds ?? []));
+
+    const shouldSyncFolders =
+      (newScope !== "folders" && existingFolderIds.length > 0) ||
+      (newScope === "folders" &&
+        folderIds !== undefined &&
+        !arrayEqual(existingFolderIds, folderIds ?? []));
+
+    const webhook = await prisma.$transaction(async (tx) => {
+      const updatedWebhook = await tx.webhook.update({
+        where: {
+          id: webhookId,
         },
-      },
-    });
+        data: {
+          ...(name !== undefined && { name }),
+          ...(url !== undefined && { url }),
+          ...(triggers !== undefined && { triggers }),
+          ...(scopeChanged && { scope: newScope }),
+        },
+      });
 
-    waitUntil(
-      (async () => {
-        // If the webhook is being changed from link level to workspace level, delete the cache
-        if (
-          isLinkLevelWebhook(existingWebhook) &&
-          !isLinkLevelWebhook(webhook)
-        ) {
-          await webhookCache.delete(webhookId);
-
-          const links = await prisma.link.findMany({
-            where: {
-              id: { in: oldLinks.map(({ linkId }) => linkId) },
-            },
-            include: {
-              webhooks: {
-                select: {
-                  webhookId: true,
-                },
-              },
-            },
-          });
-
-          await linkCache.mset(links);
-        }
-
-        // If the webhook is being changed from workspace level to link level, set the cache
-        else if (isLinkLevelWebhook(webhook)) {
-          await webhookCache.set(webhook);
-        }
-
-        const newLinkIds = webhook.links.map(({ linkId }) => linkId);
-        const oldLinkIds = oldLinks.map(({ linkId }) => linkId);
-
-        if (!newLinkIds.length && !oldLinkIds.length) {
-          return;
-        }
-
-        const linksAdded = newLinkIds.filter(
-          (linkId) => !oldLinkIds.includes(linkId),
-        );
-
-        const linksRemoved = oldLinkIds.filter(
-          (linkId) => !newLinkIds.includes(linkId),
-        );
-
-        // No changes in the links
-        if (!linksAdded.length && !linksRemoved.length) {
-          return;
-        }
-
-        const links = await prisma.link.findMany({
+      if (shouldSyncLinks) {
+        await tx.linkWebhook.deleteMany({
           where: {
-            id: { in: [...linksAdded, ...linksRemoved] },
-          },
-          include: {
-            webhooks: {
-              select: {
-                webhookId: true,
-              },
-            },
+            webhookId: webhookId,
           },
         });
 
-        await linkCache.mset(links);
-      })(),
-    );
+        if (newScope === "links" && linkIds?.length) {
+          await tx.linkWebhook.createMany({
+            data: linkIds.map((linkId) => ({
+              linkId,
+              webhookId,
+            })),
+          });
+        }
+      }
+
+      if (shouldSyncFolders) {
+        await tx.folderWebhook.deleteMany({
+          where: {
+            webhookId,
+          },
+        });
+
+        if (newScope === "folders" && folderIds?.length) {
+          await tx.folderWebhook.createMany({
+            data: folderIds.map((folderId) => ({
+              folderId,
+              webhookId,
+            })),
+          });
+        }
+      }
+
+      return updatedWebhook;
+    });
 
     return NextResponse.json(WebhookSchema.parse(webhook));
   },
@@ -216,15 +174,6 @@ export const DELETE = withWorkspace(
       },
     });
 
-    const linkWebhooks = await prisma.linkWebhook.findMany({
-      where: {
-        webhookId,
-      },
-      select: {
-        linkId: true,
-      },
-    });
-
     await prisma.webhook.delete({
       where: {
         id: webhookId,
@@ -232,28 +181,9 @@ export const DELETE = withWorkspace(
     });
 
     waitUntil(
-      (async () => {
-        const links = await prisma.link.findMany({
-          where: {
-            id: { in: linkWebhooks.map(({ linkId }) => linkId) },
-          },
-          include: {
-            webhooks: {
-              select: {
-                webhookId: true,
-              },
-            },
-          },
-        });
-
-        await Promise.all([
-          toggleWebhooksForWorkspace({
-            workspaceId: workspace.id,
-          }),
-          linkCache.mset(links),
-          webhookCache.delete(webhookId),
-        ]);
-      })(),
+      syncWorkspaceWebhookStatus({
+        workspaceId: workspace.id,
+      }),
     );
 
     return NextResponse.json({

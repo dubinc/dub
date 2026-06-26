@@ -1,3 +1,5 @@
+import { WebhookScope } from "@prisma/client";
+
 export const WEBHOOK_SECRET_LENGTH = 16;
 
 export const WEBHOOK_ID_PREFIX = "wh_";
@@ -23,7 +25,38 @@ export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
   "payout.confirmed",
 ] as const;
 
+export const LINK_CLICK_WEBHOOK_TRIGGER = "link.clicked" as const;
+
 export const LINK_LEVEL_WEBHOOK_TRIGGERS = ["link.clicked"] as const;
+
+export const WEBHOOK_SCOPE_DESCRIPTIONS: Record<WebhookScope, string> = {
+  all: "All links",
+  folders: "Specific folders",
+  links: "Specific links",
+} as const;
+
+export const WEBHOOK_SCOPE_OPTIONS = [
+  {
+    value: "all",
+    label: "All links",
+    description: "Trigger webhooks for all links in your workspace",
+  },
+  {
+    value: "folders",
+    label: "Include all links in a folder",
+    description: "Trigger webhooks for all links from a selected folder",
+  },
+  {
+    value: "links",
+    label: "Include specific links",
+    description:
+      "Trigger webhooks for the links you explicitly select (linkIds)",
+  },
+] as const satisfies ReadonlyArray<{
+  value: WebhookScope;
+  label: string;
+  description: string;
+}>;
 
 export const WEBHOOK_TRIGGERS = [
   ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
@@ -31,10 +64,9 @@ export const WEBHOOK_TRIGGERS = [
   ...LINK_LEVEL_WEBHOOK_TRIGGERS,
 ] as const;
 
-export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<
-  (typeof WEBHOOK_TRIGGERS)[number],
-  string
-> = {
+export type WebhookTrigger = (typeof WEBHOOK_TRIGGERS)[number];
+
+export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
   "link.created": "Link created",
   "link.updated": "Link updated",
   "link.deleted": "Link deleted",
