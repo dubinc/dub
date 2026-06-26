@@ -1,17 +1,19 @@
 import { reportCrossProgramBanToNetwork } from "@/lib/api/fraud/report-cross-program-ban-to-network";
 import { prisma } from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { FraudAlertSource, Prisma } from "@prisma/client";
 
 export async function confirmPartnerFraudAlerts({
   partnerId,
   reviewedById,
   reviewNote,
   skipCrossProgramReporting = false,
+  source,
 }: {
   partnerId: string;
   reviewedById: string;
   reviewNote?: string;
   skipCrossProgramReporting?: boolean;
+  source?: FraudAlertSource;
 }) {
   const reviewedAt = new Date();
   const reviewData: Prisma.FraudAlertUpdateManyArgs["data"] = {
@@ -24,6 +26,7 @@ export async function confirmPartnerFraudAlerts({
     where: {
       partnerId,
       status: "pending",
+      ...(source ? { source } : {}),
     },
     select: {
       id: true,

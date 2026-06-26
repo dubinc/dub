@@ -74,6 +74,7 @@ export const POST = withAdmin(
       reviewedById: session.user.id,
       reviewNote,
       skipCrossProgramReporting: true,
+      source: "admin",
     });
 
     if (confirmedCount === 0) {
