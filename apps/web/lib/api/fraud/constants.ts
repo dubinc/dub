@@ -40,9 +40,9 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
   // Partner rules
   {
     type: "partnerCrossProgramBan",
-    name: "Cross-program ban",
+    name: "Network-level ban",
     description:
-      "This partner was banned from another program on Dub. Our team reviewed this decision and confirmed the fraudulent behavior or terms of service violation.",
+      "This partner was banned at the network level on Dub. Our team reviewed this decision and confirmed the fraudulent behavior or terms of service violation.",
     scope: "partner",
     severity: "high",
     configurable: true,

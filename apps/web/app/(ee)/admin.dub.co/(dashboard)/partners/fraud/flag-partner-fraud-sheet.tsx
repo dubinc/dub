@@ -121,7 +121,7 @@ function FlagPartnerFraudSheetContent({
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Confirm fraud",
     description:
-      "This will confirm fraud for this partner and alert their enrolled programs through the cross-program ban risk rule. This action cannot be undone.",
+      "This will confirm fraud for this partner and alert their enrolled programs through the network-level ban risk rule. This action cannot be undone.",
     confirmText: "Confirm Fraud",
     confirmVariant: "danger",
     onConfirm: handleFlag,
