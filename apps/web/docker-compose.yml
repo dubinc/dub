@@ -15,7 +15,7 @@ services:
         "--default-authentication-plugin=mysql_native_password",
       ]
     ports:
-      - 3306:3306
+      - 3307:3306
     volumes:
       - ps-mysql:/var/lib/mysql
 
