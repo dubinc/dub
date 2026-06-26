@@ -47,11 +47,13 @@ function formatConditionContent(
 }
 
 export function ProgramEligibilityCard({
+  programSlug,
   requirements: requirementsProp,
 }: {
+  programSlug?: string;
   requirements?: EligibilityConditionDB[] | null;
 } = {}) {
-  const { programEnrollment } = useProgramEnrollment();
+  const { programEnrollment } = useProgramEnrollment({ programSlug });
   const { partner, loading } = usePartnerProfile();
 
   const requirements =

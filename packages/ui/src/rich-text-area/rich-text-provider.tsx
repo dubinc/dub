@@ -17,6 +17,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { configureCampaignEditorImage } from "./campaign-editor-image";
 import { suggestions } from "./variables";
 
 export const PROSE_STYLES = {
@@ -36,10 +37,18 @@ const FEATURES = [
   "strike",
 ] as const;
 
+export const DEFAULT_RICH_TEXT_FEATURES = FEATURES;
+
+const OPTIONAL_FEATURES = ["imageControls"] as const;
+
+export type RichTextFeature =
+  | (typeof FEATURES)[number]
+  | (typeof OPTIONAL_FEATURES)[number];
+
 type RichTextProviderProps = PropsWithChildren<{
   placeholder?: string;
   initialValue?: any;
-  features?: (typeof FEATURES)[number][];
+  features?: RichTextFeature[];
   markdown?: boolean;
   style?: keyof typeof PROSE_STYLES;
   onChange?: (editor: Editor) => void;
@@ -157,12 +166,24 @@ export const RichTextProvider = forwardRef<
         // Images
         ...(features.includes("images") && handleImageUpload
           ? [
-              Image.configure({
-                inline: false,
-                HTMLAttributes: {
-                  class: "rounded-lg max-w-full h-auto",
-                },
-              }),
+              ...(features.includes("imageControls")
+                ? [
+                    configureCampaignEditorImage({
+                      inline: false,
+                      imageAltControls: true,
+                      HTMLAttributes: {
+                        class: "rounded-lg max-w-full h-auto",
+                      },
+                    }),
+                  ]
+                : [
+                    Image.configure({
+                      inline: false,
+                      HTMLAttributes: {
+                        class: "rounded-lg max-w-full h-auto",
+                      },
+                    }),
+                  ]),
               FileHandler.configure({
                 allowedMimeTypes: [
                   "image/png",
@@ -242,6 +263,7 @@ export const RichTextProvider = forwardRef<
             "prose prose-sm prose-neutral",
             PROSE_STYLES[style],
             "[&_.ProseMirror-selectednode]:outline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-blue-500 [&_.ProseMirror-selectednode]:outline-offset-2",
+            "[&_.ProseMirror-selectednode:has(img)]:outline-none",
             editorClassName,
           ),
         },

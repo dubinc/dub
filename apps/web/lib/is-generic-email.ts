@@ -54,6 +54,7 @@ const GENERIC_EMAIL_DOMAINS = [
   "kw.com",
   "bluewin.ch",
   "web-library.net",
+  "8shield.net",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [
