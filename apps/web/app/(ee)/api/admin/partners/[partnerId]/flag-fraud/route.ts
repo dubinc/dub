@@ -49,14 +49,25 @@ export const POST = withAdmin(
     const anchorProgramId =
       networkEnrollment?.programId ?? activeEnrollments[0].programId;
 
-    await prisma.fraudAlert.create({
-      data: {
+    const pendingAdminAlert = await prisma.fraudAlert.findFirst({
+      where: {
         partnerId,
-        programId: anchorProgramId,
-        reason,
         source: "admin",
+        status: "pending",
       },
+      select: { id: true },
     });
+
+    if (!pendingAdminAlert) {
+      await prisma.fraudAlert.create({
+        data: {
+          partnerId,
+          programId: anchorProgramId,
+          reason,
+          source: "admin",
+        },
+      });
+    }
 
     const { confirmedCount } = await confirmPartnerFraudAlerts({
       partnerId,
@@ -69,14 +80,21 @@ export const POST = withAdmin(
       return new Response("Failed to confirm fraud alert.", { status: 500 });
     }
 
-    const alertedProgramsCount = await reportAdminFraudToPrograms({
-      partnerId,
-    });
+    try {
+      const alertedProgramsCount = await reportAdminFraudToPrograms({
+        partnerId,
+      });
 
-    return NextResponse.json({
-      success: true,
-      alertedProgramsCount,
-    });
+      return NextResponse.json({
+        success: true,
+        alertedProgramsCount,
+      });
+    } catch {
+      return new Response(
+        "Fraud alert was confirmed but alerting enrolled programs failed. Please try again.",
+        { status: 500 },
+      );
+    }
   },
   {
     requiredRoles: ["owner"],

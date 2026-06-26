@@ -25,11 +25,18 @@ export const PATCH = withAdmin(
       },
       select: {
         partnerId: true,
+        status: true,
       },
     });
 
     if (!fraudAlert) {
       return new Response("Fraud alert not found.", { status: 404 });
+    }
+
+    if (newStatus === "confirmed" && fraudAlert.status !== "pending") {
+      return new Response("Fraud alert has already been reviewed.", {
+        status: 409,
+      });
     }
 
     const reviewData: Prisma.FraudAlertUpdateManyArgs["data"] = {

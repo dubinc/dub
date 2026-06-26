@@ -47,7 +47,7 @@ export async function confirmPartnerFraudAlerts({
     return { confirmedCount: 0, alertedProgramsCount: 0 };
   }
 
-  await prisma.fraudAlert.updateMany({
+  const { count: confirmedCount } = await prisma.fraudAlert.updateMany({
     where: {
       id: {
         in: pendingFraudAlerts.map((fa) => fa.id),
@@ -60,15 +60,44 @@ export async function confirmPartnerFraudAlerts({
     },
   });
 
+  if (confirmedCount === 0) {
+    return { confirmedCount: 0, alertedProgramsCount: 0 };
+  }
+
   if (skipCrossProgramReporting) {
     return {
-      confirmedCount: pendingFraudAlerts.length,
+      confirmedCount,
       alertedProgramsCount: 0,
     };
   }
 
-  const alertCounts = await Promise.all(
-    pendingFraudAlerts.map(({ programEnrollment, createdAt }) =>
+  const confirmedFraudAlerts = await prisma.fraudAlert.findMany({
+    where: {
+      id: { in: pendingFraudAlerts.map((fa) => fa.id) },
+      status: "confirmed",
+      reviewedById,
+    },
+    select: {
+      id: true,
+      createdAt: true,
+      programEnrollment: {
+        select: {
+          programId: true,
+          partnerId: true,
+          bannedReason: true,
+          bannedAt: true,
+          application: {
+            select: {
+              reviewedAt: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const alertResults = await Promise.allSettled(
+    confirmedFraudAlerts.map(({ programEnrollment, createdAt }) =>
       reportCrossProgramBanToNetwork({
         partnerId: programEnrollment.partnerId,
         programId: programEnrollment.programId,
@@ -81,8 +110,21 @@ export async function confirmPartnerFraudAlerts({
     ),
   );
 
+  const failedReports = alertResults.filter(
+    (result) => result.status === "rejected",
+  );
+  if (failedReports.length > 0) {
+    console.error(
+      "[confirmPartnerFraudAlerts] Failed to report cross-program bans",
+      failedReports,
+    );
+  }
+
   return {
-    confirmedCount: pendingFraudAlerts.length,
-    alertedProgramsCount: alertCounts.reduce((sum, count) => sum + count, 0),
+    confirmedCount,
+    alertedProgramsCount: alertResults.reduce(
+      (sum, result) => sum + (result.status === "fulfilled" ? result.value : 0),
+      0,
+    ),
   };
 }

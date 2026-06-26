@@ -15,6 +15,9 @@ export async function reportAdminFraudToPrograms({
   let affectedProgramEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId,
+      programId: {
+        not: NETWORK_PROGRAM_ID,
+      },
       status: {
         notIn: INACTIVE_ENROLLMENT_STATUSES,
       },
