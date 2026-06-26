@@ -51,7 +51,7 @@ export async function finalizePremiumDomainRegistration({
   const domainStatus = searchResults[0];
 
   const [response, totalDomains, matchingUnverifiedDomain] = await Promise.all([
-    registerDomain({ domain }),
+    registerDomain({ domain, premium: true }),
     prisma.domain.count({
       where: {
         projectId: workspace.id,

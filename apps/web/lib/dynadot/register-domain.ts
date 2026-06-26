@@ -28,7 +28,13 @@ const ERROR_CODES = {
   system_busy: "System is busy. Please try again.",
 };
 
-export const registerDomain = async ({ domain }: { domain: string }) => {
+export const registerDomain = async ({
+  domain,
+  premium,
+}: {
+  domain: string;
+  premium?: boolean;
+}) => {
   // mock response for development
   if (process.env.NODE_ENV === "development") {
     return RegisterDomainSchema.parse({
@@ -43,6 +49,7 @@ export const registerDomain = async ({ domain }: { domain: string }) => {
     command: "register",
     duration: "1",
     currency: "USD",
+    ...(premium ? { premium: "1" } : {}),
     coupon: DYNADOT_COUPON,
     key: DYNADOT_API_KEY,
   });
