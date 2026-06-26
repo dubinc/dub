@@ -7,6 +7,7 @@ import * as z from "zod/v4";
 const schema = z.object({
   domain: z
     .string()
+    .trim()
     .min(1)
     .endsWith(".link")
     .transform((domain) => domain.toLowerCase())

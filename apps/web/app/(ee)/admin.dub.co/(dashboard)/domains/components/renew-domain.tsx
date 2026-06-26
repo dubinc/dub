@@ -116,7 +116,6 @@ const Form = ({
             pending && "bg-neutral-100",
           )}
           placeholder="acme.link"
-          aria-invalid="true"
         />
         {pending && (
           <LoadingSpinner className="absolute inset-y-0 right-2 my-auto h-full w-5 text-neutral-400" />

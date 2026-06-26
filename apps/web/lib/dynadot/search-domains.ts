@@ -60,6 +60,7 @@ export const searchDomainsAvailability = async ({
   }
 
   const result = data.SearchResponse.SearchResults.map((result) => {
+    const available = result.Available === "yes";
     const premium = Boolean(
       result.Price && /is\s+a Premium Domain/.test(result.Price),
     );
@@ -70,9 +71,9 @@ export const searchDomainsAvailability = async ({
 
     return {
       domain: result.DomainName,
-      available: result.Available === "yes",
+      available,
       premium,
-      prices: result.Available
+      prices: available
         ? {
             registration: premium ? registrationPriceUsdCents : 0,
             renewal: renewalPriceUsdCents,
