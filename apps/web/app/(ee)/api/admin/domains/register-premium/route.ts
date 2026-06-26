@@ -63,14 +63,14 @@ export const POST = withAdmin(async ({ req }) => {
     if (status === "succeeded") {
       return NextResponse.json({
         success: true,
-        message: `Charge succeeded (${currencyFormatter(response.priceCents)}). Domain registration will finalize via Stripe webhook.`,
+        message: `Charge succeeded (${currencyFormatter(response.registrationPriceCents)}). Domain registration will finalize via Stripe webhook.`,
         ...response,
       });
     }
 
     return NextResponse.json({
       success: true,
-      message: `Payment initiated (${currencyFormatter(response.priceCents)}). Domain registration will finalize via Stripe webhook once payment succeeds.`,
+      message: `Payment initiated (${currencyFormatter(response.registrationPriceCents)}). Domain registration will finalize via Stripe webhook once payment succeeds.`,
       ...response,
     });
   } catch (error) {

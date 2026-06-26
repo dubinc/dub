@@ -14,9 +14,9 @@ export async function getDomainSearchAvailability(domain: string) {
       {
         domain: domainOnDub.slug,
         available: false,
-        price: null,
         premium: false,
-        priceCents: null,
+        prices: null,
+        price: null,
       },
     ];
   }

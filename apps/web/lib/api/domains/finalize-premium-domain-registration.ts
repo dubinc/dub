@@ -1,8 +1,4 @@
 import { createLink } from "@/lib/api/links";
-import {
-  calculatePremiumDomainPriceCents,
-  parseDynadotRenewalPriceUsd,
-} from "@/lib/dynadot/premium-domain-price";
 import { registerDomain } from "@/lib/dynadot/register-domain";
 import { searchDomainsAvailability } from "@/lib/dynadot/search-domains";
 import { prisma } from "@/lib/prisma";
@@ -53,10 +49,6 @@ export async function finalizePremiumDomainRegistration({
     domains: { domain0: domain },
   });
   const domainStatus = searchResults[0];
-  const renewalPriceUsd = parseDynadotRenewalPriceUsd(domainStatus?.price);
-  const renewalFeeCents = renewalPriceUsd
-    ? calculatePremiumDomainPriceCents(renewalPriceUsd)
-    : 1200;
 
   const [response, totalDomains, matchingUnverifiedDomain] = await Promise.all([
     registerDomain({ domain }),
@@ -95,7 +87,7 @@ export async function finalizePremiumDomainRegistration({
             slug: domain,
             expiresAt: new Date(response.expiration || ""),
             projectId: workspace.id,
-            renewalFee: renewalFeeCents,
+            renewalFee: domainStatus.prices?.renewal ?? 1200,
           },
         },
       },

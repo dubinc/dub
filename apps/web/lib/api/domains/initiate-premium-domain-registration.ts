@@ -71,14 +71,14 @@ export async function initiatePremiumDomainRegistration({
     });
   }
 
-  if (!domainStatus.premium || domainStatus.priceCents == null) {
+  if (!domainStatus.premium || !domainStatus.prices?.registration) {
     throw new DubApiError({
       code: "bad_request",
       message: `Domain "${domain}" is not a premium domain.`,
     });
   }
 
-  const priceCents = domainStatus.priceCents;
+  const registrationPriceCents = domainStatus.prices.registration;
 
   const outcome = await prisma.$transaction(async (tx) => {
     const pendingInvoices = await tx.invoice.findMany({
@@ -114,13 +114,13 @@ export async function initiatePremiumDomainRegistration({
         workspaceId: workspace.id,
         number: invoiceNumber,
         type: "domainRenewal",
-        amount: priceCents,
-        total: priceCents,
+        amount: registrationPriceCents,
+        total: registrationPriceCents,
         registeredDomains: [domain],
       },
     });
 
-    return { ok: true as const, invoice, priceCents };
+    return { ok: true as const, invoice, registrationPriceCents };
   });
 
   if (!outcome.ok) {
@@ -135,7 +135,7 @@ export async function initiatePremiumDomainRegistration({
 
   const { paymentIntent } = await createPaymentIntent({
     stripeId: workspace.stripeId,
-    amount: priceCents,
+    amount: registrationPriceCents,
     invoiceId: invoice.id,
     statementDescriptor: "DUB.CO DOMAIN REG",
     description: `Premium domain registration (${domain})`,
@@ -160,6 +160,6 @@ export async function initiatePremiumDomainRegistration({
   return {
     invoiceId: invoice.id,
     paymentIntentStatus: paymentIntent.status,
-    priceCents,
+    registrationPriceCents,
   };
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { normalizeDomainInput } from "@/lib/api/domains/normalize-domain-input";
-import { LoadingSpinner } from "@dub/ui";
+import { Button, LoadingSpinner } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import { useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
@@ -13,7 +13,10 @@ interface DomainSearchResult {
   available: boolean;
   price: string | null;
   premium: boolean;
-  priceCents: number | null;
+  prices: {
+    registration: number | null;
+    renewal: number | null;
+  } | null;
 }
 
 function toLinkDomain(input: string) {
@@ -24,6 +27,7 @@ function toLinkDomain(input: string) {
 
 export function RegisterPremiumDomain() {
   const [domain, setDomain] = useState("");
+  const [workspaceSlug, setWorkspaceSlug] = useState("");
   const [debouncedDomain] = useDebounce(domain, 500);
   const [isSearching, setIsSearching] = useState(false);
   const [searchResult, setSearchResult] = useState<DomainSearchResult | null>(
@@ -91,8 +95,8 @@ export function RegisterPremiumDomain() {
               return;
             }
 
-            const priceLabel = searchResult.priceCents
-              ? currencyFormatter(searchResult.priceCents, {
+            const priceLabel = searchResult.prices?.registration
+              ? currencyFormatter(searchResult.prices.registration, {
                   trailingZeroDisplay: "stripIfInteger",
                 })
               : "the listed price";
@@ -164,6 +168,8 @@ export function RegisterPremiumDomain() {
         <Form
           domain={domain}
           setDomain={setDomain}
+          workspaceSlug={workspaceSlug}
+          setWorkspaceSlug={setWorkspaceSlug}
           isSearching={isSearching}
           searchResult={searchResult}
         />
@@ -175,11 +181,15 @@ export function RegisterPremiumDomain() {
 const Form = ({
   domain,
   setDomain,
+  workspaceSlug,
+  setWorkspaceSlug,
   isSearching,
   searchResult,
 }: {
   domain: string;
   setDomain: (domain: string) => void;
+  workspaceSlug: string;
+  setWorkspaceSlug: (workspaceSlug: string) => void;
   isSearching: boolean;
   searchResult: DomainSearchResult | null;
 }) => {
@@ -209,48 +219,50 @@ const Form = ({
             <LoadingSpinner className="absolute inset-y-0 right-2 my-auto h-full w-5 text-neutral-400" />
           )}
         </div>
-        {linkDomain && (
+        {(isSearching || searchResult) && (
           <p className="mt-2 text-sm text-neutral-600">
             {isSearching ? (
               <>Checking availability for {linkDomain}...</>
             ) : searchResult ? (
-              searchResult.premium && searchResult.available ? (
-                <>
-                  <span className="font-medium text-neutral-800">
-                    {searchResult.domain}
-                  </span>{" "}
-                  is available as a premium domain for{" "}
-                  <span className="font-medium text-neutral-800">
-                    {searchResult.priceCents
-                      ? currencyFormatter(searchResult.priceCents, {
+              <>
+                <span className="font-medium text-neutral-800">
+                  {searchResult.domain}
+                </span>{" "}
+                is{" "}
+                {searchResult.available ? (
+                  <>
+                    available{" "}
+                    {searchResult.premium ? "as a premium domain " : ""}for{" "}
+                    {typeof searchResult.prices?.registration === "number" ? (
+                      <span className="font-medium text-neutral-800">
+                        {currencyFormatter(searchResult.prices.registration, {
                           trailingZeroDisplay: "stripIfInteger",
-                        })
-                      : "—"}
-                  </span>
-                  .
-                </>
-              ) : searchResult.premium ? (
-                <>
-                  <span className="font-medium text-neutral-800">
-                    {searchResult.domain}
-                  </span>{" "}
-                  is a premium domain but is not available for registration.
-                </>
-              ) : searchResult.available ? (
-                <>
-                  <span className="font-medium text-neutral-800">
-                    {searchResult.domain}
-                  </span>{" "}
-                  is available but is not a premium domain.
-                </>
-              ) : (
-                <>
-                  <span className="font-medium text-neutral-800">
-                    {searchResult.domain}
-                  </span>{" "}
-                  is not available.
-                </>
-              )
+                        })}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                    {typeof searchResult.prices?.renewal === "number" ? (
+                      <>
+                        {" "}
+                        (renews at{" "}
+                        <span className="font-medium text-neutral-800">
+                          {currencyFormatter(searchResult.prices.renewal, {
+                            trailingZeroDisplay: "stripIfInteger",
+                          })}
+                          /year
+                        </span>
+                        )
+                      </>
+                    ) : (
+                      "—"
+                    )}
+                  </>
+                ) : (
+                  "not available"
+                )}
+                .
+              </>
             ) : null}
           </p>
         )}
@@ -263,6 +275,8 @@ const Form = ({
           required
           disabled={pending}
           autoComplete="off"
+          value={workspaceSlug}
+          onChange={(e) => setWorkspaceSlug(e.target.value)}
           className={cn(
             "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
             pending && "bg-neutral-100",
@@ -270,33 +284,31 @@ const Form = ({
           placeholder="workspace-slug"
         />
       </div>
-      <button
+      <Button
         type="submit"
+        variant="primary"
+        className="h-9 w-full"
+        loading={pending}
         disabled={
-          pending ||
           isSearching ||
+          !domain.trim() ||
+          !workspaceSlug.trim() ||
           !searchResult?.premium ||
           !searchResult?.available
         }
-        className={cn(
-          "rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 focus:outline-none",
-          (pending ||
-            isSearching ||
-            !searchResult?.premium ||
-            !searchResult?.available) &&
-            "opacity-50",
-        )}
-      >
-        {pending
-          ? "Registering…"
-          : searchResult?.premium &&
-              searchResult.available &&
-              searchResult.priceCents
-            ? `Register for ${currencyFormatter(searchResult.priceCents, {
-                trailingZeroDisplay: "stripIfInteger",
-              })}`
-            : "Register domain"}
-      </button>
+        text={
+          searchResult?.premium &&
+          searchResult.available &&
+          searchResult.prices?.registration
+            ? `Register for ${currencyFormatter(
+                searchResult.prices.registration,
+                {
+                  trailingZeroDisplay: "stripIfInteger",
+                },
+              )}`
+            : "Register domain"
+        }
+      />
     </div>
   );
 };

@@ -1,11 +1,14 @@
 "use client";
 
-import { LoadingSpinner } from "@dub/ui";
+import { Button, LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
 export function RenewDomain() {
+  const [domain, setDomain] = useState("");
+
   return (
     <div className="flex flex-col space-y-5">
       <form
@@ -81,13 +84,19 @@ export function RenewDomain() {
           }
         }}
       >
-        <Form />
+        <Form domain={domain} setDomain={setDomain} />
       </form>
     </div>
   );
 }
 
-const Form = () => {
+const Form = ({
+  domain,
+  setDomain,
+}: {
+  domain: string;
+  setDomain: (domain: string) => void;
+}) => {
   const { pending } = useFormStatus();
 
   return (
@@ -100,6 +109,8 @@ const Form = () => {
           required
           disabled={pending}
           autoComplete="off"
+          value={domain}
+          onChange={(e) => setDomain(e.target.value)}
           className={cn(
             "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
             pending && "bg-neutral-100",
@@ -111,16 +122,14 @@ const Form = () => {
           <LoadingSpinner className="absolute inset-y-0 right-2 my-auto h-full w-5 text-neutral-400" />
         )}
       </div>
-      <button
+      <Button
         type="submit"
-        disabled={pending}
-        className={cn(
-          "rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 focus:outline-none",
-          pending && "opacity-50",
-        )}
-      >
-        {pending ? "Renewing…" : "Renew domain"}
-      </button>
+        variant="primary"
+        className="h-9 w-full"
+        loading={pending}
+        disabled={pending || !domain.trim()}
+        text="Renew domain"
+      />
     </div>
   );
 };
