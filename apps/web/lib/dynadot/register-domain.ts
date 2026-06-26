@@ -49,8 +49,7 @@ export const registerDomain = async ({
     command: "register",
     duration: "1",
     currency: "USD",
-    ...(premium ? { premium: "1" } : {}),
-    coupon: DYNADOT_COUPON,
+    ...(premium ? { premium: "1" } : { coupon: DYNADOT_COUPON }),
     key: DYNADOT_API_KEY,
   });
 
