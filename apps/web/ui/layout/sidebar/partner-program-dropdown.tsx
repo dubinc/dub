@@ -50,7 +50,7 @@ export function PartnerProgramDropdown() {
   }
 
   return (
-    <div>
+    <div className="mb-3">
       <Popover
         content={
           <div className="w-full sm:w-64">

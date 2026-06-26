@@ -8,7 +8,7 @@ export const MARKETPLACE_HOME_CATEGORIES = [
   Category.Marketing,
   Category.Finance,
   Category.Development,
-  Category.Productivity,
+  Category.Support,
   Category.Design,
   Category.Ecommerce,
   Category.Consumer,

@@ -134,20 +134,24 @@ const PROGRAMS_CONTENT = ({
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
   programs: ({ invitationsCount }) => ({
-    showNews: true,
-    direction: "left",
+    title: <PartnerProgramDropdown />,
     content: PROGRAMS_CONTENT({ invitationsCount }),
+    direction: "left",
+    showNews: true,
   }),
 
   marketplace: ({ isMobile, invitationsCount }) => ({
+    title: <PartnerProgramDropdown />,
+    content: isMobile ? (
+      PROGRAMS_CONTENT({ invitationsCount })
+    ) : (
+      <MarketplaceSidebarFilters />
+    ),
     direction: "right",
-    content: isMobile ? PROGRAMS_CONTENT({ invitationsCount }) : [],
-    panel: isMobile ? undefined : <MarketplaceSidebarFilters />,
   }),
 
   profile: ({ postbacksEnabled }) => ({
     title: "Partner profile",
-    direction: "left",
     content: [
       {
         items: [
@@ -189,6 +193,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         ],
       },
     ],
+    direction: "left",
   }),
 
   program: ({
@@ -199,11 +204,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     showDetailedAnalytics,
     hasReferralReward,
   }) => ({
-    title: (
-      <div className="my-3">
-        <PartnerProgramDropdown />
-      </div>
-    ),
+    title: <PartnerProgramDropdown />,
     content: [
       {
         items: [
@@ -412,13 +413,6 @@ export function PartnersSidebarNav({
       groups={NAV_GROUPS}
       areas={NAV_AREAS}
       currentArea={currentArea}
-      persistentAreaHeader={
-        currentArea === "programs" || currentArea === "marketplace" ? (
-          <div className="mb-3">
-            <PartnerProgramDropdown />
-          </div>
-        ) : undefined
-      }
       data={{
         pathname,
         queryString: getQueryString(),

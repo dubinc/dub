@@ -39,6 +39,7 @@ export function MarketplaceSidebarFilters() {
         activeFilters={activeFilters}
         onSelect={onSelect}
         onRemove={onRemove}
+        optionClassName="hover:bg-neutral-200/50 active:bg-neutral-200/80"
       />
     </div>
   );

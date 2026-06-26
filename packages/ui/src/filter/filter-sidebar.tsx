@@ -8,8 +8,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../accordion";
-import { LoadingSpinner } from "../icons";
-import { FilterOptionRow } from "./filter-option-row";
+import { FilterOptionRow, FilterOptionRowsSkeleton } from "./filter-option-row";
 import {
   ActiveFilterInput,
   Filter,
@@ -23,6 +22,7 @@ type FilterSidebarProps = {
   onSelect: (key: string, value: FilterOption["value"]) => void;
   onRemove: (key: string, value: FilterOption["value"]) => void;
   className?: string;
+  optionClassName?: string;
   defaultOpen?: string[];
 };
 
@@ -32,6 +32,7 @@ export function FilterSidebar({
   onSelect,
   onRemove,
   className,
+  optionClassName,
   defaultOpen,
 }: FilterSidebarProps) {
   const visibleFilters = useMemo(
@@ -103,9 +104,7 @@ export function FilterSidebar({
           </AccordionTrigger>
           <AccordionContent className="pb-2 pt-0">
             {filter.options === null ? (
-              <div className="flex items-center justify-center py-4">
-                <LoadingSpinner />
-              </div>
+              <FilterOptionRowsSkeleton />
             ) : filter.options.length === 0 ? (
               <p className="px-2 py-2 text-sm text-neutral-400">No options</p>
             ) : (
@@ -117,6 +116,7 @@ export function FilterSidebar({
                     option={option}
                     checked={isOptionSelected(filter.key, option.value)}
                     onToggle={() => toggleOption(filter, option.value)}
+                    className={optionClassName}
                   />
                 ))}
               </div>

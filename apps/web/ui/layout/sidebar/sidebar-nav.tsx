@@ -11,13 +11,14 @@ import {
   useScrollProgress,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ComponentType,
   CSSProperties,
+  isValidElement,
   PropsWithChildren,
   ReactNode,
   Suspense,
@@ -34,9 +35,6 @@ export type NavItemCommon = {
   isActive?: (pathname: string, href: string) => boolean;
   badge?: ReactNode;
   arrow?: boolean;
-  chevronRight?: boolean;
-  showChevronRight?: boolean;
-  onChevronClick?: () => void;
   locked?: boolean;
 };
 
@@ -57,7 +55,6 @@ export type NavGroupType = {
     referenceElement: HTMLElement | null;
   }>;
   badge?: ReactNode;
-
   description: string;
   learnMoreHref?: string;
 };
@@ -74,12 +71,13 @@ export type SidebarNavAreas<T extends Record<any, any>> = Record<
     showNews?: boolean; // show news segment – TODO: enable this for Partner Program too
     hideSwitcherIcons?: boolean; // hide workspace switcher + product icons for this area
     direction?: "left" | "right";
-    panel?: ReactNode; // custom panel content (replaces nav items when set)
-    footer?: ReactNode; // area footer content (animates with the area body)
-    content: {
-      name?: string;
-      items: NavItemType[];
-    }[];
+    // can either be a list of items, or a ReactNode
+    content:
+      | {
+          name?: string;
+          items: NavItemType[];
+        }[]
+      | ReactNode;
   }
 >;
 
@@ -96,7 +94,6 @@ export function SidebarNav<T extends Record<any, any>>({
   newsContent,
   switcher,
   bottom,
-  persistentAreaHeader,
 }: {
   groups: SidebarNavGroups<T>;
   areas: SidebarNavAreas<T>;
@@ -106,7 +103,6 @@ export function SidebarNav<T extends Record<any, any>>({
   newsContent?: ReactNode;
   switcher?: ReactNode;
   bottom?: ReactNode;
-  persistentAreaHeader?: ReactNode;
 }) {
   return (
     <div
@@ -134,7 +130,7 @@ export function SidebarNav<T extends Record<any, any>>({
                 </Link>
               </div>
               {(!currentArea ||
-                !areas[currentArea]?.(data)?.hideSwitcherIcons) && (
+                !areas[currentArea](data).hideSwitcherIcons) && (
                 <div className="flex flex-col gap-3">
                   {switcher}
                   {groups(data).map((group) => (
@@ -162,7 +158,6 @@ export function SidebarNav<T extends Record<any, any>>({
               currentArea={currentArea}
               newsContent={newsContent}
               bottom={bottom}
-              persistentAreaHeader={persistentAreaHeader}
             />
           </div>
         </nav>
@@ -177,146 +172,105 @@ function SidebarAreasPanel<T extends Record<any, any>>({
   currentArea,
   newsContent,
   bottom,
-  persistentAreaHeader,
 }: {
   areas: SidebarNavAreas<T>;
   data: T;
   currentArea: string | null;
   newsContent?: ReactNode;
   bottom?: ReactNode;
-  persistentAreaHeader?: ReactNode;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
-  const currentAreaConfig = useMemo(
-    () => (currentArea ? areas[currentArea]?.(data) : undefined),
-    [currentArea, areas, data],
-  );
-  const showNews = currentAreaConfig?.showNews;
-  const currentAreaHasFooter = Boolean(currentAreaConfig?.footer);
+  const showNews = currentArea && areas[currentArea]?.(data).showNews;
 
   const hasOverflow = useMemo(() => {
-    if (!currentAreaConfig) return false;
-    const { content, panel } = currentAreaConfig;
-    if (panel) return true;
-    const totalItems = content.flatMap((c) => c.items).length;
+    if (!currentArea) return false;
+    const { content } = areas[currentArea](data);
+    const totalItems = Array.isArray(content)
+      ? content.flatMap((c) => c.items).length
+      : 0;
     return totalItems > 10;
-  }, [currentAreaConfig]);
+  }, [currentArea, areas, data]);
 
   return (
     <div className="flex h-full w-[calc(var(--sidebar-areas-width)-0.5rem)] flex-col rounded-xl bg-neutral-100">
-      {persistentAreaHeader && (
-        <div className="shrink-0 px-3 pt-3">{persistentAreaHeader}</div>
-      )}
+      {/* Scrollable content with gradient overlay */}
+      <div className="relative min-h-0 flex-1 overflow-hidden">
+        <div
+          ref={scrollRef}
+          onScroll={updateScrollProgress}
+          className={cn(
+            "scrollbar-hide h-full overflow-x-hidden rounded-xl",
+            hasOverflow ? "overflow-y-auto" : "overflow-hidden",
+          )}
+        >
+          <div className="relative flex flex-col p-3 text-neutral-500">
+            <div className="relative w-full grow">
+              {Object.entries(areas).map(([area, areaConfig]) => {
+                const { title, backHref, content, direction } =
+                  areaConfig(data);
 
-      <div className="flex min-h-0 flex-1 flex-col">
-        {/* Scrollable body with gradient overlay */}
-        <div className="relative min-h-0 flex-1 overflow-hidden">
-          <div
-            ref={scrollRef}
-            onScroll={updateScrollProgress}
-            className={cn(
-              "scrollbar-hide h-full overflow-x-hidden rounded-xl",
-              hasOverflow ? "overflow-y-auto" : "overflow-hidden",
-            )}
-          >
-            <div className="relative px-3 pb-3 text-neutral-500">
-              <div className="relative w-full">
-                {Object.entries(areas).map(([area, areaConfig]) => {
-                  const { title, backHref, content, direction, panel } =
-                    areaConfig(data);
+                const TitleContainer = backHref ? Link : "div";
 
-                  const TitleContainer = backHref ? Link : "div";
-
-                  return (
-                    <Area
-                      key={area}
-                      visible={area === currentArea}
-                      direction={direction ?? "right"}
-                    >
-                      {title &&
-                        (typeof title === "string" ? (
-                          <TitleContainer
-                            href={backHref ?? "#"}
-                            className="group mb-2 flex items-center gap-3 px-3 py-2"
-                          >
-                            {backHref && (
-                              <div
-                                className={cn(
-                                  "text-content-muted bg-bg-emphasis flex size-6 items-center justify-center rounded-lg",
-                                  "group-hover:bg-bg-inverted/10 group-hover:text-content-subtle transition-[transform,background-color,color] duration-150 group-hover:-translate-x-0.5",
-                                )}
-                              >
-                                <ChevronLeft className="size-3 [&_*]:stroke-2" />
+                return (
+                  <Area
+                    key={area}
+                    visible={area === currentArea}
+                    direction={direction ?? "right"}
+                  >
+                    {title &&
+                      (typeof title === "string" ? (
+                        <TitleContainer
+                          href={backHref ?? "#"}
+                          className="group mb-2 flex items-center gap-3 px-3 py-2"
+                        >
+                          {backHref && (
+                            <div
+                              className={cn(
+                                "text-content-muted bg-bg-emphasis flex size-6 items-center justify-center rounded-lg",
+                                "group-hover:bg-bg-inverted/10 group-hover:text-content-subtle transition-[transform,background-color,color] duration-150 group-hover:-translate-x-0.5",
+                              )}
+                            >
+                              <ChevronLeft className="size-3 [&_*]:stroke-2" />
+                            </div>
+                          )}
+                          <span className="text-content-emphasis text-lg font-semibold">
+                            {title}
+                          </span>
+                        </TitleContainer>
+                      ) : (
+                        title
+                      ))}
+                    {isValidElement(content) ? (
+                      content
+                    ) : Array.isArray(content) ? (
+                      <div className="flex flex-col gap-8">
+                        {content.map(({ name, items }, idx) => (
+                          <div key={idx} className="flex flex-col gap-0.5">
+                            {name && (
+                              <div className="mb-2 pl-3 text-sm text-neutral-500">
+                                {name}
                               </div>
                             )}
-                            <span className="text-content-emphasis text-lg font-semibold">
-                              {title}
-                            </span>
-                          </TitleContainer>
-                        ) : (
-                          title
+                            {items.map((item) => (
+                              <NavItem key={item.name} item={item} />
+                            ))}
+                          </div>
                         ))}
-                      {panel ? (
-                        area === currentArea ? (
-                          panel
-                        ) : null
-                      ) : (
-                        <div className="flex flex-col gap-8">
-                          {content.map(({ name, items }, idx) => (
-                            <div key={idx} className="flex flex-col gap-0.5">
-                              {name && (
-                                <div className="mb-2 pl-3 text-sm text-neutral-500">
-                                  {name}
-                                </div>
-                              )}
-                              {items.map((item) => (
-                                <NavItem key={item.name} item={item} />
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </Area>
-                  );
-                })}
-              </div>
+                      </div>
+                    ) : null}
+                  </Area>
+                );
+              })}
             </div>
           </div>
-          {/* Bottom scroll fade - shows when content overflows */}
-          {hasOverflow && (
-            <div
-              className="pointer-events-none absolute bottom-0 left-0 z-10 h-16 w-full rounded-b-lg bg-gradient-to-t from-neutral-100 to-transparent"
-              style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-            />
-          )}
         </div>
-
-        {/* Area footers - pinned below scroll, animate with area transitions */}
-        {Object.entries(areas).some(
-          ([, areaConfig]) => areaConfig(data).footer,
-        ) && (
-          <div className="relative shrink-0 overflow-hidden">
-            {Object.entries(areas).map(([area, areaConfig]) => {
-              const { direction, footer } = areaConfig(data);
-
-              if (!footer) {
-                return null;
-              }
-
-              return (
-                <Area
-                  key={`${area}-footer`}
-                  visible={area === currentArea}
-                  direction={direction ?? "right"}
-                >
-                  {area === currentArea ? (
-                    <div className="flex flex-col gap-2">{footer}</div>
-                  ) : null}
-                </Area>
-              );
-            })}
-          </div>
+        {/* Bottom scroll fade - shows when content overflows */}
+        {hasOverflow && (
+          <div
+            className="pointer-events-none absolute bottom-0 left-0 z-10 h-16 w-full rounded-b-lg bg-gradient-to-t from-neutral-100 to-transparent"
+            style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+          />
         )}
       </div>
 
@@ -334,23 +288,21 @@ function SidebarAreasPanel<T extends Record<any, any>>({
           </div>
         )}
 
-        {!currentAreaHasFooter && (
-          <AnimatePresence>
-            {showNews && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                transition={{
-                  duration: 0.1,
-                  ease: "easeInOut",
-                }}
-              >
-                {newsContent}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        )}
+        <AnimatePresence>
+          {showNews && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{
+                duration: 0.1,
+                ease: "easeInOut",
+              }}
+            >
+              {newsContent}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {bottom && <div className="flex flex-col">{bottom}</div>}
       </div>
@@ -467,17 +419,8 @@ function NavGroupItem({
   );
 }
 
-export function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
-  const {
-    name,
-    href,
-    exact,
-    isActive: customIsActive,
-    locked,
-    chevronRight,
-    showChevronRight,
-    onChevronClick,
-  } = item;
+function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
+  const { name, href, exact, isActive: customIsActive, locked } = item;
 
   const Icon = "icon" in item ? item.icon : undefined;
   const items = "items" in item ? item.items : undefined;
@@ -497,21 +440,11 @@ export function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
       : pathname.startsWith(hrefWithoutQuery);
   }, [pathname, href, exact, customIsActive]);
 
-  const showChevron = Boolean(
-    chevronRight && isActive && (showChevronRight ?? true),
-  );
-
   return (
     <div>
       <Link
-        href={locked || showChevron ? "#" : href}
+        href={locked ? "#" : href}
         data-active={isActive}
-        onClick={(e) => {
-          if (showChevron) {
-            e.preventDefault();
-            onChevronClick?.();
-          }
-        }}
         onPointerEnter={() => !locked && setHovered(true)}
         onPointerLeave={() => !locked && setHovered(false)}
         className={cn(
@@ -559,22 +492,6 @@ export function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
           )}
           {item.arrow && (
             <ArrowUpRight2 className="text-content-default size-3.5 transition-transform duration-75 group-hover:-translate-y-px group-hover:translate-x-px" />
-          )}
-          {chevronRight && (
-            <AnimatePresence initial={false}>
-              {showChevron && (
-                <motion.span
-                  key="chevron-right"
-                  initial={{ opacity: 0, x: -4 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 4 }}
-                  transition={{ duration: 0.2, ease: "easeInOut" }}
-                  className="inline-flex"
-                >
-                  <ChevronRight className="text-content-muted size-3.5 transition-[color,transform] duration-75 group-hover:translate-x-0.5 group-hover:text-blue-600 [&_*]:stroke-2" />
-                </motion.span>
-              )}
-            </AnimatePresence>
           )}
         </span>
       </Link>

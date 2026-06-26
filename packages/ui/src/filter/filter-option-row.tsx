@@ -10,6 +10,7 @@ type FilterOptionRowProps = {
   option: FilterOption;
   checked: boolean;
   onToggle: () => void;
+  className?: string;
 };
 
 export function FilterOptionRow({
@@ -17,6 +18,7 @@ export function FilterOptionRow({
   option,
   checked,
   onToggle,
+  className,
 }: FilterOptionRowProps) {
   const Icon =
     option.icon ??
@@ -34,9 +36,10 @@ export function FilterOptionRow({
       onClick={onToggle}
       className={cn(
         "flex w-full cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-2 py-2 text-left text-xs font-medium text-neutral-600",
-        "transition-colors duration-100 ease-out motion-reduce:transition-none",
-        "hover:bg-neutral-100",
+        "transition-all duration-75",
+        "hover:bg-neutral-100 active:bg-neutral-200",
         "disabled:cursor-not-allowed disabled:opacity-60",
+        className,
       )}
     >
       <div
@@ -63,6 +66,54 @@ export function FilterOptionRow({
         </span>
       )}
     </button>
+  );
+}
+
+const FILTER_OPTION_ROW_SKELETONS = [
+  { showIcon: true, labelWidth: "w-32", showRight: false },
+  { showIcon: false, labelWidth: "w-24", showRight: true },
+  { showIcon: true, labelWidth: "w-20", showRight: false },
+  { showIcon: false, labelWidth: "w-28", showRight: false },
+  { showIcon: false, labelWidth: "w-16", showRight: true },
+] as const;
+
+export function FilterOptionRowsSkeleton({ count = 5 }: { count?: number }) {
+  return (
+    <div
+      className="flex flex-col gap-1"
+      aria-busy="true"
+      aria-label="Loading options"
+    >
+      {FILTER_OPTION_ROW_SKELETONS.slice(0, count).map((row, index) => (
+        <FilterOptionRowSkeleton key={index} {...row} />
+      ))}
+    </div>
+  );
+}
+
+function FilterOptionRowSkeleton({
+  showIcon,
+  labelWidth,
+  showRight,
+}: (typeof FILTER_OPTION_ROW_SKELETONS)[number]) {
+  return (
+    <div
+      className="flex w-full items-center gap-3 rounded-md px-2 py-2"
+      aria-hidden
+    >
+      <div className="h-4 w-4 shrink-0 animate-pulse rounded border border-neutral-200 bg-neutral-200" />
+      {showIcon && (
+        <div className="size-4 shrink-0 animate-pulse rounded bg-neutral-200" />
+      )}
+      <div className="min-w-0 flex-1">
+        <div
+          className={cn("h-3 animate-pulse rounded bg-neutral-200", labelWidth)}
+        />
+      </div>
+      {showRight && (
+        <div className="h-3 w-6 shrink-0 animate-pulse rounded bg-neutral-200" />
+      )}
+    </div>
   );
 }
 
