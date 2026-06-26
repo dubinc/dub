@@ -315,9 +315,7 @@ function ProgramApplicationSheetForm({
           </p>
           <Link
             href={
-              backDestination === "marketplace"
-                ? "/programs/marketplace"
-                : "/programs"
+              backDestination === "marketplace" ? "/marketplace" : "/programs"
             }
             className={cn(
               buttonVariants({ variant: "primary" }),

@@ -50,7 +50,7 @@ export function PartnerProgramDropdown() {
   }
 
   return (
-    <div>
+    <div className="mb-3">
       <Popover
         content={
           <div className="w-full sm:w-64">
@@ -83,11 +83,11 @@ export function PartnerProgramDropdown() {
                 >
                   <GridIcon className="size-5 text-neutral-500 sm:size-4" />
                   <span className="text-content-default block truncate">
-                    All programs
+                    Your programs
                   </span>
                 </Link>
                 <Link
-                  href="/programs/marketplace"
+                  href="/marketplace"
                   className={cn(
                     "flex items-center gap-x-2.5 rounded-md px-2.5 py-2 text-base transition-all duration-75 hover:bg-neutral-200/50 active:bg-neutral-200/80 sm:text-sm",
                     "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
@@ -126,7 +126,7 @@ export function PartnerProgramDropdown() {
               />
             )}
             <div className="text-content-emphasis min-w-0 truncate text-lg font-semibold">
-              {selectedProgram?.name || "All programs"}
+              {selectedProgram?.name || "Your programs"}
             </div>
           </div>
           <ChevronsUpDown
