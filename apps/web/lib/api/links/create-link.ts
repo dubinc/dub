@@ -63,11 +63,11 @@ export async function createLink(link: ProcessedLinkProps) {
         description: truncate(description, 240),
         // if it's an uploaded image, make this null first because we'll update it later
         image: proxy && image && isNotHostedImage(image) ? null : image,
-        utm_source,
-        utm_medium,
-        utm_campaign,
-        utm_term,
-        utm_content,
+        utm_source: truncate(utm_source, 190),
+        utm_medium: truncate(utm_medium, 190),
+        utm_campaign: truncate(utm_campaign, 190),
+        utm_term: truncate(utm_term, 190),
+        utm_content: truncate(utm_content, 190),
         expiresAt: expiresAt ? new Date(expiresAt) : null,
         geo: geo || Prisma.DbNull,
 

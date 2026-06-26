@@ -96,11 +96,11 @@ export async function updateLink({
         proxy && image && isNotHostedImage(image)
           ? `${R2_URL}/images/${id}_${imageUrlNonce}`
           : image,
-      utm_source: utm_source || null,
-      utm_medium: utm_medium || null,
-      utm_campaign: utm_campaign || null,
-      utm_term: utm_term || null,
-      utm_content: utm_content || null,
+      utm_source: truncate(utm_source, 190),
+      utm_medium: truncate(utm_medium, 190),
+      utm_campaign: truncate(utm_campaign, 190),
+      utm_term: truncate(utm_term, 190),
+      utm_content: truncate(utm_content, 190),
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       geo: geo || Prisma.DbNull,
 

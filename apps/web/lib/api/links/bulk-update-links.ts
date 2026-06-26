@@ -39,6 +39,10 @@ export async function bulkUpdateLinks(
 
   const imageUrlNonce = nanoid(7);
 
+  const { utm_source, utm_medium, utm_campaign, utm_term, utm_content } = url
+    ? getParamsFromURL(url)
+    : {};
+
   const updatedLinks = await Promise.all(
     linkIds.map((linkId) =>
       prisma.link.update({
@@ -59,7 +63,13 @@ export async function bulkUpdateLinks(
           geo: geo === null ? Prisma.DbNull : geo,
           testVariants: testVariants === null ? Prisma.DbNull : testVariants,
 
-          ...(url && getParamsFromURL(url)),
+          ...(url && {
+            utm_source: truncate(utm_source, 190),
+            utm_medium: truncate(utm_medium, 190),
+            utm_campaign: truncate(utm_campaign, 190),
+            utm_term: truncate(utm_term, 190),
+            utm_content: truncate(utm_content, 190),
+          }),
           // Associate tags by tagNames
           ...(tagNames &&
             workspaceId && {
