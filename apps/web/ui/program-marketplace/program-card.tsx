@@ -6,7 +6,6 @@ import { ProgramRewardsDisplay } from "@/ui/program-marketplace/program-rewards-
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,
-  getMarketplaceProgramHref,
 } from "@/ui/program-marketplace/utils/urls";
 import { Tooltip } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
@@ -27,7 +26,7 @@ export function MarketplaceProgramCard({
 
   return (
     <Link
-      href={getMarketplaceProgramHref(program.slug)}
+      href={`/marketplace/${program.slug}`}
       className={cn(
         "border-border-subtle hover:drop-shadow-card-hover flex h-full flex-col rounded-xl border bg-white p-4 transition-[filter] sm:p-6",
         className,

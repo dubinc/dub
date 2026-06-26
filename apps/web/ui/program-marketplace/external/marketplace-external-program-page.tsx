@@ -3,10 +3,7 @@ import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { MarketplaceProgramDetailBody } from "@/ui/program-marketplace/marketplace-program-detail-body";
 import { MarketplaceProgramDetailsLayout } from "@/ui/program-marketplace/marketplace-program-details-layout";
 import { MarketplaceProgramHero } from "@/ui/program-marketplace/marketplace-program-hero";
-import {
-  getMarketplaceAllHref,
-  getMarketplaceHref,
-} from "@/ui/program-marketplace/utils/urls";
+import { getMarketplaceAllHref } from "@/ui/program-marketplace/utils/urls";
 import { ChevronLeft } from "@dub/ui";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -23,7 +20,7 @@ export async function MarketplaceExternalProgramPage({
   });
 
   if (!program) {
-    redirect(getMarketplaceHref());
+    redirect("/marketplace");
   }
 
   return (

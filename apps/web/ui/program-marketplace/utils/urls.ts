@@ -34,14 +34,10 @@ function buildMarketplaceHref(
   return `${path}${queryString ? `?${queryString}` : ""}`;
 }
 
-export function getMarketplaceHref() {
-  return MARKETPLACE_BASE;
-}
-
 export function getMarketplaceAllHref(
   params?: Record<string, string | undefined>,
 ) {
-  return buildMarketplaceHref(`${MARKETPLACE_BASE}/all`, params);
+  return buildMarketplaceHref("/marketplace/all", params);
 }
 
 export function getPreservedMarketplaceSearchParams(
@@ -62,25 +58,9 @@ export function getMarketplaceCategoryHref(
   params?: Record<string, string | undefined>,
 ) {
   return buildMarketplaceHref(
-    `${MARKETPLACE_BASE}/c/${category.toLowerCase()}`,
+    `/marketplace/c/${category.toLowerCase()}`,
     params,
   );
-}
-
-export function getMarketplaceProgramHref(programSlug: string) {
-  return `${MARKETPLACE_BASE}/${programSlug}`;
-}
-
-export function getMarketplacePathFromSegments(segments: string[]) {
-  if (segments.length === 0) {
-    return MARKETPLACE_BASE;
-  }
-
-  return `${MARKETPLACE_BASE}/${segments.join("/")}`;
-}
-
-export function getMarketplaceCanonicalUrl(pathname: string) {
-  return `https://dub.co${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
 }
 
 export function getMarketplaceCategoryFromPathname(

@@ -2,7 +2,6 @@
 
 import { NavMobile, Nav as NavUI, Wordmark } from "@dub/ui";
 import Link from "next/link";
-import { getMarketplaceHref } from "../utils/urls";
 
 const DUB_HOME_HREF = "https://dub.co/home";
 
@@ -17,7 +16,7 @@ function MarketplaceLogo() {
       </Link>
       <span className="text-lg font-light text-neutral-300">|</span>
       <Link
-        href={getMarketplaceHref()}
+        href="/marketplace"
         className="text-sm font-medium text-neutral-500 transition-opacity hover:opacity-80"
       >
         Programs

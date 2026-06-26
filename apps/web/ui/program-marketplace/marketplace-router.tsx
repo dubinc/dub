@@ -1,10 +1,7 @@
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import {
-  getMarketplaceHref,
-  slugToCategory,
-} from "@/ui/program-marketplace/utils/urls";
+import { slugToCategory } from "@/ui/program-marketplace/utils/urls";
 import { ChevronRight, Shop } from "@dub/ui";
 import { Category } from "@prisma/client";
 import Link from "next/link";
@@ -23,7 +20,7 @@ function MarketplaceListTitle({ category }: { category?: Category }) {
     <div className="flex items-center gap-1.5">
       <div className="flex items-center gap-1">
         <Link
-          href={getMarketplaceHref()}
+          href="/marketplace"
           aria-label="Back to marketplace"
           className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
         >

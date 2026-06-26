@@ -1,10 +1,6 @@
 import { getNetworkProgram } from "@/lib/fetchers/get-network-program";
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { MarketplaceExternalRouter } from "@/ui/program-marketplace/external/marketplace-external-router";
-import {
-  getMarketplaceCanonicalUrl,
-  getMarketplacePathFromSegments,
-} from "@/ui/program-marketplace/utils/urls";
 import { constructMetadata } from "@dub/utils";
 import { Category } from "@prisma/client";
 import { Metadata } from "next";
@@ -18,7 +14,7 @@ export async function generateMetadata(props: {
   params: Promise<{ segments?: string[] }>;
 }): Promise<Metadata> {
   const { segments = [] } = await props.params;
-  const pathname = getMarketplacePathFromSegments(segments);
+  const pathname = `/marketplace${segments.length > 0 ? `/${segments.join("/")}` : ""}`;
 
   const year = new Date().getFullYear();
 
@@ -64,7 +60,7 @@ export async function generateMetadata(props: {
     title,
     description,
     image,
-    canonicalUrl: getMarketplaceCanonicalUrl(pathname),
+    canonicalUrl: `https://dub.co${pathname.startsWith("/") ? pathname : `/${pathname}`}`,
   });
 }
 

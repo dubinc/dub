@@ -3,7 +3,6 @@
 import { Button } from "@dub/ui";
 import { PARTNERS_DOMAIN } from "@dub/utils";
 import { useSession } from "next-auth/react";
-import { getMarketplaceProgramHref } from "../utils/urls";
 
 export function MarketplaceExternalApplyButton({
   programSlug,
@@ -15,7 +14,7 @@ export function MarketplaceExternalApplyButton({
     <a
       href={
         session
-          ? `${PARTNERS_DOMAIN}/${getMarketplaceProgramHref(programSlug)}`
+          ? `${PARTNERS_DOMAIN}/marketplace/${programSlug}`
           : `${PARTNERS_DOMAIN}/${programSlug}/apply`
       }
       target="_blank"

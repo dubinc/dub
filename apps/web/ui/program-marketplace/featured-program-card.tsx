@@ -7,7 +7,6 @@ import { ProgramRewardsDisplay } from "@/ui/program-marketplace/program-rewards-
 import {
   getMarketplaceAllHref,
   getMarketplaceCategoryHref,
-  getMarketplaceProgramHref,
 } from "@/ui/program-marketplace/utils/urls";
 import { Tooltip } from "@dub/ui";
 import { ArrowUpRight, Link4 } from "@dub/ui/icons";
@@ -65,7 +64,7 @@ export function FeaturedProgramCard({
       />
 
       <Link
-        href={getMarketplaceProgramHref(program.slug)}
+        href={`/marketplace/${program.slug}`}
         className="absolute inset-0 z-10 rounded-2xl"
         aria-label={`View ${program.name}`}
       />
