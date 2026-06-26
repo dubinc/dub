@@ -1,4 +1,5 @@
 import { prismaEdge } from "@/lib/prisma/edge";
+import { DUB_WORKSPACE_ID } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserViaToken } from "./utils/get-user-via-token";
 import { parse } from "./utils/parse";
@@ -15,8 +16,7 @@ export async function AdminMiddleware(req: NextRequest) {
       where: {
         userId_projectId: {
           userId: user.id,
-          projectId: "ws_1KETZ919F83ZJH6A80HWEHW6E",
-          // projectId: DUB_WORKSPACE_ID,
+          projectId: DUB_WORKSPACE_ID,
         },
       },
     });

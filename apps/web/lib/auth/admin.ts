@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getSearchParams } from "@dub/utils";
+import { DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { WorkspaceRole } from "@prisma/client";
 import { getSession, type Session } from "./utils";
 
@@ -23,8 +23,7 @@ export const getDubAdminRole = async (userId: string) => {
     where: {
       userId_projectId: {
         userId,
-        projectId: "ws_1KETZ919F83ZJH6A80HWEHW6E",
-        // projectId: DUB_WORKSPACE_ID,
+        projectId: DUB_WORKSPACE_ID,
       },
     },
     select: {
