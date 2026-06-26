@@ -14,6 +14,8 @@ import {
 import { Category, Prisma } from "@prisma/client";
 import { cache } from "react";
 
+const HOME_CATEGORY_SET = new Set<Category>(MARKETPLACE_HOME_CATEGORIES);
+
 const programInclude = {
   groups: {
     where: {
@@ -33,6 +35,12 @@ const programInclude = {
 type ProgramRecord = Prisma.ProgramGetPayload<{
   include: typeof programInclude;
 }>;
+
+type ProgramMeta = {
+  program: ProgramRecord;
+  categories: Category[];
+  primary: Category | null;
+};
 
 function formatNetworkProgram(program: ProgramRecord) {
   return NetworkProgramSchema.parse({
@@ -58,6 +66,15 @@ function getPrimaryCategory(categories: Category[]) {
   })[0];
 }
 
+function toProgramMeta(program: ProgramRecord): ProgramMeta {
+  const categories = program.categories.map(({ category }) => category);
+  return {
+    program,
+    categories,
+    primary: categories.length > 0 ? getPrimaryCategory(categories) : null,
+  };
+}
+
 function byMarketplaceRanking(
   a: { marketplaceRanking: number },
   b: { marketplaceRanking: number },
@@ -77,19 +94,19 @@ function byRecency(
 
 function selectPrograms(
   candidates: ProgramRecord[],
-  excludeIds: Set<string>,
+  usedIds: Set<string>,
   limit: number,
   sortFn: (a: ProgramRecord, b: ProgramRecord) => number,
 ) {
   const selected: ProgramRecord[] = [];
 
   for (const program of [...candidates].sort(sortFn)) {
-    if (excludeIds.has(program.id)) {
+    if (usedIds.has(program.id)) {
       continue;
     }
 
     selected.push(program);
-    excludeIds.add(program.id);
+    usedIds.add(program.id);
 
     if (selected.length >= limit) {
       break;
@@ -97,6 +114,66 @@ function selectPrograms(
   }
 
   return selected;
+}
+
+function selectCategoryRows(programMeta: ProgramMeta[], usedIds: Set<string>) {
+  const rows = new Map<Category, ProgramRecord[]>();
+
+  for (const category of MARKETPLACE_HOME_CATEGORIES) {
+    rows.set(
+      category,
+      selectPrograms(
+        programMeta
+          .filter((meta) => meta.primary === category)
+          .map((meta) => meta.program),
+        usedIds,
+        MARKETPLACE_HOME_ROW_PAGE_SIZE,
+        byMarketplaceRanking,
+      ),
+    );
+  }
+
+  const missedPrimary = new Set(
+    programMeta
+      .filter(
+        (meta) =>
+          meta.primary &&
+          HOME_CATEGORY_SET.has(meta.primary) &&
+          !usedIds.has(meta.program.id),
+      )
+      .map((meta) => meta.program.id),
+  );
+
+  for (const category of MARKETPLACE_HOME_CATEGORIES) {
+    const current = rows.get(category)!;
+    const remaining = MARKETPLACE_HOME_ROW_PAGE_SIZE - current.length;
+
+    if (remaining === 0) {
+      continue;
+    }
+
+    const additional = selectPrograms(
+      programMeta
+        .filter(
+          (meta) =>
+            missedPrimary.has(meta.program.id) &&
+            meta.categories.includes(category) &&
+            meta.primary !== category,
+        )
+        .map((meta) => meta.program),
+      usedIds,
+      remaining,
+      byMarketplaceRanking,
+    );
+
+    rows.set(category, [...current, ...additional]);
+
+    for (const program of additional) {
+      missedPrimary.delete(program.id);
+    }
+  }
+
+  return rows;
 }
 
 export const getMarketplaceProgramsSummary = cache(async () => {
@@ -109,59 +186,33 @@ export const getMarketplaceProgramsSummary = cache(async () => {
     include: programInclude,
   });
 
+  const programMeta = programs.map(toProgramMeta);
+  const usedIds = new Set<string>();
+
+  const selectRow = (
+    candidates: ProgramRecord[],
+    sortFn: (a: ProgramRecord, b: ProgramRecord) => number,
+  ) =>
+    selectPrograms(
+      candidates,
+      usedIds,
+      MARKETPLACE_HOME_ROW_PAGE_SIZE,
+      sortFn,
+    ).map(formatNetworkProgram);
+
   const featuredPrograms = programs
     .filter((program) => program.featuredOnMarketplaceAt)
     .sort(() => Math.random() - 0.5)
     .map(formatNetworkProgram);
 
-  const usedProgramIds = new Set<string>();
-
-  const mostPopular = selectPrograms(
-    programs,
-    usedProgramIds,
-    MARKETPLACE_HOME_ROW_PAGE_SIZE,
-    byMarketplaceRanking,
-  ).map(formatNetworkProgram);
-
-  const newPrograms = selectPrograms(
-    programs,
-    usedProgramIds,
-    MARKETPLACE_HOME_ROW_PAGE_SIZE,
-    byRecency,
-  ).map(formatNetworkProgram);
-
-  const homeCategorySet = new Set<Category>(MARKETPLACE_HOME_CATEGORIES);
-  const categoryBuckets = new Map<Category, ProgramRecord[]>();
-
-  for (const program of programs) {
-    const categories = program.categories.map(({ category }) => category);
-
-    if (categories.length === 0) {
-      continue;
-    }
-
-    const primaryCategory = getPrimaryCategory(categories);
-
-    if (!homeCategorySet.has(primaryCategory)) {
-      continue;
-    }
-
-    const bucket = categoryBuckets.get(primaryCategory) ?? [];
-    bucket.push(program);
-    categoryBuckets.set(primaryCategory, bucket);
-  }
+  const mostPopular = selectRow(programs, byMarketplaceRanking);
+  const newPrograms = selectRow(programs, byRecency);
+  const categoryRows = selectCategoryRows(programMeta, usedIds);
 
   const categories = Object.fromEntries(
     Object.values(Category).map((category) => [
       category,
-      homeCategorySet.has(category)
-        ? selectPrograms(
-            categoryBuckets.get(category) ?? [],
-            usedProgramIds,
-            MARKETPLACE_HOME_ROW_PAGE_SIZE,
-            byMarketplaceRanking,
-          ).map(formatNetworkProgram)
-        : [],
+      (categoryRows.get(category) ?? []).map(formatNetworkProgram),
     ]),
   );
 
