@@ -31,6 +31,7 @@ export function MarketplaceProgramDetailBody({
 
       {showEligibilityCard && program.applicationRequirements?.length ? (
         <ProgramEligibilityCard
+          programSlug={program.slug}
           requirements={program.applicationRequirements}
         />
       ) : null}

@@ -16,7 +16,7 @@ import { Button, ProgressCircle, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -25,11 +25,10 @@ export function MarketplaceProgramHeaderControls({
 }: {
   program: NetworkProgramProps;
 }) {
-  const { programSlug } = useParams();
   const { programEnrollments } = useProgramEnrollments();
 
   const programEnrollmentStatus = programEnrollments?.find(
-    (programEnrollment) => programEnrollment.program.slug === programSlug,
+    (programEnrollment) => programEnrollment.program.slug === program.slug,
   )?.status;
 
   if (programEnrollmentStatus === "invited") {
@@ -57,7 +56,9 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
 
   const { partner, mutate } = usePartnerProfile();
 
-  const { programEnrollment } = useProgramEnrollment();
+  const { programEnrollment } = useProgramEnrollment({
+    programSlug: program.slug,
+  });
 
   const { completedCount, totalCount, isComplete } =
     getNetworkProfileChecklistProgress({
