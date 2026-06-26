@@ -56,6 +56,7 @@ export type FilterOption = {
   right?: ReactNode;
   icon?: FilterIcon;
   hideDuringSearch?: boolean;
+  disabled?: boolean;
   data?: Record<string, any>;
   permalink?: string;
 };
