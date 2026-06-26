@@ -82,7 +82,7 @@ export function RegisterDomainForm({
   }, [debouncedSlug]);
 
   // Register domain
-  const registerDomain = async (domain: string) => {
+  const handleSubmit = async (domain: string) => {
     setIsRegistering(true);
 
     const baseUrl = saveOnly
@@ -134,7 +134,7 @@ export function RegisterDomainForm({
         // prevent the submission event from propagating to the parent form (in the link builder)
         e.stopPropagation();
         if (searchedDomain && searchedDomain.available) {
-          await registerDomain(searchedDomain.domain);
+          await handleSubmit(searchedDomain.domain);
         }
       }}
     >
@@ -271,7 +271,7 @@ export function RegisterDomainForm({
                       <Button
                         text="Claim domain"
                         className="h-8 w-fit"
-                        onClick={() => registerDomain(alternative.domain)}
+                        onClick={() => handleSubmit(alternative.domain)}
                         disabled={
                           isRegistering ||
                           (workspace.plan === "free" && !saveOnly)
