@@ -1,6 +1,7 @@
 import { withAdmin } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
+import { adminFraudAlertSchema } from "@/lib/zod/schemas/admin";
 import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import { APP_DOMAIN_WITH_NGROK, COUNTRIES } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -56,11 +57,25 @@ export const GET = withAdmin(async ({ params }) => {
         partnerId,
       },
       include: {
+        partner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
         program: {
           select: {
             id: true,
             name: true,
             logo: true,
+          },
+        },
+        reviewedBy: {
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
@@ -96,7 +111,7 @@ export const GET = withAdmin(async ({ params }) => {
       subscribers: p.subscribers ? Number(p.subscribers) : null,
     })),
     programEnrollments,
-    fraudAlerts,
+    fraudAlerts: adminFraudAlertSchema.array().parse(fraudAlerts),
     payouts,
   });
 });
