@@ -13,8 +13,9 @@ export async function confirmPartnerFraudAlerts({
   reviewNote?: string;
   skipCrossProgramReporting?: boolean;
 }) {
+  const reviewedAt = new Date();
   const reviewData: Prisma.FraudAlertUpdateManyArgs["data"] = {
-    reviewedAt: new Date(),
+    reviewedAt,
     reviewNote: reviewNote || null,
     reviewedById,
   };
@@ -76,6 +77,7 @@ export async function confirmPartnerFraudAlerts({
       id: { in: pendingFraudAlerts.map((fa) => fa.id) },
       status: "confirmed",
       reviewedById,
+      reviewedAt,
     },
     select: {
       id: true,
