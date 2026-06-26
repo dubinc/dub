@@ -173,6 +173,7 @@ export default function AddEditWebhookForm({
               EXTERNAL_PAYOUTS_PROGRAM_IDS.includes(defaultProgramId),
           )
         : []),
+      LINK_CLICK_WEBHOOK_TRIGGER,
     ],
     [defaultProgramId],
   );

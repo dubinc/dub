@@ -7,7 +7,7 @@ import {
   WEBHOOK_TRIGGER_DESCRIPTIONS,
   WebhookTrigger,
 } from "@/lib/webhook/constants";
-import { Checkbox, CircleCheckFill, RadioGroup, RadioGroupItem } from "@dub/ui";
+import { Checkbox, RadioGroup, RadioGroupItem } from "@dub/ui";
 import { arrayEqual, cn, fetcher } from "@dub/utils";
 import { WebhookScope } from "@prisma/client";
 import { useEffect } from "react";
@@ -157,11 +157,6 @@ export function WebhookTriggerSelector({
               className="flex select-none items-center gap-2 text-sm text-neutral-600 group-hover:text-neutral-800"
             >
               {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
-              {trigger === LINK_CLICK_WEBHOOK_TRIGGER ? (
-                <span className="rounded bg-yellow-100 px-1 py-0.5 text-xs font-medium text-yellow-800">
-                  High traffic
-                </span>
-              ) : null}
             </label>
           </div>
 
@@ -182,7 +177,7 @@ export function WebhookTriggerSelector({
                     <div key={option.value}>
                       <label
                         className={cn(
-                          "relative flex w-full cursor-pointer items-start gap-3 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                          "relative flex w-full cursor-pointer items-start gap-3 rounded-md border border-neutral-200 bg-white p-2 text-neutral-600 hover:bg-neutral-50",
                           "transition-all duration-150",
                           isSelected &&
                             "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
@@ -201,12 +196,6 @@ export function WebhookTriggerSelector({
                             {option.description}
                           </span>
                         </div>
-                        <CircleCheckFill
-                          className={cn(
-                            "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                            isSelected && "scale-100 opacity-100",
-                          )}
-                        />
                       </label>
 
                       {isSelected && option.value === "folders" ? (

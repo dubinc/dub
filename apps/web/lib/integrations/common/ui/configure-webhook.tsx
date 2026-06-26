@@ -118,6 +118,7 @@ export function ConfigureWebhook({
       [
         ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
         ...(defaultProgramId ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS : []),
+        LINK_CLICK_WEBHOOK_TRIGGER,
       ].filter((trigger) => supportedEvents.includes(trigger)),
     [defaultProgramId, supportedEvents],
   );

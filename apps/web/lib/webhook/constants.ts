@@ -8,13 +8,14 @@ export const WEBHOOK_SECRET_PREFIX = "whsec_";
 
 export const WEBHOOK_EVENT_ID_PREFIX = "evt_";
 
+export const LINK_CLICK_WEBHOOK_TRIGGER = "link.clicked" as const;
+
 export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
   "link.created",
   "link.updated",
   "link.deleted",
   "lead.created",
   "sale.created",
-  "link.clicked",
 ] as const;
 
 export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
@@ -26,8 +27,6 @@ export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
   "payout.confirmed",
 ] as const;
 
-export const LINK_CLICK_WEBHOOK_TRIGGER = "link.clicked" as const;
-
 export const WEBHOOK_SCOPE_OPTIONS = [
   {
     value: "all",
@@ -36,14 +35,13 @@ export const WEBHOOK_SCOPE_OPTIONS = [
   },
   {
     value: "folders",
-    label: "Include all links in a folder",
+    label: "Include specific folders",
     description: "Trigger webhooks for all links from a selected folder",
   },
   {
     value: "links",
     label: "Include specific links",
-    description:
-      "Trigger webhooks for the links you explicitly select (linkIds)",
+    description: "Trigger webhooks for the links you explicitly select",
   },
 ] as const satisfies ReadonlyArray<{
   value: WebhookScope;
@@ -54,6 +52,7 @@ export const WEBHOOK_SCOPE_OPTIONS = [
 export const WEBHOOK_TRIGGERS = [
   ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
   ...PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
+  LINK_CLICK_WEBHOOK_TRIGGER,
 ] as const;
 
 export type WebhookTrigger = (typeof WEBHOOK_TRIGGERS)[number];

@@ -3,7 +3,10 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NewWebhook } from "@/lib/types";
-import { WebhookTrigger } from "@/lib/webhook/constants";
+import {
+  LINK_CLICK_WEBHOOK_TRIGGER,
+  WebhookTrigger,
+} from "@/lib/webhook/constants";
 import { syncWorkspaceWebhookStatus } from "@/lib/webhook/update-webhook";
 import { validateWebhook } from "@/lib/webhook/validate-webhook";
 import { updateWebhookSchema, WebhookSchema } from "@/lib/zod/schemas/webhooks";
@@ -67,10 +70,25 @@ export const PATCH = withWorkspace(
       });
     }
 
+    const finalTriggers = (
+      triggers !== undefined ? triggers : existingWebhook.triggers
+    ) as WebhookTrigger[];
+
+    const hasLinkClickedTrigger = finalTriggers.includes(
+      LINK_CLICK_WEBHOOK_TRIGGER,
+    );
+
+    const nextScope = hasLinkClickedTrigger
+      ? scope !== undefined
+        ? scope
+        : existingWebhook.scope
+      : null;
+
     const nextWebhook: Partial<NewWebhook> = {
       ...existingWebhook,
       ...input,
-      triggers: (triggers ?? existingWebhook.triggers) as WebhookTrigger[],
+      triggers: finalTriggers,
+      scope: nextScope,
     };
 
     await validateWebhook({
@@ -85,9 +103,7 @@ export const PATCH = withWorkspace(
       (folder) => folder.folderId,
     );
 
-    const scopeChanged =
-      (triggers !== undefined || scope !== undefined) &&
-      nextWebhook.scope !== existingWebhook.scope;
+    const scopeChanged = nextScope !== existingWebhook.scope;
 
     const shouldSyncLinks =
       (nextWebhook.scope !== "links" && existingLinkIds.length > 0) ||
