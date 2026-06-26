@@ -61,8 +61,6 @@ export function MarketplaceProgramRow({
   const carouselItemClassName = "pl-0 basis-[310px] sm:basis-[419px]";
   const cardClassName = "h-[260px] w-[310px] sm:h-[284px] sm:w-[419px] sm:p-8";
 
-  console.log(JSON.stringify({ programs }, null, 2));
-
   if (programs && programs.length === 0) {
     return null;
   }
