@@ -1,44 +1,59 @@
+"use client";
+
 import { NetworkProgramProps } from "@/lib/types";
-import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
-import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
-import { Tooltip, useRouterStuff } from "@dub/ui";
-import { OG_AVATAR_URL } from "@dub/utils";
+import { ProgramCategory } from "@/ui/program-marketplace/program-category";
+import { ProgramRewardsDisplay } from "@/ui/program-marketplace/program-rewards-display";
+import {
+  getMarketplaceAllHref,
+  getMarketplaceCategoryHref,
+  getMarketplaceProgramHref,
+} from "@/ui/program-marketplace/utils/urls";
+import { Tooltip } from "@dub/ui";
+import { OG_AVATAR_URL, cn } from "@dub/utils";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ProgramStatusBadge } from "./program-status-badge";
 
 export function MarketplaceProgramCard({
   program,
+  showStatus = true,
+  className,
 }: {
   program: NetworkProgramProps;
+  showStatus?: boolean;
+  className?: string;
 }) {
-  const { queryParams } = useRouterStuff();
+  const router = useRouter();
 
   return (
     <Link
-      href={`/programs/marketplace/${program.slug}`}
-      className="border-border-subtle hover:drop-shadow-card-hover rounded-xl border bg-white p-6 transition-[filter]"
+      href={getMarketplaceProgramHref(program.slug)}
+      className={cn(
+        "border-border-subtle hover:drop-shadow-card-hover flex h-full flex-col rounded-xl border bg-white p-4 transition-[filter] sm:p-6",
+        className,
+      )}
     >
       <div className="flex justify-between gap-4">
         <img
           src={program.logo || `${OG_AVATAR_URL}${program.name}`}
           alt={program.name}
-          className="size-12 rounded-full"
+          className="size-12 shrink-0 rounded-full object-cover"
         />
 
-        <ProgramStatusBadge program={program} />
+        {showStatus ? <ProgramStatusBadge program={program} /> : null}
       </div>
 
-      <div className="mt-4 flex flex-col">
-        <span className="text-content-emphasis text-base font-semibold">
+      <div className="mt-6 flex flex-col sm:mt-8">
+        <h3 className="text-content-emphasis text-base font-semibold">
           {program.name}
-        </span>
+        </h3>
 
         <div className="text-content-subtle mt-1 line-clamp-2 text-sm">
           {program.description ||
             `${program.name} is a program in the Dub Partner Network. Join the network to start partnering with them.`}
         </div>
 
-        <div className="mt-4 flex gap-4">
+        <div className="mt-5 flex gap-4">
           {Boolean(program.rewards?.length) && (
             <div>
               <span className="text-content-muted block text-xs font-medium">
@@ -47,37 +62,31 @@ export function MarketplaceProgramCard({
               <ProgramRewardsDisplay
                 rewards={program.rewards}
                 onRewardClick={(reward) =>
-                  queryParams({
-                    set: {
-                      rewardType: reward.event,
-                    },
-                    del: "page",
-                  })
+                  router.push(
+                    getMarketplaceAllHref({ rewardType: reward.event }),
+                  )
                 }
-                className="mt-1"
+                className="mt-2"
               />
             </div>
           )}
           {Boolean(program.categories.length) && (
-            <div className="min-w-0">
+            <div className="hidden min-w-0 sm:block">
               <span className="text-content-muted block text-xs font-medium">
                 Category
               </span>
-              <div className="mt-1 flex items-center gap-1.5">
-                {program.categories.slice(0, 1)?.map((category) => (
-                  <ProgramCategory
-                    key={category}
-                    category={category}
-                    onClick={() =>
-                      queryParams({
-                        set: {
-                          category,
-                        },
-                        del: "page",
-                      })
-                    }
-                  />
-                ))}
+              <div className="mt-2 flex items-center gap-1.5">
+                {program.categories
+                  .slice(0, 1)
+                  ?.map((category) => (
+                    <ProgramCategory
+                      key={category}
+                      category={category}
+                      onClick={() =>
+                        router.push(getMarketplaceCategoryHref(category))
+                      }
+                    />
+                  ))}
                 {program.categories.length > 1 && (
                   <Tooltip
                     content={
@@ -87,12 +96,7 @@ export function MarketplaceProgramCard({
                             key={category}
                             category={category}
                             onClick={() =>
-                              queryParams({
-                                set: {
-                                  category,
-                                },
-                                del: "page",
-                              })
+                              router.push(getMarketplaceCategoryHref(category))
                             }
                           />
                         ))}
@@ -113,9 +117,18 @@ export function MarketplaceProgramCard({
   );
 }
 
-export function MarketplaceProgramCardSkeleton() {
+export function MarketplaceProgramCardSkeleton({
+  className,
+}: {
+  className?: string;
+} = {}) {
   return (
-    <div className="border-border-subtle rounded-xl border bg-white p-6">
+    <div
+      className={cn(
+        "border-border-subtle h-full rounded-xl border bg-white p-6",
+        className,
+      )}
+    >
       <div className="flex justify-between gap-4">
         <div className="size-12 animate-pulse rounded-full bg-neutral-200" />
       </div>

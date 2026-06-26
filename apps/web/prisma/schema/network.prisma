@@ -1,4 +1,5 @@
 enum Category {
+  AI
   Artificial_Intelligence
   Development
   Design
