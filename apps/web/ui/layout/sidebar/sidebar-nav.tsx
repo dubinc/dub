@@ -186,6 +186,9 @@ function SidebarAreasPanel<T extends Record<any, any>>({
   const hasOverflow = useMemo(() => {
     if (!currentArea) return false;
     const { content } = areas[currentArea](data);
+    // assume custom ReactNode elements always overflow
+    if (isValidElement(content)) return true;
+
     const totalItems = Array.isArray(content)
       ? content.flatMap((c) => c.items).length
       : 0;
