@@ -1,7 +1,6 @@
 import { getNetworkProgram } from "@/lib/fetchers/get-network-program";
 import { PROGRAM_CATEGORIES_MAP } from "@/lib/network/program-categories";
 import { MarketplaceExternalRouter } from "@/ui/program-marketplace/external/marketplace-external-router";
-import { generateMarketplaceProgramStaticParams } from "@/ui/program-marketplace/pages/marketplace-program-page";
 import {
   getMarketplaceCanonicalUrl,
   getMarketplacePathFromSegments,
@@ -10,21 +9,10 @@ import { constructMetadata } from "@dub/utils";
 import { Category } from "@prisma/client";
 import { Metadata } from "next";
 
-export const revalidate = 3600;
-
-export async function generateStaticParams() {
-  const programParams = await generateMarketplaceProgramStaticParams();
-  const categoryParams = Object.values(Category).map((category) => ({
-    segments: ["c", category.toLowerCase()],
-  }));
-
-  return [
-    { segments: [] },
-    { segments: ["all"] },
-    ...categoryParams,
-    ...programParams,
-  ];
-}
+export {
+  generateStaticParams,
+  revalidate,
+} from "@/ui/program-marketplace/utils/default-exports";
 
 export async function generateMetadata(props: {
   params: Promise<{ segments?: string[] }>;
