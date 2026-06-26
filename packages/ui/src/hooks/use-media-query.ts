@@ -1,54 +1,40 @@
-import { useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
-function getDevice(): "mobile" | "tablet" | "desktop" | null {
-  if (typeof window === "undefined") return null;
+type MediaQuery = `(${string}:${string})`;
 
-  return window.matchMedia("(min-width: 1024px)").matches
-    ? "desktop"
-    : window.matchMedia("(min-width: 640px)").matches
-      ? "tablet"
-      : "mobile";
+function getMediaQueryMatch(query: MediaQuery) {
+  return window.matchMedia(query).matches;
 }
 
-function getDimensions() {
-  if (typeof window === "undefined") return null;
+function addMediaQueryListener(query: MediaQuery, onChange: () => void) {
+  const mediaQueryList = window.matchMedia(query);
+  mediaQueryList.addEventListener("change", onChange);
+  return function cleanup() {
+    mediaQueryList.removeEventListener("change", onChange);
+  };
+}
 
-  return { width: window.innerWidth, height: window.innerHeight };
+function useMediaQuerySync(query: MediaQuery) {
+  const subscribeToMediaQuery = useCallback(
+    (onChange: () => void) => addMediaQueryListener(query, onChange),
+    [query],
+  );
+  const matches = useSyncExternalStore(
+    subscribeToMediaQuery,
+    function getSnapshot() {
+      return getMediaQueryMatch(query);
+    },
+    function getServerSnapshot() {
+      return false;
+    },
+  );
+  return matches;
 }
 
 export function useMediaQuery() {
-  const [device, setDevice] = useState<"mobile" | "tablet" | "desktop" | null>(
-    getDevice(),
-  );
-  const [dimensions, setDimensions] = useState<{
-    width: number;
-    height: number;
-  } | null>(getDimensions());
-
-  useEffect(() => {
-    const checkDevice = () => {
-      setDevice(getDevice());
-      setDimensions(getDimensions());
-    };
-
-    // Initial detection
-    checkDevice();
-
-    // Listener for windows resize
-    window.addEventListener("resize", checkDevice);
-
-    // Cleanup listener
-    return () => {
-      window.removeEventListener("resize", checkDevice);
-    };
-  }, []);
-
   return {
-    device,
-    width: dimensions?.width,
-    height: dimensions?.height,
-    isMobile: device === "mobile",
-    isTablet: device === "tablet",
-    isDesktop: device === "desktop",
+    isDesktop: useMediaQuerySync("(min-width: 1024px)"),
+    isTablet: useMediaQuerySync("(min-width: 640px) and (max-width: 1023px)"),
+    isMobile: useMediaQuerySync("(max-width: 639px)"),
   };
 }
