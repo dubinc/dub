@@ -3,7 +3,7 @@ import { withWorkspace } from "@/lib/auth";
 import { slackOAuthProvider } from "@/lib/integrations/slack/oauth";
 import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
-import { isLinkLevelWebhook } from "@/lib/webhook/utils";
+import { hasLinkClickTrigger } from "@/lib/webhook/utils";
 import { SLACK_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -58,7 +58,7 @@ export const DELETE = withWorkspace(
           : []),
 
         ...webhooks.map((webhook) =>
-          isLinkLevelWebhook(webhook) ? webhookCache.delete(webhook.id) : null,
+          hasLinkClickTrigger(webhook) ? webhookCache.delete(webhook.id) : null,
         ),
       ]),
     );

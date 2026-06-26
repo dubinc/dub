@@ -14,6 +14,7 @@ export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
   "link.deleted",
   "lead.created",
   "sale.created",
+  "link.clicked",
 ] as const;
 
 export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
@@ -26,14 +27,6 @@ export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
 ] as const;
 
 export const LINK_CLICK_WEBHOOK_TRIGGER = "link.clicked" as const;
-
-export const LINK_LEVEL_WEBHOOK_TRIGGERS = ["link.clicked"] as const;
-
-export const WEBHOOK_SCOPE_DESCRIPTIONS: Record<WebhookScope, string> = {
-  all: "All links",
-  folders: "Specific folders",
-  links: "Specific links",
-} as const;
 
 export const WEBHOOK_SCOPE_OPTIONS = [
   {
@@ -61,7 +54,6 @@ export const WEBHOOK_SCOPE_OPTIONS = [
 export const WEBHOOK_TRIGGERS = [
   ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
   ...PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
-  ...LINK_LEVEL_WEBHOOK_TRIGGERS,
 ] as const;
 
 export type WebhookTrigger = (typeof WEBHOOK_TRIGGERS)[number];

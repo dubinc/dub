@@ -6,30 +6,20 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
 import {
   LINK_CLICK_WEBHOOK_TRIGGER,
-  LINK_LEVEL_WEBHOOK_TRIGGERS,
   PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
-  WEBHOOK_SCOPE_OPTIONS,
-  WEBHOOK_TRIGGER_DESCRIPTIONS,
   WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "@/lib/webhook/constants";
-import {
-  Button,
-  Checkbox,
-  CircleCheckFill,
-  CopyButton,
-  InfoTooltip,
-  RadioGroup,
-  RadioGroupItem,
-} from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
-import { WebhookScope } from "@prisma/client";
+import { Button, CopyButton, InfoTooltip } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
-import { FormProvider, useForm, useFormContext } from "react-hook-form";
+import { useMemo } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
-import { FoldersSelector } from "./folder-selector";
-import { LinksSelector } from "./link-selector";
+import { mutate } from "swr";
+import {
+  isWebhookTriggerSelectionInvalid,
+  WebhookTriggerSelector,
+} from "./webhook-trigger-selector";
 
 export default function AddEditWebhookForm({
   webhook,
@@ -60,6 +50,7 @@ export default function AddEditWebhookForm({
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { isSubmitting },
   } = methods;
 
@@ -126,23 +117,38 @@ export default function AddEditWebhookForm({
       router.push(`/${workspaceSlug}/settings/webhooks/${result.id}/edit`);
     } else {
       mutate(`/api/webhooks/${result.id}?workspaceId=${workspaceId}`, result);
-      mutate(
-        `/api/webhooks/${result.id}/links?workspaceId=${workspaceId}`,
-        data.scope === "links" ? data.linkIds : [],
-      );
-      mutate(
-        `/api/webhooks/${result.id}/folders?workspaceId=${workspaceId}`,
-        data.scope === "folders" ? data.folderIds : [],
-      );
+      await Promise.all([
+        mutate(
+          `/api/webhooks/${result.id}/links?workspaceId=${workspaceId}`,
+          result.scope === "links" ? data.linkIds ?? [] : [],
+          { revalidate: true },
+        ),
+        mutate(
+          `/api/webhooks/${result.id}/folders?workspaceId=${workspaceId}`,
+          result.scope === "folders" ? data.folderIds ?? [] : [],
+          { revalidate: true },
+        ),
+      ]);
+
+      reset({
+        name: result.name,
+        url: result.url,
+        triggers: result.triggers,
+        scope: result.scope ?? "all",
+        linkIds: result.scope === "links" ? data.linkIds ?? [] : [],
+        folderIds: result.scope === "folders" ? data.folderIds ?? [] : [],
+      });
     }
 
     toast.success(endpoint.successMessage);
   };
 
-  const scopeInvalid =
-    hasLinkClicked &&
-    ((scope === "links" && linkIds?.length === 0) ||
-      (scope === "folders" && folderIds?.length === 0));
+  const scopeInvalid = isWebhookTriggerSelectionInvalid({
+    triggers,
+    scope: scope ?? "all",
+    linkIds: linkIds ?? [],
+    folderIds: folderIds ?? [],
+  });
 
   const buttonDisabled =
     !name || !url || !triggers.length || isSubmitting || scopeInvalid;
@@ -167,24 +173,9 @@ export default function AddEditWebhookForm({
               EXTERNAL_PAYOUTS_PROGRAM_IDS.includes(defaultProgramId),
           )
         : []),
-      ...LINK_LEVEL_WEBHOOK_TRIGGERS,
     ],
     [defaultProgramId],
   );
-
-  const toggleTrigger = (
-    trigger: NewWebhook["triggers"][number],
-    checked: boolean | "indeterminate",
-  ) => {
-    if (checked === "indeterminate") {
-      return;
-    }
-
-    setValue(
-      "triggers",
-      checked ? [...triggers, trigger] : triggers.filter((t) => t !== trigger),
-    );
-  };
 
   return (
     <FormProvider {...methods}>
@@ -260,41 +251,25 @@ export default function AddEditWebhookForm({
               Webhook events
             </h2>
           </label>
-          <div className="mt-3 flex flex-col gap-2">
-            {allWebhookTriggers.map((trigger) => (
-              <div key={trigger}>
-                <div className="group flex gap-2">
-                  <Checkbox
-                    value={trigger}
-                    id={trigger}
-                    checked={triggers.includes(trigger)}
-                    disabled={updateDisabled}
-                    onCheckedChange={(checked) =>
-                      toggleTrigger(trigger, checked)
-                    }
-                  />
-                  <label
-                    htmlFor={trigger}
-                    className="flex select-none items-center gap-2 text-sm text-neutral-600 group-hover:text-neutral-800"
-                  >
-                    {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
-                    {trigger === LINK_CLICK_WEBHOOK_TRIGGER ? (
-                      <span className="rounded bg-yellow-100 px-1 py-0.5 text-xs font-medium text-yellow-800">
-                        High traffic
-                      </span>
-                    ) : null}
-                  </label>
-                </div>
-
-                {trigger === LINK_CLICK_WEBHOOK_TRIGGER && hasLinkClicked ? (
-                  <LinkClickScopeFields
-                    disabled={updateDisabled}
-                    webhook={webhook}
-                    workspaceId={workspaceId}
-                  />
-                ) : null}
-              </div>
-            ))}
+          <div className="mt-3">
+            <WebhookTriggerSelector
+              value={{
+                triggers,
+                scope: scope ?? "all",
+                linkIds: linkIds ?? [],
+                folderIds: folderIds ?? [],
+              }}
+              onChange={(next) => {
+                setValue("triggers", next.triggers);
+                setValue("scope", next.scope);
+                setValue("linkIds", next.linkIds);
+                setValue("folderIds", next.folderIds);
+              }}
+              availableTriggers={allWebhookTriggers}
+              disabled={updateDisabled}
+              webhookId={webhook?.id}
+              savedScope={webhook?.scope}
+            />
           </div>
         </div>
 
@@ -309,121 +284,5 @@ export default function AddEditWebhookForm({
         />
       </form>
     </FormProvider>
-  );
-}
-
-function LinkClickScopeFields({
-  disabled,
-  webhook,
-  workspaceId,
-}: {
-  disabled: boolean;
-  webhook: WebhookProps | null;
-  workspaceId: string | undefined;
-}) {
-  const { watch, setValue } = useFormContext<NewWebhook>();
-
-  const [scope = "all", linkIds = [], folderIds = []] = watch([
-    "scope",
-    "linkIds",
-    "folderIds",
-  ]);
-
-  const { data: fetchedLinkIds } = useSWR<string[]>(
-    webhook && webhook.scope === "links"
-      ? `/api/webhooks/${webhook.id}/links?workspaceId=${workspaceId}`
-      : null,
-    fetcher,
-  );
-
-  const { data: fetchedFolderIds } = useSWR<string[]>(
-    webhook && webhook.scope === "folders"
-      ? `/api/webhooks/${webhook.id}/folders?workspaceId=${workspaceId}`
-      : null,
-    fetcher,
-  );
-
-  useEffect(() => {
-    if (webhook?.scope === "links" && fetchedLinkIds) {
-      setValue("linkIds", fetchedLinkIds);
-    } else if (webhook?.scope === "folders" && fetchedFolderIds) {
-      setValue("folderIds", fetchedFolderIds);
-    }
-  }, [fetchedLinkIds, fetchedFolderIds, webhook?.scope, setValue]);
-
-  return (
-    <div className="ml-6 mt-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">
-      <RadioGroup
-        value={scope}
-        onValueChange={(value) => setValue("scope", value as WebhookScope)}
-        className="flex flex-col gap-2"
-        disabled={disabled}
-      >
-        {WEBHOOK_SCOPE_OPTIONS.map((option) => {
-          const isSelected = scope === option.value;
-
-          return (
-            <div key={option.value}>
-              <label
-                className={cn(
-                  "relative flex w-full cursor-pointer items-start gap-3 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                  "transition-all duration-150",
-                  isSelected &&
-                    "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                  disabled && "cursor-not-allowed opacity-60",
-                )}
-              >
-                <RadioGroupItem
-                  value={option.value}
-                  id={`scope-${option.value}`}
-                  className="mt-0.5"
-                  disabled={disabled}
-                />
-                <div className="flex grow flex-col text-sm">
-                  <span className="font-medium">{option.label}</span>
-                  <span className="text-neutral-500">{option.description}</span>
-                </div>
-                <CircleCheckFill
-                  className={cn(
-                    "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                    isSelected && "scale-100 opacity-100",
-                  )}
-                />
-              </label>
-
-              {isSelected && option.value === "folders" ? (
-                <div className="mt-3 pl-7">
-                  <h3 className="text-sm font-medium text-neutral-900">
-                    Included folders
-                  </h3>
-                  <div className="mt-2">
-                    <FoldersSelector
-                      selectedFolderIds={folderIds ?? []}
-                      setSelectedFolderIds={(ids) => setValue("folderIds", ids)}
-                      disabled={disabled}
-                    />
-                  </div>
-                </div>
-              ) : null}
-
-              {isSelected && option.value === "links" ? (
-                <div className="mt-3 pl-7">
-                  <h3 className="text-sm font-medium text-neutral-900">
-                    Included links
-                  </h3>
-                  <div className="mt-2">
-                    <LinksSelector
-                      selectedLinkIds={linkIds ?? []}
-                      setSelectedLinkIds={(ids) => setValue("linkIds", ids)}
-                      disabled={disabled}
-                    />
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
-      </RadioGroup>
-    </div>
   );
 }

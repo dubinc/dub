@@ -2,7 +2,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { LINK_CLICK_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
+import { NewWebhook } from "@/lib/types";
+import { WebhookTrigger } from "@/lib/webhook/constants";
 import { syncWorkspaceWebhookStatus } from "@/lib/webhook/update-webhook";
 import { validateWebhook } from "@/lib/webhook/validate-webhook";
 import { updateWebhookSchema, WebhookSchema } from "@/lib/zod/schemas/webhooks";
@@ -66,16 +67,19 @@ export const PATCH = withWorkspace(
       });
     }
 
+    const nextWebhook: Partial<NewWebhook> = {
+      ...existingWebhook,
+      ...input,
+      triggers: (triggers ?? existingWebhook.triggers) as WebhookTrigger[],
+    };
+
     await validateWebhook({
-      input,
+      input: nextWebhook,
       workspace,
       webhook: existingWebhook,
       user: session.user,
     });
 
-    const hasLinkClicked =
-      triggers?.includes(LINK_CLICK_WEBHOOK_TRIGGER) ?? false;
-    const newScope = hasLinkClicked ? scope ?? null : null;
     const existingLinkIds = existingWebhook.links.map((link) => link.linkId);
     const existingFolderIds = existingWebhook.folders.map(
       (folder) => folder.folderId,
@@ -83,17 +87,17 @@ export const PATCH = withWorkspace(
 
     const scopeChanged =
       (triggers !== undefined || scope !== undefined) &&
-      newScope !== existingWebhook.scope;
+      nextWebhook.scope !== existingWebhook.scope;
 
     const shouldSyncLinks =
-      (newScope !== "links" && existingLinkIds.length > 0) ||
-      (newScope === "links" &&
+      (nextWebhook.scope !== "links" && existingLinkIds.length > 0) ||
+      (nextWebhook.scope === "links" &&
         linkIds !== undefined &&
         !arrayEqual(existingLinkIds, linkIds ?? []));
 
     const shouldSyncFolders =
-      (newScope !== "folders" && existingFolderIds.length > 0) ||
-      (newScope === "folders" &&
+      (nextWebhook.scope !== "folders" && existingFolderIds.length > 0) ||
+      (nextWebhook.scope === "folders" &&
         folderIds !== undefined &&
         !arrayEqual(existingFolderIds, folderIds ?? []));
 
@@ -106,7 +110,7 @@ export const PATCH = withWorkspace(
           ...(name !== undefined && { name }),
           ...(url !== undefined && { url }),
           ...(triggers !== undefined && { triggers }),
-          ...(scopeChanged && { scope: newScope }),
+          ...(scopeChanged && { scope: nextWebhook.scope }),
         },
       });
 
@@ -117,7 +121,7 @@ export const PATCH = withWorkspace(
           },
         });
 
-        if (newScope === "links" && linkIds?.length) {
+        if (nextWebhook.scope === "links" && linkIds?.length) {
           await tx.linkWebhook.createMany({
             data: linkIds.map((linkId) => ({
               linkId,
@@ -134,7 +138,7 @@ export const PATCH = withWorkspace(
           },
         });
 
-        if (newScope === "folders" && folderIds?.length) {
+        if (nextWebhook.scope === "folders" && folderIds?.length) {
           await tx.folderWebhook.createMany({
             data: folderIds.map((folderId) => ({
               folderId,
