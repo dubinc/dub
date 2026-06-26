@@ -17,7 +17,6 @@ import {
   getSubscriptionTrialEndsAt,
 } from "@/lib/stripe/workspace-subscription-fields";
 import { WorkspaceProps } from "@/lib/types";
-import { webhookCache } from "@/lib/webhook/cache";
 import { sendBatchEmail } from "@dub/email";
 import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
@@ -192,23 +191,6 @@ export async function updateWorkspacePlan({
           },
         }),
       ]);
-
-      // Update the webhooks cache
-      const webhooks = await prisma.webhook.findMany({
-        where: {
-          projectId: workspace.id,
-        },
-        select: {
-          id: true,
-          url: true,
-          secret: true,
-          triggers: true,
-          disabledAt: true,
-        },
-      });
-
-      await webhookCache.mset(webhooks);
-      console.log(`Updated webhooks cache for workspace ${workspace.id}.`);
     }
 
     // Delete the folders if the new plan does not support folders

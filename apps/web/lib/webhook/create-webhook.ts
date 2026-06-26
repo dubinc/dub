@@ -6,6 +6,7 @@ import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createWebhookSchema } from "../zod/schemas/webhooks";
 import { createWebhookSecret } from "./secret";
+import { syncWorkspaceWebhookStatus } from "./sync-webhook";
 
 export async function createWebhook({
   name,
@@ -70,11 +71,7 @@ export async function createWebhook({
     },
   });
 
-  waitUntil(
-    (async () => {
-      //
-    })(),
-  );
+  waitUntil(syncWorkspaceWebhookStatus(workspace.id));
 
   return webhook;
 }

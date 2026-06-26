@@ -10,7 +10,6 @@ import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-featu
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
-import { webhookCache } from "@/lib/webhook/cache";
 import { sendEmail } from "@dub/email";
 import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
 import { capitalize, FREE_PLAN, log } from "@dub/utils";
@@ -214,22 +213,6 @@ export async function customerSubscriptionDeleted(
       type: CANCELLATION_FEEDBACK_EMAIL_TYPE,
     },
   });
-
-  // Update the webhooks cache
-  const webhooks = await prisma.webhook.findMany({
-    where: {
-      projectId: workspace.id,
-    },
-    select: {
-      id: true,
-      url: true,
-      secret: true,
-      triggers: true,
-      disabledAt: true,
-    },
-  });
-
-  await webhookCache.mset(webhooks);
 
   await deleteWorkspaceFolders({
     workspaceId: workspace.id,

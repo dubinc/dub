@@ -7,7 +7,7 @@ import {
   LINK_CLICK_WEBHOOK_TRIGGER,
   WebhookTrigger,
 } from "@/lib/webhook/constants";
-import { syncWorkspaceWebhookStatus } from "@/lib/webhook/update-webhook";
+import { syncWorkspaceWebhookStatus } from "@/lib/webhook/sync-webhook";
 import { validateWebhook } from "@/lib/webhook/validate-webhook";
 import { updateWebhookSchema, WebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { arrayEqual } from "@dub/utils";
@@ -117,7 +117,7 @@ export const PATCH = withWorkspace(
         folderIds !== undefined &&
         !arrayEqual(existingFolderIds, folderIds ?? []));
 
-    const webhook = await prisma.$transaction(async (tx) => {
+    const updatedWebhook = await prisma.$transaction(async (tx) => {
       const updatedWebhook = await tx.webhook.update({
         where: {
           id: webhookId,
@@ -167,7 +167,9 @@ export const PATCH = withWorkspace(
       return updatedWebhook;
     });
 
-    return NextResponse.json(WebhookSchema.parse(webhook));
+    waitUntil(syncWorkspaceWebhookStatus(workspace.id));
+
+    return NextResponse.json(WebhookSchema.parse(updatedWebhook));
   },
   {
     requiredPermissions: ["webhooks.write"],
@@ -187,7 +189,7 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { webhookId } = params;
 
-    await prisma.webhook.findUniqueOrThrow({
+    const existingWebhook = await prisma.webhook.findUniqueOrThrow({
       where: {
         id: webhookId,
         projectId: workspace.id,
@@ -200,11 +202,7 @@ export const DELETE = withWorkspace(
       },
     });
 
-    waitUntil(
-      syncWorkspaceWebhookStatus({
-        workspaceId: workspace.id,
-      }),
-    );
+    waitUntil(syncWorkspaceWebhookStatus(workspace.id));
 
     return NextResponse.json({
       id: webhookId,
