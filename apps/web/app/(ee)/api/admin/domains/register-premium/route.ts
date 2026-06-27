@@ -61,20 +61,9 @@ export const POST = withAdmin(
         workspace,
         skipWorkspaceChecks: true,
       });
-
-      const status = response.paymentIntentStatus;
-
-      if (status === "succeeded") {
-        return NextResponse.json({
-          success: true,
-          message: `Charge succeeded (${currencyFormatter(response.registrationPriceCents)}). Domain registration will finalize via Stripe webhook.`,
-          ...response,
-        });
-      }
-
       return NextResponse.json({
         success: true,
-        message: `Payment initiated (${currencyFormatter(response.registrationPriceCents)}). Domain registration will finalize via Stripe webhook once payment succeeds.`,
+        message: `Payment initiated (${currencyFormatter(response.registrationPriceCents)}). Upon a successful charge, please register the domain manually via Dynadot.`,
         ...response,
       });
     } catch (error) {

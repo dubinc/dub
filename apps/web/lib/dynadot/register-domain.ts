@@ -26,6 +26,8 @@ const schema = z.object({
 const ERROR_CODES = {
   not_available: "Domain not available.",
   system_busy: "System is busy. Please try again.",
+  insufficient_funds:
+    "Insufficient funds. Please add more funds to your account.",
 };
 
 export const registerDomain = async ({
@@ -35,8 +37,8 @@ export const registerDomain = async ({
   domain: string;
   premium?: boolean;
 }) => {
-  // mock response for development
-  if (process.env.NODE_ENV === "development") {
+  // for premium domain registrations, we return early with a mock response since we'll need to manually register the domain via Dynadot
+  if (premium) {
     return RegisterDomainSchema.parse({
       domain,
       status: "success",
@@ -49,7 +51,7 @@ export const registerDomain = async ({
     command: "register",
     duration: "1",
     currency: "USD",
-    ...(premium ? { premium: "1" } : { coupon: DYNADOT_COUPON }),
+    coupon: DYNADOT_COUPON,
     key: DYNADOT_API_KEY,
   });
 
@@ -69,7 +71,8 @@ export const registerDomain = async ({
     });
   }
 
-  const data = schema.parse(await response.json());
+  const res = await response.json();
+  const data = schema.parse(res);
 
   const { Status, Error } = data.RegisterResponse;
 
