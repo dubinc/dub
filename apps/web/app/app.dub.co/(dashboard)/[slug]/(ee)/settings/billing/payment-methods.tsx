@@ -18,7 +18,7 @@ import {
   MoneyBill2,
   Popover,
 } from "@dub/ui";
-import { LoadingSpinner, Star, Trash } from "@dub/ui/icons";
+import { Flag2, LoadingSpinner, Plus, Trash } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
 import Link from "next/link";
@@ -42,7 +42,7 @@ export default function PaymentMethods() {
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
   );
 
-  const managePaymentMethods = async () => {
+  const addPaymentMethod = async () => {
     setIsLoading(true);
     const { url } = await fetch(
       `/api/workspaces/${slug}/billing/payment-methods`,
@@ -70,10 +70,10 @@ export default function PaymentMethods() {
         </div>
         {stripeId && (
           <Button
-            variant="secondary"
-            text="Manage"
+            text="Add new method"
             className="h-9 w-fit"
-            onClick={() => managePaymentMethods()}
+            icon={<Plus className="size-3.5 shrink-0" />}
+            onClick={() => addPaymentMethod()}
             loading={isLoading}
             disabledTooltip={
               clientAccessCheck({
@@ -284,7 +284,7 @@ const PaymentMethodActions = ({
               {canSetDefault && !isDefault && (
                 <MenuItem
                   as={Command.Item}
-                  icon={isSettingDefault ? LoadingSpinner : Star}
+                  icon={isSettingDefault ? LoadingSpinner : Flag2}
                   onSelect={() => {
                     setDefaultPaymentMethod();
                   }}
@@ -318,6 +318,7 @@ const PaymentMethodActions = ({
           type="button"
           variant="secondary"
           className="h-9 w-fit px-1.5"
+          aria-label="Open payment method actions"
           icon={<ThreeDots className="size-3.5 shrink-0" />}
           onClick={() => setOpenPopover(!openPopover)}
         />

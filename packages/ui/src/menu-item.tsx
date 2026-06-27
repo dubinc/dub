@@ -67,13 +67,13 @@ export function MenuItem<T extends ElementType>({
     >
       <div>
         <Component
+          {...rest}
           {...(as === "button" ? { type: "button" } : {})}
           className={cn(
             menuItemVariants({ variant, disabled: isDisabled }),
             className,
           )}
           disabled={isDisabled ? true : rest.disabled}
-          {...rest}
         >
           <div className="flex grow items-center gap-2">
             {loading ? (
