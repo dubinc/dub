@@ -391,7 +391,7 @@ const RecommendedForPayoutsWrapper = ({
       <span className="flex items-center gap-2 px-3 pb-1 pt-1.5 text-xs text-neutral-800">
         <MoneyBill2 className="size-3.5 shrink-0" />
         <span>
-          Recommended for Dub Partner payouts.{" "}
+          Recommended for partner payouts.{" "}
           <Link
             href="https://dub.co/help/article/how-to-set-up-bank-account"
             target="_blank"
