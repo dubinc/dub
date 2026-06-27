@@ -9,8 +9,9 @@ export default function AdminDomainsPage() {
         <h2 className="text-xl font-semibold">Register premium .link domain</h2>
         <p className="text-sm text-neutral-500">
           Create a domain-renewal invoice and charge the workspace default
-          payment method for a premium .link domain. On success, Stripe
-          webhooks register the domain on Dynadot and provision it in Dub.
+          payment method for a premium .link domain. On success, the domain is
+          provisioned in Dub, but you'll need to register it manually via
+          Dynadot (limitation of their API).
         </p>
         <RegisterPremiumDomain />
       </div>
