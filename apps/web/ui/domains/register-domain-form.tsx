@@ -1,5 +1,6 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { DomainStatusSchema } from "@/lib/zod/schemas/domains";
 import {
   AnimatedSizeContainer,
   Button,
@@ -13,15 +14,11 @@ import { CircleCheck, Star } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
+import * as z from "zod/v4";
 import { AlertCircleFill, CheckCircleFill } from "../shared/icons";
 import { ProBadgeTooltip } from "../shared/pro-badge-tooltip";
 
-interface DomainSearchResult {
-  domain: string;
-  available: boolean;
-  price: string;
-  premium: boolean;
-}
+type DomainSearchResult = z.infer<typeof DomainStatusSchema>;
 
 export function RegisterDomainForm({
   variant = "default",
@@ -160,7 +157,7 @@ export function RegisterDomainForm({
               className={cn(
                 "-m-1 rounded-[0.625rem] p-1",
                 searchedDomain
-                  ? searchedDomain.available
+                  ? searchedDomain.available && !searchedDomain.premium
                     ? "bg-green-100"
                     : "bg-orange-100"
                   : "bg-neutral-100",
@@ -199,24 +196,17 @@ export function RegisterDomainForm({
                 <div className="flex justify-between gap-3 px-2 pb-2 pt-3 text-sm text-neutral-700">
                   <p>
                     {searchedDomain ? (
-                      searchedDomain.available ? (
-                        <>
-                          <span className="font-semibold text-neutral-800">
-                            {searchedDomain.domain}
-                          </span>{" "}
-                          is available. Claim your free domain before it's gone!
-                        </>
-                      ) : (
-                        <>
-                          <span className="font-semibold text-neutral-800">
-                            {searchedDomain.domain}
-                          </span>{" "}
-                          is{" "}
-                          {searchedDomain.premium
-                            ? "a premium domain, which is not available for free, but you can register it on Dynadot."
+                      <>
+                        <span className="font-semibold text-neutral-800">
+                          {searchedDomain.domain}
+                        </span>{" "}
+                        is{" "}
+                        {searchedDomain.premium
+                          ? "a premium domain, which is not available for free, but you can register it on Dynadot."
+                          : searchedDomain.available
+                            ? "available. Claim your free domain before it's gone!"
                             : "not available."}
-                        </>
-                      )
+                      </>
                     ) : slug?.trim() ? (
                       <>
                         Checking availability for{" "}
@@ -231,13 +221,13 @@ export function RegisterDomainForm({
                   {isSearching || (!searchedDomain && slug?.trim()) ? (
                     <LoadingSpinner className="mr-0.5 mt-0.5 size-4 shrink-0" />
                   ) : searchedDomain ? (
-                    searchedDomain?.available ? (
-                      <CheckCircleFill className="size-5 shrink-0 text-green-500" />
-                    ) : searchedDomain.premium ? (
+                    searchedDomain.premium ? (
                       <Star
                         className="size-5 shrink-0 text-amber-500"
                         fill="currentColor"
                       />
+                    ) : searchedDomain?.available ? (
+                      <CheckCircleFill className="size-5 shrink-0 text-green-500" />
                     ) : (
                       <AlertCircleFill className="size-5 shrink-0 text-amber-500" />
                     )
@@ -249,7 +239,7 @@ export function RegisterDomainForm({
         </div>
 
         {searchedDomain &&
-          !searchedDomain.available &&
+          (!searchedDomain.available || searchedDomain.premium) &&
           availableDomains.length > 0 && (
             <div>
               <h2 className="text-sm font-medium text-neutral-800">
