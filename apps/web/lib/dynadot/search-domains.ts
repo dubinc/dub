@@ -1,6 +1,10 @@
 import * as z from "zod/v4";
 import { DubApiError } from "../api/errors";
 import { DomainStatusSchema } from "../zod/schemas/domains";
+import {
+  parseRegistrationPriceUsdCents,
+  parseRenewalPriceUsdCents,
+} from "./calculate-domain-price";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
 
 const schema = z.object({
@@ -56,13 +60,26 @@ export const searchDomainsAvailability = async ({
   }
 
   const result = data.SearchResponse.SearchResults.map((result) => {
-    const premium = result.Price && /is\s+a Premium Domain/.test(result.Price);
+    const available = result.Available === "yes";
+    const premium = Boolean(
+      result.Price && /is\s+a Premium Domain/.test(result.Price),
+    );
+    const registrationPriceUsdCents = parseRegistrationPriceUsdCents(
+      result.Price,
+    );
+    const renewalPriceUsdCents = parseRenewalPriceUsdCents(result.Price);
 
     return {
       domain: result.DomainName,
-      available: result.Available === "yes" && !premium,
-      price: result.Price,
+      available,
       premium,
+      prices: available
+        ? {
+            registration: premium ? registrationPriceUsdCents : 0,
+            renewal: renewalPriceUsdCents,
+          }
+        : null,
+      price: "Deprecated: Use `prices` instead.",
     };
   });
 

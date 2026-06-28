@@ -14,6 +14,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
 function BulkRejectPartnersModal({
   showBulkRejectPartnersModal,
@@ -73,7 +74,7 @@ function BulkRejectPartnersModal({
           {pluralize("this application", partners.length, {
             plural: "these applications",
           })}
-          ?
+          ? They will be <PartnerEmailNotificationTooltipHelper />.
         </p>
       </div>
 
