@@ -44,7 +44,7 @@ export function ProgramOnboardingFormWrapper({
           partners: programOnboarding.partners?.length
             ? programOnboarding.partners
             : [{ email: "" }],
-          supportEmail: programOnboarding.supportEmail || null,
+          supportEmail: programOnboarding.supportEmail,
           helpUrl: programOnboarding.helpUrl || null,
           termsUrl: programOnboarding.termsUrl || null,
           ...values,

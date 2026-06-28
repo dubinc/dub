@@ -40,13 +40,29 @@ export function PageClient() {
   };
 
   const isValid = useMemo(() => {
-    const { name, url, domain, logo, type, amountInCents, amountInPercentage } =
-      data;
+    const {
+      name,
+      url,
+      domain,
+      logo,
+      type,
+      amountInCents,
+      amountInPercentage,
+      supportEmail,
+    } = data;
 
     const hasAmount =
       type === "flat" ? amountInCents != null : amountInPercentage != null;
 
-    if (!name || !url || !domain || !logo || !type || !hasAmount) {
+    if (
+      !name ||
+      !url ||
+      !domain ||
+      !logo ||
+      !type ||
+      !hasAmount ||
+      !supportEmail
+    ) {
       return false;
     }
 
