@@ -7,6 +7,7 @@ import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
+import { prisma } from "@/lib/prisma";
 import { syncWorkspaceSettings } from "@/lib/sandbox/sync-workspace";
 import { throwIfStagingWorkspace } from "@/lib/sandbox/throw-if-staging-workspace";
 import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
