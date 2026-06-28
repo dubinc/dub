@@ -8,7 +8,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, Modal } from "@dub/ui";
-import { cn, nFormatter, pluralize } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -20,6 +20,7 @@ import {
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
+import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
 type BulkBanPartnersFormData = z.infer<typeof bulkBanPartnersSchema> & {
   confirm: string;
@@ -199,12 +200,10 @@ function BulkBanPartnersModal({
           </div>
 
           <p className="text-sm text-neutral-600">
-            This will permanently ban the {partnerWord}, disable all their
-            active links, and cancel all pending payouts. This action is not
-            reversible.{" "}
-            {partners.length === 1
-              ? "This partner will be notified by email."
-              : `${nFormatter(partners.length, { full: true })} ${pluralize("partner", partners.length)} will be notified by email.`}
+            This will disable all their active links, cancel all pending
+            payouts, and{" "}
+            <PartnerEmailNotificationTooltipHelper text="notify them via email" />
+            . You can unban them later if needed.
           </p>
 
           <div>

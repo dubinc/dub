@@ -4,9 +4,10 @@ import { RewardProps } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { REWARD_EVENT_DESCRIPTIONS } from "@/ui/partners/rewards/reward-event-descriptions";
 import { Button, Modal } from "@dub/ui";
-import { nFormatter, pluralize } from "@dub/utils";
+import { pluralize } from "@dub/utils";
 import { EventType } from "@prisma/client";
 import { useState } from "react";
+import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
 export type RewardChangeAction = "created" | "updated" | "deleted";
 
@@ -65,15 +66,6 @@ export function ConfirmRewardChangeModal({
     deleted: "removed from",
   }[action];
 
-  const notification =
-    partnerCount === undefined
-      ? "partners in the group will be notified by email"
-      : partnerCount === 0
-        ? "no partners in the group will be notified by email"
-        : partnerCount === 1
-          ? "the partner will be notified by email"
-          : `${nFormatter(partnerCount, { full: true })} ${pluralize("partner", partnerCount)} will be notified by email`;
-
   const handleConfirm = async () => {
     setIsLoading(true);
     try {
@@ -95,7 +87,16 @@ export function ConfirmRewardChangeModal({
           {TITLES[action]}
         </h3>
         <p className="text-content-subtle mt-1 text-sm">
-          {`The reward below will be ${change} the group, and ${notification}.`}
+          The reward below will be {change} the group
+          {partnerCount && partnerCount > 0 ? (
+            <>
+              , and {partnerCount} {pluralize("partner", partnerCount)} will be{" "}
+              <PartnerEmailNotificationTooltipHelper />
+            </>
+          ) : (
+            ""
+          )}
+          .
         </p>
 
         <div className="mt-4 rounded-lg border border-neutral-200 bg-neutral-100 p-3">
