@@ -20,7 +20,7 @@ test.describe("Billing trial checkout", () => {
     baseURL,
     request,
   }) => {
-    const dashboardOrigin = baseURL ?? "http://app.localhost:8888";
+    const dashboardOrigin = baseURL ?? "http://localhost:8888";
 
     const res = await request.get("/api/workspaces");
     expect(res.ok()).toBeTruthy();

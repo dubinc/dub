@@ -200,4 +200,14 @@ export function validateReward(
       });
     }
   }
+
+  const hasSpendLimitAmount = reward.spendLimitAmount != null;
+  const hasSpendLimitInterval = reward.spendLimitInterval != null;
+
+  if (hasSpendLimitAmount !== hasSpendLimitInterval) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Both "spendLimitAmount" and "spendLimitInterval" are required together. Provide both fields or omit both.`,
+    });
+  }
 }

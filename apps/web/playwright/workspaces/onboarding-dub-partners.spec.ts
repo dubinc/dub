@@ -33,7 +33,7 @@ test.describe("Dub Partners onboarding", () => {
 
     const workspaceName = `Test WS ${nanoid(6)}`;
     const customDomain = randomOnboardingDomain();
-    const baseURL = baseURLParam ?? "http://app.localhost:8888";
+    const baseURL = baseURLParam ?? "http://localhost:8888";
 
     // Welcome page
     await page.goto("/onboarding");

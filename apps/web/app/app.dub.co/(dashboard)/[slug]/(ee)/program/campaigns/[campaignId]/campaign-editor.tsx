@@ -9,6 +9,7 @@ import { PageContentWithSidePanel } from "@/ui/layout/page-content/page-content-
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import {
   ChevronRight,
+  DEFAULT_RICH_TEXT_FEATURES,
   Lock,
   PaperPlane,
   RichTextArea,
@@ -509,6 +510,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   ref={editorRef}
                   editorClassName="-m-2 min-h-[200px] p-2"
                   style="relaxed"
+                  features={[...DEFAULT_RICH_TEXT_FEATURES, "imageControls"]}
                   initialValue={field.value}
                   onChange={(editor) => field.onChange(editor.getJSON())}
                   variables={[...EMAIL_TEMPLATE_VARIABLES]}

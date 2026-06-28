@@ -24,7 +24,7 @@ export const queuePartnerCommissionCreation = async (
     workflowLabel: bountySubmissionId ?? customerId ?? partnerId,
     body: params,
     flowControl: {
-      key: customerId ?? partnerId,
+      key: partnerId,
       parallelism: 1,
     },
   });

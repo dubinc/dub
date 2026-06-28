@@ -70,7 +70,7 @@ type SerializedPartnerPlatform = Omit<
  */
 function buildOrderByClause({ starred }: { starred?: boolean | null }) {
   if (starred === true) {
-    return Prisma.sql`dp.starredAt ASC`;
+    return Prisma.sql`dp.starredAt DESC`;
   }
 
   return Prisma.sql`finalScore DESC, p.id ASC`;
