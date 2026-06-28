@@ -2,10 +2,11 @@
 
 import { PARTNER_CONTENT_SEARCH_LIMITS } from "@/lib/partner-content-search/constants";
 import { type PartnerContentSearchPartner } from "@/lib/swr/use-partner-content-search";
-import { cn, nFormatter } from "@dub/utils";
+import { cn } from "@dub/utils";
 import {
   contentNoun,
   formatDuration,
+  formatEngagement,
   formatMatchPercent,
   formatPublishedDate,
   formatTimestamp,
@@ -129,21 +130,6 @@ function formatMatchLocation({
     return `Matched transcript ${formatTimestamp(startMs)} - ${formatTimestamp(endMs)}`;
   }
   return `Matched transcript ${formatTimestamp(startMs ?? endMs ?? 0)}`;
-}
-
-// Reach + engagement we have for the post, in descending prominence.
-function formatEngagement(
-  content: PartnerContentSearchPartner["chunks"][number]["content"],
-) {
-  return [
-    content.viewCount ? `${nFormatter(content.viewCount)} views` : null,
-    content.likeCount ? `${nFormatter(content.likeCount)} likes` : null,
-    content.commentCount ? `${nFormatter(content.commentCount)} comments` : null,
-    content.shareCount ? `${nFormatter(content.shareCount)} shares` : null,
-    content.saveCount ? `${nFormatter(content.saveCount)} saves` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
 }
 
 function getMatchSnippet(chunk: PartnerContentSearchPartner["chunks"][number]) {

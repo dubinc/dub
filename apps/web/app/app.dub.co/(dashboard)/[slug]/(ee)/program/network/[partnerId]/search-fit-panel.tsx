@@ -5,30 +5,26 @@ import {
   type PartnerContentTopicFitBand,
 } from "@/lib/partner-content-search/constants";
 import { type PartnerContentSearchPartner } from "@/lib/swr/use-partner-content-search";
-import { Button } from "@dub/ui";
-import { cn, nFormatter } from "@dub/utils";
-import { useState } from "react";
-import { contentNoun, lastPostedLabel } from "../content-display-utils";
+import { cn } from "@dub/utils";
+import { contentNoun } from "../content-display-utils";
 import {
   ContentMatchRow,
   ContentMatchSkeletons,
   formatRankWindowPhrase,
 } from "./content-match-row";
 import { CoverageSummaryBar } from "./coverage-summary-bar";
+import { RecentContentList } from "./recent-content-panel";
 import {
   buildContentRelevanceMap,
   buildMatchedContentItems,
-  DETAIL_CONTENT_INITIAL_DISPLAY_COUNT,
-  DETAIL_CONTENT_PAGE_COUNT,
-  publishedAtMs,
 } from "./search-fit-utils";
 
 const BAND_HEADLINE: Record<PartnerContentTopicFitBand, string> = {
-  consistent: "Consistently posts about this",
-  frequent: "Frequently posts about this",
-  occasional: "Occasionally posts about this",
-  "one-off": "Posted about this once",
-  none: "No recent posts about this",
+  consistent: "Consistently posts about this topic",
+  frequent: "Frequently posts about this topic",
+  occasional: "Occasionally posts about this topic",
+  "one-off": "Posted about this topic once",
+  none: "No recent posts about this topic",
 };
 
 const TOPIC_FIT_BAND_CHIP: Record<PartnerContentTopicFitBand, string> = {
@@ -58,6 +54,9 @@ export function SearchFitPanel({
   summary: initialSummary,
   reranked = false,
   searchPartner,
+  recentChunks,
+  recentLoading,
+  recentError,
 }: {
   error: unknown;
   isLoading: boolean;
@@ -66,10 +65,12 @@ export function SearchFitPanel({
   summary?: PartnerContentSearchPartner["matchSummary"];
   reranked?: boolean;
   searchPartner?: PartnerContentSearchPartner;
+  // The partner's full recent content (matched + unmatched) for the "All recent
+  // content" section — fetched separately via the no-query path.
+  recentChunks?: PartnerContentSearchPartner["chunks"];
+  recentLoading: boolean;
+  recentError: unknown;
 }) {
-  const [visibleAllCount, setVisibleAllCount] = useState(
-    DETAIL_CONTENT_INITIAL_DISPLAY_COUNT,
-  );
   const summary = initialSummary ?? searchPartner?.matchSummary;
 
   if (isLoading && !summary) {
@@ -85,25 +86,8 @@ export function SearchFitPanel({
   const topContent = [...items]
     .sort((a, b) => b.blendedScore - a.blendedScore)
     .slice(0, PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount);
-  const allContent = [...items].sort(
-    (a, b) => publishedAtMs(b.publishedAt) - publishedAtMs(a.publishedAt),
-  );
-  const visibleAll = allContent.slice(0, visibleAllCount);
-  const hiddenAllCount = Math.max(0, allContent.length - visibleAll.length);
-  // "All content" only earns its place when it adds rows beyond the top set.
-  const showAllSection =
-    !isLoadingRows &&
-    allContent.length > PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount;
 
   const band = summary?.band ?? "none";
-  const lastOnTopic = lastPostedLabel(summary?.lastOnTopicAt ?? null);
-  const metaParts = [
-    summary?.followers ? `${nFormatter(summary.followers)} followers` : null,
-    summary?.medianViews
-      ? `${nFormatter(summary.medianViews)} median views`
-      : null,
-    lastOnTopic ? `last published ${lastOnTopic}` : null,
-  ].filter((part): part is string => Boolean(part));
   const rankWindowPhrase = formatRankWindowPhrase(summary);
   const topContentCaption = rankWindowPhrase
     ? `Ranked by relevance + reach across ${rankWindowPhrase}.`
@@ -147,19 +131,13 @@ export function SearchFitPanel({
         </div>
 
         <CoverageSummaryBar summary={summary} />
-
-        {metaParts.length > 0 && (
-          <div className="text-content-subtle text-xs">
-            {metaParts.join(" · ")}
-          </div>
-        )}
       </div>
 
       <div className="border-border-subtle mt-5 border-t pt-5">
         {/* Top matches — ranked by the relevance + reach blend */}
         <div className="flex flex-col gap-1">
           <h3 className="text-content-subtle text-[11px] font-semibold uppercase tracking-wide">
-            Most relevant content
+            Top relevant content
           </h3>
           <p className="text-content-muted text-[11px] font-medium">
             {topContentCaption}
@@ -189,44 +167,17 @@ export function SearchFitPanel({
           )}
         </div>
 
-        {/* All matches — same matched set, simply most-recent-first */}
-        {showAllSection && (
-          <div className="mt-6">
-            <div className="flex flex-col gap-1">
-              <h3 className="text-content-subtle text-[11px] font-semibold uppercase tracking-wide">
-                All matching content
-              </h3>
-              <p className="text-content-muted text-[11px] font-medium">
-                Most recent first
-              </p>
-            </div>
-
-            <div className="divide-border-subtle mt-3 divide-y">
-              {visibleAll.map((item) => (
-                <ContentMatchRow key={item.contentItemId} item={item} />
-              ))}
-            </div>
-
-            {hiddenAllCount > 0 ? (
-              <div className="mt-4 flex justify-center">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  text={`Show ${Math.min(
-                    hiddenAllCount,
-                    DETAIL_CONTENT_PAGE_COUNT,
-                  )} more`}
-                  onClick={() =>
-                    setVisibleAllCount(
-                      (count) => count + DETAIL_CONTENT_PAGE_COUNT,
-                    )
-                  }
-                  className="h-9 rounded-lg px-4"
-                />
-              </div>
-            ) : null}
-          </div>
-        )}
+        {/* All recent content — the partner's full feed (matched + unmatched),
+            newest-first, so a brand can judge their overall output, not just matches */}
+        <div className="mt-6">
+          <RecentContentList
+            chunks={recentChunks ?? []}
+            isLoading={recentLoading}
+            error={recentError}
+            title="All recent content"
+            caption="Most recent first"
+          />
+        </div>
       </div>
     </div>
   );

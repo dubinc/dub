@@ -10,7 +10,6 @@ import {
   AnimatedSizeContainer,
   Button,
   Filter,
-  InfoTooltip,
   PaginationControls,
   usePagination,
   useRouterStuff,
@@ -273,10 +272,9 @@ export function ProgramPartnerNetworkPageClient({
               />
             </div>
             <div className="@3xl/page:ml-auto @3xl/page:w-auto flex w-full items-center gap-2">
-              <InfoTooltip content="Enter a topic, keyword, or phrase and we'll search across all partners' recent content for matches." />
               <div className="@3xl/page:w-[373px] w-full">
                 <SearchBoxPersisted
-                  placeholder="Partner Content Search"
+                  placeholder="Search by Topic, Keyword, or Competitor"
                   inputClassName="h-10"
                   loading={isContentSearchMode && isContentSearchPending}
                 />

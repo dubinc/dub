@@ -103,7 +103,9 @@ export function NetworkPartnerDetailContent({
     error: recentError,
     isLoading: isLoadingRecent,
   } = usePartnerContentSearch({
-    enabled: Boolean(workspaceId && !hasContentSearch),
+    // Always loaded: drives the no-search panel and the search panel's "All recent
+    // content" section. No-query path → a DB read, not a billed Voyage call.
+    enabled: Boolean(workspaceId),
     query: "",
     country,
     starred: false,
@@ -208,6 +210,9 @@ export function NetworkPartnerDetailContent({
                       summary={searchSummary}
                       reranked={reranked}
                       searchPartner={searchPartner}
+                      recentChunks={recentPartner?.chunks}
+                      recentLoading={isLoadingRecent}
+                      recentError={recentError}
                     />
                   ) : (
                     <RecentContentPanel

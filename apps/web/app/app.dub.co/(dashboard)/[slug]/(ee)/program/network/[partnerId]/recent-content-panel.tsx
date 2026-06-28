@@ -4,15 +4,14 @@ import { PARTNER_CONTENT_SEARCH_TOP_CONTENT } from "@/lib/partner-content-search
 import { type PartnerContentSearchPartner } from "@/lib/swr/use-partner-content-search";
 import { type NetworkPartnerProps } from "@/lib/types";
 import { Button } from "@dub/ui";
-import { nFormatter } from "@dub/utils";
 import { useState } from "react";
 import {
   formatDuration,
+  formatEngagement,
   formatPublishedDate,
   getContentHref,
   getContentThumbnail,
   getContentTitle,
-  lastPostedLabel,
 } from "../content-display-utils";
 import { PlatformIcon } from "../platform-icon";
 import { ContentMatchSkeletons } from "./content-match-row";
@@ -32,6 +31,7 @@ type RecentContentItem = {
   publishedAt: string | null;
   durationMs: number | null;
   viewCount: number | null;
+  engagement: string;
 };
 
 export function RecentContentPanel({
@@ -45,35 +45,17 @@ export function RecentContentPanel({
   isLoading: boolean;
   error: unknown;
 }) {
-  const [visibleRecentCount, setVisibleRecentCount] =
-    useState(RECENT_INITIAL_COUNT);
-
   const items = buildRecentItems(searchPartner?.chunks ?? []);
 
   const topContent = [...items]
     .sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0))
     .slice(0, PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount);
-  const recentContent = [...items].sort(
-    (a, b) => publishedAtMs(b.publishedAt) - publishedAtMs(a.publishedAt),
-  );
-  const visibleRecent = recentContent.slice(0, visibleRecentCount);
-  const hiddenRecentCount = Math.max(0, recentContent.length - visibleRecent.length);
   // "Recent content" only earns its own section when it adds rows beyond the top set.
   const showRecentSection =
     !isLoading &&
-    recentContent.length > PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount;
+    items.length > PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount;
 
   const categories = (partner?.categories ?? []).slice(0, MAX_NICHE_CHIPS);
-  const followers = sumFollowers(partner);
-  const medianViews = medianViewCount(items);
-  const lastPublished = lastPostedLabel(
-    recentContent.find((item) => item.publishedAt)?.publishedAt,
-  );
-  const metaParts = [
-    followers ? `${nFormatter(followers)} followers` : null,
-    medianViews ? `${nFormatter(medianViews)} median views` : null,
-    lastPublished ? `last published ${lastPublished}` : null,
-  ].filter((part): part is string => Boolean(part));
 
   return (
     <div className="flex flex-col">
@@ -88,11 +70,6 @@ export function RecentContentPanel({
                 {category}
               </span>
             ))}
-          </div>
-        )}
-        {metaParts.length > 0 && (
-          <div className="text-content-subtle text-xs">
-            {metaParts.join(" · ")}
           </div>
         )}
       </div>
@@ -129,37 +106,83 @@ export function RecentContentPanel({
 
         {showRecentSection && (
           <div className="mt-6">
-            <div className="flex flex-col gap-1">
-              <h3 className="text-content-subtle text-[11px] font-semibold uppercase tracking-wide">
-                Recent content
-              </h3>
-              <p className="text-content-muted text-[11px] font-medium">
-                Most recent first
-              </p>
-            </div>
-
-            <div className="divide-border-subtle mt-3 divide-y">
-              {visibleRecent.map((item) => (
-                <RecentContentRow key={item.contentItemId} item={item} />
-              ))}
-            </div>
-
-            {hiddenRecentCount > 0 ? (
-              <div className="mt-4 flex justify-center">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  text={`Show ${Math.min(hiddenRecentCount, RECENT_INCREMENT)} more`}
-                  onClick={() =>
-                    setVisibleRecentCount((count) => count + RECENT_INCREMENT)
-                  }
-                  className="h-9 rounded-lg px-4"
-                />
-              </div>
-            ) : null}
+            <RecentContentList
+              chunks={searchPartner?.chunks ?? []}
+              isLoading={isLoading}
+              error={error}
+              title="Recent content"
+              caption="Most recent first"
+            />
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// Newest-first content list with a "Show more" control. Shared by the no-search
+// panel's "Recent content" and the search panel's "All recent content".
+export function RecentContentList({
+  chunks,
+  isLoading,
+  error,
+  title,
+  caption,
+  skeletonCount = PARTNER_CONTENT_SEARCH_TOP_CONTENT.topContentCount,
+}: {
+  chunks: PartnerContentSearchPartner["chunks"];
+  isLoading: boolean;
+  error: unknown;
+  title: string;
+  caption: string;
+  skeletonCount?: number;
+}) {
+  const [visibleCount, setVisibleCount] = useState(RECENT_INITIAL_COUNT);
+
+  const items = [...buildRecentItems(chunks)].sort(
+    (a, b) => publishedAtMs(b.publishedAt) - publishedAtMs(a.publishedAt),
+  );
+  const visible = items.slice(0, visibleCount);
+  const hiddenCount = Math.max(0, items.length - visible.length);
+
+  return (
+    <div>
+      <div className="flex flex-col gap-1">
+        <h3 className="text-content-subtle text-[11px] font-semibold uppercase tracking-wide">
+          {title}
+        </h3>
+        <p className="text-content-muted text-[11px] font-medium">{caption}</p>
+      </div>
+
+      <div className="divide-border-subtle mt-3 divide-y">
+        {error ? (
+          <div className="text-content-subtle py-3.5 text-sm">
+            Failed to load recent content
+          </div>
+        ) : isLoading ? (
+          <ContentMatchSkeletons count={skeletonCount} />
+        ) : visible.length ? (
+          visible.map((item) => (
+            <RecentContentRow key={item.contentItemId} item={item} />
+          ))
+        ) : (
+          <div className="text-content-subtle py-3.5 text-sm">
+            No indexed content found for this partner.
+          </div>
+        )}
+      </div>
+
+      {hiddenCount > 0 ? (
+        <div className="mt-4 flex justify-center">
+          <Button
+            type="button"
+            variant="secondary"
+            text={`Show ${Math.min(hiddenCount, RECENT_INCREMENT)} more`}
+            onClick={() => setVisibleCount((count) => count + RECENT_INCREMENT)}
+            className="h-9 rounded-lg px-4"
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -184,15 +207,16 @@ function RecentContentRow({ item }: { item: RecentContentItem }) {
             {item.title}
           </span>
         </div>
-        {meta && (
-          <div className="text-content-subtle mt-0.5 text-xs">{meta}</div>
-        )}
+        <div className="text-content-subtle mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs">
+          {meta && <span>{meta}</span>}
+          {item.engagement && (
+            <>
+              {meta && <span className="text-content-muted">·</span>}
+              <span>{item.engagement}</span>
+            </>
+          )}
+        </div>
       </div>
-      {item.viewCount != null && item.viewCount > 0 && (
-        <span className="text-content-default shrink-0 text-xs font-medium tabular-nums">
-          {nFormatter(item.viewCount)} views
-        </span>
-      )}
     </a>
   );
 }
@@ -215,30 +239,9 @@ function buildRecentItems(
       publishedAt: chunk.content.publishedAt,
       durationMs: chunk.content.durationMs,
       viewCount: chunk.content.viewCount,
+      engagement: formatEngagement(chunk.content),
     });
   }
 
   return [...byContentItemId.values()];
-}
-
-function sumFollowers(partner?: NetworkPartnerProps) {
-  if (!partner?.platforms?.length) return null;
-  const total = partner.platforms.reduce(
-    (sum, platform) => sum + Number(platform.subscribers ?? 0),
-    0,
-  );
-  return total > 0 ? total : null;
-}
-
-function medianViewCount(items: RecentContentItem[]) {
-  const views = items
-    .map((item) => item.viewCount)
-    .filter((value): value is number => value != null && value > 0)
-    .sort((a, b) => a - b);
-  if (!views.length) return null;
-
-  const mid = Math.floor(views.length / 2);
-  return views.length % 2 === 0
-    ? Math.round((views[mid - 1] + views[mid]) / 2)
-    : views[mid];
 }

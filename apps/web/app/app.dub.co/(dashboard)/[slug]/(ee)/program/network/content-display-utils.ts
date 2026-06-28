@@ -1,6 +1,7 @@
 import type { PartnerContentTopicFitBand } from "@/lib/partner-content-search/constants";
 import { getPartnerContentThumbnailUrl } from "@/lib/partner-content-search/thumbnail-url";
 import type { PartnerContentSearchPartner } from "@/lib/swr/use-partner-content-search";
+import { nFormatter } from "@dub/utils";
 
 // Shared display helpers for the network search surfaces (detail page + results
 // list): formatters, link/thumbnail resolvers, and the band label map.
@@ -82,6 +83,20 @@ const PLATFORM_CONTENT_NOUN: Record<string, { one: string; many: string }> = {
   linkedin: { one: "post", many: "posts" },
   website: { one: "page", many: "pages" },
 };
+
+// Reach + engagement we have for a post, in descending prominence. Shared by the
+// matched-content rows and the no-search content rows.
+export function formatEngagement(content: ContentSearchChunk["content"]) {
+  return [
+    content.viewCount ? `${nFormatter(content.viewCount)} views` : null,
+    content.likeCount ? `${nFormatter(content.likeCount)} likes` : null,
+    content.commentCount ? `${nFormatter(content.commentCount)} comments` : null,
+    content.shareCount ? `${nFormatter(content.shareCount)} shares` : null,
+    content.saveCount ? `${nFormatter(content.saveCount)} saves` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
 
 export function contentNoun(platforms: string[], count: number) {
   const plural = count !== 1;
