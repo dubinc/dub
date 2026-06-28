@@ -109,7 +109,7 @@ export async function couponDeleted({
           users.map((user) => ({
             from: VARIANT_TO_FROM_MAP.notifications,
             to: user.email,
-            subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Discount has been deleted`,
+            subject: "Your discount has been deleted",
             react: DiscountDeleted({
               email: user.email,
               coupon: {

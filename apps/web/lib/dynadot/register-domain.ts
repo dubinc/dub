@@ -26,9 +26,26 @@ const schema = z.object({
 const ERROR_CODES = {
   not_available: "Domain not available.",
   system_busy: "System is busy. Please try again.",
+  insufficient_funds:
+    "Insufficient funds. Please add more funds to your account.",
 };
 
-export const registerDomain = async ({ domain }: { domain: string }) => {
+export const registerDomain = async ({
+  domain,
+  premium,
+}: {
+  domain: string;
+  premium?: boolean;
+}) => {
+  // for premium domain registrations, we return early with a mock response since we'll need to manually register the domain via Dynadot
+  if (premium) {
+    return RegisterDomainSchema.parse({
+      domain,
+      status: "success",
+      expiration: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).getTime(),
+    });
+  }
+
   const searchParams = new URLSearchParams({
     domain,
     command: "register",
@@ -54,7 +71,8 @@ export const registerDomain = async ({ domain }: { domain: string }) => {
     });
   }
 
-  const data = schema.parse(await response.json());
+  const res = await response.json();
+  const data = schema.parse(res);
 
   const { Status, Error } = data.RegisterResponse;
 

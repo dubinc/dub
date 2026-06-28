@@ -7,14 +7,14 @@ import {
   PropsWithChildren,
   ReactNode,
 } from "react";
-import { Icon } from "./icons";
+import { Icon, LoadingSpinner } from "./icons";
 import { DynamicTooltipWrapper } from "./tooltip";
 
 export const menuItemVariants = cva(
   [
     "flex h-9 w-full rounded-md px-2 items-center justify-center gap-2 transition-colors cursor-pointer",
     "whitespace-nowrap text-sm font-medium text-content-default transition-colors",
-    "disabled:opacity-50 disabled:cursor-default",
+    "disabled:opacity-50 disabled:cursor-not-allowed",
   ],
   {
     variants: {
@@ -23,7 +23,7 @@ export const menuItemVariants = cva(
         danger: "text-content-error hover:bg-red-50 dark:hover:bg-red-950/20",
       },
       disabled: {
-        true: "opacity-50 cursor-default text-content-disabled hover:bg-bg-default",
+        true: "opacity-50 cursor-not-allowed text-content-disabled hover:bg-bg-default",
       },
     },
   },
@@ -37,6 +37,7 @@ type MenuItemProps<T extends ElementType> = PropsWithChildren<
   variant?: "default" | "danger";
   icon?: Icon | ReactNode;
   shortcut?: string;
+  loading?: boolean;
   disabledTooltip?: string | ReactNode;
 };
 
@@ -47,40 +48,52 @@ export function MenuItem<T extends ElementType>({
   icon: Icon,
   shortcut,
   className,
+  loading,
   disabledTooltip,
   ...rest
 }: MenuItemProps<T>) {
   const Component = as || "button";
+  const isDisabled = !!disabledTooltip || loading;
 
   return (
     <DynamicTooltipWrapper
-      tooltipProps={{
-        content: disabledTooltip,
-      }}
+      tooltipProps={
+        disabledTooltip
+          ? {
+              content: disabledTooltip,
+            }
+          : undefined
+      }
     >
-      <Component
-        {...(as === "button" ? { type: "button" } : {})}
-        className={cn(
-          menuItemVariants({ variant, disabled: !!disabledTooltip }),
-          className,
-        )}
-        disabled={disabledTooltip ? true : rest.disabled}
-        {...rest}
-      >
-        <div className="flex grow items-center gap-2">
-          {Icon && (isReactNode(Icon) ? Icon : <Icon className="size-4" />)}
-          {children}
-        </div>
-        {shortcut && (
-          <kbd
-            className={cn(
-              "bg-bg-inverted/5 group-hover:bg-bg-inverted/10 hidden rounded px-2 py-0.5 text-xs font-light transition-all duration-75 md:block",
+      <div>
+        <Component
+          {...rest}
+          {...(as === "button" ? { type: "button" } : {})}
+          className={cn(
+            menuItemVariants({ variant, disabled: isDisabled }),
+            className,
+          )}
+          disabled={isDisabled ? true : rest.disabled}
+        >
+          <div className="flex grow items-center gap-2">
+            {loading ? (
+              <LoadingSpinner className="size-4" />
+            ) : (
+              Icon && (isReactNode(Icon) ? Icon : <Icon className="size-4" />)
             )}
-          >
-            {shortcut}
-          </kbd>
-        )}
-      </Component>
+            {children}
+          </div>
+          {shortcut && (
+            <kbd
+              className={cn(
+                "bg-bg-inverted/5 group-hover:bg-bg-inverted/10 hidden rounded px-2 py-0.5 text-xs font-light transition-all duration-75 md:block",
+              )}
+            >
+              {shortcut}
+            </kbd>
+          )}
+        </Component>
+      </div>
     </DynamicTooltipWrapper>
   );
 }

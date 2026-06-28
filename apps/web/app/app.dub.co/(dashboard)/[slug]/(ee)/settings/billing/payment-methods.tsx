@@ -2,21 +2,35 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useAddPaymentMethodModal } from "@/ui/modals/add-payment-method-modal";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Badge, Button, CreditCard, GreekTemple, MoneyBill2 } from "@dub/ui";
+import { ThreeDots } from "@/ui/shared/icons";
+import {
+  Badge,
+  Button,
+  CreditCard,
+  GreekTemple,
+  MenuItem,
+  MoneyBill2,
+  Popover,
+} from "@dub/ui";
+import { Flag2, LoadingSpinner, Plus, Trash } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { Command } from "cmdk";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Stripe } from "stripe";
 import { PaymentMethodTypesList } from "./payment-method-types";
 
 export default function PaymentMethods() {
   const router = useRouter();
-  const { paymentMethods } = usePaymentMethods();
+  const { paymentMethods, defaultPaymentMethodId } = usePaymentMethods();
   const [isLoading, setIsLoading] = useState(false);
   const { slug, stripeId, plan, role } = useWorkspace();
 
@@ -28,7 +42,7 @@ export default function PaymentMethods() {
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
   );
 
-  const managePaymentMethods = async () => {
+  const addPaymentMethod = async () => {
     setIsLoading(true);
     const { url } = await fetch(
       `/api/workspaces/${slug}/billing/payment-methods`,
@@ -56,10 +70,10 @@ export default function PaymentMethods() {
         </div>
         {stripeId && (
           <Button
-            variant="secondary"
-            text="Manage"
+            text="Add new method"
             className="h-9 w-fit"
-            onClick={() => managePaymentMethods()}
+            icon={<Plus className="size-3.5 shrink-0" />}
+            onClick={() => addPaymentMethod()}
             loading={isLoading}
             disabledTooltip={
               clientAccessCheck({
@@ -78,6 +92,7 @@ export default function PaymentMethods() {
                 key={paymentMethod.id}
                 type={paymentMethod.type}
                 paymentMethod={paymentMethod}
+                isDefault={paymentMethod.id === defaultPaymentMethodId}
               />
             ))
           ) : (
@@ -122,10 +137,12 @@ const PaymentMethodCard = ({
   type,
   paymentMethod,
   forPayouts = false,
+  isDefault = false,
 }: {
   type: Stripe.PaymentMethod.Type;
   paymentMethod?: Stripe.PaymentMethod;
   forPayouts?: boolean;
+  isDefault?: boolean;
 }) => {
   const result = PaymentMethodTypesList(paymentMethod);
 
@@ -152,19 +169,160 @@ const PaymentMethodCard = ({
             <div>
               <div className="flex items-center gap-2">
                 <p className="font-medium text-neutral-900">{title}</p>
-                {paymentMethod &&
-                  (DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(type) ||
-                    paymentMethod.link?.email) && (
-                    <Badge className="border-transparent bg-green-200 text-[0.625rem] text-green-900">
-                      Connected
-                    </Badge>
-                  )}
+                {isDefault && (
+                  <Badge className="border-transparent bg-blue-100 text-[0.625rem] text-blue-700">
+                    Default
+                  </Badge>
+                )}
               </div>
               <p className="text-sm text-neutral-500">{description}</p>
             </div>
           </div>
+          {paymentMethod && (
+            <PaymentMethodActions
+              paymentMethod={paymentMethod}
+              title={title}
+              isDefault={isDefault}
+              canSetDefault={!forPayouts}
+            />
+          )}
         </div>
       </RecommendedForPayoutsWrapper>
+    </>
+  );
+};
+
+const PaymentMethodActions = ({
+  paymentMethod,
+  title,
+  isDefault,
+  canSetDefault,
+}: {
+  paymentMethod: Stripe.PaymentMethod;
+  title: string;
+  isDefault: boolean;
+  canSetDefault: boolean;
+}) => {
+  const [openPopover, setOpenPopover] = useState(false);
+  const [isSettingDefault, setIsSettingDefault] = useState(false);
+  const { slug, role } = useWorkspace();
+
+  const billingWriteError = clientAccessCheck({
+    action: "billing.write",
+    role,
+    customPermissionDescription: "manage payment methods",
+  }).error;
+
+  const setDefaultPaymentMethod = async () => {
+    setIsSettingDefault(true);
+
+    try {
+      const response = await fetch(
+        `/api/workspaces/${slug}/billing/payment-methods`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ paymentMethodId: paymentMethod.id }),
+        },
+      );
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        toast.error(error.message);
+        return;
+      }
+
+      await mutatePrefix(`/api/workspaces/${slug}/billing/payment-methods`);
+      toast.success("Default payment method updated!");
+    } finally {
+      setIsSettingDefault(false);
+    }
+  };
+
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Remove payment method",
+    description: isDefault
+      ? `Are you sure you want to remove your default ${title} payment method? You will need to add another payment method to continue billing.`
+      : `Are you sure you want to remove this ${title} payment method? This action cannot be undone.`,
+    confirmText: "Remove",
+    confirmVariant: "danger",
+    onConfirm: async () => {
+      const response = await fetch(
+        `/api/workspaces/${slug}/billing/payment-methods`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ paymentMethodId: paymentMethod.id }),
+        },
+      );
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        toast.error(error.message);
+        return;
+      }
+
+      await mutatePrefix(`/api/workspaces/${slug}/billing/payment-methods`);
+      toast.success("Payment method removed successfully!");
+    },
+  });
+
+  return (
+    <>
+      {confirmModal}
+      <Popover
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+        align="end"
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[160px]">
+              {canSetDefault && !isDefault && (
+                <MenuItem
+                  as={Command.Item}
+                  icon={isSettingDefault ? LoadingSpinner : Flag2}
+                  onSelect={() => {
+                    setDefaultPaymentMethod();
+                  }}
+                  loading={isSettingDefault}
+                  disabledTooltip={billingWriteError}
+                >
+                  Set as default
+                </MenuItem>
+              )}
+              <MenuItem
+                as={Command.Item}
+                icon={Trash}
+                variant="danger"
+                onSelect={() => {
+                  setOpenPopover(false);
+                  setShowConfirmModal(true);
+                }}
+                disabledTooltip={
+                  isDefault
+                    ? "Default payment method cannot be removed. Set a new default payment method first before removing."
+                    : billingWriteError
+                }
+              >
+                Remove
+              </MenuItem>
+            </Command.List>
+          </Command>
+        }
+      >
+        <Button
+          type="button"
+          variant="secondary"
+          className="h-9 w-fit px-1.5"
+          aria-label="Open payment method actions"
+          icon={<ThreeDots className="size-3.5 shrink-0" />}
+          onClick={() => setOpenPopover(!openPopover)}
+        />
+      </Popover>
     </>
   );
 };
@@ -233,7 +391,7 @@ const RecommendedForPayoutsWrapper = ({
       <span className="flex items-center gap-2 px-3 pb-1 pt-1.5 text-xs text-neutral-800">
         <MoneyBill2 className="size-3.5 shrink-0" />
         <span>
-          Recommended for Dub Partner payouts.{" "}
+          Recommended for partner payouts.{" "}
           <Link
             href="https://dub.co/help/article/how-to-set-up-bank-account"
             target="_blank"
