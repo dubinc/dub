@@ -40,6 +40,8 @@ export const GET = withCron(async () => {
   }
 
   try {
+    const start = Date.now();
+
     const { processed, sent, failed, processedEntryIds } =
       await processStreamBatch();
 
@@ -51,6 +53,7 @@ export const GET = withCron(async () => {
       failed,
       processedEntryIds,
       streamInfo,
+      timeTaken: `${(Date.now() - start) / 1000}s`,
     });
 
     return NextResponse.json("Finished processing stream.");
