@@ -1,5 +1,6 @@
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { MAX_WEBHOOK_FOLDERS } from "@/lib/webhook/constants";
 import { NextResponse } from "next/server";
 
 // GET /api/webhooks/[webhookId]/folders
@@ -23,7 +24,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     select: {
       folderId: true,
     },
-    take: 1000,
+    take: MAX_WEBHOOK_FOLDERS,
   });
 
   return NextResponse.json(folders.map(({ folderId }) => folderId));

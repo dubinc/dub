@@ -62,6 +62,11 @@ export const syncWorkspaceWebhookStatus = async (workspaceId: string) => {
     where: {
       projectId: workspaceId,
       disabledAt: null,
+      project: {
+        plan: {
+          notIn: ["free", "pro"],
+        },
+      },
     },
     select: {
       triggers: true,

@@ -4,9 +4,10 @@ import { WEBHOOK_ID_PREFIX } from "@/lib/webhook/constants";
 import { Project, WebhookReceiver } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
+import { getPlanCapabilities } from "../plan-capabilities";
 import { createWebhookSchema } from "../zod/schemas/webhooks";
-import { createWebhookSecret } from "./secret";
 import { syncWorkspaceWebhookStatus } from "./click-webhook-workspaces";
+import { createWebhookSecret } from "./secret";
 
 export async function createWebhook({
   name,
@@ -26,7 +27,9 @@ export async function createWebhook({
   secret?: string;
 }) {
   // Webhooks are only supported on Business plans and above
-  if (["free", "pro"].includes(workspace.plan)) {
+  const { canCreateWebhooks } = getPlanCapabilities(workspace.plan);
+
+  if (!canCreateWebhooks) {
     return;
   }
 

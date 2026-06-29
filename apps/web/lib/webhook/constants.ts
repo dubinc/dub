@@ -73,3 +73,5 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
 
 export const WEBHOOK_FAILURE_NOTIFY_THRESHOLDS = [5, 10, 15] as const;
 export const WEBHOOK_FAILURE_DISABLE_THRESHOLD = 20 as const;
+
+export const MAX_WEBHOOK_FOLDERS = 100 as const;

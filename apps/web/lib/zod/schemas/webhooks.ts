@@ -1,4 +1,4 @@
-import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
+import { MAX_WEBHOOK_FOLDERS, WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { WebhookTrigger } from "@/lib/webhook/types";
 import { LinkTarget } from "@prisma/client";
 import * as z from "zod/v4";
@@ -80,7 +80,9 @@ export const createWebhookSchemaBase = z.object({
     .nullish(),
   folderIds: z
     .array(z.string())
-    .max(1000, { error: "You can only select up to 1000 folders." })
+    .max(MAX_WEBHOOK_FOLDERS, {
+      error: `You can only select up to ${MAX_WEBHOOK_FOLDERS} folders.`,
+    })
     .nullish(),
 });
 

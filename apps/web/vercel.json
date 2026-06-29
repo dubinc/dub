@@ -21,6 +21,10 @@
       "schedule": "* * * * *"
     },
     {
+      "path": "/api/cron/streams/send-link-click-webhooks",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/cron/streams/update-workspace-links-usage",
       "schedule": "* * * * *"
     },
