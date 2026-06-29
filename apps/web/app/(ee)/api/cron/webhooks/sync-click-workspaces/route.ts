@@ -11,10 +11,9 @@ export const dynamic = "force-dynamic";
 // Rebuild the Redis set of workspaces with active link.clicked webhooks.
 // Runs every minute (* * * * *)
 export const GET = withCron(async () => {
-  const [synced, promoted] = await Promise.all([
-    syncClickWebhookWorkspaceSet(),
-    promoteLinkWebhooksForClick(),
-  ]);
+  const promoted = await promoteLinkWebhooksForClick();
+
+  const synced = await syncClickWebhookWorkspaceSet();
 
   return logAndRespond(
     `Synced ${synced} workspace(s) with link.clicked webhooks. Promoted ${promoted} webhooks for click.`,

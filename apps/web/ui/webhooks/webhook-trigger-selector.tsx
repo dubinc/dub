@@ -23,7 +23,7 @@ const CLICK_WEBHOOK_LINK_TARGET_OPTIONS = [
   {
     value: "folders",
     label: "Include specific folders (Recommended)",
-    description: "Trigger webhooks for all links from a selected folders",
+    description: "Trigger webhooks for all links from selected folders",
   },
   {
     value: "links",

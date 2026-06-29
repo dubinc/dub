@@ -137,7 +137,7 @@ export const promoteLinkWebhooksForClick = async () => {
         },
         data: {
           triggers: [
-            ...(webhook.triggers as WebhookTrigger[]),
+            ...((webhook.triggers as WebhookTrigger[]) ?? []),
             LINK_CLICK_WEBHOOK_TRIGGER,
           ],
           linkTarget: webhook.linkTarget ?? "links",
