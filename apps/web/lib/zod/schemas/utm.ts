@@ -43,7 +43,7 @@ export const UTMTemplateSchema = z.object({
     .string()
     .nullish()
     .describe("The UTM content of the short link."),
-  ref: z.string().max(190).nullish().describe("The ref of the short link."),
+  ref: z.string().nullish().describe("The ref of the short link."),
 });
 
 export const UTM_TAGS_PLURAL_LIST = [
