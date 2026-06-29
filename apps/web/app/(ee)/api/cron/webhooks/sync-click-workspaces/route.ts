@@ -1,5 +1,8 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { syncClickWebhookWorkspaceSet } from "@/lib/webhook/click-webhook-workspaces";
+import {
+  promoteLinkWebhooksForClick,
+  syncClickWebhookWorkspaceSet,
+} from "@/lib/webhook/click-webhook-workspaces";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -8,11 +11,12 @@ export const dynamic = "force-dynamic";
 // Rebuild the Redis set of workspaces with active link.clicked webhooks.
 // Runs every minute (* * * * *)
 export const GET = withCron(async () => {
-  const count = await syncClickWebhookWorkspaceSet();
+  const [synced, promoted] = await Promise.all([
+    syncClickWebhookWorkspaceSet(),
+    promoteLinkWebhooksForClick(),
+  ]);
 
   return logAndRespond(
-    count === 0
-      ? "No workspaces with link.clicked webhooks found. Cleared cache."
-      : `Synced ${count} workspace(s) with link.clicked webhooks.`,
+    `Synced ${synced} workspace(s) with link.clicked webhooks. Promoted ${promoted} webhooks for click.`,
   );
 });

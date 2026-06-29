@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { LINK_CLICK_WEBHOOK_TRIGGER } from "./constants";
 import type { WebhookTrigger } from "./types";
+import { hasLinkClickTrigger } from "./utils";
 
 export const REDIS_KEY = "webhookClickWorkspaces";
 const TMP_REDIS_KEY = `${REDIS_KEY}:tmp`;
@@ -93,4 +94,57 @@ export const syncWorkspaceWebhookStatus = async (workspaceId: string) => {
   } else {
     await clickWebhookWorkspaces.remove(workspaceId);
   }
+};
+
+// Promotes webhooks assigned via the links API to the link.clicked trigger so
+// they are picked up by the workspace click event stream delivery path.
+export const promoteLinkWebhooksForClick = async () => {
+  const webhooks = await prisma.webhook.findMany({
+    where: {
+      disabledAt: null,
+      links: {
+        some: {},
+      },
+      NOT: {
+        triggers: {
+          array_contains: [LINK_CLICK_WEBHOOK_TRIGGER],
+        },
+      },
+    },
+    select: {
+      id: true,
+      triggers: true,
+      linkTarget: true,
+    },
+    take: 100,
+  });
+
+  const webhooksToPromote = webhooks.filter(
+    (webhook) => !hasLinkClickTrigger(webhook),
+  );
+
+  if (webhooksToPromote.length === 0) {
+    return 0;
+  }
+
+  console.log(webhooksToPromote);
+
+  await Promise.all(
+    webhooksToPromote.map((webhook) =>
+      prisma.webhook.update({
+        where: {
+          id: webhook.id,
+        },
+        data: {
+          triggers: [
+            ...(webhook.triggers as WebhookTrigger[]),
+            LINK_CLICK_WEBHOOK_TRIGGER,
+          ],
+          linkTarget: webhook.linkTarget ?? "links",
+        },
+      }),
+    ),
+  );
+
+  return webhooksToPromote.length;
 };
