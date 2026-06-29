@@ -23,9 +23,8 @@ export const publishWorkspaceClickEvent = async (
   try {
     return await redis.xadd(STREAM_KEY, "*", event);
   } catch (error) {
-    logger.error("workspaceClickEvent.publish_failed", {
-      service: "redis",
-      event: "workspaceClickEvent.publish_failed",
+    logger.error("stream.publish_failed", {
+      service: "upstash",
       streamKey: STREAM_KEY,
       errorName: error instanceof Error ? error.name : undefined,
       errorStack: error instanceof Error ? error.stack : undefined,
