@@ -2,6 +2,7 @@ import { transformLink } from "@/lib/api/links/utils/transform-link";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { ClickEventTB } from "@/lib/types";
+import { redis } from "@/lib/upstash/redis";
 import { RedisStreamEntry } from "@/lib/upstash/redis-streams/client";
 import { workspaceClickEventStream } from "@/lib/upstash/redis-streams/workspace-click-events";
 import { LINK_CLICK_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
@@ -9,6 +10,7 @@ import { sendWebhooks } from "@/lib/webhook/qstash";
 import { transformClickEventData } from "@/lib/webhook/transform";
 import { chunk, groupBy } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -18,23 +20,43 @@ const BATCH_SIZE = 500;
 // How many webhook deliveries to enqueue to QStash in parallel
 const SEND_CONCURRENCY = 100;
 
+// Lock for the cron job
+const LOCK_KEY = "lock:send-link-click-webhooks";
+const LOCK_TTL_SECONDS = 300;
+
 // Drains the workspace:click:events stream and delivers link.clicked webhooks.
 // Runs every minute (see vercel.json).
+// GET /api/cron/streams/send-link-click-webhooks
 export const GET = withCron(async () => {
-  const { processed, sent, failed, processedEntryIds } =
-    await processStreamBatch();
-
-  const streamInfo = await workspaceClickEventStream.getStreamInfo();
-
-  console.log({
-    processed,
-    sent,
-    failed,
-    processedEntryIds,
-    streamInfo,
+  const acquired = await redis.set(LOCK_KEY, "1", {
+    nx: true,
+    ex: LOCK_TTL_SECONDS,
   });
 
-  return NextResponse.json("Finished processing stream.");
+  if (!acquired) {
+    return logAndRespond(
+      "[send-link-click-webhooks] Another run is in progress. Skipping...",
+    );
+  }
+
+  try {
+    const { processed, sent, failed, processedEntryIds } =
+      await processStreamBatch();
+
+    const streamInfo = await workspaceClickEventStream.getStreamInfo();
+
+    console.log({
+      processed,
+      sent,
+      failed,
+      processedEntryIds,
+      streamInfo,
+    });
+
+    return NextResponse.json("Finished processing stream.");
+  } finally {
+    await redis.del(LOCK_KEY);
+  }
 });
 
 const processStreamBatch = (): Promise<{

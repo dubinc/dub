@@ -1,4 +1,3 @@
-import { LinkTarget } from "@prisma/client";
 import type { WebhookTrigger } from "./types";
 
 export const WEBHOOK_SECRET_LENGTH = 16;
@@ -27,28 +26,6 @@ export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
   "bounty.updated",
   "payout.confirmed",
 ] as const;
-
-export const CLICK_WEBHOOK_LINK_TARGET_OPTIONS = [
-  {
-    value: "workspace",
-    label: "All links",
-    description: "Trigger webhooks for all links in your workspace",
-  },
-  {
-    value: "folders",
-    label: "Include specific folders",
-    description: "Trigger webhooks for all links from a selected folder",
-  },
-  {
-    value: "links",
-    label: "Include specific links",
-    description: "Trigger webhooks for the links you explicitly select",
-  },
-] as const satisfies ReadonlyArray<{
-  value: LinkTarget;
-  label: string;
-  description: string;
-}>;
 
 export const WEBHOOK_TRIGGERS = [
   ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,

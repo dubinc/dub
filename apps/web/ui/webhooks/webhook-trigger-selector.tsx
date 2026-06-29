@@ -2,7 +2,6 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
-  CLICK_WEBHOOK_LINK_TARGET_OPTIONS,
   LINK_CLICK_WEBHOOK_TRIGGER,
   WEBHOOK_TRIGGER_DESCRIPTIONS,
 } from "@/lib/webhook/constants";
@@ -14,6 +13,28 @@ import { useEffect } from "react";
 import useSWR from "swr";
 import { FoldersSelector } from "./folder-selector";
 import { LinksSelector } from "./link-selector";
+
+const CLICK_WEBHOOK_LINK_TARGET_OPTIONS = [
+  {
+    value: "workspace",
+    label: "All links",
+    description: "Trigger webhooks for all links in your workspace",
+  },
+  {
+    value: "folders",
+    label: "Include specific folders (Recommended)",
+    description: "Trigger webhooks for all links from a selected folders",
+  },
+  {
+    value: "links",
+    label: "Include specific links",
+    description: "Trigger webhooks for the links you explicitly select",
+  },
+] as const satisfies ReadonlyArray<{
+  value: LinkTarget;
+  label: string;
+  description: string;
+}>;
 
 export type WebhookTriggerSelectorValue = {
   triggers: WebhookTrigger[];
