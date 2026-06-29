@@ -53,7 +53,7 @@ export const GET = withCron(async () => {
       failed,
       processedEntryIds,
       streamInfo,
-      timeTaken: `${(Date.now() - start) / 1000}s`,
+      timeTaken: `${Date.now() - start}ms`,
     });
 
     return NextResponse.json("Finished processing stream.");
