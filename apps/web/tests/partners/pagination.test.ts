@@ -27,6 +27,7 @@ describe.concurrent("/partners/** - pagination", async () => {
 
     baseline = data;
     baselineIds = baseline.map((p) => p.id);
+    expect(baselineIds.length).toBeGreaterThanOrEqual(15);
   });
 
   test("Offset pagination has no duplicate partners across pages", async () => {
@@ -46,6 +47,9 @@ describe.concurrent("/partners/** - pagination", async () => {
     expect(page1.status).toEqual(200);
     expect(page2.status).toEqual(200);
     expect(page3.status).toEqual(200);
+    expect(page1.data).toHaveLength(5);
+    expect(page2.data).toHaveLength(5);
+    expect(page3.data).toHaveLength(5);
 
     expectNoOverlap(page1.data, page2.data);
     expectNoOverlap(page2.data, page3.data);
