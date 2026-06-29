@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import { toCentsNumber } from "@dub/utils";
 import * as z from "zod/v4";
+import { buildPaginationQuery } from "../pagination";
 import { buildProgramEnrollmentWhereForList } from "./program-enrollment-query";
 
 type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
@@ -23,6 +24,13 @@ export async function getPartners(filters: PartnerFilters) {
     includeGroup = false,
     ...enrollmentRest
   } = filters;
+
+  const { take, skip, orderBy } = buildPaginationQuery({
+    page,
+    pageSize,
+    sortBy,
+    sortOrder,
+  });
 
   const partners = await prisma.programEnrollment.findMany({
     where: buildProgramEnrollmentWhereForList({
@@ -54,11 +62,9 @@ export async function getPartners(filters: PartnerFilters) {
           }
         : {}),
     },
-    take: pageSize,
-    skip: (page - 1) * pageSize,
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
+    take,
+    skip,
+    orderBy,
   });
 
   return partners.map(

@@ -78,11 +78,7 @@ export function buildPaginationQuery(filters: Filters): PaginationQuery {
   }
 
   return {
-    // Order by id only for better query performance on large datasets (single-column PK index).
-    // Trade-off: ordering is by id rather than createdAt, so order may not strictly match creation time.
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
+    orderBy: [{ [sortBy]: sortOrder }, { id: sortOrder }],
     take: pageSize,
     skip: (page - 1) * pageSize,
   };
