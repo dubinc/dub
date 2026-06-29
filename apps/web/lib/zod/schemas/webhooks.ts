@@ -77,12 +77,14 @@ export const createWebhookSchemaBase = z.object({
       error:
         "You can only select up to 1000 links. Recommended to use the 'Include specific folders' option instead.",
     })
+    .transform((v) => [...new Set(v)])
     .nullish(),
   folderIds: z
     .array(z.string())
     .max(MAX_WEBHOOK_FOLDERS, {
       error: `You can only select up to ${MAX_WEBHOOK_FOLDERS} folders.`,
     })
+    .transform((v) => [...new Set(v)])
     .nullish(),
 });
 
