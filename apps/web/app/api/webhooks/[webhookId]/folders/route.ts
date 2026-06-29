@@ -23,7 +23,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     select: {
       folderId: true,
     },
-    take: 100, // TODO: Enforce this limit other places too
+    take: 1000,
   });
 
   return NextResponse.json(folders.map(({ folderId }) => folderId));

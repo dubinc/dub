@@ -15,7 +15,7 @@ import { getIdentityHash } from "../middleware/utils/get-identity-hash";
 import { conn } from "../planetscale";
 import { redis } from "../upstash";
 import { publishPartnerActivityEvent } from "../upstash/redis-streams/partner-activity";
-import { publishClickEvent } from "../upstash/redis-streams/workspace-clicks";
+import { publishWorkspaceClickEvent } from "../upstash/redis-streams/workspace-click-events";
 import { publishWorkspaceClicksUsageEvent } from "../upstash/redis-streams/workspace-clicks-usage";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 
@@ -223,7 +223,8 @@ export async function recordClick({
             );
           }),
 
-        publishClickEvent(clickEventSchemaTB.parse(clickData)),
+        // Publish the click event
+        publishWorkspaceClickEvent(clickEventSchemaTB.parse(clickData)),
       ]);
 
       // Find the rejected promises and log them
@@ -237,6 +238,7 @@ export async function recordClick({
                 "Link clicks increment",
                 "Workspace usage increment",
                 "Program enrollment totalClicks increment",
+                "Workspace click event publish",
               ];
               return {
                 operation: operations[index] || `Operation ${index}`,

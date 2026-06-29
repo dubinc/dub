@@ -39,7 +39,7 @@ export function ConfigureWebhook({
   const [triggerSelection, setTriggerSelection] =
     useState<WebhookTriggerSelectorValue>({
       triggers: [],
-      scope: "all",
+      linkTarget: "workspace",
       linkIds: [],
       folderIds: [],
     });
@@ -49,7 +49,7 @@ export function ConfigureWebhook({
       setTriggerSelection((prev) => ({
         ...prev,
         triggers: webhook.triggers,
-        scope: webhook.scope ?? "all",
+        linkTarget: webhook.linkTarget ?? "workspace",
       }));
     }
   }, [webhook]);
@@ -64,7 +64,7 @@ export function ConfigureWebhook({
 
     setSaving(true);
 
-    const { triggers, scope, linkIds, folderIds } = triggerSelection;
+    const { triggers, linkTarget, linkIds, folderIds } = triggerSelection;
     const hasLinkClicked = triggers.includes(LINK_CLICK_WEBHOOK_TRIGGER);
 
     const response = await fetch(
@@ -77,9 +77,9 @@ export function ConfigureWebhook({
         body: JSON.stringify({
           triggers,
           ...(hasLinkClicked && {
-            scope,
-            ...(scope === "links" && { linkIds }),
-            ...(scope === "folders" && { folderIds }),
+            linkTarget,
+            ...(linkTarget === "links" && { linkIds }),
+            ...(linkTarget === "folders" && { folderIds }),
           }),
         }),
       },
@@ -98,12 +98,12 @@ export function ConfigureWebhook({
     await Promise.all([
       mutate(
         `/api/webhooks/${webhookId}/links?workspaceId=${workspaceId}`,
-        result.scope === "links" ? linkIds : [],
+        result.linkTarget === "links" ? linkIds : [],
         { revalidate: true },
       ),
       mutate(
         `/api/webhooks/${webhookId}/folders?workspaceId=${workspaceId}`,
-        result.scope === "folders" ? folderIds : [],
+        result.linkTarget === "folders" ? folderIds : [],
         { revalidate: true },
       ),
     ]);
@@ -140,7 +140,7 @@ export function ConfigureWebhook({
             availableTriggers={availableTriggers}
             disabled={!canManageWebhook}
             webhookId={webhookId}
-            savedScope={webhook?.scope}
+            savedLinkTarget={webhook?.linkTarget}
           />
         </div>
 

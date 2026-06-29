@@ -6,8 +6,8 @@ enum WebhookReceiver {
   segment
 }
 
-enum WebhookScope {
-  all // All links in the workspace
+enum LinkTarget {
+  workspace // All links in the workspace
   folders // Links inside specific folders
   links // Specific links
 }
@@ -21,7 +21,7 @@ model Webhook {
   url                 String          @db.LongText
   secret              String
   triggers            Json
-  scope               WebhookScope? // Only set for webhooks with the link.clicked trigger
+  linkTarget          LinkTarget? // Only set for webhooks with the link.clicked trigger
   consecutiveFailures Int             @default(0)
   lastFailedAt        DateTime?
   disabledAt          DateTime?

@@ -1,4 +1,4 @@
-import { WebhookScope } from "@prisma/client";
+import { LinkTarget } from "@prisma/client";
 import type { WebhookTrigger } from "./types";
 
 export const WEBHOOK_SECRET_LENGTH = 16;
@@ -28,9 +28,9 @@ export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
   "payout.confirmed",
 ] as const;
 
-export const CLICK_WEBHOOK_SCOPE_OPTIONS = [
+export const CLICK_WEBHOOK_LINK_TARGET_OPTIONS = [
   {
-    value: "all",
+    value: "workspace",
     label: "All links",
     description: "Trigger webhooks for all links in your workspace",
   },
@@ -45,7 +45,7 @@ export const CLICK_WEBHOOK_SCOPE_OPTIONS = [
     description: "Trigger webhooks for the links you explicitly select",
   },
 ] as const satisfies ReadonlyArray<{
-  value: WebhookScope;
+  value: LinkTarget;
   label: string;
   description: string;
 }>;

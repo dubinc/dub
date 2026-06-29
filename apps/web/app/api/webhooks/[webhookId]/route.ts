@@ -52,12 +52,20 @@ export const PATCH = withWorkspace(
         projectId: workspace.id,
       },
       include: {
-        links: true,
-        folders: true,
+        links: {
+          select: {
+            linkId: true,
+          },
+        },
+        folders: {
+          select: {
+            folderId: true,
+          },
+        },
       },
     });
 
-    const { name, url, triggers, scope, linkIds, folderIds } = input;
+    const { name, url, triggers, linkTarget, linkIds, folderIds } = input;
 
     // If the webhook is managed by an integration, only the linkIds & triggers can be updated manually.
     if (existingWebhook.installationId && (name || url)) {
@@ -76,17 +84,17 @@ export const PATCH = withWorkspace(
       LINK_CLICK_WEBHOOK_TRIGGER,
     );
 
-    const nextScope = hasLinkClickedTrigger
-      ? scope !== undefined
-        ? scope
-        : existingWebhook.scope
+    const nextLinkTarget = hasLinkClickedTrigger
+      ? linkTarget !== undefined
+        ? linkTarget
+        : existingWebhook.linkTarget
       : null;
 
     const nextWebhook: Partial<NewWebhook> = {
       ...existingWebhook,
       ...input,
       triggers: finalTriggers,
-      scope: nextScope,
+      linkTarget: nextLinkTarget,
     };
 
     await validateWebhook({
@@ -96,22 +104,22 @@ export const PATCH = withWorkspace(
       user: session.user,
     });
 
-    const existingLinkIds = existingWebhook.links.map((link) => link.linkId);
+    const existingLinkIds = existingWebhook.links.map(({ linkId }) => linkId);
     const existingFolderIds = existingWebhook.folders.map(
-      (folder) => folder.folderId,
+      ({ folderId }) => folderId,
     );
 
-    const scopeChanged = nextScope !== existingWebhook.scope;
+    const linkTargetChanged = nextLinkTarget !== existingWebhook.linkTarget;
 
     const shouldSyncLinks =
-      (nextWebhook.scope !== "links" && existingLinkIds.length > 0) ||
-      (nextWebhook.scope === "links" &&
+      (nextWebhook.linkTarget !== "links" && existingLinkIds.length > 0) ||
+      (nextWebhook.linkTarget === "links" &&
         linkIds !== undefined &&
         !arrayEqual(existingLinkIds, linkIds ?? []));
 
     const shouldSyncFolders =
-      (nextWebhook.scope !== "folders" && existingFolderIds.length > 0) ||
-      (nextWebhook.scope === "folders" &&
+      (nextWebhook.linkTarget !== "folders" && existingFolderIds.length > 0) ||
+      (nextWebhook.linkTarget === "folders" &&
         folderIds !== undefined &&
         !arrayEqual(existingFolderIds, folderIds ?? []));
 
@@ -124,7 +132,7 @@ export const PATCH = withWorkspace(
           ...(name !== undefined && { name }),
           ...(url !== undefined && { url }),
           ...(triggers !== undefined && { triggers }),
-          ...(scopeChanged && { scope: nextWebhook.scope }),
+          ...(linkTargetChanged && { linkTarget: nextWebhook.linkTarget }),
         },
       });
 
@@ -135,7 +143,7 @@ export const PATCH = withWorkspace(
           },
         });
 
-        if (nextWebhook.scope === "links" && linkIds?.length) {
+        if (nextWebhook.linkTarget === "links" && linkIds?.length) {
           await tx.linkWebhook.createMany({
             data: linkIds.map((linkId) => ({
               linkId,
@@ -152,7 +160,7 @@ export const PATCH = withWorkspace(
           },
         });
 
-        if (nextWebhook.scope === "folders" && folderIds?.length) {
+        if (nextWebhook.linkTarget === "folders" && folderIds?.length) {
           await tx.folderWebhook.createMany({
             data: folderIds.map((folderId) => ({
               folderId,
@@ -187,7 +195,7 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { webhookId } = params;
 
-    const existingWebhook = await prisma.webhook.findUniqueOrThrow({
+    await prisma.webhook.findUniqueOrThrow({
       where: {
         id: webhookId,
         projectId: workspace.id,

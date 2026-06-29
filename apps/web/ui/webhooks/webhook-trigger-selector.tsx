@@ -2,14 +2,14 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
-  CLICK_WEBHOOK_SCOPE_OPTIONS,
+  CLICK_WEBHOOK_LINK_TARGET_OPTIONS,
   LINK_CLICK_WEBHOOK_TRIGGER,
   WEBHOOK_TRIGGER_DESCRIPTIONS,
 } from "@/lib/webhook/constants";
 import type { WebhookTrigger } from "@/lib/webhook/types";
 import { Checkbox, RadioGroup, RadioGroupItem } from "@dub/ui";
 import { arrayEqual, cn, fetcher } from "@dub/utils";
-import { WebhookScope } from "@prisma/client";
+import { LinkTarget } from "@prisma/client";
 import { useEffect } from "react";
 import useSWR from "swr";
 import { FoldersSelector } from "./folder-selector";
@@ -17,7 +17,7 @@ import { LinksSelector } from "./link-selector";
 
 export type WebhookTriggerSelectorValue = {
   triggers: WebhookTrigger[];
-  scope: WebhookScope;
+  linkTarget: LinkTarget;
   linkIds: string[];
   folderIds: string[];
 };
@@ -32,8 +32,8 @@ export function isWebhookTriggerSelectionInvalid(
   }
 
   return (
-    (value.scope === "links" && value.linkIds.length === 0) ||
-    (value.scope === "folders" && value.folderIds.length === 0)
+    (value.linkTarget === "links" && value.linkIds.length === 0) ||
+    (value.linkTarget === "folders" && value.folderIds.length === 0)
   );
 }
 
@@ -43,77 +43,77 @@ export function WebhookTriggerSelector({
   availableTriggers,
   disabled,
   webhookId,
-  savedScope,
+  savedLinkTarget,
 }: {
   value: WebhookTriggerSelectorValue;
   onChange: (value: WebhookTriggerSelectorValue) => void;
   availableTriggers: WebhookTrigger[];
   disabled?: boolean;
   webhookId?: string;
-  savedScope?: WebhookScope | null;
+  savedLinkTarget?: LinkTarget | null;
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { triggers, scope, linkIds, folderIds } = value;
+  const { triggers, linkTarget, linkIds, folderIds } = value;
   const hasLinkClicked = triggers.includes(LINK_CLICK_WEBHOOK_TRIGGER);
 
   const { data: fetchedLinkIds } = useSWR<string[]>(
-    webhookId && savedScope === "links"
+    webhookId && savedLinkTarget === "links"
       ? `/api/webhooks/${webhookId}/links?workspaceId=${workspaceId}`
       : null,
     fetcher,
   );
 
   const { data: fetchedFolderIds } = useSWR<string[]>(
-    webhookId && savedScope === "folders"
+    webhookId && savedLinkTarget === "folders"
       ? `/api/webhooks/${webhookId}/folders?workspaceId=${workspaceId}`
       : null,
     fetcher,
   );
 
   useEffect(() => {
-    if (scope === "links" && fetchedLinkIds) {
+    if (linkTarget === "links" && fetchedLinkIds) {
       if (!arrayEqual(linkIds, fetchedLinkIds)) {
         onChange({
           triggers,
-          scope,
+          linkTarget,
           linkIds: fetchedLinkIds,
           folderIds,
         });
       }
-    } else if (scope !== "links" && linkIds.length > 0) {
+    } else if (linkTarget !== "links" && linkIds.length > 0) {
       onChange({
         triggers,
-        scope,
+        linkTarget,
         linkIds: [],
         folderIds,
       });
     }
-    // Only sync from server when scope or fetched ids change — not on manual selection
+    // Only sync from server when linkTarget or fetched ids change — not on manual selection
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scope, fetchedLinkIds]);
+  }, [linkTarget, fetchedLinkIds]);
 
   useEffect(() => {
-    if (scope === "folders" && fetchedFolderIds) {
+    if (linkTarget === "folders" && fetchedFolderIds) {
       if (!arrayEqual(folderIds, fetchedFolderIds)) {
         onChange({
           triggers,
-          scope,
+          linkTarget,
           linkIds,
           folderIds: fetchedFolderIds,
         });
       }
-    } else if (scope !== "folders" && folderIds.length > 0) {
+    } else if (linkTarget !== "folders" && folderIds.length > 0) {
       onChange({
         triggers,
-        scope,
+        linkTarget,
         linkIds,
         folderIds: [],
       });
     }
-    // Only sync from server when scope or fetched ids change — not on manual selection
+    // Only sync from server when linkTarget or fetched ids change — not on manual selection
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scope, fetchedFolderIds]);
+  }, [linkTarget, fetchedFolderIds]);
 
   const toggleTrigger = (
     trigger: WebhookTrigger,
@@ -131,12 +131,12 @@ export function WebhookTriggerSelector({
     });
   };
 
-  const handleScopeChange = (nextScope: WebhookScope) => {
+  const handleLinkTargetChange = (nextLinkTarget: LinkTarget) => {
     onChange({
       ...value,
-      scope: nextScope,
-      linkIds: nextScope === "links" ? linkIds : [],
-      folderIds: nextScope === "folders" ? folderIds : [],
+      linkTarget: nextLinkTarget,
+      linkIds: nextLinkTarget === "links" ? linkIds : [],
+      folderIds: nextLinkTarget === "folders" ? folderIds : [],
     });
   };
 
@@ -163,15 +163,15 @@ export function WebhookTriggerSelector({
           {trigger === LINK_CLICK_WEBHOOK_TRIGGER && hasLinkClicked ? (
             <div className="ml-6 mt-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">
               <RadioGroup
-                value={scope}
+                value={linkTarget}
                 onValueChange={(nextValue) =>
-                  handleScopeChange(nextValue as WebhookScope)
+                  handleLinkTargetChange(nextValue as LinkTarget)
                 }
                 className="flex flex-col gap-2"
                 disabled={disabled}
               >
-                {CLICK_WEBHOOK_SCOPE_OPTIONS.map((option) => {
-                  const isSelected = scope === option.value;
+                {CLICK_WEBHOOK_LINK_TARGET_OPTIONS.map((option) => {
+                  const isSelected = linkTarget === option.value;
 
                   return (
                     <div key={option.value}>
@@ -186,7 +186,7 @@ export function WebhookTriggerSelector({
                       >
                         <RadioGroupItem
                           value={option.value}
-                          id={`scope-${option.value}`}
+                          id={`linkTarget-${option.value}`}
                           className="mt-0.5"
                           disabled={disabled}
                         />

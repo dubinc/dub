@@ -39,7 +39,7 @@ export default function AddEditWebhookForm({
       name: webhook?.name ?? "",
       url: webhook?.url ?? "",
       triggers: webhook?.triggers ?? [],
-      scope: webhook?.scope ?? "all",
+      linkTarget: webhook?.linkTarget ?? "workspace",
       linkIds: [],
       folderIds: [],
     },
@@ -54,11 +54,11 @@ export default function AddEditWebhookForm({
     formState: { isSubmitting },
   } = methods;
 
-  const [name, url, triggers, scope, linkIds, folderIds] = watch([
+  const [name, url, triggers, linkTarget, linkIds, folderIds] = watch([
     "name",
     "url",
     "triggers",
-    "scope",
+    "linkTarget",
     "linkIds",
     "folderIds",
   ]);
@@ -97,9 +97,9 @@ export default function AddEditWebhookForm({
         url: data.url,
         triggers: data.triggers,
         ...(hasLinkClicked && {
-          scope: data.scope,
-          ...(data.scope === "links" && { linkIds: data.linkIds }),
-          ...(data.scope === "folders" && { folderIds: data.folderIds }),
+          linkTarget: data.linkTarget,
+          ...(data.linkTarget === "links" && { linkIds: data.linkIds }),
+          ...(data.linkTarget === "folders" && { folderIds: data.folderIds }),
         }),
       }),
     });
@@ -120,12 +120,12 @@ export default function AddEditWebhookForm({
       await Promise.all([
         mutate(
           `/api/webhooks/${result.id}/links?workspaceId=${workspaceId}`,
-          result.scope === "links" ? data.linkIds ?? [] : [],
+          result.linkTarget === "links" ? data.linkIds ?? [] : [],
           { revalidate: true },
         ),
         mutate(
           `/api/webhooks/${result.id}/folders?workspaceId=${workspaceId}`,
-          result.scope === "folders" ? data.folderIds ?? [] : [],
+          result.linkTarget === "folders" ? data.folderIds ?? [] : [],
           { revalidate: true },
         ),
       ]);
@@ -134,24 +134,24 @@ export default function AddEditWebhookForm({
         name: result.name,
         url: result.url,
         triggers: result.triggers,
-        scope: result.scope ?? "all",
-        linkIds: result.scope === "links" ? data.linkIds ?? [] : [],
-        folderIds: result.scope === "folders" ? data.folderIds ?? [] : [],
+        linkTarget: result.linkTarget ?? "workspace",
+        linkIds: result.linkTarget === "links" ? data.linkIds ?? [] : [],
+        folderIds: result.linkTarget === "folders" ? data.folderIds ?? [] : [],
       });
     }
 
     toast.success(endpoint.successMessage);
   };
 
-  const scopeInvalid = isWebhookTriggerSelectionInvalid({
+  const linkTargetInvalid = isWebhookTriggerSelectionInvalid({
     triggers,
-    scope: scope ?? "all",
+    linkTarget: linkTarget ?? "workspace",
     linkIds: linkIds ?? [],
     folderIds: folderIds ?? [],
   });
 
   const buttonDisabled =
-    !name || !url || !triggers.length || isSubmitting || scopeInvalid;
+    !name || !url || !triggers.length || isSubmitting || linkTargetInvalid;
 
   const updateDisabled =
     (webhook && webhook?.installationId !== null) || permissionsError !== false;
@@ -256,20 +256,20 @@ export default function AddEditWebhookForm({
             <WebhookTriggerSelector
               value={{
                 triggers,
-                scope: scope ?? "all",
+                linkTarget: linkTarget ?? "workspace",
                 linkIds: linkIds ?? [],
                 folderIds: folderIds ?? [],
               }}
               onChange={(next) => {
                 setValue("triggers", next.triggers);
-                setValue("scope", next.scope);
+                setValue("linkTarget", next.linkTarget);
                 setValue("linkIds", next.linkIds);
                 setValue("folderIds", next.folderIds);
               }}
               availableTriggers={allWebhookTriggers}
               disabled={updateDisabled}
               webhookId={webhook?.id}
-              savedScope={webhook?.scope}
+              savedLinkTarget={webhook?.linkTarget}
             />
           </div>
         </div>

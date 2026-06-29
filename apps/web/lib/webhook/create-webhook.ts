@@ -13,7 +13,7 @@ export async function createWebhook({
   url,
   secret,
   triggers,
-  scope,
+  linkTarget,
   linkIds,
   folderIds,
   workspace,
@@ -40,11 +40,11 @@ export async function createWebhook({
       installationId,
       projectId: workspace.id,
       secret: secret || createWebhookSecret(),
-      scope,
+      linkTarget,
     },
   });
 
-  if (scope === "links" && linkIds && linkIds.length > 0) {
+  if (linkTarget === "links" && linkIds && linkIds.length > 0) {
     await prisma.linkWebhook.createMany({
       data: linkIds.map((linkId) => ({
         linkId,
@@ -53,7 +53,7 @@ export async function createWebhook({
     });
   }
 
-  if (scope === "folders" && folderIds && folderIds.length > 0) {
+  if (linkTarget === "folders" && folderIds && folderIds.length > 0) {
     await prisma.folderWebhook.createMany({
       data: folderIds.map((folderId) => ({
         folderId,

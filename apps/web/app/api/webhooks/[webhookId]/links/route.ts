@@ -13,16 +13,15 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     },
   });
 
-  const links = await prisma.link.findMany({
+  const links = await prisma.linkWebhook.findMany({
     where: {
-      webhooks: {
-        some: {
-          webhookId: webhook.id,
-        },
-      },
+      webhookId: webhook.id,
+    },
+    select: {
+      linkId: true,
     },
     take: 1000,
   });
 
-  return NextResponse.json(links.map((link) => link.id));
+  return NextResponse.json(links.map((link) => link.linkId));
 });
