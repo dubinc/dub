@@ -13,10 +13,10 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 // How many stream entries to drain per run
-const BATCH_SIZE = 1000;
+const BATCH_SIZE = 500;
 
 // How many webhook deliveries to enqueue to QStash in parallel
-const SEND_CONCURRENCY = 50;
+const SEND_CONCURRENCY = 100;
 
 // Drains the workspace:click:events stream and delivers link.clicked webhooks.
 // Runs every minute (see vercel.json).

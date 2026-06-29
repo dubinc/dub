@@ -1,8 +1,8 @@
-import { rebuildClickWebhookWorkspaces } from "@/lib/webhook/click-webhook-workspaces";
+import { syncClickWebhookWorkspaceSet } from "@/lib/webhook/click-webhook-workspaces";
 import "dotenv-flow/config";
 
 async function main() {
-  const count = await rebuildClickWebhookWorkspaces();
+  const count = await syncClickWebhookWorkspaceSet();
   console.log(`Rebuilt webhookClickWorkspaces with ${count} workspace(s).`);
 }
 

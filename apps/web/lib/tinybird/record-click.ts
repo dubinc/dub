@@ -17,7 +17,6 @@ import { redis } from "../upstash";
 import { publishPartnerActivityEvent } from "../upstash/redis-streams/partner-activity";
 import { publishWorkspaceClickEvent } from "../upstash/redis-streams/workspace-click-events";
 import { publishWorkspaceClicksUsageEvent } from "../upstash/redis-streams/workspace-clicks-usage";
-import { clickEventSchemaTB } from "../zod/schemas/clicks";
 
 /**
  * Recording clicks with geo, ua, referer and timestamp data
@@ -224,7 +223,7 @@ export async function recordClick({
           }),
 
         // Publish the click event
-        publishWorkspaceClickEvent(clickEventSchemaTB.parse(clickData)),
+        publishWorkspaceClickEvent(clickData),
       ]);
 
       // Find the rejected promises and log them

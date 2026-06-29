@@ -1,5 +1,5 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { rebuildClickWebhookWorkspaces } from "@/lib/webhook/click-webhook-workspaces";
+import { syncClickWebhookWorkspaceSet } from "@/lib/webhook/click-webhook-workspaces";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 // Rebuild the Redis set of workspaces with active link.clicked webhooks.
 // Runs every minute (* * * * *)
 export const GET = withCron(async () => {
-  const count = await rebuildClickWebhookWorkspaces();
+  const count = await syncClickWebhookWorkspaceSet();
 
   return logAndRespond(
     count === 0

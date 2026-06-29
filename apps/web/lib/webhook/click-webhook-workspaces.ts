@@ -21,7 +21,7 @@ class ClickWebhookWorkspaces {
 }
 
 // Rebuild the Redis set of workspaces with active link.clicked webhooks.
-export const rebuildClickWebhookWorkspaces = async () => {
+export const syncClickWebhookWorkspaceSet = async () => {
   const webhooks = await prisma.webhook.findMany({
     where: {
       disabledAt: null,
