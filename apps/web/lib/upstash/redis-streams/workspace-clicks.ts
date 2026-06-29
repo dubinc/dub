@@ -22,7 +22,6 @@ export const publishClickEvent = async (
   try {
     return await redis.xadd(STREAM_KEY, "*", event);
   } catch (error) {
-    console.error("Failed to publish click event to stream:", error);
     throw error;
 
     // TODO
