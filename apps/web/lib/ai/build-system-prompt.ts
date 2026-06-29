@@ -34,6 +34,15 @@ const BASE_SYSTEM_PROMPT = `
   To create a support ticket: ALWAYS call requestSupportTicket first (never createSupportTicket directly). After the user submits the upload form and confirms, call createSupportTicket.
   `.trim();
 
+const PARTNERS_PENDING_PAYOUT_PROMPT = `
+  For questions about pending payouts, payout timing, payout schedule, or when the partner will get paid:
+  1. Call getProgramPerformance first and explain using their actual data (holding period, minimum payout threshold, payout status).
+  2. Close with: "If you have further questions about the payout schedule, reach out to the {program name} support team at {supportEmail}." Use the supportEmail from getProgramPerformance. If supportEmail is missing, direct them to the program's help center or messaging in the partner dashboard — do not invent an email.
+  3. End with "Do you have any other questions?" to keep the conversation open.
+  4. Do NOT offer to create a Dub support ticket for these questions — they are program-specific.
+  Still offer a Dub support ticket when: the partner explicitly asks to speak with Dub or create a ticket.
+  `.trim();
+
 function buildAccountSpecificPrompt(context: GlobalChatContext): string[] {
   if (!context.accountType) return [];
 
@@ -64,6 +73,9 @@ export function buildSystemPrompt(globalContext?: GlobalChatContext): string {
       ? CONTEXT_SYSTEM_PROMPTS[globalContext?.chatLocation]
       : "",
     BASE_SYSTEM_PROMPT,
+    globalContext?.accountType === "partner"
+      ? PARTNERS_PENDING_PAYOUT_PROMPT
+      : "",
     ...accountSpecificPrompts,
   ].join("\n\n");
 
