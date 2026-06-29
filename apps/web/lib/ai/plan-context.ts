@@ -18,7 +18,5 @@ export function getPlanSummaries(): PlanSummary[] {
     capabilities: getPlanCapabilities(plan.name.toLowerCase()),
   }));
 
-  console.log("summaries ==> ", summaries);
-
   return summaries;
 }
