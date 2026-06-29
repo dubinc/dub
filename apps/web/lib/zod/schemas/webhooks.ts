@@ -71,8 +71,17 @@ export const createWebhookSchemaBase = z.object({
   url: parseUrlSchema,
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
   linkTarget: z.enum(LinkTarget).nullish(),
-  linkIds: z.array(z.string()).nullish(),
-  folderIds: z.array(z.string()).nullish(),
+  linkIds: z
+    .array(z.string())
+    .max(1000, {
+      error:
+        "You can only select up to 1000 links. Recommended to use the 'Include specific folders' option instead.",
+    })
+    .nullish(),
+  folderIds: z
+    .array(z.string())
+    .max(1000, { error: "You can only select up to 1000 folders." })
+    .nullish(),
 });
 
 export const createWebhookSchema =
