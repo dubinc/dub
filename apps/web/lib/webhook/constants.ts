@@ -14,6 +14,7 @@ export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
   "link.created",
   "link.updated",
   "link.deleted",
+  "link.clicked",
   "lead.created",
   "sale.created",
 ] as const;
@@ -30,7 +31,6 @@ export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
 export const WEBHOOK_TRIGGERS = [
   ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
   ...PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
-  LINK_CLICK_WEBHOOK_TRIGGER,
 ] as const;
 
 export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
