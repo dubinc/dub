@@ -90,11 +90,24 @@ export const PATCH = withWorkspace(
         : existingWebhook.linkTarget
       : null;
 
+    const existingLinkIds = existingWebhook.links.map(({ linkId }) => linkId);
+    const existingFolderIds = existingWebhook.folders.map(
+      ({ folderId }) => folderId,
+    );
+
+    const nextLinkIds = linkIds !== undefined ? linkIds : existingLinkIds;
+    const nextFolderIds =
+      folderIds !== undefined ? folderIds : existingFolderIds;
+
     const nextWebhook: Partial<NewWebhook> = {
       ...existingWebhook,
       ...input,
       triggers: finalTriggers,
       linkTarget: nextLinkTarget,
+      ...(hasLinkClickedTrigger &&
+        nextLinkTarget === "links" && { linkIds: nextLinkIds }),
+      ...(hasLinkClickedTrigger &&
+        nextLinkTarget === "folders" && { folderIds: nextFolderIds }),
     };
 
     await validateWebhook({
@@ -103,11 +116,6 @@ export const PATCH = withWorkspace(
       webhook: existingWebhook,
       user: session.user,
     });
-
-    const existingLinkIds = existingWebhook.links.map(({ linkId }) => linkId);
-    const existingFolderIds = existingWebhook.folders.map(
-      ({ folderId }) => folderId,
-    );
 
     const linkTargetChanged = nextLinkTarget !== existingWebhook.linkTarget;
 
