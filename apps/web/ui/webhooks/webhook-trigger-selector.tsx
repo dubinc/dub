@@ -2,11 +2,11 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
+  CLICK_WEBHOOK_SCOPE_OPTIONS,
   LINK_CLICK_WEBHOOK_TRIGGER,
-  WEBHOOK_SCOPE_OPTIONS,
   WEBHOOK_TRIGGER_DESCRIPTIONS,
-  WebhookTrigger,
 } from "@/lib/webhook/constants";
+import type { WebhookTrigger } from "@/lib/webhook/types";
 import { Checkbox, RadioGroup, RadioGroupItem } from "@dub/ui";
 import { arrayEqual, cn, fetcher } from "@dub/utils";
 import { WebhookScope } from "@prisma/client";
@@ -170,7 +170,7 @@ export function WebhookTriggerSelector({
                 className="flex flex-col gap-2"
                 disabled={disabled}
               >
-                {WEBHOOK_SCOPE_OPTIONS.map((option) => {
+                {CLICK_WEBHOOK_SCOPE_OPTIONS.map((option) => {
                   const isSelected = scope === option.value;
 
                   return (

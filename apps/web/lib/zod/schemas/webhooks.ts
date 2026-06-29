@@ -1,4 +1,5 @@
-import { WEBHOOK_TRIGGERS, WebhookTrigger } from "@/lib/webhook/constants";
+import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
+import { WebhookTrigger } from "@/lib/webhook/types";
 import { WebhookScope } from "@prisma/client";
 import * as z from "zod/v4";
 import { parseUrlSchema } from "./utils";

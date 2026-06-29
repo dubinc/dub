@@ -1,5 +1,5 @@
 import { qstash } from "@/lib/cron";
-import { WebhookTrigger } from "@/lib/types";
+import type { WebhookTrigger } from "@/lib/webhook/types";
 import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { sendWebhooks } from "@/lib/webhook/qstash";
 import { samplePayload } from "@/lib/webhook/sample-events/payload";

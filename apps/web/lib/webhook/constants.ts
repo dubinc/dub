@@ -1,4 +1,5 @@
 import { WebhookScope } from "@prisma/client";
+import type { WebhookTrigger } from "./types";
 
 export const WEBHOOK_SECRET_LENGTH = 16;
 
@@ -27,7 +28,7 @@ export const PROGRAM_LEVEL_WEBHOOK_TRIGGERS = [
   "payout.confirmed",
 ] as const;
 
-export const WEBHOOK_SCOPE_OPTIONS = [
+export const CLICK_WEBHOOK_SCOPE_OPTIONS = [
   {
     value: "all",
     label: "All links",
@@ -54,8 +55,6 @@ export const WEBHOOK_TRIGGERS = [
   ...PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
   LINK_CLICK_WEBHOOK_TRIGGER,
 ] as const;
-
-export type WebhookTrigger = (typeof WEBHOOK_TRIGGERS)[number];
 
 export const WEBHOOK_TRIGGER_DESCRIPTIONS: Record<WebhookTrigger, string> = {
   "link.created": "Link created",

@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { syncWorkspaceWebhookStatus } from "../webhook/sync-webhook";
+import { syncWorkspaceWebhookStatus } from "../webhook/click-webhook-workspaces";
 import { authActionClient } from "./safe-action";
 import { throwIfNoPermission } from "./throw-if-no-permission";
 

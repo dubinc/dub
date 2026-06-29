@@ -7,7 +7,7 @@ import {
   WEBHOOK_FAILURE_DISABLE_THRESHOLD,
   WEBHOOK_FAILURE_NOTIFY_THRESHOLDS,
 } from "./constants";
-import { syncWorkspaceWebhookStatus } from "./sync-webhook";
+import { syncWorkspaceWebhookStatus } from "./click-webhook-workspaces";
 
 export const handleWebhookFailure = async (webhookId: string) => {
   const webhook = await prisma.webhook.update({

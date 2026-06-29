@@ -3,8 +3,8 @@ import { getBountyRewardDescription } from "@/lib/bounty/rewards";
 import { APP_DOMAIN, COUNTRIES, currencyFormatter, truncate } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
 import * as z from "zod/v4";
-import { WebhookTrigger } from "../../types";
 import { webhookPayloadSchema } from "../../webhook/schemas";
+import type { WebhookTrigger } from "../../webhook/types";
 import {
   BountyEventWebhookPayload,
   ClickEventWebhookPayload,

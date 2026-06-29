@@ -6,9 +6,9 @@ import { WebhookProps } from "@/lib/types";
 import {
   LINK_CLICK_WEBHOOK_TRIGGER,
   PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
-  WebhookTrigger,
   WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "@/lib/webhook/constants";
+import type { WebhookTrigger } from "@/lib/webhook/types";
 import { Link } from "@/ui/shared/icons";
 import {
   isWebhookTriggerSelectionInvalid,

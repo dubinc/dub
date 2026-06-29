@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { WebhookTrigger } from "../types";
+import type { WebhookTrigger } from "./types";
 
 interface GetWebhooksProps {
   workspaceId: string;

@@ -1,12 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import { LINK_CLICK_WEBHOOK_TRIGGER } from "./constants";
+import type { WebhookTrigger } from "./types";
 
 export const REDIS_KEY = "webhookClickWorkspaces";
 const TMP_REDIS_KEY = `${REDIS_KEY}:tmp`;
 
 class ClickWebhookWorkspaces {
-  async set(workspaceId: string) {
+  async add(workspaceId: string) {
     return await redis.sadd(REDIS_KEY, workspaceId);
   }
 
@@ -54,3 +55,37 @@ export const rebuildClickWebhookWorkspaces = async () => {
 };
 
 export const clickWebhookWorkspaces = new ClickWebhookWorkspaces();
+
+// Synchronize the workspace's webhook status with its active webhooks.
+export const syncWorkspaceWebhookStatus = async (workspaceId: string) => {
+  const activeWebhooks = await prisma.webhook.findMany({
+    where: {
+      projectId: workspaceId,
+      disabledAt: null,
+    },
+    select: {
+      triggers: true,
+    },
+  });
+
+  await prisma.project.update({
+    where: {
+      id: workspaceId,
+    },
+    data: {
+      webhookEnabled: activeWebhooks.length > 0,
+    },
+  });
+
+  const linkClickWebhooks = activeWebhooks.filter((webhook) =>
+    (webhook.triggers as WebhookTrigger[])?.includes(
+      LINK_CLICK_WEBHOOK_TRIGGER,
+    ),
+  );
+
+  if (linkClickWebhooks.length > 0) {
+    await clickWebhookWorkspaces.add(workspaceId);
+  } else {
+    await clickWebhookWorkspaces.remove(workspaceId);
+  }
+};

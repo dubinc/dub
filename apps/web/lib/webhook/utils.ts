@@ -1,5 +1,6 @@
 import { Webhook, WebhookReceiver } from "@prisma/client";
-import { LINK_CLICK_WEBHOOK_TRIGGER, WebhookTrigger } from "./constants";
+import { LINK_CLICK_WEBHOOK_TRIGGER } from "./constants";
+import type { WebhookTrigger } from "./types";
 
 const webhookReceivers: Record<string, WebhookReceiver> = {
   "zapier.com": "zapier",

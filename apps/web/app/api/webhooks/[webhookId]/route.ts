@@ -3,11 +3,9 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NewWebhook } from "@/lib/types";
-import {
-  LINK_CLICK_WEBHOOK_TRIGGER,
-  WebhookTrigger,
-} from "@/lib/webhook/constants";
-import { syncWorkspaceWebhookStatus } from "@/lib/webhook/sync-webhook";
+import { syncWorkspaceWebhookStatus } from "@/lib/webhook/click-webhook-workspaces";
+import { LINK_CLICK_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
+import type { WebhookTrigger } from "@/lib/webhook/types";
 import { validateWebhook } from "@/lib/webhook/validate-webhook";
 import { updateWebhookSchema, WebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { arrayEqual } from "@dub/utils";
