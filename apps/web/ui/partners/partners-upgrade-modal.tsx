@@ -133,7 +133,7 @@ export function PartnersUpgradeModal({
           },
           {
             id: "slack",
-            text: "Priority Slack support",
+            text: "Dedicated Slack support",
           },
         ],
       }[plan.name] ?? []),

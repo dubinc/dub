@@ -12,8 +12,8 @@ type HeroFeature = {
     | ReactNode
     | {
         title: string;
-        cta: string;
-        href: string;
+        cta?: string;
+        href?: string;
       };
 };
 
