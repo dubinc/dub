@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
 
-export const UTM_TAG_MAX_LENGTH = 255;
+const UTM_TAG_MAX_LENGTH = 255;
 
 export const utmTagInputSchema = z
   .string()
