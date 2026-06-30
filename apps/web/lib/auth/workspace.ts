@@ -18,6 +18,10 @@ import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { withAxiomBodyLog } from "../axiom/server";
 import { getFeatureFlags } from "../edge-config";
 import { hashToken } from "./hash-token";
+import {
+  canAccessDubPartners,
+  isDubPartnersApiPath,
+} from "./product-access-guard";
 import { rateLimitRequest } from "./rate-limit-request";
 import { TokenCacheItem, tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
@@ -469,6 +473,21 @@ export const withWorkspace = (
           throw new DubApiError({
             code: "forbidden",
             message: "Analytics API is only available on paid plans.",
+          });
+        }
+
+        // TEMPORARY: block Dub Partners access for restricted workspace users
+        const isPartnersApiPath = isDubPartnersApiPath(url.pathname);
+        const hasDubPartnersAccess = canAccessDubPartners({
+          workspaceId: workspace.id,
+          userId: session.user.id,
+        });
+
+        if (isPartnersApiPath && !hasDubPartnersAccess) {
+          throw new DubApiError({
+            code: "forbidden",
+            message:
+              "You don't have access to Dub Partners in this workspace. Please contact your workspace owner to get access.",
           });
         }
 

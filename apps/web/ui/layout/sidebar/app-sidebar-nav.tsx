@@ -1,5 +1,6 @@
 "use client";
 
+import { canAccessDubPartners } from "@/lib/auth/product-access-guard";
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
@@ -77,12 +78,14 @@ type SidebarNavData = {
   pendingLeadsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
+  canAccessProgram?: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
   pathname,
   defaultProgramId,
+  canAccessProgram,
 }) => {
   const programGroup = {
     id: "program",
@@ -109,6 +112,12 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     href: slug ? `/${slug}/links` : "/links",
     active: pathname.startsWith(`/${slug}/links`),
   };
+
+  // TEMPORARY: hide the Dub Partners tab for restricted workspace users
+  if (!canAccessProgram) {
+    return [linksGroup];
+  }
+
   return defaultProgramId
     ? [programGroup, linksGroup]
     : [linksGroup, programGroup];
@@ -498,7 +507,17 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const { plan, defaultProgramId, trialEndsAt } = useWorkspace();
+  const {
+    id: workspaceId,
+    plan,
+    defaultProgramId,
+    trialEndsAt,
+  } = useWorkspace();
+
+  const canAccessProgram = canAccessDubPartners({
+    workspaceId,
+    userId: session?.user.id,
+  });
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -590,6 +609,7 @@ export function AppSidebarNav({
           canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
+        canAccessProgram,
       }}
       toolContent={toolContent}
       newsContent={
