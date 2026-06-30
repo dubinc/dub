@@ -37,7 +37,7 @@ async function tbDelete(dataSource: string, condition: string) {
       Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: new URLSearchParams({ delete_condition: condition }),
+    body: `delete_condition=${condition}`,
   }).then(parseTinybirdResponse);
 
   console.log(`      deleted ${dataSource}: ${JSON.stringify(res)}`);
