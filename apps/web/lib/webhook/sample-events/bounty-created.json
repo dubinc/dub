@@ -5,6 +5,8 @@
   "type": "submission",
   "startsAt": "2025-08-01T17:34:00.000Z",
   "endsAt": "2025-09-01T17:34:00.000Z",
+  "startMode": "absolute",
+  "endsAfterDays": null,
   "submissionsOpenAt": null,
   "submissionFrequency": null,
   "maxSubmissions": 1,

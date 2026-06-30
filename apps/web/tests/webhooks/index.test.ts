@@ -57,6 +57,15 @@ const commissionWebhookEventSchemaExtended = CommissionWebhookSchema.extend({
 const bountyWebhookEventSchemaExtended = BountySchema.extend({
   startsAt: z.string().transform((str) => new Date(str)),
   endsAt: z.string().transform((str) => (str ? new Date(str) : null)),
+  submissionsOpenAt: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null)),
+  socialMetricsLastSyncedAt: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((str) => (str ? new Date(str) : null)),
 });
 
 const payoutWebhookEventSchemaExtended = payoutWebhookEventSchema.extend({

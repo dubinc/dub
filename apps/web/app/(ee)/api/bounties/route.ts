@@ -138,6 +138,12 @@ export const GET = withWorkspace(
         if (now < startsAt || (endsAt && now > endsAt)) {
           return [];
         }
+
+        bounty = {
+          ...bounty,
+          startsAt,
+          endsAt,
+        };
       }
 
       return [
