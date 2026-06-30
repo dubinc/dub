@@ -4,6 +4,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { renderCampaignEmailHTML } from "@/lib/api/workflows/render-campaign-email-html";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { prisma } from "@/lib/prisma";
 import { TiptapNode } from "@/lib/types";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
@@ -155,11 +156,20 @@ export async function POST(req: Request) {
       },
       select: {
         id: true,
+        partnerGroup: {
+          select: {
+            linkStructure: true,
+          },
+        },
         links: {
           select: {
             shortLink: true,
+            key: true,
+            url: true,
           },
-          orderBy: { id: "asc" },
+          orderBy: {
+            id: "asc",
+          },
         },
         partner: {
           select: {
@@ -258,7 +268,10 @@ export async function POST(req: Request) {
                     PartnerName: partnerUser.partner.name,
                     PartnerEmail: partnerUser.partner.email,
                     PartnerLink:
-                      partnerUser.enrollment.links?.[0]?.shortLink ?? null,
+                      constructPartnerLink({
+                        group: partnerUser.enrollment.partnerGroup,
+                        link: partnerUser.enrollment.links?.[0],
+                      }) || null,
                   },
                 }),
               },

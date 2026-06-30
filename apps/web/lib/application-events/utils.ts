@@ -33,7 +33,7 @@ export const getApplicationSourceLabelTooltip = (
     return {
       label: "Dub Marketplace",
       tooltip:
-        "This application came from your [Dub Program Marketplace](https://partners.dub.co/programs/marketplace) listing",
+        "This application came from your [Dub Program Marketplace](https://partners.dub.co/marketplace) listing",
     };
   return {
     label: "Public application form",
