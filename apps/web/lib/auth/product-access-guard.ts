@@ -22,6 +22,9 @@ export const canAccessProgram = ({
 
 // API path namespaces that belong to the program product.
 // Centralized here so the restricted surface is easy to review/adjust.
+// /api/analytics and /api/customers are intentionally omitted — both products
+// use them (e.g. link analytics vs. program analytics), so blocking at the path
+// level would break Dub Links for restricted users.
 export const PROGRAM_API_PATHS = [
   "/api/programs",
   "/api/partners",
