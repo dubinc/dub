@@ -63,7 +63,20 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
       (affiliateCoupon) => filteredPartners[affiliateCoupon.affiliate_id],
     );
 
-    const affiliateIdToCouponsMap = filteredCoupons.reduce(
+    const existingDiscountCodes = await prisma.discountCode.findMany({
+      where: {
+        programId,
+        code: {
+          in: filteredCoupons.map((coupon) => coupon.token),
+        },
+      },
+    });
+
+    const couponCodesToImport = filteredCoupons.filter(
+      (coupon) => !existingDiscountCodes.some((dc) => dc.code === coupon.token),
+    );
+
+    const affiliateIdToCouponsMap = couponCodesToImport.reduce(
       (acc, coupon) => {
         if (!acc[coupon.affiliate_id]) {
           acc[coupon.affiliate_id] = [];
@@ -73,7 +86,7 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
         return acc;
       },
 
-      {} as Record<string, typeof filteredCoupons>,
+      {} as Record<string, typeof couponCodesToImport>,
     );
 
     const linksToCreate: Partial<ProcessedLinkProps>[] = [];
@@ -112,7 +125,7 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
       console.log(`Created ${createdLinks.length} links`);
 
       const createdDiscountCodes = await prisma.discountCode.createMany({
-        data: filteredCoupons
+        data: couponCodesToImport
           .map((coupon) => {
             const { partnerId, discountId } =
               filteredPartners[coupon.affiliate_id];
