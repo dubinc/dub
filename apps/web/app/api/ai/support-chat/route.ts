@@ -4,6 +4,7 @@ import {
 } from "@/lib/ai/build-system-prompt";
 import { createSupportTicketTool } from "@/lib/ai/create-support-ticket";
 import { findRelevantDocsTool } from "@/lib/ai/find-relevant-docs";
+import { getPlanComparisonTool } from "@/lib/ai/get-plan-comparison";
 import { getProgramPerformanceTool } from "@/lib/ai/get-program-performance";
 import { getWorkspaceDetailsTool } from "@/lib/ai/get-workspace-details";
 import { requestSupportTicketTool } from "@/lib/ai/request-support-ticket";
@@ -57,6 +58,7 @@ export const POST = withSession(async ({ req, session }) => {
     stopWhen: stepCountIs(5),
     tools: {
       findRelevantDocs: findRelevantDocsTool,
+      getPlanComparison: getPlanComparisonTool,
       getProgramPerformance: getProgramPerformanceTool,
       getWorkspaceDetails: getWorkspaceDetailsTool,
       requestSupportTicket: requestSupportTicketTool,
