@@ -21,6 +21,7 @@ SQL >
        partner_group_id,
        folder_id,
        tag_ids,
+       partner_tag_ids,
        tenant_id,
        created_at,
        deleted
@@ -28,5 +29,4 @@ SQL >
 
 TYPE materialized
 DATASOURCE dub_links_metadata_latest
-
 

@@ -160,5 +160,4 @@ SQL >
             )
         ORDER BY
             timestamp DESC, CASE event WHEN 'click' THEN 1 WHEN 'lead' THEN 2 WHEN 'sale' THEN 3 END DESC
-
-
+TYPE ENDPOINT

@@ -8,5 +8,4 @@ SQL >
             true
             {% if defined(customerIds) %} AND customer_id IN {{ Array(customerIds, 'String') }} {% end %}
         ORDER BY timestamp DESC
-
-
+TYPE ENDPOINT

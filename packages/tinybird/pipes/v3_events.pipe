@@ -322,5 +322,4 @@ FROM
     {% elif eventType == 'sales' %} sale_events
     {% else %} click_events
     {% end %}
-
-
+TYPE ENDPOINT
