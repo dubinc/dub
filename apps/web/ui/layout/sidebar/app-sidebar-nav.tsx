@@ -512,15 +512,21 @@ export function AppSidebarNav({
     plan,
     defaultProgramId,
     trialEndsAt,
+    loading: workspaceLoading,
   } = useWorkspace();
 
-  const hasProgramAccess =
-    status === "loading"
-      ? false
-      : canAccessProgram({
-          workspaceId,
-          userId: session?.user.id,
-        });
+  const canCheckProgramAccess =
+    status !== "loading" &&
+    !workspaceLoading &&
+    workspaceId &&
+    session?.user.id;
+
+  const hasProgramAccess = canCheckProgramAccess
+    ? canAccessProgram({
+        workspaceId,
+        userId: session.user.id,
+      })
+    : false;
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
