@@ -87,15 +87,37 @@ export function parseCsv(content: string): string[][] {
 
 export function loadCrossref(csvPath: string): CrossrefRow[] {
   const content = readFileSync(csvPath, "utf-8");
-  const [, ...dataRows] = parseCsv(content);
+  const [header, ...dataRows] = parseCsv(content);
+
+  if (!header || header.length === 0) {
+    throw new Error(`Crossref CSV is empty or has no header: ${csvPath}`);
+  }
+
+  const normalized = header.map((h) => h.trim().toLowerCase());
+  const columnIndex = (name: string): number => {
+    const idx = normalized.indexOf(name.toLowerCase());
+    if (idx === -1) {
+      throw new Error(
+        `Crossref CSV is missing the "${name}" column. Found: [${header.join(", ")}]`,
+      );
+    }
+    return idx;
+  };
+
+  const stripeIdx = columnIndex("Stripe Customer ID");
+  const customerEmailIdx = columnIndex("Customer Email");
+  const affiliateEmailIdx = columnIndex("Rewardful Affiliate Email");
+  const partnerEmailIdx = columnIndex("Dub Partner Email");
 
   return dataRows
-    .filter((r) => r.length >= 7 && r[0]?.startsWith("cus_"))
+    .filter((r) => r[stripeIdx]?.startsWith("cus_"))
     .map((r) => ({
-      stripeCustomerId: r[0].trim(),
-      customerEmail: (r[2] || "").trim(),
-      rewardfulAffiliateEmail: (r[4] || "").trim().toLowerCase(),
-      dubPartnerEmail: (r[6] || "").trim().toLowerCase(),
+      stripeCustomerId: r[stripeIdx].trim(),
+      customerEmail: (r[customerEmailIdx] || "").trim(),
+      rewardfulAffiliateEmail: (r[affiliateEmailIdx] || "")
+        .trim()
+        .toLowerCase(),
+      dubPartnerEmail: (r[partnerEmailIdx] || "").trim().toLowerCase(),
     }));
 }
 
@@ -120,6 +142,18 @@ export function buildOwnerMap(rows: CrossrefRow[]): Map<string, string> {
 
   for (const [customerId, counts] of byCustomer) {
     const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+
+    const topCount = sorted[0][1];
+    const tiedTopOwners = sorted.filter(([, count]) => count === topCount);
+
+    if (tiedTopOwners.length > 1) {
+      console.warn(
+        `⚠️  Customer ${customerId} has an ambiguous affiliate owner (tie between ${tiedTopOwners
+          .map(([email]) => email)
+          .join(", ")}); skipping reassignment.`,
+      );
+      continue;
+    }
 
     if (sorted.length > 1) {
       console.warn(

@@ -15,6 +15,16 @@ const getRawCustomerEvents = tb.buildPipe({
   data: z.any(),
 });
 
+async function parseTinybirdResponse(res: Response) {
+  const text = await res.text();
+
+  if (!res.ok) {
+    throw new Error(`Tinybird request failed (${res.status}): ${text}`);
+  }
+
+  return text ? JSON.parse(text) : null;
+}
+
 async function tbDelete(dataSource: string, condition: string) {
   if (DRY_RUN) {
     console.log(`      [dry] DELETE ${dataSource} WHERE ${condition}`);
@@ -27,8 +37,8 @@ async function tbDelete(dataSource: string, condition: string) {
       Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: `delete_condition=${condition}`,
-  }).then((r) => r.json());
+    body: new URLSearchParams({ delete_condition: condition }),
+  }).then(parseTinybirdResponse);
 
   console.log(`      deleted ${dataSource}: ${JSON.stringify(res)}`);
 }
@@ -36,9 +46,12 @@ async function tbDelete(dataSource: string, condition: string) {
 async function tbIngest(datasource: string, payload: unknown) {
   return fetch(`${TB_BASE}/v0/events?name=${datasource}&wait=true`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}` },
+    headers: {
+      Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(payload),
-  }).then((r) => r.json());
+  }).then(parseTinybirdResponse);
 }
 
 // Move a single customer's events from `oldLinkId` to `newLinkId`.
@@ -65,7 +78,9 @@ export async function moveCustomerEvents({
     return;
   }
 
-  const { data: events } = await getRawCustomerEvents({ customerId });
+  const { data: allEvents } = await getRawCustomerEvents({ customerId });
+
+  const events = allEvents.filter((e: any) => e.link_id === oldLinkId);
 
   const sales = events.filter(
     (e: any) => "amount" in e && e.amount !== null && e.amount !== undefined,
@@ -116,7 +131,7 @@ export async function moveCustomerEvents({
   if (customer?.clickId) {
     const click = await getClickEvent({ clickId: customer.clickId });
 
-    if (click) {
+    if (click && click.link_id === oldLinkId) {
       console.log(`      1 click event (${customer.clickId})`);
 
       if (!DRY_RUN) {
@@ -128,8 +143,10 @@ export async function moveCustomerEvents({
       }
 
       const condition = `click_id='${customer.clickId}' and link_id='${oldLinkId}'`;
+
       await tbDelete("dub_click_events_mv", condition);
       await tbDelete("dub_click_events_id", condition);
+      await tbDelete("dub_click_events", condition);
     }
   }
 }
