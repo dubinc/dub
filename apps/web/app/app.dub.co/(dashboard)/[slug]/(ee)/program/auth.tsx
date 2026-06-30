@@ -1,6 +1,6 @@
 "use client";
 
-import { canAccessDubPartners } from "@/lib/auth/product-access-guard";
+import { canAccessProgram } from "@/lib/auth/product-access-guard";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -15,27 +15,31 @@ import { ReactNode } from "react";
 import { PartnersUpgradeCTA } from "./partners-upgrade-cta";
 
 export default function ProgramAuth({ children }: { children: ReactNode }) {
-  const { data: session } = useSession();
   const {
     id: workspaceId,
     slug,
     plan,
     defaultProgramId,
     partnersLimit,
-    loading,
+    loading: workspaceLoading,
   } = useWorkspace();
   const { loading: programLoading } = useProgram();
+  const { data: session, status } = useSession();
 
-  if (loading || (defaultProgramId && programLoading)) {
+  if (
+    workspaceLoading ||
+    status === "loading" ||
+    (defaultProgramId && programLoading)
+  ) {
     return <LayoutLoader />;
   }
 
-  const hasProgramAccess = canAccessDubPartners({
+  const hasProgramAccess = canAccessProgram({
     workspaceId,
     userId: session?.user.id,
   });
 
-  // TEMPORARY: block Dub Partners access for restricted workspace users
+  // TEMPORARY: block program access for restricted workspace users
   if (!hasProgramAccess && slug) {
     return <AccessDenied slug={slug} />;
   }
@@ -68,7 +72,7 @@ function AccessDenied({ slug }: { slug: string }) {
         }
         addButton={
           <Link
-            href={slug ? `/${slug}/links` : "/links"}
+            href={`/${slug}/links`}
             className={cn(
               buttonVariants({ variant: "primary" }),
               "flex h-9 items-center whitespace-nowrap rounded-lg border px-4 text-sm",

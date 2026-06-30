@@ -1,6 +1,6 @@
 "use client";
 
-import { canAccessDubPartners } from "@/lib/auth/product-access-guard";
+import { canAccessProgram } from "@/lib/auth/product-access-guard";
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
@@ -78,14 +78,14 @@ type SidebarNavData = {
   pendingLeadsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
-  canAccessProgram?: boolean;
+  hasProgramAccess?: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
   pathname,
   defaultProgramId,
-  canAccessProgram,
+  hasProgramAccess,
 }) => {
   const programGroup = {
     id: "program",
@@ -113,8 +113,8 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     active: pathname.startsWith(`/${slug}/links`),
   };
 
-  // TEMPORARY: hide the Dub Partners tab for restricted workspace users
-  if (!canAccessProgram) {
+  // TEMPORARY: hide the program tab for restricted workspace users
+  if (hasProgramAccess === false) {
     return [linksGroup];
   }
 
@@ -506,7 +506,7 @@ export function AppSidebarNav({
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const {
     id: workspaceId,
     plan,
@@ -514,10 +514,13 @@ export function AppSidebarNav({
     trialEndsAt,
   } = useWorkspace();
 
-  const canAccessProgram = canAccessDubPartners({
-    workspaceId,
-    userId: session?.user.id,
-  });
+  const hasProgramAccess =
+    status === "loading"
+      ? false
+      : canAccessProgram({
+          workspaceId,
+          userId: session?.user.id,
+        });
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -609,7 +612,7 @@ export function AppSidebarNav({
           canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
-        canAccessProgram,
+        hasProgramAccess,
       }}
       toolContent={toolContent}
       newsContent={

@@ -1,11 +1,10 @@
-// TEMPORARY: hardcoded restriction of Dub Partners access per workspace user.
-// Maps workspace ID -> user IDs that should NOT have access to Dub Partners.
-export const DUB_PARTNERS_ACCESS_BLOCKLIST: Record<string, string[]> = {
+// Hardcoded restriction of program access per workspace user.
+// Maps workspace ID -> user IDs that should NOT have access to the program.
+export const PROGRAM_ACCESS_BLOCKLIST: Record<string, string[]> = {
   // "ws_xxx": ["user_aaa", "user_bbb"],
-  ws_1KETZ919F83ZJH6A80HWEHW6E: ["user_cludszk1h0000wmd2e0ea2b0p"],
 };
 
-export const canAccessDubPartners = ({
+export const canAccessProgram = ({
   workspaceId,
   userId,
 }: {
@@ -16,14 +15,14 @@ export const canAccessDubPartners = ({
     return true; // no info -> don't restrict
   }
 
-  const blocked = DUB_PARTNERS_ACCESS_BLOCKLIST[workspaceId];
+  const blocked = PROGRAM_ACCESS_BLOCKLIST[workspaceId];
 
   return blocked ? !blocked.includes(userId) : true;
 };
 
-// API path namespaces that belong to Dub Partners.
+// API path namespaces that belong to the program product.
 // Centralized here so the restricted surface is easy to review/adjust.
-export const DUB_PARTNERS_API_PATHS = [
+export const PROGRAM_API_PATHS = [
   "/api/programs",
   "/api/partners",
   "/api/commissions",
@@ -39,7 +38,5 @@ export const DUB_PARTNERS_API_PATHS = [
   "/api/email-domains",
 ];
 
-export const isProgramsApiPath = (pathname: string): boolean =>
-  DUB_PARTNERS_API_PATHS.some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`),
-  );
+export const isProgramApiPath = (pathname: string): boolean =>
+  PROGRAM_API_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
