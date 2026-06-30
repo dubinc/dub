@@ -2,7 +2,6 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { EXTERNAL_PAYOUTS_PROGRAM_IDS } from "@/lib/constants/program";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
 import {
@@ -12,19 +11,18 @@ import {
   WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "@/lib/webhook/constants";
 import { Button, Checkbox, CopyButton, InfoTooltip } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, fetcher } from "@dub/utils";
 import { useRouter } from "next/navigation";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
+import useSWR, { mutate } from "swr";
 import { LinksSelector } from "./link-selector";
 
-const defaultValues: NewWebhook = {
+const defaultValues: Omit<NewWebhook, "linkIds"> = {
   name: "",
   url: "",
   secret: "",
   triggers: [],
-  linkIds: [],
 };
 
 export default function AddEditWebhookForm({
@@ -35,7 +33,6 @@ export default function AddEditWebhookForm({
   newSecret?: string;
 }) {
   const router = useRouter();
-  const { program } = useProgram();
   const [saving, setSaving] = useState(false);
   const {
     id: workspaceId,
@@ -44,12 +41,34 @@ export default function AddEditWebhookForm({
     defaultProgramId,
   } = useWorkspace();
 
-  const [data, setData] = useState<NewWebhook | WebhookProps>(
+  const [data, setData] = useState<WebhookProps | Omit<NewWebhook, "linkIds">>(
     webhook || {
       ...defaultValues,
       ...(newSecret && { secret: newSecret }),
     },
   );
+  const [linkIds, setLinkIds] = useState<string[]>([]);
+  const [linkIdsInitialized, setLinkIdsInitialized] = useState(!webhook);
+
+  const { name, url, secret, triggers } = data;
+
+  const hasLinkLevelWebhook = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
+    triggers.includes(trigger),
+  );
+
+  const { data: fetchedLinkIds } = useSWR<string[]>(
+    webhook && hasLinkLevelWebhook
+      ? `/api/webhooks/${webhook.id}/links?workspaceId=${workspaceId}`
+      : null,
+    fetcher,
+  );
+
+  useEffect(() => {
+    if (fetchedLinkIds && !linkIdsInitialized) {
+      setLinkIds(fetchedLinkIds);
+      setLinkIdsInitialized(true);
+    }
+  }, [fetchedLinkIds, linkIdsInitialized]);
 
   const { error: permissionsError } = clientAccessCheck({
     action: "webhooks.write",
@@ -83,7 +102,7 @@ export default function AddEditWebhookForm({
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, linkIds }),
     });
 
     setSaving(false);
@@ -99,12 +118,14 @@ export default function AddEditWebhookForm({
       router.push(`/${workspaceSlug}/settings/webhooks`);
     } else {
       mutate(`/api/webhooks/${result.id}?workspaceId=${workspaceId}`, result);
+      mutate(
+        `/api/webhooks/${result.id}/links?workspaceId=${workspaceId}`,
+        linkIds,
+      );
     }
 
     toast.success(endpoint.successMessage);
   };
-
-  const { name, url, secret, triggers, linkIds = [] } = data;
 
   const buttonDisabled = !name || !url || !triggers.length || saving;
 
@@ -117,10 +138,6 @@ export default function AddEditWebhookForm({
       : permissionsError
         ? permissionsError
         : undefined;
-
-  const enableLinkSelection = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
-    triggers.includes(trigger),
-  );
 
   const availableWebhookTriggers = useMemo(
     () => [
@@ -280,7 +297,7 @@ export default function AddEditWebhookForm({
             ))}
           </div>
 
-          {enableLinkSelection || linkIds.length ? (
+          {hasLinkLevelWebhook && linkIds.length < 1000 ? (
             <div className="mt-4">
               <h2 className="text-sm font-medium text-neutral-900">
                 Choose links we should send events for
@@ -288,12 +305,7 @@ export default function AddEditWebhookForm({
               <div className="mt-3">
                 <LinksSelector
                   selectedLinkIds={linkIds}
-                  setSelectedLinkIds={(ids) =>
-                    setData({
-                      ...data,
-                      linkIds: ids,
-                    })
-                  }
+                  setSelectedLinkIds={setLinkIds}
                   disabled={updateDisabled}
                 />
               </div>

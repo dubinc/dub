@@ -47,7 +47,7 @@ function buildOrderByClause({
   platform?: PlatformType;
 }) {
   if (starred === true) {
-    return Prisma.sql`dp.starredAt ASC`;
+    return Prisma.sql`dp.starredAt DESC`;
   }
 
   if (sortBy === "subscribers" && platform) {

@@ -137,14 +137,19 @@ describe.sequential("/domains/**", async () => {
       {
         domain: domains[0],
         available: false,
-        price: null,
         premium: null,
+        prices: null,
+        price: null,
       },
       {
         domain: domains[1],
         available: true,
-        price: expect.any(String),
         premium: expect.any(Boolean),
+        prices: {
+          registration: expect.any(Number),
+          renewal: expect.any(Number),
+        },
+        price: expect.any(String),
       },
     ]);
   });
