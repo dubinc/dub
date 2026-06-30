@@ -129,13 +129,6 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
               return null;
             }
 
-            if (link.partnerId !== partnerId) {
-              console.error(
-                `Skipping coupon ${coupon.token}: link ${link.id} is owned by ${link.partnerId}, expected ${partnerId}`,
-              );
-              return null;
-            }
-
             return {
               id: createId({ prefix: "dcode_" }),
               code: coupon.token,
