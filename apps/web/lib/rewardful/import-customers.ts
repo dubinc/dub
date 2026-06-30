@@ -166,7 +166,7 @@ async function createCustomer({
     await logImportError({
       ...commonImportLogInputs,
       code: "LINK_NOT_FOUND",
-      message: `Link not found for referral ${referralId} (token: ${referral.link?.token || referral.coupon?.token}).`,
+      message: `Link not found for referral ${referralId}.`,
     });
 
     return;

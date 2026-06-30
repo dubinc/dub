@@ -82,9 +82,24 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
       ),
     );
 
-    const couponsToImport = filteredCoupons.filter(
-      (coupon) => !existingDiscountCodeSet.has(coupon.token.toLowerCase()),
-    );
+    // Skip coupons that already have a discount code, AND dedupe repeated tokens
+    // within this batch — two coupons sharing a token can't both own the same
+    // (programId, code), and keeping both would overwrite the link mapping and
+    // leave an orphan link.
+    const seenTokens = new Set<string>();
+    const couponsToImport = filteredCoupons.filter((coupon) => {
+      const normalizedToken = coupon.token.toLowerCase();
+
+      if (
+        existingDiscountCodeSet.has(normalizedToken) ||
+        seenTokens.has(normalizedToken)
+      ) {
+        return false;
+      }
+
+      seenTokens.add(normalizedToken);
+      return true;
+    });
 
     // A coupon's link MUST be owned by the coupon's partner. But affiliate link
     // tokens (created in import-partners) and coupon tokens share the same
@@ -169,14 +184,14 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
               : undefined;
 
             if (!link) {
-              console.error(`Link not found for coupon ${coupon.token}`);
+              console.error(`Link not found for Rewardful coupon`);
               return null;
             }
 
             // Safety net: never bind a discount code to a link owned by a different partner
             if (link.partnerId !== partnerId) {
               console.error(
-                `Skipping coupon ${coupon.token}: resolved link ${link.id} is owned by ${link.partnerId}, expected ${partnerId}`,
+                `Skipping Rewardful coupon: resolved link is owned by a different partner`,
               );
               return null;
             }
