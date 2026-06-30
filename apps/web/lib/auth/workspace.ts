@@ -20,7 +20,7 @@ import { getFeatureFlags } from "../edge-config";
 import { hashToken } from "./hash-token";
 import {
   canAccessDubPartners,
-  isDubPartnersApiPath,
+  isProgramsApiPath,
 } from "./product-access-guard";
 import { rateLimitRequest } from "./rate-limit-request";
 import { TokenCacheItem, tokenCache } from "./token-cache";
@@ -477,13 +477,13 @@ export const withWorkspace = (
         }
 
         // TEMPORARY: block Dub Partners access for restricted workspace users
-        const isPartnersApiPath = isDubPartnersApiPath(url.pathname);
-        const hasDubPartnersAccess = canAccessDubPartners({
+        const isProgramsPath = isProgramsApiPath(url.pathname);
+        const hasProgramAccess = canAccessDubPartners({
           workspaceId: workspace.id,
           userId: session.user.id,
         });
 
-        if (isPartnersApiPath && !hasDubPartnersAccess) {
+        if (isProgramsPath && !hasProgramAccess) {
           throw new DubApiError({
             code: "forbidden",
             message:

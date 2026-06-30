@@ -39,7 +39,7 @@ export const DUB_PARTNERS_API_PATHS = [
   "/api/email-domains",
 ];
 
-export const isDubPartnersApiPath = (pathname: string): boolean =>
+export const isProgramsApiPath = (pathname: string): boolean =>
   DUB_PARTNERS_API_PATHS.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
