@@ -3,7 +3,6 @@
 import {
   BOUNTY_DURATION_DAYS,
   BOUNTY_DURATION_PRESETS,
-  BountyTimingInput,
   DurationPreset,
   EndPreset,
   resolveBountyTiming,
@@ -19,7 +18,7 @@ import { addDays, addMonths, addWeeks } from "date-fns";
 import { useEffect, useState } from "react";
 
 type PresetOption<T extends string> = { value: T; label: string };
-
+type BountyTimingInput = ReturnType<typeof resolveBountyTiming>;
 type ParsedPresets = {
   startPreset: StartPreset;
   endPreset: EndPreset;

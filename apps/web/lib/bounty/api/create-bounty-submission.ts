@@ -25,7 +25,7 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";
 import * as z from "zod/v4";
-import { getEffectiveBountyDateRange } from "../bounty-timing";
+import { getEffectiveBountyPeriod } from "../bounty-timing";
 import { SOCIAL_URL_HOST_TO_PLATFORM } from "../social-content";
 import {
   bountyEligibilityIncludes,
@@ -143,7 +143,7 @@ export class BountySubmissionHandler {
       }),
     ]);
 
-    const { startsAt, endsAt } = getEffectiveBountyDateRange({
+    const { startsAt, endsAt } = getEffectiveBountyPeriod({
       programEnrollment,
       bounty,
     });

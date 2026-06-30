@@ -84,9 +84,7 @@ export function resolveBountyTiming({
   };
 }
 
-export type BountyTimingInput = ReturnType<typeof resolveBountyTiming>;
-
-export function getEffectiveBountyDateRange({
+export function getEffectiveBountyPeriod({
   programEnrollment,
   bounty,
 }: {

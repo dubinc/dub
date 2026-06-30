@@ -13,6 +13,7 @@ import {
 } from "@/lib/bounty/api/bounty-eligibility";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
+import { getEffectiveBountyPeriod } from "@/lib/bounty/bounty-timing";
 import { qstash } from "@/lib/cron";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
@@ -46,7 +47,11 @@ export const GET = withWorkspace(
           partnerId,
           programId,
           include: {
-            program: true,
+            program: {
+              select: {
+                defaultGroupId: true,
+              },
+            },
             programPartnerTags: {
               select: {
                 partnerTagId: true,
@@ -69,18 +74,10 @@ export const GET = withWorkspace(
           programId,
           // Filter only bounties the specified partner is eligible for
           ...(programEnrollment && {
-            AND: [
-              // Filter out expired bounties
-              {
-                OR: [{ endsAt: null }, { endsAt: { gt: new Date() } }],
-              },
-              {
-                ...buildBountyEligibilityWhere({
-                  groupId: partnerGroupId,
-                  partnerTagIds,
-                }),
-              },
-            ],
+            ...buildBountyEligibilityWhere({
+              groupId: partnerGroupId,
+              partnerTagIds,
+            }),
           }),
         },
         include: {
@@ -128,17 +125,33 @@ export const GET = withWorkspace(
       };
     };
 
-    const data = bounties.map((bounty) => {
-      return BountyListSchema.parse({
-        ...bounty,
-        groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
-        partnerTags: bounty.partnerTags.map(({ partnerTagId }) => ({
-          id: partnerTagId,
-        })),
-        ...(allBountiesSubmissionsCount && {
-          submissionsCountData: aggregateSubmissionsCountForBounty(bounty.id),
+    const now = new Date();
+
+    const data = bounties.flatMap((bounty) => {
+      // Filter out bounties that are not in the effective bounty period
+      if (programEnrollment) {
+        const { startsAt, endsAt } = getEffectiveBountyPeriod({
+          programEnrollment,
+          bounty,
+        });
+
+        if (now < startsAt || (endsAt && now > endsAt)) {
+          return [];
+        }
+      }
+
+      return [
+        BountyListSchema.parse({
+          ...bounty,
+          groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
+          partnerTags: bounty.partnerTags.map(({ partnerTagId }) => ({
+            id: partnerTagId,
+          })),
+          ...(allBountiesSubmissionsCount && {
+            submissionsCountData: aggregateSubmissionsCountForBounty(bounty.id),
+          }),
         }),
-      });
+      ];
     });
 
     return NextResponse.json(data);

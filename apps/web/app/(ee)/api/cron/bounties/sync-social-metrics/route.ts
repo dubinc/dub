@@ -1,6 +1,6 @@
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import {
-  getEffectiveBountyDateRange,
+  getEffectiveBountyPeriod,
   isBountyExpired,
 } from "@/lib/bounty/bounty-timing";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
@@ -129,7 +129,7 @@ export const POST = withCron(async ({ rawBody }) => {
       continue;
     }
 
-    const { endsAt } = getEffectiveBountyDateRange({
+    const { endsAt } = getEffectiveBountyPeriod({
       programEnrollment: submission.programEnrollment,
       bounty,
     });

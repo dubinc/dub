@@ -8,7 +8,7 @@ import {
   ProgramPartnerTag,
 } from "@prisma/client";
 import * as z from "zod/v4";
-import { getEffectiveBountyDateRange } from "../bounty-timing";
+import { getEffectiveBountyPeriod } from "../bounty-timing";
 import { buildBountyEligibilityWhere } from "./bounty-eligibility";
 
 type GetBountiesForPartnerParams = Pick<
@@ -80,7 +80,7 @@ export async function getBountiesForPartner({
       const performanceCondition =
         bounty.workflow?.triggerConditions?.[0] || null;
 
-      const { startsAt, endsAt } = getEffectiveBountyDateRange({
+      const { startsAt, endsAt } = getEffectiveBountyPeriod({
         programEnrollment: {
           createdAt,
           groupJoinedAt,

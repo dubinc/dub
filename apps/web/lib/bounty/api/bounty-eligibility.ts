@@ -7,7 +7,7 @@ import {
   ProgramEnrollment,
   ProgramPartnerTag,
 } from "@prisma/client";
-import { getEffectiveBountyDateRange, isBountyExpired } from "../bounty-timing";
+import { getEffectiveBountyPeriod, isBountyExpired } from "../bounty-timing";
 
 type PartnerBountyEligibilityParams = {
   programEnrollment: Pick<
@@ -171,7 +171,7 @@ export function canPartnerSubmitBounty({
     return false;
   }
 
-  const { startsAt, endsAt } = getEffectiveBountyDateRange({
+  const { startsAt, endsAt } = getEffectiveBountyPeriod({
     programEnrollment,
     bounty,
   });
@@ -205,7 +205,7 @@ export function throwIfPartnerCannotSubmitBounty({
     });
   }
 
-  const { startsAt, endsAt } = getEffectiveBountyDateRange({
+  const { startsAt, endsAt } = getEffectiveBountyPeriod({
     programEnrollment,
     bounty,
   });

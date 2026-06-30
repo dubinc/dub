@@ -5,7 +5,7 @@ import { withWorkspace } from "@/lib/auth";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import {
-  getEffectiveBountyDateRange,
+  getEffectiveBountyPeriod,
   isBountyExpired,
 } from "@/lib/bounty/bounty-timing";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
@@ -96,7 +96,7 @@ export const POST = withWorkspace(
         });
       }
 
-      const effectiveDateRange = getEffectiveBountyDateRange({
+      const effectiveDateRange = getEffectiveBountyPeriod({
         programEnrollment: submission.programEnrollment,
         bounty,
       });
