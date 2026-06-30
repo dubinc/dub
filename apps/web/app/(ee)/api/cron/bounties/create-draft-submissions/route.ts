@@ -1,7 +1,10 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
-import { bountyEligibilityIncludes } from "@/lib/bounty/api/bounty-eligibility";
+import {
+  bountyEligibilityIncludes,
+  canPartnerSubmitBounty,
+} from "@/lib/bounty/api/bounty-eligibility";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
@@ -52,12 +55,6 @@ export async function POST(req: Request) {
       return logAndRespond(`Bounty ${bountyId} not found.`, {
         logLevel: "error",
       });
-    }
-
-    if (bounty.startMode === "relative") {
-      return logAndRespond(
-        `Bounty ${bountyId} has dynamic start date, skipping...`,
-      );
     }
 
     let diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
@@ -114,9 +111,7 @@ export async function POST(req: Request) {
           in: ["approved", "invited"],
         },
       },
-      select: {
-        partnerId: true,
-        totalCommissions: true,
+      include: {
         links: {
           select: {
             clicks: true,
@@ -129,6 +124,11 @@ export async function POST(req: Request) {
         partner: {
           select: {
             name: true,
+          },
+        },
+        programPartnerTags: {
+          select: {
+            partnerTagId: true,
           },
         },
       },
@@ -154,48 +154,53 @@ export async function POST(req: Request) {
       .array(workflowConditionSchema)
       .parse(bounty.workflow.triggerConditions)[0];
 
-    // Partners with their link metrics
-    const partners = programEnrollments.map((programEnrollment) => {
-      return {
-        id: programEnrollment.partnerId,
-        ...aggregatePartnerLinksStats(programEnrollment.links),
-        totalCommissions: toCentsNumber(programEnrollment.totalCommissions),
-      };
-    });
+    const submissionsToCreate: Prisma.BountySubmissionCreateManyInput[] = [];
 
-    const bountySubmissionsToCreate: Prisma.BountySubmissionCreateManyInput[] =
-      partners
-        // only create submissions for partners that have at least 1 performanceCount
-        .filter((partner) => partner[condition.attribute] > 0)
-        .map((partner) => {
-          const performanceCount = partner[condition.attribute];
+    for (const enrollment of programEnrollments) {
+      const performanceCount = {
+        ...aggregatePartnerLinksStats(enrollment.links),
+        totalCommissions: toCentsNumber(enrollment.totalCommissions),
+      }[condition.attribute];
 
-          const conditionMet = evaluateWorkflowConditions({
-            conditions: [condition],
-            attributes: {
-              [condition.attribute]: performanceCount,
-            },
-          });
+      if (!performanceCount || performanceCount <= 0) {
+        continue;
+      }
 
-          return {
-            id: createId({ prefix: "bnty_sub_" }),
-            programId: bounty.programId,
-            partnerId: partner.id,
-            bountyId: bounty.id,
-            performanceCount,
-            // If the condition is met, automatically submit the submission
-            ...(conditionMet && {
-              status: "submitted",
-              completedAt: new Date(),
-            }),
-          };
-        });
+      const canSubmit = canPartnerSubmitBounty({
+        programEnrollment: enrollment,
+        bounty,
+      });
 
-    console.table(bountySubmissionsToCreate);
+      if (!canSubmit) {
+        continue;
+      }
+
+      const conditionMet = evaluateWorkflowConditions({
+        conditions: [condition],
+        attributes: {
+          [condition.attribute]: performanceCount,
+        },
+      });
+
+      submissionsToCreate.push({
+        id: createId({ prefix: "bnty_sub_" }),
+        programId: bounty.programId,
+        partnerId: enrollment.partnerId,
+        bountyId: bounty.id,
+        performanceCount,
+        // If the condition is met, automatically submit the submission
+        ...(conditionMet && {
+          status: "submitted",
+          completedAt: new Date(),
+        }),
+      });
+    }
+
+    console.table(submissionsToCreate);
 
     // Create bounty submissions
     const createdBountySubmissions = await prisma.bountySubmission.createMany({
-      data: bountySubmissionsToCreate,
+      data: submissionsToCreate,
       skipDuplicates: true,
     });
 
