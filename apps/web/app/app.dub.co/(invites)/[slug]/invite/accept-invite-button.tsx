@@ -2,14 +2,12 @@
 
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { Button, useKeyboardShortcut } from "@dub/ui";
-import { useSession } from "next-auth/react";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export function AcceptInviteButton() {
   const { slug } = useParams<{ slug: string }>();
-  const { data: session } = useSession();
   const router = useRouter();
 
   const [isAccepting, setIsAccepting] = useState(false);
@@ -24,7 +22,7 @@ export function AcceptInviteButton() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const { error } = await response.json();
         toast.error(error.message || "Failed to accept invite.");
         setIsAccepting(false);
         return;
@@ -34,7 +32,6 @@ export function AcceptInviteButton() {
       router.replace(`/${slug}`);
       toast.success("You now are a part of this workspace!");
     } catch (e) {
-      console.error("Failed to accept invite", e);
       setIsAccepting(false);
     }
   };
