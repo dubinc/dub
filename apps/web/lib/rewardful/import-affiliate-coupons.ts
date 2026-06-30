@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { ProcessedLinkProps } from "../types";
@@ -63,46 +64,86 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
       (affiliateCoupon) => filteredPartners[affiliateCoupon.affiliate_id],
     );
 
-    const affiliateIdToCouponsMap = filteredCoupons.reduce(
-      (acc, coupon) => {
-        if (!acc[coupon.affiliate_id]) {
-          acc[coupon.affiliate_id] = [];
-        }
-
-        acc[coupon.affiliate_id].push(coupon);
-        return acc;
+    const existingDiscountCodes = await prisma.discountCode.findMany({
+      where: {
+        programId,
+        code: {
+          in: filteredCoupons.map((coupon) => coupon.token),
+        },
       },
+      select: {
+        code: true,
+      },
+    });
 
-      {} as Record<string, typeof filteredCoupons>,
+    const existingDiscountCodeSet = new Set(
+      existingDiscountCodes.map((discountCode) =>
+        discountCode.code.toLowerCase(),
+      ),
     );
 
+    const couponsToImport = filteredCoupons.filter(
+      (coupon) => !existingDiscountCodeSet.has(coupon.token.toLowerCase()),
+    );
+
+    // A coupon's link MUST be owned by the coupon's partner. But affiliate link
+    // tokens (created in import-partners) and coupon tokens share the same
+    // Link.key namespace (unique per domain), so a coupon token can collide with
+    // a link that already belongs to a *different* partner. Reusing that link
+    // would attribute the coupon's sales to the wrong partner (the link owner),
+    // so we detect collisions and create a fresh, uniquely-keyed link owned by
+    // the coupon's partner instead.
+    const existingLinks =
+      couponsToImport.length > 0
+        ? await prisma.link.findMany({
+            where: {
+              domain: program.domain!,
+              key: {
+                in: couponsToImport.map((coupon) => coupon.token),
+              },
+            },
+            select: {
+              key: true,
+            },
+          })
+        : [];
+
+    const takenKeys = new Set(
+      existingLinks.map((link) => link.key.toLowerCase()),
+    );
+
+    // map each coupon token to the (possibly fallback) key assigned to its link
+    const couponTokenToLinkKey = new Map<string, string>();
     const linksToCreate: Partial<ProcessedLinkProps>[] = [];
 
-    if (Object.keys(affiliateIdToCouponsMap).length > 0) {
-      for (const [affiliateId, coupons] of Object.entries(
-        affiliateIdToCouponsMap,
-      )) {
-        const { partnerId } = filteredPartners[affiliateId];
+    for (const coupon of couponsToImport) {
+      const { partnerId } = filteredPartners[coupon.affiliate_id];
 
-        if (!partnerId) {
-          continue;
-        }
-
-        linksToCreate.push(
-          ...coupons.map((coupon) => ({
-            domain: program.domain!,
-            key: coupon.token,
-            url: program.url!,
-            trackConversion: true,
-            programId,
-            partnerId,
-            folderId: program.defaultFolderId,
-            userId,
-            projectId: program.workspaceId,
-            comments: `Link created for coupon ${coupon.token}`,
-          })),
-        );
+      if (!partnerId) {
+        continue;
       }
+
+      // Use the coupon token as the link key when it's free; otherwise fall back
+      // to a unique key so the link stays owned by this coupon's partner.
+      const key = takenKeys.has(coupon.token.toLowerCase())
+        ? `${coupon.token}-${nanoid(6)}`
+        : coupon.token;
+
+      takenKeys.add(key.toLowerCase());
+      couponTokenToLinkKey.set(coupon.token, key);
+
+      linksToCreate.push({
+        domain: program.domain!,
+        key,
+        url: program.url!,
+        trackConversion: true,
+        programId,
+        partnerId,
+        folderId: program.defaultFolderId,
+        userId,
+        projectId: program.workspaceId,
+        comments: `Link created for coupon ${coupon.token}`,
+      });
     }
 
     if (linksToCreate.length > 0) {
@@ -111,18 +152,32 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
       });
       console.log(`Created ${createdLinks.length} links`);
 
+      // index created links by their (case-insensitive) key for robust lookup
+      const linkByKey = new Map(
+        createdLinks.map((link) => [link.key.toLowerCase(), link]),
+      );
+
       const createdDiscountCodes = await prisma.discountCode.createMany({
-        data: filteredCoupons
+        data: couponsToImport
           .map((coupon) => {
             const { partnerId, discountId } =
               filteredPartners[coupon.affiliate_id];
 
-            // link should always exist since we return all links (including duplicates) from bulkCreateLinks
-            const link = createdLinks.find(
-              (link) => link.key.toLowerCase() === coupon.token.toLowerCase(),
-            );
+            const assignedKey = couponTokenToLinkKey.get(coupon.token);
+            const link = assignedKey
+              ? linkByKey.get(assignedKey.toLowerCase())
+              : undefined;
+
             if (!link) {
               console.error(`Link not found for coupon ${coupon.token}`);
+              return null;
+            }
+
+            // Safety net: never bind a discount code to a link owned by a different partner
+            if (link.partnerId !== partnerId) {
+              console.error(
+                `Skipping coupon ${coupon.token}: resolved link ${link.id} is owned by ${link.partnerId}, expected ${partnerId}`,
+              );
               return null;
             }
 

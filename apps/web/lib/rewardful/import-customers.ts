@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { chunk, nanoid } from "@dub/utils";
-import { Customer, Program, Project } from "@prisma/client";
+import { Customer, Link, Program, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
@@ -138,27 +138,35 @@ async function createCustomer({
     return;
   }
 
-  const shortLinkToken = referral.link?.token || referral.coupon?.token;
+  let link: Link | null = null;
+  if (referral.link?.token) {
+    // here we're using findFirst because for some reason findUnique uses a weird collation
+    // that causes a bunch of LINK_NOT_FOUND errors (for links/coupons that actually exist)
+    link = await prisma.link.findFirst({
+      where: {
+        domain: program.domain!,
+        key: referral.link.token,
+      },
+    });
+  } else if (referral.coupon?.token) {
+    const discountCode = await prisma.discountCode.findFirst({
+      where: {
+        programId: program.id,
+        code: referral.coupon.token,
+      },
+      include: {
+        link: true,
+      },
+    });
 
-  if (!shortLinkToken) {
-    console.error(`Short link token not found for referral ${referralId}.`);
-    return;
+    link = discountCode?.link ?? null;
   }
-
-  // here we're using findFirst because for some reason findUnique uses a weird collation
-  // that causes a bunch of LINK_NOT_FOUND errors (for links/coupons that actually exist)
-  const link = await prisma.link.findFirst({
-    where: {
-      domain: program.domain!,
-      key: shortLinkToken,
-    },
-  });
 
   if (!link) {
     await logImportError({
       ...commonImportLogInputs,
       code: "LINK_NOT_FOUND",
-      message: `Link not found for referral ${referralId} (token: ${shortLinkToken}).`,
+      message: `Link not found for referral ${referralId} (token: ${referral.link?.token || referral.coupon?.token}).`,
     });
 
     return;
