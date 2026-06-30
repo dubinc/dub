@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { chunk, nanoid } from "@dub/utils";
-import { Customer, Link, Program, Project } from "@prisma/client";
+import { Customer, Program, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
@@ -138,35 +138,29 @@ async function createCustomer({
     return;
   }
 
-  let link: Link | null = null;
-  if (referral.link?.token) {
-    // here we're using findFirst because for some reason findUnique uses a weird collation
-    // that causes a bunch of LINK_NOT_FOUND errors (for links/coupons that actually exist)
-    link = await prisma.link.findFirst({
-      where: {
-        domain: program.domain!,
-        key: referral.link.token,
-      },
-    });
-  } else if (referral.coupon?.token) {
-    const discountCode = await prisma.discountCode.findFirst({
-      where: {
-        programId: program.id,
-        code: referral.coupon.token,
-      },
-      include: {
-        link: true,
-      },
-    });
+  const shortLinkKey =
+    referral.link?.token ||
+    (referral.coupon?.token ? `${referral.coupon?.token}-coupon` : undefined);
 
-    link = discountCode?.link ?? null;
+  if (!shortLinkKey) {
+    console.error(`Short link token not found for referral ${referralId}.`);
+    return;
   }
+
+  // here we're using findFirst because for some reason findUnique uses a weird collation
+  // that causes a bunch of LINK_NOT_FOUND errors (for links/coupons that actually exist)
+  const link = await prisma.link.findFirst({
+    where: {
+      domain: program.domain!,
+      key: shortLinkKey,
+    },
+  });
 
   if (!link) {
     await logImportError({
       ...commonImportLogInputs,
       code: "LINK_NOT_FOUND",
-      message: `Link not found for referral ${referralId}.`,
+      message: `Link not found for referral ${referralId} (token: ${shortLinkKey}).`,
     });
 
     return;
