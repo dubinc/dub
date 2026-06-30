@@ -332,12 +332,12 @@ export const POST = withWorkspace(
     const shouldScheduleDraftSubmissions =
       bounty.type === "performance" &&
       bounty.performanceScope === "lifetime" &&
-      bounty.startMode !== "relative";
+      bounty.startMode === "absolute";
 
     const shouldSchedulePartnerNotifications =
       sendNotificationEmails &&
       canSendEmailCampaigns &&
-      bounty.startMode !== "relative";
+      bounty.startMode === "absolute";
 
     waitUntil(
       Promise.allSettled([
