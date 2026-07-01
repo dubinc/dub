@@ -298,6 +298,12 @@ export async function invoicePaid(
         id: customer.id,
       },
       data: {
+        ...(link?.programId && {
+          programId: link.programId,
+        }),
+        ...(link?.partnerId && {
+          partnerId: link.partnerId,
+        }),
         sales: {
           increment: 1,
         },

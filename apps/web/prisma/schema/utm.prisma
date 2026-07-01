@@ -3,12 +3,12 @@ model UtmTemplate {
   name String
 
   // Parameters
-  utm_source   String?
-  utm_medium   String?
-  utm_campaign String?
-  utm_term     String?
-  utm_content  String?
-  ref          String?
+  utm_source   String? @db.VarChar(255)
+  utm_medium   String? @db.VarChar(255)
+  utm_campaign String? @db.VarChar(255)
+  utm_term     String? @db.VarChar(255)
+  utm_content  String? @db.VarChar(255)
+  ref          String? @db.VarChar(255)
 
   // User who created the template
   user   User?   @relation(fields: [userId], references: [id])

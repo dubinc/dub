@@ -42,6 +42,7 @@ async function handler(req: Request) {
     // Get batch of programs with unresolved risk events
     const programs = await prisma.program.findMany({
       where: {
+        deactivatedAt: null,
         fraudEventGroups: {
           some: {
             status: "pending",
