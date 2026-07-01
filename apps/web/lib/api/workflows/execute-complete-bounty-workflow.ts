@@ -124,6 +124,7 @@ export const executeCompleteBountyWorkflow = async ({
   }
 
   if (
+    bounty.startsAt &&
     bounty.performanceScope === "new" &&
     customerFirstSaleAt &&
     customerFirstSaleAt < bounty.startsAt

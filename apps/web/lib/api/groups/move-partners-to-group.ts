@@ -119,13 +119,16 @@ export async function movePartnersToGroup({
             },
             programId,
           },
-          select: {
-            id: true,
-            partnerId: true,
+          include: {
             partnerGroup: {
               select: {
                 id: true,
                 name: true,
+              },
+            },
+            programPartnerTags: {
+              select: {
+                partnerTagId: true,
               },
             },
           },
@@ -193,7 +196,7 @@ export async function movePartnersToGroup({
         notifyPartnerGroupChange({
           programId,
           groupId: group.id,
-          partnerIds,
+          programEnrollments: updatedProgramEnrollments,
         }),
 
         trackActivityLog(activityLogInputs),

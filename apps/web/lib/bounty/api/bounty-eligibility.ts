@@ -115,17 +115,18 @@ export function buildActiveBountyPeriodWhere(): Prisma.BountyWhereInput {
   };
 }
 
-function isPartnerEligibleForBounty({
-  bountyGroupIds,
-  bountyTagIds,
-  partnerGroupId,
-  partnerTagIds = [],
-}: {
-  bountyGroupIds: string[];
-  bountyTagIds: string[];
-  partnerGroupId: string | null;
-  partnerTagIds: string[] | undefined;
-}): boolean {
+export function isPartnerEligibleForBounty({
+  programEnrollment,
+  bounty,
+}: PartnerBountyEligibilityParams): boolean {
+  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
+  const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
+
+  const partnerGroupId = programEnrollment.groupId;
+  const partnerTagIds = programEnrollment.programPartnerTags.map(
+    (t) => t.partnerTagId,
+  );
+
   // No restrictions
   if (bountyGroupIds.length === 0 && bountyTagIds.length === 0) {
     return true;
@@ -148,17 +149,9 @@ export function canPartnerSubmitBounty({
   programEnrollment,
   bounty,
 }: PartnerBountyEligibilityParams): boolean {
-  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
-  const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
-  const partnerTagIds = programEnrollment.programPartnerTags.map(
-    (t) => t.partnerTagId,
-  );
-
   const isEligible = isPartnerEligibleForBounty({
-    bountyGroupIds,
-    bountyTagIds,
-    partnerGroupId: programEnrollment.groupId,
-    partnerTagIds,
+    programEnrollment,
+    bounty,
   });
 
   if (!isEligible) {
@@ -191,47 +184,21 @@ export function canPartnerSubmitBounty({
   return true;
 }
 
-export function throwIfPartnerCannotViewBounty({
+export function throwIfPartnerCannotSubmitBounty({
   programEnrollment,
   bounty,
 }: PartnerBountyEligibilityParams) {
-  if (!["approved", "invited"].includes(programEnrollment.status)) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "You are not allowed to submit a bounty for this program.",
-    });
-  }
-
-  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
-  const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
-  const partnerTagIds = programEnrollment.programPartnerTags.map(
-    (t) => t.partnerTagId,
-  );
-
   const isEligible = isPartnerEligibleForBounty({
-    bountyGroupIds,
-    bountyTagIds,
-    partnerGroupId: programEnrollment.groupId,
-    partnerTagIds,
+    programEnrollment,
+    bounty,
   });
 
   if (!isEligible) {
     throw new DubApiError({
       code: "bad_request",
-      message:
-        "This bounty is not available to you. Please contact program support if you believe this is an error.",
+      message: "You are not eligible for this bounty.",
     });
   }
-}
-
-export function throwIfPartnerCannotSubmitBounty({
-  programEnrollment,
-  bounty,
-}: PartnerBountyEligibilityParams) {
-  throwIfPartnerCannotViewBounty({
-    programEnrollment,
-    bounty,
-  });
 
   if (bounty.archivedAt) {
     throw new DubApiError({

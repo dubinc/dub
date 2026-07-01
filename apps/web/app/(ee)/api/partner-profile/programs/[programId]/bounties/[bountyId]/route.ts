@@ -1,8 +1,9 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   bountyEligibilityIncludes,
-  throwIfPartnerCannotViewBounty,
+  isPartnerEligibleForBounty,
 } from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getEffectiveBountyPeriod } from "@/lib/bounty/bounty-period";
@@ -57,10 +58,17 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     },
   });
 
-  throwIfPartnerCannotViewBounty({
+  const isEligible = isPartnerEligibleForBounty({
     programEnrollment,
     bounty,
   });
+
+  if (!isEligible) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "You are not eligible for this bounty.",
+    });
+  }
 
   return NextResponse.json(
     PartnerBountySchema.parse({
