@@ -16,6 +16,7 @@ import {
   TimestampTooltip,
   Tooltip,
   useColumnVisibility,
+  useCurrentProduct,
   usePagination,
   useRouterStuff,
   useTable,
@@ -728,8 +729,12 @@ export default function EventsTable({
     [setExportQueryString, queryString, columnVisibility, tab],
   );
 
+  const { product } = useCurrentProduct();
+
   const { data, isLoading, error } = useSWR<EventDatum[]>(
-    !requiresUpgrade && `${eventsApiPath || "/api/events"}?${queryString}`,
+    !requiresUpgrade &&
+      product &&
+      `${eventsApiPath || "/api/events"}?${queryString}`,
     fetcher,
     {
       keepPreviousData: true,
