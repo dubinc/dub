@@ -1,0 +1,91 @@
+// Partner natural-language search schema.
+// PartnerContentChunk.embedding is an Unsupported VECTOR column, so it's absent from
+// Prisma Client and all vector reads/writes are raw SQL. The real cosine index is
+// created via prisma/manual/partner-content-search-vector-index.sql (Prisma can't
+// express VECTOR INDEX options); the @@index below just preserves it across db push.
+
+enum PartnerContentTranscriptFetchStatus {
+  pending
+  fetched
+  notAvailable
+  error
+}
+
+enum PartnerContentChunkSource {
+  metadata
+  transcript
+}
+
+model PartnerContentItem {
+  id                        String                              @id
+  partnerId                 String
+  partnerPlatformId         String
+  platformContentId         String
+  url                       String                              @db.Text
+  contentType               String
+  title                     String?                             @db.Text
+  description               String?                             @db.Text
+  thumbnailUrl              String?                             @db.Text // may require internal image cache for long-term storage; MVP field
+  publishedAt               DateTime?
+  durationMs                Int?
+  viewCount                 BigInt?
+  likeCount                 BigInt?
+  commentCount              BigInt?
+  shareCount                BigInt?
+  saveCount                 BigInt?
+  transcriptFetchStatus     PartnerContentTranscriptFetchStatus @default(pending)
+  transcriptCreditsUsed     Int?
+  transcriptLastAttemptedAt DateTime?
+  transcriptHasTimestamps   Boolean                             @default(false)
+  normalizedTranscript      String?                             @db.LongText
+  transcriptHash            String?
+  embeddingModel            String?
+  totalChunkCount           Int                                 @default(0)
+  embeddedChunkCount        Int                                 @default(0)
+  lastFetchedAt             DateTime?
+  createdAt                 DateTime                            @default(now())
+  updatedAt                 DateTime                            @updatedAt
+
+  partner         Partner               @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partnerPlatform PartnerPlatform       @relation(fields: [partnerPlatformId], references: [id], onDelete: Cascade)
+  chunks          PartnerContentChunk[]
+
+  @@unique([partnerPlatformId, platformContentId])
+  @@index([partnerId, partnerPlatformId])
+  @@index([partnerId, embeddingModel, publishedAt])
+  @@index(publishedAt)
+}
+
+model PartnerContentChunk {
+  id                   String                       @id
+  partnerContentItemId String
+  partnerId            String
+  source               PartnerContentChunkSource    @default(transcript)
+  chunkIndex           Int
+  chunkText            String                       @db.Text
+  startMs              Int?
+  endMs                Int?
+  textHash             String
+  embedding            Unsupported("vector(1024)")?
+  embeddingModel       String
+
+  // Denormalized from Partner / PartnerPlatform so the vector ANN can pre-filter
+  // inline (no joins) on the index fast path; both fields are effectively static.
+  country              String?                      // denormalized from Partner.country
+  platformType         PlatformType?                // denormalized from PartnerPlatform.type
+
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
+
+  partnerContentItem PartnerContentItem @relation(fields: [partnerContentItemId], references: [id], onDelete: Cascade)
+  partner            Partner            @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerContentItemId, source, chunkIndex, embeddingModel])
+  @@index(partnerId)
+  // Covers the empty-query "recent content" list path, which filters on
+  // embeddingModel while joining chunks by partnerContentItemId.
+  @@index([partnerContentItemId, embeddingModel])
+  // Drift guard so db push keeps the manual cosine index (see file header and
+  // partner-content-search-vector-index.sql). Name verified by vector-index-sync.test.ts.
+  @@index([embedding], map: "partner_content_chunk_embedding_cosine_idx")
+}

@@ -345,3 +345,179 @@ export const socialContentSchema = z.preprocess(
     }),
   ]),
 );
+
+export const youtubeChannelVideosSchema = z.object({
+  videos: z.array(
+    z.object({
+      type: z.string(),
+      id: z.string(),
+      url: z.string(),
+      title: z.string().nullish(),
+      description: z.string().nullish(),
+      thumbnail: z.string().nullish(),
+      channel: z
+        .object({
+          title: z.string().nullish(),
+          thumbnail: z.string().nullish(),
+        })
+        .optional(),
+      viewCountText: z.string().nullish(),
+      viewCountInt: z
+        .number()
+        .nullish()
+        .transform((val) => val ?? 0),
+      likeCountInt: z.number().nullish(),
+      commentCountInt: z.number().nullish(),
+      publishedTimeText: z.string().nullish(),
+      publishedTime: z.string().nullish(),
+      lengthText: z.string().nullish(),
+      lengthSeconds: z
+        .number()
+        .nullish()
+        .transform((val) => val ?? 0),
+      badges: z.array(z.unknown()).optional(),
+    }),
+  ),
+  continuationToken: z.string().nullish(),
+});
+
+export const youtubeTranscriptSchema = z.object({
+  videoId: z.string(),
+  type: z.string(),
+  url: z.string(),
+  transcript: z
+    .array(
+      z.object({
+        text: z.string(),
+        startMs: z.string(),
+        endMs: z.string(),
+        startTimeText: z.string().nullish(),
+      }),
+    )
+    .nullable(),
+  transcript_only_text: z.string().nullish(),
+  language: z.string().nullish(),
+});
+
+const urlListSchema = z
+  .object({
+    url_list: z.array(z.string()).nullish(),
+  })
+  .nullish();
+
+const stringFromStringOrNumberSchema = z
+  .union([z.string(), z.number()])
+  .nullish()
+  .transform((value) => (value == null ? value : String(value)));
+
+const booleanFromBooleanOrNumberSchema = z
+  .union([z.boolean(), z.number()])
+  .nullish()
+  .transform((value) => {
+    if (typeof value === "number") {
+      return value !== 0;
+    }
+
+    return value;
+  });
+
+export const tiktokProfileVideosSchema = z.object({
+  aweme_list: z.array(
+    z.object({
+      aweme_id: z.string().nullish(),
+      id_str: z.string().nullish(),
+      desc: z.string().nullish(),
+      create_time: z.number().nullish(),
+      create_time_utc: z.string().nullish(),
+      duration: z.number().nullish(),
+      url: z.string().nullish(),
+      statistics: z
+        .object({
+          play_count: z.number().nullish(),
+          digg_count: z.number().nullish(),
+          comment_count: z.number().nullish(),
+          share_count: z.number().nullish(),
+          collect_count: z.number().nullish(),
+        })
+        .nullish(),
+      video: z
+        .object({
+          duration: z.number().nullish(),
+          dynamic_cover: urlListSchema,
+          cover: urlListSchema,
+        })
+        .nullish(),
+    }),
+  ),
+  max_cursor: stringFromStringOrNumberSchema,
+  has_more: booleanFromBooleanOrNumberSchema,
+});
+
+export const tiktokTranscriptSchema = z.object({
+  id: z.string().nullish(),
+  url: z.string(),
+  transcript: z.string().nullish(),
+});
+
+const instagramCaptionSchema = z
+  .object({
+    text: z.string().nullish(),
+  })
+  .nullish();
+
+const instagramImageVersionsSchema = z
+  .object({
+    candidates: z
+      .array(
+        z.object({
+          url: z.string(),
+        }),
+      )
+      .nullish(),
+  })
+  .nullish();
+
+export const instagramUserPostsSchema = z.object({
+  items: z.array(
+    z.object({
+      id: z.string().nullish(),
+      pk: z.string().nullish(),
+      code: z.string().nullish(),
+      url: z.string().nullish(),
+      media_type: z.number().nullish(),
+      product_type: z.string().nullish(),
+      taken_at: z.number().nullish(),
+      caption: instagramCaptionSchema,
+      play_count: z.number().nullish(),
+      ig_play_count: z.number().nullish(),
+      like_count: z.number().nullish(),
+      comment_count: z.number().nullish(),
+      display_uri: z.string().nullish(),
+      image_versions2: instagramImageVersionsSchema,
+      video_versions: z
+        .array(
+          z.object({
+            url: z.string().nullish(),
+          }),
+        )
+        .nullish(),
+      video_duration: z.number().nullish(),
+      has_audio: z.boolean().nullish(),
+    }),
+  ),
+  next_max_id: z.string().nullish(),
+  more_available: z.boolean().nullish(),
+});
+
+export const instagramMediaTranscriptSchema = z.object({
+  success: z.boolean().nullish(),
+  transcripts: z
+    .array(
+      z.object({
+        id: z.string().nullish(),
+        shortcode: z.string().nullish(),
+        text: z.string().nullish(),
+      }),
+    )
+    .nullish(),
+});

@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { getNetworkPartnersQuerySchema } from "@/lib/zod/schemas/partner-network";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { PlatformType, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
+import { reachTiersToRanges } from "./reach-tiers";
 
 type PartnerRankingFilters = z.infer<typeof getNetworkPartnersQuerySchema>;
 
@@ -10,6 +11,36 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
   programId: string;
   similarPrograms?: Array<{ programId: string; similarityScore: number }>;
 }
+
+// Raw row from the ranking query: Partner columns (p.*) vary, so the base is an
+// index signature; `platforms` is the JSON_ARRAYAGG aggregate parsed below.
+type RankedPartnerRawRow = Record<string, unknown> & {
+  id: string;
+  platforms?: string | unknown[] | null;
+};
+
+// One platform inside the JSON aggregate. MySQL JSON returns BigInt as numbers and
+// DateTime as ISO strings.
+type RawPlatformAggregate = {
+  partnerId: string;
+  type: string;
+  identifier: string | null;
+  verifiedAt: string | null;
+  platformId: string | null;
+  subscribers: number | string | null;
+  posts: number | string | null;
+  views: number | string | null;
+};
+
+type SerializedPartnerPlatform = Omit<
+  RawPlatformAggregate,
+  "subscribers" | "posts" | "views" | "verifiedAt"
+> & {
+  subscribers: bigint;
+  posts: bigint;
+  views: bigint;
+  verifiedAt: Date | null;
+};
 
 /**
  * Partner Ranking Algorithm (only used for the "discover" tab)
@@ -37,27 +68,9 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  * - clickToConversionRate: Average click-to-conversion rate across ALL programs the partner is enrolled in
  * - lastConversionAt: Most recent conversion date across ALL programs the partner is enrolled in
  */
-function buildOrderByClause({
-  starred,
-  sortBy,
-  platform,
-}: {
-  starred?: boolean | null;
-  sortBy?: "relevance" | "subscribers";
-  platform?: PlatformType;
-}) {
+function buildOrderByClause({ starred }: { starred?: boolean | null }) {
   if (starred === true) {
     return Prisma.sql`dp.starredAt DESC`;
-  }
-
-  if (sortBy === "subscribers" && platform) {
-    return Prisma.sql`(
-      SELECT COALESCE(MAX(pp_sort.subscribers), 0)
-      FROM PartnerPlatform pp_sort
-      WHERE pp_sort.partnerId = p.id
-        AND pp_sort.type = ${platform}
-        AND pp_sort.verifiedAt IS NOT NULL
-    ) DESC, p.id ASC`;
   }
 
   return Prisma.sql`finalScore DESC, p.id ASC`;
@@ -68,8 +81,8 @@ export async function calculatePartnerRanking({
   partnerIds,
   country,
   starred,
-  sortBy = "relevance",
   platform,
+  reach,
   page = 1,
   pageSize,
   similarPrograms = [],
@@ -89,21 +102,16 @@ export async function calculatePartnerRanking({
     conditions.push(Prisma.sql`p.country = ${country}`);
   }
 
-  // Filter by platform type (must have verified platform)
-  // Combine both filters into a single EXISTS clause so they apply to the same platform
-  if (platform) {
-    const platformConditions: Prisma.Sql[] = [
-      Prisma.sql`pp_filter.partnerId = p.id`,
-      Prisma.sql`pp_filter.verifiedAt IS NOT NULL`,
-    ];
-
-    platformConditions.push(Prisma.sql`pp_filter.type = ${platform}`);
-
+  // Filter by platform type (must have a verified platform of one of the selected
+  // types). Inclusion semantics: a partner qualifies if present on any selection.
+  if (platform && platform.length > 0) {
     conditions.push(
       Prisma.sql`EXISTS (
-        SELECT 1 
-        FROM PartnerPlatform pp_filter 
-        WHERE ${Prisma.join(platformConditions, " AND ")}
+        SELECT 1
+        FROM PartnerPlatform pp_filter
+        WHERE pp_filter.partnerId = p.id
+          AND pp_filter.verifiedAt IS NOT NULL
+          AND pp_filter.type IN (${Prisma.join(platform)})
       )`,
     );
   }
@@ -112,6 +120,35 @@ export async function calculatePartnerRanking({
     conditions.push(Prisma.sql`dp.starredAt IS NOT NULL`);
   } else if (starred === false) {
     conditions.push(Prisma.sql`(dp.starredAt IS NULL OR dp.id IS NULL)`);
+  }
+
+  // Reach-tier filter: the partner's max subscriber count across the selected
+  // platforms must fall in a chosen tier (see reach-tiers.ts).
+  if (reach && reach.length > 0) {
+    const ranges = reachTiersToRanges(reach);
+    const reachPlatformScope =
+      platform && platform.length > 0
+        ? Prisma.sql`AND pp_reach.type IN (${Prisma.join(platform)})`
+        : Prisma.empty;
+    const rangeConditions = ranges.map(({ min, max }) =>
+      max == null
+        ? Prisma.sql`reach_r.maxSubscribers >= ${min}`
+        : Prisma.sql`(reach_r.maxSubscribers >= ${min} AND reach_r.maxSubscribers < ${max})`,
+    );
+
+    conditions.push(
+      Prisma.sql`EXISTS (
+        SELECT 1
+        FROM (
+          SELECT MAX(pp_reach.subscribers) AS maxSubscribers
+          FROM PartnerPlatform pp_reach
+          WHERE pp_reach.partnerId = p.id
+            AND pp_reach.verifiedAt IS NOT NULL
+            ${reachPlatformScope}
+        ) reach_r
+        WHERE ${Prisma.join(rangeConditions, " OR ")}
+      )`,
+    );
   }
 
   const whereClause = Prisma.join(conditions, " AND ");
@@ -123,7 +160,7 @@ export async function calculatePartnerRanking({
     WHERE pp.partnerId = p.id
   )`;
 
-  const orderByClause = buildOrderByClause({ starred, sortBy, platform });
+  const orderByClause = buildOrderByClause({ starred });
 
   const offset = (page - 1) * pageSize;
 
@@ -165,9 +202,10 @@ export async function calculatePartnerRanking({
     GROUP BY pe_all.partnerId
   ) allProgramMetrics ON allProgramMetrics.partnerId = p.id`;
 
-  const similarProgramMetricsJoin =
-    similarPrograms.length > 0
-      ? Prisma.sql`LEFT JOIN (
+  const hasSimilarPrograms = similarPrograms.length > 0;
+
+  const similarProgramMetricsJoin = hasSimilarPrograms
+    ? Prisma.sql`LEFT JOIN (
       SELECT 
         pe2.partnerId,
         -- Similarity score: Sum weighted performance (0-50 points, no averaging)
@@ -213,15 +251,18 @@ export async function calculatePartnerRanking({
         AND pe2.status = 'approved'
       GROUP BY pe2.partnerId
     ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`
-      : Prisma.sql`LEFT JOIN (
-          SELECT 
-            NULL as partnerId, 
-            NULL as similarityScore, 
-            NULL as programMatchScore
-            WHERE FALSE
-        ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`;
+      : Prisma.empty;
 
-  const partners = await prisma.$queryRaw<Array<any>>`
+  // No similar programs → omit the join entirely and score these contributions as 0.
+  // A `FROM`-less `SELECT NULL … WHERE FALSE` dual-derived table joined to another is
+  // a Vitess planner hazard (vtgate can emit "ERROR 1054 Unknown column"), so we drop
+  // the join rather than emit a degenerate one. See references/planetscale-mysql.md.
+  const similarProgramScore = hasSimilarPrograms
+    ? Prisma.sql`COALESCE(similarProgramMetrics.similarityScore, 0) +
+        COALESCE(similarProgramMetrics.programMatchScore, 0)`
+    : Prisma.sql`0`;
+
+  const partners = await prisma.$queryRaw<RankedPartnerRawRow[]>`
     SELECT 
       p.*,
       COALESCE(pe.lastConversionAt, allProgramMetrics.lastConversionAt) as lastConversionAt,
@@ -246,8 +287,7 @@ export async function calculatePartnerRanking({
         CASE WHEN ${hasProfileCheck} THEN 500 ELSE 0 END +
         -- Trusted partner bonus: 200 points for partners with networkStatus = "trusted"
         CASE WHEN p.networkStatus = "trusted" THEN 200 ELSE 0 END +
-        COALESCE(similarProgramMetrics.similarityScore, 0) +
-        COALESCE(similarProgramMetrics.programMatchScore, 0)
+        ${similarProgramScore}
       ) as finalScore
     FROM (
       -- OPTIMIZATION: Filter to discoverable partners FIRST using subquery
@@ -344,8 +384,8 @@ export async function calculatePartnerRanking({
     LIMIT ${pageSize} OFFSET ${offset}
   `;
 
-  return partners.map((partner: any) => {
-    let platforms: any[] = [];
+  return partners.map((partner) => {
+    let platforms: SerializedPartnerPlatform[] = [];
     if (partner.platforms) {
       try {
         // Handle both string and already-parsed JSON
@@ -356,20 +396,27 @@ export async function calculatePartnerRanking({
 
         // Transform platforms to match Prisma types
         // MySQL JSON returns BigInt as numbers and DateTime as strings
-        platforms = (Array.isArray(parsedPlatforms) ? parsedPlatforms : []).map(
-          (platform: any) => ({
-            ...platform,
-            subscribers: platform.subscribers
-              ? BigInt(platform.subscribers)
-              : BigInt(0),
-            posts: platform.posts ? BigInt(platform.posts) : BigInt(0),
-            views: platform.views ? BigInt(platform.views) : BigInt(0),
-            verifiedAt: platform.verifiedAt
-              ? new Date(platform.verifiedAt)
-              : null,
-          }),
+        platforms = (
+          Array.isArray(parsedPlatforms)
+            ? (parsedPlatforms as RawPlatformAggregate[])
+            : []
+        ).map((platform) => ({
+          ...platform,
+          subscribers: platform.subscribers
+            ? BigInt(platform.subscribers)
+            : BigInt(0),
+          posts: platform.posts ? BigInt(platform.posts) : BigInt(0),
+          views: platform.views ? BigInt(platform.views) : BigInt(0),
+          verifiedAt: platform.verifiedAt
+            ? new Date(platform.verifiedAt)
+            : null,
+        }));
+      } catch (error) {
+        // A malformed platform aggregate shouldn't silently drop the partner.
+        console.error(
+          `[calculatePartnerRanking] Failed to parse platforms JSON for partner ${partner.id}`,
+          error,
         );
-      } catch {
         platforms = [];
       }
     }

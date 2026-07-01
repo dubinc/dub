@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import {
   partnerNetworkListingParts,
+  partnerReachWhere,
   partnerWhereFromListingParts,
 } from "@/lib/api/network/partner-network-listing-where";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -30,7 +31,7 @@ export const GET = withWorkspace(
       });
     }
 
-    const { partnerIds, status, groupBy, country, starred, platform } =
+    const { partnerIds, status, groupBy, country, starred, platform, reach } =
       getNetworkPartnersCountQuerySchema.parse(searchParams);
 
     const listingParts = partnerNetworkListingParts({
@@ -40,6 +41,9 @@ export const GET = withWorkspace(
     });
 
     const commonWhere = partnerWhereFromListingParts(listingParts);
+
+    // Same max-subscribers-in-tier rule as the listing. Applied to discover only.
+    const reachWhere = partnerReachWhere({ reach, platform });
 
     const statusWheres = {
       discover: {
@@ -104,6 +108,7 @@ export const GET = withWorkspace(
               where: {
                 ...commonWhere,
                 ...statusWheres.discover,
+                ...reachWhere, // reach filter only applies to discover
               },
             })
           : undefined,
@@ -143,7 +148,12 @@ export const GET = withWorkspace(
       const countries = await prisma.partner.groupBy({
         by: ["country"],
         _count: true,
-        where: { ...commonWhere, ...statusWhereForFacet },
+        where: {
+          ...commonWhere,
+          ...statusWhereForFacet,
+          // reach filter only applies to discover
+          ...(!status || status === "discover" ? reachWhere : {}),
+        },
         orderBy: {
           _count: {
             country: "desc",

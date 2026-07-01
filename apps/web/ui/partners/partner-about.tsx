@@ -13,6 +13,9 @@ import { Icon, InfoTooltip } from "@dub/ui";
 export function PartnerAbout({
   partner,
   error,
+  hideSocials = false,
+  hideDescription = false,
+  hideMonthlyTraffic = false,
 }: {
   partner?: Pick<
     EnrolledPartnerExtendedProps,
@@ -25,32 +28,41 @@ export function PartnerAbout({
     | "platforms"
   >;
   error?: any;
+  // Network-browse sheets surface website/socials, description, and traffic in the
+  // right sidebar instead, so they hide them here to avoid duplication.
+  hideSocials?: boolean;
+  hideDescription?: boolean;
+  hideMonthlyTraffic?: boolean;
 }) {
   return partner ? (
     <>
-      <div className="flex flex-col gap-2">
-        <h3 className="text-content-emphasis text-sm font-semibold">
-          Description
-        </h3>
-        <p className="text-content-default max-w-prose text-sm">
-          {partner.description || (
-            <span className="italic text-neutral-400">
-              No description provided
-            </span>
-          )}
-        </p>
-      </div>
+      {!hideDescription && (
+        <div className="flex flex-col gap-2">
+          <h3 className="text-content-emphasis text-sm font-semibold">
+            Description
+          </h3>
+          <p className="text-content-default max-w-prose text-sm">
+            {partner.description || (
+              <span className="italic text-neutral-400">
+                No description provided
+              </span>
+            )}
+          </p>
+        </div>
+      )}
 
-      <div className="flex flex-col gap-2">
-        <h3 className="text-content-emphasis text-sm font-semibold">
-          Website and socials
-        </h3>
-        <PartnerPlatformSummary
-          platforms={partner.platforms}
-          partnerId={partner.id}
-          className="gap-y-2"
-        />
-      </div>
+      {!hideSocials && (
+        <div className="flex flex-col gap-2">
+          <h3 className="text-content-emphasis text-sm font-semibold">
+            Website and socials
+          </h3>
+          <PartnerPlatformSummary
+            platforms={partner.platforms}
+            partnerId={partner.id}
+            className="gap-y-2"
+          />
+        </div>
+      )}
 
       {Boolean(partner.industryInterests?.length) && (
         <div className="flex flex-col gap-2">
@@ -97,7 +109,7 @@ export function PartnerAbout({
         </div>
       )}
 
-      {Boolean(partner.monthlyTraffic) && (
+      {!hideMonthlyTraffic && Boolean(partner.monthlyTraffic) && (
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-1">
             <h3 className="text-content-emphasis text-xs font-semibold">

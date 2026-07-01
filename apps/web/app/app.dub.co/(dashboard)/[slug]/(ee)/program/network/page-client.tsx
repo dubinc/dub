@@ -1,41 +1,38 @@
 "use client";
 
-import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
+import usePartnerContentSearch from "@/lib/swr/use-partner-content-search";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
 import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
-import { NetworkPartnerSheet } from "@/ui/partners/partner-network/network-partner-sheet";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
   Button,
   Filter,
   PaginationControls,
-  ToggleGroup,
   usePagination,
   useRouterStuff,
 } from "@dub/ui";
-import {
-  Globe,
-  Instagram,
-  LinkedIn,
-  Star,
-  StarFill,
-  TikTok,
-  Twitter,
-  User,
-  YouTube,
-} from "@dub/ui/icons";
+import { Star, StarFill } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
-import { PlatformType } from "@prisma/client";
-import { useAction } from "next-safe-action/hooks";
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import useSWR from "swr";
+import { useDebounce } from "use-debounce";
+import { NetworkContentSearchResults } from "./network-content-search-results";
 import { NetworkEmptyState } from "./network-empty-state";
 import { NetworkPartnerCard } from "./network-partner-card";
-import { PartnerNetworkSort } from "./partner-network-sort";
+import { NetworkPartnerDetailSheet } from "./network-partner-detail-sheet";
+import { NetworkPlatformFilter } from "./network-platform-filter";
+import { useNetworkDetailSheet } from "./use-network-detail-sheet";
+import {
+  FILTER_FETCH_DEBOUNCE_MS,
+  useNetworkPartnerFiltersState,
+} from "./use-network-partner-filters-state";
 import { usePartnerNetworkFilters } from "./use-partner-network-filters";
+import {
+  useToggleStarredContentSearch,
+  useToggleStarredRankedList,
+} from "./use-toggle-partner-starred";
 
 const tabs = [
   {
@@ -52,19 +49,6 @@ const tabs = [
   },
 ] as const;
 
-const PLATFORM_TOGGLE_OPTIONS: {
-  value: PlatformType | "all";
-  icon: typeof User;
-}[] = [
-  { value: "all", icon: User },
-  { value: "website", icon: Globe },
-  { value: "youtube", icon: YouTube },
-  { value: "twitter", icon: Twitter },
-  { value: "linkedin", icon: LinkedIn },
-  { value: "instagram", icon: Instagram },
-  { value: "tiktok", icon: TikTok },
-];
-
 type ProgramPartnerNetworkPageClientProps = {
   variant?: "default" | "ignored";
 };
@@ -75,39 +59,74 @@ export function ProgramPartnerNetworkPageClient({
   const { id: workspaceId } = useWorkspace();
   const { searchParams, getQueryString, queryParams } = useRouterStuff();
 
+  const {
+    selectedPlatforms,
+    platformFilter,
+    contentSearchPlatforms,
+    reachFilter,
+    search,
+    country,
+    starred,
+    updateSearchParams,
+    onPlatformsChange,
+  } = useNetworkPartnerFiltersState();
+
   const status =
     variant === "ignored"
       ? "ignored"
       : tabs.find(({ id }) => id === searchParams.get("tab"))?.id || "discover";
+  const isContentSearchMode =
+    status === "discover" &&
+    search.length > 0 &&
+    contentSearchPlatforms.length > 0;
 
   const { data: partnerCounts, error: countError } = useNetworkPartnersCount();
+
+  const {
+    data: contentSearchResults,
+    error: contentSearchError,
+    isPending: isContentSearchPending,
+    mutate: mutateContentSearch,
+  } = usePartnerContentSearch({
+    enabled: isContentSearchMode,
+    query: search,
+    platforms: platformFilter,
+    reach: reachFilter,
+    country,
+    starred,
+    debounceMs: FILTER_FETCH_DEBOUNCE_MS,
+  });
+
+  const partnersKey =
+    !isContentSearchMode && workspaceId
+      ? `/api/network/partners${getQueryString(
+          {
+            workspaceId,
+            status,
+          },
+          {
+            exclude:
+              variant === "ignored"
+                ? ["tab", "partnerId", "starred", "search"]
+                : ["tab", "partnerId", "search"],
+          },
+        )}`
+      : null;
+  // Debounce the fetch key so rapid filter toggles coalesce into one request.
+  const [debouncedPartnersKey] = useDebounce(
+    partnersKey,
+    FILTER_FETCH_DEBOUNCE_MS,
+  );
 
   const {
     data: partners,
     error,
     mutate: mutatePartners,
     isValidating,
-  } = useSWR<NetworkPartnerProps[]>(
-    workspaceId &&
-      `/api/network/partners${getQueryString(
-        {
-          workspaceId,
-          status,
-        },
-        {
-          exclude:
-            variant === "ignored"
-              ? ["tab", "partnerId", "starred"]
-              : ["tab", "partnerId"],
-        },
-      )}`,
-    fetcher,
-    { revalidateOnFocus: false, keepPreviousData: true },
-  );
-
-  const { executeAsync: updateDiscoveredPartner } = useAction(
-    updateDiscoveredPartnerAction,
-  );
+  } = useSWR<NetworkPartnerProps[]>(debouncedPartnersKey, fetcher, {
+    revalidateOnFocus: false,
+    keepPreviousData: true,
+  });
 
   const { pagination, setPagination } = usePagination(
     PARTNER_NETWORK_MAX_PAGE_SIZE,
@@ -123,48 +142,44 @@ export function ProgramPartnerNetworkPageClient({
   } = usePartnerNetworkFilters({ status });
 
   const isStarred = searchParams.get("starred") === "true";
-  const selectedPlatform =
-    (searchParams.get("platform") as PlatformType | null) ?? "all";
+  const selectedPartnerId = searchParams.get("partnerId");
 
-  const [detailsSheetState, setDetailsSheetState] = useState<
-    | { open: false; partnerId: string | null }
-    | { open: true; partnerId: string }
-  >({ open: false, partnerId: null });
-
-  useEffect(() => {
-    const partnerId = searchParams.get("partnerId");
-    if (partnerId) setDetailsSheetState({ open: true, partnerId });
-  }, [searchParams]);
-
-  const { currentPartner } = useCurrentPartner({
+  const {
+    detailsSheetState,
+    setDetailsSheetState,
+    previousPartnerId,
+    nextPartnerId,
+  } = useNetworkDetailSheet({
+    selectedPartnerId,
+    isContentSearchMode,
+    contentSearchPartners: contentSearchResults?.partners,
     partners,
-    partnerId: detailsSheetState.partnerId,
-    partnerListStatus: status,
   });
 
-  const [previousPartnerId, nextPartnerId] = useMemo(() => {
-    if (!partners || !detailsSheetState.partnerId) return [null, null];
-
-    const currentIndex = partners.findIndex(
-      ({ id }) => id === detailsSheetState.partnerId,
-    );
-    if (currentIndex === -1) return [null, null];
-
-    return [
-      currentIndex > 0 ? partners[currentIndex - 1].id : null,
-      currentIndex < partners.length - 1 ? partners[currentIndex + 1].id : null,
-    ];
-  }, [partners, detailsSheetState.partnerId]);
+  const toggleStarredContentSearch =
+    useToggleStarredContentSearch(mutateContentSearch);
+  const toggleStarredRankedList = useToggleStarredRankedList(
+    mutatePartners,
+    partners,
+  );
 
   return (
     <div className="flex flex-col">
-      {detailsSheetState.partnerId && currentPartner && (
-        <NetworkPartnerSheet
+      {detailsSheetState.partnerId && (
+        <NetworkPartnerDetailSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
-            setDetailsSheetState((s) => ({ ...s, open }) as any)
+            setDetailsSheetState((state) =>
+              open && state.partnerId
+                ? { open: true, partnerId: state.partnerId }
+                : { open: false, partnerId: state.partnerId },
+            )
           }
-          partner={currentPartner}
+          partnerId={detailsSheetState.partnerId}
+          partnerStatus={status}
+          searchPartner={contentSearchResults?.partners.find(
+            ({ partnerId }) => partnerId === detailsSheetState.partnerId,
+          )}
           onPrevious={
             previousPartnerId
               ? () =>
@@ -202,7 +217,7 @@ export function ProgramPartnerNetworkPageClient({
                 onClick={() => {
                   queryParams({
                     set: { tab: tab.id },
-                    del: ["page", "starred", "sortBy"],
+                    del: ["page", "starred"],
                   });
                 }}
               >
@@ -224,8 +239,8 @@ export function ProgramPartnerNetworkPageClient({
 
       {status === "discover" && (
         <div className="mt-[17px]">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col items-center gap-4 md:flex-row">
+          <div className="@3xl/page:flex-row @3xl/page:items-center flex flex-col gap-3">
+            <div className="flex flex-col items-center gap-3 md:flex-row">
               <Filter.Select
                 className="h-10 w-full shrink-0 rounded-lg md:w-fit"
                 filters={filters}
@@ -233,55 +248,38 @@ export function ProgramPartnerNetworkPageClient({
                 onSelect={onSelect}
                 onRemove={onRemove}
               />
-              <div className="flex items-center gap-4">
-                <ToggleGroup
-                  className="h-10 w-full rounded-lg border-neutral-200 bg-neutral-50 p-0 md:w-fit"
-                  optionClassName="rounded-lg px-3 py-2.5"
-                  indicatorClassName="rounded-lg bg-white border-none shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_3px_0_rgba(0,0,0,0.08)]"
-                  options={PLATFORM_TOGGLE_OPTIONS.map(
-                    ({ value, icon: Icon }) => ({
-                      value,
-                      label: <Icon className="size-4" />,
-                    }),
-                  )}
-                  selected={selectedPlatform}
-                  selectAction={(option) => {
-                    if (option === "all") {
-                      queryParams({
-                        del: ["platform", "page"],
-                      });
-                    } else {
-                      queryParams({
-                        set: { platform: option },
-                        del: "page",
-                      });
-                    }
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    queryParams({
-                      set: !isStarred ? { starred: "true" } : undefined,
-                      del: ["page", ...(!isStarred ? [] : ["starred"])],
-                    });
-                  }}
-                  icon={
-                    isStarred ? (
-                      <StarFill className="size-4 text-amber-500" />
-                    ) : (
-                      <Star className="text-content-subtle size-4" />
-                    )
-                  }
-                  className="size-10 shrink-0 rounded-lg"
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  updateSearchParams({
+                    set: !isStarred ? { starred: "true" } : undefined,
+                    del: ["page", ...(!isStarred ? [] : ["starred"])],
+                  });
+                }}
+                icon={
+                  isStarred ? (
+                    <StarFill className="size-4 text-amber-500" />
+                  ) : (
+                    <Star className="text-content-subtle size-4" />
+                  )
+                }
+                className="size-10 shrink-0 rounded-lg"
+              />
+              <NetworkPlatformFilter
+                selectedPlatforms={selectedPlatforms}
+                onChange={onPlatformsChange}
+              />
+            </div>
+            <div className="@3xl/page:ml-auto @3xl/page:w-auto flex w-full items-center gap-2">
+              <div className="@3xl/page:w-[373px] w-full">
+                <SearchBoxPersisted
+                  placeholder="Search by Topic, Keyword, or Competitor"
+                  inputClassName="h-10"
+                  loading={isContentSearchMode && isContentSearchPending}
                 />
               </div>
             </div>
-            <PartnerNetworkSort
-              selectedPlatform={selectedPlatform}
-              className="md:ml-auto"
-            />
           </div>
           <AnimatedSizeContainer height>
             {activeFilters.length > 0 && (
@@ -299,7 +297,22 @@ export function ProgramPartnerNetworkPageClient({
         </div>
       )}
 
-      {error || countError ? (
+      {isContentSearchMode ? (
+        <NetworkContentSearchResults
+          error={contentSearchError}
+          hasQuery={search.length > 0}
+          isFetching={isContentSearchPending}
+          partners={contentSearchResults?.partners}
+          platform={
+            contentSearchPlatforms.length === 1
+              ? contentSearchPlatforms[0]
+              : undefined
+          }
+          onToggleStarred={
+            variant === "ignored" ? undefined : toggleStarredContentSearch
+          }
+        />
+      ) : error || countError ? (
         <div className="text-content-subtle py-12 text-sm">
           Failed to load partners
         </div>
@@ -319,47 +332,8 @@ export function ProgramPartnerNetworkPageClient({
                     onToggleStarred={
                       variant === "ignored"
                         ? undefined
-                        : (starred) => {
-                            mutatePartners(
-                              // @ts-ignore SWR doesn't seem to have proper typing for partial data results w/ `populateCache`
-                              async () => {
-                                const result = await updateDiscoveredPartner({
-                                  workspaceId: workspaceId!,
-                                  partnerId: partner.id,
-                                  starred,
-                                });
-                                if (!result?.data) {
-                                  toast.error("Failed to star partner");
-                                  throw new Error("Failed to star partner");
-                                }
-
-                                return result.data;
-                              },
-                              {
-                                optimisticData: (data) =>
-                                  (data || partners).map((p) =>
-                                    p.id === partner.id
-                                      ? {
-                                          ...p,
-                                          starredAt: starred
-                                            ? new Date()
-                                            : null,
-                                        }
-                                      : p,
-                                  ),
-                                populateCache: (
-                                  result: { starredAt: Date | null },
-                                  data,
-                                ) =>
-                                  (data || partners).map((p) =>
-                                    p.id === partner.id
-                                      ? { ...p, starredAt: result.starredAt }
-                                      : p,
-                                  ),
-                                revalidate: false,
-                              },
-                            );
-                          }
+                        : (starred) =>
+                            toggleStarredRankedList(partner.id, starred)
                     }
                   />
                 ))
@@ -390,38 +364,4 @@ export function ProgramPartnerNetworkPageClient({
       )}
     </div>
   );
-}
-
-/** Gets the current partner from the loaded partners array if available, or a separate fetch if not */
-function useCurrentPartner({
-  partners,
-  partnerId,
-  partnerListStatus,
-}: {
-  partners?: NetworkPartnerProps[];
-  partnerId: string | null;
-  partnerListStatus: string;
-}) {
-  const { id: workspaceId } = useWorkspace();
-
-  let currentPartner = partnerId
-    ? partners?.find(({ id }) => id === partnerId)
-    : null;
-
-  const fetchPartnerId =
-    partners && partnerId && !currentPartner ? partnerId : null;
-
-  const { data: fetchedPartners, isLoading } = useSWR<NetworkPartnerProps>(
-    fetchPartnerId &&
-      `/api/network/partners?workspaceId=${workspaceId}&partnerIds=${fetchPartnerId}&status=${partnerListStatus}`,
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
-
-  if (!currentPartner && fetchedPartners?.[0]?.id === partnerId)
-    currentPartner = fetchedPartners[0];
-
-  return { currentPartner, isLoading };
 }

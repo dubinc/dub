@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { calculatePartnerRanking } from "@/lib/api/network/calculate-partner-ranking";
+import { parseRankedNetworkPartners } from "@/lib/api/network/normalize-ranked-network-partner";
 import { partnerNetworkListingWhere } from "@/lib/api/network/partner-network-listing-where";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
@@ -9,9 +10,7 @@ import {
   NetworkPartnerSchema,
   getNetworkPartnersQuerySchema,
 } from "@/lib/zod/schemas/partner-network";
-import { PreferredEarningStructure, SalesChannel } from "@prisma/client";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
 
 // GET /api/network/partners - get all available partners in the network
 export const GET = withWorkspace(
@@ -51,8 +50,8 @@ export const GET = withWorkspace(
       pageSize,
       country,
       starred,
-      sortBy,
       platform,
+      reach,
     } = getNetworkPartnersQuerySchema.parse(searchParams);
 
     if (status !== "discover") {
@@ -116,7 +115,6 @@ export const GET = withWorkspace(
       similarityScore: sp.similarityScore,
     }));
 
-    console.time("calculatePartnerRanking");
     const partners = await calculatePartnerRanking({
       programId,
       partnerIds,
@@ -125,40 +123,12 @@ export const GET = withWorkspace(
       page,
       pageSize,
       starred: starred ?? undefined,
-      sortBy,
       platform: platform ?? undefined,
+      reach: reach ?? undefined,
       similarPrograms,
     });
-    console.timeEnd("calculatePartnerRanking");
 
-    return NextResponse.json(
-      z.array(NetworkPartnerSchema).parse(
-        partners.map((partner) => ({
-          ...partner,
-          starredAt: partner.starredAt ? new Date(partner.starredAt) : null,
-          ignoredAt: partner.ignoredAt ? new Date(partner.ignoredAt) : null,
-          invitedAt: partner.invitedAt ? new Date(partner.invitedAt) : null,
-          identityVerificationStatus:
-            partner.identityVerificationStatus ?? null,
-          identityVerifiedAt: partner.identityVerifiedAt
-            ? new Date(partner.identityVerifiedAt)
-            : null,
-          categories: partner.categories
-            ? partner.categories.split(",").map((c: string) => c.trim())
-            : [],
-          preferredEarningStructures: partner.preferredEarningStructures
-            ? partner.preferredEarningStructures
-                .split(",")
-                .map((e: string) => e.trim() as PreferredEarningStructure)
-            : [],
-          salesChannels: partner.salesChannels
-            ? partner.salesChannels
-                .split(",")
-                .map((s: string) => s.trim() as SalesChannel)
-            : [],
-        })),
-      ),
-    );
+    return NextResponse.json(parseRankedNetworkPartners(partners));
   },
   {
     requiredPlan: ["enterprise", "advanced"],

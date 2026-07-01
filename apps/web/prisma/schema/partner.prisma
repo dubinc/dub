@@ -111,6 +111,8 @@ model Partner {
   platforms                  PartnerPlatform[]
   referredApplications       ProgramApplicationEvent[]
   submittedLeads             SubmittedLead[]
+  partnerContentItems        PartnerContentItem[]
+  partnerContentChunks       PartnerContentChunk[]
 
   @@index(country)
   @@index(networkStatus)

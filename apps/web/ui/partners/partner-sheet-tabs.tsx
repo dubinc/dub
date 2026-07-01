@@ -8,10 +8,13 @@ export function PartnerSheetTabs({
   partnerId,
   currentTabId,
   setCurrentTabId,
+  aboutLabel = "About",
 }: {
   partnerId: string;
   currentTabId: string;
   setCurrentTabId: Dispatch<SetStateAction<string>>;
+  // Override the first tab's label (e.g. "Content matches" in network browse).
+  aboutLabel?: string;
 }) {
   const { count: commentsCount } = usePartnerCommentsCount(
     {
@@ -26,7 +29,7 @@ export function PartnerSheetTabs({
     () => [
       {
         id: "about",
-        label: "About",
+        label: aboutLabel,
         icon: User,
       },
       {
@@ -40,7 +43,7 @@ export function PartnerSheetTabs({
         icon: Msg,
       },
     ],
-    [commentsCount],
+    [commentsCount, aboutLabel],
   );
 
   const layoutGroupId = useId();

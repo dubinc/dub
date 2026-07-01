@@ -1,7 +1,8 @@
+import { REACH_TIER_KEYS, REACH_TIERS } from "@/lib/api/network/reach-tiers";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { useRouterStuff } from "@dub/ui";
-import { FlagWavy } from "@dub/ui/icons";
+import { FlagWavy, User } from "@dub/ui/icons";
 import { COUNTRIES, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 
@@ -11,6 +12,17 @@ export function usePartnerNetworkFilters({
   status: "discover" | "invited" | "recruited" | "ignored";
 }) {
   const { searchParamsObj, queryParams } = useRouterStuff();
+
+  // Apply filter changes via the History API (instant) rather than router.push,
+  // which would trigger a full RSC navigation per click. See page-client for the
+  // rationale — all data here is client-side SWR keyed off useSearchParams.
+  const updateSearchParams = useCallback(
+    (opts: { set?: Record<string, string | string[]>; del?: string | string[] }) => {
+      const newPath = queryParams({ ...opts, getNewPath: true }) as string;
+      window.history.pushState(null, "", newPath);
+    },
+    [queryParams],
+  );
 
   const { data: countriesCount } = useNetworkPartnersCount<
     | {
@@ -45,19 +57,38 @@ export function usePartnerNetworkFilters({
               right: nFormatter(_count, { full: true }),
             })) ?? [],
       },
+      {
+        key: "reach",
+        icon: User,
+        label: "Creator size",
+        multiple: true,
+        // Range leads (objective); the muted descriptor sits on the right.
+        options: REACH_TIER_KEYS.map((tier) => ({
+          value: tier,
+          label: REACH_TIERS[tier].range,
+          right: REACH_TIERS[tier].descriptor,
+        })),
+      },
     ],
     [countriesCount],
   );
 
-  const multiFilters = useMemo(() => ({}), []) as Record<string, string[]>;
+  const multiFilters = useMemo(
+    () => ({
+      reach: searchParamsObj.reach?.split(",").filter(Boolean) ?? [],
+    }),
+    [searchParamsObj.reach],
+  ) as Record<string, string[]>;
 
   const activeFilters = useMemo(() => {
     const { country } = searchParamsObj;
 
     return [
+      // Multi-select filters use the plural `values` shape so the Filter component
+      // reflects each option's checked state and renders per-value labels/icons.
       ...Object.entries(multiFilters)
-        .map(([key, value]) => ({ key, value }))
-        .filter(({ value }) => value.length > 0),
+        .map(([key, values]) => ({ key, values }))
+        .filter(({ values }) => values.length > 0),
 
       ...(country ? [{ key: "country", value: country }] : []),
     ];
@@ -65,7 +96,7 @@ export function usePartnerNetworkFilters({
 
   const onSelect = useCallback(
     (key: string, value: any) =>
-      queryParams({
+      updateSearchParams({
         set: Object.keys(multiFilters).includes(key)
           ? {
               [key]: multiFilters[key].concat(value).join(","),
@@ -75,7 +106,7 @@ export function usePartnerNetworkFilters({
             },
         del: "page",
       }),
-    [queryParams, multiFilters],
+    [updateSearchParams, multiFilters],
   );
 
   const onRemove = useCallback(
@@ -84,32 +115,33 @@ export function usePartnerNetworkFilters({
         Object.keys(multiFilters).includes(key) &&
         !(multiFilters[key].length === 1 && multiFilters[key][0] === value)
       ) {
-        queryParams({
+        updateSearchParams({
           set: {
             [key]: multiFilters[key].filter((id) => id !== value).join(","),
           },
           del: "page",
         });
       } else {
-        queryParams({
+        updateSearchParams({
           del: [key, "page"],
         });
       }
     },
-    [queryParams, multiFilters],
+    [updateSearchParams, multiFilters],
   );
 
   const onRemoveAll = useCallback(
     () =>
-      queryParams({
-        del: ["country", "starred", "platform", "sortBy"],
+      updateSearchParams({
+        del: ["country", "starred", "platform", "reach"],
       }),
-    [queryParams],
+    [updateSearchParams],
   );
 
   const isFiltered =
     activeFilters.length > 0 ||
     !!searchParamsObj.platform ||
+    !!searchParamsObj.reach ||
     !!searchParamsObj.search;
 
   return {
