@@ -2,27 +2,21 @@ import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { isFraudRuleEnabled } from "@/lib/api/fraud/get-merged-fraud-rules";
 import { prisma } from "@/lib/prisma";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { FraudRuleType, PartnerBannedReason } from "@prisma/client";
+import { NETWORK_PROGRAM_ID } from "@dub/utils";
+import { FraudRuleType } from "@prisma/client";
 
-// Creates partnerCrossProgramBan fraud events in other programs where the partner is enrolled.
-// Used when a program bans a partner so that other programs can be alerted about cross-program
-// fraud risk. Only programs with the partnerCrossProgramBan rule enabled receive events.
-export async function reportCrossProgramBanToNetwork({
+export async function reportAdminFraudToPrograms({
   partnerId,
-  programId,
-  bannedReason,
-  bannedAt,
 }: {
   partnerId: string;
-  programId: string; // The program that issued the ban
-  bannedReason: PartnerBannedReason | null;
-  bannedAt: Date | null;
 }) {
+  const bannedAt = new Date();
+
   let affectedProgramEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId,
       programId: {
-        not: programId,
+        not: NETWORK_PROGRAM_ID,
       },
       status: {
         notIn: INACTIVE_ENROLLMENT_STATUSES,
@@ -44,7 +38,6 @@ export async function reportCrossProgramBanToNetwork({
     return 0;
   }
 
-  // Filter out programs where the partnerCrossProgramBan rule is disabled
   affectedProgramEnrollments = affectedProgramEnrollments.filter((enrollment) =>
     isFraudRuleEnabled({
       fraudRules: enrollment.program.fraudRules,
@@ -57,13 +50,13 @@ export async function reportCrossProgramBanToNetwork({
   }
 
   await createFraudEvents(
-    affectedProgramEnrollments.map((affectedEnrollment) => ({
-      programId: affectedEnrollment.programId,
-      partnerId: affectedEnrollment.partnerId,
+    affectedProgramEnrollments.map((enrollment) => ({
+      programId: enrollment.programId,
+      partnerId: enrollment.partnerId,
       type: FraudRuleType.partnerCrossProgramBan,
-      sourceProgramId: programId,
+      sourceProgramId: NETWORK_PROGRAM_ID,
       metadata: {
-        bannedReason,
+        bannedReason: "fraud",
         bannedAt,
       },
     })),
