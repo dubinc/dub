@@ -24,8 +24,7 @@ export async function scheduleDelayedPayouts({
   invoice: Pick<Invoice, "id">;
   executeAt: Date;
 }) {
-  // Add 5 minutes to the executeAt time to give some buffer for the card charge to settle fully
-  const scheduleTimeMs = executeAt.getTime() + 5 * 60 * 1000;
+  const scheduleTimeMs = executeAt.getTime();
 
   const delaySeconds = Math.max(
     0,
@@ -34,7 +33,7 @@ export async function scheduleDelayedPayouts({
 
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
-    delay: delaySeconds,
+    delay: delaySeconds + 5 * 60, // 5 minutes delay to give some buffer for the card charge to settle fully
     deduplicationId: `retry-delayed-payouts-${invoice.id}`, // The deduplication window is 10 minutes
     flowControl: {
       key: invoice.id,
