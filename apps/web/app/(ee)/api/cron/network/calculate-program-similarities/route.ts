@@ -66,6 +66,7 @@ async function calculateProgramSimilarity({
       id: {
         gt: currentProgram.id,
       },
+      deactivatedAt: null,
       OR: [
         {
           addedToMarketplaceAt: {

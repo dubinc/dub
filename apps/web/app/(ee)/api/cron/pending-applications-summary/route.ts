@@ -33,6 +33,7 @@ export const GET = withCron(async ({ rawBody }) => {
   // Get batch of programs with pending applications
   const programs = await prisma.program.findMany({
     where: {
+      deactivatedAt: null,
       partners: {
         some: {
           status: "pending",
