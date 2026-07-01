@@ -231,6 +231,9 @@ export const PATCH = withWorkspace(
       startsAtUpdate = { startsAt: null };
     } else if (startsAt !== undefined) {
       startsAtUpdate = { startsAt: startsAt ?? new Date() };
+    } else if (bounty.startsAt === null) {
+      // Switching relative -> absolute without a startsAt: default to now
+      startsAtUpdate = { startsAt: new Date() };
     }
 
     const data = await prisma.$transaction(async (tx) => {
