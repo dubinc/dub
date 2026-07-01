@@ -121,7 +121,7 @@ export const leadEventSchemaTBEndpoint = z.object({
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),
-  ua: z.string().nullable(),
+  ua: z.string().nullish(),
   trigger: z.string().nullish(), // backwards compatibility
   referer: z.string().nullable(),
   referer_url: z.string().nullable(),
