@@ -332,12 +332,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Analytics",
             icon: LinesY,
-            href: `/${slug}/links/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
+            href: `/${slug}/links/analytics${pathname === `/${slug}/links/analytics` ? "" : queryString}`,
           },
           {
             name: "Events",
             icon: CursorRays,
-            href: `/${slug}/links/events${pathname === `/${slug}/events` ? "" : queryString}`,
+            href: `/${slug}/links/events${pathname === `/${slug}/links/events` ? "" : queryString}`,
           },
           {
             name: "Customers",

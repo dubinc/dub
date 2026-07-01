@@ -15,7 +15,7 @@ export default function ProgramEventsPageTitleLink() {
         Analytics
       </Link>
       <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
-      <h1>Events</h1>
+      Events
     </div>
   );
 }

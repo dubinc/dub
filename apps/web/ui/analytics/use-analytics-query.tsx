@@ -89,7 +89,8 @@ export function useAnalyticsQuery({
       ...(customerId && { customerId }),
       ...(root && { root: root.toString() }),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      ...(product === "program" && { programId: defaultProgramId }),
+      ...(product === "program" &&
+        defaultProgramId && { programId: defaultProgramId }),
     }).toString();
   }, [
     searchParams,
