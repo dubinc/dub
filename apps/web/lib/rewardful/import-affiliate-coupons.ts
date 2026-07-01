@@ -32,16 +32,20 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
   let processedBatches = 0;
 
   while (hasMore && processedBatches < REWARDFUL_MAX_BATCHES) {
-    const affiliateCoupons = await rewardfulApi.listAffiliateCoupons({
+    const allAffiliateCoupons = await rewardfulApi.listAffiliateCoupons({
       page: currentPage,
     });
 
-    if (affiliateCoupons.length === 0) {
+    const activeAffiliateCoupons = allAffiliateCoupons.filter(
+      (affiliateCoupon) => !affiliateCoupon.archived,
+    );
+
+    if (activeAffiliateCoupons.length === 0) {
       hasMore = false;
       break;
     }
 
-    const affiliateIds = affiliateCoupons.map(
+    const affiliateIds = activeAffiliateCoupons.map(
       (affiliateCoupon) => affiliateCoupon.affiliate_id,
     );
 
@@ -59,7 +63,7 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
     );
 
     // Find the coupons that have a partner account created on Dub
-    const filteredCoupons = affiliateCoupons.filter(
+    const filteredCoupons = activeAffiliateCoupons.filter(
       (affiliateCoupon) => filteredPartners[affiliateCoupon.affiliate_id],
     );
 
