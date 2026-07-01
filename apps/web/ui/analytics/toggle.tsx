@@ -73,7 +73,6 @@ export function AnalyticsToggle({
     onRemoveAll,
     onOpenFilter,
     onToggleOperator,
-    streaming,
     activeFiltersWithStreaming,
   } = useAnalyticsFilters({ partnerPage, dashboardProps });
 
@@ -245,7 +244,7 @@ export function AnalyticsToggle({
                       <>
                         <ShareButton />
                         <Link
-                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/${product ? `${product}/` : ""}events${getQueryString()}`}`}
+                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/${product ? `${product}/` : ""}`}events${getQueryString()}`}
                         >
                           <Button
                             variant="secondary"
@@ -261,7 +260,7 @@ export function AnalyticsToggle({
                     {page === "events" && (
                       <>
                         <Link
-                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/${product ? `${product}/` : ""}analytics${getQueryString()}`}`}
+                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/${product ? `${product}/` : ""}`}analytics${getQueryString()}`}
                         >
                           <Button
                             variant="secondary"

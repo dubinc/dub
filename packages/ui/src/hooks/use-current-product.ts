@@ -8,7 +8,7 @@ export function useCurrentProduct() {
     const productParam = pathname.split("/")[2];
     if (productParam === "links") return "links";
     if (productParam === "program") return "program";
-    return null;
+    return "program"; // default to program
   }, [pathname]);
 
   return { product };
