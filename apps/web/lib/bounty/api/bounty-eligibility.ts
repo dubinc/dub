@@ -10,7 +10,7 @@ import {
 import {
   getEffectiveBountyPeriod,
   isBountyExpired,
-  isBountyNotStarted,
+  isBountyStarted,
 } from "../bounty-period";
 
 type PartnerBountyEligibilityParams = {
@@ -178,7 +178,7 @@ export function canPartnerSubmitBounty({
     bounty,
   });
 
-  if (isBountyNotStarted(startsAt)) {
+  if (!isBountyStarted(startsAt)) {
     console.log(`Bounty ${bounty.id} has not started yet.`);
     return false;
   }
@@ -245,7 +245,7 @@ export function throwIfPartnerCannotSubmitBounty({
     bounty,
   });
 
-  if (isBountyNotStarted(startsAt)) {
+  if (!isBountyStarted(startsAt)) {
     throw new DubApiError({
       code: "bad_request",
       message: "This bounty has not started yet.",
