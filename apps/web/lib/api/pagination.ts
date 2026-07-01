@@ -78,7 +78,9 @@ export function buildPaginationQuery(filters: Filters): PaginationQuery {
   }
 
   return {
-    orderBy: [{ [sortBy]: sortOrder }, { id: sortOrder }],
+    orderBy: {
+      [sortBy]: sortOrder,
+    },
     take: pageSize,
     skip: (page - 1) * pageSize,
   };
