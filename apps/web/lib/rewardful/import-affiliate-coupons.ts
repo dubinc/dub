@@ -36,13 +36,19 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
       page: currentPage,
     });
 
+    if (allAffiliateCoupons.length === 0) {
+      hasMore = false;
+      break;
+    }
+
     const activeAffiliateCoupons = allAffiliateCoupons.filter(
       (affiliateCoupon) => !affiliateCoupon.archived,
     );
 
     if (activeAffiliateCoupons.length === 0) {
-      hasMore = false;
-      break;
+      currentPage++;
+      processedBatches++;
+      continue;
     }
 
     const affiliateIds = activeAffiliateCoupons.map(
