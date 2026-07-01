@@ -91,11 +91,14 @@ export const PATCH = withWorkspace(
       },
     });
 
+    const nextStartMode =
+      startMode !== undefined ? startMode : bounty.startMode;
+
     validateBounty({
       type: bounty.type,
       startsAt: startsAt !== undefined ? startsAt : bounty.startsAt,
       endsAt: endsAt !== undefined ? endsAt : bounty.endsAt,
-      startMode: startMode !== undefined ? startMode : bounty.startMode,
+      startMode: nextStartMode,
       endsAfterDays:
         endsAfterDays !== undefined ? endsAfterDays : bounty.endsAfterDays,
       submissionsOpenAt,
@@ -220,6 +223,16 @@ export const PATCH = withWorkspace(
       });
     }
 
+    // Relative bounties start when a partner joins, so startsAt is cleared.
+    // For absolute bounties, only update startsAt when explicitly provided.
+    let startsAtUpdate: { startsAt?: Date | null } = {};
+
+    if (nextStartMode === "relative") {
+      startsAtUpdate = { startsAt: null };
+    } else if (startsAt !== undefined) {
+      startsAtUpdate = { startsAt: startsAt ?? new Date() };
+    }
+
     const data = await prisma.$transaction(async (tx) => {
       const updatedBounty = await tx.bounty.update({
         where: {
@@ -228,7 +241,7 @@ export const PATCH = withWorkspace(
         data: {
           name: bountyName ?? undefined,
           description,
-          ...(startsAt != null && { startsAt }),
+          ...startsAtUpdate,
           ...(endsAt !== undefined && { endsAt }),
           ...(startMode !== undefined && { startMode }),
           ...(endsAfterDays !== undefined && { endsAfterDays }),

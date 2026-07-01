@@ -80,6 +80,37 @@ export function buildBountyEligibilityWhere({
   };
 }
 
+// Relative bounties start when a partner joins (no startsAt filter).
+// Absolute bounties must have started and not expired.
+export function buildActiveBountyPeriodWhere(): Prisma.BountyWhereInput {
+  const now = new Date();
+
+  return {
+    archivedAt: null,
+    OR: [
+      {
+        startMode: "relative",
+      },
+      {
+        startMode: "absolute",
+        startsAt: {
+          lt: now,
+        },
+        OR: [
+          {
+            endsAt: null,
+          },
+          {
+            endsAt: {
+              gt: now,
+            },
+          },
+        ],
+      },
+    ],
+  };
+}
+
 export function isPartnerEligibleForBounty({
   bountyGroupIds,
   bountyTagIds,

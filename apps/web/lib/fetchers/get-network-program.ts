@@ -1,4 +1,4 @@
-import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
+import { getGroupBounties } from "@/lib/bounty/api/get-group-bounties";
 import { prisma } from "@/lib/prisma";
 import { cache } from "react";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -37,7 +37,7 @@ export const getNetworkProgram = cache(async ({ slug }: { slug: string }) => {
   const defaultGroup = program.groups[0];
 
   const bounties = defaultGroup
-    ? await getGroupBountySummaries({
+    ? await getGroupBounties({
         programId: program.id,
         groupId: defaultGroup.id,
       })

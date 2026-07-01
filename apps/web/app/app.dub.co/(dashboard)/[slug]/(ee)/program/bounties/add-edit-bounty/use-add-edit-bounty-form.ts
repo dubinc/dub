@@ -521,6 +521,11 @@ export function useAddEditBountyForm({
       ...data
     } = form.getValues();
 
+    // Relative bounties start when a partner joins, so startsAt must be null
+    if (data.startMode === "relative") {
+      data.startsAt = null;
+    }
+
     const rawRewardAmount = data.rewardAmount;
     const numAmount =
       typeof rawRewardAmount === "number" && !Number.isNaN(rawRewardAmount)
@@ -608,7 +613,7 @@ export function useAddEditBountyForm({
                       : performanceCondition,
                   })
                 : name || "New bounty",
-            startsAt: startsAt || new Date(),
+            startsAt: startMode === "relative" ? null : startsAt || new Date(),
             endsAt: effectiveEndsAt,
             rewardAmount: rewardAmount ? rewardAmount * 100 : null,
             rewardDescription: rewardDescription || null,

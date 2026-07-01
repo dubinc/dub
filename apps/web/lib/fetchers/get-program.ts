@@ -1,4 +1,4 @@
-import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
+import { getGroupBounties } from "@/lib/bounty/api/get-group-bounties";
 import { prisma } from "@/lib/prisma";
 import { Program, Reward } from "@prisma/client";
 import { cache } from "react";
@@ -57,7 +57,7 @@ export const getProgram = cache(
 
     const group = groups[0];
 
-    const bounties = await getGroupBountySummaries({
+    const bounties = await getGroupBounties({
       programId: program.id,
       groupId: group.id,
     });

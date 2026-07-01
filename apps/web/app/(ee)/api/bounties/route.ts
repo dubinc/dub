@@ -202,10 +202,11 @@ export const POST = withWorkspace(
       sendNotificationEmails,
     } = parsedBody;
 
-    // Use current date as default if startsAt is not provided
-    startsAt = startsAt || new Date();
-
     validateBounty(parsedBody);
+
+    // startsAt is only stored for absolute bounties (defaulting to now when
+    // omitted); relative bounties start when a partner joins, so it stays null.
+    startsAt = startMode === "absolute" ? startsAt || new Date() : null;
 
     const { canUseBountySocialMetrics, canSendEmailCampaigns } =
       getPlanCapabilities(workspace.plan);
@@ -368,7 +369,8 @@ export const POST = withWorkspace(
             body: {
               bountyId: bounty.id,
             },
-            notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
+            // startsAt is guaranteed to be set for absolute bounties
+            notBefore: Math.floor(bounty.startsAt!.getTime() / 1000),
           }),
 
         shouldScheduleDraftSubmissions &&
@@ -377,7 +379,8 @@ export const POST = withWorkspace(
             body: {
               bountyId: bounty.id,
             },
-            notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
+            // startsAt is guaranteed to be set for absolute bounties
+            notBefore: Math.floor(bounty.startsAt!.getTime() / 1000),
           }),
       ]),
     );

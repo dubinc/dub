@@ -93,7 +93,9 @@ export function BountyInfo() {
         <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
           <Calendar6 className="size-4 shrink-0" />
           <span>
-            {formatDate(bounty.startsAt, { month: "short" })}
+            {bounty.startsAt
+              ? formatDate(bounty.startsAt, { month: "short" })
+              : "When a partner joins"}
             {" → "}
             {bounty.endsAt
               ? formatDate(bounty.endsAt, { month: "short" })

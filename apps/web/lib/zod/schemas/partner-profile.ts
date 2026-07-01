@@ -166,6 +166,7 @@ export const PartnerBountySchema = BountySchema.omit({
   partnerTags: true,
   socialMetricsLastSyncedAt: true,
 }).extend({
+  startsAt: z.date(), // Always resolved to the partner's effective start date (never null)
   submissions: z.array(partnerBountySubmissionSchema),
   performanceCondition: bountyPerformanceConditionSchema
     .nullable()

@@ -9,7 +9,10 @@ import {
 } from "@prisma/client";
 import * as z from "zod/v4";
 import { getEffectiveBountyPeriod } from "../bounty-period";
-import { buildBountyEligibilityWhere } from "./bounty-eligibility";
+import {
+  buildActiveBountyPeriodWhere,
+  buildBountyEligibilityWhere,
+} from "./bounty-eligibility";
 
 type GetBountiesForPartnerParams = Pick<
   ProgramEnrollment,
@@ -33,7 +36,6 @@ export async function getBountiesForPartner({
   links,
   programPartnerTags,
 }: GetBountiesForPartnerParams) {
-  const now = new Date();
   const partnerTagIds = programPartnerTags.map(
     ({ partnerTagId }) => partnerTagId,
   );
@@ -41,9 +43,7 @@ export async function getBountiesForPartner({
   const bounties = await prisma.bounty.findMany({
     where: {
       programId: program.id,
-      startsAt: {
-        lte: now,
-      },
+      ...buildActiveBountyPeriodWhere(),
       ...buildBountyEligibilityWhere({
         groupId: groupId || program.defaultGroupId,
         partnerTagIds,

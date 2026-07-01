@@ -153,7 +153,7 @@ export const BountySchema = z.object({
   name: z.string().nullable(),
   description: z.string().nullable(),
   type: z.enum(BountyType),
-  startsAt: z.date(),
+  startsAt: z.date().nullable(),
   endsAt: z.date().nullable(),
   startMode: z.enum(BountyStartMode),
   endsAfterDays: z.number().nullable(),

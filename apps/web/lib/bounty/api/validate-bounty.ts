@@ -14,8 +14,22 @@ export function validateBounty({
   rewardDescription,
   performanceScope,
 }: Partial<CreateBountyInput>) {
-  startsAt = startsAt || new Date();
   startMode = startMode ?? "absolute";
+
+  // startsAt is required when startMode is absolute and must be null when
+  // startMode is relative (relative bounties start when a partner joins).
+  if (startMode === "relative") {
+    if (startsAt != null) {
+      throw new DubApiError({
+        message:
+          "startsAt is not supported when the bounty starts when a partner joins. It must be null for relative bounties.",
+        code: "bad_request",
+      });
+    }
+  } else {
+    // Default to now when an absolute bounty doesn't specify a start date
+    startsAt = startsAt || new Date();
+  }
 
   if (endsAt && endsAfterDays) {
     throw new DubApiError({
@@ -33,7 +47,7 @@ export function validateBounty({
     });
   }
 
-  if (endsAt && endsAt < startsAt) {
+  if (endsAt && startsAt && endsAt < startsAt) {
     throw new DubApiError({
       message:
         "Bounty end date (endsAt) must be on or after start date (startsAt).",
@@ -50,7 +64,7 @@ export function validateBounty({
       });
     }
 
-    if (submissionsOpenAt < startsAt) {
+    if (startsAt && submissionsOpenAt < startsAt) {
       throw new DubApiError({
         message:
           "Bounty submissions open date (submissionsOpenAt) must be on or after start date (startsAt).",
