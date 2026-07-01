@@ -3,9 +3,9 @@ import { EventsProvider } from "@/ui/analytics/events/events-provider";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { PageContent } from "@/ui/layout/page-content";
 import { Suspense } from "react";
-import AnalyticsClient from "../../analytics/client";
+import AnalyticsClient from "../../../links/analytics/client";
 
-export default function WorkspaceAnalyticsEvents() {
+export default function WorkspaceLinksEventsPage() {
   return (
     <Suspense fallback={<LayoutLoader />}>
       <PageContent title="Events">
