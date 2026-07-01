@@ -68,6 +68,7 @@ export const clickEventSchema = z.object({
   device: z.string(),
   browser: z.string(),
   os: z.string(),
+  ua: z.string(),
   trigger: z.string().nullish(), // backwards compatibility
   referer: z.string(),
   refererUrl: z.string(),
