@@ -87,7 +87,7 @@ export const POST = withSession(async ({ req, session }) => {
       await plain.getCustomerByExternalId({ externalId: user.id });
 
     customer = existingCustomer ?? null;
-    customerError = lookupError ?? upsert.error;
+    customerError = lookupError ?? null;
   }
 
   if (customerError || !customer) {
