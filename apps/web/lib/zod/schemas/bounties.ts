@@ -102,7 +102,7 @@ export const createBountySchema = z.object({
     )
     .nullish(),
   type: z.enum(BountyType),
-  startMode: z.enum(BountyStartMode).optional(),
+  startMode: z.enum(BountyStartMode),
   startsAt: parseDateSchema.nullish(),
   endsAt: parseDateSchema.nullish(),
   endsAfterDays: z.number().int().positive().nullish(),

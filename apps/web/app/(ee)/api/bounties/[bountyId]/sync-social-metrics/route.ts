@@ -7,7 +7,7 @@ import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-upd
 import {
   getEffectiveBountyPeriod,
   isBountyExpired,
-} from "@/lib/bounty/bounty-timing";
+} from "@/lib/bounty/bounty-period";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";

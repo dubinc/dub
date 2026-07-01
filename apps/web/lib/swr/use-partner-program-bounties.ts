@@ -1,4 +1,4 @@
-import { isBountyExpired } from "@/lib/bounty/bounty-timing";
+import { isBountyExpired } from "@/lib/bounty/bounty-period";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";

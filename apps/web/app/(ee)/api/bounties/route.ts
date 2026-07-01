@@ -13,7 +13,7 @@ import {
 } from "@/lib/bounty/api/bounty-eligibility";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
-import { getEffectiveBountyPeriod } from "@/lib/bounty/bounty-timing";
+import { getEffectiveBountyPeriod } from "@/lib/bounty/bounty-period";
 import { qstash } from "@/lib/cron";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";

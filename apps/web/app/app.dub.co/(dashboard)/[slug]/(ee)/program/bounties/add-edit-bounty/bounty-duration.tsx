@@ -7,7 +7,7 @@ import {
   EndPreset,
   resolveBountyTiming,
   StartPreset,
-} from "@/lib/bounty/bounty-timing";
+} from "@/lib/bounty/bounty-period";
 import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,

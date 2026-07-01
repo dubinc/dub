@@ -94,8 +94,10 @@ export function getEffectiveBountyPeriod({
   const { createdAt, groupJoinedAt } = programEnrollment;
   const { startsAt, endsAt, endsAfterDays, startMode } = bounty;
 
+  // If startMode is absolute, use the startsAt (Assumed to be set).
+  // If startMode is relative, use the groupJoinedAt or createdAt.
   const bountyStartDate =
-    startMode === "absolute" ? startsAt : groupJoinedAt || createdAt;
+    startMode === "absolute" ? startsAt! : groupJoinedAt || createdAt;
 
   return {
     startsAt: bountyStartDate,

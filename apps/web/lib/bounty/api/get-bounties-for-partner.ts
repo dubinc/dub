@@ -8,7 +8,7 @@ import {
   ProgramPartnerTag,
 } from "@prisma/client";
 import * as z from "zod/v4";
-import { getEffectiveBountyPeriod } from "../bounty-timing";
+import { getEffectiveBountyPeriod } from "../bounty-period";
 import { buildBountyEligibilityWhere } from "./bounty-eligibility";
 
 type GetBountiesForPartnerParams = Pick<

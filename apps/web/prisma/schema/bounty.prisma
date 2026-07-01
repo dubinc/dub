@@ -41,7 +41,7 @@ model Bounty {
   name                      String
   description               String?                    @db.Text
   type                      BountyType
-  startsAt                  DateTime
+  startsAt                  DateTime? // Set only when startMode is absolute
   endsAt                    DateTime?
   startMode                 BountyStartMode            @default(absolute)
   endsAfterDays             Int? // Set only when startMode is relative

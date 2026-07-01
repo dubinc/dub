@@ -1,7 +1,7 @@
 "use client";
 
+import { isBountyExpired } from "@/lib/bounty/bounty-period";
 import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
-import { isBountyExpired } from "@/lib/bounty/bounty-timing";
 import {
   type SubmissionPeriod,
   getSubmissionPeriods,

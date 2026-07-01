@@ -5,7 +5,7 @@ import {
   throwIfPartnerCannotViewBounty,
 } from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
-import { getEffectiveBountyPeriod } from "@/lib/bounty/bounty-timing";
+import { getEffectiveBountyPeriod } from "@/lib/bounty/bounty-period";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";

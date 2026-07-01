@@ -7,7 +7,7 @@ import {
   ProgramEnrollment,
   ProgramPartnerTag,
 } from "@prisma/client";
-import { getEffectiveBountyPeriod, isBountyExpired } from "../bounty-timing";
+import { getEffectiveBountyPeriod, isBountyExpired } from "../bounty-period";
 
 type PartnerBountyEligibilityParams = {
   programEnrollment: Pick<

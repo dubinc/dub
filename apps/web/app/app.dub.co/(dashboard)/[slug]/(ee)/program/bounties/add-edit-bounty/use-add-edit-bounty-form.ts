@@ -2,7 +2,7 @@
 
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
-import { resolveBountyTiming } from "@/lib/bounty/bounty-timing";
+import { resolveBountyTiming } from "@/lib/bounty/bounty-period";
 import {
   BOUNTY_DESCRIPTION_MAX_LENGTH,
   BOUNTY_MAX_SUBMISSIONS,

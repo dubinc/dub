@@ -1,6 +1,6 @@
 "use client";
 
-import { isBountyExpired } from "@/lib/bounty/bounty-timing";
+import { isBountyExpired } from "@/lib/bounty/bounty-period";
 import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";

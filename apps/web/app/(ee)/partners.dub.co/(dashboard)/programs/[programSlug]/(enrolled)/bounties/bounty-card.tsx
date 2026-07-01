@@ -1,4 +1,4 @@
-import { isBountyExpired } from "@/lib/bounty/bounty-timing";
+import { isBountyExpired } from "@/lib/bounty/bounty-period";
 import { PartnerBountyProps } from "@/lib/types";
 import {
   PerformanceBountyProgress,
