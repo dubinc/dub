@@ -138,9 +138,11 @@ async function createCustomer({
     return;
   }
 
-  const shortLinkToken = referral.link?.token || referral.coupon?.token;
+  const shortLinkKey =
+    referral.link?.token ||
+    (referral.coupon?.token ? `${referral.coupon?.token}-coupon` : undefined);
 
-  if (!shortLinkToken) {
+  if (!shortLinkKey) {
     console.error(`Short link token not found for referral ${referralId}.`);
     return;
   }
@@ -150,7 +152,7 @@ async function createCustomer({
   const link = await prisma.link.findFirst({
     where: {
       domain: program.domain!,
-      key: shortLinkToken,
+      key: shortLinkKey,
     },
   });
 
@@ -158,7 +160,7 @@ async function createCustomer({
     await logImportError({
       ...commonImportLogInputs,
       code: "LINK_NOT_FOUND",
-      message: `Link not found for referral ${referralId} (token: ${shortLinkToken}).`,
+      message: `Link not found for referral ${referralId} (token: ${shortLinkKey}).`,
     });
 
     return;
