@@ -14,6 +14,10 @@ import * as z from "zod/v4";
 import { authActionClient } from "../actions/safe-action";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 import { MessageSchema, messagePartnerSchema } from "./schemas";
+import {
+  mapMessageAttachmentsForCreate,
+  messageAttachmentsOrderBy,
+} from "./utils";
 
 const schema = messagePartnerSchema
   .extend({
@@ -136,20 +140,16 @@ export const messagePartnerAction = authActionClient
         text,
         ...(attachments.length > 0 && {
           attachments: {
-            create: attachments.map((att) => ({
-              id: createId({ prefix: "msa_" }),
-              storageKey: att.storageKey,
-              name: att.name,
-              size: att.size,
-              type: att.type,
-            })),
+            create: mapMessageAttachmentsForCreate(attachments),
           },
         }),
       },
       include: {
         senderUser: true,
         senderPartner: true,
-        attachments: true,
+        attachments: {
+          orderBy: messageAttachmentsOrderBy,
+        },
       },
     });
 
