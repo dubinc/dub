@@ -1,4 +1,3 @@
-import { RESERVED_SLUGS } from "@dub/utils";
 import { getWorkspaceProduct } from "./get-workspace-product";
 
 const APP_REDIRECTS = {
@@ -30,11 +29,14 @@ export const appRedirect = async (path: string) => {
     return APP_REDIRECTS[path];
   }
 
-  // Redirect "/[slug]" to "/[slug]/[product]"
-  const rootRegex = /^\/([^\/]+)$/;
-  if (rootRegex.test(path) && !RESERVED_SLUGS.includes(path.split("/")[1])) {
-    const product = await getWorkspaceProduct(path.split("/")[1]);
-    return path.replace(rootRegex, `/$1/${product}`);
+  // Redirect "/[slug]" and "/[slug]/analytics|events|customers" to "/[slug]/[product]/..."
+  const workspaceProductPathRegex =
+    /^\/([^\/]+)(?:\/(analytics|events|customers))?$/;
+  const workspaceProductPathMatch = path.match(workspaceProductPathRegex);
+  if (workspaceProductPathMatch) {
+    const [, slug, subPath] = workspaceProductPathMatch;
+    const product = await getWorkspaceProduct(slug);
+    return subPath ? `/${slug}/${product}/${subPath}` : `/${slug}/${product}`;
   }
 
   // Redirect "/[slug]/upgrade" to "/[slug]/settings/billing/upgrade"
