@@ -70,6 +70,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     z.array(CommissionEnrichedSchema).parse(
       commissions.map((c) => ({
         ...c,
+        paidAt: c.payout?.paidAt ?? null,
         customer: transformCustomerForCommission(c.customer),
         partner: {
           ...c.partner,
