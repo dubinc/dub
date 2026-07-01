@@ -6,14 +6,13 @@ import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
-import { transformWebhook } from "@/lib/webhook/transform";
 import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
 import {
   identifyWebhookReceiver,
   isLinkLevelWebhook,
 } from "@/lib/webhook/utils";
 import { validateWebhook } from "@/lib/webhook/validate-webhook";
-import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { createWebhookSchema, WebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { sendEmail } from "@dub/email";
 import WebhookAdded from "@dub/email/templates/webhook-added";
 import { ZAPIER_INTEGRATION_ID } from "@dub/utils/src/constants";
@@ -28,7 +27,9 @@ export const GET = withWorkspace(
       workspaceId: workspace.id,
     });
 
-    return NextResponse.json(webhooks.map(transformWebhook));
+    return NextResponse.json(
+      webhooks.map((webhook) => WebhookSchema.parse(webhook)),
+    );
   },
   {
     requiredPermissions: ["webhooks.read"],
@@ -131,7 +132,7 @@ export const POST = withWorkspace(
       })(),
     );
 
-    return NextResponse.json(transformWebhook(webhook), { status: 201 });
+    return NextResponse.json(WebhookSchema.parse(webhook), { status: 201 });
   },
   {
     requiredPermissions: ["webhooks.write"],

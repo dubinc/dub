@@ -9,7 +9,6 @@ export const WebhookSchema = z.object({
   secret: z.string(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
   disabledAt: z.date().nullable(),
-  linkIds: z.array(z.string()).optional(),
   installationId: z.string().nullable(),
 });
 

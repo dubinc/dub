@@ -1,3 +1,8 @@
+import { finalizePremiumDomainRegistration } from "@/lib/api/domains/finalize-premium-domain-registration";
+import {
+  isDomainRegistrationInvoice,
+  parseRegisteredDomainSlugs,
+} from "@/lib/api/domains/is-domain-registration-invoice";
 import { qstash } from "@/lib/cron";
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { prisma } from "@/lib/prisma";
@@ -105,10 +110,24 @@ async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
 }
 
 async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
+  const slugs = parseRegisteredDomainSlugs(invoice.registeredDomains);
+
+  if (
+    await isDomainRegistrationInvoice({
+      slugs,
+      workspaceId: invoice.workspaceId,
+    })
+  ) {
+    return await finalizePremiumDomainRegistration({
+      domain: slugs[0],
+      workspaceId: invoice.workspaceId,
+    });
+  }
+
   const domains = await prisma.registeredDomain.findMany({
     where: {
       slug: {
-        in: invoice.registeredDomains as string[],
+        in: slugs,
       },
     },
     orderBy: {

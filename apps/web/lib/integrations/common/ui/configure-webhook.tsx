@@ -33,19 +33,38 @@ export function ConfigureWebhook({
     fetcher,
   );
 
-  const [data, setData] = useState<Pick<WebhookProps, "linkIds" | "triggers">>({
-    linkIds: [],
+  const [data, setData] = useState<Pick<WebhookProps, "triggers">>({
     triggers: [],
   });
+  const [linkIds, setLinkIds] = useState<string[]>([]);
+  const [linkIdsInitialized, setLinkIdsInitialized] = useState(false);
 
   useEffect(() => {
     if (webhook) {
       setData({
-        linkIds: webhook.linkIds,
         triggers: webhook.triggers,
       });
     }
   }, [webhook]);
+
+  const { triggers } = data;
+
+  const hasLinkLevelWebhook = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
+    triggers.includes(trigger),
+  );
+
+  const { data: fetchedLinkIds, isLoading: isLoadingLinks } = useSWR<string[]>(
+    hasLinkLevelWebhook &&
+      `/api/webhooks/${webhookId}/links?workspaceId=${workspaceId}`,
+    fetcher,
+  );
+
+  useEffect(() => {
+    if (fetchedLinkIds && !linkIdsInitialized) {
+      setLinkIds(fetchedLinkIds);
+      setLinkIdsInitialized(true);
+    }
+  }, [fetchedLinkIds, linkIdsInitialized]);
 
   const { error: permissionsError } = clientAccessCheck({
     action: "webhooks.write",
@@ -65,7 +84,7 @@ export function ConfigureWebhook({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, linkIds }),
       },
     );
 
@@ -79,17 +98,15 @@ export function ConfigureWebhook({
     }
 
     mutate(`/api/webhooks/${webhookId}?workspaceId=${workspaceId}`, result);
+    mutate(
+      `/api/webhooks/${webhookId}/links?workspaceId=${workspaceId}`,
+      linkIds,
+    );
     toast.success("Webhook preferences saved!");
   };
 
-  const { linkIds = [], triggers = [] } = data;
-
   const canManageWebhook =
     !permissionsError || plan === "free" || plan === "pro";
-
-  const enableLinkSelection = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
-    triggers.includes(trigger),
-  );
 
   const availableWebhookTriggers = [
     ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
@@ -198,7 +215,7 @@ export function ConfigureWebhook({
               ))}
             </div>
 
-            {enableLinkSelection || linkIds.length ? (
+            {hasLinkLevelWebhook && linkIds.length < 1000 ? (
               <div className="mt-4">
                 <h2 className="text-sm font-medium text-neutral-900">
                   Choose links we should send events for
@@ -206,12 +223,7 @@ export function ConfigureWebhook({
                 <div className="mt-3">
                   <LinksSelector
                     selectedLinkIds={linkIds}
-                    setSelectedLinkIds={(ids) =>
-                      setData({
-                        ...data,
-                        linkIds: ids,
-                      })
-                    }
+                    setSelectedLinkIds={setLinkIds}
                     disabled={!canManageWebhook}
                   />
                 </div>
@@ -229,7 +241,12 @@ export function ConfigureWebhook({
               {...(permissionsError && {
                 disabledTooltip: permissionsError,
               })}
-              disabled={!canManageWebhook || isLoading}
+              disabled={
+                !canManageWebhook ||
+                isLoading ||
+                isLoadingLinks ||
+                !linkIdsInitialized
+              }
               className="h-8"
             />
           </div>

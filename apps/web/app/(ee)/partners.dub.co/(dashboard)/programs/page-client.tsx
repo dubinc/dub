@@ -3,7 +3,7 @@
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramCard, ProgramCardSkeleton } from "@/ui/partners/program-card";
-import { ProgramsPromoBanner } from "@/ui/partners/program-marketplace/programs-promo-banner";
+import { ProgramsPromoBanner } from "@/ui/program-marketplace/programs-promo-banner";
 import { SimpleEmptyState } from "@/ui/shared/simple-empty-state";
 import { HexadecagonStar } from "@dub/ui/icons";
 import { useId } from "react";

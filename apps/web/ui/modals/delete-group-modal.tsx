@@ -7,6 +7,7 @@ import { Users } from "lucide-react";
 import { FormEvent, useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { GroupColorCircle } from "../partners/groups/group-color-circle";
+import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
 interface DeleteGroupModalProps {
   group: Pick<GroupExtendedProps, "id" | "name" | "color" | "totalPartners">;
@@ -81,6 +82,11 @@ const DeleteGroupModal = ({
                       Partners in this group will have their rewards and
                       discount updated to the <strong>Default</strong> group
                       settings.
+                    </li>
+                    <li>
+                      Partners in this group will be{" "}
+                      <PartnerEmailNotificationTooltipHelper /> about the
+                      change.
                     </li>
                   </>
                 ) : null}
