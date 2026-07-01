@@ -29,11 +29,12 @@ export function mapMessageAttachmentsForCreate(
 }
 
 export function sortMessageAttachments<
-  T extends { createdAt: Date; id: string },
+  T extends { createdAt: Date | string; id: string },
 >(attachments: T[]) {
   return [...attachments].sort(
     (a, b) =>
-      a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id),
+      +new Date(a.createdAt) - +new Date(b.createdAt) ||
+      a.id.localeCompare(b.id),
   );
 }
 
