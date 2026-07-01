@@ -1,8 +1,13 @@
+import { BOUNTY_DURATION_DAYS } from "@/lib/bounty/bounty-period";
 import useGroups from "@/lib/swr/use-groups";
 import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyListProps } from "@/lib/types";
+import {
+  BountyProgressBarRow,
+  EmphasisNumber,
+} from "@/ui/partners/bounties/bounty-progress-bar-row";
 import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
@@ -45,47 +50,39 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
   }, [partnerTags, bounty.partnerTags]);
 
   return (
-    <div className="border-border-subtle hover:border-border-default relative cursor-pointer rounded-xl border bg-white p-2 transition-all hover:shadow-lg">
+    <div className="border-border-subtle hover:border-border-default relative flex cursor-pointer flex-col overflow-hidden rounded-xl border bg-white transition-all hover:shadow-lg">
       <Link
         href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
-        className="flex flex-col gap-3.5"
+        className="flex flex-col"
       >
-        <div className="relative flex h-[124px] items-center justify-center rounded-lg bg-neutral-100 py-3">
-          <div className="relative size-full">
-            <BountyThumbnailImage bounty={bounty} />
-          </div>
+        <div className="p-2 pb-0">
+          <div className="relative flex h-[124px] items-center justify-center rounded-lg bg-neutral-100 py-3">
+            <div className="relative size-full">
+              <BountyThumbnailImage bounty={bounty} />
+            </div>
 
-          <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
-            {bounty.submissionsCountData &&
-              bounty.submissionsCountData.submitted > 0 && (
-                <SubmissionsCountBadge
-                  count={bounty.submissionsCountData.submitted}
-                />
+            <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
+              {bounty.submissionsCountData &&
+                bounty.submissionsCountData.submitted > 0 && (
+                  <SubmissionsCountBadge
+                    count={bounty.submissionsCountData.submitted}
+                  />
+                )}
+              {bounty.endsAt && new Date(bounty.endsAt) < new Date() && (
+                <BountyEndedBadge endsAt={bounty.endsAt} />
               )}
-            {bounty.endsAt && new Date(bounty.endsAt) < new Date() && (
-              <BountyEndedBadge endsAt={bounty.endsAt} />
-            )}
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5 px-2 pb-1.5">
+        <div className="flex flex-col gap-1.5 px-4 pb-4 pt-2">
           <h3 className="text-content-emphasis text-sm font-semibold md:truncate">
             {bounty.name}
           </h3>
 
           <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
             <Calendar6 className="size-3.5" />
-            <span>
-              {bounty.startsAt
-                ? formatDate(bounty.startsAt, { month: "short" })
-                : "When a partner joins"}
-              {bounty.endsAt && (
-                <>
-                  {" → "}
-                  {formatDate(bounty.endsAt, { month: "short" })}
-                </>
-              )}
-            </span>
+            <span>{getBountyPeriodLabel(bounty)}</span>
           </div>
 
           <BountyRewardDescription
@@ -96,40 +93,11 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
 
           <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
             <Users className="size-3.5" />
-            <div className="h-5">
-              {loading ? (
-                <span className="inline-block h-5 w-8 animate-pulse rounded bg-neutral-200 align-middle" />
-              ) : totalPartners === 0 ? (
-                <>
-                  <span className="text-content-default">0</span>{" "}
-                  {pluralize("partner", 0)}{" "}
-                  {bounty.type === "performance" ? "completed" : "submitted"}
-                </>
-              ) : bounty.submissionsCountData?.total === totalPartners ? (
-                <>
-                  All{" "}
-                  <span className="text-content-default">
-                    {nFormatter(totalPartners, { full: true })}
-                  </span>{" "}
-                  {pluralize("partner", totalPartners)}{" "}
-                  {bounty.type === "performance" ? "completed" : "submitted"}
-                </>
-              ) : (
-                <>
-                  <span className="text-content-default">
-                    {nFormatter(bounty.submissionsCountData?.total ?? 0, {
-                      full: true,
-                    })}
-                  </span>{" "}
-                  of{" "}
-                  <span className="text-content-default">
-                    {nFormatter(totalPartners, { full: true })}
-                  </span>{" "}
-                  {pluralize("partner", totalPartners)}{" "}
-                  {bounty.type === "performance" ? "completed" : "submitted"}
-                </>
-              )}
-            </div>
+            <span>
+              {bounty.startMode === "relative"
+                ? "New partners only"
+                : "All partners"}
+            </span>
           </div>
 
           <div className="text-content-subtle font-regular flex min-w-0 items-center gap-2 text-sm">
@@ -221,9 +189,111 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
             </div>
           </div>
         </div>
+
+        <BountySubmissionStatsFooter
+          bounty={bounty}
+          totalPartners={totalPartners}
+          loading={loading}
+        />
       </Link>
     </div>
   );
+}
+
+function BountySubmissionStatsFooter({
+  bounty,
+  totalPartners,
+  loading,
+}: {
+  bounty: BountyListProps;
+  totalPartners: number;
+  loading: boolean;
+}) {
+  const submissionCount = bounty.submissionsCountData?.total ?? 0;
+  const actionLabel = bounty.type === "performance" ? "completed" : "submitted";
+
+  const progress =
+    totalPartners > 0
+      ? Math.min(Math.max((submissionCount / totalPartners) * 100, 0), 100)
+      : 0;
+
+  if (loading) {
+    return (
+      <div className="border-border-subtle border-t px-5 py-4">
+        <div className="flex flex-col gap-2">
+          <div className="bg-bg-emphasis h-1 w-full animate-pulse rounded-full" />
+          <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-border-subtle border-t px-5 py-4">
+      <BountyProgressBarRow progress={progress}>
+        {totalPartners === 0 ? (
+          <>
+            <EmphasisNumber>0</EmphasisNumber> {actionLabel}
+          </>
+        ) : submissionCount === totalPartners ? (
+          <>
+            All{" "}
+            <EmphasisNumber>
+              {nFormatter(totalPartners, { full: true })}
+            </EmphasisNumber>{" "}
+            {actionLabel}
+          </>
+        ) : (
+          <>
+            <EmphasisNumber>
+              {nFormatter(submissionCount, { full: true })}
+            </EmphasisNumber>{" "}
+            of{" "}
+            <EmphasisNumber>
+              {nFormatter(totalPartners, { full: true })}
+            </EmphasisNumber>{" "}
+            {actionLabel}
+          </>
+        )}
+      </BountyProgressBarRow>
+    </div>
+  );
+}
+
+function getBountyPeriodLabel(bounty: BountyListProps): string {
+  if (bounty.startMode === "relative") {
+    const { endsAfterDays } = bounty;
+
+    if (endsAfterDays === BOUNTY_DURATION_DAYS.twoWeeks) {
+      return "2 weeks after joining";
+    }
+
+    if (endsAfterDays === BOUNTY_DURATION_DAYS.oneMonth) {
+      return "1 month after joining";
+    }
+
+    if (endsAfterDays === BOUNTY_DURATION_DAYS.sixMonths) {
+      return "6 months after joining";
+    }
+
+    if (endsAfterDays != null) {
+      return `${endsAfterDays} days after joining`;
+    }
+
+    return "When a partner joins";
+  }
+
+  if (bounty.startsAt) {
+    let label = formatDate(bounty.startsAt, { month: "short" });
+
+    if (bounty.endsAt) {
+      label += ` → ${formatDate(bounty.endsAt, { month: "short" })}`;
+    }
+
+    return label;
+  }
+
+  return "When a partner joins";
 }
 
 function SubmissionsCountBadge({ count }: { count: number }) {
@@ -234,6 +304,7 @@ function SubmissionsCountBadge({ count }: { count: number }) {
     </div>
   );
 }
+
 function BountyEndedBadge({ endsAt }: { endsAt: Date }) {
   return (
     <div className="flex h-5 w-fit items-center gap-1 rounded-md bg-neutral-200 px-2 py-1 text-xs font-semibold text-neutral-600">
@@ -244,23 +315,29 @@ function BountyEndedBadge({ endsAt }: { endsAt: Date }) {
 
 export function BountyCardSkeleton() {
   return (
-    <div className="border-border-subtle rounded-xl border bg-white p-2">
-      <div className="flex flex-col gap-3.5">
+    <div className="border-border-subtle flex flex-col overflow-hidden rounded-xl border bg-white">
+      <div className="p-2 pb-0">
         <div className="relative flex h-[124px] animate-pulse items-center justify-center rounded-lg bg-neutral-200" />
-        <div className="flex flex-col gap-1.5 px-2 pb-1.5">
+      </div>
+      <div className="flex flex-col gap-1.5 px-4 pb-4 pt-2">
+        <div className="h-5 w-48 animate-pulse rounded bg-neutral-200" />
+        <div className="flex h-5 items-center gap-2">
+          <div className="size-3.5 shrink-0 animate-pulse rounded bg-neutral-200" />
+          <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
+        </div>
+        <div className="flex h-5 items-center gap-2">
+          <div className="size-3.5 shrink-0 animate-pulse rounded bg-neutral-200" />
           <div className="h-5 w-48 animate-pulse rounded bg-neutral-200" />
-          <div className="flex h-5 items-center gap-2">
-            <div className="size-3.5 shrink-0 animate-pulse rounded bg-neutral-200" />
-            <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
-          </div>
-          <div className="flex h-5 items-center gap-2">
-            <div className="size-3.5 shrink-0 animate-pulse rounded bg-neutral-200" />
-            <div className="h-5 w-48 animate-pulse rounded bg-neutral-200" />
-          </div>
-          <div className="flex h-5 items-center gap-2">
-            <div className="size-3.5 shrink-0 animate-pulse rounded bg-neutral-200" />
-            <div className="h-5 w-40 animate-pulse rounded bg-neutral-200" />
-          </div>
+        </div>
+        <div className="flex h-5 items-center gap-2">
+          <div className="size-3.5 shrink-0 animate-pulse rounded bg-neutral-200" />
+          <div className="h-5 w-28 animate-pulse rounded bg-neutral-200" />
+        </div>
+      </div>
+      <div className="border-border-subtle border-t px-5 py-4">
+        <div className="flex flex-col gap-2">
+          <div className="bg-bg-emphasis h-1 w-full animate-pulse rounded-full" />
+          <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
         </div>
       </div>
     </div>
