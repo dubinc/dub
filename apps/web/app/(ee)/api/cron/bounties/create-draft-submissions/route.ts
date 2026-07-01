@@ -57,12 +57,14 @@ export async function POST(req: Request) {
       });
     }
 
-    let diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
+    if (bounty.startsAt) {
+      let diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
 
-    if (diffMinutes >= 10) {
-      return logAndRespond(
-        `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
-      );
+      if (diffMinutes >= 10) {
+        return logAndRespond(
+          `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
+        );
+      }
     }
 
     if (bounty.type !== "performance") {
@@ -187,7 +189,7 @@ export async function POST(req: Request) {
         programId: bounty.programId,
         partnerId: enrollment.partnerId,
         bountyId: bounty.id,
-        performanceCount,
+        performanceCount: Math.min(performanceCount, condition.value as number),
         // If the condition is met, automatically submit the submission
         ...(conditionMet && {
           status: "submitted",

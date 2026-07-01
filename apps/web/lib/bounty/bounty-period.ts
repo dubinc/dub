@@ -105,6 +105,10 @@ export function getEffectiveBountyPeriod({
   };
 }
 
+export function isBountyNotStarted(startsAt: Date) {
+  return startsAt > new Date();
+}
+
 export function isBountyExpired(endsAt: Date | null) {
   return endsAt !== null && endsAt <= new Date();
 }

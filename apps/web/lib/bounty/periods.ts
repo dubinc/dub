@@ -1,5 +1,6 @@
 import { BountySubmissionFrequency } from "@prisma/client";
 import { addDays, addMonths, addWeeks } from "date-fns";
+import { isBountyNotStarted } from "./bounty-period";
 
 export type SubmissionPeriodStatus =
   | "notSubmitted"
@@ -83,7 +84,7 @@ export function getCurrentPeriodNumber({
   const now = new Date();
   const start = new Date(startsAt);
 
-  if (now < start) {
+  if (isBountyNotStarted(start)) {
     return null;
   }
 
@@ -157,7 +158,7 @@ export function getSubmissionPeriods<
 
     if (submission) {
       status = submission.status as SubmissionPeriodStatus;
-    } else if (now < start) {
+    } else if (isBountyNotStarted(start)) {
       status = "notOpen";
     } else {
       status = "notSubmitted";
@@ -188,7 +189,7 @@ export function getSubmissionPeriods<
 
       if (submissionForPeriod) {
         status = submissionForPeriod.status as SubmissionPeriodStatus;
-      } else if (now < start) {
+      } else if (isBountyNotStarted(start)) {
         status = "notOpen";
       } else {
         status = "notSubmitted";
@@ -235,7 +236,7 @@ export function getSubmissionPeriods<
 
     if (submissionForPeriod) {
       status = submissionForPeriod.status as SubmissionPeriodStatus;
-    } else if (now < startDate) {
+    } else if (isBountyNotStarted(startDate)) {
       status = "notOpen";
     } else {
       status = "notSubmitted";

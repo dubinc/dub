@@ -62,18 +62,13 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     bounty,
   });
 
-  const { startsAt, endsAt } = getEffectiveBountyPeriod({
-    programEnrollment,
-    bounty,
-  });
-
-  const { groups, ...bountyWithoutGroups } = bounty;
-
   return NextResponse.json(
     PartnerBountySchema.parse({
-      ...bountyWithoutGroups,
-      startsAt,
-      endsAt,
+      ...bounty,
+      ...getEffectiveBountyPeriod({
+        programEnrollment,
+        bounty,
+      }),
       performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
       partner: {
         ...aggregatePartnerLinksStats(links),

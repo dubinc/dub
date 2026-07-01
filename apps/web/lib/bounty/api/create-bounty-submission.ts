@@ -192,7 +192,7 @@ export class BountySubmissionHandler {
 
     // Multi-submission WITH frequency — time-gated
     const currentPeriod = getCurrentPeriodNumber({
-      startsAt: this.bounty.startsAt,
+      startsAt: this.bounty.startsAt!,
       endsAt: this.bounty.endsAt,
       submissionFrequency: this.bounty.submissionFrequency,
       maxSubmissions: this.bounty.maxSubmissions,
@@ -222,7 +222,7 @@ export class BountySubmissionHandler {
 
     // Validate the period has started
     const periodStart = addFrequency({
-      date: this.bounty.startsAt,
+      date: this.bounty.startsAt!,
       frequency: this.bounty.submissionFrequency,
       amount: periodNumber - 1,
     });

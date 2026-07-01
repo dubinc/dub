@@ -7,6 +7,7 @@ import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-upd
 import {
   getEffectiveBountyPeriod,
   isBountyExpired,
+  isBountyNotStarted,
 } from "@/lib/bounty/bounty-period";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
@@ -105,9 +106,7 @@ export const POST = withWorkspace(
       endsAt = effectiveDateRange.endsAt;
     }
 
-    const now = new Date();
-
-    if (startsAt && startsAt > now) {
+    if (startsAt && isBountyNotStarted(startsAt)) {
       throw new DubApiError({
         code: "bad_request",
         message: "Social metrics can only be synced after the bounty starts.",
