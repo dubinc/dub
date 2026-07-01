@@ -193,7 +193,7 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
                         ? `/${slug}/program/commissions${getQueryString({}, { include: ["interval", "start", "end", "partnerId", "groupId", "partnerTagId", "type"] })}`
                         : pageTab === "applications"
                           ? `/${slug}/program/partners/applications`
-                          : `/${slug}/events${getQueryString({ event: selectedTab, interval })}`
+                          : `/${slug}/program/events${getQueryString({ event: selectedTab, interval })}`
                     }
                   >
                     <Button
