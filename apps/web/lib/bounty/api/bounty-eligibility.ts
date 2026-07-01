@@ -149,6 +149,14 @@ export function canPartnerSubmitBounty({
   programEnrollment,
   bounty,
 }: PartnerBountyEligibilityParams): boolean {
+  // Only approved partners can submit bounties
+  if (programEnrollment.status !== "approved") {
+    console.log(
+      `Partner enrollment status "${programEnrollment.status}" is not allowed to submit bounty ${bounty.id}.`,
+    );
+    return false;
+  }
+
   const isEligible = isPartnerEligibleForBounty({
     programEnrollment,
     bounty,
@@ -188,6 +196,14 @@ export function throwIfPartnerCannotSubmitBounty({
   programEnrollment,
   bounty,
 }: PartnerBountyEligibilityParams) {
+  // Only approved partners can submit bounties
+  if (programEnrollment.status !== "approved") {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "You are not allowed to submit a bounty for this program.",
+    });
+  }
+
   const isEligible = isPartnerEligibleForBounty({
     programEnrollment,
     bounty,
