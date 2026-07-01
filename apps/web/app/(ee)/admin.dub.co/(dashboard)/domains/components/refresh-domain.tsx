@@ -10,7 +10,7 @@ export function RefreshDomain() {
     <div className="flex flex-col space-y-5">
       <form
         action={async (data) =>
-          await fetch("/api/admin/refresh-domain", {
+          await fetch("/api/admin/domains/refresh", {
             method: "POST",
             body: JSON.stringify({
               domain: data.get("domain"),

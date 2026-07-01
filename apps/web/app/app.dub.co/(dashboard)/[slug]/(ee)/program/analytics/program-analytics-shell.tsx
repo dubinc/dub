@@ -64,15 +64,10 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
     } as ContextType<typeof AnalyticsContext>;
   }, [searchParamsObj]);
 
-  const queryString = editQueryString(
-    useAnalyticsQuery({
-      defaultEvent: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
-      defaultInterval: DUB_PARTNERS_ANALYTICS_INTERVAL,
-    }).queryString,
-    {
-      programId: defaultProgramId!,
-    },
-  );
+  const { queryString } = useAnalyticsQuery({
+    defaultEvent: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
+    defaultInterval: DUB_PARTNERS_ANALYTICS_INTERVAL,
+  });
 
   const { data: totalEvents } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
@@ -198,7 +193,7 @@ export function ProgramAnalyticsShell({ children }: { children: ReactNode }) {
                         ? `/${slug}/program/commissions${getQueryString({}, { include: ["interval", "start", "end", "partnerId", "groupId", "partnerTagId", "type"] })}`
                         : pageTab === "applications"
                           ? `/${slug}/program/partners/applications`
-                          : `/${slug}/events${getQueryString({ folderId: program?.defaultFolderId, event: selectedTab, interval })}`
+                          : `/${slug}/program/events${getQueryString({ event: selectedTab, interval })}`
                     }
                   >
                     <Button

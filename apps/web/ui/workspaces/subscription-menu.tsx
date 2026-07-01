@@ -40,43 +40,48 @@ export default function SubscriptionMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [clicked, setClicked] = useState(false);
 
-  const openBillingPortal = () => {
+  const openBillingPortal = async () => {
     setIsOpen(false);
     setClicked(true);
     return fetch(`/api/workspaces/${workspaceId}/billing/manage`, {
       method: "POST",
-    }).then(async (res) => {
-      if (res.ok) {
-        const url = await res.json();
-        router.push(url);
-      } else {
-        const { error } = await res.json();
-        toast.error(error.message);
+    })
+      .then(async (res) => {
+        if (res.ok) {
+          const url = await res.json();
+          router.push(url);
+        } else {
+          const { error } = await res.json();
+          toast.error(error.message);
+        }
+      })
+      .finally(() => {
         setClicked(false);
-      }
-    });
+      });
   };
 
-  const cancelSubscription = () => {
+  const cancelSubscription = async () => {
     setIsOpen(false);
     setClicked(true);
     return fetch(`/api/workspaces/${workspaceId}/billing/cancel`, {
       method: "POST",
-    }).then(async (res) => {
-      if (res.ok) {
-        // sleep for 2 seconds to make sure Stripe webhook was received, and then mutate
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        await mutate();
+    })
+      .then(async (res) => {
+        if (res.ok) {
+          // sleep for 2 seconds to make sure Stripe webhook was received, and then mutate
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await mutate();
+          toast.success(
+            "Your subscription has been scheduled for cancellation at the end of the current period.",
+          );
+        } else {
+          const { error } = await res.json();
+          toast.error(error.message);
+        }
+      })
+      .finally(() => {
         setClicked(false);
-        toast.success(
-          "Your subscription has been scheduled for cancellation at the end of the current period.",
-        );
-      } else {
-        const { error } = await res.json();
-        toast.error(error.message);
-        setClicked(false);
-      }
-    });
+      });
   };
 
   // Check if canceling would lose partner access
@@ -134,10 +139,6 @@ export default function SubscriptionMenu() {
     }
   };
 
-  if (plan === "enterprise") {
-    return null;
-  }
-
   return (
     <>
       <PlanChangeConfirmationModal />
@@ -154,16 +155,18 @@ export default function SubscriptionMenu() {
                 onSelect={() => openBillingPortal()}
                 disabledTooltip={permissionsError}
               />
-              <MenuItem
-                icon={SquareXmark}
-                label="Cancel subscription"
-                onSelect={handleCancelSubscription}
-                disabledTooltip={
-                  subscriptionCanceledAt
-                    ? "Your subscription has already been scheduled for cancellation."
-                    : permissionsError
-                }
-              />
+              {plan !== "enterprise" && (
+                <MenuItem
+                  icon={SquareXmark}
+                  label="Cancel subscription"
+                  onSelect={handleCancelSubscription}
+                  disabledTooltip={
+                    subscriptionCanceledAt
+                      ? "Your subscription has already been scheduled for cancellation."
+                      : permissionsError
+                  }
+                />
+              )}
             </Command.List>
           </Command>
         }
@@ -171,7 +174,7 @@ export default function SubscriptionMenu() {
       >
         <Button
           type="button"
-          className="h-9 px-2"
+          className="size-9"
           variant="secondary"
           icon={<ThreeDots className="size-4 shrink-0" />}
           loading={clicked}

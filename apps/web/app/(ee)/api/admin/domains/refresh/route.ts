@@ -2,7 +2,7 @@ import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { withAdmin } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
-// POST /api/admin/refresh-domain
+// POST /api/admin/domains/refresh
 export const POST = withAdmin(async ({ req }) => {
   const { domain } = await req.json();
 

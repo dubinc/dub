@@ -49,6 +49,7 @@ export const clickEventSchemaTBEndpoint = z.object({
   device: z.string().nullable(),
   browser: z.string().nullable(),
   os: z.string().nullable(),
+  ua: z.string().nullish(),
   trigger: z.string().nullish(), // backwards compatibility
   referer: z.string().nullable(),
   referer_url: z.string().nullable(),
@@ -68,6 +69,7 @@ export const clickEventSchema = z.object({
   device: z.string(),
   browser: z.string(),
   os: z.string(),
+  ua: z.string().nullish(),
   trigger: z.string().nullish(), // backwards compatibility
   referer: z.string(),
   refererUrl: z.string(),

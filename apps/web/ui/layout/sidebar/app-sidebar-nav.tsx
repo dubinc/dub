@@ -206,6 +206,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Analytics",
             icon: LinesYStatic,
             href: `/${slug}/program/analytics`,
+            isActive: (pathname: string, href: string) =>
+              pathname.startsWith(href) ||
+              pathname.startsWith(href.replace("/analytics", "/events")),
           },
           {
             name: "Customers",
@@ -329,17 +332,17 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Analytics",
             icon: LinesY,
-            href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
+            href: `/${slug}/links/analytics${pathname === `/${slug}/links/analytics` ? "" : queryString}`,
           },
           {
             name: "Events",
             icon: CursorRays,
-            href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
+            href: `/${slug}/links/events${pathname === `/${slug}/links/events` ? "" : queryString}`,
           },
           {
             name: "Customers",
             icon: User,
-            href: `/${slug}/customers`,
+            href: `/${slug}/links/customers`,
           },
         ],
       },

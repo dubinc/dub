@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { normalizeDomainInput } from "@/lib/api/domains/normalize-domain-input";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
@@ -6,23 +7,23 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const schema = z.object({
-  domain: z.string().min(1),
+  domain: z.string().min(1).transform(normalizeDomainInput),
 });
 
-// POST /api/admin/renew-domain
+// POST /api/admin/domains/renew
 export const POST = withAdmin(async ({ req }) => {
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.message }, { status: 400 });
   }
 
-  const normalized = normalizeDomainInput(parsed.data.domain);
-  if (!normalized) {
+  const { domain } = parsed.data;
+  if (!domain) {
     return NextResponse.json({ error: "Invalid domain." }, { status: 400 });
   }
 
   const registered = await prisma.registeredDomain.findFirst({
-    where: { slug: normalized },
+    where: { slug: domain },
     select: {
       slug: true,
       renewalFee: true,
@@ -39,7 +40,7 @@ export const POST = withAdmin(async ({ req }) => {
 
   if (!registered) {
     return NextResponse.json(
-      { error: `No registered domain found for "${normalized}".` },
+      { error: `No registered domain found for "${domain}".` },
       { status: 404 },
     );
   }
@@ -53,7 +54,7 @@ export const POST = withAdmin(async ({ req }) => {
 
   if (!registered.renewalFee || registered.renewalFee <= 0) {
     return NextResponse.json(
-      { error: `Domain "${normalized}" has no valid renewal fee configured.` },
+      { error: `Domain "${domain}" has no valid renewal fee configured.` },
       { status: 400 },
     );
   }
@@ -74,7 +75,7 @@ export const POST = withAdmin(async ({ req }) => {
       const slugs = inv.registeredDomains as string[] | null;
       return (
         Array.isArray(slugs) &&
-        (slugs.includes(registered.slug) || slugs.includes(normalized))
+        (slugs.includes(registered.slug) || slugs.includes(domain))
       );
     });
 
@@ -165,25 +166,3 @@ export const POST = withAdmin(async ({ req }) => {
     paymentIntentStatus: status,
   });
 });
-
-function normalizeDomainInput(raw: string): string {
-  let s = raw.trim().toLowerCase();
-  if (!s) {
-    return s;
-  }
-  try {
-    if (s.includes("://")) {
-      const url = new URL(s);
-      s = url.hostname;
-    } else if (s.includes("/")) {
-      const url = new URL(`https://${s}`);
-      s = url.hostname;
-    }
-  } catch {
-    // keep s as typed
-  }
-  if (s.startsWith("www.")) {
-    s = s.slice(4);
-  }
-  return s;
-}

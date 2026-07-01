@@ -597,7 +597,7 @@ async function stepRunSideEffects(
         },
       }),
 
-    // Run fraud detection
+    // Run risk monitoring
     commission.customer &&
       eventId &&
       clickEvent &&
