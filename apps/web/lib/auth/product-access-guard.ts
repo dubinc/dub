@@ -1,7 +1,12 @@
+import { ACME_WORKSPACE_ID } from "@dub/utils";
+import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
+
 // Hardcoded restriction of program access per workspace user.
 // Maps workspace ID -> user IDs that should NOT have access to the program.
 export const PROGRAM_ACCESS_BLOCKLIST: Record<string, string[]> = {
-  // "ws_xxx": ["user_aaa", "user_bbb"],
+  [ACME_WORKSPACE_ID]: [
+    "user_1KEZYSWJN73HPY852GHAEADK8", // steven+test+viewer@dub.co
+  ],
 };
 
 export const canAccessProgram = ({
@@ -15,7 +20,7 @@ export const canAccessProgram = ({
     return true; // no info -> don't restrict
   }
 
-  const blocked = PROGRAM_ACCESS_BLOCKLIST[workspaceId];
+  const blocked = PROGRAM_ACCESS_BLOCKLIST[normalizeWorkspaceId(workspaceId)];
 
   return blocked ? !blocked.includes(userId) : true;
 };
