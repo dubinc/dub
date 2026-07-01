@@ -76,12 +76,14 @@ export async function POST(req: Request) {
       );
     }
 
-    const diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
+    if (bounty.startsAt) {
+      const diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
 
-    if (diffMinutes >= 10) {
-      return logAndRespond(
-        `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
-      );
+      if (diffMinutes >= 10) {
+        return logAndRespond(
+          `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
+        );
+      }
     }
 
     const groupIds = bounty.groups.map(({ groupId }) => groupId);
