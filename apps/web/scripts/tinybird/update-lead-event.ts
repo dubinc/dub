@@ -2,9 +2,10 @@ import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import * as z from "zod/v4";
 import { tb } from "../../lib/tinybird/client";
+import { recordLeadWithTimestamp } from "../../lib/tinybird/record-lead";
 
-const getEvents = tb.buildPipe({
-  pipe: "internal_get_events",
+const getLeadEvents = tb.buildPipe({
+  pipe: "internal_get_lead_events",
   parameters: z.object({
     customerId: z.string(),
   }),
@@ -13,17 +14,17 @@ const getEvents = tb.buildPipe({
 
 // update tinybird lead event
 async function main() {
-  const customerId = "cus_xxx";
-  const oldLinkId = "link_xxx";
-  const newLinkId = "link_xxx";
+  const CUSTOMER_ID = "cus_xxx";
+  const OLD_LINK_ID = "link_xxx";
+  const NEW_LINK_ID = "link_xxx";
 
   const newLink = await prisma.link.findUniqueOrThrow({
     where: {
-      id: newLinkId,
+      id: NEW_LINK_ID,
     },
   });
 
-  const { data } = await getEvents({ customerId });
+  const { data } = await getLeadEvents({ customerId: CUSTOMER_ID });
   const oldData = data[0];
   if (!oldData) {
     console.log("No data found");
@@ -34,24 +35,24 @@ async function main() {
     link_id: newLink.id,
     key: newLink.key,
   };
-  // console.log(updatedData);
+  console.log(updatedData);
 
-  // const res = await recordLeadWithTimestamp(updatedData);
-  // console.log(res);
+  const res = await recordLeadWithTimestamp(updatedData);
+  console.log(res);
 
   //  delete data from tinybird
   const deleteRes = await Promise.allSettled([
     deleteData({
       dataSource: "dub_lead_events",
-      customerId,
+      customerId: CUSTOMER_ID,
       columnName: "link_id",
-      oldValue: oldLinkId,
+      oldValue: OLD_LINK_ID,
     }),
     deleteData({
       dataSource: "dub_lead_events_mv",
-      customerId,
+      customerId: CUSTOMER_ID,
       columnName: "link_id",
-      oldValue: oldLinkId,
+      oldValue: OLD_LINK_ID,
     }),
   ]);
   console.log(deleteRes);
