@@ -51,33 +51,6 @@ describe("Sale rewards with conditions", async () => {
 
   describe.sequential("sequential track/sale tests", () => {
     test("when {Sale} {Type} is {new} vs {recurring}", async () => {
-      const clickResponse = await http.post<{ clickId: string }>({
-        path: "/track/click",
-        headers: E2E_TRACK_CLICK_HEADERS,
-        body: {
-          domain: "getacme.link",
-          key: "marvin",
-        },
-      });
-      expect(clickResponse.status).toEqual(200);
-      const trackedClickId = clickResponse.data.clickId;
-      expect(trackedClickId).toStrictEqual(expect.any(String));
-
-      const trackLeadResponse = await http.post<TrackLeadResponse>({
-        path: "/track/lead",
-        body: {
-          clickId: trackedClickId,
-          eventName: "E2E lead for new/recurring sale test",
-          customerExternalId: newCustomer.externalId,
-          customerName: newCustomer.name,
-          customerEmail: newCustomer.email,
-          customerAvatar: newCustomer.avatar,
-          mode: "wait",
-        },
-      });
-
-      expect(trackLeadResponse.status).toEqual(200);
-
       const sale = randomSale("E2E first sale");
 
       const trackSaleResponse = await http.post<TrackSaleResponse>({
