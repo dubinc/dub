@@ -145,10 +145,6 @@ export async function queueStripePayouts({
             // x-slack-ref: https://dub.slack.com/archives/C074P7LMV9C/p1758776038825219?thread_ts=1758769780.982089&cid=C074P7LMV9C
             ...(paymentMethod === "card" && { chargeId }),
           },
-          // 5 minutes delay to give some buffer for the card charge to settle fully
-          ...(paymentMethod === "card" && {
-            delay: "5m",
-          }),
         });
       }),
     );

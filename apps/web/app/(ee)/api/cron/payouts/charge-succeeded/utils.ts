@@ -24,7 +24,8 @@ export async function scheduleDelayedPayouts({
   invoice: Pick<Invoice, "id">;
   executeAt: Date;
 }) {
-  const scheduleTimeMs = executeAt.getTime();
+  // Add 5 minutes to the executeAt time to give some buffer for the card charge to settle fully
+  const scheduleTimeMs = executeAt.getTime() + 5 * 60 * 1000;
 
   const delaySeconds = Math.max(
     0,
