@@ -3,8 +3,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@/lib/prisma";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import { capitalize, STRIPE_INTEGRATION_ID } from "@dub/utils";
-import { WorkspaceEnvironment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -33,15 +33,10 @@ export const PATCH = withWorkspace(
       });
     }
 
-    if (
-      stripeMode === "live" &&
-      workspace.environment !== WorkspaceEnvironment.production
-    ) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Live Stripe mode cannot be used in ${capitalize(workspace.environment)} workspaces.`,
-      });
-    }
+    assertProductionWorkspace(workspace, {
+      when: stripeMode === "live",
+      message: `Live Stripe mode cannot be used in ${capitalize(workspace.environment)} workspaces.`,
+    });
 
     const installation = await prisma.installedIntegration.findUnique({
       where: {

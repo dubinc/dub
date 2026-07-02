@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import { WorkspaceEnvironment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../actions/safe-action";
@@ -77,9 +78,9 @@ export const copyRewardToLiveAction = authActionClient
       requiredRoles: ["owner", "member"],
     });
 
-    if (targetWorkspace.environment !== WorkspaceEnvironment.production) {
-      throw new Error("Reward can only be copied to a live program.");
-    }
+    assertProductionWorkspace(targetWorkspace, {
+      message: "Reward can only be copied to a live program.",
+    });
 
     const reward = await getRewardOrThrow({
       rewardId,

@@ -8,7 +8,7 @@ import {
   removeMemberFromStaging,
   updateMemberRoleInStaging,
 } from "@/lib/sandbox/sync-workspace";
-import { throwIfStagingWorkspace } from "@/lib/sandbox/throw-if-staging-workspace";
+import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
@@ -65,7 +65,7 @@ const updateRoleSchema = z.object({
 // PATCH /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    throwIfStagingWorkspace(workspace);
+    assertNotStagingWorkspace(workspace);
 
     const { userId, role } = updateRoleSchema.parse(await req.json());
 
@@ -158,7 +158,7 @@ export const DELETE = withWorkspace(
       });
     }
 
-    throwIfStagingWorkspace(workspace, {
+    assertNotStagingWorkspace(workspace, {
       when: !projectUser.user.isMachine,
     });
 

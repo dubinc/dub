@@ -7,6 +7,7 @@ import {
   PAYMENT_METHOD_TYPES,
 } from "@/lib/constants/payouts";
 import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { capitalize } from "@dub/utils/src";
@@ -118,12 +119,9 @@ export const POST = withWorkspace(
       });
     }
 
-    if (workspace.environment !== WorkspaceEnvironment.production) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `You can't add a payment methods to the ${capitalize(workspace.environment)} workspace.`,
-      });
-    }
+    assertProductionWorkspace(workspace, {
+      message: `You can't add a payment methods to the ${capitalize(workspace.environment)} workspace.`,
+    });
 
     const { method } = addPaymentMethodSchema.parse(
       await parseRequestBody(req),

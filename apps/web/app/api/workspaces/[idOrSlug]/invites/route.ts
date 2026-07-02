@@ -4,7 +4,7 @@ import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan"
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { prisma } from "@/lib/prisma";
-import { throwIfStagingWorkspace } from "@/lib/sandbox/throw-if-staging-workspace";
+import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { ratelimit, redis } from "@/lib/upstash";
 import { inviteTeammatesSchema } from "@/lib/zod/schemas/invites";
 import {
@@ -49,7 +49,7 @@ export const GET = withWorkspace(
 // POST /api/workspaces/[idOrSlug]/invites – invite a teammate
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    throwIfStagingWorkspace(workspace);
+    assertNotStagingWorkspace(workspace);
 
     const { teammates } = inviteTeammatesSchema.parse(await req.json());
 
@@ -182,7 +182,7 @@ const updateInviteRoleSchema = z.object({
 // PATCH /api/workspaces/[idOrSlug]/invites - update an invite's role
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
-    throwIfStagingWorkspace(workspace);
+    assertNotStagingWorkspace(workspace);
 
     const { email, role } = updateInviteRoleSchema.parse(await req.json());
 
@@ -229,7 +229,7 @@ export const PATCH = withWorkspace(
 // DELETE /api/workspaces/[idOrSlug]/invites – delete a pending invite
 export const DELETE = withWorkspace(
   async ({ searchParams, workspace }) => {
-    throwIfStagingWorkspace(workspace);
+    assertNotStagingWorkspace(workspace);
 
     const { email } = z
       .object({

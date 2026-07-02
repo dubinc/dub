@@ -1,12 +1,12 @@
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { throwIfStagingWorkspace } from "@/lib/sandbox/throw-if-staging-workspace";
+import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const POST = withWorkspace(
   async ({ workspace }) => {
-    throwIfStagingWorkspace(workspace);
+    assertNotStagingWorkspace(workspace);
 
     const response = await prisma.project.update({
       where: {

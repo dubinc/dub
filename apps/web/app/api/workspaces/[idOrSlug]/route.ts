@@ -9,7 +9,7 @@ import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
 import { syncWorkspaceSettings } from "@/lib/sandbox/sync-workspace";
-import { throwIfStagingWorkspace } from "@/lib/sandbox/throw-if-staging-workspace";
+import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
 import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
@@ -98,7 +98,7 @@ export const PATCH = withWorkspace(
       siteVisitTrackingSettings,
     } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
-    throwIfStagingWorkspace(workspace, {
+    assertNotStagingWorkspace(workspace, {
       when: !!(name || slug || logo),
     });
 
@@ -311,7 +311,7 @@ export const DELETE = withWorkspace(
       });
     }
 
-    throwIfStagingWorkspace(workspace);
+    assertNotStagingWorkspace(workspace);
 
     await deleteWorkspace(workspace);
 

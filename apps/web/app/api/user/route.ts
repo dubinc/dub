@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { prisma } from "@/lib/prisma";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import { storage } from "@/lib/storage";
 import { uploadedImageSchema } from "@/lib/zod/schemas/images";
 import {
@@ -12,7 +13,6 @@ import {
   nanoid,
   trim,
 } from "@dub/utils";
-import { WorkspaceEnvironment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -100,12 +100,9 @@ export const PATCH = withSession(async ({ req, session }) => {
       });
     }
 
-    if (workspaceUser.project.environment !== WorkspaceEnvironment.production) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `You can only set your default workspace to a production workspace.`,
-      });
-    }
+    assertProductionWorkspace(workspaceUser.project, {
+      message: `You can only set your default workspace to a production workspace.`,
+    });
   }
 
   // Verify email ownership if the email is being changed

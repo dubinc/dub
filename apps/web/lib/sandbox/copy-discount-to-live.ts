@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { WorkspaceEnvironment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -84,9 +85,9 @@ export const copyDiscountToLiveAction = authActionClient
       requiredRoles: ["owner", "member"],
     });
 
-    if (targetWorkspace.environment !== WorkspaceEnvironment.production) {
-      throw new Error("Discount can only be copied to a live program.");
-    }
+    assertProductionWorkspace(targetWorkspace, {
+      message: "Discount can only be copied to a live program.",
+    });
 
     const discount = await getDiscountOrThrow({
       discountId,
