@@ -70,14 +70,21 @@ export async function attributeViaPromotionCodeId({
         code: promotionCode.code,
       },
     },
-    select: {
+    include: {
       link: true,
     },
   });
 
   if (!discountCode) {
     console.log(
-      `Couldn't find link associated with promotion code ${promotionCode.code}, skipping...`,
+      `Couldn't find discount code "${promotionCode.code}" in program "${workspace.defaultProgramId}", skipping...`,
+    );
+    return null;
+  }
+
+  if (discountCode.disabledAt) {
+    console.log(
+      `Discount code "${discountCode.code}" is disabled, skipping...`,
     );
     return null;
   }

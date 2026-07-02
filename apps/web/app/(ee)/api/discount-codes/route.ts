@@ -11,6 +11,7 @@ import {
   DiscountCodeSchema,
   getDiscountCodesQuerySchema,
 } from "@/lib/zod/schemas/discount";
+import { APP_DOMAIN } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -100,12 +101,15 @@ export const POST = withWorkspace(
             code,
           },
         },
+        include: {
+          partner: true,
+        },
       });
 
       if (duplicateByCode) {
         throw new DubApiError({
-          code: "bad_request",
-          message: `A discount with the code ${code} already exists in the program. Please choose a different code.`,
+          code: "conflict",
+          message: `This discount code "${code}" is already in use by [${duplicateByCode.partner.email}](${APP_DOMAIN}/${workspace.slug}/program/partners/${duplicateByCode.partner.id}). Please choose a different code.`,
         });
       }
     }
