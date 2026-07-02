@@ -30,7 +30,23 @@ export async function deleteDiscountCodes(
     return;
   }
 
-  if (!isSoftDelete) {
+  if (isSoftDelete) {
+    // Soft delete the discount codes from the database (mark them as disabled)
+    const disabledDiscountCodes = await prisma.discountCode.updateMany({
+      where: {
+        id: {
+          in: discountCodes.map(({ id }) => id),
+        },
+      },
+      data: {
+        disabledAt: new Date(),
+      },
+    });
+
+    console.log(
+      `[deleteDiscountCodes] Disabled ${disabledDiscountCodes.count} discount codes.`,
+    );
+  } else {
     // Delete the discount codes from the database
     const deletedDiscountCodes = await prisma.discountCode.deleteMany({
       where: {
