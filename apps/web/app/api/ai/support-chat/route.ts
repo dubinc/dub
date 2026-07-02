@@ -118,7 +118,7 @@ export const POST = withSession(async ({ req, session }) => {
         await postSupportChatMessage({
           channel: slackChannel,
           threadTs: slackThreadTs,
-          text: `*Dub AI:* ${text}`,
+          text: `*Dub AI:*\n${markdownToSlackMrkdwn(text)}`,
         });
       }
     },
@@ -170,3 +170,13 @@ const getAccountContextLines = (globalContext?: GlobalChatContext) => {
 
   return [globalContext?.chatLocation ?? "Unknown context"];
 };
+
+const markdownToSlackMrkdwn = (text: string) =>
+  text
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "<$2|$1>")
+    .replace(/\*\*([^*]+)\*\*/g, "*$1*")
+    .replace(/__([^_]+)__/g, "*$1*")
+    .replace(/~~([^~]+)~~/g, "~$1~")
+    .replace(/^#{1,6}\s+(.+)$/gm, "*$1*")
+    .replace(/^[*+]\s+/gm, "- ")
+    .trim();
