@@ -91,11 +91,19 @@ export const SearchBox = forwardRef(
             onChange(e.target.value);
             debounced(e.target.value);
           }}
+          onKeyDown={(e) => {
+            // Commit the search immediately on Enter rather than waiting out the
+            // debounce. isComposing guards against firing mid-IME-composition.
+            if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+              debounced.flush();
+            }
+          }}
           autoCapitalize="none"
         />
         {showClearButton && value.length > 0 && (
           <button
             onClick={() => {
+              debounced.cancel();
               onChange("");
               onChangeDebounced?.("");
             }}
@@ -109,12 +117,12 @@ export const SearchBox = forwardRef(
   },
 );
 
+// For client-rendered search views only. Updates the URL shallowly so useSearchParams-driven data fetching can run without RSC round-trip
 export function SearchBoxPersisted({
   urlParam = "search",
   onChange,
-  onChangeDebounced,
   ...props
-}: { urlParam?: string } & Partial<SearchBoxProps>) {
+}: { urlParam?: string } & Partial<Omit<SearchBoxProps, "onChangeDebounced">>) {
   const { queryParams, searchParams } = useRouterStuff();
 
   const [value, setValue] = useState(searchParams.get(urlParam) ?? "");
@@ -122,11 +130,11 @@ export function SearchBoxPersisted({
 
   // Set URL param when debounced value changes
   useEffect(() => {
-    if (searchParams.get(urlParam) ?? "" !== debouncedValue)
+    if ((searchParams.get(urlParam) ?? "") !== debouncedValue)
       queryParams(
         debouncedValue === ""
-          ? { del: [urlParam, "page"] }
-          : { set: { [urlParam]: debouncedValue }, del: "page" },
+          ? { del: [urlParam, "page"], shallow: true }
+          : { set: { [urlParam]: debouncedValue }, del: "page", shallow: true },
       );
   }, [debouncedValue]);
 
@@ -134,8 +142,11 @@ export function SearchBoxPersisted({
   useEffect(() => {
     const search = searchParams.get(urlParam);
     // Only update if the value and debouncedValue are synced (the user isn't actively typing)
-    if ((search ?? "" !== value) && value === debouncedValue)
+    if ((search ?? "") !== value && value === debouncedValue) {
+      // Sync browser back/forward URL changes without overwriting in-progress edits.
       setValue(search ?? "");
+      setDebouncedValue(search ?? "");
+    }
   }, [searchParams.get(urlParam)]);
 
   return (
@@ -145,10 +156,7 @@ export function SearchBoxPersisted({
         setValue(value);
         onChange?.(value);
       }}
-      onChangeDebounced={(value) => {
-        setDebouncedValue(value);
-        onChangeDebounced?.(value);
-      }}
+      onChangeDebounced={setDebouncedValue}
       {...props}
     />
   );
