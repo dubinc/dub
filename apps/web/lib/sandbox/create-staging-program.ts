@@ -36,6 +36,22 @@ export async function createStagingProgram(workspaceId: string) {
     return;
   }
 
+  const stagingWorkspace = await prisma.project.findUnique({
+    where: {
+      id: stagingWorkspaceId,
+    },
+    select: {
+      defaultProgramId: true,
+    },
+  });
+
+  if (stagingWorkspace?.defaultProgramId) {
+    console.log(
+      `Staging program already exists for workspace ${workspace.id}. Skipping...`,
+    );
+    return;
+  }
+
   const program = await prisma.program.findUnique({
     where: {
       id: workspace.defaultProgramId,
@@ -131,13 +147,20 @@ export async function createStagingProgram(workspaceId: string) {
       },
     });
 
-    await tx.project.update({
+    const { count } = await tx.project.updateMany({
       where: {
         id: stagingWorkspaceId,
+        defaultProgramId: null,
       },
       data: {
         defaultProgramId: stagingProgramId,
       },
     });
+
+    if (count === 0) {
+      throw new Error(
+        `Staging program already exists for workspace ${workspace.id}`,
+      );
+    }
   });
 }
