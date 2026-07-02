@@ -141,6 +141,10 @@ export async function GET(req: Request) {
         identifier,
       },
     },
+    select: {
+      id: true,
+      identifier: true,
+    },
   });
 
   if (!partnerPlatform || !partnerPlatform.identifier) {

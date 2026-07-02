@@ -5,14 +5,13 @@ import {
   generateCodeVerifier,
 } from "@/lib/api/oauth/utils";
 import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
-import {
-  assertPartnerPlatformLimit,
-  upsertPartnerPlatform,
-} from "@/lib/api/partner-profile/upsert-partner-platform";
+import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { generateOTP } from "@/lib/auth/utils";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { isGenericEmail } from "@/lib/is-generic-email";
+import { prisma } from "@/lib/prisma";
 import {
+  MAX_PLATFORMS_PER_TYPE,
   sanitizeSocialHandle,
   sanitizeWebsite,
   SOCIAL_PLATFORM_CONFIGS,
@@ -25,7 +24,7 @@ import {
   nanoid,
   PARTNERS_DOMAIN_WITH_NGROK,
 } from "@dub/utils";
-import { PlatformType } from "@prisma/client";
+import { PartnerPlatform, PlatformType } from "@prisma/client";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";
@@ -293,4 +292,35 @@ async function startCodeVerification({
     type: "verification_code",
     verificationCode,
   };
+}
+
+async function assertPartnerPlatformLimit({
+  partnerId,
+  type,
+  identifier,
+}: Pick<PartnerPlatform, "partnerId" | "type" | "identifier">) {
+  const existingPlatforms = await prisma.partnerPlatform.findMany({
+    where: {
+      partnerId,
+      type,
+    },
+    select: {
+      identifier: true,
+    },
+  });
+
+  // Re-verifying / updating an existing handle is always allowed
+  const alreadyExists = existingPlatforms.some(
+    (p) => p.identifier === identifier,
+  );
+
+  if (alreadyExists) {
+    return;
+  }
+
+  if (existingPlatforms.length >= MAX_PLATFORMS_PER_TYPE) {
+    throw new Error(
+      `You can add up to ${MAX_PLATFORMS_PER_TYPE} ${type} handles.`,
+    );
+  }
 }

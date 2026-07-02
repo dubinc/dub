@@ -11,7 +11,9 @@ export const GET = withAdmin(async ({ params }) => {
   const { partnerId } = params;
 
   const partner = await prisma.partner.findUnique({
-    where: { id: partnerId },
+    where: {
+      id: partnerId,
+    },
     include: {
       platforms: true,
     },
@@ -20,6 +22,7 @@ export const GET = withAdmin(async ({ params }) => {
   if (!partner) {
     return new Response("Partner not found.", { status: 404 });
   }
+
   const verifiedPlatforms = partner.platforms.filter(
     (platform) => platform.verifiedAt !== null,
   );
