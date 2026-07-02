@@ -9,6 +9,7 @@ import { getProgramPerformanceTool } from "@/lib/ai/get-program-performance";
 import { getWorkspaceDetailsTool } from "@/lib/ai/get-workspace-details";
 import { requestSupportTicketTool } from "@/lib/ai/request-support-ticket";
 import { withSession } from "@/lib/auth";
+import { getSlackClient } from "@/lib/slack/client";
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { anthropic } from "@ai-sdk/anthropic";
 import { convertToModelMessages, stepCountIs, streamText, UIMessage } from "ai";
@@ -44,11 +45,50 @@ export const POST = withSession(async ({ req, session }) => {
   }
   const ticketDetails: string | undefined = body.ticketDetails?.slice(0, 4982);
 
+  if (
+    body.slackThreadTs !== undefined &&
+    (typeof body.slackThreadTs !== "string" || body.slackThreadTs.length > 64)
+  ) {
+    return new Response("Invalid slackThreadTs", { status: 400 });
+  }
+  const incomingSlackThreadTs: string | undefined = body.slackThreadTs;
+
   const { success } = await ratelimit(5, "30 s").limit(
     `support-chat:${session.user.id}`,
   );
   if (!success) {
     return new Response("Don't DDoS me pls 🥺", { status: 429 });
+  }
+
+  const slackChannel = process.env.DUB_SLACK_SUPPORT_CHAT_CHANNEL_ID;
+  let slackThreadTs = incomingSlackThreadTs;
+
+  if (slackChannel) {
+    const latestUserText =
+      messages[messages.length - 1].parts
+        ?.filter((p): p is { type: "text"; text: string } => p.type === "text")
+        .map((p) => p.text)
+        .join("\n\n") ?? "";
+    const userLabel = session.user.name || session.user.email || "Unknown user";
+
+    if (!slackThreadTs) {
+      slackThreadTs = await postSupportChatMessage({
+        channel: slackChannel,
+        text: [
+          `:speech_balloon: *New AI Support Chat*`,
+          ...getAccountContextLines(globalContext),
+          `${userLabel} (${session.user.email})`,
+          "",
+          `${userLabel}: ${latestUserText}`,
+        ].join("\n"),
+      });
+    } else {
+      await postSupportChatMessage({
+        channel: slackChannel,
+        threadTs: slackThreadTs,
+        text: `*${userLabel}:* ${latestUserText}`,
+      });
+    }
   }
 
   const result = streamText({
@@ -73,7 +113,60 @@ export const POST = withSession(async ({ req, session }) => {
         ticketDetails,
       }),
     },
+    onFinish: async ({ text }) => {
+      if (slackChannel && slackThreadTs && text) {
+        await postSupportChatMessage({
+          channel: slackChannel,
+          threadTs: slackThreadTs,
+          text: `*Dub AI:* ${text}`,
+        });
+      }
+    },
   });
 
-  return result.toUIMessageStreamResponse();
+  return result.toUIMessageStreamResponse({
+    messageMetadata: ({ part }) => {
+      if (part.type === "start" && slackThreadTs) {
+        return { slackThreadTs };
+      }
+    },
+  });
 });
+
+const postSupportChatMessage = async ({
+  channel,
+  threadTs,
+  text,
+}: {
+  channel: string;
+  threadTs?: string;
+  text: string;
+}): Promise<string | undefined> => {
+  try {
+    const slack = getSlackClient();
+    const res = await slack.chat.postMessage({
+      channel,
+      thread_ts: threadTs,
+      text: text.slice(0, 3000),
+      unfurl_links: false,
+    });
+    return (res.ts as string | undefined) ?? threadTs;
+  } catch (e) {
+    console.error("[Slack] Failed to post support chat message", e);
+    return threadTs;
+  }
+};
+
+const getAccountContextLines = (globalContext?: GlobalChatContext) => {
+  if (globalContext?.selectedWorkspace) {
+    const { name, slug } = globalContext.selectedWorkspace;
+    return [`:briefcase: *Workspace* - ${name} (${slug})`];
+  }
+
+  if (globalContext?.selectedProgram) {
+    const { name, slug } = globalContext.selectedProgram;
+    return [`:handshake: *Partners* - ${name} (${slug})`];
+  }
+
+  return [globalContext?.chatLocation ?? "Unknown context"];
+};
