@@ -58,7 +58,7 @@ export const POST = withCron(async ({ rawBody }) => {
   const discountCodes = programEnrollments.flatMap(({ discountCodes }) =>
     discountCodes.map((dc) => dc),
   );
-  await deleteDiscountCodes(discountCodes);
+  await deleteDiscountCodes(discountCodes, { isSoftDelete: false });
   console.log("[bulkDeactivatePartners] Queued discount code deletions.");
 
   // Find the program
