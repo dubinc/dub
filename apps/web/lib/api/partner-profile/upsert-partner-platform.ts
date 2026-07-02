@@ -24,8 +24,8 @@ export async function upsertPartnerPlatform({
       partnerId,
       type,
       identifier,
-      verifiedAt: data?.verifiedAt,
-      metadata: data?.metadata,
+      verifiedAt: data.verifiedAt,
+      metadata: data.metadata,
     },
     update: {
       ...data,
