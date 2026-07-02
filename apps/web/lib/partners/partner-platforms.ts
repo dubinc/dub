@@ -142,6 +142,12 @@ export function getPartnerPlatformDisplay(platform: PartnerPlatformProps) {
         href: platform.identifier
           ? `https://linkedin.com/in/${platform.identifier}`
           : null,
+        info: [
+          subscribers && verified
+            ? `${nFormatter(subscribers)} ${pluralize("follower", subscribers)}`
+            : null,
+        ].filter(Boolean) as string[],
+        stat: subscribers && verified ? nFormatter(subscribers) : null,
       };
 
     case "instagram":

@@ -25,8 +25,12 @@ export const POST = withAdmin(
     } = postSchema.parse(await req.json());
 
     const partner = await prisma.partner.findUnique({
-      where: { id: partnerId },
-      select: { id: true },
+      where: {
+        id: partnerId,
+      },
+      select: {
+        id: true,
+      },
     });
 
     if (!partner) {
@@ -86,46 +90,47 @@ export const POST = withAdmin(
       };
     }
 
-    const updated = await prisma.partnerPlatform.upsert({
+    const existingPlatform = await prisma.partnerPlatform.findFirst({
       where: {
-        partnerId_type: {
-          partnerId,
-          type: platform,
-        },
-      },
-      create: {
         partnerId,
         type: platform,
         identifier,
-        verifiedAt: new Date(),
-        platformId: verifiedData.platformId,
-        subscribers: verifiedData.subscribers,
-        posts: verifiedData.posts,
-        views: verifiedData.views,
-        avatarUrl: verifiedData.avatarUrl,
-        metadata: {
-          ...(verifiedData.metadata ?? {}),
-          manuallyVerifiedByAdmin: true,
-          manuallyVerifiedAt: new Date().toISOString(),
-        },
-        lastCheckedAt: new Date(),
       },
-      update: {
-        identifier,
-        verifiedAt: new Date(),
-        platformId: verifiedData.platformId,
-        subscribers: verifiedData.subscribers,
-        posts: verifiedData.posts,
-        views: verifiedData.views,
-        avatarUrl: verifiedData.avatarUrl,
-        metadata: {
-          ...(verifiedData.metadata ?? {}),
-          manuallyVerifiedByAdmin: true,
-          manuallyVerifiedAt: new Date().toISOString(),
-        },
-        lastCheckedAt: new Date(),
+      select: {
+        id: true,
       },
     });
+
+    const data = {
+      verifiedAt: new Date(),
+      platformId: verifiedData.platformId,
+      subscribers: verifiedData.subscribers,
+      posts: verifiedData.posts,
+      views: verifiedData.views,
+      avatarUrl: verifiedData.avatarUrl,
+      metadata: {
+        ...(verifiedData.metadata ?? {}),
+        manuallyVerifiedByAdmin: true,
+        manuallyVerifiedAt: new Date().toISOString(),
+      },
+      lastCheckedAt: new Date(),
+    };
+
+    const updated = existingPlatform
+      ? await prisma.partnerPlatform.update({
+          where: {
+            id: existingPlatform.id,
+          },
+          data,
+        })
+      : await prisma.partnerPlatform.create({
+          data: {
+            partnerId,
+            type: platform,
+            identifier,
+            ...data,
+          },
+        });
 
     return NextResponse.json({
       platform: {
