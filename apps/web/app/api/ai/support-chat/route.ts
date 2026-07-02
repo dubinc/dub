@@ -68,12 +68,23 @@ export const POST = withSession(async ({ req, session }) => {
   let slackThreadTs = incomingSlackThreadTs;
   let slackUserPostPromise: Promise<string | undefined> | undefined;
 
-  const latestUserText =
-    messages[messages.length - 1].parts
-      ?.filter((p): p is { type: "text"; text: string } => p.type === "text")
-      .map((p) => p.text)
-      .join("\n\n") ?? "";
+  const latestParts = Array.isArray(messages[messages.length - 1].parts)
+    ? messages[messages.length - 1].parts
+    : [];
+  const latestUserText = latestParts
+    .filter(
+      (p): p is { type: "text"; text: string } =>
+        p != null &&
+        typeof p === "object" &&
+        p.type === "text" &&
+        typeof p.text === "string",
+    )
+    .map((p) => p.text)
+    .join("\n\n");
   const userLabel = session.user.name || session.user.email || "Unknown user";
+  const safeUserText = escapeSlackMrkdwn(latestUserText);
+  const safeUserLabel = escapeSlackMrkdwn(userLabel);
+  const safeUserEmail = escapeSlackMrkdwn(session.user.email);
 
   if (!slackThreadTs) {
     slackUserPostPromise = postSupportChatMessage({
@@ -81,9 +92,9 @@ export const POST = withSession(async ({ req, session }) => {
       text: [
         `:speech_balloon: *New AI Support Chat*`,
         ...getAccountContextLines(globalContext),
-        `${userLabel} (${session.user.email})`,
+        `${safeUserLabel} (${safeUserEmail})`,
         "",
-        `${userLabel}: ${latestUserText}`,
+        `${safeUserLabel}: ${safeUserText}`,
       ].join("\n"),
     }).then((ts) => {
       if (ts) slackThreadTs = ts;
@@ -93,7 +104,7 @@ export const POST = withSession(async ({ req, session }) => {
     slackUserPostPromise = postSupportChatMessage({
       channel: slackChannel,
       threadTs: slackThreadTs,
-      text: `*${userLabel}:* ${latestUserText}`,
+      text: `*${safeUserLabel}:* ${safeUserText}`,
     });
   }
 
@@ -128,7 +139,7 @@ export const POST = withSession(async ({ req, session }) => {
       await postSupportChatMessage({
         channel: slackChannel,
         threadTs,
-        text: `*Dub AI:*\n${markdownToSlackMrkdwn(text)}`,
+        text: `*Dub AI:*\n${markdownToSlackMrkdwn(escapeSlackMrkdwn(text))}`,
       });
     },
   });
@@ -169,18 +180,25 @@ const postSupportChatMessage = async ({
   }
 };
 
+const escapeSlackMrkdwn = (text: string) =>
+  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 const getAccountContextLines = (globalContext?: GlobalChatContext) => {
   if (globalContext?.selectedWorkspace) {
     const { name, slug } = globalContext.selectedWorkspace;
-    return [`:briefcase: *Workspace* - ${name} (${slug})`];
+    return [
+      `:briefcase: *Workspace* - ${escapeSlackMrkdwn(name)} (${escapeSlackMrkdwn(slug)})`,
+    ];
   }
 
   if (globalContext?.selectedProgram) {
     const { name, slug } = globalContext.selectedProgram;
-    return [`:handshake: *Partners* - ${name} (${slug})`];
+    return [
+      `:handshake: *Partners* - ${escapeSlackMrkdwn(name)} (${escapeSlackMrkdwn(slug)})`,
+    ];
   }
 
-  return [globalContext?.chatLocation ?? "Unknown context"];
+  return [escapeSlackMrkdwn(globalContext?.chatLocation ?? "Unknown context")];
 };
 
 const markdownToSlackMrkdwn = (text: string) =>
