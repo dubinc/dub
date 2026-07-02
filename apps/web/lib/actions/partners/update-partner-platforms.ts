@@ -7,6 +7,7 @@ import {
   sanitizeSocialHandle,
   sanitizeWebsite,
 } from "@/lib/social-utils";
+import { getPrettyUrl } from "@dub/utils";
 import { PartnerPlatform, PlatformType, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
@@ -46,6 +47,12 @@ function normalizeIdentifier(type: PlatformType, identifier: string) {
   return sanitized;
 }
 
+function platformKey(type: PlatformType, identifier: string) {
+  const canonical = type === "website" ? getPrettyUrl(identifier) : identifier;
+
+  return `${type}:${canonical.toLowerCase()}`;
+}
+
 export const updatePartnerPlatformsAction = authPartnerActionClient
   .inputSchema(updatePartnerPlatformsSchema)
   .action(async ({ ctx, parsedInput }) => {
@@ -68,7 +75,7 @@ export const updatePartnerPlatformsAction = authPartnerActionClient
         continue;
       }
 
-      const key = `${type}:${normalizedIdentifier}`;
+      const key = platformKey(type, normalizedIdentifier);
 
       if (seen.has(key)) {
         continue;
@@ -103,18 +110,18 @@ export const updatePartnerPlatformsAction = authPartnerActionClient
         });
 
         const existingKeys = new Set(
-          existingPlatforms.map((p) => `${p.type}:${p.identifier}`),
+          existingPlatforms.map((p) => platformKey(p.type, p.identifier)),
         );
 
         // Delete existing rows that are no longer present in the submission
         const toDelete = existingPlatforms.filter(
-          (p) => !seen.has(`${p.type}:${p.identifier}`),
+          (p) => !seen.has(platformKey(p.type, p.identifier)),
         );
 
         // Create rows that are newly present. Existing rows are left untouched so
         // their verification state (verifiedAt) is preserved.
         const toCreate = submitted.filter(
-          (p) => !existingKeys.has(`${p.type}:${p.identifier}`),
+          (p) => !existingKeys.has(platformKey(p.type, p.identifier)),
         );
 
         if (toDelete.length > 0) {

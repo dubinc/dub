@@ -26,7 +26,7 @@ const PARTNER_PLATFORM_META: Record<
   twitter: { label: "X/Twitter", icon: Twitter },
   linkedin: { label: "LinkedIn", icon: LinkedIn },
   instagram: { label: "Instagram", icon: Instagram },
-  tiktok: { label: "Tiktok", icon: TikTok },
+  tiktok: { label: "TikTok", icon: TikTok },
 };
 
 export const PARTNER_PLATFORM_FIELDS: {

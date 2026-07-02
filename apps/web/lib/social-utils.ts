@@ -141,7 +141,7 @@ function isBetterPrimary({
     return candidateSubs > currentSubs;
   }
 
-  return true;
+  return false;
 }
 
 // Selects the single "primary" handle of a given type from a list that may
@@ -170,7 +170,7 @@ export function selectPrimaryPlatform<T extends PrimarySelectablePlatform>(
 
 // Converts an array of platform objects into a key-value object for easy lookup
 // by platform name. When a partner has multiple handles of the same type, the
-// "primary" handle (verified > highest subscribers > most recent) is used.
+// "primary" handle (verified > highest subscribers > first seen) is used.
 export function buildSocialPlatformLookup<T extends PrimarySelectablePlatform>(
   platforms: T[],
 ): Record<PlatformType, T | null> {

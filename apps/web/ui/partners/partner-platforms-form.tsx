@@ -4,6 +4,7 @@ import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { startPartnerPlatformVerificationAction } from "@/lib/actions/partners/start-partner-platform-verification";
 import { updatePartnerPlatformsAction } from "@/lib/actions/partners/update-partner-platforms";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
+import { getPartnerPlatformDisplay } from "@/lib/partners/partner-platforms";
 import {
   MAX_PLATFORMS_PER_TYPE,
   PLATFORM_ORDER,
@@ -25,7 +26,7 @@ import {
   Twitter,
   YouTube,
 } from "@dub/ui";
-import { getPrettyUrl, nFormatter } from "@dub/utils";
+import { getPrettyUrl } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { PlatformType } from "@prisma/client";
 import { Command } from "cmdk";
@@ -138,46 +139,16 @@ function findMatchingPlatform(
     if (p.type !== type) {
       return false;
     }
+
     if (type === "website") {
       return (
-        sanitizeWebsite(p.identifier)?.toLowerCase() ===
-        normalized.toLowerCase()
+        getPrettyUrl(p.identifier).toLowerCase() ===
+        getPrettyUrl(normalized).toLowerCase()
       );
     }
+
     return p.identifier.toLowerCase() === normalized.toLowerCase();
   });
-}
-
-// Build the stat lines shown on a verified card.
-function getPlatformInfo(platform: PartnerPlatformProps): string[] {
-  const subscribers = Number(platform.subscribers ?? 0);
-  const posts = Number(platform.posts ?? 0);
-  const views = Number(platform.views ?? 0);
-
-  switch (platform.type) {
-    case "website":
-      return subscribers > 0 ? [`${subscribers} DR`] : [];
-    case "youtube":
-      return [
-        subscribers > 0 ? `${nFormatter(subscribers)} subscribers` : null,
-        views > 0 ? `${nFormatter(views)} views` : null,
-      ].filter(Boolean) as string[];
-    case "instagram":
-    case "tiktok":
-      return [
-        subscribers > 0 ? `${nFormatter(subscribers)} followers` : null,
-        posts > 0 ? `${nFormatter(posts)} posts` : null,
-      ].filter(Boolean) as string[];
-    case "twitter":
-      return [
-        subscribers > 0 ? `${nFormatter(subscribers)} followers` : null,
-        posts > 0 ? `${nFormatter(posts)} tweets` : null,
-      ].filter(Boolean) as string[];
-    case "linkedin":
-      return subscribers > 0 ? [`${nFormatter(subscribers)} followers`] : [];
-    default:
-      return [];
-  }
 }
 
 // Seed form rows: one row per existing handle, plus one empty base row for any
@@ -262,8 +233,6 @@ export const PartnerPlatformsForm = forwardRef<
       name: "platforms",
     });
 
-    const watchedPlatforms = useWatch({ control, name: "platforms" });
-
     const { executeAsync } = useAction(updatePartnerPlatformsAction, {
       onSuccess: async () => {
         toast.success(
@@ -347,14 +316,13 @@ export const PartnerPlatformsForm = forwardRef<
       },
     );
 
-    // Count how many handles of each type are currently in the form
     const countByType = useMemo(() => {
       const counts: Partial<Record<PlatformType, number>> = {};
-      for (const row of watchedPlatforms ?? []) {
+      for (const row of fields) {
         counts[row.type] = (counts[row.type] ?? 0) + 1;
       }
       return counts;
-    }, [watchedPlatforms]);
+    }, [fields]);
 
     const onVerifyRow = async (index: number, type: PlatformType) => {
       const handle = getValues(`platforms.${index}.identifier`);
@@ -550,16 +518,25 @@ function PlatformFormRow({
   const { register, control, setValue } =
     useFormContext<PartnerPlatformsFormData>();
 
-  const value = useWatch({ control, name: `platforms.${index}.identifier` });
+  const value = useWatch({
+    control,
+    name: `platforms.${index}.identifier`,
+  });
 
-  const matchedPlatform = findMatchingPlatform(
-    (partner as typeof partner & { platforms?: PartnerPlatformProps[] })
-      ?.platforms,
-    type,
-    value,
+  const matchedPlatform = useMemo(
+    () =>
+      findMatchingPlatform(
+        (partner as typeof partner & { platforms?: PartnerPlatformProps[] })
+          ?.platforms,
+        type,
+        value,
+      ),
+    [partner, type, value],
   );
-  const isVerified = Boolean(matchedPlatform?.verifiedAt);
-  const info = matchedPlatform ? getPlatformInfo(matchedPlatform) : undefined;
+
+  const info = matchedPlatform
+    ? getPartnerPlatformDisplay(matchedPlatform).info
+    : undefined;
 
   const onPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const text = e.clipboardData.getData("text/plain");
@@ -574,7 +551,7 @@ function PlatformFormRow({
     }
   };
 
-  if (isVerified) {
+  if (matchedPlatform?.verifiedAt) {
     return (
       <div className="flex flex-col gap-1.5">
         {variant === "onboarding" && (

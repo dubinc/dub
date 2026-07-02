@@ -32,10 +32,13 @@ export function checkPartnerEmailDomainMismatch(
 
   const emailDomain = normalizeDomain(emailParts[1]);
 
-  const anyDomainMatches = websites.some((website) => {
-    const websiteDomain = getDomainWithoutWWW(website.identifier);
-    return websiteDomain && websiteDomain.toLowerCase() === emailDomain;
-  });
+  const websiteDomains = websites
+    .map((website) => getDomainWithoutWWW(website.identifier)?.toLowerCase())
+    .filter((domain): domain is string => Boolean(domain));
 
-  return !anyDomainMatches;
+  if (websiteDomains.length === 0) {
+    return false;
+  }
+
+  return !websiteDomains.some((domain) => domain === emailDomain);
 }
