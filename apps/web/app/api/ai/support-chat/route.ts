@@ -162,7 +162,7 @@ const postSupportChatMessage = async ({
       text: text.slice(0, 3000),
       unfurl_links: false,
     });
-    return (res.ts as string | undefined) ?? threadTs;
+    return threadTs ?? (res.ts as string | undefined);
   } catch (e) {
     console.error("[Slack] Failed to post support chat message", e);
     return threadTs;
