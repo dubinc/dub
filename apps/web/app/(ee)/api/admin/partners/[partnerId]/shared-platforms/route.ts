@@ -79,7 +79,7 @@ export const GET = withAdmin(async ({ params }) => {
     orderBy: {
       createdAt: "asc",
     },
-    take: 10,
+    take: 50,
   });
 
   const sharedPlatforms = verifiedPlatforms
