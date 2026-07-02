@@ -2,11 +2,12 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { withAdmin } from "@/lib/auth";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { DUB_FOUNDING_DATE } from "@dub/utils";
-import { differenceInDays } from "date-fns";
+import { subMonths } from "date-fns";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 import { getPayoutsTimeseries } from "../payouts/get-payouts-timeseries";
 import { getBucketKey, getMrrByBucket } from "./get-mrr-timeseries";
+import { computeRollingAveragePayoutFees } from "./get-rolling-payout-fees";
 
 const adminRevenueQuerySchema = z
   .object({})
@@ -31,10 +32,9 @@ export const GET = withAdmin(async ({ searchParams }) => {
   });
 
   const revenueGranularity = granularity === "month" ? "month" : "day";
-  const shouldUseCumulativePayoutFees =
-    differenceInDays(endDate, startDate) <= 30;
+  const payoutHistoryStartDate = subMonths(startDate, 6);
 
-  const [mrrLookup, payoutTimeseries] = await Promise.all([
+  const [mrrLookup, payoutTimeseriesWithHistory] = await Promise.all([
     getMrrByBucket({
       startDate,
       endDate,
@@ -44,7 +44,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
       return new Map<string, number>();
     }),
     getPayoutsTimeseries({
-      startDate,
+      startDate: payoutHistoryStartDate,
       endDate,
       granularity: revenueGranularity,
       timezone,
@@ -52,20 +52,22 @@ export const GET = withAdmin(async ({ searchParams }) => {
     }),
   ]);
 
-  let cumulativePayoutFees = 0;
-  const timeseries = payoutTimeseries.map(({ date, fees }) => {
-    cumulativePayoutFees += fees;
-    const mrr = mrrLookup.get(getBucketKey(date, revenueGranularity)) ?? 0;
-    const payoutFees = shouldUseCumulativePayoutFees
-      ? cumulativePayoutFees
-      : fees;
-    return {
-      date,
-      mrr,
-      payoutFees,
-      totalRevenue: mrr + payoutFees,
-    };
-  });
+  const rollingAveragePayoutFees = computeRollingAveragePayoutFees(
+    payoutTimeseriesWithHistory,
+  );
+
+  const timeseries = payoutTimeseriesWithHistory
+    .map(({ date }, index) => {
+      const mrr = mrrLookup.get(getBucketKey(date, revenueGranularity)) ?? 0;
+      const payoutFees = rollingAveragePayoutFees[index];
+      return {
+        date,
+        mrr,
+        payoutFees,
+        totalRevenue: mrr + payoutFees,
+      };
+    })
+    .filter(({ date }) => date >= startDate);
 
   return NextResponse.json({
     timeseries,

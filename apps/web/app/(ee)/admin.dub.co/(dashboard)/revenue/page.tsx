@@ -3,7 +3,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { Badge, useRouterStuff } from "@dub/ui";
+import { Badge, InfoTooltip, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { cn, currencyFormatter, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
@@ -24,9 +24,11 @@ const revenueTabs = [
   {
     id: "payoutFees",
     label: "Payout Fees",
+    labelTooltip:
+      "Payout fees are computed based on a trailing 6-month rolling average.",
     colorClassName: "text-orange-500 bg-orange-500/50 border-orange-500",
   },
-] as const;
+];
 
 type RevenueTab = (typeof revenueTabs)[number]["id"];
 
@@ -145,14 +147,10 @@ function RevenuePageClient() {
 
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-col space-y-6 p-6">
-      <SimpleDateRangePicker
-        defaultInterval="30d"
-        presets={["30d", "mtd", "qtd", "ytd", "1y", "all"]}
-        className="w-fit"
-      />
+      <SimpleDateRangePicker defaultInterval="30d" className="w-fit" />
       <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
         <div className="grid w-full grid-cols-1 divide-x sm:grid-cols-3">
-          {revenueTabs.map(({ id, label, colorClassName }) => (
+          {revenueTabs.map(({ id, label, colorClassName, labelTooltip }) => (
             <button
               key={id}
               onClick={() =>
@@ -177,6 +175,7 @@ function RevenuePageClient() {
                   )}
                 />
                 <span>{label}</span>
+                {labelTooltip ? <InfoTooltip content={labelTooltip} /> : null}
               </div>
               <div className="mt-1 flex h-12 items-center">
                 {(totals[id] || totals[id] === 0) && !isLoading ? (
