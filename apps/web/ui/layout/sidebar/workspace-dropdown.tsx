@@ -10,7 +10,6 @@ import { getUserAvatarUrl } from "@/ui/users/user-avatar";
 import { BlurImage, Popover, useScrollProgress } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
 import { cn, isLegacyBusinessPlan, pluralize } from "@dub/utils";
-import { WorkspaceEnvironment } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -247,8 +246,7 @@ function WorkspaceList({
           <div className="flex flex-col gap-0.5">
             {workspaces
               .filter(
-                (workspace) =>
-                  workspace.environment !== WorkspaceEnvironment.staging,
+                (workspace) => !isStagingEnvironment(workspace.environment),
               )
               .map(({ id, name, slug, logo }) => {
                 const isActive = activeSlug === slug;

@@ -1,9 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
+import {
+  assertProductionWorkspace,
+  assertStagingWorkspace,
+} from "@/lib/sandbox/workspace-guards";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { WorkspaceEnvironment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../actions/safe-action";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
@@ -29,9 +31,9 @@ export const copyDiscountToLiveAction = authActionClient
       requiredRoles: ["owner", "member"],
     });
 
-    if (workspace.environment !== WorkspaceEnvironment.staging) {
-      throw new Error("This action is only available in staging workspaces.");
-    }
+    assertStagingWorkspace(workspace, {
+      message: "Discount can only be copied from a staging workspace.",
+    });
 
     const { program: targetProgram, ...targetGroup } =
       await prisma.partnerGroup.findUniqueOrThrow({
