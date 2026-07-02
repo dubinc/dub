@@ -1,6 +1,10 @@
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
-import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
+import {
+  WorkflowConditionAttribute,
+  WorkflowContext,
+  WorkflowContextExtended,
+} from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@prisma/client";
 import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
@@ -11,7 +15,7 @@ import { parseWorkflowConfig } from "./parse-workflow-config";
 interface WorkflowActionHandler {
   execute(params: {
     workflow: Workflow;
-    context: WorkflowContext;
+    context: WorkflowContextExtended;
   }): Promise<void>;
 }
 
@@ -128,8 +132,13 @@ export async function executeWorkflows({
         },
       },
       select: {
+        programId: true,
         partnerId: true,
         groupId: true,
+        groupJoinedAt: true,
+        createdAt: true,
+        status: true,
+        groupMoveDisabledAt: true,
         links: {
           select: {
             clicks: true,
@@ -137,6 +146,11 @@ export async function executeWorkflows({
             conversions: true,
             sales: true,
             saleAmount: true,
+          },
+        },
+        programPartnerTags: {
+          select: {
+            partnerTagId: true,
           },
         },
       },
@@ -176,13 +190,10 @@ export async function executeWorkflows({
   const { totalLeads, totalSaleAmount, totalConversions } =
     aggregatePartnerLinksStats(programEnrollment.links);
 
-  const workflowContext: WorkflowContext = {
+  const workflowContext: WorkflowContextExtended = {
     trigger,
     reason,
-    identity: {
-      ...identity,
-      groupId: programEnrollment.groupId,
-    },
+    identity,
     metrics: {
       ...metrics,
       aggregated: {
@@ -192,6 +203,7 @@ export async function executeWorkflows({
         commissions: totalCommissions._sum.earnings ?? 0,
       },
     },
+    programEnrollment,
   };
 
   for (const { workflow, config } of filteredWorkflows) {

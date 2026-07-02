@@ -4,10 +4,16 @@ import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { throwIfInvalidPartnerTagIds } from "@/lib/api/tags/throw-if-invalid-partner-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import {
+  bountyEligibilityIncludes,
+  buildBountyEligibilityWhere,
+} from "@/lib/bounty/api/bounty-eligibility";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
+import { getEffectiveBountyPeriod } from "@/lib/bounty/bounty-period";
 import { qstash } from "@/lib/cron";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
@@ -41,10 +47,26 @@ export const GET = withWorkspace(
           partnerId,
           programId,
           include: {
-            program: true,
+            program: {
+              select: {
+                defaultGroupId: true,
+              },
+            },
+            programPartnerTags: {
+              select: {
+                partnerTagId: true,
+              },
+            },
           },
         })
       : null;
+
+    const partnerGroupId =
+      programEnrollment?.groupId || programEnrollment?.program.defaultGroupId;
+    const partnerTagIds =
+      programEnrollment?.programPartnerTags.map(
+        ({ partnerTagId }) => partnerTagId,
+      ) || [];
 
     const [bounties, allBountiesSubmissionsCount] = await Promise.all([
       prisma.bounty.findMany({
@@ -52,41 +74,17 @@ export const GET = withWorkspace(
           programId,
           // Filter only bounties the specified partner is eligible for
           ...(programEnrollment && {
-            AND: [
-              // Filter out expired bounties
-              {
-                OR: [{ endsAt: null }, { endsAt: { gt: new Date() } }],
-              },
-              // Filter by partner's group eligibility
-              {
-                OR: [
-                  {
-                    groups: {
-                      none: {},
-                    },
-                  },
-                  {
-                    groups: {
-                      some: {
-                        groupId:
-                          programEnrollment.groupId ||
-                          programEnrollment.program.defaultGroupId,
-                      },
-                    },
-                  },
-                ],
-              },
-            ],
+            ...buildBountyEligibilityWhere({
+              groupId: partnerGroupId,
+              partnerTagIds,
+            }),
           }),
         },
         include: {
-          groups: {
-            select: {
-              groupId: true,
-            },
-          },
+          ...bountyEligibilityIncludes,
         },
       }),
+
       includeSubmissionsCount
         ? prisma.bountySubmission.groupBy({
             by: ["bountyId", "status"],
@@ -127,14 +125,39 @@ export const GET = withWorkspace(
       };
     };
 
-    const data = bounties.map((bounty) => {
-      return BountyListSchema.parse({
-        ...bounty,
-        groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
-        ...(allBountiesSubmissionsCount && {
-          submissionsCountData: aggregateSubmissionsCountForBounty(bounty.id),
+    const now = new Date();
+
+    const data = bounties.flatMap((bounty) => {
+      // Filter out bounties that are not in the effective bounty period
+      if (programEnrollment) {
+        const { startsAt, endsAt } = getEffectiveBountyPeriod({
+          programEnrollment,
+          bounty,
+        });
+
+        if (now < startsAt || (endsAt && now > endsAt)) {
+          return [];
+        }
+
+        bounty = {
+          ...bounty,
+          startsAt,
+          endsAt,
+        };
+      }
+
+      return [
+        BountyListSchema.parse({
+          ...bounty,
+          groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
+          partnerTags: bounty.partnerTags.map(({ partnerTagId }) => ({
+            id: partnerTagId,
+          })),
+          ...(allBountiesSubmissionsCount && {
+            submissionsCountData: aggregateSubmissionsCountForBounty(bounty.id),
+          }),
         }),
-      });
+      ];
     });
 
     return NextResponse.json(data);
@@ -166,20 +189,24 @@ export const POST = withWorkspace(
       rewardDescription,
       startsAt,
       endsAt,
+      startMode,
+      endsAfterDays,
       submissionsOpenAt,
       submissionFrequency,
       maxSubmissions,
       submissionRequirements,
       groupIds,
+      partnerTagIds,
       performanceCondition,
       performanceScope,
       sendNotificationEmails,
     } = parsedBody;
 
-    // Use current date as default if startsAt is not provided
-    startsAt = startsAt || new Date();
-
     validateBounty(parsedBody);
+
+    // startsAt is only stored for absolute bounties (defaulting to now when
+    // omitted); relative bounties start when a partner joins, so it stays null.
+    startsAt = startMode === "absolute" ? startsAt || new Date() : null;
 
     const { canUseBountySocialMetrics, canSendEmailCampaigns } =
       getPlanCapabilities(workspace.plan);
@@ -191,10 +218,17 @@ export const POST = withWorkspace(
       });
     }
 
-    const partnerGroups = await throwIfInvalidGroupIds({
-      programId,
-      groupIds,
-    });
+    const [partnerGroups, partnerTags] = await Promise.all([
+      throwIfInvalidGroupIds({
+        programId,
+        groupIds,
+      }),
+
+      throwIfInvalidPartnerTagIds({
+        programId,
+        partnerTagIds,
+      }),
+    ]);
 
     // Bounty name
     let bountyName = name;
@@ -248,6 +282,8 @@ export const POST = withWorkspace(
           type,
           startsAt,
           endsAt,
+          startMode,
+          endsAfterDays,
           submissionsOpenAt: type === "submission" ? submissionsOpenAt : null,
           submissionFrequency:
             type === "submission" ? submissionFrequency : null,
@@ -268,10 +304,19 @@ export const POST = withWorkspace(
               },
             },
           }),
+          ...(partnerTags.length && {
+            partnerTags: {
+              createMany: {
+                data: partnerTags.map(({ id }) => ({
+                  partnerTagId: id,
+                })),
+              },
+            },
+          }),
         },
         include: {
           workflow: true,
-          groups: true,
+          ...bountyEligibilityIncludes,
         },
       });
     });
@@ -279,11 +324,21 @@ export const POST = withWorkspace(
     const createdBounty = BountySchema.parse({
       ...bounty,
       groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
+      partnerTags: bounty.partnerTags.map(({ partnerTagId }) => ({
+        id: partnerTagId,
+      })),
       performanceCondition: bounty.workflow?.triggerConditions?.[0],
     });
 
     const shouldScheduleDraftSubmissions =
-      bounty.type === "performance" && bounty.performanceScope === "lifetime";
+      bounty.type === "performance" &&
+      bounty.performanceScope === "lifetime" &&
+      bounty.startMode === "absolute";
+
+    const shouldSchedulePartnerNotifications =
+      sendNotificationEmails &&
+      canSendEmailCampaigns &&
+      bounty.startMode === "absolute";
 
     waitUntil(
       Promise.allSettled([
@@ -308,14 +363,14 @@ export const POST = withWorkspace(
           data: createdBounty,
         }),
 
-        sendNotificationEmails &&
-          canSendEmailCampaigns &&
+        shouldSchedulePartnerNotifications &&
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
             body: {
               bountyId: bounty.id,
             },
-            notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
+            // startsAt is guaranteed to be set for absolute bounties
+            notBefore: Math.floor(bounty.startsAt!.getTime() / 1000),
           }),
 
         shouldScheduleDraftSubmissions &&
@@ -324,7 +379,8 @@ export const POST = withWorkspace(
             body: {
               bountyId: bounty.id,
             },
-            notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
+            // startsAt is guaranteed to be set for absolute bounties
+            notBefore: Math.floor(bounty.startsAt!.getTime() / 1000),
           }),
       ]),
     );

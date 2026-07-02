@@ -12,6 +12,7 @@ import {
 } from "@/lib/bounty/social-content";
 import {
   BountyPerformanceScope,
+  BountyStartMode,
   BountySubmissionFrequency,
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
@@ -21,6 +22,7 @@ import * as z from "zod/v4";
 import { CommissionSchema } from "./commissions";
 import { GroupSchema } from "./groups";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import { PartnerTagSchema } from "./partner-tags";
 import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { nullableCountSchema, parseDateSchema } from "./utils";
@@ -100,8 +102,10 @@ export const createBountySchema = z.object({
     )
     .nullish(),
   type: z.enum(BountyType),
+  startMode: z.enum(BountyStartMode),
   startsAt: parseDateSchema.nullish(),
   endsAt: parseDateSchema.nullish(),
+  endsAfterDays: z.number().int().positive().nullish(),
   submissionsOpenAt: parseDateSchema.nullish(),
   submissionFrequency: z.enum(BountySubmissionFrequency).nullish(),
   maxSubmissions: z
@@ -123,6 +127,7 @@ export const createBountySchema = z.object({
     .nullish(),
   submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
+  partnerTagIds: z.array(z.string()).nullable(),
   performanceCondition: bountyPerformanceConditionSchema.nullish(),
   performanceScope: z.enum(BountyPerformanceScope).nullish(),
   sendNotificationEmails: z.boolean().optional(),
@@ -148,8 +153,10 @@ export const BountySchema = z.object({
   name: z.string().nullable(),
   description: z.string().nullable(),
   type: z.enum(BountyType),
-  startsAt: z.date(),
+  startsAt: z.date().nullable(),
   endsAt: z.date().nullable(),
+  startMode: z.enum(BountyStartMode),
+  endsAfterDays: z.number().nullable(),
   submissionsOpenAt: z.date().nullable(),
   submissionFrequency: z.enum(BountySubmissionFrequency).nullable(),
   maxSubmissions: z.number(),
@@ -162,6 +169,7 @@ export const BountySchema = z.object({
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   socialMetricsLastSyncedAt: z.date().nullable().optional(),
   groups: z.array(GroupSchema.pick({ id: true })),
+  partnerTags: z.array(PartnerTagSchema.pick({ id: true })),
 });
 
 export const getBountiesQuerySchema = z.object({

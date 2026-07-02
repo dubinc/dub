@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { bountyEligibilityIncludes } from "@/lib/bounty/api/bounty-eligibility";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
@@ -50,7 +51,6 @@ export async function POST(req: Request) {
         id: bountyId,
       },
       include: {
-        groups: true,
         program: {
           include: {
             emailDomains: {
@@ -60,6 +60,7 @@ export async function POST(req: Request) {
             },
           },
         },
+        ...bountyEligibilityIncludes,
       },
     });
 
@@ -69,20 +70,25 @@ export async function POST(req: Request) {
       });
     }
 
-    const diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
-
-    if (diffMinutes >= 10) {
+    if (bounty.startMode === "relative") {
       return logAndRespond(
-        `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
+        `Bounty ${bountyId} has dynamic start date, skipping...`,
       );
     }
 
-    // Find groupIds
+    if (bounty.startsAt) {
+      const diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
+
+      if (diffMinutes >= 10) {
+        return logAndRespond(
+          `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
+        );
+      }
+    }
+
     const groupIds = bounty.groups.map(({ groupId }) => groupId);
-    console.log(
-      `Bounty ${bountyId} is applicable to ${
-        groupIds.length === 0 ? "all" : groupIds.length
-      } groups (groupIds: ${JSON.stringify(groupIds)})`,
+    const partnerTagIds = bounty.partnerTags.map(
+      ({ partnerTagId }) => partnerTagId,
     );
 
     const programEnrollments = await prisma.programEnrollment.findMany({
@@ -91,6 +97,15 @@ export async function POST(req: Request) {
         ...(groupIds.length > 0 && {
           groupId: {
             in: groupIds,
+          },
+        }),
+        ...(partnerTagIds.length > 0 && {
+          programPartnerTags: {
+            some: {
+              partnerTagId: {
+                in: partnerTagIds,
+              },
+            },
           },
         }),
         status: {

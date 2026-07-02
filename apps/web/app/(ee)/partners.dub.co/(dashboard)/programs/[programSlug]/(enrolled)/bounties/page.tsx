@@ -1,5 +1,6 @@
 "use client";
 
+import { isBountyExpired } from "@/lib/bounty/bounty-period";
 import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -29,9 +30,10 @@ export default function PartnerProgramBountiesPage() {
   const filteredBounties = useMemo(() => {
     if (!bounties) return [];
 
-    const now = new Date();
     return bounties.filter((bounty) => {
-      const isExpired = bounty.endsAt && new Date(bounty.endsAt) <= now;
+      const isExpired = isBountyExpired(
+        bounty.endsAt ? new Date(bounty.endsAt) : null,
+      );
 
       if (activeTab === "active") {
         return !isExpired;

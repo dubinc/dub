@@ -1,5 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
+import {
+  bountyEligibilityIncludes,
+  throwIfPartnerCannotSubmitBounty,
+} from "@/lib/bounty/api/bounty-eligibility";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
@@ -32,45 +36,14 @@ export const GET = withReferralsEmbedToken(
       bountyId,
       programId: programEnrollment.programId,
       include: {
-        groups: true,
+        ...bountyEligibilityIncludes,
       },
     });
 
-    if (bounty.groups.length > 0) {
-      const isInGroup = bounty.groups.some(
-        ({ groupId }) => groupId === programEnrollment.groupId,
-      );
-
-      if (!isInGroup) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "You are not allowed to access this bounty.",
-        });
-      }
-    }
-
-    const now = new Date();
-
-    if (bounty.startsAt && bounty.startsAt > now) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is not yet available.",
-      });
-    }
-
-    if (bounty.endsAt && bounty.endsAt < now) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is no longer available.",
-      });
-    }
-
-    if (bounty.archivedAt) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "This bounty is archived.",
-      });
-    }
+    throwIfPartnerCannotSubmitBounty({
+      programEnrollment,
+      bounty,
+    });
 
     const bountyInfo = resolveBountyDetails(bounty);
 

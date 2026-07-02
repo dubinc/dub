@@ -449,6 +449,7 @@ const bountyTemplates = ({
     rewardDescription,
     submissionRequirements,
     type,
+    startMode,
     startsAt,
     endsAt,
   } = data;
@@ -497,7 +498,11 @@ const bountyTemplates = ({
           },
           {
             type: "mrkdwn",
-            text: `*Duration*\n${new Date(startsAt).toLocaleDateString()}${endsAt ? ` - ${new Date(endsAt).toLocaleDateString()}` : " (No end date)"}`,
+            text: `*Duration*\n${
+              startMode === "relative" || !startsAt
+                ? "Starts when partner joins"
+                : `${startsAt.toLocaleDateString()}${endsAt ? ` - ${endsAt.toLocaleDateString()}` : " (No end date)"}`
+            }`,
           },
         ],
       },

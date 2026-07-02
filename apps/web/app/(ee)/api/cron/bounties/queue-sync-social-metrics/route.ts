@@ -1,3 +1,4 @@
+import { buildActiveBountyPeriodWhere } from "@/lib/bounty/api/bounty-eligibility";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
@@ -9,28 +10,14 @@ export const dynamic = "force-dynamic";
 
 // GET /api/cron/bounties/queue-sync-social-metrics - queue social metrics sync for bounties
 export const GET = withCron(async () => {
-  const now = new Date();
-
   const bounties = await prisma.bounty.findMany({
     where: {
       type: "submission",
-      startsAt: {
-        lte: now,
-      },
-      OR: [
-        {
-          endsAt: null,
-        },
-        {
-          endsAt: {
-            gt: now,
-          },
-        },
-      ],
       submissionRequirements: {
         path: "$.socialMetrics",
         not: Prisma.JsonNull,
       },
+      ...buildActiveBountyPeriodWhere(),
     },
     select: {
       id: true,

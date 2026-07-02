@@ -1,4 +1,4 @@
-import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
+import { getGroupBounties } from "@/lib/bounty/api/get-group-bounties";
 import { prisma } from "@/lib/prisma";
 import { DubApiError } from "../errors";
 
@@ -56,7 +56,7 @@ export const getGroupOrThrow = async ({
   return {
     ...group,
     ...(includeBounties && {
-      bounties: await getGroupBountySummaries({
+      bounties: await getGroupBounties({
         programId,
         groupId: group.id,
       }),

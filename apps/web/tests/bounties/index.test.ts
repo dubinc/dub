@@ -106,6 +106,31 @@ describe.sequential("/bounties/**", async () => {
     submissionBountyId = bounty.id;
   });
 
+  test("POST /bounties - relative start with endsAfterDays", async () => {
+    const { status, data: bounty } = await http.post<Bounty>({
+      path: "/bounties",
+      body: {
+        ...submissionBounty,
+        groupIds: [E2E_PARTNER_GROUP.id],
+        startMode: "relative",
+        endsAfterDays: 14,
+        endsAt: null,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(bounty).toMatchObject({
+      id: expect.any(String),
+      startMode: "relative",
+      endsAfterDays: 14,
+      endsAt: null,
+    });
+
+    onTestFinished(async () => {
+      await h.deleteBounty(bounty.id);
+    });
+  });
+
   test("POST /bounties - submission based with rewardDescription", async () => {
     const { status, data: bounty } = await http.post<Bounty>({
       path: "/bounties",

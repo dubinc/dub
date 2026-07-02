@@ -1,3 +1,4 @@
+import { isBountyExpired } from "@/lib/bounty/bounty-period";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
@@ -30,7 +31,10 @@ export function usePartnerProgramBounties({
     if (!bounties) return { active: 0, expired: 0 };
     return bounties.reduce(
       (counts, bounty) => {
-        const isExpired = bounty.endsAt && new Date(bounty.endsAt) < new Date();
+        const isExpired = isBountyExpired(
+          bounty.endsAt ? new Date(bounty.endsAt) : null,
+        );
+
         counts[isExpired ? "expired" : "active"]++;
         return counts;
       },

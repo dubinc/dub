@@ -2,9 +2,12 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { throwIfInvalidPartnerTagIds } from "@/lib/api/tags/throw-if-invalid-partner-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { bountyEligibilityIncludes } from "@/lib/bounty/api/bounty-eligibility";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
+import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getBountyWithDetails } from "@/lib/bounty/api/get-bounty-with-details";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
@@ -18,7 +21,7 @@ import {
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
 import { arrayEqual, deepEqual } from "@dub/utils";
-import { PartnerGroup, Prisma } from "@prisma/client";
+import { PartnerGroup, PartnerTag, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -61,6 +64,8 @@ export const PATCH = withWorkspace(
       description,
       startsAt,
       endsAt,
+      startMode,
+      endsAfterDays,
       submissionsOpenAt,
       submissionFrequency,
       maxSubmissions,
@@ -69,28 +74,33 @@ export const PATCH = withWorkspace(
       submissionRequirements,
       performanceCondition,
       groupIds,
+      partnerTagIds,
     } = updateBountySchema.parse(await parseRequestBody(req));
 
-    const bounty = await prisma.bounty.findUniqueOrThrow({
-      where: {
-        id: bountyId,
-        programId,
-      },
+    const bounty = await getBountyOrThrow({
+      bountyId,
+      programId,
       include: {
-        groups: true,
         workflow: true,
         _count: {
           select: {
             submissions: true,
           },
         },
+        ...bountyEligibilityIncludes,
       },
     });
 
+    const nextStartMode =
+      startMode !== undefined ? startMode : bounty.startMode;
+
     validateBounty({
       type: bounty.type,
-      startsAt,
+      startsAt: startsAt !== undefined ? startsAt : bounty.startsAt,
       endsAt: endsAt !== undefined ? endsAt : bounty.endsAt,
+      startMode: nextStartMode,
+      endsAfterDays:
+        endsAfterDays !== undefined ? endsAfterDays : bounty.endsAfterDays,
       submissionsOpenAt,
       submissionFrequency:
         submissionFrequency !== undefined
@@ -120,17 +130,44 @@ export const PATCH = withWorkspace(
 
     // if groupIds is provided and is different from the current groupIds, update the groups
     let updatedPartnerGroups: PartnerGroup[] | undefined = undefined;
-    if (
-      groupIds &&
-      !arrayEqual(
-        bounty.groups.map((group) => group.groupId),
-        groupIds,
-      )
-    ) {
-      updatedPartnerGroups = await throwIfInvalidGroupIds({
-        programId,
-        groupIds,
-      });
+    let shouldUpdatePartnerGroups = false;
+
+    if (groupIds !== undefined) {
+      const currentGroupIds = bounty.groups.map((group) => group.groupId);
+      const newGroupIds = groupIds || [];
+
+      if (!arrayEqual(currentGroupIds, newGroupIds)) {
+        if (newGroupIds.length > 0) {
+          updatedPartnerGroups = await throwIfInvalidGroupIds({
+            programId,
+            groupIds: newGroupIds,
+          });
+        }
+
+        shouldUpdatePartnerGroups = true;
+      }
+    }
+
+    // if partnerTagIds is provided and is different from the current partnerTagIds, update the partner tags
+    let updatedPartnerTags: PartnerTag[] | undefined = undefined;
+    let shouldUpdatePartnerTags = false;
+
+    if (partnerTagIds !== undefined) {
+      const currentPartnerTagIds = bounty.partnerTags.map(
+        (tag) => tag.partnerTagId,
+      );
+      const newPartnerTagIds = partnerTagIds || [];
+
+      if (!arrayEqual(currentPartnerTagIds, newPartnerTagIds)) {
+        if (newPartnerTagIds.length > 0) {
+          updatedPartnerTags = await throwIfInvalidPartnerTagIds({
+            programId,
+            partnerTagIds: newPartnerTagIds,
+          });
+        }
+
+        shouldUpdatePartnerTags = true;
+      }
     }
 
     // Prevent updates if `performanceCondition.attribute` differs from the current value if there are existing submissions
@@ -186,6 +223,16 @@ export const PATCH = withWorkspace(
       });
     }
 
+    // Relative bounties start when a partner joins, so startsAt is cleared.
+    // For absolute bounties, only update startsAt when explicitly provided.
+    let startsAtUpdate: { startsAt?: Date | null } = {};
+
+    if (nextStartMode === "relative") {
+      startsAtUpdate = { startsAt: null };
+    } else if (startsAt !== undefined) {
+      startsAtUpdate = { startsAt: startsAt ?? new Date() };
+    }
+
     const data = await prisma.$transaction(async (tx) => {
       const updatedBounty = await tx.bounty.update({
         where: {
@@ -194,8 +241,10 @@ export const PATCH = withWorkspace(
         data: {
           name: bountyName ?? undefined,
           description,
-          startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
-          endsAt,
+          ...startsAtUpdate,
+          ...(endsAt !== undefined && { endsAt }),
+          ...(startMode !== undefined && { startMode }),
+          ...(endsAfterDays !== undefined && { endsAfterDays }),
           submissionsOpenAt:
             bounty.type === "submission" ? submissionsOpenAt : null,
           ...(bounty.type === "submission" &&
@@ -211,18 +260,32 @@ export const PATCH = withWorkspace(
             submissionRequirements !== undefined && {
               submissionRequirements: submissionRequirements ?? Prisma.DbNull,
             }),
-          ...(updatedPartnerGroups && {
+          ...(shouldUpdatePartnerGroups && {
             groups: {
               deleteMany: {},
-              create: updatedPartnerGroups.map((group) => ({
-                groupId: group.id,
-              })),
+              ...(updatedPartnerGroups &&
+                updatedPartnerGroups.length > 0 && {
+                  create: updatedPartnerGroups.map((group) => ({
+                    groupId: group.id,
+                  })),
+                }),
+            },
+          }),
+          ...(shouldUpdatePartnerTags && {
+            partnerTags: {
+              deleteMany: {},
+              ...(updatedPartnerTags &&
+                updatedPartnerTags.length > 0 && {
+                  create: updatedPartnerTags.map((tag) => ({
+                    partnerTagId: tag.id,
+                  })),
+                }),
             },
           }),
         },
         include: {
+          ...bountyEligibilityIncludes,
           workflow: true,
-          groups: true,
         },
       });
 
@@ -246,6 +309,9 @@ export const PATCH = withWorkspace(
     const updatedBounty = BountySchema.parse({
       ...data,
       groups: data.groups.map(({ groupId }) => ({ id: groupId })),
+      partnerTags: data.partnerTags.map(({ partnerTagId }) => ({
+        id: partnerTagId,
+      })),
       performanceCondition: data.workflow?.triggerConditions?.[0],
     });
 
@@ -295,19 +361,17 @@ export const DELETE = withWorkspace(
     const { bountyId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const bounty = await prisma.bounty.findUniqueOrThrow({
-      where: {
-        id: bountyId,
-        programId,
-      },
+    const bounty = await getBountyOrThrow({
+      bountyId,
+      programId,
       include: {
-        groups: true,
         workflow: true,
         _count: {
           select: {
             submissions: true,
           },
         },
+        ...bountyEligibilityIncludes,
       },
     });
 
@@ -338,6 +402,9 @@ export const DELETE = withWorkspace(
     const deletedBounty = BountySchema.parse({
       ...bounty,
       groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
+      partnerTags: bounty.partnerTags.map(({ partnerTagId }) => ({
+        id: partnerTagId,
+      })),
       performanceCondition: bounty.workflow?.triggerConditions?.[0],
     });
 

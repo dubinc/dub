@@ -4,7 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { PartnerGroupProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { getSearchParams } from "@dub/utils";
-import { Link, Program, ProgramEnrollment } from "@prisma/client";
+import {
+  Link,
+  Program,
+  ProgramEnrollment,
+  ProgramPartnerTag,
+} from "@prisma/client";
 import { headers } from "next/headers";
 import { referralsEmbedToken } from "./token-class";
 
@@ -23,7 +28,9 @@ interface WithReferralsEmbedTokenHandler {
     params: Record<string, string>;
     searchParams: Record<string, string>;
     program: Program;
-    programEnrollment: ProgramEnrollment;
+    programEnrollment: ProgramEnrollment & {
+      programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
+    };
     group: PartnerGroupProps;
     links: Link[];
     embedToken: string;
@@ -105,6 +112,11 @@ export const withReferralsEmbedToken = (
               },
               program: true,
               partnerGroup: true,
+              programPartnerTags: {
+                select: {
+                  partnerTagId: true,
+                },
+              },
             },
           });
 

@@ -35,7 +35,9 @@ export const POST = withWorkspace(async ({ workspace, params }) => {
     const workflowConfig = parseWorkflowConfig(workflow);
 
     if (workflowConfig.action.type === WORKFLOW_ACTION_TYPES.SendCampaign) {
-      await executeSendCampaignWorkflow({ workflow });
+      await executeSendCampaignWorkflow({
+        workflow,
+      });
     }
 
     return NextResponse.json({

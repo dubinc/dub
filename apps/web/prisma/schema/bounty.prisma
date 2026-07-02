@@ -29,6 +29,11 @@ enum BountySubmissionFrequency {
   month
 }
 
+enum BountyStartMode {
+  absolute
+  relative
+}
+
 model Bounty {
   id                        String                     @id
   programId                 String
@@ -36,8 +41,10 @@ model Bounty {
   name                      String
   description               String?                    @db.Text
   type                      BountyType
-  startsAt                  DateTime
+  startsAt                  DateTime? // Set only when startMode is absolute
   endsAt                    DateTime?
+  startMode                 BountyStartMode            @default(absolute)
+  endsAfterDays             Int? // Set only when startMode is relative
   submissionsOpenAt         DateTime?
   submissionFrequency       BountySubmissionFrequency?
   maxSubmissions            Int                        @default(1)
@@ -52,6 +59,7 @@ model Bounty {
 
   submissions BountySubmission[]
   groups      BountyGroup[]
+  partnerTags BountyPartnerTag[]
   program     Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
   workflow    Workflow?           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   emails      NotificationEmail[]
@@ -68,7 +76,19 @@ model BountyGroup {
   partnerGroup PartnerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([bountyId, groupId])
-  @@index([groupId])
+  @@index(groupId)
+}
+
+model BountyPartnerTag {
+  id           String @id @default(cuid())
+  bountyId     String
+  partnerTagId String
+
+  bounty     Bounty     @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  partnerTag PartnerTag @relation(fields: [partnerTagId], references: [id], onDelete: Cascade)
+
+  @@unique([bountyId, partnerTagId])
+  @@index(partnerTagId)
 }
 
 model BountySubmission {

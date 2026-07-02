@@ -6,6 +6,7 @@ import {
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
 import useGroups from "@/lib/swr/use-groups";
+import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
@@ -44,6 +45,7 @@ export function BountyInfo() {
     });
 
   const { groups } = useGroups();
+  const { partnerTags } = usePartnerTags();
 
   const eligibleGroups = useMemo(() => {
     if (!groups || !bounty || bounty.groups.length === 0) {
@@ -53,6 +55,16 @@ export function BountyInfo() {
       .map((bountyGroup) => groups.find((g) => g.id === bountyGroup.id))
       .filter((g): g is NonNullable<typeof g> => g !== undefined);
   }, [groups, bounty]);
+
+  const eligibleTags = useMemo(() => {
+    if (!partnerTags || !bounty || bounty.partnerTags.length === 0) {
+      return [];
+    }
+
+    return bounty.partnerTags
+      .map((bountyTag) => partnerTags.find((t) => t.id === bountyTag.id))
+      .filter((t): t is NonNullable<typeof t> => t !== undefined);
+  }, [partnerTags, bounty]);
 
   if (loading) {
     return <BountyInfoSkeleton />;
@@ -81,7 +93,9 @@ export function BountyInfo() {
         <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
           <Calendar6 className="size-4 shrink-0" />
           <span>
-            {formatDate(bounty.startsAt, { month: "short" })}
+            {bounty.startsAt
+              ? formatDate(bounty.startsAt, { month: "short" })
+              : "When a partner joins"}
             {" → "}
             {bounty.endsAt
               ? formatDate(bounty.endsAt, { month: "short" })
@@ -140,38 +154,74 @@ export function BountyInfo() {
         </div>
 
         {isOwner && (
-          <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
+          <div className="text-content-subtle font-regular flex min-w-0 items-center gap-2 text-sm">
             <Users6 className="size-4 shrink-0" />
-            {bounty.groups.length === 0 ? (
-              <span>All groups</span>
-            ) : eligibleGroups.length === 1 ? (
-              <div className="flex items-center gap-1.5">
-                <GroupColorCircle group={eligibleGroups[0]} />
-                <span className="truncate">{eligibleGroups[0].name}</span>
-              </div>
-            ) : eligibleGroups.length > 1 ? (
-              <Tooltip
-                content={
-                  <ScrollableTooltipContent>
-                    {eligibleGroups.map((group) => (
-                      <div key={group.id} className="flex items-center gap-2">
-                        <GroupColorCircle group={group} />
-                        <span className="font-regular text-sm text-neutral-700">
-                          {group.name}
-                        </span>
-                      </div>
-                    ))}
-                  </ScrollableTooltipContent>
-                }
-              >
+            <div className="flex min-w-0 items-center gap-1.5">
+              {bounty.groups.length === 0 ? (
+                <span>All groups</span>
+              ) : eligibleGroups.length === 1 ? (
                 <div className="flex items-center gap-1.5">
                   <GroupColorCircle group={eligibleGroups[0]} />
-                  <span className="truncate">
-                    {eligibleGroups[0].name} +{eligibleGroups.length - 1}
-                  </span>
+                  <span className="truncate">{eligibleGroups[0].name}</span>
                 </div>
-              </Tooltip>
-            ) : null}
+              ) : eligibleGroups.length > 1 ? (
+                <Tooltip
+                  content={
+                    <ScrollableTooltipContent>
+                      {eligibleGroups.map((group) => (
+                        <div key={group.id} className="flex items-center gap-2">
+                          <GroupColorCircle group={group} />
+                          <span className="font-regular text-sm text-neutral-700">
+                            {group.name}
+                          </span>
+                        </div>
+                      ))}
+                    </ScrollableTooltipContent>
+                  }
+                >
+                  <div className="flex items-center gap-1.5">
+                    <GroupColorCircle group={eligibleGroups[0]} />
+                    <span className="truncate">
+                      {eligibleGroups[0].name} +{eligibleGroups.length - 1}
+                    </span>
+                  </div>
+                </Tooltip>
+              ) : (
+                <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
+              )}
+
+              {bounty.partnerTags.length > 0 && (
+                <>
+                  <span className="text-content-muted shrink-0">·</span>
+                  {eligibleTags.length > 0 ? (
+                    eligibleTags.length === 1 ? (
+                      <span className="truncate">{eligibleTags[0].name}</span>
+                    ) : (
+                      <Tooltip
+                        content={
+                          <ScrollableTooltipContent>
+                            {eligibleTags.map((tag) => (
+                              <span
+                                key={tag.id}
+                                className="font-regular text-sm text-neutral-700"
+                              >
+                                {tag.name}
+                              </span>
+                            ))}
+                          </ScrollableTooltipContent>
+                        }
+                      >
+                        <span className="truncate">
+                          {eligibleTags[0].name} +{eligibleTags.length - 1}
+                        </span>
+                      </Tooltip>
+                    )
+                  ) : (
+                    <div className="h-5 w-20 animate-pulse rounded bg-neutral-200" />
+                  )}
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>

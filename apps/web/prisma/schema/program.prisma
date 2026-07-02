@@ -140,6 +140,7 @@ model ProgramEnrollment {
 
   createdAt                    DateTime               @default(now())
   updatedAt                    DateTime               @updatedAt
+  groupJoinedAt                DateTime? // date when the partner joined their current group
   customerDataSharingEnabledAt DateTime?
   groupMoveDisabledAt          DateTime?
   bannedAt                     DateTime?

@@ -1,6 +1,7 @@
+import { BOUNTY_ICONS } from "@/lib/bounty/constants";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
-import { BountyType, EventType, Reward } from "@prisma/client";
+import { EventType, Reward } from "@prisma/client";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { serializeReward } from "./serialize-reward";
 
@@ -11,23 +12,20 @@ const REWARD_ICONS: Record<EventType, string> = {
   referral: "https://assets.dub.co/email-assets/icons/nodes-4.png",
 };
 
-const BOUNTY_ICONS: Record<BountyType, string> = {
-  submission: "https://assets.dub.co/email-assets/icons/heart.png",
-  performance: "https://assets.dub.co/email-assets/icons/trophy.png",
-};
-
 export async function getGroupRewardsAndBounties({
   programId,
   groupId,
+  includeBounties = true,
 }: {
   programId: string;
   groupId: string;
+  includeBounties?: boolean;
 }) {
   const group = await getGroupOrThrow({
     programId,
     groupId,
     includeExpandedFields: true,
-    includeBounties: true,
+    includeBounties,
   });
 
   return {

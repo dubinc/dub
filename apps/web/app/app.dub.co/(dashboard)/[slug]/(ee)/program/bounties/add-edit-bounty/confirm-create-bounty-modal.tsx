@@ -33,6 +33,7 @@ type ConfirmCreateBountyModalProps = {
     | "rewardDescription"
     | "submissionRequirements"
     | "groups"
+    | "partnerTags"
   >;
   onConfirm: (data: { sendNotificationEmails: boolean }) => Promise<void>;
 };
@@ -108,7 +109,9 @@ function ConfirmCreateBountyModal({
               <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
                 <Calendar6 className="size-3.5" />
                 <span>
-                  {formatDate(bounty.startsAt, { month: "short" })}
+                  {bounty.startsAt
+                    ? formatDate(bounty.startsAt, { month: "short" })
+                    : "When a partner joins"}
                   {bounty.endsAt && (
                     <>
                       {" → "}

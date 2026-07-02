@@ -6,7 +6,6 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps, CreateBountyInput } from "@/lib/types";
-import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
   ProgramSheetAccordion,
   ProgramSheetAccordionContent,
@@ -21,7 +20,6 @@ import {
 } from "@/ui/shared/inline-badge-popover";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import {
-  AnimatedSizeContainer,
   Button,
   CalendarIcon,
   CardSelector,
@@ -34,7 +32,6 @@ import {
   RichTextProvider,
   RichTextToolbar,
   Sheet,
-  SmartDateTimePicker,
   Switch,
   Tooltip,
   TooltipContent,
@@ -45,6 +42,8 @@ import { BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, FormProvider } from "react-hook-form";
 import { BountyCriteria } from "./bounty-criteria";
+import { BountyDuration } from "./bounty-duration";
+import { BountyEligibility } from "./bounty-eligibility";
 import { useAddEditBountyForm } from "./use-add-edit-bounty-form";
 
 interface BountySheetProps {
@@ -73,11 +72,12 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     form,
     openAccordions,
     setOpenAccordions,
-    hasStartDate,
-    handleStartDateToggle,
     hasEndDate,
-    handleEndDateToggle,
-    handleEndDateChange,
+    startsAt,
+    endsAt,
+    startMode,
+    endsAfterDays,
+    handleTimingChange,
     allowedSubmissions,
     handleAllowedSubmissionsChange,
     maxAllowedSubmissions,
@@ -248,126 +248,16 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                       </div>
                     </div>
 
-                    <AnimatedSizeContainer
-                      height
-                      transition={{ ease: "easeInOut", duration: 0.2 }}
-                      style={{
-                        height: hasStartDate ? "auto" : "0px",
-                        overflow: "hidden",
+                    <BountyDuration
+                      isEditing={!!bounty}
+                      value={{
+                        startMode: startMode ?? "absolute",
+                        startsAt: startsAt ? new Date(startsAt) : new Date(),
+                        endsAt: endsAt ? new Date(endsAt) : null,
+                        endsAfterDays: endsAfterDays ?? null,
                       }}
-                    >
-                      <div className="flex items-center gap-4">
-                        <Switch
-                          fn={handleStartDateToggle}
-                          checked={hasStartDate}
-                          trackDimensions="w-8 h-4"
-                          thumbDimensions="w-3 h-3"
-                          thumbTranslate="translate-x-4"
-                          disabled={Boolean(bounty?.startsAt)}
-                        />
-                        <Label>Start date</Label>
-                      </div>
-
-                      {hasStartDate && (
-                        <div className="mt-3 p-px">
-                          <Controller
-                            control={control}
-                            name="startsAt"
-                            render={({ field }) => (
-                              <SmartDateTimePicker
-                                value={field.value}
-                                onChange={(date) =>
-                                  field.onChange(date ?? undefined)
-                                }
-                                placeholder='E.g. "2026-02-28", "Last Thursday", "2 hours ago"'
-                              />
-                            )}
-                          />
-                        </div>
-                      )}
-                    </AnimatedSizeContainer>
-
-                    {type === "performance" && (
-                      <AnimatedSizeContainer
-                        height
-                        transition={{ ease: "easeInOut", duration: 0.2 }}
-                        style={{
-                          height: hasEndDate ? "auto" : "0px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div className="flex items-center gap-4">
-                          <Switch
-                            fn={handleEndDateToggle}
-                            checked={hasEndDate}
-                            trackDimensions="w-8 h-4"
-                            thumbDimensions="w-3 h-3"
-                            thumbTranslate="translate-x-4"
-                            disabled={Boolean(bounty?.endsAt)}
-                          />
-                          <Label>End date</Label>
-                        </div>
-
-                        {hasEndDate && (
-                          <div className="mt-3 p-px">
-                            <Controller
-                              control={control}
-                              name="endsAt"
-                              render={({ field }) => (
-                                <SmartDateTimePicker
-                                  value={field.value}
-                                  onChange={(date) =>
-                                    handleEndDateChange(date ?? null)
-                                  }
-                                  placeholder='E.g. "2026-12-01", "Next Thursday", "After 10 days"'
-                                />
-                              )}
-                            />
-                          </div>
-                        )}
-                      </AnimatedSizeContainer>
-                    )}
-
-                    {type === "submission" && (
-                      <AnimatedSizeContainer
-                        height
-                        transition={{ ease: "easeInOut", duration: 0.2 }}
-                        style={{
-                          height: hasEndDate ? "auto" : "0px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div className="flex items-center gap-4">
-                          <Switch
-                            fn={handleEndDateToggle}
-                            checked={hasEndDate}
-                            trackDimensions="w-8 h-4"
-                            thumbDimensions="w-3 h-3"
-                            thumbTranslate="translate-x-4"
-                            disabled={Boolean(bounty?.endsAt)}
-                          />
-                          <Label>End date</Label>
-                        </div>
-
-                        {hasEndDate && (
-                          <div className="mt-3 p-px">
-                            <Controller
-                              control={control}
-                              name="endsAt"
-                              render={({ field }) => (
-                                <SmartDateTimePicker
-                                  value={field.value}
-                                  onChange={(date) =>
-                                    handleEndDateChange(date ?? null)
-                                  }
-                                  placeholder='E.g. "2026-12-01", "Next Thursday", "After 10 days"'
-                                />
-                              )}
-                            />
-                          </div>
-                        )}
-                      </AnimatedSizeContainer>
-                    )}
+                      onChange={handleTimingChange}
+                    />
 
                     {type === "submission" && (
                       <>
@@ -505,23 +395,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
               <BountyCriteria />
 
-              <ProgramSheetAccordionItem value="groups">
-                <ProgramSheetAccordionTrigger>
-                  Groups
-                </ProgramSheetAccordionTrigger>
-                <ProgramSheetAccordionContent>
-                  <Controller
-                    control={control}
-                    name="groupIds"
-                    render={({ field }) => (
-                      <GroupsMultiSelect
-                        selectedGroupIds={field.value}
-                        setSelectedGroupIds={(ids) => field.onChange(ids)}
-                      />
-                    )}
-                  />
-                </ProgramSheetAccordionContent>
-              </ProgramSheetAccordionItem>
+              <BountyEligibility />
             </ProgramSheetAccordion>
           </div>
         </div>

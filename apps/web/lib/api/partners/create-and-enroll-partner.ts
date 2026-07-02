@@ -158,6 +158,9 @@ export const createAndEnrollPartner = async ({
         ...(enrolledAt && {
           createdAt: enrolledAt,
         }),
+        ...(status === "approved" && {
+          groupJoinedAt: enrolledAt ?? new Date(),
+        }),
       },
     },
   };

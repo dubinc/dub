@@ -1,4 +1,8 @@
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
+import {
+  getEffectiveBountyPeriod,
+  isBountyExpired,
+} from "@/lib/bounty/bounty-period";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
@@ -31,22 +35,18 @@ export const POST = withCron(async ({ rawBody }) => {
       id: bountyId,
     },
     include: {
-      program: true,
+      program: {
+        select: {
+          name: true,
+          slug: true,
+          supportEmail: true,
+        },
+      },
     },
   });
 
   if (!bounty) {
     return logAndRespond(`Bounty ${bountyId} not found. Skipping...`);
-  }
-
-  const now = new Date();
-
-  if (bounty.startsAt && bounty.startsAt > now) {
-    return logAndRespond(`Bounty ${bountyId} has not started yet. Skipping...`);
-  }
-
-  if (bounty.endsAt && bounty.endsAt < now) {
-    return logAndRespond(`Bounty ${bountyId} has ended. Skipping...`);
   }
 
   const bountyInfo = resolveBountyDetails(bounty);
@@ -73,6 +73,12 @@ export const POST = withCron(async ({ rawBody }) => {
       partner: {
         select: {
           email: true,
+        },
+      },
+      programEnrollment: {
+        select: {
+          groupJoinedAt: true,
+          createdAt: true,
         },
       },
     },
@@ -119,7 +125,16 @@ export const POST = withCron(async ({ rawBody }) => {
   } of newMetrics) {
     const submission = submissionById.get(id);
 
-    if (!submission) {
+    if (!submission || !submission.programEnrollment) {
+      continue;
+    }
+
+    const { endsAt } = getEffectiveBountyPeriod({
+      programEnrollment: submission.programEnrollment,
+      bounty,
+    });
+
+    if (isBountyExpired(endsAt)) {
       continue;
     }
 
@@ -136,7 +151,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
     if (shouldTransitionToSubmitted) {
       updateData.status = "submitted";
-      updateData.completedAt = now;
+      updateData.completedAt = new Date();
 
       if (submission.partner?.email) {
         notifications.push({
@@ -157,7 +172,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   await prisma.$transaction(updates);
 
-  if (notifications.length > 0 && bounty.program) {
+  if (notifications.length > 0) {
     await sendBatchEmail(
       notifications.map(({ email }) => ({
         subject: "Bounty completed!",

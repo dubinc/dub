@@ -1,8 +1,13 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import {
+  bountyEligibilityIncludes,
+  isPartnerEligibleForBounty,
+} from "@/lib/bounty/api/bounty-eligibility";
+import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
+import { getEffectiveBountyPeriod } from "@/lib/bounty/bounty-period";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
-import { prisma } from "@/lib/prisma";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
 
@@ -17,21 +22,23 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       include: {
         program: true,
         links: true,
+        programPartnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
       },
     });
 
-  const bounty = await prisma.bounty.findUnique({
-    where: {
-      id: bountyId,
-      programId: program.id,
-    },
+  const bounty = await getBountyOrThrow({
+    bountyId,
+    programId: program.id,
     include: {
       workflow: {
         select: {
           triggerConditions: true,
         },
       },
-      groups: true,
       submissions: {
         where: {
           partnerId: partner.id,
@@ -47,41 +54,29 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           },
         },
       },
+      ...bountyEligibilityIncludes,
     },
   });
 
-  if (!bounty) {
+  const isEligible = isPartnerEligibleForBounty({
+    programEnrollment,
+    bounty,
+  });
+
+  if (!isEligible) {
     throw new DubApiError({
-      code: "not_found",
-      message: "Bounty not found.",
+      code: "bad_request",
+      message: "You are not eligible for this bounty.",
     });
   }
-
-  if (bounty.startsAt > new Date()) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Bounty not found.",
-    });
-  }
-
-  const partnerGroupId = programEnrollment.groupId || program.defaultGroupId;
-  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
-  const partnerCanSeeBounty =
-    bountyGroupIds.length === 0 ||
-    (partnerGroupId && bountyGroupIds.includes(partnerGroupId));
-
-  if (!partnerCanSeeBounty) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Bounty not found.",
-    });
-  }
-
-  const { groups, ...bountyWithoutGroups } = bounty;
 
   return NextResponse.json(
     PartnerBountySchema.parse({
-      ...bountyWithoutGroups,
+      ...bounty,
+      ...getEffectiveBountyPeriod({
+        programEnrollment,
+        bounty,
+      }),
       performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
       partner: {
         ...aggregatePartnerLinksStats(links),

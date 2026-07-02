@@ -1,4 +1,4 @@
-import { BountySubmissionFrequency } from "@prisma/client";
+import { BountySubmissionFrequency, BountyType } from "@prisma/client";
 
 export const BOUNTY_DESCRIPTION_MAX_LENGTH = 5000;
 
@@ -29,3 +29,8 @@ export const SUBMISSION_FREQUENCY_OPTIONS = [
   { label: "Once a week", value: BountySubmissionFrequency.week },
   { label: "Once a month", value: BountySubmissionFrequency.month },
 ] as const;
+
+export const BOUNTY_ICONS: Record<BountyType, string> = {
+  submission: "https://assets.dub.co/email-assets/icons/heart.png",
+  performance: "https://assets.dub.co/email-assets/icons/trophy.png",
+};

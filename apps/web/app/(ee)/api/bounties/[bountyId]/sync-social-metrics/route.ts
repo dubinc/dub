@@ -4,6 +4,11 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
+import {
+  getEffectiveBountyPeriod,
+  isBountyExpired,
+  isBountyStarted,
+} from "@/lib/bounty/bounty-period";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -52,6 +57,12 @@ export const POST = withWorkspace(
                 urls: true,
                 status: true,
                 partner: true,
+                programEnrollment: {
+                  select: {
+                    groupJoinedAt: true,
+                    createdAt: true,
+                  },
+                },
               },
             },
           }
@@ -67,10 +78,12 @@ export const POST = withWorkspace(
       });
     }
 
+    let startsAt: Date | null = null;
+    let endsAt: Date | null = null;
     const submission = submissionId ? bounty.submissions?.[0] : undefined;
 
     if (submissionId) {
-      if (!submission) {
+      if (!submission || !submission.programEnrollment) {
         throw new DubApiError({
           code: "not_found",
           message: `Submission ${submissionId} not found.`,
@@ -83,18 +96,24 @@ export const POST = withWorkspace(
           message: "Social metrics can't be synced for an approved submission.",
         });
       }
+
+      const effectiveDateRange = getEffectiveBountyPeriod({
+        programEnrollment: submission.programEnrollment,
+        bounty,
+      });
+
+      startsAt = effectiveDateRange.startsAt;
+      endsAt = effectiveDateRange.endsAt;
     }
 
-    const now = new Date();
-
-    if (bounty.startsAt && bounty.startsAt > now) {
+    if (startsAt && !isBountyStarted(startsAt)) {
       throw new DubApiError({
         code: "bad_request",
         message: "Social metrics can only be synced after the bounty starts.",
       });
     }
 
-    if (bounty.endsAt && bounty.endsAt < now) {
+    if (isBountyExpired(endsAt)) {
       throw new DubApiError({
         code: "bad_request",
         message: "Social metrics can't be synced after the bounty ends.",

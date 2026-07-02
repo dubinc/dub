@@ -1,6 +1,6 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getSession } from "@/lib/auth";
-import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
+import { getGroupBounties } from "@/lib/bounty/api/get-group-bounties";
 import { prisma } from "@/lib/prisma";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { PageContent } from "@/ui/layout/page-content";
@@ -71,7 +71,7 @@ export default async function ProgramInvitePage(props: {
     .filter((r) => r !== null)
     .map((r) => serializeReward(r as Reward));
 
-  const bounties = await getGroupBountySummaries({
+  const bounties = await getGroupBounties({
     programId: program.id,
     groupId: group.id,
   });
