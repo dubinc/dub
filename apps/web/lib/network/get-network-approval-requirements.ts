@@ -3,7 +3,6 @@ import {
   EXCLUDED_PROGRAM_IDS,
   PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
 } from "../constants/partner-profile";
-import { PARTNER_PLATFORM_FIELDS } from "../partners/partner-platforms";
 import { EnrolledPartnerProps, PartnerProps } from "../types";
 
 /** Program enrollments with totalCommissions as number | bigint (Prisma returns bigint). */
@@ -55,9 +54,7 @@ export function getNetworkApprovalRequirements({
       label: "Verify at least 2 social accounts/website",
       href: "#platforms",
       completed:
-        PARTNER_PLATFORM_FIELDS.filter(
-          (field) => field.data(partner.platforms).verified,
-        ).length >= 2,
+        partner.platforms.filter((platform) => platform.verifiedAt).length >= 2,
     },
     {
       label: "Fill out your profile description",

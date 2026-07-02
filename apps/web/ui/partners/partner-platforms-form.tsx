@@ -4,50 +4,63 @@ import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { startPartnerPlatformVerificationAction } from "@/lib/actions/partners/start-partner-platform-verification";
 import { updatePartnerPlatformsAction } from "@/lib/actions/partners/update-partner-platforms";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
-import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
+import { getPartnerPlatformDisplay } from "@/lib/partners/partner-platforms";
+import {
+  MAX_PLATFORMS_PER_TYPE,
+  PLATFORM_ORDER,
+  sanitizeSocialHandle,
+  sanitizeWebsite,
+} from "@/lib/social-utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPlatformProps, PartnerProps } from "@/lib/types";
-import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { DomainVerificationModal } from "@/ui/modals/domain-verification-modal";
 import { SocialVerificationByCodeModal } from "@/ui/modals/social-verification-by-code-modal";
 import {
-  AnimatedSizeContainer,
   Button,
-  CircleCheckFill,
   Globe,
   Icon,
   Instagram,
   LinkedIn,
+  Popover,
   TikTok,
   Twitter,
   YouTube,
 } from "@dub/ui";
-import { getPrettyUrl, nFormatter } from "@dub/utils";
+import { getPrettyUrl } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { PlatformType } from "@prisma/client";
+import { Command } from "cmdk";
+import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { forwardRef, ReactNode, useCallback, useMemo, useState } from "react";
+import { forwardRef, useMemo, useState } from "react";
 import {
   FormProvider,
+  useFieldArray,
   useForm,
   useFormContext,
   useWatch,
 } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import * as z from "zod/v4";
 import { PartnerPlatformCard } from "./partner-platform-card";
 
-const onlinePresenceSchema = z.object({
-  website: parseUrlSchemaAllowEmpty().nullish(),
-  youtube: z.string().nullish(),
-  twitter: z.string().nullish(),
-  linkedin: z.string().nullish(),
-  instagram: z.string().nullish(),
-  tiktok: z.string().nullish(),
-});
+type PlatformInputConfig = {
+  label: string;
+  icon: Icon;
+  domainLabel?: string;
+  innerAtPrefix?: boolean;
+  cardPrefix?: string;
+  placeholder: string;
+};
 
-type PartnerPlatformsFormData = z.infer<typeof onlinePresenceSchema>;
+type PlatformRow = {
+  type: PlatformType;
+  identifier: string;
+};
+
+type PartnerPlatformsFormData = {
+  platforms: PlatformRow[];
+};
 
 interface PartnerPlatformsFormProps {
   variant?: "onboarding" | "settings";
@@ -55,20 +68,117 @@ interface PartnerPlatformsFormProps {
   onSubmitSuccessful?: () => void;
 }
 
-// Helper function to get platform data from platforms array
-function getPlatformData(
-  platforms: PartnerPlatformProps[] | undefined,
-  platform: PlatformType,
-): PartnerPlatformProps | undefined {
-  return platforms?.find((p) => p.type === platform);
+const PLATFORM_CONFIG: Record<PlatformType, PlatformInputConfig> = {
+  website: {
+    label: "Website",
+    icon: Globe,
+    placeholder: "example.com",
+  },
+  youtube: {
+    label: "YouTube",
+    icon: YouTube,
+    domainLabel: "youtube.com",
+    innerAtPrefix: true,
+    cardPrefix: "@",
+    placeholder: "handle",
+  },
+  twitter: {
+    label: "X/Twitter",
+    icon: Twitter,
+    domainLabel: "x.com",
+    cardPrefix: "@",
+    placeholder: "handle",
+  },
+  instagram: {
+    label: "Instagram",
+    icon: Instagram,
+    domainLabel: "instagram.com",
+    cardPrefix: "@",
+    placeholder: "handle",
+  },
+  tiktok: {
+    label: "TikTok",
+    icon: TikTok,
+    domainLabel: "tiktok.com",
+    innerAtPrefix: true,
+    cardPrefix: "@",
+    placeholder: "handle",
+  },
+  linkedin: {
+    label: "LinkedIn",
+    icon: LinkedIn,
+    domainLabel: "linkedin.com/in",
+    cardPrefix: "in/",
+    placeholder: "handle",
+  },
+};
+
+// Normalize a value the same way the server does, so we can match against
+// stored identifiers.
+function normalizeForType(type: PlatformType, value: string | undefined) {
+  if (!value) {
+    return null;
+  }
+  return type === "website"
+    ? sanitizeWebsite(value)
+    : sanitizeSocialHandle(value, type);
 }
 
-// Helper function to get identifier from platforms array
-function getPlatformIdentifier(
+// Find the partner's stored platform that matches a given row value.
+function findMatchingPlatform(
+  platforms: PartnerPlatformProps[] | undefined,
+  type: PlatformType,
+  value: string | undefined,
+): PartnerPlatformProps | undefined {
+  const normalized = normalizeForType(type, value);
+  if (!normalized) {
+    return undefined;
+  }
+
+  return platforms?.find((p) => {
+    if (p.type !== type) {
+      return false;
+    }
+
+    if (type === "website") {
+      return (
+        getPrettyUrl(p.identifier).toLowerCase() ===
+        getPrettyUrl(normalized).toLowerCase()
+      );
+    }
+
+    return p.identifier.toLowerCase() === normalized.toLowerCase();
+  });
+}
+
+// Seed form rows: one row per existing handle, plus one empty base row for any
+// platform type the partner has no handle for (so all six are always visible).
+function getDefaultPlatformRows(
   partner: PartnerPlatformsFormProps["partner"],
-  platform: PlatformType,
-): string | undefined {
-  return getPlatformData(partner?.platforms, platform)?.identifier;
+): PlatformRow[] {
+  const platforms = partner?.platforms ?? [];
+  const rows: PlatformRow[] = [];
+
+  for (const type of PLATFORM_ORDER) {
+    const handles = platforms.filter((p) => p.type === type);
+
+    if (handles.length === 0) {
+      rows.push({ type, identifier: "" });
+      continue;
+    }
+
+    for (const handle of handles) {
+      rows.push({
+        type,
+        identifier:
+          type === "website"
+            ? getPrettyUrl(handle.identifier)
+            : handle.identifier,
+      });
+    }
+  }
+
+  return rows;
 }
 
 /**
@@ -80,14 +190,7 @@ export function usePartnerPlatformsForm({
 }: Pick<PartnerPlatformsFormProps, "partner">) {
   return useForm<PartnerPlatformsFormData>({
     defaultValues: {
-      website: getPlatformIdentifier(partner, "website")
-        ? getPrettyUrl(getPlatformIdentifier(partner, "website")!)
-        : undefined,
-      youtube: getPlatformIdentifier(partner, "youtube") || undefined,
-      twitter: getPlatformIdentifier(partner, "twitter") || undefined,
-      linkedin: getPlatformIdentifier(partner, "linkedin") || undefined,
-      instagram: getPlatformIdentifier(partner, "instagram") || undefined,
-      tiktok: getPlatformIdentifier(partner, "tiktok") || undefined,
+      platforms: getDefaultPlatformRows(partner),
     },
   });
 }
@@ -118,13 +221,17 @@ export const PartnerPlatformsForm = forwardRef<
       : true;
 
     const {
-      register,
+      control,
       getValues,
       handleSubmit,
       reset,
-      setValue,
-      formState: { errors, isSubmitting, isSubmitSuccessful },
+      formState: { isSubmitting, isSubmitSuccessful },
     } = form;
+
+    const { fields, append, remove } = useFieldArray({
+      control,
+      name: "platforms",
+    });
 
     const { executeAsync } = useAction(updatePartnerPlatformsAction, {
       onSuccess: async () => {
@@ -148,6 +255,7 @@ export const PartnerPlatformsForm = forwardRef<
     const [domainVerificationData, setDomainVerificationData] = useState<{
       domain: string;
       txtRecord: string;
+      identifier: string;
     } | null>(null);
 
     const [socialVerificationData, setSocialVerificationData] = useState<{
@@ -156,80 +264,87 @@ export const PartnerPlatformsForm = forwardRef<
       verificationCode: string;
     } | null>(null);
 
-    const {
-      executeAsync: startSocialVerification,
-      isPending: isStartingSocialVerification,
-    } = useAction(startPartnerPlatformVerificationAction, {
-      onSuccess: async ({ input, data }) => {
-        if (!input || !data) {
-          return;
-        }
+    const [verifyingIndex, setVerifyingIndex] = useState<number | null>(null);
 
-        // For website: auto-verified when email domain matches website domain
-        if (data.type === "auto_verified") {
-          toast.success(
-            "Website automatically verified because your email domain matches the website domain.",
-          );
-          await mutate("/api/partner-profile");
-          return;
-        }
+    const { executeAsync: startSocialVerification } = useAction(
+      startPartnerPlatformVerificationAction,
+      {
+        onSuccess: async ({ input, data }) => {
+          if (!input || !data) {
+            return;
+          }
 
-        // For website verification (TXT record)
-        if (data.type === "txt_record") {
-          const websiteUrl = input.handle.startsWith("http")
-            ? input.handle
-            : `https://${input.handle}`;
+          // For website: auto-verified when email domain matches website domain
+          if (data.type === "auto_verified") {
+            toast.success(
+              "Website automatically verified because your email domain matches the website domain.",
+            );
+            await mutate("/api/partner-profile");
+            return;
+          }
 
-          setDomainVerificationData({
-            domain: new URL(websiteUrl).hostname,
-            txtRecord: data.websiteTxtRecord,
-          });
-        }
+          // For website verification (TXT record)
+          if (data.type === "txt_record") {
+            const websiteUrl = input.handle.startsWith("http")
+              ? input.handle
+              : `https://${input.handle}`;
 
-        // For OAuth flow
-        else if (data.type === "oauth") {
-          window.location.href = data.oauthUrl;
-        }
+            setDomainVerificationData({
+              domain: new URL(websiteUrl).hostname,
+              txtRecord: data.websiteTxtRecord,
+              identifier: input.handle,
+            });
+          }
 
-        // For verification code flow
-        else if (data.type === "verification_code") {
-          setSocialVerificationData({
-            platform: input.platform,
-            handle: input.handle,
-            verificationCode: data.verificationCode,
-          });
-        }
+          // For OAuth flow
+          else if (data.type === "oauth") {
+            window.location.href = data.oauthUrl;
+          }
+
+          // For verification code flow
+          else if (data.type === "verification_code") {
+            setSocialVerificationData({
+              platform: input.platform,
+              handle: input.handle,
+              verificationCode: data.verificationCode,
+            });
+          }
+        },
+        onError: ({ error }) => {
+          toast.error(parseActionError(error, "Failed to start verification."));
+        },
       },
-      onError: ({ error }) => {
-        toast.error(parseActionError(error, "Failed to start verification."));
-      },
-    });
-
-    const onPasteWebsite = useCallback(
-      (e: React.ClipboardEvent<HTMLInputElement>) => {
-        const text = e.clipboardData.getData("text/plain");
-        const sanitized = sanitizeWebsite(text);
-
-        if (sanitized) {
-          setValue("website", sanitized);
-          e.preventDefault();
-        }
-      },
-      [setValue],
     );
 
-    const onPasteSocial = useCallback(
-      (e: React.ClipboardEvent<HTMLInputElement>, platform: PlatformType) => {
-        const text = e.clipboardData.getData("text/plain");
-        const sanitized = sanitizeSocialHandle(text, platform);
+    const countByType = useMemo(() => {
+      const counts: Partial<Record<PlatformType, number>> = {};
+      for (const row of fields) {
+        counts[row.type] = (counts[row.type] ?? 0) + 1;
+      }
+      return counts;
+    }, [fields]);
 
-        if (sanitized) {
-          setValue(platform, sanitized);
-          e.preventDefault();
-        }
-      },
-      [setValue],
-    );
+    const onVerifyRow = async (index: number, type: PlatformType) => {
+      const handle = getValues(`platforms.${index}.identifier`);
+
+      if (!handle) {
+        return;
+      }
+
+      setVerifyingIndex(index);
+
+      const result = await startSocialVerification({
+        platform: type,
+        handle,
+        source: variant,
+      });
+
+      // Keep the spinner on while redirecting to an OAuth provider
+      const redirecting = result?.data?.type === "oauth";
+      if (!redirecting) {
+        setVerifyingIndex(null);
+      }
+    };
 
     return (
       <>
@@ -237,6 +352,7 @@ export const PartnerPlatformsForm = forwardRef<
           <DomainVerificationModal
             domain={domainVerificationData.domain}
             txtRecord={domainVerificationData.txtRecord}
+            identifier={domainVerificationData.identifier}
             showDomainVerificationModal={domainVerificationData !== null}
             setShowDomainVerificationModal={() =>
               setDomainVerificationData(null)
@@ -266,276 +382,27 @@ export const PartnerPlatformsForm = forwardRef<
           >
             <div
               className={cn(
-                "flex w-full flex-col gap-6 text-left",
-                variant === "settings" && "gap-4",
+                "flex w-full flex-col gap-4 text-left",
+                variant === "onboarding" && "gap-3",
               )}
             >
-              <FormRow
-                label="Website"
-                property="website"
-                icon={Globe}
+              {fields.map((field, index) => (
+                <PlatformFormRow
+                  key={field.id}
+                  index={index}
+                  type={field.type}
+                  variant={variant}
+                  disabled={disabled}
+                  isVerifying={verifyingIndex === index}
+                  onVerify={() => onVerifyRow(index, field.type)}
+                  onRemove={() => remove(index)}
+                />
+              ))}
+
+              <AddPlatformButton
                 disabled={disabled}
-                onVerifyClick={async () => {
-                  const website = getValues("website");
-
-                  if (website) {
-                    await startSocialVerification({
-                      platform: "website",
-                      handle: website,
-                      source: variant,
-                    });
-                  }
-
-                  return isStartingSocialVerification;
-                }}
-                input={
-                  <input
-                    type="text"
-                    disabled={disabled}
-                    className={cn(
-                      "block w-full rounded-md focus:outline-none sm:text-sm",
-                      disabled &&
-                        "cursor-not-allowed bg-neutral-50 text-neutral-400",
-                      errors.website
-                        ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                        : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                    )}
-                    placeholder="example.com"
-                    onPaste={onPasteWebsite}
-                    {...register("website")}
-                  />
-                }
-                variant={variant}
-              />
-
-              <FormRow
-                label="YouTube"
-                property="youtube"
-                prefix="@"
-                icon={YouTube}
-                disabled={disabled}
-                onVerifyClick={async () => {
-                  const handle = getValues("youtube");
-
-                  if (handle) {
-                    await startSocialVerification({
-                      platform: "youtube",
-                      handle,
-                      source: variant,
-                    });
-                  }
-
-                  return isStartingSocialVerification;
-                }}
-                input={
-                  <div className="flex rounded-md">
-                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                      youtube.com
-                    </span>
-                    <div className="relative w-full">
-                      <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-neutral-400">
-                        @
-                      </span>
-                      <input
-                        type="text"
-                        disabled={disabled}
-                        className={cn(
-                          "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
-                          disabled &&
-                            "cursor-not-allowed bg-neutral-50 text-neutral-400",
-                          errors.youtube
-                            ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                            : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                        )}
-                        placeholder="handle"
-                        onPaste={(e) => onPasteSocial(e, "youtube")}
-                        {...register("youtube")}
-                      />
-                    </div>
-                  </div>
-                }
-                variant={variant}
-              />
-
-              <FormRow
-                label="X/Twitter"
-                property="twitter"
-                prefix="@"
-                icon={Twitter}
-                disabled={disabled}
-                onVerifyClick={async () => {
-                  const handle = getValues("twitter");
-
-                  if (handle) {
-                    await startSocialVerification({
-                      platform: "twitter",
-                      handle,
-                      source: variant,
-                    });
-                  }
-
-                  return isStartingSocialVerification;
-                }}
-                input={
-                  <div className="flex rounded-md">
-                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                      x.com
-                    </span>
-                    <input
-                      type="text"
-                      disabled={disabled}
-                      className={cn(
-                        "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                        disabled &&
-                          "cursor-not-allowed bg-neutral-50 text-neutral-400",
-                        errors.twitter
-                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                      )}
-                      placeholder="handle"
-                      onPaste={(e) => onPasteSocial(e, "twitter")}
-                      {...register("twitter")}
-                    />
-                  </div>
-                }
-                variant={variant}
-              />
-
-              <FormRow
-                label="Instagram"
-                property="instagram"
-                prefix="@"
-                icon={Instagram}
-                disabled={disabled}
-                onVerifyClick={async () => {
-                  const handle = getValues("instagram");
-
-                  if (handle) {
-                    await startSocialVerification({
-                      platform: "instagram",
-                      handle,
-                      source: variant,
-                    });
-                  }
-
-                  return isStartingSocialVerification;
-                }}
-                input={
-                  <div className="flex rounded-md">
-                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                      instagram.com
-                    </span>
-                    <input
-                      type="text"
-                      disabled={disabled}
-                      className={cn(
-                        "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                        disabled &&
-                          "cursor-not-allowed bg-neutral-50 text-neutral-400",
-                        errors.instagram
-                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                      )}
-                      placeholder="handle"
-                      onPaste={(e) => onPasteSocial(e, "instagram")}
-                      {...register("instagram")}
-                    />
-                  </div>
-                }
-                variant={variant}
-              />
-
-              <FormRow
-                label="TikTok"
-                property="tiktok"
-                prefix="@"
-                icon={TikTok}
-                disabled={disabled}
-                onVerifyClick={async () => {
-                  const handle = getValues("tiktok");
-
-                  if (handle) {
-                    await startSocialVerification({
-                      platform: "tiktok",
-                      handle,
-                      source: variant,
-                    });
-                  }
-
-                  return isStartingSocialVerification;
-                }}
-                input={
-                  <div className="flex rounded-md">
-                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                      tiktok.com
-                    </span>
-                    <div className="relative w-full">
-                      <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-neutral-400">
-                        @
-                      </span>
-                      <input
-                        type="text"
-                        disabled={disabled}
-                        className={cn(
-                          "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
-                          disabled &&
-                            "cursor-not-allowed bg-neutral-50 text-neutral-400",
-                          errors.tiktok
-                            ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                            : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                        )}
-                        placeholder="handle"
-                        onPaste={(e) => onPasteSocial(e, "tiktok")}
-                        {...register("tiktok")}
-                      />
-                    </div>
-                  </div>
-                }
-                variant={variant}
-              />
-
-              <FormRow
-                label="LinkedIn"
-                property="linkedin"
-                prefix="in/"
-                icon={LinkedIn}
-                disabled={disabled}
-                onVerifyClick={async () => {
-                  const handle = getValues("linkedin");
-
-                  if (handle) {
-                    await startSocialVerification({
-                      platform: "linkedin",
-                      handle,
-                      source: variant,
-                    });
-                  }
-
-                  return isStartingSocialVerification;
-                }}
-                input={
-                  <div className="flex rounded-md">
-                    <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                      linkedin.com/in
-                    </span>
-                    <input
-                      type="text"
-                      disabled={disabled}
-                      className={cn(
-                        "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
-                        disabled &&
-                          "cursor-not-allowed bg-neutral-50 text-neutral-400",
-                        errors.linkedin
-                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                      )}
-                      placeholder="handle"
-                      onPaste={(e) => onPasteSocial(e, "linkedin")}
-                      {...register("linkedin")}
-                    />
-                  </div>
-                }
-                variant={variant}
+                countByType={countByType}
+                onAdd={(type) => append({ type, identifier: "" })}
               />
             </div>
 
@@ -555,281 +422,214 @@ export const PartnerPlatformsForm = forwardRef<
   },
 );
 
-function useVerifiedState({
-  property,
+function AddPlatformButton({
+  disabled,
+  countByType,
+  onAdd,
 }: {
-  property: keyof PartnerPlatformsFormData;
+  disabled: boolean;
+  countByType: Partial<Record<PlatformType, number>>;
+  onAdd: (type: PlatformType) => void;
 }) {
-  const { partner: partnerProfile } = usePartnerProfile();
+  const [openPopover, setOpenPopover] = useState(false);
 
-  const { watch, getFieldState } = useFormContext<PartnerPlatformsFormData>();
-
-  const value = watch(property);
-  const isValid = !!value && !getFieldState(property).invalid;
-
-  const loading = !partnerProfile && isValid;
-
-  // Map form property to PlatformType enum
-  const platformMap: Record<keyof PartnerPlatformsFormData, PlatformType> = {
-    website: "website",
-    youtube: "youtube",
-    twitter: "twitter",
-    linkedin: "linkedin",
-    instagram: "instagram",
-    tiktok: "tiktok",
-  };
-
-  const platform = platformMap[property];
-  const currentHandle = getPlatformIdentifier(partnerProfile, platform);
-
-  const noChange =
-    property === "website"
-      ? getPrettyUrl(currentHandle ?? "") === getPrettyUrl(value ?? "")
-      : currentHandle === value;
-
-  const platformData = getPlatformData(partnerProfile?.platforms, platform);
-  const isVerified = noChange && Boolean(platformData?.verifiedAt);
-
-  return {
-    isVerified,
-    loading,
-  };
-}
-
-function VerifyButton({
-  property,
-  icon: Icon,
-  onClick,
-  disabledTooltip,
-  disabled: formDisabled = false,
-}: {
-  property: keyof PartnerPlatformsFormData;
-  icon: Icon;
-  onClick: () => Promise<boolean>;
-  disabledTooltip?: string;
-  disabled?: boolean;
-}) {
-  const { control, getFieldState } = useFormContext<PartnerPlatformsFormData>();
-  const value = useWatch({ control, name: property });
-
-  const { isVerified, loading } = useVerifiedState({
-    property,
-  });
-
-  const [isSaving, setIsSaving] = useState(false);
+  if (disabled) {
+    return null;
+  }
 
   return (
-    <Button
-      className={cn(
-        "absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5",
-        isVerified && "border-green-100 bg-green-100 text-green-700",
-      )}
-      variant="secondary"
-      text={isVerified ? "Verified" : "Verify"}
-      icon={
-        isVerified ? (
-          <CircleCheckFill className="size-4 text-green-700" />
-        ) : (
-          <Icon className="size-3.5" />
-        )
-      }
-      loading={isSaving || loading}
-      disabled={
-        formDisabled || !value || getFieldState(property).invalid || isVerified
-      }
-      onClick={async () => {
-        if (formDisabled) return;
-        setIsSaving(true);
-        const redirecting = await onClick();
+    <div>
+      <Popover
+        openPopover={openPopover}
+        setOpenPopover={setOpenPopover}
+        align="start"
+        content={
+          <Command tabIndex={0} loop className="pointer-events-auto">
+            <Command.List className="flex w-screen flex-col gap-1 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[220px]">
+              <Command.Group className="p-1.5">
+                {PLATFORM_ORDER.map((type) => {
+                  const config = PLATFORM_CONFIG[type];
+                  const atLimit =
+                    (countByType[type] ?? 0) >= MAX_PLATFORMS_PER_TYPE;
 
-        if (!redirecting) setIsSaving(false);
-      }}
-      {...(disabledTooltip && {
-        disabledTooltip,
-      })}
-    />
+                  return (
+                    <Command.Item
+                      key={type}
+                      disabled={atLimit}
+                      className={cn(
+                        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm text-neutral-600",
+                        "data-[selected=true]:bg-neutral-100",
+                        atLimit && "cursor-not-allowed opacity-50",
+                      )}
+                      onSelect={() => {
+                        if (atLimit) return;
+                        onAdd(type);
+                        setOpenPopover(false);
+                      }}
+                    >
+                      <span className="text-content-emphasis shrink-0">
+                        <config.icon className="size-4" />
+                      </span>
+                      <span className="grow">{config.label}</span>
+                      {atLimit && (
+                        <span className="text-content-subtle text-xs">
+                          Max {MAX_PLATFORMS_PER_TYPE}
+                        </span>
+                      )}
+                    </Command.Item>
+                  );
+                })}
+              </Command.Group>
+            </Command.List>
+          </Command>
+        }
+      >
+        <Button
+          type="button"
+          variant="secondary"
+          text="Add more"
+          icon={<Plus className="size-4" />}
+          className="h-9 w-fit px-3"
+        />
+      </Popover>
+    </div>
   );
 }
 
-function FormRow({
-  label,
-  input,
-  property,
-  prefix,
-  icon: Icon,
-  onVerifyClick,
-  verifyDisabledTooltip,
+function PlatformFormRow({
+  index,
+  type,
   variant,
-  disabled = false,
+  disabled,
+  isVerifying,
+  onVerify,
+  onRemove,
 }: {
-  label: string;
-  input: ReactNode;
-  property: keyof PartnerPlatformsFormData;
-  prefix?: string;
-  icon: Icon;
-  onVerifyClick: () => Promise<boolean>;
-  verifyDisabledTooltip?: string;
+  index: number;
+  type: PlatformType;
   variant: "onboarding" | "settings";
-  disabled?: boolean;
+  disabled: boolean;
+  isVerifying: boolean;
+  onVerify: () => void;
+  onRemove: () => void;
 }) {
+  const config = PLATFORM_CONFIG[type];
   const { partner } = usePartnerProfile();
-  const { control, setValue } = useFormContext<PartnerPlatformsFormData>();
-  const value = useWatch({ control, name: property });
+  const { register, control, setValue } =
+    useFormContext<PartnerPlatformsFormData>();
 
-  const { isVerified } = useVerifiedState({ property });
+  const value = useWatch({
+    control,
+    name: `platforms.${index}.identifier`,
+  });
 
-  const info = useMemo(() => {
-    if (partner && isVerified) {
-      // Type assertion for platforms array that exists at runtime but not in type
-      const partnerWithPlatforms = partner as typeof partner & {
-        platforms?: PartnerPlatformProps[];
-      };
+  const matchedPlatform = useMemo(
+    () =>
+      findMatchingPlatform(
+        (partner as typeof partner & { platforms?: PartnerPlatformProps[] })
+          ?.platforms,
+        type,
+        value,
+      ),
+    [partner, type, value],
+  );
 
-      if (property === "website") {
-        const websitePlatform = getPlatformData(
-          partnerWithPlatforms.platforms,
-          "website",
-        );
-        const domainRating = websitePlatform?.subscribers ?? 0;
+  const info = matchedPlatform
+    ? getPartnerPlatformDisplay(matchedPlatform).info
+    : undefined;
 
-        return [domainRating > 0 ? `${Number(domainRating)} DR` : null].filter(
-          Boolean,
-        ) as string[];
-      }
+  const onPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const text = e.clipboardData.getData("text/plain");
+    const sanitized =
+      type === "website"
+        ? sanitizeWebsite(text)
+        : sanitizeSocialHandle(text, type);
 
-      if (property === "youtube") {
-        const youtubePlatform = getPlatformData(
-          partnerWithPlatforms.platforms,
-          "youtube",
-        );
-        const subscribers = youtubePlatform?.subscribers ?? 0;
-        const views = youtubePlatform?.views ?? 0;
-
-        return [
-          subscribers > 0
-            ? `${nFormatter(Number(subscribers))} subscribers`
-            : null,
-          views > 0 ? `${nFormatter(Number(views))} views` : null,
-        ].filter(Boolean) as string[];
-      }
-
-      if (property === "instagram") {
-        const instagramPlatform = getPlatformData(
-          partnerWithPlatforms.platforms,
-          "instagram",
-        );
-        const subscribers = instagramPlatform?.subscribers ?? 0;
-        const posts = instagramPlatform?.posts ?? 0;
-
-        return [
-          subscribers > 0
-            ? `${nFormatter(Number(subscribers))} followers`
-            : null,
-          posts > 0 ? `${nFormatter(Number(posts))} posts` : null,
-        ].filter(Boolean) as string[];
-      }
-
-      if (property === "tiktok") {
-        const tiktokPlatform = getPlatformData(
-          partnerWithPlatforms.platforms,
-          "tiktok",
-        );
-        const subscribers = tiktokPlatform?.subscribers ?? 0;
-        const posts = tiktokPlatform?.posts ?? 0;
-
-        return [
-          subscribers > 0
-            ? `${nFormatter(Number(subscribers))} followers`
-            : null,
-          posts > 0 ? `${nFormatter(Number(posts))} posts` : null,
-        ].filter(Boolean) as string[];
-      }
-
-      if (property === "twitter") {
-        const twitterPlatform = getPlatformData(
-          partnerWithPlatforms.platforms,
-          "twitter",
-        );
-        const subscribers = twitterPlatform?.subscribers ?? 0;
-        const posts = twitterPlatform?.posts ?? 0;
-
-        return [
-          subscribers > 0
-            ? `${nFormatter(Number(subscribers))} followers`
-            : null,
-          posts > 0 ? `${nFormatter(Number(posts))} tweets` : null,
-        ].filter(Boolean) as string[];
-      }
-
-      if (property === "linkedin") {
-        const linkedinPlatform = getPlatformData(
-          partnerWithPlatforms.platforms,
-          "linkedin",
-        );
-
-        const subscribers = linkedinPlatform?.subscribers ?? 0;
-
-        return [
-          subscribers > 0
-            ? `${nFormatter(Number(subscribers))} followers`
-            : null,
-        ].filter(Boolean) as string[];
-      }
+    if (sanitized) {
+      setValue(`platforms.${index}.identifier`, sanitized);
+      e.preventDefault();
     }
-    return null;
-  }, [partner, property, isVerified]);
+  };
+
+  if (matchedPlatform?.verifiedAt) {
+    return (
+      <div className="flex flex-col gap-1.5">
+        {variant === "onboarding" && (
+          <span className="text-content-emphasis text-sm font-medium">
+            {config.label}
+          </span>
+        )}
+        <PartnerPlatformCard
+          icon={config.icon}
+          prefix={config.cardPrefix}
+          value={value ?? ""}
+          verified
+          info={info && info.length > 0 ? info : undefined}
+          onRemove={disabled ? undefined : onRemove}
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="-m-0.5">
-      <AnimatedSizeContainer
-        height
-        initial={false}
-        transition={{ duration: 0.2, ease: "easeInOut" }}
-      >
-        <div className="p-0.5">
-          {isVerified ? (
-            <div className="flex flex-col gap-1.5">
-              <span
+    <div className="flex flex-col gap-1.5">
+      {variant === "onboarding" && (
+        <span className="text-content-emphasis text-sm font-medium">
+          {config.label}
+        </span>
+      )}
+      <div className="relative">
+        {config.domainLabel ? (
+          <div className="flex rounded-md">
+            <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+              {config.domainLabel}
+            </span>
+            <div className="relative w-full">
+              {config.innerAtPrefix && (
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-neutral-400">
+                  @
+                </span>
+              )}
+              <input
+                type="text"
+                disabled={disabled}
                 className={cn(
-                  "text-content-emphasis text-sm font-medium",
-                  variant === "settings" && "sr-only",
+                  "block w-full rounded-none rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                  config.innerAtPrefix && "pl-7",
+                  disabled &&
+                    "cursor-not-allowed bg-neutral-50 text-neutral-400",
                 )}
-              >
-                {label}
-              </span>
-              <PartnerPlatformCard
-                icon={Icon}
-                prefix={prefix}
-                value={value ?? ""}
-                verified
-                info={info ?? undefined}
-                onRemove={() => setValue(property, null, { shouldDirty: true })}
+                placeholder={config.placeholder}
+                onPaste={onPaste}
+                {...register(`platforms.${index}.identifier`)}
               />
             </div>
-          ) : (
-            <label className={cn("flex flex-col gap-1.5")}>
-              <span
-                className={cn(
-                  "text-content-emphasis text-sm font-medium",
-                  variant === "settings" && "sr-only",
-                )}
-              >
-                {label}
-              </span>
-              <div className={cn("relative")}>
-                {input}
-                <VerifyButton
-                  property={property}
-                  icon={Icon}
-                  onClick={onVerifyClick}
-                  disabledTooltip={verifyDisabledTooltip}
-                  disabled={disabled}
-                />
-              </div>
-            </label>
-          )}
-        </div>
-      </AnimatedSizeContainer>
+          </div>
+        ) : (
+          <input
+            type="text"
+            disabled={disabled}
+            className={cn(
+              "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+              disabled && "cursor-not-allowed bg-neutral-50 text-neutral-400",
+            )}
+            placeholder={config.placeholder}
+            onPaste={onPaste}
+            {...register(`platforms.${index}.identifier`)}
+          />
+        )}
+
+        <Button
+          type="button"
+          variant="secondary"
+          text="Verify"
+          icon={<config.icon className="size-3.5" />}
+          className="absolute right-1.5 top-1/2 h-7 w-fit -translate-y-1/2 px-2.5"
+          loading={isVerifying}
+          disabled={disabled || !value}
+          onClick={onVerify}
+        />
+      </div>
     </div>
   );
 }

@@ -2,10 +2,13 @@
 
 import { getPeriodLabel } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
-import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
+import {
+  PartnerBountyProps,
+  PartnerBountySubmission,
+  PartnerPlatformProps,
+} from "@/lib/types";
 import { SocialAccountNotVerifiedWarning } from "@/ui/partners/bounties/bounty-social-content";
 import { Button, ChevronRight, Popover, Trophy } from "@dub/ui";
-import { PlatformType } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -75,11 +78,10 @@ export function EmbedBountySubmissionForm({
   onSuccess,
 }: {
   bounty: PartnerBountyProps;
-  partnerPlatforms: Array<{
-    type: PlatformType;
-    identifier: string;
-    verifiedAt: Date | null;
-  }>;
+  partnerPlatforms: Pick<
+    PartnerPlatformProps,
+    "type" | "identifier" | "verifiedAt"
+  >[];
   periodNumber: number;
   existingSubmission?: PartnerBountySubmission | null;
   onCancel: () => void;
@@ -90,9 +92,6 @@ export function EmbedBountySubmissionForm({
   const token = useEmbedToken();
   const bountyInfo = resolveBountyDetails(bounty);
   const isSocialMetricsBounty = bountyInfo?.hasSocialMetrics ?? false;
-  const partnerPlatform = bountyInfo?.socialPlatform
-    ? partnerPlatforms.find((p) => p.type === bountyInfo.socialPlatform?.value)
-    : undefined;
   const imageRequired = !!bounty.submissionRequirements?.image;
   const urlRequired =
     !!bounty.submissionRequirements?.url && !isSocialMetricsBounty;
@@ -205,6 +204,10 @@ export function EmbedBountySubmissionForm({
     }
   };
 
+  const hasVerifiedPlatform = partnerPlatforms.some(
+    (p) => p.type === bountyInfo?.socialPlatform?.value && p.verifiedAt,
+  );
+
   return (
     <div className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border">
       <SubmissionCardHeader
@@ -303,14 +306,14 @@ export function EmbedBountySubmissionForm({
 
         {isSocialMetricsBounty && bountyInfo?.socialPlatform ? (
           <>
-            {!partnerPlatform?.verifiedAt && (
+            {!hasVerifiedPlatform && (
               <SocialAccountNotVerifiedWarning bounty={bounty} />
             )}
             <EmbedSocialUrlField
               bounty={bounty}
               value={urls[0] ?? ""}
               onChange={(v) => setUrls([v])}
-              partnerPlatform={partnerPlatform}
+              partnerPlatforms={partnerPlatforms}
               onVerifyingChange={setSocialContentVerifying}
               onRequirementsMetChange={setSocialContentRequirementsMet}
             />

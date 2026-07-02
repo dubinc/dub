@@ -18,11 +18,12 @@ const requestSchema = z.object({
   state: z.string(),
 });
 
-interface State {
-  platform: PlatformType;
-  partnerId: string;
-  source: "onboarding" | "settings";
-}
+const stateSchema = z.object({
+  platform: z.enum(PlatformType),
+  partnerId: z.string(),
+  identifier: z.string(),
+  source: z.enum(["onboarding", "settings"]),
+});
 
 // GET /api/partners/platforms/callback
 export async function GET(req: Request) {
@@ -47,7 +48,7 @@ export async function GET(req: Request) {
   }
 
   // Find the state from Redis
-  const stateFromRedis = await redis.get<State>(
+  const stateFromRedis = await redis.get<z.infer<typeof stateSchema>>(
     `partnerSocialVerification:${state}`,
   );
 
@@ -56,7 +57,14 @@ export async function GET(req: Request) {
     return NextResponse.redirect(PARTNERS_DOMAIN);
   }
 
-  const { platform, partnerId, source } = stateFromRedis;
+  const parsedState = stateSchema.safeParse(stateFromRedis);
+
+  if (!parsedState.success) {
+    console.warn("State is invalid.");
+    return NextResponse.redirect(PARTNERS_DOMAIN);
+  }
+
+  const { platform, partnerId, identifier, source } = parsedState.data;
 
   if (session.user.defaultPartnerId !== partnerId) {
     console.warn("Unauthorized: User is not the default partner.");
@@ -127,10 +135,15 @@ export async function GET(req: Request) {
 
   const partnerPlatform = await prisma.partnerPlatform.findUnique({
     where: {
-      partnerId_type: {
+      partnerId_type_identifier: {
         partnerId,
         type: platform,
+        identifier,
       },
+    },
+    select: {
+      id: true,
+      identifier: true,
     },
   });
 
@@ -174,10 +187,7 @@ export async function GET(req: Request) {
 
   await prisma.partnerPlatform.update({
     where: {
-      partnerId_type: {
-        partnerId,
-        type: platform,
-      },
+      id: partnerPlatform.id,
     },
     data: {
       ...socialStats,

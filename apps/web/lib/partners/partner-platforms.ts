@@ -13,7 +13,21 @@ import {
   nFormatter,
   pluralize,
 } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
+import { PLATFORM_ORDER, selectPrimaryPlatform } from "../social-utils";
 import { PartnerPlatformProps } from "../types";
+
+const PARTNER_PLATFORM_META: Record<
+  PlatformType,
+  { label: string; icon: Icon }
+> = {
+  website: { label: "Website", icon: Globe },
+  youtube: { label: "YouTube", icon: YouTube },
+  twitter: { label: "X/Twitter", icon: Twitter },
+  linkedin: { label: "LinkedIn", icon: LinkedIn },
+  instagram: { label: "Instagram", icon: Instagram },
+  tiktok: { label: "TikTok", icon: TikTok },
+};
 
 export const PARTNER_PLATFORM_FIELDS: {
   label: string;
@@ -26,158 +40,156 @@ export const PARTNER_PLATFORM_FIELDS: {
     info?: string[];
     stat?: string | null;
   };
-}[] = [
-  {
-    label: "Website",
-    icon: Globe,
-    data: (platforms) => {
-      const website = platforms.find((p) => p.type === "website");
+}[] = PLATFORM_ORDER.map((type) => ({
+  label: PARTNER_PLATFORM_META[type].label,
+  icon: PARTNER_PLATFORM_META[type].icon,
+  data: (platforms: PartnerPlatformProps[]) => {
+    const platform = selectPrimaryPlatform(platforms, type);
 
+    if (!platform) {
       return {
-        value: website ? getPrettyUrl(website.identifier) : null,
-        verified: !!website?.verifiedAt,
-        verifiedAt: website?.verifiedAt ?? null,
-        href: website?.identifier
-          ? getUrlFromStringIfValid(website.identifier)
+        value: null,
+        verified: false,
+        verifiedAt: null,
+        href: null,
+        info: [],
+        stat: null,
+      };
+    }
+
+    const { label, icon, ...data } = getPartnerPlatformDisplay(platform);
+
+    return data;
+  },
+}));
+
+// Builds the display data (value, link, stats) for a single platform handle.
+export function getPartnerPlatformDisplay(platform: PartnerPlatformProps) {
+  const { label, icon } = PARTNER_PLATFORM_META[platform.type];
+
+  const verified = !!platform.verifiedAt;
+  const verifiedAt = platform.verifiedAt ?? null;
+  const subscribers = Number(platform.subscribers ?? 0);
+  const posts = Number(platform.posts ?? 0);
+  const views = Number(platform.views ?? 0);
+
+  switch (platform.type) {
+    case "website":
+      return {
+        label,
+        icon,
+        value: getPrettyUrl(platform.identifier),
+        verified,
+        verifiedAt,
+        href: platform.identifier
+          ? getUrlFromStringIfValid(platform.identifier)
+          : null,
+        info: [subscribers && verified ? `${subscribers} DR` : null].filter(
+          Boolean,
+        ) as string[],
+        stat: subscribers && verified ? `${subscribers} DR` : null,
+      };
+
+    case "youtube":
+      return {
+        label,
+        icon,
+        value: platform.identifier ? `@${platform.identifier}` : null,
+        verified,
+        verifiedAt,
+        href: platform.identifier
+          ? `https://youtube.com/@${platform.identifier}`
           : null,
         info: [
-          website?.subscribers && website?.verifiedAt
-            ? `${Number(website.subscribers)} DR`
+          subscribers && verified
+            ? `${nFormatter(subscribers)} ${pluralize("subscriber", subscribers)}`
             : null,
-        ].filter(Boolean),
-        stat:
-          website?.subscribers && website?.verifiedAt
-            ? `${Number(website.subscribers)} DR`
+          views && verified
+            ? `${nFormatter(views)} ${pluralize("view", views)}`
             : null,
+        ].filter(Boolean) as string[],
+        stat: subscribers && verified ? nFormatter(subscribers) : null,
       };
-    },
-  },
-  {
-    label: "YouTube",
-    icon: YouTube,
-    data: (platforms) => {
-      const youtube = platforms.find((p) => p.type === "youtube");
 
+    case "twitter":
       return {
-        value: youtube?.identifier ? `@${youtube.identifier}` : null,
-        verified: !!youtube?.verifiedAt,
-        verifiedAt: youtube?.verifiedAt ?? null,
-        href: youtube?.identifier
-          ? `https://youtube.com/@${youtube.identifier}`
+        label,
+        icon,
+        value: platform.identifier ? `@${platform.identifier}` : null,
+        verified,
+        verifiedAt,
+        href: platform.identifier
+          ? `https://x.com/${platform.identifier}`
           : null,
         info: [
-          youtube?.subscribers && youtube?.verifiedAt
-            ? `${nFormatter(Number(youtube.subscribers))} ${pluralize("subscriber", Number(youtube.subscribers))}`
+          subscribers && verified
+            ? `${nFormatter(subscribers)} ${pluralize("follower", subscribers)}`
             : null,
-          youtube?.views && youtube?.verifiedAt
-            ? `${nFormatter(Number(youtube.views))} ${pluralize("view", Number(youtube.views))}`
+          posts && verified
+            ? `${nFormatter(posts)} ${pluralize("tweet", posts)}`
             : null,
-        ].filter(Boolean),
-        stat:
-          youtube?.subscribers && youtube?.verifiedAt
-            ? nFormatter(Number(youtube.subscribers))
-            : null,
+        ].filter(Boolean) as string[],
+        stat: subscribers && verified ? nFormatter(subscribers) : null,
       };
-    },
-  },
-  {
-    label: "X/Twitter",
-    icon: Twitter,
-    data: (platforms) => {
-      const twitter = platforms.find((p) => p.type === "twitter");
 
+    case "linkedin":
       return {
-        value: twitter ? `@${twitter.identifier}` : null,
-        verified: !!twitter?.verifiedAt,
-        verifiedAt: twitter?.verifiedAt ?? null,
-        href: twitter?.identifier
-          ? `https://x.com/${twitter.identifier}`
+        label,
+        icon,
+        value: platform.identifier || null,
+        verified,
+        verifiedAt,
+        href: platform.identifier
+          ? `https://linkedin.com/in/${platform.identifier}`
           : null,
         info: [
-          twitter?.subscribers && twitter?.verifiedAt
-            ? `${nFormatter(Number(twitter.subscribers))} ${pluralize("follower", Number(twitter.subscribers))}`
+          subscribers && verified
+            ? `${nFormatter(subscribers)} ${pluralize("follower", subscribers)}`
             : null,
-          twitter?.posts && twitter?.verifiedAt
-            ? `${nFormatter(Number(twitter.posts))} ${pluralize("tweet", Number(twitter.posts))}`
-            : null,
-        ].filter(Boolean),
-        stat:
-          twitter?.subscribers && twitter?.verifiedAt
-            ? nFormatter(Number(twitter.subscribers))
-            : null,
+        ].filter(Boolean) as string[],
+        stat: subscribers && verified ? nFormatter(subscribers) : null,
       };
-    },
-  },
-  {
-    label: "LinkedIn",
-    icon: LinkedIn,
-    data: (platforms) => {
-      const linkedin = platforms.find((p) => p.type === "linkedin");
 
+    case "instagram":
       return {
-        value: linkedin ? linkedin.identifier : null,
-        verified: !!linkedin?.verifiedAt,
-        verifiedAt: linkedin?.verifiedAt ?? null,
-        href: linkedin?.identifier
-          ? `https://linkedin.com/in/${linkedin.identifier}`
-          : null,
-      };
-    },
-  },
-  {
-    label: "Instagram",
-    icon: Instagram,
-    data: (platforms) => {
-      const instagram = platforms.find((p) => p.type === "instagram");
-
-      return {
-        value: instagram ? `@${instagram.identifier}` : null,
-        verified: !!instagram?.verifiedAt,
-        verifiedAt: instagram?.verifiedAt ?? null,
-        href: instagram?.identifier
-          ? `https://instagram.com/${instagram.identifier}`
+        label,
+        icon,
+        value: platform.identifier ? `@${platform.identifier}` : null,
+        verified,
+        verifiedAt,
+        href: platform.identifier
+          ? `https://instagram.com/${platform.identifier}`
           : null,
         info: [
-          instagram?.subscribers && instagram?.verifiedAt
-            ? `${nFormatter(Number(instagram.subscribers))} ${pluralize("follower", Number(instagram.subscribers))}`
+          subscribers && verified
+            ? `${nFormatter(subscribers)} ${pluralize("follower", subscribers)}`
             : null,
-          instagram?.posts && instagram?.verifiedAt
-            ? `${nFormatter(Number(instagram.posts))} ${pluralize("post", Number(instagram.posts))}`
+          posts && verified
+            ? `${nFormatter(posts)} ${pluralize("post", posts)}`
             : null,
-        ].filter(Boolean),
-        stat:
-          instagram?.subscribers && instagram?.verifiedAt
-            ? nFormatter(Number(instagram.subscribers))
-            : null,
+        ].filter(Boolean) as string[],
+        stat: subscribers && verified ? nFormatter(subscribers) : null,
       };
-    },
-  },
-  {
-    label: "Tiktok",
-    icon: TikTok,
-    data: (platforms) => {
-      const tiktok = platforms.find((p) => p.type === "tiktok");
 
+    case "tiktok":
       return {
-        value: tiktok ? `@${tiktok.identifier}` : null,
-        verified: !!tiktok?.verifiedAt,
-        verifiedAt: tiktok?.verifiedAt ?? null,
-        href: tiktok?.identifier
-          ? `https://tiktok.com/@${tiktok.identifier}`
+        label,
+        icon,
+        value: platform.identifier ? `@${platform.identifier}` : null,
+        verified,
+        verifiedAt,
+        href: platform.identifier
+          ? `https://tiktok.com/@${platform.identifier}`
           : null,
         info: [
-          tiktok?.subscribers && tiktok?.verifiedAt
-            ? `${nFormatter(Number(tiktok.subscribers))} ${pluralize("follower", Number(tiktok.subscribers))}`
+          subscribers && verified
+            ? `${nFormatter(subscribers)} ${pluralize("follower", subscribers)}`
             : null,
-          tiktok?.posts && tiktok?.verifiedAt
-            ? `${nFormatter(Number(tiktok.posts))} ${pluralize("post", Number(tiktok.posts))} `
+          posts && verified
+            ? `${nFormatter(posts)} ${pluralize("post", posts)}`
             : null,
-        ].filter(Boolean),
-        stat:
-          tiktok?.subscribers && tiktok?.verifiedAt
-            ? nFormatter(Number(tiktok.subscribers))
-            : null,
+        ].filter(Boolean) as string[],
+        stat: subscribers && verified ? nFormatter(subscribers) : null,
       };
-    },
-  },
-];
+  }
+}

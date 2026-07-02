@@ -11,7 +11,7 @@ model PartnerPlatform {
   id            String       @id @default(cuid())
   partnerId     String
   type          PlatformType
-  identifier    String // The unique identifier for the platform (e.g., username for social platforms, domain for websites)
+  identifier    String // The handle for the platform (e.g., username for social platforms, domain for websites)
   platformId    String? // Platform-specific immutable ID (e.g., YouTube channel ID)
   avatarUrl     String?      @db.Text
   subscribers   BigInt       @default(0) // Subscribers/followers for social platforms, also for newsletter subscribers
@@ -25,7 +25,7 @@ model PartnerPlatform {
 
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
-  @@unique([partnerId, type])
+  @@unique([partnerId, type, identifier])
   @@index([type, verifiedAt, lastCheckedAt])
   @@index(identifier)
 }

@@ -1,10 +1,8 @@
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { buildSocialPlatformLookup } from "@/lib/social-utils";
-import { PartnerPlatformProps } from "@/lib/types";
+import { buildSocialPlatformLookup, PLATFORM_ORDER } from "@/lib/social-utils";
 import { partnerPlatformSchema } from "@/lib/zod/schemas/partners";
 import { PartnerPlatformsForm } from "@/ui/partners/partner-platforms-form";
-import { PlatformType } from "@prisma/client";
 import { Suspense } from "react";
 import * as z from "zod/v4";
 import { OnboardingPlatformsPageClient } from "./page-client";
@@ -82,23 +80,12 @@ async function OnboardingPlatformsFormRSC() {
   }
 
   // Merge social handles from a partner application into the partner platforms list.
-  const platforms: PartnerPlatformProps[] = z
-    .array(partnerPlatformSchema)
-    .parse(partner.platforms);
+  const platforms = z.array(partnerPlatformSchema).parse(partner.platforms);
 
   if (application) {
     const socialPlatformsMap = buildSocialPlatformLookup(platforms);
 
-    const APPLICATION_SOCIAL_PLATFORMS = [
-      "website",
-      "youtube",
-      "twitter",
-      "linkedin",
-      "instagram",
-      "tiktok",
-    ] as const satisfies readonly PlatformType[];
-
-    for (const platform of APPLICATION_SOCIAL_PLATFORMS) {
+    for (const platform of PLATFORM_ORDER) {
       const handle = application[platform];
 
       // Application-provided handles are added only if the partner does not already have that platform.

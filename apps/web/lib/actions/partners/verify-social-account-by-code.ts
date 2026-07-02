@@ -3,6 +3,7 @@
 import { getLinkedInPost } from "@/lib/api/scrape-creators/get-linkedin-post";
 import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
 import { prisma } from "@/lib/prisma";
+import { sanitizeSocialHandle } from "@/lib/social-utils";
 import { ratelimit } from "@/lib/upstash";
 import { redis } from "@/lib/upstash/redis";
 import { PlatformType } from "@prisma/client";
@@ -20,14 +21,20 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
   .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
-    const { platform, handle, postUrl } = parsedInput;
+    const { platform, handle: rawHandle, postUrl } = parsedInput;
 
     if (!["youtube", "instagram", "linkedin"].includes(platform)) {
       throw new Error("Only YouTube, Instagram, and LinkedIn are supported.");
     }
 
-    if (platform === "linkedin" && !postUrl) {
+    if (platform === PlatformType.linkedin && !postUrl) {
       throw new Error("Please provide the LinkedIn post URL.");
+    }
+
+    const handle = sanitizeSocialHandle(rawHandle, platform);
+
+    if (!handle) {
+      throw new Error("Please enter a valid handle.");
     }
 
     // Rate limit check
@@ -51,15 +58,16 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
       );
     }
 
-    // Check if the account is already verified
     const partnerPlatform = await prisma.partnerPlatform.findUnique({
       where: {
-        partnerId_type: {
+        partnerId_type_identifier: {
           partnerId: partner.id,
           type: platform,
+          identifier: handle,
         },
       },
       select: {
+        id: true,
         identifier: true,
         verifiedAt: true,
       },
@@ -70,10 +78,7 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
     }
 
     // No further action is needed if the account is already verified
-    if (
-      partnerPlatform?.identifier?.toLowerCase() === handle.toLowerCase() &&
-      partnerPlatform.verifiedAt
-    ) {
+    if (partnerPlatform.verifiedAt) {
       return;
     }
 
@@ -108,10 +113,7 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
 
       await prisma.partnerPlatform.update({
         where: {
-          partnerId_type: {
-            partnerId: partner.id,
-            type: platform,
-          },
+          id: partnerPlatform.id,
         },
         data: {
           verifiedAt: new Date(),
@@ -149,10 +151,7 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
 
     await prisma.partnerPlatform.update({
       where: {
-        partnerId_type: {
-          partnerId: partner.id,
-          type: platform,
-        },
+        id: partnerPlatform.id,
       },
       data: {
         verifiedAt: new Date(),

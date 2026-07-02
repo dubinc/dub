@@ -11,7 +11,9 @@ export const GET = withAdmin(async ({ params }) => {
   const { partnerId } = params;
 
   const partner = await prisma.partner.findUnique({
-    where: { id: partnerId },
+    where: {
+      id: partnerId,
+    },
     include: {
       platforms: true,
     },
@@ -20,18 +22,10 @@ export const GET = withAdmin(async ({ params }) => {
   if (!partner) {
     return new Response("Partner not found.", { status: 404 });
   }
+
   const verifiedPlatforms = partner.platforms.filter(
     (platform) => platform.verifiedAt !== null,
   );
-
-  // a partner has at most one platform per type, so there is at most one website
-  const websitePlatform = verifiedPlatforms.find(
-    (platform) => platform.type === "website",
-  );
-
-  const websiteDomain = websitePlatform
-    ? getDomainWithoutWWW(websitePlatform.identifier) ?? null
-    : null;
 
   const matchConditions: Prisma.PartnerPlatformWhereInput[] = [];
 
@@ -39,6 +33,8 @@ export const GET = withAdmin(async ({ params }) => {
     if (platform.type === "website") {
       // website identifiers are full URLs with inconsistent normalization,
       // so match on the domain instead of the exact identifier
+      const websiteDomain = getDomainWithoutWWW(platform.identifier);
+
       if (websiteDomain) {
         matchConditions.push({
           identifier: {
@@ -83,22 +79,29 @@ export const GET = withAdmin(async ({ params }) => {
     orderBy: {
       createdAt: "asc",
     },
-    take: 10,
+    take: 50,
   });
 
   const sharedPlatforms = verifiedPlatforms
     .map((platform) => {
-      let platformMatches = sharedPlatformMatches.filter(
-        (match) => match.type === platform.type,
-      );
+      let platformMatches: typeof sharedPlatformMatches;
 
-      // "contains" matches on the domain need exact verification
-      // (e.g. contains "example.com" would also match "notexample.com")
       if (platform.type === "website") {
-        platformMatches = platformMatches.filter(
+        // "contains" matches on the domain need exact verification
+        // (e.g. contains "example.com" would also match "notexample.com")
+        const websiteDomain = getDomainWithoutWWW(platform.identifier);
+
+        platformMatches = sharedPlatformMatches.filter(
           (match) =>
+            match.type === platform.type &&
             websiteDomain !== null &&
             getDomainWithoutWWW(match.identifier) === websiteDomain,
+        );
+      } else {
+        platformMatches = sharedPlatformMatches.filter(
+          (match) =>
+            match.type === platform.type &&
+            match.identifier === platform.identifier,
         );
       }
 

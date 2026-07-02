@@ -1,20 +1,40 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { sanitizeWebsite } from "@/lib/social-utils";
 import { getDomainWithoutWWW } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import dns from "dns";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
-export const verifyPartnerWebsiteAction = authPartnerActionClient.action(
-  async ({ ctx }) => {
+const schema = z.object({
+  identifier: z.string().min(1),
+});
+
+export const verifyPartnerWebsiteAction = authPartnerActionClient
+  .inputSchema(schema)
+  .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
+
+    const identifier = sanitizeWebsite(parsedInput.identifier);
+
+    if (!identifier) {
+      throw new Error("Please provide a valid website.");
+    }
 
     const partnerPlatform = await prisma.partnerPlatform.findUnique({
       where: {
-        partnerId_type: {
+        partnerId_type_identifier: {
           partnerId: partner.id,
-          type: "website",
+          type: PlatformType.website,
+          identifier,
         },
+      },
+      select: {
+        id: true,
+        identifier: true,
+        metadata: true,
       },
     });
 
@@ -66,14 +86,10 @@ export const verifyPartnerWebsiteAction = authPartnerActionClient.action(
 
     await prisma.partnerPlatform.update({
       where: {
-        partnerId_type: {
-          partnerId: partner.id,
-          type: "website",
-        },
+        id: partnerPlatform.id,
       },
       data: {
         verifiedAt: new Date(),
       },
     });
-  },
-);
+  });
