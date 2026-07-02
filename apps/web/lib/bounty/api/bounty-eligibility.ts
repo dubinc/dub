@@ -198,13 +198,19 @@ export function canPartnerSubmitBounty({
 }
 
 // Throws 404 (not 400) to avoid revealing bounties the partner shouldn't see.
-// Expired bounties stay viewable; archived ones only if the partner has a submission.
+// A partner with a submission can always view the bounty, even if they are no
+// longer eligible (e.g. moved out of an eligible group) or it was archived.
+// Expired bounties stay viewable.
 export function throwIfPartnerCannotViewBounty({
   programEnrollment,
   bounty,
   defaultGroupId,
   hasSubmission,
 }: PartnerBountyEligibilityParams & { hasSubmission: boolean }) {
+  if (hasSubmission) {
+    return;
+  }
+
   const notFoundError = new DubApiError({
     code: "not_found",
     message: "Bounty not found.",
@@ -229,7 +235,7 @@ export function throwIfPartnerCannotViewBounty({
     throw notFoundError;
   }
 
-  if (bounty.archivedAt && !hasSubmission) {
+  if (bounty.archivedAt) {
     throw notFoundError;
   }
 }

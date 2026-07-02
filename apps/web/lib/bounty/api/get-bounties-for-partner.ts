@@ -43,11 +43,24 @@ export async function getBountiesForPartner({
   const bounties = await prisma.bounty.findMany({
     where: {
       programId: program.id,
-      ...buildActiveBountyPeriodWhere(),
-      ...buildBountyEligibilityWhere({
-        groupId: groupId || program.defaultGroupId,
-        partnerTagIds,
-      }),
+      OR: [
+        {
+          ...buildActiveBountyPeriodWhere(),
+          ...buildBountyEligibilityWhere({
+            groupId: groupId || program.defaultGroupId,
+            partnerTagIds,
+          }),
+        },
+        // Bounties the partner has a submission on stay visible even if the
+        // partner is no longer eligible or the bounty was archived
+        {
+          submissions: {
+            some: {
+              partnerId,
+            },
+          },
+        },
+      ],
     },
     include: {
       workflow: {
