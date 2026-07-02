@@ -50,7 +50,10 @@ async function getWorkspacePaymentMethod({
 export const GET = withWorkspace(
   async ({ workspace }) => {
     if (workspace.environment !== WorkspaceEnvironment.production) {
-      return NextResponse.json([SANDBOX_PAYMENT_METHOD]);
+      return NextResponse.json({
+        paymentMethods: [SANDBOX_PAYMENT_METHOD],
+        defaultPaymentMethodId: SANDBOX_PAYMENT_METHOD.id,
+      });
     }
 
     if (!workspace.stripeId) {
