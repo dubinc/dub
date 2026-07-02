@@ -82,9 +82,21 @@ export function LinkAnalyticsBadge({
     "folders.links.write",
   );
 
+  const analyticsHref = useMemo(() => {
+    const params = new URLSearchParams({ linkId: link.id });
+
+    if (link.partnerId) {
+      params.set("event", "clicks");
+      params.set("partnerId", link.partnerId);
+      return `/${slug}/program/analytics?${params.toString()}`;
+    }
+
+    return `/${slug}/links/analytics?${params.toString()}`;
+  }, [slug, link.id, link.partnerId]);
+
   return isMobile ? (
     <Link
-      href={`/${slug}/analytics?linkId=${link.id}`}
+      href={analyticsHref}
       className="flex items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-sm text-neutral-800"
     >
       <CursorRays className="h-4 w-4 text-neutral-600" />
@@ -145,7 +157,7 @@ export function LinkAnalyticsBadge({
         }
       >
         <Link
-          href={`/${slug}/analytics?linkId=${link.id}`}
+          href={analyticsHref}
           className={cn(
             "block overflow-hidden rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600 transition-colors",
             variant === "loose" ? "hover:bg-neutral-100" : "hover:bg-white",
