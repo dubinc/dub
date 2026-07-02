@@ -108,7 +108,7 @@ export function SocialContentUrlField({
     );
 
     return () => setSocialContentRequirementsMet(true);
-  }, [data, bounty, setSocialContentRequirementsMet]);
+  }, [data, bounty, partner?.platforms, setSocialContentRequirementsMet]);
 
   const showIcon = isValidating || (error && urlToCheck);
   const bountyInfo = resolveBountyDetails(bounty);

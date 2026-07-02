@@ -58,11 +58,13 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
       );
     }
 
-    const partnerPlatform = await prisma.partnerPlatform.findFirst({
+    const partnerPlatform = await prisma.partnerPlatform.findUnique({
       where: {
-        partnerId: partner.id,
-        type: platform,
-        identifier: handle,
+        partnerId_type_identifier: {
+          partnerId: partner.id,
+          type: platform,
+          identifier: handle,
+        },
       },
       select: {
         id: true,

@@ -4,7 +4,7 @@ import { PartnerPlatform, Prisma } from "@prisma/client";
 
 type UpsertPartnerPlatformParams = {
   where: Pick<PartnerPlatform, "partnerId" | "type" | "identifier">;
-  data?: Pick<Prisma.PartnerPlatformCreateInput, "verifiedAt" | "metadata">;
+  data: Pick<Prisma.PartnerPlatformCreateInput, "verifiedAt" | "metadata">;
 };
 
 export async function upsertPartnerPlatform({
@@ -13,41 +13,23 @@ export async function upsertPartnerPlatform({
 }: UpsertPartnerPlatformParams) {
   const { partnerId, type, identifier } = where;
 
-  const existingPlatform = await prisma.partnerPlatform.findFirst({
+  return await prisma.partnerPlatform.upsert({
     where: {
-      partnerId,
-      type,
-      identifier,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (existingPlatform) {
-    // Nothing to write — leave the row untouched
-    if (data?.verifiedAt === undefined && data?.metadata === undefined) {
-      return existingPlatform;
-    }
-
-    return await prisma.partnerPlatform.update({
-      where: {
-        id: existingPlatform.id,
+      partnerId_type_identifier: {
+        partnerId,
+        type,
+        identifier,
       },
-      data: {
-        verifiedAt: data.verifiedAt,
-        metadata: data.metadata,
-      },
-    });
-  }
-
-  return await prisma.partnerPlatform.create({
-    data: {
+    },
+    create: {
       partnerId,
       type,
       identifier,
       verifiedAt: data?.verifiedAt,
       metadata: data?.metadata,
+    },
+    update: {
+      ...data,
     },
   });
 }

@@ -25,7 +25,7 @@ model PartnerPlatform {
 
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
-  @@index([partnerId, type])
+  @@unique([partnerId, type, identifier])
   @@index([type, verifiedAt, lastCheckedAt])
   @@index(identifier)
 }

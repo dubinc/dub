@@ -163,6 +163,7 @@ async function createPartnerAndLinks({
             type: platform,
             identifier: identifier!.trim(),
           },
+          data: {},
         }),
       ),
     );

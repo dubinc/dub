@@ -204,7 +204,9 @@ export function EmbedBountySubmissionForm({
     }
   };
 
-  const hasVerifiedPlatform = partnerPlatforms.some((p) => p.verifiedAt);
+  const hasVerifiedPlatform = partnerPlatforms.some(
+    (p) => p.type === bountyInfo?.socialPlatform?.value && p.verifiedAt,
+  );
 
   return (
     <div className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border">

@@ -90,17 +90,6 @@ export const POST = withAdmin(
       };
     }
 
-    const existingPlatform = await prisma.partnerPlatform.findFirst({
-      where: {
-        partnerId,
-        type: platform,
-        identifier,
-      },
-      select: {
-        id: true,
-      },
-    });
-
     const data = {
       verifiedAt: new Date(),
       platformId: verifiedData.platformId,
@@ -116,21 +105,22 @@ export const POST = withAdmin(
       lastCheckedAt: new Date(),
     };
 
-    const updated = existingPlatform
-      ? await prisma.partnerPlatform.update({
-          where: {
-            id: existingPlatform.id,
-          },
-          data,
-        })
-      : await prisma.partnerPlatform.create({
-          data: {
-            partnerId,
-            type: platform,
-            identifier,
-            ...data,
-          },
-        });
+    const updated = await prisma.partnerPlatform.upsert({
+      where: {
+        partnerId_type_identifier: {
+          partnerId,
+          type: platform,
+          identifier,
+        },
+      },
+      create: {
+        partnerId,
+        type: platform,
+        identifier,
+        ...data,
+      },
+      update: data,
+    });
 
     return NextResponse.json({
       platform: {

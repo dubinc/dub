@@ -1,12 +1,13 @@
 "use server";
 
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { prisma } from "@/lib/prisma";
 import {
   MAX_PLATFORMS_PER_TYPE,
   sanitizeSocialHandle,
   sanitizeWebsite,
 } from "@/lib/social-utils";
-import { PartnerPlatform, PlatformType } from "@prisma/client";
+import { PartnerPlatform, PlatformType, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -48,8 +49,13 @@ function normalizeIdentifier(type: PlatformType, identifier: string) {
 export const updatePartnerPlatformsAction = authPartnerActionClient
   .inputSchema(updatePartnerPlatformsSchema)
   .action(async ({ ctx, parsedInput }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
     const { platforms } = parsedInput;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "partner_profile.update",
+    });
 
     const seen = new Set<string>();
     const submitted: Pick<PartnerPlatform, "type" | "identifier">[] = [];
@@ -84,56 +90,58 @@ export const updatePartnerPlatformsAction = authPartnerActionClient
       }
     }
 
-    const existingPlatforms = await prisma.partnerPlatform.findMany({
-      where: {
-        partnerId: partner.id,
-      },
-      select: {
-        type: true,
-        identifier: true,
-      },
-    });
-
-    const existingKeys = new Set(
-      existingPlatforms.map((p) => `${p.type}:${p.identifier}`),
-    );
-
-    // Delete existing rows that are no longer present in the submission
-    const toDelete = existingPlatforms.filter(
-      (p) => !seen.has(`${p.type}:${p.identifier}`),
-    );
-
-    // Create rows that are newly present. Existing rows are left untouched so
-    // their verification state (verifiedAt) is preserved.
-    const toCreate = submitted.filter(
-      (p) => !existingKeys.has(`${p.type}:${p.identifier}`),
-    );
-
-    if (toDelete.length === 0 && toCreate.length === 0) {
-      return;
-    }
-
-    await prisma.$transaction(async (tx) => {
-      if (toDelete.length > 0) {
-        await tx.partnerPlatform.deleteMany({
+    await prisma.$transaction(
+      async (tx) => {
+        const existingPlatforms = await tx.partnerPlatform.findMany({
           where: {
             partnerId: partner.id,
-            OR: toDelete.map(({ type, identifier }) => ({
+          },
+          select: {
+            type: true,
+            identifier: true,
+          },
+        });
+
+        const existingKeys = new Set(
+          existingPlatforms.map((p) => `${p.type}:${p.identifier}`),
+        );
+
+        // Delete existing rows that are no longer present in the submission
+        const toDelete = existingPlatforms.filter(
+          (p) => !seen.has(`${p.type}:${p.identifier}`),
+        );
+
+        // Create rows that are newly present. Existing rows are left untouched so
+        // their verification state (verifiedAt) is preserved.
+        const toCreate = submitted.filter(
+          (p) => !existingKeys.has(`${p.type}:${p.identifier}`),
+        );
+
+        if (toDelete.length > 0) {
+          await tx.partnerPlatform.deleteMany({
+            where: {
+              partnerId: partner.id,
+              OR: toDelete.map(({ type, identifier }) => ({
+                type,
+                identifier,
+              })),
+            },
+          });
+        }
+
+        if (toCreate.length > 0) {
+          await tx.partnerPlatform.createMany({
+            data: toCreate.map(({ type, identifier }) => ({
+              partnerId: partner.id,
               type,
               identifier,
             })),
-          },
-        });
-      }
-
-      if (toCreate.length > 0) {
-        await tx.partnerPlatform.createMany({
-          data: toCreate.map(({ type, identifier }) => ({
-            partnerId: partner.id,
-            type,
-            identifier,
-          })),
-        });
-      }
-    });
+            skipDuplicates: true,
+          });
+        }
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      },
+    );
   });

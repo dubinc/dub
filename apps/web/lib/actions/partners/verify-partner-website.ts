@@ -23,11 +23,13 @@ export const verifyPartnerWebsiteAction = authPartnerActionClient
       throw new Error("Please provide a valid website.");
     }
 
-    const partnerPlatform = await prisma.partnerPlatform.findFirst({
+    const partnerPlatform = await prisma.partnerPlatform.findUnique({
       where: {
-        partnerId: partner.id,
-        type: PlatformType.website,
-        identifier,
+        partnerId_type_identifier: {
+          partnerId: partner.id,
+          type: PlatformType.website,
+          identifier,
+        },
       },
       select: {
         id: true,
