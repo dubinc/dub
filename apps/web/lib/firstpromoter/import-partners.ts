@@ -161,8 +161,6 @@ async function createPartnerAndLinks({
           where: {
             partnerId: partner.id,
             type: platform,
-          },
-          data: {
             identifier: identifier!.trim(),
           },
         }),

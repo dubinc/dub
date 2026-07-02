@@ -209,14 +209,17 @@ export function EmbedSocialUrlField({
   bounty,
   value,
   onChange,
-  partnerPlatform,
+  partnerPlatforms,
   onVerifyingChange,
   onRequirementsMetChange,
 }: {
   bounty: PartnerBountyProps;
   value: string;
   onChange: (v: string) => void;
-  partnerPlatform?: Pick<PartnerPlatformProps, "identifier" | "verifiedAt">;
+  partnerPlatforms?: Pick<
+    PartnerPlatformProps,
+    "type" | "identifier" | "verifiedAt"
+  >[];
   onVerifyingChange: (value: boolean) => void;
   onRequirementsMetChange: (value: boolean) => void;
 }) {
@@ -245,15 +248,8 @@ export function EmbedSocialUrlField({
   const { isPostedFromYourAccount, isAfterStartDate } =
     evaluateSocialContentRequirements({
       content: data,
-      bounty: {
-        startsAt: new Date(bounty.startsAt),
-      },
-      partnerPlatform: {
-        identifier: partnerPlatform?.identifier ?? "",
-        verifiedAt: partnerPlatform?.verifiedAt
-          ? new Date(partnerPlatform.verifiedAt)
-          : null,
-      },
+      bounty,
+      partnerPlatforms,
     });
 
   useEffect(() => {

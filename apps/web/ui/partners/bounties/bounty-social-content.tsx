@@ -22,18 +22,11 @@ function SocialContentRequirementChecks({
 }) {
   const { partner } = usePartnerProfile();
 
-  const bountyInfo = resolveBountyDetails(bounty);
-  const socialPlatform = bountyInfo?.socialPlatform;
-
-  const partnerPlatform = partner?.platforms?.find(
-    (p) => p.type === socialPlatform?.value,
-  );
-
   const { isPostedFromYourAccount, isAfterStartDate } =
     evaluateSocialContentRequirements({
       content,
       bounty,
-      partnerPlatform,
+      partnerPlatforms: partner?.platforms,
     });
 
   return (
@@ -103,16 +96,11 @@ export function SocialContentUrlField({
     return () => setSocialContentVerifying(false);
   }, [isValidating, setSocialContentVerifying]);
 
-  const bountyInfo = resolveBountyDetails(bounty);
-  const partnerPlatform = partner?.platforms?.find(
-    (p) => p.type === bountyInfo?.socialPlatform?.value,
-  );
-
   useEffect(() => {
     const checks = evaluateSocialContentRequirements({
       content: data,
       bounty,
-      partnerPlatform,
+      partnerPlatforms: partner?.platforms,
     });
 
     setSocialContentRequirementsMet(
@@ -120,9 +108,10 @@ export function SocialContentUrlField({
     );
 
     return () => setSocialContentRequirementsMet(true);
-  }, [data, bounty, partnerPlatform, setSocialContentRequirementsMet]);
+  }, [data, bounty, setSocialContentRequirementsMet]);
 
   const showIcon = isValidating || (error && urlToCheck);
+  const bountyInfo = resolveBountyDetails(bounty);
 
   if (!bountyInfo?.socialPlatform) {
     return null;

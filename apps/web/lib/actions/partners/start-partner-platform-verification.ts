@@ -5,12 +5,16 @@ import {
   generateCodeVerifier,
 } from "@/lib/api/oauth/utils";
 import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
-import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
+import {
+  assertPartnerPlatformLimit,
+  upsertPartnerPlatform,
+} from "@/lib/api/partner-profile/upsert-partner-platform";
 import { generateOTP } from "@/lib/auth/utils";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { isGenericEmail } from "@/lib/is-generic-email";
 import {
   sanitizeSocialHandle,
+  sanitizeWebsite,
   SOCIAL_PLATFORM_CONFIGS,
 } from "@/lib/social-utils";
 import { PartnerProps } from "@/lib/types";
@@ -57,7 +61,17 @@ export const startPartnerPlatformVerificationAction = authPartnerActionClient
   .inputSchema(startPartnerPlatformVerificationSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
-    const { platform, handle, source } = parsedInput;
+    const { platform, handle: rawHandle, source } = parsedInput;
+
+    // Normalize the handle so it matches what we store and use to look up rows
+    const handle =
+      platform === "website"
+        ? sanitizeWebsite(rawHandle)
+        : sanitizeSocialHandle(rawHandle, platform);
+
+    if (!handle) {
+      throw new Error("Please enter a valid handle.");
+    }
 
     // Rate limit check
     const { success } = await ratelimit(5, "1 h").limit(
@@ -69,6 +83,13 @@ export const startPartnerPlatformVerificationAction = authPartnerActionClient
         "Too many verification attempts. Please try again later.",
       );
     }
+
+    // Enforce the per-type limit before adding a new handle
+    await assertPartnerPlatformLimit({
+      partnerId: partner.id,
+      type: platform,
+      identifier: handle,
+    });
 
     const params: VerificationParams = {
       partner,
@@ -120,15 +141,18 @@ async function startWebsiteVerification({
       await upsertPartnerPlatform({
         where: {
           partnerId: partner.id,
-          type: "website",
+          type: PlatformType.website,
+          identifier: handle,
         },
         data: {
-          identifier: handle,
           verifiedAt: new Date(),
           metadata: {},
         },
       });
-      return { type: "auto_verified" };
+
+      return {
+        type: "auto_verified",
+      };
     }
   }
 
@@ -137,10 +161,10 @@ async function startWebsiteVerification({
   await upsertPartnerPlatform({
     where: {
       partnerId: partner.id,
-      type: "website",
+      type: PlatformType.website,
+      identifier: handle,
     },
     data: {
-      identifier: handle,
       verifiedAt: null,
       metadata: {
         websiteTxtRecord,
@@ -158,7 +182,7 @@ async function startWebsiteVerification({
 async function startOAuthVerification({
   partner,
   platform,
-  handle: rawHandle,
+  handle,
   source,
 }: VerificationParams): Promise<
   Extract<VerificationResult, { type: "oauth" }>
@@ -174,20 +198,14 @@ async function startOAuthVerification({
     throw new Error(`Invalid platform: ${platform}`);
   }
 
-  const handle = sanitizeSocialHandle(rawHandle, platform);
-
-  if (!handle) {
-    throw new Error(`Please enter a valid handle for ${platformConfig.name}.`);
-  }
-
   // Store handle before OAuth redirect
   await upsertPartnerPlatform({
     where: {
       partnerId: partner.id,
       type: platform,
+      identifier: handle,
     },
     data: {
-      identifier: handle,
       verifiedAt: null,
     },
   });
@@ -199,6 +217,7 @@ async function startOAuthVerification({
     {
       platform,
       partnerId: partner.id,
+      identifier: handle,
       source,
     },
     {
@@ -243,7 +262,7 @@ async function startOAuthVerification({
 async function startCodeVerification({
   partner,
   platform,
-  handle: rawHandle,
+  handle,
 }: Pick<VerificationParams, "partner" | "platform" | "handle">): Promise<
   Extract<VerificationResult, { type: "verification_code" }>
 > {
@@ -251,12 +270,6 @@ async function startCodeVerification({
 
   if (!platformConfig) {
     throw new Error(`Invalid platform: ${platform}`);
-  }
-
-  const handle = sanitizeSocialHandle(rawHandle, platform);
-
-  if (!handle) {
-    throw new Error(`Please enter a valid handle for ${platformConfig.name}.`);
   }
 
   const verificationCode = generateOTP();
@@ -269,9 +282,9 @@ async function startCodeVerification({
     where: {
       partnerId: partner.id,
       type: platform,
+      identifier: handle,
     },
     data: {
-      identifier: handle,
       verifiedAt: null,
     },
   });

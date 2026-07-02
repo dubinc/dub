@@ -48,7 +48,6 @@ export function PartnerAbout({
         <PartnerPlatformSummary
           platforms={partner.platforms}
           partnerId={partner.id}
-          className="gap-y-2"
         />
       </div>
 

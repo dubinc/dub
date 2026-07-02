@@ -1,192 +1,139 @@
 "use server";
 
-import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { prisma } from "@/lib/prisma";
-import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
-import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
-import { getDomainWithoutWWW, getUrlFromString, isValidUrl } from "@dub/utils";
+import {
+  MAX_PLATFORMS_PER_TYPE,
+  sanitizeSocialHandle,
+  sanitizeWebsite,
+} from "@/lib/social-utils";
 import { PartnerPlatform, PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
-/**
- * Helper function to create a schema for social platform handles.
- * Preserves undefined (ignore) and null (remove), sanitizes string values.
- */
-const createSocialPlatformSchema = (platform: PlatformType) => {
-  return z
-    .string()
-    .nullish()
-    .transform((input) => {
-      if (input === undefined) return undefined;
-      if (input === null) return null;
-      return sanitizeSocialHandle(input, platform);
-    });
-};
-
-/**
- * Helper function to create a schema for website URLs.
- * Preserves undefined (ignore) and null (remove), sanitizes string values.
- */
-const createWebsiteSchema = () => {
-  return parseUrlSchemaAllowEmpty()
-    .nullish()
-    .transform((input) => {
-      if (input === undefined) return undefined;
-      if (input === null) return null;
-      return sanitizeWebsite(input);
-    })
-    .refine(
-      (value) => {
-        return !value || isValidUrl(value);
-      },
-      {
-        message: "Invalid website URL.",
-      },
-    );
-};
-
 const updatePartnerPlatformsSchema = z.object({
-  website: createWebsiteSchema(),
-  youtube: createSocialPlatformSchema("youtube"),
-  twitter: createSocialPlatformSchema("twitter"),
-  linkedin: createSocialPlatformSchema("linkedin"),
-  instagram: createSocialPlatformSchema("instagram"),
-  tiktok: createSocialPlatformSchema("tiktok"),
-  source: z.enum(["onboarding", "settings"]).default("onboarding"),
+  platforms: z.array(
+    z.object({
+      type: z.enum(PlatformType),
+      identifier: z.string(),
+    }),
+  ),
 });
+
+// Normalize an identifier for the given platform type.
+// Returns null when the value is empty (treated as "not present").
+// Throws when the value is non-empty but invalid.
+function normalizeIdentifier(type: PlatformType, identifier: string) {
+  const trimmed = identifier?.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  const sanitized =
+    type === "website"
+      ? sanitizeWebsite(trimmed)
+      : sanitizeSocialHandle(trimmed, type);
+
+  if (!sanitized) {
+    throw new Error(
+      type === "website"
+        ? "Please enter a valid website URL."
+        : `Please enter a valid ${type} handle.`,
+    );
+  }
+
+  return sanitized;
+}
 
 export const updatePartnerPlatformsAction = authPartnerActionClient
   .inputSchema(updatePartnerPlatformsSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
+    const { platforms } = parsedInput;
 
-    const partnerPlatform = await prisma.partnerPlatform.findMany({
-      where: {
-        partnerId: partner.id,
-      },
-    });
+    const seen = new Set<string>();
+    const submitted: Pick<PartnerPlatform, "type" | "identifier">[] = [];
+    const countByType = new Map<PlatformType, number>();
 
-    const platformIdentifiers = new Map(
-      partnerPlatform.map((p) => [p.type, p.identifier]),
-    );
+    for (const { type, identifier } of platforms) {
+      const normalizedIdentifier = normalizeIdentifier(type, identifier);
 
-    const partnerPlatformsData: Pick<
-      PartnerPlatform,
-      "type" | "identifier" | "verifiedAt"
-    >[] = [];
-
-    const platformsToDelete: Array<{
-      partnerId: string;
-      type: PlatformType;
-    }> = [];
-
-    // Define platform configurations
-    // null = remove, undefined = ignore (no changes)
-    const platformConfigs: Array<{
-      platform: PlatformType;
-      inputValue: string | null | undefined;
-    }> = [
-      { platform: "youtube", inputValue: parsedInput.youtube },
-      { platform: "twitter", inputValue: parsedInput.twitter },
-      { platform: "linkedin", inputValue: parsedInput.linkedin },
-      { platform: "instagram", inputValue: parsedInput.instagram },
-      { platform: "tiktok", inputValue: parsedInput.tiktok },
-      { platform: "website", inputValue: parsedInput.website },
-    ];
-
-    for (const { platform, inputValue } of platformConfigs) {
-      const currentIdentifier = platformIdentifiers.get(platform);
-
-      // Handle deletion: null = remove
-      if (inputValue === null && currentIdentifier !== undefined) {
-        platformsToDelete.push({
-          partnerId: partner.id,
-          type: platform,
-        });
+      if (!normalizedIdentifier) {
         continue;
       }
 
-      // Handle update: non-null, non-undefined value that differs from current
-      if (
-        inputValue !== undefined &&
-        inputValue !== null &&
-        inputValue !== currentIdentifier
-      ) {
-        // Special handling for website: check domain change
-        if (platform === "website") {
-          let domainChanged = false;
+      const key = `${type}:${normalizedIdentifier}`;
 
-          try {
-            const oldDomain = getDomainWithoutWWW(
-              getUrlFromString(currentIdentifier ?? ""),
-            );
-            const newDomain = getDomainWithoutWWW(
-              getUrlFromString(inputValue ?? ""),
-            );
+      if (seen.has(key)) {
+        continue;
+      }
 
-            domainChanged = oldDomain !== newDomain;
-          } catch (error) {
-            console.error("Failed to get domain from partner website", error);
-            domainChanged = true;
-          }
+      seen.add(key);
+      submitted.push({
+        type,
+        identifier: normalizedIdentifier,
+      });
 
-          if (domainChanged) {
-            partnerPlatformsData.push({
-              type: "website",
-              identifier: inputValue,
-              verifiedAt: null,
-            });
-          }
-        } else {
-          // For all other platforms, update if value changed
-          partnerPlatformsData.push({
-            type: platform,
-            identifier: inputValue,
-            verifiedAt: null,
-          });
-        }
+      const nextCount = (countByType.get(type) ?? 0) + 1;
+      countByType.set(type, nextCount);
+
+      if (nextCount > MAX_PLATFORMS_PER_TYPE) {
+        throw new Error(
+          `You can add up to ${MAX_PLATFORMS_PER_TYPE} ${type} handles.`,
+        );
       }
     }
 
-    // Execute deletions and updates in parallel
-    const operations: Promise<unknown>[] = [];
+    const existingPlatforms = await prisma.partnerPlatform.findMany({
+      where: {
+        partnerId: partner.id,
+      },
+      select: {
+        type: true,
+        identifier: true,
+      },
+    });
 
-    if (platformsToDelete.length > 0) {
-      operations.push(
-        ...platformsToDelete.map(({ partnerId, type }) =>
-          prisma.partnerPlatform.delete({
-            where: {
-              partnerId_type: {
-                partnerId,
-                type,
-              },
-            },
-          }),
-        ),
-      );
-    }
+    const existingKeys = new Set(
+      existingPlatforms.map((p) => `${p.type}:${p.identifier}`),
+    );
 
-    if (partnerPlatformsData.length > 0) {
-      operations.push(
-        ...partnerPlatformsData.map((item) =>
-          upsertPartnerPlatform({
-            where: {
-              partnerId: partner.id,
-              type: item.type,
-            },
-            data: {
-              identifier: item.identifier,
-              verifiedAt: item.verifiedAt,
-            },
-          }),
-        ),
-      );
-    }
+    // Delete existing rows that are no longer present in the submission
+    const toDelete = existingPlatforms.filter(
+      (p) => !seen.has(`${p.type}:${p.identifier}`),
+    );
 
-    if (operations.length === 0) {
+    // Create rows that are newly present. Existing rows are left untouched so
+    // their verification state (verifiedAt) is preserved.
+    const toCreate = submitted.filter(
+      (p) => !existingKeys.has(`${p.type}:${p.identifier}`),
+    );
+
+    if (toDelete.length === 0 && toCreate.length === 0) {
       return;
     }
 
-    await Promise.all(operations);
+    await prisma.$transaction(async (tx) => {
+      if (toDelete.length > 0) {
+        await tx.partnerPlatform.deleteMany({
+          where: {
+            partnerId: partner.id,
+            OR: toDelete.map(({ type, identifier }) => ({
+              type,
+              identifier,
+            })),
+          },
+        });
+      }
+
+      if (toCreate.length > 0) {
+        await tx.partnerPlatform.createMany({
+          data: toCreate.map(({ type, identifier }) => ({
+            partnerId: partner.id,
+            type,
+            identifier,
+          })),
+        });
+      }
+    });
   });

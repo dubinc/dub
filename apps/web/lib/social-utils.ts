@@ -1,5 +1,23 @@
 import { getUrlFromStringIfValid } from "@dub/utils";
-import { PlatformType } from "@prisma/client";
+import { PartnerPlatform, PlatformType } from "@prisma/client";
+
+type PrimarySelectablePlatform = Pick<
+  PartnerPlatform,
+  "type" | "identifier" | "verifiedAt" | "subscribers"
+>;
+
+// Maximum number of handles a partner can add per platform type
+export const MAX_PLATFORMS_PER_TYPE = 2;
+
+// Canonical display order for platform types
+export const PLATFORM_ORDER: PlatformType[] = [
+  "website",
+  "youtube",
+  "twitter",
+  "instagram",
+  "tiktok",
+  "linkedin",
+];
 
 interface SocialPlatformConfig {
   patterns: RegExp[];
@@ -80,7 +98,7 @@ export const sanitizeSocialHandle = (
     .replace(/\?.*$/, "") // query params (e.g. ?s=21&t=...)
     .replace(/#.*$/, ""); // hash/fragment (e.g. #section)
 
-  const { patterns, allowedChars, allowedDomains, maxLength } =
+  const { patterns, allowedChars, maxLength } =
     SOCIAL_PLATFORM_CONFIGS[platform];
 
   for (const pattern of patterns) {
@@ -101,9 +119,59 @@ export const sanitizeSocialHandle = (
   return handle || null;
 };
 
-// Converts an array of platform objects into a key-value object
-// for easy lookup by platform name. Returns null for platforms not found.
-export function buildSocialPlatformLookup<T extends { type: PlatformType }>(
+// Prefer a verified handle, then the highest subscribers
+function isBetterPrimary({
+  candidate,
+  current,
+}: {
+  candidate: PrimarySelectablePlatform;
+  current: PrimarySelectablePlatform;
+}) {
+  const candidateVerified = candidate.verifiedAt ? 1 : 0;
+  const currentVerified = current.verifiedAt ? 1 : 0;
+
+  if (candidateVerified !== currentVerified) {
+    return candidateVerified > currentVerified;
+  }
+
+  const candidateSubs = Number(candidate.subscribers ?? 0);
+  const currentSubs = Number(current.subscribers ?? 0);
+
+  if (candidateSubs !== currentSubs) {
+    return candidateSubs > currentSubs;
+  }
+
+  return true;
+}
+
+// Selects the single "primary" handle of a given type from a list that may
+// contain multiple handles per type.
+export function selectPrimaryPlatform<T extends PrimarySelectablePlatform>(
+  platforms: T[],
+  type: PlatformType,
+): T | undefined {
+  let primary: T | undefined;
+
+  for (const platform of platforms) {
+    if (platform.type !== type) {
+      continue;
+    }
+
+    if (
+      !primary ||
+      isBetterPrimary({ candidate: platform, current: primary })
+    ) {
+      primary = platform;
+    }
+  }
+
+  return primary;
+}
+
+// Converts an array of platform objects into a key-value object for easy lookup
+// by platform name. When a partner has multiple handles of the same type, the
+// "primary" handle (verified > highest subscribers > most recent) is used.
+export function buildSocialPlatformLookup<T extends PrimarySelectablePlatform>(
   platforms: T[],
 ): Record<PlatformType, T | null> {
   const result = {
@@ -116,16 +184,26 @@ export function buildSocialPlatformLookup<T extends { type: PlatformType }>(
   } as Record<PlatformType, T | null>;
 
   for (const platform of platforms) {
-    result[platform.type] = platform;
+    const current = result[platform.type];
+
+    if (
+      !current ||
+      isBetterPrimary({
+        candidate: platform,
+        current,
+      })
+    ) {
+      result[platform.type] = platform;
+    }
   }
 
   return result;
 }
 
 // Polyfills social media fields from platforms array for backward compatibility
-export function polyfillSocialMediaFields<
-  T extends { type: PlatformType; identifier: string | null },
->(platforms: T[]) {
+export function polyfillSocialMediaFields<T extends PrimarySelectablePlatform>(
+  platforms: T[],
+) {
   const platformsMap = buildSocialPlatformLookup(platforms);
 
   return {

@@ -21,6 +21,7 @@ const requestSchema = z.object({
 interface State {
   platform: PlatformType;
   partnerId: string;
+  identifier: string;
   source: "onboarding" | "settings";
 }
 
@@ -56,7 +57,7 @@ export async function GET(req: Request) {
     return NextResponse.redirect(PARTNERS_DOMAIN);
   }
 
-  const { platform, partnerId, source } = stateFromRedis;
+  const { platform, partnerId, identifier, source } = stateFromRedis;
 
   if (session.user.defaultPartnerId !== partnerId) {
     console.warn("Unauthorized: User is not the default partner.");
@@ -125,12 +126,11 @@ export async function GET(req: Request) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  const partnerPlatform = await prisma.partnerPlatform.findUnique({
+  const partnerPlatform = await prisma.partnerPlatform.findFirst({
     where: {
-      partnerId_type: {
-        partnerId,
-        type: platform,
-      },
+      partnerId,
+      type: platform,
+      identifier,
     },
   });
 
@@ -174,10 +174,7 @@ export async function GET(req: Request) {
 
   await prisma.partnerPlatform.update({
     where: {
-      partnerId_type: {
-        partnerId,
-        type: platform,
-      },
+      id: partnerPlatform.id,
     },
     data: {
       ...socialStats,
