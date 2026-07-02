@@ -37,6 +37,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     return {
       ...link,
       discountCode: discountCode?.code,
+      discountCodeDisabledAt: discountCode?.disabledAt ?? null,
     };
   });
 
