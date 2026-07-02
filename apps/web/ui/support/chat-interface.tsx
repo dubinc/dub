@@ -141,6 +141,16 @@ export function ChatInterface({
     }
   };
 
+  const getSlackThreadTs = () => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const meta = (messages[i] as any).metadata as
+        | { slackThreadTs?: string }
+        | undefined;
+      if (meta?.slackThreadTs) return meta.slackThreadTs;
+    }
+    return undefined;
+  };
+
   const handleSend = (text?: string) => {
     const messageText = text ?? input;
     if (!messageText.trim() || status === "streaming" || !canChat) return;
@@ -154,6 +164,7 @@ export function ChatInterface({
               effectiveAccountType === "partner" ? "partners" : "app",
             accountType: effectiveAccountType,
           },
+          slackThreadTs: getSlackThreadTs(),
         },
       },
     );
@@ -175,6 +186,7 @@ export function ChatInterface({
               effectiveAccountType === "partner" ? "partners" : "app",
             accountType: effectiveAccountType,
           },
+          slackThreadTs: getSlackThreadTs(),
           ...(attachmentIds.length ? { attachmentIds } : {}),
           ...(details ? { ticketDetails: details } : {}),
         },
