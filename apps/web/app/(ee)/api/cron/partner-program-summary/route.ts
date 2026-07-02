@@ -20,6 +20,7 @@ export const GET = withCron(async () => {
 
   while (true) {
     const programs = await prisma.program.findMany({
+      where: { deactivatedAt: null },
       select: {
         id: true,
       },

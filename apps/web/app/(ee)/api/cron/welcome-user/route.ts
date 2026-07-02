@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     if (isPartner) {
       await sendEmail({
         to: user.email,
-        replyTo: "noreply",
+        replyTo: "steven.tey@dub.co",
         subject: "Welcome to Dub Partners!",
         react: WelcomeEmailPartner({
           email: user.email,

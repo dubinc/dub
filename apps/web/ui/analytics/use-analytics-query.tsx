@@ -5,6 +5,7 @@ import {
 } from "@/lib/analytics/constants";
 import { EventType } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useCurrentProduct } from "@dub/ui";
 import { endOfDay, startOfDay, subDays } from "date-fns";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
@@ -23,7 +24,8 @@ export function useAnalyticsQuery({
   defaultInterval?: string;
 } = {}) {
   const searchParams = useSearchParams();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { product } = useCurrentProduct();
 
   const domain = domainParam ?? searchParams?.get("domain");
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
@@ -87,10 +89,14 @@ export function useAnalyticsQuery({
       ...(customerId && { customerId }),
       ...(root && { root: root.toString() }),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      ...(product === "program" &&
+        defaultProgramId && { programId: defaultProgramId }),
     }).toString();
   }, [
     searchParams,
     workspaceId,
+    defaultProgramId,
+    product,
     domain,
     key,
     start,

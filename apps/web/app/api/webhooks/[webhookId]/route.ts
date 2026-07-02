@@ -4,11 +4,10 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { webhookCache } from "@/lib/webhook/cache";
-import { transformWebhook } from "@/lib/webhook/transform";
 import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { validateWebhook } from "@/lib/webhook/validate-webhook";
-import { updateWebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { updateWebhookSchema, WebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -29,12 +28,11 @@ export const GET = withWorkspace(
         secret: true,
         triggers: true,
         disabledAt: true,
-        links: true,
         installationId: true,
       },
     });
 
-    return NextResponse.json(transformWebhook(webhook));
+    return NextResponse.json(WebhookSchema.parse(webhook));
   },
   {
     requiredPermissions: ["webhooks.read"],
@@ -191,7 +189,7 @@ export const PATCH = withWorkspace(
       })(),
     );
 
-    return NextResponse.json(transformWebhook(webhook));
+    return NextResponse.json(WebhookSchema.parse(webhook));
   },
   {
     requiredPermissions: ["webhooks.write"],

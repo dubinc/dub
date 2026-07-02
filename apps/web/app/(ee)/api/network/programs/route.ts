@@ -98,7 +98,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     },
     orderBy:
       sortBy === "popularity"
-        ? {}
+        ? { marketplaceRanking: "asc" }
         : {
             [sortBy === "recency" ? "addedToMarketplaceAt" : sortBy]: sortOrder,
           },

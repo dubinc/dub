@@ -20,6 +20,7 @@ import {
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
+import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
 type BulkBanPartnersFormData = z.infer<typeof bulkBanPartnersSchema> & {
   confirm: string;
@@ -199,9 +200,10 @@ function BulkBanPartnersModal({
           </div>
 
           <p className="text-sm text-neutral-600">
-            This will permanently ban the {partnerWord}, disable all their
-            active links, and cancel all pending payouts. This action is not
-            reversible.
+            This will disable all their active links, cancel all pending
+            payouts, and{" "}
+            <PartnerEmailNotificationTooltipHelper text="notify them via email" />
+            . You can unban them later if needed.
           </p>
 
           <div>

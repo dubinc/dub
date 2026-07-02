@@ -1,5 +1,6 @@
 "use client";
 
+import { canAccessProgram } from "@/lib/auth/product-access-guard";
 import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { SUBMITTED_LEADS_ENABLED_PROGRAM_IDS } from "@/lib/submitted-leads/constants";
@@ -77,12 +78,14 @@ type SidebarNavData = {
   pendingLeadsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
+  hasProgramAccess?: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
   pathname,
   defaultProgramId,
+  hasProgramAccess,
 }) => {
   const programGroup = {
     id: "program",
@@ -109,6 +112,12 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     href: slug ? `/${slug}/links` : "/links",
     active: pathname.startsWith(`/${slug}/links`),
   };
+
+  // TEMPORARY: hide the program tab for restricted workspace users
+  if (hasProgramAccess === false) {
+    return [linksGroup];
+  }
+
   return defaultProgramId
     ? [programGroup, linksGroup]
     : [linksGroup, programGroup];
@@ -206,6 +215,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Analytics",
             icon: LinesYStatic,
             href: `/${slug}/program/analytics`,
+            isActive: (pathname: string, href: string) =>
+              pathname.startsWith(href) ||
+              pathname.startsWith(href.replace("/analytics", "/events")),
           },
           {
             name: "Customers",
@@ -329,17 +341,17 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Analytics",
             icon: LinesY,
-            href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
+            href: `/${slug}/links/analytics${pathname === `/${slug}/links/analytics` ? "" : queryString}`,
           },
           {
             name: "Events",
             icon: CursorRays,
-            href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
+            href: `/${slug}/links/events${pathname === `/${slug}/links/events` ? "" : queryString}`,
           },
           {
             name: "Customers",
             icon: User,
-            href: `/${slug}/customers`,
+            href: `/${slug}/links/customers`,
           },
         ],
       },
@@ -497,8 +509,27 @@ export function AppSidebarNav({
   const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
-  const { data: session } = useSession();
-  const { plan, defaultProgramId, trialEndsAt } = useWorkspace();
+  const { data: session, status } = useSession();
+  const {
+    id: workspaceId,
+    plan,
+    defaultProgramId,
+    trialEndsAt,
+    loading: workspaceLoading,
+  } = useWorkspace();
+
+  const canCheckProgramAccess =
+    status !== "loading" &&
+    !workspaceLoading &&
+    workspaceId &&
+    session?.user.id;
+
+  const hasProgramAccess = canCheckProgramAccess
+    ? canAccessProgram({
+        workspaceId,
+        userId: session.user.id,
+      })
+    : false;
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -590,6 +621,7 @@ export function AppSidebarNav({
           canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
+        hasProgramAccess,
       }}
       toolContent={toolContent}
       newsContent={
