@@ -1,6 +1,7 @@
 "use client";
 
 import { WorkspaceEnvironmentSwitcher } from "@/lib/sandbox/components/workspace-environment-switcher";
+import { isStagingEnvironment } from "@/lib/sandbox/workspace-guards";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
@@ -165,7 +166,7 @@ function WorkspaceList({
 
   const current = workspaces.find((w) => w.slug === selected.slug);
   const activeSlug =
-    current?.environment === WorkspaceEnvironment.staging
+    current && isStagingEnvironment(current.environment)
       ? workspaces.find((w) => w.stagingWorkspaceId === current.id)?.slug ??
         selected.slug
       : selected.slug;

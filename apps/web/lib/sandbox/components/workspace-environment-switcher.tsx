@@ -4,6 +4,7 @@ import { WorkspaceProps } from "@/lib/types";
 import { IsolatedCube } from "@dub/ui/icons";
 import { WorkspaceEnvironment } from "@prisma/client";
 import Link from "next/link";
+import { isStagingEnvironment } from "../workspace-guards";
 
 const buttonClassName =
   "text-content-emphasis flex w-full items-center justify-center gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80";
@@ -31,7 +32,7 @@ export function WorkspaceEnvironmentSwitcher({
   let label: string;
 
   // Exit staging
-  if (currentWorkspace.environment === WorkspaceEnvironment.staging) {
+  if (isStagingEnvironment(currentWorkspace.environment)) {
     targetWorkspace = workspaces.find(
       (workspace) => workspace.stagingWorkspaceId === currentWorkspace.id,
     );

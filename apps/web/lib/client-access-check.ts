@@ -1,6 +1,7 @@
 import { combineWords } from "@dub/utils";
 import { WorkspaceEnvironment, WorkspaceRole } from "@prisma/client";
 import { PermissionAction, ROLE_PERMISSIONS } from "./api/rbac/permissions";
+import { isStagingEnvironment } from "./sandbox/workspace-guards";
 
 export const clientAccessCheck = ({
   action,
@@ -15,7 +16,7 @@ export const clientAccessCheck = ({
   environment?: WorkspaceEnvironment | null;
   stagingBehavior?: "blocked" | "production-only";
 }) => {
-  if (environment === WorkspaceEnvironment.staging) {
+  if (isStagingEnvironment(environment)) {
     switch (stagingBehavior) {
       case "blocked":
         return {

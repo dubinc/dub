@@ -10,7 +10,7 @@ export function assertNotStagingWorkspace(
 ) {
   const shouldCheck = options?.when ?? true;
 
-  if (shouldCheck && workspace.environment === WorkspaceEnvironment.staging) {
+  if (shouldCheck && isStagingEnvironment(workspace.environment)) {
     throw new DubApiError({
       code: "forbidden",
       message:
@@ -40,4 +40,10 @@ export function assertProductionWorkspace(
         "This action is only available in production workspaces.",
     });
   }
+}
+
+export function isStagingEnvironment(
+  environment: WorkspaceEnvironment | null | undefined,
+) {
+  return Boolean(environment && environment === WorkspaceEnvironment.staging);
 }

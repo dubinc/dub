@@ -10,6 +10,7 @@ import { WorkspaceEnvironment } from "@prisma/client";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { isStagingEnvironment } from "../workspace-guards";
 
 export function WorkspaceEnvironmentBanner() {
   const pathname = usePathname();
@@ -39,7 +40,7 @@ export function WorkspaceEnvironmentBanner() {
       animate={{ transform: "translateY(0)" }}
       className={cn(
         "fixed left-0 right-0 top-0 z-30 flex h-12 items-center justify-between gap-4 overflow-hidden px-6 text-neutral-800",
-        currentWorkspace.environment === WorkspaceEnvironment.staging
+        isStagingEnvironment(currentWorkspace.environment)
           ? "bg-amber-200"
           : "bg-blue-200",
       )}

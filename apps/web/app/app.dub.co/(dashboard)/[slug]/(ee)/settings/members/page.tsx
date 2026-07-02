@@ -2,6 +2,7 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { isStagingEnvironment } from "@/lib/sandbox/workspace-guards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { WorkspaceUserProps } from "@/lib/types";
@@ -38,7 +39,7 @@ import {
   UserCheck,
 } from "@dub/ui/icons";
 import { cn, fetcher, timeAgo } from "@dub/utils";
-import { WorkspaceEnvironment, WorkspaceRole } from "@prisma/client";
+import { WorkspaceRole } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus } from "lucide-react";
@@ -114,7 +115,6 @@ export default function WorkspaceMembersPage() {
   }, [plan]);
 
   const isCurrentUserOwner = role === "owner";
-  const isStaging = environment === WorkspaceEnvironment.staging;
 
   const filters = useMemo(
     () => [
@@ -168,7 +168,10 @@ export default function WorkspaceMembersPage() {
   }, [status, roleFilter]);
 
   useKeyboardShortcut("m", () => setShowInviteWorkspaceUserModal(true), {
-    enabled: !isStaging && !invitePermissionError && !isAtUserLimit,
+    enabled:
+      !isStagingEnvironment(environment) &&
+      !invitePermissionError &&
+      !isAtUserLimit,
   });
 
   const columns = useMemo<ColumnDef<WorkspaceUserProps>[]>(
@@ -371,7 +374,6 @@ function RoleCell({
   isCurrentUserOwner: boolean;
 }) {
   const { plan, environment } = useWorkspace();
-  const isStaging = environment === WorkspaceEnvironment.staging;
   const [role, setRole] = useState<WorkspaceRole>(user.role);
 
   useEffect(() => {
@@ -406,7 +408,7 @@ function RoleCell({
     ? "Only owners can change member roles"
     : isCurrentUser
       ? "You cannot change your own role"
-      : isStaging
+      : isStagingEnvironment(environment)
         ? "Roles cannot be updated in staging workspaces (automatically synced from your production workspace)"
         : undefined;
 
@@ -463,7 +465,6 @@ function RowMenuButton({
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
   const { environment } = useWorkspace();
-  const isStaging = environment === WorkspaceEnvironment.staging;
 
   const user = row.original;
   const searchParams = useSearchParams();
@@ -487,7 +488,7 @@ function RowMenuButton({
   const isCurrentUser = session?.user?.email === user.email;
 
   // In staging, only show menu for self (leave workspace)
-  if (isStaging && !isCurrentUser) {
+  if (isStagingEnvironment(environment) && !isCurrentUser) {
     return null;
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCopyDiscountToLiveModal } from "@/lib/sandbox/components/copy-discount-to-live-modal";
+import { isStagingEnvironment } from "@/lib/sandbox/workspace-guards";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import type { DiscountProps, GroupProps } from "@/lib/types";
@@ -9,7 +10,6 @@ import { useDiscountSheet } from "@/ui/partners/discounts/add-edit-discount-shee
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { Button, useRouterStuff } from "@dub/ui";
 import { cn, isClickOnInteractiveChild } from "@dub/utils";
-import { WorkspaceEnvironment } from "@prisma/client";
 import { BadgePercent } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -80,7 +80,7 @@ const DiscountItem = ({
 
   return (
     <>
-      {discount && environment === WorkspaceEnvironment.staging && (
+      {discount && isStagingEnvironment(environment) && (
         <CopyDiscountToLiveModal />
       )}
       <As
@@ -126,7 +126,7 @@ const DiscountItem = ({
               <CopyDefaultDiscountButton />
             )}
 
-            {discount && environment === WorkspaceEnvironment.staging && (
+            {discount && isStagingEnvironment(environment) && (
               <Button
                 text="Copy to live"
                 variant="secondary"

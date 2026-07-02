@@ -2,6 +2,7 @@
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useCopyRewardToLiveModal } from "@/lib/sandbox/components/copy-reward-to-live-modal";
+import { isStagingEnvironment } from "@/lib/sandbox/workspace-guards";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import type { GroupProps, RewardProps } from "@/lib/types";
@@ -22,7 +23,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, formatDate, isClickOnInteractiveChild } from "@dub/utils";
-import { EventType, WorkspaceEnvironment } from "@prisma/client";
+import { EventType } from "@prisma/client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -169,9 +170,7 @@ const RewardItem = ({
       {partnersUpgradeModal}
       {RewardSheet}
       {rewardHistorySheet}
-      {reward && environment === WorkspaceEnvironment.staging && (
-        <CopyRewardToLiveModal />
-      )}
+      {reward && isStagingEnvironment(environment) && <CopyRewardToLiveModal />}
       <As
         href={
           reward
@@ -272,7 +271,7 @@ const RewardItem = ({
 
           {reward ? (
             <div className="flex items-center gap-2">
-              {environment === WorkspaceEnvironment.staging && (
+              {isStagingEnvironment(environment) && (
                 <Button
                   text="Copy to live"
                   variant="secondary"

@@ -1,6 +1,7 @@
 import { IsolatedCube } from "@dub/ui/icons";
 import { capitalize, cn } from "@dub/utils";
 import { WorkspaceEnvironment } from "@prisma/client";
+import { isStagingEnvironment } from "../workspace-guards";
 
 export function ProgramEnvironmentBanner({
   environment,
@@ -15,9 +16,7 @@ export function ProgramEnvironmentBanner({
     <div
       className={cn(
         "fixed left-0 right-0 top-0 z-50 flex h-12 items-center justify-between gap-4 overflow-hidden px-6 text-neutral-800",
-        environment === WorkspaceEnvironment.staging
-          ? "bg-amber-200"
-          : "bg-blue-200",
+        isStagingEnvironment(environment) ? "bg-amber-200" : "bg-blue-200",
       )}
     >
       <div className="flex shrink-0 items-center gap-2">
