@@ -14,7 +14,7 @@ const inputSchema = z.object({
   provider: z.enum(DiscountProvider),
 });
 
-// POST /api/cron/discount-codes/delete
+// POST /api/cron/discount-codes/disable – disable a discount code from the provider (Stripe, Shopify, etc.)
 export const POST = withCron(async ({ rawBody }) => {
   const { provider, code, programId } = inputSchema.parse(JSON.parse(rawBody));
 

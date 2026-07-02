@@ -17,6 +17,7 @@ type DeleteDiscountCodesParams = Pick<
 // 4. When a partner is moved to a different group
 export async function deleteDiscountCodes(
   input: (DeleteDiscountCodesParams | null | undefined)[],
+  { isSoftDelete = false }: { isSoftDelete?: boolean } = {},
 ) {
   const discountCodes = input.filter(
     (dc): dc is NonNullable<typeof dc> => dc != null,
@@ -29,18 +30,20 @@ export async function deleteDiscountCodes(
     return;
   }
 
-  // Delete the discount codes from the database
-  const deletedDiscountCodes = await prisma.discountCode.deleteMany({
-    where: {
-      id: {
-        in: discountCodes.map(({ id }) => id),
+  if (!isSoftDelete) {
+    // Delete the discount codes from the database
+    const deletedDiscountCodes = await prisma.discountCode.deleteMany({
+      where: {
+        id: {
+          in: discountCodes.map(({ id }) => id),
+        },
       },
-    },
-  });
+    });
 
-  console.log(
-    `[deleteDiscountCodes] Deleted ${deletedDiscountCodes.count} discount codes.`,
-  );
+    console.log(
+      `[deleteDiscountCodes] Deleted ${deletedDiscountCodes.count} discount codes.`,
+    );
+  }
 
   // Only enqueue external-provider cleanup for codes whose provider is known.
   // Orphaned codes (discount relation is null) still get deleted locally above
@@ -63,7 +66,7 @@ export async function deleteDiscountCodes(
   for (const chunkOfCodes of chunks) {
     await enqueueBatchJobs(
       chunkOfCodes.map((discountCode) => ({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/delete`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/disable`,
         method: "POST",
         queueName: "delete-discount-code",
         body: {
