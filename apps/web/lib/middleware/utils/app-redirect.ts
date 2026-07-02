@@ -7,7 +7,6 @@ const APP_REDIRECTS = {
   "/welcome": "/onboarding/welcome",
   "/campaigns": "/program/campaigns",
   "/messages": "/program/messages",
-  "/marketplace": "/program/network",
   "/fraud": "/program/risks",
   "/risks": "/program/risks",
 };
