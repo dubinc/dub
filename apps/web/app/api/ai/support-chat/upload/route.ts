@@ -66,21 +66,38 @@ export const POST = withSession(async ({ req, session }) => {
   }
 
   // Ensure the Plain customer exists and get their Plain-scoped ID
-  const { data: customerData, error: customerError } =
-    await upsertPlainCustomer({
-      id: session.user.id,
-      name: session.user.name ?? "",
-      email: session.user.email,
-    });
+  const user = {
+    id: session.user.id,
+    name: session.user.name ?? "",
+    email: session.user.email,
+  };
 
-  if (customerError || !customerData) {
-    console.error("Failed to upsert Plain customer:", customerError);
+  const upsert = await upsertPlainCustomer(user);
+
+  let customer = upsert.data?.customer ?? null;
+  let customerError = upsert.error ?? null;
+
+  if (
+    !customer &&
+    upsert.error?.type === "mutation_error" &&
+    upsert.error.errorDetails.code ===
+      "customer_already_exists_with_external_id"
+  ) {
+    const { data: existingCustomer, error: lookupError } =
+      await plain.getCustomerByExternalId({ externalId: user.id });
+
+    customer = existingCustomer ?? null;
+    customerError = lookupError ?? null;
+  }
+
+  if (customerError || !customer) {
+    console.error("Failed to resolve Plain customer:", customerError);
     return new Response("Failed to resolve support customer", { status: 500 });
   }
 
   const { data, error } = await plain.createAttachmentUploadUrl({
     attachmentType: AttachmentType.CustomTimelineEntry,
-    customerId: customerData.customer.id,
+    customerId: customer.id,
     fileName,
     fileSizeBytes,
   });
