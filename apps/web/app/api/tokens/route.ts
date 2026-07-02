@@ -5,12 +5,13 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
+import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
 import { ratelimit } from "@/lib/upstash";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
 import { sendEmail } from "@dub/email";
 import APIKeyCreated from "@dub/email/templates/api-key-created";
 import { nanoid } from "@dub/utils";
-import { Prisma, User, WorkspaceEnvironment } from "@prisma/client";
+import { Prisma, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -97,10 +98,9 @@ export const POST = withWorkspace(
       });
     }
 
-    const tokenPrefix =
-      workspace.environment === WorkspaceEnvironment.production
-        ? "dub_"
-        : "dub_test_";
+    const tokenPrefix = isProductionEnvironment(workspace.environment)
+      ? "dub_"
+      : "dub_test_";
     const token = `${tokenPrefix}${nanoid(24)}`;
     const hashedKey = await hashToken(token);
     const partialKey = `${token.slice(0, 3)}...${token.slice(-4)}`;

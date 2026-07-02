@@ -9,6 +9,7 @@ import {
 } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
 import { mockPaymentProvider } from "@/lib/sandbox/mock-payment-provider";
+import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
@@ -21,13 +22,7 @@ import {
   nFormatter,
   pluralize,
 } from "@dub/utils";
-import {
-  Invoice,
-  Program,
-  ProgramPayoutMode,
-  Project,
-  WorkspaceEnvironment,
-} from "@prisma/client";
+import { Invoice, Program, ProgramPayoutMode, Project } from "@prisma/client";
 
 const nonUsdPaymentMethodTypes = {
   sepa_debit: "eur",
@@ -74,8 +69,7 @@ export async function processPayouts({
   selectedPayoutIds,
   excludedPayoutIds,
 }: ProcessPayoutsProps) {
-  const isProductionWorkspace =
-    workspace.environment === WorkspaceEnvironment.production;
+  const isProductionWorkspace = isProductionEnvironment(workspace.environment);
 
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,

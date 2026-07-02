@@ -2,8 +2,9 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { mockPayoutCompletion } from "@/lib/sandbox/mock-payout-completion";
+import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
 import { log } from "@dub/utils";
-import { PartnerPayoutMethod, WorkspaceEnvironment } from "@prisma/client";
+import { PartnerPayoutMethod } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { queueExternalPayouts } from "./queue-external-payouts";
@@ -71,8 +72,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const isProductionWorkspace =
-      invoice.program.workspace.environment === WorkspaceEnvironment.production;
+    const isProductionWorkspace = isProductionEnvironment(
+      invoice.program.workspace.environment,
+    );
 
     // Set the method for each payout in the invoice to the corresponding partner's default payout method
     await prisma.$executeRaw`

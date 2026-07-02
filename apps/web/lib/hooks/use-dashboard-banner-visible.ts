@@ -1,7 +1,7 @@
 "use client";
 
+import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { WorkspaceEnvironment } from "@prisma/client";
 
 export function useDashboardBannerVisible() {
   const {
@@ -13,16 +13,15 @@ export function useDashboardBannerVisible() {
     loading,
   } = useWorkspace();
 
-  const isProductionWorkspace = environment === WorkspaceEnvironment.production;
-
   // Visible in production workspaces
   const isUpgradeBannerVisible =
     (exceededEvents || exceededLinks || exceededPayouts || !!paymentFailedAt) &&
-    isProductionWorkspace &&
+    isProductionEnvironment(environment) &&
     !loading;
 
   // Visible in non-production workspaces
-  const isEnvironmentBannerVisible = !isProductionWorkspace && !loading;
+  const isEnvironmentBannerVisible =
+    !isProductionEnvironment(environment) && !loading;
 
   const hasBanner = isUpgradeBannerVisible || isEnvironmentBannerVisible;
 

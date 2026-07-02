@@ -1,14 +1,17 @@
 import { IsolatedCube } from "@dub/ui/icons";
 import { capitalize, cn } from "@dub/utils";
 import { WorkspaceEnvironment } from "@prisma/client";
-import { isStagingEnvironment } from "../workspace-guards";
+import {
+  isProductionEnvironment,
+  isStagingEnvironment,
+} from "../workspace-guards";
 
 export function ProgramEnvironmentBanner({
   environment,
 }: {
   environment: WorkspaceEnvironment;
 }) {
-  if (environment === WorkspaceEnvironment.production) {
+  if (isProductionEnvironment(environment)) {
     return null;
   }
 

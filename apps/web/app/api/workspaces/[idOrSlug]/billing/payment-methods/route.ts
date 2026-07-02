@@ -7,11 +7,13 @@ import {
   PAYMENT_METHOD_TYPES,
 } from "@/lib/constants/payouts";
 import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
-import { assertProductionWorkspace } from "@/lib/sandbox/workspace-guards";
+import {
+  assertProductionWorkspace,
+  isProductionEnvironment,
+} from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { capitalize } from "@dub/utils/src";
-import { WorkspaceEnvironment } from "@prisma/client";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import * as z from "zod/v4";
@@ -50,7 +52,7 @@ async function getWorkspacePaymentMethod({
 // GET /api/workspaces/[idOrSlug]/billing/payment-methods - get all payment methods
 export const GET = withWorkspace(
   async ({ workspace }) => {
-    if (workspace.environment !== WorkspaceEnvironment.production) {
+    if (!isProductionEnvironment(workspace.environment)) {
       return NextResponse.json({
         paymentMethods: [SANDBOX_PAYMENT_METHOD],
         defaultPaymentMethodId: SANDBOX_PAYMENT_METHOD.id,

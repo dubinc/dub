@@ -6,11 +6,13 @@ import useWorkspaces from "@/lib/swr/use-workspaces";
 import { IsolatedCube } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { capitalize } from "@dub/utils/src";
-import { WorkspaceEnvironment } from "@prisma/client";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { isStagingEnvironment } from "../workspace-guards";
+import {
+  isProductionEnvironment,
+  isStagingEnvironment,
+} from "../workspace-guards";
 
 export function WorkspaceEnvironmentBanner() {
   const pathname = usePathname();
@@ -20,7 +22,7 @@ export function WorkspaceEnvironmentBanner() {
 
   if (
     !isEnvironmentBannerVisible ||
-    currentWorkspace.environment === WorkspaceEnvironment.production ||
+    isProductionEnvironment(currentWorkspace.environment) ||
     loadingWorkspace ||
     loadingWorkspaces ||
     !currentWorkspace.slug

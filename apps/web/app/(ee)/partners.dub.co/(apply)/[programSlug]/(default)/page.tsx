@@ -1,12 +1,12 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { ProgramEnvironmentBanner } from "@/lib/sandbox/components/program-environment-banner";
+import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
-import { WorkspaceEnvironment } from "@prisma/client";
 import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyButton } from "./apply-button";
@@ -39,8 +39,9 @@ export default async function ApplyPage(props: {
   }
 
   const landerData = programLanderSchema.parse(program.group.landerData || {});
-  const isNonProduction =
-    program.workspace.environment !== WorkspaceEnvironment.production;
+  const isNonProduction = !isProductionEnvironment(
+    program.workspace.environment,
+  );
 
   return (
     <div

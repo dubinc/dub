@@ -2,8 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { currencyFormatter } from "@dub/utils";
-import { Invoice, Project, WorkspaceEnvironment } from "@prisma/client";
+import { Invoice, Project } from "@prisma/client";
 import { trackCommissionStatusUpdatesByProgram } from "../api/commissions/track-commission-update-activity-log";
+import { isProductionEnvironment } from "./workspace-guards";
 
 interface MockPayoutCompletionParams {
   invoice: Invoice;
@@ -15,7 +16,7 @@ export async function mockPayoutCompletion({
   invoice,
   workspace,
 }: MockPayoutCompletionParams) {
-  if (workspace.environment === WorkspaceEnvironment.production) {
+  if (isProductionEnvironment(workspace.environment)) {
     return;
   }
 
@@ -55,7 +56,7 @@ export async function mockPayoutCompletion({
 
   const program = payouts[0].program;
 
-  if (program.workspace.environment === WorkspaceEnvironment.production) {
+  if (isProductionEnvironment(program.workspace.environment)) {
     console.error(
       `Skipping the payout completion for production workspace ${program.workspaceId}.`,
     );

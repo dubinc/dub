@@ -1,11 +1,11 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { prisma } from "@/lib/prisma";
 import { ProgramEnvironmentBanner } from "@/lib/sandbox/components/program-environment-banner";
+import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { Logo } from "@dub/ui";
 import { BoltFill, CursorRays, LinesY, MoneyBills2 } from "@dub/ui/icons";
 import { OG_AVATAR_URL } from "@dub/utils";
-import { WorkspaceEnvironment } from "@prisma/client";
 import { Store } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
@@ -82,8 +82,9 @@ export default async function SuccessPage(props: {
     : null;
 
   const hasPartnerProfile = !!enrollmentId;
-  const isNonProduction =
-    program.workspace.environment !== WorkspaceEnvironment.production;
+  const isNonProduction = !isProductionEnvironment(
+    program.workspace.environment,
+  );
 
   return (
     <div

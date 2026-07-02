@@ -18,11 +18,11 @@ import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
 import { mockPaymentProvider } from "@/lib/sandbox/mock-payment-provider";
+import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
 import { checkPaymentMethodMandate } from "@/lib/stripe/check-payment-method-mandate";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { WorkspaceEnvironment } from "@prisma/client";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -64,8 +64,9 @@ export const confirmPayoutsAction = authActionClient
       total,
     } = parsedInput;
 
-    const isProductionWorkspace =
-      workspace.environment === WorkspaceEnvironment.production;
+    const isProductionWorkspace = isProductionEnvironment(
+      workspace.environment,
+    );
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

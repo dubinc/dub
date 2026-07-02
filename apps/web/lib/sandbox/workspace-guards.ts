@@ -48,10 +48,7 @@ export function assertProductionWorkspace(
 ) {
   const shouldCheck = options?.when ?? true;
 
-  if (
-    shouldCheck &&
-    workspace.environment !== WorkspaceEnvironment.production
-  ) {
+  if (shouldCheck && !isProductionEnvironment(workspace.environment)) {
     throw new DubApiError({
       code: "bad_request",
       message:
@@ -65,4 +62,12 @@ export function isStagingEnvironment(
   environment: WorkspaceEnvironment | null | undefined,
 ) {
   return Boolean(environment && environment === WorkspaceEnvironment.staging);
+}
+
+export function isProductionEnvironment(
+  environment: WorkspaceEnvironment | null | undefined,
+) {
+  return Boolean(
+    environment && environment === WorkspaceEnvironment.production,
+  );
 }

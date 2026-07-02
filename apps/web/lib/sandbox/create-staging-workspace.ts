@@ -4,6 +4,7 @@ import { TRIAL_LIMITS } from "@dub/utils";
 import { WorkspaceEnvironment } from "@prisma/client";
 import { generateRandomString } from "../api/utils/generate-random-string";
 import { createWorkspaceId } from "../api/workspaces/create-workspace-id";
+import { isProductionEnvironment } from "./workspace-guards";
 
 export async function createStagingWorkspace(workspaceId: string) {
   const workspace = await prisma.project.findUnique({
@@ -28,7 +29,7 @@ export async function createStagingWorkspace(workspaceId: string) {
     return;
   }
 
-  if (workspace.environment !== WorkspaceEnvironment.production) {
+  if (!isProductionEnvironment(workspace.environment)) {
     console.error(
       `Skipping staging creation for non-production workspace ${workspace.id}.`,
     );
