@@ -27,6 +27,8 @@ type PartnerBountyEligibilityParams = {
     groups: Pick<BountyGroup, "groupId">[];
     partnerTags: Pick<BountyPartnerTag, "partnerTagId">[];
   };
+  // Fallback for enrollments without an explicit group (program.defaultGroupId)
+  defaultGroupId?: string | null;
 };
 
 export function buildBountyEligibilityWhere({
@@ -118,11 +120,12 @@ export function buildActiveBountyPeriodWhere(): Prisma.BountyWhereInput {
 export function isPartnerEligibleForBounty({
   programEnrollment,
   bounty,
+  defaultGroupId,
 }: PartnerBountyEligibilityParams): boolean {
   const bountyGroupIds = bounty.groups.map((g) => g.groupId);
   const bountyTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
 
-  const partnerGroupId = programEnrollment.groupId;
+  const partnerGroupId = programEnrollment.groupId || defaultGroupId;
   const partnerTagIds = programEnrollment.programPartnerTags.map(
     (t) => t.partnerTagId,
   );
@@ -148,6 +151,7 @@ export function isPartnerEligibleForBounty({
 export function canPartnerSubmitBounty({
   programEnrollment,
   bounty,
+  defaultGroupId,
 }: PartnerBountyEligibilityParams): boolean {
   // Only approved partners can submit bounties
   if (programEnrollment.status !== "approved") {
@@ -160,6 +164,7 @@ export function canPartnerSubmitBounty({
   const isEligible = isPartnerEligibleForBounty({
     programEnrollment,
     bounty,
+    defaultGroupId,
   });
 
   if (!isEligible) {
@@ -192,9 +197,47 @@ export function canPartnerSubmitBounty({
   return true;
 }
 
+// Throws 404 (not 400) to avoid revealing bounties the partner shouldn't see.
+// Expired bounties stay viewable; archived ones only if the partner has a submission.
+export function throwIfPartnerCannotViewBounty({
+  programEnrollment,
+  bounty,
+  defaultGroupId,
+  hasSubmission,
+}: PartnerBountyEligibilityParams & { hasSubmission: boolean }) {
+  const notFoundError = new DubApiError({
+    code: "not_found",
+    message: "Bounty not found.",
+  });
+
+  const isEligible = isPartnerEligibleForBounty({
+    programEnrollment,
+    bounty,
+    defaultGroupId,
+  });
+
+  if (!isEligible) {
+    throw notFoundError;
+  }
+
+  const { startsAt } = getEffectiveBountyPeriod({
+    programEnrollment,
+    bounty,
+  });
+
+  if (!isBountyStarted(startsAt)) {
+    throw notFoundError;
+  }
+
+  if (bounty.archivedAt && !hasSubmission) {
+    throw notFoundError;
+  }
+}
+
 export function throwIfPartnerCannotSubmitBounty({
   programEnrollment,
   bounty,
+  defaultGroupId,
 }: PartnerBountyEligibilityParams) {
   // Only approved partners can submit bounties
   if (programEnrollment.status !== "approved") {
@@ -207,6 +250,7 @@ export function throwIfPartnerCannotSubmitBounty({
   const isEligible = isPartnerEligibleForBounty({
     programEnrollment,
     bounty,
+    defaultGroupId,
   });
 
   if (!isEligible) {
