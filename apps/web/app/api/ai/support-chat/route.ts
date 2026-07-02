@@ -21,6 +21,10 @@ export const POST = withSession(async ({ req, session }) => {
     globalContext?: GlobalChatContext;
   };
 
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return new Response("Invalid messages", { status: 400 });
+  }
+
   const MAX_ATTACHMENTS = 5;
   const MAX_ATTACHMENT_ID_LENGTH = 128;
   const rawAttachmentIds = body.attachmentIds;
@@ -62,6 +66,7 @@ export const POST = withSession(async ({ req, session }) => {
 
   const slackChannel = process.env.DUB_SLACK_SUPPORT_CHAT_CHANNEL_ID;
   let slackThreadTs = incomingSlackThreadTs;
+  let slackUserPostPromise: Promise<string | undefined> | undefined;
 
   if (slackChannel) {
     const latestUserText =
@@ -72,7 +77,7 @@ export const POST = withSession(async ({ req, session }) => {
     const userLabel = session.user.name || session.user.email || "Unknown user";
 
     if (!slackThreadTs) {
-      slackThreadTs = await postSupportChatMessage({
+      slackUserPostPromise = postSupportChatMessage({
         channel: slackChannel,
         text: [
           `:speech_balloon: *New AI Support Chat*`,
@@ -81,9 +86,12 @@ export const POST = withSession(async ({ req, session }) => {
           "",
           `${userLabel}: ${latestUserText}`,
         ].join("\n"),
+      }).then((ts) => {
+        if (ts) slackThreadTs = ts;
+        return ts;
       });
     } else {
-      await postSupportChatMessage({
+      slackUserPostPromise = postSupportChatMessage({
         channel: slackChannel,
         threadTs: slackThreadTs,
         text: `*${userLabel}:* ${latestUserText}`,
@@ -114,19 +122,25 @@ export const POST = withSession(async ({ req, session }) => {
       }),
     },
     onFinish: async ({ text }) => {
-      if (slackChannel && slackThreadTs && text) {
-        await postSupportChatMessage({
-          channel: slackChannel,
-          threadTs: slackThreadTs,
-          text: `*Dub AI:*\n${markdownToSlackMrkdwn(text)}`,
-        });
-      }
+      if (!slackChannel || !text || !slackUserPostPromise) return;
+
+      const threadTs = await slackUserPostPromise;
+      if (!threadTs) return;
+
+      await postSupportChatMessage({
+        channel: slackChannel,
+        threadTs,
+        text: `*Dub AI:*\n${markdownToSlackMrkdwn(text)}`,
+      });
     },
   });
 
   return result.toUIMessageStreamResponse({
     messageMetadata: ({ part }) => {
-      if (part.type === "start" && slackThreadTs) {
+      if (part.type === "start" && incomingSlackThreadTs) {
+        return { slackThreadTs: incomingSlackThreadTs };
+      }
+      if (part.type === "finish" && slackThreadTs) {
         return { slackThreadTs };
       }
     },
