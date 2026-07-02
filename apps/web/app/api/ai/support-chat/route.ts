@@ -64,39 +64,37 @@ export const POST = withSession(async ({ req, session }) => {
     return new Response("Don't DDoS me pls 🥺", { status: 429 });
   }
 
-  const slackChannel = process.env.DUB_SLACK_SUPPORT_CHAT_CHANNEL_ID;
+  const slackChannel = "C0BECQ3GNKH";
   let slackThreadTs = incomingSlackThreadTs;
   let slackUserPostPromise: Promise<string | undefined> | undefined;
 
-  if (slackChannel) {
-    const latestUserText =
-      messages[messages.length - 1].parts
-        ?.filter((p): p is { type: "text"; text: string } => p.type === "text")
-        .map((p) => p.text)
-        .join("\n\n") ?? "";
-    const userLabel = session.user.name || session.user.email || "Unknown user";
+  const latestUserText =
+    messages[messages.length - 1].parts
+      ?.filter((p): p is { type: "text"; text: string } => p.type === "text")
+      .map((p) => p.text)
+      .join("\n\n") ?? "";
+  const userLabel = session.user.name || session.user.email || "Unknown user";
 
-    if (!slackThreadTs) {
-      slackUserPostPromise = postSupportChatMessage({
-        channel: slackChannel,
-        text: [
-          `:speech_balloon: *New AI Support Chat*`,
-          ...getAccountContextLines(globalContext),
-          `${userLabel} (${session.user.email})`,
-          "",
-          `${userLabel}: ${latestUserText}`,
-        ].join("\n"),
-      }).then((ts) => {
-        if (ts) slackThreadTs = ts;
-        return ts;
-      });
-    } else {
-      slackUserPostPromise = postSupportChatMessage({
-        channel: slackChannel,
-        threadTs: slackThreadTs,
-        text: `*${userLabel}:* ${latestUserText}`,
-      });
-    }
+  if (!slackThreadTs) {
+    slackUserPostPromise = postSupportChatMessage({
+      channel: slackChannel,
+      text: [
+        `:speech_balloon: *New AI Support Chat*`,
+        ...getAccountContextLines(globalContext),
+        `${userLabel} (${session.user.email})`,
+        "",
+        `${userLabel}: ${latestUserText}`,
+      ].join("\n"),
+    }).then((ts) => {
+      if (ts) slackThreadTs = ts;
+      return ts;
+    });
+  } else {
+    slackUserPostPromise = postSupportChatMessage({
+      channel: slackChannel,
+      threadTs: slackThreadTs,
+      text: `*${userLabel}:* ${latestUserText}`,
+    });
   }
 
   const result = streamText({
