@@ -13,12 +13,14 @@ import { mutate } from "swr";
 
 export default function WorkspaceSettingsClient() {
   const router = useRouter();
-  const { id, name, slug, role } = useWorkspace();
+  const { id, name, slug, role, environment } = useWorkspace();
 
-  const permissionsError = clientAccessCheck({
+  const { error } = clientAccessCheck({
     action: "workspaces.write",
     role,
-  }).error;
+    environment,
+    stagingBehavior: "production-only",
+  });
 
   const { update } = useSession();
 
@@ -35,7 +37,7 @@ export default function WorkspaceSettingsClient() {
           maxLength: 32,
         }}
         helpText="Max 32 characters."
-        disabledTooltip={permissionsError || undefined}
+        disabledTooltip={error || undefined}
         handleSubmit={(updateData) =>
           fetch(`/api/workspaces/${id}`, {
             method: "PATCH",
@@ -68,7 +70,7 @@ export default function WorkspaceSettingsClient() {
           maxLength: 48,
         }}
         helpText="Only lowercase letters, numbers, and dashes. Max 48 characters."
-        disabledTooltip={permissionsError || undefined}
+        disabledTooltip={error || undefined}
         handleSubmit={(data) =>
           fetch(`/api/workspaces/${id}`, {
             method: "PATCH",

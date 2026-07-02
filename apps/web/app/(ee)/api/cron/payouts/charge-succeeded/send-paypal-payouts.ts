@@ -4,7 +4,7 @@ import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import { prisma } from "@/lib/prisma";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter } from "@dub/utils";
-import { Invoice } from "@prisma/client";
+import { Invoice, WorkspaceEnvironment } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 
 export async function sendPaypalPayouts({
@@ -31,6 +31,11 @@ export async function sendPaypalPayouts({
         },
         paypalEmail: {
           not: null,
+        },
+      },
+      program: {
+        workspace: {
+          environment: WorkspaceEnvironment.production,
         },
       },
     },

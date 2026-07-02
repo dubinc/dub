@@ -1,6 +1,8 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
+import { mockPayoutCompletion } from "@/lib/sandbox/mock-payout-completion";
+import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
 import { log } from "@dub/utils";
 import { PartnerPayoutMethod } from "@prisma/client";
 import * as z from "zod/v4";
@@ -42,6 +44,15 @@ export async function POST(req: Request) {
             },
           },
         },
+        program: {
+          select: {
+            workspace: {
+              select: {
+                environment: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -55,6 +66,16 @@ export async function POST(req: Request) {
       );
     }
 
+    if (!invoice.program || !invoice.program.workspace) {
+      return logAndRespond(
+        `Invoice ${invoiceId} has no program or workspace, skipping...`,
+      );
+    }
+
+    const isProductionWorkspace = isProductionEnvironment(
+      invoice.program.workspace.environment,
+    );
+
     // Set the method for each payout in the invoice to the corresponding partner's default payout method
     await prisma.$executeRaw`
       UPDATE Payout p
@@ -67,8 +88,8 @@ export async function POST(req: Request) {
 
     let fundsAvailable = true;
 
-    // if invoice payment method is card, we need to check if the funds have settled yet
-    if (invoice.paymentMethod === "card") {
+    // for production workspaces, if invoice payment method is card, we need to check if the funds have settled yet
+    if (isProductionWorkspace && invoice.paymentMethod === "card") {
       const fundSettlementTiming = await getFundSettlementTiming(invoice);
       if (!fundSettlementTiming.fundsAvailable) {
         // set fundsAvailable to false so we don't queue any payouts that require funds to be available
@@ -100,25 +121,35 @@ export async function POST(req: Request) {
     }
 
     await Promise.allSettled([
-      // Queue Stripe payouts (need to pass along fundsAvailable to handle stablecoin payouts)
-      queueStripePayouts({
-        invoice,
-        fundsAvailable,
-      }),
-
-      // only send PayPal and Tremendous payouts if funds are available
-      ...(fundsAvailable
+      // For production workspaces:
+      // - queue Stripe payouts (pass along fundsAvailable to handle stablecoin payouts)
+      // - if funds are available, send PayPal and Tremendous payouts as well
+      ...(isProductionWorkspace
         ? [
-            sendPaypalPayouts({
+            queueStripePayouts({
               invoice,
+              fundsAvailable,
             }),
-            queueTremendousPayouts({
-              invoice,
-            }),
+            ...(fundsAvailable
+              ? [
+                  sendPaypalPayouts({
+                    invoice,
+                  }),
+                  queueTremendousPayouts({
+                    invoice,
+                  }),
+                ]
+              : []),
           ]
-        : []),
+        : // For non-production workspaces, mock the payout completion
+          [
+            mockPayoutCompletion({
+              invoice,
+              workspace: invoice.program.workspace,
+            }),
+          ]),
 
-      // Queue external payouts (doesn't rely on fundsAvailable)
+      // Queue external payouts (we do this regardless of isProductionWorkspace/fundsAvailable)
       queueExternalPayouts(invoice),
     ]);
 

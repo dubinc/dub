@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, FileUpload } from "@dub/ui";
 import { useEffect, useState } from "react";
@@ -7,15 +8,20 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 
 export default function UploadLogo() {
-  const { id, logo, isOwner } = useWorkspace();
-
+  const { id, logo, role, isOwner, environment } = useWorkspace();
   const [image, setImage] = useState<string | null>();
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     setImage(logo || null);
   }, [logo]);
 
-  const [uploading, setUploading] = useState(false);
+  const { error } = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    environment,
+    stagingBehavior: "production-only",
+  });
 
   return (
     <form
@@ -79,11 +85,8 @@ export default function UploadLogo() {
           <Button
             text="Save changes"
             loading={uploading}
-            disabled={!isOwner || !image || logo === image}
-            {...(!isOwner && {
-              disabledTooltip:
-                "Only workspace owners can change the workspace logo.",
-            })}
+            disabled={!image || logo === image || Boolean(error)}
+            disabledTooltip={error || undefined}
           />
         </div>
       </div>

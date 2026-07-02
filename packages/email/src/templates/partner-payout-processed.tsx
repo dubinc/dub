@@ -12,16 +12,21 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { EnvironmentBanner } from "../components/environment-banner";
 import { Footer } from "../components/footer";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
   PartnerPayoutMethod,
   STABLECOIN_PAYOUT_FEE_RATE,
+  WorkspaceEnvironment,
 } from "../types";
 
 export default function PartnerPayoutProcessed({
   email = "panic@thedis.co",
+  workspace = {
+    environment: "production",
+  },
   program = {
     name: "Acme",
     logo: DUB_WORDMARK,
@@ -35,6 +40,9 @@ export default function PartnerPayoutProcessed({
   },
 }: {
   email: string;
+  workspace?: {
+    environment: WorkspaceEnvironment;
+  };
   program: {
     name: string;
     logo: string | null;
@@ -156,6 +164,7 @@ export default function PartnerPayoutProcessed({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
+            <EnvironmentBanner environment={workspace.environment} />
             <Section className="mt-8">
               <Img
                 src={program.logo || "https://assets.dub.co/wordmark.png"}

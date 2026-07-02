@@ -1,11 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
 import { createNewCustomer } from "./utils/create-new-customer";
+import { StripeWebhookInput, StripeWebhookOutput } from "./utils/types";
 
 // Handle event "customer.created"
-export async function customerCreated(event: Stripe.CustomerCreatedEvent) {
+export async function customerCreated({
+  event,
+  workspace,
+}: Omit<StripeWebhookInput, "mode"> & {
+  event: Stripe.CustomerCreatedEvent;
+}): Promise<StripeWebhookOutput> {
   const stripeCustomer = event.data.object;
-  const stripeAccountId = event.account as string;
   const dubCustomerExternalId =
     stripeCustomer.metadata?.dubCustomerExternalId ||
     stripeCustomer.metadata?.dubCustomerId;
@@ -16,23 +21,6 @@ export async function customerCreated(event: Stripe.CustomerCreatedEvent) {
         "External ID not found in Stripe customer metadata, skipping...",
     };
   }
-
-  const workspace = await prisma.project.findUnique({
-    where: {
-      stripeConnectId: stripeAccountId,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!workspace) {
-    return {
-      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
-    };
-  }
-
-  const workspaceId = workspace.id;
 
   // Check the customer is not already created
   const customer = await prisma.customer.findFirst({
@@ -60,19 +48,17 @@ export async function customerCreated(event: Stripe.CustomerCreatedEvent) {
         data: {
           externalId: dubCustomerExternalId,
           stripeCustomerId: stripeCustomer.id,
-          projectConnectId: stripeAccountId,
+          projectConnectId: workspace.stripeConnectId,
         },
       });
 
       return {
         response: `Dub customer with ID ${customer.id} updated with Stripe customer ID ${stripeCustomer.id}`,
-        workspaceId,
       };
     } catch (error) {
       console.error(error);
       return {
         response: `Error updating Dub customer with ID ${customer.id}: ${error}`,
-        workspaceId,
       };
     }
   }

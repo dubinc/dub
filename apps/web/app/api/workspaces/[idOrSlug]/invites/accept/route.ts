@@ -4,7 +4,9 @@ import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache"
 import { withSession } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { prisma } from "@/lib/prisma";
+import { addMemberToStaging } from "@/lib/sandbox/sync-workspace";
 import { PlanProps } from "@/lib/types";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // POST /api/workspaces/[idOrSlug]/invites/accept – accept a workspace invite
@@ -61,6 +63,7 @@ export const POST = withSession(async ({ session, params }) => {
         slug: true,
         plan: true,
         usersLimit: true,
+        stagingWorkspaceId: true,
         _count: {
           select: {
             users: {
@@ -157,6 +160,16 @@ export const POST = withSession(async ({ session, params }) => {
     userId: session.user.id,
     step: "completed",
   });
+
+  waitUntil(
+    addMemberToStaging({
+      workspace,
+      user: {
+        id: session.user.id,
+        role: invite.role,
+      },
+    }),
+  );
 
   return NextResponse.json({ message: "Invite accepted." });
 });

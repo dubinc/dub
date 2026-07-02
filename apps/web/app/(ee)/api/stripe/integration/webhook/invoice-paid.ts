@@ -17,15 +17,19 @@ import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
+import { StripeWebhookInput, StripeWebhookOutput } from "./utils/types";
 
 // Handle event "invoice.paid"
-export async function invoicePaid(
-  event: Stripe.InvoicePaidEvent,
-  mode: StripeMode,
-) {
+export async function invoicePaid({
+  event,
+  mode,
+  workspace,
+}: StripeWebhookInput & {
+  event: Stripe.InvoicePaidEvent;
+}): Promise<StripeWebhookOutput> {
   const invoice = event.data.object;
-  const stripeAccountId = event.account as string;
   const stripeCustomerId = invoice.customer as string | null;
+  const stripeAccountId = event.account as string;
   const invoiceId = invoice.id;
 
   if (!invoiceId) {
@@ -51,7 +55,7 @@ export async function invoicePaid(
   if (!customer) {
     const connectedCustomer = await getConnectedCustomer({
       stripeCustomerId,
-      stripeAccountId,
+      stripeAccountId: workspace.stripeConnectId,
       mode,
     });
 
@@ -65,7 +69,7 @@ export async function invoicePaid(
         customer = await prisma.customer.update({
           where: {
             projectConnectId_externalId: {
-              projectConnectId: stripeAccountId,
+              projectConnectId: workspace.stripeConnectId!,
               externalId: dubCustomerExternalId,
             },
           },
@@ -105,7 +109,6 @@ export async function invoicePaid(
     if (!workspace.defaultProgramId) {
       return {
         response: `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub and workspace has no default program, skipping...`,
-        workspaceId: workspace.id,
       };
     }
 
@@ -142,7 +145,6 @@ export async function invoicePaid(
     if (!customer) {
       return {
         response: `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId or partner discount code on the invoice), skipping...`,
-        workspaceId: workspace.id,
       };
     }
   }
@@ -161,7 +163,7 @@ export async function invoicePaid(
       timestamp: new Date().toISOString(),
       dubCustomerExternalId: customer.externalId,
       stripeCustomerId,
-      stripeAccountId,
+      stripeAccountId: workspace.stripeConnectId,
       invoiceId,
       customerId: customer.id,
       workspaceId: customer.projectId,
@@ -181,7 +183,6 @@ export async function invoicePaid(
     );
     return {
       response: `Invoice with ID ${invoiceId} already processed, skipping...`,
-      workspaceId: customer.projectId,
     };
   }
 
@@ -189,7 +190,6 @@ export async function invoicePaid(
   if (invoiceSaleAmount <= 0) {
     return {
       response: `Invoice with ID ${invoiceId} has an amount of 0, skipping...`,
-      workspaceId: customer.projectId,
     };
   }
 
@@ -211,7 +211,6 @@ export async function invoicePaid(
   if (!leadEvent) {
     return {
       response: `Lead event with customer ID ${customer.id} not found, skipping...`,
-      workspaceId: customer.projectId,
     };
   }
 
@@ -246,7 +245,6 @@ export async function invoicePaid(
   if (!link) {
     return {
       response: `Link with ID ${linkId} not found, skipping...`,
-      workspaceId: customer.projectId,
     };
   }
 
@@ -255,7 +253,7 @@ export async function invoicePaid(
     linkId,
   });
 
-  const [_sale, linkUpdated, workspace] = await Promise.all([
+  const [_sale, linkUpdated] = await Promise.all([
     recordSale(saleData),
 
     // update link stats
@@ -429,7 +427,6 @@ export async function invoicePaid(
 
   return {
     response: `Sale recorded for customer ID ${customer.id} and invoice ID ${invoiceId}`,
-    workspaceId: customer.projectId,
   };
 }
 

@@ -1,39 +1,21 @@
 import { prisma } from "@/lib/prisma";
-import { StripeMode } from "@/lib/types";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
-import type Stripe from "stripe";
+import { StripeWebhookInput, StripeWebhookOutput } from "./utils/types";
 
 // Handle event "account.application.deauthorized"
-export async function accountApplicationDeauthorized(
-  event: Stripe.AccountApplicationDeauthorizedEvent,
-  mode: StripeMode,
-) {
-  const stripeAccountId = event.account;
-
+export async function accountApplicationDeauthorized({
+  mode,
+  workspace,
+}: StripeWebhookInput): Promise<StripeWebhookOutput> {
   if (mode === "test") {
     return {
-      response: `Stripe Connect account ${stripeAccountId} deauthorized in test mode. Skipping...`,
-    };
-  }
-
-  const workspace = await prisma.project.findUnique({
-    where: {
-      stripeConnectId: stripeAccountId,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!workspace) {
-    return {
-      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
+      response: `Stripe Connect account ${workspace.stripeConnectId} deauthorized in test mode. Skipping...`,
     };
   }
 
   await prisma.project.update({
     where: {
-      stripeConnectId: stripeAccountId,
+      stripeConnectId: workspace.stripeConnectId!,
     },
     data: {
       stripeConnectId: null,
@@ -51,7 +33,6 @@ export async function accountApplicationDeauthorized(
   });
 
   return {
-    response: `Stripe Connect account ${stripeAccountId} deauthorized for workspace ${workspace.id}`,
-    workspaceId: workspace.id,
+    response: `Stripe Connect account ${workspace.stripeConnectId} deauthorized for workspace ${workspace.id}`,
   };
 }

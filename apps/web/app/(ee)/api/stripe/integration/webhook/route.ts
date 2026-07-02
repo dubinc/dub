@@ -1,6 +1,5 @@
 import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { withAxiom } from "@/lib/axiom/server";
-import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
 import { waitUntil } from "@vercel/functions";
@@ -16,6 +15,8 @@ import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { customerUpdated } from "./customer-updated";
 import { invoicePaid } from "./invoice-paid";
 import { promotionCodeUpdated } from "./promotion-code-updated";
+import { resolveWebhookWorkspace } from "./utils/resolve-webhook-workspace";
+import { StripeWebhookOutput } from "./utils/types";
 
 const relevantEvents = new Set([
   "account.application.deauthorized",
@@ -89,43 +90,87 @@ export const POST = withAxiom(async (req: Request) => {
     });
   }
 
-  let result: {
-    response: string;
-    workspaceId?: string;
-  } = {
+  const workspace = await resolveWebhookWorkspace({
+    stripeAccountId: event.account!,
+    mode,
+  });
+
+  // Workspace not found
+  if (workspace === null) {
+    return NextResponse.json({
+      eventType: event.type,
+      response: `Workspace not found for Stripe account ${event.account}, skipping...`,
+    });
+  }
+
+  let result: StripeWebhookOutput = {
     response: "OK",
   };
 
   switch (event.type) {
     case "account.application.deauthorized":
-      result = await accountApplicationDeauthorized(event, mode);
+      result = await accountApplicationDeauthorized({
+        mode,
+        workspace,
+      });
       break;
     case "charge.refunded":
-      result = await chargeRefunded(event, mode);
+      result = await chargeRefunded({
+        event,
+        mode,
+        workspace,
+      });
       break;
     case "checkout.session.completed":
-      result = await checkoutSessionCompleted(event, mode);
+      result = await checkoutSessionCompleted({
+        event,
+        mode,
+        workspace,
+      });
       break;
     case "coupon.deleted":
-      result = await couponDeleted(event);
+      result = await couponDeleted({
+        event,
+        mode,
+        workspace,
+      });
       break;
     case "customer.created":
-      result = await customerCreated(event);
+      result = await customerCreated({
+        event,
+        workspace,
+      });
       break;
     case "customer.updated":
-      result = await customerUpdated(event);
+      result = await customerUpdated({
+        event,
+        workspace,
+      });
       break;
     case "customer.subscription.created":
-      result = await customerSubscriptionCreated(event, mode);
+      result = await customerSubscriptionCreated({
+        event,
+        mode,
+        workspace,
+      });
       break;
     case "customer.subscription.deleted":
-      result = await customerSubscriptionDeleted(event);
+      result = await customerSubscriptionDeleted({
+        event,
+      });
       break;
     case "invoice.paid":
-      result = await invoicePaid(event, mode);
+      result = await invoicePaid({
+        event,
+        mode,
+        workspace,
+      });
       break;
     case "promotion_code.updated":
-      result = await promotionCodeUpdated(event);
+      result = await promotionCodeUpdated({
+        event,
+        workspace,
+      });
       break;
   }
 
@@ -134,43 +179,18 @@ export const POST = withAxiom(async (req: Request) => {
     response: result.response,
   };
 
-  // if workspaceId is returned as undefined
-  // AND the response does not contain "Workspace not found" (indicating the workspace doesn't exist)
-  // we try to find the workspace ID from the Stripe account ID
-  if (
-    !result.workspaceId &&
-    !result.response.startsWith("Workspace not found") &&
-    event.account
-  ) {
-    const stripeWebhookWorkspace = await prisma.project.findUnique({
-      where: {
-        stripeConnectId: event.account,
-      },
-      select: {
-        id: true,
-      },
-    });
-    if (stripeWebhookWorkspace) {
-      // if workspace exists, we set the workspace ID
-      result.workspaceId = stripeWebhookWorkspace.id;
-    }
-  }
-
-  // if workspace ID exists, we capture the webhook log
-  if (result.workspaceId) {
-    waitUntil(
-      captureWebhookLog({
-        workspaceId: result.workspaceId,
-        method: req.method,
-        path: "/stripe/integration/webhook",
-        statusCode: 200,
-        duration: Date.now() - startTime,
-        requestBody: event,
-        responseBody,
-        userAgent: req.headers.get("user-agent"),
-      }),
-    );
-  }
+  waitUntil(
+    captureWebhookLog({
+      workspaceId: workspace.id,
+      method: req.method,
+      path: "/stripe/integration/webhook",
+      statusCode: 200,
+      duration: Date.now() - startTime,
+      requestBody: event,
+      responseBody,
+      userAgent: req.headers.get("user-agent"),
+    }),
+  );
 
   console.log(`[${event.type}]: ${result.response}`);
 

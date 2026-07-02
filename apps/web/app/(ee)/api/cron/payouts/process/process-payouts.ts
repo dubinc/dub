@@ -8,6 +8,8 @@ import {
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
+import { mockPaymentProvider } from "@/lib/sandbox/mock-payment-provider";
+import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
@@ -41,6 +43,7 @@ interface ProcessPayoutsProps {
     | "payoutFeeWaiverLimit"
     | "payoutFeeWaiverUsage"
     | "webhookEnabled"
+    | "environment"
   >;
   program: Pick<
     Program,
@@ -66,6 +69,8 @@ export async function processPayouts({
   selectedPayoutIds,
   excludedPayoutIds,
 }: ProcessPayoutsProps) {
+  const isProductionWorkspace = isProductionEnvironment(workspace.environment);
+
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,
   )?.value;
@@ -135,7 +140,9 @@ export async function processPayouts({
   const totalPayoutAmount =
     totalInternalPayoutAmount + totalExternalPayoutAmount;
 
-  const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+  const paymentMethod = isProductionWorkspace
+    ? await stripe.paymentMethods.retrieve(paymentMethodId)
+    : await mockPaymentProvider.retrievePaymentMethod(paymentMethodId);
 
   const payoutFee = calculatePayoutFeeForMethod({
     paymentMethod: paymentMethod.type,
@@ -218,33 +225,35 @@ export async function processPayouts({
     totalToCharge = convertedTotal;
   }
 
-  await stripe.paymentIntents.create(
-    {
-      amount: totalToCharge,
-      customer: workspace.stripeId!,
-      payment_method_types: [paymentMethod.type],
-      payment_method: paymentMethod.id,
-      ...(paymentMethod.type === "us_bank_account" && {
-        payment_method_options: {
-          us_bank_account: {
-            preferred_settlement_speed:
-              invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
+  if (isProductionWorkspace) {
+    await stripe.paymentIntents.create(
+      {
+        amount: totalToCharge,
+        customer: workspace.stripeId!,
+        payment_method_types: [paymentMethod.type],
+        payment_method: paymentMethod.id,
+        ...(paymentMethod.type === "us_bank_account" && {
+          payment_method_options: {
+            us_bank_account: {
+              preferred_settlement_speed:
+                invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
+            },
           },
-        },
-      }),
-      currency,
-      confirmation_method: "automatic",
-      confirm: true,
-      transfer_group: invoice.id,
-      ...(paymentMethod.type === "card"
-        ? { statement_descriptor_suffix: "Dub Partners" }
-        : { statement_descriptor: "Dub Partners" }),
-      description: `Dub Partners payout invoice (${invoice.id})`,
-    },
-    {
-      idempotencyKey: `process-payout-invoice/${invoice.id}`,
-    },
-  );
+        }),
+        currency,
+        confirmation_method: "automatic",
+        confirm: true,
+        transfer_group: invoice.id,
+        ...(paymentMethod.type === "card"
+          ? { statement_descriptor_suffix: "Dub Partners" }
+          : { statement_descriptor: "Dub Partners" }),
+        description: `Dub Partners payout invoice (${invoice.id})`,
+      },
+      {
+        idempotencyKey: `process-payout-invoice/${invoice.id}`,
+      },
+    );
+  }
 
   const { users } = await prisma.project.update({
     where: {
@@ -274,10 +283,12 @@ export async function processPayouts({
     },
   });
 
-  await log({
-    message: `<${program.url}|*${program.name}*> (\`${workspace.slug}\`) just sent a payout of *${currencyFormatter(totalPayoutAmount)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(invoiceFee)} (${payoutFee * 100}%)* :money_mouth_face:`,
-    type: "payouts",
-  });
+  if (isProductionWorkspace) {
+    await log({
+      message: `<${program.url}|*${program.name}*> (\`${workspace.slug}\`) just sent a payout of *${currencyFormatter(totalPayoutAmount)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(invoiceFee)} (${payoutFee * 100}%)* :money_mouth_face:`,
+      type: "payouts",
+    });
+  }
 
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/process/updates`,
@@ -290,6 +301,25 @@ export async function processPayouts({
     console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
   } else {
     console.error("Error sending message to Qstash", qstashResponse);
+  }
+
+  // Non-production workspaces skip the Stripe payment intent above.
+  // Simulate that flow here with a 1-minute delay so
+  // sandbox payouts behave like a settled ACH charge.
+  if (!isProductionWorkspace) {
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
+      method: "POST",
+      delay: "1m",
+      flowControl: {
+        key: invoice.id,
+        rate: 1,
+      },
+      body: {
+        invoiceId: invoice.id,
+      },
+      deduplicationId: `sandbox-payouts-${invoice.id}`,
+    });
   }
 
   // should never happen, but just in case

@@ -1,5 +1,7 @@
 "use client";
 
+import { WorkspaceEnvironmentSwitcher } from "@/lib/sandbox/components/workspace-environment-switcher";
+import { isStagingEnvironment } from "@/lib/sandbox/workspace-guards";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
@@ -23,7 +25,7 @@ import {
 export function WorkspaceDropdown() {
   const { workspaces } = useWorkspaces();
   const { data: session, status } = useSession();
-  const { slug: currentSlug, key } = useParams() as {
+  const { slug: currentSlug } = useParams() as {
     slug?: string;
     key?: string;
   };
@@ -161,6 +163,13 @@ function WorkspaceList({
     [link, programId, pathname, selected.slug],
   );
 
+  const current = workspaces.find((w) => w.slug === selected.slug);
+  const activeSlug =
+    current && isStagingEnvironment(current.environment)
+      ? workspaces.find((w) => w.stagingWorkspaceId === current.id)?.slug ??
+        selected.slug
+      : selected.slug;
+
   return (
     <div className="relative w-full">
       <div
@@ -203,23 +212,30 @@ function WorkspaceList({
           <div className="flex flex-row gap-1">
             <Link
               href={`/${selected.slug ? selected.slug : "account"}/settings`}
-              className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+              className="text-content-emphasis flex w-full items-center justify-center gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
               onClick={() => setOpenPopover(false)}
             >
-              <Gear className="size-4 text-neutral-800" />
+              <Gear className="text-content-emphasis size-4" />
               <span className="block truncate text-sm">Settings</span>
             </Link>
             {selected.slug && (
               <Link
                 href={`/${selected.slug}/settings/people`}
-                className="flex items-center justify-start gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 text-neutral-700 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
+                className="text-content-emphasis flex w-full items-center justify-center gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80"
                 onClick={() => setOpenPopover(false)}
               >
-                <UserPlus className="size-4 text-neutral-800" />
-                <span className="block truncate text-sm">Invite members</span>
+                <UserPlus className="text-content-emphasis size-4" />
+                <span className="block truncate text-sm">Invite</span>
               </Link>
             )}
           </div>
+
+          <WorkspaceEnvironmentSwitcher
+            href={href}
+            onNavigate={() => setOpenPopover(false)}
+            workspaces={workspaces}
+            selectedWorkspace={selected}
+          />
         </div>
 
         {/* Workspaces section */}
@@ -228,40 +244,44 @@ function WorkspaceList({
             Workspaces
           </p>
           <div className="flex flex-col gap-0.5">
-            {workspaces.map(({ id, name, slug, logo }) => {
-              const isActive = selected.slug === slug;
-              return (
-                <Link
-                  key={slug}
-                  className={cn(
-                    "relative flex w-full items-center gap-x-2 rounded-md px-2 py-2 transition-all duration-75",
-                    "hover:bg-neutral-200/50 active:bg-neutral-200/80",
-                    "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-                    isActive && "bg-neutral-200/50",
-                  )}
-                  href={href(slug)}
-                  shallow={false}
-                  onClick={() => setOpenPopover(false)}
-                >
-                  <BlurImage
-                    src={logo || `https://avatar.vercel.sh/${id}`}
-                    width={28}
-                    height={28}
-                    alt={id}
-                    className="size-5 shrink-0 overflow-hidden rounded-full"
-                    draggable={false}
-                  />
-                  <span className="block truncate text-base leading-5 text-neutral-900 sm:max-w-[140px] sm:text-sm">
-                    {name}
-                  </span>
-                  {selected.slug === slug ? (
-                    <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
-                      <Check2 className="size-4" aria-hidden="true" />
+            {workspaces
+              .filter(
+                (workspace) => !isStagingEnvironment(workspace.environment),
+              )
+              .map(({ id, name, slug, logo }) => {
+                const isActive = activeSlug === slug;
+                return (
+                  <Link
+                    key={slug}
+                    className={cn(
+                      "relative flex w-full items-center gap-x-2 rounded-md px-2 py-2 transition-all duration-75",
+                      "hover:bg-neutral-200/50 active:bg-neutral-200/80",
+                      "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+                      isActive && "bg-neutral-200/50",
+                    )}
+                    href={href(slug)}
+                    shallow={false}
+                    onClick={() => setOpenPopover(false)}
+                  >
+                    <BlurImage
+                      src={logo || `https://avatar.vercel.sh/${id}`}
+                      width={28}
+                      height={28}
+                      alt={id}
+                      className="size-5 shrink-0 overflow-hidden rounded-full"
+                      draggable={false}
+                    />
+                    <span className="block truncate text-base leading-5 text-neutral-900 sm:max-w-[140px] sm:text-sm">
+                      {name}
                     </span>
-                  ) : null}
-                </Link>
-              );
-            })}
+                    {activeSlug === slug ? (
+                      <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-black">
+                        <Check2 className="size-4" aria-hidden="true" />
+                      </span>
+                    ) : null}
+                  </Link>
+                );
+              })}
             <button
               key="add"
               onClick={() => {

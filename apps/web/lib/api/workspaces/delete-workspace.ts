@@ -6,7 +6,6 @@ import {
   DUB_DOMAINS_ARRAY,
   LEGAL_USER_ID,
   LEGAL_WORKSPACE_ID,
-  prettyPrint,
   R2_URL,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -16,56 +15,71 @@ import { markDomainAsDeleted } from "../domains/mark-domain-deleted";
 import { linkCache } from "../links/cache";
 
 export async function deleteWorkspace(
-  workspace: Pick<WorkspaceProps, "id" | "slug" | "logo" | "stripeId">,
+  workspace: Pick<
+    WorkspaceProps,
+    "id" | "slug" | "logo" | "stripeId" | "stagingWorkspaceId"
+  >,
 ) {
+  const stagingWorkspace = workspace.stagingWorkspaceId
+    ? await prisma.project.findUnique({
+        where: {
+          id: workspace.stagingWorkspaceId,
+        },
+        select: {
+          id: true,
+          slug: true,
+        },
+      })
+    : null;
+
+  const workspaces = [
+    workspace,
+    ...(stagingWorkspace ? [stagingWorkspace] : []),
+  ];
+
   await Promise.all([
     // Remove the users
     prisma.projectUsers.deleteMany({
       where: {
-        projectId: workspace.id,
+        projectId: {
+          in: workspaces.map(({ id }) => id),
+        },
       },
     }),
 
     // Remove the default workspace
     prisma.user.updateMany({
       where: {
-        defaultWorkspace: workspace.slug,
+        defaultWorkspace: {
+          in: workspaces.map(({ slug }) => slug),
+        },
       },
       data: {
         defaultWorkspace: null,
       },
     }),
-  ]).then((results) => {
-    console.log(prettyPrint(results));
-  });
+
+    // Remove the API keys
+    prisma.restrictedToken.deleteMany({
+      where: {
+        projectId: {
+          in: workspaces.map(({ id }) => id),
+        },
+      },
+    }),
+  ]);
 
   waitUntil(
-    Promise.allSettled([
-      // Remove the API keys
-      prisma.restrictedToken.deleteMany({
-        where: {
-          projectId: workspace.id,
-        },
-      }),
-
-      // Cancel the workspace's Stripe subscription if exists
-      workspace.stripeId && cancelSubscription(workspace.stripeId),
-
-      // Delete workspace logo if it's a custom logo stored in R2
-      workspace.logo &&
-        workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
-        storage.delete({ key: workspace.logo.replace(`${R2_URL}/`, "") }),
-
-      // Queue the workspace for deletion
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/delete`,
-        body: {
-          workspaceId: workspace.id,
-        },
-      }),
-    ]).then((results) => {
-      console.log(prettyPrint(results));
-    }),
+    Promise.all(
+      workspaces.map((workspace) =>
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/delete`,
+          body: {
+            workspaceId: workspace.id,
+          },
+        }),
+      ),
+    ),
   );
 }
 

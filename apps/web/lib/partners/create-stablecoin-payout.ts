@@ -10,7 +10,11 @@ import {
   log,
   prettyPrint,
 } from "@dub/utils";
-import { PartnerPayoutMethod, Prisma } from "@prisma/client";
+import {
+  PartnerPayoutMethod,
+  Prisma,
+  WorkspaceEnvironment,
+} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
@@ -81,6 +85,11 @@ export const createStablecoinPayout = async ({
           method: {
             in: [PartnerPayoutMethod.stablecoin, PartnerPayoutMethod.connect],
           },
+          program: {
+            workspace: {
+              environment: WorkspaceEnvironment.production,
+            },
+          },
         },
         orderBy: {
           id: "asc",
@@ -96,6 +105,11 @@ export const createStablecoinPayout = async ({
               stripePayoutId: null,
               method: "stablecoin",
               invoiceId,
+              program: {
+                workspace: {
+                  environment: WorkspaceEnvironment.production,
+                },
+              },
             },
             orderBy: {
               id: "asc",

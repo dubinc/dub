@@ -10,19 +10,21 @@ export default function DeleteWorkspace() {
   const { setShowDeleteWorkspaceModal, DeleteWorkspaceModal } =
     useDeleteWorkspaceModal();
 
-  const { role } = useWorkspace();
+  const { role, environment } = useWorkspace();
 
-  const permissionsError = clientAccessCheck({
+  const { error } = clientAccessCheck({
     action: "workspaces.write",
     role,
-  }).error;
+    environment,
+    stagingBehavior: "production-only",
+  });
 
   return (
     <div
       className={cn(
         "overflow-hidden rounded-xl border border-red-200 bg-white",
         {
-          "border-neutral-200": permissionsError,
+          "border-neutral-200": error,
         },
       )}
     >
@@ -37,7 +39,7 @@ export default function DeleteWorkspace() {
       </div>
       <div
         className={cn("border-b border-red-200", {
-          "border-neutral-200": permissionsError,
+          "border-neutral-200": error,
         })}
       />
 
@@ -47,7 +49,7 @@ export default function DeleteWorkspace() {
             text="Delete Workspace"
             variant="danger"
             onClick={() => setShowDeleteWorkspaceModal(true)}
-            disabledTooltip={permissionsError || undefined}
+            disabledTooltip={error || undefined}
           />
         </div>
       </div>

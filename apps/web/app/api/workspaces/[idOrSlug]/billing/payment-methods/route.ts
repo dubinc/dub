@@ -6,8 +6,14 @@ import {
   DIRECT_DEBIT_PAYMENT_TYPES_INFO,
   PAYMENT_METHOD_TYPES,
 } from "@/lib/constants/payouts";
+import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
+import {
+  assertProductionWorkspace,
+  isProductionEnvironment,
+} from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
+import { capitalize } from "@dub/utils/src";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import * as z from "zod/v4";
@@ -46,6 +52,13 @@ async function getWorkspacePaymentMethod({
 // GET /api/workspaces/[idOrSlug]/billing/payment-methods - get all payment methods
 export const GET = withWorkspace(
   async ({ workspace }) => {
+    if (!isProductionEnvironment(workspace.environment)) {
+      return NextResponse.json({
+        paymentMethods: [SANDBOX_PAYMENT_METHOD],
+        defaultPaymentMethodId: SANDBOX_PAYMENT_METHOD.id,
+      });
+    }
+
     if (!workspace.stripeId) {
       return NextResponse.json({
         paymentMethods: [],
@@ -107,6 +120,10 @@ export const POST = withWorkspace(
         message: "Workspace does not have a Stripe ID.",
       });
     }
+
+    assertProductionWorkspace(workspace, {
+      message: `You can't add a payment methods to the ${capitalize(workspace.environment)} workspace.`,
+    });
 
     const { method } = addPaymentMethodSchema.parse(
       await parseRequestBody(req),

@@ -8,6 +8,8 @@ import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
+import { syncWorkspaceSettings } from "@/lib/sandbox/sync-workspace";
+import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
 import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
@@ -95,6 +97,10 @@ export const PATCH = withWorkspace(
       enforceSAML,
       siteVisitTrackingSettings,
     } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
+
+    assertNotStagingWorkspace(workspace, {
+      when: !!(name || slug || logo),
+    });
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
       throw new DubApiError({
@@ -262,6 +268,8 @@ export const PATCH = withWorkspace(
               });
             }
           }
+
+          await syncWorkspaceSettings(updatedWorkspace);
         })(),
       );
 
@@ -302,6 +310,8 @@ export const DELETE = withWorkspace(
           "You cannot delete a workspace with an active partner program.",
       });
     }
+
+    assertNotStagingWorkspace(workspace);
 
     await deleteWorkspace(workspace);
 

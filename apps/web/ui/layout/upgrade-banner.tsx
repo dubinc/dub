@@ -1,5 +1,6 @@
 "use client";
 
+import { useDashboardBannerVisible } from "@/lib/hooks/use-dashboard-banner-visible";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { Crown } from "@dub/ui";
@@ -11,14 +12,6 @@ import {
 import { motion } from "motion/react";
 import Link from "next/link";
 import ManageSubscriptionButton from "../workspaces/manage-subscription-button";
-
-export function useUpgradeBannerVisible() {
-  const { exceededEvents, exceededLinks, exceededPayouts, paymentFailedAt } =
-    useWorkspace();
-
-  const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
-  return needsUpgrade || !!paymentFailedAt;
-}
 
 export function UpgradeBanner() {
   const { slug, exceededEvents, exceededLinks, exceededPayouts, trialEndsAt } =
@@ -34,8 +27,11 @@ export function UpgradeBanner() {
     exceededPayouts: Boolean(exceededPayouts),
   });
 
-  const isVisible = useUpgradeBannerVisible();
-  if (!isVisible) return null;
+  const { isUpgradeBannerVisible } = useDashboardBannerVisible();
+
+  if (!isUpgradeBannerVisible) {
+    return null;
+  }
 
   return (
     <>
