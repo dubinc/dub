@@ -21,7 +21,13 @@ import {
   nFormatter,
   pluralize,
 } from "@dub/utils";
-import { Invoice, Program, ProgramPayoutMode, Project } from "@prisma/client";
+import {
+  Invoice,
+  Program,
+  ProgramPayoutMode,
+  Project,
+  WorkspaceEnvironment,
+} from "@prisma/client";
 
 const nonUsdPaymentMethodTypes = {
   sepa_debit: "eur",
@@ -68,7 +74,8 @@ export async function processPayouts({
   selectedPayoutIds,
   excludedPayoutIds,
 }: ProcessPayoutsProps) {
-  const isProductionWorkspace = workspace.environment === "production";
+  const isProductionWorkspace =
+    workspace.environment === WorkspaceEnvironment.production;
 
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,
