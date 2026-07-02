@@ -60,6 +60,26 @@ const cases = [
       },
     },
   },
+  {
+    name: "create link with utm_source exceeding max length",
+    body: {
+      domain,
+      url,
+      utm_source: "a".repeat(256),
+    },
+    expected: {
+      status: 422,
+      data: {
+        error: {
+          code: "unprocessable_entity",
+          message:
+            "too_big: utm_source: Too big: expected string to have <=255 characters",
+          doc_url:
+            "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+        },
+      },
+    },
+  },
 ];
 
 cases.forEach(({ name, body, expected }) => {

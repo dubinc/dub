@@ -56,12 +56,16 @@ export function ChatInterface({
   const { programEnrollments, isLoading: isLoadingPrograms } =
     useProgramEnrollments();
   const hasPartnerProfile = !!session?.user?.["defaultPartnerId"];
+  const hasNoProgramEnrollments =
+    hasPartnerProfile &&
+    !isLoadingPrograms &&
+    (programEnrollments?.length ?? 0) === 0;
 
   let canChat: boolean;
   if (effectiveAccountType === "workspace")
     canChat = !!selection.selectedWorkspace;
   else if (effectiveAccountType === "partner")
-    canChat = !!selection.selectedProgram;
+    canChat = hasNoProgramEnrollments || !!selection.selectedProgram;
   else canChat = false;
 
   const { messages, sendMessage, status, setMessages } = useChat({
@@ -351,7 +355,7 @@ export function ChatInterface({
           </SupportMessage>
         )}
 
-        {effectiveAccountType === "partner" && (
+        {effectiveAccountType === "partner" && !hasNoProgramEnrollments && (
           <SupportMessage avatar={assistantAvatar} animate>
             {!hasPartnerProfile ? (
               <>

@@ -20,6 +20,11 @@ export const POST = withSession(async ({ session, params }) => {
         slug,
       },
     },
+    select: {
+      projectId: true,
+      expires: true,
+      role: true,
+    },
   });
 
   if (!invite) {
@@ -36,22 +41,20 @@ export const POST = withSession(async ({ session, params }) => {
     });
   }
 
-  const { workspace, workspaceUser } = await prisma.$transaction(async (tx) => {
-    const existingMembership = await tx.projectUsers.findFirst({
+  const [workspaceUser, workspace] = await Promise.all([
+    prisma.projectUsers.findUnique({
       where: {
-        userId: session.user.id,
-        projectId: invite.projectId,
+        userId_projectId: {
+          userId: session.user.id,
+          projectId: invite.projectId,
+        },
       },
-    });
+      select: {
+        id: true,
+      },
+    }),
 
-    if (existingMembership) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "You are already a member of this workspace.",
-      });
-    }
-
-    const workspace = await tx.project.findUniqueOrThrow({
+    prisma.project.findUniqueOrThrow({
       where: {
         id: invite.projectId,
       },
@@ -73,25 +76,34 @@ export const POST = withSession(async ({ session, params }) => {
           },
         },
       },
+    }),
+  ]);
+
+  if (workspaceUser) {
+    throw new DubApiError({
+      code: "conflict",
+      message: "You are already a member of this workspace.",
     });
+  }
 
-    if (workspace._count.users >= workspace.usersLimit) {
-      throw new DubApiError({
-        code: "exceeded_limit",
-        message: exceededLimitError({
-          plan: workspace.plan as PlanProps,
-          limit: workspace.usersLimit,
-          type: "users",
-        }),
-      });
-    }
+  assertRoleAllowedForPlan({
+    role: invite.role,
+    plan: workspace.plan,
+  });
 
-    assertRoleAllowedForPlan({
-      role: invite.role,
-      plan: workspace.plan,
+  if (workspace._count.users >= workspace.usersLimit) {
+    throw new DubApiError({
+      code: "exceeded_limit",
+      message: exceededLimitError({
+        plan: workspace.plan as PlanProps,
+        limit: workspace.usersLimit,
+        type: "users",
+      }),
     });
+  }
 
-    const workspaceUser = await tx.projectUsers.create({
+  await prisma.$transaction(async (tx) => {
+    await tx.projectUsers.create({
       data: {
         userId: session.user.id,
         role: invite.role,
@@ -102,7 +114,6 @@ export const POST = withSession(async ({ session, params }) => {
       },
     });
 
-    // Delete invite inside transaction to ensure consistency
     await tx.projectInvite.delete({
       where: {
         email_projectId: {
@@ -112,10 +123,25 @@ export const POST = withSession(async ({ session, params }) => {
       },
     });
 
-    return {
-      workspace,
-      workspaceUser,
-    };
+    const userCount = await tx.projectUsers.count({
+      where: {
+        projectId: workspace.id,
+        user: {
+          isMachine: false,
+        },
+      },
+    });
+
+    if (userCount > workspace.usersLimit) {
+      throw new DubApiError({
+        code: "exceeded_limit",
+        message: exceededLimitError({
+          plan: workspace.plan as PlanProps,
+          limit: workspace.usersLimit,
+          type: "users",
+        }),
+      });
+    }
   });
 
   // Update default workspace
@@ -139,8 +165,8 @@ export const POST = withSession(async ({ session, params }) => {
     addMemberToStaging({
       workspace,
       user: {
-        id: workspaceUser.userId,
-        role: workspaceUser.role,
+        id: session.user.id,
+        role: invite.role,
       },
     }),
   );
