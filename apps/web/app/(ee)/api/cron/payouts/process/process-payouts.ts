@@ -309,7 +309,7 @@ export async function processPayouts({
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
       method: "POST",
-      delay: 1 * 60,
+      delay: "1m",
       flowControl: {
         key: invoice.id,
         rate: 1,
@@ -317,6 +317,7 @@ export async function processPayouts({
       body: {
         invoiceId: invoice.id,
       },
+      deduplicationId: `sandbox-payouts-${invoice.id}`,
     });
   }
 
