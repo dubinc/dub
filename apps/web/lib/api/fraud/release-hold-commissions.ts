@@ -90,9 +90,16 @@ export async function releaseHoldCommissions(riskGroupIds: string[]) {
     };
 
     if (blockedCustomerIds.size > 0) {
-      releaseWhere.customerId = {
-        notIn: [...blockedCustomerIds],
-      };
+      releaseWhere.OR = [
+        {
+          customerId: null,
+        },
+        {
+          customerId: {
+            notIn: [...blockedCustomerIds],
+          },
+        },
+      ];
     }
 
     const commissionsToRelease = await prisma.commission.findMany({

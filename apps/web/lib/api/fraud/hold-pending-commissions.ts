@@ -27,6 +27,9 @@ export async function holdPendingCommissions(
           partnerId,
         })),
         status: CommissionStatus.pending,
+        earnings: {
+          gt: 0,
+        },
         // Only hold commissions for workspaces whose plan can manage fraud events,
         // Other plans have no way to review or resolve fraud groups, so their commissions should never be frozen.
         program: {
