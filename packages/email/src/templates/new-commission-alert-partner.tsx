@@ -12,7 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { CommissionStatus } from "src/types";
+import { CommissionStatus } from "../types";
 import { Footer } from "../components/footer";
 
 export default function NewCommissionAlertPartner({
