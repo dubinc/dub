@@ -55,7 +55,7 @@ export const updateUsage = async () => {
 
   // if no workspaces left, meaning cron is complete
   if (workspaces.length === 0) {
-    return;
+    return "No workspaces left to update";
   }
 
   // Reset billing cycles for workspaces that have
@@ -240,9 +240,11 @@ export const updateUsage = async () => {
     }),
   );
 
-  return await qstash.publishJSON({
+  await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage`,
     method: "POST",
     body: {},
   });
+
+  return `Updated usage stats for ${workspaces.length} workspaces`;
 };
