@@ -78,49 +78,7 @@ export const POST = withWorkspace(
       });
     }
 
-    let startsAt: Date | null = null;
-    let endsAt: Date | null = null;
-    const submission = submissionId ? bounty.submissions?.[0] : undefined;
-
-    if (submissionId) {
-      if (!submission || !submission.programEnrollment) {
-        throw new DubApiError({
-          code: "not_found",
-          message: `Submission ${submissionId} not found.`,
-        });
-      }
-
-      if (submission.status === "approved") {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Social metrics can't be synced for an approved submission.",
-        });
-      }
-
-      const effectiveDateRange = getEffectiveBountyPeriod({
-        programEnrollment: submission.programEnrollment,
-        bounty,
-      });
-
-      startsAt = effectiveDateRange.startsAt;
-      endsAt = effectiveDateRange.endsAt;
-    }
-
-    if (startsAt && !isBountyStarted(startsAt)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Social metrics can only be synced after the bounty starts.",
-      });
-    }
-
-    if (isBountyExpired(endsAt)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Social metrics can't be synced after the bounty ends.",
-      });
-    }
-
-    // Do the sync in a background job if no submissionId is provided
+    // Bounty-wide sync (no submissionId): run asynchronously via a background job
     if (!submissionId) {
       const response = await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/sync-social-metrics`,
@@ -140,10 +98,45 @@ export const POST = withWorkspace(
       return NextResponse.json({});
     }
 
-    // Otherwise, do the sync for the specific submission
+    // Single-submission sync
+    const submission = bounty.submissions?.[0];
+
+    if (!submission || !submission.programEnrollment) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Submission ${submissionId} not found.`,
+      });
+    }
+
+    if (submission.status === "approved") {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Social metrics can't be synced for an approved submission.",
+      });
+    }
+
+    const { startsAt, endsAt } = getEffectiveBountyPeriod({
+      programEnrollment: submission.programEnrollment,
+      bounty,
+    });
+
+    if (!isBountyStarted(startsAt)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Social metrics can only be synced after the bounty starts.",
+      });
+    }
+
+    if (isBountyExpired(endsAt)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Social metrics can't be synced after the bounty ends.",
+      });
+    }
+
     const toUpdate = await getSocialMetricsUpdates({
       bounty,
-      submissions: bounty.submissions![0],
+      submissions: submission,
     });
 
     if (toUpdate.length > 0) {
@@ -154,7 +147,6 @@ export const POST = withWorkspace(
       }
 
       const { socialMetricCount, socialMetricsLastSyncedAt } = update;
-      const submission = bounty.submissions![0];
 
       const updateData: Prisma.BountySubmissionUpdateInput = {
         socialMetricCount,

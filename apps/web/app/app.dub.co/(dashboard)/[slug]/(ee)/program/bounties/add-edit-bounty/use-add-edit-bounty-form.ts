@@ -59,6 +59,18 @@ function getEffectiveEndsAt({
   return null;
 }
 
+function getSubmissionWindowFromBounty(bounty?: BountyProps): number | null {
+  if (!bounty?.submissionsOpenAt || !bounty?.endsAt) return null;
+
+  const days = Math.ceil(
+    (new Date(bounty.endsAt).getTime() -
+      new Date(bounty.submissionsOpenAt).getTime()) /
+      (1000 * 60 * 60 * 24),
+  );
+
+  return days >= 2 && days <= 14 ? days : null;
+}
+
 export function useAddEditBountyForm({
   bounty,
   setIsOpen,
@@ -86,16 +98,8 @@ export function useAddEditBountyForm({
       bounty?.submissionFrequency ?? null,
     );
 
-  const [submissionWindow, setSubmissionWindow] = useState<number | null>(
-    () => {
-      if (!bounty?.submissionsOpenAt || !bounty?.endsAt) return null;
-      const days = Math.ceil(
-        (new Date(bounty.endsAt).getTime() -
-          new Date(bounty.submissionsOpenAt).getTime()) /
-          (1000 * 60 * 60 * 24),
-      );
-      return days >= 2 && days <= 14 ? days : null;
-    },
+  const [submissionWindow, setSubmissionWindow] = useState<number | null>(() =>
+    getSubmissionWindowFromBounty(bounty),
   );
 
   const initialSubmissionRequirements = (() => {
@@ -247,19 +251,9 @@ export function useAddEditBountyForm({
     [setValue, submissionWindow],
   );
 
-  const getInitialSubmissionWindow = () => {
-    if (!bounty?.submissionsOpenAt || !bounty?.endsAt) return null;
-    const days = Math.ceil(
-      (new Date(bounty.endsAt).getTime() -
-        new Date(bounty.submissionsOpenAt).getTime()) /
-        (1000 * 60 * 60 * 24),
-    );
-    return days >= 2 && days <= 14 ? days : null;
-  };
-
   const handleSubmissionWindowToggle = (checked: boolean) => {
     if (checked) {
-      const val = getInitialSubmissionWindow() ?? 2;
+      const val = getSubmissionWindowFromBounty(bounty) ?? 2;
       setSubmissionWindow(val);
       if (endsAt) {
         const submissionsOpenAt = new Date(endsAt);
