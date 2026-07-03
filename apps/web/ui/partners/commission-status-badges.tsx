@@ -128,7 +128,6 @@ export const CommissionStatusBadges = {
       return title;
     },
   },
-  // extra status for hold (not in OpenAPI spec)
   hold: {
     label: "On Hold",
     variant: "error",

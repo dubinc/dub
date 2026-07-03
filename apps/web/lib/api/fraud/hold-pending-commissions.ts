@@ -20,13 +20,22 @@ export async function holdPendingCommissions(
   const chunks = chunk(uniquePairs, 50);
 
   for (const chunk of chunks) {
-    const commissionsToHold = await prisma.commission.findMany({
+    const pendingCommissions = await prisma.commission.findMany({
       where: {
         OR: chunk.map(({ programId, partnerId }) => ({
           programId,
           partnerId,
         })),
         status: CommissionStatus.pending,
+        // Only hold commissions for workspaces whose plan can manage fraud events,
+        // Other plans have no way to review or resolve fraud groups, so their commissions should never be frozen.
+        program: {
+          workspace: {
+            plan: {
+              in: ["enterprise", "advanced"],
+            },
+          },
+        },
       },
       select: {
         id: true,
@@ -43,14 +52,14 @@ export async function holdPendingCommissions(
       },
     });
 
-    if (commissionsToHold.length === 0) {
+    if (pendingCommissions.length === 0) {
       continue;
     }
 
     await prisma.commission.updateMany({
       where: {
         id: {
-          in: commissionsToHold.map((c) => c.id),
+          in: pendingCommissions.map((c) => c.id),
         },
       },
       data: {
@@ -58,7 +67,10 @@ export async function holdPendingCommissions(
       },
     });
 
-    const commissionsByProgram = groupBy(commissionsToHold, (c) => c.programId);
+    const commissionsByProgram = groupBy(
+      pendingCommissions,
+      (c) => c.programId,
+    );
 
     for (const commissions of Object.values(commissionsByProgram)) {
       await trackCommissionStatusUpdate({
@@ -71,7 +83,7 @@ export async function holdPendingCommissions(
 
     const affectedPairs = [
       ...new Map(
-        commissionsToHold.map((c) => [
+        pendingCommissions.map((c) => [
           `${c.programId}:${c.partnerId}`,
           { programId: c.programId, partnerId: c.partnerId },
         ]),

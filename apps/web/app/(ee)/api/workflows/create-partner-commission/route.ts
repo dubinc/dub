@@ -436,61 +436,74 @@ async function stepCreateCommission(
 
   const { canManageFraudEvents } = getPlanCapabilities(program.workspace.plan);
 
+  // Conversion-event fraud detection always runs (regardless of plan capabilities,
+  // explicit `status` input, or pending partner-level groups) so fraud events are
+  // recorded for every conversion; only the hold decision below is gated.
+  let riskRulesTriggered = false;
+
+  if (customerId && eventId && clickEvent) {
+    const customer = await prisma.customer.findUnique({
+      where: {
+        id: customerId,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+      },
+    });
+
+    if (customer) {
+      const triggeredRules = await detectAndRecordFraudEvent({
+        program: { id: programId },
+        partner: pick(programEnrollment.partner, ["id", "email", "name"]),
+        programEnrollment: pick(programEnrollment, [
+          "status",
+          "riskMonitoringDisabledAt",
+        ]),
+        customer: {
+          ...pick(customer, ["id", "email", "name"]),
+          ...(typeof isFirstConversion === "boolean" && {
+            isFirstConversion,
+          }),
+        },
+        link: { id: linkId },
+        click: pick(clickEvent, ["url", "referer"]),
+        event: { id: eventId },
+      });
+
+      riskRulesTriggered = triggeredRules.length > 0;
+    }
+  }
+
   // 1. Partner-level: any pending partner-scope fraud group → hold (all commission types for this partner).
   // 2. Conversion-event: run fraud detection before create; if rules trigger → hold (customer-scoped).
   // An explicit `status` input (e.g. imports) wins; clawbacks (earnings <= 0) are never held.
   if (!status && earnings > 0 && canManageFraudEvents) {
-    const hasPendingRiskGroups = await prisma.fraudEventGroup.findFirst({
-      where: {
-        programId,
-        partnerId,
-        status: FraudEventStatus.pending,
-        type: {
-          in: PARTNER_LEVEL_FRAUD_RULES,
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
+    let shouldHoldCommission = false;
 
-    if (hasPendingRiskGroups) {
-      status = CommissionStatus.hold;
-    } else if (customerId && eventId && clickEvent) {
-      const customer = await prisma.customer.findUnique({
+    if (riskRulesTriggered) {
+      shouldHoldCommission = true;
+    } else {
+      const hasPendingRiskGroups = await prisma.fraudEventGroup.findFirst({
         where: {
-          id: customerId,
+          programId,
+          partnerId,
+          status: FraudEventStatus.pending,
+          type: {
+            in: PARTNER_LEVEL_FRAUD_RULES,
+          },
         },
         select: {
           id: true,
-          email: true,
-          name: true,
         },
       });
 
-      if (customer) {
-        const triggeredRules = await detectAndRecordFraudEvent({
-          program: { id: programId },
-          partner: pick(programEnrollment.partner, ["id", "email", "name"]),
-          programEnrollment: pick(programEnrollment, [
-            "status",
-            "riskMonitoringDisabledAt",
-          ]),
-          customer: {
-            ...pick(customer, ["id", "email", "name"]),
-            ...(typeof isFirstConversion === "boolean" && {
-              isFirstConversion,
-            }),
-          },
-          link: { id: linkId },
-          click: pick(clickEvent, ["url", "referer"]),
-          event: { id: eventId },
-        });
+      shouldHoldCommission = hasPendingRiskGroups !== null;
+    }
 
-        if (triggeredRules.length > 0) {
-          status = CommissionStatus.hold;
-        }
-      }
+    if (shouldHoldCommission) {
+      status = CommissionStatus.hold;
     }
   }
 
@@ -737,7 +750,7 @@ async function clampEarningsToSpendLimit({
       ...(reward.event === "sale" ? { customerId } : {}),
       type: reward.event,
       status: {
-        in: ["pending", "processed", "paid"],
+        in: ["pending", "processed", "paid", "hold"],
       },
       // only need to filter if not all-time spend limit (no startDate or endDate)
       ...(startDate && endDate
