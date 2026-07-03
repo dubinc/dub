@@ -21,13 +21,11 @@ import { webhookCache } from "@/lib/webhook/cache";
 import { sendBatchEmail } from "@dub/email";
 import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
-import {
-  getPlanAndTierFromPriceId,
-  getWorkspaceLimitsForStripeSubscriptionStatus,
-} from "@dub/utils";
+import { getPlanAndTierFromPriceId } from "@dub/utils";
 import { NEW_BUSINESS_PRICE_IDS } from "@dub/utils/src";
 import type Stripe from "stripe";
-import { getPlanPeriodFromStripeSubscription } from "./stripe-plan-period";
+import { getPlanPeriodFromStripeSubscription } from "./get-plan-period-from-stripe-subscription";
+import { getWorkspaceLimitsFromStripeSubscription } from "./get-workspace-limits-from-stripe-subscription";
 
 export async function updateWorkspacePlan({
   workspace,
@@ -65,16 +63,16 @@ export async function updateWorkspacePlan({
   const { canMessagePartners, canCreateWebhooks, canAddFolder } =
     getPlanCapabilities(newPlanName);
 
-  const limits = getWorkspaceLimitsForStripeSubscriptionStatus({
-    planLimits: newPlan.limits,
-    subscriptionStatus: subscription.status,
-  });
-
   const trialEndsAt = getSubscriptionTrialEndsAt(subscription);
   const isPaidPlanActivated =
     workspace.trialEndsAt !== null && trialEndsAt === null;
   const cancellationFields = getSubscriptionCancellationFields(subscription);
   const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
+
+  const limits = getWorkspaceLimitsFromStripeSubscription({
+    planLimits: newPlan.limits,
+    subscription,
+  });
 
   const datetimeFieldsUpdated =
     workspace.billingCycleEndsAt?.getTime() !==
