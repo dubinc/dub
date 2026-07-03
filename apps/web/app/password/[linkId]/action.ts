@@ -41,18 +41,13 @@ export async function verifyPassword(_prevState: any, data: FormData) {
     const linkKey = `verify-password:${linkId}`;
 
     const [ipLimit, linkLimit] = await Promise.all([
-      ratelimit(IP_ATTEMPTS, ATTEMPTS_WINDOW).getRemaining(ipKey),
-      ratelimit(LINK_ATTEMPTS, ATTEMPTS_WINDOW).getRemaining(linkKey),
-    ]);
-
-    if (ipLimit.remaining <= 0 || linkLimit.remaining <= 0) {
-      return { error: "Don't DDoS me pls 🥺" };
-    }
-
-    await Promise.all([
       ratelimit(IP_ATTEMPTS, ATTEMPTS_WINDOW).limit(ipKey),
       ratelimit(LINK_ATTEMPTS, ATTEMPTS_WINDOW).limit(linkKey),
     ]);
+
+    if (!ipLimit.success || !linkLimit.success) {
+      return { error: "Don't DDoS me pls 🥺" };
+    }
   }
 
   return { error: "Invalid password" };
