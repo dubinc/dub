@@ -4,6 +4,7 @@ import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { FraudRuleType, ProgramEnrollment } from "@prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
 import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
+import { holdPendingCommissions } from "./hold-pending-commissions";
 
 type DetectDuplicatePayoutMethodFraudOptions =
   | { payoutMethodHash: string; cryptoWalletAddress?: never }
@@ -106,5 +107,7 @@ export async function detectDuplicatePayoutMethodFraud({
     }
   }
 
-  await createFraudEvents(fraudEvents);
+  const { affectedGroups } = await createFraudEvents(fraudEvents);
+
+  await holdPendingCommissions(affectedGroups);
 }

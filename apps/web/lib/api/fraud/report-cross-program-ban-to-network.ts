@@ -3,6 +3,7 @@ import { isFraudRuleEnabled } from "@/lib/api/fraud/get-merged-fraud-rules";
 import { prisma } from "@/lib/prisma";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { FraudRuleType, PartnerBannedReason } from "@prisma/client";
+import { holdPendingCommissions } from "./hold-pending-commissions";
 
 // Creates partnerCrossProgramBan fraud events in other programs where the partner is enrolled.
 // Used when a program bans a partner so that other programs can be alerted about cross-program
@@ -56,7 +57,7 @@ export async function reportCrossProgramBanToNetwork({
     return;
   }
 
-  await createFraudEvents(
+  const { affectedGroups } = await createFraudEvents(
     affectedProgramEnrollments.map((affectedEnrollment) => ({
       programId: affectedEnrollment.programId,
       partnerId: affectedEnrollment.partnerId,
@@ -68,4 +69,6 @@ export async function reportCrossProgramBanToNetwork({
       },
     })),
   );
+
+  await holdPendingCommissions(affectedGroups);
 }

@@ -9,6 +9,7 @@ import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { FraudRuleType, ProgramEnrollment } from "@prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
 import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
+import { holdPendingCommissions } from "./hold-pending-commissions";
 
 // Check for duplicate identities: if multiple partners share the same identity,
 // create fraud events for all their active program enrollments to flag potential fraud
@@ -130,5 +131,7 @@ export async function detectDuplicateIdentityFraud({
     }
   }
 
-  await createFraudEvents(fraudEvents);
+  const { affectedGroups } = await createFraudEvents(fraudEvents);
+
+  await holdPendingCommissions(affectedGroups);
 }
