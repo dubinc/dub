@@ -38,7 +38,7 @@ export function AssociatedCommissionsTable({
 
   const query = {
     workspaceId: workspaceId!,
-    status: "pending",
+    status: "hold",
     fraudEventGroupId: fraudGroup.id,
   };
 

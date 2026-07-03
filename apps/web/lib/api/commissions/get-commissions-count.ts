@@ -2,18 +2,13 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { prisma } from "@/lib/prisma";
 import { getCommissionsCountQuerySchema } from "@/lib/zod/schemas/commissions";
 import { parseFilterValue } from "@dub/utils";
-import {
-  CommissionStatus,
-  CommissionType,
-  FraudEventStatus,
-} from "@prisma/client";
+import { CommissionStatus, CommissionType } from "@prisma/client";
 import * as z from "zod/v4";
 
 type CommissionsCountFilters = z.infer<
   typeof getCommissionsCountQuerySchema
 > & {
   programId: string;
-  isHoldStatus?: boolean;
   fraudEventGroupId?: string;
 };
 
@@ -32,26 +27,25 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     interval,
     timezone,
     programId,
-    isHoldStatus,
   } = filters;
 
-  // Resolve fraudEventGroupId to eventIds
-  let eventIds: string[] | undefined;
+  // Resolve fraudEventGroupId to customerIds
+  let customerIds: string[] | undefined;
 
   if (fraudEventGroupId) {
-    const fraudEvents = await prisma.fraudEvent.findMany({
+    const riskEvents = await prisma.fraudEvent.findMany({
       where: {
         fraudEventGroupId,
-        eventId: {
+        customerId: {
           not: null,
         },
       },
       select: {
-        eventId: true,
+        customerId: true,
       },
     });
 
-    eventIds = fraudEvents.map((e) => e.eventId!);
+    customerIds = riskEvents.map((e) => e.customerId!);
   }
 
   const { startDate, endDate } = getStartEndDates({
@@ -61,18 +55,16 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     timezone,
   });
 
-  const statusFilter = isHoldStatus
-    ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
-    : status ?? {
-        notIn: [
-          CommissionStatus.duplicate,
-          CommissionStatus.fraud,
-          CommissionStatus.canceled,
-        ],
-      };
-
   const groupFilter = parseFilterValue(groupId);
   const partnerTagFilter = parseFilterValue(partnerTagId);
+
+  const statusFilter = status ?? {
+    notIn: [
+      CommissionStatus.duplicate,
+      CommissionStatus.fraud,
+      CommissionStatus.canceled,
+    ],
+  };
 
   const programEnrollmentFilter = {
     ...(groupFilter && {
@@ -86,13 +78,6 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
         partnerTagFilter.sqlOperator === "NOT IN"
           ? { none: { partnerTagId: { in: partnerTagFilter.values } } }
           : { some: { partnerTagId: { in: partnerTagFilter.values } } },
-    }),
-    ...(isHoldStatus && {
-      fraudEventGroups: {
-        some: {
-          status: FraudEventStatus.pending,
-        },
-      },
     }),
   };
 
@@ -127,9 +112,9 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
             ? { notIn: customerFilter.values }
             : { in: customerFilter.values },
       }),
-      ...(eventIds && {
-        eventId: {
-          in: eventIds,
+      ...(customerIds?.length && {
+        customerId: {
+          in: customerIds,
         },
       }),
       createdAt: {

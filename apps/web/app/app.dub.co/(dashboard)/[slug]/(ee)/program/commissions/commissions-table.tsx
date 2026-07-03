@@ -1,12 +1,10 @@
 "use client";
 
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CommissionResponse, FraudGroupCountByPartner } from "@/lib/types";
+import { CommissionResponse } from "@/lib/types";
 import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { useBulkEditCommissionsModal } from "@/ui/partners/bulk-edit-commissions-modal";
@@ -127,16 +125,6 @@ export function CommissionsTable() {
       defaultVisible: defaultVisibleColumns,
     },
   );
-
-  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
-    query: {
-      groupBy: "partnerId",
-      status: "pending",
-    },
-    ignoreParams: true,
-  });
-
-  const { canManageFraudEvents } = getPlanCapabilities(workspace?.plan ?? "");
 
   const { openBulkEditCommissionsModal, BulkEditCommissionsModal } =
     useBulkEditCommissionsModal();
@@ -286,18 +274,7 @@ export function CommissionsTable() {
           id: "status",
           header: "Status",
           cell: ({ row }) => {
-            const partnerHasPendingFraud = fraudGroupCount?.find(
-              ({ partnerId }) => partnerId === row.original.partner.id,
-            );
-
-            const status =
-              canManageFraudEvents &&
-              partnerHasPendingFraud &&
-              ["pending", "processed"].includes(row.original.status)
-                ? "hold"
-                : row.original.status;
-
-            const badge = CommissionStatusBadges[status];
+            const badge = CommissionStatusBadges[row.original.status];
 
             return (
               <StatusBadge
@@ -327,7 +304,7 @@ export function CommissionsTable() {
           cell: ({ row }) => <CommissionRowMenu row={row} />,
         },
       ].filter((c) => c.id === "menu" || commissionsColumns.all.includes(c.id)),
-    [slug, groups, program, workspace, fraudGroupCount],
+    [slug, groups, program, workspace],
   );
 
   const { table, ...tableProps } = useTable<CommissionResponse>({

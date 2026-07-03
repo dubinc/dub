@@ -38,7 +38,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     programId,
     ...(partnerId && { partnerId }),
     ...(eligibility === "eligible" && {
-      ...getPayoutEligibilityFilter({ program, workspace }),
+      ...getPayoutEligibilityFilter({ program }),
     }),
     ...(invoiceId && { invoiceId }),
     ...(programEnrollment && { programEnrollment }),

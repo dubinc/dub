@@ -32,7 +32,7 @@ export async function getEligiblePayouts({
   let payouts = await prisma.payout.findMany({
     where: {
       ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
-      ...getPayoutEligibilityFilter({ program, workspace }),
+      ...getPayoutEligibilityFilter({ program }),
     },
     include: {
       partner: {

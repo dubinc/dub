@@ -47,6 +47,8 @@ const COMMISSION_BLOCKING_FRAUD_TYPE: FraudRuleType[] = [
   FraudRuleType.customerEmailSuspiciousDomain,
   FraudRuleType.referralSourceBanned,
   FraudRuleType.paidTrafficDetected,
+  FraudRuleType.partnerCrossProgramBan,
+  FraudRuleType.partnerDuplicateAccount,
 ];
 
 const SHEET_TITLES: Record<FraudGroupProps["status"], string> = {
@@ -71,7 +73,7 @@ function RiskReviewSheetContent({
     showCommissionsOnHold && workspaceId
       ? `/api/commissions/count?${new URLSearchParams({
           workspaceId,
-          status: "pending",
+          status: "hold",
           fraudEventGroupId: fraudGroup.id,
         }).toString()}`
       : null;

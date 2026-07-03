@@ -1,5 +1,6 @@
 import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/trigger-aggregate-due-commissions";
 import { createId } from "@/lib/api/create-id";
+import { FRAUD_RULES_BY_SCOPE } from "@/lib/api/fraud/constants";
 import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { notifyPartnerCommission } from "@/lib/api/partners/notify-partner-commission";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
@@ -12,6 +13,7 @@ import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
 import { determinePartnerRewards } from "@/lib/partners/determine-partner-reward";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
 import { RewardProps } from "@/lib/types";
@@ -26,6 +28,9 @@ import { buildCommissionDescription } from "@/ui/partners/program-reward-spend-l
 import { currencyFormatter, log, pick, toCentsNumber } from "@dub/utils";
 import {
   Commission,
+  CommissionStatus,
+  FraudEventStatus,
+  FraudRuleType,
   Link,
   Partner,
   PartnerGroup,
@@ -38,7 +43,9 @@ import { differenceInMonths } from "date-fns";
 import * as z from "zod/v4";
 import { logAndReturn } from "../../cron/utils";
 
-type Input = z.infer<typeof createPartnerCommissionSchema>;
+type Input = Omit<z.infer<typeof createPartnerCommissionSchema>, "status"> & {
+  status?: CommissionStatus;
+};
 
 type ProgramEnrollmentWithReward = ProgramEnrollment & {
   links: Link[];
@@ -176,6 +183,8 @@ async function stepCreateCommission(
     userId,
     context,
     programEnrollment,
+    clickEvent,
+    isFirstConversion,
   } = input;
 
   if (typeof amount !== "number") {
@@ -413,6 +422,83 @@ async function stepCreateCommission(
     earnings = cappedEarnings;
   }
 
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+    select: {
+      workspace: {
+        select: {
+          plan: true,
+        },
+      },
+    },
+  });
+
+  const { canManageFraudEvents } = getPlanCapabilities(program.workspace.plan);
+
+  // 1. Partner-level: any pending partner-scope fraud group → hold (all commission types for this partner).
+  // 2. Conversion-event: run fraud detection before create; if rules trigger → hold (customer-scoped).
+  // An explicit `status` input (e.g. imports) wins; clawbacks (earnings <= 0) are never held.
+  if (!status && earnings > 0 && canManageFraudEvents) {
+    const partnerLevelFraudRuleTypes = FRAUD_RULES_BY_SCOPE["partner"].map(
+      (rule) => rule.type,
+    ) as FraudRuleType[];
+
+    const hasPendingRiskGroups = await prisma.fraudEventGroup.findFirst({
+      where: {
+        programId,
+        partnerId,
+        status: FraudEventStatus.pending,
+        type: {
+          in: partnerLevelFraudRuleTypes,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (hasPendingRiskGroups) {
+      status = CommissionStatus.hold;
+    } else if (customerId && eventId && clickEvent) {
+      const customer = await prisma.customer.findUnique({
+        where: {
+          id: customerId,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+        },
+      });
+
+      if (customer) {
+        const triggeredRules = await detectAndRecordFraudEvent({
+          program: { id: programId },
+          partner: pick(programEnrollment.partner, ["id", "email", "name"]),
+          programEnrollment: pick(programEnrollment, [
+            "status",
+            "riskMonitoringDisabledAt",
+          ]),
+          customer: {
+            ...pick(customer, ["id", "email", "name"]),
+            ...(typeof isFirstConversion === "boolean" && {
+              isFirstConversion,
+            }),
+          },
+          link: { id: linkId },
+          click: pick(clickEvent, ["url", "referer"]),
+          event: { id: eventId },
+        });
+
+        if (triggeredRules.length > 0) {
+          status = CommissionStatus.hold;
+        }
+      }
+    }
+  }
+
   try {
     const commission = await prisma.commission.create({
       data: {
@@ -477,11 +563,7 @@ async function stepRunSideEffects(
     isFirstCommission,
     programId,
     partnerId,
-    linkId,
-    eventId,
     skipWorkflow,
-    clickEvent,
-    isFirstConversion,
     triggerAggregateDueCommissions,
   } = input;
 
@@ -542,7 +624,8 @@ async function stepRunSideEffects(
 
   const { workspace } = program;
   const isClawback = commission.earnings < 0;
-  const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
+  const isOnHold = commission.status === CommissionStatus.hold;
+  const shouldTriggerWorkflow = !isClawback && !skipWorkflow && !isOnHold;
 
   const webhookPartner = constructWebhookPartner(programEnrollment, {
     totalCommissions:
@@ -565,10 +648,11 @@ async function stepRunSideEffects(
       data: commission,
     }),
 
-    syncTotalCommissions({
-      partnerId,
-      programId,
-    }),
+    !isOnHold &&
+      syncTotalCommissions({
+        partnerId,
+        programId,
+      }),
 
     !isClawback &&
       notifyPartnerCommission({
@@ -597,27 +681,6 @@ async function stepRunSideEffects(
         },
       }),
 
-    // Run risk monitoring
-    commission.customer &&
-      eventId &&
-      clickEvent &&
-      detectAndRecordFraudEvent({
-        program: { id: programId },
-        partner: pick(programEnrollment.partner, ["id", "email", "name"]),
-        programEnrollment: pick(programEnrollment, [
-          "status",
-          "riskMonitoringDisabledAt",
-        ]),
-        customer: {
-          ...pick(commission.customer, ["id", "email", "name"]),
-          // only pass along isFirstConversion if it's a boolean
-          ...(typeof isFirstConversion === "boolean" && { isFirstConversion }),
-        },
-        link: { id: linkId },
-        click: pick(clickEvent, ["url", "referer"]),
-        event: { id: eventId },
-      }),
-
     // Aggregate due commissions immediately for manual commission
     triggerAggregateDueCommissions &&
       triggerAggregateDueCommissionsCronJob(programId),
@@ -629,7 +692,6 @@ async function stepRunSideEffects(
     "syncTotalCommissions",
     "notifyPartnerCommission",
     "executeWorkflows",
-    "detectAndRecordFraudEvent",
   ].map((step, index) => ({
     step,
     result: results[index],

@@ -25,7 +25,7 @@ export async function splitPayouts({
   const payouts = await prisma.payout.findMany({
     where: {
       ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
-      ...getPayoutEligibilityFilter({ program, workspace }),
+      ...getPayoutEligibilityFilter({ program }),
     },
     include: {
       commissions: true,

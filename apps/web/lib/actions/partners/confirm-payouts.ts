@@ -107,7 +107,7 @@ export const confirmPayoutsAction = authActionClient
       const totalEligiblePayouts = await prisma.payout.aggregate({
         where: {
           ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
-          ...getPayoutEligibilityFilter({ program, workspace }),
+          ...getPayoutEligibilityFilter({ program }),
         },
         _count: true,
       });

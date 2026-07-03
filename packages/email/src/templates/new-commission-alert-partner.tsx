@@ -12,6 +12,7 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { CommissionStatus } from "src/types";
 import { Footer } from "../components/footer";
 
 export default function NewCommissionAlertPartner({
@@ -20,6 +21,7 @@ export default function NewCommissionAlertPartner({
     name: "Acme",
     slug: "acme",
     logo: DUB_WORDMARK,
+    supportEmail: "support@acme.com",
   },
   group = {
     holdingPeriodDays: 30,
@@ -28,6 +30,7 @@ export default function NewCommissionAlertPartner({
     type: "sale",
     amount: 25000,
     earnings: 6900,
+    status: "pending",
   },
   shortLink = "https://refer.dub.co/steven",
 }: {
@@ -36,6 +39,7 @@ export default function NewCommissionAlertPartner({
     name: string;
     slug: string;
     logo: string | null;
+    supportEmail?: string | null;
   };
   group: {
     holdingPeriodDays: number;
@@ -44,11 +48,13 @@ export default function NewCommissionAlertPartner({
     type: "click" | "lead" | "sale" | "custom" | "referral";
     amount: number;
     earnings: number;
+    status: CommissionStatus;
   };
   shortLink?: string | null;
 }) {
   const earningsInDollars = currencyFormatter(commission.earnings);
   const linkToEarnings = `https://partners.dub.co/programs/${program.slug}/earnings`;
+  const isOnHold = commission.status === "hold";
 
   return (
     <Html>
@@ -119,46 +125,80 @@ export default function NewCommissionAlertPartner({
               </Text>
             )}
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              {["custom", "click"].includes(commission.type)
-                ? "Congratulations! "
-                : ""}
-              You received{" "}
-              <strong className="text-black">{earningsInDollars}</strong> in
-              commission
-              {commission.type === "custom" ? (
-                ""
-              ) : commission.type === "click" ? (
-                <>
-                  {" "}
-                  for your clicks to{" "}
-                  <strong className="text-black">{program.name}</strong>
-                </>
-              ) : (
-                ` for this ${commission.type}`
-              )}
-              {commission.type !== "custom" && group.holdingPeriodDays > 0 ? (
-                <>
-                  {" "}
-                  and it will be eligible for payout after the program's{" "}
-                  {group.holdingPeriodDays}-day holding period (
-                  <strong>
-                    {new Date(
-                      Date.now() +
-                        group.holdingPeriodDays * 24 * 60 * 60 * 1000,
-                    ).toLocaleDateString("en-US", {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
-                  </strong>
-                  )
-                </>
-              ) : (
-                " and it will be included in your next payout"
-              )}
-              .
-            </Text>
+            {isOnHold ? (
+              <>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  Your{" "}
+                  <strong className="text-black">{earningsInDollars}</strong>{" "}
+                  commission is currently on hold while it undergoes a risk
+                  review. It won&apos;t be eligible for payout until the review
+                  is complete. If the review is approved, your commission will
+                  become payable automatically.
+                </Text>
+
+                <Text className="text-sm leading-6 text-neutral-600">
+                  If you have any questions or believe this is incorrect, please
+                  contact the{" "}
+                  <strong className="text-black">{program.name}</strong> team
+                  {program.supportEmail ? (
+                    <>
+                      {" "}
+                      at{" "}
+                      <Link
+                        href={`mailto:${program.supportEmail}`}
+                        className="font-semibold text-neutral-700 underline underline-offset-2"
+                      >
+                        {program.supportEmail}
+                      </Link>
+                    </>
+                  ) : (
+                    " directly"
+                  )}
+                  .
+                </Text>
+              </>
+            ) : (
+              <Text className="text-sm leading-6 text-neutral-600">
+                {["custom", "click"].includes(commission.type)
+                  ? "Congratulations! "
+                  : ""}
+                You received{" "}
+                <strong className="text-black">{earningsInDollars}</strong> in
+                commission
+                {commission.type === "custom" ? (
+                  ""
+                ) : commission.type === "click" ? (
+                  <>
+                    {" "}
+                    for your clicks to{" "}
+                    <strong className="text-black">{program.name}</strong>
+                  </>
+                ) : (
+                  ` for this ${commission.type}`
+                )}
+                {commission.type !== "custom" && group.holdingPeriodDays > 0 ? (
+                  <>
+                    {" "}
+                    and it will be eligible for payout after the program's{" "}
+                    {group.holdingPeriodDays}-day holding period (
+                    <strong>
+                      {new Date(
+                        Date.now() +
+                          group.holdingPeriodDays * 24 * 60 * 60 * 1000,
+                      ).toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </strong>
+                    )
+                  </>
+                ) : (
+                  " and it will be included in your next payout"
+                )}
+                .
+              </Text>
+            )}
 
             <Section className="mb-12 mt-8">
               <Link
