@@ -73,15 +73,8 @@ export const updateUsage = async () => {
       const { usage, usageLimit, plan, planPeriod, billingCycleEndsAt } =
         workspace;
 
-      /* 
-        We only reset clicks usage if it's not over usageLimit by:
-        - 4x for free plan (4K clicks)
-        - 2x for all other plans
-      */
-      let resetUsage =
-        plan === "free" ? usage <= usageLimit * 4 : usage <= usageLimit * 2;
-
       // if yearly plan, we skip resetting usage if the billing cycle end date is not this year+month
+      let resetUsage = true;
       if (
         planPeriod === "yearly" &&
         billingCycleEndsAt &&
@@ -94,12 +87,20 @@ export const updateUsage = async () => {
       }
 
       if (resetUsage) {
+        /* 
+          We only reset events usage if it's not over usageLimit by:
+          - 4x for free plan (4K events)
+          - 2x for all other plans
+        */
+        const resetEventsUsage =
+          plan === "free" ? usage <= usageLimit * 4 : usage <= usageLimit * 2;
+
         await prisma.project.update({
           where: {
             id: workspace.id,
           },
           data: {
-            usage: 0,
+            usage: resetEventsUsage ? 0 : undefined,
             linksUsage: 0,
             payoutsUsage: 0,
             aiUsage: 0,
@@ -117,6 +118,7 @@ export const updateUsage = async () => {
             },
           },
         });
+        console.log(`Reset usage for workspace "${workspace.slug}"`);
       }
 
       /* Only send the 30-day summary email if:
