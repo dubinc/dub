@@ -106,7 +106,8 @@ export function CommissionActivity({
           children: (
             <>
               <span className="text-sm text-neutral-700">
-                Commission imported as
+                Commission{" "}
+                {commission.status === "hold" ? "created" : "imported"} as
               </span>
               <StatusBadge
                 icon={null}

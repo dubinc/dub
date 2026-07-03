@@ -1,6 +1,6 @@
 import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/trigger-aggregate-due-commissions";
 import { createId } from "@/lib/api/create-id";
-import { FRAUD_RULES_BY_SCOPE } from "@/lib/api/fraud/constants";
+import { PARTNER_LEVEL_FRAUD_RULES } from "@/lib/api/fraud/constants";
 import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { notifyPartnerCommission } from "@/lib/api/partners/notify-partner-commission";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
@@ -30,7 +30,6 @@ import {
   Commission,
   CommissionStatus,
   FraudEventStatus,
-  FraudRuleType,
   Link,
   Partner,
   PartnerGroup,
@@ -441,17 +440,13 @@ async function stepCreateCommission(
   // 2. Conversion-event: run fraud detection before create; if rules trigger → hold (customer-scoped).
   // An explicit `status` input (e.g. imports) wins; clawbacks (earnings <= 0) are never held.
   if (!status && earnings > 0 && canManageFraudEvents) {
-    const partnerLevelFraudRuleTypes = FRAUD_RULES_BY_SCOPE["partner"].map(
-      (rule) => rule.type,
-    ) as FraudRuleType[];
-
     const hasPendingRiskGroups = await prisma.fraudEventGroup.findFirst({
       where: {
         programId,
         partnerId,
         status: FraudEventStatus.pending,
         type: {
-          in: partnerLevelFraudRuleTypes,
+          in: PARTNER_LEVEL_FRAUD_RULES,
         },
       },
       select: {
