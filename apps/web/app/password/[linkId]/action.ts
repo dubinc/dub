@@ -1,6 +1,8 @@
 "use server";
 
+import { shouldApplyRateLimit } from "@/lib/api/environment";
 import { prismaEdge } from "@/lib/prisma/edge";
+import { ratelimit } from "@/lib/upstash";
 import { cookies } from "next/headers";
 
 export async function verifyPassword(_prevState: any, data: FormData) {
@@ -15,19 +17,29 @@ export async function verifyPassword(_prevState: any, data: FormData) {
   if (!link) {
     return { error: "Link not found" };
   }
+
   const { password: realPassword } = link;
 
   const validPassword = password === realPassword;
 
   if (validPassword) {
-    // if the password is valid, set the cookie
     (await cookies()).set(`dub_password_${link.id}`, password, {
       path: `/${link.key}`,
       httpOnly: true,
       secure: true,
     });
     return true;
-  } else {
-    return { error: "Invalid password" };
   }
+
+  if (shouldApplyRateLimit) {
+    const { success } = await ratelimit(30, "10 m").limit(
+      `verify-password:${linkId}`,
+    );
+
+    if (!success) {
+      return { error: "Don't DDoS me pls 🥺" };
+    }
+  }
+
+  return { error: "Invalid password" };
 }
