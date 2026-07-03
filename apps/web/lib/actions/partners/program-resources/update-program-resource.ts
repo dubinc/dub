@@ -7,6 +7,7 @@ import {
   programResourceColorSchema,
   programResourceFileSchema,
   programResourceLinkSchema,
+  programResourceLinkUrlSchema,
   programResourcesSchema,
 } from "@/lib/zod/schemas/program-resources";
 import { R2_URL } from "@dub/utils";
@@ -48,7 +49,7 @@ const updateColorSchema = baseUpdateSchema.extend({
 const updateLinkSchema = baseUpdateSchema.extend({
   resourceType: z.literal("link"),
   name: z.string().min(1).optional(),
-  url: z.url().optional(),
+  url: programResourceLinkUrlSchema.optional(),
 });
 
 // Combined schema that can handle any resource type
