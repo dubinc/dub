@@ -75,6 +75,10 @@
     {
       "path": "/api/cron/sitemaps/queue",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/queue/retry",
+      "schedule": "* * * * *"
     }
   ],
   "functions": {
