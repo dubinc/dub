@@ -1,0 +1,75 @@
+import { prisma } from "@/lib/prisma";
+import { redis } from "@/lib/upstash";
+import { LINK_CLICKED_WEBHOOK_WORKSPACES_REDIS_KEY } from "@/lib/webhook/click-webhook-workspaces";
+import { LINK_CLICK_WEBHOOK_TRIGGER } from "@/lib/webhook/constants";
+
+const TMP_REDIS_KEY = `${LINK_CLICKED_WEBHOOK_WORKSPACES_REDIS_KEY}:tmp`;
+
+// Rebuild the Redis set of workspaces with active link.clicked webhooks
+export const syncClickWebhookWorkspaceSet = async () => {
+  const webhooks = await prisma.webhook.findMany({
+    where: {
+      disabledAt: null,
+      triggers: {
+        array_contains: [LINK_CLICK_WEBHOOK_TRIGGER],
+      },
+      project: {
+        plan: {
+          notIn: ["free", "pro"],
+        },
+      },
+    },
+    select: {
+      projectId: true,
+    },
+    distinct: ["projectId"],
+  });
+
+  const workspaceIds = webhooks.map((webhook) => webhook.projectId);
+
+  if (workspaceIds.length === 0) {
+    await redis.del(LINK_CLICKED_WEBHOOK_WORKSPACES_REDIS_KEY);
+    return 0;
+  }
+
+  await redis.del(TMP_REDIS_KEY);
+  await redis.sadd(TMP_REDIS_KEY, ...(workspaceIds as [string, ...string[]]));
+  await redis.rename(TMP_REDIS_KEY, LINK_CLICKED_WEBHOOK_WORKSPACES_REDIS_KEY);
+
+  return workspaceIds.length;
+};
+
+// periodically remove redundant LinkWebhook entries for webhooks that are not scoped to links (folders, workspace)
+// we do this in case clients are still passing webhookIds when creating links, which will create LinkWebhook entries
+export const cleanupRedundantLinkWebhookEntries = async () => {
+  const nonLinkScopeWebhooks = await prisma.webhook.findMany({
+    where: {
+      linkScope: {
+        not: "links",
+      },
+      links: {
+        some: {},
+      },
+    },
+  });
+
+  let deletedCount = 0;
+  while (true) {
+    const deleted = await prisma.linkWebhook.deleteMany({
+      where: {
+        webhookId: {
+          in: nonLinkScopeWebhooks.map((webhook) => webhook.id),
+        },
+      },
+      limit: 250,
+    });
+    deletedCount += deleted.count;
+    if (deleted.count === 0) {
+      console.log("No more non-link-scoped webhooks to delete");
+      break;
+    }
+    console.log(`Deleted ${deleted.count} non-link-scoped webhooks`);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  return deletedCount;
+};

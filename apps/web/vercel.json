@@ -17,6 +17,10 @@
       "schedule": "0 8 * * *"
     },
     {
+      "path": "/api/cron/streams/send-link-clicked-webhooks",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/cron/streams/update-workspace-clicks",
       "schedule": "* * * * *"
     },
@@ -75,6 +79,10 @@
     {
       "path": "/api/cron/sitemaps/queue",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/webhooks/sync-click-workspaces",
+      "schedule": "*/15 * * * *"
     }
   ],
   "functions": {
