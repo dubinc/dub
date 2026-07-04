@@ -139,11 +139,11 @@ const processStreamBatch = (): Promise<{
 
       const webhooks = workspaces.flatMap((w) => w.webhooks);
 
-      const linkTargetWebhookIds = webhooks
+      const linkScopeWebhookIds = webhooks
         .filter((w) => w.linkScope === "links")
         .map((w) => w.id);
 
-      const folderTargetWebhookIds = webhooks
+      const linkFolderScopeWebhookIds = webhooks
         .filter((w) => w.linkScope === "folders")
         .map((w) => w.id);
 
@@ -154,11 +154,11 @@ const processStreamBatch = (): Promise<{
       ];
 
       const [linkWebhooks, folderWebhooks] = await Promise.all([
-        linkTargetWebhookIds.length > 0 && linkIds.length > 0
+        linkScopeWebhookIds.length > 0 && linkIds.length > 0
           ? prisma.linkWebhook.findMany({
               where: {
                 webhookId: {
-                  in: linkTargetWebhookIds,
+                  in: linkScopeWebhookIds,
                 },
                 linkId: {
                   in: linkIds,
@@ -171,11 +171,11 @@ const processStreamBatch = (): Promise<{
             })
           : Promise.resolve([]),
 
-        folderTargetWebhookIds.length > 0 && folderIds.length > 0
+        linkFolderScopeWebhookIds.length > 0 && folderIds.length > 0
           ? prisma.folderWebhook.findMany({
               where: {
                 webhookId: {
-                  in: folderTargetWebhookIds,
+                  in: linkFolderScopeWebhookIds,
                 },
                 folderId: {
                   in: folderIds,

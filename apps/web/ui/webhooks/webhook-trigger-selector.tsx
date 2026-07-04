@@ -64,14 +64,14 @@ export function WebhookTriggerSelector({
   availableTriggers,
   disabled,
   webhookId,
-  savedLinkTarget,
+  savedLinkScope,
 }: {
   value: WebhookTriggerSelectorValue;
   onChange: (value: WebhookTriggerSelectorValue) => void;
   availableTriggers: WebhookTrigger[];
   disabled?: boolean;
   webhookId?: string;
-  savedLinkTarget?: LinkScope | null;
+  savedLinkScope?: LinkScope | null;
 }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -79,14 +79,14 @@ export function WebhookTriggerSelector({
   const hasLinkClicked = triggers.includes(LINK_CLICK_WEBHOOK_TRIGGER);
 
   const { data: fetchedLinkIds } = useSWR<string[]>(
-    webhookId && savedLinkTarget === "links"
+    webhookId && savedLinkScope === "links"
       ? `/api/webhooks/${webhookId}/links?workspaceId=${workspaceId}`
       : null,
     fetcher,
   );
 
   const { data: fetchedFolderIds } = useSWR<string[]>(
-    webhookId && savedLinkTarget === "folders"
+    webhookId && savedLinkScope === "folders"
       ? `/api/webhooks/${webhookId}/folders?workspaceId=${workspaceId}`
       : null,
     fetcher,
@@ -152,12 +152,12 @@ export function WebhookTriggerSelector({
     });
   };
 
-  const handleLinkTargetChange = (nextLinkTarget: LinkScope) => {
+  const handleLinkScopeChange = (nextLinkScope: LinkScope) => {
     onChange({
       ...value,
-      linkScope: nextLinkTarget,
-      linkIds: nextLinkTarget === "links" ? linkIds : [],
-      folderIds: nextLinkTarget === "folders" ? folderIds : [],
+      linkScope: nextLinkScope,
+      linkIds: nextLinkScope === "links" ? linkIds : [],
+      folderIds: nextLinkScope === "folders" ? folderIds : [],
     });
   };
 
@@ -186,7 +186,7 @@ export function WebhookTriggerSelector({
               <RadioGroup
                 value={linkScope}
                 onValueChange={(nextValue) =>
-                  handleLinkTargetChange(nextValue as LinkScope)
+                  handleLinkScopeChange(nextValue as LinkScope)
                 }
                 className="flex flex-col gap-2"
                 disabled={disabled}

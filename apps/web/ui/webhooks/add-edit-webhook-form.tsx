@@ -143,7 +143,7 @@ export default function AddEditWebhookForm({
     toast.success(endpoint.successMessage);
   };
 
-  const linkTargetInvalid = isWebhookTriggerSelectionInvalid({
+  const linkScopeInvalid = isWebhookTriggerSelectionInvalid({
     triggers,
     linkScope: linkScope ?? "workspace",
     linkIds: linkIds ?? [],
@@ -151,7 +151,7 @@ export default function AddEditWebhookForm({
   });
 
   const buttonDisabled =
-    !name || !url || !triggers.length || isSubmitting || linkTargetInvalid;
+    !name || !url || !triggers.length || isSubmitting || linkScopeInvalid;
 
   const updateDisabled =
     (webhook && webhook?.installationId !== null) || permissionsError !== false;
@@ -268,7 +268,7 @@ export default function AddEditWebhookForm({
               availableTriggers={allWebhookTriggers}
               disabled={updateDisabled}
               webhookId={webhook?.id}
-              savedLinkTarget={webhook?.linkScope}
+              savedLinkScope={webhook?.linkScope}
             />
           </div>
         </div>

@@ -139,7 +139,7 @@ export function ConfigureWebhook({
             availableTriggers={availableTriggers}
             disabled={!canManageWebhook}
             webhookId={webhookId}
-            savedLinkTarget={webhook?.linkScope}
+            savedLinkScope={webhook?.linkScope}
           />
         </div>
 

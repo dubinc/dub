@@ -84,7 +84,7 @@ export const PATCH = withWorkspace(
       LINK_CLICK_WEBHOOK_TRIGGER,
     );
 
-    const nextLinkTarget = hasLinkClickedTrigger
+    const nextLinkScope = hasLinkClickedTrigger
       ? linkScope !== undefined
         ? linkScope
         : existingWebhook.linkScope
@@ -103,11 +103,11 @@ export const PATCH = withWorkspace(
       ...existingWebhook,
       ...input,
       triggers: finalTriggers,
-      linkScope: nextLinkTarget,
+      linkScope: nextLinkScope,
       ...(hasLinkClickedTrigger &&
-        nextLinkTarget === "links" && { linkIds: nextLinkIds }),
+        nextLinkScope === "links" && { linkIds: nextLinkIds }),
       ...(hasLinkClickedTrigger &&
-        nextLinkTarget === "folders" && { folderIds: nextFolderIds }),
+        nextLinkScope === "folders" && { folderIds: nextFolderIds }),
     };
 
     await validateWebhook({
@@ -117,7 +117,7 @@ export const PATCH = withWorkspace(
       user: session.user,
     });
 
-    const linkTargetChanged = nextLinkTarget !== existingWebhook.linkScope;
+    const linkScopeChanged = nextLinkScope !== existingWebhook.linkScope;
 
     const shouldSyncLinks =
       (nextWebhook.linkScope !== "links" && existingLinkIds.length > 0) ||
@@ -140,7 +140,7 @@ export const PATCH = withWorkspace(
           ...(name !== undefined && { name }),
           ...(url !== undefined && { url }),
           ...(triggers !== undefined && { triggers }),
-          ...(linkTargetChanged && { linkScope: nextWebhook.linkScope }),
+          ...(linkScopeChanged && { linkScope: nextWebhook.linkScope }),
         },
       });
 
