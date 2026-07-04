@@ -114,7 +114,7 @@ export const promoteLinkWebhooksForClick = async () => {
     select: {
       id: true,
       triggers: true,
-      linkTarget: true,
+      linkScope: true,
     },
     take: 100,
   });
@@ -140,7 +140,7 @@ export const promoteLinkWebhooksForClick = async () => {
             ...((webhook.triggers as WebhookTrigger[]) ?? []),
             LINK_CLICK_WEBHOOK_TRIGGER,
           ],
-          linkTarget: webhook.linkTarget ?? "links",
+          linkScope: webhook.linkScope ?? "links",
         },
       }),
     ),

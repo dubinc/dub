@@ -39,7 +39,7 @@ export function ConfigureWebhook({
   const [triggerSelection, setTriggerSelection] =
     useState<WebhookTriggerSelectorValue>({
       triggers: [],
-      linkTarget: "workspace",
+      linkScope: "workspace",
       linkIds: [],
       folderIds: [],
     });
@@ -49,7 +49,7 @@ export function ConfigureWebhook({
       setTriggerSelection((prev) => ({
         ...prev,
         triggers: webhook.triggers,
-        linkTarget: webhook.linkTarget ?? "workspace",
+        linkScope: webhook.linkScope ?? "workspace",
       }));
     }
   }, [webhook]);
@@ -64,7 +64,7 @@ export function ConfigureWebhook({
 
     setSaving(true);
 
-    const { triggers, linkTarget, linkIds, folderIds } = triggerSelection;
+    const { triggers, linkScope, linkIds, folderIds } = triggerSelection;
     const hasLinkClicked = triggers.includes(LINK_CLICK_WEBHOOK_TRIGGER);
 
     const response = await fetch(
@@ -77,9 +77,9 @@ export function ConfigureWebhook({
         body: JSON.stringify({
           triggers,
           ...(hasLinkClicked && {
-            linkTarget,
-            ...(linkTarget === "links" && { linkIds }),
-            ...(linkTarget === "folders" && { folderIds }),
+            linkScope,
+            ...(linkScope === "links" && { linkIds }),
+            ...(linkScope === "folders" && { folderIds }),
           }),
         }),
       },
@@ -98,12 +98,12 @@ export function ConfigureWebhook({
     await Promise.all([
       mutate(
         `/api/webhooks/${webhookId}/links?workspaceId=${workspaceId}`,
-        result.linkTarget === "links" ? linkIds : [],
+        result.linkScope === "links" ? linkIds : [],
         { revalidate: true },
       ),
       mutate(
         `/api/webhooks/${webhookId}/folders?workspaceId=${workspaceId}`,
-        result.linkTarget === "folders" ? folderIds : [],
+        result.linkScope === "folders" ? folderIds : [],
         { revalidate: true },
       ),
     ]);
@@ -139,7 +139,7 @@ export function ConfigureWebhook({
             availableTriggers={availableTriggers}
             disabled={!canManageWebhook}
             webhookId={webhookId}
-            savedLinkTarget={webhook?.linkTarget}
+            savedLinkTarget={webhook?.linkScope}
           />
         </div>
 

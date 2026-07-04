@@ -49,7 +49,7 @@ export const POST = withWorkspace(
       user: session.user,
     });
 
-    const { name, url, triggers, linkTarget, linkIds, folderIds } = input;
+    const { name, url, triggers, linkScope, linkIds, folderIds } = input;
 
     // Zapier use this endpoint to create webhooks from their app
     const isZapierWebhook =
@@ -72,7 +72,7 @@ export const POST = withWorkspace(
       url,
       receiver: isZapierWebhook ? WebhookReceiver.zapier : WebhookReceiver.user,
       triggers,
-      linkTarget,
+      linkScope,
       linkIds,
       folderIds,
       workspace,

@@ -39,7 +39,7 @@ export default function AddEditWebhookForm({
       name: webhook?.name ?? "",
       url: webhook?.url ?? "",
       triggers: webhook?.triggers ?? [],
-      linkTarget: webhook?.linkTarget ?? "workspace",
+      linkScope: webhook?.linkScope ?? "workspace",
       linkIds: [],
       folderIds: [],
     },
@@ -54,11 +54,11 @@ export default function AddEditWebhookForm({
     formState: { isSubmitting },
   } = methods;
 
-  const [name, url, triggers, linkTarget, linkIds, folderIds] = watch([
+  const [name, url, triggers, linkScope, linkIds, folderIds] = watch([
     "name",
     "url",
     "triggers",
-    "linkTarget",
+    "linkScope",
     "linkIds",
     "folderIds",
   ]);
@@ -97,9 +97,9 @@ export default function AddEditWebhookForm({
         url: data.url,
         triggers: data.triggers,
         ...(hasLinkClicked && {
-          linkTarget: data.linkTarget,
-          ...(data.linkTarget === "links" && { linkIds: data.linkIds }),
-          ...(data.linkTarget === "folders" && { folderIds: data.folderIds }),
+          linkScope: data.linkScope,
+          ...(data.linkScope === "links" && { linkIds: data.linkIds }),
+          ...(data.linkScope === "folders" && { folderIds: data.folderIds }),
         }),
       }),
     });
@@ -120,12 +120,12 @@ export default function AddEditWebhookForm({
       await Promise.all([
         mutate(
           `/api/webhooks/${result.id}/links?workspaceId=${workspaceId}`,
-          result.linkTarget === "links" ? data.linkIds ?? [] : [],
+          result.linkScope === "links" ? data.linkIds ?? [] : [],
           { revalidate: true },
         ),
         mutate(
           `/api/webhooks/${result.id}/folders?workspaceId=${workspaceId}`,
-          result.linkTarget === "folders" ? data.folderIds ?? [] : [],
+          result.linkScope === "folders" ? data.folderIds ?? [] : [],
           { revalidate: true },
         ),
       ]);
@@ -134,9 +134,9 @@ export default function AddEditWebhookForm({
         name: result.name,
         url: result.url,
         triggers: result.triggers,
-        linkTarget: result.linkTarget ?? "workspace",
-        linkIds: result.linkTarget === "links" ? data.linkIds ?? [] : [],
-        folderIds: result.linkTarget === "folders" ? data.folderIds ?? [] : [],
+        linkScope: result.linkScope ?? "workspace",
+        linkIds: result.linkScope === "links" ? data.linkIds ?? [] : [],
+        folderIds: result.linkScope === "folders" ? data.folderIds ?? [] : [],
       });
     }
 
@@ -145,7 +145,7 @@ export default function AddEditWebhookForm({
 
   const linkTargetInvalid = isWebhookTriggerSelectionInvalid({
     triggers,
-    linkTarget: linkTarget ?? "workspace",
+    linkScope: linkScope ?? "workspace",
     linkIds: linkIds ?? [],
     folderIds: folderIds ?? [],
   });
@@ -255,20 +255,20 @@ export default function AddEditWebhookForm({
             <WebhookTriggerSelector
               value={{
                 triggers,
-                linkTarget: linkTarget ?? "workspace",
+                linkScope: linkScope ?? "workspace",
                 linkIds: linkIds ?? [],
                 folderIds: folderIds ?? [],
               }}
               onChange={(next) => {
                 setValue("triggers", next.triggers);
-                setValue("linkTarget", next.linkTarget);
+                setValue("linkScope", next.linkScope);
                 setValue("linkIds", next.linkIds);
                 setValue("folderIds", next.folderIds);
               }}
               availableTriggers={allWebhookTriggers}
               disabled={updateDisabled}
               webhookId={webhook?.id}
-              savedLinkTarget={webhook?.linkTarget}
+              savedLinkTarget={webhook?.linkScope}
             />
           </div>
         </div>

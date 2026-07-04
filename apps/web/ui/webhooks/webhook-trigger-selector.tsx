@@ -8,7 +8,7 @@ import {
 import type { WebhookTrigger } from "@/lib/webhook/types";
 import { Checkbox, RadioGroup, RadioGroupItem } from "@dub/ui";
 import { arrayEqual, cn, fetcher } from "@dub/utils";
-import { LinkTarget } from "@prisma/client";
+import { LinkScope } from "@prisma/client";
 import { useEffect } from "react";
 import useSWR from "swr";
 import { FoldersSelector } from "./folder-selector";
@@ -31,14 +31,14 @@ const CLICK_WEBHOOK_LINK_TARGET_OPTIONS = [
     description: "Trigger webhooks for the links you explicitly select",
   },
 ] as const satisfies ReadonlyArray<{
-  value: LinkTarget;
+  value: LinkScope;
   label: string;
   description: string;
 }>;
 
 export type WebhookTriggerSelectorValue = {
   triggers: WebhookTrigger[];
-  linkTarget: LinkTarget;
+  linkScope: LinkScope;
   linkIds: string[];
   folderIds: string[];
 };
@@ -53,8 +53,8 @@ export function isWebhookTriggerSelectionInvalid(
   }
 
   return (
-    (value.linkTarget === "links" && value.linkIds.length === 0) ||
-    (value.linkTarget === "folders" && value.folderIds.length === 0)
+    (value.linkScope === "links" && value.linkIds.length === 0) ||
+    (value.linkScope === "folders" && value.folderIds.length === 0)
   );
 }
 
@@ -71,11 +71,11 @@ export function WebhookTriggerSelector({
   availableTriggers: WebhookTrigger[];
   disabled?: boolean;
   webhookId?: string;
-  savedLinkTarget?: LinkTarget | null;
+  savedLinkTarget?: LinkScope | null;
 }) {
   const { id: workspaceId } = useWorkspace();
 
-  const { triggers, linkTarget, linkIds, folderIds } = value;
+  const { triggers, linkScope, linkIds, folderIds } = value;
   const hasLinkClicked = triggers.includes(LINK_CLICK_WEBHOOK_TRIGGER);
 
   const { data: fetchedLinkIds } = useSWR<string[]>(
@@ -93,48 +93,48 @@ export function WebhookTriggerSelector({
   );
 
   useEffect(() => {
-    if (linkTarget === "links" && fetchedLinkIds) {
+    if (linkScope === "links" && fetchedLinkIds) {
       if (!arrayEqual(linkIds, fetchedLinkIds)) {
         onChange({
           triggers,
-          linkTarget,
+          linkScope,
           linkIds: fetchedLinkIds,
           folderIds,
         });
       }
-    } else if (linkTarget !== "links" && linkIds.length > 0) {
+    } else if (linkScope !== "links" && linkIds.length > 0) {
       onChange({
         triggers,
-        linkTarget,
+        linkScope,
         linkIds: [],
         folderIds,
       });
     }
-    // Only sync from server when linkTarget or fetched ids change — not on manual selection
+    // Only sync from server when linkScope or fetched ids change — not on manual selection
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linkTarget, fetchedLinkIds]);
+  }, [linkScope, fetchedLinkIds]);
 
   useEffect(() => {
-    if (linkTarget === "folders" && fetchedFolderIds) {
+    if (linkScope === "folders" && fetchedFolderIds) {
       if (!arrayEqual(folderIds, fetchedFolderIds)) {
         onChange({
           triggers,
-          linkTarget,
+          linkScope,
           linkIds,
           folderIds: fetchedFolderIds,
         });
       }
-    } else if (linkTarget !== "folders" && folderIds.length > 0) {
+    } else if (linkScope !== "folders" && folderIds.length > 0) {
       onChange({
         triggers,
-        linkTarget,
+        linkScope,
         linkIds,
         folderIds: [],
       });
     }
-    // Only sync from server when linkTarget or fetched ids change — not on manual selection
+    // Only sync from server when linkScope or fetched ids change — not on manual selection
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linkTarget, fetchedFolderIds]);
+  }, [linkScope, fetchedFolderIds]);
 
   const toggleTrigger = (
     trigger: WebhookTrigger,
@@ -152,10 +152,10 @@ export function WebhookTriggerSelector({
     });
   };
 
-  const handleLinkTargetChange = (nextLinkTarget: LinkTarget) => {
+  const handleLinkTargetChange = (nextLinkTarget: LinkScope) => {
     onChange({
       ...value,
-      linkTarget: nextLinkTarget,
+      linkScope: nextLinkTarget,
       linkIds: nextLinkTarget === "links" ? linkIds : [],
       folderIds: nextLinkTarget === "folders" ? folderIds : [],
     });
@@ -184,15 +184,15 @@ export function WebhookTriggerSelector({
           {trigger === LINK_CLICK_WEBHOOK_TRIGGER && hasLinkClicked ? (
             <div className="ml-6 mt-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">
               <RadioGroup
-                value={linkTarget}
+                value={linkScope}
                 onValueChange={(nextValue) =>
-                  handleLinkTargetChange(nextValue as LinkTarget)
+                  handleLinkTargetChange(nextValue as LinkScope)
                 }
                 className="flex flex-col gap-2"
                 disabled={disabled}
               >
                 {CLICK_WEBHOOK_LINK_TARGET_OPTIONS.map((option) => {
-                  const isSelected = linkTarget === option.value;
+                  const isSelected = linkScope === option.value;
 
                   return (
                     <div key={option.value}>
@@ -207,7 +207,7 @@ export function WebhookTriggerSelector({
                       >
                         <RadioGroupItem
                           value={option.value}
-                          id={`linkTarget-${option.value}`}
+                          id={`linkScope-${option.value}`}
                           className="mt-0.5"
                           disabled={disabled}
                         />

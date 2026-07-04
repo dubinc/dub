@@ -1,6 +1,6 @@
 import { MAX_WEBHOOK_FOLDERS, WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { WebhookTrigger } from "@/lib/webhook/types";
-import { LinkTarget } from "@prisma/client";
+import { LinkScope } from "@prisma/client";
 import * as z from "zod/v4";
 import { parseUrlSchema } from "./utils";
 
@@ -10,7 +10,7 @@ export const WebhookSchema = z.object({
   url: z.string(),
   secret: z.string(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
-  linkTarget: z.enum(LinkTarget).nullable(),
+  linkScope: z.enum(LinkScope).nullable(),
   disabledAt: z.date().nullable(),
   installationId: z.string().nullable(),
 });
@@ -18,7 +18,7 @@ export const WebhookSchema = z.object({
 const validateWebhook = (
   data: {
     triggers: WebhookTrigger[];
-    linkTarget?: LinkTarget | null;
+    linkScope?: LinkScope | null;
     linkIds?: string[] | null;
     folderIds?: string[] | null;
   },
@@ -30,26 +30,26 @@ const validateWebhook = (
   }
 
   if (!data.triggers.includes("link.clicked")) {
-    if (data.linkTarget) {
+    if (data.linkScope) {
       ctx.addIssue({
         code: "custom",
-        path: ["linkTarget"],
-        message: `"linkTarget" can only be set when the "link.clicked" trigger is enabled.`,
+        path: ["linkScope"],
+        message: `"linkScope" can only be set when the "link.clicked" trigger is enabled.`,
       });
     }
     return;
   }
 
-  if (!data.linkTarget) {
+  if (!data.linkScope) {
     ctx.addIssue({
       code: "custom",
-      path: ["linkTarget"],
-      message: `"linkTarget" is required when the "link.clicked" trigger is enabled.`,
+      path: ["linkScope"],
+      message: `"linkScope" is required when the "link.clicked" trigger is enabled.`,
     });
     return;
   }
 
-  if (data.linkTarget === "links" && data.linkIds?.length === 0) {
+  if (data.linkScope === "links" && data.linkIds?.length === 0) {
     ctx.addIssue({
       code: "custom",
       path: ["linkIds"],
@@ -57,7 +57,7 @@ const validateWebhook = (
     });
   }
 
-  if (data.linkTarget === "folders" && data.folderIds?.length === 0) {
+  if (data.linkScope === "folders" && data.folderIds?.length === 0) {
     ctx.addIssue({
       code: "custom",
       path: ["folderIds"],
@@ -70,7 +70,7 @@ export const createWebhookSchemaBase = z.object({
   name: z.string().min(1).max(40),
   url: parseUrlSchema,
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
-  linkTarget: z.enum(LinkTarget).nullish(),
+  linkScope: z.enum(LinkScope).nullish(),
   linkIds: z
     .array(z.string())
     .max(1000, {

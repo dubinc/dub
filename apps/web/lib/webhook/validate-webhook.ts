@@ -19,7 +19,7 @@ export async function validateWebhook({
   webhook?: Webhook;
   user: Session["user"];
 }) {
-  const { url, linkTarget, linkIds, folderIds, triggers } = input;
+  const { url, linkScope, linkIds, folderIds, triggers } = input;
 
   // payout.confirmed trigger requires external payouts enabled
   if (triggers && triggers.includes("payout.confirmed")) {
@@ -64,7 +64,7 @@ export async function validateWebhook({
     }
   }
 
-  if (linkTarget === "links" && linkIds && linkIds.length > 0) {
+  if (linkScope === "links" && linkIds && linkIds.length > 0) {
     const folders = await getFolders({
       workspaceId: workspace.id,
       userId: user.id,
@@ -95,7 +95,7 @@ export async function validateWebhook({
     }
   }
 
-  if (linkTarget === "folders" && folderIds && folderIds.length > 0) {
+  if (linkScope === "folders" && folderIds && folderIds.length > 0) {
     const folders = await getFolders({
       workspaceId: workspace.id,
       userId: user.id,

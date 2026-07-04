@@ -65,7 +65,7 @@ export const PATCH = withWorkspace(
       },
     });
 
-    const { name, url, triggers, linkTarget, linkIds, folderIds } = input;
+    const { name, url, triggers, linkScope, linkIds, folderIds } = input;
 
     // If the webhook is managed by an integration, only the linkIds & triggers can be updated manually.
     if (existingWebhook.installationId && (name || url)) {
@@ -85,9 +85,9 @@ export const PATCH = withWorkspace(
     );
 
     const nextLinkTarget = hasLinkClickedTrigger
-      ? linkTarget !== undefined
-        ? linkTarget
-        : existingWebhook.linkTarget
+      ? linkScope !== undefined
+        ? linkScope
+        : existingWebhook.linkScope
       : null;
 
     const existingLinkIds = existingWebhook.links.map(({ linkId }) => linkId);
@@ -103,7 +103,7 @@ export const PATCH = withWorkspace(
       ...existingWebhook,
       ...input,
       triggers: finalTriggers,
-      linkTarget: nextLinkTarget,
+      linkScope: nextLinkTarget,
       ...(hasLinkClickedTrigger &&
         nextLinkTarget === "links" && { linkIds: nextLinkIds }),
       ...(hasLinkClickedTrigger &&
@@ -117,17 +117,17 @@ export const PATCH = withWorkspace(
       user: session.user,
     });
 
-    const linkTargetChanged = nextLinkTarget !== existingWebhook.linkTarget;
+    const linkTargetChanged = nextLinkTarget !== existingWebhook.linkScope;
 
     const shouldSyncLinks =
-      (nextWebhook.linkTarget !== "links" && existingLinkIds.length > 0) ||
-      (nextWebhook.linkTarget === "links" &&
+      (nextWebhook.linkScope !== "links" && existingLinkIds.length > 0) ||
+      (nextWebhook.linkScope === "links" &&
         linkIds !== undefined &&
         !arrayEqual(existingLinkIds, linkIds ?? []));
 
     const shouldSyncFolders =
-      (nextWebhook.linkTarget !== "folders" && existingFolderIds.length > 0) ||
-      (nextWebhook.linkTarget === "folders" &&
+      (nextWebhook.linkScope !== "folders" && existingFolderIds.length > 0) ||
+      (nextWebhook.linkScope === "folders" &&
         folderIds !== undefined &&
         !arrayEqual(existingFolderIds, folderIds ?? []));
 
@@ -140,7 +140,7 @@ export const PATCH = withWorkspace(
           ...(name !== undefined && { name }),
           ...(url !== undefined && { url }),
           ...(triggers !== undefined && { triggers }),
-          ...(linkTargetChanged && { linkTarget: nextWebhook.linkTarget }),
+          ...(linkTargetChanged && { linkScope: nextWebhook.linkScope }),
         },
       });
 
@@ -151,7 +151,7 @@ export const PATCH = withWorkspace(
           },
         });
 
-        if (nextWebhook.linkTarget === "links" && linkIds?.length) {
+        if (nextWebhook.linkScope === "links" && linkIds?.length) {
           await tx.linkWebhook.createMany({
             data: linkIds.map((linkId) => ({
               linkId,
@@ -168,7 +168,7 @@ export const PATCH = withWorkspace(
           },
         });
 
-        if (nextWebhook.linkTarget === "folders" && folderIds?.length) {
+        if (nextWebhook.linkScope === "folders" && folderIds?.length) {
           await tx.folderWebhook.createMany({
             data: folderIds.map((folderId) => ({
               folderId,

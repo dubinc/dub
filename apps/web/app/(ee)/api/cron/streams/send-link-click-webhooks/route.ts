@@ -101,7 +101,7 @@ const processStreamBatch = (): Promise<{
             id: true,
             url: true,
             secret: true,
-            linkTarget: true,
+            linkScope: true,
             projectId: true,
           },
         }),
@@ -142,11 +142,11 @@ const processStreamBatch = (): Promise<{
       ]);
 
       const linkTargetWebhookIds = webhooks
-        .filter((w) => w.linkTarget === "links")
+        .filter((w) => w.linkScope === "links")
         .map((w) => w.id);
 
       const folderTargetWebhookIds = webhooks
-        .filter((w) => w.linkTarget === "folders")
+        .filter((w) => w.linkScope === "folders")
         .map((w) => w.id);
 
       const folderIds = [
@@ -228,11 +228,11 @@ const processStreamBatch = (): Promise<{
         }
 
         const applicableWebhooks = workspaceWebhooks.filter((webhook) => {
-          if (webhook.linkTarget === "workspace") {
+          if (webhook.linkScope === "workspace") {
             return true;
           }
 
-          if (webhook.linkTarget === "links") {
+          if (webhook.linkScope === "links") {
             return (
               linkWebhooksByLinkId[event.link_id]?.some(
                 (r) => r.webhookId === webhook.id,
@@ -240,7 +240,7 @@ const processStreamBatch = (): Promise<{
             );
           }
 
-          if (webhook.linkTarget === "folders") {
+          if (webhook.linkScope === "folders") {
             return (
               link.folderId != null &&
               folderWebhooksByFolderId[link.folderId]?.some(
