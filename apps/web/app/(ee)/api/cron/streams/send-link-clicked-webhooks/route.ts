@@ -15,14 +15,14 @@ import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
 
 // How many stream entries to drain per run
-const BATCH_SIZE = 500;
+const BATCH_SIZE = 6000;
 
 // How many webhook deliveries to enqueue to QStash in parallel
 const SEND_CONCURRENCY = 100;
 
 // Lock for the cron job
 const LOCK_KEY = "lock:send-link-clicked-webhooks";
-const LOCK_TTL_SECONDS = 300;
+const LOCK_TTL_SECONDS = 120;
 
 // Drains the workspace:click:events stream and delivers link.clicked webhooks.
 // Runs every minute (see vercel.json).
@@ -280,10 +280,12 @@ const processStreamBatch = (): Promise<{
       let failed = 0;
 
       for (const batch of chunk(sendTasks, SEND_CONCURRENCY)) {
-        const results = await Promise.all(batch.map(({ task }) => task()));
+        const results = await Promise.allSettled(
+          batch.map(({ task }) => task()),
+        );
 
         batch.forEach(({ entryId }, i) => {
-          if (results[i]) {
+          if (results[i].status === "fulfilled") {
             processedEntryIds.push(entryId);
             sent++;
           } else {

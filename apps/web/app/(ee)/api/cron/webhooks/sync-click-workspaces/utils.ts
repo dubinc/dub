@@ -44,6 +44,9 @@ export const syncClickWebhookWorkspaceSet = async () => {
 export const cleanupRedundantLinkWebhookEntries = async () => {
   const nonLinkScopeWebhooks = await prisma.webhook.findMany({
     where: {
+      triggers: {
+        array_contains: [LINK_CLICK_WEBHOOK_TRIGGER],
+      },
       linkScope: {
         not: "links",
       },
@@ -55,13 +58,20 @@ export const cleanupRedundantLinkWebhookEntries = async () => {
 
   let deletedCount = 0;
   while (true) {
-    const deleted = await prisma.linkWebhook.deleteMany({
+    const linksToDelete = await prisma.linkWebhook.findMany({
       where: {
         webhookId: {
           in: nonLinkScopeWebhooks.map((webhook) => webhook.id),
         },
       },
-      limit: 250,
+      take: 250,
+    });
+    const deleted = await prisma.linkWebhook.deleteMany({
+      where: {
+        id: {
+          in: linksToDelete.map((link) => link.id),
+        },
+      },
     });
     deletedCount += deleted.count;
     if (deleted.count === 0) {
