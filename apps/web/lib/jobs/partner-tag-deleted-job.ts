@@ -55,32 +55,9 @@ export const partnerTagDeletedJob = defineJob({
       take: CRON_BATCH_SIZE,
     });
 
-    // No more program–partner tag associations left. Delete the partner tag.
-    if (programPartnerTags.length === 0) {
-      const { count } = await prisma.partnerTag.deleteMany({
-        where: {
-          id: {
-            in: [partnerTagId],
-          },
-        },
-      });
-
-      if (count === 0) {
-        console.error(
-          `[partnerTagDeletedJob] Partner tag ${partnerTagId} not found. Skipping...`,
-        );
-      } else {
-        console.log(
-          `[partnerTagDeletedJob] Partner tag ${partnerTagId} deleted from database.`,
-        );
-      }
-
-      return;
-    }
-
-    // Delete the program–partner tag associations.
-    const { count: programPartnerTagsDeleted } =
-      await prisma.programPartnerTag.deleteMany({
+    if (programPartnerTags.length > 0) {
+      // Delete the program–partner tag associations.
+      const { count } = await prisma.programPartnerTag.deleteMany({
         where: {
           id: {
             in: programPartnerTags.map(({ id }) => id),
@@ -88,41 +65,54 @@ export const partnerTagDeletedJob = defineJob({
         },
       });
 
-    console.log(
-      `[partnerTagDeletedJob] Deleted ${programPartnerTagsDeleted} program–partner tag associations.`,
-    );
+      console.log(
+        `[partnerTagDeletedJob] Deleted ${count} program–partner tag associations.`,
+      );
 
-    // Update the links to remove the partner tag from TB
-    const linksToUpdate = await prisma.link.findMany({
-      where: {
-        programEnrollment: {
-          id: {
-            in: programPartnerTags.map((row) => row.programEnrollment.id),
+      // Update the links to remove the partner tag from TB
+      const linksToUpdate = await prisma.link.findMany({
+        where: {
+          programEnrollment: {
+            id: {
+              in: programPartnerTags.map((row) => row.programEnrollment.id),
+            },
           },
         },
-      },
-      include: {
-        ...includeTags,
-        ...includeProgramEnrollment,
+        include: {
+          ...includeTags,
+          ...includeProgramEnrollment,
+        },
+      });
+
+      if (linksToUpdate.length > 0) {
+        await recordLink(linksToUpdate);
+      }
+
+      // More associations remain — queue the next batch.
+      if (programPartnerTags.length === CRON_BATCH_SIZE) {
+        await partnerTagDeletedJob.dispatch(
+          {
+            partnerTagId,
+          },
+          {
+            delay: 1,
+            label: partnerTagId,
+          },
+        );
+
+        return;
+      }
+    }
+
+    // No more program–partner tag associations left. Delete the partner tag.
+    await prisma.partnerTag.delete({
+      where: {
+        id: partnerTagId,
       },
     });
 
-    if (linksToUpdate.length > 0) {
-      await recordLink(linksToUpdate);
-    }
-
-    // Queue the next job to delete the partner tag.
-    if (programPartnerTags.length === CRON_BATCH_SIZE) {
-      await partnerTagDeletedJob.dispatch(
-        {
-          partnerTagId,
-        },
-        {
-          delay: 1,
-          label: partnerTagId,
-        },
-      );
-      return;
-    }
+    console.log(
+      `[partnerTagDeletedJob] Partner tag ${partnerTagId} deleted from database.`,
+    );
   },
 });

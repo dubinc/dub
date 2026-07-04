@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { logger } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { PublishRequest } from "@upstash/qstash";
 import * as z from "zod/v4";
@@ -33,10 +33,26 @@ export type DispatchResult =
   | { status: "published"; messageId: string }
   | { status: "deferred"; backgroundJobId: string };
 
+export type DispatchBatchResult = {
+  published: number;
+  deferred: number;
+  failed: number;
+  results: DispatchResult[];
+};
+
 interface DispatchJobInput {
   name: string;
   payload: unknown;
   options?: JobDispatchOptions;
+}
+
+interface DispatchJobBatchInput {
+  name: string;
+  defaults?: JobDefaults;
+  items: Array<{
+    payload: unknown;
+    options?: JobDispatchOptions;
+  }>;
 }
 
 export const JOBS_ENDPOINT_URL = `${APP_DOMAIN_WITH_NGROK}/api/jobs/process`;
@@ -46,6 +62,7 @@ export function getJobsEndpointUrl(name: string) {
 }
 
 const QSTASH_PUBLISH_MAX_RETRIES = 3;
+const QSTASH_BATCH_CHUNK_SIZE = 100;
 
 export const jobNameSchema = z
   .string()
@@ -82,6 +99,24 @@ function buildPublishRequest({ name, payload, options }: DispatchJobInput) {
     ...(options?.retries !== undefined && { retries: options.retries }),
     ...(options?.flowControl && { flowControl: options.flowControl }),
   };
+}
+
+function buildBatchPublishRequest(input: DispatchJobInput) {
+  return {
+    ...buildPublishRequest(input),
+    ...(input.options?.queue && { queueName: input.options.queue }),
+  };
+}
+
+function isPublishSuccess(
+  response: unknown,
+): response is { messageId: string } {
+  return (
+    typeof response === "object" &&
+    response !== null &&
+    "messageId" in response &&
+    typeof response.messageId === "string"
+  );
 }
 
 // Persist jobs that could not be published to QStash. The
@@ -148,6 +183,159 @@ async function publishJobToQStash(input: DispatchJobInput) {
   }
 
   throw new Error("Failed to publish job to QStash.");
+}
+
+async function publishJobsBatchToQStash(inputs: DispatchJobInput[]) {
+  const requests = inputs.map((input) => buildBatchPublishRequest(input));
+
+  for (let attempt = 0; attempt <= QSTASH_PUBLISH_MAX_RETRIES; attempt++) {
+    try {
+      return await qstash.batchJSON(requests);
+    } catch (error) {
+      if (attempt < QSTASH_PUBLISH_MAX_RETRIES) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 1000 * Math.pow(2, attempt)),
+        );
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw new Error("Failed to publish job batch to QStash.");
+}
+
+async function deferJobInputs(inputs: DispatchJobInput[]) {
+  const backgroundJobs = await persistBackgroundJobs(inputs);
+
+  return backgroundJobs.map((backgroundJob) => ({
+    status: "deferred" as const,
+    backgroundJobId: backgroundJob.id,
+  }));
+}
+
+async function dispatchJobBatch({
+  name,
+  defaults,
+  items,
+}: DispatchJobBatchInput): Promise<DispatchBatchResult> {
+  if (items.length === 0) {
+    return {
+      published: 0,
+      deferred: 0,
+      failed: 0,
+      results: [],
+    };
+  }
+
+  const inputs: DispatchJobInput[] = items.map(({ payload, options }) => ({
+    name,
+    payload,
+    options: { ...defaults, ...options },
+  }));
+
+  const results: DispatchResult[] = [];
+  let published = 0;
+  let deferred = 0;
+  let failed = 0;
+
+  for (const inputChunk of chunk(inputs, QSTASH_BATCH_CHUNK_SIZE)) {
+    try {
+      const responses = await publishJobsBatchToQStash(inputChunk);
+      const failedInputs: DispatchJobInput[] = [];
+
+      for (let index = 0; index < inputChunk.length; index++) {
+        const input = inputChunk[index];
+        const response = responses[index];
+
+        if (isPublishSuccess(response)) {
+          published++;
+          results.push({
+            status: "published",
+            messageId: response.messageId,
+          });
+          continue;
+        }
+
+        failedInputs.push(input);
+      }
+
+      if (failedInputs.length > 0) {
+        logger.error("jobs.publish_failed", {
+          jobName: name,
+          jobCount: failedInputs.length,
+          batch: true,
+        });
+
+        for (const input of failedInputs) {
+          const label = buildJobLabel(name, input.options?.label);
+
+          try {
+            const [backgroundJob] = await persistBackgroundJobs([input]);
+            deferred++;
+            results.push({
+              status: "deferred",
+              backgroundJobId: backgroundJob.id,
+            });
+          } catch (error) {
+            logger.error("jobs.dispatch_lost", {
+              jobName: name,
+              label,
+              errorName: error instanceof Error ? error.name : undefined,
+              errorMessage:
+                error instanceof Error ? error.message : String(error),
+            });
+            failed++;
+          }
+        }
+      }
+
+      console.log(`[jobs:${name}] batch published`, {
+        jobName: name,
+        chunkSize: inputChunk.length,
+        published: inputChunk.length - failedInputs.length,
+        deferred: failedInputs.length,
+      });
+    } catch (error) {
+      logger.error("jobs.publish_failed", {
+        jobName: name,
+        jobCount: inputChunk.length,
+        batch: true,
+        errorName: error instanceof Error ? error.name : undefined,
+        errorMessage: error instanceof Error ? error.message : String(error),
+      });
+
+      try {
+        const deferredResults = await deferJobInputs(inputChunk);
+        deferred += deferredResults.length;
+        results.push(...deferredResults);
+      } catch (persistError) {
+        logger.error("jobs.dispatch_lost", {
+          jobName: name,
+          jobCount: inputChunk.length,
+          errorName:
+            persistError instanceof Error ? persistError.name : undefined,
+          errorMessage:
+            persistError instanceof Error
+              ? persistError.message
+              : String(persistError),
+        });
+
+        await logger.flush();
+        throw persistError;
+      }
+    }
+  }
+
+  await logger.flush();
+
+  return {
+    published,
+    deferred,
+    failed,
+    results,
+  };
 }
 
 // Dispatch a single job
@@ -231,8 +419,21 @@ export function defineJob<TSchema extends z.ZodType>({
         options: { ...defaults, ...options },
       }),
 
-    // TODO
-    // Support dispatching multiple jobs at once dispatchBatch
+    dispatchBatch: (
+      payloads: z.infer<TSchema>[],
+      getOptions?: (
+        payload: z.infer<TSchema>,
+        index: number,
+      ) => JobDispatchOptions | undefined,
+    ) =>
+      dispatchJobBatch({
+        name,
+        defaults,
+        items: payloads.map((payload, index) => ({
+          payload,
+          options: getOptions?.(payload, index),
+        })),
+      }),
   };
 }
 

@@ -1,8 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
-import { queueFolderDeletion } from "@/lib/api/folders/queue-folder-deletion";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { folderDeletedJob } from "@/lib/jobs/folder-deleted-job";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { FolderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
@@ -163,9 +163,14 @@ export const DELETE = withWorkspace(
           },
         }),
 
-        queueFolderDeletion({
-          folderId,
-        }),
+        folderDeletedJob.dispatch(
+          {
+            folderId,
+          },
+          {
+            label: folderId,
+          },
+        ),
       ]);
     }
 

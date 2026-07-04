@@ -1,5 +1,5 @@
+import { folderDeletedJob } from "@/lib/jobs/folder-deleted-job";
 import { prisma } from "@/lib/prisma";
-import { queueFolderDeletion } from "./queue-folder-deletion";
 
 export async function deleteWorkspaceFolders({
   workspaceId,
@@ -20,6 +20,7 @@ export async function deleteWorkspaceFolders({
     });
     excludedFolderId = program.defaultFolderId;
   }
+
   const folders = await prisma.folder.findMany({
     where: {
       projectId: workspaceId,
@@ -39,22 +40,32 @@ export async function deleteWorkspaceFolders({
     return;
   }
 
-  await prisma.projectUsers.updateMany({
-    where: {
-      projectId: workspaceId,
-      defaultFolderId: { in: folders.map(({ id }) => id) },
-    },
-    data: {
-      defaultFolderId: null,
-    },
-  });
+  const folderIds = folders.map(({ id }) => id);
 
-  return await Promise.all([
-    ...folders.map(({ id }) =>
-      queueFolderDeletion({
-        folderId: id,
-      }),
-    ),
+  await prisma.$transaction([
+    prisma.projectUsers.updateMany({
+      where: {
+        projectId: workspaceId,
+        defaultFolderId: {
+          in: folderIds,
+        },
+      },
+      data: {
+        defaultFolderId: null,
+      },
+    }),
+
+    prisma.folder.updateMany({
+      where: {
+        id: {
+          in: folderIds,
+        },
+      },
+      data: {
+        projectId: "",
+      },
+    }),
+
     prisma.project.update({
       where: {
         id: workspaceId,
@@ -64,4 +75,9 @@ export async function deleteWorkspaceFolders({
       },
     }),
   ]);
+
+  await folderDeletedJob.dispatchBatch(
+    folderIds.map((folderId) => ({ folderId })),
+    ({ folderId }) => ({ label: folderId }),
+  );
 }
