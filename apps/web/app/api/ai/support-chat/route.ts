@@ -130,8 +130,14 @@ export const POST = withSession(async ({ req, session }) => {
         ticketDetails,
       }),
     },
-    onFinish: async ({ text }) => {
-      if (!slackChannel || !text || !slackUserPostPromise) return;
+    onFinish: async ({ text, steps }) => {
+      if (!slackChannel || !slackUserPostPromise) return;
+
+      const replyText = buildSlackAiReplyText({ text, steps });
+      if (!replyText) {
+        console.warn("[support-chat/slack] Skipped AI reply: no content");
+        return;
+      }
 
       const threadTs = await slackUserPostPromise;
       if (!threadTs) return;
@@ -139,7 +145,7 @@ export const POST = withSession(async ({ req, session }) => {
       await postSupportChatMessage({
         channel: slackChannel,
         threadTs,
-        text: `*Dub AI:*\n${markdownToSlackMrkdwn(escapeSlackMrkdwn(text))}`,
+        text: `*Dub AI:*\n${markdownToSlackMrkdwn(escapeSlackMrkdwn(replyText))}`,
       });
     },
   });
@@ -175,7 +181,10 @@ const postSupportChatMessage = async ({
     });
     return threadTs ?? (res.ts as string | undefined);
   } catch (e) {
-    console.error("[Slack] Failed to post support chat message", e);
+    console.error(
+      "[support-chat/slack] Failed to post support chat message",
+      e,
+    );
     return threadTs;
   }
 };
@@ -199,6 +208,55 @@ const getAccountContextLines = (globalContext?: GlobalChatContext) => {
   }
 
   return [escapeSlackMrkdwn(globalContext?.chatLocation ?? "Unknown context")];
+};
+
+const SLACK_TOOL_LABELS: Record<string, string> = {
+  requestSupportTicket: "Showed support ticket form",
+  createSupportTicket: "Created support ticket",
+  findRelevantDocs: "Searched documentation",
+  getWorkspaceDetails: "Looked up workspace details",
+  getProgramPerformance: "Looked up program performance",
+  getPlanComparison: "Compared plans",
+};
+
+const buildSlackAiReplyText = ({
+  text,
+  steps,
+}: {
+  text: string;
+  steps: Array<{
+    toolCalls?: Array<{ toolName: string }>;
+    content?: Array<{ type: string; toolName?: string }>;
+  }>;
+}) => {
+  const trimmed = text.trim();
+  const toolLines = [
+    ...new Set(
+      steps.flatMap((step) => {
+        if (step.toolCalls?.length) {
+          return step.toolCalls.map((tc) => tc.toolName);
+        }
+
+        if (Array.isArray(step.content)) {
+          return step.content
+            .filter(
+              (part): part is { type: "tool-call"; toolName: string } =>
+                part.type === "tool-call" && typeof part.toolName === "string",
+            )
+            .map((part) => part.toolName);
+        }
+
+        return [];
+      }),
+    ),
+  ]
+    .map((name) => `_↳ ${SLACK_TOOL_LABELS[name] ?? `Ran ${name}`}_`)
+    .join("\n");
+
+  if (trimmed && toolLines) return `${trimmed}\n\n${toolLines}`;
+  if (trimmed) return trimmed;
+  if (toolLines) return toolLines;
+  return undefined;
 };
 
 const markdownToSlackMrkdwn = (text: string) =>
