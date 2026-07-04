@@ -2,7 +2,10 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
-import { getAllowedMinPayoutAmounts } from "@/lib/constants/payouts";
+import {
+  ALLOWED_MIN_PAYOUT_AMOUNTS,
+  getAllowedMinPayoutAmounts,
+} from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -73,7 +76,7 @@ function ProgramPayoutSettingsSheetContent({
   const minPayoutAmount = watch("minPayoutAmount");
   const allowedMinPayoutAmounts = workspaceId
     ? getAllowedMinPayoutAmounts(workspaceId)
-    : [];
+    : ALLOWED_MIN_PAYOUT_AMOUNTS;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
