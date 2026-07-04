@@ -21,12 +21,12 @@ const BATCH_SIZE = 500;
 const SEND_CONCURRENCY = 100;
 
 // Lock for the cron job
-const LOCK_KEY = "lock:send-link-click-webhooks";
+const LOCK_KEY = "lock:send-link-clicked-webhooks";
 const LOCK_TTL_SECONDS = 300;
 
 // Drains the workspace:click:events stream and delivers link.clicked webhooks.
 // Runs every minute (see vercel.json).
-// GET /api/cron/streams/send-link-click-webhooks
+// GET /api/cron/streams/send-link-clicked-webhooks
 export const GET = withCron(async () => {
   const acquired = await redis.set(LOCK_KEY, "1", {
     nx: true,
@@ -35,7 +35,7 @@ export const GET = withCron(async () => {
 
   if (!acquired) {
     return logAndRespond(
-      "[send-link-click-webhooks] Another run is in progress. Skipping...",
+      "[send-link-clicked-webhooks] Another run is in progress. Skipping...",
     );
   }
 
@@ -86,26 +86,7 @@ const processStreamBatch = (): Promise<{
         ...new Set(entries.map((e) => e.data.link_id).filter(Boolean)),
       ];
 
-      const [webhooks, projects, links] = await Promise.all([
-        prisma.webhook.findMany({
-          where: {
-            projectId: {
-              in: workspaceIds,
-            },
-            disabledAt: null,
-            triggers: {
-              array_contains: [LINK_CLICK_WEBHOOK_TRIGGER],
-            },
-          },
-          select: {
-            id: true,
-            url: true,
-            secret: true,
-            linkScope: true,
-            projectId: true,
-          },
-        }),
-
+      const [workspaces, links] = await Promise.all([
         prisma.project.findMany({
           where: {
             id: {
@@ -116,6 +97,21 @@ const processStreamBatch = (): Promise<{
             id: true,
             usage: true,
             usageLimit: true,
+            webhooks: {
+              where: {
+                disabledAt: null,
+                triggers: {
+                  array_contains: [LINK_CLICK_WEBHOOK_TRIGGER],
+                },
+              },
+              select: {
+                id: true,
+                url: true,
+                secret: true,
+                linkScope: true,
+                projectId: true,
+              },
+            },
           },
         }),
 
@@ -140,6 +136,8 @@ const processStreamBatch = (): Promise<{
           },
         }),
       ]);
+
+      const webhooks = workspaces.flatMap((w) => w.webhooks);
 
       const linkTargetWebhookIds = webhooks
         .filter((w) => w.linkScope === "links")
@@ -197,7 +195,7 @@ const processStreamBatch = (): Promise<{
         (r) => r.folderId,
       );
       const webhooksByWorkspace = groupBy(webhooks, (w) => w.projectId);
-      const workspaceById = new Map(projects.map((p) => [p.id, p]));
+      const workspaceById = new Map(workspaces.map((p) => [p.id, p]));
       const linkById = new Map(links.map((l) => [l.id, l]));
 
       const sendTasks: {

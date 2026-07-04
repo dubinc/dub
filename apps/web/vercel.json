@@ -21,7 +21,7 @@
       "schedule": "* * * * *"
     },
     {
-      "path": "/api/cron/streams/send-link-click-webhooks",
+      "path": "/api/cron/streams/send-link-clicked-webhooks",
       "schedule": "* * * * *"
     },
     {
