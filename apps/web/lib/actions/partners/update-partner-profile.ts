@@ -12,6 +12,7 @@ import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
   PartnerProfileDetailsSchema,
+  sanitizeFormulaInput,
 } from "@/lib/zod/schemas/partners";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -29,13 +30,22 @@ import { authPartnerActionClient } from "../safe-action";
 
 const updatePartnerProfileSchema = z
   .object({
-    name: z.string().trim().min(1, "Name is required").optional(),
+    name: z
+      .string()
+      .trim()
+      .min(1, "Name is required")
+      .optional()
+      .transform(sanitizeFormulaInput),
     email: z.email().optional(),
     username: z.string().trim().toLowerCase().min(3).max(100).optional(),
     image: uploadedImageSchema.nullish(),
-    description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
+    description: z
+      .string()
+      .max(MAX_PARTNER_DESCRIPTION_LENGTH)
+      .nullish()
+      .transform(sanitizeFormulaInput),
     profileType: z.enum(PartnerProfileType).optional(),
-    companyName: z.string().nullish(),
+    companyName: z.string().nullish().transform(sanitizeFormulaInput),
   })
   .extend(PartnerProfileDetailsSchema.partial().shape)
   .transform((data) => ({
