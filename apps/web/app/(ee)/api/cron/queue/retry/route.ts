@@ -3,9 +3,9 @@ import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import {
   buildJobLabel,
+  getJobsEndpointUrl,
   JobDispatchOptions,
   JobEnvelope,
-  JOBS_ENDPOINT_URL,
 } from "@/lib/jobs";
 import { prisma } from "@/lib/prisma";
 import { logAndRespond } from "../../utils";
@@ -49,7 +49,7 @@ export const GET = withCron(async () => {
     };
 
     return {
-      url: JOBS_ENDPOINT_URL,
+      url: getJobsEndpointUrl(job.name),
       body: envelope,
       label: buildJobLabel(job.name, options.label),
       ...(options.deduplicationId && {

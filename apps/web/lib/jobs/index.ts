@@ -41,6 +41,10 @@ interface DispatchJobInput {
 
 export const JOBS_ENDPOINT_URL = `${APP_DOMAIN_WITH_NGROK}/api/jobs/process`;
 
+export function getJobsEndpointUrl(name: string) {
+  return `${JOBS_ENDPOINT_URL}/${name}`;
+}
+
 const QSTASH_PUBLISH_MAX_RETRIES = 3;
 
 export const jobNameSchema = z
@@ -52,7 +56,7 @@ export function buildJobLabel(name: string, label?: string) {
   return label ? `${label},${name}` : name;
 }
 
-// Wire format published to QStash and consumed by /api/jobs/process
+// Wire format published to QStash and consumed by /api/jobs/process/[jobName]
 export const jobEnvelopeSchema = z.object({
   name: jobNameSchema,
   dispatchedAt: z.string(),
@@ -67,7 +71,7 @@ function buildPublishRequest({ name, payload, options }: DispatchJobInput) {
   };
 
   return {
-    url: JOBS_ENDPOINT_URL,
+    url: getJobsEndpointUrl(name),
     body: envelope,
     label: buildJobLabel(name, options?.label),
     ...(options?.delay && { delay: options.delay }),
