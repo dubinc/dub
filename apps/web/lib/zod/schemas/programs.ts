@@ -2,10 +2,7 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
-import {
-  ALLOWED_MIN_PAYOUT_AMOUNTS,
-  PAYOUT_HOLDING_PERIOD_DAYS,
-} from "@/lib/constants/payouts";
+import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { COUNTRY_CODES } from "@dub/utils";
 import {
   Category,
@@ -98,11 +95,7 @@ export const updateProgramSchema = z.object({
     .refine((val) => PAYOUT_HOLDING_PERIOD_DAYS.includes(val), {
       message: `Holding period must be ${PAYOUT_HOLDING_PERIOD_DAYS.join(", ")} days`,
     }),
-  minPayoutAmount: z.coerce
-    .number()
-    .refine((val) => ALLOWED_MIN_PAYOUT_AMOUNTS.includes(val), {
-      message: `Minimum payout amount must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.join(", ")}`,
-    }),
+  minPayoutAmount: z.coerce.number(),
   supportEmail: z.email().max(255).nullish(),
   helpUrl: z.httpUrl().max(500).nullish(),
   termsUrl: z.httpUrl().max(500).nullish(),

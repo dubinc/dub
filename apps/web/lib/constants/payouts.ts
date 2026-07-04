@@ -4,6 +4,20 @@ import { PaymentMethodOption } from "../types";
 
 export const PAYOUT_HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
 export const ALLOWED_MIN_PAYOUT_AMOUNTS = [0, 1000, 2000, 5000, 10000];
+export const EXTENDED_MIN_PAYOUT_AMOUNT_CENTS = 20000; // $200
+
+export const EXTENDED_MIN_PAYOUT_WORKSPACE_IDS = new Set<string>([
+  "clsvopiw0000ejy0grp821me0",
+  "clrei1gld0002vs9mzn93p8ik",
+]);
+
+export function getAllowedMinPayoutAmounts(workspaceId: string): number[] {
+  if (EXTENDED_MIN_PAYOUT_WORKSPACE_IDS.has(workspaceId)) {
+    return [...ALLOWED_MIN_PAYOUT_AMOUNTS, EXTENDED_MIN_PAYOUT_AMOUNT_CENTS];
+  }
+
+  return ALLOWED_MIN_PAYOUT_AMOUNTS;
+}
 
 export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;
 export const ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE = 500;
