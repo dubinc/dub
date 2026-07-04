@@ -21,7 +21,7 @@ model Webhook {
   url                 String          @db.LongText
   secret              String
   triggers            Json
-  linkScope          LinkScope? // Only set for webhooks with the link.clicked trigger
+  linkScope           LinkScope? // Only set for webhooks with the link.clicked trigger
   consecutiveFailures Int             @default(0)
   lastFailedAt        DateTime?
   disabledAt          DateTime?
