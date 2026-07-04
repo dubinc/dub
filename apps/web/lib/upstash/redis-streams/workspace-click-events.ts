@@ -16,11 +16,11 @@ export const publishWorkspaceClickEvent = async (event) => {
       bot: Number(event.bot),
     });
 
-    const hasWebhooks = await clickWebhookWorkspaces.has(
+    const hasLinkClickedWebhooks = await clickWebhookWorkspaces.has(
       parsedEvent.workspace_id,
     );
 
-    if (!hasWebhooks) {
+    if (!hasLinkClickedWebhooks) {
       return;
     }
 

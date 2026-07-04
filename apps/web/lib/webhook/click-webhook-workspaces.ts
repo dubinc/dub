@@ -3,19 +3,29 @@ import { redis } from "@/lib/upstash";
 import { LINK_CLICK_WEBHOOK_TRIGGER } from "./constants";
 import type { WebhookTrigger } from "./types";
 
-export const REDIS_KEY = "webhookClickWorkspaces";
+export const LINK_CLICKED_WEBHOOK_WORKSPACES_REDIS_KEY =
+  "linkClickedWebhookWorkspaces";
 
 class ClickWebhookWorkspaces {
   async add(workspaceId: string) {
-    return await redis.sadd(REDIS_KEY, workspaceId);
+    return await redis.sadd(
+      LINK_CLICKED_WEBHOOK_WORKSPACES_REDIS_KEY,
+      workspaceId,
+    );
   }
 
   async remove(workspaceId: string) {
-    return await redis.srem(REDIS_KEY, workspaceId);
+    return await redis.srem(
+      LINK_CLICKED_WEBHOOK_WORKSPACES_REDIS_KEY,
+      workspaceId,
+    );
   }
 
   async has(workspaceId: string) {
-    return await redis.sismember(REDIS_KEY, workspaceId);
+    return await redis.sismember(
+      LINK_CLICKED_WEBHOOK_WORKSPACES_REDIS_KEY,
+      workspaceId,
+    );
   }
 }
 
