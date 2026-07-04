@@ -57,7 +57,7 @@ export const trackLeadRequestSchema = z.object({
     .number()
     .int()
     .positive()
-    .max(1000)
+    .max(100)
     .nullish()
     .describe(
       "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
