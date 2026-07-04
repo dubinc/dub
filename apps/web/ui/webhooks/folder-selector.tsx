@@ -96,7 +96,7 @@ export function FoldersSelector({
     >
       {selectedFolderIds.length === 0 ? (
         <div className="py-0.5">Select folders...</div>
-      ) : selectedOptions ? (
+      ) : selectedFolders && selectedOptions ? (
         <div className="flex flex-wrap gap-2">
           {selectedOptions.slice(0, MAX_DISPLAYED_FOLDERS).map((option) => (
             <span
@@ -106,8 +106,9 @@ export function FoldersSelector({
               <FolderIcon
                 folder={option.meta.folder}
                 shape="square"
-                className="shrink-0"
-                iconClassName="size-3"
+                className="size-3 shrink-0"
+                innerClassName="flex size-full items-center justify-center p-0"
+                iconClassName="size-2.5"
               />
               <span className="min-w-0 truncate">{option.label}</span>
             </span>
