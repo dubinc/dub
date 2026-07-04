@@ -41,6 +41,7 @@ model LinkWebhook {
   id        String @id @default(cuid())
   linkId    String
   webhookId String
+  createdAt DateTime @default(now())
 
   link    Link    @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   webhook Webhook @relation(fields: [webhookId], references: [id], onUpdate: Cascade, onDelete: Cascade)
@@ -53,6 +54,7 @@ model FolderWebhook {
   id        String @id @default(cuid())
   folderId  String
   webhookId String
+  createdAt DateTime @default(now())
 
   folder  Folder  @relation(fields: [folderId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   webhook Webhook @relation(fields: [webhookId], references: [id], onUpdate: Cascade, onDelete: Cascade)
