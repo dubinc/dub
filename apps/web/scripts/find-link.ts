@@ -2,40 +2,19 @@ import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
 async function main() {
-  // const linkWebhook = await prisma.linkWebhook.groupBy({
-  //   by: ["webhookId"],
-  //   _count: {
-  //     linkId: true,
-  //   },
-  //   orderBy: {
-  //     _count: {
-  //       linkId: "desc",
-  //     },
-  //   },
-  // });
-
-  // console.table(linkWebhook);
-
-  const linkFolders = await prisma.link.groupBy({
-    by: ["folderId"],
+  const links = await prisma.link.findMany({
     where: {
-      webhooks: {
-        some: {
-          webhookId: "wh_1KVT5VFNB0NRA4YN3NWV3F6ZN",
-        },
-      },
+      projectId: "xxx",
+      url: "https://example.com",
     },
-    _count: {
+    select: {
       id: true,
-    },
-    orderBy: {
-      _count: {
-        id: "desc",
-      },
+      shortLink: true,
+      url: true,
     },
   });
 
-  console.table(linkFolders);
+  console.table(links);
 }
 
 main();
