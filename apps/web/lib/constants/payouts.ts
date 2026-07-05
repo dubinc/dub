@@ -1,19 +1,22 @@
+import { ACME_WORKSPACE_ID } from "@dub/utils";
 import { PayoutStatus } from "@prisma/client";
 import Stripe from "stripe";
-import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
+import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { PaymentMethodOption } from "../types";
 
 export const PAYOUT_HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
 export const ALLOWED_MIN_PAYOUT_AMOUNTS = [0, 1000, 2000, 5000, 10000];
-export const EXTENDED_MIN_PAYOUT_AMOUNT_CENTS = 20000; // $200
 
-export const EXTENDED_MIN_PAYOUT_WORKSPACE_IDS = new Set<string>([
-  "ws_clsvopiw0000ejy0grp821me0",
-  "ws_clrei1gld0002vs9mzn93p8ik",
+const EXTENDED_MIN_PAYOUT_AMOUNT_CENTS = 20000; // $200
+const EXTENDED_MIN_PAYOUT_WORKSPACE_IDS = new Set<string>([
+  "clsvopiw0000ejy0grp821me0",
+  ACME_WORKSPACE_ID,
 ]);
 
 export function getAllowedMinPayoutAmounts(workspaceId: string): number[] {
-  if (EXTENDED_MIN_PAYOUT_WORKSPACE_IDS.has(prefixWorkspaceId(workspaceId))) {
+  if (
+    EXTENDED_MIN_PAYOUT_WORKSPACE_IDS.has(normalizeWorkspaceId(workspaceId))
+  ) {
     return [...ALLOWED_MIN_PAYOUT_AMOUNTS, EXTENDED_MIN_PAYOUT_AMOUNT_CENTS];
   }
 
