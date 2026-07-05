@@ -1,4 +1,3 @@
-import { RESERVED_SLUGS } from "@dub/utils";
 import { getWorkspaceProduct } from "./get-workspace-product";
 
 const APP_REDIRECTS = {
@@ -9,7 +8,8 @@ const APP_REDIRECTS = {
   "/campaigns": "/program/campaigns",
   "/messages": "/program/messages",
   "/marketplace": "/program/network",
-  "/fraud": "/program/fraud",
+  "/fraud": "/program/risks",
+  "/risks": "/program/risks",
 };
 
 const PROGRAM_REDIRECTS = {
@@ -21,6 +21,7 @@ const PROGRAM_REDIRECTS = {
   "/program/discounts": "/program/groups/default/discounts",
   "/program/link-settings": "/program/groups/default/links",
   "/program/branding": "/program/groups/default/branding",
+  "/program/fraud": "/program/risks",
 };
 
 export const appRedirect = async (path: string) => {
@@ -28,11 +29,14 @@ export const appRedirect = async (path: string) => {
     return APP_REDIRECTS[path];
   }
 
-  // Redirect "/[slug]" to "/[slug]/[product]"
-  const rootRegex = /^\/([^\/]+)$/;
-  if (rootRegex.test(path) && !RESERVED_SLUGS.includes(path.split("/")[1])) {
-    const product = await getWorkspaceProduct(path.split("/")[1]);
-    return path.replace(rootRegex, `/$1/${product}`);
+  // Redirect "/[slug]" and "/[slug]/analytics|events|customers" to "/[slug]/[product]/..."
+  const workspaceProductPathRegex =
+    /^\/([^\/]+)(?:\/(analytics|events|customers))?$/;
+  const workspaceProductPathMatch = path.match(workspaceProductPathRegex);
+  if (workspaceProductPathMatch) {
+    const [, slug, subPath] = workspaceProductPathMatch;
+    const product = await getWorkspaceProduct(slug);
+    return subPath ? `/${slug}/${product}/${subPath}` : `/${slug}/${product}`;
   }
 
   // Redirect "/[slug]/upgrade" to "/[slug]/settings/billing/upgrade"

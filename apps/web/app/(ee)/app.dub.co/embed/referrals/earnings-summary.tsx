@@ -3,13 +3,28 @@ import { Button, InfoTooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import { useReferralsEmbedData } from "./page-client";
 
-export function ReferralsEmbedEarningsSummary() {
+export function ReferralsEmbedEarningsSummary({
+  showSettingsTab,
+  onSelectTab,
+}: {
+  showSettingsTab: boolean;
+  onSelectTab: (tab: string) => void;
+}) {
   const { program, partner, earnings } = useReferralsEmbedData();
 
   // for custom SSO login programs, we just redirect to the login page
   // so they can easily login with SSO instead of creating a new account
   const isCustomSSOLoginProgram = SSO_LOGIN_PROGRAMS.some(
     ({ slug }) => slug === program.slug,
+  );
+
+  const settingsButton = (
+    <Button
+      text="Settings"
+      variant="secondary"
+      className="h-7 w-fit p-2 text-sm"
+      onClick={showSettingsTab ? () => onSelectTab("Settings") : undefined}
+    />
   );
 
   return (
@@ -19,20 +34,20 @@ export function ReferralsEmbedEarningsSummary() {
           <p className="text-content-subtle text-sm">Earnings</p>
           <InfoTooltip content="Summary of your commission earnings from your referrals." />
         </div>
-        <a
-          href={`https://partners.dub.co/${program.slug}/${
-            isCustomSSOLoginProgram
-              ? "login"
-              : `register${partner.email ? `?email=${partner.email}` : ""}`
-          }`}
-          target="_blank"
-        >
-          <Button
-            text="Settings"
-            variant="secondary"
-            className="h-7 p-2 text-sm"
-          />
-        </a>
+        {showSettingsTab ? (
+          settingsButton
+        ) : (
+          <a
+            href={`https://partners.dub.co/${program.slug}/${
+              isCustomSSOLoginProgram
+                ? "login"
+                : `register${partner.email ? `?email=${partner.email}` : ""}`
+            }`}
+            target="_blank"
+          >
+            {settingsButton}
+          </a>
+        )}
       </div>
       <div className="grid gap-1">
         {[

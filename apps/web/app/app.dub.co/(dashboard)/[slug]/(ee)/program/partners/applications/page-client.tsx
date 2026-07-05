@@ -18,7 +18,6 @@ import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -36,6 +35,7 @@ import {
 } from "@dub/ui";
 import { Dots, UserCheck, Users, UserXmark } from "@dub/ui/icons";
 import { COUNTRIES, fetcher, formatDate } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import Link from "next/link";
@@ -47,6 +47,8 @@ const applicationsColumns = {
   all: [
     "partner",
     "createdAt",
+    "source",
+    "group",
     "location",
     "website",
     "youtube",
@@ -58,6 +60,7 @@ const applicationsColumns = {
   defaultVisible: [
     "partner",
     "createdAt",
+    "source",
     "location",
     "website",
     "youtube",
@@ -88,6 +91,7 @@ export function ProgramPartnersApplicationsPageClient() {
     status: "pending",
   });
 
+  // TODO: refactor to use `/partners/applications` endpoint
   const {
     data: partners,
     error,
@@ -163,7 +167,7 @@ export function ProgramPartnersApplicationsPageClient() {
     });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "applications-table-columns",
+    "applications-table-columns-v2",
     applicationsColumns,
   );
 
@@ -194,7 +198,6 @@ export function ProgramPartnersApplicationsPageClient() {
       {
         id: "group",
         header: "Group",
-        enableHiding: false,
         minSize: 150,
         cell: ({ row }) => {
           if (!groups || !row.original.groupId) {

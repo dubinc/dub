@@ -1,16 +1,23 @@
 import { qstash } from "@/lib/cron";
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
-import { Webhook, WebhookReceiver } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Webhook, WebhookReceiver } from "@prisma/client";
 import * as z from "zod/v4";
 import { formatEventForSegment } from "../integrations/segment/transform";
 import { createSegmentBasicAuthHeader } from "../integrations/segment/utils";
 import { formatEventForSlack } from "../integrations/slack/transform";
-import { WebhookTrigger } from "../types";
 import { createWebhookSignature } from "./signature";
 import { prepareWebhookPayload } from "./transform";
+import type { WebhookTrigger } from "./types";
 import { WebhookEventPayload } from "./types";
 import { identifyWebhookReceiver } from "./utils";
+
+export type WebhookEnqueueResult = {
+  webhookId: string;
+  ok: boolean;
+  messageId?: string;
+  error?: unknown;
+};
 
 // Send webhooks to multiple webhooks
 export const sendWebhooks = async ({
@@ -21,18 +28,34 @@ export const sendWebhooks = async ({
   webhooks: Pick<Webhook, "id" | "url" | "secret">[];
   trigger: WebhookTrigger;
   data: WebhookEventPayload;
-}) => {
+}): Promise<WebhookEnqueueResult[]> => {
   if (webhooks.length === 0) {
-    return;
+    return [];
   }
 
   const payload = prepareWebhookPayload(trigger, data);
 
-  return await Promise.all(
+  const results = await Promise.allSettled(
     webhooks.map((webhook) =>
       publishWebhookEventToQStash({ webhook, payload }),
     ),
   );
+
+  return results.map((result, i) => {
+    if (result.status === "fulfilled") {
+      return {
+        webhookId: webhooks[i].id,
+        ok: true,
+        messageId: result.value.messageId,
+      };
+    }
+
+    return {
+      webhookId: webhooks[i].id,
+      ok: false,
+      error: result.reason,
+    };
+  });
 };
 
 // publish webhook event to QStash
@@ -89,7 +112,7 @@ const publishWebhookEventToQStash = async ({
   });
 
   if (!response.messageId) {
-    console.error("Failed to publish webhook event to QStash", response);
+    throw new Error("Failed to publish webhook event to QStash");
   }
 
   if (process.env.NODE_ENV === "development") {

@@ -19,7 +19,6 @@ import {
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
-import { RewardStructure } from "@dub/prisma/client";
 import {
   ArrowTurnRight2,
   Button,
@@ -41,6 +40,7 @@ import {
   pluralize,
   truncate,
 } from "@dub/utils";
+import { RewardStructure } from "@prisma/client";
 import { Command } from "cmdk";
 import { Package } from "lucide-react";
 import { motion } from "motion/react";

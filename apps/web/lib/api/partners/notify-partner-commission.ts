@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import {
   ResendBulkEmailOptions,
@@ -5,15 +6,15 @@ import {
 } from "@dub/email/resend/types";
 import NewCommissionAlertPartner from "@dub/email/templates/new-commission-alert-partner";
 import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-program-owner";
-import { prisma } from "@dub/prisma";
+import { chunk, currencyFormatter } from "@dub/utils";
 import {
   Commission,
+  Customer,
   PartnerGroup,
   Program,
   Project,
   User,
-} from "@dub/prisma/client";
-import { chunk, currencyFormatter } from "@dub/utils";
+} from "@prisma/client";
 
 // Send email to partner and program owners when a commission is created
 export async function notifyPartnerCommission({
@@ -28,8 +29,8 @@ export async function notifyPartnerCommission({
   workspace: Pick<Project, "id" | "slug" | "name">;
   commission: Pick<
     Commission,
-    "type" | "amount" | "earnings" | "partnerId" | "linkId"
-  >;
+    "type" | "amount" | "earnings" | "partnerId" | "linkId" | "customerId"
+  > & { customer?: Pick<Customer, "id" | "name" | "email"> | null };
   isFirstCommission?: boolean;
 }) {
   // Workspace owner emails are sent:
@@ -161,6 +162,7 @@ export async function notifyPartnerCommission({
                   email: user.email!,
                 },
                 workspace,
+                customer: commission.customer,
               }),
             }) as ResendEmailOptions,
         )

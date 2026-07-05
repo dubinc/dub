@@ -1,5 +1,9 @@
 import { PARTNER_REFERRAL_TRIGGER } from "@/lib/partner-referrals/constants";
-import { EventType, RewardStructure } from "@dub/prisma/client";
+import {
+  EventType,
+  RewardSpendLimitInterval,
+  RewardStructure,
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 import { centsSchema } from "./utils";
@@ -301,6 +305,18 @@ export const FLAT_REWARD_AMOUNT_SCHEMA = z
     message: "Reward amount cannot be greater than $999,999.99",
   });
 
+const rewardSpendLimitSchema = z.object({
+  spendLimitAmount: z
+    .number()
+    .int()
+    .min(1, { message: "Spend limit amount must be greater than $0" })
+    .max(999_999_99, {
+      message: "Spend limit amount cannot be greater than $999,999.99",
+    })
+    .nullish(),
+  spendLimitInterval: z.enum(RewardSpendLimitInterval).nullish(),
+});
+
 export const rewardConditionsSchema = z.object({
   id: z.string().optional(),
   operator: z.enum(["AND", "OR"]).default("AND"),
@@ -333,6 +349,7 @@ export const RewardSchema = z.object({
   modifiers: z.any().nullish(), // TODO: Fix this
   config: z.any().nullish(),
   updatedAt: z.coerce.date(),
+  ...rewardSpendLimitSchema.shape,
 });
 
 export const REWARD_DESCRIPTION_MAX_LENGTH = 100;
@@ -371,6 +388,7 @@ export const createOrUpdateRewardSchema = z.object({
     .max(REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH)
     .nullish(),
   groupId: z.string(),
+  ...rewardSpendLimitSchema.shape,
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
@@ -422,6 +440,16 @@ export const rewardContextSchema = z.object({
       productId: z.string().nullish(),
       amount: z.number().nullish(),
       type: z.enum(["new", "recurring"]).nullish(),
+      products: z
+        .array(
+          z.object({
+            id: z.string(),
+            amount: z.number(),
+            quantity: z.number(),
+          }),
+        )
+        .nullish()
+        .describe("Only used in Stripe integration."),
     })
     .optional(),
 

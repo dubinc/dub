@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import PartnerPaypalPayoutFailed from "@dub/email/templates/partner-paypal-payout-failed";
-import { prisma } from "@dub/prisma";
 import { payoutsItemSchema } from "./utils";
 
 const PAYPAL_TO_DUB_STATUS = {

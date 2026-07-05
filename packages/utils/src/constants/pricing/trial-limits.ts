@@ -11,7 +11,7 @@ export const TRIAL_LIMITS = {
   groups: 5,
   networkInvites: 0,
   partners: 50,
-  users: 5,
+  users: 3,
   ai: 100,
   api: 120,
   analyticsApi: 2,

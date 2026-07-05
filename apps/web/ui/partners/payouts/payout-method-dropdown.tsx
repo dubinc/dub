@@ -7,9 +7,9 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import type { PartnerPayoutMethodSetting } from "@/lib/types";
 import { partnerPayoutMethodSchema } from "@/lib/zod/schemas/partner-profile";
 import { getPayoutMethodIconConfig } from "@/ui/partners/payouts/payout-method-config";
-import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { Button, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { PartnerPayoutMethod } from "@prisma/client";
 import { ChevronsUpDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback, useState } from "react";
@@ -61,7 +61,6 @@ export function PayoutMethodDropdown() {
 
   const handleAction = useCallback(
     (type: PartnerPayoutMethod, isManage: boolean) => {
-      setOpenPopover(false);
       connect(type, { isManage });
     },
     [connect],
@@ -151,9 +150,7 @@ function PayoutMethodItem({
   isActionPending: boolean;
   pendingDefaultType: PartnerPayoutMethod | null;
 }) {
-  const { partner } = usePartnerProfile();
   const { Icon, wrapperClass } = getPayoutMethodIconConfig(method.type);
-  const payoutsDisabled = !partner?.payoutsEnabledAt;
 
   return (
     <div className="flex w-full cursor-default items-center justify-between gap-4 rounded-md px-2 py-1.5 transition-colors duration-75 hover:bg-neutral-50">
@@ -176,7 +173,6 @@ function PayoutMethodItem({
               method={method}
               onSetDefault={onSetDefault}
               pendingDefaultType={pendingDefaultType}
-              payoutsDisabled={payoutsDisabled}
             />
           </div>
           <span className="mt-0.5 block truncate text-xs text-neutral-500">
@@ -184,14 +180,24 @@ function PayoutMethodItem({
           </span>
         </div>
       </div>
-      <Button
-        variant={method.connected ? "secondary" : "primary"}
-        text={method.connected ? "Manage" : "Connect"}
-        onClick={() => onAction(method.type, method.connected)}
-        loading={isActionPending}
-        disabled={payoutsDisabled}
-        className="h-7 w-fit shrink-0 cursor-pointer text-xs"
-      />
+
+      {method.type === "tremendous" ? (
+        <Button
+          variant="secondary"
+          text="Manage"
+          disabled={true}
+          disabledTooltip="Contact support if you need to update this email."
+          className="h-7 w-fit shrink-0 cursor-pointer text-xs"
+        />
+      ) : (
+        <Button
+          variant={method.connected ? "secondary" : "primary"}
+          text={method.connected ? "Manage" : "Connect"}
+          onClick={() => onAction(method.type, method.connected)}
+          loading={isActionPending}
+          className="h-7 w-fit shrink-0 cursor-pointer text-xs"
+        />
+      )}
     </div>
   );
 }
@@ -200,12 +206,10 @@ function PayoutMethodStatusBadge({
   method,
   onSetDefault,
   pendingDefaultType,
-  payoutsDisabled,
 }: {
   method: PartnerPayoutMethodSetting;
   onSetDefault: (type: PartnerPayoutMethod) => void;
   pendingDefaultType: PartnerPayoutMethod | null;
-  payoutsDisabled: boolean;
 }) {
   const isSettingDefault = pendingDefaultType === method.type;
   const { partner } = usePartnerProfile();
@@ -226,7 +230,7 @@ function PayoutMethodStatusBadge({
     );
   }
 
-  if (method.connected && !payoutsDisabled) {
+  if (method.connected) {
     return (
       <button
         type="button"

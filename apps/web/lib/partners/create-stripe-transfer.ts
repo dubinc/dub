@@ -4,17 +4,19 @@ import {
   MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
 } from "@/lib/constants/payouts";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-force-withdrawal";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
+  chunk,
   currencyFormatter,
+  log,
   pluralize,
 } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
@@ -75,18 +77,21 @@ export const createStripeTransfer = async ({
         },
         include: commonInclude,
       }),
-      prisma.payout.findMany({
-        where: {
-          partnerId: partner.id,
-          invoiceId,
-          status: "processing",
-          method: "connect",
-        },
-        orderBy: {
-          id: "asc",
-        },
-        include: commonInclude,
-      }),
+
+      invoiceId
+        ? prisma.payout.findMany({
+            where: {
+              partnerId: partner.id,
+              invoiceId,
+              status: "processing",
+              method: "connect",
+            },
+            orderBy: {
+              id: "asc",
+            },
+            include: commonInclude,
+          })
+        : Promise.resolve([]),
     ],
   );
 
@@ -107,9 +112,16 @@ export const createStripeTransfer = async ({
   );
 
   if (totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
-    throw new Error(
-      `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.email} is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}). Skipping...`,
-    );
+    const message = `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`;
+
+    // For force-withdrawal action, throw so the error surfaces back to partners.
+    // Otherwise (e.g. cron-driven payouts) just log and skip silently.
+    if (forceWithdrawal) {
+      throw new Error(message);
+    } else {
+      console.warn(message);
+      return;
+    }
   }
 
   let withdrawalFee = 0;
@@ -154,8 +166,10 @@ export const createStripeTransfer = async ({
       },
       data: {
         payoutsEnabledAt: null,
+        defaultPayoutMethod: null,
       },
     });
+
     console.log(`Updated partner ${partner.email} with payoutsEnabledAt null`);
 
     await markPayoutsAsProcessed(currentInvoicePayouts);
@@ -220,32 +234,50 @@ export const createStripeTransfer = async ({
     },
   });
 
-  await Promise.allSettled([
-    prisma.payout.updateMany({
-      where: {
-        id: {
-          in: payoutIds,
-        },
+  await prisma.payout.updateMany({
+    where: {
+      id: {
+        in: payoutIds,
       },
-      data: {
-        stripeTransferId: transfer.id,
-        status: "sent",
-        paidAt: new Date(),
-        method: "connect",
-      },
-    }),
+    },
+    data: {
+      stripeTransferId: transfer.id,
+      status: "sent",
+      paidAt: new Date(),
+      method: "connect",
+    },
+  });
 
-    prisma.commission.updateMany({
-      where: {
-        payoutId: {
-          in: payoutIds,
+  const commissionIds = commissions.map((c) => c.id);
+
+  let totalUpdatedCommissions = 0;
+  for (const commissionIdsBatch of chunk(commissionIds, 250)) {
+    try {
+      const { count } = await prisma.commission.updateMany({
+        where: {
+          id: {
+            in: commissionIdsBatch,
+          },
         },
-      },
-      data: {
-        status: "paid",
-      },
-    }),
-  ]);
+        data: {
+          status: "paid",
+        },
+      });
+
+      totalUpdatedCommissions += count;
+      console.log(
+        `Marked ${totalUpdatedCommissions}/${commissionIds.length} commissions as paid`,
+      );
+    } catch (error) {
+      await log({
+        message: `[createStripeTransfer] Failed to mark commissions as paid for payouts ${payoutIds.join(
+          ", ",
+        )}: ${error.message}`,
+        type: "errors",
+        mention: true,
+      });
+    }
+  }
 
   waitUntil(
     Promise.allSettled([

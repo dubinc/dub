@@ -1,4 +1,4 @@
-import { Discount, Partner } from "@dub/prisma/client";
+import { Discount, Partner } from "@prisma/client";
 
 export function constructDiscountCode({
   partner,

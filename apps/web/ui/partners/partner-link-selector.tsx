@@ -86,7 +86,8 @@ export function PartnerLinkSelector({
   }, [selectedLink]);
 
   const showLoadingPlaceholder =
-    (selectedLinkId && !selectedLink) || (!selectedLinkId && isValidating && !links);
+    (selectedLinkId && !selectedLink) ||
+    (!selectedLinkId && isValidating && !links);
 
   return (
     <>

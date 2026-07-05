@@ -9,8 +9,8 @@ import {
 } from "@/lib/integrations/hubspot/schema";
 import { trackHubSpotLeadEvent } from "@/lib/integrations/hubspot/track-lead";
 import { trackHubSpotSaleEvent } from "@/lib/integrations/hubspot/track-sale";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
 import { logAndRespond } from "../../../cron/utils";
 
 // POST /api/hubspot/webhook/process – process individual webhook event

@@ -1,12 +1,14 @@
 import { Customer } from "@/lib/types";
 import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
-import { FraudRuleType, Partner } from "@dub/prisma/client";
+import { FraudRuleType, Partner } from "@prisma/client";
 import { HttpClient } from "tests/utils/http";
 import { expect } from "vitest";
 import * as z from "zod/v4";
 
-const POLL_INTERVAL_MS = 5000; // 5 seconds
-const TIMEOUT_MS = 60000; // 60 seconds
+import {
+  VITEST_POLL_INTERVAL_MS,
+  VITEST_TEST_TIMEOUT_MS,
+} from "@/lib/constants/misc";
 
 export const verifyFraudEvent = async ({
   http,
@@ -35,7 +37,7 @@ export const verifyFraudEvent = async ({
     | z.infer<(typeof fraudEventSchemas)[keyof typeof fraudEventSchemas]>
     | undefined;
 
-  while (Date.now() - startTime < TIMEOUT_MS) {
+  while (Date.now() - startTime < VITEST_TEST_TIMEOUT_MS) {
     const { status, data } = await http.get<
       z.infer<(typeof fraudEventSchemas)[keyof typeof fraudEventSchemas]>[]
     >({
@@ -52,12 +54,14 @@ export const verifyFraudEvent = async ({
     }
 
     // Wait before next poll
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+    await new Promise((resolve) =>
+      setTimeout(resolve, VITEST_POLL_INTERVAL_MS),
+    );
   }
 
   if (!fraudEvent) {
     throw new Error(
-      `Fraud event not found within ${TIMEOUT_MS / 1000} seconds. ` +
+      `Fraud event not found within ${VITEST_TEST_TIMEOUT_MS / 1000} seconds. ` +
         `Query: ${JSON.stringify({ customerId: customers[0].id, type: ruleType })}`,
     );
   }

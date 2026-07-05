@@ -1,8 +1,17 @@
-import { MAX_MESSAGE_LENGTH } from "@/lib/zod/schemas/messages";
+import {
+  MAX_ATTACHMENTS_PER_MESSAGE,
+  MAX_MESSAGE_LENGTH,
+} from "@/lib/messages/constants";
+import { messageAttachmentInputSchema } from "@/lib/messages/schemas";
+import {
+  getAttachmentTypeLabel,
+  isPreviewableImageType,
+} from "@/lib/messages/utils";
 import {
   ArrowTurnLeft,
   Button,
   FaceSmile,
+  LoadingCircle,
   RichTextArea,
   RichTextProvider,
   RichTextToolbar,
@@ -10,15 +19,31 @@ import {
   useRichTextContext,
   useScrollProgress,
 } from "@dub/ui";
-import { cn, nFormatter } from "@dub/utils";
+import { cn, formatFileSize, nFormatter } from "@dub/utils";
+import { File, Paperclip, X } from "lucide-react";
 import {
+  DragEvent,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type RefObject,
 } from "react";
+import { toast } from "sonner";
+import * as z from "zod/v4";
+import { ATTACHMENT_MIME_TYPE_COLOR } from "../messages/message-attachments";
 import { EmojiPicker } from "../shared/emoji-picker";
+
+export type PendingAttachment = Omit<
+  z.infer<typeof messageAttachmentInputSchema>,
+  "storageKey"
+> & {
+  id: string;
+  file: File;
+  storageKey?: string;
+  uploading: boolean;
+};
 
 export function MessageInput({
   onSendMessage,
@@ -28,18 +53,33 @@ export function MessageInput({
   placeholder = "Type a message...",
   sendButtonText = "Send",
   className,
+  attachments = [],
+  onAddFiles,
+  onRemoveAttachment,
+  allowedFileTypes,
+  maxAttachments = MAX_ATTACHMENTS_PER_MESSAGE,
 }: {
-  onSendMessage: (message: string) => void | false;
+  onSendMessage: (
+    message: string,
+    attachments: z.infer<typeof messageAttachmentInputSchema>[],
+  ) => void | false;
   defaultValue?: string;
   onCancel?: () => void;
   autoFocus?: boolean;
   placeholder?: string;
   sendButtonText?: string;
   className?: string;
+  attachments?: PendingAttachment[];
+  onAddFiles?: (files: File[]) => void;
+  onRemoveAttachment?: (id: string) => void;
+  allowedFileTypes?: readonly string[];
+  maxAttachments?: number;
 }) {
   const richTextRef = useRef<{ setContent: (content: any) => void }>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [typedMessage, setTypedMessage] = useState(defaultValue || "");
   const [emojiPickerOpen, setEmojiPickerOpenState] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
   const [cursorRect, setCursorRect] = useState<{
     top: number;
     bottom: number;
@@ -54,25 +94,123 @@ export function MessageInput({
     setEmojiPickerOpenState(open);
   }, []);
 
-  const isSendDisabled = typedMessage.trim().length >= MAX_MESSAGE_LENGTH;
+  const hasCompletedAttachments = attachments.some(
+    (a) => !a.uploading && a.storageKey,
+  );
+  const hasUploading = attachments.some((a) => a.uploading);
+  const hasText = typedMessage.trim().length > 0;
+  const isTooLong = typedMessage.trim().length >= MAX_MESSAGE_LENGTH;
+
+  const isSendDisabled =
+    (!hasText && !hasCompletedAttachments) || isTooLong || hasUploading;
 
   const sendMessage = () => {
-    const message = typedMessage.trim();
-    if (!message || message.length >= MAX_MESSAGE_LENGTH) return;
+    if (isSendDisabled) return;
 
-    if (onSendMessage(message) !== false) {
+    const message = typedMessage.trim();
+    const completedAttachments = attachments
+      .filter((a) => !a.uploading && a.storageKey)
+      .map((a) => ({
+        storageKey: a.storageKey!,
+        name: a.name,
+        size: a.size,
+        type: a.type,
+      }));
+
+    if (!message && completedAttachments.length === 0) return;
+
+    if (onSendMessage(message, completedAttachments) !== false) {
       setTypedMessage("");
       richTextRef.current?.setContent("");
     }
   };
 
+  const handleFiles = useCallback(
+    (files: FileList | File[]) => {
+      if (!onAddFiles) return;
+
+      const fileArray = Array.from(files);
+      const allowedFileTypeSet = allowedFileTypes
+        ? new Set(allowedFileTypes)
+        : null;
+      const supportedFiles = allowedFileTypeSet
+        ? fileArray.filter((file) => allowedFileTypeSet.has(file.type))
+        : fileArray;
+      const unsupportedFiles = allowedFileTypeSet
+        ? fileArray.filter((file) => !allowedFileTypeSet.has(file.type))
+        : [];
+
+      if (unsupportedFiles.length > 0 && allowedFileTypes) {
+        toast.error(getUnsupportedFileTypeMessage(allowedFileTypes));
+      }
+
+      if (supportedFiles.length === 0) return;
+
+      const remaining = maxAttachments - attachments.length;
+
+      if (remaining <= 0) {
+        toast.error(`Maximum ${maxAttachments} attachments per message`);
+        return;
+      }
+
+      const filesToAdd = supportedFiles.slice(0, remaining);
+      if (supportedFiles.length > remaining) {
+        toast.error(`Maximum ${maxAttachments} attachments per message`);
+      }
+
+      onAddFiles(filesToAdd);
+    },
+    [onAddFiles, attachments.length, maxAttachments, allowedFileTypes],
+  );
+
+  const handleDragEvent = useCallback((e: DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const acceptString = useMemo(
+    () => (allowedFileTypes ? allowedFileTypes.join(",") : undefined),
+    [allowedFileTypes],
+  );
+
   return (
     <div
       className={cn(
-        "border-border-subtle overflow-hidden rounded-xl border focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+        "border-border-subtle relative overflow-hidden rounded-xl border focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
         className,
       )}
+      onDragOver={(e) => {
+        handleDragEvent(e);
+        if (onAddFiles) setDragActive(true);
+      }}
+      onDragEnter={(e) => {
+        handleDragEvent(e);
+        if (onAddFiles) setDragActive(true);
+      }}
+      onDragLeave={(e) => {
+        handleDragEvent(e);
+        setDragActive(false);
+      }}
+      onDrop={(e) => {
+        handleDragEvent(e);
+        setDragActive(false);
+        if (e.dataTransfer.files?.length) {
+          handleFiles(e.dataTransfer.files);
+        }
+      }}
     >
+      {/* Drag overlay */}
+      {dragActive && onAddFiles && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl border-2 border-dashed border-neutral-400 bg-neutral-50/90">
+          <div className="text-center">
+            <p className="text-sm font-medium text-neutral-600">
+              Drop to upload
+            </p>
+            <p className="text-xs text-neutral-400">Upload files up to 10MB</p>
+          </div>
+        </div>
+      )}
+
       <RichTextProvider
         ref={richTextRef}
         features={["bold", "italic", "links"]}
@@ -123,12 +261,28 @@ export function MessageInput({
           <MessageInputEditorOverflowFades />
         </div>
 
+        {/* Attachment preview strip */}
+        {attachments.length > 0 && (
+          <div className="scrollbar-hide flex gap-2 overflow-x-auto px-3 py-2">
+            {attachments.map((att) => (
+              <AttachmentChip
+                key={att.id}
+                attachment={att}
+                onRemove={() => onRemoveAttachment?.(att.id)}
+              />
+            ))}
+          </div>
+        )}
+
         <div className="flex items-center justify-between gap-4 p-3">
           <MessageInputToolbar
             emojiPickerOpen={emojiPickerOpen}
             setEmojiPickerOpen={setEmojiPickerOpen}
             stripColonOnEmojiPickRef={stripColonOnEmojiPickRef}
             cursorRect={cursorRect}
+            onAttachClick={
+              onAddFiles ? () => fileInputRef.current?.click() : undefined
+            }
           />
           <div className="flex items-center justify-between gap-2">
             {onCancel && (
@@ -175,10 +329,13 @@ export function MessageInput({
                   </span>
                 </span>
               }
+              disabled={isSendDisabled}
               disabledTooltip={
-                typedMessage.trim().length >= MAX_MESSAGE_LENGTH
+                isTooLong
                   ? `Message must be less than ${nFormatter(MAX_MESSAGE_LENGTH)} characters`
-                  : undefined
+                  : hasUploading
+                    ? "Please wait for uploads to complete"
+                    : undefined
               }
               onClick={sendMessage}
               className="h-8 w-fit rounded-lg px-4"
@@ -186,6 +343,127 @@ export function MessageInput({
           </div>
         </div>
       </RichTextProvider>
+
+      {/* Hidden file input */}
+      {onAddFiles && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept={acceptString}
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files?.length) {
+              handleFiles(e.target.files);
+            }
+            e.target.value = "";
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function getUnsupportedFileTypeMessage(allowedFileTypes: readonly string[]) {
+  if (allowedFileTypes.length === 0) {
+    return "File type not supported.";
+  }
+
+  const allowedLabels = formatList(
+    allowedFileTypes.map((type) => getAttachmentTypeLabel(type)),
+  );
+
+  return `File type not supported. Upload a ${allowedLabels}.`;
+}
+
+function formatList(items: string[]) {
+  const uniqueItems = Array.from(new Set(items));
+
+  if (uniqueItems.length <= 1) return uniqueItems[0] || "";
+  if (uniqueItems.length === 2) return uniqueItems.join(" or ");
+
+  return `${uniqueItems.slice(0, -1).join(", ")}, or ${
+    uniqueItems[uniqueItems.length - 1]
+  }`;
+}
+
+function AttachmentChip({
+  attachment,
+  onRemove,
+}: {
+  attachment: PendingAttachment;
+  onRemove: () => void;
+}) {
+  const isImage = isPreviewableImageType(attachment.type);
+  const previewUrl = useMemo(
+    () => (isImage ? URL.createObjectURL(attachment.file) : null),
+    [attachment.file, isImage],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  if (isImage && previewUrl) {
+    return (
+      <div className="relative shrink-0">
+        {attachment.uploading && (
+          <div className="absolute inset-0 z-[1] flex items-center justify-center rounded-lg bg-white/80">
+            <LoadingCircle className="size-4" />
+          </div>
+        )}
+        <img
+          src={previewUrl}
+          alt={attachment.name}
+          className="size-14 rounded-lg border border-neutral-200 object-cover"
+        />
+        <button
+          type="button"
+          onClick={onRemove}
+          className="absolute -right-1.5 -top-1.5 z-[2] flex size-5 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-400 shadow-sm transition-colors hover:text-neutral-600"
+        >
+          <X className="size-3" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative flex h-14 shrink-0 items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-1 pr-8">
+      {attachment.uploading && (
+        <div className="absolute inset-0 z-[1] flex items-center justify-center rounded-lg bg-white/80">
+          <LoadingCircle className="size-4" />
+        </div>
+      )}
+
+      <div
+        className={cn(
+          "flex size-12 shrink-0 flex-col items-center justify-center gap-0.5 rounded-md text-xs font-semibold uppercase text-white",
+          ATTACHMENT_MIME_TYPE_COLOR[attachment.type] || "bg-neutral-500",
+        )}
+      >
+        <File className="size-3 shrink-0" />
+        <span>{getAttachmentTypeLabel(attachment.type)}</span>
+      </div>
+
+      <div className="flex min-w-0 max-w-[120px] flex-col">
+        <span className="truncate text-sm font-medium text-neutral-700">
+          {attachment.name}
+        </span>
+        <span className="text-xs text-neutral-400">
+          {formatFileSize(attachment.size, 1)}
+        </span>
+      </div>
+
+      <button
+        type="button"
+        onClick={onRemove}
+        className="absolute -right-1.5 -top-1.5 z-[2] flex size-5 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-400 shadow-sm transition-colors hover:text-neutral-600"
+      >
+        <X className="size-3" />
+      </button>
     </div>
   );
 }
@@ -277,6 +555,7 @@ function MessageInputToolbar({
   setEmojiPickerOpen,
   stripColonOnEmojiPickRef,
   cursorRect,
+  onAttachClick,
 }: {
   emojiPickerOpen: boolean;
   setEmojiPickerOpen: (open: boolean) => void;
@@ -287,6 +566,7 @@ function MessageInputToolbar({
     left: number;
     right: number;
   } | null;
+  onAttachClick?: () => void;
 }) {
   const { editor } = useRichTextContext();
 
@@ -322,6 +602,15 @@ function MessageInputToolbar({
         >
           <RichTextToolbarButton icon={FaceSmile} label="Emoji" />
         </EmojiPicker>
+      }
+      toolsEnd={
+        onAttachClick ? (
+          <RichTextToolbarButton
+            icon={Paperclip}
+            label="Attach file"
+            onClick={onAttachClick}
+          />
+        ) : undefined
       }
     />
   );

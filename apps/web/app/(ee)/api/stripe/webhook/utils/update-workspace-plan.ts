@@ -11,16 +11,15 @@ import {
   wouldLosePartnerAccess,
 } from "@/lib/plans/has-partner-access";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
+import { prisma } from "@/lib/prisma";
 import {
   getSubscriptionCancellationFields,
   getSubscriptionTrialEndsAt,
 } from "@/lib/stripe/workspace-subscription-fields";
 import { WorkspaceProps } from "@/lib/types";
-import { webhookCache } from "@/lib/webhook/cache";
 import { sendBatchEmail } from "@dub/email";
 import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
-import { prisma } from "@dub/prisma";
 import {
   getPlanAndTierFromPriceId,
   getWorkspaceLimitsForStripeSubscriptionStatus,
@@ -76,11 +75,13 @@ export async function updateWorkspacePlan({
   const cancellationFields = getSubscriptionCancellationFields(subscription);
   const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
 
-  const billingOrCancellationChanged =
+  const datetimeFieldsUpdated =
     workspace.billingCycleEndsAt?.getTime() !==
       cancellationFields.billingCycleEndsAt?.getTime() ||
     workspace.subscriptionCanceledAt?.getTime() !==
-      cancellationFields.subscriptionCanceledAt?.getTime();
+      cancellationFields.subscriptionCanceledAt?.getTime() ||
+    (trialEndsAt !== undefined &&
+      workspace.trialEndsAt?.getTime() !== trialEndsAt?.getTime());
 
   // Update workspace plan / limits / subscription details if:
   // - workspace upgrades/downgrades their subscription
@@ -190,23 +191,6 @@ export async function updateWorkspacePlan({
           },
         }),
       ]);
-
-      // Update the webhooks cache
-      const webhooks = await prisma.webhook.findMany({
-        where: {
-          projectId: workspace.id,
-        },
-        select: {
-          id: true,
-          url: true,
-          secret: true,
-          triggers: true,
-          disabledAt: true,
-        },
-      });
-
-      await webhookCache.mset(webhooks);
-      console.log(`Updated webhooks cache for workspace ${workspace.id}.`);
     }
 
     // Delete the folders if the new plan does not support folders
@@ -312,15 +296,20 @@ export async function updateWorkspacePlan({
         `Sent thank you emails to ${workspaceOwners.length} workspace owners for workspace ${workspace.slug}.`,
       );
     }
-  } else if (billingOrCancellationChanged) {
+  } else if (datetimeFieldsUpdated) {
     await prisma.project.update({
       where: {
         id: workspace.id,
       },
-      data: cancellationFields,
+      data: {
+        ...cancellationFields,
+        ...(trialEndsAt !== undefined && { trialEndsAt }),
+      },
     });
+    console.log(`Updated workspace ${workspace.id} datetime fields`);
+  } else {
     console.log(
-      `Updated workspace ${workspace.id} billing cycle / cancellation fields.`,
+      `No plan or datetime field updates for workspace ${workspace.id}, skipping...`,
     );
   }
 }

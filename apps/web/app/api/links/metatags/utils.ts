@@ -1,6 +1,9 @@
 import { safeFetch } from "@/lib/api/safe-fetch";
 import { recordMetatags } from "@/lib/upstash";
-import { linkPreviewImageBase64PrefixRegex } from "@/lib/zod/schemas/images";
+import {
+  linkPreviewImageBase64PrefixRegex,
+  publicHostedImageSchema,
+} from "@/lib/zod/schemas/images";
 import { isValidUrl } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import he from "he";
@@ -76,10 +79,12 @@ export const getRelativeUrl = (url: string, imageUrl: string) => {
   } catch {
     return null;
   }
-  if (
-    /^https?:\/\//i.test(resolved) ||
-    linkPreviewImageBase64PrefixRegex.test(resolved)
-  ) {
+  if (linkPreviewImageBase64PrefixRegex.test(resolved)) {
+    return resolved;
+  }
+  // Apply the same image rule as link creation so a scraped preview can't block it:
+  // publicHostedImageSchema drops non-public hosts (localhost, IPs) that can't be proxied.
+  if (publicHostedImageSchema.safeParse(resolved).success) {
     return resolved;
   }
   return null;

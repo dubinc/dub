@@ -7,23 +7,25 @@ import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
-import { webhookCache } from "@/lib/webhook/cache";
 import { sendEmail } from "@dub/email";
 import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
-import { prisma } from "@dub/prisma";
 import { capitalize, FREE_PLAN, log } from "@dub/utils";
 import Stripe from "stripe";
-import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
+import {
+  CANCELLATION_FEEDBACK_EMAIL_TYPE,
+  sendCancellationFeedback,
+} from "./utils/send-cancellation-feedback";
 import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 
 export async function customerSubscriptionDeleted(
   event: Stripe.CustomerSubscriptionDeletedEvent,
 ) {
-  const subscriptionDeleted = event.data.object;
+  const deletedSubscription = event.data.object;
 
-  const stripeId = subscriptionDeleted.customer.toString();
+  const stripeId = deletedSubscription.customer.toString();
 
   // If a workspace deletes their subscription, reset their usage limit in the database to 1000.
   // Also remove the root domain link for all their domains from MySQL, Redis, and Tinybird
@@ -175,6 +177,7 @@ export async function customerSubscriptionDeleted(
       }),
 
     sendCancellationFeedback({
+      workspace,
       owners: workspaceUsers,
     }),
 
@@ -203,21 +206,13 @@ export async function customerSubscriptionDeleted(
     }),
   ]);
 
-  // Update the webhooks cache
-  const webhooks = await prisma.webhook.findMany({
+  // Reset cancellation feedback dedupe so a future resubscribe + cancel can send again
+  await prisma.sentEmail.deleteMany({
     where: {
       projectId: workspace.id,
-    },
-    select: {
-      id: true,
-      url: true,
-      secret: true,
-      triggers: true,
-      disabledAt: true,
+      type: CANCELLATION_FEEDBACK_EMAIL_TYPE,
     },
   });
-
-  await webhookCache.mset(webhooks);
 
   await deleteWorkspaceFolders({
     workspaceId: workspace.id,

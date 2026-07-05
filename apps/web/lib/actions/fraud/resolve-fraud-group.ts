@@ -3,8 +3,8 @@
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
 import { resolveFraudGroupSchema } from "@/lib/zod/schemas/fraud";
-import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
@@ -12,7 +12,7 @@ export const resolveFraudGroupAction = authActionClient
   .inputSchema(resolveFraudGroupSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
-    const { groupId, resolutionReason } = parsedInput;
+    const { groupId, resolutionReason, disableRiskDetection } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -60,6 +60,20 @@ export const resolveFraudGroupAction = authActionClient
           partnerId: fraudGroup.partnerId,
           userId: user.id,
           text: resolutionReason,
+        },
+      });
+    }
+
+    if (disableRiskDetection) {
+      await prisma.programEnrollment.update({
+        where: {
+          partnerId_programId: {
+            partnerId: fraudGroup.partnerId,
+            programId,
+          },
+        },
+        data: {
+          riskMonitoringDisabledAt: new Date(),
         },
       });
     }

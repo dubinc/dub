@@ -1,13 +1,24 @@
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
+import { prisma } from "@/lib/prisma";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
-import { prisma } from "@dub/prisma";
-import { Invoice } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter } from "@dub/utils";
+import { Invoice } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 
-export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
+export async function sendPaypalPayouts({
+  invoice,
+}: {
+  invoice: Pick<Invoice, "id" | "payoutMode">;
+}) {
+  if (invoice.payoutMode === "external") {
+    console.log(
+      `Invoice ${invoice.id} is paid externally, skipping PayPal payouts...`,
+    );
+    return;
+  }
+
   const payouts = await prisma.payout.findMany({
     where: {
       invoiceId: invoice.id,

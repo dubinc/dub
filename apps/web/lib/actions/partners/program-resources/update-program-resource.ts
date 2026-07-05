@@ -1,14 +1,15 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import {
   programResourceColorSchema,
   programResourceFileSchema,
   programResourceLinkSchema,
+  programResourceLinkUrlSchema,
   programResourcesSchema,
 } from "@/lib/zod/schemas/program-resources";
-import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../../safe-action";
@@ -48,7 +49,7 @@ const updateColorSchema = baseUpdateSchema.extend({
 const updateLinkSchema = baseUpdateSchema.extend({
   resourceType: z.literal("link"),
   name: z.string().min(1).optional(),
-  url: z.httpUrl().optional(),
+  url: programResourceLinkUrlSchema.optional(),
 });
 
 // Combined schema that can handle any resource type

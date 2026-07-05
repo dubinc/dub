@@ -145,7 +145,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     android,
     expiredUrl,
     doIndex,
-    webhookIds,
     testVariants,
     testCompletedAt,
     projectId: workspaceId,
@@ -292,7 +291,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );
@@ -351,7 +349,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url: finalUrl,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );
@@ -387,7 +384,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url: finalUrl,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );
@@ -425,7 +421,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url: finalUrl,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );
@@ -494,7 +489,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url: finalUrl,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );
@@ -562,7 +556,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url: finalUrl,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );
@@ -596,7 +589,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         url: finalUrl,
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
-        webhookIds,
         shouldCacheClickId,
       }),
     );

@@ -166,7 +166,7 @@ export function AssociatedCommissionsTable({
             <LoadingSpinner />
           ) : (
             <p className="text-content-subtle text-sm">
-              No associated commissions found for this fraud event
+              No associated commissions found for this risk event
             </p>
           )}
         </div>

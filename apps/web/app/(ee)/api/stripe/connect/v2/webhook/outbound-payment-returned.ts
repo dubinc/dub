@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { getStripeOutboundPayment } from "@/lib/stripe/get-stripe-outbound-payment";
 import { OUTBOUND_PAYMENT_RETURNED_REASONS } from "@/lib/stripe/stripe-v2-schemas";
-import { prisma } from "@dub/prisma";
 import { pluralize } from "@dub/utils";
 import Stripe from "stripe";
 

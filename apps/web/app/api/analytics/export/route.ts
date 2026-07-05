@@ -1,8 +1,9 @@
-import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
-import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
-import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { convertToCSV } from "@/lib/analytics/utils";
-import { formatProgramAnalyticsForExport } from "@/lib/analytics/utils/format-program-analytics-for-export";
+import { exportAnalyticsToZip } from "@/lib/analytics/export-analytics-to-zip";
+import {
+  getFirstFilterValue,
+  hasExactlyOneLinkIdFilter,
+} from "@/lib/analytics/filter-helpers";
+import { formatProgramAnalyticsForExport } from "@/lib/analytics/utils/format-analytics-export";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
@@ -12,13 +13,27 @@ import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-r
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { ratelimit } from "@/lib/upstash";
 import { parseAnalyticsQuery } from "@/lib/zod/schemas/analytics";
-import { Link } from "@dub/prisma/client";
-import JSZip from "jszip";
 
-// GET /api/analytics/export – get export data for analytics
+export const maxDuration = 300;
+
+// GET /api/analytics/export – get export data for analytics
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
+    const { success } = await ratelimit(1, "30 s").limit(
+      `analyticsExport:${workspace.id}`,
+    );
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message:
+          "Analytics export is limited to once every 30 seconds. Please try again shortly.",
+      });
+    }
+
     throwIfClicksUsageExceeded(workspace);
 
     const parsedParams = parseAnalyticsQuery(searchParams);
@@ -35,8 +50,6 @@ export const GET = withWorkspace(
       programId,
     } = parsedParams;
 
-    let link: Link | null = null;
-
     let programStartedAt: Date | null | undefined = null;
     if (programId) {
       const workspaceProgramId = getDefaultProgramIdOrThrow(workspace);
@@ -46,7 +59,6 @@ export const GET = withWorkspace(
           message: `Program ${programId} does not belong to workspace ${prefixWorkspaceId(workspace.id)}.`,
         });
       }
-      // dataAvailableFrom for timeseries is resolved per-endpoint below
       const program = await getProgramOrThrow({
         workspaceId: workspace.id,
         programId,
@@ -70,7 +82,6 @@ export const GET = withWorkspace(
         values: [link.id],
       };
 
-      // since we're filtering for a specific link, exclude domain from filters
       parsedParams.domain = undefined;
 
       if (link.folderId && !folderIdToVerify) {
@@ -95,39 +106,25 @@ export const GET = withWorkspace(
       end,
     });
 
-    // When domain+key resolves a specific link, exclude domain from filters
+    const { canTrackConversions } = getPlanCapabilities(workspace.plan);
+
     const { domain: _domain, key: _key, ...filterParams } = parsedParams;
+    const hasLinkIdFilter = Boolean(parsedParams.linkId);
+    const analyticsParams = hasLinkIdFilter ? filterParams : parsedParams;
 
-    const zip = new JSZip();
-
-    await Promise.all(
-      VALID_ANALYTICS_ENDPOINTS.map(async (endpoint) => {
-        // no need to fetch top links data if there's a link specified
-        // since this is just a single link
-        if (endpoint === "top_links" && link) return;
-        // skip clicks count
-        if (endpoint === "count") return;
-
-        const response = await getAnalytics({
-          ...(link ? filterParams : parsedParams),
-          workspaceId: workspace.id,
-          groupBy: endpoint,
-          isDeprecatedClicksEndpoint: false,
-          ...(endpoint === "timeseries" && {
-            dataAvailableFrom: programStartedAt ?? workspace.createdAt,
-          }),
-        });
-
-        if (!response || response.length === 0) return;
-
-        const csvData = convertToCSV(
-          programId ? formatProgramAnalyticsForExport(response) : response,
-        );
-        zip.file(`${endpoint}.csv`, csvData);
+    const zipData = await exportAnalyticsToZip({
+      params: analyticsParams,
+      workspaceId: workspace.id,
+      useComposite: canTrackConversions,
+      skipTopLinksForSingleLink: hasExactlyOneLinkIdFilter(parsedParams.linkId),
+      getDataAvailableFrom: (endpoint) =>
+        endpoint === "timeseries"
+          ? programStartedAt ?? workspace.createdAt
+          : undefined,
+      ...(programId && {
+        formatRows: formatProgramAnalyticsForExport,
       }),
-    );
-
-    const zipData = await zip.generateAsync({ type: "nodebuffer" });
+    });
 
     return new Response(zipData as unknown as BodyInit, {
       headers: {

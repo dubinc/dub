@@ -1,5 +1,9 @@
 export const REFERRALS_EMBED_EARNINGS_LIMIT = 8;
 export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;
+export const SORTABLE_LINKS_LIMIT = 10_000;
 export const MEGA_WORKSPACE_LINKS_LIMIT = 1_000_000;
 export const MIN_PAYOUT_AMOUNT_FOR_REMINDERS = 10_00;
 export const SLACK_SUPPORT_INVITE_MAX_EMAILS = 5;
+
+export const VITEST_POLL_INTERVAL_MS = 5000; // 5 seconds
+export const VITEST_TEST_TIMEOUT_MS = 90_000; // 90 seconds

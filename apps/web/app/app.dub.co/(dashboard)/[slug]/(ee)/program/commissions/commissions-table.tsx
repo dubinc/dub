@@ -195,7 +195,7 @@ export function CommissionsTable() {
         },
         {
           id: "group",
-          header: "Group",
+          header: "Partner Group",
           cell: ({ row }) => {
             if (!groups) return "-";
 
@@ -208,9 +208,16 @@ export function CommissionsTable() {
             return (
               <div className="flex items-center gap-2">
                 <GroupColorCircle group={group} />
-                <span className="truncate text-sm font-medium">
+                <Link
+                  href={`/${slug}/program/groups/${group.slug}`}
+                  target="_blank"
+                  onClick={(e) => e.stopPropagation()}
+                  onAuxClick={(e) => e.stopPropagation()}
+                  className="min-w-0 cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+                  title={group.name}
+                >
                   {group.name}
-                </span>
+                </Link>
               </div>
             );
           },

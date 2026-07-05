@@ -2,7 +2,7 @@ import {
   FraudAlertStatus,
   PartnerNetworkStatus,
   ProgramEnrollmentStatus,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { partnerProfileChangeHistoryLogSchema } from "./partner-profile";

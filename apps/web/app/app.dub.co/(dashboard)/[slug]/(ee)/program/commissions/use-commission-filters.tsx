@@ -10,7 +10,6 @@ import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { CommissionType } from "@dub/prisma/client";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { Sliders, Tag, User, Users, Users6 } from "@dub/ui/icons";
 import {
@@ -20,6 +19,7 @@ import {
   nFormatter,
   parseFilterValue,
 } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -79,7 +79,7 @@ export function useCommissionFilters() {
           customers?.map((customer) => {
             return {
               value: customer.id,
-              label: customer.email ?? customer.name,
+              label: customer.email ?? customer.name ?? customer.id,
               icon: <CustomerAvatar customer={customer} className="size-4" />,
             };
           }) ?? null,
@@ -108,7 +108,6 @@ export function useCommissionFilters() {
               value: group.id,
               label: group.name,
               icon: <GroupColorCircle group={group} />,
-              permalink: `/${slug}/program/groups/${group.slug}/rewards`,
             };
           }) ?? null,
       },

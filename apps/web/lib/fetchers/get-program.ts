@@ -1,6 +1,6 @@
 import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
-import { prisma } from "@dub/prisma";
-import { Program, Reward } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Program, Reward } from "@prisma/client";
 import { cache } from "react";
 import { serializeReward } from "../api/partners/serialize-reward";
 import { DiscountProps, GroupWithFormDataProps, RewardProps } from "../types";

@@ -1,4 +1,4 @@
-import { PlanPeriod } from "@dub/prisma/client";
+import { PlanPeriod } from "@prisma/client";
 import type Stripe from "stripe";
 
 export function getPlanPeriodFromStripeSubscription(

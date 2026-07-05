@@ -1,13 +1,12 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import { syncPartnerLinksStats } from "../../lib/api/partners/sync-partner-links-stats";
-import { getSaleEvent } from "../../lib/tinybird/get-sale-event";
+import { getSaleEvents } from "./get-sale-events";
 
-// update tinybird sale event
+// delete tinybird sale event
 async function main() {
-  const eventId = "xxx";
-  const deleteCondition = `event_id = '${eventId}'`;
-  const { data } = await getSaleEvent({ eventId });
+  const customerId = "cus_xxx";
+  const { data } = await getSaleEvents({ customerId });
   const oldData = data[0];
   if (!oldData) {
     console.log("No data found");
@@ -32,11 +31,11 @@ async function main() {
   const deleteRes = await Promise.allSettled([
     deleteData({
       dataSource: "dub_sale_events",
-      deleteCondition,
+      deleteCondition: `customer_id = '${customerId}'`,
     }),
     deleteData({
       dataSource: "dub_sale_events_mv",
-      deleteCondition,
+      deleteCondition: `customer_id = '${customerId}'`,
     }),
   ]);
   console.log(deleteRes);

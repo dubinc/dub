@@ -1,10 +1,10 @@
 import { captureRequestLog } from "@/lib/api-logs/capture-request-log";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
+import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
-import { Project } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
+import { Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { COMMON_CORS_HEADERS } from "../api/cors";

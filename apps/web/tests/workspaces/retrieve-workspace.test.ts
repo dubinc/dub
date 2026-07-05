@@ -1,5 +1,5 @@
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
-import { Project } from "@dub/prisma/client";
+import { Project } from "@prisma/client";
 import { describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 import { IntegrationHarness } from "../utils/integration";

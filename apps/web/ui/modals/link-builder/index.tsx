@@ -53,7 +53,6 @@ import { useFormContext, useWatch } from "react-hook-form";
 type LinkBuilderModalProps = {
   showLinkBuilder: boolean;
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
-  homepageDemo?: boolean;
 };
 
 export function LinkBuilder(props: LinkBuilderProps & LinkBuilderModalProps) {
@@ -63,7 +62,6 @@ export function LinkBuilder(props: LinkBuilderProps & LinkBuilderModalProps) {
 function LinkBuilderOuter({
   showLinkBuilder,
   setShowLinkBuilder,
-  homepageDemo,
   ...rest
 }: LinkBuilderProps & LinkBuilderModalProps) {
   return (
@@ -71,7 +69,6 @@ function LinkBuilderOuter({
       <LinkBuilderInner
         showLinkBuilder={showLinkBuilder}
         setShowLinkBuilder={setShowLinkBuilder}
-        homepageDemo={homepageDemo}
       />
     </LinkBuilderProvider>
   );
@@ -80,12 +77,10 @@ function LinkBuilderOuter({
 function LinkBuilderInner({
   showLinkBuilder,
   setShowLinkBuilder,
-  homepageDemo,
 }: LinkBuilderModalProps) {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const { id: workspaceId, slug, flags } = useWorkspace();
-
+  const { id: workspaceId, slug } = useWorkspace();
   const { props, duplicateProps } = useLinkBuilderContext();
 
   const {
@@ -95,7 +90,7 @@ function LinkBuilderInner({
     formState: { isDirty, isSubmitting, isSubmitSuccessful },
   } = useFormContext<LinkFormData>();
 
-  const [domain, key] = useWatch({
+  const [domain, _key] = useWatch({
     control,
     name: ["domain", "key"],
   });
@@ -125,7 +120,12 @@ function LinkBuilderInner({
 
   useEffect(() => {
     // for a new link (no props or duplicateProps), set the domain to the primary domain
-    if (!loading && primaryDomain && !props && !duplicateProps) {
+    if (
+      !loading &&
+      primaryDomain &&
+      !props?.domain &&
+      !duplicateProps?.domain
+    ) {
       setValue("domain", primaryDomain, {
         shouldValidate: true,
         shouldDirty: false,
@@ -227,28 +227,20 @@ function LinkBuilderInner({
           </div>
           <div className="flex items-center justify-between gap-2 border-t border-neutral-100 bg-neutral-50 p-4">
             <LinkFeatureButtons />
-            {homepageDemo ? (
-              <Button
-                disabledTooltip="This is a demo link. You can't edit it."
-                text="Save changes"
-                className="h-8 w-fit"
-              />
-            ) : (
-              <Button
-                type="submit"
-                disabled={saveDisabled}
-                loading={isSubmitting || isSubmitSuccessful}
-                text={
-                  <span className="flex items-center gap-2">
-                    {props ? "Save changes" : "Create link"}
-                    <div className="rounded border border-white/20 p-1">
-                      <ArrowTurnLeft className="size-3.5" />
-                    </div>
-                  </span>
-                }
-                className="h-8 w-fit pl-2.5 pr-1.5"
-              />
-            )}
+            <Button
+              type="submit"
+              disabled={saveDisabled}
+              loading={isSubmitting || isSubmitSuccessful}
+              text={
+                <span className="flex items-center gap-2">
+                  {props ? "Save changes" : "Create link"}
+                  <div className="rounded border border-white/20 p-1">
+                    <ArrowTurnLeft className="size-3.5" />
+                  </div>
+                </span>
+              }
+              className="h-8 w-fit pl-2.5 pr-1.5"
+            />
           </div>
         </form>
       </Modal>
@@ -342,13 +334,10 @@ export function CreateLinkButton({
 export function useLinkBuilder({
   props,
   duplicateProps,
-  homepageDemo,
 }: {
   props?: ExpandedLinkProps;
   duplicateProps?: ExpandedLinkProps;
-  homepageDemo?: boolean;
 } = {}) {
-  const workspace = useWorkspace();
   const [showLinkBuilder, setShowLinkBuilder] = useState(false);
 
   const LinkBuilderCallback = useCallback(() => {
@@ -358,8 +347,6 @@ export function useLinkBuilder({
         setShowLinkBuilder={setShowLinkBuilder}
         props={props}
         duplicateProps={duplicateProps}
-        homepageDemo={homepageDemo}
-        workspace={workspace}
         modal={true}
       />
     );

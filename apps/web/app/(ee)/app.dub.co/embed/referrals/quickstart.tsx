@@ -1,4 +1,5 @@
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import {
   Button,
@@ -12,7 +13,7 @@ import {
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
-import { cn, DUB_LOGO } from "@dub/utils";
+import { cn, DUB_LOGO, TREMENDOUS_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { motion } from "motion/react";
 import { useReferralsEmbedData } from "./page-client";
 
@@ -24,13 +25,14 @@ export function ReferralsEmbedQuickstart({
   setSelectedTab,
 }: {
   hasResources: boolean;
-  setSelectedTab: (tab: "Links" | "Resources" | "FAQ") => void;
+  setSelectedTab: (tab: "Links" | "Resources" | "FAQ" | "Settings") => void;
 }) {
-  const { program, group, links, earnings } = useReferralsEmbedData();
+  const { isMobile } = useMediaQuery();
+  const [copied, copyToClipboard] = useCopyToClipboard();
+  const { partner, program, group, links, earnings } = useReferralsEmbedData();
+
   const programEmbedData = programEmbedSchema.parse(program.embedData);
 
-  const [copied, copyToClipboard] = useCopyToClipboard();
-  const { isMobile } = useMediaQuery();
   const payoutsDisabled = earnings.upcoming === 0 && earnings.paid === 0;
 
   const items = [
@@ -133,9 +135,29 @@ export function ReferralsEmbedQuickstart({
                     ? "You will be able to withdraw your earnings once you have made at least one sale."
                     : undefined
                 }
-                onClick={() =>
-                  window.open("https://partners.dub.co/payouts", "_blank")
-                }
+                onClick={() => {
+                  const isTremendousCountrySupported = Boolean(
+                    !partner.country ||
+                      TREMENDOUS_SUPPORTED_COUNTRIES.includes(partner.country),
+                  );
+
+                  const usesTremendous =
+                    partner.defaultPayoutMethod === "tremendous";
+
+                  // Show Tremendous payout settings if the partner already uses Tremendous,
+                  // or hasn't selected a payout method yet and is eligible based on country.
+                  const showTremendousSettings =
+                    TREMENDOUS_ENABLED_PROGRAM_IDS.includes(program.id) &&
+                    (usesTremendous ||
+                      (!partner.defaultPayoutMethod &&
+                        isTremendousCountrySupported));
+
+                  if (showTremendousSettings) {
+                    setSelectedTab("Settings");
+                  } else {
+                    window.open("https://partners.dub.co/payouts", "_blank");
+                  }
+                }}
                 text="Connect payouts"
               />
             ),

@@ -9,6 +9,7 @@ import {
   EnrolledPartnerExtendedProps,
   EnrolledPartnerProps,
 } from "@/lib/types";
+import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
@@ -176,7 +177,18 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
       nested: true,
     });
 
-  useKeyboardShortcut("c", () => setCreateCommissionSheetOpen(true));
+  const canCreateCommission = COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES.includes(
+    partner.status,
+  );
+  const createCommissionDisabledTooltip = canCreateCommission
+    ? undefined
+    : `You can't create a commission for a partner that is ${partner.status}.`;
+
+  useKeyboardShortcut("c", () => {
+    if (canCreateCommission) {
+      setCreateCommissionSheetOpen(true);
+    }
+  });
 
   const { createClawbackSheet, setIsOpen: setClawbackSheetOpen } =
     useCreateClawbackSheet({});
@@ -272,6 +284,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
             text="Create commission"
             shortcut="C"
             onClick={() => setCreateCommissionSheetOpen(true)}
+            disabledTooltip={createCommissionDisabledTooltip}
             className="hidden h-8 w-fit px-3 sm:h-9 md:flex"
           />
 
@@ -337,6 +350,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
                       setCreateCommissionSheetOpen(true);
                       setIsOpen(false);
                     }}
+                    disabledTooltip={createCommissionDisabledTooltip}
                     className="md:hidden"
                   >
                     Create commission

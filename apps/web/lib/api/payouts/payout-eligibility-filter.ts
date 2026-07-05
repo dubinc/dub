@@ -1,5 +1,6 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { Prisma, Program, Project } from "@dub/prisma/client";
+import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
+import { Prisma, Program, Project } from "@prisma/client";
 
 export function getPayoutEligibilityFilter({
   program,
@@ -19,12 +20,19 @@ export function getPayoutEligibilityFilter({
     ...(getPlanCapabilities(workspace.plan).canManageFraudEvents && {
       programEnrollment: {
         fraudEventGroups: {
-          every: {
-            status: "resolved",
-          },
+          none: { status: "pending" },
         },
       },
     }),
+    // Gift card payouts are capped at $2,000 per payout
+    NOT: {
+      partner: {
+        defaultPayoutMethod: "tremendous",
+      },
+      amount: {
+        gt: TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+      },
+    },
   };
 
   switch (program.payoutMode) {

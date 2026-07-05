@@ -1,5 +1,5 @@
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { CommissionStatus } from "@dub/prisma/client";
+import { CommissionStatus } from "@prisma/client";
 import * as z from "zod/v4";
 
 const sharedCommissionAnalyticsFilterSchema = analyticsQuerySchema

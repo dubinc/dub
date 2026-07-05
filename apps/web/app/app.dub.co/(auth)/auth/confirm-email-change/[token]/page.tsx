@@ -1,11 +1,11 @@
 import { getSession, hashToken } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import EmptyState from "@/ui/shared/empty-state";
 import { sendEmail } from "@dub/email";
 import EmailUpdated from "@dub/email/templates/email-updated";
-import { prisma } from "@dub/prisma";
-import { VerificationToken } from "@dub/prisma/client";
 import { InputPassword, LoadingSpinner } from "@dub/ui";
+import { VerificationToken } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
@@ -80,6 +80,16 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
   const identifier = tokenFound.identifier.startsWith("pn_")
     ? partnerId
     : userId;
+
+  if (tokenFound.identifier !== identifier) {
+    return (
+      <EmptyState
+        icon={InputPassword}
+        title="Invalid Token"
+        description="This token is invalid or expired. Please request a new one."
+      />
+    );
+  }
 
   const data = await redis.get<{
     email: string;

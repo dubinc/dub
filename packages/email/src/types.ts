@@ -8,7 +8,11 @@ export type WorkspaceProps = {
   defaultProgramId: string | null;
 };
 
-export type PartnerPayoutMethod = "connect" | "stablecoin" | "paypal";
+export type PartnerPayoutMethod =
+  | "connect"
+  | "stablecoin"
+  | "paypal"
+  | "tremendous";
 
 export type TrialMarketingEmailProps = {
   email: string;

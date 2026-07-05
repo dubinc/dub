@@ -51,8 +51,7 @@ export const UpdatePassword = () => {
           <div className="flex flex-col space-y-1">
             <h2 className="text-xl font-medium">Password</h2>
             <p className="pb-2 text-sm text-neutral-500">
-              Manage your account password on {process.env.NEXT_PUBLIC_APP_NAME}
-              .
+              Manage your account password on Dub.
             </p>
           </div>
           <div className="grid w-full max-w-sm items-center gap-2">

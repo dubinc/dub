@@ -5,10 +5,10 @@ import {
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
 } from "@/lib/constants/partner-profile";
+import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
 import { getPartnerCustomersCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { toCentsNumber } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/:programId/customers/count – Get customer counts grouped by a field

@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 

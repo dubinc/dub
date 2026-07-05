@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { CreateFraudEventInput, FraudEventContext } from "@/lib/types";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import { prettyPrint } from "@dub/utils";
 import { fraudEventContext } from "../../zod/schemas/schemas";
 import { createFraudEvents } from "./create-fraud-events";
@@ -24,6 +24,14 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   if (INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
     console.info(
       `[detectAndRecordFraudEvent] Program enrollment is ${programEnrollment.status}, skipping...`,
+    );
+    return;
+  }
+
+  // Skip if risk monitoring is disabled
+  if (programEnrollment.riskMonitoringDisabledAt) {
+    console.info(
+      `[detectAndRecordFraudEvent] Risk monitoring is disabled for this partner, skipping...`,
     );
     return;
   }

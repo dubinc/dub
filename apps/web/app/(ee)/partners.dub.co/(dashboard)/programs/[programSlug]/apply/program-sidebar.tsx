@@ -77,6 +77,7 @@ export function ProgramSidebar({
     },
   });
   const { programEnrollment } = useProgramEnrollment({
+    programSlug: program.slug,
     swrOpts: {
       keepPreviousData: true,
       shouldRetryOnError: (err) => err.status !== 404,
@@ -262,7 +263,10 @@ export function ProgramSidebar({
       </div>
 
       {applicationRequirements && applicationRequirements.length ? (
-        <ProgramEligibilityCard requirements={applicationRequirements} />
+        <ProgramEligibilityCard
+          programSlug={program.slug}
+          requirements={applicationRequirements}
+        />
       ) : null}
 
       <Button

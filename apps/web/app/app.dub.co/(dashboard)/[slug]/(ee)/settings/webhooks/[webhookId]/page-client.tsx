@@ -39,8 +39,7 @@ export default function WebhookLogsPageClient({
   );
 
   const [detailsSheetState, setDetailsSheetState] = useState<
-    | { open: false; eventId: string | null }
-    | { open: true; eventId: string }
+    { open: false; eventId: string | null } | { open: true; eventId: string }
   >({ open: false, eventId: null });
 
   const currentEvent = useMemo(
@@ -61,7 +60,9 @@ export default function WebhookLogsPageClient({
 
     return [
       currentIndex > 0 ? events[currentIndex - 1].event_id : null,
-      currentIndex < events.length - 1 ? events[currentIndex + 1].event_id : null,
+      currentIndex < events.length - 1
+        ? events[currentIndex + 1].event_id
+        : null,
     ];
   }, [events, detailsSheetState.eventId]);
 

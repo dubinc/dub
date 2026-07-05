@@ -1,6 +1,9 @@
 import { isBlacklistedEmail } from "@/lib/edge-config";
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import Stripe from "stripe";
+
+export const CANCELLATION_FEEDBACK_EMAIL_TYPE = "cancellationFeedbackEmail";
 
 const cancellationReasonMap = {
   customer_service: "you had a bad experience with our customer service",
@@ -13,15 +16,33 @@ const cancellationReasonMap = {
 };
 
 export async function sendCancellationFeedback({
+  workspace,
   owners,
   reason,
 }: {
+  workspace: {
+    id: string;
+  };
   owners: {
     name: string | null;
     email: string | null;
   }[];
   reason?: Stripe.Subscription.CancellationDetails.Feedback | null;
 }) {
+  const alreadySent = await prisma.sentEmail.findFirst({
+    where: {
+      projectId: workspace.id,
+      type: CANCELLATION_FEEDBACK_EMAIL_TYPE,
+    },
+  });
+
+  if (alreadySent) {
+    console.log(
+      `Cancellation feedback email already sent for workspace ${workspace.id}, skipping...`,
+    );
+    return;
+  }
+
   const isBlacklistedCancellation = await isBlacklistedEmail(
     owners.filter(({ email }) => email).map(({ email }) => email!),
   );
@@ -30,6 +51,13 @@ export async function sendCancellationFeedback({
     console.log("Blacklisted cancellation, skipping feedback email...");
     return;
   }
+
+  await prisma.sentEmail.create({
+    data: {
+      projectId: workspace.id,
+      type: CANCELLATION_FEEDBACK_EMAIL_TYPE,
+    },
+  });
 
   const reasonText = reason ? cancellationReasonMap[reason] : "";
 

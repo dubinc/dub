@@ -20,7 +20,7 @@ test.describe("Billing trial checkout", () => {
     baseURL,
     request,
   }) => {
-    const dashboardOrigin = baseURL ?? "http://app.localhost:8888";
+    const dashboardOrigin = baseURL ?? "http://localhost:8888";
 
     const res = await request.get("/api/workspaces");
     expect(res.ok()).toBeTruthy();
@@ -122,7 +122,9 @@ test.describe("Free trial user navigation", () => {
     }
   });
 
-  test("billing settings page shows trial banner and CTAs", async ({ page }) => {
+  test("billing settings page shows trial banner and CTAs", async ({
+    page,
+  }) => {
     await page.goto(`/${slug}/settings/billing`);
 
     await expect(page.getByText(/Trial ends on/)).toBeVisible({
@@ -184,9 +186,7 @@ test.describe("Free trial user navigation", () => {
         "You'll be charged today and your trial will end.",
       ),
     ).toBeVisible();
-    await confirmModal
-      .getByRole("button", { name: "Start paid plan" })
-      .click();
+    await confirmModal.getByRole("button", { name: "Start paid plan" }).click();
 
     await page.waitForURL((u) => {
       const url = new URL(u);

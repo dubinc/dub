@@ -5,6 +5,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import {
   getClickEvent,
@@ -29,9 +30,8 @@ import {
   trackSaleRequestSchema,
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
-import { prisma } from "@dub/prisma";
-import { Customer } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
+import { Customer, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";
@@ -62,6 +62,7 @@ export const trackSale = async ({
   let existingCustomer: Customer | null = null;
   let newCustomer: Customer | null = null;
   let leadEventData: LeadEventTB | null = null;
+  let shouldTrackDirectSaleLead = false;
 
   // Return idempotent response if invoiceId is already processed
   if (invoiceId) {
@@ -139,9 +140,9 @@ export const trackSale = async ({
     }
   }
 
-  // If no existing customer is found and a click event is found, create a new customer (for direct sale tracking)
+  // Direct sale tracking: create the customer from the click event.
+  // On concurrent requests, fall back to fetching the existing row (P2002) instead of failing.
   if (!existingCustomer && clickData) {
-    // Create a new customer
     const link = await prisma.link.findUnique({
       where: {
         id: clickData.link_id,
@@ -182,24 +183,42 @@ export const trackSale = async ({
         ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
         : customerAvatar;
 
-    newCustomer = await prisma.customer.create({
-      data: {
-        id: finalCustomerId,
-        name: finalCustomerName,
-        email: customerEmail,
-        avatar: finalCustomerAvatar,
-        externalId: customerExternalId,
-        linkId: clickData.link_id,
-        clickId: clickData.click_id,
-        country: clickData.country,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-        clickedAt: new Date(clickData.timestamp + "Z"),
-      },
-    });
+    try {
+      newCustomer = await prisma.customer.create({
+        data: {
+          id: finalCustomerId,
+          name: finalCustomerName,
+          email: customerEmail,
+          avatar: finalCustomerAvatar,
+          externalId: customerExternalId,
+          linkId: clickData.link_id,
+          clickId: clickData.click_id,
+          country: clickData.country,
+          projectId: workspace.id,
+          projectConnectId: workspace.stripeConnectId,
+          clickedAt: new Date(clickData.timestamp + "Z"),
+        },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        existingCustomer = await prisma.customer.findUniqueOrThrow({
+          where: {
+            projectId_externalId: {
+              projectId: workspace.id,
+              externalId: customerExternalId,
+            },
+          },
+        });
+      } else {
+        throw error;
+      }
+    }
 
+    // Persist customer avatar to R2 if it's not already stored
     if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
-      // persist customer avatar to R2 if it's not already stored
       waitUntil(
         storage
           .upload({
@@ -212,26 +231,71 @@ export const trackSale = async ({
           })
           .catch(async (error) => {
             console.error("Error persisting customer avatar to R2", error);
+
             // if the avatar fails to upload to R2, set the avatar to null in the database
             if (newCustomer) {
               await prisma.customer.update({
-                where: { id: newCustomer.id },
-                data: { avatar: null },
+                where: {
+                  id: newCustomer.id,
+                },
+                data: {
+                  avatar: null,
+                },
               });
             }
           }),
       );
     }
 
-    leadEventData = {
-      ...clickData,
-      event_id: nanoid(16),
-      // if leadEventName is provided, use it
-      // otherwise use "Direct sale tracking lead event" (since it's for direct sale tracking)
-      event_name: leadEventName ?? "Direct sale tracking lead event",
-      customer_id: newCustomer.id,
-      metadata: metadata ? JSON.stringify(metadata) : "",
-    };
+    // if leadEventName is provided, use it
+    // otherwise use "Direct sale tracking lead event" (since it's for direct sale tracking)
+    const finalLeadEventName =
+      leadEventName ?? "Direct sale tracking lead event";
+
+    if (newCustomer) {
+      leadEventData = {
+        ...clickData,
+        event_id: nanoid(16),
+        event_name: finalLeadEventName,
+        customer_id: newCustomer.id,
+        metadata: metadata ? JSON.stringify(metadata) : "",
+      };
+    } else if (existingCustomer) {
+      const leadEvent = await getLeadEvent({
+        customerId: existingCustomer.id,
+        eventName: leadEventName,
+      });
+
+      leadEventData = leadEvent
+        ? {
+            ...leadEvent,
+            ...clickData,
+          }
+        : {
+            ...clickData,
+            event_id: nanoid(16),
+            event_name: finalLeadEventName,
+            customer_id: existingCustomer.id,
+            metadata: metadata ? JSON.stringify(metadata) : "",
+          };
+    }
+
+    // Deduplicate lead events across concurrent direct sale requests
+    if (leadEventData) {
+      const cacheKey = `directSaleTrackLead:${workspace.id}:${customerExternalId}:${finalLeadEventName.toLowerCase().replaceAll(" ", "-")}`;
+      const cachedLeadEvent = await redis.set(
+        cacheKey,
+        {
+          timestamp: Date.now(),
+        },
+        {
+          ex: 30, // 30 seconds
+          nx: true,
+        },
+      );
+
+      shouldTrackDirectSaleLead = cachedLeadEvent !== null;
+    }
   }
 
   const customer = existingCustomer ?? newCustomer;
@@ -246,11 +310,11 @@ export const trackSale = async ({
   }
 
   const [_, trackedSale] = await Promise.all([
-    newCustomer &&
+    shouldTrackDirectSaleLead &&
       _trackLead({
         workspace,
         leadEventData,
-        customer: newCustomer,
+        customer,
       }),
 
     _trackSale({
@@ -435,10 +499,25 @@ const _trackSale = async ({
     metadata: metadata ? JSON.stringify(metadata) : "",
   };
 
-  const firstConversionFlag = isFirstConversion({
+  let firstConversionFlag = isFirstConversion({
     customer,
     linkId: saleData.link_id,
   });
+
+  // Deduplicate concurrent first sales for the same customer + link so only one
+  // request is counted as the first conversion.
+  if (firstConversionFlag) {
+    const claim = await redis.set(
+      `firstConversion:${customer.id}:${saleData.link_id}`,
+      1,
+      {
+        ex: 30,
+        nx: true,
+      },
+    );
+
+    firstConversionFlag = claim !== null;
+  }
 
   waitUntil(
     (async () => {
@@ -506,11 +585,13 @@ const _trackSale = async ({
               workspaceId: workspace.id,
               programId: link.programId,
               partnerId: link.partnerId,
+              customerId: customer.id,
+              customerFirstSaleAt: customer.firstSaleAt ?? new Date(),
             },
             metrics: {
               current: {
-                saleAmount: saleData.amount,
                 conversions: firstConversionFlag ? 1 : 0,
+                saleAmount: saleData.amount,
               },
             },
           }),

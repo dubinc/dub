@@ -1,11 +1,13 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import {
+  CARD_PAYOUT_HARD_COST_RATE,
   CUTOFF_PERIOD_MAX_PAYOUTS,
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE,
   FAST_ACH_FEE_CENTS,
   INVOICE_MIN_PAYOUT_AMOUNT_CENTS,
+  STRIPE_PAYMENT_METHOD_NORMALIZATION,
 } from "@/lib/constants/payouts";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
@@ -446,16 +448,19 @@ function ConfirmPayoutsSheetContent() {
       0,
     );
 
-    const fastAchFee = selectedPaymentMethod.fastSettlement
-      ? FAST_ACH_FEE_CENTS
-      : 0;
+    const invoicePaymentMethod = selectedPaymentMethod.fastSettlement
+      ? "ach_fast"
+      : STRIPE_PAYMENT_METHOD_NORMALIZATION[selectedPaymentMethod.type];
+
+    const fastAchFee =
+      invoicePaymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
 
     const { fee } = calculatePayoutFeeWithWaiver({
       payoutAmount: amount,
       payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
       payoutFeeWaiverUsage: payoutFeeWaiverUsage ?? 0,
       payoutFee: selectedPaymentMethod.fee,
-      fastAchFee,
+      paymentMethod: invoicePaymentMethod,
     });
 
     const total = amount + fee;
@@ -1221,13 +1226,11 @@ function buildPayoutFeeTooltip({
     payoutFeeWaiverLimit > 0 && payoutFeeWaiverUsage < payoutFeeWaiverLimit;
 
   const fastAchFeeText =
-    fastAchFee > 0 ? ` + ${currencyFormatter(fastAchFee)} Fast ACH fee` : "";
-
-  if (isWithinWaiver) {
-    const waiverLimitFormatted = nFormatter(payoutFeeWaiverLimit / 100);
-
-    return `0% processing fee for the first $${waiverLimitFormatted} payouts, then ${feePercentage}%${fastAchFeeText}. [Learn more](https://d.to/payouts)`;
-  }
+    fastAchFee > 0
+      ? isWithinWaiver
+        ? ` A ${currencyFormatter(fastAchFee)} Fast ACH fee still applies.`
+        : ` + ${currencyFormatter(fastAchFee)} Fast ACH fee`
+      : "";
 
   const isDirectDebit = DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(
     selectedPaymentMethod.type as any,
@@ -1235,7 +1238,16 @@ function buildPayoutFeeTooltip({
 
   const directDebitSuggestion = isDirectDebit
     ? ""
-    : " Switch to Direct Debit for a reduced fee.";
+    : ` [Switch to Direct Debit](https://dub.co/help/article/how-to-set-up-bank-account) for ${isWithinWaiver ? "0% fees" : "a reduced fee"}.`;
 
-  return `${feePercentage}% processing fee${fastAchFeeText}. ${directDebitSuggestion} [Learn more](https://d.to/payouts)`;
+  if (isWithinWaiver) {
+    const effectiveFeePercentage = isDirectDebit
+      ? 0
+      : CARD_PAYOUT_HARD_COST_RATE * 100;
+    const waiverLimitFormatted = nFormatter(payoutFeeWaiverLimit / 100);
+
+    return `${effectiveFeePercentage}% processing fee for the first $${waiverLimitFormatted} payouts, then ${feePercentage}%${fastAchFeeText}.${directDebitSuggestion} [Learn more](https://d.to/payouts)`;
+  }
+
+  return `${feePercentage}% processing fee${fastAchFeeText}.${directDebitSuggestion} [Learn more](https://d.to/payouts)`;
 }

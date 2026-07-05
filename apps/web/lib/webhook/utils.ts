@@ -1,5 +1,6 @@
-import { Webhook, WebhookReceiver } from "@dub/prisma/client";
-import { LINK_LEVEL_WEBHOOK_TRIGGERS } from "./constants";
+import { Webhook, WebhookReceiver } from "@prisma/client";
+import { LINK_CLICK_WEBHOOK_TRIGGER } from "./constants";
+import type { WebhookTrigger } from "./types";
 
 const webhookReceivers: Record<string, WebhookReceiver> = {
   "zapier.com": "zapier",
@@ -9,17 +10,14 @@ const webhookReceivers: Record<string, WebhookReceiver> = {
   "api.segment.io": "segment",
 };
 
-export const isLinkLevelWebhook = (webhook: Pick<Webhook, "triggers">) => {
+export const hasLinkClickTrigger = (webhook: Pick<Webhook, "triggers">) => {
   if (!webhook.triggers) {
     return false;
   }
 
-  const triggers =
-    webhook.triggers as (typeof LINK_LEVEL_WEBHOOK_TRIGGERS)[number][];
+  const triggers = webhook.triggers as WebhookTrigger[];
 
-  return triggers.some((trigger) =>
-    LINK_LEVEL_WEBHOOK_TRIGGERS.includes(trigger),
-  );
+  return triggers.includes(LINK_CLICK_WEBHOOK_TRIGGER);
 };
 
 export const identifyWebhookReceiver = (url: string): WebhookReceiver => {

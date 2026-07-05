@@ -1,7 +1,8 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { prisma } from "@/lib/prisma";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
-import { prisma } from "@dub/prisma";
+import { ACME_WORKSPACE_ID, DUB_WORKSPACE_ID } from "@dub/utils";
 import * as z from "zod/v4";
 
 export const dynamic = "force-dynamic";
@@ -63,13 +64,32 @@ export async function POST(req: Request) {
       return new Response(`Only domain renewals can be retried at this time.`);
     }
 
-    if (!invoice.workspace.stripeId) {
-      console.log(`Workspace ${invoice.workspace.id} has no stripeId.`);
-      return new Response(`Workspace ${invoice.workspace.id} has no stripeId.`);
+    let { workspace } = invoice;
+
+    // If Acme workspace, use Dub workspace stripeId
+    if (workspace.id === ACME_WORKSPACE_ID) {
+      const dubWorkspace = await prisma.project.findUniqueOrThrow({
+        where: {
+          id: DUB_WORKSPACE_ID,
+        },
+        select: {
+          stripeId: true,
+        },
+      });
+
+      workspace = {
+        ...workspace,
+        stripeId: dubWorkspace.stripeId,
+      };
+    }
+
+    if (!workspace.stripeId) {
+      console.log(`Workspace ${workspace.id} has no stripeId.`);
+      return new Response(`Workspace ${workspace.id} has no stripeId.`);
     }
 
     await createPaymentIntent({
-      stripeId: invoice.workspace.stripeId,
+      stripeId: workspace.stripeId,
       amount: invoice.total,
       invoiceId: invoice.id,
       statementDescriptor: "DUB.CO DOMAIN RENEWAL",

@@ -15,7 +15,7 @@ import {
   DubLinksIcon,
   DubPartnersIcon,
 } from "../icons";
-import { navItems, type NavTheme } from "./nav";
+import { navItems, type NavItem, type NavTheme } from "./nav";
 
 const specialIcons: Record<string, ReactNode> = {
   "Dub Links": (
@@ -43,9 +43,11 @@ const specialIcons: Record<string, ReactNode> = {
 export function NavMobile({
   theme = "light",
   staticDomain,
+  navItems: items = navItems,
 }: {
   theme?: NavTheme;
   staticDomain?: string;
+  navItems?: NavItem[];
 }) {
   let { domain = "dub.co" } = useParams() as { domain: string };
   if (staticDomain) {
@@ -110,7 +112,7 @@ export function NavMobile({
         )}
       >
         <ul className="grid divide-y divide-neutral-200 dark:divide-white/[0.15]">
-          {navItems.map(({ name, href, childItems }, idx) => (
+          {items.map(({ name, href, childItems }, idx) => (
             <MobileNavItem
               key={idx}
               name={name}

@@ -1,8 +1,8 @@
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { isFraudRuleEnabled } from "@/lib/api/fraud/get-merged-fraud-rules";
+import { prisma } from "@/lib/prisma";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { FraudRuleType, PartnerBannedReason } from "@dub/prisma/client";
+import { FraudRuleType, PartnerBannedReason } from "@prisma/client";
 
 // Creates partnerCrossProgramBan fraud events in other programs where the partner is enrolled.
 // Used when a program bans a partner so that other programs can be alerted about cross-program
@@ -27,6 +27,7 @@ export async function reportCrossProgramBanToNetwork({
       status: {
         notIn: INACTIVE_ENROLLMENT_STATUSES,
       },
+      riskMonitoringDisabledAt: null,
     },
     select: {
       programId: true,

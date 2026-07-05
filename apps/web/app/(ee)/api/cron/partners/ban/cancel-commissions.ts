@@ -1,5 +1,5 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 
 // Mark the commissions as canceled
 export async function cancelCommissions({

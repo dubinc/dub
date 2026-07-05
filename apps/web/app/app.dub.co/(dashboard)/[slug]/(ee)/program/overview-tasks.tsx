@@ -1,4 +1,4 @@
-import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
+import { usePartnerMessagesCount } from "@/lib/messages/hooks/use-partner-messages-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";

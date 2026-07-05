@@ -24,7 +24,6 @@ import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
   ChevronRight,
@@ -48,6 +47,7 @@ import {
   formatDateTimeSmart,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { PayoutStatus } from "@prisma/client";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { useMemo } from "react";
@@ -510,20 +510,15 @@ function PayoutConfirmButton() {
   const permissionsError =
     typeof _permissionsError === "string" ? _permissionsError : null;
 
-  useKeyboardShortcut(
-    "c",
-    () =>
-      router.push(
-        `/${slug}/program/payouts?confirmPayouts=true&selectedPayoutId=${payout?.id}`,
-      ),
-    {
-      enabled:
-        !hasHold &&
-        !!payout?.id &&
-        !!payout.partner.payoutsEnabledAt &&
-        !permissionsError,
-    },
-  );
+  const url = `/${slug}/program/payouts?status=pending&confirmPayouts=true&selectedPayoutIds=${payout?.id}`;
+
+  useKeyboardShortcut("c", () => router.push(url), {
+    enabled:
+      !hasHold &&
+      !!payout?.id &&
+      !!payout.partner.payoutsEnabledAt &&
+      !permissionsError,
+  });
 
   if (payout?.status !== "pending") {
     return null;
@@ -531,23 +526,20 @@ function PayoutConfirmButton() {
 
   return (
     <div className="flex items-center gap-2">
-      <Button
-        text="Confirm payout"
-        className="h-8 px-3 sm:h-9"
-        shortcut="C"
-        disabledTooltip={
-          hasHold
-            ? `This partner's payouts are on hold due to [unresolved fraud events](${APP_DOMAIN}/${slug}/program/fraud?partnerId=${payout.partner.id}). They cannot be paid out until resolved.`
-            : !payout.partner.payoutsEnabledAt
-              ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
-              : permissionsError || undefined
-        }
-        onClick={() => {
-          router.push(
-            `/${slug}/program/payouts?confirmPayouts=true&selectedPayoutId=${payout.id}`,
-          );
-        }}
-      />
+      <Link href={url}>
+        <Button
+          text="Confirm payout"
+          className="h-8 px-3 sm:h-9"
+          shortcut="C"
+          disabledTooltip={
+            hasHold
+              ? `This partner's payouts are on hold due to [unresolved risk events](${APP_DOMAIN}/${slug}/program/risks?partnerId=${payout.partner.id}). They cannot be paid out until resolved.`
+              : !payout.partner.payoutsEnabledAt
+                ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
+                : permissionsError || undefined
+          }
+        />
+      </Link>
     </div>
   );
 }

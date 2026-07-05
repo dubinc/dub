@@ -1,5 +1,5 @@
 import { logger } from "@/lib/axiom/server";
-import { APP_DOMAIN, pluralize } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
 import { FlowControl } from "@upstash/qstash";
 import { Client } from "@upstash/workflow";
 
@@ -28,7 +28,7 @@ export async function triggerQStashWorkflow(
     try {
       const response = await client.trigger(
         workflows.map((workflow) => ({
-          url: `${APP_DOMAIN}/api/workflows/${workflow.workflowType}`,
+          url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowType}`,
           body: workflow.body,
           label: workflow.workflowLabel,
           retries: 5,

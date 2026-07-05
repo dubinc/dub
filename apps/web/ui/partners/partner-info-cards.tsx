@@ -41,12 +41,13 @@ import { Fragment, ReactNode, createElement } from "react";
 import useSWR from "swr";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
 import {
-  PartnerApplicationFraudBanner,
-  PartnerFraudBanner,
-} from "./fraud-risks/partner-fraud-banner";
-import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
+  PartnerApplicationRiskBanner,
+  PartnerRiskBanner,
+} from "./fraud-risks/partner-risk-banner";
+import { PartnerRiskIndicator } from "./fraud-risks/partner-risk-indicator";
 import { PartnerAvatar } from "./partner-avatar";
 import { PartnerInfoGroup } from "./partner-info-group";
+import { PartnerNetworkStatusBadge } from "./partner-network/partner-network-status-badge";
 import { PartnerStarButton } from "./partner-star-button";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
 import { PartnerTagsList } from "./partner-tags-list";
@@ -55,7 +56,6 @@ import {
   getPayoutMethodLabel,
 } from "./payouts/payout-method-config";
 import { ProgramRewardList } from "./program-reward-list";
-import { TrustedPartnerBadge } from "./trusted-partner-badge";
 import {
   UpdatePartnerTagsModal,
   useUpdatePartnerTagsModal,
@@ -152,12 +152,32 @@ export function PartnerInfoCards({
   ];
 
   if ((isEnrolled || isAdmin) && partner) {
+    const isPendingApplication =
+      "status" in partner && partner.status === "pending";
+
     basicFields = basicFields.concat([
       {
         id: "createdAt",
-        icon: <Users className="size-3.5" />,
-        text: `${"status" in partner && partner.status === "pending" ? "Applied" : "Partner since"} ${formatDate(partner.createdAt)}`,
-        timestamp: partner.createdAt,
+        icon: isPendingApplication ? (
+          <CalendarIcon className="size-3.5" />
+        ) : (
+          <Users className="size-3.5" />
+        ),
+        text: isPendingApplication ? (
+          <span className="inline-flex flex-wrap items-center gap-1">
+            <TimestampTooltip
+              timestamp={partner.createdAt}
+              rows={["local", "utc", "unix"]}
+              side="left"
+              delayDuration={250}
+            >
+              <span>Applied {formatDate(partner.createdAt)}</span>
+            </TimestampTooltip>
+          </span>
+        ) : (
+          `${isPendingApplication ? "Applied" : "Partner since"} ${formatDate(partner.createdAt)}`
+        ),
+        timestamp: isPendingApplication ? undefined : partner.createdAt,
       },
       {
         id: "payoutMethod" as const,
@@ -227,9 +247,9 @@ export function PartnerInfoCards({
         {partner &&
           isEnrolled &&
           (partner.status === "pending" ? (
-            <PartnerApplicationFraudBanner partner={partner} />
+            <PartnerApplicationRiskBanner partner={partner} />
           ) : (
-            <PartnerFraudBanner partner={partner} />
+            <PartnerRiskBanner partner={partner} />
           ))}
 
         <div className="border-border-subtle flex flex-col divide-y divide-neutral-200 rounded-xl border bg-white">
@@ -243,9 +263,6 @@ export function PartnerInfoCards({
                   />
                 ) : (
                   <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
-                )}
-                {partner?.networkStatus === "trusted" && (
-                  <TrustedPartnerBadge />
                 )}
               </div>
 
@@ -271,8 +288,15 @@ export function PartnerInfoCards({
                     {partner.name}
                   </span>
 
+                  {"networkStatus" in partner && partner.networkStatus && (
+                    <PartnerNetworkStatusBadge
+                      networkStatus={partner.networkStatus}
+                      size="large"
+                    />
+                  )}
+
                   {showFraudIndicator && (
-                    <PartnerFraudIndicator partnerId={partner.id} />
+                    <PartnerRiskIndicator partnerId={partner.id} />
                   )}
                 </div>
               ) : (
@@ -309,7 +333,11 @@ export function PartnerInfoCards({
                     {text !== undefined ? (
                       <>
                         {icon}
-                        <span className="text-xs font-medium">{text}</span>
+                        {typeof text === "string" ? (
+                          <span className="text-xs font-medium">{text}</span>
+                        ) : (
+                          <div className="text-xs font-medium">{text}</div>
+                        )}
                       </>
                     ) : (
                       <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />

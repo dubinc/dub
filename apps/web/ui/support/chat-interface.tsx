@@ -56,12 +56,16 @@ export function ChatInterface({
   const { programEnrollments, isLoading: isLoadingPrograms } =
     useProgramEnrollments();
   const hasPartnerProfile = !!session?.user?.["defaultPartnerId"];
+  const hasNoProgramEnrollments =
+    hasPartnerProfile &&
+    !isLoadingPrograms &&
+    (programEnrollments?.length ?? 0) === 0;
 
   let canChat: boolean;
   if (effectiveAccountType === "workspace")
     canChat = !!selection.selectedWorkspace;
   else if (effectiveAccountType === "partner")
-    canChat = !!selection.selectedProgram;
+    canChat = hasNoProgramEnrollments || !!selection.selectedProgram;
   else canChat = false;
 
   const { messages, sendMessage, status, setMessages } = useChat({
@@ -137,6 +141,16 @@ export function ChatInterface({
     }
   };
 
+  const getSlackThreadTs = () => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const meta = (messages[i] as any).metadata as
+        | { slackThreadTs?: string }
+        | undefined;
+      if (meta?.slackThreadTs) return meta.slackThreadTs;
+    }
+    return undefined;
+  };
+
   const handleSend = (text?: string) => {
     const messageText = text ?? input;
     if (!messageText.trim() || status === "streaming" || !canChat) return;
@@ -150,6 +164,7 @@ export function ChatInterface({
               effectiveAccountType === "partner" ? "partners" : "app",
             accountType: effectiveAccountType,
           },
+          slackThreadTs: getSlackThreadTs(),
         },
       },
     );
@@ -171,6 +186,7 @@ export function ChatInterface({
               effectiveAccountType === "partner" ? "partners" : "app",
             accountType: effectiveAccountType,
           },
+          slackThreadTs: getSlackThreadTs(),
           ...(attachmentIds.length ? { attachmentIds } : {}),
           ...(details ? { ticketDetails: details } : {}),
         },
@@ -351,7 +367,7 @@ export function ChatInterface({
           </SupportMessage>
         )}
 
-        {effectiveAccountType === "partner" && (
+        {effectiveAccountType === "partner" && !hasNoProgramEnrollments && (
           <SupportMessage avatar={assistantAvatar} animate>
             {!hasPartnerProfile ? (
               <>

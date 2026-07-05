@@ -1,10 +1,10 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { qstash } from "@/lib/cron";
 import { sendLimitEmail } from "@/lib/cron/send-limit-email";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
 import ClicksSummary from "@dub/email/templates/clicks-summary";
-import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   capitalize,
@@ -55,7 +55,7 @@ export const updateUsage = async () => {
 
   // if no workspaces left, meaning cron is complete
   if (workspaces.length === 0) {
-    return;
+    return "No workspaces left to update";
   }
 
   // Reset billing cycles for workspaces that have
@@ -160,7 +160,7 @@ export const updateUsage = async () => {
 
         await sendBatchEmail(
           emails.map((email) => ({
-            subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${workspace.name}`,
+            subject: `Your 30-day Dub summary for ${workspace.name}`,
             to: email,
             react: ClicksSummary({
               email,
@@ -240,9 +240,11 @@ export const updateUsage = async () => {
     }),
   );
 
-  return await qstash.publishJSON({
+  await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/usage`,
     method: "POST",
     body: {},
   });
+
+  return `Updated usage stats for ${workspaces.length} workspaces`;
 };

@@ -10,13 +10,16 @@ import { ProgramEnrollmentProps } from "../types";
 
 export default function useProgramEnrollment({
   enabled = true,
+  programSlug: programSlugProp,
   swrOpts,
 }: {
   enabled?: boolean;
+  programSlug?: string;
   swrOpts?: SWRConfiguration;
 } = {}) {
   const { data: session, status } = useSession();
-  const { programSlug } = useParams();
+  const { programSlug: programSlugParam } = useParams();
+  const programSlug = programSlugProp ?? programSlugParam;
 
   const partnerId = session?.user?.["defaultPartnerId"];
 

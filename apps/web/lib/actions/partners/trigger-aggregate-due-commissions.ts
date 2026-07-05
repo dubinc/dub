@@ -4,6 +4,10 @@ import { APP_DOMAIN_WITH_NGROK, prettyPrint } from "@dub/utils";
 export async function triggerAggregateDueCommissionsCronJob(programId: string) {
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/aggregate-due-commissions`,
+    flowControl: {
+      key: programId,
+      rate: 1,
+    },
     body: {
       programId,
     },

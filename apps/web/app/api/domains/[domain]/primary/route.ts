@@ -1,7 +1,7 @@
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { withWorkspace } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // POST /api/domains/[domain]/primary – set a domain as primary

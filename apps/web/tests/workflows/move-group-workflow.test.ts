@@ -1,7 +1,7 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { RESOURCE_COLORS } from "@/ui/colors";
-import { PartnerGroup } from "@dub/prisma/client";
 import { randomValue } from "@dub/utils";
+import { PartnerGroup } from "@prisma/client";
 import { E2E_PARTNER } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { randomPartnerEmail } from "../utils/helpers";
@@ -131,6 +131,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
     });
 
     expect(removeStatus).toEqual(200);
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     const { data: deletedWorkflow } = await http.get<any>({
       path: "/e2e/workflows",
@@ -494,10 +496,11 @@ describe.sequential("Workflow - MoveGroup", async () => {
     const slug = "e2e-target-skip-partner-move";
 
     // Get the current group of E2E_PARTNER
-    const { data: partner, status: partnerStatus } =
-      await http.get<EnrolledPartnerProps>({
-        path: `/partners/${E2E_PARTNER.id}`,
-      });
+    const { data: partner, status: partnerStatus } = await http.get<
+      EnrolledPartnerProps & { groupMoveDisabledAt: Date }
+    >({
+      path: `/partners/${E2E_PARTNER.id}`,
+    });
 
     expect(partnerStatus).toEqual(200);
     expect(partner).not.toBeNull();
@@ -547,7 +550,9 @@ describe.sequential("Workflow - MoveGroup", async () => {
       expectedGroupId: partner.groupId!,
     });
 
-    const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
+    const { data: partnerAfter } = await http.get<
+      EnrolledPartnerProps & { groupMoveDisabledAt: Date }
+    >({
       path: `/partners/${partner.id}`,
     });
 

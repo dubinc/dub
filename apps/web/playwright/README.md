@@ -26,9 +26,6 @@
    SMTP_PORT=1025
 
    # RESEND_API_KEY must NOT be set, otherwise emails go to Resend instead of MailHog
-
-   # Optional — defaults to http://partners.localhost:8888
-   PLAYWRIGHT_BASE_URL=http://partners.localhost:8888
    ```
 
    The seeded test user (`E2E_PARTNER_EMAIL`) must exist in your local database — run `tsx apps/web/playwright/seed.ts` to create it. Signup tests generate a fresh user each run via MailHog email verification.

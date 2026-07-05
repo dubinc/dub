@@ -1,13 +1,14 @@
 import { STABLECOIN_PAYOUT_FEE_RATE } from "@/lib/constants/payouts";
-import type { PartnerPayoutMethod } from "@dub/prisma/client";
 import {
   Calendar6,
   CircleDollar,
+  Gift,
   Globe,
   GreekTemple,
   Paypal,
   Stablecoin,
 } from "@dub/ui";
+import type { PartnerPayoutMethod } from "@prisma/client";
 import { MapPin, Zap } from "lucide-react";
 import type { ComponentType } from "react";
 
@@ -53,6 +54,14 @@ export const PAYOUT_METHODS = [
         text: "PayPal + local bank account required",
       },
     ],
+  },
+  {
+    id: "tremendous" as const,
+    title: "Gift card",
+    recommended: false,
+    icon: Gift,
+    iconWrapperClass: "border-[#1717171A] bg-white",
+    features: [],
   },
 ] as const;
 

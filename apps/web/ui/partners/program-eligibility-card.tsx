@@ -4,47 +4,56 @@ import { evaluateCondition } from "@/lib/partners/evaluate-application-requireme
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { EligibilityConditionDB } from "@/lib/types";
+import { CountryFlag } from "@/ui/shared/country-flag";
 import { Lock } from "@dub/ui/icons";
 import { COUNTRIES } from "@dub/utils";
+import { ReactNode } from "react";
 
-function oxfordJoin(items: string[]): string {
-  if (items.length === 0) return "";
-  if (items.length === 1) return items[0];
-  if (items.length === 2) return `${items[0]} or ${items[1]}`;
-  return `${items.slice(0, -1).join(", ")}, or ${items[items.length - 1]}`;
-}
-
-function formatConditionText(condition: EligibilityConditionDB): string {
+function formatConditionContent(
+  condition: EligibilityConditionDB,
+): ReactNode | null {
   if (condition.key === "country") {
-    const countryNames = condition.value.map((code) => COUNTRIES[code] ?? code);
-    const joined = oxfordJoin(countryNames);
+    const intro =
+      condition.operator === "is"
+        ? "You can only apply to this program if you are from the following countries:"
+        : "You cannot apply to this program if you are from the following countries:";
 
-    if (condition.operator === "is") {
-      return `Your country is ${joined}`;
-    } else {
-      return `Your country is not ${joined}`;
-    }
+    return (
+      <div className="space-y-2 text-sm text-blue-800">
+        <p>{intro}</p>
+        <div className="flex flex-wrap gap-1.5">
+          {condition.value.map((code) => (
+            <span
+              key={code}
+              className="inline-flex h-7 items-center gap-1.5 rounded-full bg-blue-100 px-2.5 text-xs font-medium text-blue-900"
+            >
+              <CountryFlag
+                countryCode={code}
+                className="size-3.5 rounded-full"
+              />
+              {COUNTRIES[code] ?? code}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   // emailDomain — commented out, preserved for future use
   // if (condition.key === "emailDomain") {
-  //   const joined = oxfordJoin(condition.value);
-  //   if (condition.operator === "is") {
-  //     return `Your email domain is ${joined}`;
-  //   } else {
-  //     return `Your email domain is not ${joined}`;
-  //   }
-  // }
+  //   ...
 
-  return "";
+  return null;
 }
 
 export function ProgramEligibilityCard({
+  programSlug,
   requirements: requirementsProp,
 }: {
+  programSlug?: string;
   requirements?: EligibilityConditionDB[] | null;
 } = {}) {
-  const { programEnrollment } = useProgramEnrollment();
+  const { programEnrollment } = useProgramEnrollment({ programSlug });
   const { partner, loading } = usePartnerProfile();
 
   const requirements =
@@ -67,9 +76,14 @@ export function ProgramEligibilityCard({
       }),
   );
 
-  const unmetWithText = unmet.map(formatConditionText).filter(Boolean);
+  const unmetConditions = unmet
+    .map((condition) => ({
+      condition,
+      content: formatConditionContent(condition),
+    }))
+    .filter(({ content }) => content !== null);
 
-  if (unmetWithText.length === 0) return null;
+  if (unmetConditions.length === 0) return null;
 
   return (
     <div className="mt-4 space-y-3 rounded-[10px] border border-blue-200 bg-blue-50 p-4">
@@ -78,11 +92,9 @@ export function ProgramEligibilityCard({
         Program eligibility
       </div>
 
-      <ul className="list-disc space-y-1 pl-5 text-sm text-blue-800">
-        {unmetWithText.map((text, i) => (
-          <li key={i}>{text}</li>
-        ))}
-      </ul>
+      {unmetConditions.map(({ condition, content }) => (
+        <div key={`${condition.key}-${condition.operator}`}>{content}</div>
+      ))}
     </div>
   );
 }

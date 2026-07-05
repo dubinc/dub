@@ -1,10 +1,10 @@
 import { getSession } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { PartnerPlatformProps } from "@/lib/types";
 import { partnerPlatformSchema } from "@/lib/zod/schemas/partners";
 import { PartnerPlatformsForm } from "@/ui/partners/partner-platforms-form";
-import { prisma } from "@dub/prisma";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@prisma/client";
 import { Suspense } from "react";
 import * as z from "zod/v4";
 import { OnboardingPlatformsPageClient } from "./page-client";

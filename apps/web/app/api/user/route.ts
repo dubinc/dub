@@ -1,9 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withSession } from "@/lib/auth";
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { uploadedImageSchema } from "@/lib/zod/schemas/images";
-import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN,
   APP_HOSTNAMES,

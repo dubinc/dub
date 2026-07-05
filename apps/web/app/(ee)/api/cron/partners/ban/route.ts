@@ -4,11 +4,11 @@ import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions"
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withCron } from "@/lib/cron/with-cron";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
-import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { cancelCommissions } from "./cancel-commissions";
@@ -138,7 +138,7 @@ export const POST = withCron(async ({ rawBody }) => {
     recordLink(links, { deleted: true }),
 
     // Queue discount code deletions
-    deleteDiscountCodes(discountCodes),
+    deleteDiscountCodes(discountCodes, { isSoftDelete: true }),
   ]);
 
   // Send email

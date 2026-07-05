@@ -1,7 +1,7 @@
 "use server";
 
 import { authActionClient } from "@/lib/actions/safe-action";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { HUBSPOT_INTEGRATION_ID } from "@dub/utils";
 import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";

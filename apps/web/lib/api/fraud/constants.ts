@@ -98,6 +98,8 @@ export const FRAUD_RULES_BY_TYPE = Object.fromEntries(
   FRAUD_RULES.map((rule) => [rule.type, rule]),
 ) as Record<FraudRuleInfo["type"], FraudRuleInfo>;
 
+export const FRAUD_GROUP_EXPIRY_DAYS = 30;
+
 export const FRAUD_RULES_BY_SCOPE = FRAUD_RULES.reduce(
   (acc, rule) => {
     (acc[rule.scope] ||= []).push(rule);

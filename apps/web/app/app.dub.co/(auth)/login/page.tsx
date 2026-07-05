@@ -5,7 +5,7 @@ import { APP_DOMAIN, constructMetadata } from "@dub/utils";
 import Link from "next/link";
 
 export const metadata = constructMetadata({
-  title: `Sign in to ${process.env.NEXT_PUBLIC_APP_NAME}`,
+  title: "Sign in to Dub",
   canonicalUrl: `${APP_DOMAIN}/login`,
 });
 
