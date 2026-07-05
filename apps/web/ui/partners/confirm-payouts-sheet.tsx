@@ -49,7 +49,6 @@ import {
   fetcher,
   formatDate,
   nFormatter,
-  pluralize,
   truncate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -189,38 +188,6 @@ function ConfirmPayoutsSheetContent() {
   const eligiblePayoutsTableRowCount = isExplicitSelectionMode
     ? eligiblePayoutsSummaryCount?.count ?? 0
     : eligiblePayoutsTableTotalCount?.count ?? 0;
-
-  const { data: payoutsCount } = useSWR<
-    {
-      status: string;
-      count: number;
-      amount: number | null;
-    }[]
-  >(
-    workspaceId
-      ? `/api/payouts/count?${new URLSearchParams({
-          workspaceId,
-          groupBy: "status",
-          status: "hold",
-        }).toString()}`
-      : null,
-    fetcher,
-  );
-
-  const { holdPayoutsCount, holdPayoutsAmount } = useMemo(() => {
-    if (!payoutsCount || payoutsCount.length === 0) {
-      return { holdPayoutsCount: 0, holdPayoutsAmount: 0 };
-    }
-
-    const pendingPayoutsCount = payoutsCount.find(
-      (p) => p.status === "pending",
-    );
-
-    return {
-      holdPayoutsCount: pendingPayoutsCount?.count ?? 0,
-      holdPayoutsAmount: pendingPayoutsCount?.amount ?? 0,
-    };
-  }, [payoutsCount]);
 
   const [page, setPage] = useState(1);
   const { pagination, setPagination } = useTablePagination({
@@ -956,31 +923,6 @@ function ConfirmPayoutsSheetContent() {
             )
           }
         />
-        {!isExplicitSelectionMode && holdPayoutsCount > 0 && (
-          <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
-            <span>
-              Excluding{" "}
-              <span className="font-medium text-neutral-800">
-                {nFormatter(holdPayoutsCount, { full: true })}
-              </span>
-              {` on hold ${pluralize("payout", holdPayoutsCount)} `}
-              <span className="font-medium text-neutral-800">
-                (
-                {currencyFormatter(holdPayoutsAmount, {
-                  trailingZeroDisplay: "stripIfInteger",
-                })}
-                )
-              </span>
-            </span>
-            <a href={`/${slug}/program/payouts?status=hold`} target="_blank">
-              <Button
-                variant="secondary"
-                text="Review"
-                className="h-7 w-fit cursor-alias rounded-md border border-neutral-200 px-2 text-sm"
-              />
-            </a>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -123,7 +123,6 @@ export const confirmPayoutsAction = authActionClient
       const [eligiblePayouts, payoutWebhooks] = await Promise.all([
         getEligiblePayouts({
           program,
-          workspace,
           cutoffPeriod,
           selectedPayoutIds,
           excludedPayoutIds,

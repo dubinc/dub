@@ -12,17 +12,8 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const isHoldStatus = searchParams.status === "hold";
-  const { status: _status, ...restSearchParams } = searchParams;
-
-  let { status, partnerId, groupId, groupBy, eligibility, invoiceId } =
-    payoutsCountQuerySchema.parse(
-      isHoldStatus ? restSearchParams : searchParams,
-    );
-
-  if (isHoldStatus) {
-    status = PayoutStatus.pending;
-  }
+  const { status, partnerId, groupId, groupBy, eligibility, invoiceId } =
+    payoutsCountQuerySchema.parse(searchParams);
 
   const program = await getProgramOrThrow({
     workspaceId: workspace.id,
@@ -31,7 +22,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const programEnrollment = buildProgramEnrollmentFilter({
     groupId,
-    isHoldStatus,
   });
 
   const where: Prisma.PayoutWhereInput = {

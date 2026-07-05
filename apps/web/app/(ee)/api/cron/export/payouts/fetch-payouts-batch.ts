@@ -1,20 +1,16 @@
-import {
-  getPayouts,
-  ParsedPayoutsFilters,
-} from "@/lib/api/payouts/get-payouts";
+import { getPayouts } from "@/lib/api/payouts/get-payouts";
+import { PayoutsQueryFilters } from "@/lib/types";
 
-export async function* fetchPayoutsBatch(
-  {
-    workspaceId,
-    programId,
-    filters,
-  }: {
-    workspaceId: string;
-    programId: string;
-    filters: ParsedPayoutsFilters;
-  },
-  pageSize: number = 1000,
-) {
+export async function* fetchPayoutsBatch({
+  workspaceId,
+  programId,
+  filters,
+}: {
+  workspaceId: string;
+  programId: string;
+  filters: PayoutsQueryFilters;
+}) {
+  const pageSize = filters.pageSize ?? 1000;
   let page = 1;
   let hasMore = true;
 
@@ -22,9 +18,11 @@ export async function* fetchPayoutsBatch(
     const payouts = await getPayouts({
       workspaceId,
       programId,
-      filters,
-      page,
-      pageSize,
+      filters: {
+        ...filters,
+        page,
+        pageSize,
+      },
     });
 
     if (payouts.length > 0) {

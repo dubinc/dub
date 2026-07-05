@@ -1,13 +1,11 @@
 "use client";
 
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import useGroups from "@/lib/swr/use-groups";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
-import { FraudGroupCountByPartner, PayoutResponse } from "@/lib/types";
+import { PayoutResponse } from "@/lib/types";
 import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicator";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -37,12 +35,12 @@ import {
   PayoutStatus,
   ProgramPayoutMode,
 } from "@prisma/client";
-import { PayoutPaidCell } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-paid-cell";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { PayoutPaidCell } from "./payout-paid-cell";
 import { usePayoutFilters } from "./use-payout-filters";
 
 /** Matches server `getPayoutEligibilityFilter` and in-table warnings in `AmountRowItem`. */
@@ -150,25 +148,6 @@ export function PayoutTable() {
 
   const { pagination, setPagination } = usePagination(PAYOUTS_MAX_PAGE_SIZE);
 
-  const { canManageFraudEvents } = getPlanCapabilities(plan);
-
-  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
-    query: {
-      groupBy: "partnerId",
-      status: "pending",
-    },
-    ignoreParams: true,
-  });
-
-  // Memoized map of partner IDs with pending risk events
-  const fraudGroupCountMap = useMemo(() => {
-    if (!fraudGroupCount) {
-      return new Set<string>();
-    }
-
-    return new Set(fraudGroupCount.map(({ partnerId }) => partnerId));
-  }, [fraudGroupCount]);
-
   const isFiltered = Object.keys(searchParamsObj).some(
     (key) => !["sortBy", "sortOrder", "page"].includes(key),
   );
@@ -221,16 +200,7 @@ export function PayoutTable() {
           id: "status",
           header: "Status",
           cell: ({ row }) => {
-            const hasPendingFraudEvents =
-              canManageFraudEvents &&
-              fraudGroupCountMap.has(row.original.partner.id);
-
-            const status =
-              hasPendingFraudEvents && row.original.status === "pending"
-                ? "hold"
-                : row.original.status;
-
-            const badge = PayoutStatusBadges[status];
+            const badge = PayoutStatusBadges[row.original.status];
 
             return badge ? (
               <StatusBadge icon={badge.icon} variant={badge.variant}>
@@ -275,7 +245,7 @@ export function PayoutTable() {
           cell: () => null,
         },
       ].filter((c) => c.id === "menu" || payoutsColumns.all.includes(c.id)),
-    [canManageFraudEvents, fraudGroupCountMap, groups, workspaceSlug],
+    [groups, workspaceSlug],
   );
 
   const { table, ...tableProps } = useTable({

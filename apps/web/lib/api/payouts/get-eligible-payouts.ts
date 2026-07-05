@@ -4,7 +4,7 @@ import {
   eligiblePayoutsQuerySchema,
   PayoutResponseSchema,
 } from "@/lib/zod/schemas/payouts";
-import { Program, Project } from "@prisma/client";
+import { Program } from "@prisma/client";
 import * as z from "zod/v4";
 import { getEffectivePayoutMode } from "./get-effective-payout-mode";
 import { getPayoutEligibilityFilter } from "./payout-eligibility-filter";
@@ -13,12 +13,10 @@ import { payoutIdSelectionWhere } from "./payout-id-selection-where";
 interface GetEligiblePayoutsProps
   extends z.output<typeof eligiblePayoutsQuerySchema> {
   program: Pick<Program, "id" | "name" | "minPayoutAmount" | "payoutMode">;
-  workspace: Pick<Project, "plan">;
 }
 
 export async function getEligiblePayouts({
   program,
-  workspace,
   cutoffPeriod,
   selectedPayoutIds,
   excludedPayoutIds,
