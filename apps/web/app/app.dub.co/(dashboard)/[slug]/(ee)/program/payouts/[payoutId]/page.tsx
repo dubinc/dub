@@ -59,6 +59,8 @@ type PayoutActivityItem = {
   user?: PayoutResponse["user"];
 };
 
+const terminalStatuses = ["completed", "sent", "failed", "canceled"] as const;
+
 export default function PayoutDetailsPage() {
   const { slug, id: workspaceId } = useWorkspace();
   const { payout, loading, error } = usePayout();
@@ -281,13 +283,6 @@ function PayoutDetailsContent({
       });
     }
 
-    const terminalStatuses = [
-      "completed",
-      "sent",
-      "failed",
-      "canceled",
-      "hold",
-    ] as const;
     const terminalStatus = terminalStatuses.find((s) => s === payout.status);
 
     if (terminalStatus) {
