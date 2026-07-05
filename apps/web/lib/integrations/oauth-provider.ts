@@ -10,6 +10,7 @@ export interface OAuthProviderConfig<T extends z.ZodSchema = z.ZodSchema> {
   tokenUrl: string;
   redirectUri: string;
   scopes?: string;
+  authParams?: Record<string, string>;
   redisStatePrefix: string;
   tokenSchema: T;
   bodyFormat: "form" | "json";
@@ -36,6 +37,7 @@ export class OAuthProvider<T extends z.ZodSchema> {
       client_id: this.provider.clientId,
       redirect_uri: this.provider.redirectUri,
       ...(this.provider.scopes ? { scope: this.provider.scopes } : {}),
+      ...(this.provider.authParams ?? {}),
       response_type: "code",
       state,
     });
