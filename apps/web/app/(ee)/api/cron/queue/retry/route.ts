@@ -6,9 +6,10 @@ import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash/redis";
 import { logAndRespond } from "../../utils";
 
+export const dynamic = "force-dynamic";
+
 const MAX_ATTEMPTS = 10;
 const BATCH_SIZE = 100;
-
 const LOCK_KEY = "lock:queue-retry";
 const LOCK_TTL_SECONDS = 120;
 
