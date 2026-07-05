@@ -1,4 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";
 import * as z from "zod/v4";
 
@@ -21,14 +23,36 @@ export const bankAccountSchema = z
   .nullable();
 
 export const getPartnerBankAccount = async (stripeAccount: string) => {
-  const externalAccounts = (await stripe.accounts.listExternalAccounts(
-    stripeAccount,
-    {
-      object: "bank_account",
-    },
-  )) as Stripe.ApiList<Stripe.BankAccount>;
+  try {
+    const externalAccounts = await stripe.accounts.listExternalAccounts(
+      stripeAccount,
+      {
+        object: "bank_account",
+      },
+    );
 
-  return externalAccounts.data.length > 0
-    ? bankAccountSchema.parse(externalAccounts.data[0])
-    : null;
+    return externalAccounts.data.length > 0
+      ? bankAccountSchema.parse(externalAccounts.data[0])
+      : null;
+  } catch (error) {
+    const isApplicationAccessRevoked =
+      error instanceof Stripe.errors.StripeError &&
+      error.message.includes("Application access may have been revoked.");
+
+    if (isApplicationAccessRevoked) {
+      waitUntil(
+        prisma.partner.update({
+          where: {
+            stripeConnectId: stripeAccount,
+          },
+          data: {
+            stripeConnectId: null,
+            payoutMethodHash: null,
+          },
+        }),
+      );
+    }
+
+    return null;
+  }
 };
