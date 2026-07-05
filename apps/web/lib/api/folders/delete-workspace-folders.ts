@@ -78,6 +78,8 @@ export async function deleteWorkspaceFolders({
 
   await folderDeletedJob.dispatchBatch(
     folderIds.map((folderId) => ({ folderId })),
-    ({ folderId }) => ({ label: folderId }),
+    ({ folderId }) => ({
+      label: folderId,
+    }),
   );
 }

@@ -93,16 +93,6 @@ export const folderDeletedJob = defineJob({
       return;
     }
 
-    // No more links to update — delete the folder.
-    await prisma.projectUsers.updateMany({
-      where: {
-        defaultFolderId: folderId,
-      },
-      data: {
-        defaultFolderId: null,
-      },
-    });
-
     await prisma.folder.delete({
       where: {
         id: folderId,

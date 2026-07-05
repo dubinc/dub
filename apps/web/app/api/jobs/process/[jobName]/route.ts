@@ -4,6 +4,8 @@ import { jobEnvelopeSchema } from "@/lib/jobs";
 import { jobRegistry } from "@/lib/jobs/registry";
 import * as z from "zod/v4";
 
+export const maxDuration = 600;
+
 // POST /api/jobs/process/[jobName] – shared executor for all background jobs
 export const POST = withAxiomBodyLog(
   async (

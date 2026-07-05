@@ -4,6 +4,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { partnerTagDeletedJob } from "@/lib/jobs/partner-tag-deleted-job";
 import { prisma } from "@/lib/prisma";
 import { deletePartnerTagSchema } from "@/lib/zod/schemas/partner-tags";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../../safe-action";
 import { throwIfNoPermission } from "../../throw-if-no-permission";
 
@@ -35,12 +36,15 @@ export const deletePartnerTagAction = authActionClient
       throw new Error("Partner tag not found or already deleted.");
     }
 
-    await partnerTagDeletedJob.dispatch(
-      {
-        partnerTagId,
-      },
-      {
-        label: partnerTagId,
-      },
+    waitUntil(
+      partnerTagDeletedJob.dispatch(
+        {
+          partnerTagId,
+        },
+        {
+          label: partnerTagId,
+          deduplicationId: partnerTagId,
+        },
+      ),
     );
   });

@@ -145,46 +145,38 @@ export const DELETE = withWorkspace(
       },
     });
 
-    // if there are no links associated with the folder, we can just delete it
-    if (linksCount === 0) {
-      await prisma.folder.delete({
+    await prisma.$transaction([
+      // If there are no links associated with the folder, we can just delete it
+      ...(linksCount === 0
+        ? [
+            prisma.folder.delete({
+              where: {
+                id: folderId,
+              },
+            }),
+          ]
+        : [
+            prisma.folder.update({
+              where: {
+                id: folderId,
+              },
+              data: {
+                projectId: "",
+              },
+            }),
+          ]),
+
+      // Remove the default folder assignment for all users whose defaultFolderId matches the given folderId
+      prisma.projectUsers.updateMany({
         where: {
-          id: folderId,
+          defaultFolderId: folderId,
         },
-      });
-    } else {
-      await Promise.all([
-        prisma.folder.update({
-          where: {
-            id: folderId,
-          },
-          data: {
-            projectId: "",
-          },
-        }),
+        data: {
+          defaultFolderId: null,
+        },
+      }),
 
-        folderDeletedJob.dispatch(
-          {
-            folderId,
-          },
-          {
-            label: folderId,
-          },
-        ),
-      ]);
-    }
-
-    // Remove the default folder assignment for all users whose defaultFolderId matches the given folderId
-    await prisma.projectUsers.updateMany({
-      where: {
-        defaultFolderId: folderId,
-      },
-      data: {
-        defaultFolderId: null,
-      },
-    });
-
-    waitUntil(
+      // Decrement the folders usage for the workspace
       prisma.project.update({
         where: {
           id: workspace.id,
@@ -195,7 +187,20 @@ export const DELETE = withWorkspace(
           },
         },
       }),
-    );
+    ]);
+
+    if (linksCount > 0) {
+      waitUntil(
+        folderDeletedJob.dispatch(
+          {
+            folderId,
+          },
+          {
+            label: folderId,
+          },
+        ),
+      );
+    }
 
     return NextResponse.json({ id: folderId });
   },
