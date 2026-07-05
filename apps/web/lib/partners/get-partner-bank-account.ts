@@ -40,17 +40,8 @@ export const getPartnerBankAccount = async (stripeAccount: string) => {
       error.message.includes("Application access may have been revoked.");
 
     if (isApplicationAccessRevoked) {
-      waitUntil(
-        prisma.partner.update({
-          where: {
-            stripeConnectId: stripeAccount,
-          },
-          data: {
-            stripeConnectId: null,
-            payoutMethodHash: null,
-          },
-        }),
-      );
+      // TODO: recompute payout state + reset payoutsEnabledAt / payoutMethodHash if needed
+      console.warn("No account connected – application access may have been revoked.")
     }
 
     return null;
