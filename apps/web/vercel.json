@@ -82,7 +82,7 @@
     },
     {
       "path": "/api/cron/webhooks/sync-click-workspaces",
-      "schedule": "*/15 * * * *"
+      "schedule": "*/5 * * * *"
     }
   ],
   "functions": {

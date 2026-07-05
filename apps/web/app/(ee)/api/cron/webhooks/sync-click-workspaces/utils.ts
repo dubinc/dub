@@ -75,11 +75,10 @@ export const cleanupRedundantLinkWebhookEntries = async () => {
     });
     deletedCount += deleted.count;
     if (deleted.count === 0) {
-      console.log("No more non-link-scoped webhooks to delete");
+      console.log("No more redundant LinkWebhook entries to delete");
       break;
     }
-    console.log(`Deleted ${deleted.count} non-link-scoped webhooks`);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    console.log(`Deleted ${deleted.count} redundant LinkWebhook entries`);
   }
   return deletedCount;
 };

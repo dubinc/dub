@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 // GET /api/cron/webhooks/sync-click-workspaces
 // Rebuild the Redis set of workspaces with active link.clicked webhooks.
-// Runs every 15 minutes (*/15 * * * *)
+// Runs every 5 minutes (*/5 * * * *)
 export const GET = withCron(async () => {
   const synced = await syncClickWebhookWorkspaceSet();
   const deleted = await cleanupRedundantLinkWebhookEntries();
