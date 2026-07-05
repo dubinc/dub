@@ -1,13 +1,15 @@
 import type { JobDefinition } from "./index";
 
-// Add handlers/{name}-job.ts. Set defineJob({ name: "{name}-job" }). Export `job` alias.
+// Add handlers/{name}-job.ts. Set defineJob({ name: "{name}-job" }).
 // Each entry uses a static import() so webpack code-splits handlers into separate chunks.
 const jobLoaders = {
   "folder-deleted-job": () =>
-    import("./handlers/folder-deleted-job").then((m) => m.job),
+    import("./handlers/folder-deleted-job").then((m) => m.folderDeletedJob),
 
   "partner-tag-deleted-job": () =>
-    import("./handlers/partner-tag-deleted-job").then((m) => m.job),
+    import("./handlers/partner-tag-deleted-job").then(
+      (m) => m.partnerTagDeletedJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();

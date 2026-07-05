@@ -116,5 +116,3 @@ export const partnerTagDeletedJob = defineJob({
     );
   },
 });
-
-export const job = partnerTagDeletedJob;

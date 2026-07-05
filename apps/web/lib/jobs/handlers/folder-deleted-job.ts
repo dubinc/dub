@@ -102,5 +102,3 @@ export const folderDeletedJob = defineJob({
     console.log(`[folderDeletedJob] Folder ${folderId} deleted from database.`);
   },
 });
-
-export const job = folderDeletedJob;
