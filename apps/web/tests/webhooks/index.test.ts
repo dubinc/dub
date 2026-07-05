@@ -1,5 +1,4 @@
 import { qstash } from "@/lib/cron";
-import { WebhookTrigger } from "@/lib/types";
 import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { sendWebhooks } from "@/lib/webhook/qstash";
 import { samplePayload } from "@/lib/webhook/sample-events/payload";
@@ -8,6 +7,7 @@ import {
   leadWebhookEventSchema,
   saleWebhookEventSchema,
 } from "@/lib/webhook/schemas";
+import type { WebhookTrigger } from "@/lib/webhook/types";
 import { BountySchema } from "@/lib/zod/schemas/bounties";
 import { CommissionWebhookSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSchema } from "@/lib/zod/schemas/customers";
@@ -102,17 +102,18 @@ describe("Webhooks", () => {
 const testWebhookEvent = async (trigger: WebhookTrigger) => {
   const data = samplePayload[trigger];
 
-  const response = await sendWebhooks({
+  const results = await sendWebhooks({
     webhooks: [webhook],
     trigger,
     data,
   });
 
-  if (!response) {
+  const result = results[0];
+  if (!result?.ok || !result.messageId) {
     throw new Error("No response from sendWebhooks");
   }
 
-  await assertQstashMessage(response[0].messageId, data, trigger);
+  await assertQstashMessage(result.messageId, data, trigger);
 };
 
 const assertQstashMessage = async (

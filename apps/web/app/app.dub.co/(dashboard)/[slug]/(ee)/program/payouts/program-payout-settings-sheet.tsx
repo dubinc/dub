@@ -2,7 +2,10 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateProgramAction } from "@/lib/actions/partners/update-program";
-import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/constants/payouts";
+import {
+  ALLOWED_MIN_PAYOUT_AMOUNTS,
+  getAllowedMinPayoutAmounts,
+} from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -71,6 +74,9 @@ function ProgramPayoutSettingsSheetContent({
   };
 
   const minPayoutAmount = watch("minPayoutAmount");
+  const allowedMinPayoutAmounts = workspaceId
+    ? getAllowedMinPayoutAmounts(workspaceId)
+    : ALLOWED_MIN_PAYOUT_AMOUNTS;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -146,18 +152,11 @@ function ProgramPayoutSettingsSheetContent({
 
             <Slider
               value={minPayoutAmount}
-              min={ALLOWED_MIN_PAYOUT_AMOUNTS[0]}
-              max={
-                ALLOWED_MIN_PAYOUT_AMOUNTS[
-                  ALLOWED_MIN_PAYOUT_AMOUNTS.length - 1
-                ]
-              }
+              min={allowedMinPayoutAmounts[0]}
+              max={allowedMinPayoutAmounts[allowedMinPayoutAmounts.length - 1]}
               onChange={(value) => {
-                const closest = ALLOWED_MIN_PAYOUT_AMOUNTS.reduce(
-                  (prev, curr) =>
-                    Math.abs(curr - value) < Math.abs(prev - value)
-                      ? curr
-                      : prev,
+                const closest = allowedMinPayoutAmounts.reduce((prev, curr) =>
+                  Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev,
                 );
 
                 setValue("minPayoutAmount", closest, {
@@ -165,7 +164,7 @@ function ProgramPayoutSettingsSheetContent({
                   shouldValidate: true,
                 });
               }}
-              marks={ALLOWED_MIN_PAYOUT_AMOUNTS}
+              marks={allowedMinPayoutAmounts}
             />
           </div>
         </div>
