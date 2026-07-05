@@ -35,7 +35,8 @@ const updatePartnerProfileSchema = z
       .trim()
       .min(1, "Name is required")
       .optional()
-      .transform(sanitizeFormulaInput),
+      .transform(sanitizeFormulaInput)
+      .refine((v) => v === undefined || v.length > 0, "Name is required"),
     email: z.email().optional(),
     username: z.string().trim().toLowerCase().min(3).max(100).optional(),
     image: uploadedImageSchema.nullish(),

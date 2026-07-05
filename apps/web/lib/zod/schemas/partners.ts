@@ -767,7 +767,11 @@ export const onboardPartnerSchema = createPartnerSchema
     linkProps: true,
   })
   .extend({
-    name: z.string().min(1, "Name is required").transform(sanitizeFormulaInput),
+    name: z
+      .string()
+      .min(1, "Name is required")
+      .transform(sanitizeFormulaInput)
+      .refine((v) => v.length > 0, "Name is required"),
     description:
       createPartnerSchema.shape.description.transform(sanitizeFormulaInput),
     image: partnerImageSchema,
