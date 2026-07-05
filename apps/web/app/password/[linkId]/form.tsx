@@ -54,7 +54,9 @@ export default function PasswordForm() {
         </div>
         {state.error && (
           <p className="mt-2 text-sm text-red-600" id="slug-error">
-            Incorrect password
+            {state.error === "Invalid password"
+              ? "Incorrect password"
+              : state.error}
           </p>
         )}
       </div>
