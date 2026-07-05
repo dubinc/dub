@@ -5,7 +5,7 @@ import {
   isCaseSensitiveDomain,
 } from "../api/links/case-sensitivity";
 import { conn } from "./connection";
-import { EdgeLinkProps, EdgeLinkWithWebhooks } from "./types";
+import { EdgeLinkProps } from "./types";
 
 const getLinkViaEdgeHelper = async ({
   domain,
@@ -13,7 +13,7 @@ const getLinkViaEdgeHelper = async ({
 }: {
   domain: string;
   key: string;
-}): Promise<EdgeLinkWithWebhooks | null> => {
+}): Promise<EdgeLinkProps | null> => {
   const isCaseSensitive = isCaseSensitiveDomain(domain);
   const keyToQuery = isCaseSensitive
     ? // for case sensitive domains, we need to encode the key
@@ -23,27 +23,18 @@ const getLinkViaEdgeHelper = async ({
       punyEncode(decodeURIComponent(key));
 
   const { rows } =
-    (await conn.execute(
-      `SELECT Link.*, LinkWebhook.webhookId
-       FROM Link
-       LEFT JOIN LinkWebhook ON Link.id = LinkWebhook.linkId
-       WHERE Link.domain = ? AND Link.\`key\` = ?`,
-      [domain, keyToQuery],
-    )) || {};
+    (await conn.execute(`SELECT * FROM Link WHERE domain = ? AND \`key\` = ?`, [
+      domain,
+      keyToQuery,
+    ])) || {};
 
   if (!rows || !Array.isArray(rows) || rows.length === 0) return null;
 
-  const first = rows[0] as EdgeLinkProps & { webhookId: string | null };
-  const { webhookId: _w, ...link } = first;
-  const webhooks = (rows as (EdgeLinkProps & { webhookId: string | null })[])
-    .map((r) => r.webhookId)
-    .filter((id): id is string => id != null)
-    .map((webhookId) => ({ webhookId }));
+  const link = rows[0] as EdgeLinkProps;
 
   return {
     ...link,
     key: decodeKeyIfCaseSensitive({ domain, key }),
-    webhooks,
   };
 };
 
