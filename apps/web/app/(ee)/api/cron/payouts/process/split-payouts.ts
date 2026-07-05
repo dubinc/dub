@@ -6,18 +6,16 @@ import {
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
-import { Program, Project } from "@prisma/client";
+import { Program } from "@prisma/client";
 import { endOfMonth } from "date-fns";
 
 export async function splitPayouts({
   program,
-  workspace,
   cutoffPeriod,
   selectedPayoutIds,
   excludedPayoutIds,
 }: {
   program: Pick<Program, "id" | "name" | "minPayoutAmount" | "payoutMode">;
-  workspace: Pick<Project, "plan">;
   cutoffPeriod: CUTOFF_PERIOD_TYPES;
   selectedPayoutIds?: string[];
   excludedPayoutIds?: string[];
