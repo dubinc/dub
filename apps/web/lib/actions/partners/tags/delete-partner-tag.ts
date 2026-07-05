@@ -1,7 +1,7 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { partnerTagDeletedJob } from "@/lib/jobs/partner-tag-deleted-job";
+import { partnerTagDeletedJob } from "@/lib/jobs/handlers/partner-tag-deleted-job";
 import { prisma } from "@/lib/prisma";
 import { deletePartnerTagSchema } from "@/lib/zod/schemas/partner-tags";
 import { waitUntil } from "@vercel/functions";

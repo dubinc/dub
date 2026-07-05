@@ -59,7 +59,10 @@ const QSTASH_BATCH_CHUNK_SIZE = 100;
 
 export const jobNameSchema = z
   .string()
-  .regex(/^[a-z][a-zA-Z0-9]*$/, "Job name must be camelCase");
+  .regex(
+    /^[a-z][a-z0-9]*(-[a-z0-9]+)*-job$/,
+    'Job name must be kebab-case ending in "-job"',
+  );
 
 export function getJobsEndpointUrl(name: string) {
   return `${JOBS_ENDPOINT_URL}/${name}`;

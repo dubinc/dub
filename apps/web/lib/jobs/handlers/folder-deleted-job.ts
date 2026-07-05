@@ -1,9 +1,9 @@
 import * as z from "zod/v4";
-import { includeProgramEnrollment } from "../api/links/include-program-enrollment";
-import { includeTags } from "../api/links/include-tags";
-import { prisma } from "../prisma";
-import { recordLink } from "../tinybird";
-import { defineJob } from "./index";
+import { includeProgramEnrollment } from "../../api/links/include-program-enrollment";
+import { includeTags } from "../../api/links/include-tags";
+import { prisma } from "../../prisma";
+import { recordLink } from "../../tinybird";
+import { defineJob } from "../index";
 
 const MAX_LINKS_PER_BATCH = 500;
 
@@ -13,7 +13,7 @@ const inputSchema = z.object({
 
 // Job to remove folderId from all links and delete the folder
 export const folderDeletedJob = defineJob({
-  name: "folderDeleted",
+  name: "folder-deleted-job",
   schema: inputSchema,
   async handle(input) {
     const { folderId } = input;
@@ -102,3 +102,5 @@ export const folderDeletedJob = defineJob({
     console.log(`[folderDeletedJob] Folder ${folderId} deleted from database.`);
   },
 });
+
+export const job = folderDeletedJob;

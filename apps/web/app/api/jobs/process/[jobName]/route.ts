@@ -1,7 +1,7 @@
 import { logger, withAxiomBodyLog } from "@/lib/axiom/server";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { jobEnvelopeSchema } from "@/lib/jobs";
-import { jobRegistry } from "@/lib/jobs/registry";
+import { loadJob } from "@/lib/jobs/registry";
 import * as z from "zod/v4";
 
 export const maxDuration = 600;
@@ -55,7 +55,7 @@ export const POST = withAxiomBodyLog(
     console.log(`[jobs:${jobName}] executing...`);
 
     // Get the job definition
-    const job = jobRegistry.get(jobName);
+    const job = await loadJob(jobName);
 
     if (!job) {
       logger.error("jobs.unknown_job", {

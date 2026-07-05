@@ -1,10 +1,10 @@
 import * as z from "zod/v4";
-import { includeProgramEnrollment } from "../api/links/include-program-enrollment";
-import { includeTags } from "../api/links/include-tags";
-import { CRON_BATCH_SIZE } from "../cron";
-import { prisma } from "../prisma";
-import { recordLink } from "../tinybird";
-import { defineJob } from "./index";
+import { includeProgramEnrollment } from "../../api/links/include-program-enrollment";
+import { includeTags } from "../../api/links/include-tags";
+import { CRON_BATCH_SIZE } from "../../cron";
+import { prisma } from "../../prisma";
+import { recordLink } from "../../tinybird";
+import { defineJob } from "../index";
 
 const inputSchema = z.object({
   partnerTagId: z.string(),
@@ -12,7 +12,7 @@ const inputSchema = z.object({
 
 // Job to delete a partner tag and all its program–partner tag associations
 export const partnerTagDeletedJob = defineJob({
-  name: "partnerTagDeleted",
+  name: "partner-tag-deleted-job",
   schema: inputSchema,
   async handle(input) {
     const { partnerTagId } = input;
@@ -116,3 +116,5 @@ export const partnerTagDeletedJob = defineJob({
     );
   },
 });
+
+export const job = partnerTagDeletedJob;

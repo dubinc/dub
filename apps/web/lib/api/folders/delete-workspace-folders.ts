@@ -1,4 +1,4 @@
-import { folderDeletedJob } from "@/lib/jobs/folder-deleted-job";
+import { folderDeletedJob } from "@/lib/jobs/handlers/folder-deleted-job";
 import { prisma } from "@/lib/prisma";
 
 export async function deleteWorkspaceFolders({
