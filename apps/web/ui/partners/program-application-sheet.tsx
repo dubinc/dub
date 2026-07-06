@@ -15,7 +15,7 @@ import {
   Button,
   buttonVariants,
   CircleCheck,
-  CircleCheckFill,
+  CircleCheck,
   Grid,
   LoadingSpinner,
   Sheet,
@@ -303,7 +303,7 @@ function ProgramApplicationSheetForm({
               className="-ml-4 size-20 rotate-[15deg] drop-shadow-md"
             />
             <div className="absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white p-0.5">
-              <CircleCheckFill className="size-8 text-green-500" />
+              <CircleCheck variant="fill" className="size-8 text-green-500" />
             </div>
           </div>
           <span className="mt-6 block text-base font-semibold text-neutral-900">

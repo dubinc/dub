@@ -1,6 +1,6 @@
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button } from "@dub/ui";
-import { Star, StarFill } from "@dub/ui/icons";
+import { Star } from "@dub/ui/icons";
 import { SVGProps, useId } from "react";
 
 export function NetworkEmptyState({
@@ -24,7 +24,7 @@ export function NetworkEmptyState({
       cardContent={(idx) => (
         <div className="flex grow items-center gap-4">
           {idx % 2 === 0 || isStarred ? (
-            <StarFill className="size-3 shrink-0 text-amber-500" />
+            <Star variant="fill" className="size-3 shrink-0 text-amber-500" />
           ) : (
             <Star className="text-content-muted size-3 shrink-0" />
           )}

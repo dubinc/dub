@@ -2,7 +2,7 @@ import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { FraudGroupCountByPartner } from "@/lib/types";
 import { ButtonLink } from "@/ui/placeholders/button-link";
-import { DynamicTooltipWrapper, FlagFill } from "@dub/ui";
+import { DynamicTooltipWrapper, Flag } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useParams, usePathname } from "next/navigation";
 
@@ -70,7 +70,7 @@ export function PartnerRiskIndicator({ partnerId }: PartnerRiskIndicatorProps) {
         content: tooltipContent,
       }}
     >
-      <FlagFill
+      <Flag variant="fill"
         className={cn(
           "size-3.5 cursor-pointer",
           FRAUD_SEVERITY_CONFIG["high"].fg,

@@ -20,7 +20,6 @@ import {
   Instagram,
   LinkedIn,
   Star,
-  StarFill,
   TikTok,
   Twitter,
   User,
@@ -269,7 +268,7 @@ export function ProgramPartnerNetworkPageClient({
                   }}
                   icon={
                     isStarred ? (
-                      <StarFill className="size-4 text-amber-500" />
+                      <Star variant="fill" className="size-4 text-amber-500" />
                     ) : (
                       <Star className="text-content-subtle size-4" />
                     )

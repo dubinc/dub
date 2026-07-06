@@ -1,6 +1,6 @@
 "use client";
 
-import { BoltFill } from "@dub/ui";
+import { Bolt, withFillVariant } from "@dub/ui";
 import { useOnboardingProduct } from "../../../use-onboarding-product";
 import { StepPage } from "../../step-page";
 import { Form } from "./form";
@@ -12,7 +12,7 @@ export default function Register() {
     <StepPage
       title="Claim your free .link domain"
       badge={{
-        icon: BoltFill,
+        icon: withFillVariant(Bolt),
         label: "Instant setup",
       }}
       description="Exclusively free for one year"
