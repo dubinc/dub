@@ -1,8 +1,8 @@
 import { sendTestWebhookEvent } from "@/lib/actions/send-test-webhook";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
-import type { WebhookTrigger } from "@/lib/webhook/types";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "@/lib/webhook/constants";
+import type { WebhookTrigger } from "@/lib/webhook/types";
 import { Button, Combobox, ComboboxOption, Modal } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import {
