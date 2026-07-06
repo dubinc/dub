@@ -1,8 +1,9 @@
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { MAX_WEBHOOK_FOLDERS } from "@/lib/webhook/constants";
 import { NextResponse } from "next/server";
 
-// TODO: remove once we move link.clicked webhook to workspace
+// GET /api/webhooks/[webhookId]/folders
 export const GET = withWorkspace(
   async ({ workspace, params }) => {
     const { webhookId } = params;
@@ -12,19 +13,22 @@ export const GET = withWorkspace(
         id: webhookId,
         projectId: workspace.id,
       },
+      select: {
+        id: true,
+      },
     });
 
-    const links = await prisma.linkWebhook.findMany({
+    const folders = await prisma.folderWebhook.findMany({
       where: {
         webhookId: webhook.id,
       },
       select: {
-        linkId: true,
+        folderId: true,
       },
-      take: 1000,
+      take: MAX_WEBHOOK_FOLDERS,
     });
 
-    return NextResponse.json(links.map((link) => link.linkId));
+    return NextResponse.json(folders.map(({ folderId }) => folderId));
   },
   {
     requiredPermissions: ["webhooks.read"],
