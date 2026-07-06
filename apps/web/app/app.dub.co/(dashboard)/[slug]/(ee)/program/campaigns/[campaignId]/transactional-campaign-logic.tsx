@@ -1,6 +1,7 @@
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG } from "@/lib/zod/schemas/campaigns";
 import { WORKFLOW_ATTRIBUTES } from "@/lib/zod/schemas/workflows";
+import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
@@ -108,17 +109,13 @@ function DropdownValueInput({
             }
             invalid={field.value === undefined || field.value === null}
           >
-            <InlineBadgePopoverMenu
-              selectedValue={
-                field.value !== undefined && field.value !== null
-                  ? String(field.value)
-                  : "1"
-              }
-              onSelect={(val) => field.onChange(Number(val))}
-              items={(config.dropdownValues || []).map((val) => ({
-                text: String(val),
-                value: String(val),
-              }))}
+            <DurationPopoverContent
+              value={field.value ?? undefined}
+              onChange={field.onChange}
+              presetDurations={config.dropdownValues || []}
+              presetsOnly
+              unit="days"
+              minValue={1}
             />
           </InlineBadgePopover>
           {pluralize("day", field.value || 1)}
