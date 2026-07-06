@@ -128,7 +128,7 @@ export function DurationPopoverContent({
               );
               const display = isNaN(parsed) ? raw : clamped.toString();
               setCustomDurationInput(display);
-              if (!isNaN(parsed) && parsed >= minValue) {
+              if (!isNaN(parsed)) {
                 onChange(clamped);
               }
             }}
