@@ -856,7 +856,7 @@ export function useAnalyticsFilters({
           return programPage
             ? `/${slug}/program/customers/${selectedCustomerId}`
             : slug
-              ? `/${slug}/customers/${selectedCustomerId}`
+              ? `/${slug}/links/customers/${selectedCustomerId}`
               : null;
         },
         options: [],

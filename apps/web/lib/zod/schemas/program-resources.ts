@@ -22,10 +22,15 @@ export const programResourceColorSchema = z.object({
   color: z.string(),
 });
 
+// Allow http(s) and mailto links, but block dangerous schemes (e.g. javascript:, data:)
+export const programResourceLinkUrlSchema = z.url({
+  protocol: /^(https?|mailto)$/,
+});
+
 export const programResourceLinkSchema = z.object({
   id: z.string(),
   name: z.string(),
-  url: z.httpUrl(),
+  url: programResourceLinkUrlSchema,
 });
 
 export const programResourcesSchema = z.object({

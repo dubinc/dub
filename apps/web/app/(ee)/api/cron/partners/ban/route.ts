@@ -138,7 +138,7 @@ export const POST = withCron(async ({ rawBody }) => {
     recordLink(links, { deleted: true }),
 
     // Queue discount code deletions
-    deleteDiscountCodes(discountCodes),
+    deleteDiscountCodes(discountCodes, { isSoftDelete: true }),
   ]);
 
   // Send email
