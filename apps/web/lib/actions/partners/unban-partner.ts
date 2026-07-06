@@ -10,7 +10,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
-import { FraudEventStatus, FraudRuleType } from "@prisma/client";
+import { FraudRuleType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -167,25 +167,6 @@ export const unbanPartnerAction = authActionClient
             },
           }),
         ]);
-
-        // Find the cross-program ban groups (in other programs) whose only
-        // events originated from this program — deleting their events below will
-        // empty them out, so their held commissions must be released first.
-        const affectedFraudGroups = await prisma.fraudEventGroup.findMany({
-          where: {
-            partnerId,
-            type: FraudRuleType.partnerCrossProgramBan,
-            status: FraudEventStatus.pending,
-            fraudEvents: {
-              every: {
-                sourceProgramId: programId,
-              },
-            },
-          },
-          select: {
-            id: true,
-          },
-        });
 
         await prisma.$transaction([
           // Since we're unbanning the partner, we need to
