@@ -96,9 +96,6 @@ export function DurationPopoverContent({
       value === 0 ||
       presetDurations.includes(Number(value));
 
-  const clampDuration = (parsed: number) =>
-    Math.max(minValue, Math.min(parsed, MAX_DURATION_LIMIT));
-
   if (showCustomInput) {
     return (
       <div className="flex flex-col gap-1.5 p-1">
