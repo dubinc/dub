@@ -3,11 +3,11 @@ import { sendEmail } from "@dub/email";
 import WebhookDisabled from "@dub/email/templates/webhook-disabled";
 import WebhookFailed from "@dub/email/templates/webhook-failed";
 import { Webhook } from "@prisma/client";
+import { syncWorkspaceWebhookStatus } from "./click-webhook-workspaces";
 import {
   WEBHOOK_FAILURE_DISABLE_THRESHOLD,
   WEBHOOK_FAILURE_NOTIFY_THRESHOLDS,
 } from "./constants";
-import { syncWorkspaceWebhookStatus } from "./click-webhook-workspaces";
 
 export const handleWebhookFailure = async (webhookId: string) => {
   const webhook = await prisma.webhook.update({

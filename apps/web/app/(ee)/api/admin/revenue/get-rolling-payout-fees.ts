@@ -13,7 +13,10 @@ export function computeRollingAveragePayoutFees(
   for (let i = 0; i < timeseries.length; i++) {
     const windowStart = subMonths(timeseries[i].date, windowMonths);
 
-    while (windowStartIdx < i && timeseries[windowStartIdx].date < windowStart) {
+    while (
+      windowStartIdx < i &&
+      timeseries[windowStartIdx].date < windowStart
+    ) {
       windowSum -= timeseries[windowStartIdx].fees;
       windowStartIdx++;
     }

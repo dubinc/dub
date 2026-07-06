@@ -321,7 +321,7 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
             <div className="flex items-center">
               <span className="text-xs font-medium text-neutral-600">
                 <NumberFlow
-                  value={usage}
+                  value={valueInCents ? usage / 100 : usage}
                   format={
                     valueInCents
                       ? {
