@@ -476,8 +476,8 @@ async function stepCreateCommission(
     }
   }
 
-  // 1. Partner-level: any pending partner-scope fraud group → hold (all commission types for this partner).
-  // 2. Conversion-event: run fraud detection before create; if rules trigger → hold (customer-scoped).
+  // 1. Partner-level: any pending partner-scope fraud group -> hold (all commission types for this partner).
+  // 2. Conversion-event: run fraud detection before create; if rules trigger -> hold (customer-scoped).
   // An explicit `status` input (e.g. imports) wins; clawbacks (earnings <= 0) are never held.
   if (!status && earnings > 0 && canManageFraudEvents) {
     let shouldHoldCommission = false;
