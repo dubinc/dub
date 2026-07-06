@@ -1,6 +1,4 @@
-import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";
 import * as z from "zod/v4";
 
@@ -41,7 +39,9 @@ export const getPartnerBankAccount = async (stripeAccount: string) => {
 
     if (isApplicationAccessRevoked) {
       // TODO: recompute payout state + reset payoutsEnabledAt / payoutMethodHash if needed
-      console.warn("No account connected – application access may have been revoked.")
+      console.warn(
+        "No account connected – application access may have been revoked.",
+      );
     }
 
     return null;
