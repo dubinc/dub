@@ -30,27 +30,26 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     programId,
   } = filters;
 
-  // Filter the commissions count based on the risk event group
-  let customerIds: string[] | undefined;
+  // Filter the commissions based on the risk event group
+  let eventIds: string[] | undefined;
 
   if (fraudEventGroupId) {
-    const riskEvents = await prisma.fraudEvent.findMany({
+    const riskEventGroup = await prisma.fraudEventGroup.findUniqueOrThrow({
       where: {
-        fraudEventGroupId,
+        id: fraudEventGroupId,
         programId,
       },
       select: {
-        customerId: true,
-        fraudEventGroup: {
+        type: true,
+        fraudEvents: {
           select: {
-            type: true,
+            eventId: true,
           },
         },
       },
     });
 
-    if (riskEvents.length > 0) {
-      const riskEventGroup = riskEvents[0].fraudEventGroup;
+    if (riskEventGroup.fraudEvents.length > 0) {
       const isPartnerLevelRisk = PARTNER_LEVEL_FRAUD_RULES.includes(
         riskEventGroup.type as (typeof PARTNER_LEVEL_FRAUD_RULES)[number],
       );
@@ -58,7 +57,9 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       // Partner-level: include all commissions for the partner
       // Customer-level: include only commissions for the customers in the risk event group
       if (!isPartnerLevelRisk) {
-        customerIds = riskEvents.map((e) => e.customerId!);
+        eventIds = riskEventGroup.fraudEvents
+          .map((e) => e.eventId)
+          .filter((e) => e !== null) as string[];
       }
     }
   }
@@ -127,9 +128,9 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
             ? { notIn: customerFilter.values }
             : { in: customerFilter.values },
       }),
-      ...(customerIds && {
-        customerId: {
-          in: customerIds,
+      ...(eventIds && {
+        eventId: {
+          in: eventIds,
         },
       }),
       createdAt: {

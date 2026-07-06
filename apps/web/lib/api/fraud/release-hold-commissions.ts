@@ -1,5 +1,6 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { prisma } from "@/lib/prisma";
 import { FraudEventStatus, FraudRuleType, Prisma } from "@prisma/client";
 import { FRAUD_RULES_BY_TYPE, PARTNER_LEVEL_FRAUD_RULES } from "./constants";
@@ -138,6 +139,28 @@ export async function releaseHoldCommissions(riskGroupIds: string[]) {
       partnerId,
       programId,
     });
+
+    const releasedEarnings = commissionsToRelease.reduce(
+      (sum, commission) => sum + commission.earnings,
+      0,
+    );
+
+    if (releasedEarnings > 0) {
+      await executeWorkflows({
+        trigger: "partnerMetricsUpdated",
+        reason: "commission",
+        identity: {
+          workspaceId: groupsForPartner[0].program.workspaceId,
+          programId,
+          partnerId,
+        },
+        metrics: {
+          current: {
+            commissions: releasedEarnings,
+          },
+        },
+      });
+    }
 
     releasedCount += commissionsToRelease.length;
   }

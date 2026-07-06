@@ -73,7 +73,6 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     partnerId: true,
     invoiceId: true,
     groupId: true,
-    tenantId: true,
   })
   .extend({
     programId: z.string().optional(),

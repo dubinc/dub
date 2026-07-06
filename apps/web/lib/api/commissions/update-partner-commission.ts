@@ -232,7 +232,7 @@ export async function updatePartnerCommission({
         partnerId: commission.partnerId,
         customerId: commission.customerId,
         status: {
-          in: ["pending", "processed"],
+          in: ["pending", "processed", "hold"],
         },
         id: {
           not: commission.id,
