@@ -4,6 +4,9 @@ import { chunk, groupBy } from "@dub/utils";
 import { CommissionStatus, ProgramEnrollment } from "@prisma/client";
 import { syncTotalCommissions } from "../partners/sync-total-commissions";
 
+// Bulk-hold pending commissions for partner-program pairs flagged by partner-level fraud
+// (duplicate identity, duplicate payout method, cross-program ban). Conversion-event fraud
+// is handled separately at commission creation time with customer-scoped holds.
 export async function holdPendingCommissions(
   programEnrollments: Pick<ProgramEnrollment, "programId" | "partnerId">[],
 ) {
@@ -27,11 +30,11 @@ export async function holdPendingCommissions(
           partnerId,
         })),
         status: CommissionStatus.pending,
+        // Clawbacks (earnings <= 0) are never held — matches create-partner-commission.
         earnings: {
           gt: 0,
         },
-        // Only hold commissions for workspaces whose plan can manage fraud events,
-        // Other plans have no way to review or resolve fraud groups, so their commissions should never be frozen.
+        // Fraud holds are an advanced/enterprise capability (canManageFraudEvents).
         program: {
           workspace: {
             plan: {
@@ -49,6 +52,7 @@ export async function holdPendingCommissions(
         partnerId: true,
         program: {
           select: {
+            id: true,
             workspaceId: true,
           },
         },
@@ -59,26 +63,56 @@ export async function holdPendingCommissions(
       continue;
     }
 
-    await prisma.commission.updateMany({
+    // Update the status of the commissions to hold
+    const { count: updatedCount } = await prisma.commission.updateMany({
       where: {
         id: {
           in: pendingCommissions.map((c) => c.id),
         },
+        status: CommissionStatus.pending,
       },
       data: {
         status: CommissionStatus.hold,
       },
     });
 
-    const commissionsByProgram = groupBy(
-      pendingCommissions,
-      (c) => c.programId,
-    );
+    if (updatedCount === 0) {
+      continue;
+    }
+
+    // updateMany re-checks status: pending, so a commission can change between findMany
+    // and updateMany (e.g. payout processing). Only log/sync rows we actually held.
+    let heldCommissions = pendingCommissions;
+
+    if (updatedCount < pendingCommissions.length) {
+      const pendingCommissionIds = pendingCommissions.map((c) => c.id);
+
+      const heldCommissionIds = await prisma.commission.findMany({
+        where: {
+          id: {
+            in: pendingCommissionIds,
+          },
+          status: CommissionStatus.hold,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      const heldIds = new Set(heldCommissionIds.map(({ id }) => id));
+
+      heldCommissions = pendingCommissions.filter((c) => heldIds.has(c.id));
+    }
+
+    // Activity logs are scoped to a workspace + program, so batch by program.
+    const commissionsByProgram = groupBy(heldCommissions, (c) => c.programId);
 
     for (const commissions of Object.values(commissionsByProgram)) {
+      const { id: programId, workspaceId } = commissions[0].program;
+
       await trackCommissionStatusUpdate({
-        workspaceId: commissions[0].program.workspaceId,
-        programId: commissions[0].programId,
+        workspaceId,
+        programId,
         commissions,
         newStatus: CommissionStatus.hold,
       });
@@ -86,7 +120,7 @@ export async function holdPendingCommissions(
 
     const affectedPairs = [
       ...new Map(
-        pendingCommissions.map((c) => [
+        heldCommissions.map((c) => [
           `${c.programId}:${c.partnerId}`,
           { programId: c.programId, partnerId: c.partnerId },
         ]),

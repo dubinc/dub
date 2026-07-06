@@ -19,16 +19,10 @@ import * as z from "zod/v4";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  let {
-    fraudEventGroupId,
-    type: rawType,
-    partnerId,
-    tenantId,
-    ...filters
-  } = getCommissionsQuerySchema
+  let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema
     .extend({
       fraudEventGroupId: z.string().optional(),
-      type: z.string().optional(),
+      type: z.string().optional(), // May be comma-separated string, for multi-value handling
     })
     .parse(searchParams);
 
@@ -57,11 +51,8 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const commissions = await getCommissions({
     ...filters,
-    // Pass raw type string (may be comma-separated) for multi-value handling
-    ...(rawType && { type: rawType }),
     partnerId,
     programId,
-    ...(fraudEventGroupId && { fraudEventGroupId }),
   });
 
   return NextResponse.json(

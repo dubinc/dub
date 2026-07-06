@@ -25,8 +25,12 @@ export const POST = withCron(async ({ rawBody }) => {
   const { workspaceId, programId, userId, columns } =
     payoutsExportCronInputSchema.parse(payload);
 
-  const filters = payoutsQuerySchema.parse(payload);
-  const { page: _page, pageSize: _pageSize, ...exportFilters } = filters;
+  const filters = payoutsQuerySchema
+    .omit({
+      page: true,
+      pageSize: true,
+    })
+    .parse(payload);
 
   const user = await prisma.user.findUnique({
     where: {
@@ -63,7 +67,7 @@ export const POST = withCron(async ({ rawBody }) => {
   for await (const { payouts } of fetchPayoutsBatch({
     workspaceId,
     programId,
-    filters: exportFilters,
+    filters,
   })) {
     const formatted = formatPayoutsForExport(payouts, columns);
     const remaining = MAX_PAYOUTS_EXPORT_LIMIT - allRows.length;

@@ -27,7 +27,7 @@ export function buildProgramEnrollmentFilter({
   };
 }
 
-export function buildPayoutWhere({
+function buildPayoutWhere({
   programId,
   filters,
 }: {
