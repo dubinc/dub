@@ -43,7 +43,6 @@ export const deletePartnerTagAction = authActionClient
         },
         {
           label: partnerTagId,
-          deduplicationId: partnerTagId,
         },
       ),
     );
