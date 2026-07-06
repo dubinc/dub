@@ -5,7 +5,6 @@ import { isNotHostedImage, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
 import { publishWorkspaceLinksUsageEvent } from "@/lib/upstash/redis-streams/workspace-links-usage";
-import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
 import {
   APP_DOMAIN_WITH_NGROK,
   R2_URL,
@@ -213,12 +212,6 @@ export async function createLink(link: ProcessedLinkProps) {
             workspaceId: link.projectId,
             linksCount: 1,
             timestamp: new Date().toISOString(),
-          }),
-
-        // Propagate webhook trigger changes
-        webhookIds &&
-          propagateWebhookTriggerChanges({
-            webhookIds,
           }),
 
         // Schedule AB test completion

@@ -276,7 +276,7 @@ export default function EventsTable({
               href={
                 partnerPage
                   ? `/programs/${programSlug}/customers/${getValue().id}`
-                  : `/${slug}/customers/${getValue().id}`
+                  : `/${slug}/links/customers/${getValue().id}`
               }
               className="px-4 py-2.5"
             />
