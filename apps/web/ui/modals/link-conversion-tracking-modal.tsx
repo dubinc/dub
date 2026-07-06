@@ -1,7 +1,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
-import { Button, CircleCheckFill, LinkLogo, Modal } from "@dub/ui";
+import { Button, CircleCheck, LinkLogo, Modal } from "@dub/ui";
 import { cn, getApexDomain, getPrettyUrl, pluralize } from "@dub/utils";
 import {
   Dispatch,
@@ -139,7 +139,7 @@ function LinkConversionTrackingModalInner({
                   <span className="font-medium">{option.label}</span>
                   <span>{option.description}</span>
                 </div>
-                <CircleCheckFill
+                <CircleCheck variant="fill"
                   className={cn(
                     "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                     isSelected && "scale-100 opacity-100",
