@@ -44,7 +44,10 @@ export function IntegrationStatusBadge({
   return (
     <Tooltip content="Dub hasn't verified this integration. Install it at your own risk.">
       <span>
-        <CircleWarning className="size-4 shrink-0 text-neutral-500" invert />
+        <CircleWarning
+          className="size-4 shrink-0 text-neutral-500"
+          variant="fill"
+        />
       </span>
     </Tooltip>
   );
