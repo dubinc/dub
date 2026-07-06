@@ -2,7 +2,6 @@
 
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
-import { releaseHoldCommissions } from "@/lib/api/fraud/release-hold-commissions";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
@@ -187,8 +186,6 @@ export const unbanPartnerAction = authActionClient
             id: true,
           },
         });
-
-        await releaseHoldCommissions(affectedFraudGroups.map((g) => g.id));
 
         await prisma.$transaction([
           // Since we're unbanning the partner, we need to

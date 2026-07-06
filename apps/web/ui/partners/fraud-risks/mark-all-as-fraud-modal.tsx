@@ -60,6 +60,7 @@ function MarkAllAsFraudModal({
           workspaceId,
           status: "hold",
           fraudEventGroupId: fraudGroup.id,
+          partnerId: partner.id,
           pageSize: "100",
         }).toString()}`
       : null,

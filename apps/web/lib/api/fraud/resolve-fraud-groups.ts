@@ -1,4 +1,4 @@
-import { releaseHoldCommissions } from "@/lib/api/fraud/release-hold-commissions";
+import { queueReleaseHoldCommissions } from "@/lib/api/fraud/release-hold-commissions";
 import { prisma } from "@/lib/prisma";
 import { prettyPrint } from "@dub/utils";
 import { FraudEventStatus, Prisma } from "@prisma/client";
@@ -7,10 +7,12 @@ export async function resolveFraudGroups({
   where,
   userId,
   resolutionReason,
+  releaseHoldCommissions = false,
 }: {
   where: Prisma.FraudEventGroupWhereInput;
   userId?: string;
   resolutionReason?: string;
+  releaseHoldCommissions?: boolean;
 }) {
   const riskGroups = await prisma.fraudEventGroup.findMany({
     where: {
@@ -45,8 +47,8 @@ export async function resolveFraudGroups({
 
   console.info(`Resolved ${count} fraud event groups ${prettyPrint(where)}`);
 
-  if (count > 0) {
-    await releaseHoldCommissions(riskGroupIds);
+  if (releaseHoldCommissions && count > 0) {
+    await queueReleaseHoldCommissions(riskGroupIds);
   }
 
   return count;

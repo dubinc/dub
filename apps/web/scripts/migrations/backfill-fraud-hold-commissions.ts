@@ -1,3 +1,4 @@
+import { PARTNER_LEVEL_FRAUD_RULES } from "@/lib/api/fraud/constants";
 import { holdPendingCommissions } from "@/lib/api/fraud/hold-pending-commissions";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
@@ -5,7 +6,8 @@ import "dotenv-flow/config";
 const BATCH_SIZE = 100;
 
 // One-time backfill: hold pending commissions for partners who already have pending
-// fraud groups but were not covered by the new hold-on-fraud-event logic.
+// partner-level fraud groups but were not covered by the new hold-on-fraud-event logic.
+// Conversion-event fraud holds are applied at commission creation time (customer-scoped).
 async function main() {
   let startingAfter: string | undefined;
   let totalPairs = 0;
@@ -14,6 +16,9 @@ async function main() {
     const fraudGroups = await prisma.fraudEventGroup.findMany({
       where: {
         status: "pending",
+        type: {
+          in: PARTNER_LEVEL_FRAUD_RULES,
+        },
         program: {
           workspace: {
             plan: {

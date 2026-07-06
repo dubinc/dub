@@ -75,6 +75,7 @@ function RiskReviewSheetContent({
           workspaceId,
           status: "hold",
           fraudEventGroupId: fraudGroup.id,
+          partnerId: partner.id,
         }).toString()}`
       : null;
 

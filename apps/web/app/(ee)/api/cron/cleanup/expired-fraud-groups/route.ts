@@ -1,5 +1,5 @@
 import { FRAUD_GROUP_EXPIRY_DAYS } from "@/lib/api/fraud/constants";
-import { releaseHoldCommissions } from "@/lib/api/fraud/release-hold-commissions";
+import { queueReleaseHoldCommissions } from "@/lib/api/fraud/release-hold-commissions";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { subDays } from "date-fns";
@@ -56,7 +56,7 @@ export const POST = withCron(async () => {
     console.log(`Expired ${count} fraud groups`);
 
     if (count > 0) {
-      await releaseHoldCommissions(groupIds);
+      await queueReleaseHoldCommissions(groupIds);
     }
 
     if (groupsToExpire.length < BATCH_SIZE) {

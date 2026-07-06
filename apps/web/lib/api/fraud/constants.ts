@@ -114,6 +114,13 @@ export const PARTNER_LEVEL_FRAUD_RULES = [
   FraudRuleType.partnerDuplicateAccount,
 ];
 
+export const CUSTOMER_LEVEL_FRAUD_RULES = [
+  FraudRuleType.customerEmailMatch,
+  FraudRuleType.customerEmailSuspiciousDomain,
+  FraudRuleType.paidTrafficDetected,
+  FraudRuleType.referralSourceBanned,
+];
+
 export const FRAUD_SEVERITY_CONFIG: Record<
   FraudSeverity,
   {
