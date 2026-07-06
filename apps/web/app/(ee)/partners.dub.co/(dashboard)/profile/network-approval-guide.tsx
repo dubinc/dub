@@ -5,7 +5,6 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import {
   Button,
   CircleCheck,
-  CircleCheck,
   CircleDotted,
   CircleHalfDottedClock,
   CircleXmark,
@@ -175,7 +174,10 @@ export function NetworkApprovalGuide() {
                 >
                   <div className="flex min-w-0 items-center gap-2">
                     {completed ? (
-                      <CircleCheck variant="fill" className="size-4 shrink-0 text-green-500" />
+                      <CircleCheck
+                        variant="fill"
+                        className="size-4 shrink-0 text-green-500"
+                      />
                     ) : (
                       <CircleDotted className="size-4 shrink-0 text-neutral-400" />
                     )}
