@@ -40,6 +40,7 @@ export function AssociatedCommissionsTable({
     workspaceId: workspaceId!,
     status: "hold",
     fraudEventGroupId: fraudGroup.id,
+    partnerId: fraudGroup.partner.id,
   };
 
   const {

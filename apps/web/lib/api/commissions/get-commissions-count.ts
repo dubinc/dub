@@ -4,6 +4,7 @@ import { getCommissionsCountQuerySchema } from "@/lib/zod/schemas/commissions";
 import { parseFilterValue } from "@dub/utils";
 import { CommissionStatus, CommissionType } from "@prisma/client";
 import * as z from "zod/v4";
+import { PARTNER_LEVEL_FRAUD_RULES } from "../fraud/constants";
 
 type CommissionsCountFilters = z.infer<
   typeof getCommissionsCountQuerySchema
@@ -29,23 +30,37 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     programId,
   } = filters;
 
-  // Resolve fraudEventGroupId to customerIds
+  // Filter the commissions count based on the risk event group
   let customerIds: string[] | undefined;
 
   if (fraudEventGroupId) {
     const riskEvents = await prisma.fraudEvent.findMany({
       where: {
         fraudEventGroupId,
-        customerId: {
-          not: null,
-        },
+        programId,
       },
       select: {
         customerId: true,
+        fraudEventGroup: {
+          select: {
+            type: true,
+          },
+        },
       },
     });
 
-    customerIds = riskEvents.map((e) => e.customerId!);
+    if (riskEvents.length > 0) {
+      const riskEventGroup = riskEvents[0].fraudEventGroup;
+      const isPartnerLevelRisk = PARTNER_LEVEL_FRAUD_RULES.includes(
+        riskEventGroup.type as (typeof PARTNER_LEVEL_FRAUD_RULES)[number],
+      );
+
+      // Partner-level: include all commissions for the partner
+      // Customer-level: include only commissions for the customers in the risk event group
+      if (!isPartnerLevelRisk) {
+        customerIds = riskEvents.map((e) => e.customerId!);
+      }
+    }
   }
 
   const { startDate, endDate } = getStartEndDates({
@@ -112,7 +127,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
             ? { notIn: customerFilter.values }
             : { in: customerFilter.values },
       }),
-      ...(customerIds?.length && {
+      ...(customerIds && {
         customerId: {
           in: customerIds,
         },
