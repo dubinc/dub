@@ -15,7 +15,6 @@ import {
   Button,
   buttonVariants,
   CircleCheck,
-  CircleCheck,
   Grid,
   LoadingSpinner,
   Sheet,
