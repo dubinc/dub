@@ -1,8 +1,10 @@
-import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
+import { getPartnerPlatformDisplay } from "@/lib/partners/partner-platforms";
+import { PLATFORM_ORDER } from "@/lib/social-utils";
 import { PartnerPlatformProps, PartnerSharedPlatformProps } from "@/lib/types";
 import { AnimatedSizeContainer, useCurrentSubdomain } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
-import { Fragment, useMemo, useState } from "react";
+import { fetcher } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
+import { Fragment, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { useSWRConfig } from "swr";
 import { PartnerPlatformCard } from "./partner-platform-card";
@@ -11,11 +13,9 @@ import { PartnerPlatformSharedPartners } from "./partner-platform-shared-partner
 export function PartnerPlatformSummary({
   platforms,
   partnerId,
-  className,
 }: {
   platforms: PartnerPlatformProps[] | undefined;
   partnerId: string;
-  className?: string;
 }) {
   const { subdomain } = useCurrentSubdomain();
   const { mutate } = useSWRConfig();
@@ -28,50 +28,30 @@ export function PartnerPlatformSummary({
   );
 
   const [verifyingPlatforms, setVerifyingPlatforms] = useState<
-    Partial<Record<PartnerPlatformProps["type"], boolean>>
+    Record<string, boolean>
   >({});
-
-  const fieldByType = useMemo(
-    () =>
-      ({
-        website: PARTNER_PLATFORM_FIELDS[0],
-        youtube: PARTNER_PLATFORM_FIELDS[1],
-        twitter: PARTNER_PLATFORM_FIELDS[2],
-        linkedin: PARTNER_PLATFORM_FIELDS[3],
-        instagram: PARTNER_PLATFORM_FIELDS[4],
-        tiktok: PARTNER_PLATFORM_FIELDS[5],
-      }) as Record<
-        PartnerPlatformProps["type"],
-        (typeof PARTNER_PLATFORM_FIELDS)[number]
-      >,
-    [],
-  );
 
   if (!platforms || platforms.length === 0) {
     return (
-      <div className={cn("text-sm italic text-neutral-400", className)}>
+      <div className="gap-y-2 text-sm italic text-neutral-400">
         No platforms connected
       </div>
     );
   }
 
-  const fieldData = (Object.keys(fieldByType) as PartnerPlatformProps["type"][])
-    .map((type) => {
-      const field = fieldByType[type];
-      const platform = platforms.find((p) => p.type === type);
-      const data = field.data(platforms);
-      return {
-        type,
-        label: field.label,
-        icon: field.icon,
-        identifier: platform?.identifier ?? null,
-        ...data,
-      };
-    })
-    .filter((field) => field.value && field.href && field.identifier);
+  // One entry per handle, grouped by platform type in display order
+  const platformRows = [...platforms]
+    .sort(
+      (a, b) => PLATFORM_ORDER.indexOf(a.type) - PLATFORM_ORDER.indexOf(b.type),
+    )
+    .map((platform) => ({
+      platform,
+      ...getPartnerPlatformDisplay(platform),
+    }))
+    .filter((row) => row.value && row.href && row.platform.identifier);
 
   const handleVerifyPlatform = async (
-    platform: PartnerPlatformProps["type"],
+    platform: PlatformType,
     identifier: string,
     label: string,
   ) => {
@@ -79,7 +59,9 @@ export function PartnerPlatformSummary({
       return;
     }
 
-    setVerifyingPlatforms((prev) => ({ ...prev, [platform]: true }));
+    const verifyingKey = `${platform}:${identifier}`;
+
+    setVerifyingPlatforms((prev) => ({ ...prev, [verifyingKey]: true }));
 
     try {
       const response = await fetch(
@@ -108,34 +90,22 @@ export function PartnerPlatformSummary({
         error instanceof Error ? error.message : "Failed to verify platform.",
       );
     } finally {
-      setVerifyingPlatforms((prev) => ({ ...prev, [platform]: false }));
+      setVerifyingPlatforms((prev) => ({ ...prev, [verifyingKey]: false }));
     }
   };
 
   return (
-    <div
-      className={cn(
-        "grid grid-cols-1 items-center gap-x-4 gap-y-5 text-sm md:gap-x-16",
-        className,
-      )}
-    >
-      {fieldData.map(
-        ({
-          type,
-          label,
-          icon: Icon,
-          value,
-          verified,
-          href,
-          info,
-          identifier,
-        }) => {
+    <div className="grid grid-cols-1 items-center gap-x-4 gap-y-2 text-sm md:gap-x-16">
+      {platformRows.map(
+        ({ platform, label, icon: Icon, value, verified, href, info }) => {
           const sharedPlatform = sharedPlatforms?.find(
-            (platform) => platform.type === type,
+            (shared) =>
+              shared.type === platform.type &&
+              shared.identifier === platform.identifier,
           );
 
           return (
-            <Fragment key={label}>
+            <Fragment key={`${platform.type}:${platform.identifier}`}>
               <div>
                 <PartnerPlatformCard
                   icon={Icon}
@@ -145,8 +115,16 @@ export function PartnerPlatformSummary({
                   href={href ?? undefined}
                   {...(subdomain === "admin" && {
                     onVerify: () =>
-                      handleVerifyPlatform(type, identifier as string, label),
-                    isVerifying: Boolean(verifyingPlatforms[type]),
+                      handleVerifyPlatform(
+                        platform.type,
+                        platform.identifier,
+                        label,
+                      ),
+                    isVerifying: Boolean(
+                      verifyingPlatforms[
+                        `${platform.type}:${platform.identifier}`
+                      ],
+                    ),
                   })}
                 />
 

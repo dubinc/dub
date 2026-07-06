@@ -6,7 +6,11 @@ import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-frau
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
 import { markApplicationEventSubmitted } from "../application-events/update-application-event";
 import { qstash } from "../cron";
-import { buildSocialPlatformLookup } from "../social-utils";
+import {
+  buildSocialPlatformLookup,
+  sanitizeSocialHandle,
+  sanitizeWebsite,
+} from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
 import { evaluateApplicationRequirements } from "./evaluate-application-requirements";
@@ -238,13 +242,28 @@ export async function completeProgramApplications(userEmail: string) {
         // update the partner to use the website they applied with
         hasMissingSocialFields &&
           prisma.partnerPlatform.createMany({
-            data: Object.entries(missingSocialFields)
-              .filter(([, identifier]) => identifier !== undefined)
-              .map(([platform, identifier]) => ({
-                partnerId: partner.id,
-                type: platform as PlatformType,
-                identifier: identifier as string,
-              })),
+            data: Object.entries(missingSocialFields).flatMap(
+              ([platform, identifier]) => {
+                const type = platform as PlatformType;
+
+                const sanitized =
+                  type === "website"
+                    ? sanitizeWebsite(identifier)
+                    : sanitizeSocialHandle(identifier, type);
+
+                if (!sanitized) {
+                  return [];
+                }
+
+                return [
+                  {
+                    partnerId: partner.id,
+                    type,
+                    identifier: sanitized,
+                  },
+                ];
+              },
+            ),
             skipDuplicates: true,
           }),
 

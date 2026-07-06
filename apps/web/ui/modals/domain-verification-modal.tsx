@@ -3,13 +3,7 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Button, CopyButton, Modal } from "@dub/ui";
 import { X } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useMemo,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 
 interface DomainVerificationModalProps {
@@ -17,6 +11,7 @@ interface DomainVerificationModalProps {
   setShowDomainVerificationModal: Dispatch<SetStateAction<boolean>>;
   domain: string;
   txtRecord: string;
+  identifier: string;
 }
 
 export function DomainVerificationModal(props: DomainVerificationModalProps) {
@@ -34,6 +29,7 @@ function DomainVerificationModalInner({
   setShowDomainVerificationModal,
   domain,
   txtRecord,
+  identifier,
 }: DomainVerificationModalProps) {
   const { mutate: mutatePartner } = usePartnerProfile();
 
@@ -91,44 +87,9 @@ function DomainVerificationModalInner({
           text="Verify"
           className="h-8 w-fit px-3"
           loading={status === "executing" || status === "hasSucceeded"}
-          onClick={async () => await executeAsync()}
+          onClick={async () => await executeAsync({ identifier })}
         />
       </div>
     </>
-  );
-}
-
-export function useDomainVerificationModal({
-  domain,
-  txtRecord,
-}: {
-  domain: string;
-  txtRecord: string;
-}) {
-  const [showDomainVerificationModal, setShowDomainVerificationModal] =
-    useState(false);
-
-  const DomainVerificationModalCallback = useCallback(() => {
-    return (
-      <DomainVerificationModal
-        showDomainVerificationModal={showDomainVerificationModal}
-        setShowDomainVerificationModal={setShowDomainVerificationModal}
-        domain={domain}
-        txtRecord={txtRecord}
-      />
-    );
-  }, [
-    showDomainVerificationModal,
-    setShowDomainVerificationModal,
-    domain,
-    txtRecord,
-  ]);
-
-  return useMemo(
-    () => ({
-      setShowDomainVerificationModal,
-      DomainVerificationModal: DomainVerificationModalCallback,
-    }),
-    [setShowDomainVerificationModal, DomainVerificationModalCallback],
   );
 }

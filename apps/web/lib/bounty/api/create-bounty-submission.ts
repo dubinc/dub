@@ -472,12 +472,13 @@ export class BountySubmissionHandler {
       });
     }
 
-    const partnerPlatform = await prisma.partnerPlatform.findUnique({
+    // A partner can have multiple handles of the same type, so gather all of
+    // them and require that the submitted content was published from one that
+    // is verified.
+    const partnerPlatforms = await prisma.partnerPlatform.findMany({
       where: {
-        partnerId_type: {
-          partnerId: this.partner.id,
-          type: platform.value,
-        },
+        partnerId: this.partner.id,
+        type: platform.value,
       },
       select: {
         identifier: true,
@@ -485,14 +486,16 @@ export class BountySubmissionHandler {
       },
     });
 
-    if (!partnerPlatform) {
+    if (partnerPlatforms.length === 0) {
       throw new DubApiError({
         code: "unprocessable_entity",
         message: `You must connect your ${platform.label} account to your profile before submitting this bounty.`,
       });
     }
 
-    if (!partnerPlatform.verifiedAt) {
+    const verifiedPlatforms = partnerPlatforms.filter((p) => p.verifiedAt);
+
+    if (verifiedPlatforms.length === 0) {
       throw new DubApiError({
         code: "unprocessable_entity",
         message: `You must verify your ${platform.label} account before submitting this bounty.`,
@@ -512,13 +515,15 @@ export class BountySubmissionHandler {
       });
     }
 
-    if (
-      socialContent.handle.toLowerCase() !==
-      partnerPlatform.identifier.toLowerCase()
-    ) {
+    const contentHandle = socialContent.handle.toLowerCase();
+    const hasVerifiedMatchingHandle = verifiedPlatforms.some(
+      (p) => p.identifier.toLowerCase() === contentHandle,
+    );
+
+    if (!hasVerifiedMatchingHandle) {
       throw new DubApiError({
         code: "unprocessable_entity",
-        message: `The content was not published from your connected ${platform.label} account.`,
+        message: `The content was not published from a verified ${platform.label} account on your profile.`,
       });
     }
 

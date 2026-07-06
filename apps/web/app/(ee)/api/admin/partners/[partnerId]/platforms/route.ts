@@ -25,8 +25,12 @@ export const POST = withAdmin(
     } = postSchema.parse(await req.json());
 
     const partner = await prisma.partner.findUnique({
-      where: { id: partnerId },
-      select: { id: true },
+      where: {
+        id: partnerId,
+      },
+      select: {
+        id: true,
+      },
     });
 
     if (!partner) {
@@ -86,45 +90,36 @@ export const POST = withAdmin(
       };
     }
 
+    const data = {
+      verifiedAt: new Date(),
+      platformId: verifiedData.platformId,
+      subscribers: verifiedData.subscribers,
+      posts: verifiedData.posts,
+      views: verifiedData.views,
+      avatarUrl: verifiedData.avatarUrl,
+      metadata: {
+        ...(verifiedData.metadata ?? {}),
+        manuallyVerifiedByAdmin: true,
+        manuallyVerifiedAt: new Date().toISOString(),
+      },
+      lastCheckedAt: new Date(),
+    };
+
     const updated = await prisma.partnerPlatform.upsert({
       where: {
-        partnerId_type: {
+        partnerId_type_identifier: {
           partnerId,
           type: platform,
+          identifier,
         },
       },
       create: {
         partnerId,
         type: platform,
         identifier,
-        verifiedAt: new Date(),
-        platformId: verifiedData.platformId,
-        subscribers: verifiedData.subscribers,
-        posts: verifiedData.posts,
-        views: verifiedData.views,
-        avatarUrl: verifiedData.avatarUrl,
-        metadata: {
-          ...(verifiedData.metadata ?? {}),
-          manuallyVerifiedByAdmin: true,
-          manuallyVerifiedAt: new Date().toISOString(),
-        },
-        lastCheckedAt: new Date(),
+        ...data,
       },
-      update: {
-        identifier,
-        verifiedAt: new Date(),
-        platformId: verifiedData.platformId,
-        subscribers: verifiedData.subscribers,
-        posts: verifiedData.posts,
-        views: verifiedData.views,
-        avatarUrl: verifiedData.avatarUrl,
-        metadata: {
-          ...(verifiedData.metadata ?? {}),
-          manuallyVerifiedByAdmin: true,
-          manuallyVerifiedAt: new Date().toISOString(),
-        },
-        lastCheckedAt: new Date(),
-      },
+      update: data,
     });
 
     return NextResponse.json({

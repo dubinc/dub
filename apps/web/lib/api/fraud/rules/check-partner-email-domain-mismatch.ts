@@ -1,5 +1,6 @@
 import { PartnerProps } from "@/lib/types";
 import { getDomainWithoutWWW } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 
 function normalizeDomain(domain: string) {
   return domain
@@ -16,9 +17,11 @@ export function checkPartnerEmailDomainMismatch(
     return false;
   }
 
-  const website = partner.platforms.find((p) => p.type === "website");
+  const websites = partner.platforms.filter(
+    (p) => p.type === PlatformType.website && p.identifier,
+  );
 
-  if (!website || !website.identifier) {
+  if (websites.length === 0) {
     return false;
   }
 
@@ -28,11 +31,14 @@ export function checkPartnerEmailDomainMismatch(
   }
 
   const emailDomain = normalizeDomain(emailParts[1]);
-  const websiteDomain = getDomainWithoutWWW(website.identifier);
 
-  if (!websiteDomain) {
+  const websiteDomains = websites
+    .map((website) => getDomainWithoutWWW(website.identifier)?.toLowerCase())
+    .filter((domain): domain is string => Boolean(domain));
+
+  if (websiteDomains.length === 0) {
     return false;
   }
 
-  return emailDomain !== websiteDomain.toLowerCase();
+  return !websiteDomains.some((domain) => domain === emailDomain);
 }

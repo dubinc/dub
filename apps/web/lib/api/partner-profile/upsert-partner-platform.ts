@@ -1,41 +1,34 @@
 import { prisma } from "@/lib/prisma";
-import { PlatformType, Prisma } from "@prisma/client";
+import { PartnerPlatform, Prisma } from "@prisma/client";
 
 type UpsertPartnerPlatformParams = {
-  where: {
-    partnerId: string;
-    type: PlatformType;
-  };
-  data: Pick<
-    Prisma.PartnerPlatformCreateInput,
-    "identifier" | "verifiedAt" | "metadata"
-  >;
+  where: Pick<PartnerPlatform, "partnerId" | "type" | "identifier">;
+  data: Pick<Prisma.PartnerPlatformCreateInput, "verifiedAt" | "metadata">;
 };
 
 export async function upsertPartnerPlatform({
   where,
   data,
 }: UpsertPartnerPlatformParams) {
-  const { partnerId, type } = where;
+  const { partnerId, type, identifier } = where;
 
   return await prisma.partnerPlatform.upsert({
     where: {
-      partnerId_type: {
+      partnerId_type_identifier: {
         partnerId,
         type,
+        identifier,
       },
     },
     create: {
       partnerId,
       type,
-      identifier: data.identifier,
+      identifier,
       verifiedAt: data.verifiedAt,
       metadata: data.metadata,
     },
     update: {
-      identifier: data.identifier,
-      verifiedAt: data.verifiedAt,
-      metadata: data.metadata,
+      ...data,
     },
   });
 }
