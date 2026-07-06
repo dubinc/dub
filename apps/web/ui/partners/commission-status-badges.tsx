@@ -145,7 +145,7 @@ export const CommissionStatusBadges = {
         return title;
       }
 
-      return `This partner's commissions are on hold due to [unresolved risk events](${`/${data.workspace?.slug}/program/risks${data.partner?.id ? `?partnerId=${data.partner.id}` : ""}`}). They cannot be paid out until resolved.`;
+      return `This commission is on hold due to [unresolved risk events](${`/${data.workspace?.slug}/program/risks${data.partner?.id ? `?partnerId=${data.partner.id}` : ""}`}). They cannot be paid out until resolved.`;
     },
   },
 };

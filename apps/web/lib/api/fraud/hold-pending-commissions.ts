@@ -1,7 +1,7 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { prisma } from "@/lib/prisma";
 import { chunk, groupBy } from "@dub/utils";
-import { CommissionStatus, ProgramEnrollment } from "@prisma/client";
+import { CommissionStatus, Prisma, ProgramEnrollment } from "@prisma/client";
 import { syncTotalCommissions } from "../partners/sync-total-commissions";
 
 // Bulk-hold pending commissions for partner-program pairs flagged by partner-level fraud
@@ -22,6 +22,20 @@ export async function holdPendingCommissions(
 
   const chunks = chunk(uniquePairs, 50);
 
+  const holdEligibleWhere: Prisma.CommissionWhereInput = {
+    status: CommissionStatus.pending,
+    earnings: {
+      gt: 0,
+    },
+    program: {
+      workspace: {
+        plan: {
+          in: ["enterprise", "advanced"],
+        },
+      },
+    },
+  };
+
   for (const chunk of chunks) {
     const pendingCommissions = await prisma.commission.findMany({
       where: {
@@ -29,19 +43,7 @@ export async function holdPendingCommissions(
           programId,
           partnerId,
         })),
-        status: CommissionStatus.pending,
-        // Clawbacks (earnings <= 0) are never held — matches create-partner-commission.
-        earnings: {
-          gt: 0,
-        },
-        // Fraud holds are an advanced/enterprise capability (canManageFraudEvents).
-        program: {
-          workspace: {
-            plan: {
-              in: ["enterprise", "advanced"],
-            },
-          },
-        },
+        ...holdEligibleWhere,
       },
       select: {
         id: true,
@@ -69,7 +71,7 @@ export async function holdPendingCommissions(
         id: {
           in: pendingCommissions.map((c) => c.id),
         },
-        status: CommissionStatus.pending,
+        ...holdEligibleWhere,
       },
       data: {
         status: CommissionStatus.hold,
@@ -80,7 +82,7 @@ export async function holdPendingCommissions(
       continue;
     }
 
-    // updateMany re-checks status: pending, so a commission can change between findMany
+    // updateMany re-checks eligibility, so a commission can change between findMany
     // and updateMany (e.g. payout processing). Only log/sync rows we actually held.
     let heldCommissions = pendingCommissions;
 
