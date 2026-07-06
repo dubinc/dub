@@ -101,7 +101,6 @@ export function PayoutTable() {
   const {
     id: workspaceId,
     slug: workspaceSlug,
-    plan,
     defaultProgramId,
   } = useWorkspace();
 

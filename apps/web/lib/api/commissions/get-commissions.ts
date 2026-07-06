@@ -5,7 +5,7 @@ import { parseFilterValue } from "@dub/utils";
 import { CommissionStatus, CommissionType } from "@prisma/client";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
-import { PARTNER_LEVEL_FRAUD_RULES } from "../fraud/constants";
+import { getFraudEventGroupEventIds } from "../fraud/get-fraud-event-group-event-ids";
 import { buildPaginationQuery } from "../pagination";
 
 type CommissionsFilters = Omit<
@@ -62,38 +62,12 @@ export async function getCommissions(filters: CommissionsFilters) {
   }
 
   // Filter the commissions based on the risk event group
-  let eventIds: string[] | undefined;
-
-  if (fraudEventGroupId) {
-    const riskEventGroup = await prisma.fraudEventGroup.findUniqueOrThrow({
-      where: {
-        id: fraudEventGroupId,
+  const eventIds = fraudEventGroupId
+    ? await getFraudEventGroupEventIds({
+        fraudEventGroupId,
         programId,
-      },
-      select: {
-        type: true,
-        fraudEvents: {
-          select: {
-            eventId: true,
-          },
-        },
-      },
-    });
-
-    if (riskEventGroup.fraudEvents.length > 0) {
-      const isPartnerLevelRisk = PARTNER_LEVEL_FRAUD_RULES.includes(
-        riskEventGroup.type as (typeof PARTNER_LEVEL_FRAUD_RULES)[number],
-      );
-
-      // Partner-level: include all commissions for the partner
-      // Customer-level: include only commissions for the customers in the risk event group
-      if (!isPartnerLevelRisk) {
-        eventIds = riskEventGroup.fraudEvents
-          .map((e) => e.eventId)
-          .filter((e) => e !== null) as string[];
-      }
-    }
-  }
+      })
+    : undefined;
 
   const { startDate, endDate } = getStartEndDates({
     interval,

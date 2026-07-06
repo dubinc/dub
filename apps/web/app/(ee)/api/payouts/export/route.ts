@@ -15,8 +15,8 @@ export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { columns, ...filters } =
-      payoutsExportQuerySchema.parse(searchParams);
+    const parsedParams = payoutsExportQuerySchema.parse(searchParams);
+    const { columns, ...filters } = parsedParams;
 
     const count = await getPayoutsCount({
       programId,
@@ -27,7 +27,7 @@ export const GET = withWorkspace(
       await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/payouts`,
         body: {
-          ...searchParams,
+          ...filters,
           columns: columns.join(","),
           workspaceId: workspace.id,
           programId,

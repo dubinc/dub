@@ -18,12 +18,10 @@ export function buildProgramEnrollmentFilter({
   }
 
   return {
-    ...(groupFilter && {
-      groupId:
-        groupFilter.sqlOperator === "NOT IN"
-          ? { notIn: groupFilter.values }
-          : { in: groupFilter.values },
-    }),
+    groupId:
+      groupFilter.sqlOperator === "NOT IN"
+        ? { notIn: groupFilter.values }
+        : { in: groupFilter.values },
   };
 }
 
