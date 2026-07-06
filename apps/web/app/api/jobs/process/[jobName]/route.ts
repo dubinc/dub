@@ -38,7 +38,7 @@ export const POST = withAxiomBodyLog(
       return new Response("Invalid job envelope (non-retryable).");
     }
 
-    const { name: jobName, dispatchedAt } = envelope.data;
+    const { name: jobName } = envelope.data;
 
     if (urlJobName !== jobName) {
       logger.error("jobs.job_name_mismatch", {
@@ -52,7 +52,7 @@ export const POST = withAxiomBodyLog(
       );
     }
 
-    console.log(`[jobs:${jobName}] executing...`);
+    console.log(`[jobs:${jobName}] Executing job...`, envelope.data);
 
     // Get the job definition
     const job = await loadJob(jobName);
