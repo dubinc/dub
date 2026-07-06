@@ -27,19 +27,15 @@ export const addProgramResourceAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    // Verify the program exists and belongs to the workspace
-    const program = await prisma.program.findUnique({
+    const program = await prisma.program.findUniqueOrThrow({
       where: {
         id: programId,
-        workspaceId: workspace.id,
       },
       select: {
         id: true,
         resources: true,
       },
     });
-
-    if (!program) throw new Error("Program not found");
 
     const currentResources = (program.resources as any) || {
       logos: [],

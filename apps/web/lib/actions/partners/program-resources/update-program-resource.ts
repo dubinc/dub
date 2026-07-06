@@ -28,11 +28,9 @@ export const updateProgramResourceAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    // Verify the program exists and belongs to the workspace
-    const program = await prisma.program.findUnique({
+    const program = await prisma.program.findUniqueOrThrow({
       where: {
         id: programId,
-        workspaceId: workspace.id,
       },
       select: {
         id: true,
@@ -40,8 +38,9 @@ export const updateProgramResourceAction = authActionClient
       },
     });
 
-    if (!program) throw new Error("Program not found");
-    if (!program.resources) throw new Error("Program resources not found");
+    if (!program.resources) {
+      throw new Error("Program resources not found.");
+    }
 
     const currentResources = program.resources as any;
     const updatedResources = { ...currentResources };
@@ -127,7 +126,7 @@ export const updateProgramResourceAction = authActionClient
         id: program.id,
       },
       data: {
-        resources: programResourcesSchema.parse(updatedResources) as any,
+        resources: programResourcesSchema.parse(updatedResources),
       },
     });
 
@@ -144,8 +143,4 @@ export const updateProgramResourceAction = authActionClient
         );
       }
     }
-
-    return {
-      success: true,
-    };
   });
