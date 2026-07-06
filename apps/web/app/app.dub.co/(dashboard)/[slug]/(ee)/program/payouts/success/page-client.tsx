@@ -4,7 +4,7 @@ import useProgram from "@/lib/swr/use-program";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { X } from "@/ui/shared/icons";
-import { buttonVariants, CircleCheckFill, Grid, Receipt2 } from "@dub/ui";
+import { buttonVariants, CircleCheck, Grid, Receipt2 } from "@dub/ui";
 import {
   cn,
   currencyFormatter,
@@ -111,7 +111,7 @@ export function PayoutsSuccessPageClient() {
             "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-duration:0.5s] [animation-fill-mode:both]",
           )}
         >
-          <CircleCheckFill className="size-8 text-green-600" />
+          <CircleCheck variant="fill" className="size-8 text-green-600" />
           <h2 className="text-content-default mt-4 text-lg font-semibold">
             Thank you for your payout!
           </h2>

@@ -3,7 +3,7 @@ import { Link as NavigationMenuLink } from "@radix-ui/react-navigation-menu";
 import Link from "next/link";
 import { SDKS } from "../../content";
 import { Grid } from "../../grid";
-import { DiamondTurnRightFill, MicrophoneFill, UsersFill } from "../../icons";
+import { DiamondTurnRight, Microphone, Users } from "../../icons";
 import {
   ContentLinkCard,
   NAV_UTM_PARAMS,
@@ -12,19 +12,19 @@ import {
 
 const mainLinks = [
   {
-    icon: DiamondTurnRightFill,
+    icon: DiamondTurnRight,
     title: "Marketing Attribution",
     description: "Easily track and measure marketing impact",
     href: "/analytics",
   },
   {
-    icon: MicrophoneFill,
+    icon: Microphone,
     title: "Content Creators",
     description: "Intelligent audience insights and link tracking",
     href: "/solutions/creators",
   },
   {
-    icon: UsersFill,
+    icon: Users,
     title: "Affiliate Management",
     description: "Manage affiliates and automate payouts",
     href: "/partners",
@@ -66,7 +66,10 @@ export function SolutionsContent({ domain }: { domain: string }) {
                     )}
                   />
                 </div>
-                <Icon className="relative size-5 text-neutral-700 dark:text-white/60" />
+                <Icon
+                  variant="fill"
+                  className="relative size-5 text-neutral-700 dark:text-white/60"
+                />
                 <div className="relative">
                   <span className="text-sm font-medium text-neutral-900 dark:text-white">
                     {title}
