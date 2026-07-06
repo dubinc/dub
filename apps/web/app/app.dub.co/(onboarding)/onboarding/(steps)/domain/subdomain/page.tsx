@@ -1,3 +1,5 @@
+"use client";
+
 import { Bolt, withFillVariant } from "@dub/ui";
 import { StepPage } from "../../step-page";
 import { Form } from "./form";
