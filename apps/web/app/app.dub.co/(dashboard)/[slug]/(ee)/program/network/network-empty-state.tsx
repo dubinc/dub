@@ -7,12 +7,10 @@ export function NetworkEmptyState({
   isFiltered,
   isStarred,
   onClearAllFilters,
-  variant = "default",
 }: {
   isFiltered: boolean;
   isStarred: boolean;
   onClearAllFilters: () => void;
-  variant?: "default" | "ignored";
 }) {
   return (
     <AnimatedEmptyState

@@ -384,7 +384,6 @@ export function ProgramPartnerNetworkPageClient({
           isFiltered={isFiltered}
           isStarred={variant === "ignored" ? false : isStarred}
           onClearAllFilters={onRemoveAll}
-          variant={variant === "ignored" ? "ignored" : "default"}
         />
       )}
     </div>
