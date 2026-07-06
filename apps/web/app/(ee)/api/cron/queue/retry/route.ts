@@ -1,7 +1,7 @@
 import { logger } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
-import { buildReplayRequest } from "@/lib/jobs";
+import { buildReplayRequest, isPublishSuccess } from "@/lib/jobs";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash/redis";
 import { logAndRespond } from "../../utils";
@@ -45,13 +45,12 @@ export const GET = withCron(async () => {
     }
 
     const now = new Date();
-
     const entries = jobs.map((job) => buildReplayRequest(job, now));
-
     const jobIds = jobs.map(({ id }) => id);
+    let responses: unknown[];
 
     try {
-      await qstash.batchJSON(entries);
+      responses = await qstash.batchJSON(entries);
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -94,16 +93,70 @@ export const GET = withCron(async () => {
       );
     }
 
-    await prisma.job.deleteMany({
+    const publishedJobIds: string[] = [];
+    const failedJobs: typeof jobs = [];
+
+    jobs.forEach((job, index) => {
+      if (isPublishSuccess(responses[index])) {
+        publishedJobIds.push(job.id);
+      } else {
+        failedJobs.push(job);
+      }
+    });
+
+    if (publishedJobIds.length > 0) {
+      await prisma.job.deleteMany({
+        where: {
+          id: {
+            in: publishedJobIds,
+          },
+        },
+      });
+    }
+
+    if (failedJobs.length === 0) {
+      return logAndRespond(
+        `Republished ${jobs.length} background jobs to QStash.`,
+      );
+    }
+
+    const errorMessage = "QStash batch publish did not return a messageId";
+
+    await prisma.job.updateMany({
       where: {
         id: {
-          in: jobIds,
+          in: failedJobs.map(({ id }) => id),
         },
+      },
+      data: {
+        attempts: {
+          increment: 1,
+        },
+        lastError: errorMessage,
       },
     });
 
+    logger.error("jobs.retry_failed", {
+      jobCount: failedJobs.length,
+      errorMessage,
+    });
+
+    // Jobs that just ran out of attempts are excluded from future runs by the
+    // MAX_ATTEMPTS filter and need manual intervention
+    const exhaustedJobs = failedJobs.filter(
+      (backgroundJob) => backgroundJob.attempts + 1 >= MAX_ATTEMPTS,
+    );
+
+    if (exhaustedJobs.length > 0) {
+      logger.error("jobs.retry_exhausted", {
+        jobs: exhaustedJobs.map(({ id, name }) => ({ id, name })),
+      });
+    }
+
+    await logger.flush();
+
     return logAndRespond(
-      `Republished ${jobs.length} background jobs to QStash.`,
+      `Republished ${publishedJobIds.length} background jobs to QStash; failed to republish ${failedJobs.length}.`,
     );
   } finally {
     await redis.del(LOCK_KEY);

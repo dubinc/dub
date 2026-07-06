@@ -185,7 +185,7 @@ export function buildReplayRequest(
   );
 }
 
-function isPublishSuccess(
+export function isPublishSuccess(
   response: unknown,
 ): response is { messageId: string } {
   return (
