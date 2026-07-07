@@ -251,6 +251,9 @@ importers:
       geist:
         specifier: ^1.3.1
         version: 1.3.1(next@15.5.8(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(react-dom@19.1.3(react@19.1.3))(react@19.1.3))
+      google-auth-library:
+        specifier: ^9.15.1
+        version: 9.15.1(encoding@0.1.13)
       he:
         specifier: ^1.2.0
         version: 1.2.0
@@ -8477,8 +8480,8 @@ packages:
     resolution: {integrity: sha512-bw8smrX+XlAoo9o1JAksBwX+hi/RG15J+NTSxmNPIclKC3ZVK6C2afwY8OSdRvOK0+ZLecUJYtj2MmjOt3Dm0w==}
     engines: {node: '>=14'}
 
-  gcp-metadata@6.0.0:
-    resolution: {integrity: sha512-Ozxyi23/1Ar51wjUT2RDklK+3HxqDr8TLBNK8rBBFQ7T85iIGnXnVusauj06QyqCXRFZig8LZC+TUddWbndlpQ==}
+  gcp-metadata@6.1.1:
+    resolution: {integrity: sha512-a4tiq7E0/5fTjxPAaH4jpjkSv/uCaU2p5KC6HVGrvl0cDjA8iBZv4vv1gyzlmK0ZUKqwpOyQMKzZQe3lTit77A==}
     engines: {node: '>=14'}
 
   geist@1.3.1:
@@ -8618,8 +8621,12 @@ packages:
   globrex@0.1.2:
     resolution: {integrity: sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==}
 
-  google-auth-library@9.1.0:
-    resolution: {integrity: sha512-1M9HdOcQNPV5BwSXqwwT238MTKodJFBxZ/V2JP397ieOLv4FjQdfYb9SooR7Mb+oUT2IJ92mLJQf804dyx0MJA==}
+  google-auth-library@9.15.1:
+    resolution: {integrity: sha512-Jb6Z0+nvECVz+2lzSMt9u98UsoakXxA2HGHMCxh+so3n90XgYWkq5dur19JAJV7ONiJY22yBTyJB1TSkvPq9Ng==}
+    engines: {node: '>=14'}
+
+  google-logging-utils@0.0.2:
+    resolution: {integrity: sha512-NEgUnEcBiP5HrPzufUkBzJOD/Sxsco3rLNo1F1TNf7ieU8ryUzBhqba8r756CjLX7rn3fHl6iLEwPYuqpoKgQQ==}
     engines: {node: '>=14'}
 
   googleapis-common@7.0.0:
@@ -22787,9 +22794,10 @@ snapshots:
       - encoding
       - supports-color
 
-  gcp-metadata@6.0.0(encoding@0.1.13):
+  gcp-metadata@6.1.1(encoding@0.1.13):
     dependencies:
       gaxios: 6.1.1(encoding@0.1.13)
+      google-logging-utils: 0.0.2
       json-bigint: 1.0.0
     transitivePeerDependencies:
       - encoding
@@ -22970,24 +22978,25 @@ snapshots:
 
   globrex@0.1.2: {}
 
-  google-auth-library@9.1.0(encoding@0.1.13):
+  google-auth-library@9.15.1(encoding@0.1.13):
     dependencies:
       base64-js: 1.5.1
       ecdsa-sig-formatter: 1.0.11
       gaxios: 6.1.1(encoding@0.1.13)
-      gcp-metadata: 6.0.0(encoding@0.1.13)
+      gcp-metadata: 6.1.1(encoding@0.1.13)
       gtoken: 7.0.1(encoding@0.1.13)
       jws: 4.0.0
-      lru-cache: 6.0.0
     transitivePeerDependencies:
       - encoding
       - supports-color
+
+  google-logging-utils@0.0.2: {}
 
   googleapis-common@7.0.0(encoding@0.1.13):
     dependencies:
       extend: 3.0.2
       gaxios: 6.1.1(encoding@0.1.13)
-      google-auth-library: 9.1.0(encoding@0.1.13)
+      google-auth-library: 9.15.1(encoding@0.1.13)
       qs: 6.14.0
       url-template: 2.0.8
       uuid: 9.0.1

@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
 
-// Token returned by Google's OAuth token endpoint
+// Token returned by Google's OAuth token endpoint (ephemeral — not persisted).
 export const googleAdsAuthTokenSchema = z.object({
   access_token: z.string(),
   expires_in: z.number(),
@@ -10,25 +10,22 @@ export const googleAdsAuthTokenSchema = z.object({
   created_at: z.number().optional(),
 });
 
-export const googleAdsCredentialsSchema = googleAdsAuthTokenSchema.extend({
+export const googleAdsCredentialsSchema = z.object({
   partnerLinkName: z.string().optional(),
 });
 
 export const googleAdsSettingsSchema = z.object({
   customerId: z.string().nullable().default(null),
-  customerIds: z.array(z.string()).default([]),
   leadConversionActionId: z.string().nullable().default(null),
   saleConversionActionId: z.string().nullable().default(null),
 });
 
 export const googleAdsEditableSettingsSchema = googleAdsSettingsSchema.pick({
-  customerId: true,
   leadConversionActionId: true,
   saleConversionActionId: true,
 });
 
 export const googleAdsSettingsFormSchema = z.object({
-  customerId: z.string(),
   leadConversionActionId: z.string(),
   saleConversionActionId: z.string(),
 });

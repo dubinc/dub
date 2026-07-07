@@ -1,4 +1,3 @@
-import { decrypt, encrypt } from "@/lib/encryption";
 import { installIntegration } from "@/lib/integrations/install";
 import {
   InstallationContext,
@@ -6,7 +5,6 @@ import {
 } from "@/lib/integrations/integration-provider";
 import { prisma } from "@/lib/prisma";
 import { GOOGLE_ADS_INTEGRATION_ID, prettyPrint } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import {
   DATA_MANAGER_API_VERSION,
@@ -14,9 +12,12 @@ import {
   GOOGLE_ADS_CURRENCY,
   GOOGLE_ADS_DEFAULT_SETTINGS,
 } from "./constants";
+import {
+  getDataPartnerAccessToken,
+  parseServiceAccountKey,
+} from "./data-partner-auth";
 import { googleAdsEnv } from "./env";
 import {
-  GoogleAdsAuthToken,
   googleAdsCredentialsSchema,
   googleAdsSettingsSchema,
   IngestConversionEvent,
@@ -29,71 +30,6 @@ import {
 
 type GoogleAdsCredentials = z.infer<typeof googleAdsCredentialsSchema>;
 type GoogleAdsSettings = z.infer<typeof googleAdsSettingsSchema>;
-
-const DATA_PARTNER_TOKEN_BUFFER_MS = 60 * 1000;
-
-let cachedDataPartnerToken: { accessToken: string; expiresAt: number } | null =
-  null;
-
-const isDataPartnerAccessTokenValid = (expiresAt: number) => {
-  return Date.now() < expiresAt - DATA_PARTNER_TOKEN_BUFFER_MS;
-};
-
-// Exchange Dub's data partner refresh token for a Data Manager API access token.
-const getDataPartnerAccessToken = async (): Promise<string> => {
-  if (
-    cachedDataPartnerToken &&
-    isDataPartnerAccessTokenValid(cachedDataPartnerToken.expiresAt)
-  ) {
-    return cachedDataPartnerToken.accessToken;
-  }
-
-  const {
-    GOOGLE_DATA_PARTNER_REFRESH_TOKEN: refreshToken,
-    GOOGLE_ADS_CLIENT_ID: clientId,
-    GOOGLE_ADS_CLIENT_SECRET: clientSecret,
-  } = requireGoogleAdsEnv();
-
-  const response = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: refreshToken,
-      client_id: clientId,
-      client_secret: clientSecret,
-    }),
-  });
-
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(
-      `[Google Ads] Failed to refresh data partner token: ${
-        (result as { error?: string }).error || response.statusText
-      }`,
-    );
-  }
-
-  const accessToken = (result as { access_token?: string }).access_token;
-
-  if (!accessToken) {
-    throw new Error(
-      "[Google Ads] Data partner token response missing access_token.",
-    );
-  }
-
-  const expiresIn = (result as { expires_in?: number }).expires_in ?? 3600;
-
-  cachedDataPartnerToken = {
-    accessToken,
-    expiresAt: Date.now() + expiresIn * 1000,
-  };
-
-  return accessToken;
-};
 
 const fetchGoogleAdsApi = async <T>(
   accessToken: string,
@@ -146,11 +82,13 @@ const fetchDataManagerApi = async <T>(
   const baseUrl = `https://datamanager.googleapis.com/${DATA_MANAGER_API_VERSION}`;
   const url = `${baseUrl}${path}`;
   const { method = "GET", body } = options;
+  const { project_id: projectId } = parseServiceAccountKey();
 
   const response = await fetch(url, {
     method,
     headers: {
       Authorization: `Bearer ${accessToken}`,
+      "x-goog-user-project": projectId,
       ...(body ? { "Content-Type": "application/json" } : {}),
     },
     body: body ? JSON.stringify(body) : undefined,
@@ -178,25 +116,12 @@ const fetchDataManagerApi = async <T>(
   return result as T;
 };
 
-export function isGoogleAdsAuthTokenValid(
-  token: Pick<GoogleAdsAuthToken, "created_at" | "expires_in">,
-) {
-  if (!token.created_at) {
-    return false;
-  }
-
-  const buffer = 60 * 1000;
-  const expiresAt = token.created_at + token.expires_in * 1000;
-
-  return Date.now() < expiresAt - buffer;
-}
-
 const GOOGLE_ADS_ENV_KEYS = [
   "GOOGLE_ADS_CLIENT_ID",
   "GOOGLE_ADS_CLIENT_SECRET",
   "GOOGLE_ADS_DEVELOPER_TOKEN",
   "GOOGLE_DATA_PARTNER_ACCOUNT_ID",
-  "GOOGLE_DATA_PARTNER_REFRESH_TOKEN",
+  "GOOGLE_DATA_PARTNER_SERVICE_ACCOUNT_JSON",
 ] as const;
 
 const requireGoogleAdsEnv = () => {
@@ -224,31 +149,24 @@ class GoogleAdsProvider extends IntegrationProvider<
   parseCredentials(raw: unknown): GoogleAdsCredentials {
     const parsed = googleAdsCredentialsSchema.safeParse(raw);
 
-    if (!parsed.success) {
-      throw new Error("Invalid Google Ads credentials.");
+    if (parsed.success) {
+      return parsed.data;
     }
 
-    const { access_token, refresh_token, ...rest } = parsed.data;
+    // Legacy installations stored encrypted OAuth tokens — only keep partnerLinkName.
+    if (raw && typeof raw === "object" && "partnerLinkName" in raw) {
+      const legacy = raw as { partnerLinkName?: string };
 
-    return {
-      ...rest,
-      access_token: decrypt(access_token),
-      refresh_token: refresh_token ? decrypt(refresh_token) : undefined,
-    };
+      return {
+        partnerLinkName: legacy.partnerLinkName,
+      };
+    }
+
+    throw new Error("Invalid Google Ads credentials.");
   }
 
   serializeCredentials(credentials: Partial<GoogleAdsCredentials>) {
-    const parsed = googleAdsCredentialsSchema.parse(credentials);
-
-    return {
-      ...parsed,
-      ...(parsed.access_token
-        ? { access_token: encrypt(parsed.access_token) }
-        : {}),
-      ...(parsed.refresh_token
-        ? { refresh_token: encrypt(parsed.refresh_token) }
-        : {}),
-    };
+    return googleAdsCredentialsSchema.parse(credentials);
   }
 
   parseSettings(raw: unknown): GoogleAdsSettings {
@@ -263,14 +181,14 @@ class GoogleAdsProvider extends IntegrationProvider<
     }
   }
 
-  async install({
-    authToken,
-    customerIds,
+  async completeSetup({
+    accessToken,
+    customerId,
     userId,
     workspaceId,
   }: {
-    authToken: GoogleAdsAuthToken;
-    customerIds?: string[];
+    accessToken: string;
+    customerId: string;
     userId: string;
     workspaceId: string;
   }) {
@@ -294,46 +212,27 @@ class GoogleAdsProvider extends IntegrationProvider<
       ? this.tryParseCredentials(installation.credentials)
       : undefined;
 
-    const storedAuthToken: GoogleAdsAuthToken = {
-      ...authToken,
-      created_at: authToken.created_at ?? Date.now(),
-    };
-
-    const customerId = customerIds?.[0];
-    let partnerLinkName: string | undefined;
-
-    // Replace the partner link if a customer ID is provided (eg: on install)
-    if (customerId) {
-      partnerLinkName = await this.replacePartnerLink({
-        accessToken: storedAuthToken.access_token,
-        customerId,
-        existingPartnerLinkName: parsedCredentials?.partnerLinkName,
-      });
-    }
-    // Delete the partner link if a partner link name is provided (eg: on uninstall or re-install)
-    else if (parsedCredentials?.partnerLinkName) {
-      await this.deletePartnerLink(parsedCredentials.partnerLinkName);
-    }
-
-    const parsedSettings = googleAdsSettingsSchema.safeParse({
-      ...GOOGLE_ADS_DEFAULT_SETTINGS,
+    const partnerLinkName = await this.replacePartnerLink({
+      accessToken,
       customerId,
-      ...(customerIds ? { customerIds } : {}),
+      existingPartnerLinkName: parsedCredentials?.partnerLinkName,
     });
 
-    if (!parsedSettings.success) {
-      throw new Error("[Google Ads] Failed to parse settings.");
-    }
+    const currentSettings = installation?.settings
+      ? this.parseSettings(installation.settings)
+      : GOOGLE_ADS_DEFAULT_SETTINGS;
+
+    const parsedSettings = googleAdsSettingsSchema.parse({
+      ...currentSettings,
+      customerId,
+    });
 
     await installIntegration({
       integrationId: GOOGLE_ADS_INTEGRATION_ID,
       userId,
       workspaceId,
-      credentials: this.serializeCredentials({
-        ...storedAuthToken,
-        ...(partnerLinkName ? { partnerLinkName } : {}),
-      }),
-      settings: parsedSettings.data,
+      credentials: this.serializeCredentials({ partnerLinkName }),
+      settings: parsedSettings,
     });
   }
 
@@ -378,9 +277,9 @@ class GoogleAdsProvider extends IntegrationProvider<
     const { GOOGLE_DATA_PARTNER_ACCOUNT_ID: dataPartnerAccountId } =
       requireGoogleAdsEnv();
 
-    const accessToken = await getDataPartnerAccessToken();
+    const dataPartnerAccessToken = await getDataPartnerAccessToken();
 
-    return this.ingestDataManagerEvents(accessToken, {
+    return this.ingestDataManagerEvents(dataPartnerAccessToken, {
       destinations: [
         {
           operatingAccount: {
@@ -477,42 +376,6 @@ class GoogleAdsProvider extends IntegrationProvider<
         },
       },
     );
-  }
-
-  async selectCustomerAccount(
-    installation: InstallationContext,
-    customerId: string,
-  ): Promise<Prisma.InputJsonValue> {
-    this.assertEnv();
-
-    const { customerIds } = this.getSettings(installation);
-
-    if (customerIds.length === 0) {
-      throw new Error(
-        "No Google Ads accounts found. Please re-install the integration.",
-      );
-    }
-
-    if (!customerIds.includes(customerId)) {
-      throw new Error("Selected Google Ads account is not accessible.");
-    }
-
-    const { googleAdsOAuthProvider } = await import("./oauth");
-    const authToken =
-      await googleAdsOAuthProvider.refreshTokenForInstallation(installation);
-
-    const parsedCredentials = this.getCredentials(installation);
-
-    const partnerLinkName = await this.replacePartnerLink({
-      accessToken: authToken.access_token,
-      customerId,
-      existingPartnerLinkName: parsedCredentials.partnerLinkName,
-    });
-
-    return this.serializeCredentials({
-      ...authToken,
-      partnerLinkName,
-    });
   }
 
   private async deletePartnerLink(partnerLinkName: string) {

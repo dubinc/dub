@@ -6,6 +6,9 @@ export const DATA_MANAGER_API_VERSION = "v1";
 
 export const GOOGLE_ADS_CURRENCY = "USD" as const;
 
+export const GOOGLE_DATA_MANAGER_SCOPE =
+  "https://www.googleapis.com/auth/datamanager";
+
 export const GOOGLE_ADS_OAUTH_SCOPES = [
   "https://www.googleapis.com/auth/datamanager.partnerlink",
   "https://www.googleapis.com/auth/adwords",
@@ -13,7 +16,6 @@ export const GOOGLE_ADS_OAUTH_SCOPES = [
 
 export const GOOGLE_ADS_DEFAULT_SETTINGS = {
   customerId: null,
-  customerIds: [],
   leadConversionActionId: null,
   saleConversionActionId: null,
 };

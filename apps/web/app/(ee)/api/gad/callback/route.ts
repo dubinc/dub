@@ -91,14 +91,13 @@ export const GET = async (req: Request) => {
       });
     }
 
-    const authToken = {
-      ...token,
-      created_at: Date.now(),
-    };
+    // TODO: Support multi-account selection when user has access to multiple Google Ads accounts.
+    // See https://developers.google.com/data-manager/api/devguides/accounts/partner-links
+    const customerId = customerIds[0];
 
-    await googleAdsProvider.install({
-      authToken,
-      customerIds,
+    await googleAdsProvider.completeSetup({
+      accessToken: token.access_token,
+      customerId,
       workspaceId,
       userId: session.user.id,
     });
