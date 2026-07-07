@@ -571,45 +571,49 @@ function ReferralLinkDisplay({
         }
       : null;
 
-  let actionButton: React.ReactNode = null;
+  const getActionButton = (heightClassName: string) => {
+    if (partnerLink) {
+      return (
+        <Button
+          icon={
+            <div className="relative size-4">
+              <div
+                className={cn(
+                  "absolute inset-0 transition-[transform,opacity]",
+                  copied && "translate-y-1 opacity-0",
+                )}
+              >
+                <Copy className="size-4" />
+              </div>
+              <div
+                className={cn(
+                  "absolute inset-0 transition-[transform,opacity]",
+                  !copied && "translate-y-1 opacity-0",
+                )}
+              >
+                <Check className="size-4" />
+              </div>
+            </div>
+          }
+          text={copied ? "Copied link" : "Copy link"}
+          className={cn("xs:w-fit rounded-lg hover:ring-2", heightClassName)}
+          onClick={() => copyToClipboard(partnerLink)}
+        />
+      );
+    }
 
-  if (partnerLink) {
-    actionButton = (
-      <Button
-        icon={
-          <div className="relative size-4">
-            <div
-              className={cn(
-                "absolute inset-0 transition-[transform,opacity]",
-                copied && "translate-y-1 opacity-0",
-              )}
-            >
-              <Copy className="size-4" />
-            </div>
-            <div
-              className={cn(
-                "absolute inset-0 transition-[transform,opacity]",
-                !copied && "translate-y-1 opacity-0",
-              )}
-            >
-              <Check className="size-4" />
-            </div>
-          </div>
-        }
-        text={copied ? "Copied link" : "Copy link"}
-        className="xs:w-fit h-8 rounded-lg hover:ring-2"
-        onClick={() => copyToClipboard(partnerLink)}
-      />
-    );
-  } else if (links.length === 0) {
-    actionButton = (
-      <Button
-        text="Create a link"
-        onClick={() => onSelectTab("Links")}
-        className="xs:w-fit h-8 rounded-lg"
-      />
-    );
-  }
+    if (links.length === 0) {
+      return (
+        <Button
+          text="Create a link"
+          onClick={() => onSelectTab("Links")}
+          className={cn("xs:w-fit rounded-lg", heightClassName)}
+        />
+      );
+    }
+
+    return null;
+  };
 
   return (
     <>
@@ -641,7 +645,9 @@ function ReferralLinkDisplay({
               }
               className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 w-full min-w-0 shrink grow rounded-lg border px-3 text-sm focus:outline-none focus:ring-neutral-500"
             />
-            <div className="absolute right-1 top-1 h-8">{actionButton}</div>
+            <div className="absolute right-1 top-1 h-8">
+              {getActionButton("h-8")}
+            </div>
           </div>
         ) : (
           <>
@@ -677,7 +683,7 @@ function ReferralLinkDisplay({
               trigger={
                 <button
                   type="button"
-                  className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default flex h-10 min-w-0 shrink grow items-center gap-2 rounded-md border px-3 text-left text-sm outline-none focus:ring-neutral-500"
+                  className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default flex h-10 min-w-0 shrink grow items-center gap-2 rounded-lg border px-3 text-left text-sm outline-none focus:ring-neutral-500"
                 >
                   <span className="min-w-0 shrink grow truncate">
                     {partnerLink
@@ -688,7 +694,7 @@ function ReferralLinkDisplay({
                 </button>
               }
             />
-            {actionButton}
+            {getActionButton("h-10")}
           </>
         )}
       </div>
