@@ -52,7 +52,6 @@ export const GoogleAdsSettings = ({
       customerId: googleAdsSettings.customerId ?? "",
       leadConversionActionId: googleAdsSettings.leadConversionActionId ?? "",
       saleConversionActionId: googleAdsSettings.saleConversionActionId ?? "",
-      saleLtvValue: googleAdsSettings.saleLtvValue?.toString() ?? "",
     },
   });
 
@@ -62,8 +61,6 @@ export const GoogleAdsSettings = ({
         customerId: input.customerId ?? "",
         leadConversionActionId: input.leadConversionActionId ?? "",
         saleConversionActionId: input.saleConversionActionId ?? "",
-        saleLtvValue:
-          input.saleLtvValue != null ? input.saleLtvValue.toString() : "",
       });
       router.refresh();
       toast.success("Google Ads settings updated successfully.");
@@ -86,25 +83,11 @@ export const GoogleAdsSettings = ({
       return;
     }
 
-    const saleLtvTrimmed = data.saleLtvValue.trim();
-
-    if (saleLtvTrimmed) {
-      const parsedSaleLtv = Number(saleLtvTrimmed);
-
-      if (!Number.isFinite(parsedSaleLtv) || parsedSaleLtv < 0) {
-        setError("saleLtvValue", {
-          message: "Sale LTV value must be a non-negative number.",
-        });
-        return;
-      }
-    }
-
     await executeAsync({
       workspaceId,
       customerId: data.customerId.trim() || null,
       leadConversionActionId: data.leadConversionActionId.trim() || null,
       saleConversionActionId: data.saleConversionActionId.trim() || null,
-      saleLtvValue: saleLtvTrimmed ? Number(saleLtvTrimmed) : null,
     });
   });
 
@@ -213,30 +196,6 @@ export const GoogleAdsSettings = ({
               placeholder="e.g. 1234567890"
               {...register("saleConversionActionId")}
             />
-          </div>
-
-          <div>
-            <label className="text-content-subtle mb-1 block text-xs font-medium">
-              Sale LTV value (USD)
-            </label>
-            <Input
-              className="max-w-none"
-              type="number"
-              min={0}
-              step="0.01"
-              placeholder="e.g. 968"
-              {...register("saleLtvValue")}
-            />
-            {errors.saleLtvValue ? (
-              <p className="mt-1 text-xs text-red-500">
-                {errors.saleLtvValue.message}
-              </p>
-            ) : (
-              <p className="mt-1 text-xs text-neutral-400">
-                gclid expires after 90 days — only the first sale is reported.
-                Use an estimated LTV instead of recurring amounts.
-              </p>
-            )}
           </div>
         </div>
 

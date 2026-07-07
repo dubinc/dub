@@ -1,54 +1,36 @@
 import * as z from "zod/v4";
 
-// Token returned by Google's OAuth token endpoint at connect time (not persisted).
+// Token returned by Google's OAuth token endpoint
 export const googleAdsAuthTokenSchema = z.object({
   access_token: z.string(),
-  expires_in: z.number().describe("Access token lifetime in seconds."),
+  expires_in: z.number(),
   scope: z.string(),
   token_type: z.string(),
   refresh_token: z.string().optional(),
-  created_at: z
-    .number()
-    .optional()
-    .describe("Unix ms timestamp of when the token was issued/refreshed."),
+  created_at: z.number().optional(),
 });
 
-export const googleAdsCredentialsSchema = googleAdsAuthTokenSchema
-  .partial()
-  .extend({
-    partnerLinkName: z.string().optional(),
-  });
+export const googleAdsCredentialsSchema = googleAdsAuthTokenSchema.extend({
+  partnerLinkName: z.string().optional(),
+});
 
 export const googleAdsSettingsSchema = z.object({
   customerId: z.string().nullable().default(null),
   customerIds: z.array(z.string()).default([]),
-  leadConversionActionId: z.string().nullable().default(null), // Check if this is required.
-  saleConversionActionId: z.string().nullable().default(null), // Check if this is required.
-  saleLtvValue: z.number().nullable().default(null), // Check if this is required.
+  leadConversionActionId: z.string().nullable().default(null),
+  saleConversionActionId: z.string().nullable().default(null),
 });
 
-export const googleAdsEditableSettingsSchema = googleAdsSettingsSchema
-  .pick({
-    customerId: true,
-    leadConversionActionId: true,
-    saleConversionActionId: true,
-    saleLtvValue: true,
-  })
-  .refine(
-    (data) =>
-      data.saleLtvValue === null ||
-      (Number.isFinite(data.saleLtvValue) && data.saleLtvValue >= 0),
-    {
-      message: "Sale LTV value must be a non-negative number.",
-      path: ["saleLtvValue"],
-    },
-  );
+export const googleAdsEditableSettingsSchema = googleAdsSettingsSchema.pick({
+  customerId: true,
+  leadConversionActionId: true,
+  saleConversionActionId: true,
+});
 
 export const googleAdsSettingsFormSchema = z.object({
   customerId: z.string(),
   leadConversionActionId: z.string(),
   saleConversionActionId: z.string(),
-  saleLtvValue: z.string(),
 });
 
 export const updateGoogleAdsSettingsSchema =
@@ -64,7 +46,7 @@ export const ingestConversionEventSchema = z
     wbraid: z.string().optional(),
     gbraid: z.string().optional(),
     conversionValue: z.number(),
-    eventTimestamp: z.string().describe("RFC 3339 timestamp."),
+    eventTimestamp: z.string(),
     transactionId: z.string(),
   })
   .refine((data) => data.gclid || data.wbraid || data.gbraid, {
@@ -109,14 +91,8 @@ const ingestEventsResponseSchema = z.object({
 });
 
 export type GoogleAdsAuthToken = z.infer<typeof googleAdsAuthTokenSchema>;
-export type GoogleAdsEditableSettings = z.infer<
-  typeof googleAdsEditableSettingsSchema
->;
 export type GoogleAdsSettingsFormData = z.infer<
   typeof googleAdsSettingsFormSchema
->;
-export type UpdateGoogleAdsSettingsInput = z.infer<
-  typeof updateGoogleAdsSettingsSchema
 >;
 export type IngestConversionEvent = z.infer<typeof ingestConversionEventSchema>;
 export type GoogleClickId = z.infer<typeof googleClickIdSchema>;

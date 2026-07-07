@@ -1,8 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { getIntegrationProvider } from "@/lib/integrations/integration-providers";
 import { slackOAuthProvider } from "@/lib/integrations/slack/oauth";
 import { prisma } from "@/lib/prisma";
-import { SLACK_INTEGRATION_ID } from "@dub/utils";
+import { SLACK_INTEGRATION_ID } from "@dub/utils/src/constants/integrations";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -33,29 +34,26 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const { integrationId, webhooks } =
-      await prisma.installedIntegration.delete({
-        where: {
-          id: installationId,
-        },
-        select: {
-          integrationId: true,
-          webhooks: {
-            select: {
-              id: true,
-              triggers: true,
-            },
-          },
-        },
-      });
+    const { integrationId } = await prisma.installedIntegration.delete({
+      where: {
+        id: installationId,
+      },
+      select: {
+        integrationId: true,
+      },
+    });
 
-    waitUntil(
-      Promise.all([
-        ...(integrationId === SLACK_INTEGRATION_ID
-          ? [slackOAuthProvider.uninstall(installation)]
-          : []),
-      ]),
-    );
+    const integrationProvider = getIntegrationProvider(integrationId);
+
+    let uninstallPromise: Promise<unknown> = Promise.resolve();
+
+    if (integrationId === SLACK_INTEGRATION_ID) {
+      uninstallPromise = slackOAuthProvider.uninstall(installation);
+    } else if (integrationProvider) {
+      uninstallPromise = integrationProvider.uninstall(installation);
+    }
+
+    waitUntil(uninstallPromise);
 
     return NextResponse.json({ id: installationId });
   },

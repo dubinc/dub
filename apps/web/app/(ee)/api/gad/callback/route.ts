@@ -1,7 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
-import { GoogleAdsClient } from "@/lib/integrations/google-ads/client";
 import { googleAdsOAuthProvider } from "@/lib/integrations/google-ads/oauth";
+import { googleAdsProvider } from "@/lib/integrations/google-ads/provider";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { GOOGLE_ADS_INTEGRATION_ID } from "@dub/utils/src";
@@ -79,9 +79,9 @@ export const GET = async (req: Request) => {
       },
     });
 
-    const googleAds = GoogleAdsClient.withAdvertiserToken(token.access_token);
-
-    const customerIds = await googleAds.listAccessibleCustomers();
+    const customerIds = await googleAdsProvider.listAccessibleCustomers(
+      token.access_token,
+    );
 
     if (customerIds.length === 0) {
       throw new DubApiError({
@@ -96,13 +96,11 @@ export const GET = async (req: Request) => {
       created_at: Date.now(),
     };
 
-    await GoogleAdsClient.completeInstall({
+    await googleAdsProvider.install({
       authToken,
-      customerId: customerIds.length === 1 ? customerIds[0] : null,
       customerIds,
       workspaceId,
       userId: session.user.id,
-      integrationId: integration.id,
     });
 
     redirect(`/${workspace.slug}/settings/integrations/${integration.slug}`);

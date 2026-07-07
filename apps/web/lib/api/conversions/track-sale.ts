@@ -2,6 +2,7 @@ import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { trackGoogleAdsSale } from "@/lib/integrations/google-ads/conversions";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
@@ -643,6 +644,20 @@ const _trackSale = async ({
           workspaceId: workspace.id,
           timestamp: new Date().toISOString(),
         }),
+
+        ...(firstConversionFlag
+          ? [
+              trackGoogleAdsSale({
+                workspaceId: workspace.id,
+                clickData: saleData,
+                customer,
+                linkId: link.id,
+                eventId: saleData.event_id,
+                timestamp: new Date().toISOString(),
+                saleAmount: saleData.amount,
+              }),
+            ]
+          : []),
       ]);
 
       // Update customer stats + program/partner associations

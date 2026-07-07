@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { trackGoogleAdsLead } from "@/lib/integrations/google-ads/conversions";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
@@ -363,6 +364,13 @@ export const trackLead = async ({
                   }),
                 ]
               : []),
+
+            trackGoogleAdsLead({
+              workspaceId: workspace.id,
+              clickData,
+              eventId: leadEventId,
+              timestamp: clickData.timestamp,
+            }),
           ]);
         }
       })(),

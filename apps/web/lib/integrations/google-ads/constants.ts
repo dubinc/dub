@@ -16,5 +16,4 @@ export const GOOGLE_ADS_DEFAULT_SETTINGS = {
   customerIds: [],
   leadConversionActionId: null,
   saleConversionActionId: null,
-  saleLtvValue: null,
 };
