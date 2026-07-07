@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 
 /**
- * Email / search filters on `Partner` (exact email, or full-text on email/name/company).
+ * Email / search filters on `Partner` (exact partner ID, exact email, or full-text on email/name/company).
  */
 export function buildPartnerEmailSearchWhere({
   email,
@@ -17,6 +17,9 @@ export function buildPartnerEmailSearchWhere({
     return { email };
   }
   if (search) {
+    if (search.startsWith("pn_")) {
+      return { id: search };
+    }
     if (search.includes("@")) {
       return { email: search };
     }
