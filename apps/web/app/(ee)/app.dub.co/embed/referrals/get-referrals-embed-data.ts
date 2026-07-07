@@ -66,11 +66,7 @@ export const getReferralsEmbedData = async (token: string) => {
         },
       },
       links: true,
-      partnerGroup: {
-        include: {
-          referralReward: true,
-        },
-      },
+      partnerGroup: true,
       clickReward: true,
       leadReward: true,
       saleReward: true,
@@ -94,8 +90,6 @@ export const getReferralsEmbedData = async (token: string) => {
     referralReward,
     partnerGroup: group,
   } = programEnrollment;
-
-  const effectiveReferralReward = referralReward ?? group.referralReward;
 
   const { totalClicks, totalLeads, totalSales, totalSaleAmount } =
     aggregatePartnerLinksStats(links);
@@ -136,7 +130,7 @@ export const getReferralsEmbedData = async (token: string) => {
     },
     partnerPlatforms: partner.platforms,
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
-    rewards: [clickReward, leadReward, saleReward, effectiveReferralReward]
+    rewards: [clickReward, leadReward, saleReward, referralReward]
       .filter((r): r is Reward => r !== null)
       .map((r) => serializeReward(r)),
     discount,

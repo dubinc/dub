@@ -222,6 +222,9 @@ export function ReferralsEmbedPageClient({
     [rewards],
   );
 
+  const showPartnerReferralSection =
+    referralRewards.length > 0 && Boolean(partner.username);
+
   const tabs = useMemo(
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
@@ -309,7 +312,7 @@ export function ReferralsEmbedPageClient({
             <ReferralLinkDisplay
               termsHref={termsHref}
               onSelectTab={setSelectedTab}
-              hasPartnerReferralReward={referralRewards.length > 0}
+              hasPartnerReferralReward={showPartnerReferralSection}
             />
 
             <div className="sm:max-w-[50%]">
@@ -333,7 +336,7 @@ export function ReferralsEmbedPageClient({
               </div>
             </div>
 
-            {referralRewards.length > 0 && (
+            {showPartnerReferralSection && (
               <PartnerReferralLinkDisplay referralRewards={referralRewards} />
             )}
 
