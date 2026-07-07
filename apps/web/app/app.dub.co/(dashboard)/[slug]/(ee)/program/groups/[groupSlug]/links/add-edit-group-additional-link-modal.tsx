@@ -11,7 +11,7 @@ import {
   Modal,
   useMediaQuery,
 } from "@dub/ui";
-import { CircleCheckFill } from "@dub/ui/icons";
+import { CircleCheck } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -283,7 +283,7 @@ function AddDestinationUrlModalContent({
                         {type.recommended && (
                           <Badge variant="blueGradient">Recommended</Badge>
                         )}
-                        <CircleCheckFill
+                        <CircleCheck variant="fill"
                           className={cn(
                             "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                             isSelected && "scale-100 opacity-100",
