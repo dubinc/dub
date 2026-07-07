@@ -12,8 +12,8 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { CommissionStatus } from "../types";
 import { Footer } from "../components/footer";
+import { CommissionStatus } from "../types";
 
 export default function NewCommissionAlertPartner({
   email = "panic@thedis.co",
@@ -21,7 +21,6 @@ export default function NewCommissionAlertPartner({
     name: "Acme",
     slug: "acme",
     logo: DUB_WORDMARK,
-    supportEmail: "support@acme.com",
   },
   group = {
     holdingPeriodDays: 30,
@@ -39,7 +38,6 @@ export default function NewCommissionAlertPartner({
     name: string;
     slug: string;
     logo: string | null;
-    supportEmail?: string | null;
   };
   group: {
     holdingPeriodDays: number;
@@ -131,30 +129,19 @@ export default function NewCommissionAlertPartner({
                   Your{" "}
                   <strong className="text-black">{earningsInDollars}</strong>{" "}
                   commission is currently on hold while it undergoes a risk
-                  review. It won&apos;t be eligible for payout until the review
-                  is complete. If the review is approved, your commission will
-                  become payable automatically.
+                  review and won&apos;t be eligible for payout until the review
+                  is complete.
                 </Text>
 
                 <Text className="text-sm leading-6 text-neutral-600">
-                  If you have any questions or believe this is incorrect, please
-                  contact the{" "}
-                  <strong className="text-black">{program.name}</strong> team
-                  {program.supportEmail ? (
-                    <>
-                      {" "}
-                      at{" "}
-                      <Link
-                        href={`mailto:${program.supportEmail}`}
-                        className="font-semibold text-neutral-700 underline underline-offset-2"
-                      >
-                        {program.supportEmail}
-                      </Link>
-                    </>
-                  ) : (
-                    " directly"
-                  )}
-                  .
+                  If you have any questions or believe this is incorrect, please{" "}
+                  <Link
+                    href={`https://partners.dub.co/messages/${program.slug}`}
+                    className="font-semibold text-neutral-700 underline underline-offset-2"
+                  >
+                    contact the {program.name} team
+                  </Link>{" "}
+                  to resolve the issue.
                 </Text>
               </>
             ) : (
