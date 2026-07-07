@@ -6,6 +6,7 @@ import { tokenCache } from "@/lib/auth/token-cache";
 import { wouldGainPartnerAccess } from "@/lib/plans/has-partner-access";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
+import { getSubscriptionBillingFields } from "@/lib/stripe/workspace-subscription-fields";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
@@ -100,6 +101,7 @@ export async function checkoutSessionCompleted(
       trialEndsAt,
       paymentFailedAt: null,
       ...(planPeriod !== undefined && { planPeriod }),
+      ...getSubscriptionBillingFields(subscription),
     },
     include: {
       users: {

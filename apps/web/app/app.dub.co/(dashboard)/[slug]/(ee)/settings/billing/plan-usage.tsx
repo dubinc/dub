@@ -34,7 +34,7 @@ import {
 import {
   capitalize,
   cn,
-  getFirstAndLastDay,
+  getBillingPeriodBounds,
   INFINITY_NUMBER,
   isLegacyBusinessPlan,
   isWorkspaceBillingTrialActive,
@@ -73,6 +73,7 @@ export default function PlanUsage() {
     tagsLimit,
     usersLimit,
     billingCycleStart,
+    planPeriod,
     trialEndsAt,
     subscriptionCanceledAt,
     billingCycleEndsAt,
@@ -92,23 +93,32 @@ export default function PlanUsage() {
 
   const { groupsCount } = useGroupsCount();
 
-  const [billingStart, billingEnd] = useMemo(() => {
+  const [billingStart, billingEnd, billingPeriodLabel] = useMemo(() => {
     if (billingCycleStart) {
-      const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
-      const start = firstDay.toLocaleDateString("en-us", {
+      const { start, displayEnd } = getBillingPeriodBounds({
+        planPeriod,
+        billingCycleStart,
+        billingCycleEndsAt,
+      });
+      const startFormatted = start.toLocaleDateString("en-us", {
         month: "short",
         day: "numeric",
         year: "numeric",
       });
-      const end = lastDay.toLocaleDateString("en-us", {
+      const endFormatted = displayEnd.toLocaleDateString("en-us", {
         month: "short",
         day: "numeric",
         year: "numeric",
       });
-      return [start, end];
+      const label =
+        planPeriod === "yearly" && billingCycleEndsAt
+          ? "Current billing period"
+          : "Current billing cycle";
+
+      return [startFormatted, endFormatted, label];
     }
     return [];
-  }, [billingCycleStart]);
+  }, [billingCycleStart, planPeriod, billingCycleEndsAt]);
 
   const usageTabs = useMemo(() => {
     const tabs = [
@@ -275,7 +285,7 @@ export default function PlanUsage() {
             {billingStart && billingEnd && (
               <p className="mt-1.5 text-balance text-sm font-medium leading-normal text-neutral-700">
                 <>
-                  Current billing cycle:{" "}
+                  {billingPeriodLabel}:{" "}
                   <span className="font-normal">
                     {billingStart} - {billingEnd}
                   </span>

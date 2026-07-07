@@ -1,3 +1,4 @@
+import { recomputeWorkspaceUsage } from "@/lib/api/billing/recompute-workspace-usage";
 import { pauseOrCancelCampaignsForProgramOnPlanDowngrade } from "@/lib/api/campaigns/pause-campaigns-on-plan-downgrade";
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
@@ -13,14 +14,18 @@ import {
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { prisma } from "@/lib/prisma";
 import {
-  getSubscriptionCancellationFields,
+  getSubscriptionBillingFields,
   getSubscriptionTrialEndsAt,
 } from "@/lib/stripe/workspace-subscription-fields";
 import { WorkspaceProps } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
 import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
-import { getPlanAndTierFromPriceId, NEW_BUSINESS_PRICE_IDS } from "@dub/utils";
+import {
+  getBillingStartDate,
+  getPlanAndTierFromPriceId,
+  NEW_BUSINESS_PRICE_IDS,
+} from "@dub/utils";
 import type Stripe from "stripe";
 import { getPlanPeriodFromStripeSubscription } from "./get-plan-period-from-stripe-subscription";
 import { getWorkspaceLimitsFromStripeSubscription } from "./get-workspace-limits-from-stripe-subscription";
@@ -41,6 +46,7 @@ export async function updateWorkspacePlan({
     | "trialEndsAt"
     | "billingCycleEndsAt"
     | "subscriptionCanceledAt"
+    | "billingCycleStart"
     | "partnersLimit"
   > & {
     plan: string;
@@ -64,13 +70,23 @@ export async function updateWorkspacePlan({
   const trialEndsAt = getSubscriptionTrialEndsAt(subscription);
   const isPaidPlanActivated =
     workspace.trialEndsAt !== null && trialEndsAt === null;
-  const cancellationFields = getSubscriptionCancellationFields(subscription);
+  const cancellationFields = getSubscriptionBillingFields(subscription);
   const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
 
   const limits = getWorkspaceLimitsFromStripeSubscription({
     planLimits: newPlan.limits,
     subscription,
   });
+
+  const isYearlyToMonthly =
+    workspace.planPeriod === "yearly" && planPeriod === "monthly";
+
+  const recomputedUsage = isYearlyToMonthly
+    ? await recomputeWorkspaceUsage({
+        workspaceId: workspace.id,
+        billingStart: getBillingStartDate(workspace.billingCycleStart),
+      })
+    : null;
 
   const datetimeFieldsUpdated =
     workspace.billingCycleEndsAt?.getTime() !==
@@ -119,6 +135,23 @@ export async function updateWorkspacePlan({
           ...(trialEndsAt !== undefined && { trialEndsAt }),
           ...cancellationFields,
           ...(planPeriod !== undefined && { planPeriod }),
+          ...(recomputedUsage && {
+            usage: recomputedUsage.usage,
+            linksUsage: recomputedUsage.linksUsage,
+            payoutsUsage: recomputedUsage.payoutsUsage,
+            sentEmails: {
+              deleteMany: {
+                type: {
+                  in: [
+                    "firstUsageLimitEmail",
+                    "secondUsageLimitEmail",
+                    "firstLinksLimitEmail",
+                    "secondLinksLimitEmail",
+                  ],
+                },
+              },
+            },
+          }),
         },
         include: {
           users: {
