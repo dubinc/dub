@@ -1,3 +1,4 @@
+import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/trigger-aggregate-due-commissions";
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
@@ -28,7 +29,8 @@ import {
  *    released.
  *
  * Eligible commissions move from `hold` → `pending`, then we log the status
- * change, sync partner totals, and fire partner-metrics workflows.
+ * change, sync partner commissions stats, trigger
+ * the aggregate due commissions cron job, and fire partner-metrics workflows.
  */
 export async function releaseHoldCommissions({
   programId,
@@ -68,6 +70,9 @@ export async function releaseHoldCommissions({
   );
 
   if (hasOtherPendingPartnerLevelGroup) {
+    console.log(
+      `Partner ${partnerId} has other pending partner-level groups, skipping release of hold commissions`,
+    );
     return 0;
   }
 
@@ -115,6 +120,9 @@ export async function releaseHoldCommissions({
   });
 
   if (commissionsToRelease.length === 0) {
+    console.log(
+      `No hold commissions to release for partner ${partnerId} in program ${programId}`,
+    );
     return 0;
   }
 
@@ -163,39 +171,54 @@ export async function releaseHoldCommissions({
         })
       : commissionsToRelease;
 
-  await trackCommissionStatusUpdate({
-    workspaceId: program.workspaceId,
-    programId,
-    commissions: releasedCommissions,
-    newStatus: CommissionStatus.pending,
-  });
-
-  await syncTotalCommissions({
-    partnerId,
-    programId,
-  });
-
   const releasedEarnings = releasedCommissions.reduce(
     (sum, commission) => sum + commission.earnings,
     0,
   );
 
-  if (releasedEarnings > 0) {
-    await executeWorkflows({
-      trigger: "partnerMetricsUpdated",
-      reason: "commission",
-      identity: {
-        workspaceId: program.workspaceId,
-        programId,
-        partnerId,
-      },
-      metrics: {
-        current: {
-          commissions: releasedEarnings,
+  const results = await Promise.allSettled([
+    trackCommissionStatusUpdate({
+      workspaceId: program.workspaceId,
+      programId,
+      commissions: releasedCommissions,
+      newStatus: CommissionStatus.pending,
+    }),
+    syncTotalCommissions({
+      partnerId,
+      programId,
+    }),
+    triggerAggregateDueCommissionsCronJob(programId),
+    // should always be > 0, but just in case
+    releasedEarnings > 0 &&
+      executeWorkflows({
+        trigger: "partnerMetricsUpdated",
+        reason: "commission",
+        identity: {
+          workspaceId: program.workspaceId,
+          programId,
+          partnerId,
         },
-      },
-    });
-  }
+        metrics: {
+          current: {
+            commissions: releasedEarnings,
+          },
+        },
+      }),
+  ]);
+
+  console.log(
+    `Summary of releaseHoldCommissions: ${JSON.stringify(
+      [
+        "trackCommissionStatusUpdate",
+        "syncTotalCommissions",
+        "triggerAggregateDueCommissions",
+        "executeWorkflows",
+      ].map((step, index) => ({
+        step,
+        result: results[index],
+      })),
+    )}`,
+  );
 
   return releasedCommissions.length;
 }
