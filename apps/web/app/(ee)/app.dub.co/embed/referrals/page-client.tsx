@@ -315,12 +315,42 @@ export function ReferralsEmbedPageClient({
               hasPartnerReferralReward={showPartnerReferralSection}
             />
 
-            <div className="sm:max-w-[50%]">
-              <div className="text-content-emphasis relative mt-2 text-lg">
+            <div
+              className={cn(
+                "sm:max-w-[50%]",
+                !showPartnerReferralSection && "mt-12",
+              )}
+            >
+              {!showPartnerReferralSection && (
+                <div className="flex items-end justify-between">
+                  <span className="text-content-emphasis text-base font-semibold leading-none">
+                    Rewards
+                  </span>
+                  {termsHref && (
+                    <a
+                      href={termsHref}
+                      target="_blank"
+                      className="text-content-subtle text-xs font-medium leading-none underline-offset-2 hover:underline"
+                    >
+                      View terms ↗
+                    </a>
+                  )}
+                </div>
+              )}
+              <div
+                className={cn(
+                  "text-content-emphasis relative text-lg",
+                  showPartnerReferralSection ? "mt-2" : "mt-4",
+                )}
+              >
                 <ProgramRewardList
                   rewards={customerRewards}
                   discount={discount}
-                  className="bg-bg-muted rounded-lg"
+                  className={
+                    showPartnerReferralSection
+                      ? "bg-bg-muted rounded-lg"
+                      : undefined
+                  }
                 />
 
                 <ProgramRewardTerms
@@ -589,7 +619,7 @@ function ReferralLinkDisplay({
             ? "Customer referral rewards"
             : "Referral link"}
         </span>
-        {termsHref && (
+        {hasPartnerReferralReward && termsHref && (
           <a
             href={termsHref}
             target="_blank"
