@@ -19,6 +19,7 @@ import {
   calculatePayoutFeeForMethod,
   STRIPE_PAYMENT_METHODS,
 } from "@/lib/stripe/payment-methods";
+import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -49,6 +50,7 @@ import {
   fetcher,
   formatDate,
   nFormatter,
+  pluralize,
   truncate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -238,6 +240,15 @@ function ConfirmPayoutsSheetContent() {
     () => !isExplicitSelectionMode || resolvedSelectedPayoutIds.length > 1,
     [isExplicitSelectionMode, resolvedSelectedPayoutIds.length],
   );
+
+  const { commissionsCount } = useCommissionsCount({
+    include: [],
+    // for explicitly selected payouts, filter by the payouts for those partners
+    ...(isExplicitSelectionMode &&
+      payoutsIncludedInInvoice && {
+        partnerId: payoutsIncludedInInvoice.map((p) => p.partner.id).join(","),
+      }),
+  });
 
   const { executeAsync: confirmPayouts } = useAction(confirmPayoutsAction, {
     onError: ({ error }) => {
@@ -923,6 +934,34 @@ function ConfirmPayoutsSheetContent() {
             )
           }
         />
+        {commissionsCount && commissionsCount.hold.count > 0 && (
+          <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
+            <span>
+              Excluding{" "}
+              <span className="font-medium text-neutral-800">
+                {nFormatter(commissionsCount.hold.count, { full: true })}
+              </span>
+              {` on hold ${pluralize("commission", commissionsCount.hold.count)} `}
+              <span className="font-medium text-neutral-800">
+                (
+                {currencyFormatter(commissionsCount.hold.earnings, {
+                  trailingZeroDisplay: "stripIfInteger",
+                })}
+                )
+              </span>
+            </span>
+            <a
+              href={`/${slug}/program/commissions?status=hold`}
+              target="_blank"
+            >
+              <Button
+                variant="secondary"
+                text="Review"
+                className="h-7 w-fit cursor-alias rounded-md border border-neutral-200 px-2 text-sm"
+              />
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
