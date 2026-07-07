@@ -107,7 +107,7 @@ export async function holdProcessedCommissions(
       console.log(`Updated ${updatedCount} commissions to hold`);
 
       // updateMany re-checks eligibility, so a commission's status can change between findMany
-      // and updateMany (i.e. if they're aggregated to a payout). Only log/sync rows we actually held.
+      // and updateMany (i.e. if their associated payout is updated). Only log/sync rows we actually held.
       let heldCommissions = processedCommissions;
 
       if (updatedCount < processedCommissions.length) {

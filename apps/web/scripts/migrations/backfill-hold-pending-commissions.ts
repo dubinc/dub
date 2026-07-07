@@ -3,8 +3,11 @@ import {
   PARTNER_LEVEL_FRAUD_RULES,
 } from "@/lib/api/fraud/constants";
 import { prisma } from "@/lib/prisma";
+import { groupBy } from "@dub/utils";
 import { CommissionStatus, FraudEventStatus, Prisma } from "@prisma/client";
 import "dotenv-flow/config";
+import { trackCommissionStatusUpdate } from "../../lib/api/commissions/track-commission-update-activity-log";
+import { syncTotalCommissions } from "../../lib/api/partners/sync-total-commissions";
 
 const BATCH_SIZE = 50;
 
@@ -36,6 +39,7 @@ async function main() {
       where: {
         status: FraudEventStatus.pending,
         program: {
+          slug: "acme",
           workspace: {
             plan: {
               in: ["enterprise", "advanced"],
@@ -105,17 +109,35 @@ async function main() {
     }
 
     if (commissionWhere.length > 0) {
-      const commissions = await prisma.commission.findMany({
-        where: {
-          OR: commissionWhere,
-          ...holdEligibleWhere,
-        },
-        select: {
-          id: true,
-        },
-      });
+      while (true) {
+        const commissions = await prisma.commission.findMany({
+          where: {
+            OR: commissionWhere,
+            ...holdEligibleWhere,
+          },
+          select: {
+            id: true,
+            amount: true,
+            earnings: true,
+            status: true,
+            programId: true,
+            partnerId: true,
+            payoutId: true,
+            program: {
+              select: {
+                id: true,
+                workspaceId: true,
+              },
+            },
+          },
+          take: 250,
+        });
 
-      if (commissions.length > 0) {
+        if (commissions.length === 0) {
+          console.log("No more commissions to update to hold, breaking...");
+          break;
+        }
+
         const { count: updatedCount } = await prisma.commission.updateMany({
           where: {
             id: {
@@ -125,6 +147,7 @@ async function main() {
           },
           data: {
             status: CommissionStatus.hold,
+            payoutId: null,
           },
         });
 
@@ -132,6 +155,65 @@ async function main() {
 
         if (updatedCount > 0) {
           console.log(`Held ${updatedCount} commissions (total: ${totalHeld})`);
+
+          // updateMany re-checks eligibility, so a commission's status can change between findMany
+          // and updateMany (i.e. if they're aggregated to a payout). Only log/sync rows we actually held.
+          let heldCommissions = commissions;
+
+          if (updatedCount < commissions.length) {
+            const commissionIds = commissions.map((c) => c.id);
+
+            const heldCommissionIds = await prisma.commission.findMany({
+              where: {
+                id: {
+                  in: commissionIds,
+                },
+                status: CommissionStatus.hold,
+              },
+              select: {
+                id: true,
+              },
+            });
+
+            const heldIds = new Set(heldCommissionIds.map(({ id }) => id));
+
+            heldCommissions = commissions.filter((c) => heldIds.has(c.id));
+          }
+
+          // Activity logs are scoped to a workspace + program, so batch by program.
+          const commissionsByProgram = groupBy(
+            heldCommissions,
+            (c) => c.programId,
+          );
+
+          for (const commissions of Object.values(commissionsByProgram)) {
+            const { id: programId, workspaceId } = commissions[0].program;
+
+            await trackCommissionStatusUpdate({
+              workspaceId,
+              programId,
+              commissions,
+              newStatus: CommissionStatus.hold,
+            });
+          }
+
+          const affectedPairs = [
+            ...new Map(
+              heldCommissions.map((c) => [
+                `${c.programId}:${c.partnerId}`,
+                { programId: c.programId, partnerId: c.partnerId },
+              ]),
+            ).values(),
+          ];
+
+          await Promise.all(
+            affectedPairs.map(({ programId, partnerId }) =>
+              syncTotalCommissions({
+                programId,
+                partnerId,
+              }),
+            ),
+          );
         }
       }
     }
