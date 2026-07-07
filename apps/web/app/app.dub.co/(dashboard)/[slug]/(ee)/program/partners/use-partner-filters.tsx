@@ -365,11 +365,15 @@ export function usePartnerFilters(
               options:
                 referredByCount && referredByPartners
                   ? referredByCount
+                      .filter(({ referredByPartnerId }) =>
+                        referredByPartners.some(
+                          (p) => p.id === referredByPartnerId,
+                        ),
+                      )
                       .map(({ referredByPartnerId, _count }) => {
                         const partner = referredByPartners.find(
                           (p) => p.id === referredByPartnerId,
-                        );
-                        if (!partner) return null;
+                        )!;
 
                         return {
                           value: referredByPartnerId,
@@ -387,7 +391,6 @@ export function usePartnerFilters(
                           right: nFormatter(_count, { full: true }),
                         };
                       })
-                      .filter((option) => option !== null)
                   : null,
             },
           ]
