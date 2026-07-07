@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { FraudRuleType, PartnerBannedReason } from "@prisma/client";
 import { holdPendingCommissions } from "./hold-pending-commissions";
+import { holdProcessedCommissions } from "./hold-processed-commissions";
 
 // Creates partnerCrossProgramBan fraud events in other programs where the partner is enrolled.
 // Used when a program bans a partner so that other programs can be alerted about cross-program
@@ -70,5 +71,8 @@ export async function reportCrossProgramBanToNetwork({
     })),
   );
 
-  await holdPendingCommissions(affectedGroups);
+  await Promise.allSettled([
+    holdPendingCommissions(affectedGroups),
+    holdProcessedCommissions(affectedGroups),
+  ]);
 }

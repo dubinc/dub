@@ -5,6 +5,7 @@ import { FraudRuleType, ProgramEnrollment } from "@prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
 import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
 import { holdPendingCommissions } from "./hold-pending-commissions";
+import { holdProcessedCommissions } from "./hold-processed-commissions";
 
 type DetectDuplicatePayoutMethodFraudOptions =
   | { payoutMethodHash: string; cryptoWalletAddress?: never }
@@ -109,5 +110,8 @@ export async function detectDuplicatePayoutMethodFraud({
 
   const { affectedGroups } = await createFraudEvents(fraudEvents);
 
-  await holdPendingCommissions(affectedGroups);
+  await Promise.allSettled([
+    holdPendingCommissions(affectedGroups),
+    holdProcessedCommissions(affectedGroups),
+  ]);
 }

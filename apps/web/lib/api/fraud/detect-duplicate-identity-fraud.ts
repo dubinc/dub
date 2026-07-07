@@ -10,6 +10,7 @@ import { FraudRuleType, ProgramEnrollment } from "@prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
 import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
 import { holdPendingCommissions } from "./hold-pending-commissions";
+import { holdProcessedCommissions } from "./hold-processed-commissions";
 
 // Check for duplicate identities: if multiple partners share the same identity,
 // create fraud events for all their active program enrollments to flag potential fraud
@@ -133,5 +134,8 @@ export async function detectDuplicateIdentityFraud({
 
   const { affectedGroups } = await createFraudEvents(fraudEvents);
 
-  await holdPendingCommissions(affectedGroups);
+  await Promise.allSettled([
+    holdPendingCommissions(affectedGroups),
+    holdProcessedCommissions(affectedGroups),
+  ]);
 }
