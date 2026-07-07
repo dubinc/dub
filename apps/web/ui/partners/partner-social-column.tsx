@@ -1,5 +1,5 @@
 import { PartnerPlatformProps } from "@/lib/types";
-import { BadgeCheck2Fill, TimestampTooltip } from "@dub/ui";
+import { BadgeCheck2, TimestampTooltip } from "@dub/ui";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { PlatformType } from "@prisma/client";
 
@@ -46,7 +46,7 @@ export function PartnerSocialColumn({
           delayDuration={150}
         >
           <div>
-            <BadgeCheck2Fill className="size-4 text-green-600" />
+            <BadgeCheck2 variant="fill" className="size-4 text-green-600" />
           </div>
         </TimestampTooltip>
       )}

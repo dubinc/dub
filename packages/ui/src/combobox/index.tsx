@@ -16,8 +16,7 @@ import { Button, ButtonProps } from "../button";
 import { useMediaQuery } from "../hooks";
 import {
   Check2,
-  CheckboxCheckedFill,
-  CheckboxUnchecked,
+  CheckboxIcon,
   Icon,
   LoadingSpinner,
   Plus,
@@ -445,9 +444,9 @@ function Option({
           {multiple && (
             <div className="text-content-default shrink-0">
               {selected ? (
-                <CheckboxCheckedFill className="text-content-default size-4" />
+                <CheckboxIcon variant="fill" className="text-content-default size-4" />
               ) : (
-                <CheckboxUnchecked className="text-content-muted size-4" />
+                <CheckboxIcon className="text-content-muted size-4" />
               )}
             </div>
           )}

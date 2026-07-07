@@ -3,7 +3,7 @@ import { Link as NavigationMenuLink } from "@radix-ui/react-navigation-menu";
 import Link from "next/link";
 import { RESOURCES } from "../../content";
 import { Grid } from "../../grid";
-import { Book2Fill, LifeRingFill } from "../../icons";
+import { Book2, LifeRing } from "../../icons";
 import {
   ContentLinkCard,
   NAV_UTM_PARAMS,
@@ -12,14 +12,14 @@ import {
 
 const mainLinks = [
   {
-    icon: LifeRingFill,
+    icon: LifeRing,
     title: "Help Center",
     description: "Answers to your questions",
     thumbnail: "https://assets.dub.co/misc/help-thumbnail.jpg",
     href: "/help",
   },
   {
-    icon: Book2Fill,
+    icon: Book2,
     title: "Docs",
     description: "Platform documentation",
     thumbnail: "https://assets.dub.co/misc/docs-thumbnail.jpg",
@@ -62,7 +62,10 @@ export function ResourcesContent({ domain }: { domain: string }) {
                     )}
                   />
                 </div>
-                <Icon className="relative size-5 text-neutral-700 dark:text-white/60" />
+                <Icon
+                  variant="fill"
+                  className="relative size-5 text-neutral-700 dark:text-white/60"
+                />
                 <div className="relative">
                   <span className="text-sm font-medium text-neutral-900 dark:text-white">
                     {title}
@@ -93,7 +96,10 @@ export function ResourcesContent({ domain }: { domain: string }) {
               })}
               icon={
                 <div className="shrink-0 rounded-md border border-neutral-200 bg-white/50 p-2.5 dark:border-white/20 dark:bg-white/10">
-                  <Icon className="size-4 text-neutral-600 transition-colors dark:text-white/60" />
+                  <Icon
+                    variant="fill"
+                    className="size-4 text-neutral-600 transition-colors dark:text-white/60"
+                  />
                 </div>
               }
               title={title}
@@ -119,7 +125,10 @@ export function ResourcesContent({ domain }: { domain: string }) {
               })}
               icon={
                 <div className="shrink-0 rounded-md border border-neutral-200 bg-white/50 p-2.5 dark:border-white/20 dark:bg-white/10">
-                  <Icon className="size-4 text-neutral-600 transition-colors dark:text-white/60" />
+                  <Icon
+                    variant="fill"
+                    className="size-4 text-neutral-600 transition-colors dark:text-white/60"
+                  />
                 </div>
               }
               title={title}
