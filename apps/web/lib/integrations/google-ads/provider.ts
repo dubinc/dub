@@ -274,8 +274,7 @@ class GoogleAdsProvider extends IntegrationProvider<
       transactionId,
     } = ingestConversionEventSchema.parse(conversion);
 
-    const { GOOGLE_DATA_PARTNER_ACCOUNT_ID: dataPartnerAccountId } =
-      requireGoogleAdsEnv();
+    const { GOOGLE_DATA_PARTNER_ACCOUNT_ID } = requireGoogleAdsEnv();
 
     const dataPartnerAccessToken = await getDataPartnerAccessToken();
 
@@ -287,7 +286,7 @@ class GoogleAdsProvider extends IntegrationProvider<
             accountType: "GOOGLE_ADS",
           },
           loginAccount: {
-            accountId: dataPartnerAccountId,
+            accountId: GOOGLE_DATA_PARTNER_ACCOUNT_ID,
             accountType: "DATA_PARTNER",
           },
           productDestinationId: conversionActionId,
@@ -392,11 +391,11 @@ class GoogleAdsProvider extends IntegrationProvider<
     customerId: string;
     existingPartnerLinkName?: string;
   }) {
-    const { GOOGLE_DATA_PARTNER_ACCOUNT_ID: dataPartnerAccountId } =
-      requireGoogleAdsEnv();
+    const { GOOGLE_DATA_PARTNER_ACCOUNT_ID } = requireGoogleAdsEnv();
 
     if (existingPartnerLinkName) {
       const dataPartnerAccessToken = await getDataPartnerAccessToken();
+
       await this.deleteDataManagerPartnerLink(
         dataPartnerAccessToken,
         existingPartnerLinkName,
@@ -406,7 +405,7 @@ class GoogleAdsProvider extends IntegrationProvider<
     const partnerLink = await this.createAdvertiserPartnerLink({
       accessToken,
       advertiserCustomerId: customerId,
-      dataPartnerAccountId,
+      dataPartnerAccountId: GOOGLE_DATA_PARTNER_ACCOUNT_ID,
     });
 
     if (!partnerLink.name) {
