@@ -91,7 +91,7 @@ export const POST = withAxiom(async (req: Request) => {
   }
 
   const workspace = await resolveWebhookWorkspace({
-    stripeAccountId: event.account!,
+    stripeAccountId: event.account,
     mode,
   });
 

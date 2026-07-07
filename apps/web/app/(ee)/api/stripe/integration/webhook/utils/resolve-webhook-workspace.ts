@@ -5,9 +5,13 @@ export async function resolveWebhookWorkspace({
   stripeAccountId,
   mode,
 }: {
-  stripeAccountId: string;
+  stripeAccountId?: string | null;
   mode: StripeMode;
 }) {
+  if (!stripeAccountId) {
+    return null;
+  }
+
   const workspace = await prisma.project.findUnique({
     where: {
       stripeConnectId: stripeAccountId,

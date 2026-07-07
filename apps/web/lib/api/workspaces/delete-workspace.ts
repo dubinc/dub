@@ -1,3 +1,4 @@
+import { getWorkspaceLogoStorageKey } from "@/lib/api/workspaces/workspace-logo";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { WorkspaceProps } from "@/lib/types";
@@ -6,7 +7,6 @@ import {
   DUB_DOMAINS_ARRAY,
   LEGAL_USER_ID,
   LEGAL_WORKSPACE_ID,
-  R2_URL,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { qstash } from "../../cron";
@@ -173,11 +173,14 @@ export async function deleteWorkspaceAdmin(
     `Deleted ${deleteCustomersResponse.count} customers for ${workspace.slug}`,
   );
 
+  const logoKey = getWorkspaceLogoStorageKey({
+    workspaceId: workspace.id,
+    logoUrl: workspace.logo,
+  });
+
   const deleteWorkspaceResponse = await Promise.allSettled([
     // delete workspace logo if it's a custom logo stored in R2
-    workspace.logo &&
-      workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
-      storage.delete({ key: workspace.logo.replace(`${R2_URL}/`, "") }),
+    logoKey && storage.delete({ key: logoKey }),
     // if they have a Stripe subscription, cancel it
     workspace.stripeId && cancelSubscription(workspace.stripeId),
     // delete the workspace
