@@ -13,9 +13,7 @@ const MAX_DISPLAYED_FOLDERS = 10;
 const getFolderOption = (folder: Folder) => ({
   value: folder.id,
   label: folder.name,
-  icon: (
-    <FolderIcon className="mr-1 shrink-0" folder={folder} shape="square" />
-  ),
+  icon: <FolderIcon className="mr-1 shrink-0" folder={folder} shape="square" />,
   meta: {
     folder,
   },

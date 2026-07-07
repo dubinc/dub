@@ -189,9 +189,7 @@ export const getPartnersQuerySchema = z
     search: z
       .string()
       .optional()
-      .describe(
-        "A search query to filter partners by ID, name, email, or link.",
-      )
+      .describe("A search query to filter partners by ID, name, email, or company name.")
       .meta({ example: "john" }),
   })
   .extend(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));

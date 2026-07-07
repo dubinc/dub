@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
-import { Crown } from "@dub/ui";
+import { Button, Crown, TriangleWarning, useMediaQuery } from "@dub/ui";
 import {
   cn,
   getTrialLimitResourceForOverageBanner,
@@ -12,12 +12,25 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import ManageSubscriptionButton from "../workspaces/manage-subscription-button";
 
-export function useUpgradeBannerVisible() {
-  const { exceededEvents, exceededLinks, exceededPayouts, paymentFailedAt } =
-    useWorkspace();
+export function useUpgradeBannerVisibility() {
+  const {
+    exceededEvents,
+    exceededLinks,
+    exceededPayouts,
+    paymentFailedAt,
+    subscriptionCanceledAt,
+  } = useWorkspace();
 
   const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
-  return needsUpgrade || !!paymentFailedAt;
+  const subscriptionCanceled =
+    subscriptionCanceledAt && new Date(subscriptionCanceledAt) < new Date();
+
+  return {
+    isVisible: needsUpgrade || !!paymentFailedAt || subscriptionCanceled,
+    needsUpgrade,
+    paymentFailed: !!paymentFailedAt,
+    subscriptionCanceled,
+  };
 }
 
 export function UpgradeBanner() {
@@ -27,14 +40,19 @@ export function UpgradeBanner() {
     useTrialLimitActivateModal();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
+  const { isVisible, needsUpgrade, paymentFailed, subscriptionCanceled } =
+    useUpgradeBannerVisibility();
+
   const overageLimitResource = getTrialLimitResourceForOverageBanner({
     exceededEvents: Boolean(exceededEvents),
     exceededLinks: Boolean(exceededLinks),
     exceededPayouts: Boolean(exceededPayouts),
   });
 
-  const isVisible = useUpgradeBannerVisible();
+  const customButtonClassname = "ml-4 h-7 w-fit px-2.5 text-sm font-medium";
+
+  const { isMobile } = useMediaQuery();
+
   if (!isVisible) return null;
 
   return (
@@ -43,9 +61,16 @@ export function UpgradeBanner() {
       <motion.div
         initial={{ transform: "translateY(-100%)" }}
         animate={{ transform: "translateY(0)" }}
-        className="text-content-inverted bg-bg-inverted fixed left-0 right-0 top-0 z-50 flex h-12 items-center justify-center overflow-hidden px-6"
+        className={cn(
+          "fixed left-0 right-0 top-0 z-50 flex items-center justify-center overflow-hidden px-6 py-2 text-white sm:h-12 sm:py-0",
+          needsUpgrade ? "bg-amber-600" : "bg-red-600",
+        )}
       >
-        {needsUpgrade && <Crown className="mr-2 size-4 shrink-0" />}
+        {needsUpgrade ? (
+          <Crown className="mr-2 size-4 shrink-0" />
+        ) : (
+          <TriangleWarning className="mr-2 size-4 shrink-0" variant="fill" />
+        )}
         <p className="text-sm">
           {needsUpgrade ? (
             <>
@@ -63,20 +88,20 @@ export function UpgradeBanner() {
                 &nbsp;on your current plan
               </span>
               <span className="hidden md:inline">
-                . Upgrade to keep using Dub.
+                . Upgrade to avoid service disruption.
               </span>
             </>
+          ) : subscriptionCanceled ? (
+            "Your subscription has been canceled. To reactivate, please upgrade to a paid plan."
           ) : (
-            <>
-              Your last payment failed. Please update your payment method to
-              continue using Dub.
-            </>
+            "Your last payment failed. Please update your payment method to avoid service disruption."
           )}
         </p>
-        {needsUpgrade ? (
+        {needsUpgrade || subscriptionCanceled ? (
           trialActive ? (
-            <button
-              type="button"
+            <Button
+              text="Upgrade"
+              variant="secondary"
               onClick={() =>
                 openTrialLimitModal(
                   overageLimitResource ??
@@ -87,29 +112,22 @@ export function UpgradeBanner() {
                         : "payouts"),
                 )
               }
-              className={cn(
-                "bg-bg-default text-content-emphasis border-border-subtle ml-4 flex h-7 items-center justify-center rounded-lg border px-2.5 text-sm font-medium",
-                "hover:bg-bg-subtle transition-colors duration-150",
-              )}
-            >
-              Upgrade
-            </button>
+              className={customButtonClassname}
+            />
           ) : (
-            <Link
-              href={`/${slug}/settings/billing/upgrade`}
-              className={cn(
-                "bg-bg-default text-content-emphasis border-border-subtle ml-4 flex h-7 items-center justify-center rounded-lg border px-2.5 text-sm font-medium",
-                "hover:bg-bg-subtle transition-colors duration-150",
-              )}
-            >
-              Upgrade
+            <Link href={`/${slug}/settings/billing/upgrade`}>
+              <Button
+                text="Upgrade"
+                variant="secondary"
+                className={customButtonClassname}
+              />
             </Link>
           )
         ) : (
           <ManageSubscriptionButton
-            text="Update Payment Method"
+            text={isMobile ? "Update" : "Update Payment Method"}
             variant="secondary"
-            className="ml-4 h-7 w-fit px-2.5 text-sm font-medium"
+            className={customButtonClassname}
           />
         )}
       </motion.div>
