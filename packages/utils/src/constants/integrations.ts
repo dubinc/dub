@@ -7,7 +7,3 @@ export const HUBSPOT_INTEGRATION_ID = "int_ffw3qgrFAahY6qs1hXaH3wHS";
 export const APPSFLYER_INTEGRATION_ID = "int_1KN8JP7ET3VQQRF7ZQEVNFPJ5";
 export const INTERCOM_INTEGRATION_ID = "int_1KV6R1E61E0044C0VFQKV2Q6K";
 export const GOOGLE_ADS_INTEGRATION_ID = "int_YMTSNEXXMACAPK4D6Z742ZSMQH";
-
-// Google Ads REST API version. Bump to the latest supported version as Google
-// deprecates older ones — see https://developers.google.com/google-ads/api/docs/release-notes
-export const GOOGLE_ADS_API_VERSION = "v21";

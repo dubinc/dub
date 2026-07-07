@@ -4,6 +4,7 @@ import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { installAppsFlyerAction } from "@/lib/integrations/appsflyer/install";
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/ui/settings";
+import { GoogleAdsSettings } from "@/lib/integrations/google-ads/ui/settings";
 import { HubSpotSettings } from "@/lib/integrations/hubspot/ui/settings";
 import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
 import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
@@ -54,6 +55,7 @@ import {
   ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
 import {
+  GOOGLE_ADS_INTEGRATION_ID,
   HUBSPOT_INTEGRATION_ID,
   INTERCOM_INTEGRATION_ID,
 } from "@dub/utils/src/constants/integrations";
@@ -69,6 +71,7 @@ const integrationSettings = {
   [HUBSPOT_INTEGRATION_ID]: HubSpotSettings,
   [STRIPE_INTEGRATION_ID]: StripeIntegrationSettings,
   [APPSFLYER_INTEGRATION_ID]: AppsFlyerSettings,
+  [GOOGLE_ADS_INTEGRATION_ID]: GoogleAdsSettings,
 };
 
 export default function IntegrationPageClient({
@@ -352,6 +355,7 @@ export default function IntegrationPageClient({
                       HUBSPOT_INTEGRATION_ID,
                       APPSFLYER_INTEGRATION_ID,
                       INTERCOM_INTEGRATION_ID,
+                      GOOGLE_ADS_INTEGRATION_ID,
                     ].includes(integration.id) &&
                     !canInstallAdvancedIntegrations ? (
                       <TooltipContent

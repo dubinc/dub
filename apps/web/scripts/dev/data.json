@@ -425,6 +425,22 @@
       "guideUrl": null
     },
     {
+      "id": "int_YMTSNEXXMACAPK4D6Z742ZSMQH",
+      "name": "Google Ads",
+      "slug": "google-ads",
+      "description": "Connect your Google Ads account to upload offline conversions from Dub.",
+      "readme": "Upload offline lead and sale conversions to Google Ads when Dub short links include a gclid parameter.",
+      "developer": "Dub",
+      "website": "https://dub.co",
+      "logo": null,
+      "screenshots": [],
+      "verified": 1,
+      "installUrl": null,
+      "category": "Analytics",
+      "comingSoon": 0,
+      "guideUrl": null
+    },
+    {
       "id": "int_h6V1CeFEH8WD5FOMfKpbopJb",
       "name": "Typefully",
       "slug": "typefully",

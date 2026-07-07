@@ -1,8 +1,6 @@
 import * as z from "zod/v4";
 
-// Token returned by Google's OAuth token endpoint.
-// `refresh_token` is only returned when the user consents with
-// `access_type=offline` (and `prompt=consent`, which we always send).
+// Token returned by Google's OAuth token endpoint at connect time (not persisted).
 export const googleAdsAuthTokenSchema = z.object({
   access_token: z.string(),
   expires_in: z.number().describe("Access token lifetime in seconds."),
@@ -15,43 +13,114 @@ export const googleAdsAuthTokenSchema = z.object({
     .describe("Unix ms timestamp of when the token was issued/refreshed."),
 });
 
-// Integration credentials Dub stores (access/refresh tokens are encrypted at rest).
-export const googleAdsCredentialsSchema = googleAdsAuthTokenSchema.extend({
-  created_at: z.number(),
-  customerIds: z
-    .array(z.string())
-    .default([])
-    .describe(
-      "Google Ads customer IDs accessible to the connected user, e.g. ['1234567890']. Discovered at connect time via listAccessibleCustomers.",
-    ),
+export const googleAdsCredentialsSchema = googleAdsAuthTokenSchema
+  .partial()
+  .extend({
+    partnerLinkName: z.string().optional(),
+  });
+
+export const googleAdsSettingsSchema = z.object({
+  customerId: z.string().nullable().default(null),
+  customerIds: z.array(z.string()).default([]),
+  leadConversionActionId: z.string().nullable().default(null), // Check if this is required.
+  saleConversionActionId: z.string().nullable().default(null), // Check if this is required.
+  saleLtvValue: z.number().nullable().default(null), // Check if this is required.
 });
 
-// A single offline click conversion to upload to Google Ads.
-// Exactly one of gclid / wbraid / gbraid identifies the click.
-export const uploadClickConversionSchema = z
+export const googleAdsEditableSettingsSchema = googleAdsSettingsSchema
+  .pick({
+    customerId: true,
+    leadConversionActionId: true,
+    saleConversionActionId: true,
+    saleLtvValue: true,
+  })
+  .refine(
+    (data) =>
+      data.saleLtvValue === null ||
+      (Number.isFinite(data.saleLtvValue) && data.saleLtvValue >= 0),
+    {
+      message: "Sale LTV value must be a non-negative number.",
+      path: ["saleLtvValue"],
+    },
+  );
+
+export const googleAdsSettingsFormSchema = z.object({
+  customerId: z.string(),
+  leadConversionActionId: z.string(),
+  saleConversionActionId: z.string(),
+  saleLtvValue: z.string(),
+});
+
+export const updateGoogleAdsSettingsSchema =
+  googleAdsEditableSettingsSchema.extend({
+    workspaceId: z.string(),
+  });
+
+// Input for ingesting a single offline conversion via Data Manager API.
+export const ingestConversionEventSchema = z
   .object({
-    customerId: z
-      .string()
-      .describe("Google Ads customer ID the conversion belongs to (digits only)."),
-    conversionActionId: z
-      .string()
-      .describe("Numeric ID of the conversion action to attribute to."),
+    conversionActionId: z.string(),
     gclid: z.string().optional(),
     wbraid: z.string().optional(),
     gbraid: z.string().optional(),
-    conversionDateTime: z
-      .string()
-      .describe(
-        'Format "yyyy-mm-dd hh:mm:ss+|-hh:mm", e.g. "2019-01-01 12:32:45-08:00".',
-      ),
     conversionValue: z.number(),
-    currencyCode: z.string().describe("ISO 4217 currency code, e.g. 'USD'."),
-    orderId: z.string().optional(),
+    eventTimestamp: z.string().describe("RFC 3339 timestamp."),
+    transactionId: z.string(),
   })
   .refine((data) => data.gclid || data.wbraid || data.gbraid, {
     message: "One of gclid, wbraid, or gbraid is required.",
   });
 
+const googleClickIdSchema = z.object({
+  gclid: z.string().optional(),
+  wbraid: z.string().optional(),
+  gbraid: z.string().optional(),
+});
+
+const productAccountSchema = z.object({
+  accountId: z.string(),
+  accountType: z.enum(["GOOGLE_ADS", "DATA_PARTNER"]),
+});
+
+const partnerLinkSchema = z.object({
+  name: z.string().optional(),
+  owningAccount: productAccountSchema.optional(),
+  partnerAccount: productAccountSchema.optional(),
+});
+
+const ingestDestinationSchema = z.object({
+  operatingAccount: productAccountSchema,
+  loginAccount: productAccountSchema,
+  linkedAccount: productAccountSchema.optional(),
+  productDestinationId: z.string(),
+});
+
+const ingestEventSchema = z.object({
+  adIdentifiers: googleClickIdSchema.optional(),
+  conversionValue: z.number(),
+  currency: z.string(),
+  eventTimestamp: z.string(),
+  transactionId: z.string(),
+  eventSource: z.string(),
+});
+
+const ingestEventsResponseSchema = z.object({
+  requestId: z.string().optional(),
+});
+
 export type GoogleAdsAuthToken = z.infer<typeof googleAdsAuthTokenSchema>;
-export type GoogleAdsCredentials = z.infer<typeof googleAdsCredentialsSchema>;
-export type UploadClickConversion = z.infer<typeof uploadClickConversionSchema>;
+export type GoogleAdsEditableSettings = z.infer<
+  typeof googleAdsEditableSettingsSchema
+>;
+export type GoogleAdsSettingsFormData = z.infer<
+  typeof googleAdsSettingsFormSchema
+>;
+export type UpdateGoogleAdsSettingsInput = z.infer<
+  typeof updateGoogleAdsSettingsSchema
+>;
+export type IngestConversionEvent = z.infer<typeof ingestConversionEventSchema>;
+export type GoogleClickId = z.infer<typeof googleClickIdSchema>;
+export type PartnerLink = z.infer<typeof partnerLinkSchema>;
+export type IngestDestination = z.infer<typeof ingestDestinationSchema>;
+export type IngestEvent = z.infer<typeof ingestEventSchema>;
+export type IngestEventsResponse = z.infer<typeof ingestEventsResponseSchema>;
