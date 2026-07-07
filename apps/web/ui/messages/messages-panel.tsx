@@ -1,4 +1,9 @@
-import { Message, MessageAttachment, PartnerProps, ProgramProps } from "@/lib/types";
+import {
+  Message,
+  MessageAttachment,
+  PartnerProps,
+  ProgramProps,
+} from "@/lib/types";
 import {
   AnimatedSizeContainer,
   Check2,

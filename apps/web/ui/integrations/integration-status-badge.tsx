@@ -1,4 +1,4 @@
-import { BadgeCheck2Fill, DubCraftedShield, Tooltip } from "@dub/ui";
+import { BadgeCheck2, DubCraftedShield, Tooltip } from "@dub/ui";
 import { CircleWarning } from "@dub/ui/icons";
 import { DUB_WORKSPACE_ID } from "@dub/utils";
 
@@ -24,7 +24,7 @@ export function IntegrationStatusBadge({
       <Tooltip
         content={
           <div className="flex max-w-xs items-start gap-1.5 p-3">
-            <BadgeCheck2Fill className="mt-0.5 size-5 shrink-0 text-blue-500" />
+            <BadgeCheck2 variant="fill" className="mt-0.5 size-5 shrink-0 text-blue-500" />
             <div className="flex flex-col gap-1">
               <span className="text-sm font-semibold text-neutral-900">
                 Verified Integration
@@ -36,7 +36,7 @@ export function IntegrationStatusBadge({
           </div>
         }
       >
-        <BadgeCheck2Fill className="size-4 shrink-0 text-blue-500" />
+        <BadgeCheck2 variant="fill" className="size-4 shrink-0 text-blue-500" />
       </Tooltip>
     );
   }
@@ -44,7 +44,10 @@ export function IntegrationStatusBadge({
   return (
     <Tooltip content="Dub hasn't verified this integration. Install it at your own risk.">
       <span>
-        <CircleWarning className="size-4 shrink-0 text-neutral-500" invert />
+        <CircleWarning
+          className="size-4 shrink-0 text-neutral-500"
+          variant="fill"
+        />
       </span>
     </Tooltip>
   );
