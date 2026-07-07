@@ -34,6 +34,7 @@ import {
   Link,
   Partner,
   PartnerGroup,
+  Prisma,
   ProgramEnrollment,
   Reward,
 } from "@prisma/client";
@@ -63,6 +64,18 @@ type StepCreateCommissionOutput = {
   commission: Pick<Commission, "id"> | null;
   outputLog: string;
   isFirstCommission?: boolean;
+};
+
+const commissionInclude: Prisma.CommissionInclude = {
+  customer: true,
+  link: {
+    select: {
+      id: true,
+      shortLink: true,
+      domain: true,
+      key: true,
+    },
+  },
 };
 
 // POST /api/workflows/create-partner-commission
@@ -501,17 +514,7 @@ async function stepRunSideEffects(
     where: {
       id: _commission.id,
     },
-    include: {
-      customer: true,
-      link: {
-        select: {
-          id: true,
-          shortLink: true,
-          domain: true,
-          key: true,
-        },
-      },
-    },
+    include: commissionInclude,
   });
 
   const program = await prisma.program.findUniqueOrThrow({
@@ -624,17 +627,7 @@ async function stepRunSideEffects(
           data: {
             status: CommissionStatus.hold,
           },
-          include: {
-            customer: true,
-            link: {
-              select: {
-                id: true,
-                shortLink: true,
-                domain: true,
-                key: true,
-              },
-            },
-          },
+          include: commissionInclude,
         });
 
         await trackCommissionStatusUpdate({
@@ -643,7 +636,17 @@ async function stepRunSideEffects(
           commissions: [commissionBeforeHold],
           newStatus: CommissionStatus.hold,
         });
-      } catch (error) {}
+      } catch (error) {
+        // The update only matches pending commissions; if it fails (e.g. concurrent status change),
+        // re-fetch so side effects use the current status from the database.
+
+        commission = await prisma.commission.findUniqueOrThrow({
+          where: {
+            id: commission.id,
+          },
+          include: commissionInclude,
+        });
+      }
     }
   }
 
@@ -766,7 +769,7 @@ async function clampEarningsToSpendLimit({
       ...(reward.event === "sale" ? { customerId } : {}),
       type: reward.event,
       status: {
-        in: ["pending", "processed", "paid"],
+        in: ["pending", "processed", "paid", "hold"],
       },
       // only need to filter if not all-time spend limit (no startDate or endDate)
       ...(startDate && endDate
