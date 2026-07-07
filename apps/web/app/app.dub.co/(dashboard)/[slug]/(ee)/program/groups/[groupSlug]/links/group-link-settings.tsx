@@ -10,7 +10,7 @@ import { GroupProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { GroupSettingsRow } from "@/ui/partners/groups/group-settings-row";
 import { Badge, Button, UTMBuilder } from "@dub/ui";
-import { CircleCheckFill } from "@dub/ui/icons";
+import { CircleCheck } from "@dub/ui/icons";
 import { cn, deepEqual } from "@dub/utils";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -225,7 +225,7 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
                     {type.recommended && (
                       <Badge variant="blueGradient">Recommended</Badge>
                     )}
-                    <CircleCheckFill
+                    <CircleCheck variant="fill"
                       className={cn(
                         "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                         isSelected && "scale-100 opacity-100",

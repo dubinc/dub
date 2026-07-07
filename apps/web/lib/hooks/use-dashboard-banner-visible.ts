@@ -9,13 +9,21 @@ export function useDashboardBannerVisible() {
     exceededLinks,
     exceededPayouts,
     paymentFailedAt,
+    subscriptionCanceledAt,
     environment,
     loading,
   } = useWorkspace();
 
+  const subscriptionCanceled =
+    subscriptionCanceledAt && new Date(subscriptionCanceledAt) < new Date();
+
   // Visible in production workspaces
   const isUpgradeBannerVisible =
-    (exceededEvents || exceededLinks || exceededPayouts || !!paymentFailedAt) &&
+    (exceededEvents ||
+      exceededLinks ||
+      exceededPayouts ||
+      !!paymentFailedAt ||
+      subscriptionCanceled) &&
     isProductionEnvironment(environment) &&
     !loading;
 

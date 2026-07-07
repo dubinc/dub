@@ -27,7 +27,7 @@ import {
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
-import { CircleCheckFill, StripeIcon, Tag } from "@dub/ui/icons";
+import { CircleCheck, StripeIcon, Tag } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { DiscountProvider } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
@@ -355,7 +355,7 @@ function DiscountSheetContent({
                                 <span className="font-medium">{label}</span>
                                 <span>{description}</span>
                               </div>
-                              <CircleCheckFill
+                              <CircleCheck variant="fill"
                                 className={cn(
                                   "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                                   isSelected && "scale-100 opacity-100",

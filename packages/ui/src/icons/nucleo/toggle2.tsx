@@ -1,6 +1,6 @@
 import { SVGProps } from "react";
 
-export function CircleWarning({
+export function Toggle2({
   variant = "outline",
   ...props
 }: SVGProps<SVGSVGElement> & { variant?: "outline" | "fill" }) {
@@ -15,36 +15,29 @@ export function CircleWarning({
       <g fill="currentColor">
         {variant === "fill" ? (
           <path
-            d="M9,1.5C4.86,1.5,1.5,4.86,1.5,9s3.36,7.5,7.5,7.5,7.5-3.36,7.5-7.5S13.14,1.5,9,1.5Zm0,11.917c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Zm.75-4.348c0,.414-.336,.75-.75,.75s-.75-.336-.75-.75V5.431c0-.414,.336-.75,.75-.75s.75,.336,.75,.75v3.638Z"
+            d="m11.5,3h-5C3.1914,3,.5,5.6914.5,9s2.6914,6,6,6h5c3.3086,0,6-2.6914,6-6s-2.6914-6-6-6Zm-5,9c-1.6543,0-3-1.3457-3-3s1.3457-3,3-3,3,1.3457,3,3-1.3457,3-3,3Z"
             fill="currentColor"
+            strokeWidth="0"
           />
         ) : (
           <>
-            <circle
-              cx="9"
-              cy="9"
-              fill="none"
-              r="7.25"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.5"
-            />
-            <line
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.5"
-              x1="9"
-              x2="9"
-              y1="5.431"
-              y2="9.569"
-            />
             <path
-              d="M9,13.417c-.552,0-1-.449-1-1s.448-1,1-1,1,.449,1,1-.448,1-1,1Z"
+              d="m6.5,3.75h5c2.8995,0,5.25,2.3505,5.25,5.25h0c0,2.8995-2.3505,5.25-5.25,5.25h-5c-2.8995,0-5.25-2.3505-5.25-5.25h0c0-2.8995,2.3505-5.25,5.25-5.25Z"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.5"
+            />
+            <circle
+              cx="6.5"
+              cy="9"
               fill="currentColor"
-              stroke="none"
+              r="1.75"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="1.5"
             />
           </>
         )}
