@@ -79,7 +79,8 @@ export function CardSelector({
               <span className="text-xs text-neutral-600">{description}</span>
             </div>
 
-            <CircleCheck variant="fill"
+            <CircleCheck
+              variant="fill"
               className={cn(
                 "mr-1.5 mt-1.5 flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                 isSelected && "scale-100 opacity-100",
