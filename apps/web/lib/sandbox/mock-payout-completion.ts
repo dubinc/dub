@@ -2,13 +2,19 @@ import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { currencyFormatter } from "@dub/utils";
-import { Invoice, Project } from "@prisma/client";
-import { trackCommissionStatusUpdatesByProgram } from "../api/commissions/track-commission-update-activity-log";
-import { isProductionEnvironment } from "./workspace-guards";
+import {
+  CommissionStatus,
+  Invoice,
+  InvoiceStatus,
+  PayoutStatus,
+  Project,
+} from "@prisma/client";
+import { trackCommissionStatusUpdate } from "../api/commissions/track-commission-update-activity-log";
+import { assertStagingWorkspace } from "./workspace-guards";
 
 interface MockPayoutCompletionParams {
   invoice: Invoice;
-  workspace: Pick<Project, "environment">;
+  workspace: Pick<Project, "id" | "environment">;
 }
 
 // Mark the all payouts and commissions in the invoice as paid
@@ -16,14 +22,12 @@ export async function mockPayoutCompletion({
   invoice,
   workspace,
 }: MockPayoutCompletionParams) {
-  if (isProductionEnvironment(workspace.environment)) {
-    return;
-  }
+  assertStagingWorkspace(workspace);
 
   const payouts = await prisma.payout.findMany({
     where: {
       invoiceId: invoice.id,
-      status: "processing",
+      status: PayoutStatus.processing,
     },
     orderBy: {
       id: "asc",
@@ -54,15 +58,6 @@ export async function mockPayoutCompletion({
     return;
   }
 
-  const program = payouts[0].program;
-
-  if (isProductionEnvironment(program.workspace.environment)) {
-    console.error(
-      `Skipping the payout completion for production workspace ${program.workspaceId}.`,
-    );
-    return;
-  }
-
   const payoutIds = payouts.map((p) => p.id);
 
   const commissions = await prisma.commission.findMany({
@@ -88,7 +83,7 @@ export async function mockPayoutCompletion({
         },
       },
       data: {
-        status: "paid",
+        status: CommissionStatus.paid,
       },
     }),
 
@@ -99,7 +94,7 @@ export async function mockPayoutCompletion({
         },
       },
       data: {
-        status: "completed",
+        status: PayoutStatus.completed,
         paidAt: new Date(),
       },
     }),
@@ -109,16 +104,17 @@ export async function mockPayoutCompletion({
         id: invoice.id,
       },
       data: {
-        status: "completed",
+        status: InvoiceStatus.completed,
         paidAt: new Date(),
       },
     }),
   ]);
 
-  await trackCommissionStatusUpdatesByProgram({
+  await trackCommissionStatusUpdate({
+    workspaceId: workspace.id,
+    programId: payouts[0].programId,
     commissions,
-    payouts,
-    newStatus: "paid",
+    newStatus: CommissionStatus.paid,
   });
 
   // Group partner -> payouts so we send only one email per partner when there are multiple payouts

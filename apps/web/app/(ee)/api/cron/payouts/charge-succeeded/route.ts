@@ -48,6 +48,7 @@ export async function POST(req: Request) {
           select: {
             workspace: {
               select: {
+                id: true,
                 environment: true,
               },
             },
@@ -66,14 +67,16 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!invoice.program || !invoice.program.workspace) {
+    const workspace = invoice.program?.workspace;
+
+    if (!invoice.program || !workspace) {
       return logAndRespond(
         `Invoice ${invoiceId} has no program or workspace, skipping...`,
       );
     }
 
     const isProductionWorkspace = isProductionEnvironment(
-      invoice.program.workspace.environment,
+      workspace.environment,
     );
 
     // Set the method for each payout in the invoice to the corresponding partner's default payout method
@@ -121,36 +124,40 @@ export async function POST(req: Request) {
     }
 
     await Promise.allSettled([
-      // For production workspaces:
-      // - queue Stripe payouts (pass along fundsAvailable to handle stablecoin payouts)
-      // - if funds are available, send PayPal and Tremendous payouts as well
-      ...(isProductionWorkspace
+      // Queue Stripe payouts (need to pass along fundsAvailable to handle stablecoin payouts)
+      queueStripePayouts({
+        workspace,
+        invoice,
+        fundsAvailable,
+      }),
+
+      // only send PayPal and Tremendous payouts if funds are available
+      ...(fundsAvailable
         ? [
-            queueStripePayouts({
+            sendPaypalPayouts({
+              workspace,
               invoice,
-              fundsAvailable,
             }),
-            ...(fundsAvailable
-              ? [
-                  sendPaypalPayouts({
-                    invoice,
-                  }),
-                  queueTremendousPayouts({
-                    invoice,
-                  }),
-                ]
-              : []),
+
+            queueTremendousPayouts({
+              workspace,
+              invoice,
+            }),
           ]
-        : // For non-production workspaces, mock the payout completion
-          [
+        : []),
+
+      // Queue external payouts (doesn't rely on fundsAvailable)
+      queueExternalPayouts(invoice),
+
+      // For non-production workspaces, mock the payout completion
+      ...(!isProductionWorkspace
+        ? [
             mockPayoutCompletion({
               invoice,
-              workspace: invoice.program.workspace,
+              workspace,
             }),
-          ]),
-
-      // Queue external payouts (we do this regardless of isProductionWorkspace/fundsAvailable)
-      queueExternalPayouts(invoice),
+          ]
+        : []),
     ]);
 
     return logAndRespond(
