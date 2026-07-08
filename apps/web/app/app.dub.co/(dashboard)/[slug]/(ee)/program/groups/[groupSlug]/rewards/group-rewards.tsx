@@ -2,7 +2,7 @@
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useCopyRewardToLiveModal } from "@/lib/sandbox/components/copy-reward-to-live-modal";
-import { isStagingEnvironment } from "@/lib/sandbox/workspace-guards";
+import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import type { GroupProps, RewardProps } from "@/lib/types";

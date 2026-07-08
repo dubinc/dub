@@ -1,6 +1,6 @@
 "use client";
 
-import { isProductionEnvironment } from "@/lib/sandbox/workspace-guards";
+import { isProductionEnvironment } from "@/lib/sandbox/environment";
 import useWorkspace from "@/lib/swr/use-workspace";
 
 export function useDashboardBannerVisible() {

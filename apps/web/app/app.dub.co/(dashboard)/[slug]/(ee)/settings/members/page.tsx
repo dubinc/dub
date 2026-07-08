@@ -2,7 +2,7 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
-import { isStagingEnvironment } from "@/lib/sandbox/workspace-guards";
+import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { WorkspaceUserProps } from "@/lib/types";

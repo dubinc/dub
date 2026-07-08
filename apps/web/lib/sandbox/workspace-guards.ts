@@ -1,5 +1,11 @@
 import { DubApiError } from "@/lib/api/errors";
-import { Project, WorkspaceEnvironment } from "@prisma/client";
+import {
+  isProductionEnvironment,
+  isStagingEnvironment,
+} from "@/lib/sandbox/environment";
+import { Project } from "@prisma/client";
+
+export { isProductionEnvironment, isStagingEnvironment };
 
 export function assertStagingWorkspace(
   workspace: Pick<Project, "environment">,
@@ -56,18 +62,4 @@ export function assertProductionWorkspace(
         "This action is only available in production workspaces.",
     });
   }
-}
-
-export function isStagingEnvironment(
-  environment: WorkspaceEnvironment | null | undefined,
-) {
-  return Boolean(environment && environment === WorkspaceEnvironment.staging);
-}
-
-export function isProductionEnvironment(
-  environment: WorkspaceEnvironment | null | undefined,
-) {
-  return Boolean(
-    environment && environment === WorkspaceEnvironment.production,
-  );
 }

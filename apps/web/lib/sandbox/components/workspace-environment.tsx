@@ -13,7 +13,7 @@ import { usePathname } from "next/navigation";
 import {
   isProductionEnvironment,
   isStagingEnvironment,
-} from "../workspace-guards";
+} from "../environment";
 
 const buttonClassName =
   "text-content-emphasis flex w-full items-center justify-center gap-x-2 rounded-lg border border-neutral-200 px-2 py-1 outline-none transition-all duration-75 hover:bg-neutral-100/50 focus-visible:ring-2 focus-visible:ring-black/50 active:bg-neutral-200/80";

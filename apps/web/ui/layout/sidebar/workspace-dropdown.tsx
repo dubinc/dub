@@ -1,7 +1,7 @@
 "use client";
 
 import { WorkspaceEnvironmentSwitcher } from "@/lib/sandbox/components/workspace-environment";
-import { isStagingEnvironment } from "@/lib/sandbox/workspace-guards";
+import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";

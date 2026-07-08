@@ -1,7 +1,7 @@
 "use client";
 
 import { useCopyDiscountToLiveModal } from "@/lib/sandbox/components/copy-discount-to-live-modal";
-import { isStagingEnvironment } from "@/lib/sandbox/workspace-guards";
+import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import type { DiscountProps, GroupProps } from "@/lib/types";
