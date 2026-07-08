@@ -6,9 +6,13 @@ import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getEvents } from "@/lib/analytics/get-events";
 import { convertToCSV } from "@/lib/analytics/utils";
+import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
@@ -46,7 +50,26 @@ export const GET = withWorkspace(
       key,
       linkId,
       externalId,
+      programId,
     } = parsedParams;
+
+    let programStartedAt: Date | null | undefined = null;
+    if (programId) {
+      const workspaceProgramId = getDefaultProgramIdOrThrow(workspace);
+      if (programId !== workspaceProgramId) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: `Program ${programId} does not belong to workspace ${prefixWorkspaceId(workspace.id)}.`,
+        });
+      }
+      const program = await getProgramOrThrow({
+        workspaceId: workspace.id,
+        programId,
+      });
+      programStartedAt = program.startedAt;
+    }
+
+    const dataAvailableFrom = programStartedAt ?? workspace.createdAt;
 
     let folderIdToVerify = getFirstFilterValue(folderId);
     if (!linkId && (externalId || (domain && key))) {
@@ -83,7 +106,7 @@ export const GET = withWorkspace(
 
     assertValidDateRangeForPlan({
       plan: workspace.plan,
-      dataAvailableFrom: workspace.createdAt,
+      dataAvailableFrom,
       interval,
       start,
       end,
@@ -94,7 +117,7 @@ export const GET = withWorkspace(
       ...parsedParams,
       groupBy: "count",
       workspaceId: workspace.id,
-      dataAvailableFrom: workspace.createdAt,
+      dataAvailableFrom,
     });
 
     // Extract the count based on event type
@@ -114,6 +137,7 @@ export const GET = withWorkspace(
           ...searchParams,
           workspaceId: workspace.id,
           userId: session.user.id,
+          dataAvailableFrom: dataAvailableFrom.toISOString(),
         },
       });
 
@@ -125,6 +149,7 @@ export const GET = withWorkspace(
       event,
       workspaceId: workspace.id,
       limit: MAX_EVENTS_TO_EXPORT,
+      dataAvailableFrom,
     });
 
     const data = response.map((row) =>
