@@ -6,6 +6,7 @@ import DeleteWorkspace from "@/ui/workspaces/delete-workspace";
 import { SlackSupportSettingsCard } from "@/ui/workspaces/slack-support-settings-card";
 import UploadLogo from "@/ui/workspaces/upload-logo";
 import { Form } from "@dub/ui";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -19,7 +20,7 @@ export default function WorkspaceSettingsClient() {
     action: "workspaces.write",
     role,
     environment,
-    stagingBehavior: "production-only",
+    restrictedEnvironments: [WorkspaceEnvironment.staging],
   });
 
   const { update } = useSession();

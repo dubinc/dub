@@ -1,35 +1,47 @@
 import { combineWords } from "@dub/utils";
 import { WorkspaceEnvironment, WorkspaceRole } from "@prisma/client";
 import { PermissionAction, ROLE_PERMISSIONS } from "./api/rbac/permissions";
-import { isStagingEnvironment } from "./sandbox/workspace-guards";
+
+function getDefaultRestrictedEnvironmentMessage(
+  restrictedEnvironments: WorkspaceEnvironment[],
+) {
+  if (
+    restrictedEnvironments.length === 1 &&
+    restrictedEnvironments[0] === WorkspaceEnvironment.staging
+  ) {
+    return "This setting must be managed from the production workspace.";
+  }
+
+  const labels = restrictedEnvironments.map((env) => `${env} workspaces`);
+  return `This action is not available in ${combineWords(labels)}.`;
+}
 
 export const clientAccessCheck = ({
   action,
   role,
   customPermissionDescription,
   environment,
-  stagingBehavior,
+  restrictedEnvironments,
+  restrictedEnvironmentMessage,
 }: {
   action: PermissionAction;
   role: WorkspaceRole;
   customPermissionDescription?: string;
-  environment?: WorkspaceEnvironment | null;
-  stagingBehavior?: "blocked" | "production-only";
+  environment?: WorkspaceEnvironment | null; // Current workspace environment
+  restrictedEnvironments?: WorkspaceEnvironment[]; // Environments where the action is restricted
+  restrictedEnvironmentMessage?: string; // Custom message to display when the action is restricted
 }) => {
-  if (isStagingEnvironment(environment)) {
-    switch (stagingBehavior) {
-      case "blocked":
-        return {
-          allowed: false,
-          error: "This action is not available in staging workspaces.",
-        };
-
-      case "production-only":
-        return {
-          allowed: false,
-          error: "This setting must be managed from the production workspace.",
-        };
-    }
+  if (
+    environment &&
+    restrictedEnvironments &&
+    restrictedEnvironments.includes(environment)
+  ) {
+    return {
+      allowed: false,
+      error:
+        restrictedEnvironmentMessage ??
+        getDefaultRestrictedEnvironmentMessage(restrictedEnvironments),
+    };
   }
 
   const permission = ROLE_PERMISSIONS.find((p) => p.action === action)!;

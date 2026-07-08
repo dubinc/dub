@@ -170,7 +170,10 @@ export default async function SuccessPage(props: {
                   src={program.logo || `${OG_AVATAR_URL}${program.name}`}
                   alt={`${program.name} logo`}
                 />
-                <Bolt variant="fill" className="shrink-0 text-[var(--brand)] opacity-30" />
+                <Bolt
+                  variant="fill"
+                  className="shrink-0 text-[var(--brand)] opacity-30"
+                />
                 <Logo className="size-10 shrink-0" />
               </div>
             )}

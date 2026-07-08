@@ -3,6 +3,7 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, FileUpload } from "@dub/ui";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -20,7 +21,7 @@ export default function UploadLogo() {
     action: "workspaces.write",
     role,
     environment,
-    stagingBehavior: "production-only",
+    restrictedEnvironments: [WorkspaceEnvironment.staging],
   });
 
   return (

@@ -39,7 +39,7 @@ import {
   UserCheck,
 } from "@dub/ui/icons";
 import { cn, fetcher, timeAgo } from "@dub/utils";
-import { WorkspaceRole } from "@prisma/client";
+import { WorkspaceEnvironment, WorkspaceRole } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus } from "lucide-react";
@@ -276,7 +276,7 @@ export default function WorkspaceMembersPage() {
     role,
     environment,
     customPermissionDescription: "invite new teammates",
-    stagingBehavior: "production-only",
+    restrictedEnvironments: [WorkspaceEnvironment.staging],
   });
 
   const { error: generateInviteLinksError } = clientAccessCheck({
@@ -284,7 +284,7 @@ export default function WorkspaceMembersPage() {
     role,
     environment,
     customPermissionDescription: "generate invite links",
-    stagingBehavior: "production-only",
+    restrictedEnvironments: [WorkspaceEnvironment.staging],
   });
 
   return (

@@ -5,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useDeleteWorkspaceModal } from "@/ui/modals/delete-workspace-modal";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { WorkspaceEnvironment } from "@prisma/client";
 
 export default function DeleteWorkspace() {
   const { setShowDeleteWorkspaceModal, DeleteWorkspaceModal } =
@@ -16,7 +17,7 @@ export default function DeleteWorkspace() {
     action: "workspaces.write",
     role,
     environment,
-    stagingBehavior: "production-only",
+    restrictedEnvironments: [WorkspaceEnvironment.staging],
   });
 
   return (
