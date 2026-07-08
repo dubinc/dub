@@ -9,4 +9,8 @@ export const ALL_TOOLS = [
   { name: "Amazon Link Shortener", slug: "amazon-link-shortener" },
   { name: "Figma Link Shortener", slug: "figma-link-shortener" },
   { name: "Link Inspector", slug: "inspector" },
+  {
+    name: "Affiliate Program Terms Generator",
+    slug: "affiliate-program-terms-generator",
+  },
 ];
