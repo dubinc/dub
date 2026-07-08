@@ -100,6 +100,7 @@ export async function checkoutSessionCompleted(
       usersLimit: limits.users,
       trialEndsAt,
       paymentFailedAt: null,
+      subscriptionCanceledAt: null,
       ...(planPeriod !== undefined && { planPeriod }),
       ...getSubscriptionBillingFields(subscription),
     },

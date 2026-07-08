@@ -5,6 +5,7 @@ import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { qstash } from "@/lib/cron";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
@@ -23,6 +24,7 @@ import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-down
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import {
   getBillingStartDate,
+  APP_DOMAIN_WITH_NGROK,
   getPlanAndTierFromPriceId,
   NEW_BUSINESS_PRICE_IDS,
 } from "@dub/utils";
@@ -269,12 +271,19 @@ export async function updateWorkspacePlan({
         newPlan: newPlanName,
       })
     ) {
-      await Promise.allSettled([
+      const results = await Promise.allSettled([
         stripAdvancedRewardModifiersForProgram({
           programId: workspace.defaultProgramId,
         }),
         pauseOrCancelCampaignsForProgramOnPlanDowngrade({
           programId: workspace.defaultProgramId,
+        }),
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/fraud/release-all-hold-commissions`,
+          method: "POST",
+          body: {
+            programId: workspace.defaultProgramId,
+          },
         }),
         workspaceOwners.length > 0 &&
           sendBatchEmail(
@@ -296,7 +305,15 @@ export async function updateWorkspacePlan({
           ),
       ]);
       console.log(
-        `Stripped advanced reward modifiers for program ${workspace.defaultProgramId}.`,
+        [
+          "stripAdvancedRewardModifiersForProgram",
+          "pauseOrCancelCampaignsForProgramOnPlanDowngrade",
+          "queueReleaseAllHoldCommissions",
+          "notifyWorkspaceOwners",
+        ].map((step, index) => ({
+          step,
+          result: results[index],
+        })),
       );
     }
 
