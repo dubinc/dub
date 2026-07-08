@@ -60,7 +60,10 @@ export async function updateWorkspacePlan({
   const { plan: newPlan, planTier: newPlanTier } = getPlanAndTierFromPriceId({
     priceId,
   });
-  if (!newPlan) return;
+
+  if (!newPlan) {
+    return;
+  }
 
   const newPlanName = newPlan.name.toLowerCase();
 
@@ -214,7 +217,7 @@ export async function updateWorkspacePlan({
       }) &&
       workspace.defaultProgramId
     ) {
-      await deactivateProgram(workspace.defaultProgramId);
+      await deactivateProgram(workspace);
       console.log(`Deactivated program for workspace ${workspace.id}.`);
     }
 
@@ -226,7 +229,7 @@ export async function updateWorkspacePlan({
       }) &&
       workspace.defaultProgramId
     ) {
-      await reactivateProgram(workspace.defaultProgramId);
+      await reactivateProgram(workspace);
       console.log(`Reactivated program for workspace ${workspace.id}.`);
     }
 

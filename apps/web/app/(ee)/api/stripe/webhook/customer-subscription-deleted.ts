@@ -221,7 +221,7 @@ export async function customerSubscriptionDeleted(
 
   // Deactivate the program if the workspace had partner access
   if (workspace.defaultProgramId) {
-    await deactivateProgram(workspace.defaultProgramId);
+    await deactivateProgram(workspace);
   }
 
   const losesAdvancedFeatures = wouldLoseAdvancedFeatures({

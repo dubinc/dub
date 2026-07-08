@@ -2,46 +2,75 @@ import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Project } from "@prisma/client";
 
-export async function reactivateProgram(programId: string) {
-  if (!programId) {
-    throw new Error("[reactivateProgram] programId is required");
+export async function reactivateProgram(
+  workspace: Pick<Project, "defaultProgramId" | "stagingWorkspaceId">,
+) {
+  if (!workspace.defaultProgramId) {
+    throw new Error("[reactivateProgram] defaultProgramId is required");
   }
 
-  await prisma.$transaction([
-    prisma.program.update({
-      where: {
-        id: programId,
-      },
-      data: {
-        deactivatedAt: null,
-      },
-    }),
+  const programIds = [workspace.defaultProgramId];
 
-    // republish the default group
-    prisma.partnerGroup.update({
+  if (workspace.stagingWorkspaceId) {
+    const stagingWorkspace = await prisma.project.findUnique({
       where: {
-        programId_slug: {
-          programId,
-          slug: DEFAULT_PARTNER_GROUP.slug,
+        id: workspace.stagingWorkspaceId,
+      },
+      select: {
+        defaultProgramId: true,
+      },
+    });
+
+    if (stagingWorkspace?.defaultProgramId) {
+      programIds.push(stagingWorkspace.defaultProgramId);
+    }
+  }
+
+  await prisma.$transaction(
+    programIds.flatMap((id) => [
+      prisma.program.update({
+        where: {
+          id,
         },
-      },
-      data: {
-        applicationFormPublishedAt: new Date(),
-        landerPublishedAt: new Date(),
-      },
-    }),
-  ]);
+        data: {
+          deactivatedAt: null,
+        },
+      }),
 
-  const response = await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/programs/reactivate`,
-    body: {
-      programId,
-    },
-    deduplicationId: `reactivate-program-${programId}`,
+      // republish the default group
+      prisma.partnerGroup.update({
+        where: {
+          programId_slug: {
+            programId: id,
+            slug: DEFAULT_PARTNER_GROUP.slug,
+          },
+        },
+        data: {
+          applicationFormPublishedAt: new Date(),
+          landerPublishedAt: new Date(),
+        },
+      }),
+    ]),
+  );
+
+  const responses = await Promise.all(
+    programIds.map((id) =>
+      qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/programs/reactivate`,
+        body: {
+          programId: id,
+        },
+        deduplicationId: `reactivate-program-${id}`,
+      }),
+    ),
+  );
+
+  console.log("[reactivateProgram] Reactivation jobs enqueued.", {
+    programIds,
+    responses,
   });
 
-  console.log("[reactivateProgram] Reactivation job enqueued.", { response });
-
-  return response;
+  return responses;
 }

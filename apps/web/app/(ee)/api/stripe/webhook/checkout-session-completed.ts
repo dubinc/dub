@@ -145,7 +145,7 @@ export async function checkoutSessionCompleted(
         currentPlan: "free",
         newPlan: updatedWorkspace.plan,
       }) &&
-      reactivateProgram(updatedWorkspace.defaultProgramId),
+      reactivateProgram(updatedWorkspace),
     // If no programOnboarding data (Links trial), send TrialStartedEmail
     // For program trial we send it in create-program.ts
     subscription.status === "trialing" &&
