@@ -11,7 +11,7 @@ async function main() {
     },
     users: [
       {
-        email: "kiran+2@dub.co",
+        email: "owner@dub-internal-test.com",
         role: "owner",
       },
     ],
