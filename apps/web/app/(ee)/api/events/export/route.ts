@@ -32,7 +32,7 @@ const exportQuerySchema = z
   })
   .passthrough();
 
-// GET /api/events/export – export events to CSV (with async support if >1000 events)
+// GET /api/events/export – export events to CSV (with async support if >1000 events)
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
@@ -54,7 +54,7 @@ export const GET = withWorkspace(
     } = parsedParams;
 
     let programStartedAt: Date | null | undefined = null;
-    if (programId) {
+    if (programId && interval === "all") {
       const workspaceProgramId = getDefaultProgramIdOrThrow(workspace);
       if (programId !== workspaceProgramId) {
         throw new DubApiError({
@@ -69,7 +69,10 @@ export const GET = withWorkspace(
       programStartedAt = program.startedAt;
     }
 
-    const dataAvailableFrom = programStartedAt ?? workspace.createdAt;
+    const dataAvailableFrom =
+      programStartedAt && programStartedAt < workspace.createdAt
+        ? programStartedAt
+        : workspace.createdAt;
 
     let folderIdToVerify = getFirstFilterValue(folderId);
     if (!linkId && (externalId || (domain && key))) {
@@ -106,7 +109,7 @@ export const GET = withWorkspace(
 
     assertValidDateRangeForPlan({
       plan: workspace.plan,
-      dataAvailableFrom,
+      dataAvailableFrom: workspace.createdAt,
       interval,
       start,
       end,
