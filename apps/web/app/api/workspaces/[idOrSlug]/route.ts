@@ -3,8 +3,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
 import { deleteWorkspace } from "@/lib/api/workspaces/delete-workspace";
-import { getWorkspaceLogoKeyPrefix } from "@/lib/api/workspaces/workspace-logo";
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
+import { getWorkspaceLogoKeyPrefix } from "@/lib/api/workspaces/workspace-logo";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
@@ -312,7 +312,9 @@ export const DELETE = withWorkspace(
       });
     }
 
-    assertNotStagingWorkspace(workspace);
+    assertNotStagingWorkspace(workspace, {
+      message: "Deleting a staging workspace is not allowed.",
+    });
 
     await deleteWorkspace(workspace);
 

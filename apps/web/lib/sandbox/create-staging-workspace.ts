@@ -31,7 +31,7 @@ export async function createStagingWorkspace(workspaceId: string) {
 
   if (!isProductionEnvironment(workspace.environment)) {
     console.error(
-      `Skipping staging creation for non-production workspace ${workspace.id}.`,
+      `Skipping staging workspace creation for non-production workspace ${workspace.id}.`,
     );
     return;
   }
@@ -65,6 +65,7 @@ export async function createStagingWorkspace(workspaceId: string) {
         plan: workspace.plan,
         billingCycleStart: new Date().getDate(),
         invoicePrefix: generateRandomString(8),
+        // Staging workspace will uses the trial limits
         usageLimit: TRIAL_LIMITS.clicks,
         linksLimit: TRIAL_LIMITS.links,
         domainsLimit: TRIAL_LIMITS.domains,

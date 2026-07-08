@@ -17,5 +17,7 @@ export const POST = withCron(async ({ rawBody }) => {
   await createStagingWorkspace(workspaceId);
   await createStagingProgram(workspaceId);
 
-  return logAndRespond("OK");
+  return logAndRespond(
+    `Staging workspace and program created for workspace ${workspaceId}`,
+  );
 });

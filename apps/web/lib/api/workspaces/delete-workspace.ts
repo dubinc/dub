@@ -67,6 +67,15 @@ export async function deleteWorkspace(
         },
       },
     }),
+
+    prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        stagingWorkspaceId: null,
+      },
+    }),
   ]);
 
   waitUntil(
