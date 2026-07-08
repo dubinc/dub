@@ -110,8 +110,11 @@ export async function detectDuplicatePayoutMethodFraud({
 
   const { affectedGroups } = await createFraudEvents(fraudEvents);
 
-  await Promise.allSettled([
+  const results = await Promise.allSettled([
     holdPendingCommissions(affectedGroups),
     holdProcessedCommissions(affectedGroups),
   ]);
+  results
+    .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+    .forEach((r) => console.error("Failed to hold commissions:", r.reason));
 }
