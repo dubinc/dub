@@ -109,40 +109,6 @@ export async function releaseHoldCommissions({
     ];
   }
 
-  const commissionsToRelease = await prisma.commission.findMany({
-    where: releaseWhere,
-    select: {
-      id: true,
-      amount: true,
-      earnings: true,
-      status: true,
-    },
-  });
-
-  if (commissionsToRelease.length === 0) {
-    console.log(
-      `No hold commissions to release for partner ${partnerId} in program ${programId}`,
-    );
-    return 0;
-  }
-
-  // Update the commissions to pending
-  const { count: updatedCount } = await prisma.commission.updateMany({
-    where: {
-      id: {
-        in: commissionsToRelease.map((c) => c.id),
-      },
-      status: CommissionStatus.hold,
-    },
-    data: {
-      status: CommissionStatus.pending,
-    },
-  });
-
-  if (updatedCount === 0) {
-    return 0;
-  }
-
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
@@ -152,83 +118,123 @@ export async function releaseHoldCommissions({
     },
   });
 
-  // Get the released commissions
-  const releasedCommissions =
-    updatedCount < commissionsToRelease.length
-      ? await prisma.commission
-          .findMany({
-            where: {
-              id: {
-                in: commissionsToRelease.map((c) => c.id),
-              },
-              status: CommissionStatus.pending,
-            },
-            select: {
-              id: true,
-              amount: true,
-              earnings: true,
-              status: true,
-            },
-          })
-          .then((commissions) =>
-            commissions.map((c) => ({
-              ...c,
-              // need to make sure the releasedCommissions have the old "hold" status for the status update log
-              status: CommissionStatus.hold,
-            })),
-          )
-      : commissionsToRelease;
+  let totalReleased = 0;
 
-  const releasedEarnings = releasedCommissions.reduce(
-    (sum, commission) => sum + commission.earnings,
-    0,
-  );
+  while (true) {
+    const commissionsToRelease = await prisma.commission.findMany({
+      where: releaseWhere,
+      select: {
+        id: true,
+        amount: true,
+        earnings: true,
+        status: true,
+      },
+      take: 250,
+    });
 
-  const results = await Promise.allSettled([
-    trackCommissionStatusUpdate({
-      workspaceId: program.workspaceId,
-      programId,
-      commissions: releasedCommissions,
-      newStatus: CommissionStatus.pending,
-    }),
-    syncTotalCommissions({
-      partnerId,
-      programId,
-    }),
-    triggerAggregateDueCommissionsCronJob(programId),
-    // should always be > 0, but just in case
-    releasedEarnings > 0 &&
-      executeWorkflows({
-        trigger: "partnerMetricsUpdated",
-        reason: "commission",
-        identity: {
+    if (commissionsToRelease.length === 0) {
+      console.log(
+        `No hold commissions to release for partner ${partnerId} in program ${programId}`,
+      );
+      break;
+    }
+
+    // Update the commissions to pending
+    const { count: updatedCount } = await prisma.commission.updateMany({
+      where: {
+        id: {
+          in: commissionsToRelease.map((c) => c.id),
+        },
+        status: CommissionStatus.hold,
+      },
+      data: {
+        status: CommissionStatus.pending,
+      },
+    });
+
+    if (updatedCount > 0) {
+      console.log(`Released ${updatedCount} hold commissions`);
+      totalReleased += updatedCount;
+
+      // Get the released commissions
+      const releasedCommissions =
+        updatedCount < commissionsToRelease.length
+          ? await prisma.commission
+              .findMany({
+                where: {
+                  id: {
+                    in: commissionsToRelease.map((c) => c.id),
+                  },
+                  status: CommissionStatus.pending,
+                },
+                select: {
+                  id: true,
+                  amount: true,
+                  earnings: true,
+                  status: true,
+                },
+              })
+              .then((commissions) =>
+                commissions.map((c) => ({
+                  ...c,
+                  // need to make sure the releasedCommissions have the old "hold" status for the status update log
+                  status: CommissionStatus.hold,
+                })),
+              )
+          : commissionsToRelease;
+
+      const releasedEarnings = releasedCommissions.reduce(
+        (sum, commission) => sum + commission.earnings,
+        0,
+      );
+
+      const results = await Promise.allSettled([
+        trackCommissionStatusUpdate({
           workspaceId: program.workspaceId,
           programId,
+          commissions: releasedCommissions,
+          newStatus: CommissionStatus.pending,
+        }),
+        syncTotalCommissions({
           partnerId,
-        },
-        metrics: {
-          current: {
-            commissions: releasedEarnings,
-          },
-        },
-      }),
-  ]);
+          programId,
+        }),
+        triggerAggregateDueCommissionsCronJob(programId),
+        // should always be > 0, but just in case
+        releasedEarnings > 0 &&
+          executeWorkflows({
+            trigger: "partnerMetricsUpdated",
+            reason: "commission",
+            identity: {
+              workspaceId: program.workspaceId,
+              programId,
+              partnerId,
+            },
+            metrics: {
+              current: {
+                commissions: releasedEarnings,
+              },
+            },
+          }),
+      ]);
 
-  console.log(
-    `Summary of releaseHoldCommissions: ${JSON.stringify(
-      [
-        "trackCommissionStatusUpdate",
-        "syncTotalCommissions",
-        "triggerAggregateDueCommissions",
-        "executeWorkflows",
-      ].map((step, index) => ({
-        step,
-        result: results[index],
-      })),
-    )}`,
-  );
+      console.log(
+        `Summary of releaseHoldCommissions: ${JSON.stringify(
+          [
+            "trackCommissionStatusUpdate",
+            "syncTotalCommissions",
+            "triggerAggregateDueCommissions",
+            "executeWorkflows",
+          ].map((step, index) => ({
+            step,
+            result: results[index],
+          })),
+        )}`,
+      );
+    }
+  }
 
-  return releasedCommissions.length;
+  return totalReleased;
 }
 
 // Groups resolved/expired fraud groups by program+partner and enqueues a cron

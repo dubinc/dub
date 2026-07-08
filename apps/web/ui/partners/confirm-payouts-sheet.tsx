@@ -53,6 +53,7 @@ import {
   pluralize,
   truncate,
 } from "@dub/utils";
+import { CommissionStatus } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import {
@@ -243,6 +244,7 @@ function ConfirmPayoutsSheetContent() {
 
   const { commissionsCount } = useCommissionsCount({
     include: [],
+    status: CommissionStatus.hold,
     // for explicitly selected payouts, filter by the payouts for those partners
     ...(isExplicitSelectionMode &&
       payoutsIncludedInInvoice && {
