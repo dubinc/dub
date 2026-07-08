@@ -18,6 +18,7 @@ import { qstash } from "@/lib/cron";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { APP_DOMAIN_WITH_NGROK, capitalize } from "@dub/utils";
+import { min } from "date-fns";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -69,10 +70,10 @@ export const GET = withWorkspace(
       programStartedAt = program.startedAt;
     }
 
-    const dataAvailableFrom =
-      programStartedAt && programStartedAt < workspace.createdAt
-        ? programStartedAt
-        : workspace.createdAt;
+    const dataAvailableFrom = min([
+      workspace.createdAt,
+      ...(programStartedAt ? [programStartedAt] : []),
+    ]);
 
     let folderIdToVerify = getFirstFilterValue(folderId);
     if (!linkId && (externalId || (domain && key))) {
