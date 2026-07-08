@@ -17,9 +17,8 @@ export const GET = withWorkspace(
     });
 
     if (
-      (filters.groupBy === "tagId" ||
-        filters.groupBy === "domain" ||
-        filters.groupBy === "userId") &&
+      filters.groupBy &&
+      filters.groupBy !== "folderId" &&
       !filters.folderId &&
       !folderIds
     ) {
