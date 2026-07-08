@@ -155,20 +155,28 @@ export async function releaseHoldCommissions({
   // Get the released commissions
   const releasedCommissions =
     updatedCount < commissionsToRelease.length
-      ? await prisma.commission.findMany({
-          where: {
-            id: {
-              in: commissionsToRelease.map((c) => c.id),
+      ? await prisma.commission
+          .findMany({
+            where: {
+              id: {
+                in: commissionsToRelease.map((c) => c.id),
+              },
+              status: CommissionStatus.pending,
             },
-            status: CommissionStatus.pending,
-          },
-          select: {
-            id: true,
-            amount: true,
-            earnings: true,
-            status: true,
-          },
-        })
+            select: {
+              id: true,
+              amount: true,
+              earnings: true,
+              status: true,
+            },
+          })
+          .then((commissions) =>
+            commissions.map((c) => ({
+              ...c,
+              // need to make sure the releasedCommissions have the old "hold" status for the status update log
+              status: CommissionStatus.hold,
+            })),
+          )
       : commissionsToRelease;
 
   const releasedEarnings = releasedCommissions.reduce(
