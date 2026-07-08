@@ -9,6 +9,9 @@ async function main() {
   while (true) {
     const workspaces = await prisma.project.findMany({
       where: {
+        trialEndsAt: {
+          not: null,
+        },
         planPeriod: "yearly",
         // Unmigrated yearly workspaces still have monthly AI limits
         aiLimit: 1000,

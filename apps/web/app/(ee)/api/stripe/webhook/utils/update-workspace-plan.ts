@@ -59,21 +59,45 @@ export async function updateWorkspacePlan({
   priceId: string;
   subscription: Stripe.Subscription;
 }) {
+  const cancellationFields = getSubscriptionBillingFields(subscription);
+  const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
+  const trialEndsAt = getSubscriptionTrialEndsAt(subscription);
+  const isPaidPlanActivated =
+    workspace.trialEndsAt !== null && trialEndsAt === null;
+
+  const datetimeFieldsUpdated =
+    workspace.billingCycleEndsAt?.getTime() !==
+      cancellationFields.billingCycleEndsAt?.getTime() ||
+    workspace.subscriptionCanceledAt?.getTime() !==
+      cancellationFields.subscriptionCanceledAt?.getTime() ||
+    (trialEndsAt !== undefined &&
+      workspace.trialEndsAt?.getTime() !== trialEndsAt?.getTime());
+
   const { plan: newPlan, planTier: newPlanTier } = getPlanAndTierFromPriceId({
     priceId,
   });
-  if (!newPlan) return;
+
+  // if not a hardcoded price ID (e.g. Enterprise plans), update billingCycleEndsAt and planPeriod
+  if (!newPlan) {
+    console.log(
+      `Not a hardcoded price ID, updating billingCycleEndsAt and planPeriod for workspace ${workspace.id}`,
+    );
+    await prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        ...cancellationFields,
+        planPeriod,
+      },
+    });
+    return;
+  }
 
   const newPlanName = newPlan.name.toLowerCase();
 
   const { canMessagePartners, canCreateWebhooks, canAddFolder } =
     getPlanCapabilities(newPlanName);
-
-  const trialEndsAt = getSubscriptionTrialEndsAt(subscription);
-  const isPaidPlanActivated =
-    workspace.trialEndsAt !== null && trialEndsAt === null;
-  const cancellationFields = getSubscriptionBillingFields(subscription);
-  const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
 
   const limits = getWorkspaceLimitsFromStripeSubscription({
     planLimits: newPlan.limits,
@@ -89,14 +113,6 @@ export async function updateWorkspacePlan({
         billingStart: getBillingStartDate(workspace.billingCycleStart),
       })
     : null;
-
-  const datetimeFieldsUpdated =
-    workspace.billingCycleEndsAt?.getTime() !==
-      cancellationFields.billingCycleEndsAt?.getTime() ||
-    workspace.subscriptionCanceledAt?.getTime() !==
-      cancellationFields.subscriptionCanceledAt?.getTime() ||
-    (trialEndsAt !== undefined &&
-      workspace.trialEndsAt?.getTime() !== trialEndsAt?.getTime());
 
   // Update workspace plan / limits / subscription details if:
   // - workspace upgrades/downgrades their subscription
