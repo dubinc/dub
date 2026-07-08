@@ -70,7 +70,8 @@ export function PartnerRiskIndicator({ partnerId }: PartnerRiskIndicatorProps) {
         content: tooltipContent,
       }}
     >
-      <Flag variant="fill"
+      <Flag
+        variant="fill"
         className={cn(
           "size-3.5 cursor-pointer",
           FRAUD_SEVERITY_CONFIG["high"].fg,
