@@ -24,7 +24,6 @@ import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-down
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import {
   APP_DOMAIN_WITH_NGROK,
-  getBillingStartDate,
   getPlanAndTierFromPriceId,
   NEW_BUSINESS_PRICE_IDS,
 } from "@dub/utils";
@@ -108,10 +107,7 @@ export async function updateWorkspacePlan({
     workspace.planPeriod === "yearly" && planPeriod === "monthly";
 
   const recomputedUsage = isYearlyToMonthly
-    ? await recomputeWorkspaceUsage({
-        workspaceId: workspace.id,
-        billingStart: getBillingStartDate(workspace.billingCycleStart),
-      })
+    ? await recomputeWorkspaceUsage(workspace)
     : null;
 
   // Update workspace plan / limits / subscription details if:
