@@ -4,7 +4,7 @@ import { createStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
 import { WorkspaceEnvironment } from "@prisma/client";
 import "dotenv-flow/config";
 
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 10;
 
 async function main() {
   let totalProcessed = 0;
