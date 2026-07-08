@@ -109,11 +109,15 @@ function DeletePartnerModal({
           </p>
 
           <div>
-            <label className="block text-sm font-medium text-neutral-900">
+            <label
+              htmlFor="confirm-delete-partner"
+              className="block text-sm font-medium text-neutral-900"
+            >
               To verify, type <strong>confirm delete partner</strong> below
             </label>
             <div className="relative mt-1.5 rounded-md shadow-sm">
               <input
+                id="confirm-delete-partner"
                 className={cn(
                   "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   errors.confirm && "border-red-600",
