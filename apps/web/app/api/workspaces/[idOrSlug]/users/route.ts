@@ -5,8 +5,8 @@ import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import {
-  removeMemberFromStaging,
-  updateMemberRoleInStaging,
+  removeWorkspaceMemberFromStaging,
+  syncWorkspaceMemberRoleToStaging,
 } from "@/lib/sandbox/sync-workspace";
 import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import {
@@ -90,7 +90,7 @@ export const PATCH = withWorkspace(
     });
 
     waitUntil(
-      updateMemberRoleInStaging({
+      syncWorkspaceMemberRoleToStaging({
         workspace,
         user: {
           id: workspaceUser.userId,
@@ -207,7 +207,7 @@ export const DELETE = withWorkspace(
     ]);
 
     waitUntil(
-      removeMemberFromStaging({
+      removeWorkspaceMemberFromStaging({
         workspace,
         user: projectUser.user,
       }),

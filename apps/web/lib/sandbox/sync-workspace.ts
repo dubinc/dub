@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { Project, WorkspaceRole } from "@prisma/client";
 
 // We don't sync the machine user from the production workspace to the staging workspace
-export async function addMemberToStaging({
+export async function syncWorkspaceMemberToStaging({
   workspace,
   user,
 }: {
@@ -25,11 +25,11 @@ export async function addMemberToStaging({
       },
     });
   } catch (error) {
-    console.error("[addMemberToStaging]", error);
+    console.error("[syncWorkspaceMemberToStaging]", error);
   }
 }
 
-export async function updateMemberRoleInStaging({
+export async function syncWorkspaceMemberRoleToStaging({
   workspace,
   user,
 }: {
@@ -53,11 +53,11 @@ export async function updateMemberRoleInStaging({
       },
     });
   } catch (error) {
-    console.error("[updateMemberRoleInStaging]", error);
+    console.error("[syncWorkspaceMemberRoleToStaging]", error);
   }
 }
 
-export async function removeMemberFromStaging({
+export async function removeWorkspaceMemberFromStaging({
   workspace,
   user,
 }: {
@@ -87,11 +87,11 @@ export async function removeMemberFromStaging({
       }),
     ]);
   } catch (error) {
-    console.error("[removeMemberFromStaging]", error);
+    console.error("[removeWorkspaceMemberFromStaging]", error);
   }
 }
 
-export async function syncWorkspaceSettings(
+export async function syncWorkspaceSettingsToStaging(
   workspace: Pick<
     Project,
     "id" | "stagingWorkspaceId" | "name" | "slug" | "logo"
@@ -113,6 +113,6 @@ export async function syncWorkspaceSettings(
       },
     });
   } catch (error) {
-    console.error("[syncWorkspaceSettings]", error);
+    console.error("[syncWorkspaceSettingsToStaging]", error);
   }
 }

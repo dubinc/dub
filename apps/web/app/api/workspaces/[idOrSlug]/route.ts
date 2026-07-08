@@ -9,7 +9,7 @@ import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
-import { syncWorkspaceSettings } from "@/lib/sandbox/sync-workspace";
+import { syncWorkspaceSettingsToStaging } from "@/lib/sandbox/sync-workspace";
 import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
 import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
 import { storage } from "@/lib/storage";
@@ -270,7 +270,7 @@ export const PATCH = withWorkspace(
             }
           }
 
-          await syncWorkspaceSettings(updatedWorkspace);
+          await syncWorkspaceSettingsToStaging(updatedWorkspace);
         })(),
       );
 

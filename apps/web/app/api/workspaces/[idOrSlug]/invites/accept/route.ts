@@ -4,7 +4,7 @@ import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache"
 import { withSession } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { prisma } from "@/lib/prisma";
-import { addMemberToStaging } from "@/lib/sandbox/sync-workspace";
+import { syncWorkspaceMemberToStaging } from "@/lib/sandbox/sync-workspace";
 import { PlanProps } from "@/lib/types";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -162,7 +162,7 @@ export const POST = withSession(async ({ session, params }) => {
   });
 
   waitUntil(
-    addMemberToStaging({
+    syncWorkspaceMemberToStaging({
       workspace,
       user: {
         id: session.user.id,

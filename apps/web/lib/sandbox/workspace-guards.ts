@@ -34,7 +34,7 @@ export function assertNotStagingWorkspace(
       code: "bad_request",
       message:
         options?.message ??
-        "This action is not available in a staging workspace. Use the production workspace instead.",
+        "This action is not available in a staging workspace.",
     });
   }
 }

@@ -8,12 +8,11 @@ import {
 } from "@/lib/constants/payouts";
 import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
 import {
-  assertProductionWorkspace,
+  assertNotStagingWorkspace,
   isProductionEnvironment,
 } from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
-import { capitalize } from "@dub/utils/src";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import * as z from "zod/v4";
@@ -114,16 +113,14 @@ export const GET = withWorkspace(
 // POST /api/workspaces/[idOrSlug]/billing/payment-methods - add a payment method for the workspace
 export const POST = withWorkspace(
   async ({ workspace, req }) => {
+    assertNotStagingWorkspace(workspace);
+
     if (!workspace.stripeId) {
       throw new DubApiError({
         code: "bad_request",
         message: "Workspace does not have a Stripe ID.",
       });
     }
-
-    assertProductionWorkspace(workspace, {
-      message: `You can't add a payment methods to the ${capitalize(workspace.environment)} workspace.`,
-    });
 
     const { method } = addPaymentMethodSchema.parse(
       await parseRequestBody(req),
@@ -176,6 +173,8 @@ export const POST = withWorkspace(
 // PATCH /api/workspaces/[idOrSlug]/billing/payment-methods - set default payment method
 export const PATCH = withWorkspace(
   async ({ workspace, req }) => {
+    assertNotStagingWorkspace(workspace);
+
     if (!workspace.stripeId) {
       throw new DubApiError({
         code: "bad_request",
@@ -216,6 +215,8 @@ export const PATCH = withWorkspace(
 // DELETE /api/workspaces/[idOrSlug]/billing/payment-methods - remove a payment method
 export const DELETE = withWorkspace(
   async ({ workspace, req }) => {
+    assertNotStagingWorkspace(workspace);
+
     if (!workspace.stripeId) {
       throw new DubApiError({
         code: "bad_request",
