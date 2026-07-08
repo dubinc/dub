@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { createStagingProgram } from "@/lib/sandbox/create-staging-program";
 import { createStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
 import { WorkspaceEnvironment } from "@prisma/client";
 import "dotenv-flow/config";
@@ -32,6 +33,7 @@ async function main() {
         id: true,
         slug: true,
         plan: true,
+        defaultProgramId: true,
       },
       take: BATCH_SIZE,
       orderBy: {
@@ -46,6 +48,11 @@ async function main() {
     for (const workspace of workspaces) {
       try {
         await createStagingWorkspace(workspace.id);
+
+        if (workspace.defaultProgramId) {
+          await createStagingProgram(workspace.id);
+        }
+
         totalCreated++;
         console.log(`Created staging workspace for ${workspace.slug}`);
       } catch (error) {
