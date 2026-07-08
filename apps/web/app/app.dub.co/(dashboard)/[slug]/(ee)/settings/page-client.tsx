@@ -21,6 +21,8 @@ export default function WorkspaceSettingsClient() {
     role,
     environment,
     restrictedEnvironments: [WorkspaceEnvironment.staging],
+    restrictedEnvironmentMessage:
+      "Workspace settings must be updated from your production workspace (changes are automatically synced to staging).",
   });
 
   const { update } = useSession();

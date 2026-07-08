@@ -22,6 +22,8 @@ export default function UploadLogo() {
     role,
     environment,
     restrictedEnvironments: [WorkspaceEnvironment.staging],
+    restrictedEnvironmentMessage:
+      "Your workspace logo must be updated from your production workspace (changes are automatically synced to staging).",
   });
 
   return (

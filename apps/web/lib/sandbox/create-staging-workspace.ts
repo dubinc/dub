@@ -160,7 +160,7 @@ export async function queueCreateStagingWorkspace({
 
   await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/create-staging`,
-    deduplicationId: `create-staging-workspace:${id}`,
+    deduplicationId: `create-staging-workspace-${id}`,
     body: {
       workspaceId: id,
     },

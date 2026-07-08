@@ -277,6 +277,8 @@ export default function WorkspaceMembersPage() {
     environment,
     customPermissionDescription: "invite new teammates",
     restrictedEnvironments: [WorkspaceEnvironment.staging],
+    restrictedEnvironmentMessage:
+      "Teammates can only be invited from your production workspace (members are automatically synced to staging).",
   });
 
   const { error: generateInviteLinksError } = clientAccessCheck({
@@ -285,6 +287,8 @@ export default function WorkspaceMembersPage() {
     environment,
     customPermissionDescription: "generate invite links",
     restrictedEnvironments: [WorkspaceEnvironment.staging],
+    restrictedEnvironmentMessage:
+      "Invite links can only be generated from your production workspace (members are automatically synced to staging).",
   });
 
   return (
@@ -487,8 +491,9 @@ function RowMenuButton({
 
   const isCurrentUser = session?.user?.email === user.email;
 
-  // In staging, only show menu for self (leave workspace)
-  if (isStagingEnvironment(environment) && !isCurrentUser) {
+  // Leave workspace and member management are not available in staging
+  // (members are managed from the production workspace)
+  if (isStagingEnvironment(environment)) {
     return null;
   }
 

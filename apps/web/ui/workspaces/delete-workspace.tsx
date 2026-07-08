@@ -18,6 +18,8 @@ export default function DeleteWorkspace() {
     role,
     environment,
     restrictedEnvironments: [WorkspaceEnvironment.staging],
+    restrictedEnvironmentMessage:
+      "Deleting a staging workspace is not allowed.",
   });
 
   return (
