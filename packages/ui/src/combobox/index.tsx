@@ -14,13 +14,7 @@ import {
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { Button, ButtonProps } from "../button";
 import { useMediaQuery } from "../hooks";
-import {
-  Check2,
-  CheckboxIcon,
-  Icon,
-  LoadingSpinner,
-  Plus,
-} from "../icons";
+import { Check2, CheckboxIcon, Icon, LoadingSpinner, Plus } from "../icons";
 import { Popover, PopoverProps } from "../popover";
 import { ScrollContainer } from "../scroll-container";
 import { Tooltip } from "../tooltip";
@@ -444,7 +438,10 @@ function Option({
           {multiple && (
             <div className="text-content-default shrink-0">
               {selected ? (
-                <CheckboxIcon variant="fill" className="text-content-default size-4" />
+                <CheckboxIcon
+                  variant="fill"
+                  className="text-content-default size-4"
+                />
               ) : (
                 <CheckboxIcon className="text-content-muted size-4" />
               )}
