@@ -103,7 +103,7 @@ export const POST = withWorkspace(
       : "dub_test_";
     const token = `${tokenPrefix}${nanoid(24)}`;
     const hashedKey = await hashToken(token);
-    const partialKey = `${token.slice(0, 3)}...${token.slice(-4)}`;
+    const partialKey = `${tokenPrefix}...${token.slice(-4)}`;
 
     // Create token
     await prisma.$transaction(

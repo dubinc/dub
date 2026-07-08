@@ -1,5 +1,6 @@
-import { createSandboxWorkspace } from "@/lib/sandbox/create-sandbox-workspace";
 import "dotenv-flow/config";
+
+import { createSandboxWorkspace } from "@/lib/sandbox/create-sandbox-workspace";
 
 async function main() {
   await createSandboxWorkspace({
@@ -10,7 +11,7 @@ async function main() {
     },
     users: [
       {
-        email: "owner@dub-internal-test.com",
+        email: "kiran+2@dub.co",
         role: "owner",
       },
     ],

@@ -305,28 +305,28 @@ export default function PlanUsage() {
               ) : isWorkspaceBillingTrialActive(trialEndsAt) ? (
                 <DynamicTooltipWrapper
                   tooltipProps={
-                    permissionsError ? { content: permissionsError } : undefined
+                    managePlanError ? { content: managePlanError } : undefined
                   }
                 >
                   <Button
                     text="Start paid plan"
                     variant="primary"
                     className="h-9"
-                    disabled={Boolean(permissionsError)}
+                    disabled={Boolean(managePlanError)}
                     onClick={() => setShowStartPaidPlanModal(true)}
                   />
                 </DynamicTooltipWrapper>
               ) : showPendingCancellation ? (
                 <DynamicTooltipWrapper
                   tooltipProps={
-                    permissionsError ? { content: permissionsError } : undefined
+                    managePlanError ? { content: managePlanError } : undefined
                   }
                 >
                   <Button
                     text="Resume subscription"
                     variant="primary"
                     className="h-9"
-                    disabled={Boolean(permissionsError)}
+                    disabled={Boolean(managePlanError)}
                     onClick={() => setShowResubscribeModal(true)}
                   />
                 </DynamicTooltipWrapper>
