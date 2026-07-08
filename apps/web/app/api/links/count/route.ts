@@ -16,7 +16,13 @@ export const GET = withWorkspace(
       userId: session.user.id,
     });
 
-    if (filters.groupBy === "tagId" && !filters.folderId && !folderIds) {
+    if (
+      (filters.groupBy === "tagId" ||
+        filters.groupBy === "domain" ||
+        filters.groupBy === "userId") &&
+      !filters.folderId &&
+      !folderIds
+    ) {
       folderIds = await getFolderIdsToFilter({
         workspace,
         userId: session.user.id,
