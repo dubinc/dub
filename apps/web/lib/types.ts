@@ -154,6 +154,8 @@ import {
 import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
+  payoutsCountQuerySchema,
+  payoutsQuerySchema,
 } from "./zod/schemas/payouts";
 import { PartnerApplicationSchema } from "./zod/schemas/program-application";
 import {
@@ -980,3 +982,7 @@ export type CommissionProps = z.infer<typeof CommissionSchema>;
 export type CreatePartnerCommissionProps = z.infer<
   typeof createPartnerCommissionSchema
 >;
+
+export type PayoutsQueryFilters = z.infer<typeof payoutsQuerySchema>;
+
+export type PayoutsCountQueryFilters = z.infer<typeof payoutsCountQuerySchema>;

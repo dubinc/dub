@@ -207,7 +207,7 @@ export const DELETE = withWorkspace(
     waitUntil(
       (async () => {
         if (campaign.type === "marketing" && campaign.qstashMessageId) {
-          await qstash.messages.delete(campaign.qstashMessageId);
+          await qstash.messages.cancel(campaign.qstashMessageId);
         } else if (campaign.type === "transactional" && campaign.workflow) {
           const { condition } = parseWorkflowConfig(campaign.workflow);
 
