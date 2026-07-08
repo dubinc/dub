@@ -19,19 +19,12 @@ import * as z from "zod/v4";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const isHoldStatus = searchParams.status === "hold";
-  const {
-    status: _status,
-    fraudEventGroupId,
-    type: rawType,
-    ...restSearchParams
-  } = searchParams;
-
-  let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema.parse(
-    isHoldStatus
-      ? restSearchParams
-      : { ...restSearchParams, status: searchParams.status },
-  );
+  let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema
+    .extend({
+      fraudEventGroupId: z.string().optional(),
+      type: z.string().optional(), // May be comma-separated string, for multi-value handling
+    })
+    .parse(searchParams);
 
   if (tenantId && !partnerId) {
     const partner = await prisma.programEnrollment.findUnique({
@@ -58,12 +51,8 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const commissions = await getCommissions({
     ...filters,
-    // Pass raw type string (may be comma-separated) for multi-value handling
-    ...(rawType && { type: rawType }),
     partnerId,
     programId,
-    isHoldStatus,
-    ...(fraudEventGroupId && { fraudEventGroupId }),
   });
 
   return NextResponse.json(
