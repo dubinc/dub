@@ -249,7 +249,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
     });
 
   const canPermanentlyDelete =
-    ["deactivated", "rejected", "banned", "pending"].includes(partner.status) &&
+    ["deactivated", "banned"].includes(partner.status) &&
     partner.totalClicks === 0 &&
     partner.totalLeads === 0 &&
     partner.totalSales === 0;

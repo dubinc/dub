@@ -11,17 +11,7 @@ import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
-const DELETABLE_STATUSES: ProgramEnrollmentStatus[] = [
-  "deactivated",
-  "rejected",
-  "banned",
-  "pending",
-];
-
-const STATUSES_COUNTED_IN_USAGE: ProgramEnrollmentStatus[] = [
-  "banned",
-  "deactivated",
-];
+const DELETABLE_STATUSES: ProgramEnrollmentStatus[] = ["deactivated", "banned"];
 
 // Permanently delete a partner from a program (zero stats only)
 export const deletePartnerAction = authActionClient
@@ -53,7 +43,7 @@ export const deletePartnerAction = authActionClient
 
     if (!DELETABLE_STATUSES.includes(programEnrollment.status)) {
       throw new Error(
-        "Only deactivated, rejected, banned, or pending partners can be permanently deleted.",
+        "Only deactivated or banned partners can be permanently deleted.",
       );
     }
 
@@ -120,30 +110,22 @@ export const deletePartnerAction = authActionClient
       }),
     ]);
 
-    const shouldDecrementUsage = STATUSES_COUNTED_IN_USAGE.includes(
-      enrollment.status,
-    );
-
     await prisma.$transaction([
       prisma.programEnrollment.delete({
         where: {
           id: enrollment.id,
         },
       }),
-      ...(shouldDecrementUsage
-        ? [
-            prisma.project.update({
-              where: {
-                id: workspace.id,
-              },
-              data: {
-                partnersUsage: {
-                  decrement: 1,
-                },
-              },
-            }),
-          ]
-        : []),
+      prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          partnersUsage: {
+            decrement: 1,
+          },
+        },
+      }),
     ]);
 
     waitUntil(
