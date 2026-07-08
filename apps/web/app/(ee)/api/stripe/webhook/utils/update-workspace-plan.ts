@@ -13,6 +13,7 @@ import {
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { prisma } from "@/lib/prisma";
 import { queueCreateStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
+import { syncWorkspacePlanToStaging } from "@/lib/sandbox/sync-workspace";
 import {
   getSubscriptionCancellationFields,
   getSubscriptionTrialEndsAt,
@@ -101,7 +102,7 @@ export async function updateWorkspacePlan({
     (workspace.partnersLimit < newPlan.limits.partners &&
       NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {
-    const [updatedWorkspace] = await Promise.allSettled([
+    const [updatedWorkspace] = await Promise.all([
       prisma.project.update({
         where: {
           id: workspace.id,
@@ -152,12 +153,13 @@ export async function updateWorkspacePlan({
         },
       }),
 
-      // expire tokens cache
+      // Expire tokens cache
       tokenCache.expireMany({
         hashedKeys: workspace.restrictedTokens.map(
           ({ hashedKey }) => hashedKey,
         ),
       }),
+
       ...(workspace.defaultProgramId
         ? [
             prisma.program.update({
@@ -171,6 +173,7 @@ export async function updateWorkspacePlan({
           ]
         : []),
     ]);
+
     console.log(
       `Updated workspace ${workspace.id} plan / limits / subscription details.`,
     );
@@ -232,15 +235,12 @@ export async function updateWorkspacePlan({
       console.log(`Reactivated program for workspace ${workspace.id}.`);
     }
 
-    await queueCreateStagingWorkspace({
-      ...workspace,
-      plan: newPlanName,
-    });
+    await Promise.all([
+      queueCreateStagingWorkspace(updatedWorkspace),
+      syncWorkspacePlanToStaging(updatedWorkspace),
+    ]);
 
-    const workspaceOwners =
-      updatedWorkspace.status === "fulfilled"
-        ? updatedWorkspace.value.users.map((user) => user.user)
-        : [];
+    const workspaceOwners = updatedWorkspace.users.map((user) => user.user);
 
     if (
       workspace.defaultProgramId &&

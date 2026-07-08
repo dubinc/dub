@@ -8,6 +8,7 @@ import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { prisma } from "@/lib/prisma";
+import { syncWorkspacePlanToStaging } from "@/lib/sandbox/sync-workspace";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { sendEmail } from "@dub/email";
@@ -102,7 +103,7 @@ export async function customerSubscriptionDeleted(
   const workspaceLinks = workspace.links;
   const workspaceUsers = workspace.users.map(({ user }) => user);
 
-  await prisma.project.update({
+  const updatedWorkspace = await prisma.project.update({
     where: {
       stripeId,
     },
@@ -204,6 +205,8 @@ export async function customerSubscriptionDeleted(
     tokenCache.expireMany({
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
+
+    syncWorkspacePlanToStaging(updatedWorkspace),
   ]);
 
   // Reset cancellation feedback dedupe so a future resubscribe + cancel can send again

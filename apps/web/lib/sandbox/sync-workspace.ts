@@ -116,3 +116,29 @@ export async function syncWorkspaceSettingsToStaging(
     console.error("[syncWorkspaceSettingsToStaging]", error);
   }
 }
+
+export async function syncWorkspacePlanToStaging(
+  workspace: Pick<
+    Project,
+    "stagingWorkspaceId" | "plan" | "planTier" | "planPeriod"
+  >,
+) {
+  if (!workspace.stagingWorkspaceId) {
+    return;
+  }
+
+  try {
+    await prisma.project.update({
+      where: {
+        id: workspace.stagingWorkspaceId,
+      },
+      data: {
+        plan: workspace.plan,
+        planTier: workspace.planTier,
+        planPeriod: workspace.planPeriod,
+      },
+    });
+  } catch (error) {
+    console.error("[syncWorkspacePlanToStaging]", error);
+  }
+}

@@ -101,7 +101,8 @@ export const PATCH = withSession(async ({ req, session }) => {
     }
 
     assertProductionWorkspace(workspaceUser.project, {
-      message: `You can only set your default workspace to a production workspace.`,
+      message:
+        "You can only set your default workspace to a production workspace.",
     });
   }
 
