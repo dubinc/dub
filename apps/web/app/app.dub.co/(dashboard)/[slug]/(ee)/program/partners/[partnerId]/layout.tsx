@@ -15,6 +15,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
+import { useDeletePartnerModal } from "@/ui/modals/delete-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
 import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { usePartnerAdvancedSettingsModal } from "@/ui/partners/partner-advanced-settings-modal";
@@ -242,6 +243,16 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
     useArchivePartnerModal({
       partner,
     });
+  const { DeletePartnerModal, setShowDeletePartnerModal } =
+    useDeletePartnerModal({
+      partner,
+    });
+
+  const canPermanentlyDelete =
+    ["deactivated", "rejected", "banned", "pending"].includes(partner.status) &&
+    partner.totalClicks === 0 &&
+    partner.totalLeads === 0 &&
+    partner.totalSales === 0;
 
   return (
     <>
@@ -253,6 +264,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
       <DeactivatePartnerModal />
       <ReactivatePartnerModal />
       <ArchivePartnerModal />
+      <DeletePartnerModal />
 
       {partner.status === "invited" ? (
         <Button
@@ -439,6 +451,18 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
                       }}
                     >
                       Ban partner
+                    </MenuItem>
+                  )}
+                  {canPermanentlyDelete && (
+                    <MenuItem
+                      icon={Trash}
+                      variant="danger"
+                      onClick={() => {
+                        setShowDeletePartnerModal(true);
+                        setIsOpen(false);
+                      }}
+                    >
+                      Permanently delete
                     </MenuItem>
                   )}
                 </div>
