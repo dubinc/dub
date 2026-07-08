@@ -109,7 +109,7 @@ export const GET = withWorkspace(
 
     assertValidDateRangeForPlan({
       plan: workspace.plan,
-      dataAvailableFrom: workspace.createdAt,
+      dataAvailableFrom,
       interval,
       start,
       end,
