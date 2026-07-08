@@ -5,6 +5,7 @@ import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache"
 import { tokenCache } from "@/lib/auth/token-cache";
 import { wouldGainPartnerAccess } from "@/lib/plans/has-partner-access";
 import { prisma } from "@/lib/prisma";
+import { queueCreateStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
 import { stripe } from "@/lib/stripe";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
@@ -139,6 +140,7 @@ export async function checkoutSessionCompleted(
 
   await Promise.allSettled([
     completeOnboarding({ users, workspaceId, subscription }),
+    queueCreateStagingWorkspace(updatedWorkspace),
     // if workspace had a program from before and is upgrading to an eligible plan, reactivate it
     updatedWorkspace.defaultProgramId &&
       wouldGainPartnerAccess({

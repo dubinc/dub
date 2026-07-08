@@ -6,6 +6,7 @@ import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
+import { queueCreateStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
 import { storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
@@ -41,6 +42,7 @@ export const createProgram = async ({
     | "store"
     | "webhookEnabled"
     | "invoicePrefix"
+    | "stagingWorkspaceId"
   >;
   user: Pick<User, "id" | "email">;
   isProgramOnboarding?: boolean;
@@ -96,134 +98,140 @@ export const createProgram = async ({
     : null;
 
   // create a new program
-  const program = await prisma.$transaction(async (tx) => {
-    const folderId = createId({ prefix: "fold_" });
-    const defaultGroupId = createId({ prefix: "grp_" });
+  const { updatedWorkspace, program } = await prisma.$transaction(
+    async (tx) => {
+      const folderId = createId({ prefix: "fold_" });
+      const defaultGroupId = createId({ prefix: "grp_" });
 
-    const programFolder = await tx.folder.upsert({
-      where: {
-        name_projectId: {
+      const programFolder = await tx.folder.upsert({
+        where: {
+          name_projectId: {
+            name: "Partner Links",
+            projectId: workspace.id,
+          },
+        },
+        update: {},
+        create: {
+          id: folderId,
           name: "Partner Links",
           projectId: workspace.id,
-        },
-      },
-      update: {},
-      create: {
-        id: folderId,
-        name: "Partner Links",
-        projectId: workspace.id,
-        accessLevel: "write",
-        users: {
-          create: {
-            userId: user.id,
-            role: "owner",
+          accessLevel: "write",
+          users: {
+            create: {
+              userId: user.id,
+              role: "owner",
+            },
           },
         },
-      },
-    });
+      });
 
-    const programData = await tx.program.create({
-      data: {
-        id: programId,
-        workspaceId: workspace.id,
-        name,
-        slug: workspace.slug,
-        domain,
-        url,
-        logo: logoUrl, // TODO: remove after we refactor all program.logo fields to use group.logo instead
-        defaultFolderId: programFolder.id,
-        defaultGroupId,
-        supportEmail,
-        helpUrl,
-        termsUrl,
-        messagingEnabledAt: canMessagePartners ? new Date() : null,
-        ...(type &&
-          (amountInCents != null || amountInPercentage != null) && {
-            rewards: {
-              create: {
-                id: createId({ prefix: "rw_" }),
-                type,
-                amountInCents: type === "flat" ? amountInCents : null,
-                amountInPercentage:
-                  type === "percentage" && amountInPercentage != null
-                    ? amountInPercentage
-                    : null,
-                maxDuration,
-                event: defaultRewardType,
+      const programData = await tx.program.create({
+        data: {
+          id: programId,
+          workspaceId: workspace.id,
+          name,
+          slug: workspace.slug,
+          domain,
+          url,
+          logo: logoUrl, // TODO: remove after we refactor all program.logo fields to use group.logo instead
+          defaultFolderId: programFolder.id,
+          defaultGroupId,
+          supportEmail,
+          helpUrl,
+          termsUrl,
+          messagingEnabledAt: canMessagePartners ? new Date() : null,
+          ...(type &&
+            (amountInCents != null || amountInPercentage != null) && {
+              rewards: {
+                create: {
+                  id: createId({ prefix: "rw_" }),
+                  type,
+                  amountInCents: type === "flat" ? amountInCents : null,
+                  amountInPercentage:
+                    type === "percentage" && amountInPercentage != null
+                      ? amountInPercentage
+                      : null,
+                  maxDuration,
+                  event: defaultRewardType,
+                },
               },
-            },
-          }),
-      },
-      include: {
-        rewards: true,
-      },
-    });
+            }),
+        },
+        include: {
+          rewards: true,
+        },
+      });
 
-    const createdReward = programData.rewards?.[0];
+      const createdReward = programData.rewards?.[0];
 
-    await tx.partnerGroup.upsert({
-      where: {
-        programId_slug: {
+      await tx.partnerGroup.upsert({
+        where: {
+          programId_slug: {
+            programId,
+            slug: DEFAULT_PARTNER_GROUP.slug,
+          },
+        },
+        create: {
+          id: defaultGroupId,
           programId,
           slug: DEFAULT_PARTNER_GROUP.slug,
-        },
-      },
-      create: {
-        id: defaultGroupId,
-        programId,
-        slug: DEFAULT_PARTNER_GROUP.slug,
-        name: DEFAULT_PARTNER_GROUP.name,
-        color: DEFAULT_PARTNER_GROUP.color,
-        ...(logoUrl && { logo: logoUrl }),
-        ...(createdReward && {
-          [REWARD_EVENT_COLUMN_MAPPING[createdReward.event]]: createdReward.id,
-        }),
-        additionalLinks: [
-          {
-            domain: getDomainWithoutWWW(programData.url!)!,
-            validationMode: "domain",
-          },
-        ],
-        maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
-        partnerGroupDefaultLinks: {
-          create: {
-            id: createId({ prefix: "pgdl_" }),
-            programId,
-            domain: programData.domain!,
-            url: programData.url!,
+          name: DEFAULT_PARTNER_GROUP.name,
+          color: DEFAULT_PARTNER_GROUP.color,
+          ...(logoUrl && { logo: logoUrl }),
+          ...(createdReward && {
+            [REWARD_EVENT_COLUMN_MAPPING[createdReward.event]]:
+              createdReward.id,
+          }),
+          additionalLinks: [
+            {
+              domain: getDomainWithoutWWW(programData.url!)!,
+              validationMode: "domain",
+            },
+          ],
+          maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+          partnerGroupDefaultLinks: {
+            create: {
+              id: createId({ prefix: "pgdl_" }),
+              programId,
+              domain: programData.domain!,
+              url: programData.url!,
+            },
           },
         },
-      },
-      update: {}, // noop
-    });
+        update: {}, // noop
+      });
 
-    // folder might be upserted, so we need to check if it was created
-    const didCreateFolder = programFolder.id === folderId;
+      // folder might be upserted, so we need to check if it was created
+      const didCreateFolder = programFolder.id === folderId;
 
-    await tx.project.update({
-      where: {
-        id: workspace.id,
-      },
-      data: {
-        defaultProgramId: programData.id,
-        ...(didCreateFolder && {
-          foldersUsage: {
-            increment: 1,
-          },
-        }),
-        store: {
-          ...store,
-          programOnboarding: undefined,
+      const updatedWorkspace = await tx.project.update({
+        where: {
+          id: workspace.id,
         },
-        // if the workspace doesn't have an invoice prefix, generate one
-        ...(!workspace.invoicePrefix && {
-          invoicePrefix: generateRandomString(8),
-        }),
-      },
-    });
+        data: {
+          defaultProgramId: programData.id,
+          ...(didCreateFolder && {
+            foldersUsage: {
+              increment: 1,
+            },
+          }),
+          store: {
+            ...store,
+            programOnboarding: undefined,
+          },
+          // if the workspace doesn't have an invoice prefix, generate one
+          ...(!workspace.invoicePrefix && {
+            invoicePrefix: generateRandomString(8),
+          }),
+        },
+      });
 
-    return programData;
-  });
+      return {
+        updatedWorkspace,
+        program: programData,
+      };
+    },
+  );
 
   waitUntil(
     Promise.allSettled([
@@ -296,6 +304,8 @@ export const createProgram = async ({
           },
         ],
       }),
+
+      queueCreateStagingWorkspace(updatedWorkspace),
     ]),
   );
 

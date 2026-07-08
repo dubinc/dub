@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { getPlanCapabilities } from "../plan-capabilities";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 
 export async function createStagingProgram(workspaceId: string) {
@@ -12,11 +13,21 @@ export async function createStagingProgram(workspaceId: string) {
       id: true,
       defaultProgramId: true,
       stagingWorkspaceId: true,
+      plan: true,
     },
   });
 
   if (!workspace) {
     console.error(`Workspace not found for id ${workspaceId}. Skipping...`);
+    return;
+  }
+
+  const { canUseStagingWorkspace } = getPlanCapabilities(workspace.plan);
+
+  if (!canUseStagingWorkspace) {
+    console.log(
+      `The workspace ${workspace.id} does not have required plan to use staging program.`,
+    );
     return;
   }
 

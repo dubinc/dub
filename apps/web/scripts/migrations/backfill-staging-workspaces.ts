@@ -20,6 +20,9 @@ async function main() {
       where: {
         environment: WorkspaceEnvironment.production,
         stagingWorkspaceId: null,
+        defaultProgramId: {
+          not: null,
+        },
         plan: {
           notIn: ["free", "pro"],
         },
@@ -48,10 +51,7 @@ async function main() {
     for (const workspace of workspaces) {
       try {
         await createStagingWorkspace(workspace.id);
-
-        if (workspace.defaultProgramId) {
-          await createStagingProgram(workspace.id);
-        }
+        await createStagingProgram(workspace.id);
 
         totalCreated++;
         console.log(`Created staging workspace for ${workspace.slug}`);

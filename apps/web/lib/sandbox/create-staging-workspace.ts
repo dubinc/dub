@@ -1,9 +1,10 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { TRIAL_LIMITS } from "@dub/utils";
-import { WorkspaceEnvironment } from "@prisma/client";
+import { APP_DOMAIN_WITH_NGROK, TRIAL_LIMITS } from "@dub/utils";
+import { Project, WorkspaceEnvironment } from "@prisma/client";
 import { generateRandomString } from "../api/utils/generate-random-string";
 import { createWorkspaceId } from "../api/workspaces/create-workspace-id";
+import { qstash } from "../cron";
 import { isProductionEnvironment } from "./workspace-guards";
 
 export async function createStagingWorkspace(workspaceId: string) {
@@ -11,7 +12,15 @@ export async function createStagingWorkspace(workspaceId: string) {
     where: {
       id: workspaceId,
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      logo: true,
+      environment: true,
+      plan: true,
+      stagingWorkspaceId: true,
+      defaultProgramId: true,
       users: {
         select: {
           role: true,
@@ -39,6 +48,13 @@ export async function createStagingWorkspace(workspaceId: string) {
   if (workspace.stagingWorkspaceId) {
     console.log(
       `Staging workspace already exists for the workspace ${workspace.id}.`,
+    );
+    return;
+  }
+
+  if (!workspace.defaultProgramId) {
+    console.log(
+      `Skipping staging workspace creation for workspace ${workspace.id} without a default program.`,
     );
     return;
   }
@@ -130,4 +146,23 @@ export async function createStagingWorkspace(workspaceId: string) {
       });
     });
   }
+}
+
+export async function queueCreateStagingWorkspace({
+  id,
+  plan,
+}: Pick<Project, "id" | "plan">) {
+  const { canUseStagingWorkspace } = getPlanCapabilities(plan);
+
+  if (!canUseStagingWorkspace) {
+    return;
+  }
+
+  await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/workspaces/create-staging`,
+    deduplicationId: `create-staging-workspace:${id}`,
+    body: {
+      workspaceId: id,
+    },
+  });
 }

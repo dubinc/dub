@@ -95,6 +95,8 @@ const BUSINESS_TIER_PRICE_IDS = {
     "price_1SQtdxAlJJEpqkPV7cvJTv4g", // monthly (prod)
     "price_1SQ8iwAlJJEpqkPVEGmKd6Lg", // yearly (test)
     "price_1SQ8iSAlJJEpqkPVQ5crmBtF", // monthly (test)
+    "price_1TqqOTAc9UEbs2o9V01MsbE0", // yearly (sandbox)
+    "price_1TqqPnAc9UEbs2o9J8MMIFrz", // monthly (sandbox)
   ],
 };
 
