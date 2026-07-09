@@ -32,16 +32,19 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
       : [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
 
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
+
   const [mobilePlanIndex, setMobilePlanIndex] = useState(() => {
     const defaultPlanName = product === "partners" ? "Advanced" : "Business";
     return Math.max(
       0,
-      plans.findIndex((plan) => plan.name === defaultPlanName),
+      plans.findIndex(
+        (plan) => plan.name.toLowerCase() === defaultPlanName.toLowerCase(),
+      ),
     );
   });
 
   return (
-    <div className="flex flex-col items-center gap-4 [container-type:inline-size]">
+    <div className="flex flex-col items-center gap-4">
       <ToggleGroup
         options={[
           { label: "Monthly", value: "monthly" },
@@ -61,10 +64,10 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
         optionClassName="text-xs normal-case text-neutral-800 data-[selected=true]:text-neutral-800 px-3 h-8 leading-none"
         indicatorClassName="bg-white border-neutral-200 rounded-md"
       />
-      <div className="overflow-hidden max-lg:rounded-lg">
+      <div className="w-full overflow-hidden max-lg:rounded-lg [container-type:inline-size]">
         <div
           className={cn(
-            "mx-auto grid max-w-[calc(var(--cols)*342px)] grid-cols-[repeat(var(--cols),1fr)]",
+            "grid max-w-[calc(var(--cols)*342px)] grid-cols-[repeat(var(--cols),1fr)] lg:mx-auto",
 
             // Mobile
             "max-lg:w-[calc(var(--cols)*100cqw+(var(--cols)-1)*32px)] max-lg:max-w-none max-lg:translate-x-[calc(-1*var(--index)*(100cqw+32px))] max-lg:gap-x-8 max-lg:transition-transform",
@@ -82,7 +85,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
 
             return (
               <div
-                key={plan.name}
+                key={`${product}-${plan.name}`}
                 className={cn(
                   "flex flex-col border-y border-l border-neutral-200 bg-white first:rounded-l-lg last:rounded-r-lg last:border-r",
                   "max-lg:overflow-hidden max-lg:rounded-lg max-lg:border-0 max-lg:ring-1 max-lg:ring-inset max-lg:ring-neutral-200",
