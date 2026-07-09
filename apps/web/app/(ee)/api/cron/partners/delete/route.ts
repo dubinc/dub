@@ -97,7 +97,13 @@ export const POST = withCron(async ({ rawBody }) => {
     programEnrollment;
 
   // Clear rows that FK to Customer before detaching customers
-  await Promise.all([
+  const [
+    submittedLeads,
+    fraudEvents,
+    fraudEventGroups,
+    messages,
+    discoveredPartners,
+  ] = await Promise.all([
     prisma.submittedLead.deleteMany({
       where: programEnrollmentWhere,
     }),
@@ -121,6 +127,15 @@ export const POST = withCron(async ({ rawBody }) => {
     deleteDiscountCodes(discountCodes),
   ]);
 
+  console.log(`Delete ${submittedLeads.count} submitted leads.`);
+  console.log(`Delete ${fraudEvents.count} fraud events.`);
+  console.log(`Delete ${fraudEventGroups.count} fraud event groups.`);
+  console.log(`Delete ${messages.count} messages.`);
+  console.log(
+    `Delete ${discoveredPartners.count} discovered partners records.`,
+  );
+  console.log(`Delete ${discountCodes.length} discount codes.`);
+
   if (links.length > 0) {
     await bulkDeleteLinks(
       links.map((link) => ({
@@ -132,13 +147,15 @@ export const POST = withCron(async ({ rawBody }) => {
       })),
     );
 
-    await prisma.link.deleteMany({
+    const deletedLinks = await prisma.link.deleteMany({
       where: {
         id: {
           in: links.map((link) => link.id),
         },
       },
     });
+
+    console.log(`Delete ${deletedLinks.count} links.`);
   }
 
   await prisma.$transaction([
