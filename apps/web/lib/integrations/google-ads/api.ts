@@ -1,6 +1,3 @@
-import { qstash } from "@/lib/cron";
-import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK, GOOGLE_ADS_INTEGRATION_ID } from "@dub/utils";
 import * as z from "zod/v4";
 import { GOOGLE_ADS_API_VERSION } from "./constants";
 import {
@@ -26,40 +23,6 @@ type UploadClickConversionParams = {
 type GoogleAdsRequestOptions = {
   accessToken: string;
   loginCustomerId?: string | null;
-};
-
-export const queueGoogleAdsConversionUpload = async (
-  payload: z.infer<typeof googleAdsConversionUploadSchema>,
-) => {
-  // TODO:
-  // How to optimize this call?
-
-  const installedIntegration = await prisma.installedIntegration.findFirst({
-    where: {
-      integrationId: GOOGLE_ADS_INTEGRATION_ID,
-      projectId: payload.workspaceId,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!installedIntegration) {
-    return;
-  }
-
-  const response = await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/gad/upload-conversion`,
-    body: payload,
-    retries: 3,
-    deduplicationId: `google-ads-${payload.workspaceId}-${payload.eventId}`,
-  });
-
-  if (!response.messageId) {
-    throw new Error("Failed to queue Google Ads conversion upload");
-  }
-
-  return response;
 };
 
 const getGoogleAdsHeaders = ({

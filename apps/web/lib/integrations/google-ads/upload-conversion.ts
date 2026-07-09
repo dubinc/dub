@@ -1,13 +1,40 @@
+import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { getClickEvent } from "@/lib/tinybird";
-import { getSearchParams, GOOGLE_ADS_INTEGRATION_ID } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  getSearchParams,
+  GOOGLE_ADS_INTEGRATION_ID,
+} from "@dub/utils";
 import * as z from "zod/v4";
 import { GoogleAdsApi, GoogleAdsClickId } from "./api";
+import { isGoogleAdsAllowedWorkspace } from "./utils";
 import { googleAdsOAuthProvider } from "./oauth";
 import {
   googleAdsConversionUploadSchema,
   googleAdsSettingsSchema,
 } from "./schema";
+
+export const queueGoogleAdsConversionUpload = async (
+  payload: z.infer<typeof googleAdsConversionUploadSchema>,
+) => {
+  if (!isGoogleAdsAllowedWorkspace(payload.workspaceId)) {
+    return;
+  }
+
+  const response = await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/gad/upload-conversion`,
+    body: payload,
+    retries: 3,
+    deduplicationId: `google-ads-${payload.workspaceId}-${payload.eventId}`,
+  });
+
+  if (!response.messageId) {
+    throw new Error("Failed to queue Google Ads conversion upload");
+  }
+
+  return response;
+};
 
 const extractGoogleAdsClickId = (url: string): GoogleAdsClickId | null => {
   const queryParams = getSearchParams(url);

@@ -1,6 +1,7 @@
 "use server";
 
 import * as z from "zod/v4";
+import { isGoogleAdsAllowedWorkspace } from "../integrations/google-ads/utils";
 import { googleAdsOAuthProvider } from "../integrations/google-ads/oauth";
 import { hubSpotOAuthProvider } from "../integrations/hubspot/oauth";
 import { intercomOAuthProvider } from "../integrations/intercom/oauth";
@@ -34,6 +35,12 @@ export const getIntegrationInstallUrl = authActionClient
     } else if (integrationSlug === "intercom") {
       url = await intercomOAuthProvider.generateAuthUrl(workspace.id);
     } else if (integrationSlug === "google-ads") {
+      if (!isGoogleAdsAllowedWorkspace(workspace.id)) {
+        throw new Error(
+          "Google Ads integration is not available for this workspace",
+        );
+      }
+
       url = await googleAdsOAuthProvider.generateAuthUrl(workspace.id);
     } else {
       throw new Error("Invalid integration slug");
