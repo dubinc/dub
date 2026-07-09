@@ -13,6 +13,7 @@ import { useStartPaidPlanModal } from "@/ui/modals/start-paid-plan-modal";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
 import {
   AnimatedSizeContainer,
+  Badge,
   Button,
   DynamicTooltipWrapper,
   Icon,
@@ -276,11 +277,14 @@ export default function PlanUsage() {
 
         <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
           <div>
-            <h2 className="text-xl font-medium">
-              {plan && isLegacyBusinessPlan({ plan, partnersLimit })
-                ? "Business (Legacy)"
-                : capitalize(plan)}{" "}
-              Plan
+            <h2 className="flex items-center gap-2 text-xl font-medium">
+              <span>
+                {plan && isLegacyBusinessPlan({ plan, partnersLimit })
+                  ? "Business (Legacy)"
+                  : capitalize(plan)}{" "}
+                Plan
+              </span>
+              <Badge variant="gray">{capitalize(planPeriod)}</Badge>
             </h2>
             {billingStart && billingEnd && (
               <p className="mt-1.5 text-balance text-sm font-medium leading-normal text-neutral-700">
