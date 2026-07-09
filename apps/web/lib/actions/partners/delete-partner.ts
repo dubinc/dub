@@ -1,17 +1,15 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { qstash } from "@/lib/cron";
+import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import { canDeletePartner } from "@/lib/partners/utils";
 import { prisma } from "@/lib/prisma";
 import { deletePartnerSchema } from "@/lib/zod/schemas/partners";
-import { ProgramEnrollmentStatus } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
-
-const DELETABLE_STATUSES: ProgramEnrollmentStatus[] = ["deactivated", "banned"];
 
 // Permanently delete a partner from a program (zero stats only)
 export const deletePartnerAction = authActionClient
@@ -27,121 +25,65 @@ export const deletePartnerAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const programEnrollment = await getProgramEnrollmentOrThrow({
-      partnerId,
+    const programEnrollmentWhere = {
       programId,
+      partnerId,
+    };
+
+    const programEnrollment = await getProgramEnrollmentOrThrow({
+      ...programEnrollmentWhere,
       include: {
-        partner: true,
-        links: true,
-        programPartnerTags: {
-          include: {
-            partnerTag: true,
+        links: {
+          select: {
+            clicks: true,
+            leads: true,
+            sales: true,
+            saleAmount: true,
+            conversions: true,
           },
         },
       },
     });
 
-    if (!DELETABLE_STATUSES.includes(programEnrollment.status)) {
+    const linkStats = aggregatePartnerLinksStats(programEnrollment.links);
+
+    const canDelete = canDeletePartner({
+      ...programEnrollment,
+      ...linkStats,
+    });
+
+    if (!canDelete) {
       throw new Error(
-        "Only deactivated or banned partners can be permanently deleted.",
+        "Partner cannot be permanently deleted because it has associated clicks, leads, sales, commissions, or other activity.",
       );
     }
 
-    if (
-      programEnrollment.totalClicks > 0 ||
-      programEnrollment.totalLeads > 0 ||
-      programEnrollment.totalSales > 0
-    ) {
+    // Additional check
+    const [commissionCount, payoutCount] = await Promise.all([
+      prisma.commission.count({
+        where: programEnrollmentWhere,
+      }),
+
+      prisma.payout.count({
+        where: programEnrollmentWhere,
+      }),
+    ]);
+
+    if (commissionCount > 0 || payoutCount > 0) {
       throw new Error(
-        "Partner has clicks, leads, or sales and cannot be permanently deleted.",
+        "Partner cannot be permanently deleted because it has associated commissions or payouts.",
       );
     }
 
-    const { partner, links, programPartnerTags, ...enrollment } =
-      programEnrollment;
-
-    await Promise.allSettled([
-      bulkDeleteLinks(
-        links.map((link) => ({
-          ...link,
-          programEnrollment: {
-            groupId: enrollment.groupId,
-            programPartnerTags,
-          },
-        })),
-      ),
-
-      prisma.link.deleteMany({
-        where: {
-          id: {
-            in: links.map((link) => link.id),
-          },
-        },
-      }),
-
-      prisma.fraudEvent.deleteMany({
-        where: {
-          programId,
-          partnerId,
-        },
-      }),
-
-      prisma.fraudEventGroup.deleteMany({
-        where: {
-          programId,
-          partnerId,
-        },
-      }),
-
-      prisma.message.deleteMany({
-        where: {
-          programId,
-          partnerId,
-        },
-      }),
-
-      prisma.discoveredPartner.delete({
-        where: {
-          programId_partnerId: {
-            partnerId,
-            programId,
-          },
-        },
-      }),
-    ]);
-
-    await prisma.$transaction([
-      prisma.programEnrollment.delete({
-        where: {
-          id: enrollment.id,
-        },
-      }),
-      prisma.project.update({
-        where: {
-          id: workspace.id,
-        },
-        data: {
-          partnersUsage: {
-            decrement: 1,
-          },
-        },
-      }),
-    ]);
-
-    waitUntil(
-      recordAuditLog({
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/delete`,
+      // deduplicationId: `delete-partner-${programId}-${partnerId}`,
+      method: "POST",
+      body: {
         workspaceId: workspace.id,
         programId,
-        action: "partner.deleted",
-        description: `Partner ${partner.id} permanently deleted`,
-        actor: user,
-        targets: [
-          {
-            type: "partner",
-            id: partner.id,
-            metadata: partner,
-          },
-        ],
-      }),
-    );
+        partnerId,
+        userId: user.id,
+      },
+    });
   });

@@ -2,6 +2,7 @@
 
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
+import { canDeletePartner } from "@/lib/partners/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -730,11 +731,7 @@ function RowMenuButton({
       partner: row.original,
     });
 
-  const canPermanentlyDelete =
-    ["deactivated", "banned"].includes(row.original.status) &&
-    row.original.totalClicks === 0 &&
-    row.original.totalLeads === 0 &&
-    row.original.totalSales === 0;
+  const canDelete = canDeletePartner(row.original);
 
   const { executeAsync: resendInvite, isPending: isResendingInvite } =
     useAction(resendProgramInviteAction, {
@@ -916,7 +913,7 @@ function RowMenuButton({
                       />
                     )}
 
-                    {canPermanentlyDelete && (
+                    {canDelete && (
                       <MenuItem
                         icon={Trash}
                         label="Permanently delete"

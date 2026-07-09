@@ -2,6 +2,7 @@
 
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
+import { canDeletePartner } from "@/lib/partners/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -248,11 +249,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
       partner,
     });
 
-  const canPermanentlyDelete =
-    ["deactivated", "banned"].includes(partner.status) &&
-    partner.totalClicks === 0 &&
-    partner.totalLeads === 0 &&
-    partner.totalSales === 0;
+  const canDelete = canDeletePartner(partner);
 
   return (
     <>
@@ -453,7 +450,8 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
                       Ban partner
                     </MenuItem>
                   )}
-                  {canPermanentlyDelete && (
+
+                  {canDelete && (
                     <MenuItem
                       icon={Trash}
                       variant="danger"

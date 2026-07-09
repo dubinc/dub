@@ -8,7 +8,7 @@ import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -33,6 +33,7 @@ function DeletePartnerModal({
   partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const {
@@ -50,10 +51,16 @@ function DeletePartnerModal({
 
   const { executeAsync, isPending } = useAction(deletePartnerAction, {
     onSuccess: async () => {
-      toast.success("Partner permanently deleted.");
+      toast.success(
+        "Partner deletion has started and is being processed in the background.",
+      );
       setShowDeletePartnerModal(false);
       await mutatePrefix("/api/partners");
-      router.push(`/${workspaceSlug}/program/partners`);
+
+      // Redirect when deleting from the partner detail page; stay put (keep filters) from the table
+      if (pathname?.includes(`/program/partners/${partner.id}`)) {
+        router.push(`/${workspaceSlug}/program/partners`);
+      }
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -104,8 +111,8 @@ function DeletePartnerModal({
 
           <p className="text-sm text-neutral-600">
             This will permanently remove this partner from your program,
-            including their links and messages. This action cannot be undone.
-            Only partners with no clicks, leads, or sales can be deleted.
+            including their links and messages. Only partners with no clicks,
+            leads, or sales can be deleted. This action cannot be undone.
           </p>
 
           <div>

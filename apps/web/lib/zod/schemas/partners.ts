@@ -49,6 +49,11 @@ export const INACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
 export const COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] =
   [...ACTIVE_ENROLLMENT_STATUSES, ProgramEnrollmentStatus.invited];
 
+export const DELETABLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
+  ProgramEnrollmentStatus.deactivated,
+  ProgramEnrollmentStatus.banned,
+];
+
 export const exportPartnerColumns = [
   { id: "id", label: "ID", default: true },
   { id: "name", label: "Name", default: true },
