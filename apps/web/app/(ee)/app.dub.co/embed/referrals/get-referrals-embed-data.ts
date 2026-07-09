@@ -27,6 +27,7 @@ export const getReferralsEmbedData = async (token: string) => {
           id: true,
           name: true,
           email: true,
+          username: true,
           country: true,
           tremendousEmail: true,
           defaultPayoutMethod: true,
@@ -86,6 +87,7 @@ export const getReferralsEmbedData = async (token: string) => {
     clickReward,
     leadReward,
     saleReward,
+    referralReward,
     partnerGroup: group,
   } = programEnrollment;
 
@@ -121,13 +123,14 @@ export const getReferralsEmbedData = async (token: string) => {
       id: partner.id,
       name: partner.name,
       email: partner.email,
+      username: partner.username,
       country: partner.country,
       tremendousEmail: partner.tremendousEmail,
       defaultPayoutMethod: partner.defaultPayoutMethod,
     },
     partnerPlatforms: partner.platforms,
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
-    rewards: [clickReward, leadReward, saleReward]
+    rewards: [clickReward, leadReward, saleReward, referralReward]
       .filter((r): r is Reward => r !== null)
       .map((r) => serializeReward(r)),
     discount,
