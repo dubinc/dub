@@ -70,7 +70,7 @@ model Partner {
   stripeRecipientId            String?              @unique
   payoutMethodHash             String?
   cryptoWalletAddress          String?
-  tremendousEmail              String?              @unique
+  tremendousEmail              String?
 
   // timestamp fields
   createdAt   DateTime  @default(now())
@@ -119,6 +119,7 @@ model Partner {
   @@index(cryptoWalletAddress)
   @@index(identityVerifiedAt)
   @@index(referredByPartnerId)
+  @@index(tremendousEmail)
   @@fulltext([email, name, companyName]) // For full-text search
 }
 
