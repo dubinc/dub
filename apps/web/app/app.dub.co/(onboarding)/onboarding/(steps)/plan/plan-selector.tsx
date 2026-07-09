@@ -5,11 +5,10 @@ import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import {
   Badge,
   Button,
-  CalendarRefresh,
   Check,
   DubProductIcon,
   PLAN_FEATURE_ICONS,
-  Switch,
+  ToggleGroup,
   Tooltip,
 } from "@dub/ui";
 import {
@@ -42,7 +41,26 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
   });
 
   return (
-    <div className="[container-type:inline-size]">
+    <div className="flex flex-col items-center gap-4 [container-type:inline-size]">
+      <ToggleGroup
+        options={[
+          { label: "Monthly", value: "monthly" },
+          {
+            label: "Yearly",
+            badge: (
+              <Badge variant="blueGradient" className="py-0 text-xs">
+                10% discount + 12x usage upfront
+              </Badge>
+            ),
+            value: "yearly",
+          },
+        ]}
+        selected={period}
+        selectAction={(option) => setPeriod(option as "monthly" | "yearly")}
+        className="w-fit rounded-lg border-neutral-300 bg-neutral-100 p-0.5"
+        optionClassName="text-xs normal-case text-neutral-800 data-[selected=true]:text-neutral-800 px-3 h-8 leading-none"
+        indicatorClassName="bg-white border-neutral-200 rounded-md"
+      />
       <div className="overflow-hidden max-lg:rounded-lg">
         <div
           className={cn(
@@ -113,44 +131,11 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                           <span className="text-sm text-neutral-400">
                             {" "}
                             per month
+                            {period === "yearly" && ", billed yearly"}
                           </span>
                         </>
                       )}
                     </div>
-                    {plan.name === "Enterprise" ? (
-                      <div className="mt-4 flex items-center gap-1.5 text-neutral-400">
-                        <CalendarRefresh className="size-4 shrink-0" />
-                        <span className="text-sm font-medium">
-                          Tailored pricing terms
-                        </span>
-                      </div>
-                    ) : (
-                      <label className="mt-4 flex items-center gap-1.5">
-                        <Switch
-                          checked={period === "yearly"}
-                          fn={(checked) =>
-                            setPeriod(checked ? "yearly" : "monthly")
-                          }
-                          trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20 w-7 h-4"
-                          thumbDimensions="size-3"
-                          thumbTranslate="translate-x-3"
-                        />
-                        <div className="flex items-center gap-1 text-sm font-medium text-neutral-600">
-                          <span>Billed yearly</span>
-                          <Badge
-                            variant="outline"
-                            size="sm"
-                            className={cn(
-                              "animate-in fade-in-0 slide-in-from-right-2 duration-150",
-                              period === "monthly" &&
-                                "-translate-x-2 opacity-0",
-                            )}
-                          >
-                            Save 17%
-                          </Badge>
-                        </div>
-                      </label>
-                    )}
                   </div>
 
                   <p className="min-h-10 text-sm text-neutral-600">

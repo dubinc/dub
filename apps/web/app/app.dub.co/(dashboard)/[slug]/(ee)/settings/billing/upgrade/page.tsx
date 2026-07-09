@@ -8,6 +8,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import {
+  Badge,
   ChartLine,
   Check,
   CircleQuestion,
@@ -18,6 +19,7 @@ import {
   Icon,
   Plug2,
   ToggleGroup,
+  useMediaQuery,
   Users2,
 } from "@dub/ui";
 import {
@@ -121,6 +123,8 @@ export default function WorkspaceBillingUpgradePage() {
     [recommendedPlan],
   );
 
+  const { isMobile } = useMediaQuery();
+
   return (
     <PageContent
       title={
@@ -140,12 +144,20 @@ export default function WorkspaceBillingUpgradePage() {
           <ToggleGroup
             options={[
               { label: "Monthly", value: "monthly" },
-              { label: "Yearly (Save 17%)", value: "yearly" },
+              {
+                label: "Yearly",
+                badge: (
+                  <Badge variant="blueGradient" className="py-0 text-xs">
+                    {isMobile ? "10% off" : "10% discount + 12x usage upfront"}
+                  </Badge>
+                ),
+                value: "yearly",
+              },
             ]}
             selected={period}
             selectAction={(option) => setPeriod(option as "monthly" | "yearly")}
             className="rounded-lg border-neutral-300 bg-neutral-100 p-0.5"
-            optionClassName="text-xs text-neutral-800 data-[selected=true]:text-neutral-800 px-3 sm:px-5 py-2 leading-none"
+            optionClassName="text-xs normal-case text-neutral-800 data-[selected=true]:text-neutral-800 px-3 h-8 leading-none"
             indicatorClassName="bg-white border-neutral-200 rounded-md"
           />
         </div>

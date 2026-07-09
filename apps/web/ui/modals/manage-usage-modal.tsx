@@ -1,7 +1,14 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CursorRays, Hyperlink, Modal, Slider, ToggleGroup } from "@dub/ui";
+import {
+  Badge,
+  CursorRays,
+  Hyperlink,
+  Modal,
+  Slider,
+  ToggleGroup,
+} from "@dub/ui";
 import {
   DUB_TRIAL_PERIOD_DAYS,
   ENTERPRISE_PLAN,
@@ -126,7 +133,12 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
               { value: "monthly", label: "Monthly" },
               {
                 value: "yearly",
-                label: "Yearly (Save 17%)",
+                label: "Yearly",
+                badge: (
+                  <Badge variant="blueGradient" className="py-0 text-xs">
+                    10% discount + 12x usage upfront
+                  </Badge>
+                ),
               },
             ]}
             className="flex overflow-hidden rounded-lg bg-transparent p-0.5"
