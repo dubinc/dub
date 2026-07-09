@@ -29,7 +29,13 @@ export async function notifyPartnerCommission({
   workspace: Pick<Project, "id" | "slug" | "name">;
   commission: Pick<
     Commission,
-    "type" | "amount" | "earnings" | "partnerId" | "linkId" | "customerId"
+    | "type"
+    | "amount"
+    | "earnings"
+    | "partnerId"
+    | "linkId"
+    | "customerId"
+    | "status"
   > & { customer?: Pick<Customer, "id" | "name" | "email"> | null };
   isFirstCommission?: boolean;
 }) {
@@ -110,6 +116,7 @@ export async function notifyPartnerCommission({
       name: program.name,
       slug: program.slug,
       logo: program.logo,
+      supportEmail: program.supportEmail,
     },
     group: {
       holdingPeriodDays: group.holdingPeriodDays,
@@ -123,6 +130,7 @@ export async function notifyPartnerCommission({
       type: commission.type,
       amount: commission.amount,
       earnings: commission.earnings,
+      status: commission.status,
     },
     shortLink: partnerLink?.shortLink ?? null,
   };

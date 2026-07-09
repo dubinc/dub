@@ -1,5 +1,3 @@
-import type { PlanDetails } from "./pricing-plans";
-
 export const TRIAL_LIMITS = {
   links: 100,
   clicks: 5_000,
@@ -69,36 +67,4 @@ export function isWorkspaceBillingTrialActive(
   if (trialEndsAt == null) return false;
   const d = trialEndsAt instanceof Date ? trialEndsAt : new Date(trialEndsAt);
   return !Number.isNaN(d.getTime()) && d.getTime() > Date.now();
-}
-
-type WorkspaceLimitFields = PlanDetails["limits"];
-
-export function getWorkspaceLimitsForStripeSubscriptionStatus({
-  planLimits,
-  subscriptionStatus,
-}: {
-  planLimits: WorkspaceLimitFields;
-  subscriptionStatus: string;
-}): WorkspaceLimitFields {
-  if (subscriptionStatus !== "trialing") {
-    return planLimits;
-  }
-
-  return {
-    ...planLimits,
-    links: TRIAL_LIMITS.links,
-    clicks: TRIAL_LIMITS.clicks,
-    payouts: TRIAL_LIMITS.payouts,
-    users: TRIAL_LIMITS.users,
-    domains: TRIAL_LIMITS.domains,
-    tags: TRIAL_LIMITS.tags,
-    partnerTags: TRIAL_LIMITS.partnerTags,
-    folders: TRIAL_LIMITS.folders,
-    groups: TRIAL_LIMITS.groups,
-    networkInvites: TRIAL_LIMITS.networkInvites,
-    partners: TRIAL_LIMITS.partners,
-    ai: TRIAL_LIMITS.ai,
-    api: TRIAL_LIMITS.api,
-    analyticsApi: TRIAL_LIMITS.analyticsApi,
-  };
 }

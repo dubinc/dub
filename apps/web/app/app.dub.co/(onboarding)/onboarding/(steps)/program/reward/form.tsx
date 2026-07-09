@@ -206,7 +206,8 @@ export function Form() {
                         {description}
                       </span>
                     </div>
-                    <CircleCheck variant="fill"
+                    <CircleCheck
+                      variant="fill"
                       className={cn(
                         "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                         isSelected && "scale-100 opacity-100",
@@ -290,7 +291,8 @@ export function Form() {
                                 {shortDescription}
                               </span>
                             </div>
-                            <CircleCheck variant="fill"
+                            <CircleCheck
+                              variant="fill"
                               className={cn(
                                 "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                                 isSelected && "scale-100 opacity-100",
@@ -385,7 +387,8 @@ export function Form() {
                                 {description}
                               </span>
                             </div>
-                            <CircleCheck variant="fill"
+                            <CircleCheck
+                              variant="fill"
                               className={cn(
                                 "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                                 isSelected && "scale-100 opacity-100",

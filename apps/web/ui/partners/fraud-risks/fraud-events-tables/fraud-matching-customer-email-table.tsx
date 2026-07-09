@@ -15,6 +15,19 @@ import * as z from "zod/v4";
 
 type EventDataProps = z.infer<(typeof fraudEventSchemas)["customerEmailMatch"]>;
 
+function getRowHref(row: EventDataProps, workspaceSlug?: string) {
+  if (!row.customer || !workspaceSlug) return null;
+
+  if (
+    row.customer.email &&
+    row.metadata?.matchType === CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH
+  ) {
+    return `/${workspaceSlug}/program/customers?partnerId=${row.partner.id}&search=${extractEmailDomain(row.customer.email)}`;
+  }
+
+  return `/${workspaceSlug}/events?event=leads&interval=all&customerId=${row.customer.id}`;
+}
+
 const MATCH_TYPE_LABELS: Record<CustomerEmailMatchType, string> = {
   [CustomerEmailMatchType.EXACT]: "Exact email match",
   [CustomerEmailMatchType.DOMAIN_MATCH]: "Domain match",
@@ -111,19 +124,11 @@ export function FraudMatchingCustomerEmailTable({
         size: 100,
         maxSize: 100,
         cell: ({ row }) => {
-          if (!row.original.customer) return null;
+          const href = getRowHref(row.original, workspaceSlug);
+          if (!href) return null;
 
           return (
-            <Link
-              href={
-                row.original.customer.email &&
-                row.original.metadata?.matchType ===
-                  CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH
-                  ? `/${workspaceSlug}/program/customers?partnerId=${row.original.partner.id}&search=${extractEmailDomain(row.original.customer.email)}`
-                  : `/${workspaceSlug}/events?event=leads&interval=all&customerId=${row.original.customer.id}`
-              }
-              target="_blank"
-            >
+            <Link href={href} target="_blank">
               <Button
                 variant="secondary"
                 text="View"
@@ -134,6 +139,14 @@ export function FraudMatchingCustomerEmailTable({
         },
       },
     ],
+    onRowClick: (row) => {
+      const url = getRowHref(row.original, workspaceSlug);
+      if (url) window.open(url, "_blank");
+    },
+    onRowAuxClick: (row) => {
+      const url = getRowHref(row.original, workspaceSlug);
+      if (url) window.open(url, "_blank");
+    },
     resourceName: (p) => `event${p ? "s" : ""}`,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",

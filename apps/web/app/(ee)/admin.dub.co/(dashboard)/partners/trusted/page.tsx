@@ -415,7 +415,10 @@ export default function PartnersPage() {
                                       <Icon className="size-3 shrink-0" />
                                       <span>{value}</span>
                                       {verified && (
-                                        <BadgeCheck2 variant="fill" className="size-3 text-green-600" />
+                                        <BadgeCheck2
+                                          variant="fill"
+                                          className="size-3 text-green-600"
+                                        />
                                       )}
                                     </Link>
                                   }
@@ -430,7 +433,10 @@ export default function PartnersPage() {
                                     <Icon className="size-3" />
                                     <span className="sr-only">{label}</span>
                                     {verified && (
-                                      <BadgeCheck2 variant="fill" className="absolute -right-1 -top-1 size-3 text-green-600" />
+                                      <BadgeCheck2
+                                        variant="fill"
+                                        className="absolute -right-1 -top-1 size-3 text-green-600"
+                                      />
                                     )}
                                   </Link>
                                 </Tooltip>
