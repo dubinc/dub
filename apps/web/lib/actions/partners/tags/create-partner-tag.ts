@@ -2,13 +2,14 @@
 
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@/lib/prisma";
 import {
   PartnerTagSchema,
   createPartnerTagSchema,
 } from "@/lib/zod/schemas/partner-tags";
-import { prisma } from "@dub/prisma";
 import { INFINITY_NUMBER } from "@dub/utils";
 import { authActionClient } from "../../safe-action";
+import { throwIfNoPermission } from "../../throw-if-no-permission";
 
 // Create a partner tag
 export const createPartnerTagAction = authActionClient
@@ -17,21 +18,25 @@ export const createPartnerTagAction = authActionClient
     const { workspace } = ctx;
     const { name } = parsedInput;
 
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const partnerTagsLimit = (
-      workspace as unknown as { partnerTagsLimit: number }
-    ).partnerTagsLimit;
-
-    if (partnerTagsLimit < INFINITY_NUMBER) {
+    if (workspace.partnerTagsLimit < INFINITY_NUMBER) {
       const existingCount = await prisma.partnerTag.count({
-        where: { programId },
+        where: {
+          programId,
+        },
       });
-      if (existingCount >= partnerTagsLimit) {
+
+      if (existingCount >= workspace.partnerTagsLimit) {
         throw new Error(
-          partnerTagsLimit === 0
+          workspace.partnerTagsLimit === 0
             ? "Partner tags are not available on your plan. Upgrade to create partner tags."
-            : `You've reached the maximum of ${partnerTagsLimit} partner tags per program on your plan. Upgrade to Advanced or Enterprise for unlimited partner tags.`,
+            : `You've reached the maximum of ${workspace.partnerTagsLimit} partner tags per program on your plan. Upgrade to Advanced or Enterprise for unlimited partner tags.`,
         );
       }
     }

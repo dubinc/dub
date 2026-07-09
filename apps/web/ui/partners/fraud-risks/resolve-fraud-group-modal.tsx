@@ -10,7 +10,7 @@ import {
 } from "@/lib/zod/schemas/fraud";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { Button, Modal } from "@dub/ui";
+import { Button, Modal, Switch } from "@dub/ui";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -41,14 +41,16 @@ function ResolveFraudGroupModal({
 
   const { executeAsync, isPending } = useAction(resolveFraudGroupAction, {
     onSuccess: async () => {
-      toast.success("Fraud events resolved.");
+      toast.success("Risk events resolved.");
       setShowResolveFraudGroupModal(false);
       await onConfirm?.();
     },
     onError: ({ error }) => {
-      toast.error(parseActionError(error, "Failed to resolve fraud events."));
+      toast.error(parseActionError(error, "Failed to resolve risk events."));
     },
   });
+
+  const [disableRiskDetection, setDisableRiskDetection] = useState(false);
 
   const {
     register,
@@ -72,9 +74,10 @@ function ResolveFraudGroupModal({
         workspaceId,
         groupId: fraudGroup.id,
         resolutionReason: data.resolutionReason,
+        disableRiskDetection,
       });
     },
-    [executeAsync, fraudGroup.id, workspaceId],
+    [executeAsync, fraudGroup.id, workspaceId, disableRiskDetection],
   );
 
   const { partner } = fraudGroup;
@@ -134,6 +137,27 @@ function ResolveFraudGroupModal({
                 maxLength={MAX_RESOLUTION_REASON_LENGTH}
                 {...register("resolutionReason")}
               />
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-start gap-3">
+              <Switch
+                fn={setDisableRiskDetection}
+                checked={disableRiskDetection}
+                trackDimensions="w-8 h-4"
+                thumbDimensions="w-3 h-3"
+                thumbTranslate="translate-x-4"
+              />
+              <div className="flex flex-col gap-1.5">
+                <h3 className="text-sm font-medium leading-none text-neutral-700">
+                  Exclude from risk monitoring
+                </h3>
+                <p className="text-xs text-neutral-500">
+                  Future risk events won't be flagged for this partner. This can
+                  be changed anytime in the partner's advanced settings.
+                </p>
+              </div>
             </div>
           </div>
         </div>

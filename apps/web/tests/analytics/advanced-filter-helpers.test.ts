@@ -2,6 +2,7 @@ import {
   buildAdvancedFilters,
   ensureParsedFilter,
   extractWorkspaceLinkFilters,
+  hasExactlyOneLinkIdFilter,
 } from "@/lib/analytics/filter-helpers";
 import { buildFilterValue, parseFilterValue } from "@dub/utils";
 import { describe, expect, test } from "vitest";
@@ -599,6 +600,60 @@ describe("Advanced Filters - Unit Tests", () => {
       expect(result.tenantIdOperator).toBe("IN");
       expect(result.folderId).toEqual(["fold_x"]);
       expect(result.folderIdOperator).toBe("NOT IN");
+    });
+  });
+
+  describe("hasExactlyOneLinkIdFilter", () => {
+    test("returns false when linkId is undefined", () => {
+      expect(hasExactlyOneLinkIdFilter(undefined)).toBe(false);
+    });
+
+    test("returns true for a plain string link id", () => {
+      expect(hasExactlyOneLinkIdFilter("link_123")).toBe(true);
+    });
+
+    test("returns true for a single included link id", () => {
+      expect(
+        hasExactlyOneLinkIdFilter({
+          operator: "IS",
+          sqlOperator: "IN",
+          values: ["link_123"],
+        }),
+      ).toBe(true);
+    });
+
+    test("returns false for multiple included link ids", () => {
+      expect(
+        hasExactlyOneLinkIdFilter({
+          operator: "IS_ONE_OF",
+          sqlOperator: "IN",
+          values: ["link_123", "link_456"],
+        }),
+      ).toBe(false);
+    });
+
+    test("returns false for a single excluded link id", () => {
+      expect(
+        hasExactlyOneLinkIdFilter({
+          operator: "IS_NOT",
+          sqlOperator: "NOT IN",
+          values: ["link_123"],
+        }),
+      ).toBe(false);
+    });
+
+    test("returns false for an empty string link id", () => {
+      expect(hasExactlyOneLinkIdFilter("")).toBe(false);
+    });
+
+    test("returns false for a single empty included link id", () => {
+      expect(
+        hasExactlyOneLinkIdFilter({
+          operator: "IS",
+          sqlOperator: "IN",
+          values: [""],
+        }),
+      ).toBe(false);
     });
   });
 });

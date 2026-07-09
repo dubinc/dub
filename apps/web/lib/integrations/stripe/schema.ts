@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
 
 export const stripeIntegrationSettingsSchema = z.object({
+  stripeMode: z.enum(["live", "test", "sandbox"]).optional().default("live"),
   freeTrials: z
     .object({
       enabled: z
@@ -15,5 +16,11 @@ export const stripeIntegrationSettingsSchema = z.object({
         ),
     })
     .nullish(),
-  stripeMode: z.enum(["live", "test", "sandbox"]).optional().default("live"),
+  discountCodeRestrictions: z
+    .object({
+      firstTimeTransaction: z.boolean().default(true),
+    })
+    .default({
+      firstTimeTransaction: true,
+    }),
 });

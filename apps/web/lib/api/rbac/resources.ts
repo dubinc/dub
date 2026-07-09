@@ -28,11 +28,6 @@ export const RESOURCES: {
     description: "Create and read analytics events",
   },
   {
-    name: "Workspaces",
-    key: "workspaces",
-    description: "Read, update, and delete workspaces",
-  },
-  {
     name: "Domains",
     key: "domains",
     description: "Create, read, update, and delete domains",

@@ -17,6 +17,10 @@
       "schedule": "0 8 * * *"
     },
     {
+      "path": "/api/cron/streams/send-link-clicked-webhooks",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/cron/streams/update-workspace-clicks",
       "schedule": "* * * * *"
     },
@@ -27,6 +31,10 @@
     {
       "path": "/api/cron/streams/update-partner-stats",
       "schedule": "*/2 * * * *"
+    },
+    {
+      "path": "/api/cron/partner-platforms/website",
+      "schedule": "* * * * *"
     },
     {
       "path": "/api/cron/partner-program-summary",
@@ -71,6 +79,10 @@
     {
       "path": "/api/cron/sitemaps/queue",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/webhooks/sync-click-workspaces",
+      "schedule": "*/5 * * * *"
     }
   ],
   "functions": {

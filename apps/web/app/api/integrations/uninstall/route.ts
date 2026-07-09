@@ -1,9 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { slackOAuthProvider } from "@/lib/integrations/slack/oauth";
-import { webhookCache } from "@/lib/webhook/cache";
-import { isLinkLevelWebhook } from "@/lib/webhook/utils";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { SLACK_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -56,10 +54,6 @@ export const DELETE = withWorkspace(
         ...(integrationId === SLACK_INTEGRATION_ID
           ? [slackOAuthProvider.uninstall(installation)]
           : []),
-
-        ...webhooks.map((webhook) =>
-          isLinkLevelWebhook(webhook) ? webhookCache.delete(webhook.id) : null,
-        ),
       ]),
     );
 

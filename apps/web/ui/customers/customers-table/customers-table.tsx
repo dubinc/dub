@@ -334,7 +334,7 @@ export function CustomersTable({
   const getCustomerUrl = (row: Row<CustomerProps>) =>
     isProgramPage
       ? `/${workspaceSlug}/program/customers/${row.original.id}`
-      : `/${workspaceSlug}/customers/${row.original.id}`;
+      : `/${workspaceSlug}/links/customers/${row.original.id}`;
 
   const { table, ...tableProps } = useTable({
     data: canManageCustomers ? customers || [] : EXAMPLE_CUSTOMER_DATA,
@@ -371,7 +371,6 @@ export function CustomersTable({
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;

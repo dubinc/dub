@@ -1,4 +1,5 @@
 import { FraudRuleInfo, FraudSeverity, PaidTrafficPlatform } from "@/lib/types";
+import { FraudRuleType } from "@prisma/client";
 
 export const FRAUD_RULES: FraudRuleInfo[] = [
   // Conversion event rules
@@ -98,13 +99,7 @@ export const FRAUD_RULES_BY_TYPE = Object.fromEntries(
   FRAUD_RULES.map((rule) => [rule.type, rule]),
 ) as Record<FraudRuleInfo["type"], FraudRuleInfo>;
 
-export const FRAUD_RULES_BY_SCOPE = FRAUD_RULES.reduce(
-  (acc, rule) => {
-    (acc[rule.scope] ||= []).push(rule);
-    return acc;
-  },
-  {} as Record<FraudRuleInfo["scope"], FraudRuleInfo[]>,
-);
+export const FRAUD_GROUP_EXPIRY_DAYS = 30;
 
 export const CONFIGURABLE_FRAUD_RULES = FRAUD_RULES.filter(
   (rule) => rule.configurable,
@@ -113,6 +108,18 @@ export const CONFIGURABLE_FRAUD_RULES = FRAUD_RULES.filter(
 export const CONFIGURABLE_RULE_TYPES = CONFIGURABLE_FRAUD_RULES.map(
   (rule) => rule.type,
 );
+
+export const PARTNER_LEVEL_FRAUD_RULES = [
+  FraudRuleType.partnerCrossProgramBan,
+  FraudRuleType.partnerDuplicateAccount,
+];
+
+export const CUSTOMER_LEVEL_FRAUD_RULES = [
+  FraudRuleType.customerEmailMatch,
+  FraudRuleType.customerEmailSuspiciousDomain,
+  FraudRuleType.paidTrafficDetected,
+  FraudRuleType.referralSourceBanned,
+];
 
 export const FRAUD_SEVERITY_CONFIG: Record<
   FraudSeverity,

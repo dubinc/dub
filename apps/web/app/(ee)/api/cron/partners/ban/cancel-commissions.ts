@@ -1,5 +1,5 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 
 // Mark the commissions as canceled
 export async function cancelCommissions({
@@ -21,11 +21,13 @@ export async function cancelCommissions({
         where: {
           programId,
           partnerId,
-          // cancel all commissions that are pending
+          // cancel all commissions that are pending or hold
           // as well as processed commissions (added to a payout) but the payout was canceled
           OR: [
             {
-              status: "pending",
+              status: {
+                in: ["pending", "hold"],
+              },
             },
             {
               status: "processed",

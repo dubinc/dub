@@ -7,7 +7,12 @@ import {
   Twitter,
   YouTube,
 } from "@dub/ui/icons";
-import { getPrettyUrl, getUrlFromStringIfValid, nFormatter } from "@dub/utils";
+import {
+  getPrettyUrl,
+  getUrlFromStringIfValid,
+  nFormatter,
+  pluralize,
+} from "@dub/utils";
 import { PartnerPlatformProps } from "../types";
 
 export const PARTNER_PLATFORM_FIELDS: {
@@ -16,8 +21,10 @@ export const PARTNER_PLATFORM_FIELDS: {
   data: (platforms: PartnerPlatformProps[]) => {
     value?: string | null;
     verified: boolean;
+    verifiedAt?: Date | null;
     href?: string | null;
     info?: string[];
+    stat?: string | null;
   };
 }[] = [
   {
@@ -29,9 +36,19 @@ export const PARTNER_PLATFORM_FIELDS: {
       return {
         value: website ? getPrettyUrl(website.identifier) : null,
         verified: !!website?.verifiedAt,
+        verifiedAt: website?.verifiedAt ?? null,
         href: website?.identifier
           ? getUrlFromStringIfValid(website.identifier)
           : null,
+        info: [
+          website?.subscribers && website?.verifiedAt
+            ? `${Number(website.subscribers)} DR`
+            : null,
+        ].filter(Boolean),
+        stat:
+          website?.subscribers && website?.verifiedAt
+            ? `${Number(website.subscribers)} DR`
+            : null,
       };
     },
   },
@@ -44,17 +61,22 @@ export const PARTNER_PLATFORM_FIELDS: {
       return {
         value: youtube?.identifier ? `@${youtube.identifier}` : null,
         verified: !!youtube?.verifiedAt,
+        verifiedAt: youtube?.verifiedAt ?? null,
         href: youtube?.identifier
           ? `https://youtube.com/@${youtube.identifier}`
           : null,
         info: [
           youtube?.subscribers && youtube?.verifiedAt
-            ? `${nFormatter(Number(youtube.subscribers))} subscribers`
+            ? `${nFormatter(Number(youtube.subscribers))} ${pluralize("subscriber", Number(youtube.subscribers))}`
             : null,
           youtube?.views && youtube?.verifiedAt
-            ? `${nFormatter(Number(youtube.views))} views`
+            ? `${nFormatter(Number(youtube.views))} ${pluralize("view", Number(youtube.views))}`
             : null,
         ].filter(Boolean),
+        stat:
+          youtube?.subscribers && youtube?.verifiedAt
+            ? nFormatter(Number(youtube.subscribers))
+            : null,
       };
     },
   },
@@ -67,17 +89,22 @@ export const PARTNER_PLATFORM_FIELDS: {
       return {
         value: twitter ? `@${twitter.identifier}` : null,
         verified: !!twitter?.verifiedAt,
+        verifiedAt: twitter?.verifiedAt ?? null,
         href: twitter?.identifier
           ? `https://x.com/${twitter.identifier}`
           : null,
         info: [
           twitter?.subscribers && twitter?.verifiedAt
-            ? `${nFormatter(Number(twitter.subscribers))} followers`
+            ? `${nFormatter(Number(twitter.subscribers))} ${pluralize("follower", Number(twitter.subscribers))}`
             : null,
           twitter?.posts && twitter?.verifiedAt
-            ? `${nFormatter(Number(twitter.posts))} tweets`
+            ? `${nFormatter(Number(twitter.posts))} ${pluralize("tweet", Number(twitter.posts))}`
             : null,
         ].filter(Boolean),
+        stat:
+          twitter?.subscribers && twitter?.verifiedAt
+            ? nFormatter(Number(twitter.subscribers))
+            : null,
       };
     },
   },
@@ -90,6 +117,7 @@ export const PARTNER_PLATFORM_FIELDS: {
       return {
         value: linkedin ? linkedin.identifier : null,
         verified: !!linkedin?.verifiedAt,
+        verifiedAt: linkedin?.verifiedAt ?? null,
         href: linkedin?.identifier
           ? `https://linkedin.com/in/${linkedin.identifier}`
           : null,
@@ -105,17 +133,22 @@ export const PARTNER_PLATFORM_FIELDS: {
       return {
         value: instagram ? `@${instagram.identifier}` : null,
         verified: !!instagram?.verifiedAt,
+        verifiedAt: instagram?.verifiedAt ?? null,
         href: instagram?.identifier
           ? `https://instagram.com/${instagram.identifier}`
           : null,
         info: [
           instagram?.subscribers && instagram?.verifiedAt
-            ? `${nFormatter(Number(instagram.subscribers))} followers`
+            ? `${nFormatter(Number(instagram.subscribers))} ${pluralize("follower", Number(instagram.subscribers))}`
             : null,
           instagram?.posts && instagram?.verifiedAt
-            ? `${nFormatter(Number(instagram.posts))} posts`
+            ? `${nFormatter(Number(instagram.posts))} ${pluralize("post", Number(instagram.posts))}`
             : null,
         ].filter(Boolean),
+        stat:
+          instagram?.subscribers && instagram?.verifiedAt
+            ? nFormatter(Number(instagram.subscribers))
+            : null,
       };
     },
   },
@@ -128,17 +161,22 @@ export const PARTNER_PLATFORM_FIELDS: {
       return {
         value: tiktok ? `@${tiktok.identifier}` : null,
         verified: !!tiktok?.verifiedAt,
+        verifiedAt: tiktok?.verifiedAt ?? null,
         href: tiktok?.identifier
           ? `https://tiktok.com/@${tiktok.identifier}`
           : null,
         info: [
           tiktok?.subscribers && tiktok?.verifiedAt
-            ? `${nFormatter(Number(tiktok.subscribers))} followers`
+            ? `${nFormatter(Number(tiktok.subscribers))} ${pluralize("follower", Number(tiktok.subscribers))}`
             : null,
           tiktok?.posts && tiktok?.verifiedAt
-            ? `${nFormatter(Number(tiktok.posts))} posts`
+            ? `${nFormatter(Number(tiktok.posts))} ${pluralize("post", Number(tiktok.posts))} `
             : null,
         ].filter(Boolean),
+        stat:
+          tiktok?.subscribers && tiktok?.verifiedAt
+            ? nFormatter(Number(tiktok.subscribers))
+            : null,
       };
     },
   },

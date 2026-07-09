@@ -1,11 +1,11 @@
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { trackActivityLog } from "../../activity-log/track-activity-log";
@@ -23,14 +23,14 @@ export async function rejectPartner({
   partnerId,
   rejectionReason,
   rejectionNote,
-  allowImmediateReapply,
+  reapplicationTimeframe,
   flagForFraud,
   flagForFraudReason,
   userId,
 }: RejectPartnerInput) {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  if (flagForFraud && allowImmediateReapply) {
+  if (flagForFraud && reapplicationTimeframe === "instant") {
     throw new DubApiError({
       code: "bad_request",
       message:
@@ -94,8 +94,8 @@ export async function rejectPartner({
       });
     }
 
-    // If the partner can immediately re-apply, delete the application
-    if (allowImmediateReapply) {
+    // If the partner can immediately re-apply, delete the enrollment
+    if (reapplicationTimeframe === "instant") {
       const { count } = await tx.programEnrollment.deleteMany({
         where: {
           id: programEnrollment.id,
@@ -114,7 +114,7 @@ export async function rejectPartner({
       return;
     }
 
-    // If the partner cannot immediately re-apply, reject the application
+    // Reject the enrollment and persist the reapplication timeframe
     await tx.programEnrollment.update({
       where: {
         id: programEnrollment.id,
@@ -122,6 +122,7 @@ export async function rejectPartner({
       },
       data: {
         status: ProgramEnrollmentStatus.rejected,
+        reapplicationTimeframe,
         clickRewardId: null,
         leadRewardId: null,
         saleRewardId: null,
@@ -195,7 +196,7 @@ export async function rejectPartner({
             additionalNotes: rejectionNote,
             rejectionReason:
               getProgramApplicationRejectionReasonLabel(rejectionReason),
-            canReapplyImmediately: allowImmediateReapply,
+            reapplicationTimeframe,
           }),
         }),
     ]),

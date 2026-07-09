@@ -1,13 +1,17 @@
+import { createManualCommissions } from "@/lib/api/commissions/create-manual-commissions";
 import { getCommissions } from "@/lib/api/commissions/get-commissions";
 import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import {
   CommissionEnrichedSchema,
+  createCommissionResponseSchema,
+  createManualCommissionBodySchema,
   getCommissionsQuerySchema,
 } from "@/lib/zod/schemas/commissions";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -15,19 +19,12 @@ import * as z from "zod/v4";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const isHoldStatus = searchParams.status === "hold";
-  const {
-    status: _status,
-    fraudEventGroupId,
-    type: rawType,
-    ...restSearchParams
-  } = searchParams;
-
-  let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema.parse(
-    isHoldStatus
-      ? restSearchParams
-      : { ...restSearchParams, status: searchParams.status },
-  );
+  let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema
+    .extend({
+      fraudEventGroupId: z.string().optional(),
+      type: z.string().optional(), // May be comma-separated string, for multi-value handling
+    })
+    .parse(searchParams);
 
   if (tenantId && !partnerId) {
     const partner = await prisma.programEnrollment.findUnique({
@@ -54,12 +51,8 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const commissions = await getCommissions({
     ...filters,
-    // Pass raw type string (may be comma-separated) for multi-value handling
-    ...(rawType && { type: rawType }),
     partnerId,
     programId,
-    isHoldStatus,
-    ...(fraudEventGroupId && { fraudEventGroupId }),
   });
 
   return NextResponse.json(
@@ -75,3 +68,46 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     ),
   );
 });
+
+// POST /api/commissions - create manual commission
+export const POST = withWorkspace(
+  async ({ workspace, session, req }) => {
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const body = createManualCommissionBodySchema.parse(
+      await parseRequestBody(req),
+    );
+
+    console.time("createManualCommissions");
+
+    await createManualCommissions({
+      ...body,
+      workspace,
+      programId,
+      user: session.user,
+    });
+
+    console.timeEnd("createManualCommissions");
+
+    return NextResponse.json(
+      createCommissionResponseSchema.parse({
+        success: true,
+        message: "Your commissions are being created and will appear shortly.",
+      }),
+      {
+        status: 202,
+      },
+    );
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+    requiredRoles: ["owner", "member"],
+  },
+);

@@ -1,9 +1,9 @@
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP, GroupSchema } from "@/lib/zod/schemas/groups";
 import { RESOURCE_COLORS } from "@/ui/colors";
-import { prisma } from "@dub/prisma";
 import { nanoid, randomValue } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";

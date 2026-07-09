@@ -1,12 +1,12 @@
 import { logger } from "@/lib/axiom/server";
+import { prisma } from "@/lib/prisma";
 import {
   ActivityLogAction,
   ActivityLogResourceType,
   ChangeSet,
 } from "@/lib/types";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 
 const ACTIONS_WITHOUT_CHANGE_SET: ActivityLogAction[] = [
   "submittedLead.created",

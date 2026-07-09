@@ -3,12 +3,13 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
+import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
-import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -55,7 +56,7 @@ export async function createNewCustomer(event: Stripe.Event) {
   const customer = await prisma.customer.create({
     data: {
       id: createId({ prefix: "cus_" }),
-      name: stripeCustomer.name || generateRandomName(),
+      name: stripeCustomer.name || stripeCustomer.email || generateRandomName(),
       email: stripeCustomer.email,
       stripeCustomerId: stripeCustomer.id,
       projectConnectId: stripeAccountId,
@@ -143,36 +144,61 @@ export async function createNewCustomer(event: Stripe.Event) {
     );
   }
 
-  // send workspace webhook
   waitUntil(
-    Promise.allSettled([
-      sendWorkspaceWebhook({
-        trigger: "lead.created",
-        workspace,
-        data: transformLeadEventData({
-          ...clickData,
-          eventName,
-          link: linkUpdated,
-          customer,
-          metadata: null,
-        }),
-      }),
+    (async () => {
+      let webhookPartner:
+        | ReturnType<typeof constructWebhookPartner>
+        | undefined;
 
-      ...(link.partnerId
-        ? [
-            sendPartnerPostback({
+      if (link.programId && link.partnerId) {
+        const programEnrollment = await prisma.programEnrollment.findUnique({
+          where: {
+            partnerId_programId: {
               partnerId: link.partnerId,
-              event: "lead.created",
-              data: {
-                ...clickData,
-                eventName,
-                link: linkUpdated,
-                customer,
-              },
-            }),
-          ]
-        : []),
-    ]),
+              programId: link.programId,
+            },
+          },
+          include: {
+            partner: true,
+            links: true,
+          },
+        });
+
+        webhookPartner = programEnrollment
+          ? constructWebhookPartner(programEnrollment)
+          : undefined;
+      }
+
+      await Promise.allSettled([
+        sendWorkspaceWebhook({
+          trigger: "lead.created",
+          workspace,
+          data: transformLeadEventData({
+            ...clickData,
+            eventName,
+            link: linkUpdated,
+            customer,
+            partner: webhookPartner,
+            metadata: null,
+          }),
+        }),
+
+        ...(link.partnerId
+          ? [
+              sendPartnerPostback({
+                partnerId: link.partnerId,
+                event: "lead.created",
+                data: {
+                  ...clickData,
+                  eventName,
+                  link: linkUpdated,
+                  customer,
+                },
+              }),
+            ]
+          : []),
+      ]);
+    })(),
   );
 
   return {

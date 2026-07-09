@@ -1,11 +1,12 @@
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
-import { PartnerPlatformProps } from "@/lib/types";
-import { useCurrentSubdomain } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { PartnerPlatformProps, PartnerSharedPlatformProps } from "@/lib/types";
+import { AnimatedSizeContainer, useCurrentSubdomain } from "@dub/ui";
+import { cn, fetcher } from "@dub/utils";
 import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { useSWRConfig } from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { PartnerPlatformCard } from "./partner-platform-card";
+import { PartnerPlatformSharedPartners } from "./partner-platform-shared-partners";
 
 export function PartnerPlatformSummary({
   platforms,
@@ -18,6 +19,14 @@ export function PartnerPlatformSummary({
 }) {
   const { subdomain } = useCurrentSubdomain();
   const { mutate } = useSWRConfig();
+
+  const { data: sharedPlatforms } = useSWR<PartnerSharedPlatformProps[]>(
+    subdomain === "admin" && partnerId
+      ? `/api/admin/partners/${partnerId}/shared-platforms`
+      : null,
+    fetcher,
+  );
+
   const [verifyingPlatforms, setVerifyingPlatforms] = useState<
     Partial<Record<PartnerPlatformProps["type"], boolean>>
   >({});
@@ -121,6 +130,10 @@ export function PartnerPlatformSummary({
           info,
           identifier,
         }) => {
+          const sharedPlatform = sharedPlatforms?.find(
+            (platform) => platform.type === type,
+          );
+
           return (
             <Fragment key={label}>
               <div>
@@ -136,6 +149,14 @@ export function PartnerPlatformSummary({
                     isVerifying: Boolean(verifyingPlatforms[type]),
                   })}
                 />
+
+                <AnimatedSizeContainer height>
+                  {sharedPlatform && (
+                    <PartnerPlatformSharedPartners
+                      sharedPartners={sharedPlatform.partners}
+                    />
+                  )}
+                </AnimatedSizeContainer>
               </div>
             </Fragment>
           );

@@ -1,8 +1,8 @@
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
-import { prisma } from "@dub/prisma";
-import { CommissionStatus, Customer, Link, Program } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
+import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
@@ -16,7 +16,7 @@ import { LeadEventTB } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { RewardfulApi } from "./api";
-import { MAX_BATCHES, rewardfulImporter } from "./importer";
+import { REWARDFUL_MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulCommission, RewardfulImportPayload } from "./types";
 
 const toDubStatus: Record<RewardfulCommission["state"], CommissionStatus> = {
@@ -45,7 +45,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
   let hasMore = true;
   let processedBatches = 0;
 
-  while (hasMore && processedBatches < MAX_BATCHES) {
+  while (hasMore && processedBatches < REWARDFUL_MAX_BATCHES) {
     const commissions = await rewardfulApi.listCommissions({
       page: currentPage,
     });

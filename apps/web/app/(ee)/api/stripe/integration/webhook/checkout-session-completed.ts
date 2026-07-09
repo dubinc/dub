@@ -1,35 +1,30 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
-import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { generateRandomName } from "@/lib/names";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
 import {
   getClickEvent,
   getLeadEvent,
   recordLead,
   recordSale,
 } from "@/lib/tinybird";
-import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
 import { ClickEventTB, LeadEventTB, StripeMode } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import {
-  transformLeadEventData,
-  transformSaleEventData,
-} from "@/lib/webhook/transform";
-import { prisma } from "@dub/prisma";
-import { Customer, Project } from "@dub/prisma/client";
-import { COUNTRIES_TO_CONTINENTS, nanoid, pick } from "@dub/utils";
+import { transformSaleEventData } from "@/lib/webhook/transform";
+import { nanoid } from "@dub/utils";
+import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
-import { getCheckoutSessionProductId } from "./utils/get-checkout-session-product-id";
+import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
+import { getCheckoutSessionProducts } from "./utils/get-checkout-session-products";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
-import { getPromotionCode } from "./utils/get-promotion-code";
+import { incrementLinkLeads } from "./utils/increment-link-leads";
 import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
 
 // Handle event "checkout.session.completed"
@@ -194,12 +189,17 @@ export async function checkoutSessionCompleted(
 
       if (!customer) {
         if (promotionCodeId) {
-          const promoCodeResponse = await attributeViaPromoCode({
+          const promoCodeResponse = await attributeViaPromotionCodeId({
             promotionCodeId,
             stripeAccountId,
             workspace,
             mode,
-            charge,
+            stripeCustomerId,
+            customerDetails: {
+              name: charge.customer_details?.name,
+              email: charge.customer_details?.email,
+              address: charge.customer_details?.address,
+            },
           });
           if (promoCodeResponse) {
             ({ linkId, customer, clickEvent, leadEvent } = promoCodeResponse);
@@ -264,12 +264,17 @@ export async function checkoutSessionCompleted(
             };
           }
         } else if (promotionCodeId) {
-          const promoCodeResponse = await attributeViaPromoCode({
+          const promoCodeResponse = await attributeViaPromotionCodeId({
             promotionCodeId,
             stripeAccountId,
             workspace,
             mode,
-            charge,
+            stripeCustomerId,
+            customerDetails: {
+              name: charge.customer_details?.name,
+              email: charge.customer_details?.email,
+              address: charge.customer_details?.address,
+            },
           });
           if (promoCodeResponse) {
             ({ linkId, customer, clickEvent, leadEvent } = promoCodeResponse);
@@ -358,9 +363,10 @@ export async function checkoutSessionCompleted(
 
     if (!ok) {
       console.info(
-        "[Stripe Webhook] Skipping already processed invoice.",
+        "[checkout.session.completed] Skipping already processed invoice.",
         invoiceId,
       );
+
       return {
         response: `Invoice with ID ${invoiceId} already processed, skipping...`,
         workspaceId: workspace.id,
@@ -473,23 +479,26 @@ export async function checkoutSessionCompleted(
         },
         firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
         subscriptionCanceledAt: null,
+        ...(!customer?.stripeCustomerId &&
+          stripeCustomerId && {
+            stripeCustomerId,
+          }),
       },
     }),
   ]);
 
-  // for program links
-  let createdCommission:
-    | Awaited<ReturnType<typeof createPartnerCommission>>
+  let result:
+    | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
     | undefined = undefined;
 
   if (link && link.programId && link.partnerId) {
-    const productId = await getCheckoutSessionProductId({
+    const products = await getCheckoutSessionProducts({
       checkoutSessionId: charge.id,
       stripeAccountId,
       mode,
     });
 
-    createdCommission = await createPartnerCommission({
+    result = await queuePartnerCommissionCreation({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -506,13 +515,16 @@ export async function checkoutSessionCompleted(
           signupDate: customer.createdAt,
         },
         sale: {
-          productId,
+          products,
           amount: saleData.amount,
         },
       },
+      clickEvent: {
+        url: saleData.url,
+        referer: saleData.referer,
+      },
+      isFirstConversion: firstConversionFlag,
     });
-
-    const { webhookPartner, programEnrollment } = createdCommission;
 
     waitUntil(
       Promise.allSettled([
@@ -523,11 +535,13 @@ export async function checkoutSessionCompleted(
             workspaceId: workspace.id,
             programId: link.programId,
             partnerId: link.partnerId,
+            customerId: customer.id,
+            customerFirstSaleAt: customer.firstSaleAt ?? new Date(),
           },
           metrics: {
             current: {
-              saleAmount: saleData.amount,
               conversions: firstConversionFlag ? 1 : 0,
+              saleAmount: saleData.amount,
             },
           },
         }),
@@ -537,20 +551,6 @@ export async function checkoutSessionCompleted(
           programId: link.programId,
           eventType: "sale",
         }),
-
-        webhookPartner &&
-          detectAndRecordFraudEvent({
-            program: { id: link.programId },
-            partner: pick(webhookPartner, ["id", "email", "name"]),
-            programEnrollment: pick(programEnrollment, ["status"]),
-            customer: {
-              ...pick(customer, ["id", "email", "name"]),
-              isFirstConversion: firstConversionFlag,
-            },
-            link: pick(link, ["id"]),
-            click: pick(saleData, ["url", "referer"]),
-            event: { id: saleData.event_id },
-          }),
       ]),
     );
   }
@@ -565,7 +565,7 @@ export async function checkoutSessionCompleted(
           clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
           customer,
-          partner: createdCommission?.webhookPartner,
+          partner: result?.webhookPartner,
           metadata: null,
         }),
       }),
@@ -591,213 +591,4 @@ export async function checkoutSessionCompleted(
     response: `Checkout session completed for customer with external ID ${dubCustomerExternalId} and invoice ID ${invoiceId}`,
     workspaceId: workspace.id,
   };
-}
-
-async function attributeViaPromoCode({
-  promotionCodeId,
-  stripeAccountId,
-  workspace,
-  mode,
-  charge,
-}: {
-  promotionCodeId: string;
-  stripeAccountId: string;
-  workspace: Pick<
-    Project,
-    "id" | "defaultProgramId" | "stripeConnectId" | "webhookEnabled"
-  >;
-  mode: StripeMode;
-  charge: Stripe.Checkout.Session;
-}) {
-  // Find the promotion code for the promotion code id
-  const promotionCode = await getPromotionCode({
-    promotionCodeId,
-    stripeAccountId,
-    mode,
-  });
-
-  if (!promotionCode) {
-    console.log(
-      `Promotion code ${promotionCodeId} not found in connected account ${stripeAccountId}, skipping...`,
-    );
-    return null;
-  }
-
-  if (!workspace.defaultProgramId) {
-    console.log(
-      `Workspace with stripeConnectId ${stripeAccountId} has no default program, skipping...`,
-    );
-    return null;
-  }
-
-  const discountCode = await prisma.discountCode.findUnique({
-    where: {
-      programId_code: {
-        programId: workspace.defaultProgramId,
-        code: promotionCode.code,
-      },
-    },
-    select: {
-      link: true,
-    },
-  });
-
-  if (!discountCode) {
-    console.log(
-      `Couldn't find link associated with promotion code ${promotionCode.code}, skipping...`,
-    );
-    return null;
-  }
-
-  const link = discountCode.link;
-  const linkId = link.id;
-
-  // Record a fake click for this event
-  const customerDetails = charge.customer_details;
-  const customerAddress = customerDetails?.address;
-
-  const clickEvent = await recordFakeClick({
-    link,
-    customer: {
-      continent: customerAddress?.country
-        ? COUNTRIES_TO_CONTINENTS[customerAddress.country]
-        : "Unknown",
-      country: customerAddress?.country ?? "Unknown",
-      region: customerAddress?.state ?? "Unknown",
-    },
-  });
-
-  const customer = await prisma.customer.create({
-    data: {
-      id: createId({ prefix: "cus_" }),
-      name:
-        customerDetails?.name || customerDetails?.email || generateRandomName(),
-      email: customerDetails?.email,
-      externalId: clickEvent.click_id,
-      stripeCustomerId: charge.customer as string,
-      linkId: clickEvent.link_id,
-      clickId: clickEvent.click_id,
-      clickedAt: new Date(clickEvent.timestamp + "Z"),
-      country: customerAddress?.country,
-      projectId: workspace.id,
-      projectConnectId: workspace.stripeConnectId,
-    },
-  });
-
-  // Prepare the payload for the lead event
-  const { timestamp, ...rest } = clickEvent;
-
-  const leadEvent = {
-    ...rest,
-    workspace_id: clickEvent.workspace_id || customer.projectId, // in case for some reason the click event doesn't have workspace_id
-    event_id: nanoid(16),
-    event_name: "Checkout with discount code",
-    customer_id: customer.id,
-    metadata: "",
-  };
-
-  await recordLead(leadEvent);
-
-  // record lead side effects (link stats, partner commissions, workflows, workspace webhook)
-  waitUntil(
-    (async () => {
-      const linkUpdated = await incrementLinkLeads(link.id);
-
-      let createdCommission:
-        | Awaited<ReturnType<typeof createPartnerCommission>>
-        | undefined = undefined;
-
-      if (link.programId && link.partnerId) {
-        createdCommission = await createPartnerCommission({
-          event: "lead",
-          programId: link.programId,
-          partnerId: link.partnerId,
-          linkId: link.id,
-          eventId: leadEvent.event_id,
-          customerId: customer.id,
-          quantity: 1,
-          context: {
-            customer: {
-              country: customer.country,
-            },
-          },
-        });
-
-        await Promise.allSettled([
-          executeWorkflows({
-            trigger: "partnerMetricsUpdated",
-            reason: "lead",
-            identity: {
-              workspaceId: workspace.id,
-              programId: link.programId,
-              partnerId: link.partnerId,
-            },
-            metrics: {
-              current: {
-                leads: 1,
-              },
-            },
-          }),
-
-          syncPartnerLinksStats({
-            partnerId: link.partnerId,
-            programId: link.programId,
-            eventType: "lead",
-          }),
-        ]);
-      }
-
-      await Promise.allSettled([
-        sendWorkspaceWebhook({
-          trigger: "lead.created",
-          workspace,
-          data: transformLeadEventData({
-            ...leadEvent,
-            eventName: "Checkout session completed",
-            link: linkUpdated,
-            customer,
-            partner: createdCommission?.webhookPartner,
-            metadata: null,
-          }),
-        }),
-
-        ...(link.partnerId
-          ? [
-              sendPartnerPostback({
-                partnerId: link.partnerId,
-                event: "lead.created",
-                data: {
-                  ...leadEvent,
-                  eventName: "Checkout session completed",
-                  link: linkUpdated,
-                  customer,
-                },
-              }),
-            ]
-          : []),
-      ]);
-    })(),
-  );
-
-  return {
-    linkId,
-    customer,
-    clickEvent,
-    leadEvent,
-  };
-}
-
-async function incrementLinkLeads(linkId: string) {
-  return prisma.link.update({
-    where: {
-      id: linkId,
-    },
-    data: {
-      leads: {
-        increment: 1,
-      },
-      lastLeadAt: new Date(),
-    },
-    include: includeTags,
-  });
 }

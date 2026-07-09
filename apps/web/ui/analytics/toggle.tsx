@@ -13,6 +13,7 @@ import {
   Filter,
   SquareLayoutGrid6,
   TooltipContent,
+  useCurrentProduct,
   useMediaQuery,
   useRouterStuff,
   useScroll,
@@ -43,6 +44,7 @@ export function AnalyticsToggle({
 }) {
   const { slug, programSlug } = useParams();
   const { plan, createdAt } = useWorkspace();
+  const { product } = useCurrentProduct();
 
   const { queryParams, getQueryString } = useRouterStuff();
 
@@ -71,7 +73,6 @@ export function AnalyticsToggle({
     onRemoveAll,
     onOpenFilter,
     onToggleOperator,
-    streaming,
     activeFiltersWithStreaming,
   } = useAnalyticsFilters({ partnerPage, dashboardProps });
 
@@ -112,7 +113,6 @@ export function AnalyticsToggle({
             set: {
               interval: preset.id,
             },
-            scroll: false,
           });
 
           return;
@@ -127,7 +127,6 @@ export function AnalyticsToggle({
             start: range.from.toISOString(),
             end: range.to.toISOString(),
           },
-          scroll: false,
         });
       }}
       presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
@@ -245,7 +244,7 @@ export function AnalyticsToggle({
                       <>
                         <ShareButton />
                         <Link
-                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}events${getQueryString()}`}
+                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/${product ? `${product}/` : ""}`}events${getQueryString()}`}
                         >
                           <Button
                             variant="secondary"
@@ -261,7 +260,7 @@ export function AnalyticsToggle({
                     {page === "events" && (
                       <>
                         <Link
-                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}analytics${getQueryString()}`}
+                          href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/${product ? `${product}/` : ""}`}analytics${getQueryString()}`}
                         >
                           <Button
                             variant="secondary"

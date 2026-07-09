@@ -3,8 +3,8 @@ import {
   PartnerProps,
   ProgramEnrollmentProps,
 } from "@/lib/types";
-import { Dashboard, Link, Tag } from "@dub/prisma/client";
 import { toCentsNumber } from "@dub/utils";
+import { Dashboard, Link, Tag } from "@prisma/client";
 import { prefixWorkspaceId } from "../../workspaces/workspace-id";
 import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
 

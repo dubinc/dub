@@ -1,9 +1,9 @@
 import { linkCache } from "@/lib/api/links/cache";
 import { withCron } from "@/lib/cron/with-cron";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
-import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -58,7 +58,7 @@ export const POST = withCron(async ({ rawBody }) => {
   const discountCodes = programEnrollments.flatMap(({ discountCodes }) =>
     discountCodes.map((dc) => dc),
   );
-  await deleteDiscountCodes(discountCodes);
+  await deleteDiscountCodes(discountCodes, { isSoftDelete: true });
   console.log("[bulkDeactivatePartners] Queued discount code deletions.");
 
   // Find the program

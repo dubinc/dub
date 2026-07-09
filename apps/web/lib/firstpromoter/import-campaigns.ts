@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { RESOURCE_COLORS } from "@/ui/colors";
-import { prisma } from "@dub/prisma";
 import { randomValue } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { createId } from "../api/create-id";

@@ -1,25 +1,56 @@
 "use client";
 
 import { WebhookEventProps } from "@/lib/types";
-import { Button, ButtonTooltip, Sheet, useCopyToClipboard } from "@dub/ui";
-import { Copy } from "@dub/ui/icons";
+import {
+  Button,
+  ChevronLeft,
+  ChevronRight,
+  CopyText,
+  Sheet,
+  useKeyboardShortcut,
+} from "@dub/ui";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import type { HighlighterCore } from "shiki";
-import { toast } from "sonner";
 import { X } from "../shared/icons";
 
 interface WebhookEventDetailsSheetProps {
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   event: WebhookEventProps | null;
+  onNext?: () => void;
+  onPrevious?: () => void;
 }
 
 function WebhookEventDetailsSheetContent({
   event,
+  onPrevious,
+  onNext,
 }: Omit<WebhookEventDetailsSheetProps, "isOpen" | "setIsOpen">) {
   const [highlighter, setHighlighter] = useState<HighlighterCore | null>(null);
   const [responseBody, setResponseBody] = useState("");
   const [requestBody, setRequestBody] = useState("");
+
+  // right arrow key onNext
+  useKeyboardShortcut(
+    "ArrowRight",
+    () => {
+      if (onNext) {
+        onNext();
+      }
+    },
+    { sheet: true },
+  );
+
+  // left arrow key onPrevious
+  useKeyboardShortcut(
+    "ArrowLeft",
+    () => {
+      if (onPrevious) {
+        onPrevious();
+      }
+    },
+    { sheet: true },
+  );
 
   useEffect(() => {
     import("shiki").then(({ createHighlighter }) => {
@@ -52,17 +83,39 @@ function WebhookEventDetailsSheetContent({
     setRequestBody(toHighlightedJson(event.request_body));
   }, [highlighter, event]);
 
-  const [, copyToClipboard] = useCopyToClipboard();
-
   if (!event) return null;
 
   return (
     <div className="flex size-full flex-col">
-      <div className="p-6">
-        <div className="flex items-start justify-between">
-          <Sheet.Title className="text-lg font-semibold">
-            {event.event}
-          </Sheet.Title>
+      <div className="flex shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
+        <Sheet.Title className="flex flex-col">
+          <p className="text-lg font-semibold">{event.event}</p>
+          <CopyText
+            value={event.event_id}
+            className="truncate font-mono text-xs text-neutral-400 transition-colors hover:text-neutral-600"
+          >
+            {event.event_id}
+          </CopyText>
+        </Sheet.Title>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center">
+            <Button
+              type="button"
+              disabled={!onPrevious}
+              onClick={onPrevious}
+              variant="secondary"
+              className="size-9 rounded-l-lg rounded-r-none p-0"
+              icon={<ChevronLeft className="size-3.5" />}
+            />
+            <Button
+              type="button"
+              disabled={!onNext}
+              onClick={onNext}
+              variant="secondary"
+              className="-ml-px size-9 rounded-l-none rounded-r-lg p-0"
+              icon={<ChevronRight className="size-3.5" />}
+            />
+          </div>
           <Sheet.Close asChild>
             <Button
               variant="outline"
@@ -71,24 +124,9 @@ function WebhookEventDetailsSheetContent({
             />
           </Sheet.Close>
         </div>
-        <div className="group flex items-center gap-2">
-          <p className="font-mono text-sm text-neutral-500">{event.event_id}</p>
-          <ButtonTooltip
-            tooltipProps={{
-              content: "Copy event ID",
-            }}
-            onClick={() =>
-              toast.promise(copyToClipboard(event.event_id), {
-                success: "Copied to clipboard",
-              })
-            }
-          >
-            <Copy className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
-          </ButtonTooltip>
-        </div>
       </div>
       <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <div className="grid gap-4 border-t border-neutral-200 bg-white p-6">
+        <div className="grid gap-4 bg-white p-6">
           <h4 className="font-semibold">Response</h4>
           <div className="flex items-center gap-8">
             <p className="text-sm text-neutral-500">HTTP status code</p>
@@ -115,6 +153,8 @@ export function WebhookEventDetailsSheet({
   isOpen,
   setIsOpen,
   event,
+  onNext,
+  onPrevious,
 }: WebhookEventDetailsSheetProps) {
   return (
     <Sheet
@@ -122,28 +162,11 @@ export function WebhookEventDetailsSheet({
       onOpenChange={setIsOpen}
       contentProps={{ className: "md:w-[650px]" }}
     >
-      <WebhookEventDetailsSheetContent event={event} />
+      <WebhookEventDetailsSheetContent
+        event={event}
+        onNext={onNext}
+        onPrevious={onPrevious}
+      />
     </Sheet>
   );
-}
-
-export function useWebhookEventDetailsSheet() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [event, setEvent] = useState<WebhookEventProps | null>(null);
-
-  const openWithEvent = (e: WebhookEventProps) => {
-    setEvent(e);
-    setIsOpen(true);
-  };
-
-  return {
-    webhookEventDetailsSheet: event ? (
-      <WebhookEventDetailsSheet
-        event={event}
-        isOpen={isOpen}
-        setIsOpen={setIsOpen}
-      />
-    ) : null,
-    openWithEvent,
-  };
 }

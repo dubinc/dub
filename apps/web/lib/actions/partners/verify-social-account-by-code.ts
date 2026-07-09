@@ -2,10 +2,10 @@
 
 import { getLinkedInPost } from "@/lib/api/scrape-creators/get-linkedin-post";
 import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
+import { prisma } from "@/lib/prisma";
 import { ratelimit } from "@/lib/upstash";
 import { redis } from "@/lib/upstash/redis";
-import { prisma } from "@dub/prisma";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 

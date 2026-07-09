@@ -7,7 +7,6 @@ import { GroupProps } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { CommissionType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { Sliders, Tag, Users, Users6 } from "@dub/ui/icons";
 import {
@@ -16,6 +15,7 @@ import {
   nFormatter,
   parseFilterValue,
 } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { useParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -212,7 +212,7 @@ export function useCommissionsAnalyticsFilters() {
       const currentParam = searchParamsObj[key];
 
       if (!currentParam) {
-        queryParams({ set: { [key]: value }, del: "page", scroll: false });
+        queryParams({ set: { [key]: value }, del: "page" });
         return;
       }
 
@@ -222,7 +222,7 @@ export function useCommissionsAnalyticsFilters() {
         const newParam = parsed.operator.includes("NOT")
           ? `-${newValues.join(",")}`
           : newValues.join(",");
-        queryParams({ set: { [key]: newParam }, del: "page", scroll: false });
+        queryParams({ set: { [key]: newParam }, del: "page" });
       }
     },
     [searchParamsObj, queryParams],
@@ -235,25 +235,25 @@ export function useCommissionsAnalyticsFilters() {
 
       const parsed = parseFilterValue(currentParam);
       if (!parsed) {
-        queryParams({ del: [key, "page"], scroll: false });
+        queryParams({ del: [key, "page"] });
         return;
       }
 
       const newValues = parsed.values.filter((v) => v !== value);
       if (newValues.length === 0) {
-        queryParams({ del: [key, "page"], scroll: false });
+        queryParams({ del: [key, "page"] });
       } else {
         const newParam = parsed.operator.includes("NOT")
           ? `-${newValues.join(",")}`
           : newValues.join(",");
-        queryParams({ set: { [key]: newParam }, del: "page", scroll: false });
+        queryParams({ set: { [key]: newParam }, del: "page" });
       }
     },
     [searchParamsObj, queryParams],
   );
 
   const onRemoveFilter = useCallback(
-    (key: string) => queryParams({ del: [key, "page"], scroll: false }),
+    (key: string) => queryParams({ del: [key, "page"] }),
     [queryParams],
   );
 
@@ -261,7 +261,6 @@ export function useCommissionsAnalyticsFilters() {
     () =>
       queryParams({
         del: [...FILTER_KEYS, "customerId", "page"],
-        scroll: false,
       }),
     [queryParams],
   );
@@ -275,7 +274,6 @@ export function useCommissionsAnalyticsFilters() {
       queryParams({
         set: { [key]: isNegated ? cleanValue : `-${cleanValue}` },
         del: "page",
-        scroll: false,
       });
     },
     [searchParamsObj, queryParams],

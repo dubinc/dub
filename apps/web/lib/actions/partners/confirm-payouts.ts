@@ -16,10 +16,10 @@ import {
 import { qstash } from "@/lib/cron";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { checkPaymentMethodMandate } from "@/lib/stripe/check-payment-method-mandate";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -107,7 +107,7 @@ export const confirmPayoutsAction = authActionClient
       const totalEligiblePayouts = await prisma.payout.aggregate({
         where: {
           ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
-          ...getPayoutEligibilityFilter({ program, workspace }),
+          ...getPayoutEligibilityFilter({ program }),
         },
         _count: true,
       });
@@ -123,7 +123,6 @@ export const confirmPayoutsAction = authActionClient
       const [eligiblePayouts, payoutWebhooks] = await Promise.all([
         getEligiblePayouts({
           program,
-          workspace,
           cutoffPeriod,
           selectedPayoutIds,
           excludedPayoutIds,

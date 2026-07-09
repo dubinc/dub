@@ -1,9 +1,12 @@
-import { createManualCommissionAction } from "@/lib/actions/partners/create-manual-commission";
 import { handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
+import {
+  createCommissionResponseSchema,
+  createManualCommissionBodySchema,
+} from "@/lib/zod/schemas/commissions";
 import { StripeCustomerInvoiceSchema } from "@/lib/zod/schemas/customers";
 import { CustomerSelector } from "@/ui/customers/customer-selector";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
@@ -16,7 +19,6 @@ import {
 } from "@/ui/partners/program-sheet-accordion";
 import { X } from "@/ui/shared/icons";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { CommissionType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -27,7 +29,7 @@ import {
   ToggleGroup,
 } from "@dub/ui";
 import { cn, currencyFormatter, formatDate } from "@dub/utils";
-import { useAction } from "next-safe-action/hooks";
+import { CommissionType } from "@prisma/client";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -39,7 +41,27 @@ interface CreateCommissionSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-type FormData = z.infer<typeof createCommissionSchema>;
+// Flatten the discriminated union for react-hook-form compatibility.
+// The form renders all possible fields; onSubmit builds the correct variant.
+type CreateCommissionBody = z.infer<typeof createManualCommissionBodySchema>;
+type CustomBody = Extract<CreateCommissionBody, { type: "custom" }>;
+type LeadBody = Extract<CreateCommissionBody, { type: "lead" }>;
+type SaleBody = Extract<CreateCommissionBody, { type: "sale" }>;
+
+type FormData = {
+  partnerId: CustomBody["partnerId"];
+  amount: CustomBody["amount"] | null;
+  date: CustomBody["date"];
+  description: CustomBody["description"];
+  customerId: LeadBody["customerId"];
+  linkId: LeadBody["linkId"];
+  leadEventDate: LeadBody["leadEventDate"];
+  leadEventName: LeadBody["leadEventName"];
+  saleAmount: SaleBody["saleAmount"];
+  saleEventDate: SaleBody["saleEventDate"];
+  invoiceId: SaleBody["invoiceId"];
+  productId: SaleBody["productId"];
+};
 
 type StripeInvoiceFromApi = z.infer<typeof StripeCustomerInvoiceSchema>;
 
@@ -74,7 +96,7 @@ function CreateCommissionSheetContent({
 
   const [hasCustomLeadEventDate, setHasCustomLeadEventDate] = useState(false);
   const [hasCustomLeadEventName, setHasCustomLeadEventName] = useState(false);
-  const [useExistingEvents, setUseExistingEvents] = useState(false);
+  const [importStripeInvoices, setImportStripeInvoices] = useState(false);
 
   const [commissionType, setCommissionType] =
     useState<CommissionType>("custom");
@@ -111,7 +133,6 @@ function CreateCommissionSheetContent({
     saleEventDate,
     saleAmount,
     leadEventDate,
-    description,
   ] = watch([
     "partnerId",
     "date",
@@ -121,7 +142,6 @@ function CreateCommissionSheetContent({
     "saleEventDate",
     "saleAmount",
     "leadEventDate",
-    "description",
   ]);
 
   const { rewards } = useRewards();
@@ -172,7 +192,10 @@ function CreateCommissionSheetContent({
     isLoading: isStripeInvoicesLoading,
     error: stripeInvoicesError,
   } = useSWR(
-    customerId && useExistingEvents && commissionType === "sale" && workspaceId
+    customerId &&
+      importStripeInvoices &&
+      commissionType === "sale" &&
+      workspaceId
       ? `/api/customers/${customerId}/stripe-invoices?workspaceId=${workspaceId}`
       : null,
     fetcherStripeInvoices,
@@ -217,16 +240,8 @@ function CreateCommissionSheetContent({
     }
   }, [commissionType]);
 
-  const { executeAsync, isPending } = useAction(createManualCommissionAction, {
-    onSuccess: async () => {
-      toast.success("A commission has been created for the partner!");
-      setIsOpen(false);
-      await mutatePrefix(`/api/commissions?workspaceId=${workspaceId}`);
-    },
-    onError({ error }) {
-      toast.error(error.serverError);
-    },
-  });
+  const { makeRequest, isSubmitting } =
+    useApiMutation<z.infer<typeof createCommissionResponseSchema>>();
 
   const onSubmit = async (data: FormData) => {
     if (!workspaceId || !defaultProgramId) {
@@ -234,27 +249,62 @@ function CreateCommissionSheetContent({
       return;
     }
 
-    const date = data.date ? new Date(data.date).toISOString() : null;
+    let body: Record<string, unknown>;
 
-    const saleEventDate = data.saleEventDate
-      ? new Date(data.saleEventDate).toISOString()
-      : null;
+    if (commissionType === "custom") {
+      body = {
+        type: "custom",
+        partnerId,
+        amount: data.amount ? Math.round(data.amount * 100) : 0,
+        date: data.date ? data.date.toISOString() : null,
+        description: data.description || null,
+      };
+    } else if (commissionType === "lead") {
+      body = {
+        type: "lead",
+        partnerId,
+        customerId: data.customerId,
+        linkId: data.linkId,
+        leadEventDate: data.leadEventDate
+          ? data.leadEventDate.toISOString()
+          : null,
+        leadEventName: data.leadEventName || null,
+      };
+    } else {
+      body = {
+        type: "sale",
+        partnerId,
+        customerId: data.customerId,
+        linkId: data.linkId,
+        importStripeInvoices,
+        ...(importStripeInvoices
+          ? {
+              saleAmount: null,
+              saleEventDate: null,
+              invoiceId: null,
+              productId: null,
+            }
+          : {
+              saleAmount: data.saleAmount
+                ? Math.round(data.saleAmount * 100)
+                : null,
+              saleEventDate: data.saleEventDate
+                ? data.saleEventDate.toISOString()
+                : null,
+              invoiceId: data.invoiceId || null,
+              productId: data.productId || null,
+            }),
+      };
+    }
 
-    const leadEventDate = data.leadEventDate
-      ? new Date(data.leadEventDate).toISOString()
-      : null;
-
-    await executeAsync({
-      ...data,
-      commissionType,
-      partnerId,
-      workspaceId,
-      date,
-      amount: data.amount ? data.amount * 100 : null,
-      saleAmount: data.saleAmount ? data.saleAmount * 100 : null,
-      saleEventDate,
-      leadEventDate,
-      useExistingEvents,
+    await makeRequest("/api/commissions", {
+      method: "POST",
+      body,
+      onSuccess: async ({ message }) => {
+        toast.success(message);
+        setIsOpen(false);
+        await mutatePrefix("/api/commissions");
+      },
     });
   };
 
@@ -274,7 +324,7 @@ function CreateCommissionSheetContent({
     }
 
     if (commissionType === "sale") {
-      if (useExistingEvents) {
+      if (importStripeInvoices) {
         if (isStripeInvoicesLoading) {
           return "Loading Stripe invoices...";
         }
@@ -301,7 +351,7 @@ function CreateCommissionSheetContent({
     customerId,
     amount, // custom commission amount
     saleAmount, // sale commission amount
-    useExistingEvents,
+    importStripeInvoices,
     noStripeCustomerId,
     unimportedStripeInvoices.length,
     isStripeInvoicesLoading,
@@ -591,9 +641,9 @@ function CreateCommissionSheetContent({
                           optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm normal-case"
                           indicatorClassName="bg-white"
                           options={eventSourceOptions}
-                          selected={useExistingEvents ? "existing" : "new"}
+                          selected={importStripeInvoices ? "existing" : "new"}
                           selectAction={(value: string) =>
-                            setUseExistingEvents(value === "existing")
+                            setImportStripeInvoices(value === "existing")
                           }
                         />
                         <p className="mt-2 text-xs text-neutral-500">
@@ -601,7 +651,7 @@ function CreateCommissionSheetContent({
                             eventSourceOptions.find(
                               (option) =>
                                 option.value ===
-                                (useExistingEvents ? "existing" : "new"),
+                                (importStripeInvoices ? "existing" : "new"),
                             )?.description
                           }
                         </p>
@@ -610,7 +660,7 @@ function CreateCommissionSheetContent({
 
                     {/* Stripe invoices for sale + use existing */}
                     {customerId &&
-                      useExistingEvents &&
+                      importStripeInvoices &&
                       commissionType === "sale" && (
                         <div className="space-y-3">
                           {isStripeInvoicesLoading ? (
@@ -714,7 +764,7 @@ function CreateCommissionSheetContent({
                       )}
 
                     {customerId &&
-                      !useExistingEvents &&
+                      !importStripeInvoices &&
                       (commissionType === "lead" ? (
                         <>
                           <AnimatedSizeContainer
@@ -1007,7 +1057,7 @@ function CreateCommissionSheetContent({
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
-            disabled={isPending}
+            disabled={isSubmitting}
           />
 
           <Button
@@ -1015,7 +1065,7 @@ function CreateCommissionSheetContent({
             variant="primary"
             text={`Create commission${unimportedStripeInvoices.length > 0 ? "s" : ""}`}
             className="w-fit"
-            loading={isPending}
+            loading={isSubmitting}
             disabledTooltip={submitDisabledMessage}
           />
         </div>

@@ -6,7 +6,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, CampaignList } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { CampaignStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -22,6 +21,7 @@ import {
 } from "@dub/ui";
 import { Dots, Duplicate, LoadingCircle, Trash } from "@dub/ui/icons";
 import { fetcher, formatDateTimeSmart } from "@dub/utils";
+import { CampaignStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { Mail, Pause, Play } from "lucide-react";

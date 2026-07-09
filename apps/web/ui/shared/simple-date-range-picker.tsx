@@ -51,7 +51,6 @@ export default function SimpleDateRangePicker({
             set: {
               interval: preset.id,
             },
-            scroll: false,
           });
 
           return;
@@ -66,7 +65,6 @@ export default function SimpleDateRangePicker({
             start: range.from.toISOString(),
             end: range.to.toISOString(),
           },
-          scroll: false,
         });
       }}
       presets={(presets

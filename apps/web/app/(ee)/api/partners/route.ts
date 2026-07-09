@@ -50,25 +50,22 @@ export const GET = withWorkspace(
         country: filterOverrides.country,
       }),
     };
-    const {
-      sortBy: sortByWithOldFields,
-      includePartnerPlatforms,
-      ...parsedParams
-    } = getPartnersQuerySchemaExtended
-      .extend({
-        // add old fields for backward compatibility
-        sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
-          z.enum([
-            "clicks",
-            "leads",
-            "conversions",
-            "sales",
-            "saleAmount",
-            "totalSales",
-          ]),
-        ),
-      })
-      .parse(paramsToParse);
+    const { sortBy: sortByWithOldFields, ...parsedParams } =
+      getPartnersQuerySchemaExtended
+        .extend({
+          // add old fields for backward compatibility
+          sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
+            z.enum([
+              "clicks",
+              "leads",
+              "conversions",
+              "sales",
+              "saleAmount",
+              "totalSales",
+            ]),
+          ),
+        })
+        .parse(paramsToParse);
 
     // get the final sortBy field (replace old fields with new fields)
     const sortBy =
@@ -104,7 +101,7 @@ export const GET = withWorkspace(
       saleAmount: z.number().default(0),
     });
 
-    const responseSchema = includePartnerPlatforms
+    const responseSchema = parsedParams.includePartnerPlatforms
       ? baseSchema.extend({
           platforms: z.array(partnerPlatformSchema),
         })

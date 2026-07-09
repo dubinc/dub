@@ -6,14 +6,16 @@ import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
 import {
   createRewardSchema,
   REWARD_EVENT_COLUMN_MAPPING,
 } from "@/lib/zod/schemas/rewards";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -33,6 +35,8 @@ export const createRewardAction = authActionClient
       modifiers,
       config,
       groupId,
+      spendLimitAmount,
+      spendLimitInterval,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -41,8 +45,11 @@ export const createRewardAction = authActionClient
     });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { canUseAdvancedRewardLogic, canCreateReferralReward } =
-      getPlanCapabilities(workspace.plan);
+    const {
+      canUseAdvancedRewardLogic,
+      canSetRewardSpendLimit,
+      canCreateReferralReward,
+    } = getPlanCapabilities(workspace.plan);
 
     if (event === "referral" && !canCreateReferralReward) {
       throw new Error(
@@ -53,6 +60,12 @@ export const createRewardAction = authActionClient
     if (modifiers && !canUseAdvancedRewardLogic) {
       throw new Error(
         "Advanced reward structures are only available on the Advanced plan and above.",
+      );
+    }
+
+    if ((spendLimitAmount || spendLimitInterval) && !canSetRewardSpendLimit) {
+      throw new Error(
+        "Spend limits are only available on the Enterprise plan.",
       );
     }
 
@@ -83,6 +96,8 @@ export const createRewardAction = authActionClient
           tooltipDescription: tooltipDescription || null,
           modifiers: modifiers || Prisma.DbNull,
           config: config ?? Prisma.DbNull,
+          spendLimitAmount,
+          spendLimitInterval,
           ...(type === "flat"
             ? {
                 amountInCents,
@@ -104,16 +119,20 @@ export const createRewardAction = authActionClient
         },
       });
 
-      await tx.programEnrollment.updateMany({
-        where: {
-          groupId,
-        },
-        data: {
-          [rewardIdColumn]: reward.id,
-        },
-      });
-
       return reward;
+    });
+
+    await queueRewardProcessing({
+      event: "reward-created",
+      groupId,
+      occurredAt: new Date().toISOString(),
+      rewardSnapshot: {
+        id: reward.id,
+        event: reward.event,
+        description: formatRewardDescription(serializeReward(reward), {
+          includeEarnPrefix: false,
+        }),
+      },
     });
 
     waitUntil(

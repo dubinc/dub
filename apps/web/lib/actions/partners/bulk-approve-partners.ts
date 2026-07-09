@@ -4,10 +4,10 @@ import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
-import { triggerWorkflows } from "@/lib/cron/qstash-workflow";
+import { triggerQStashWorkflow } from "@/lib/cron/qstash-workflow";
 import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
+import { prisma } from "@/lib/prisma";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -142,9 +142,10 @@ export const bulkApprovePartnersAction = authActionClient
             })),
           ),
 
-          triggerWorkflows(
+          triggerQStashWorkflow(
             updatedEnrollments.map(({ partnerId, programId }) => ({
-              workflowId: "partner-approved",
+              workflowType: "partner-approved",
+              workflowLabel: partnerId,
               body: {
                 programId,
                 partnerId,

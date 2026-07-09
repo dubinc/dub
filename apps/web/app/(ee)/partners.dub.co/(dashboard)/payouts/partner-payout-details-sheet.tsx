@@ -16,7 +16,6 @@ import {
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
-import { PartnerPayoutMethod, PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
   CircleArrowRight,
@@ -41,6 +40,7 @@ import {
   OG_AVATAR_URL,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { PartnerPayoutMethod, PayoutStatus } from "@prisma/client";
 import { addBusinessDays, addMinutes } from "date-fns";
 import Link from "next/link";
 import { Dispatch, Fragment, SetStateAction, useMemo } from "react";
@@ -58,6 +58,8 @@ const failureTooltips: Record<PartnerPayoutMethod, string> = {
     "Payout failures are usually due to incorrect wallet configuration. Once you've [updated your account](/payouts?settings=true), you can retry the payout.",
   paypal:
     "Payout failures are usually due to incorrect PayPal account configuration. Once you've [updated your account](/payouts?settings=true), you can retry the payout.",
+  tremendous:
+    "Payout failures are usually due to an invalid gift card email or delivery issue. Once you've [updated your account](/payouts?settings=true), you can retry the payout.",
 };
 
 function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {

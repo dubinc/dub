@@ -1,4 +1,4 @@
-import { Partner, Project, User } from "@dub/prisma/client";
+import { Partner, Project, User } from "@prisma/client";
 import { type TestContext } from "vitest";
 import * as z from "zod/v4";
 import { HttpClient } from "../utils/http";

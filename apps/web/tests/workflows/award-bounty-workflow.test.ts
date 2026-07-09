@@ -1,5 +1,5 @@
 import { EnrolledPartnerProps } from "@/lib/types";
-import { Bounty } from "@dub/prisma/client";
+import { Bounty } from "@prisma/client";
 import { E2E_PARTNER_GROUP } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { randomPartnerEmail } from "../utils/helpers";

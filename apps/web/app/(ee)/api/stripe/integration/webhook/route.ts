@@ -1,8 +1,8 @@
 import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { withAxiom } from "@/lib/axiom/server";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";

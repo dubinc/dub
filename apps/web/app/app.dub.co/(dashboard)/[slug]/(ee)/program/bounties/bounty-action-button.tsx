@@ -73,52 +73,51 @@ export function BountyActionButton({
       {BountySheet}
       {deleteModal}
       <div className={className}>
-        <Popover
-          openPopover={isOpen}
-          setOpenPopover={setIsOpen}
-          content={
-            <Command tabIndex={0} loop className="focus:outline-none">
-              <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
-                <MenuItem
-                  as={Command.Item}
-                  icon={PenWriting}
-                  variant="default"
-                  onSelect={() => {
-                    setShowCreateBountySheet(true);
-                    setIsOpen(false);
-                  }}
-                >
-                  Edit bounty
-                </MenuItem>
-
-                <MenuItem
-                  as={Command.Item}
-                  icon={Trash}
-                  variant="danger"
-                  onSelect={() => {
-                    setIsOpen(false);
-                    setShowDeleteModal(true);
-                  }}
-                  disabledTooltip={
-                    totalSubmissions > 0
-                      ? "Bounties with submissions cannot be deleted."
-                      : undefined
-                  }
-                >
-                  Delete bounty
-                </MenuItem>
-              </Command.List>
-            </Command>
-          }
-          align="end"
-        >
+        <div className="flex items-center gap-2">
           <Button
             type="button"
-            className={buttonClassName || "w-auto px-1.5"}
+            text="Edit"
             variant="secondary"
-            icon={<ThreeDots className="h-4 w-4 shrink-0" />}
+            className="h-9 w-fit rounded-lg"
+            icon={<PenWriting className="size-4 shrink-0" />}
+            onClick={() => setShowCreateBountySheet(true)}
           />
-        </Popover>
+
+          <Popover
+            openPopover={isOpen}
+            setOpenPopover={setIsOpen}
+            content={
+              <Command tabIndex={0} loop className="focus:outline-none">
+                <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+                  <MenuItem
+                    as={Command.Item}
+                    icon={Trash}
+                    variant="danger"
+                    onSelect={() => {
+                      setIsOpen(false);
+                      setShowDeleteModal(true);
+                    }}
+                    disabledTooltip={
+                      totalSubmissions > 0
+                        ? "Bounties with submissions cannot be deleted."
+                        : undefined
+                    }
+                  >
+                    Delete bounty
+                  </MenuItem>
+                </Command.List>
+              </Command>
+            }
+            align="end"
+          >
+            <Button
+              type="button"
+              className={buttonClassName || "h-9 w-9 shrink-0 rounded-lg p-0"}
+              variant="secondary"
+              icon={<ThreeDots className="h-4 w-4 shrink-0" />}
+            />
+          </Popover>
+        </div>
       </div>
     </>
   );

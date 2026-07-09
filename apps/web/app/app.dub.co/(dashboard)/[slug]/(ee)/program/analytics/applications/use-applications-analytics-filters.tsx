@@ -153,7 +153,7 @@ export function useApplicationAnalyticsFilters() {
       const currentParam = searchParamsObj[key];
 
       if (!currentParam) {
-        queryParams({ set: { [key]: value }, del: "page", scroll: false });
+        queryParams({ set: { [key]: value }, del: "page" });
         return;
       }
 
@@ -163,7 +163,7 @@ export function useApplicationAnalyticsFilters() {
         const newParam = parsed.operator.includes("NOT")
           ? `-${newValues.join(",")}`
           : newValues.join(",");
-        queryParams({ set: { [key]: newParam }, del: "page", scroll: false });
+        queryParams({ set: { [key]: newParam }, del: "page" });
       }
     },
     [searchParamsObj, queryParams],
@@ -176,25 +176,25 @@ export function useApplicationAnalyticsFilters() {
 
       const parsed = parseFilterValue(currentParam);
       if (!parsed) {
-        queryParams({ del: [key, "page"], scroll: false });
+        queryParams({ del: [key, "page"] });
         return;
       }
 
       const newValues = parsed.values.filter((v) => v !== value);
       if (newValues.length === 0) {
-        queryParams({ del: [key, "page"], scroll: false });
+        queryParams({ del: [key, "page"] });
       } else {
         const newParam = parsed.operator.includes("NOT")
           ? `-${newValues.join(",")}`
           : newValues.join(",");
-        queryParams({ set: { [key]: newParam }, del: "page", scroll: false });
+        queryParams({ set: { [key]: newParam }, del: "page" });
       }
     },
     [searchParamsObj, queryParams],
   );
 
   const onRemoveFilter = useCallback(
-    (key: string) => queryParams({ del: [key, "page"], scroll: false }),
+    (key: string) => queryParams({ del: [key, "page"] }),
     [queryParams],
   );
 
@@ -202,7 +202,6 @@ export function useApplicationAnalyticsFilters() {
     () =>
       queryParams({
         del: [...FILTER_KEYS, "page"],
-        scroll: false,
       }),
     [queryParams],
   );
@@ -216,7 +215,6 @@ export function useApplicationAnalyticsFilters() {
       queryParams({
         set: { [key]: isNegated ? cleanValue : `-${cleanValue}` },
         del: "page",
-        scroll: false,
       });
     },
     [searchParamsObj, queryParams],

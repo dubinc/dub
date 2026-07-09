@@ -15,6 +15,9 @@ export function usePartnerReferral({
       ? `/api/partners/${partnerId}/referral?workspaceId=${workspaceId}`
       : null,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return {

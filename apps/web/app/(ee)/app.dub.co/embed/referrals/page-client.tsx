@@ -1,7 +1,9 @@
 "use client";
 
+import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
+import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
 import {
   DiscountProps,
   PartnerBountyProps,
@@ -9,13 +11,14 @@ import {
   ProgramEnrollmentProps,
   RewardProps,
 } from "@/lib/types";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Partner, PlatformType, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -23,13 +26,25 @@ import {
   Copy,
   Directions,
   Popover,
+  StatusBadge,
   TabSelect,
   useCopyToClipboard,
   useLocalStorage,
   Wordmark,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
-import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
+import {
+  cn,
+  getApexDomain,
+  getPrettyUrl,
+  TREMENDOUS_SUPPORTED_COUNTRIES,
+} from "@dub/utils";
+import {
+  Partner,
+  PlatformType,
+  Program,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import {
@@ -50,6 +65,7 @@ import { ReferralsEmbedLeaderboard } from "./leaderboard";
 import { ReferralsEmbedLinks } from "./links";
 import { ReferralsEmbedQuickstart } from "./quickstart";
 import { ReferralsEmbedResources } from "./resources";
+import { ReferralsEmbedSettings } from "./settings";
 import { ThemeOptions } from "./theme-options";
 import { ReferralsReferralsEmbedToken } from "./token";
 import { ReferralsEmbedLink } from "./types";
@@ -66,8 +82,19 @@ type ReferralsEmbedData = {
     | "embedData"
     | "resources"
   >;
-  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
-  partner: Pick<Partner, "id" | "name" | "email">;
+  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt"> & {
+    status: ProgramEnrollmentStatus;
+  };
+  partner: Pick<
+    Partner,
+    | "id"
+    | "name"
+    | "email"
+    | "username"
+    | "country"
+    | "tremendousEmail"
+    | "defaultPayoutMethod"
+  >;
   partnerPlatforms: Array<{
     type: PlatformType;
     identifier: string;
@@ -95,8 +122,7 @@ type ReferralsEmbedData = {
   stats: {
     clicks: number;
     leads: number;
-    sales: number;
-    saleAmount: number;
+    conversions: number;
   };
   bounties: PartnerBountyProps[];
 };
@@ -152,7 +178,7 @@ export function ReferralsEmbedPageClient({
   dynamicHeight,
 }: ReferralsEmbedPageClientProps) {
   const resources = programResourcesSchema.parse(
-    program.resources ?? { logos: [], colors: [], files: [] },
+    program.resources ?? { logos: [], colors: [], files: [], links: [] },
   );
 
   const programEmbedData = programEmbedSchema.parse(program.embedData);
@@ -161,10 +187,7 @@ export function ReferralsEmbedPageClient({
     (programEmbedData?.customTermsUrl || program.termsUrl) ?? undefined;
 
   const hasResources =
-    resources &&
-    ["logos", "colors", "files"].some(
-      (resource) => resources?.[resource]?.length,
-    );
+    resources && Object.values(resources).some((resource) => resource.length);
 
   const [showQuickstart, setShowQuickstart] = useLocalStorage(
     "referral-embed-show-quickstart",
@@ -172,6 +195,34 @@ export function ReferralsEmbedPageClient({
   );
 
   const activeBountiesCount = bounties.length;
+  const hasEmbedAccess = ACTIVE_ENROLLMENT_STATUSES.includes(
+    programEnrollment.status,
+  );
+
+  const isTremendousCountrySupported = Boolean(
+    !partner.country ||
+      TREMENDOUS_SUPPORTED_COUNTRIES.includes(partner.country),
+  );
+
+  // Show Tremendous payout settings if the partner already uses Tremendous,
+  // or hasn't selected a payout method yet and is eligible based on country.
+  const showSettingsTab =
+    TREMENDOUS_ENABLED_PROGRAM_IDS.includes(program.id) &&
+    (partner.defaultPayoutMethod === "tremendous" ||
+      (!partner.defaultPayoutMethod && isTremendousCountrySupported));
+
+  const customerRewards = useMemo(
+    () => rewards.filter((reward) => reward.event !== "referral"),
+    [rewards],
+  );
+
+  const referralRewards = useMemo(
+    () => rewards.filter((reward) => reward.event === "referral"),
+    [rewards],
+  );
+
+  const showPartnerReferralSection =
+    referralRewards.length > 0 && Boolean(partner.username);
 
   const tabs = useMemo(
     () => [
@@ -184,6 +235,7 @@ export function ReferralsEmbedPageClient({
         : ["Leaderboard"]),
       "FAQ",
       ...(hasResources ? ["Resources"] : []),
+      ...(showSettingsTab ? ["Settings"] : []),
     ],
     [
       showQuickstart,
@@ -191,6 +243,7 @@ export function ReferralsEmbedPageClient({
       group.additionalLinks,
       programEmbedData,
       hasResources,
+      showSettingsTab,
     ],
   );
 
@@ -229,6 +282,17 @@ export function ReferralsEmbedPageClient({
     ],
   );
 
+  if (!hasEmbedAccess) {
+    return (
+      <ReferralsEmbedUnapproved
+        status={programEnrollment.status}
+        programName={program.name}
+        themeOptions={themeOptions}
+        dynamicHeight={dynamicHeight}
+      />
+    );
+  }
+
   return (
     <ReferralsEmbedDataProvider value={embedData}>
       <div
@@ -244,25 +308,46 @@ export function ReferralsEmbedPageClient({
           <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
             <HeroBackground logo={group.logo} color={group.brandColor} embed />
 
-            <ReferralLinkDisplay onSelectTab={setSelectedTab} />
+            <ReferralLinkDisplay
+              termsHref={termsHref}
+              onSelectTab={setSelectedTab}
+              hasPartnerReferralReward={showPartnerReferralSection}
+            />
 
-            <div className="mt-12 sm:max-w-[50%]">
-              <div className="flex items-end justify-between">
-                <span className="text-content-emphasis text-base font-semibold leading-none">
-                  Rewards
-                </span>
-                {termsHref && (
-                  <a
-                    href={termsHref}
-                    target="_blank"
-                    className="text-content-subtle text-xs font-medium leading-none underline-offset-2 hover:underline"
-                  >
-                    View terms ↗
-                  </a>
+            <div
+              className={cn(
+                "sm:max-w-[50%]",
+                !showPartnerReferralSection && "mt-12",
+              )}
+            >
+              {!showPartnerReferralSection && (
+                <div className="flex items-end justify-between">
+                  <span className="text-content-emphasis text-base font-semibold leading-none">
+                    Rewards
+                  </span>
+                  {termsHref && (
+                    <a
+                      href={termsHref}
+                      target="_blank"
+                      className="text-content-subtle text-xs font-medium leading-none underline-offset-2 hover:underline"
+                    >
+                      View terms ↗
+                    </a>
+                  )}
+                </div>
+              )}
+              <div
+                className={cn(
+                  "text-content-emphasis relative text-lg",
+                  showPartnerReferralSection ? "mt-2" : "mt-4",
                 )}
-              </div>
-              <div className="text-content-emphasis relative mt-4 text-lg">
-                <ProgramRewardList rewards={rewards} discount={discount} />
+              >
+                <ProgramRewardList
+                  rewards={customerRewards}
+                  discount={discount}
+                  className="rounded-lg"
+                />
+
                 <ProgramRewardTerms
                   minPayoutAmount={
                     programEmbedData?.hideEarnings ? 0 : program.minPayoutAmount
@@ -275,6 +360,11 @@ export function ReferralsEmbedPageClient({
                 />
               </div>
             </div>
+
+            {showPartnerReferralSection && (
+              <PartnerReferralLinkDisplay referralRewards={referralRewards} />
+            )}
+
             {!programEmbedData?.hidePoweredByBadge && (
               <div className="mt-4 flex justify-center md:absolute md:bottom-3 md:right-3 md:mt-0">
                 <a
@@ -300,7 +390,10 @@ export function ReferralsEmbedPageClient({
           >
             <ReferralsEmbedActivity />
             {!programEmbedData?.hideEarnings && (
-              <ReferralsEmbedEarningsSummary />
+              <ReferralsEmbedEarningsSummary
+                showSettingsTab={showSettingsTab}
+                onSelectTab={setSelectedTab}
+              />
             )}
           </div>
           <div className="mt-4">
@@ -362,6 +455,8 @@ export function ReferralsEmbedPageClient({
                   <ReferralsEmbedFAQ />
                 ) : selectedTab === "Resources" ? (
                   <ReferralsEmbedResources resources={resources} />
+                ) : selectedTab === "Settings" ? (
+                  <ReferralsEmbedSettings />
                 ) : null}
               </AnimatePresence>
             </div>
@@ -373,7 +468,63 @@ export function ReferralsEmbedPageClient({
   );
 }
 
-function ReferralLinkDisplay({ onSelectTab }) {
+function ReferralsEmbedUnapproved({
+  status,
+  programName,
+  themeOptions,
+  dynamicHeight,
+}: {
+  status: ProgramEnrollmentStatus;
+  programName: string;
+  themeOptions: ThemeOptions;
+  dynamicHeight: boolean;
+}) {
+  const badge = PartnerStatusBadges[status];
+  const isPending = status === "pending";
+
+  return (
+    <div
+      style={{
+        backgroundColor: themeOptions.backgroundColor || "transparent",
+      }}
+      className={cn(
+        "flex flex-col items-center justify-center p-8 text-center",
+        !dynamicHeight && "min-h-screen",
+      )}
+    >
+      <StatusBadge
+        variant={badge.variant}
+        icon={badge.icon}
+        className="px-1.5 py-0.5"
+      >
+        {badge.label}
+      </StatusBadge>
+      <h2 className="text-content-default mt-4 text-base font-semibold">
+        {isPending ? "Application in review" : "Program unavailable"}
+      </h2>
+      <p className="text-content-subtle [&_strong]:text-content-default mt-2 max-w-sm text-balance text-sm font-medium [&_strong]:font-semibold">
+        {isPending ? (
+          <>
+            You&apos;ll be notified when <strong>{programName}</strong> has
+            finished reviewing your application.
+          </>
+        ) : (
+          "You don't have access to this program."
+        )}
+      </p>
+    </div>
+  );
+}
+
+function ReferralLinkDisplay({
+  onSelectTab,
+  termsHref,
+  hasPartnerReferralReward,
+}: {
+  onSelectTab: (tab: string) => void;
+  termsHref: string | undefined;
+  hasPartnerReferralReward: boolean;
+}) {
   const { links, group } = useReferralsEmbedData();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
@@ -441,7 +592,7 @@ function ReferralLinkDisplay({ onSelectTab }) {
           </div>
         }
         text={copied ? "Copied link" : "Copy link"}
-        className="xs:w-fit"
+        className="h-10 w-fit shrink-0 rounded-lg"
         onClick={() => copyToClipboard(partnerLink)}
       />
     );
@@ -450,31 +601,40 @@ function ReferralLinkDisplay({ onSelectTab }) {
       <Button
         text="Create a link"
         onClick={() => onSelectTab("Links")}
-        className="xs:w-fit"
+        className="h-10 w-fit shrink-0 rounded-lg"
       />
     );
   }
 
   return (
     <>
-      <span className="text-content-emphasis text-base font-semibold">
-        Referral link
-      </span>
-      <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 sm:max-w-[50%]">
+      <div className="flex items-center justify-between sm:max-w-[50%]">
+        <span className="text-content-emphasis text-base font-semibold">
+          {hasPartnerReferralReward
+            ? "Customer referral rewards"
+            : "Referral link"}
+        </span>
+        {hasPartnerReferralReward && termsHref && (
+          <a
+            href={termsHref}
+            target="_blank"
+            className="text-content-subtle text-xs font-medium leading-none underline-offset-2 hover:underline"
+          >
+            View terms ↗
+          </a>
+        )}
+      </div>
+
+      <div className="xs:flex-row xs:items-center relative mt-2 flex flex-col gap-2 sm:max-w-[50%]">
         {links.length <= 1 ? (
-          <>
-            <input
-              type="text"
-              readOnly
-              value={
-                partnerLink ? getPrettyUrl(partnerLink) : "No referral link"
-              }
-              className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
-            />
-            {actionButton}
-          </>
+          <input
+            type="text"
+            readOnly
+            value={partnerLink ? getPrettyUrl(partnerLink) : "No referral link"}
+            className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 grow rounded-lg border px-3 text-sm focus:outline-none focus:ring-0"
+          />
         ) : (
-          <>
+          <div className="min-w-0 grow">
             <Combobox
               selected={selectedOption}
               setSelected={(option) => {
@@ -507,7 +667,7 @@ function ReferralLinkDisplay({ onSelectTab }) {
               trigger={
                 <button
                   type="button"
-                  className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default flex h-10 min-w-0 shrink grow items-center gap-2 rounded-md border px-3 text-left text-sm outline-none focus:ring-neutral-500"
+                  className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default flex h-10 w-full min-w-0 items-center gap-2 rounded-lg border px-3 text-left text-sm outline-none focus:ring-0"
                 >
                   <span className="min-w-0 shrink grow truncate">
                     {partnerLink
@@ -518,15 +678,75 @@ function ReferralLinkDisplay({ onSelectTab }) {
                 </button>
               }
             />
-            {actionButton}
-          </>
+          </div>
         )}
+        {actionButton}
       </div>
 
       {partnerLink && group.linkStructure === "query" && (
         <QueryLinkStructureHelpText link={selectedLink} className="mt-1.5" />
       )}
     </>
+  );
+}
+
+function PartnerReferralLinkDisplay({
+  referralRewards,
+}: {
+  referralRewards: RewardProps[];
+}) {
+  const { partner, program } = useReferralsEmbedData();
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
+  const partnerReferralApplyLink = constructPartnerReferralLink({
+    partner,
+    program,
+  });
+
+  return (
+    <div className="mt-8 sm:max-w-[50%]">
+      <span className="text-content-emphasis text-base font-semibold leading-none">
+        Partner referral rewards
+      </span>
+
+      <div className="xs:flex-row xs:items-center relative mt-2 flex flex-col gap-2">
+        <input
+          type="text"
+          readOnly
+          value={getPrettyUrl(partnerReferralApplyLink)}
+          className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 grow rounded-lg border px-3 text-sm focus:outline-none focus:ring-0"
+        />
+        <Button
+          icon={
+            <div className="relative size-4">
+              <div
+                className={cn(
+                  "absolute inset-0 transition-[transform,opacity]",
+                  copied && "translate-y-1 opacity-0",
+                )}
+              >
+                <Copy className="size-4" />
+              </div>
+              <div
+                className={cn(
+                  "absolute inset-0 transition-[transform,opacity]",
+                  !copied && "translate-y-1 opacity-0",
+                )}
+              >
+                <Check className="size-4" />
+              </div>
+            </div>
+          }
+          text={copied ? "Copied link" : "Copy link"}
+          className="h-10 w-fit shrink-0 rounded-lg"
+          onClick={() => copyToClipboard(partnerReferralApplyLink)}
+        />
+      </div>
+
+      <div className="text-content-emphasis relative mt-2 text-lg">
+        <ProgramRewardList rewards={referralRewards} className="rounded-lg" />
+      </div>
+    </div>
   );
 }
 

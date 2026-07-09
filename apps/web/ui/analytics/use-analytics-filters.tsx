@@ -856,7 +856,7 @@ export function useAnalyticsFilters({
           return programPage
             ? `/${slug}/program/customers/${selectedCustomerId}`
             : slug
-              ? `/${slug}/customers/${selectedCustomerId}`
+              ? `/${slug}/links/customers/${selectedCustomerId}`
               : null;
         },
         options: [],
@@ -910,7 +910,6 @@ export function useAnalyticsFilters({
         if (value.length === 0) {
           queryParams({
             del: key,
-            scroll: false,
           });
         } else {
           const currentParam = searchParamsObj[key];
@@ -921,7 +920,6 @@ export function useAnalyticsFilters({
           queryParams({
             set: { [key]: newParam },
             del: "page",
-            scroll: false,
           });
         }
 
@@ -955,7 +953,6 @@ export function useAnalyticsFilters({
           queryParams({
             set: { [key]: value },
             del: "page",
-            scroll: false,
           });
         } else {
           const parsed = parseFilterParam(currentParam);
@@ -969,7 +966,6 @@ export function useAnalyticsFilters({
             queryParams({
               set: { [key]: newParam },
               del: "page",
-              scroll: false,
             });
           }
         }
@@ -987,7 +983,7 @@ export function useAnalyticsFilters({
         searchParamsObj.key &&
         !searchParamsObj.linkId
       ) {
-        queryParams({ del: ["domain", "key"], scroll: false });
+        queryParams({ del: ["domain", "key"] });
         return;
       }
 
@@ -997,14 +993,14 @@ export function useAnalyticsFilters({
 
       const parsed = parseFilterParam(currentParam);
       if (!parsed) {
-        queryParams({ del: key, scroll: false });
+        queryParams({ del: key });
         return;
       }
 
       const newValues = parsed.values.filter((v) => v !== value);
 
       if (newValues.length === 0) {
-        queryParams({ del: key, scroll: false });
+        queryParams({ del: key });
       } else {
         const newParam = parsed.operator.includes("NOT")
           ? `-${newValues.join(",")}`
@@ -1012,7 +1008,6 @@ export function useAnalyticsFilters({
 
         queryParams({
           set: { [key]: newParam },
-          scroll: false,
         });
       }
     },
@@ -1026,7 +1021,6 @@ export function useAnalyticsFilters({
         del: VALID_ANALYTICS_FILTERS.concat(["page"]).filter(
           (f) => !["interval", "start", "end"].includes(f),
         ),
-        scroll: false,
       }),
     [queryParams],
   );
@@ -1048,14 +1042,13 @@ export function useAnalyticsFilters({
       queryParams({
         set: { [key]: newParam },
         del: "page",
-        scroll: false,
       });
     },
     [searchParamsObj, queryParams],
   );
 
   const onRemoveFilter = useCallback(
-    (key) => queryParams({ del: key, scroll: false }),
+    (key) => queryParams({ del: key }),
     [queryParams],
   );
 

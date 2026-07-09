@@ -3,10 +3,10 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { getBountiesForPartner } from "@/lib/bounty/api/get-bounties-for-partner";
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import { prisma } from "@/lib/prisma";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
-import { prisma } from "@dub/prisma";
-import { Reward } from "@dub/prisma/client";
+import { Reward } from "@prisma/client";
 import { notFound } from "next/navigation";
 import * as z from "zod/v4";
 
@@ -27,6 +27,10 @@ export const getReferralsEmbedData = async (token: string) => {
           id: true,
           name: true,
           email: true,
+          username: true,
+          country: true,
+          tremendousEmail: true,
+          defaultPayoutMethod: true,
           platforms: {
             select: {
               type: true,
@@ -83,10 +87,11 @@ export const getReferralsEmbedData = async (token: string) => {
     clickReward,
     leadReward,
     saleReward,
+    referralReward,
     partnerGroup: group,
   } = programEnrollment;
 
-  const { totalClicks, totalLeads, totalSales, totalSaleAmount } =
+  const { totalClicks, totalLeads, totalConversions } =
     aggregatePartnerLinksStats(links);
 
   const [commissions, bounties] = await Promise.all([
@@ -118,10 +123,14 @@ export const getReferralsEmbedData = async (token: string) => {
       id: partner.id,
       name: partner.name,
       email: partner.email,
+      username: partner.username,
+      country: partner.country,
+      tremendousEmail: partner.tremendousEmail,
+      defaultPayoutMethod: partner.defaultPayoutMethod,
     },
     partnerPlatforms: partner.platforms,
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
-    rewards: [clickReward, leadReward, saleReward]
+    rewards: [clickReward, leadReward, saleReward, referralReward]
       .filter((r): r is Reward => r !== null)
       .map((r) => serializeReward(r)),
     discount,
@@ -138,11 +147,11 @@ export const getReferralsEmbedData = async (token: string) => {
     stats: {
       clicks: totalClicks,
       leads: totalLeads,
-      sales: totalSales,
-      saleAmount: totalSaleAmount,
+      conversions: totalConversions,
     },
     programEnrollment: {
       createdAt: programEnrollment.createdAt,
+      status: programEnrollment.status,
     },
     group: {
       id: group.id,

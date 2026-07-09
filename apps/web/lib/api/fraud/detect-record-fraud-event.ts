@@ -1,6 +1,6 @@
+import { prisma } from "@/lib/prisma";
 import { CreateFraudEventInput, FraudEventContext } from "@/lib/types";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import { prettyPrint } from "@dub/utils";
 import { fraudEventContext } from "../../zod/schemas/schemas";
 import { createFraudEvents } from "./create-fraud-events";
@@ -14,7 +14,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     console.error(
       `[detectAndRecordFraudEvent] Invalid context ${result.error}`,
     );
-    return;
+    return [];
   }
 
   const validatedContext = result.data;
@@ -25,7 +25,15 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
     console.info(
       `[detectAndRecordFraudEvent] Program enrollment is ${programEnrollment.status}, skipping...`,
     );
-    return;
+    return [];
+  }
+
+  // Skip if risk monitoring is disabled
+  if (programEnrollment.riskMonitoringDisabledAt) {
+    console.info(
+      `[detectAndRecordFraudEvent] Risk monitoring is disabled for this partner, skipping...`,
+    );
+    return [];
   }
 
   // Get program-specific rule overrides
@@ -65,7 +73,7 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
   }
 
   if (triggeredRules.length === 0) {
-    return;
+    return [];
   }
 
   console.log(
@@ -84,4 +92,6 @@ export async function detectAndRecordFraudEvent(context: FraudEventContext) {
       metadata: rule.metadata,
     })),
   );
+
+  return triggeredRules;
 }

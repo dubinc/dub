@@ -5,8 +5,8 @@ import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinne
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { InvoiceStatus } from "@dub/prisma/client";
 import {
+  Badge,
   Button,
   Filter,
   StatusBadge,
@@ -25,8 +25,9 @@ import {
   OG_AVATAR_URL,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
+import { InvoiceStatus } from "@prisma/client";
 import Link from "next/link";
-import { Fragment, Suspense, useCallback, useMemo, useState } from "react";
+import { Fragment, Suspense, useCallback, useMemo } from "react";
 import useSWR from "swr";
 
 interface TimeseriesData {
@@ -47,11 +48,29 @@ interface InvoiceData {
   total: number;
 }
 
-type Tab = {
-  id: "payouts" | "fees" | "total";
-  label: string;
-  colorClassName: string;
-};
+const payoutTabs = [
+  {
+    id: "payouts",
+    label: "Payouts",
+    colorClassName: "text-blue-500/50 bg-blue-500/50 border-blue-500",
+  },
+  {
+    id: "fees",
+    label: "Fees",
+    colorClassName: "text-red-500/50 bg-red-500/50 border-red-500",
+  },
+  {
+    id: "total",
+    label: "Total",
+    colorClassName: "text-green-500/50 bg-green-500/50 border-green-500",
+  },
+] as const;
+
+type PayoutTab = (typeof payoutTabs)[number]["id"];
+
+function isPayoutTab(value: string): value is PayoutTab {
+  return payoutTabs.some((tab) => tab.id === value);
+}
 
 export default function PayoutsPage() {
   return (
@@ -63,7 +82,8 @@ export default function PayoutsPage() {
 
 function PayoutsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
-  const { interval, start, end, status, programId } = searchParamsObj;
+  const { interval, start, end, status, programId, tab } = searchParamsObj;
+  const selectedTab = isPayoutTab(tab) ? tab : "payouts";
 
   const { data: { invoices, timeseriesData } = {}, isLoading } = useSWR<{
     invoices: InvoiceData[];
@@ -71,6 +91,41 @@ function PayoutsPageClient() {
   }>(`/api/admin/payouts${getQueryString()}`, fetcher, {
     keepPreviousData: true,
   });
+
+  const previousPeriodQueryString = useMemo(() => {
+    if (!timeseriesData || timeseriesData.length === 0) {
+      return null;
+    }
+
+    const currentStart = new Date(timeseriesData[0].date);
+    const currentEnd = new Date(timeseriesData[timeseriesData.length - 1].date);
+    const periodDurationMs = currentEnd.getTime() - currentStart.getTime();
+    const previousEnd = new Date(currentStart.getTime() - 1);
+    const previousStart = new Date(previousEnd.getTime() - periodDurationMs);
+
+    const toDateParam = (date: Date) => date.toISOString().slice(0, 10);
+
+    return getQueryString({
+      start: toDateParam(previousStart),
+      end: toDateParam(previousEnd),
+    });
+  }, [getQueryString, timeseriesData]);
+
+  const {
+    data: { timeseriesData: previousPeriodTimeseriesData } = {},
+    isLoading: isPreviousPeriodLoading,
+  } = useSWR<{
+    invoices: InvoiceData[];
+    timeseriesData: TimeseriesData[];
+  }>(
+    previousPeriodQueryString
+      ? `/api/admin/payouts${previousPeriodQueryString}`
+      : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
 
   // Extract unique programs from invoices
   const programs = useMemo(() => {
@@ -177,28 +232,8 @@ function PayoutsPageClient() {
     [queryParams],
   );
 
-  const tabs: Tab[] = [
-    {
-      id: "payouts",
-      label: "Payouts",
-      colorClassName: "text-blue-500/50 bg-blue-500/50 border-blue-500",
-    },
-    {
-      id: "fees",
-      label: "Fees",
-      colorClassName: "text-red-500/50 bg-red-500/50 border-red-500",
-    },
-    {
-      id: "total",
-      label: "Total",
-      colorClassName: "text-green-500/50 bg-green-500/50 border-green-500",
-    },
-  ];
-
-  const [selectedTab, setSelectedTab] = useState<"payouts" | "fees" | "total">(
-    "payouts",
-  );
-  const tab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
+  const tabs = payoutTabs;
+  const activeTab = tabs.find(({ id }) => id === selectedTab) ?? tabs[0];
 
   // take the last 12 months
   const chartData =
@@ -224,6 +259,43 @@ function PayoutsPageClient() {
       total: timeseriesData?.reduce((acc, { total }) => acc + total, 0) ?? 0,
     };
   }, [timeseriesData]);
+
+  const percentChanges = useMemo(() => {
+    const getPeriodTotal = (series: TimeseriesData[], key: PayoutTab) =>
+      series.reduce((acc, point) => acc + point[key], 0);
+
+    const getPercentChange = (key: PayoutTab) => {
+      if (
+        !timeseriesData ||
+        timeseriesData.length === 0 ||
+        isPreviousPeriodLoading
+      ) {
+        return 0;
+      }
+
+      if (
+        !previousPeriodTimeseriesData ||
+        previousPeriodTimeseriesData.length === 0
+      ) {
+        return 0;
+      }
+
+      const previousTotal = getPeriodTotal(previousPeriodTimeseriesData, key);
+      const currentTotal = getPeriodTotal(timeseriesData, key);
+
+      if (previousTotal === 0) {
+        return currentTotal === 0 ? 0 : 100;
+      }
+
+      return (currentTotal / previousTotal - 1) * 100;
+    };
+
+    return {
+      payouts: getPercentChange("payouts"),
+      fees: getPercentChange("fees"),
+      total: getPercentChange("total"),
+    };
+  }, [isPreviousPeriodLoading, previousPeriodTimeseriesData, timeseriesData]);
 
   const { pagination, setPagination } = usePagination();
 
@@ -370,7 +442,6 @@ function PayoutsPageClient() {
               <button
                 key={id}
                 onClick={() => {
-                  setSelectedTab(id);
                   queryParams({
                     set: { tab: id },
                   });
@@ -396,16 +467,33 @@ function PayoutsPageClient() {
                 </div>
                 <div className="mt-1 flex h-12 items-center">
                   {(totals[id] || totals[id] === 0) && !isLoading ? (
-                    <NumberFlow
-                      value={(totals[id] ?? 0) / 100}
-                      className="text-xl font-medium sm:text-3xl"
-                      format={{
-                        style: "currency",
-                        currency: "USD",
-                        // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                        trailingZeroDisplay: "stripIfInteger",
-                      }}
-                    />
+                    <div className="flex items-center gap-2">
+                      <NumberFlow
+                        value={(totals[id] ?? 0) / 100}
+                        className="text-xl font-medium sm:text-3xl"
+                        format={{
+                          style: "currency",
+                          currency: "USD",
+                          // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                          trailingZeroDisplay: "stripIfInteger",
+                        }}
+                      />
+                      {percentChanges[id] ? (
+                        <Badge
+                          variant={
+                            percentChanges[id] >= 0
+                              ? "green"
+                              : percentChanges[id] < 0
+                                ? "red"
+                                : "neutral"
+                          }
+                          className="rounded-md px-2 py-1 text-xs"
+                        >
+                          {percentChanges[id] >= 0 ? "+" : ""}
+                          {percentChanges[id].toFixed(1)}%
+                        </Badge>
+                      ) : null}
+                    </div>
                   ) : (
                     <div className="h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
                   )}
@@ -425,7 +513,7 @@ function PayoutsPageClient() {
                       id: "value",
                       valueAccessor: (d) => d.values.value,
                       isActive: true,
-                      colorClassName: tab.colorClassName,
+                      colorClassName: activeTab.colorClassName,
                     },
                   ]}
                   tooltipClassName="p-0"
@@ -445,11 +533,11 @@ function PayoutsPageClient() {
                             <div
                               className={cn(
                                 "h-2 w-2 rounded-sm shadow-[inset_0_0_0_1px_#0003]",
-                                tab.colorClassName,
+                                activeTab.colorClassName,
                               )}
                             />
                             <p className="capitalize text-neutral-600">
-                              {tab.label}
+                              {activeTab.label}
                             </p>
                           </div>
                           <p className="text-right font-medium text-neutral-900">

@@ -1,4 +1,4 @@
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@prisma/client";
 
 export const BOUNTY_SOCIAL_PLATFORMS = [
   {

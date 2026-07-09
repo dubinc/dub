@@ -1,7 +1,7 @@
+import { prisma } from "@/lib/prisma";
 import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
-import { prisma } from "@dub/prisma";
-import { Commission, CommissionType, Prisma, Reward } from "@dub/prisma/client";
 import { currencyFormatter, log, NETWORK_PROGRAM_ID } from "@dub/utils";
+import { Commission, CommissionType, Prisma, Reward } from "@prisma/client";
 import { differenceInMonths } from "date-fns";
 import { createId } from "../api/create-id";
 import { notifyPartnerCommission } from "../api/partners/notify-partner-commission";
@@ -27,7 +27,17 @@ export const createReferralCommission = async (
   const { sourceCommission, programId, partnerId, referredByPartnerId } =
     context;
 
+  if (partnerId && referredByPartnerId && partnerId === referredByPartnerId) {
+    console.log(
+      `Skipping referral commission creation for self-referral (partner ${partnerId}).`,
+    );
+    return null;
+  }
+
   if (programId === NETWORK_PROGRAM_ID) {
+    console.log(
+      `Skipping referral commission creation for network program ${programId}...`,
+    );
     return null;
   }
 
@@ -376,9 +386,9 @@ async function resolveReferralContext(props: CreateReferralCommissionProps) {
       return null;
     }
 
-    if (!["processed", "paid"].includes(sourceCommission.status)) {
+    if (!["pending", "processed", "paid"].includes(sourceCommission.status)) {
       console.log(
-        `Source commission ${sourceCommissionId} is not a processed or paid.`,
+        `Source commission ${sourceCommissionId} is not pending, processed or paid.`,
       );
       return null;
     }

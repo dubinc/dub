@@ -1,12 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import {
   fraudEventQuerySchema,
   fraudEventSchemas,
 } from "@/lib/zod/schemas/fraud";
-import { prisma } from "@dub/prisma";
-import { FraudRuleType, Prisma } from "@dub/prisma/client";
+import { FraudRuleType, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

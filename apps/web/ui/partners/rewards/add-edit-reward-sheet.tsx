@@ -9,6 +9,7 @@ import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { ReferralRewardConfig } from "@/lib/partner-referrals/types";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
+import usePartnersCount from "@/lib/swr/use-partners-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RewardConditionsArray, RewardProps } from "@/lib/types";
@@ -24,7 +25,6 @@ import {
 } from "@/lib/zod/schemas/rewards";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
-import { EventType, RewardStructure } from "@dub/prisma/client";
 import {
   BookOpen,
   Button,
@@ -38,7 +38,8 @@ import {
   useLocalStorage,
   useRouterStuff,
 } from "@dub/ui";
-import { capitalize, cn, pluralize } from "@dub/utils";
+import { capitalize, cn, currencyFormatter, pluralize } from "@dub/utils";
+import { EventType, RewardStructure } from "@prisma/client";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -56,6 +57,7 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";
+import { useConfirmRewardChangeModal } from "../../modals/confirm-reward-change-modal";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
@@ -187,6 +189,10 @@ export const getRewardPayload = ({ data }: { data: FormData }) => {
     ...amount,
     maxDuration:
       Infinity === Number(data.maxDuration) ? null : data.maxDuration,
+    spendLimitAmount:
+      data.spendLimitAmount == null || data.spendLimitInterval == null
+        ? null
+        : Math.round(Number(data.spendLimitAmount) * 100),
     modifiers,
     config,
   };
@@ -199,6 +205,16 @@ function RewardSheetContent({
   defaultRewardValues,
 }: RewardSheetProps) {
   const { group, mutateGroup } = useGroup();
+  const { partnersCount, loading, isValidating } = usePartnersCount<
+    number | undefined
+  >({
+    groupId: group?.id,
+    status: "approved",
+  });
+  const partnerCountForConfirm =
+    group?.id && !loading && !isValidating ? partnersCount : undefined;
+  const { openConfirmRewardChangeModal, ConfirmRewardChangeModal } =
+    useConfirmRewardChangeModal();
   const {
     id: workspaceId,
     slug: workspaceSlug,
@@ -231,35 +247,42 @@ function RewardSheetContent({
         defaultValuesSource?.amountInPercentage != null
           ? defaultValuesSource.amountInPercentage
           : undefined,
+      spendLimitAmount:
+        defaultValuesSource?.spendLimitAmount != null
+          ? defaultValuesSource.spendLimitAmount / 100
+          : null,
+      spendLimitInterval: defaultValuesSource?.spendLimitInterval ?? null,
       description: defaultValuesSource?.description ?? null,
       tooltipDescription: defaultValuesSource?.tooltipDescription ?? null,
-      modifiers: defaultValuesSource?.modifiers?.map((m) => {
-        const maxDuration =
-          m.maxDuration === undefined
-            ? defaultValuesSource?.maxDuration
-            : m.maxDuration;
+      modifiers: Array.isArray(defaultValuesSource?.modifiers)
+        ? defaultValuesSource.modifiers.map((m) => {
+            const maxDuration =
+              m.maxDuration === undefined
+                ? defaultValuesSource?.maxDuration
+                : m.maxDuration;
 
-        return {
-          ...m,
-          conditions: m.conditions.map((c) => ({
-            ...c,
-            value:
-              REWARD_CONDITION_ATTRIBUTES.find((a) => a.id === c.attribute)
-                ?.type === "currency" &&
-              c.value !== "" &&
-              c.value != null &&
-              !Number.isNaN(Number(c.value))
-                ? Number(c.value) / 100
-                : c.value,
-          })),
-          amountInCents:
-            m.amountInCents !== undefined && m.amountInCents !== null
-              ? m.amountInCents / 100
-              : undefined,
-          amountInPercentage: m.amountInPercentage ?? undefined,
-          maxDuration: m.maxDuration === null ? Infinity : maxDuration,
-        };
-      }),
+            return {
+              ...m,
+              conditions: m.conditions.map((c) => ({
+                ...c,
+                value:
+                  REWARD_CONDITION_ATTRIBUTES.find((a) => a.id === c.attribute)
+                    ?.type === "currency" &&
+                  c.value !== "" &&
+                  c.value != null &&
+                  !Number.isNaN(Number(c.value))
+                    ? Number(c.value) / 100
+                    : c.value,
+              })),
+              amountInCents:
+                m.amountInCents !== undefined && m.amountInCents !== null
+                  ? m.amountInCents / 100
+                  : undefined,
+              amountInPercentage: m.amountInPercentage ?? undefined,
+              maxDuration: m.maxDuration === null ? Infinity : maxDuration,
+            };
+          })
+        : undefined,
     },
   });
 
@@ -271,6 +294,8 @@ function RewardSheetContent({
     amountInPercentage,
     type,
     maxDuration,
+    spendLimitAmount,
+    spendLimitInterval,
     description,
     tooltipDescription,
     modifiers,
@@ -280,6 +305,8 @@ function RewardSheetContent({
     "amountInPercentage",
     "type",
     "maxDuration",
+    "spendLimitAmount",
+    "spendLimitInterval",
     "description",
     "tooltipDescription",
     "modifiers",
@@ -287,6 +314,17 @@ function RewardSheetContent({
 
   // Compute amount based on type
   const amount = type === "flat" ? amountInCents : amountInPercentage;
+  const {
+    canCreateReferralReward,
+    canSetRewardSpendLimit,
+    canUseAdvancedRewardLogic,
+  } = getPlanCapabilities(plan);
+  const spendLimitEnabled =
+    canSetRewardSpendLimit && spendLimitInterval != null;
+  const hasIncompleteMainSpendLimit =
+    canSetRewardSpendLimit &&
+    spendLimitInterval != null &&
+    (spendLimitAmount == null || isNaN(spendLimitAmount));
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -307,7 +345,7 @@ function RewardSheetContent({
     updateRewardAction,
     {
       onSuccess: async () => {
-        queryParams({ del: "rewardId", scroll: false });
+        queryParams({ del: "rewardId" });
         toast.success("Reward updated!");
         await mutateProgram();
         await mutateGroup();
@@ -334,19 +372,15 @@ function RewardSheetContent({
   );
 
   const [showAdvancedUpsell, setShowAdvancedUpsell] = useState(false);
-  const showReferralUpsell =
-    event === "referral" && !getPlanCapabilities(plan).canCreateReferralReward;
+  const showReferralUpsell = event === "referral" && !canCreateReferralReward;
 
   useEffect(() => {
-    if (
-      modifiers?.length &&
-      !getPlanCapabilities(plan).canUseAdvancedRewardLogic
-    ) {
+    if (modifiers?.length && !canUseAdvancedRewardLogic) {
       setShowAdvancedUpsell(true);
     } else {
       setShowAdvancedUpsell(false);
     }
-  }, [modifiers, plan]);
+  }, [modifiers, canUseAdvancedRewardLogic]);
 
   const onSubmit = async (data: FormData) => {
     if (
@@ -378,299 +412,421 @@ function RewardSheetContent({
       return;
     }
 
-    if (!reward) {
-      await createReward({
-        ...payload,
-        groupId: group.id,
-      });
-    } else {
-      await updateReward({
-        ...payload,
-        rewardId: reward.id,
-      });
-    }
+    openConfirmRewardChangeModal({
+      action: reward ? "updated" : "created",
+      event,
+      reward: payload!,
+      partnerCount: partnerCountForConfirm,
+      isPending: isCreating || isUpdating,
+      onConfirm: async () => {
+        if (!reward) {
+          await createReward({
+            ...payload!,
+            groupId: group.id,
+          });
+        } else {
+          await updateReward({
+            ...payload!,
+            rewardId: reward.id,
+          });
+        }
+      },
+    });
   };
 
-  const onDelete = async () => {
+  const onDelete = () => {
     if (!workspaceId || !defaultProgramId || !reward) {
       return;
     }
 
-    if (!window.confirm("Are you sure you want to delete this reward?")) {
-      return;
-    }
-
-    await deleteReward({
-      workspaceId,
-      rewardId: reward.id,
+    openConfirmRewardChangeModal({
+      action: "deleted",
+      event: reward.event,
+      reward,
+      partnerCount: partnerCountForConfirm,
+      isPending: isDeleting,
+      onConfirm: async () => {
+        await deleteReward({
+          workspaceId,
+          rewardId: reward.id,
+        });
+      },
     });
   };
 
   return (
-    <FormProvider {...form}>
-      <form
-        ref={formRef}
-        onSubmit={handleSubmit(onSubmit)}
-        className="flex h-full flex-col"
-      >
-        <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
-          <Sheet.Title className="text-lg font-semibold">
-            {reward ? "Edit" : "Create"} {selectedEvent} reward
-          </Sheet.Title>
-          <Sheet.Close asChild>
-            <Button
-              variant="outline"
-              icon={<X className="size-5" />}
-              className="h-auto w-fit p-1"
-            />
-          </Sheet.Close>
-        </div>
-
-        <div className="flex flex-1 flex-col overflow-y-auto p-6">
-          {!reward && <RewardHelperBlock event={event} />}
-          <RewardSheetCard
-            title={
-              <div className="w-full">
-                <div className="flex min-w-0 items-center justify-between">
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <RewardIconSquare icon={MoneyBills2} />
-                    {selectedEvent === "referral" ? (
-                      <PartnerReferralRewardBuilder />
-                    ) : (
-                      <span className="leading-relaxed">
-                        Pay{" "}
-                        {selectedEvent === "sale" && (
-                          <>
-                            a{" "}
-                            <InlineBadgePopover text={capitalize(type)}>
-                              <InlineBadgePopoverMenu
-                                selectedValue={type}
-                                onSelect={(value) =>
-                                  setValue("type", value as RewardStructure, {
-                                    shouldDirty: true,
-                                  })
-                                }
-                                items={REWARD_TYPES}
-                              />
-                            </InlineBadgePopover>{" "}
-                            {type === "percentage" && "of "}
-                          </>
-                        )}
-                        <InlineBadgePopover
-                          text={
-                            amount != null && !isNaN(amount)
-                              ? constructRewardAmount({
-                                  type,
-                                  maxDuration,
-                                  amountInCents:
-                                    type === "flat" ? amount * 100 : undefined,
-                                  amountInPercentage:
-                                    type === "percentage" ? amount : undefined,
-                                })
-                              : "amount"
-                          }
-                          invalid={amount == null || isNaN(amount)}
-                        >
-                          <AmountInput />
-                        </InlineBadgePopover>{" "}
-                        per {selectedEvent}
-                        {selectedEvent === "sale" && (
-                          <>
-                            {" "}
-                            <InlineBadgePopover
-                              text={
-                                maxDuration === 0
-                                  ? "one time"
-                                  : maxDuration === Infinity
-                                    ? "for the customer's lifetime"
-                                    : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
-                              }
-                            >
-                              <DurationPopoverContent
-                                value={Number(maxDuration)}
-                                onChange={(value) =>
-                                  setValue("maxDuration", value, {
-                                    shouldDirty: true,
-                                  })
-                                }
-                                presetDurations={RECURRING_MAX_DURATIONS.filter(
-                                  (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
-                                )}
-                              />
-                            </InlineBadgePopover>
-                          </>
-                        )}
-                        {modifiers?.length ? (
-                          <> for all other {selectedEvent}s</>
-                        ) : null}
-                      </span>
-                    )}
-                  </div>
-                  <Tooltip
-                    content={"Add a custom reward description"}
-                    disabled={description !== null}
-                  >
-                    <div className="shrink-0">
-                      <Button
-                        variant="secondary"
-                        className={cn(
-                          "size-7 p-0",
-                          description !== null && "text-blue-600",
-                        )}
-                        icon={<Pen2 className="size-3.5" />}
-                        onClick={() =>
-                          setValue(
-                            "description",
-                            description === null ? "" : null,
-                            { shouldDirty: true },
-                          )
-                        }
-                      />
-                    </div>
-                  </Tooltip>
-                </div>
-                <motion.div
-                  initial={false}
-                  transition={{ ease: "easeInOut", duration: 0.2 }}
-                  animate={{
-                    height: description !== null ? "auto" : 0,
-                    opacity: description !== null ? 1 : 0,
-                  }}
-                  className="-mx-2.5 overflow-hidden"
-                >
-                  <div className="pt-2.5">
-                    <div className="border-border-subtle flex min-w-0 items-center gap-2.5 border-t px-2.5 pt-2.5">
-                      <RewardIconSquare icon={Gift} />
-                      <span className="min-w-0 grow leading-relaxed">
-                        Shown as{" "}
-                        <InlineBadgePopover
-                          text={description || "Reward description"}
-                          invalid={!description}
-                        >
-                          <InlineBadgePopoverInput
-                            value={description ?? ""}
-                            onChange={(e) =>
-                              setValue(
-                                "description",
-                                (e.target as HTMLInputElement).value,
-                                {
-                                  shouldDirty: true,
-                                },
-                              )
-                            }
-                            className="sm:w-80"
-                            maxLength={REWARD_DESCRIPTION_MAX_LENGTH}
-                          />
-                        </InlineBadgePopover>{" "}
-                        with the tooltip{" "}
-                        <InlineBadgePopover
-                          text={tooltipDescription || "Reward tooltip"}
-                          showOptional={!tooltipDescription}
-                          buttonClassName="min-w-0 max-w-full"
-                          contentClassName="truncate"
-                        >
-                          <InlineBadgePopoverRichTextArea
-                            value={tooltipDescription ?? ""}
-                            onChange={(value) =>
-                              setValue("tooltipDescription", value, {
-                                shouldDirty: true,
-                              })
-                            }
-                            className="sm:w-80"
-                            maxLength={REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH}
-                          />
-                        </InlineBadgePopover>
-                      </span>
-                      <Button
-                        variant="outline"
-                        className="size-6 shrink-0 p-0"
-                        icon={<X className="size-3" strokeWidth={2} />}
-                        onClick={() => {
-                          setValue("description", null, { shouldDirty: true });
-                          setValue("tooltipDescription", null, {
-                            shouldDirty: true,
-                          });
-                        }}
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-            }
-            content={
-              selectedEvent === "referral" ? null : (
-                <RewardsLogic isDefaultReward={false} />
-              )
-            }
-          />
-
-          <VerticalLine />
-          <RewardPreviewCard />
-
-          {group && (
-            <>
-              <VerticalLine />
-              <RewardDiscountPartnersCard groupId={group.id} />
-            </>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between border-t border-neutral-200 p-5">
-          <div>
-            {reward && (
+    <>
+      {ConfirmRewardChangeModal}
+      <FormProvider {...form}>
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex h-full flex-col"
+        >
+          <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
+            <Sheet.Title className="text-lg font-semibold">
+              {reward ? "Edit" : "Create"} {selectedEvent} reward
+            </Sheet.Title>
+            <Sheet.Close asChild>
               <Button
-                type="button"
                 variant="outline"
-                text="Remove reward"
-                className="h-9 w-fit"
-                onClick={onDelete}
-                loading={isDeleting}
-                disabled={isCreating || isUpdating}
+                icon={<X className="size-5" />}
+                className="h-auto w-fit p-1"
               />
+            </Sheet.Close>
+          </div>
+
+          <div className="flex flex-1 flex-col overflow-y-auto p-6">
+            {!reward && <RewardHelperBlock event={event} />}
+            <RewardSheetCard
+              title={
+                <div className="w-full">
+                  <div className="flex min-w-0 items-center justify-between">
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <RewardIconSquare icon={MoneyBills2} />
+                      {selectedEvent === "referral" ? (
+                        <PartnerReferralRewardBuilder />
+                      ) : (
+                        <span className="leading-relaxed">
+                          Pay{" "}
+                          {selectedEvent === "sale" && (
+                            <>
+                              a{" "}
+                              <InlineBadgePopover text={capitalize(type)}>
+                                <InlineBadgePopoverMenu
+                                  selectedValue={type}
+                                  onSelect={(value) =>
+                                    setValue("type", value as RewardStructure, {
+                                      shouldDirty: true,
+                                    })
+                                  }
+                                  items={REWARD_TYPES}
+                                />
+                              </InlineBadgePopover>{" "}
+                              {type === "percentage" && "of "}
+                            </>
+                          )}
+                          <InlineBadgePopover
+                            text={
+                              amount != null && !isNaN(amount)
+                                ? constructRewardAmount({
+                                    type,
+                                    maxDuration,
+                                    amountInCents:
+                                      type === "flat"
+                                        ? amount * 100
+                                        : undefined,
+                                    amountInPercentage:
+                                      type === "percentage"
+                                        ? amount
+                                        : undefined,
+                                  })
+                                : "amount"
+                            }
+                            invalid={amount == null || isNaN(amount)}
+                          >
+                            <AmountInput />
+                          </InlineBadgePopover>{" "}
+                          per {selectedEvent}
+                          {selectedEvent === "sale" && (
+                            <>
+                              {" "}
+                              <InlineBadgePopover
+                                text={
+                                  maxDuration === 0
+                                    ? "one time"
+                                    : maxDuration === Infinity
+                                      ? "for the customer's lifetime"
+                                      : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
+                                }
+                              >
+                                <DurationPopoverContent
+                                  value={Number(maxDuration)}
+                                  onChange={(value) =>
+                                    setValue("maxDuration", value, {
+                                      shouldDirty: true,
+                                    })
+                                  }
+                                  presetDurations={RECURRING_MAX_DURATIONS.filter(
+                                    (v) => v !== 0 && v !== 1, // filter out one-time and 1-month intervals (we only use 1-month for discounts)
+                                  )}
+                                />
+                              </InlineBadgePopover>
+                            </>
+                          )}
+                          {modifiers?.length ? (
+                            <> for all other {selectedEvent}s</>
+                          ) : null}
+                          {canSetRewardSpendLimit ? (
+                            <>
+                              {", "}with{" "}
+                              <InlineBadgePopover
+                                text={
+                                  spendLimitEnabled
+                                    ? "a spend limit of"
+                                    : "no spend limit"
+                                }
+                              >
+                                <InlineBadgePopoverMenu
+                                  selectedValue={
+                                    spendLimitEnabled ? "limit" : "none"
+                                  }
+                                  onSelect={(value) => {
+                                    if (value === "none") {
+                                      setValue("spendLimitAmount", null, {
+                                        shouldDirty: true,
+                                      });
+                                      setValue("spendLimitInterval", null, {
+                                        shouldDirty: true,
+                                      });
+                                    } else {
+                                      setValue(
+                                        "spendLimitInterval",
+                                        spendLimitInterval ?? "allTime",
+                                        {
+                                          shouldDirty: true,
+                                        },
+                                      );
+                                    }
+                                  }}
+                                  items={[
+                                    { text: "no spend limit", value: "none" },
+                                    {
+                                      text: "a spend limit of",
+                                      value: "limit",
+                                    },
+                                  ]}
+                                />
+                              </InlineBadgePopover>{" "}
+                              {spendLimitEnabled ? (
+                                <>
+                                  <InlineBadgePopover
+                                    text={
+                                      spendLimitAmount != null &&
+                                      !isNaN(spendLimitAmount)
+                                        ? currencyFormatter(
+                                            spendLimitAmount * 100,
+                                            {
+                                              trailingZeroDisplay:
+                                                "stripIfInteger",
+                                            },
+                                          )
+                                        : "amount"
+                                    }
+                                    invalid={
+                                      spendLimitAmount == null ||
+                                      isNaN(spendLimitAmount)
+                                    }
+                                  >
+                                    <SpendLimitAmountInput />
+                                  </InlineBadgePopover>{" "}
+                                  <InlineBadgePopover
+                                    text={
+                                      spendLimitInterval === "allTime"
+                                        ? "all-time"
+                                        : `per ${spendLimitInterval}`
+                                    }
+                                  >
+                                    <InlineBadgePopoverMenu
+                                      selectedValue={
+                                        spendLimitInterval ?? "allTime"
+                                      }
+                                      onSelect={(value) =>
+                                        setValue(
+                                          "spendLimitInterval",
+                                          value as any,
+                                          {
+                                            shouldDirty: true,
+                                          },
+                                        )
+                                      }
+                                      items={[
+                                        { text: "all-time", value: "allTime" },
+                                        { text: "per day", value: "day" },
+                                        { text: "per week", value: "week" },
+                                        { text: "per month", value: "month" },
+                                      ]}
+                                    />
+                                  </InlineBadgePopover>
+                                </>
+                              ) : null}
+                            </>
+                          ) : null}
+                        </span>
+                      )}
+                    </div>
+                    <Tooltip
+                      content={"Add a custom reward description"}
+                      disabled={description !== null}
+                    >
+                      <div className="shrink-0">
+                        <Button
+                          variant="secondary"
+                          className={cn(
+                            "size-7 p-0",
+                            description !== null && "text-blue-600",
+                          )}
+                          icon={<Pen2 className="size-3.5" />}
+                          onClick={() =>
+                            setValue(
+                              "description",
+                              description === null ? "" : null,
+                              { shouldDirty: true },
+                            )
+                          }
+                        />
+                      </div>
+                    </Tooltip>
+                  </div>
+                  <motion.div
+                    initial={false}
+                    transition={{ ease: "easeInOut", duration: 0.2 }}
+                    animate={{
+                      height: description !== null ? "auto" : 0,
+                      opacity: description !== null ? 1 : 0,
+                    }}
+                    className="-mx-2.5 overflow-hidden"
+                  >
+                    <div className="pt-2.5">
+                      <div className="border-border-subtle flex min-w-0 items-center gap-2.5 border-t px-2.5 pt-2.5">
+                        <RewardIconSquare icon={Gift} />
+                        <span className="min-w-0 grow leading-relaxed">
+                          Shown as{" "}
+                          <InlineBadgePopover
+                            text={description || "Reward description"}
+                            invalid={!description}
+                          >
+                            <InlineBadgePopoverInput
+                              value={description ?? ""}
+                              onChange={(e) =>
+                                setValue(
+                                  "description",
+                                  (e.target as HTMLInputElement).value,
+                                  {
+                                    shouldDirty: true,
+                                  },
+                                )
+                              }
+                              className="sm:w-80"
+                              maxLength={REWARD_DESCRIPTION_MAX_LENGTH}
+                            />
+                          </InlineBadgePopover>{" "}
+                          with the tooltip{" "}
+                          <InlineBadgePopover
+                            text={tooltipDescription || "Reward tooltip"}
+                            showOptional={!tooltipDescription}
+                            buttonClassName="min-w-0 max-w-full"
+                            contentClassName="truncate"
+                          >
+                            <InlineBadgePopoverRichTextArea
+                              value={tooltipDescription ?? ""}
+                              onChange={(value) =>
+                                setValue("tooltipDescription", value, {
+                                  shouldDirty: true,
+                                })
+                              }
+                              className="sm:w-80"
+                              maxLength={REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH}
+                            />
+                          </InlineBadgePopover>
+                        </span>
+                        <Button
+                          variant="outline"
+                          className="size-6 shrink-0 p-0"
+                          icon={<X className="size-3" strokeWidth={2} />}
+                          onClick={() => {
+                            setValue("description", null, {
+                              shouldDirty: true,
+                            });
+                            setValue("tooltipDescription", null, {
+                              shouldDirty: true,
+                            });
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+              }
+              content={
+                selectedEvent === "referral" ? null : (
+                  <RewardsLogic isDefaultReward={false} />
+                )
+              }
+            />
+
+            <VerticalLine />
+            <RewardPreviewCard />
+
+            {group && (
+              <>
+                <VerticalLine />
+                <RewardDiscountPartnersCard groupId={group.id} />
+              </>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setIsOpen(false)}
-              text="Cancel"
-              className="h-9 w-fit"
-              disabled={isCreating || isUpdating || isDeleting}
-            />
+          <div className="flex items-center justify-between border-t border-neutral-200 p-5">
+            <div>
+              {reward && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  text="Remove reward"
+                  className="h-9 w-fit"
+                  onClick={onDelete}
+                  loading={isDeleting}
+                  disabled={isCreating || isUpdating}
+                />
+              )}
+            </div>
 
-            <Button
-              type="submit"
-              variant="primary"
-              text={reward ? "Update reward" : "Create reward"}
-              className="h-9 w-fit"
-              loading={isCreating || isUpdating}
-              disabled={
-                amount == null || isDeleting || isCreating || isUpdating
-              }
-              disabledTooltip={
-                showReferralUpsell ? (
-                  <TooltipContent
-                    title="Referral rewards are only available on the Advanced plan and above."
-                    cta="Upgrade to Advanced"
-                    href={`/${workspaceSlug}/upgrade?plan=advanced&showPartnersUpgradeModal=true`}
-                    target="_blank"
-                  />
-                ) : showAdvancedUpsell ? (
-                  <TooltipContent
-                    title="[Advanced reward structures](https://dub.co/help/article/partner-rewards#adding-reward-conditions) are only available on the Advanced plan and above."
-                    cta="Upgrade to Advanced"
-                    href={`/${workspaceSlug}/upgrade?plan=advanced&showPartnersUpgradeModal=true`}
-                    target="_blank"
-                  />
-                ) : undefined
-              }
-            />
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setIsOpen(false)}
+                text="Cancel"
+                className="h-9 w-fit"
+                disabled={isCreating || isUpdating || isDeleting}
+              />
+
+              <Button
+                type="submit"
+                variant="primary"
+                text={reward ? "Update reward" : "Create reward"}
+                className="h-9 w-fit"
+                loading={isCreating || isUpdating}
+                disabled={
+                  amount == null ||
+                  hasIncompleteMainSpendLimit ||
+                  isDeleting ||
+                  isCreating ||
+                  isUpdating
+                }
+                disabledTooltip={
+                  showReferralUpsell ? (
+                    <TooltipContent
+                      title="Referral rewards are only available on the Advanced plan and above."
+                      cta="Upgrade to Advanced"
+                      href={`/${workspaceSlug}/upgrade?plan=advanced&showPartnersUpgradeModal=true`}
+                      target="_blank"
+                    />
+                  ) : showAdvancedUpsell ? (
+                    <TooltipContent
+                      title="[Advanced reward structures](https://dub.co/help/article/partner-rewards#adding-reward-conditions) are only available on the Advanced plan and above."
+                      cta="Upgrade to Advanced"
+                      href={`/${workspaceSlug}/upgrade?plan=advanced&showPartnersUpgradeModal=true`}
+                      target="_blank"
+                    />
+                  ) : undefined
+                }
+              />
+            </div>
           </div>
-        </div>
-      </form>
-    </FormProvider>
+        </form>
+      </FormProvider>
+    </>
   );
 }
 
@@ -808,6 +964,40 @@ function AmountInput() {
   );
 }
 
+function SpendLimitAmountInput() {
+  const { register } = useAddEditRewardForm();
+  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  return (
+    <div className="relative rounded-md shadow-sm">
+      <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
+        $
+      </span>
+      <input
+        className="block w-full rounded-md border-neutral-300 px-1.5 py-1 pl-4 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm"
+        {...register("spendLimitAmount", {
+          required: true,
+          setValueAs: (value: string) => (value === "" ? null : +value),
+          min: 1,
+          onChange: handleMoneyInputChange,
+        })}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            setIsOpen(false);
+            return;
+          }
+
+          handleMoneyKeyDown(e);
+        }}
+      />
+      <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
+        USD
+      </span>
+    </div>
+  );
+}
+
 export function RewardSheet({
   isOpen,
   nested,
@@ -823,7 +1013,7 @@ export function RewardSheet({
       open={isOpen}
       onOpenChange={rest.setIsOpen}
       nested={nested}
-      onClose={() => queryParams({ del: "rewardId", scroll: false })}
+      onClose={() => queryParams({ del: "rewardId" })}
     >
       <RewardSheetContent {...rest} />
     </Sheet>

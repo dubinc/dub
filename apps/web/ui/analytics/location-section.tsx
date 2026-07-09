@@ -47,11 +47,10 @@ export function LocationSection() {
   const onApplyFilterValues = useCallback(
     (values: string[]) => {
       if (values.length === 0) {
-        queryParams({ del: singularTabName, scroll: false });
+        queryParams({ del: singularTabName });
       } else {
         queryParams({
           set: { [singularTabName]: values.join(",") },
-          scroll: false,
         });
       }
       setSelectedItems([]);

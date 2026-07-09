@@ -1,5 +1,7 @@
 import { OG_AVATAR_URL, R2_URL, fetchWithTimeout } from "@dub/utils";
 import { AwsClient } from "aws4fetch";
+import { promises as dns } from "dns";
+import { isIP } from "net";
 
 interface imageOptions {
   contentType?: string;
@@ -213,6 +215,48 @@ class StorageClient {
     }
   }
 
+  private async assertSafeUrl(url: string): Promise<void> {
+    const { hostname, protocol } = new URL(url);
+
+    if (protocol !== "http:" && protocol !== "https:") {
+      throw new Error("Only http and https URLs are allowed.");
+    }
+
+    let address: string;
+    if (isIP(hostname) !== 0) {
+      address = hostname;
+    } else {
+      const result = await dns.lookup(hostname);
+      address = result.address;
+    }
+
+    const addr = address.toLowerCase();
+    const mappedIPv4 = addr.startsWith("::ffff:");
+    const parts = (mappedIPv4 ? addr.slice("::ffff:".length) : address)
+      .split(".")
+      .map(Number);
+    const isPrivateIPv4 =
+      parts.length === 4 &&
+      (parts[0] === 127 || // loopback 127.0.0.0/8
+        parts[0] === 10 || // private 10.0.0.0/8
+        (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) || // private 172.16.0.0/12
+        (parts[0] === 192 && parts[1] === 168) || // private 192.168.0.0/16
+        (parts[0] === 169 && parts[1] === 254) || // link-local 169.254.0.0/16
+        parts[0] === 0); // unspecified 0.0.0.0/8
+
+    const isPrivateIPv6 =
+      addr === "::1" || // loopback
+      addr === "::" || // unspecified
+      mappedIPv4 || // IPv4-mapped IPv6, e.g. ::ffff:127.0.0.1
+      addr.startsWith("fc") || // unique local fc00::/7
+      addr.startsWith("fd") || // unique local fc00::/7
+      /^fe[89ab]/.test(addr); // link-local fe80::/10
+
+    if (isPrivateIPv4 || isPrivateIPv6) {
+      throw new Error("URL resolves to a private or internal IP address.");
+    }
+  }
+
   private async urlToBlob(url: string, opts?: imageOptions): Promise<Blob> {
     let response: Response;
     if (opts?.height || opts?.width) {
@@ -224,10 +268,12 @@ class StorageClient {
         proxyUrl.searchParams.set("fit", "cover");
         response = await fetchWithTimeout(proxyUrl.toString());
       } catch (error) {
-        response = await fetch(url);
+        await this.assertSafeUrl(url);
+        response = await fetch(url, { redirect: "error" });
       }
     } else {
-      response = await fetch(url);
+      await this.assertSafeUrl(url);
+      response = await fetch(url, { redirect: "error" });
     }
     if (!response.ok) {
       throw new Error(`Failed to fetch URL: ${response.statusText}`);

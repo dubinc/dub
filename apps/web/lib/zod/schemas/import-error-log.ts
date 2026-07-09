@@ -3,7 +3,13 @@ import * as z from "zod/v4";
 export const importErrorLogSchema = z.object({
   workspace_id: z.string(),
   import_id: z.string(),
-  source: z.enum(["rewardful", "tolt", "partnerstack", "firstpromoter"]),
+  source: z.enum([
+    "rewardful",
+    "tolt",
+    "partnerstack",
+    "firstpromoter",
+    "tapfiliate",
+  ]),
   entity: z.enum(["partner", "link", "customer", "commission"]),
   entity_id: z.string(),
   code: z.enum([

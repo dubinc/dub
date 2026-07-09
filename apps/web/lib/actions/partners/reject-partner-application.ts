@@ -19,7 +19,7 @@ export const rejectPartnerApplicationAction = authActionClient
       partnerId,
       rejectionReason,
       rejectionNote,
-      allowImmediateReapply,
+      reapplicationTimeframe,
       flagForFraud,
       flagForFraudReason,
     } = parsedInput;
@@ -34,7 +34,7 @@ export const rejectPartnerApplicationAction = authActionClient
       partnerId,
       rejectionReason,
       rejectionNote,
-      allowImmediateReapply,
+      reapplicationTimeframe,
       flagForFraud,
       flagForFraudReason,
       userId: user.id,

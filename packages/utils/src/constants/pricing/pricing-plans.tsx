@@ -472,7 +472,7 @@ export const PLANS: PlanDetails[] = [
       },
       {
         id: "slack",
-        text: "Priority Slack support",
+        text: "Priority email support",
       },
     ] as PlanFeature[],
   },
@@ -576,7 +576,8 @@ export const getPlanDetails = ({
   planTier?: number;
 }) => {
   const planDetails = PLANS.find(
-    (p) => p.name.toLowerCase() === plan.toLowerCase(),
+    // to account for old Business plans (e.g. "Business Plus")
+    (p) => p.name.toLowerCase() === plan.split(" ")[0].toLowerCase(),
   )!;
 
   return enrichPlanWithTierData(planDetails, planTier);
@@ -584,7 +585,8 @@ export const getPlanDetails = ({
 
 export const getNextPlan = (plan?: string | null) => {
   if (!plan) return PRO_PLAN;
-  const currentPlan = plan.toLowerCase().split(" ")[0]; // to account for old Business plans (e.g. "Business Plus")
+  // to account for old Business plans (e.g. "Business Plus")
+  const currentPlan = plan.toLowerCase().split(" ")[0];
   return PLANS[
     Math.min(
       // returns the next plan, or the last plan if the current plan is the last plan

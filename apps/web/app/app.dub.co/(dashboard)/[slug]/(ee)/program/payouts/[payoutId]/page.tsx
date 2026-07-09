@@ -1,15 +1,9 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePayout } from "@/lib/swr/use-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  CommissionResponse,
-  FraudGroupCountByPartner,
-  PayoutResponse,
-} from "@/lib/types";
+import { CommissionResponse, PayoutResponse } from "@/lib/types";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -24,7 +18,6 @@ import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
   ChevronRight,
@@ -48,6 +41,7 @@ import {
   formatDateTimeSmart,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { PayoutStatus } from "@prisma/client";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { useMemo } from "react";
@@ -58,6 +52,8 @@ type PayoutActivityItem = {
   timestamp: string | Date | null;
   user?: PayoutResponse["user"];
 };
+
+const terminalStatuses = ["completed", "sent", "failed", "canceled"] as const;
 
 export default function PayoutDetailsPage() {
   const { slug, id: workspaceId } = useWorkspace();
@@ -281,13 +277,6 @@ function PayoutDetailsContent({
       });
     }
 
-    const terminalStatuses = [
-      "completed",
-      "sent",
-      "failed",
-      "canceled",
-      "hold",
-    ] as const;
     const terminalStatus = terminalStatuses.find((s) => s === payout.status);
 
     if (terminalStatus) {
@@ -481,26 +470,9 @@ function PayoutDetailsskeleton() {
 }
 
 function PayoutConfirmButton() {
-  const { slug, role, plan } = useWorkspace();
+  const { slug, role } = useWorkspace();
   const { payout } = usePayout();
   const router = useRouter();
-
-  const { canManageFraudEvents } = getPlanCapabilities(plan);
-
-  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
-    ignoreParams: true,
-    enabled: !!payout?.partner?.id,
-    query: {
-      groupBy: "partnerId",
-      status: "pending",
-      ...(payout?.partner?.id && { partnerId: payout.partner.id }),
-    },
-  });
-
-  const hasHold =
-    payout?.status === "pending" &&
-    canManageFraudEvents &&
-    (fraudGroupCount?.length ?? 0) > 0;
 
   const { error: _permissionsError } = clientAccessCheck({
     action: "payouts.write",
@@ -510,20 +482,12 @@ function PayoutConfirmButton() {
   const permissionsError =
     typeof _permissionsError === "string" ? _permissionsError : null;
 
-  useKeyboardShortcut(
-    "c",
-    () =>
-      router.push(
-        `/${slug}/program/payouts?confirmPayouts=true&selectedPayoutId=${payout?.id}`,
-      ),
-    {
-      enabled:
-        !hasHold &&
-        !!payout?.id &&
-        !!payout.partner.payoutsEnabledAt &&
-        !permissionsError,
-    },
-  );
+  const url = `/${slug}/program/payouts?status=pending&confirmPayouts=true&selectedPayoutIds=${payout?.id}`;
+
+  useKeyboardShortcut("c", () => router.push(url), {
+    enabled:
+      !!payout?.id && !!payout.partner.payoutsEnabledAt && !permissionsError,
+  });
 
   if (payout?.status !== "pending") {
     return null;
@@ -531,23 +495,18 @@ function PayoutConfirmButton() {
 
   return (
     <div className="flex items-center gap-2">
-      <Button
-        text="Confirm payout"
-        className="h-8 px-3 sm:h-9"
-        shortcut="C"
-        disabledTooltip={
-          hasHold
-            ? `This partner's payouts are on hold due to [unresolved fraud events](${APP_DOMAIN}/${slug}/program/fraud?partnerId=${payout.partner.id}). They cannot be paid out until resolved.`
-            : !payout.partner.payoutsEnabledAt
+      <Link href={url}>
+        <Button
+          text="Confirm payout"
+          className="h-8 px-3 sm:h-9"
+          shortcut="C"
+          disabledTooltip={
+            !payout.partner.payoutsEnabledAt
               ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
               : permissionsError || undefined
-        }
-        onClick={() => {
-          router.push(
-            `/${slug}/program/payouts?confirmPayouts=true&selectedPayoutId=${payout.id}`,
-          );
-        }}
-      />
+          }
+        />
+      </Link>
     </div>
   );
 }

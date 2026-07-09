@@ -11,7 +11,7 @@ export const POST = withWorkspace(
       partnerId,
       rejectionReason,
       rejectionNote,
-      allowImmediateReapply,
+      reapplicationTimeframe,
       flagForFraud,
       flagForFraudReason,
     } = rejectPartnerSchema.parse(await parseRequestBody(req));
@@ -21,7 +21,7 @@ export const POST = withWorkspace(
       partnerId,
       rejectionReason,
       rejectionNote,
-      allowImmediateReapply,
+      reapplicationTimeframe,
       flagForFraud,
       flagForFraudReason,
       userId: session.user.id,

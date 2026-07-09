@@ -1,25 +1,27 @@
 "use client";
 
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
+import useGroups from "@/lib/swr/use-groups";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FraudGroupCountByPartner, PayoutResponse } from "@/lib/types";
+import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
+import { PayoutResponse } from "@/lib/types";
 import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicator";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { PayoutStatus, ProgramPayoutMode } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
   DynamicTooltipWrapper,
+  EditColumnsButton,
   Filter,
   StatusBadge,
   Table,
   Tooltip,
   TooltipContent,
+  useColumnVisibility,
   usePagination,
   useRouterStuff,
   useTable,
@@ -28,12 +30,17 @@ import { MoneyBill2 } from "@dub/ui/icons";
 import { cn, currencyFormatter } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
-import { PayoutPaidCell } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-paid-cell";
+import {
+  PartnerPayoutMethod,
+  PayoutStatus,
+  ProgramPayoutMode,
+} from "@prisma/client";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { PayoutPaidCell } from "./payout-paid-cell";
 import { usePayoutFilters } from "./use-payout-filters";
 
 /** Matches server `getPayoutEligibilityFilter` and in-table warnings in `AmountRowItem`. */
@@ -42,13 +49,9 @@ function isPayoutEligibleForBatchConfirm(
   {
     minPayoutAmount,
     programPayoutMode,
-    canManageFraudEvents,
-    partnersWithPendingFraud,
   }: {
     minPayoutAmount: number;
     programPayoutMode: ProgramPayoutMode;
-    canManageFraudEvents: boolean;
-    partnersWithPendingFraud: Set<string>;
   },
 ) {
   if (payout.status !== PayoutStatus.pending) {
@@ -73,7 +76,10 @@ function isPayoutEligibleForBatchConfirm(
     return false;
   }
 
-  if (canManageFraudEvents && partnersWithPendingFraud.has(payout.partner.id)) {
+  if (
+    payout.partner.defaultPayoutMethod === PartnerPayoutMethod.tremendous &&
+    payout.amount > TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS
+  ) {
     return false;
   }
 
@@ -81,6 +87,11 @@ function isPayoutEligibleForBatchConfirm(
 }
 
 const PAYOUTS_MAX_PAGE_SIZE = 50;
+
+const payoutsColumns = {
+  all: ["periodEnd", "partner", "group", "status", "initiatedAt", "amount"],
+  defaultVisible: ["periodEnd", "partner", "status", "initiatedAt", "amount"],
+};
 
 export function PayoutTable() {
   const router = useRouter();
@@ -90,12 +101,20 @@ export function PayoutTable() {
   const {
     id: workspaceId,
     slug: workspaceSlug,
-    plan,
     defaultProgramId,
   } = useWorkspace();
 
   const { program } = useProgram();
+  const { groups } = useGroups();
   const minPayoutAmount = program?.minPayoutAmount ?? 0;
+
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "payouts-table-columns",
+    {
+      all: payoutsColumns.all,
+      defaultVisible: payoutsColumns.defaultVisible,
+    },
+  );
 
   const sortBy = searchParams.get("sortBy") || "amount";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
@@ -128,103 +147,113 @@ export function PayoutTable() {
 
   const { pagination, setPagination } = usePagination(PAYOUTS_MAX_PAGE_SIZE);
 
-  const { canManageFraudEvents } = getPlanCapabilities(plan);
-
-  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
-    query: {
-      groupBy: "partnerId",
-      status: "pending",
-    },
-    ignoreParams: true,
-  });
-
-  // Memoized map of partner IDs with pending fraud events
-  const fraudGroupCountMap = useMemo(() => {
-    if (!fraudGroupCount) {
-      return new Set<string>();
-    }
-
-    return new Set(fraudGroupCount.map(({ partnerId }) => partnerId));
-  }, [fraudGroupCount]);
-
   const isFiltered = Object.keys(searchParamsObj).some(
     (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
+
+  const columns = useMemo(
+    () =>
+      [
+        {
+          id: "periodEnd",
+          header: "Period",
+          accessorFn: (d: PayoutResponse) => formatPeriod(d),
+        },
+        {
+          id: "partner",
+          header: "Partner",
+          cell: ({ row }) => {
+            return <PartnerRowItem partner={row.original.partner} />;
+          },
+        },
+        {
+          id: "group",
+          header: "Partner Group",
+          cell: ({ row }) => {
+            if (!groups) return "-";
+
+            const group = groups.find(
+              (g) => g.id === row.original.partner.groupId,
+            );
+
+            if (!group) return "-";
+
+            return (
+              <div className="flex items-center gap-2">
+                <GroupColorCircle group={group} />
+                <Link
+                  href={`/${workspaceSlug}/program/groups/${group.slug}`}
+                  target="_blank"
+                  onClick={(e) => e.stopPropagation()}
+                  onAuxClick={(e) => e.stopPropagation()}
+                  className="min-w-0 cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+                  title={group.name}
+                >
+                  {group.name}
+                </Link>
+              </div>
+            );
+          },
+        },
+        {
+          id: "status",
+          header: "Status",
+          cell: ({ row }) => {
+            const badge = PayoutStatusBadges[row.original.status];
+
+            return badge ? (
+              <StatusBadge icon={badge.icon} variant={badge.variant}>
+                <DynamicTooltipWrapper
+                  tooltipProps={
+                    row.original.status === "failed" &&
+                    row.original.failureReason
+                      ? {
+                          content: row.original.failureReason,
+                        }
+                      : undefined
+                  }
+                >
+                  {badge.label}
+                </DynamicTooltipWrapper>
+              </StatusBadge>
+            ) : (
+              "-"
+            );
+          },
+        },
+        {
+          id: "initiatedAt",
+          header: "Paid",
+          cell: ({ row }) => (
+            <PayoutPaidCell
+              initiatedAt={row.original.initiatedAt}
+              paidAt={row.original.paidAt}
+              user={row.original.user}
+            />
+          ),
+        },
+        {
+          id: "amount",
+          header: "Amount",
+          cell: ({ row }) => <AmountRowItem payout={row.original} />,
+        },
+        {
+          id: "menu",
+          enableHiding: false,
+          header: ({ table }) => <EditColumnsButton table={table} />,
+          cell: () => null,
+        },
+      ].filter((c) => c.id === "menu" || payoutsColumns.all.includes(c.id)),
+    [groups, workspaceSlug],
   );
 
   const { table, ...tableProps } = useTable({
     data: payouts || [],
     loading: isLoading,
     error: error || countError ? "Failed to load payouts" : undefined,
-    columns: [
-      {
-        id: "periodEnd",
-        header: "Period",
-        accessorFn: (d) => formatPeriod(d),
-      },
-      {
-        header: "Partner",
-        cell: ({ row }) => {
-          return <PartnerRowItem partner={row.original.partner} />;
-        },
-      },
-      {
-        header: "Status",
-        cell: ({ row }) => {
-          const hasPendingFraudEvents =
-            canManageFraudEvents &&
-            fraudGroupCountMap.has(row.original.partner.id);
-
-          const status =
-            hasPendingFraudEvents && row.original.status === "pending"
-              ? "hold"
-              : row.original.status;
-
-          const badge = PayoutStatusBadges[status];
-
-          return badge ? (
-            <StatusBadge icon={badge.icon} variant={badge.variant}>
-              <DynamicTooltipWrapper
-                tooltipProps={
-                  row.original.status === "failed" && row.original.failureReason
-                    ? {
-                        content: row.original.failureReason,
-                      }
-                    : undefined
-                }
-              >
-                {badge.label}
-              </DynamicTooltipWrapper>
-            </StatusBadge>
-          ) : (
-            "-"
-          );
-        },
-      },
-      {
-        id: "initiatedAt",
-        header: "Paid",
-        cell: ({ row }) => (
-          <PayoutPaidCell
-            initiatedAt={row.original.initiatedAt}
-            paidAt={row.original.paidAt}
-            user={row.original.user}
-          />
-        ),
-      },
-      {
-        id: "amount",
-        header: "Amount",
-        cell: ({ row }) => (
-          <AmountRowItem
-            payout={row.original}
-            hasPendingFraudEvents={
-              canManageFraudEvents &&
-              fraudGroupCountMap.has(row.original.partner.id)
-            }
-          />
-        ),
-      },
-    ],
+    columns,
+    columnVisibility,
+    onColumnVisibilityChange: setColumnVisibility,
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["amount", "initiatedAt"],
@@ -237,7 +266,6 @@ export function PayoutTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     onRowClick: (row, e) => {
       const url = `/${workspaceSlug}/program/payouts/${row.original.id}`;
@@ -262,8 +290,6 @@ export function PayoutTable() {
       const eligibilityCtx = {
         minPayoutAmount,
         programPayoutMode: program?.payoutMode ?? "internal",
-        canManageFraudEvents,
-        partnersWithPendingFraud: fraudGroupCountMap,
       };
 
       const hasIneligibleAmongSelection =
@@ -271,6 +297,13 @@ export function PayoutTable() {
         selectedPayouts.some(
           (payout) => !isPayoutEligibleForBatchConfirm(payout, eligibilityCtx),
         );
+
+      const maxGiftCardPayoutAmount = currencyFormatter(
+        TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+        {
+          trailingZeroDisplay: "stripIfInteger",
+        },
+      );
 
       return (
         <Button
@@ -298,13 +331,8 @@ export function PayoutTable() {
                   </li>
                   <li>Partner has not connected payouts</li>
                   <li>
-                    On hold due to{" "}
-                    <Link
-                      href={`/${workspaceSlug}/program/payouts?status=hold`}
-                      className="cursor-alias underline decoration-dotted underline-offset-2"
-                    >
-                      unresolved fraud events
-                    </Link>
+                    Exceeds the {maxGiftCardPayoutAmount} cap for gift card
+                    payouts
                   </li>
                 </ul>
               </div>
@@ -329,7 +357,6 @@ export function PayoutTable() {
                 selectedPayoutIds: pendingEligible.map((p) => p.id).join(","),
               },
               del: ["selectedPayoutId", "excludedPayoutIds"],
-              scroll: false,
             });
           }}
         />
@@ -410,10 +437,8 @@ function PayoutFilters() {
 
 function AmountRowItem({
   payout,
-  hasPendingFraudEvents,
 }: {
   payout: Pick<PayoutResponse, "amount" | "status" | "mode" | "partner">;
-  hasPendingFraudEvents: boolean;
 }) {
   const { slug } = useParams();
   const { program } = useProgram();
@@ -484,10 +509,20 @@ function AmountRowItem({
       );
     }
 
-    if (hasPendingFraudEvents) {
+    if (
+      payout.partner.defaultPayoutMethod === PartnerPayoutMethod.tremendous &&
+      payout.amount > TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS
+    ) {
+      const maxPayoutAmount = currencyFormatter(
+        TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS,
+        {
+          trailingZeroDisplay: "stripIfInteger",
+        },
+      );
+
       return (
         <Tooltip
-          content={`This partner's payouts are on hold due to [unresolved fraud events](${`/${slug}/program/fraud?partnerId=${payout.partner.id}`}). They cannot be paid out until resolved.`}
+          content={`This payout exceeds the ${maxPayoutAmount} cap for gift card payouts. The partner must connect another payout method to receive this amount.`}
         >
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
             {display}

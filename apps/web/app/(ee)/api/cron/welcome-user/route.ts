@@ -1,10 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { generateUnsubscribeToken } from "@/lib/email/unsubscribe-token";
+import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import WelcomeEmail from "@dub/email/templates/welcome-email";
 import WelcomeEmailPartner from "@dub/email/templates/welcome-email-partner";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 
 export const dynamic = "force-dynamic";
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     if (isPartner) {
       await sendEmail({
         to: user.email,
-        replyTo: "noreply",
+        replyTo: "steven.tey@dub.co",
         subject: "Welcome to Dub Partners!",
         react: WelcomeEmailPartner({
           email: user.email,

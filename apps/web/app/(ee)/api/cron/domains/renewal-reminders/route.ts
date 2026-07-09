@@ -1,8 +1,8 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import DomainRenewalReminder from "@dub/email/templates/domain-renewal-reminder";
-import { prisma } from "@dub/prisma";
 import { chunk, log } from "@dub/utils";
 import {
   differenceInCalendarDays,

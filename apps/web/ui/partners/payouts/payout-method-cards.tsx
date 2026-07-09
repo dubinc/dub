@@ -12,8 +12,6 @@ import {
   type PayoutMethodFeature,
 } from "./payout-method-config";
 
-export { PAYOUT_METHODS };
-
 const CARD_VARIANTS = {
   default: {
     card: "p-4",
@@ -55,10 +53,8 @@ export function PayoutMethodSelector({
   );
 
   const methodCount = filteredMethods.length;
-  const isSingleOption = methodCount === 1;
-  const isCompact = variantProp === "compact";
-
-  const cardVariant = isCompact ? "compact" : "default";
+  // isSingleOption is true if there is only one method and the variant is not compact
+  const isSingleOption = methodCount === 1 && variantProp !== "compact";
 
   return (
     <div
@@ -69,7 +65,7 @@ export function PayoutMethodSelector({
             ? "grid gap-3 sm:grid-cols-3"
             : "",
         // for onboarding payouts page, if single option, limit width to max-w-sm
-        isSingleOption && !isCompact && "mx-auto w-full max-w-sm",
+        isSingleOption && "mx-auto w-full max-w-sm",
       )}
     >
       {filteredMethods.map((method) => {
@@ -98,7 +94,7 @@ export function PayoutMethodSelector({
               />
             }
             actionFooter={actionFooter?.(setting)}
-            variant={cardVariant}
+            variant={variantProp}
           />
         );
       })}

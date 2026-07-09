@@ -1,9 +1,9 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { prisma } from "@/lib/prisma";
 import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { captureRequestLog } from "../api-logs/capture-request-log";
@@ -18,6 +18,7 @@ import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { withAxiomBodyLog } from "../axiom/server";
 import { getFeatureFlags } from "../edge-config";
 import { hashToken } from "./hash-token";
+import { canAccessProgram, isProgramApiPath } from "./product-access-guard";
 import { rateLimitRequest } from "./rate-limit-request";
 import { TokenCacheItem, tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
@@ -469,6 +470,21 @@ export const withWorkspace = (
           throw new DubApiError({
             code: "forbidden",
             message: "Analytics API is only available on paid plans.",
+          });
+        }
+
+        // TEMPORARY: block program access for restricted workspace users
+        const isProgramPath = isProgramApiPath(url.pathname);
+        const hasProgramAccess = canAccessProgram({
+          workspaceId: workspace.id,
+          userId: session.user.id,
+        });
+
+        if (isProgramPath && !hasProgramAccess) {
+          throw new DubApiError({
+            code: "forbidden",
+            message:
+              "You don't have access to Dub Partners in this workspace. Please contact your workspace admin to get access.",
           });
         }
 

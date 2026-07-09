@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { queueLinkTagDeletion } from "./queue-tag-deletion";
 
 // Mark the link tag as deleted (orphan from workspace). LinkTag rows and the

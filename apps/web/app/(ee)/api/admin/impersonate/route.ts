@@ -1,5 +1,5 @@
 import { hashToken, withAdmin } from "@/lib/auth";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
@@ -139,6 +139,7 @@ async function getImpersonateUrl(email: string) {
       identifier: email,
       token: await hashToken(token, { secret: true }),
       expires: new Date(Date.now() + 60000),
+      isAdminImpersonation: true,
     },
   });
 

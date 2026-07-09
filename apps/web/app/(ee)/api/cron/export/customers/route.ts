@@ -5,10 +5,10 @@ import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { withCron } from "@/lib/cron/with-cron";
 import { fetchCustomersBatch } from "@/lib/customers/api/fetch-customers-batch";
 import { formatCustomersForExport } from "@/lib/customers/api/format-customers-export";
+import { prisma } from "@/lib/prisma";
 import { customersExportCronInputSchema } from "@/lib/zod/schemas/customers";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
-import { prisma } from "@dub/prisma";
 import { logAndRespond } from "../../utils";
 
 const MAX_CUSTOMERS_EXPORT_LIMIT = 100_000;

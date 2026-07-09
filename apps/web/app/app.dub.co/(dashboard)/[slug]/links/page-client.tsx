@@ -66,7 +66,7 @@ export default function WorkspaceLinksClient() {
       }
     >
       <LinksDisplayProvider>
-        <WorkspaceLinks />
+        <WorkspaceLinksList />
       </LinksDisplayProvider>
     </PageContentWithSidePanel>
   );
@@ -85,7 +85,7 @@ export function WorkspaceLinksPageControls() {
   );
 }
 
-function WorkspaceLinks() {
+export function WorkspaceLinksList() {
   const router = useRouter();
   const { isValidating } = useLinks();
   const searchParams = useSearchParams();

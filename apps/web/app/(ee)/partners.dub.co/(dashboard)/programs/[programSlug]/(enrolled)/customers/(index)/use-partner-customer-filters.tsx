@@ -81,7 +81,6 @@ export function usePartnerCustomerFilters() {
           [key]: value,
         },
         del: "page",
-        scroll: false,
       }),
     [queryParams],
   );
@@ -90,7 +89,6 @@ export function usePartnerCustomerFilters() {
     (key: string) =>
       queryParams({
         del: [key, "page"],
-        scroll: false,
       }),
     [queryParams],
   );
@@ -99,7 +97,6 @@ export function usePartnerCustomerFilters() {
     () =>
       queryParams({
         del: ["country", "linkId", "search", "page"],
-        scroll: false,
       }),
     [queryParams],
   );

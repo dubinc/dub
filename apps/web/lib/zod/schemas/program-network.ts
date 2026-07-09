@@ -1,4 +1,4 @@
-import { Category, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { Category, ProgramEnrollmentStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { GroupBountySummarySchema } from "./group-bounties";
@@ -32,6 +32,24 @@ export const NetworkProgramExtendedSchema = NetworkProgramSchema.extend({
 
 export const PROGRAM_NETWORK_MAX_PAGE_SIZE = 100;
 
+const queryBooleanSchema = z
+  .enum(["true", "false"])
+  .transform((v) => v === "true")
+  .optional();
+
+export const getPublicNetworkProgramsQuerySchema = z
+  .object({
+    category: z.enum(Category).optional(),
+    rewardType: z.enum(["sale", "lead", "click", "discount"]).optional(),
+    featured: queryBooleanSchema,
+    search: z.string().optional(),
+    sortBy: z.enum(["name", "recency", "popularity"]).default("popularity"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  })
+  .extend(
+    getPaginationQuerySchema({ pageSize: PROGRAM_NETWORK_MAX_PAGE_SIZE }),
+  );
+
 export const getNetworkProgramsQuerySchema = z
   .object({
     category: z.enum(Category).optional(),
@@ -40,7 +58,7 @@ export const getNetworkProgramsQuerySchema = z
       (v) => (v === "null" ? null : v),
       z.enum(ProgramEnrollmentStatus).nullish(),
     ),
-    featured: z.coerce.boolean().optional(),
+    featured: queryBooleanSchema,
     search: z.string().optional(),
     sortBy: z.enum(["name", "recency", "popularity"]).default("popularity"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
@@ -57,3 +75,10 @@ export const getNetworkProgramsCountQuerySchema = getNetworkProgramsQuerySchema
   .extend({
     groupBy: z.enum(["category", "rewardType", "status"]).optional(),
   });
+
+export const MarketplaceProgramsSummarySchema = z.object({
+  featuredPrograms: z.array(NetworkProgramSchema),
+  mostPopular: z.array(NetworkProgramSchema),
+  newPrograms: z.array(NetworkProgramSchema),
+  categories: z.record(z.enum(Category), z.array(NetworkProgramSchema)),
+});

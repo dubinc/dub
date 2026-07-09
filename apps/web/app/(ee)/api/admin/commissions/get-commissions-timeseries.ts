@@ -1,8 +1,8 @@
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
+import { prisma } from "@/lib/prisma";
 import { TZDate } from "@date-fns/tz";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { format } from "date-fns";
 
 interface Commission {

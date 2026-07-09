@@ -9,6 +9,7 @@ import { DiscountProps, RewardProps } from "@/lib/types";
 import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { cn, currencyFormatter } from "@dub/utils";
 import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
+import { ProgramRewardSpendLimit } from "./program-reward-spend-limit";
 
 export function ProgramRewardDescription({
   reward,
@@ -28,6 +29,8 @@ export function ProgramRewardDescription({
     | "amountInCents"
     | "amountInPercentage"
     | "config"
+    | "spendLimitAmount"
+    | "spendLimitInterval"
   > | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
@@ -79,6 +82,12 @@ export function ProgramRewardDescription({
                 ) : null}
               </>
             ))}
+
+          <ProgramRewardSpendLimit
+            event={reward.event}
+            spendLimitAmount={reward.spendLimitAmount}
+            spendLimitInterval={reward.spendLimitInterval}
+          />
 
           {/* Modifiers */}
           {showModifiersTooltip &&

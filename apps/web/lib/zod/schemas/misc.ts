@@ -1,5 +1,5 @@
 import { plans } from "@/lib/types";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@prisma/client";
 import * as z from "zod/v4";
 
 export const RECURRING_MAX_DURATIONS = [0, 1, 3, 6, 12, 24];
