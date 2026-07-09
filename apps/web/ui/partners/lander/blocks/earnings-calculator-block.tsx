@@ -27,7 +27,7 @@ export function EarningsCalculatorBlock({
 }) {
   const id = useId();
   const min = block.data.minSales ?? DEFAULT_SLIDER_MIN;
-  const max = block.data.maxSales ?? DEFAULT_SLIDER_MAX;
+  const max = block.data.maxSales ?? Math.max(DEFAULT_SLIDER_MAX, min);
   const sliderMin = max < min ? DEFAULT_SLIDER_MIN : min;
   const sliderMax = max < min ? DEFAULT_SLIDER_MAX : max;
   const [value, setValue] = useState(() =>
