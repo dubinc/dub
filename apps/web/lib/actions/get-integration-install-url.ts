@@ -1,6 +1,7 @@
 "use server";
 
 import * as z from "zod/v4";
+import { googleAdsOAuthProvider } from "../integrations/google-ads/oauth";
 import { hubSpotOAuthProvider } from "../integrations/hubspot/oauth";
 import { intercomOAuthProvider } from "../integrations/intercom/oauth";
 import { slackOAuthProvider } from "../integrations/slack/oauth";
@@ -32,6 +33,8 @@ export const getIntegrationInstallUrl = authActionClient
       url = await hubSpotOAuthProvider.generateAuthUrl(workspace.id);
     } else if (integrationSlug === "intercom") {
       url = await intercomOAuthProvider.generateAuthUrl(workspace.id);
+    } else if (integrationSlug === "google-ads") {
+      url = await googleAdsOAuthProvider.generateAuthUrl(workspace.id);
     } else {
       throw new Error("Invalid integration slug");
     }

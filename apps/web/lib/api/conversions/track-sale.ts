@@ -2,6 +2,7 @@ import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { queueGoogleAdsConversionUpload } from "@/lib/integrations/google-ads/api";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
@@ -31,7 +32,7 @@ import {
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
 import { nanoid, R2_URL } from "@dub/utils";
-import { Customer, Prisma } from "@prisma/client";
+import { Customer, EventType, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";
@@ -621,6 +622,16 @@ const _trackSale = async ({
             metadata,
           }),
           workspace,
+        }),
+
+        queueGoogleAdsConversionUpload({
+          workspaceId: workspace.id,
+          eventType: EventType.sale,
+          clickId: leadEventData.click_id,
+          conversionDateTime: new Date().toISOString(),
+          eventId: invoiceId || saleData.event_id,
+          conversionValue: amount,
+          currencyCode: currency,
         }),
 
         ...(link.partnerId
