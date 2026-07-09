@@ -7,12 +7,6 @@ import useSWR from "swr";
 import { useEmbedToken } from "../../embed/use-embed-token";
 import { useReferralsEmbedData } from "./page-client";
 
-const METRIC_TO_CHART_FIELD = {
-  clicks: "clicks",
-  leads: "leads",
-  conversions: "sales",
-} as const;
-
 export function ReferralsEmbedActivity() {
   const {
     group: { brandColor: color },
@@ -55,20 +49,20 @@ export function ReferralsEmbedActivity() {
             {
               label: "Clicks",
               value: clicks,
-              chartField: METRIC_TO_CHART_FIELD.clicks,
+              chartField: "clicks",
               description:
                 "Total number of unique clicks your link has received",
             },
             {
               label: "Leads",
               value: leads,
-              chartField: METRIC_TO_CHART_FIELD.leads,
+              chartField: "leads",
               description: "Total number of signups that came from your link",
             },
             {
               label: "Conversions",
               value: conversions,
-              chartField: METRIC_TO_CHART_FIELD.conversions,
+              chartField: "sales",
               description:
                 "Total number of leads that converted to a paid account",
             },
