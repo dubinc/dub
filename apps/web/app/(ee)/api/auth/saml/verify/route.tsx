@@ -1,5 +1,9 @@
+import { shouldApplyRateLimit } from "@/lib/api/environment";
 import { jackson } from "@/lib/jackson";
 import { prisma } from "@/lib/prisma";
+import { ratelimit } from "@/lib/upstash";
+import { LOCALHOST_IP } from "@dub/utils";
+import { ipAddress } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -14,6 +18,18 @@ export async function POST(req: Request) {
     );
   }
 
+  if (shouldApplyRateLimit) {
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    const { success } = await ratelimit(10, "1 m").limit(`saml-verify:${ip}`);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 },
+      );
+    }
+  }
+
   const workspace = await prisma.project.findUnique({
     where: { slug },
     select: { id: true },
@@ -21,7 +37,7 @@ export async function POST(req: Request) {
 
   if (!workspace) {
     return NextResponse.json(
-      { error: "Workspace not found." },
+      { error: "No SSO connection found for this workspace." },
       { status: 404 },
     );
   }
@@ -33,7 +49,7 @@ export async function POST(req: Request) {
 
   if (!connections || connections.length === 0) {
     return NextResponse.json(
-      { error: "No SSO connections found for this workspace." },
+      { error: "No SSO connection found for this workspace." },
       { status: 404 },
     );
   }

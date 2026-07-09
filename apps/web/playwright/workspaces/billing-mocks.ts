@@ -1,26 +1,9 @@
 import "dotenv-flow/config";
 
 import { prisma } from "@/lib/prisma";
-import {
-  DUB_TRIAL_PERIOD_DAYS,
-  getWorkspaceLimitsForStripeSubscriptionStatus,
-  PLANS,
-} from "@dub/utils";
+import { DUB_TRIAL_PERIOD_DAYS, TRIAL_LIMITS } from "@dub/utils";
 import type { Page, Request } from "@playwright/test";
 import type { Prisma } from "@prisma/client";
-
-function getTrialingLimitsForPlan(planId: string) {
-  const planDetails = PLANS.find(
-    (p) => p.name.toLowerCase() === planId.toLowerCase(),
-  );
-  if (!planDetails) {
-    throw new Error(`applyMockTrialToWorkspace: unknown plan "${planId}"`);
-  }
-  return getWorkspaceLimitsForStripeSubscriptionStatus({
-    planLimits: planDetails.limits,
-    subscriptionStatus: "trialing",
-  });
-}
 
 const MOCK_CHECKOUT_SESSION_ID = "cs_test_e2e_mock_session";
 
@@ -148,7 +131,7 @@ export async function applyMockTrialToWorkspace(
 ) {
   const plan = (options?.plan ?? "business").toLowerCase();
   const period = options?.period ?? "monthly";
-  const limits = getTrialingLimitsForPlan(plan);
+  const limits = TRIAL_LIMITS;
 
   const trialEndsAt = new Date();
   trialEndsAt.setDate(trialEndsAt.getDate() + DUB_TRIAL_PERIOD_DAYS);

@@ -6,6 +6,12 @@ enum WebhookReceiver {
   segment
 }
 
+enum LinkScope {
+  workspace // All links in the workspace
+  folders // Links inside specific folders
+  links // Specific links
+}
+
 model Webhook {
   id                  String          @id
   projectId           String
@@ -15,6 +21,7 @@ model Webhook {
   url                 String          @db.LongText
   secret              String
   triggers            Json
+  linkScope           LinkScope? // Only set for webhooks with the link.clicked trigger
   consecutiveFailures Int             @default(0)
   lastFailedAt        DateTime?
   disabledAt          DateTime?
@@ -24,6 +31,7 @@ model Webhook {
   project              Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
   installedIntegration InstalledIntegration? @relation(fields: [installationId], references: [id], onDelete: Cascade)
   links                LinkWebhook[]
+  folders              FolderWebhook[]
 
   @@index(projectId)
   @@index(installationId)
@@ -33,10 +41,24 @@ model LinkWebhook {
   id        String @id @default(cuid())
   linkId    String
   webhookId String
+  createdAt DateTime @default(now())
 
   link    Link    @relation(fields: [linkId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   webhook Webhook @relation(fields: [webhookId], references: [id], onUpdate: Cascade, onDelete: Cascade)
 
   @@unique([linkId, webhookId])
+  @@index(webhookId)
+}
+
+model FolderWebhook {
+  id        String @id @default(cuid())
+  folderId  String
+  webhookId String
+  createdAt DateTime @default(now())
+
+  folder  Folder  @relation(fields: [folderId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  webhook Webhook @relation(fields: [webhookId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+
+  @@unique([folderId, webhookId])
   @@index(webhookId)
 }

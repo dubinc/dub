@@ -6,7 +6,7 @@ import { PartnerBountyProps, SocialContent } from "@/lib/types";
 import { useClaimBountyContext } from "@/ui/partners/bounties/claim-bounty-context";
 import { useClaimBountyForm } from "@/ui/partners/bounties/use-claim-bounty-form";
 import { useSocialContent } from "@/ui/partners/bounties/use-social-content";
-import { Button, CircleCheckFill, LoadingSpinner } from "@dub/ui";
+import { Button, CircleCheck, LoadingSpinner } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
 import { useReferralsEmbedData } from "app/(ee)/app.dub.co/embed/referrals/page-client";
 import { AlertTriangle } from "lucide-react";
@@ -44,7 +44,8 @@ function SocialContentRequirementChecks({
           isPostedFromYourAccount ? "text-green-600" : "text-neutral-400",
         )}
       >
-        <CircleCheckFill
+        <CircleCheck
+          variant="fill"
           className={cn(
             "size-2.5 transition-opacity",
             isPostedFromYourAccount ? "text-green-600" : "text-neutral-200",
@@ -59,7 +60,8 @@ function SocialContentRequirementChecks({
           isAfterStartDate ? "text-green-600" : "text-neutral-400",
         )}
       >
-        <CircleCheckFill
+        <CircleCheck
+          variant="fill"
           className={cn(
             "size-2.5 transition-opacity",
             isAfterStartDate ? "text-green-600" : "text-neutral-200",
