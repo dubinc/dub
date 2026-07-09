@@ -26,14 +26,12 @@ export const POST = withCron(async ({ rawBody }) => {
     `Permanently deleting partner ${partnerId} from program ${programId}...`,
   );
 
-  const programEnrollmentWhere = {
-    programId,
-    partnerId,
-  };
-
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
-      partnerId_programId: programEnrollmentWhere,
+      partnerId_programId: {
+        partnerId,
+        programId,
+      },
     },
     include: {
       partner: true,
@@ -75,6 +73,11 @@ export const POST = withCron(async ({ rawBody }) => {
       `Partner ${partnerId} can no longer be permanently deleted.`,
     );
   }
+
+  const programEnrollmentWhere = {
+    programId,
+    partnerId,
+  };
 
   // Additional check
   const [commissionCount, payoutCount] = await Promise.all([
