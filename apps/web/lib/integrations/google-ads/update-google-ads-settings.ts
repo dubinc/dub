@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { GOOGLE_ADS_INTEGRATION_ID } from "@dub/utils";
 import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
-import { findGoogleAdsCustomer, inferLoginCustomerId } from "./api";
+import { inferLoginCustomerId } from "./api";
 import { googleAdsSettingsSchema } from "./schema";
 
 const schema = googleAdsSettingsSchema.omit({ customers: true }).extend({
@@ -55,10 +55,10 @@ export const updateGoogleAdsSettingsAction = authActionClient
     );
 
     if (customerId) {
-      const selectedCustomer = findGoogleAdsCustomer({
-        customers: currentSettings.customers,
-        customerId,
-      });
+      const normalizedCustomerId = customerId.replace(/-/g, "");
+      const selectedCustomer = currentSettings.customers.find(
+        (customer) => customer.id.replace(/-/g, "") === normalizedCustomerId,
+      );
 
       if (!selectedCustomer) {
         throw new Error(
@@ -70,10 +70,14 @@ export const updateGoogleAdsSettingsAction = authActionClient
     let resolvedLoginCustomerId = loginCustomerId ?? null;
 
     if (resolvedLoginCustomerId) {
-      const loginCustomer = findGoogleAdsCustomer({
-        customers: currentSettings.customers,
-        customerId: resolvedLoginCustomerId,
-      });
+      const normalizedLoginCustomerId = resolvedLoginCustomerId.replace(
+        /-/g,
+        "",
+      );
+      const loginCustomer = currentSettings.customers.find(
+        (customer) =>
+          customer.id.replace(/-/g, "") === normalizedLoginCustomerId,
+      );
 
       if (!loginCustomer) {
         throw new Error(

@@ -7,6 +7,9 @@ export const GOOGLE_ADS_DEFAULT_SETTINGS = {
   saleConversionAction: null,
 } as const;
 
-export const GOOGLE_ADS_OAUTH_SCOPE = "https://www.googleapis.com/auth/adwords";
+export const GOOGLE_ADS_OAUTH_SCOPE = [
+  "https://www.googleapis.com/auth/adwords",
+  "https://www.googleapis.com/auth/datamanager",
+].join(" ");
 
 export const GOOGLE_ADS_API_VERSION = "v22";

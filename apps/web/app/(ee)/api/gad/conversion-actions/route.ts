@@ -35,9 +35,7 @@ export const GET = withWorkspace(
     }
 
     const token =
-      await googleAdsOAuthProvider.refreshTokenForInstallation(
-        installedIntegration,
-      );
+      await googleAdsOAuthProvider.getAccessToken(installedIntegration);
 
     const currentSettings = googleAdsSettingsSchema.parse(
       installedIntegration.settings ?? {},

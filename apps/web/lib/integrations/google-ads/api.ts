@@ -9,16 +9,15 @@ import {
   googleAdsCustomerSchema,
 } from "./schema";
 
-export type GoogleAdsClickIds = {
-  gclid?: string;
-  gbraid?: string;
-  wbraid?: string;
-};
+export type GoogleAdsClickId =
+  | { gclid: string }
+  | { gbraid: string }
+  | { wbraid: string };
 
 type UploadClickConversionParams = {
   customerId: string;
   conversionAction: string;
-  clickIds: GoogleAdsClickIds;
+  googleClickId: GoogleAdsClickId;
 } & Pick<
   z.infer<typeof googleAdsConversionUploadSchema>,
   "conversionDateTime" | "eventId" | "conversionValue" | "currencyCode"
@@ -117,6 +116,48 @@ const googleAdsFetch = async <T>({
 
     throw new Error(
       `[Google Ads API] Request failed for ${path} (${response.status}). Please try again.`,
+    );
+  }
+
+  return data as T;
+};
+
+const dataManagerFetch = async <T>({
+  accessToken,
+  path,
+  body,
+}: {
+  accessToken: string;
+  path: string;
+  body: unknown;
+}): Promise<T> => {
+  const response = await fetch(`https://datamanager.googleapis.com/v1/${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  const text = await response.text();
+  let data: any;
+
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    console.error("[Data Manager API]", path, text);
+
+    throw new Error(
+      `[Data Manager API] Request failed for ${path} (${response.status}). Please try again.`,
+    );
+  }
+
+  if (!response.ok) {
+    console.error("[Data Manager API]", path, data);
+
+    throw new Error(
+      `[Data Manager API] Request failed for ${path} (${response.status}). Please try again.`,
     );
   }
 
@@ -287,42 +328,61 @@ export class GoogleAdsApi {
     );
   }
 
+  // Uploads an offline click conversion via the Data Manager API.
+  // New integrations cannot use ConversionUploadService.UploadClickConversions.
   async uploadClickConversion({
     customerId,
     conversionAction,
-    clickIds,
+    googleClickId,
     conversionDateTime,
     conversionValue,
     currencyCode,
     eventId,
   }: UploadClickConversionParams) {
     const normalizedCustomerId = customerId.replace(/-/g, "");
+    const conversionActionId = conversionAction.includes("/")
+      ? conversionAction.split("/").pop()!
+      : conversionAction;
 
-    const conversion: Record<string, unknown> = {
-      conversionAction,
-      conversionDateTime,
-      orderId: eventId,
-      consent: {
-        adUserData: "GRANTED",
+    const destination: Record<string, unknown> = {
+      operatingAccount: {
+        accountType: "GOOGLE_ADS",
+        accountId: normalizedCustomerId,
       },
-      ...clickIds,
+      productDestinationId: conversionActionId,
+    };
+
+    if (this.options.loginCustomerId) {
+      destination.loginAccount = {
+        accountType: "GOOGLE_ADS",
+        accountId: this.options.loginCustomerId.replace(/-/g, ""),
+      };
+    }
+
+    const event: Record<string, unknown> = {
+      eventTimestamp: formatGoogleAdsEventTimestamp(conversionDateTime),
+      transactionId: eventId,
+      eventSource: "WEB",
+      adIdentifiers: googleClickId,
+      consent: {
+        adUserData: "CONSENT_GRANTED",
+      },
     };
 
     if (conversionValue !== undefined) {
-      conversion.conversionValue = conversionValue;
+      event.conversionValue = conversionValue;
     }
 
     if (currencyCode) {
-      conversion.currencyCode = currencyCode.toUpperCase();
+      event.currency = currencyCode.toUpperCase();
     }
 
-    return googleAdsFetch({
-      ...this.options,
-      path: `customers/${normalizedCustomerId}:uploadClickConversions`,
-      method: "POST",
+    return dataManagerFetch({
+      accessToken: this.options.accessToken,
+      path: "events:ingest",
       body: {
-        conversions: [conversion],
-        partialFailure: true,
+        destinations: [destination],
+        events: [event],
       },
     });
   }
@@ -358,18 +418,8 @@ export const inferLoginCustomerId = ({
   return null;
 };
 
-// Formats a date as `yyyy-MM-dd HH:mm:ss+00:00` for Google Ads conversion uploads.
-export const formatGoogleAdsConversionDateTime = (input: string | Date) => {
+// Formats a date as RFC 3339 for Data Manager API event uploads.
+export const formatGoogleAdsEventTimestamp = (input: string | Date) => {
   const date = typeof input === "string" ? new Date(input) : input;
-
-  const pad = (value: number) => value.toString().padStart(2, "0");
-
-  const year = date.getUTCFullYear();
-  const month = pad(date.getUTCMonth() + 1);
-  const day = pad(date.getUTCDate());
-  const hours = pad(date.getUTCHours());
-  const minutes = pad(date.getUTCMinutes());
-  const seconds = pad(date.getUTCSeconds());
-
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}+00:00`;
+  return date.toISOString();
 };

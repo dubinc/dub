@@ -2,29 +2,35 @@ import { prisma } from "@/lib/prisma";
 import { getClickEvent } from "@/lib/tinybird";
 import { getSearchParams, GOOGLE_ADS_INTEGRATION_ID } from "@dub/utils";
 import * as z from "zod/v4";
-import {
-  formatGoogleAdsConversionDateTime,
-  GoogleAdsApi,
-  GoogleAdsClickIds,
-} from "./api";
+import { GoogleAdsApi, GoogleAdsClickId } from "./api";
 import { googleAdsOAuthProvider } from "./oauth";
 import {
   googleAdsConversionUploadSchema,
   googleAdsSettingsSchema,
 } from "./schema";
 
-const extractGoogleAdsClickIds = (url: string): GoogleAdsClickIds => {
-  if (!url) {
-    return {};
-  }
-
+const extractGoogleAdsClickId = (url: string): GoogleAdsClickId | null => {
   const queryParams = getSearchParams(url);
 
-  return {
-    ...(queryParams.gclid ? { gclid: queryParams.gclid } : {}),
-    ...(queryParams.gbraid ? { gbraid: queryParams.gbraid } : {}),
-    ...(queryParams.wbraid ? { wbraid: queryParams.wbraid } : {}),
-  };
+  if (queryParams.gclid) {
+    return {
+      gclid: queryParams.gclid,
+    };
+  }
+
+  if (queryParams.gbraid) {
+    return {
+      gbraid: queryParams.gbraid,
+    };
+  }
+
+  if (queryParams.wbraid) {
+    return {
+      wbraid: queryParams.wbraid,
+    };
+  }
+
+  return null;
 };
 
 export const uploadGoogleAdsConversion = async (
@@ -84,13 +90,9 @@ export const uploadGoogleAdsConversion = async (
     return;
   }
 
-  const clickIds = extractGoogleAdsClickIds(clickEvent.url);
+  const googleClickId = extractGoogleAdsClickId(clickEvent.url);
 
-  const hasGoogleAdsClickId = Boolean(
-    clickIds.gclid || clickIds.gbraid || clickIds.wbraid,
-  );
-
-  if (!hasGoogleAdsClickId) {
+  if (!googleClickId) {
     console.warn(
       `[Google Ads] Skipping ${eventType} conversion upload for workspace ${workspaceId}: no gclid/gbraid/wbraid found on click ${clickId}`,
     );
@@ -98,9 +100,7 @@ export const uploadGoogleAdsConversion = async (
   }
 
   const token =
-    await googleAdsOAuthProvider.refreshTokenForInstallation(
-      installedIntegration,
-    );
+    await googleAdsOAuthProvider.getAccessToken(installedIntegration);
 
   let loginCustomerId: string | null = null;
 
@@ -120,24 +120,14 @@ export const uploadGoogleAdsConversion = async (
   const response = await googleAdsApi.uploadClickConversion({
     customerId: settings.customerId,
     conversionAction,
-    clickIds,
-    conversionDateTime: formatGoogleAdsConversionDateTime(conversionDateTime),
+    googleClickId,
+    conversionDateTime,
     conversionValue,
     currencyCode,
     eventId,
   });
 
   console.log("uploadClickConversion response", response);
-
-  const partialFailureError = (response as any)?.partialFailureError;
-
-  if (partialFailureError?.message) {
-    console.error(
-      `[Google Ads] Partial failure uploading ${eventType} conversion for workspace ${workspaceId}:`,
-      partialFailureError,
-    );
-    throw new Error(partialFailureError.message);
-  }
 
   return response;
 };

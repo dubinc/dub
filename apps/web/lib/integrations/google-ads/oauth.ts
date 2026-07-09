@@ -37,7 +37,7 @@ class GoogleAdsOAuthProvider extends OAuthProvider<
     return `${this.config.authUrl}?${searchParams.toString()}`;
   }
 
-  async refreshTokenForInstallation(
+  async getAccessToken(
     installation: Pick<InstalledIntegration, "id" | "credentials">,
   ): Promise<z.infer<typeof googleAdsAuthTokenSchema>> {
     let existingCredentials = googleAdsAuthTokenSchema.parse(
