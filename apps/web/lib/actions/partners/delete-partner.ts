@@ -77,7 +77,7 @@ export const deletePartnerAction = authActionClient
 
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/delete`,
-      // deduplicationId: `delete-partner-${programId}-${partnerId}`,
+      deduplicationId: `delete-partner-${programId}-${partnerId}`,
       method: "POST",
       body: {
         workspaceId: workspace.id,
