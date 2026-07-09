@@ -1,6 +1,6 @@
 import { decrypt, encrypt } from "@/lib/encryption";
 import { prisma } from "@/lib/prisma";
-import { nanoid } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, nanoid } from "@dub/utils";
 import { InstalledIntegration } from "@prisma/client";
 import * as z from "zod/v4";
 import { redis } from "../../upstash";
@@ -38,7 +38,7 @@ class GoogleAdsOAuthProvider extends OAuthProvider<
   }
 
   async refreshTokenForInstallation(
-    installation: InstalledIntegration,
+    installation: Pick<InstalledIntegration, "id" | "credentials">,
   ): Promise<z.infer<typeof googleAdsAuthTokenSchema>> {
     let existingCredentials = googleAdsAuthTokenSchema.parse(
       installation.credentials,
@@ -134,7 +134,7 @@ export const googleAdsOAuthProvider = new GoogleAdsOAuthProvider({
   clientSecret: process.env.GOOGLE_ADS_CLIENT_SECRET!,
   authUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
-  redirectUri: `http://localhost:8888/api/gad/callback`, // change this before merging
+  redirectUri: `${APP_DOMAIN_WITH_NGROK}/api/gad/callback`,
   redisStatePrefix: "google-ads:oauth:state",
   tokenSchema: googleAdsAuthTokenSchema,
   bodyFormat: "form",

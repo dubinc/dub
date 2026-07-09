@@ -12,52 +12,58 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 // GET /api/gad/conversion-actions - List UPLOAD_CLICKS conversion actions for a customer
-export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  const { customerId } = z
-    .object({
-      customerId: z.string().min(1),
-    })
-    .parse(searchParams);
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    const { customerId } = z
+      .object({
+        customerId: z.string().min(1),
+      })
+      .parse(searchParams);
 
-  const installedIntegration = await prisma.installedIntegration.findFirst({
-    where: {
-      integrationId: GOOGLE_ADS_INTEGRATION_ID,
-      projectId: workspace.id,
-    },
-  });
-
-  if (!installedIntegration) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "Google Ads integration is not installed on your workspace.",
+    const installedIntegration = await prisma.installedIntegration.findFirst({
+      where: {
+        integrationId: GOOGLE_ADS_INTEGRATION_ID,
+        projectId: workspace.id,
+      },
     });
-  }
 
-  const token =
-    await googleAdsOAuthProvider.refreshTokenForInstallation(
-      installedIntegration,
+    if (!installedIntegration) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Google Ads integration is not installed on your workspace.",
+      });
+    }
+
+    const token =
+      await googleAdsOAuthProvider.refreshTokenForInstallation(
+        installedIntegration,
+      );
+
+    const currentSettings = googleAdsSettingsSchema.parse(
+      installedIntegration.settings ?? {},
     );
 
-  const currentSettings = googleAdsSettingsSchema.parse(
-    installedIntegration.settings ?? {},
-  );
+    const loginCustomerId = inferLoginCustomerId({
+      customers: currentSettings.customers,
+      selectedCustomerId: customerId,
+    });
 
-  const loginCustomerId = inferLoginCustomerId({
-    customers: currentSettings.customers,
-    selectedCustomerId: customerId,
-  });
+    const googleAdsApi = new GoogleAdsApi({
+      accessToken: token.access_token,
+      loginCustomerId,
+      customerId,
+    });
 
-  const googleAdsApi = new GoogleAdsApi({
-    accessToken: token.access_token,
-    loginCustomerId,
-    customerId,
-  });
+    const conversionActions =
+      await googleAdsApi.listUploadClickConversionActions(customerId);
 
-  const conversionActions =
-    await googleAdsApi.listUploadClickConversionActions(customerId);
-
-  return NextResponse.json({
-    conversionActions,
-    loginCustomerId,
-  });
-});
+    return NextResponse.json({
+      conversionActions,
+      loginCustomerId,
+    });
+  },
+  {
+    requiredPermissions: ["integrations.write"],
+    requiredPlan: ["advanced", "enterprise"],
+  },
+);

@@ -45,6 +45,11 @@ export const uploadGoogleAdsConversion = async (
       integrationId: GOOGLE_ADS_INTEGRATION_ID,
       projectId: workspaceId,
     },
+    select: {
+      id: true,
+      settings: true,
+      credentials: true,
+    },
   });
 
   if (!installedIntegration) {
