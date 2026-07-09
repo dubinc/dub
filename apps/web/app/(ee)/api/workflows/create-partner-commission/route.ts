@@ -1,5 +1,7 @@
 import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/trigger-aggregate-due-commissions";
+import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { createId } from "@/lib/api/create-id";
+import { PARTNER_LEVEL_FRAUD_RULES } from "@/lib/api/fraud/constants";
 import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { notifyPartnerCommission } from "@/lib/api/partners/notify-partner-commission";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
@@ -12,6 +14,7 @@ import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
 import { determinePartnerRewards } from "@/lib/partners/determine-partner-reward";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
 import { RewardProps } from "@/lib/types";
@@ -26,9 +29,12 @@ import { buildCommissionDescription } from "@/ui/partners/program-reward-spend-l
 import { currencyFormatter, log, pick, toCentsNumber } from "@dub/utils";
 import {
   Commission,
+  CommissionStatus,
+  FraudEventStatus,
   Link,
   Partner,
   PartnerGroup,
+  Prisma,
   ProgramEnrollment,
   Reward,
 } from "@prisma/client";
@@ -58,6 +64,18 @@ type StepCreateCommissionOutput = {
   commission: Pick<Commission, "id"> | null;
   outputLog: string;
   isFirstCommission?: boolean;
+};
+
+const commissionInclude: Prisma.CommissionInclude = {
+  customer: true,
+  link: {
+    select: {
+      id: true,
+      shortLink: true,
+      domain: true,
+      key: true,
+    },
+  },
 };
 
 // POST /api/workflows/create-partner-commission
@@ -482,6 +500,7 @@ async function stepRunSideEffects(
     skipWorkflow,
     clickEvent,
     isFirstConversion,
+    status,
     triggerAggregateDueCommissions,
   } = input;
 
@@ -491,21 +510,11 @@ async function stepRunSideEffects(
     });
   }
 
-  const commission = await prisma.commission.findUniqueOrThrow({
+  let commission = await prisma.commission.findUniqueOrThrow({
     where: {
       id: _commission.id,
     },
-    include: {
-      customer: true,
-      link: {
-        select: {
-          id: true,
-          shortLink: true,
-          domain: true,
-          key: true,
-        },
-      },
-    },
+    include: commissionInclude,
   });
 
   const program = await prisma.program.findUniqueOrThrow({
@@ -524,6 +533,7 @@ async function stepRunSideEffects(
           slug: true,
           name: true,
           webhookEnabled: true,
+          plan: true,
         },
       },
       // if no partner group is found, need to fetch default group to fallback to
@@ -542,7 +552,105 @@ async function stepRunSideEffects(
 
   const { workspace } = program;
   const isClawback = commission.earnings < 0;
-  const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
+  const shouldRunRiskMonitoring = commission.customer && eventId && clickEvent;
+  let riskRulesTriggered = false;
+
+  if (shouldRunRiskMonitoring) {
+    const triggeredRules = await detectAndRecordFraudEvent({
+      program: { id: programId },
+      partner: pick(programEnrollment.partner, ["id", "email", "name"]),
+      programEnrollment: pick(programEnrollment, [
+        "status",
+        "riskMonitoringDisabledAt",
+      ]),
+      customer: {
+        ...pick(commission.customer!, ["id", "email", "name"]),
+        // only pass along isFirstConversion if it's a boolean
+        ...(typeof isFirstConversion === "boolean" && { isFirstConversion }),
+      },
+      link: { id: linkId },
+      click: pick(clickEvent, ["url", "referer"]),
+      event: { id: eventId },
+    });
+
+    riskRulesTriggered = triggeredRules.length > 0;
+  }
+
+  const { canManageFraudEvents } = getPlanCapabilities(program.workspace.plan);
+
+  // 1. Partner-level: any pending partner-scope fraud group -> hold (all commission types for this partner).
+  // 2. Conversion-event: run fraud detection before create; if rules trigger -> hold (customer-scoped).
+  if (canManageFraudEvents) {
+    let shouldHoldCommission = false;
+
+    if (riskRulesTriggered) {
+      shouldHoldCommission = true;
+    } else {
+      const hasPendingRiskGroups = await prisma.fraudEventGroup.findFirst({
+        where: {
+          programId,
+          partnerId,
+          status: FraudEventStatus.pending,
+          type: {
+            in: PARTNER_LEVEL_FRAUD_RULES,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      shouldHoldCommission = hasPendingRiskGroups !== null;
+    }
+
+    // An explicit `status` input (e.g. imports) wins; clawbacks (earnings <= 0) are never held.
+    if (
+      shouldHoldCommission &&
+      !status &&
+      commission.earnings > 0 &&
+      commission.status === CommissionStatus.pending
+    ) {
+      const commissionBeforeHold = pick(commission, [
+        "id",
+        "amount",
+        "earnings",
+        "status",
+      ]);
+
+      try {
+        commission = await prisma.commission.update({
+          where: {
+            id: commission.id,
+            status: CommissionStatus.pending,
+          },
+          data: {
+            status: CommissionStatus.hold,
+          },
+          include: commissionInclude,
+        });
+
+        await trackCommissionStatusUpdate({
+          workspaceId: workspace.id,
+          programId,
+          commissions: [commissionBeforeHold],
+          newStatus: CommissionStatus.hold,
+        });
+      } catch (error) {
+        // The update only matches pending commissions; if it fails (e.g. concurrent status change),
+        // re-fetch so side effects use the current status from the database.
+
+        commission = await prisma.commission.findUniqueOrThrow({
+          where: {
+            id: commission.id,
+          },
+          include: commissionInclude,
+        });
+      }
+    }
+  }
+
+  const isOnHold = commission.status === CommissionStatus.hold;
+  const shouldTriggerWorkflow = !isClawback && !skipWorkflow && !isOnHold;
 
   const webhookPartner = constructWebhookPartner(programEnrollment, {
     totalCommissions:
@@ -565,10 +673,11 @@ async function stepRunSideEffects(
       data: commission,
     }),
 
-    syncTotalCommissions({
-      partnerId,
-      programId,
-    }),
+    !isOnHold &&
+      syncTotalCommissions({
+        partnerId,
+        programId,
+      }),
 
     !isClawback &&
       notifyPartnerCommission({
@@ -597,27 +706,6 @@ async function stepRunSideEffects(
         },
       }),
 
-    // Run fraud detection
-    commission.customer &&
-      eventId &&
-      clickEvent &&
-      detectAndRecordFraudEvent({
-        program: { id: programId },
-        partner: pick(programEnrollment.partner, ["id", "email", "name"]),
-        programEnrollment: pick(programEnrollment, [
-          "status",
-          "riskMonitoringDisabledAt",
-        ]),
-        customer: {
-          ...pick(commission.customer, ["id", "email", "name"]),
-          // only pass along isFirstConversion if it's a boolean
-          ...(typeof isFirstConversion === "boolean" && { isFirstConversion }),
-        },
-        link: { id: linkId },
-        click: pick(clickEvent, ["url", "referer"]),
-        event: { id: eventId },
-      }),
-
     // Aggregate due commissions immediately for manual commission
     triggerAggregateDueCommissions &&
       triggerAggregateDueCommissionsCronJob(programId),
@@ -629,7 +717,7 @@ async function stepRunSideEffects(
     "syncTotalCommissions",
     "notifyPartnerCommission",
     "executeWorkflows",
-    "detectAndRecordFraudEvent",
+    "triggerAggregateDueCommissions",
   ].map((step, index) => ({
     step,
     result: results[index],
@@ -680,7 +768,7 @@ async function clampEarningsToSpendLimit({
       ...(reward.event === "sale" ? { customerId } : {}),
       type: reward.event,
       status: {
-        in: ["pending", "processed", "paid"],
+        in: ["pending", "processed", "paid", "hold"],
       },
       // only need to filter if not all-time spend limit (no startDate or endDate)
       ...(startDate && endDate

@@ -250,6 +250,27 @@ describe.sequential("POST /links", async () => {
     expect(LinkSchema.strict().parse(link)).toBeTruthy();
   });
 
+  test("utm_source at max length", async () => {
+    const utmSource = "a".repeat(255);
+
+    onTestFinished(async () => {
+      await h.deleteLink(link.id);
+    });
+
+    const { status, data: link } = await http.post<Link>({
+      path: "/links",
+      body: {
+        url,
+        domain,
+        utm_source: utmSource,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(link.utm_source).toBe(utmSource);
+    expect(LinkSchema.strict().parse(link)).toBeTruthy();
+  });
+
   test("password protection", async () => {
     const password = "link-password";
 

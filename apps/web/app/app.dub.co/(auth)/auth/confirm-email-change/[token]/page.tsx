@@ -81,6 +81,16 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
     ? partnerId
     : userId;
 
+  if (tokenFound.identifier !== identifier) {
+    return (
+      <EmptyState
+        icon={InputPassword}
+        title="Invalid Token"
+        description="This token is invalid or expired. Please request a new one."
+      />
+    );
+  }
+
   const data = await redis.get<{
     email: string;
     newEmail: string;

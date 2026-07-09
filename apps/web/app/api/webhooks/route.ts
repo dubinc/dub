@@ -1,19 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
-import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { webhookCache } from "@/lib/webhook/cache";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
-import { transformWebhook } from "@/lib/webhook/transform";
-import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
-import {
-  identifyWebhookReceiver,
-  isLinkLevelWebhook,
-} from "@/lib/webhook/utils";
+import { identifyWebhookReceiver } from "@/lib/webhook/utils";
 import { validateWebhook } from "@/lib/webhook/validate-webhook";
-import { createWebhookSchema } from "@/lib/zod/schemas/webhooks";
+import { createWebhookSchema, WebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { sendEmail } from "@dub/email";
 import WebhookAdded from "@dub/email/templates/webhook-added";
 import { ZAPIER_INTEGRATION_ID } from "@dub/utils/src/constants";
@@ -28,7 +21,9 @@ export const GET = withWorkspace(
       workspaceId: workspace.id,
     });
 
-    return NextResponse.json(webhooks.map(transformWebhook));
+    return NextResponse.json(
+      webhooks.map((webhook) => WebhookSchema.parse(webhook)),
+    );
   },
   {
     requiredPermissions: ["webhooks.read"],
@@ -54,7 +49,7 @@ export const POST = withWorkspace(
       user: session.user,
     });
 
-    const { name, url, triggers, linkIds, secret } = input;
+    const { name, url, triggers, linkScope, linkIds, folderIds } = input;
 
     // Zapier use this endpoint to create webhooks from their app
     const isZapierWebhook =
@@ -77,8 +72,9 @@ export const POST = withWorkspace(
       url,
       receiver: isZapierWebhook ? WebhookReceiver.zapier : WebhookReceiver.user,
       triggers,
+      linkScope,
       linkIds,
-      secret,
+      folderIds,
       workspace,
       installationId: zapierInstallation ? zapierInstallation.id : undefined,
     });
@@ -91,47 +87,23 @@ export const POST = withWorkspace(
     }
 
     waitUntil(
-      (async () => {
-        const links = await prisma.link.findMany({
-          where: {
-            id: { in: linkIds },
-            projectId: workspace.id,
+      sendEmail({
+        to: session.user.email,
+        subject: "New webhook added",
+        react: WebhookAdded({
+          email: session.user.email,
+          workspace: {
+            name: workspace.name,
+            slug: workspace.slug,
           },
-          include: {
-            webhooks: {
-              select: {
-                webhookId: true,
-              },
-            },
+          webhook: {
+            name,
           },
-        });
-
-        await Promise.allSettled([
-          toggleWebhooksForWorkspace({
-            workspaceId: workspace.id,
-          }),
-          sendEmail({
-            to: session.user.email,
-            subject: "New webhook added",
-            react: WebhookAdded({
-              email: session.user.email,
-              workspace: {
-                name: workspace.name,
-                slug: workspace.slug,
-              },
-              webhook: {
-                name,
-              },
-            }),
-          }),
-          ...(links && links.length > 0 ? [linkCache.mset(links), []] : []),
-
-          ...(isLinkLevelWebhook(webhook) ? [webhookCache.set(webhook)] : []),
-        ]);
-      })(),
+        }),
+      }),
     );
 
-    return NextResponse.json(transformWebhook(webhook), { status: 201 });
+    return NextResponse.json(WebhookSchema.parse(webhook), { status: 201 });
   },
   {
     requiredPermissions: ["webhooks.write"],

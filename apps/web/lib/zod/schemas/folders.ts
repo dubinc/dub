@@ -16,8 +16,10 @@ const folderAccessLevelSchema = z.enum(
 
 const workspaceFolderAccess = folderAccessLevelSchema
   .nullish()
-  .default(null)
-  .describe("The access level of the folder within the workspace.");
+  .default("write")
+  .describe(
+    "The workspace-level access level settings for the folder. Default is `write` which allows full access to the folder for all team members. The other options are `read` (view-only access) and `null` (no access) and are only available on Business plans and above.",
+  );
 
 export const folderUserRoleSchema = z
   .enum(Object.keys(FOLDER_USER_ROLE) as [FolderUserRole, ...FolderUserRole[]])

@@ -19,6 +19,7 @@ import {
   parseUrlSchema,
   parseUrlSchemaAllowEmpty,
 } from "./utils";
+import { utmTagInputSchema } from "./utm";
 
 export const getUrlQuerySchema = z.object({
   url: parseUrlSchema,
@@ -467,54 +468,24 @@ export const createLinkBodySchema = z.object({
     .describe(
       "Allow search engines to index your short link. Defaults to `false` if not provided. Learn more: https://d.to/noindex",
     ),
-  utm_source: z
-    .string()
-    .transform((v) => (v === "" ? null : v))
-    .nullish()
-    .describe(
-      "The UTM source of the short link. If set, this will populate or override the UTM source in the destination URL.",
-    ),
-  utm_medium: z
-    .string()
-    .transform((v) => (v === "" ? null : v))
-    .nullish()
-    .describe(
-      "The UTM medium of the short link. If set, this will populate or override the UTM medium in the destination URL.",
-    ),
-  utm_campaign: z
-    .string()
-    .transform((v) => (v === "" ? null : v))
-    .nullish()
-    .describe(
-      "The UTM campaign of the short link. If set, this will populate or override the UTM campaign in the destination URL.",
-    ),
-  utm_term: z
-    .string()
-    .transform((v) => (v === "" ? null : v))
-    .nullish()
-    .describe(
-      "The UTM term of the short link. If set, this will populate or override the UTM term in the destination URL.",
-    ),
-  utm_content: z
-    .string()
-    .transform((v) => (v === "" ? null : v))
-    .nullish()
-    .describe(
-      "The UTM content of the short link. If set, this will populate or override the UTM content in the destination URL.",
-    ),
-  ref: z
-    .string()
-    .transform((v) => (v === "" ? null : v))
-    .nullish()
-    .describe(
-      "The referral tag of the short link. If set, this will populate or override the `ref` query parameter in the destination URL.",
-    ),
-  webhookIds: z
-    .array(z.string())
-    .nullish()
-    .describe(
-      "An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
-    ),
+  utm_source: utmTagInputSchema.describe(
+    "The UTM source of the short link. If set, this will populate or override the UTM source in the destination URL.",
+  ),
+  utm_medium: utmTagInputSchema.describe(
+    "The UTM medium of the short link. If set, this will populate or override the UTM medium in the destination URL.",
+  ),
+  utm_campaign: utmTagInputSchema.describe(
+    "The UTM campaign of the short link. If set, this will populate or override the UTM campaign in the destination URL.",
+  ),
+  utm_term: utmTagInputSchema.describe(
+    "The UTM term of the short link. If set, this will populate or override the UTM term in the destination URL.",
+  ),
+  utm_content: utmTagInputSchema.describe(
+    "The UTM content of the short link. If set, this will populate or override the UTM content in the destination URL.",
+  ),
+  ref: utmTagInputSchema.describe(
+    "The referral tag of the short link. If set, this will populate or override the `ref` query parameter in the destination URL.",
+  ),
   testVariants: ABTestVariantsSchema.nullish(),
   testStartedAt: z
     .string()
@@ -538,6 +509,13 @@ export const createLinkBodySchema = z.object({
     .nullish()
     .describe(
       "Deprecated: Use `tagIds` instead. The unique ID of the tag assigned to the short link.",
+    )
+    .meta({ deprecated: true }),
+  webhookIds: z
+    .array(z.string())
+    .nullish()
+    .describe(
+      "Deprecated: You can now enable link.clicked webhooks for all links in a workspace or folder without passing this field manually. An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
     )
     .meta({ deprecated: true }),
 });
@@ -725,11 +703,6 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The unique ID of the folder assigned to the short link."),
-    webhookIds: z
-      .array(z.string())
-      .describe(
-        "The IDs of the webhooks that the short link is associated with.",
-      ),
     comments: z
       .string()
       .nullable()
@@ -821,6 +794,12 @@ export const LinkSchema = z
         "Deprecated: Use `workspaceId` instead. The project ID of the short link.",
       )
       .meta({ deprecated: true }),
+    webhookIds: z
+      .array(z.string())
+      .describe(
+        "Deprecated: You can now enable link.clicked webhooks for all links in a workspace or folder without passing this field manually. An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
+      )
+      .meta({ deprecated: true }),
   })
   .meta({ title: "Link" });
 
@@ -882,11 +861,11 @@ export const linkEventSchema = LinkSchema.extend({
   // coerce date fields
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
-  lastClicked: z.coerce.date(),
-  expiresAt: z.coerce.date(),
-  disabledAt: z.coerce.date(),
-  testCompletedAt: z.coerce.date(),
-  testStartedAt: z.coerce.date(),
+  lastClicked: z.coerce.date().nullable(),
+  expiresAt: z.coerce.date().nullable(),
+  disabledAt: z.coerce.date().nullable(),
+  testCompletedAt: z.coerce.date().nullable(),
+  testStartedAt: z.coerce.date().nullable(),
   // userId can be null
   userId: z.string().nullable(),
 });

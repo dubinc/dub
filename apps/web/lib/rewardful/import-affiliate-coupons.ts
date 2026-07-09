@@ -32,16 +32,26 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
   let processedBatches = 0;
 
   while (hasMore && processedBatches < REWARDFUL_MAX_BATCHES) {
-    const affiliateCoupons = await rewardfulApi.listAffiliateCoupons({
+    const allAffiliateCoupons = await rewardfulApi.listAffiliateCoupons({
       page: currentPage,
     });
 
-    if (affiliateCoupons.length === 0) {
+    if (allAffiliateCoupons.length === 0) {
       hasMore = false;
       break;
     }
 
-    const affiliateIds = affiliateCoupons.map(
+    const activeAffiliateCoupons = allAffiliateCoupons.filter(
+      (affiliateCoupon) => !affiliateCoupon.archived,
+    );
+
+    if (activeAffiliateCoupons.length === 0) {
+      currentPage++;
+      processedBatches++;
+      continue;
+    }
+
+    const affiliateIds = activeAffiliateCoupons.map(
       (affiliateCoupon) => affiliateCoupon.affiliate_id,
     );
 
@@ -59,11 +69,24 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
     );
 
     // Find the coupons that have a partner account created on Dub
-    const filteredCoupons = affiliateCoupons.filter(
+    const filteredCoupons = activeAffiliateCoupons.filter(
       (affiliateCoupon) => filteredPartners[affiliateCoupon.affiliate_id],
     );
 
-    const affiliateIdToCouponsMap = filteredCoupons.reduce(
+    const existingDiscountCodes = await prisma.discountCode.findMany({
+      where: {
+        programId,
+        code: {
+          in: filteredCoupons.map((coupon) => coupon.token),
+        },
+      },
+    });
+
+    const couponCodesToImport = filteredCoupons.filter(
+      (coupon) => !existingDiscountCodes.some((dc) => dc.code === coupon.token),
+    );
+
+    const affiliateIdToCouponsMap = couponCodesToImport.reduce(
       (acc, coupon) => {
         if (!acc[coupon.affiliate_id]) {
           acc[coupon.affiliate_id] = [];
@@ -73,7 +96,7 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
         return acc;
       },
 
-      {} as Record<string, typeof filteredCoupons>,
+      {} as Record<string, typeof couponCodesToImport>,
     );
 
     const linksToCreate: Partial<ProcessedLinkProps>[] = [];
@@ -91,7 +114,7 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
         linksToCreate.push(
           ...coupons.map((coupon) => ({
             domain: program.domain!,
-            key: coupon.token,
+            key: `${coupon.token}-coupon`,
             url: program.url!,
             trackConversion: true,
             programId,
@@ -99,7 +122,7 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
             folderId: program.defaultFolderId,
             userId,
             projectId: program.workspaceId,
-            comments: `Link created for coupon ${coupon.token}`,
+            comments: `Link created for Rewardful coupon "${coupon.token}"`,
           })),
         );
       }
@@ -112,14 +135,17 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
       console.log(`Created ${createdLinks.length} links`);
 
       const createdDiscountCodes = await prisma.discountCode.createMany({
-        data: filteredCoupons
+        data: couponCodesToImport
           .map((coupon) => {
             const { partnerId, discountId } =
               filteredPartners[coupon.affiliate_id];
 
             // link should always exist since we return all links (including duplicates) from bulkCreateLinks
+            // need to remove "-coupon" from the key to match the coupon token
             const link = createdLinks.find(
-              (link) => link.key.toLowerCase() === coupon.token.toLowerCase(),
+              (link) =>
+                link.key.toLowerCase().replace("-coupon", "") ===
+                coupon.token.toLowerCase(),
             );
             if (!link) {
               console.error(`Link not found for coupon ${coupon.token}`);

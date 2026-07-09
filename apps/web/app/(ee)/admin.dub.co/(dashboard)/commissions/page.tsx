@@ -221,7 +221,7 @@ function CommissionsPageClient() {
                 }
               >
                 <a
-                  href={`https://partners.dub.co/programs/marketplace/${row.original.slug}`}
+                  href={`https://partners.dub.co/marketplace/${row.original.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={cn(

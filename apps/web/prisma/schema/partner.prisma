@@ -70,7 +70,7 @@ model Partner {
   stripeRecipientId            String?              @unique
   payoutMethodHash             String?
   cryptoWalletAddress          String?
-  tremendousEmail              String?              @unique
+  tremendousEmail              String?
 
   // timestamp fields
   createdAt   DateTime  @default(now())

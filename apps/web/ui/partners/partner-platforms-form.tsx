@@ -13,7 +13,7 @@ import { SocialVerificationByCodeModal } from "@/ui/modals/social-verification-b
 import {
   AnimatedSizeContainer,
   Button,
-  CircleCheckFill,
+  CircleCheck,
   Globe,
   Icon,
   Instagram,
@@ -628,7 +628,7 @@ function VerifyButton({
       text={isVerified ? "Verified" : "Verify"}
       icon={
         isVerified ? (
-          <CircleCheckFill className="size-4 text-green-700" />
+          <CircleCheck variant="fill" className="size-4 text-green-700" />
         ) : (
           <Icon className="size-3.5" />
         )

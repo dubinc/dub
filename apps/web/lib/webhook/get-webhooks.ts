@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { WebhookTrigger } from "../types";
+import type { WebhookTrigger } from "./types";
 
 interface GetWebhooksProps {
   workspaceId: string;
@@ -31,8 +31,8 @@ export async function getWebhooks({
       url: true,
       secret: true,
       triggers: true,
+      linkScope: true,
       disabledAt: true,
-      links: true,
       receiver: true,
       installationId: true,
     },

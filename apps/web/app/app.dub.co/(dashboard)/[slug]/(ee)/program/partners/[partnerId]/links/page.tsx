@@ -31,7 +31,7 @@ import { Trash } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import { DiscountProvider } from "@prisma/client";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 export default function ProgramPartnerLinksPage() {
@@ -193,6 +193,8 @@ const PartnerReferralLink = ({
 }: {
   partner: EnrolledPartnerProps;
 }) => {
+  const { slug } = useWorkspace();
+  const router = useRouter();
   const {
     program,
     loading: loadingProgram,
@@ -225,6 +227,8 @@ const PartnerReferralLink = ({
       },
     ];
   }, [referralLink, referral]);
+
+  const referredPartnersUrl = `/${slug}/program/partners?referredByPartnerId=${partner.id}`;
 
   const table = useTable({
     data,
@@ -263,6 +267,14 @@ const PartnerReferralLink = ({
           }),
       },
     ],
+    onRowClick: (_row, e) => {
+      if (e.metaKey || e.ctrlKey) window.open(referredPartnersUrl, "_blank");
+      else router.push(referredPartnersUrl);
+    },
+    onRowAuxClick: () => window.open(referredPartnersUrl, "_blank"),
+    rowProps: () => ({
+      onPointerEnter: () => router.prefetch(referredPartnersUrl),
+    }),
     resourceName: (p) => `link${p ? "s" : ""}`,
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
@@ -321,7 +333,12 @@ const PartnerDiscountCodes = ({
       {
         id: "code",
         header: "Code",
-        cell: ({ row }) => <DiscountCodeBadge code={row.original.code} />,
+        cell: ({ row }) => (
+          <DiscountCodeBadge
+            code={row.original.code}
+            disabledAt={row.original.disabledAt}
+          />
+        ),
       },
       {
         id: "shortLink",
