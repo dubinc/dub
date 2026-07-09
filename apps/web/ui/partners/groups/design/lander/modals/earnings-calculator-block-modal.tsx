@@ -63,6 +63,8 @@ function EarningsCalculatorBlockModalInner({
         ? defaultValues.productPrice / 100
         : undefined,
       billingPeriod: defaultValues?.billingPeriod ?? "monthly",
+      minSales: defaultValues?.minSales,
+      maxSales: defaultValues?.maxSales,
     },
   });
 
@@ -84,6 +86,8 @@ function EarningsCalculatorBlockModalInner({
               onSubmit({
                 ...data,
                 productPrice: Number(data.productPrice) * 100,
+                minSales: data.minSales || undefined,
+                maxSales: data.maxSales || undefined,
               });
             })(e);
           }}
@@ -154,6 +158,98 @@ function EarningsCalculatorBlockModalInner({
                   </div>
                 </div>
 
+                <div>
+                  <label className="text-sm font-medium text-neutral-700">
+                    Sales range
+                  </label>
+
+                  <div className="mt-2 flex items-end gap-2">
+                    <div
+                      className={cn(
+                        "border-subtle flex h-10 min-w-0 flex-1 items-stretch overflow-hidden rounded-lg border bg-white",
+                        "transition-[border-color,box-shadow] duration-150 ease-out motion-reduce:transition-none",
+                        "focus-within:border-neutral-500 focus-within:ring-4 focus-within:ring-neutral-200",
+                        errors.minSales &&
+                          "border-red-600 focus-within:border-red-500 focus-within:ring-red-200",
+                      )}
+                    >
+                      <input
+                        id={`${id}-min-sales`}
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        aria-label="Minimum sales"
+                        placeholder="No min"
+                        className="min-w-0 flex-1 border-0 bg-transparent px-3 py-1 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:ring-0"
+                        {...register("minSales", {
+                          setValueAs: (v) => {
+                            if (v === "" || v == null) return undefined;
+                            const n = Number.parseInt(
+                              String(v).replace(/\D/g, ""),
+                              10,
+                            );
+                            return Number.isFinite(n) ? n : undefined;
+                          },
+                          min: 1,
+                          validate: (value, formValues) => {
+                            if (value == null || formValues.maxSales == null) {
+                              return true;
+                            }
+                            return (
+                              value <= formValues.maxSales ||
+                              "Must be less than or equal to max sales"
+                            );
+                          },
+                        })}
+                      />
+                    </div>
+
+                    <span className="shrink-0 pb-2.5 text-xs text-neutral-500">
+                      to
+                    </span>
+
+                    <div
+                      className={cn(
+                        "border-subtle flex h-10 min-w-0 flex-1 items-stretch overflow-hidden rounded-lg border bg-white",
+                        "transition-[border-color,box-shadow] duration-150 ease-out motion-reduce:transition-none",
+                        "focus-within:border-neutral-500 focus-within:ring-4 focus-within:ring-neutral-200",
+                        errors.maxSales &&
+                          "border-red-600 focus-within:border-red-500 focus-within:ring-red-200",
+                      )}
+                    >
+                      <input
+                        id={`${id}-max-sales`}
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        aria-label="Maximum sales"
+                        placeholder="No max"
+                        className="min-w-0 flex-1 border-0 bg-transparent px-3 py-1 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:ring-0"
+                        {...register("maxSales", {
+                          setValueAs: (v) => {
+                            if (v === "" || v == null) return undefined;
+                            const n = Number.parseInt(
+                              String(v).replace(/\D/g, ""),
+                              10,
+                            );
+                            return Number.isFinite(n) ? n : undefined;
+                          },
+                          min: 1,
+                          validate: (value, formValues) => {
+                            if (value == null || formValues.minSales == null) {
+                              return true;
+                            }
+                            return (
+                              value >= formValues.minSales ||
+                              "Must be greater than or equal to min sales"
+                            );
+                          },
+                        })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex flex-col gap-2.5">
                   <div>
                     <span className="text-content-emphasis text-sm font-medium">
@@ -208,6 +304,8 @@ function Preview({
 }) {
   const productPrice = useWatch({ control, name: "productPrice" });
   const billingPeriod = useWatch({ control, name: "billingPeriod" });
+  const minSales = useWatch({ control, name: "minSales" });
+  const maxSales = useWatch({ control, name: "maxSales" });
 
   const { group } = useGroup();
 
@@ -222,6 +320,8 @@ function Preview({
           productPrice:
             Math.min(Math.max(productPrice || 0, 0), MAX_PRODUCT_PRICE) * 100,
           billingPeriod: billingPeriod ?? "monthly",
+          minSales: minSales || undefined,
+          maxSales: maxSales || undefined,
         },
       }}
       group={group}

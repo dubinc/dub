@@ -5,15 +5,16 @@ import { GroupProps } from "@/lib/types";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { InvoiceDollar } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import * as z from "zod/v4";
 import { formatRewardDescription } from "../../format-reward-description";
 import { BlockDescription } from "./block-description";
 import { BlockTitle } from "./block-title";
 import { WavePattern } from "./wave-pattern";
 
-const SLIDER_MIN = 1;
-const SLIDER_MAX = 50;
+const DEFAULT_SLIDER_MIN = 1;
+const DEFAULT_SLIDER_MAX = 50;
+const DEFAULT_SLIDER_VALUE = 10;
 
 export function EarningsCalculatorBlock({
   block,
@@ -25,7 +26,17 @@ export function EarningsCalculatorBlock({
   showTitleAndDescription?: boolean;
 }) {
   const id = useId();
-  const [value, setValue] = useState(10);
+  const min = block.data.minSales ?? DEFAULT_SLIDER_MIN;
+  const max = block.data.maxSales ?? DEFAULT_SLIDER_MAX;
+  const sliderMin = max < min ? DEFAULT_SLIDER_MIN : min;
+  const sliderMax = max < min ? DEFAULT_SLIDER_MAX : max;
+  const [value, setValue] = useState(() =>
+    Math.min(Math.max(DEFAULT_SLIDER_VALUE, sliderMin), sliderMax),
+  );
+
+  useEffect(() => {
+    setValue((current) => Math.min(Math.max(current, sliderMin), sliderMax));
+  }, [sliderMin, sliderMax]);
 
   if (!group?.saleReward) return null;
 
@@ -41,6 +52,10 @@ export function EarningsCalculatorBlock({
   );
 
   const displayEarnings = isYearly ? monthlyEarnings * 12 : monthlyEarnings;
+  const sliderProgress =
+    sliderMax === sliderMin
+      ? 100
+      : ((value - sliderMin) / (sliderMax - sliderMin)) * 100;
 
   return (
     <div className="space-y-5">
@@ -85,13 +100,13 @@ export function EarningsCalculatorBlock({
               id={`${id}-slider`}
               type="range"
               aria-labelledby={`${id}-label`}
-              min={SLIDER_MIN}
-              max={SLIDER_MAX}
+              min={sliderMin}
+              max={sliderMax}
               value={value}
               onChange={(e) => setValue(Number(e.target.value))}
               className="earnings-slider w-full"
               style={{
-                background: `linear-gradient(to right, #262626 ${((value - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100}%, #e5e5e5 ${((value - SLIDER_MIN) / (SLIDER_MAX - SLIDER_MIN)) * 100}%)`,
+                background: `linear-gradient(to right, #262626 ${sliderProgress}%, #e5e5e5 ${sliderProgress}%)`,
               }}
             />
             <div className="flex items-center gap-1">
