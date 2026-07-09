@@ -120,8 +120,7 @@ type ReferralsEmbedData = {
   stats: {
     clicks: number;
     leads: number;
-    sales: number;
-    saleAmount: number;
+    conversions: number;
   };
   bounties: PartnerBountyProps[];
 };

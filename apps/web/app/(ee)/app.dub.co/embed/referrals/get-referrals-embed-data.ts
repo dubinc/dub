@@ -89,7 +89,7 @@ export const getReferralsEmbedData = async (token: string) => {
     partnerGroup: group,
   } = programEnrollment;
 
-  const { totalClicks, totalLeads, totalSales, totalSaleAmount } =
+  const { totalClicks, totalLeads, totalConversions } =
     aggregatePartnerLinksStats(links);
 
   const [commissions, bounties] = await Promise.all([
@@ -144,8 +144,7 @@ export const getReferralsEmbedData = async (token: string) => {
     stats: {
       clicks: totalClicks,
       leads: totalLeads,
-      sales: totalSales,
-      saleAmount: totalSaleAmount,
+      conversions: totalConversions,
     },
     programEnrollment: {
       createdAt: programEnrollment.createdAt,
