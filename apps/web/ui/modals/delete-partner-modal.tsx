@@ -111,8 +111,9 @@ function DeletePartnerModal({
 
           <p className="text-sm text-neutral-600">
             This will permanently remove this partner from your program,
-            including their links and messages. Only partners with no clicks,
-            leads, or sales can be deleted. This action cannot be undone.
+            including their links and messages. Only banned or deactivated
+            partners with no clicks, leads, sales, commissions, or payouts can
+            be deleted. This action cannot be undone.
           </p>
 
           <div>
