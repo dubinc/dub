@@ -14,6 +14,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
 type BulkDeactivatePartnersFormData = {
   confirm: string;
@@ -146,9 +147,10 @@ function BulkDeactivatePartnersModal({
           </div>
 
           <p className="text-sm text-neutral-600">
-            This will deactivate the {partnerWord} and disable all their active
-            links. Their commissions and payouts will remain intact. You can
-            reactivate them later if needed.
+            All active links for {partners.length === 1 ? "this" : "these"}{" "}
+            {partnerWord} will be disabled and they will be{" "}
+            <PartnerEmailNotificationTooltipHelper />. Their commissions and
+            payouts will remain intact. You can reactivate them later if needed.
           </p>
 
           <div>

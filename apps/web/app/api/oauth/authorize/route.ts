@@ -4,8 +4,8 @@ import { createToken } from "@/lib/api/oauth/utils";
 import { consolidateScopes, getScopesForRole } from "@/lib/api/tokens/scopes";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
-import { prisma } from "@dub/prisma";
 import { SHOPIFY_INTEGRATION_ID, STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 

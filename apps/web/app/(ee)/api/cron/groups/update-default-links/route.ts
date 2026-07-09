@@ -9,13 +9,13 @@ import {
 } from "@/lib/integrations/appsflyer/apply-parameters";
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
-import { prisma } from "@dub/prisma";
-import { Link } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   constructURLFromUTMParams,
   log,
 } from "@dub/utils";
+import { Link } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";

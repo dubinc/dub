@@ -4,6 +4,7 @@ import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { prisma } from "@/lib/prisma";
 import { SUBMITTED_LEAD_FORM_REQUIRED_FIELD_KEYS } from "@/lib/submitted-leads/constants";
 import { notifyPartnerLeadSubmitted } from "@/lib/submitted-leads/notify-partner-lead-submitted";
 import { SubmittedLeadFormDataField } from "@/lib/types";
@@ -13,9 +14,8 @@ import {
   submittedLeadRequiredFieldsSchema,
 } from "@/lib/zod/schemas/submitted-lead-form";
 import { submitLeadSchema } from "@/lib/zod/schemas/submitted-leads";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../actions/safe-action";

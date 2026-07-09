@@ -1,4 +1,4 @@
-import { APP_DOMAIN } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { OAuthProvider, OAuthProviderConfig } from "../oauth-provider";
 import { intercomAuthTokenSchema } from "./schema";
 
@@ -16,7 +16,7 @@ export const intercomOAuthProvider = new IntercomOAuthProvider({
   clientSecret: process.env.INTERCOM_CLIENT_SECRET!,
   authUrl: "https://app.intercom.com/oauth",
   tokenUrl: "https://api.intercom.io/auth/eagle/token",
-  redirectUri: `${APP_DOMAIN}/api/intercom/callback`,
+  redirectUri: `${APP_DOMAIN_WITH_NGROK}/api/intercom/callback`,
   redisStatePrefix: "intercom:oauth:state",
   tokenSchema: intercomAuthTokenSchema,
   bodyFormat: "json",

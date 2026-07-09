@@ -8,10 +8,10 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { queueRewardProcessing } from "@/lib/api/rewards/queue-reward-processing";
 import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
@@ -31,6 +31,8 @@ export const updateRewardAction = authActionClient
       modifiers,
       config,
       rewardId,
+      spendLimitAmount,
+      spendLimitInterval,
     } = parsedInput;
 
     throwIfNoPermission({
@@ -45,8 +47,11 @@ export const updateRewardAction = authActionClient
       programId,
     });
 
-    const { canUseAdvancedRewardLogic, canCreateReferralReward } =
-      getPlanCapabilities(workspace.plan);
+    const {
+      canUseAdvancedRewardLogic,
+      canSetRewardSpendLimit,
+      canCreateReferralReward,
+    } = getPlanCapabilities(workspace.plan);
 
     if (reward.event === "referral" && !canCreateReferralReward) {
       throw new Error(
@@ -57,6 +62,12 @@ export const updateRewardAction = authActionClient
     if (modifiers && !canUseAdvancedRewardLogic) {
       throw new Error(
         "Advanced reward structures are only available on the Advanced plan and above.",
+      );
+    }
+
+    if ((spendLimitAmount || spendLimitInterval) && !canSetRewardSpendLimit) {
+      throw new Error(
+        "Spend limits are only available on the Enterprise plan.",
       );
     }
 
@@ -76,6 +87,8 @@ export const updateRewardAction = authActionClient
         tooltipDescription: tooltipDescription || null,
         modifiers: modifiers === null ? Prisma.DbNull : modifiers,
         config: config === null ? Prisma.DbNull : config,
+        spendLimitAmount,
+        spendLimitInterval,
         ...(type === "flat"
           ? {
               amountInCents,
@@ -169,9 +182,7 @@ export const updateRewardAction = authActionClient
               revalidatePath(`/partners.dub.co/${program.slug}`),
               revalidatePath(`/partners.dub.co/${program.slug}/apply`),
               program.addedToMarketplaceAt &&
-                revalidatePath(
-                  `/partners.dub.co/programs/marketplace/${program.slug}`,
-                ),
+                revalidatePath(`/partners.dub.co/marketplace/${program.slug}`),
             ]
           : []),
       ]),

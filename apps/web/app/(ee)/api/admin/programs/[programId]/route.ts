@@ -1,7 +1,7 @@
 import { withAdmin } from "@/lib/auth";
 import { MAX_PROGRAM_CATEGORIES } from "@/lib/constants/program";
-import { prisma } from "@dub/prisma";
-import { Category } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Category } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

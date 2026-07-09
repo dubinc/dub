@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { queuePartnerTagDeletion } from "./queue-tag-deletion";
 
 // Mark the partner tag as deleted (orphan from program). ProgramPartnerTag

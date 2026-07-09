@@ -15,6 +15,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { PartnerEmailNotificationTooltipHelper } from "../shared/partner-email-notification-tooltip-helper";
 
 type DeactivatePartnerFormData = {
   confirm: string;
@@ -98,9 +99,9 @@ function DeactivatePartnerModal({
           </div>
 
           <p className="text-sm text-neutral-600">
-            This will deactivate the partner and disable all their active links.
-            Their commissions and payouts will remain intact. You can reactivate
-            them later if needed.
+            All active links for this partner will be disabled and they will be{" "}
+            <PartnerEmailNotificationTooltipHelper />. Their commissions and
+            payouts will remain intact. You can reactivate them later if needed.
           </p>
 
           <div>

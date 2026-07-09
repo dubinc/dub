@@ -10,7 +10,6 @@ import {
   PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH,
 } from "@/lib/zod/schemas/partners";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { ProgramApplicationRejectionReason } from "@dub/prisma/client";
 import {
   Button,
   Combobox,
@@ -22,6 +21,7 @@ import {
   useKeyboardShortcut,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { ProgramApplicationRejectionReason } from "@prisma/client";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import {

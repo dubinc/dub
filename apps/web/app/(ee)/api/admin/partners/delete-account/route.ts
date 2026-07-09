@@ -1,8 +1,8 @@
 import { withAdmin } from "@/lib/auth";
 import { conn } from "@/lib/planetscale";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
 import { prettyPrint } from "@dub/utils";
 import { NextResponse } from "next/server";
 

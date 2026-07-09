@@ -4,13 +4,13 @@ import { Session } from "@/lib/auth";
 import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
+import { prisma } from "@/lib/prisma";
 import {
   approveBountySubmissionBodySchema,
   BountySubmissionSchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
 import BountyApproved from "@dub/email/templates/bounty-approved";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 

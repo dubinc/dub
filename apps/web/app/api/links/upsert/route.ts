@@ -8,13 +8,13 @@ import {
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   createLinkBodySchemaAsync,
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma";
 import { deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

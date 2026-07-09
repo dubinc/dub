@@ -1,7 +1,7 @@
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
+import { prisma } from "@/lib/prisma";
 import { stripeAppClient } from "@/lib/stripe";
 import { StripeCustomerInvoiceSchema } from "@/lib/zod/schemas/customers";
-import { prisma } from "@dub/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import Stripe from "stripe";
 

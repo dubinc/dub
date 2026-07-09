@@ -9,7 +9,6 @@ import { PARTNER_TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-tags";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { CountryFlag } from "@/ui/shared/country-flag";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { encodeRangeToken, parseRangeToken, useRouterStuff } from "@dub/ui";
 import {
   CircleDotted,
@@ -34,6 +33,7 @@ import {
   type FilterOperator,
   type ParsedFilter,
 } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -246,17 +246,9 @@ export function usePartnerFilters(
   });
 
   const { referredByPartners } = useReferredByPartnerFilterOptions({
-    search: selectedFilter === "referredByPartnerId" ? debouncedSearch : "",
+    referredByCount,
     enabled: enabledFilters.includes("referredByPartnerId"),
   });
-
-  const referredByCountMap = useMemo(
-    () =>
-      new Map(
-        referredByCount?.map((r) => [r.referredByPartnerId, r._count]) ?? [],
-      ),
-    [referredByCount],
-  );
 
   const filters = useMemo(
     () => [
@@ -282,7 +274,6 @@ export function usePartnerFilters(
                           label: groupData.name,
                           icon: <GroupColorCircle group={groupData} />,
                           right: nFormatter(_count || 0, { full: true }),
-                          permalink: `/${slug}/program/groups/${groupData.slug}/rewards`,
                         };
                       })
                       .filter((group) => group !== null)
@@ -372,23 +363,35 @@ export function usePartnerFilters(
                 enabledFilters.includes(m.filterKey),
               ),
               options:
-                referredByPartners?.map(({ id, name, image }) => {
-                  const count = referredByCountMap.get(id);
-                  return {
-                    value: id,
-                    label: name,
-                    icon: (
-                      <img
-                        src={image || `${OG_AVATAR_URL}${id}`}
-                        alt={`${name} avatar`}
-                        className="size-4 rounded-full"
-                      />
-                    ),
-                    ...(count !== undefined && {
-                      right: nFormatter(count, { full: true }),
-                    }),
-                  };
-                }) ?? null,
+                referredByCount && referredByPartners
+                  ? referredByCount
+                      .filter(({ referredByPartnerId }) =>
+                        referredByPartners.some(
+                          (p) => p.id === referredByPartnerId,
+                        ),
+                      )
+                      .map(({ referredByPartnerId, _count }) => {
+                        const partner = referredByPartners.find(
+                          (p) => p.id === referredByPartnerId,
+                        )!;
+
+                        return {
+                          value: referredByPartnerId,
+                          label: partner.name,
+                          icon: (
+                            <img
+                              src={
+                                partner.image ||
+                                `${OG_AVATAR_URL}${referredByPartnerId}`
+                              }
+                              alt={`${partner.name} avatar`}
+                              className="size-4 rounded-full"
+                            />
+                          ),
+                          right: nFormatter(_count, { full: true }),
+                        };
+                      })
+                  : null,
             },
           ]
         : []),
@@ -446,7 +449,7 @@ export function usePartnerFilters(
       statusCount,
       countriesCount,
       referredByPartners,
-      referredByCountMap,
+      referredByCount,
     ],
   );
 
@@ -761,17 +764,26 @@ function usePartnerTagFilterOptions({
 }
 
 function useReferredByPartnerFilterOptions({
-  search,
+  referredByCount,
   enabled = true,
 }: {
-  search: string;
+  referredByCount?:
+    | {
+        referredByPartnerId: string;
+        _count: number;
+      }[]
+    | undefined;
   enabled?: boolean;
 }) {
   const { searchParamsObj } = useRouterStuff();
 
+  const partnerIds = referredByCount?.map((r) => r.referredByPartnerId) ?? [];
+
   const { partners, loading: partnersLoading } = usePartners({
-    query: { search },
-    enabled,
+    query: {
+      partnerIds: partnerIds.length ? partnerIds : undefined,
+    },
+    enabled: enabled && partnerIds.length > 0,
   });
 
   const { partners: selectedPartners } = usePartners({
@@ -785,6 +797,7 @@ function useReferredByPartnerFilterOptions({
 
   const result = useMemo(() => {
     if (
+      !referredByCount ||
       partnersLoading ||
       (searchParamsObj.referredByPartnerId &&
         ![...(selectedPartners ?? []), ...(partners ?? [])].some(
@@ -801,6 +814,7 @@ function useReferredByPartnerFilterOptions({
         ?.map((sp) => ({ ...sp, hideDuringSearch: true })) ?? []),
     ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[];
   }, [
+    referredByCount,
     partnersLoading,
     partners,
     selectedPartners,

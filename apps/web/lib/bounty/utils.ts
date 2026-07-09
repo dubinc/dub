@@ -1,4 +1,4 @@
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@prisma/client";
 import { bountySocialContentRequirementsSchema } from "../zod/schemas/bounties";
 import { BOUNTY_SOCIAL_PLATFORMS } from "./social-content";
 

@@ -19,7 +19,6 @@ import {
 } from "@/ui/partners/program-sheet-accordion";
 import { X } from "@/ui/shared/icons";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { CommissionType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -30,6 +29,7 @@ import {
   ToggleGroup,
 } from "@dub/ui";
 import { cn, currencyFormatter, formatDate } from "@dub/utils";
+import { CommissionType } from "@prisma/client";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";

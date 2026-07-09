@@ -1,7 +1,7 @@
 import "dotenv-flow/config";
 
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
 async function main() {

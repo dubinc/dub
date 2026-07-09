@@ -5,7 +5,7 @@ import { createStablecoinPayout } from "@/lib/partners/create-stablecoin-payout"
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
 import { sendTremendousPayouts } from "@/lib/tremendous/send-tremendous-payouts";
 import { redis } from "@/lib/upstash";
-import { Partner } from "@dub/prisma/client";
+import { Partner } from "@prisma/client";
 import { authPartnerActionClient } from "../safe-action";
 
 // Force a withdrawal for a partner (even if the total amount is below the minimum withdrawal amount)

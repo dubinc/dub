@@ -1,4 +1,4 @@
-import { PlatformType, Prisma } from "@dub/prisma/client";
+import { PlatformType, Prisma } from "@prisma/client";
 
 /** Query params shared by `/api/network/partners` and `/count` for listing. */
 export type PartnerNetworkListingParams = {

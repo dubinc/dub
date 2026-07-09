@@ -1,9 +1,9 @@
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import DiscountDeleted from "@dub/email/templates/discount-deleted";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -124,7 +124,7 @@ export async function couponDeleted(event: Stripe.CouponDeletedEvent) {
           users.map((user) => ({
             from: VARIANT_TO_FROM_MAP.notifications,
             to: user.email,
-            subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Discount has been deleted`,
+            subject: "Your discount has been deleted",
             react: DiscountDeleted({
               email: user.email,
               coupon: {

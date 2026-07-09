@@ -9,7 +9,6 @@ import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-app
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { X } from "@/ui/shared/icons";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { FraudRuleType } from "@dub/prisma/client";
 import {
   ArrowUpRight2,
   Button,
@@ -23,6 +22,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, fetcher, formatDateTime } from "@dub/utils";
+import { FraudRuleType } from "@prisma/client";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
 import useSWR from "swr";
@@ -47,6 +47,8 @@ const COMMISSION_BLOCKING_FRAUD_TYPE: FraudRuleType[] = [
   FraudRuleType.customerEmailSuspiciousDomain,
   FraudRuleType.referralSourceBanned,
   FraudRuleType.paidTrafficDetected,
+  FraudRuleType.partnerCrossProgramBan,
+  FraudRuleType.partnerDuplicateAccount,
 ];
 
 const SHEET_TITLES: Record<FraudGroupProps["status"], string> = {
@@ -71,8 +73,9 @@ function RiskReviewSheetContent({
     showCommissionsOnHold && workspaceId
       ? `/api/commissions/count?${new URLSearchParams({
           workspaceId,
-          status: "pending",
+          status: "hold",
           fraudEventGroupId: fraudGroup.id,
+          partnerId: partner.id,
         }).toString()}`
       : null;
 

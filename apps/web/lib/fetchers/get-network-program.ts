@@ -1,5 +1,5 @@
 import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { cache } from "react";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { programLanderSchema } from "../zod/schemas/program-lander";

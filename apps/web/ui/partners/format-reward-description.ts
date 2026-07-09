@@ -7,6 +7,8 @@ import {
 import { RewardProps } from "@/lib/types";
 import { referralRewardConfigSchema } from "@/lib/zod/schemas/rewards";
 import { currencyFormatter } from "@dub/utils";
+import { RewardSpendLimitInterval } from "@prisma/client";
+import { getSpendLimitDescriptionParts } from "./program-reward-spend-limit";
 
 export function formatRewardDescription(
   reward: RewardProps,
@@ -45,7 +47,18 @@ export function formatRewardDescription(
     parts.push(`for ${durationText}`);
   }
 
-  return parts.join(" ");
+  const spendLimitParts = getSpendLimitDescriptionParts({
+    spendLimitAmount: reward.spendLimitAmount,
+    spendLimitInterval: reward.spendLimitInterval,
+  });
+
+  let description = parts.join(" ");
+
+  if (spendLimitParts && reward.spendLimitInterval) {
+    description += `, up to ${spendLimitParts.amount} ${formatSpendLimitIntervalLabel(reward.spendLimitInterval)} ${reward.event === "sale" ? "per customer" : ""}`;
+  }
+
+  return description;
 }
 
 function formatReferralRewardDescription(
@@ -138,4 +151,17 @@ function formatReferralDuration(maxDuration: number | null | undefined) {
   }
 
   return "";
+}
+
+function formatSpendLimitIntervalLabel(interval: RewardSpendLimitInterval) {
+  switch (interval) {
+    case "day":
+      return "daily";
+    case "week":
+      return "weekly";
+    case "month":
+      return "monthly";
+    case "allTime":
+      return "";
+  }
 }

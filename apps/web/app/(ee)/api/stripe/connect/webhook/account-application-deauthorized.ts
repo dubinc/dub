@@ -1,5 +1,5 @@
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
 
 export async function accountApplicationDeauthorized(

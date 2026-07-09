@@ -1,4 +1,4 @@
-import { CircleCheckFill } from "@dub/ui";
+import { CircleCheck } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { memo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -58,7 +58,8 @@ export const PasswordRequirements = memo(function PasswordRequirements({
               checked ? "text-green-600" : errors[field] && "text-red-600",
             )}
           >
-            <CircleCheckFill
+            <CircleCheck
+              variant="fill"
               className={cn(
                 "size-2.5 transition-opacity",
                 checked

@@ -1,7 +1,7 @@
-import { PlatformType } from "@dub/prisma/client";
 import { IconMenu, Popover, Tick, useRouterStuff } from "@dub/ui";
 import { ChartActivity2, Megaphone } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 

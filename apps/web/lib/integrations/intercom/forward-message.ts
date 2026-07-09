@@ -8,7 +8,7 @@ import {
   Partner,
   Program,
   User,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import { Intercom, IntercomAttachmentFile } from "./client";
 import { intercomCredentialsSchema } from "./schema";
 

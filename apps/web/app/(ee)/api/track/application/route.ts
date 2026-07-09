@@ -13,13 +13,13 @@ import { getSession } from "@/lib/auth";
 import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
+import { prisma } from "@/lib/prisma";
 import {
   recordClickZod,
   recordClickZodSchema,
 } from "@/lib/tinybird/record-click-zod";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
-import { Partner, Program } from "@dub/prisma/client";
+import { MARKETPLACE_RESERVED_SLUGS } from "@/ui/program-marketplace/utils/urls";
 import {
   capitalize,
   EU_COUNTRY_CODES,
@@ -32,6 +32,7 @@ import {
   NETWORK_PROGRAM_SLUG,
   NETWORK_WORKSPACE_ID,
 } from "@dub/utils";
+import { Partner, Program } from "@prisma/client";
 import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";
@@ -419,8 +420,15 @@ async function getRequestContext(
 // Supports:
 //   - https://partners.dub.co/{programSlug}
 //   - https://partners.dub.co/programs/{programSlug}/apply
-//   - https://partners.dub.co/programs/marketplace/{programSlug}
+//   - https://partners.dub.co/marketplace/{programSlug}
+//   - https://dub.co/marketplace/{programSlug}
+//   - https://partners.dub.co/programs/marketplace/{programSlug} (legacy)
 //   - https://partners.dub.co/register (platform-level signup -> network program)
+//
+// Marketplace list routes (no program slug):
+//   - /marketplace
+//   - /marketplace/all
+//   - /marketplace/c/{category}
 function identityProgramSlug(url: string) {
   try {
     const urlObj = new URL(url);
@@ -430,23 +438,60 @@ function identityProgramSlug(url: string) {
       return { programSlug: null, isMarketplace: false };
     }
 
-    // Platform-level /register page is associated with the network program
     if (parts[0] === "register") {
       return { programSlug: NETWORK_PROGRAM_SLUG, isMarketplace: false };
     }
 
-    const isMarketplace = parts[0] === "programs" && parts[1] === "marketplace";
-    const programSlug = isMarketplace // e.g. https://partners.dub.co/programs/marketplace/acme
-      ? parts[2]
-      : parts[0] === "programs" // e.g. https://partners.dub.co/programs/acme/apply
-        ? parts[1]
-        : parts[0]; // e.g. https://partners.dub.co/acme, or https://partners.dub.co/acme/apply, or https://partners.dub.co/acme/group/apply
+    if (parts[0] === "marketplace") {
+      if (parts.length === 1) {
+        return { programSlug: null, isMarketplace: true };
+      }
+
+      if (parts[1] === "c") {
+        return { programSlug: null, isMarketplace: true };
+      }
+
+      if (parts.length === 2) {
+        if (MARKETPLACE_RESERVED_SLUGS.has(parts[1])) {
+          return { programSlug: null, isMarketplace: true };
+        }
+
+        return {
+          programSlug: parts[1].toLowerCase(),
+          isMarketplace: true,
+        };
+      }
+
+      return { programSlug: null, isMarketplace: true };
+    }
+
+    if (parts[0] === "programs" && parts[1] === "marketplace") {
+      if (!parts[2] || MARKETPLACE_RESERVED_SLUGS.has(parts[2])) {
+        return { programSlug: null, isMarketplace: false };
+      }
+
+      return {
+        programSlug: parts[2].toLowerCase(),
+        isMarketplace: true,
+      };
+    }
+
+    if (parts[0] === "programs") {
+      if (!parts[1]) {
+        return { programSlug: null, isMarketplace: false };
+      }
+
+      return {
+        programSlug: parts[1].toLowerCase(),
+        isMarketplace: false,
+      };
+    }
 
     return {
-      programSlug: programSlug.toLowerCase(),
-      isMarketplace,
+      programSlug: parts[0].toLowerCase(),
+      isMarketplace: false,
     };
-  } catch (error) {
+  } catch {
     return { programSlug: null, isMarketplace: false };
   }
 }

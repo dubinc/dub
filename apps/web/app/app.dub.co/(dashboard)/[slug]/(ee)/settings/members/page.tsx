@@ -17,7 +17,6 @@ import { useRemoveWorkspaceUserModal } from "@/ui/modals/remove-workspace-user-m
 import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { WorkspaceRole } from "@dub/prisma/client";
 import {
   Button,
   DynamicTooltipWrapper,
@@ -39,6 +38,7 @@ import {
   UserCheck,
 } from "@dub/ui/icons";
 import { cn, fetcher, timeAgo } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus } from "lucide-react";

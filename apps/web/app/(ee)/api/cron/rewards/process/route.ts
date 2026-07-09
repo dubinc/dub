@@ -5,10 +5,13 @@ import {
 } from "@/lib/api/rewards/queue-reward-processing";
 import { isStaleRewardVersion } from "@/lib/api/rewards/reward-version";
 import { withCron } from "@/lib/cron/with-cron";
-import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { prisma } from "@/lib/prisma";
+import {
+  ACTIVE_ENROLLMENT_STATUSES,
+  INACTIVE_ENROLLMENT_STATUSES,
+} from "@/lib/zod/schemas/partners";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@prisma/client";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -113,6 +116,7 @@ export const POST = withCron(async ({ rawBody }) => {
     },
     select: {
       id: true,
+      status: true,
       partner: {
         select: {
           users: {
@@ -161,9 +165,9 @@ export const POST = withCron(async ({ rawBody }) => {
     }
 
     if (shouldNotify) {
-      const users = programEnrollments.flatMap(({ partner }) =>
-        partner.users.map(({ user }) => user),
-      );
+      const users = programEnrollments
+        .filter(({ status }) => ACTIVE_ENROLLMENT_STATUSES.includes(status))
+        .flatMap(({ partner }) => partner.users.map(({ user }) => user));
 
       await notifyPartnerRewardChange({
         action: event,

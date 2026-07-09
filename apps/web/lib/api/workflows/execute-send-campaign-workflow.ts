@@ -1,5 +1,7 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { prisma } from "@/lib/prisma";
 import {
   CampaignTriggerCondition,
   TiptapNode,
@@ -9,9 +11,8 @@ import {
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
-import { prisma } from "@dub/prisma";
-import { NotificationEmailType, Prisma, Workflow } from "@dub/prisma/client";
 import { chunk } from "@dub/utils";
+import { NotificationEmailType, Prisma, Workflow } from "@prisma/client";
 import { addHours, differenceInDays, subDays } from "date-fns";
 import { validateCampaignFromAddress } from "../campaigns/validate-campaign";
 import { createId } from "../create-id";
@@ -175,7 +176,10 @@ export const executeSendCampaignWorkflow = async ({
                 PartnerName: partnerUser.partner.name,
                 PartnerEmail: partnerUser.partner.email,
                 PartnerLink:
-                  partnerUser.enrollment.links?.[0]?.shortLink ?? null,
+                  constructPartnerLink({
+                    group: partnerUser.enrollment.partnerGroup,
+                    link: partnerUser.enrollment.links?.[0],
+                  }) || null,
               },
             }),
           },
@@ -211,23 +215,6 @@ export const executeSendCampaignWorkflow = async ({
   }
 };
 
-const enrollmentLinksForEmail = {
-  select: { shortLink: true },
-  orderBy: { id: "asc" as const },
-};
-
-const enrollmentLinksForWorkflowStats = {
-  select: {
-    shortLink: true,
-    clicks: true,
-    leads: true,
-    conversions: true,
-    sales: true,
-    saleAmount: true,
-  },
-  orderBy: { id: "asc" as const },
-};
-
 const includePartnerUsers = {
   partner: {
     include: {
@@ -238,7 +225,21 @@ const includePartnerUsers = {
       },
     },
   },
-  links: enrollmentLinksForEmail,
+  partnerGroup: {
+    select: {
+      linkStructure: true,
+    },
+  },
+  links: {
+    select: {
+      shortLink: true,
+      key: true,
+      url: true,
+    },
+    orderBy: {
+      id: "asc" as const,
+    },
+  },
 } satisfies Prisma.ProgramEnrollmentInclude;
 
 async function getProgramEnrollments({
@@ -277,7 +278,23 @@ async function getProgramEnrollments({
       include: {
         ...includePartnerUsers,
         ...(isPartnerLinkStatsAttribute
-          ? { links: enrollmentLinksForWorkflowStats }
+          ? {
+              links: {
+                select: {
+                  shortLink: true,
+                  key: true,
+                  url: true,
+                  clicks: true,
+                  leads: true,
+                  conversions: true,
+                  sales: true,
+                  saleAmount: true,
+                },
+                orderBy: {
+                  id: "asc",
+                },
+              },
+            }
           : {}),
       },
     });

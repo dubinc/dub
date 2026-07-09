@@ -1,5 +1,5 @@
 import { encrypt } from "@/lib/encryption";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { ACME_WORKSPACE_ID } from "@dub/utils";
 import { INTERCOM_INTEGRATION_ID } from "@dub/utils/src";
 import "dotenv-flow/config";

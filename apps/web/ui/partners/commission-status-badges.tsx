@@ -1,5 +1,4 @@
 import { PartnerProps } from "@/lib/types";
-import { Commission, PartnerGroup, Program } from "@dub/prisma/client";
 import {
   CircleCheck,
   CircleHalfDottedClock,
@@ -13,6 +12,7 @@ import {
   formatDateTimeSmart,
   PARTNERS_DOMAIN,
 } from "@dub/utils";
+import { Commission, PartnerGroup, Program } from "@prisma/client";
 import { addDays } from "date-fns";
 
 interface CommissionTooltipDataProps {
@@ -128,7 +128,6 @@ export const CommissionStatusBadges = {
       return title;
     },
   },
-  // extra status for hold (not in OpenAPI spec)
   hold: {
     label: "On Hold",
     variant: "error",
@@ -146,7 +145,7 @@ export const CommissionStatusBadges = {
         return title;
       }
 
-      return `This partner's commissions are on hold due to [unresolved risk events](${`/${data.workspace?.slug}/program/risks${data.partner?.id ? `?partnerId=${data.partner.id}` : ""}`}). They cannot be paid out until resolved.`;
+      return `This commission is on hold due to [unresolved risk events](${`/${data.workspace?.slug}/program/risks${data.partner?.id ? `?partnerId=${data.partner.id}` : ""}`}). They cannot be paid out until resolved.`;
     },
   },
 };

@@ -1,6 +1,6 @@
 import { trackApplicationEvents } from "@/lib/application-events/update-application-event";
-import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { triggerQStashWorkflow } from "../../../cron/qstash-workflow";

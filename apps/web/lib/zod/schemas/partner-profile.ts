@@ -11,7 +11,7 @@ import {
   PartnerRole,
   ProgramEnrollmentStatus,
   SubmittedLeadStatus,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
 import {
@@ -100,6 +100,7 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   createdAt: z.string().or(z.date()),
   partnerGroupDefaultLinkId: z.string().nullish(),
   discountCode: z.string().nullable().default(null),
+  discountCodeDisabledAt: z.coerce.date().nullable().default(null),
 });
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({

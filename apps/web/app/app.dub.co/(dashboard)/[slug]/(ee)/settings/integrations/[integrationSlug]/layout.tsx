@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { ReactNode } from "react";
 import { SetIntegrationsSubpageTitle } from "../integrations-subpage-context";
 

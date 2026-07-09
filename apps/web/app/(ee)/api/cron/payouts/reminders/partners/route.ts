@@ -4,8 +4,8 @@ import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
+import { prisma } from "@/lib/prisma";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
-import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID, APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { logAndRespond } from "../../../utils";
 

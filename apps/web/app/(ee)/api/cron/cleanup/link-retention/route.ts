@@ -1,10 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
-import { prisma } from "@dub/prisma";
-import { Domain } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Domain } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

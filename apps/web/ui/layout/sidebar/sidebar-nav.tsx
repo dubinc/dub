@@ -18,6 +18,7 @@ import { usePathname } from "next/navigation";
 import {
   ComponentType,
   CSSProperties,
+  isValidElement,
   PropsWithChildren,
   ReactNode,
   Suspense,
@@ -54,7 +55,6 @@ export type NavGroupType = {
     referenceElement: HTMLElement | null;
   }>;
   badge?: ReactNode;
-
   description: string;
   learnMoreHref?: string;
 };
@@ -71,10 +71,13 @@ export type SidebarNavAreas<T extends Record<any, any>> = Record<
     showNews?: boolean; // show news segment – TODO: enable this for Partner Program too
     hideSwitcherIcons?: boolean; // hide workspace switcher + product icons for this area
     direction?: "left" | "right";
-    content: {
-      name?: string;
-      items: NavItemType[];
-    }[];
+    // can either be a list of items, or a ReactNode
+    content:
+      | {
+          name?: string;
+          items: NavItemType[];
+        }[]
+      | ReactNode;
   }
 >;
 
@@ -183,7 +186,12 @@ function SidebarAreasPanel<T extends Record<any, any>>({
   const hasOverflow = useMemo(() => {
     if (!currentArea) return false;
     const { content } = areas[currentArea](data);
-    const totalItems = content.flatMap((c) => c.items).length;
+    // assume custom ReactNode elements always overflow
+    if (isValidElement(content)) return true;
+
+    const totalItems = Array.isArray(content)
+      ? content.flatMap((c) => c.items).length
+      : 0;
     return totalItems > 10;
   }, [currentArea, areas, data]);
 
@@ -236,20 +244,24 @@ function SidebarAreasPanel<T extends Record<any, any>>({
                       ) : (
                         title
                       ))}
-                    <div className="flex flex-col gap-8">
-                      {content.map(({ name, items }, idx) => (
-                        <div key={idx} className="flex flex-col gap-0.5">
-                          {name && (
-                            <div className="mb-2 pl-3 text-sm text-neutral-500">
-                              {name}
-                            </div>
-                          )}
-                          {items.map((item) => (
-                            <NavItem key={item.name} item={item} />
-                          ))}
-                        </div>
-                      ))}
-                    </div>
+                    {isValidElement(content) ? (
+                      content
+                    ) : Array.isArray(content) ? (
+                      <div className="flex flex-col gap-8">
+                        {content.map(({ name, items }, idx) => (
+                          <div key={idx} className="flex flex-col gap-0.5">
+                            {name && (
+                              <div className="mb-2 pl-3 text-sm text-neutral-500">
+                                {name}
+                              </div>
+                            )}
+                            {items.map((item) => (
+                              <NavItem key={item.name} item={item} />
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
                   </Area>
                 );
               })}

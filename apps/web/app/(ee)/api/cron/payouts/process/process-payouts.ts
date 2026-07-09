@@ -7,18 +7,12 @@ import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { sendEmail } from "@dub/email";
 import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
-import { prisma } from "@dub/prisma";
-import {
-  Invoice,
-  Program,
-  ProgramPayoutMode,
-  Project,
-} from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   currencyFormatter,
@@ -26,6 +20,7 @@ import {
   nFormatter,
   pluralize,
 } from "@dub/utils";
+import { Invoice, Program, ProgramPayoutMode, Project } from "@prisma/client";
 
 const nonUsdPaymentMethodTypes = {
   sepa_debit: "eur",
@@ -78,7 +73,7 @@ export async function processPayouts({
   const res = await prisma.payout.updateMany({
     where: {
       ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
-      ...getPayoutEligibilityFilter({ program, workspace }),
+      ...getPayoutEligibilityFilter({ program }),
       ...(cutoffPeriodValue && {
         periodEnd: {
           lte: cutoffPeriodValue,

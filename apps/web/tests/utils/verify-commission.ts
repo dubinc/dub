@@ -9,17 +9,23 @@ import { HttpClient } from "./http";
 interface VerifyCommissionProps {
   http: HttpClient;
   customerExternalId?: string;
-  invoiceId?: string;
+  invoiceId?: string; // fetch commission by invoiceId
+  description?: string; // fetch commissions + filter by description
   expectedSaleAmount?: number;
   expectedEarnings: number;
+  expectedType?: string;
+  query?: Record<string, string>; // to pass additional query params to GET /commissions
 }
 
 export const verifyCommission = async ({
   http,
   customerExternalId,
   invoiceId,
+  description,
   expectedSaleAmount,
   expectedEarnings,
+  expectedType,
+  query: queryOverrides,
 }: VerifyCommissionProps) => {
   let customerId: string | undefined;
 
@@ -34,7 +40,9 @@ export const verifyCommission = async ({
     customerId = customers[0].id;
   }
 
-  const query: Record<string, string> = {};
+  const query: Record<string, string> = {
+    ...queryOverrides,
+  };
 
   if (invoiceId) {
     query.invoiceId = invoiceId;
@@ -43,6 +51,19 @@ export const verifyCommission = async ({
   if (customerId) {
     query.customerId = customerId;
   }
+  const findMatchingCommission = (
+    commissions: CommissionResponse[],
+  ): CommissionResponse | undefined => {
+    if (description) {
+      return commissions.find((c) => c.description === description);
+    }
+
+    if (commissions.length === 1) {
+      return commissions[0];
+    }
+
+    return undefined;
+  };
 
   // Poll for commission every 5 seconds, timeout after 60 seconds
   const startTime = Date.now();
@@ -53,10 +74,9 @@ export const verifyCommission = async ({
       query,
     });
 
-    if (status === 200 && commissions.length === 1) {
-      const commission = commissions[0];
+    const commission = findMatchingCommission(commissions);
 
-      // Verify all expectations
+    if (status === 200 && commission) {
       if (invoiceId) {
         expect(commission.invoiceId).toEqual(invoiceId);
       }
@@ -71,6 +91,10 @@ export const verifyCommission = async ({
 
       expect(commission.earnings).toEqual(expectedEarnings);
 
+      if (expectedType) {
+        expect(commission.type).toEqual(expectedType);
+      }
+
       return;
     }
 
@@ -83,6 +107,7 @@ export const verifyCommission = async ({
   // Timeout reached - fail the test
   throw new Error(
     `Commission not found within ${VITEST_TEST_TIMEOUT_MS / 1000} seconds. ` +
-      `Query: ${JSON.stringify(query)}`,
+      `Query: ${JSON.stringify(query)}` +
+      (description ? `, description: ${description}` : ""),
   );
 };

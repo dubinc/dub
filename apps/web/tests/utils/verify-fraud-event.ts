@@ -1,6 +1,6 @@
 import { Customer } from "@/lib/types";
 import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
-import { FraudRuleType, Partner } from "@dub/prisma/client";
+import { FraudRuleType, Partner } from "@prisma/client";
 import { HttpClient } from "tests/utils/http";
 import { expect } from "vitest";
 import * as z from "zod/v4";

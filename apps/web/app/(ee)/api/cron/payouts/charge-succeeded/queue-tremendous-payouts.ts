@@ -1,23 +1,36 @@
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
 import { createTremendousCampaign } from "@/lib/tremendous/create-tremendous-campaign";
-import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import {
   Invoice,
   PartnerPayoutMethod,
   PayoutMode,
   PayoutStatus,
-} from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
+} from "@prisma/client";
 
 const queue = qstash.queue({
   queueName: "send-tremendous-payout",
 });
 
-export async function queueTremendousPayouts(
-  invoice: Pick<Invoice, "id" | "paymentMethod" | "payoutMode" | "programId">,
-) {
-  if (invoice.payoutMode === "external" || !invoice.programId) {
+export async function queueTremendousPayouts({
+  invoice,
+}: {
+  invoice: Pick<Invoice, "id" | "payoutMode" | "programId">;
+}) {
+  if (invoice.payoutMode === "external") {
+    console.log(
+      `Invoice ${invoice.id} is paid externally, skipping Tremendous payouts...`,
+    );
+    return;
+  }
+
+  // should never happen, but just in case
+  if (!invoice.programId) {
+    console.log(
+      `Invoice ${invoice.id} has no program ID, skipping Tremendous payouts...`,
+    );
     return;
   }
 

@@ -1,5 +1,5 @@
-import { Link, Partner, ProgramEnrollment } from "@dub/prisma/client";
 import { toCentsNumber } from "@dub/utils";
+import { Link, Partner, ProgramEnrollment } from "@prisma/client";
 import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 
 export const constructWebhookPartner = (

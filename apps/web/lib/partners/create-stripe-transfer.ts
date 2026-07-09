@@ -4,12 +4,11 @@ import {
   MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
 } from "@/lib/constants/payouts";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-force-withdrawal";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   chunk,
@@ -17,6 +16,7 @@ import {
   log,
   pluralize,
 } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
@@ -77,6 +77,7 @@ export const createStripeTransfer = async ({
         },
         include: commonInclude,
       }),
+
       invoiceId
         ? prisma.payout.findMany({
             where: {

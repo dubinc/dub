@@ -3,7 +3,7 @@ import {
   MAX_ATTACHMENTS_PER_MESSAGE,
   MAX_MESSAGE_LENGTH,
 } from "@/lib/messages/constants";
-import { MessageType } from "@dub/prisma/client";
+import { MessageType } from "@prisma/client";
 import * as z from "zod/v4";
 import { PartnerSchema } from "../zod/schemas/partners";
 import { ProgramSchema } from "../zod/schemas/programs";

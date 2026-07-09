@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { createLink } from "../api/links";
 import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { PartnerProps, ProgramProps, WorkspaceProps } from "../types";

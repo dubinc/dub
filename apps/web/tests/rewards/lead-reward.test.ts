@@ -18,9 +18,7 @@ describe.concurrent("Lead rewards", async () => {
     const clickResponse = await http.post<{ clickId: string }>({
       path: "/track/click",
       headers: E2E_TRACK_CLICK_HEADERS,
-      body: {
-        ...E2E_PARTNERS[0].shortLink,
-      },
+      body: E2E_PARTNERS[0].shortLink,
     });
 
     expect(clickResponse.status).toEqual(200);

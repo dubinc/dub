@@ -2,6 +2,7 @@
 
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
+import { canDeletePartner } from "@/lib/partners/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -16,6 +17,7 @@ import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkDeactivatePartnersModal } from "@/ui/modals/bulk-deactivate-partners-modal";
 import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
+import { useDeletePartnerModal } from "@/ui/modals/delete-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
 import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
@@ -30,7 +32,6 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -68,10 +69,12 @@ import {
   formatDate,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { Row, Table as TableType } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { memo, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -223,9 +226,16 @@ export function PartnersTable() {
             return (
               <div className="flex items-center gap-2">
                 <GroupColorCircle group={group} />
-                <span className="truncate text-sm font-medium">
+                <Link
+                  href={`/${workspaceSlug}/program/groups/${group.slug}`}
+                  target="_blank"
+                  onClick={(e) => e.stopPropagation()}
+                  onAuxClick={(e) => e.stopPropagation()}
+                  className="min-w-0 cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+                  title={group.name}
+                >
                   {group.name}
-                </span>
+                </Link>
               </div>
             );
           },
@@ -438,7 +448,7 @@ export function PartnersTable() {
           ),
         },
       ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
-    [workspaceId, groups, columnVisibility, searchParams],
+    [workspaceId, groups, columnVisibility, searchParams, workspaceSlug],
   );
 
   const { table, ...tableProps } = useTable({
@@ -716,6 +726,13 @@ function RowMenuButton({
       partner: row.original,
     });
 
+  const { DeletePartnerModal, setShowDeletePartnerModal } =
+    useDeletePartnerModal({
+      partner: row.original,
+    });
+
+  const canDelete = canDeletePartner(row.original);
+
   const { executeAsync: resendInvite, isPending: isResendingInvite } =
     useAction(resendProgramInviteAction, {
       onSuccess: async () => {
@@ -754,6 +771,7 @@ function RowMenuButton({
       <UnbanPartnerModal />
       <DeactivatePartnerModal />
       <ReactivatePartnerModal />
+      <DeletePartnerModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -890,6 +908,18 @@ function RowMenuButton({
                         variant="danger"
                         onSelect={() => {
                           setShowBanPartnerModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    )}
+
+                    {canDelete && (
+                      <MenuItem
+                        icon={Trash}
+                        label="Permanently delete"
+                        variant="danger"
+                        onSelect={() => {
+                          setShowDeletePartnerModal(true);
                           setIsOpen(false);
                         }}
                       />

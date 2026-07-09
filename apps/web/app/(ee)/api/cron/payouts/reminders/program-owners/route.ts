@@ -1,9 +1,9 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { INVOICE_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/constants/payouts";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import ProgramPayoutReminder from "@dub/email/templates/program-payout-reminder";
-import { prisma } from "@dub/prisma";
 import { chunk, pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
 

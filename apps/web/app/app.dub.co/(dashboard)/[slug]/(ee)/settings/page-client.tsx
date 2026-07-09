@@ -27,7 +27,7 @@ export default function WorkspaceSettingsClient() {
       <SlackSupportSettingsCard />
       <Form
         title="Workspace Name"
-        description={`This is the name of your workspace on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
+        description="This is the name of your workspace on Dub."
         inputAttrs={{
           name: "name",
           defaultValue: name,
@@ -59,7 +59,7 @@ export default function WorkspaceSettingsClient() {
       />
       <Form
         title="Workspace Slug"
-        description={`This is your workspace's unique slug on ${process.env.NEXT_PUBLIC_APP_NAME}.`}
+        description="This is your workspace's unique slug on Dub."
         inputAttrs={{
           name: "slug",
           defaultValue: slug,

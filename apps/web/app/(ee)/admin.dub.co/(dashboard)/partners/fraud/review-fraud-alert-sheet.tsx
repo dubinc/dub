@@ -14,7 +14,6 @@ import {
 } from "@/lib/zod/schemas/programs";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { FraudAlertStatus } from "@dub/prisma/client";
 import {
   Button,
   LoadingSpinner,
@@ -24,7 +23,7 @@ import {
   Tooltip,
   useTable,
 } from "@dub/ui";
-import { BadgeCheck2Fill, Xmark } from "@dub/ui/icons";
+import { BadgeCheck2, Xmark } from "@dub/ui/icons";
 import {
   cn,
   COUNTRIES,
@@ -33,6 +32,7 @@ import {
   formatDateTimeSmart,
   OG_AVATAR_URL,
 } from "@dub/utils";
+import { FraudAlertStatus } from "@prisma/client";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -255,7 +255,10 @@ function SheetContent({
                                 <Icon className="size-3 shrink-0" />
                                 <span>{value}</span>
                                 {verified && (
-                                  <BadgeCheck2Fill className="size-3 text-green-600" />
+                                  <BadgeCheck2
+                                    variant="fill"
+                                    className="size-3 text-green-600"
+                                  />
                                 )}
                               </Link>
                             }
@@ -269,7 +272,10 @@ function SheetContent({
                               <Icon className="size-3" />
                               <span className="sr-only">{label}</span>
                               {verified && (
-                                <BadgeCheck2Fill className="absolute -right-1 -top-1 size-3 text-green-600" />
+                                <BadgeCheck2
+                                  variant="fill"
+                                  className="absolute -right-1 -top-1 size-3 text-green-600"
+                                />
                               )}
                             </Link>
                           </Tooltip>

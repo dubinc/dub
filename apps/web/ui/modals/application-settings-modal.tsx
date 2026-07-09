@@ -10,9 +10,9 @@ import {
   EligibilityRequirements,
   generateId,
 } from "@/ui/partners/eligibility-requirements";
-import { Category } from "@dub/prisma/client";
 import { Button, Modal, ToggleGroup, useEnterSubmit } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Category } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import {
@@ -153,7 +153,7 @@ function ApplicationSettingsModal({
                     <p className="text-sm text-neutral-500">
                       Only eligible partners can apply.{" "}
                       <Link
-                        href="https://dub.co/help/article/partner-groups#eligibility-requirements"
+                        href="https://dub.co/help/article/program-applications#eligibility-requirements"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-neutral-500 underline underline-offset-2"

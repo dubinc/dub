@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { prisma } from "@dub/prisma";
 import { currencyFormatter } from "@dub/utils";
 import { logAndRespond } from "../utils";
 

@@ -1,10 +1,6 @@
 import { ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE } from "@/lib/constants/payouts";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
-import {
-  PartnerPayoutMethod,
-  PayoutMode,
-  PayoutStatus,
-} from "@dub/prisma/client";
+import { PartnerPayoutMethod, PayoutMode, PayoutStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
@@ -52,6 +48,14 @@ export const payoutsQuerySchema = z
       .describe(
         "Filter the list of payouts by invoice ID (the unique ID of the invoice you receive for each batch payout you process on Dub). Pending payouts will not have an invoice ID.",
       ),
+    groupId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of payouts by the associated partner group. " +
+          "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+          "Examples: `group_abc`, `group_abc,group_xyz`, `-group_abc`.",
+      ),
     sortBy: z
       .enum(["amount", "initiatedAt", "paidAt"])
       .default("amount")
@@ -68,6 +72,8 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     status: true,
     partnerId: true,
     invoiceId: true,
+    groupId: true,
+    tenantId: true,
   })
   .extend({
     programId: z.string().optional(),

@@ -332,6 +332,15 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
+        text: "Partner referral rewards",
+        href: "https://dub.co/help/article/partner-referrals",
+      },
+      {
+        check: {
+          default: false,
+          advanced: true,
+          enterprise: true,
+        },
         text: "Partners API",
         href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
       },
@@ -342,6 +351,7 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           enterprise: true,
         },
         text: "Messaging center",
+        href: "https://dub.co/help/article/messaging-partners",
       },
       {
         check: {
@@ -350,6 +360,7 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           enterprise: true,
         },
         text: "Email campaigns",
+        href: "https://dub.co/help/article/email-campaigns",
       },
       {
         check: {
@@ -357,7 +368,8 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Fraud & risk prevention",
+        text: "Risk monitoring",
+        href: "https://dub.co/help/article/risk-monitoring",
       },
       {
         check: {
@@ -549,11 +561,11 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
       {
         text: ({ id }) =>
           ({
-            free: "Basic support",
-            pro: "Elevated support",
-            business: "Priority support",
-            advanced: "Priority via Slack",
-            enterprise: "Priority with SLA",
+            free: "Community support",
+            pro: "Email support",
+            business: "Email support",
+            advanced: "Priority email support",
+            enterprise: "Slack support with SLA",
           })[id],
       },
       {

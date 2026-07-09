@@ -1,7 +1,7 @@
 import "dotenv-flow/config";
 
 import { isGenericEmail } from "@/lib/is-generic-email";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 
 async function main() {
   let fraudEvents = await prisma.fraudEvent.findMany({

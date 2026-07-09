@@ -1,5 +1,5 @@
+import { prismaEdge } from "@/lib/prisma/edge";
 import { UserProps } from "@/lib/types";
-import { prismaEdge } from "@dub/prisma/edge";
 import { NextRequest, NextResponse } from "next/server";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getWorkspaceProduct } from "./utils/get-workspace-product";

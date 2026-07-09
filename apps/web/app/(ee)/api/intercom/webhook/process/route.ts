@@ -3,7 +3,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { intercomWebhookSchema } from "@/lib/integrations/intercom/schema";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { logAndRespond } from "../../../cron/utils";
 import { handleConversationAdminReplied } from "./conversation-admin-replied";

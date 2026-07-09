@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
 // Reconciles partners that ended up with payoutsEnabledAt set while defaultPayoutMethod is null.

@@ -2,8 +2,8 @@ import { getCustomerEvents } from "@/lib/analytics/get-customer-events";
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { decodeLinkIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { customerActivityResponseSchema } from "@/lib/zod/schemas/customer-activity";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/customers/[id]/activity - get a customer's activity

@@ -1,5 +1,4 @@
 import { STABLECOIN_PAYOUT_FEE_RATE } from "@/lib/constants/payouts";
-import type { PartnerPayoutMethod } from "@dub/prisma/client";
 import {
   Calendar6,
   CircleDollar,
@@ -9,6 +8,7 @@ import {
   Paypal,
   Stablecoin,
 } from "@dub/ui";
+import type { PartnerPayoutMethod } from "@prisma/client";
 import { MapPin, Zap } from "lucide-react";
 import type { ComponentType } from "react";
 

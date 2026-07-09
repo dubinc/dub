@@ -1,5 +1,5 @@
 import { createPlainThread } from "@/lib/plain/create-plain-thread";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 

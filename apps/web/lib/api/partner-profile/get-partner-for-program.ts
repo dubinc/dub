@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { toCentsNumber } from "@dub/utils";
 
 export async function getPartnerForProgram({

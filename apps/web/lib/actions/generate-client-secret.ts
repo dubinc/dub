@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import * as z from "zod/v4";
 import { OAUTH_CONFIG } from "../api/oauth/constants";
 import { createToken } from "../api/oauth/utils";

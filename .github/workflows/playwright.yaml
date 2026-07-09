@@ -28,10 +28,6 @@ jobs:
       NEXTAUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
       NEXTAUTH_URL: "http://partners.localhost:8888"
 
-      NEXT_PUBLIC_APP_NAME: "Dub"
-      NEXT_PUBLIC_APP_DOMAIN: "localhost:8888"
-      NEXT_PUBLIC_APP_SHORT_DOMAIN: "dub.sh"
-
       E2E_PARTNER_EMAIL: "partner1@dub-internal-test.com"
       E2E_PARTNER_PASSWORD: "password"
 

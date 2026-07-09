@@ -4,7 +4,8 @@ import {
   ProgramMessagesSchema,
   getProgramMessagesQuerySchema,
 } from "@/lib/messages/schemas";
-import { prisma } from "@dub/prisma";
+import { messageAttachmentsOrderBy } from "@/lib/messages/utils";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/messages - get messages grouped by program
@@ -78,7 +79,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         include: {
           senderPartner: true,
           senderUser: true,
-          attachments: true,
+          attachments: {
+            orderBy: messageAttachmentsOrderBy,
+          },
         },
         orderBy: {
           [sortBy]: sortOrder,

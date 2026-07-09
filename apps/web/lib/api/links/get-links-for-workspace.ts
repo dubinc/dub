@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
 import { buildPaginationQuery } from "../pagination";

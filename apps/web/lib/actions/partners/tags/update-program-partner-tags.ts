@@ -3,9 +3,9 @@
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@/lib/prisma";
 import { recordLink } from "@/lib/tinybird";
 import { updatePartnerTagsSchema } from "@/lib/zod/schemas/partner-tags";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../../safe-action";
 import { throwIfNoPermission } from "../../throw-if-no-permission";
