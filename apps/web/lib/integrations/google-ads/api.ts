@@ -317,7 +317,12 @@ export class GoogleAdsApi {
 
     const conversionActions = results
       .map((result) => result.conversionAction)
-      .filter((conversionAction) => conversionAction != null);
+      .filter(
+        (
+          conversionAction,
+        ): conversionAction is NonNullable<typeof conversionAction> =>
+          conversionAction != null,
+      );
 
     return conversionActions.map((conversionAction) =>
       googleAdsConversionActionSchema.parse({
