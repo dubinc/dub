@@ -1,8 +1,9 @@
-import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { getWorkspaceUsage } from "@/lib/tinybird/get-workspace-usage";
 import { prisma } from "@/lib/prisma";
-import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { getBillingStartDate } from "@dub/utils";
 import { Project } from "@prisma/client";
+
+const sum = (arr: number[]) => arr.reduce((acc, curr) => acc + curr, 0);
 
 export async function recomputeWorkspaceUsage(
   workspace: Pick<Project, "id" | "billingCycleStart">,
@@ -10,23 +11,19 @@ export async function recomputeWorkspaceUsage(
   const billingStart = getBillingStartDate(workspace.billingCycleStart);
   const billingEnd = new Date();
 
-  const [clicksResponse, linksUsage, payoutsUsage] = await Promise.all([
-    getAnalytics({
+  const [clicksData, linksData, payoutsUsage] = await Promise.all([
+    getWorkspaceUsage({
       workspaceId: workspace.id,
-      event: "clicks",
-      groupBy: "count",
+      resource: "events",
       start: billingStart,
       end: billingEnd,
     }),
 
-    prisma.link.count({
-      where: {
-        projectId: workspace.id,
-        createdAt: {
-          gte: billingStart,
-          lte: billingEnd,
-        },
-      },
+    getWorkspaceUsage({
+      workspaceId: workspace.id,
+      resource: "links",
+      start: billingStart,
+      end: billingEnd,
     }),
 
     prisma.invoice.aggregate({
@@ -45,11 +42,9 @@ export async function recomputeWorkspaceUsage(
     }),
   ]);
 
-  const { clicks: usage } = analyticsResponse.count.parse(clicksResponse);
-
   return {
-    usage,
-    linksUsage,
+    usage: sum(clicksData.map((d) => d.value)),
+    linksUsage: sum(linksData.map((d) => d.value)),
     payoutsUsage: payoutsUsage._sum.amount ?? 0,
   };
 }

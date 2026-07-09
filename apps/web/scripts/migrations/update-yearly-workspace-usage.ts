@@ -1,6 +1,6 @@
-import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { prisma } from "@/lib/prisma";
-import { chunk } from "@dub/utils";
+import { getWorkspaceUsage } from "@/lib/tinybird/get-workspace-usage";
+import { chunk, INFINITY_NUMBER } from "@dub/utils";
 import { subYears } from "date-fns";
 import "dotenv-flow/config";
 
@@ -9,12 +9,14 @@ async function main() {
   while (true) {
     const workspaces = await prisma.project.findMany({
       where: {
-        trialEndsAt: {
-          not: null,
-        },
         planPeriod: "yearly",
-        // Unmigrated yearly workspaces still have monthly AI limits
-        aiLimit: 1000,
+        aiLimit: 1000, // Unmigrated yearly workspaces still have monthly AI limits
+        trialEndsAt: null, // ignore trial
+        // ignore free plan
+        plan: {
+          not: "free",
+        },
+        // shouldn't happen but just in case
         billingCycleEndsAt: {
           not: null,
         },
@@ -27,30 +29,29 @@ async function main() {
       break;
     }
 
-    const workspaceChunks = chunk(workspaces, 10);
+    const workspaceChunks = chunk(workspaces, 5);
 
     for (const workspaceChunk of workspaceChunks) {
       await Promise.allSettled(
         workspaceChunk.map(async (workspace) => {
           const billingStart = subYears(workspace.billingCycleEndsAt!, 1);
+          const billingEnd = new Date();
 
-          const [clicksResponse, linksUsage, payoutsUsage] = await Promise.all([
-            getAnalytics({
+          const [usage, linksUsage, payoutsUsage] = await Promise.all([
+            getWorkspaceUsage({
               workspaceId: workspace.id,
-              event: "clicks",
-              groupBy: "count",
+              resource: "events",
               start: billingStart,
-              end: new Date(),
-              dataAvailableFrom: workspace.createdAt,
-            }),
-            prisma.link.count({
-              where: {
-                projectId: workspace.id,
-                createdAt: {
-                  gte: billingStart,
-                },
-              },
-            }),
+              end: billingEnd,
+            }).then((data) => data.reduce((acc, curr) => acc + curr.value, 0)),
+
+            getWorkspaceUsage({
+              workspaceId: workspace.id,
+              resource: "links",
+              start: billingStart,
+              end: billingEnd,
+            }).then((data) => data.reduce((acc, curr) => acc + curr.value, 0)),
+
             prisma.invoice.aggregate({
               where: {
                 workspaceId: workspace.id,
@@ -66,16 +67,18 @@ async function main() {
             }),
           ]);
 
-          const usage =
-            typeof clicksResponse === "object" && clicksResponse !== null
-              ? (clicksResponse as { clicks?: number }).clicks ?? 0
-              : typeof clicksResponse === "number"
-                ? clicksResponse
-                : 0;
-
-          const newUsageLimit = workspace.usageLimit * 12;
-          const newLinksLimit = workspace.linksLimit * 12;
-          const newPayoutsLimit = workspace.payoutsLimit * 12;
+          const newUsageLimit = Math.min(
+            workspace.usageLimit * 12,
+            INFINITY_NUMBER,
+          );
+          const newLinksLimit = Math.min(
+            workspace.linksLimit * 12,
+            INFINITY_NUMBER,
+          );
+          const newPayoutsLimit = Math.min(
+            workspace.payoutsLimit * 12,
+            INFINITY_NUMBER,
+          );
           const newAiLimit = workspace.aiLimit * 12;
           const newPayoutsUsage = payoutsUsage._sum.amount ?? 0;
 
