@@ -7,7 +7,6 @@ export * from "./country-phone-codes";
 export * from "./domains";
 export * from "./dub-domains";
 export * from "./integrations";
-export * from "./layout";
 export * from "./localhost";
 export * from "./main";
 export * from "./middleware";
