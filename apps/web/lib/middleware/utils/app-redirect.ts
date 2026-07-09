@@ -1,4 +1,3 @@
-import { RESERVED_SLUGS } from "@dub/utils";
 import { getWorkspaceProduct } from "./get-workspace-product";
 
 const APP_REDIRECTS = {
@@ -30,11 +29,14 @@ export const appRedirect = async (path: string) => {
     return APP_REDIRECTS[path];
   }
 
-  // Redirect "/[slug]" to "/[slug]/[product]"
-  const rootRegex = /^\/([^\/]+)$/;
-  if (rootRegex.test(path) && !RESERVED_SLUGS.includes(path.split("/")[1])) {
-    const product = await getWorkspaceProduct(path.split("/")[1]);
-    return path.replace(rootRegex, `/$1/${product}`);
+  // Redirect "/[slug]" and "/[slug]/analytics|events|customers" to "/[slug]/[product]/..."
+  const workspaceProductPathRegex =
+    /^\/([^\/]+)(?:\/(analytics|events|customers))?$/;
+  const workspaceProductPathMatch = path.match(workspaceProductPathRegex);
+  if (workspaceProductPathMatch) {
+    const [, slug, subPath] = workspaceProductPathMatch;
+    const product = await getWorkspaceProduct(slug);
+    return subPath ? `/${slug}/${product}/${subPath}` : `/${slug}/${product}`;
   }
 
   // Redirect "/[slug]/upgrade" to "/[slug]/settings/billing/upgrade"
@@ -97,20 +99,10 @@ export const appRedirect = async (path: string) => {
       "/$1/program/partners/$2/links?profile=true",
     );
 
-  // Redirect "/[slug]/customers/:customerId" to "/[slug]/customers/:customerId/sales"
-  const customersPageRegex = /^\/([^\/]+)\/customers\/([^\/]+)$/;
+  // Redirect "/[slug]/[*]/customers/:customerId" to "/[slug]/[*]/customers/:customerId/sales"
+  const customersPageRegex = /^\/([^\/]+)\/([^\/]+)\/customers\/([^\/]+)$/;
   if (customersPageRegex.test(path))
-    return path.replace(customersPageRegex, "/$1/customers/$2/sales");
-
-  // Redirect "/[slug]/program/customers/:customerId" to "/[slug]/program/customers/:customerId/sales"
-  // Only applies when customerId starts with "cus_" (old IDs handled by page redirect)
-  const programCustomersPageRegex =
-    /^\/([^\/]+)\/program\/customers\/(cus_[^\/]+)$/;
-  if (programCustomersPageRegex.test(path))
-    return path.replace(
-      programCustomersPageRegex,
-      "/$1/program/customers/$2/sales",
-    );
+    return path.replace(customersPageRegex, "/$1/$2/customers/$3/sales");
 
   // Handle additional simpler program redirects
   const programRedirect = Object.keys(PROGRAM_REDIRECTS).find((redirect) =>

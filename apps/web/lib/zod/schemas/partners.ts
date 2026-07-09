@@ -13,7 +13,7 @@ import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   SalesChannel,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
@@ -48,6 +48,11 @@ export const INACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
 
 export const COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] =
   [...ACTIVE_ENROLLMENT_STATUSES, ProgramEnrollmentStatus.invited];
+
+export const DELETABLE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
+  ProgramEnrollmentStatus.deactivated,
+  ProgramEnrollmentStatus.banned,
+];
 
 export const exportPartnerColumns = [
   { id: "id", label: "ID", default: true },
@@ -190,7 +195,7 @@ export const getPartnersQuerySchema = z
       .string()
       .optional()
       .describe(
-        "A search query to filter partners by ID, name, email, or link.",
+        "A search query to filter partners by ID, name, email, or company name.",
       )
       .meta({ example: "john" }),
   })
@@ -1015,6 +1020,11 @@ export const deactivatePartnerSchema = z.object({
 });
 
 export const deactivatePartnerApiSchema = partnerIdTenantIdSchema;
+
+export const deletePartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+});
 
 export const archivePartnerSchema = z.object({
   workspaceId: z.string(),

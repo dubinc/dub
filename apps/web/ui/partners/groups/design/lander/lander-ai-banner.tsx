@@ -1,4 +1,4 @@
-import { generateLanderAction } from "@/lib/actions/partners/generate-lander";
+import { generateLanderAction } from "@/lib/ai/generate-lander";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { programLanderSimpleSchema } from "@/lib/zod/schemas/program-lander";
 import { X } from "@/ui/shared/icons";

@@ -1,5 +1,5 @@
 import { createFetch, createSchema } from "@better-fetch/fetch";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import { socialContentSchema, socialProfileSchema } from "./schema";
 

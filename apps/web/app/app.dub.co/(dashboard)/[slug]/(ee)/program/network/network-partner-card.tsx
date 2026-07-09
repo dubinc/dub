@@ -10,7 +10,7 @@ import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerStarButton } from "@/ui/partners/partner-star-button";
 import { TrustedPartnerBadge } from "@/ui/partners/trusted-partner-badge";
 import {
-  BadgeCheck2Fill,
+  BadgeCheck2,
   Button,
   DynamicTooltipWrapper,
   Tooltip,
@@ -351,7 +351,10 @@ function PlatformStatCard({
           className={cn("size-3.5", !value && "text-content-subtle opacity-40")}
         />
         {verified && (
-          <BadgeCheck2Fill className="absolute -right-1.5 -top-1.5 size-3 text-green-600" />
+          <BadgeCheck2
+            variant="fill"
+            className="absolute -right-1.5 -top-1.5 size-3 text-green-600"
+          />
         )}
       </div>
       <span
@@ -435,7 +438,10 @@ function PlatformStatTooltipContent({
       <div className="text-content-subtle border-border-subtle flex items-center gap-1.5 border-t px-3 py-1.5 font-medium">
         {verifiedAt ? (
           <>
-            <BadgeCheck2Fill className="size-3 shrink-0 text-green-600" />
+            <BadgeCheck2
+              variant="fill"
+              className="size-3 shrink-0 text-green-600"
+            />
             Verified {timeAgo(verifiedAt, { withAgo: true })}
           </>
         ) : (

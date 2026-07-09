@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { hashPassword } from "@/lib/auth/password";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   Domain,
   Folder,
@@ -14,7 +14,7 @@ import {
   Reward,
   User,
   WorkspaceRole,
-} from "@dub/prisma/client";
+} from "@prisma/client";
 import "dotenv-flow/config";
 import fs from "fs";
 import path from "path";
@@ -465,6 +465,7 @@ const truncate = async () => {
 
   const tables = [
     "InstalledIntegration",
+    "FolderWebhook",
     "LinkWebhook",
     "Webhook",
     "UtmTemplate",

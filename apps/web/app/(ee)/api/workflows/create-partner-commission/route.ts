@@ -1,9 +1,12 @@
 import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/trigger-aggregate-due-commissions";
+import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { createId } from "@/lib/api/create-id";
+import { PARTNER_LEVEL_FRAUD_RULES } from "@/lib/api/fraud/constants";
 import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { notifyPartnerCommission } from "@/lib/api/partners/notify-partner-commission";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { getRewardSpendLimitWindow } from "@/lib/api/rewards/reward-spend-limit-window";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { logger } from "@/lib/axiom/server";
@@ -11,7 +14,9 @@ import { getWorkflowConfig } from "@/lib/cron/qstash-workflow";
 import { constructWebhookPartner } from "@/lib/partners/constuct-webhook-partner";
 import { determinePartnerRewards } from "@/lib/partners/determine-partner-reward";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
 import { RewardProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -20,16 +25,19 @@ import {
 } from "@/lib/zod/schemas/commissions";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { buildCommissionDescription } from "@/ui/partners/program-reward-spend-limit";
+import { currencyFormatter, log, pick, toCentsNumber } from "@dub/utils";
 import {
   Commission,
+  CommissionStatus,
+  FraudEventStatus,
   Link,
   Partner,
   PartnerGroup,
+  Prisma,
   ProgramEnrollment,
   Reward,
-} from "@dub/prisma/client";
-import { currencyFormatter, log, pick, toCentsNumber } from "@dub/utils";
+} from "@prisma/client";
 import { WorkflowRetryAfterError } from "@upstash/workflow";
 import { serve } from "@upstash/workflow/nextjs";
 import { differenceInMonths } from "date-fns";
@@ -58,6 +66,18 @@ type StepCreateCommissionOutput = {
   isFirstCommission?: boolean;
 };
 
+const commissionInclude: Prisma.CommissionInclude = {
+  customer: true,
+  link: {
+    select: {
+      id: true,
+      shortLink: true,
+      domain: true,
+      key: true,
+    },
+  },
+};
+
 // POST /api/workflows/create-partner-commission
 export const { POST } = serve<Input>(
   async (context) => {
@@ -71,7 +91,6 @@ export const { POST } = serve<Input>(
         links: true,
         partner: true,
         partnerGroup: true,
-        ...(event === "click" && { clickReward: true }),
         ...(event === "lead" && { leadReward: true }),
         ...(event === "sale" && { saleReward: true }),
       },
@@ -181,8 +200,17 @@ async function stepCreateCommission(
     amount = 0;
   }
 
+  // Skip invalid reward events (should never happen, but just in case)
+  if (event === "click" || event === "referral") {
+    return logAndReturn({
+      commission: null,
+      outputLog: `"${event}" commissions are not created via this workflow. Skipping commission creation...`,
+    });
+  }
+
+  // for lead / sale rewards, we need to check if the partner is eligible for commissions
   if (
-    ["click", "lead", "sale"].includes(event) &&
+    ["lead", "sale"].includes(event) &&
     !COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES.includes(programEnrollment.status)
   ) {
     return logAndReturn({
@@ -202,7 +230,7 @@ async function stepCreateCommission(
     earnings = amount;
     amount = 0;
   } else {
-    if (["lead", "sale"].includes(event) && customerId) {
+    if (customerId) {
       firstCommission = await prisma.commission.findFirst({
         where: {
           partnerId,
@@ -265,105 +293,98 @@ async function stepCreateCommission(
       });
     }
 
-    // Click commissions are created by /api/cron/aggregate-clicks, not this workflow.
-    // TODO: Confirm whether any caller still queues event === "click" here; if not, remove this branch.
-    if (event === "click") {
-      earnings = getRewardAmount(reward) * quantity;
-
-      // for lead and sale events, we need to check if this partner-customer combination was recorded already (for deduplication)
-      // for sale rewards specifically, we also need to check:
-      // 1. if the partner has reached the max duration for the reward (if applicable)
-      // 2. if the previous commission were marked as fraud or canceled
-    } else {
-      if (firstCommission) {
-        // if first commission is fraud or canceled, skip commission creation
-        if (["fraud", "canceled"].includes(firstCommission.status)) {
-          return logAndReturn({
-            commission: null,
-            outputLog: `Partner ${partnerId} has a first commission that is ${firstCommission.status}, skipping commission creation...`,
-          });
-        }
-
-        // for lead events, we need to check if the partner has already been issued a lead reward for this customer
-        if (event === "lead") {
-          return logAndReturn({
-            commission: null,
-            outputLog: `Partner ${partnerId} has already been issued a lead reward for this customer ${customerId}, skipping commission creation...`,
-          });
-
-          // for sale rewards, we need to check if partner's reward was updated and different from the first commission's reward
-          // we need to make sure it wasn't changed from one-time to recurring so we don't create a new commission
-        } else {
-          if (
-            firstCommission.rewardId &&
-            firstCommission.rewardId !== reward.id
-          ) {
-            const originalReward = await prisma.reward.findUnique({
-              where: {
-                id: firstCommission.rewardId,
-              },
-              select: {
-                id: true,
-                maxDuration: true,
-              },
-            });
-
-            if (
-              typeof originalReward?.maxDuration === "number" &&
-              originalReward.maxDuration === 0
-            ) {
-              return logAndReturn({
-                commission: null,
-                outputLog: `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`,
-              });
-            }
-          }
-
-          // for sale rewards with a max duration, we need to check if the first commission is within the max duration
-          // if it's beyond the max duration, we should not create a new commission
-          if (typeof reward?.maxDuration === "number") {
-            // One-time sale reward (maxDuration === 0)
-            if (reward.maxDuration === 0) {
-              return logAndReturn({
-                commission: null,
-                outputLog: `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
-              });
-            }
-
-            // Recurring sale reward (maxDuration > 0)
-            else {
-              const subscriptionDurationMonths = differenceInMonths(
-                createdAt ?? new Date(), // account for custom commission creation date
-                firstCommission.createdAt,
-              );
-
-              if (subscriptionDurationMonths >= reward.maxDuration) {
-                return logAndReturn({
-                  commission: null,
-                  outputLog: `Partner ${partnerId} has reached max duration for ${event} event (subscription duration: ${subscriptionDurationMonths} months, max duration: ${reward.maxDuration} months), skipping commission creation...`,
-                });
-              }
-            }
-          }
-        }
+    // for lead and sale events, we need to check if this partner-customer combination was recorded already (for deduplication)
+    // for sale rewards specifically, we also need to check:
+    // 1. if the partner has reached the max duration for the reward (if applicable)
+    // 2. if the previous commission were marked as fraud or canceled
+    if (firstCommission) {
+      // if first commission is fraud or canceled, skip commission creation
+      if (["fraud", "canceled"].includes(firstCommission.status)) {
+        return logAndReturn({
+          commission: null,
+          outputLog: `Partner ${partnerId} has a first commission that is ${firstCommission.status}, skipping commission creation...`,
+        });
       }
 
-      // for lead events, we just multiply the reward amount by the quantity
+      // for lead events, we need to check if the partner has already been issued a lead reward for this customer
       if (event === "lead") {
-        earnings = getRewardAmount(reward) * quantity;
+        return logAndReturn({
+          commission: null,
+          outputLog: `Partner ${partnerId} has already been issued a lead reward for this customer ${customerId}, skipping commission creation...`,
+        });
+
+        // for sale rewards, we need to check if partner's reward was updated and different from the first commission's reward
+        // we need to make sure it wasn't changed from one-time to recurring so we don't create a new commission
+      } else {
+        if (
+          firstCommission.rewardId &&
+          firstCommission.rewardId !== reward.id
+        ) {
+          const originalReward = await prisma.reward.findUnique({
+            where: {
+              id: firstCommission.rewardId,
+            },
+            select: {
+              id: true,
+              maxDuration: true,
+            },
+          });
+
+          if (
+            typeof originalReward?.maxDuration === "number" &&
+            originalReward.maxDuration === 0
+          ) {
+            return logAndReturn({
+              commission: null,
+              outputLog: `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`,
+            });
+          }
+        }
+
+        // for sale rewards with a max duration, we need to check if the first commission is within the max duration
+        // if it's beyond the max duration, we should not create a new commission
+        if (typeof reward?.maxDuration === "number") {
+          // One-time sale reward (maxDuration === 0)
+          if (reward.maxDuration === 0) {
+            return logAndReturn({
+              commission: null,
+              outputLog: `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
+            });
+          }
+
+          // Recurring sale reward (maxDuration > 0)
+          else {
+            const subscriptionDurationMonths = differenceInMonths(
+              createdAt ?? new Date(), // account for custom commission creation date
+              firstCommission.createdAt,
+            );
+
+            if (subscriptionDurationMonths >= reward.maxDuration) {
+              return logAndReturn({
+                commission: null,
+                outputLog: `Partner ${partnerId} has reached max duration for ${event} event (subscription duration: ${subscriptionDurationMonths} months, max duration: ${reward.maxDuration} months), skipping commission creation...`,
+              });
+            }
+          }
+        }
       }
-      // for sale events, we need to calculate the earnings based on the sale amount
-      else {
-        earnings = rewards.reduce(
-          (acc, { reward, sale }) =>
-            acc +
-            calculateSaleEarnings({
-              reward,
-              sale,
-            }),
-          0,
-        );
-      }
+    }
+
+    // for lead events, we just multiply the reward amount by the quantity
+    if (event === "lead") {
+      earnings = getRewardAmount(reward) * quantity;
+    }
+    // for sale events, we need to calculate the earnings based on the sale amount
+    else {
+      earnings = rewards.reduce(
+        (acc, { reward, sale }) =>
+          acc +
+          calculateSaleEarnings({
+            reward,
+            sale,
+          }),
+        0,
+      );
     }
   }
 
@@ -373,6 +394,41 @@ async function stepCreateCommission(
       commission: null,
       outputLog: `Partner ${partnerId} has zero earnings for ${event} event, skipping commission creation...`,
     });
+  }
+
+  if (
+    customerId &&
+    event !== "custom" &&
+    reward &&
+    reward.spendLimitAmount &&
+    reward.spendLimitInterval
+  ) {
+    const cappedEarnings = await clampEarningsToSpendLimit({
+      reward,
+      earnings,
+      programId,
+      partnerId,
+      customerId,
+      referenceDate: createdAt ?? new Date(),
+    });
+
+    // If spend limit clamped earnings to 0, skip commission creation
+    if (cappedEarnings === 0) {
+      return logAndReturn({
+        commission: null,
+        outputLog: `Partner ${partnerId} has reached spend limit (${currencyFormatter(reward.spendLimitAmount)} ${reward.spendLimitInterval === "allTime" ? "" : `per ${reward.spendLimitInterval}`}) for ${event} event, skipping commission creation...`,
+      });
+    }
+
+    if (!description) {
+      description = buildCommissionDescription({
+        earnings,
+        cappedEarnings,
+        reward,
+      });
+    }
+
+    earnings = cappedEarnings;
   }
 
   try {
@@ -444,6 +500,7 @@ async function stepRunSideEffects(
     skipWorkflow,
     clickEvent,
     isFirstConversion,
+    status,
     triggerAggregateDueCommissions,
   } = input;
 
@@ -453,21 +510,11 @@ async function stepRunSideEffects(
     });
   }
 
-  const commission = await prisma.commission.findUniqueOrThrow({
+  let commission = await prisma.commission.findUniqueOrThrow({
     where: {
       id: _commission.id,
     },
-    include: {
-      customer: true,
-      link: {
-        select: {
-          id: true,
-          shortLink: true,
-          domain: true,
-          key: true,
-        },
-      },
-    },
+    include: commissionInclude,
   });
 
   const program = await prisma.program.findUniqueOrThrow({
@@ -486,6 +533,7 @@ async function stepRunSideEffects(
           slug: true,
           name: true,
           webhookEnabled: true,
+          plan: true,
         },
       },
       // if no partner group is found, need to fetch default group to fallback to
@@ -504,7 +552,105 @@ async function stepRunSideEffects(
 
   const { workspace } = program;
   const isClawback = commission.earnings < 0;
-  const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
+  const shouldRunRiskMonitoring = commission.customer && eventId && clickEvent;
+  let riskRulesTriggered = false;
+
+  if (shouldRunRiskMonitoring) {
+    const triggeredRules = await detectAndRecordFraudEvent({
+      program: { id: programId },
+      partner: pick(programEnrollment.partner, ["id", "email", "name"]),
+      programEnrollment: pick(programEnrollment, [
+        "status",
+        "riskMonitoringDisabledAt",
+      ]),
+      customer: {
+        ...pick(commission.customer!, ["id", "email", "name"]),
+        // only pass along isFirstConversion if it's a boolean
+        ...(typeof isFirstConversion === "boolean" && { isFirstConversion }),
+      },
+      link: { id: linkId },
+      click: pick(clickEvent, ["url", "referer"]),
+      event: { id: eventId },
+    });
+
+    riskRulesTriggered = triggeredRules.length > 0;
+  }
+
+  const { canManageFraudEvents } = getPlanCapabilities(program.workspace.plan);
+
+  // 1. Partner-level: any pending partner-scope fraud group -> hold (all commission types for this partner).
+  // 2. Conversion-event: run fraud detection before create; if rules trigger -> hold (customer-scoped).
+  if (canManageFraudEvents) {
+    let shouldHoldCommission = false;
+
+    if (riskRulesTriggered) {
+      shouldHoldCommission = true;
+    } else {
+      const hasPendingRiskGroups = await prisma.fraudEventGroup.findFirst({
+        where: {
+          programId,
+          partnerId,
+          status: FraudEventStatus.pending,
+          type: {
+            in: PARTNER_LEVEL_FRAUD_RULES,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      shouldHoldCommission = hasPendingRiskGroups !== null;
+    }
+
+    // An explicit `status` input (e.g. imports) wins; clawbacks (earnings <= 0) are never held.
+    if (
+      shouldHoldCommission &&
+      !status &&
+      commission.earnings > 0 &&
+      commission.status === CommissionStatus.pending
+    ) {
+      const commissionBeforeHold = pick(commission, [
+        "id",
+        "amount",
+        "earnings",
+        "status",
+      ]);
+
+      try {
+        commission = await prisma.commission.update({
+          where: {
+            id: commission.id,
+            status: CommissionStatus.pending,
+          },
+          data: {
+            status: CommissionStatus.hold,
+          },
+          include: commissionInclude,
+        });
+
+        await trackCommissionStatusUpdate({
+          workspaceId: workspace.id,
+          programId,
+          commissions: [commissionBeforeHold],
+          newStatus: CommissionStatus.hold,
+        });
+      } catch (error) {
+        // The update only matches pending commissions; if it fails (e.g. concurrent status change),
+        // re-fetch so side effects use the current status from the database.
+
+        commission = await prisma.commission.findUniqueOrThrow({
+          where: {
+            id: commission.id,
+          },
+          include: commissionInclude,
+        });
+      }
+    }
+  }
+
+  const isOnHold = commission.status === CommissionStatus.hold;
+  const shouldTriggerWorkflow = !isClawback && !skipWorkflow && !isOnHold;
 
   const webhookPartner = constructWebhookPartner(programEnrollment, {
     totalCommissions:
@@ -527,10 +673,11 @@ async function stepRunSideEffects(
       data: commission,
     }),
 
-    syncTotalCommissions({
-      partnerId,
-      programId,
-    }),
+    !isOnHold &&
+      syncTotalCommissions({
+        partnerId,
+        programId,
+      }),
 
     !isClawback &&
       notifyPartnerCommission({
@@ -559,27 +706,6 @@ async function stepRunSideEffects(
         },
       }),
 
-    // Run fraud detection
-    commission.customer &&
-      eventId &&
-      clickEvent &&
-      detectAndRecordFraudEvent({
-        program: { id: programId },
-        partner: pick(programEnrollment.partner, ["id", "email", "name"]),
-        programEnrollment: pick(programEnrollment, [
-          "status",
-          "riskMonitoringDisabledAt",
-        ]),
-        customer: {
-          ...pick(commission.customer, ["id", "email", "name"]),
-          // only pass along isFirstConversion if it's a boolean
-          ...(typeof isFirstConversion === "boolean" && { isFirstConversion }),
-        },
-        link: { id: linkId },
-        click: pick(clickEvent, ["url", "referer"]),
-        event: { id: eventId },
-      }),
-
     // Aggregate due commissions immediately for manual commission
     triggerAggregateDueCommissions &&
       triggerAggregateDueCommissionsCronJob(programId),
@@ -591,9 +717,76 @@ async function stepRunSideEffects(
     "syncTotalCommissions",
     "notifyPartnerCommission",
     "executeWorkflows",
-    "detectAndRecordFraudEvent",
+    "triggerAggregateDueCommissions",
   ].map((step, index) => ({
     step,
     result: results[index],
   }));
+}
+
+// Reward cap scope:
+// - Sales: partner and customer level
+// - Clicks & Leads: partner level only
+async function clampEarningsToSpendLimit({
+  reward,
+  earnings,
+  programId,
+  partnerId,
+  customerId,
+  referenceDate,
+}: {
+  reward: Pick<
+    RewardProps,
+    "event" | "spendLimitAmount" | "spendLimitInterval"
+  >;
+  earnings: number;
+  programId: string;
+  partnerId: string;
+  customerId: string;
+  referenceDate: Date; // When creating a manual commission, the reference date is the createdAt date
+}) {
+  if (
+    earnings === 0 ||
+    !reward.spendLimitAmount ||
+    !reward.spendLimitInterval
+  ) {
+    return earnings;
+  }
+
+  const { startDate, endDate } = getRewardSpendLimitWindow({
+    spendLimitInterval: reward.spendLimitInterval,
+    referenceDate,
+  });
+
+  // Find the commission earnings for the partner and customer (if applicable) for the spend limit window
+  const {
+    _sum: { earnings: totalEarnings },
+  } = await prisma.commission.aggregate({
+    where: {
+      programId,
+      partnerId,
+      ...(reward.event === "sale" ? { customerId } : {}),
+      type: reward.event,
+      status: {
+        in: ["pending", "processed", "paid", "hold"],
+      },
+      // only need to filter if not all-time spend limit (no startDate or endDate)
+      ...(startDate && endDate
+        ? {
+            createdAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          }
+        : {}),
+    },
+    _sum: {
+      earnings: true,
+    },
+  });
+
+  return Math.max(
+    0,
+    Math.min(earnings, reward.spendLimitAmount - (totalEarnings ?? 0)),
+  );
 }

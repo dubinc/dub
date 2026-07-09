@@ -6,8 +6,8 @@ import { Intercom } from "@/lib/integrations/intercom/client";
 import { intercomOAuthProvider } from "@/lib/integrations/intercom/oauth";
 import { intercomCredentialsSchema } from "@/lib/integrations/intercom/schema";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
 import { INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { redirect } from "next/navigation";
 

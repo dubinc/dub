@@ -2,8 +2,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import { prisma } from "@/lib/prisma";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/bounties/[bountyId] – get a single bounty for an enrolled program

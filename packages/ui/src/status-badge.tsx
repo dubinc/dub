@@ -55,7 +55,6 @@ function StatusBadge({
   size,
   icon,
   tooltip,
-  onClick,
   children,
   ...props
 }: BadgeProps) {
@@ -70,11 +69,8 @@ function StatusBadge({
         className={cn(
           statusBadgeVariants({ variant, size }),
           tooltip && "cursor-help",
-          onClick &&
-            "cursor-pointer select-none transition-[filter] duration-150 hover:brightness-75 hover:saturate-[1.25]",
           className,
         )}
-        onClick={onClick}
         {...props}
       >
         {Icon && <Icon className="h-3 w-3 shrink-0" />}

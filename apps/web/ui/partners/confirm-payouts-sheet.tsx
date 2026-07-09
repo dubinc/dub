@@ -19,6 +19,7 @@ import {
   calculatePayoutFeeForMethod,
   STRIPE_PAYMENT_METHODS,
 } from "@/lib/stripe/payment-methods";
+import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -52,6 +53,7 @@ import {
   pluralize,
   truncate,
 } from "@dub/utils";
+import { CommissionStatus } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import {
@@ -190,38 +192,6 @@ function ConfirmPayoutsSheetContent() {
     ? eligiblePayoutsSummaryCount?.count ?? 0
     : eligiblePayoutsTableTotalCount?.count ?? 0;
 
-  const { data: payoutsCount } = useSWR<
-    {
-      status: string;
-      count: number;
-      amount: number | null;
-    }[]
-  >(
-    workspaceId
-      ? `/api/payouts/count?${new URLSearchParams({
-          workspaceId,
-          groupBy: "status",
-          status: "hold",
-        }).toString()}`
-      : null,
-    fetcher,
-  );
-
-  const { holdPayoutsCount, holdPayoutsAmount } = useMemo(() => {
-    if (!payoutsCount || payoutsCount.length === 0) {
-      return { holdPayoutsCount: 0, holdPayoutsAmount: 0 };
-    }
-
-    const pendingPayoutsCount = payoutsCount.find(
-      (p) => p.status === "pending",
-    );
-
-    return {
-      holdPayoutsCount: pendingPayoutsCount?.count ?? 0,
-      holdPayoutsAmount: pendingPayoutsCount?.amount ?? 0,
-    };
-  }, [payoutsCount]);
-
   const [page, setPage] = useState(1);
   const { pagination, setPagination } = useTablePagination({
     pageSize: ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE,
@@ -271,6 +241,16 @@ function ConfirmPayoutsSheetContent() {
     () => !isExplicitSelectionMode || resolvedSelectedPayoutIds.length > 1,
     [isExplicitSelectionMode, resolvedSelectedPayoutIds.length],
   );
+
+  const { commissionsCount } = useCommissionsCount({
+    include: [],
+    status: CommissionStatus.hold,
+    // for explicitly selected payouts, filter by the payouts for those partners
+    ...(isExplicitSelectionMode &&
+      payoutsIncludedInInvoice && {
+        partnerId: payoutsIncludedInInvoice.map((p) => p.partner.id).join(","),
+      }),
+  });
 
   const { executeAsync: confirmPayouts } = useAction(confirmPayoutsAction, {
     onError: ({ error }) => {
@@ -956,23 +936,26 @@ function ConfirmPayoutsSheetContent() {
             )
           }
         />
-        {!isExplicitSelectionMode && holdPayoutsCount > 0 && (
+        {commissionsCount && commissionsCount.hold.count > 0 && (
           <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
             <span>
               Excluding{" "}
               <span className="font-medium text-neutral-800">
-                {nFormatter(holdPayoutsCount, { full: true })}
+                {nFormatter(commissionsCount.hold.count, { full: true })}
               </span>
-              {` on hold ${pluralize("payout", holdPayoutsCount)} `}
+              {` on hold ${pluralize("commission", commissionsCount.hold.count)} `}
               <span className="font-medium text-neutral-800">
                 (
-                {currencyFormatter(holdPayoutsAmount, {
+                {currencyFormatter(commissionsCount.hold.earnings, {
                   trailingZeroDisplay: "stripIfInteger",
                 })}
                 )
               </span>
             </span>
-            <a href={`/${slug}/program/payouts?status=hold`} target="_blank">
+            <a
+              href={`/${slug}/program/commissions?status=hold`}
+              target="_blank"
+            >
               <Button
                 variant="secondary"
                 text="Review"

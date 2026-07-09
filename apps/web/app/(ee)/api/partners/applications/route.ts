@@ -1,12 +1,12 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { formatApplicationFormData } from "@/lib/partners/format-application-form-data";
+import { prisma } from "@/lib/prisma";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import {
   getPartnerApplicationsQuerySchema,
   PartnerApplicationSchema,
 } from "@/lib/zod/schemas/program-application";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

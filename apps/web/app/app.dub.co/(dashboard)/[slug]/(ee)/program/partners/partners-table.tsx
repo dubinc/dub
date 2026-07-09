@@ -2,6 +2,7 @@
 
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
+import { canDeletePartner } from "@/lib/partners/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -16,6 +17,7 @@ import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkDeactivatePartnersModal } from "@/ui/modals/bulk-deactivate-partners-modal";
 import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
+import { useDeletePartnerModal } from "@/ui/modals/delete-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
 import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
@@ -30,7 +32,6 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -68,12 +69,13 @@ import {
   formatDate,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { Row, Table as TableType } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { memo, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -724,6 +726,13 @@ function RowMenuButton({
       partner: row.original,
     });
 
+  const { DeletePartnerModal, setShowDeletePartnerModal } =
+    useDeletePartnerModal({
+      partner: row.original,
+    });
+
+  const canDelete = canDeletePartner(row.original);
+
   const { executeAsync: resendInvite, isPending: isResendingInvite } =
     useAction(resendProgramInviteAction, {
       onSuccess: async () => {
@@ -762,6 +771,7 @@ function RowMenuButton({
       <UnbanPartnerModal />
       <DeactivatePartnerModal />
       <ReactivatePartnerModal />
+      <DeletePartnerModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -898,6 +908,18 @@ function RowMenuButton({
                         variant="danger"
                         onSelect={() => {
                           setShowBanPartnerModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    )}
+
+                    {canDelete && (
+                      <MenuItem
+                        icon={Trash}
+                        label="Permanently delete"
+                        variant="danger"
+                        onSelect={() => {
+                          setShowDeletePartnerModal(true);
                           setIsOpen(false);
                         }}
                       />

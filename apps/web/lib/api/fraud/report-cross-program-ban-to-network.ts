@@ -1,8 +1,10 @@
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { isFraudRuleEnabled } from "@/lib/api/fraud/get-merged-fraud-rules";
+import { prisma } from "@/lib/prisma";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { FraudRuleType, PartnerBannedReason } from "@dub/prisma/client";
+import { FraudRuleType, PartnerBannedReason } from "@prisma/client";
+import { holdPendingCommissions } from "./hold-pending-commissions";
+import { holdProcessedCommissions } from "./hold-processed-commissions";
 
 // Creates partnerCrossProgramBan fraud events in other programs where the partner is enrolled.
 // Used when a program bans a partner so that other programs can be alerted about cross-program
@@ -56,7 +58,7 @@ export async function reportCrossProgramBanToNetwork({
     return;
   }
 
-  await createFraudEvents(
+  const { affectedGroups } = await createFraudEvents(
     affectedProgramEnrollments.map((affectedEnrollment) => ({
       programId: affectedEnrollment.programId,
       partnerId: affectedEnrollment.partnerId,
@@ -68,4 +70,12 @@ export async function reportCrossProgramBanToNetwork({
       },
     })),
   );
+
+  const results = await Promise.allSettled([
+    holdPendingCommissions(affectedGroups),
+    holdProcessedCommissions(affectedGroups),
+  ]);
+  results
+    .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+    .forEach((r) => console.error("Failed to hold commissions:", r.reason));
 }

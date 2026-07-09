@@ -1,7 +1,7 @@
 import { bulkCreateLinks } from "@/lib/api/links/bulk-create-links";
+import { prisma } from "@/lib/prisma";
 import type { TrackedSitemap } from "@/lib/sitemaps/site-visit-tracking";
 import { ProcessedLinkProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
 import { fetchWithTimeout } from "@dub/utils/src";
 import { XMLParser } from "fast-xml-parser";
 

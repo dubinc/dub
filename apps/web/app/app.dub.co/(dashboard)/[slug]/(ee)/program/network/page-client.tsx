@@ -6,7 +6,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
 import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
 import { NetworkPartnerSheet } from "@/ui/partners/partner-network/network-partner-sheet";
-import { PlatformType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -21,13 +20,13 @@ import {
   Instagram,
   LinkedIn,
   Star,
-  StarFill,
   TikTok,
   Twitter,
   User,
   YouTube,
 } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -269,7 +268,7 @@ export function ProgramPartnerNetworkPageClient({
                   }}
                   icon={
                     isStarred ? (
-                      <StarFill className="size-4 text-amber-500" />
+                      <Star variant="fill" className="size-4 text-amber-500" />
                     ) : (
                       <Star className="text-content-subtle size-4" />
                     )
@@ -385,7 +384,6 @@ export function ProgramPartnerNetworkPageClient({
           isFiltered={isFiltered}
           isStarred={variant === "ignored" ? false : isStarred}
           onClearAllFilters={onRemoveAll}
-          variant={variant === "ignored" ? "ignored" : "default"}
         />
       )}
     </div>

@@ -6,11 +6,11 @@ import {
 } from "@/lib/application-events/schema";
 import { withWorkspace } from "@/lib/auth";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
+import { prisma } from "@/lib/prisma";
 import { ApplicationEventAnalyticsQuery } from "@/lib/types";
 import { TZDate, tz } from "@date-fns/tz";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { parseFilterValue } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { format } from "date-fns/format";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

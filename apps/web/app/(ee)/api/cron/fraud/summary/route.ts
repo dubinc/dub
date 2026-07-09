@@ -5,8 +5,8 @@ import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
+import { prisma } from "@/lib/prisma";
 import type UnresolvedRiskEventsSummary from "@dub/email/templates/unresolved-risk-events-summary";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { format, startOfDay } from "date-fns";
 import * as z from "zod/v4";
@@ -42,6 +42,7 @@ async function handler(req: Request) {
     // Get batch of programs with unresolved risk events
     const programs = await prisma.program.findMany({
       where: {
+        deactivatedAt: null,
         fraudEventGroups: {
           some: {
             status: "pending",

@@ -13,8 +13,8 @@ import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
-import { IntegrationStatusBadge } from "@/ui/integrations/integration-status-badge";
 import { IntegrationLogo } from "@/ui/integrations/integration-logo";
+import { IntegrationStatusBadge } from "@/ui/integrations/integration-status-badge";
 import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-modal";
 import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
 import { Markdown } from "@/ui/shared/markdown";
@@ -32,7 +32,6 @@ import {
   Logo,
   MaxWidthWrapper,
   Popover,
-  Tooltip,
   TooltipContent,
   useMediaQuery,
 } from "@dub/ui";
@@ -155,6 +154,12 @@ export default function IntegrationPageClient({
     return variants[mode];
   }, [integration.id, integration.installed, integration.settings]);
 
+  const uninstallDisabledIntegrations = {
+    stripe: `https://dashboard.stripe.com/${stripeConnectId}/${stripeConnectionBannerConfig?.title === "Test Mode" ? "test/" : ""}apps/installed/dub.co`,
+    intercom:
+      "https://app.intercom.com/a/apps/_/settings/app-settings/app-store?app_package_code=dub-ejgb",
+  };
+
   const { canInstallAdvancedIntegrations } = getPlanCapabilities(plan);
 
   return (
@@ -197,11 +202,11 @@ export default function IntegrationPageClient({
                     setShowUninstallIntegrationModal(true);
                   }}
                   disabledTooltip={
-                    integration.slug === "stripe" ? (
+                    uninstallDisabledIntegrations[integration.slug] ? (
                       <TooltipContent
-                        title="You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
-                        cta="Go to Stripe"
-                        href={`https://dashboard.stripe.com/${stripeConnectId}/apps/installed/dub.co`}
+                        title={`You cannot uninstall the ${integration.name} integration from here. Please uninstall from your ${integration.name} dashboard instead.`}
+                        cta={`Go to ${integration.name}`}
+                        href={uninstallDisabledIntegrations[integration.slug]}
                         target="_blank"
                       />
                     ) : (

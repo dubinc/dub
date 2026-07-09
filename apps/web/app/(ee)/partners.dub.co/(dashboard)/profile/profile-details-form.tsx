@@ -11,7 +11,6 @@ import {
 } from "@/ui/partners/partner-platforms-form";
 import { CustomToast } from "@/ui/shared/custom-toast";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { PartnerProfileType } from "@dub/prisma/client";
 import {
   Button,
   DynamicTooltipWrapper,
@@ -21,6 +20,7 @@ import {
   buttonVariants,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { PartnerProfileType } from "@prisma/client";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, RefObject, SetStateAction, useEffect, useRef } from "react";

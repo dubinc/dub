@@ -1,6 +1,6 @@
 import { qstash } from "@/lib/cron";
+import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
 export async function reactivateProgram(programId: string) {

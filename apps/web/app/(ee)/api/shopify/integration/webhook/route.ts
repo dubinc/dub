@@ -1,6 +1,6 @@
 import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { isLocalDev } from "@/lib/api/environment";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import crypto from "crypto";

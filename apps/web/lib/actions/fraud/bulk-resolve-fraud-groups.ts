@@ -3,8 +3,8 @@
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
 import { bulkResolveFraudGroupsSchema } from "@/lib/zod/schemas/fraud";
-import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
@@ -64,6 +64,7 @@ export const bulkResolveFraudGroupsAction = authActionClient
       },
       userId: user.id,
       ...(resolutionReason && { resolutionReason }),
+      releaseHoldCommissions: true,
     });
 
     // Add the resolution reason as a comment to each unique partner

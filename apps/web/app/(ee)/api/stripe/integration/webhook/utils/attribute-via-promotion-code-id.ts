@@ -4,15 +4,15 @@ import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
 import { recordLead } from "@/lib/tinybird";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
 import { StripeMode } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
-import { prisma } from "@dub/prisma";
-import { Project } from "@dub/prisma/client";
 import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
+import { Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { getPromotionCode } from "./get-promotion-code";
@@ -70,14 +70,21 @@ export async function attributeViaPromotionCodeId({
         code: promotionCode.code,
       },
     },
-    select: {
+    include: {
       link: true,
     },
   });
 
   if (!discountCode) {
     console.log(
-      `Couldn't find link associated with promotion code ${promotionCode.code}, skipping...`,
+      `Couldn't find discount code "${promotionCode.code}" in program "${workspace.defaultProgramId}", skipping...`,
+    );
+    return null;
+  }
+
+  if (discountCode.disabledAt) {
+    console.log(
+      `Discount code "${discountCode.code}" is disabled, skipping...`,
     );
     return null;
   }

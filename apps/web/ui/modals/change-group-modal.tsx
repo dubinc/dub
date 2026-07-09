@@ -5,7 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, InfoTooltip, Modal, Switch } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -90,6 +90,7 @@ function ChangeGroupModal({
   ]);
 
   const isSinglePartner = partners.length === 1;
+  const partnerWord = pluralize("partner", partners.length);
 
   return (
     <Modal
@@ -139,6 +140,12 @@ function ChangeGroupModal({
             </div>
           )}
         </div>
+
+        <p className="text-sm text-neutral-600">
+          This will change the group for the{" "}
+          {isSinglePartner ? partnerWord : `selected ${partnerWord}`} and notify
+          them by email.
+        </p>
 
         <div>
           <label className="block text-sm font-medium text-neutral-900">

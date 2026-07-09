@@ -1,5 +1,5 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { subMinutes } from "date-fns";
 import { logAndRespond } from "../../utils";
 

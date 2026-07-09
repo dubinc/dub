@@ -2,11 +2,11 @@
 
 import { generateOTP } from "@/lib/auth/utils";
 import { triggerQStashWorkflow } from "@/lib/cron/qstash-workflow";
+import { prisma } from "@/lib/prisma";
 import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { sendBatchEmail } from "@dub/email";
 import VerifyEmailForAccountMerge from "@dub/email/templates/verify-email-for-account-merge";
-import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 

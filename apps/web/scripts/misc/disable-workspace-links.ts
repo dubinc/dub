@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { LEGAL_USER_ID } from "@dub/utils";
 import "dotenv-flow/config";
 import { linkCache } from "../../lib/api/links/cache";
@@ -29,29 +29,36 @@ async function main() {
     return;
   }
 
-  const linksToDisable = await prisma.link.findMany({
-    where: {
-      projectId: project.id,
-      disabledAt: null,
-    },
-  });
-
-  if (linksToDisable.length > 0) {
-    const disabledLinks = await prisma.link.updateMany({
+  while (true) {
+    const linksToDisable = await prisma.link.findMany({
       where: {
-        id: {
-          in: linksToDisable.map((link) => link.id),
-        },
+        projectId: project.id,
+        disabledAt: null,
       },
-      data: {
-        disabledAt: new Date(),
-      },
+      take: 100,
     });
+    if (linksToDisable.length === 0) {
+      console.log("No more links to disable. Exiting...");
+      break;
+    }
 
-    console.log(`Disabled ${disabledLinks.count} links`);
+    if (linksToDisable.length > 0) {
+      const disabledLinks = await prisma.link.updateMany({
+        where: {
+          id: {
+            in: linksToDisable.map((link) => link.id),
+          },
+        },
+        data: {
+          disabledAt: new Date(),
+        },
+      });
 
-    const res = await linkCache.expireMany(linksToDisable);
-    console.log(res);
+      console.log(`Disabled ${disabledLinks.count} links`);
+
+      const res = await linkCache.expireMany(linksToDisable);
+      console.log(res);
+    }
   }
 
   const userToBan = project.users[0].user;

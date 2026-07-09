@@ -10,8 +10,8 @@ import {
   PARTNER_REFERRAL_TRIGGER_LABELS,
 } from "@/lib/partner-referrals/constants";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
-import { RewardStructure } from "@dub/prisma/client";
 import { capitalize, cn, currencyFormatter, pluralize } from "@dub/utils";
+import { RewardStructure } from "@prisma/client";
 import { useContext, useEffect, useMemo } from "react";
 import { DurationPopoverContent } from "../../shared/duration-popover-content";
 import {

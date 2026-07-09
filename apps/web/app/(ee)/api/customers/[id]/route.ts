@@ -3,6 +3,7 @@ import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import {
   CustomerEnrichedSchema,
@@ -10,7 +11,6 @@ import {
   getCustomersQuerySchema,
   updateCustomerBodySchema,
 } from "@/lib/zod/schemas/customers";
-import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

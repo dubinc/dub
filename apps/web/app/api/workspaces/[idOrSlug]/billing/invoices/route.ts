@@ -1,7 +1,7 @@
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { InvoiceSchema } from "@/lib/zod/schemas/invoices";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

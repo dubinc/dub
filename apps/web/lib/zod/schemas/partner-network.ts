@@ -1,5 +1,5 @@
 import { processKey } from "@/lib/api/links/utils";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType } from "@prisma/client";
 import * as z from "zod/v4";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema, partnerPlatformSchema } from "./partners";

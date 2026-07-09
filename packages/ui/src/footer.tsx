@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, createHref } from "@dub/utils";
+import { ALL_TOOLS, cn, createHref } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -112,7 +112,8 @@ export function Footer({
     domain = staticDomain;
   }
 
-  const [openPopover, setOpenPopover] = useState(false);
+  const [openToolsPopover, setOpenToolsPopover] = useState(false);
+  const [openLegalPopover, setOpenLegalPopover] = useState(false);
 
   return (
     <MaxWidthWrapper
@@ -134,9 +135,7 @@ export function Footer({
                 })}
                 className="block max-w-fit"
               >
-                <span className="sr-only">
-                  {process.env.NEXT_PUBLIC_APP_NAME} Logo
-                </span>
+                <span className="sr-only">Dub Logo</span>
                 <NavWordmark className="h-8 text-neutral-800" />
               </Link>
             </div>
@@ -222,6 +221,39 @@ export function Footer({
                       </Link>
                     </li>
                   ))}
+                  <li className="-mt-1">
+                    <Popover
+                      content={
+                        <div className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+                          {ALL_TOOLS.map((tool) => (
+                            <Link
+                              key={tool.name}
+                              href={createHref(`/tools/${tool.slug}`, domain, {
+                                utm_source: "Custom Domain",
+                                utm_medium: "Footer",
+                                utm_campaign: domain,
+                                utm_content: tool.name,
+                              })}
+                              className={cn(
+                                menuItemVariants({ variant: "default" }),
+                                linkListItemClassName,
+                                "justify-start font-normal",
+                              )}
+                            >
+                              {tool.name}
+                            </Link>
+                          ))}
+                        </div>
+                      }
+                      openPopover={openToolsPopover}
+                      setOpenPopover={setOpenToolsPopover}
+                    >
+                      <button className={linkListItemClassName}>
+                        Tools
+                        <ChevronDown className="size-3.5" />
+                      </button>
+                    </Popover>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -273,8 +305,8 @@ export function Footer({
                             ))}
                           </div>
                         }
-                        openPopover={openPopover}
-                        setOpenPopover={setOpenPopover}
+                        openPopover={openLegalPopover}
+                        setOpenPopover={setOpenLegalPopover}
                       >
                         <button className={linkListItemClassName}>
                           Legal

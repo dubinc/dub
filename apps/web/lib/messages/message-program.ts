@@ -3,11 +3,15 @@
 import { createId } from "@/lib/api/create-id";
 import { qstash } from "@/lib/cron";
 import { forwardPartnerMessageToIntercom } from "@/lib/integrations/intercom/forward-message";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, INTERCOM_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authPartnerActionClient } from "../actions/safe-action";
 import { MessageSchema, messageProgramSchema } from "./schemas";
+import {
+  mapMessageAttachmentsForCreate,
+  messageAttachmentsOrderBy,
+} from "./utils";
 
 const schema = messageProgramSchema.refine(
   (data) => data.text.trim().length > 0 || data.attachments.length > 0,
@@ -81,20 +85,16 @@ export const messageProgramAction = authPartnerActionClient
         text,
         ...(attachments.length > 0 && {
           attachments: {
-            create: attachments.map((att) => ({
-              id: createId({ prefix: "msa_" }),
-              storageKey: att.storageKey,
-              name: att.name,
-              size: att.size,
-              type: att.type,
-            })),
+            create: mapMessageAttachmentsForCreate(attachments),
           },
         }),
       },
       include: {
         senderUser: true,
         senderPartner: true,
-        attachments: true,
+        attachments: {
+          orderBy: messageAttachmentsOrderBy,
+        },
       },
     });
 

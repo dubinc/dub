@@ -3,7 +3,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { partnerReachableByProgramWhereInput } from "@/lib/api/partners/partner-reachable-by-program-where-input";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   PartnerCommentSchema,
   createPartnerCommentSchema,

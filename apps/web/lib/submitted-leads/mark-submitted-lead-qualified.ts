@@ -1,10 +1,10 @@
 "use server";
 
 import { trackLead } from "@/lib/api/conversions/track-lead";
+import { prisma } from "@/lib/prisma";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
-import { prisma } from "@dub/prisma";
-import { Project, SubmittedLead } from "@dub/prisma/client";
 import { pick } from "@dub/utils";
+import { Project, SubmittedLead } from "@prisma/client";
 
 interface MarkSubmittedLeadQualifiedInput {
   workspace: Pick<Project, "id" | "stripeConnectId" | "webhookEnabled">;

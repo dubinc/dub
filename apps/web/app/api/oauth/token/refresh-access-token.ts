@@ -3,8 +3,8 @@ import { OAUTH_CONFIG } from "@/lib/api/oauth/constants";
 import { createToken } from "@/lib/api/oauth/utils";
 import { hashToken } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
+import { prisma } from "@/lib/prisma";
 import { refreshTokenSchema } from "@/lib/zod/schemas/oauth";
-import { prisma } from "@dub/prisma";
 import { NextRequest } from "next/server";
 import * as z from "zod/v4";
 

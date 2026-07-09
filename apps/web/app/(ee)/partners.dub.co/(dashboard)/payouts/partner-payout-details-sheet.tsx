@@ -16,7 +16,6 @@ import {
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
-import { PartnerPayoutMethod, PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
   CircleArrowRight,
@@ -41,6 +40,7 @@ import {
   OG_AVATAR_URL,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { PartnerPayoutMethod, PayoutStatus } from "@prisma/client";
 import { addBusinessDays, addMinutes } from "date-fns";
 import Link from "next/link";
 import { Dispatch, Fragment, SetStateAction, useMemo } from "react";

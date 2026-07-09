@@ -22,7 +22,7 @@ export async function generateMetadata(props: {
   }
 
   return constructMetadata({
-    title: `Analytics for ${data.link ? `${data.link.domain}/${data.link.key}` : data.folder!.name} – ${process.env.NEXT_PUBLIC_APP_NAME}`,
+    title: `Analytics for ${data.link ? `${data.link.domain}/${data.link.key}` : data.folder!.name}`,
     image: `${APP_DOMAIN}/api/og/analytics?${data.link ? `linkId=${data.link.id}` : `folderId=${data.folder!.id}`}`,
     noIndex: !data.doIndex,
   });

@@ -3,9 +3,9 @@ import {
   PROGRAM_CATEGORIES,
   PROGRAM_CATEGORIES_MAP,
 } from "@/lib/network/program-categories";
-import { Category } from "@dub/prisma/client";
 import { Button, Checkbox, Modal, Tag, Tooltip, TruncatedList } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Category } from "@prisma/client";
 import {
   Dispatch,
   SetStateAction,

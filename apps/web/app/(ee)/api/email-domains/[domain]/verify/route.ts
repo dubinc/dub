@@ -2,8 +2,8 @@ import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-thr
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { resend } from "@dub/email/resend";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/email-domains/[domain]/verify - verify an email domain

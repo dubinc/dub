@@ -1,9 +1,9 @@
+import { prisma } from "@/lib/prisma";
 import {
   SupportedWellKnownFiles,
   supportedWellKnownFiles,
   WellKnownConfig,
 } from "@/lib/well-known";
-import { prisma } from "@dub/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(

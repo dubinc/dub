@@ -8,10 +8,10 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { prisma } from "@/lib/prisma";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
-import { prisma } from "@dub/prisma";
 import { capitalize, log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";
@@ -24,6 +24,7 @@ const payloadSchema = eventsQuerySchema.extend({
     .pipe(z.string().array()),
   workspaceId: z.string(),
   userId: z.string(),
+  dataAvailableFrom: z.coerce.date().optional(),
 });
 
 // POST /api/cron/export/events/workspace - QStash worker for processing large event exports

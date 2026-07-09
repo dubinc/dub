@@ -3,7 +3,7 @@
 import { cn } from "@dub/utils";
 import { ReactNode } from "react";
 import { AnimatedSizeContainer } from "./animated-size-container";
-import { CircleCheckFill } from "./icons";
+import { CircleCheck } from "./icons";
 
 export interface CardSelectorOption {
   key: string;
@@ -79,7 +79,8 @@ export function CardSelector({
               <span className="text-xs text-neutral-600">{description}</span>
             </div>
 
-            <CircleCheckFill
+            <CircleCheck
+              variant="fill"
               className={cn(
                 "mr-1.5 mt-1.5 flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
                 isSelected && "scale-100 opacity-100",

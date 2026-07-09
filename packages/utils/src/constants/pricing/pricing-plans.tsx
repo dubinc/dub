@@ -472,7 +472,7 @@ export const PLANS: PlanDetails[] = [
       },
       {
         id: "slack",
-        text: "Priority Slack support",
+        text: "Priority email support",
       },
     ] as PlanFeature[],
   },

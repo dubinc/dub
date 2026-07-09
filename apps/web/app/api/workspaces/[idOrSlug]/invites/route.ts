@@ -3,15 +3,15 @@ import { inviteUser } from "@/lib/api/users";
 import { assertRoleAllowedForPlan } from "@/lib/api/workspaces/assert-role-plan";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { prisma } from "@/lib/prisma";
 import { ratelimit, redis } from "@/lib/upstash";
 import { inviteTeammatesSchema } from "@/lib/zod/schemas/invites";
 import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
-import { prisma } from "@dub/prisma";
-import { WorkspaceRole } from "@dub/prisma/client";
 import { pluralize } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 

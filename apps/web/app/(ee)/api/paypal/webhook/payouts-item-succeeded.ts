@@ -1,5 +1,5 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { chunk, log } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { payoutsItemSchema } from "./utils";

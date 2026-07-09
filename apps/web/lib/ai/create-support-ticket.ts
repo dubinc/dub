@@ -1,5 +1,5 @@
 import { createPlainThread } from "@/lib/plain/create-plain-thread";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { currencyFormatter } from "@dub/utils";
 import { ComponentDividerSpacingSize } from "@team-plain/typescript-sdk";
 import { tool } from "ai";

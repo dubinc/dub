@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { triggerQStashWorkflow } from "@/lib/cron/qstash-workflow";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { ACME_PROGRAM_ID, nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

@@ -134,7 +134,12 @@ export function useLinkBuilderSubmit({
             }
             const message = error.message.toLowerCase();
 
-            if (message.includes("key"))
+            // Image errors contain the word "URL" but have no field of their own,
+            // so match "image" before the "url" branch below; otherwise they'd
+            // attach to the destination URL field instead of the form root.
+            if (message.includes("image"))
+              setError("root", { message: error.message });
+            else if (message.includes("key"))
               setError("key", { message: error.message });
             else if (message.includes("url"))
               setError("url", { message: error.message });

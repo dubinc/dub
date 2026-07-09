@@ -1,11 +1,11 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
+import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import PartnerProgramSummary from "@dub/email/templates/partner-program-summary";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { endOfMonth, format, startOfMonth, subMonths } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";

@@ -1,6 +1,6 @@
-import { prisma } from "@dub/prisma";
-import { Program } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { nanoid } from "@dub/utils";
+import { Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { logImportError } from "../tinybird/log-import-error";

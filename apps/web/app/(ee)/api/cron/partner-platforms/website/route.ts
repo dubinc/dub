@@ -1,7 +1,7 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { prisma } from "@dub/prisma";
-import { PlatformType } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { chunk, getDomainWithoutWWW } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { logAndRespond } from "../../utils";
 import { getDomainRating } from "./get-domain-rating";
 

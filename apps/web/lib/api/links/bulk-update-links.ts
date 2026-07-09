@@ -1,8 +1,8 @@
+import { prisma } from "@/lib/prisma";
 import { isNotHostedImage, storage } from "@/lib/storage";
 import { bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { R2_URL, getParamsFromURL, nanoid, truncate } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { combineTagIds } from "../tags/combine-tag-ids";

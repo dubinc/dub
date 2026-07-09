@@ -1,13 +1,13 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { RedisStreamEntry } from "@/lib/upstash/redis-streams/client";
 import {
   WorkspaceLinksUsageEvent,
   workspaceLinksUsageStream,
 } from "@/lib/upstash/redis-streams/workspace-links-usage";
-import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 
