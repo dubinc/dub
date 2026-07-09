@@ -346,9 +346,7 @@ export function ReferralsEmbedPageClient({
                 <ProgramRewardList
                   rewards={customerRewards}
                   discount={discount}
-                  className={
-                    showPartnerReferralSection ? "rounded-lg" : undefined
-                  }
+                  className="rounded-lg"
                 />
 
                 <ProgramRewardTerms
