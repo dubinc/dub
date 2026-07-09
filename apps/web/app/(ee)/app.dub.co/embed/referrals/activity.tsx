@@ -1,26 +1,33 @@
 import { CursorRays } from "@/ui/layout/sidebar/icons/cursor-rays";
 import { InfoTooltip, MiniAreaChart } from "@dub/ui";
-import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
+import { cn, fetcher, nFormatter } from "@dub/utils";
 import { AnalyticsTimeseries } from "dub/models/components";
 import { SVGProps, useId } from "react";
 import useSWR from "swr";
 import { useEmbedToken } from "../../embed/use-embed-token";
 import { useReferralsEmbedData } from "./page-client";
 
+const METRIC_TO_CHART_FIELD = {
+  clicks: "clicks",
+  leads: "leads",
+  conversions: "sales",
+} as const;
+
 export function ReferralsEmbedActivity() {
   const {
     group: { brandColor: color },
-    stats: { clicks, leads, sales, saleAmount },
+    stats: { clicks, leads, conversions },
   } = useReferralsEmbedData();
 
   const token = useEmbedToken();
 
-  const isEmpty = clicks === 0 && leads === 0 && sales === 0;
+  const isEmpty = clicks === 0 && leads === 0 && conversions === 0;
 
   const analyticsSearchParams = new URLSearchParams({
     event: "composite",
     groupBy: "timeseries",
     interval: "1y",
+    saleType: "new",
   });
 
   const { data: analytics } = useSWR<AnalyticsTimeseries[]>(
@@ -48,22 +55,24 @@ export function ReferralsEmbedActivity() {
             {
               label: "Clicks",
               value: clicks,
+              chartField: METRIC_TO_CHART_FIELD.clicks,
               description:
                 "Total number of unique clicks your link has received",
             },
             {
               label: "Leads",
               value: leads,
+              chartField: METRIC_TO_CHART_FIELD.leads,
               description: "Total number of signups that came from your link",
             },
             {
-              label: "Sales",
-              value: sales,
-              subValue: saleAmount,
+              label: "Conversions",
+              value: conversions,
+              chartField: METRIC_TO_CHART_FIELD.conversions,
               description:
                 "Total number of leads that converted to a paid account",
             },
-          ].map(({ label, value, subValue, description }) => (
+          ].map(({ label, value, chartField, description }) => (
             <div
               key={label}
               className="relative flex flex-col justify-between p-4"
@@ -74,12 +83,7 @@ export function ReferralsEmbedActivity() {
                   <InfoTooltip content={description} />
                 </span>
                 <span className="text-content-default text-base font-medium leading-none">
-                  {nFormatter(value, { full: true })}{" "}
-                  {subValue || subValue === 0 ? (
-                    <span className="text-content-subtle text-xs">
-                      ({currencyFormatter(subValue)})
-                    </span>
-                  ) : null}
+                  {nFormatter(value, { full: true })}
                 </span>
               </div>
               <div className="xs:block hidden h-12">
@@ -87,7 +91,7 @@ export function ReferralsEmbedActivity() {
                   data={
                     analytics?.map((a) => ({
                       date: new Date(a.start),
-                      value: a[label.toLowerCase()],
+                      value: a[chartField],
                     })) ?? []
                   }
                   color={color ?? undefined}
