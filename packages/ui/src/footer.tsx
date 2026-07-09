@@ -1,12 +1,12 @@
 "use client";
 
-import { cn, createHref } from "@dub/utils";
+import { ALL_TOOLS, cn, createHref } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { COMPARE_PAGES, FEATURES_LIST, LEGAL_PAGES, ALL_TOOLS } from "./content";
+import { COMPARE_PAGES, FEATURES_LIST, LEGAL_PAGES } from "./content";
 import { DubStatusBadge } from "./dub-status-badge";
 import {
   DubProduct,
@@ -228,16 +228,12 @@ export function Footer({
                           {ALL_TOOLS.map((tool) => (
                             <Link
                               key={tool.name}
-                              href={createHref(
-                                `/tools/${tool.slug}`,
-                                domain,
-                                {
-                                  utm_source: "Custom Domain",
-                                  utm_medium: "Footer",
-                                  utm_campaign: domain,
-                                  utm_content: tool.name,
-                                },
-                              )}
+                              href={createHref(`/tools/${tool.slug}`, domain, {
+                                utm_source: "Custom Domain",
+                                utm_medium: "Footer",
+                                utm_campaign: domain,
+                                utm_content: tool.name,
+                              })}
                               className={cn(
                                 menuItemVariants({ variant: "default" }),
                                 linkListItemClassName,
