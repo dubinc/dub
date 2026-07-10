@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getSharedPartnerPlatforms } from "@/lib/api/partners/get-shared-partner-platforms";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -23,8 +24,15 @@ export const GET = withWorkspace(
       programId,
     });
 
+    if (sharedPlatforms === null) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Partner not found.",
+      });
+    }
+
     return NextResponse.json(
-      z.array(partnerProgramSharedPlatformSchema).parse(sharedPlatforms ?? []),
+      z.array(partnerProgramSharedPlatformSchema).parse(sharedPlatforms),
     );
   },
   {

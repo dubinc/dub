@@ -117,7 +117,7 @@ export async function getSharedPartnerPlatforms({
     orderBy: {
       createdAt: "asc",
     },
-    take: 10,
+    take: 100,
   })) as SharedPlatformMatch[];
 
   const sharedPlatforms = verifiedPlatforms
@@ -136,20 +136,32 @@ export async function getSharedPartnerPlatforms({
         );
       }
 
+      const partners = platformMatches
+        .flatMap((match) => {
+          const status = programId
+            ? match.partner.programs?.[0]?.status
+            : undefined;
+
+          if (programId && !status) {
+            return [];
+          }
+
+          return [
+            {
+              id: match.partner.id,
+              name: match.partner.name,
+              email: match.partner.email,
+              image: match.partner.image,
+              ...(status && { status }),
+            },
+          ];
+        })
+        .slice(0, 10);
+
       return {
         type: platform.type,
         identifier: platform.identifier,
-        partners: platformMatches.map((match) => ({
-          id: match.partner.id,
-          name: match.partner.name,
-          email: match.partner.email,
-          image: match.partner.image,
-          // programs is filtered to the given programId, and the `some`
-          // condition above guarantees a matching enrollment exists
-          ...(programId && {
-            status: match.partner.programs?.[0]?.status,
-          }),
-        })),
+        partners,
       };
     })
     .filter((platform) => platform.partners.length > 0);

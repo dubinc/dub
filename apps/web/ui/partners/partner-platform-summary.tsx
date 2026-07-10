@@ -1,6 +1,10 @@
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
-import { usePartnerSharedPlatforms } from "@/lib/swr/use-partner-shared-platforms";
-import { PartnerPlatformProps, PartnerSharedPlatformProps } from "@/lib/types";
+import useWorkspace from "@/lib/swr/use-workspace";
+import {
+  PartnerPlatformProps,
+  PartnerProgramSharedPlatformProps,
+  PartnerSharedPlatformProps,
+} from "@/lib/types";
 import { AnimatedSizeContainer, useCurrentSubdomain } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import { Fragment, useMemo, useState } from "react";
@@ -21,6 +25,7 @@ export function PartnerPlatformSummary({
   showSharedPlatforms?: boolean;
 }) {
   const { subdomain } = useCurrentSubdomain();
+  const { id: workspaceId } = useWorkspace();
   const { mutate } = useSWRConfig();
 
   const isAdmin = subdomain === "admin";
@@ -32,11 +37,13 @@ export function PartnerPlatformSummary({
     fetcher,
   );
 
-  const { sharedPlatforms: programSharedPlatforms } = usePartnerSharedPlatforms(
-    {
-      partnerId,
-      enabled: Boolean(showSharedPlatforms) && !isAdmin,
-    },
+  const { data: programSharedPlatforms } = useSWR<
+    PartnerProgramSharedPlatformProps[]
+  >(
+    showSharedPlatforms && !isAdmin && partnerId && workspaceId
+      ? `/api/partners/${partnerId}/shared-platforms?workspaceId=${workspaceId}`
+      : null,
+    fetcher,
   );
 
   const [verifyingPlatforms, setVerifyingPlatforms] = useState<
