@@ -8,17 +8,15 @@ import { prisma } from "@/lib/prisma";
 import { queueCreateStagingWorkspace } from "@/lib/sandbox/create-staging-workspace";
 import { syncWorkspacePlanToStaging } from "@/lib/sandbox/sync-workspace";
 import { stripe } from "@/lib/stripe";
+import { getSubscriptionBillingFields } from "@/lib/stripe/workspace-subscription-fields";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
-import {
-  getPlanAndTierFromPriceId,
-  getWorkspaceLimitsForStripeSubscriptionStatus,
-  log,
-} from "@dub/utils";
+import { getPlanAndTierFromPriceId, log } from "@dub/utils";
 import { User } from "@prisma/client";
 import Stripe from "stripe";
-import { getPlanPeriodFromStripeSubscription } from "./utils/stripe-plan-period";
+import { getPlanPeriodFromStripeSubscription } from "./utils/get-plan-period-from-stripe-subscription";
+import { getWorkspaceLimitsFromStripeSubscription } from "./utils/get-workspace-limits-from-stripe-subscription";
 
 export async function checkoutSessionCompleted(
   event: Stripe.CheckoutSessionCompletedEvent,
@@ -62,11 +60,6 @@ export async function checkoutSessionCompleted(
     return `Invalid price ID in checkout.session.completed event: ${priceId}`;
   }
 
-  const limits = getWorkspaceLimitsForStripeSubscriptionStatus({
-    planLimits: plan.limits,
-    subscriptionStatus: subscription.status,
-  });
-
   const trialEndsAt =
     subscription.status === "trialing" && subscription.trial_end
       ? new Date(subscription.trial_end * 1000)
@@ -76,6 +69,11 @@ export async function checkoutSessionCompleted(
   const workspaceId = checkoutSession.client_reference_id;
   const planName = plan.name.toLowerCase();
   const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
+
+  const limits = getWorkspaceLimitsFromStripeSubscription({
+    planLimits: plan.limits,
+    subscription,
+  });
 
   // when the workspace subscribes to a plan, set their stripe customer ID
   // in the database for easy identification in future webhook events
@@ -104,8 +102,8 @@ export async function checkoutSessionCompleted(
       usersLimit: limits.users,
       trialEndsAt,
       paymentFailedAt: null,
-      subscriptionCanceledAt: null,
       ...(planPeriod !== undefined && { planPeriod }),
+      ...getSubscriptionBillingFields(subscription),
     },
     include: {
       users: {

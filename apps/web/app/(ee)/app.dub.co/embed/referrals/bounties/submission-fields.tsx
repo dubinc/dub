@@ -314,7 +314,8 @@ export function EmbedSocialUrlField({
               : "text-content-muted",
           )}
         >
-          <CircleCheck variant="fill"
+          <CircleCheck
+            variant="fill"
             className={cn(
               "size-2.5 transition-opacity",
               isPostedFromYourAccount
@@ -331,7 +332,8 @@ export function EmbedSocialUrlField({
               isAfterStartDate ? "text-content-success" : "text-content-muted",
             )}
           >
-            <CircleCheck variant="fill"
+            <CircleCheck
+              variant="fill"
               className={cn(
                 "size-2.5 transition-opacity",
                 isAfterStartDate

@@ -319,6 +319,12 @@ export async function invoicePaid({
     | undefined = undefined;
 
   if (link.programId && link.partnerId) {
+    const saleMetadata = {
+      ...invoice.parent?.subscription_details?.metadata,
+      ...invoice.lines.data[0]?.metadata,
+      ...invoice.metadata,
+    };
+
     const products = invoice.lines.data
       .map((line) => {
         const productId = line.pricing?.price_details?.product;
@@ -355,6 +361,9 @@ export async function invoicePaid({
         sale: {
           products,
           amount: saleData.amount,
+          ...(Object.keys(saleMetadata).length > 0
+            ? { metadata: saleMetadata }
+            : {}),
         },
       },
       clickEvent: {
