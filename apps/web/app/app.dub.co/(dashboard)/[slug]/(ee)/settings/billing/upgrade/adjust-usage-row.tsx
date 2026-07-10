@@ -3,9 +3,12 @@ import { Button, Grid, Slider } from "@dub/ui";
 import {
   BUSINESS_PLAN,
   ENTERPRISE_PLAN,
+  PlanPeriod,
   SELF_SERVE_PAID_PLANS,
   cn,
   getPlanDetails,
+  getMonthlyLimitFromPeriod,
+  getPlanLimitForPeriod,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { motion } from "motion/react";
@@ -13,9 +16,11 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 export function AdjustUsageRow({
+  planPeriod,
   onEventsUsageChange,
   onLinksUsageChange,
 }: {
+  planPeriod: PlanPeriod;
   onEventsUsageChange: (value: number) => void;
   onLinksUsageChange: (value: number) => void;
 }) {
@@ -34,8 +39,16 @@ export function AdjustUsageRow({
         )}
       >
         <div className="grid grid-cols-1 gap-10 p-6 lg:grid-cols-2">
-          <UsageSlider type="links" onChange={onLinksUsageChange} />
-          <UsageSlider type="events" onChange={onEventsUsageChange} />
+          <UsageSlider
+            type="links"
+            planPeriod={planPeriod}
+            onChange={onLinksUsageChange}
+          />
+          <UsageSlider
+            type="events"
+            planPeriod={planPeriod}
+            onChange={onEventsUsageChange}
+          />
         </div>
       </motion.div>
       <div className="relative flex items-center justify-center overflow-hidden rounded-b-[12px] py-2">
@@ -60,12 +73,15 @@ export function AdjustUsageRow({
 
 function UsageSlider({
   type,
+  planPeriod,
   onChange,
 }: {
   type: "links" | "events";
+  planPeriod: PlanPeriod;
   onChange: (value: number) => void;
 }) {
   const workspace = useWorkspace();
+  const { planPeriod: workspacePlanPeriod } = workspace;
 
   const limitKey = { events: "clicks" }[type] ?? type;
   const workspaceLimitKey = { events: "usageLimit", links: "linksLimit" }[type];
@@ -108,41 +124,57 @@ function UsageSlider({
     }
 
     const currentLimit = workspace[workspaceLimitKey];
+    const monthlyCurrentLimit = getMonthlyLimitFromPeriod({
+      limit: currentLimit,
+      planPeriod: workspacePlanPeriod,
+    });
+
     return usageSteps.reduce((prev, curr) =>
-      Math.abs(curr - currentLimit) < Math.abs(prev - currentLimit)
+      Math.abs(curr - monthlyCurrentLimit) < Math.abs(prev - monthlyCurrentLimit)
         ? curr
         : prev,
     );
-  }, [usageSteps, workspace, workspaceLimitKey]);
+  }, [usageSteps, workspace, workspaceLimitKey, workspacePlanPeriod]);
 
   const [selectedValue, setSelectedValue] = useState<number | null>(null);
+  const monthlySelectedValue = selectedValue ?? defaultValue;
 
   useEffect(() => {
-    onChange(selectedValue ?? defaultValue);
-  }, [selectedValue, defaultValue, onChange]);
+    onChange(monthlySelectedValue);
+  }, [monthlySelectedValue, onChange]);
 
   if (usageSteps.length < 2) return null;
+
+  const monthlyWorkspaceLimit = getMonthlyLimitFromPeriod({
+    limit: workspace[workspaceLimitKey],
+    planPeriod: workspacePlanPeriod,
+  });
 
   return (
     <div className="flex flex-col">
       <span className="text-content-default text-sm font-medium">
         {
           {
-            events: "Events tracked per month",
-            links: "Links created per month",
+            events: `Events tracked per ${planPeriod === "yearly" ? "year" : "month"}`,
+            links: `Links created per ${planPeriod === "yearly" ? "year" : "month"}`,
           }[type]
         }
       </span>
       <span className="text-content-emphasis text-lg font-semibold">
-        <NumberFlow value={selectedValue ?? defaultValue} />
-        {workspace[workspaceLimitKey] === (selectedValue ?? defaultValue) && (
+        <NumberFlow
+          value={getPlanLimitForPeriod({
+            limit: monthlySelectedValue,
+            planPeriod,
+          })}
+        />
+        {monthlyWorkspaceLimit === monthlySelectedValue && (
           <span className="animate-fade-in"> (current plan)</span>
         )}
       </span>
 
       <div className="mt-1">
         <Slider
-          value={usageSteps.indexOf(selectedValue ?? defaultValue)}
+          value={usageSteps.indexOf(monthlySelectedValue)}
           min={0}
           max={usageSteps.length - 1}
           onChange={(idx) => setSelectedValue(usageSteps[idx])}
