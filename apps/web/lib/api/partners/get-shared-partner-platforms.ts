@@ -48,30 +48,31 @@ export async function getSharedPartnerPlatforms({
     ? getDomainWithoutWWW(websitePlatform.identifier) ?? null
     : null;
 
-  const matchConditions: Prisma.PartnerPlatformWhereInput[] = [];
+  const exactMatchConditions: Prisma.PartnerPlatformWhereInput[] = [];
+  let websiteMatchCondition: Prisma.PartnerPlatformWhereInput | null = null;
 
   for (const platform of verifiedPlatforms) {
     if (platform.type === "website") {
       // website identifiers are full URLs with inconsistent normalization,
       // so match on the domain instead of the exact identifier
       if (websiteDomain) {
-        matchConditions.push({
+        websiteMatchCondition = {
           identifier: {
             contains: websiteDomain,
           },
           type: platform.type,
-        });
+        };
       }
       continue;
     }
 
-    matchConditions.push({
+    exactMatchConditions.push({
       identifier: platform.identifier,
       type: platform.type,
     });
   }
 
-  if (matchConditions.length === 0) {
+  if (exactMatchConditions.length === 0 && !websiteMatchCondition) {
     return [];
   }
 
@@ -94,39 +95,63 @@ export async function getSharedPartnerPlatforms({
     },
   } satisfies Prisma.PartnerPlatformInclude["partner"];
 
-  const sharedPlatformMatches = (
-    await Promise.all(
-      matchConditions.map((condition) =>
-        prisma.partnerPlatform.findMany({
-          where: {
-            ...condition,
-            partnerId: {
-              not: partner.id,
-            },
-            verifiedAt: {
-              not: null,
-            },
-            ...(programId && {
-              partner: {
-                programs: {
-                  some: {
-                    programId,
-                  },
-                },
-              },
-            }),
+  const baseWhere = {
+    partnerId: {
+      not: partner.id,
+    },
+    verifiedAt: {
+      not: null,
+    },
+    ...(programId && {
+      partner: {
+        programs: {
+          some: {
+            programId,
           },
-          include: {
-            partner: partnerInclude,
-          },
-          orderBy: {
-            createdAt: "asc",
-          },
-          take: condition.type === "website" ? 100 : 10,
-        }),
-      ),
-    )
-  ).flat() as SharedPlatformMatch[];
+        },
+      },
+    }),
+  } satisfies Prisma.PartnerPlatformWhereInput;
+
+  const matchQueries: Promise<SharedPlatformMatch[]>[] = [];
+
+  if (exactMatchConditions.length > 0) {
+    matchQueries.push(
+      prisma.partnerPlatform.findMany({
+        where: {
+          OR: exactMatchConditions,
+          ...baseWhere,
+        },
+        include: {
+          partner: partnerInclude,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        take: 10 * exactMatchConditions.length,
+      }) as Promise<SharedPlatformMatch[]>,
+    );
+  }
+
+  if (websiteMatchCondition) {
+    matchQueries.push(
+      prisma.partnerPlatform.findMany({
+        where: {
+          ...websiteMatchCondition,
+          ...baseWhere,
+        },
+        include: {
+          partner: partnerInclude,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        take: 100,
+      }) as Promise<SharedPlatformMatch[]>,
+    );
+  }
+
+  const sharedPlatformMatches = (await Promise.all(matchQueries)).flat();
 
   const sharedPlatforms = verifiedPlatforms
     .map((platform) => {
