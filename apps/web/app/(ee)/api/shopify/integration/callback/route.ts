@@ -87,9 +87,6 @@ export const PATCH = withWorkspace(
     requiredRoles: ["owner", "member"],
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],
