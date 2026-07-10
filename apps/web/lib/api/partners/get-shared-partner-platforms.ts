@@ -75,50 +75,58 @@ export async function getSharedPartnerPlatforms({
     return [];
   }
 
-  const sharedPlatformMatches = (await prisma.partnerPlatform.findMany({
-    where: {
-      OR: matchConditions,
-      partnerId: {
-        not: partner.id,
-      },
-      verifiedAt: {
-        not: null,
-      },
+  const partnerInclude = {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
       ...(programId && {
-        partner: {
-          programs: {
-            some: {
-              programId,
-            },
+        programs: {
+          where: {
+            programId,
+          },
+          select: {
+            status: true,
           },
         },
       }),
     },
-    include: {
-      partner: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          image: true,
-          ...(programId && {
-            programs: {
-              where: {
-                programId,
-              },
-              select: {
-                status: true,
-              },
+  } satisfies Prisma.PartnerPlatformInclude["partner"];
+
+  const sharedPlatformMatches = (
+    await Promise.all(
+      matchConditions.map((condition) =>
+        prisma.partnerPlatform.findMany({
+          where: {
+            ...condition,
+            partnerId: {
+              not: partner.id,
             },
-          }),
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-    take: 100,
-  })) as SharedPlatformMatch[];
+            verifiedAt: {
+              not: null,
+            },
+            ...(programId && {
+              partner: {
+                programs: {
+                  some: {
+                    programId,
+                  },
+                },
+              },
+            }),
+          },
+          include: {
+            partner: partnerInclude,
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+          take: condition.type === "website" ? 100 : 10,
+        }),
+      ),
+    )
+  ).flat() as SharedPlatformMatch[];
 
   const sharedPlatforms = verifiedPlatforms
     .map((platform) => {
