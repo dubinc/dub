@@ -146,6 +146,7 @@ import {
   EnrolledPartnerSchema,
   EnrolledPartnerSchemaExtended,
   partnerPlatformSchema,
+  partnerProgramSharedPlatformSchema,
   PartnerRewindSchema,
   PartnerSchema,
   partnerSharedPlatformSchema,
@@ -514,6 +515,10 @@ export type PartnerPlatformProps = z.infer<typeof partnerPlatformSchema>;
 
 export type PartnerSharedPlatformProps = z.infer<
   typeof partnerSharedPlatformSchema
+>;
+
+export type PartnerProgramSharedPlatformProps = z.infer<
+  typeof partnerProgramSharedPlatformSchema
 >;
 
 export type PartnerProps = z.infer<typeof PartnerSchema> & {

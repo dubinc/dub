@@ -1,4 +1,5 @@
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
+import { usePartnerSharedPlatforms } from "@/lib/swr/use-partner-shared-platforms";
 import { PartnerPlatformProps, PartnerSharedPlatformProps } from "@/lib/types";
 import { AnimatedSizeContainer, useCurrentSubdomain } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
@@ -12,19 +13,30 @@ export function PartnerPlatformSummary({
   platforms,
   partnerId,
   className,
+  showSharedPlatforms,
 }: {
   platforms: PartnerPlatformProps[] | undefined;
   partnerId: string;
   className?: string;
+  showSharedPlatforms?: boolean;
 }) {
   const { subdomain } = useCurrentSubdomain();
   const { mutate } = useSWRConfig();
 
-  const { data: sharedPlatforms } = useSWR<PartnerSharedPlatformProps[]>(
-    subdomain === "admin" && partnerId
+  const isAdmin = subdomain === "admin";
+
+  const { data: adminSharedPlatforms } = useSWR<PartnerSharedPlatformProps[]>(
+    isAdmin && partnerId
       ? `/api/admin/partners/${partnerId}/shared-platforms`
       : null,
     fetcher,
+  );
+
+  const { sharedPlatforms: programSharedPlatforms } = usePartnerSharedPlatforms(
+    {
+      partnerId,
+      enabled: Boolean(showSharedPlatforms) && !isAdmin,
+    },
   );
 
   const [verifyingPlatforms, setVerifyingPlatforms] = useState<
@@ -130,9 +142,13 @@ export function PartnerPlatformSummary({
           info,
           identifier,
         }) => {
-          const sharedPlatform = sharedPlatforms?.find(
-            (platform) => platform.type === type,
-          );
+          const adminSharedPlatform = isAdmin
+            ? adminSharedPlatforms?.find((platform) => platform.type === type)
+            : undefined;
+
+          const programSharedPlatform = !isAdmin
+            ? programSharedPlatforms?.find((platform) => platform.type === type)
+            : undefined;
 
           return (
             <Fragment key={label}>
@@ -151,9 +167,15 @@ export function PartnerPlatformSummary({
                 />
 
                 <AnimatedSizeContainer height>
-                  {sharedPlatform && (
+                  {adminSharedPlatform && (
                     <PartnerPlatformSharedPartners
-                      sharedPartners={sharedPlatform.partners}
+                      sharedPartners={adminSharedPlatform.partners}
+                    />
+                  )}
+                  {programSharedPlatform && (
+                    <PartnerPlatformSharedPartners
+                      variant="program"
+                      sharedPartners={programSharedPlatform.partners}
                     />
                   )}
                 </AnimatedSizeContainer>

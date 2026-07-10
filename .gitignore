@@ -51,3 +51,5 @@ playwright-report/
 **/playwright/.auth/
 test-results/
 blob-report/
+.claude/launch.json
+.claude/skills/verify/SKILL.md
