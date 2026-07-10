@@ -9,10 +9,15 @@ type PartnerFilters = Omit<
   programId: string;
 };
 
-export async function* fetchPartnersBatch(
-  filters: PartnerFilters,
-  pageSize: number = 1000,
-) {
+export async function* fetchPartnersBatch({
+  filters,
+  columns,
+  pageSize = 1000,
+}: {
+  filters: PartnerFilters;
+  columns: string[];
+  pageSize?: number;
+}) {
   let page = 1;
   let hasMore = true;
 
@@ -21,6 +26,7 @@ export async function* fetchPartnersBatch(
       ...filters,
       page,
       pageSize,
+      includeGroup: columns.includes("group"),
     });
 
     if (partners.length > 0) {

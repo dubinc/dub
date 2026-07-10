@@ -5,8 +5,8 @@ import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
-import type UnresolvedFraudEventsSummary from "@dub/email/templates/unresolved-fraud-events-summary";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
+import type UnresolvedRiskEventsSummary from "@dub/email/templates/unresolved-risk-events-summary";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { format, startOfDay } from "date-fns";
 import * as z from "zod/v4";
@@ -21,7 +21,7 @@ const schema = z.object({
 });
 
 // POST /api/cron/fraud/summary
-// This route sends a daily summary of unresolved fraud events to program owners
+// This route sends a daily summary of unresolved risk events to program owners
 // Runs daily at 4:00 PM UTC
 async function handler(req: Request) {
   try {
@@ -39,9 +39,10 @@ async function handler(req: Request) {
       ({ startingAfter } = schema.parse(JSON.parse(rawBody)));
     }
 
-    // Get batch of programs with unresolved fraud events
+    // Get batch of programs with unresolved risk events
     const programs = await prisma.program.findMany({
       where: {
+        deactivatedAt: null,
         fraudEventGroups: {
           some: {
             status: "pending",
@@ -75,7 +76,7 @@ async function handler(req: Request) {
 
     if (programs.length === 0) {
       return logAndRespond(
-        "No more programs found to send fraud events summary.",
+        "No more programs found to send risk events summary.",
       );
     }
 
@@ -133,12 +134,12 @@ async function handler(req: Request) {
           }),
         );
 
-        await queueBatchEmail<typeof UnresolvedFraudEventsSummary>(
+        await queueBatchEmail<typeof UnresolvedRiskEventsSummary>(
           users.map((user) => ({
             to: user.email,
-            subject: `Fraud events pending review for ${program.name}`,
+            subject: `Risk events pending review for ${program.name}`,
             variant: "notifications",
-            templateName: "UnresolvedFraudEventsSummary",
+            templateName: "UnresolvedRiskEventsSummary",
             templateProps: {
               email: user.email,
               workspace: program.workspace,

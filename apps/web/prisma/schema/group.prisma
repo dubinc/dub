@@ -1,0 +1,67 @@
+enum PartnerLinkStructure {
+  short
+  query
+  path
+}
+
+model PartnerGroup {
+  id                           String               @id
+  programId                    String
+  name                         String
+  slug                         String
+  color                        String?
+  clickRewardId                String?              @unique
+  leadRewardId                 String?              @unique
+  saleRewardId                 String?              @unique
+  referralRewardId             String?              @unique
+  discountId                   String?              @unique
+  linkStructure                PartnerLinkStructure @default(short)
+  additionalLinks              Json?                @db.Json
+  maxPartnerLinks              Int                  @default(0)
+  applicationFormData          Json?                @db.Json
+  applicationFormPublishedAt   DateTime?
+  landerData                   Json?                @db.Json
+  landerPublishedAt            DateTime?
+  logo                         String?
+  wordmark                     String?
+  brandColor                   String?
+  holdingPeriodDays            Int                  @default(0) // number of days to wait before earnings are added to a payout
+  autoApprovePartnersEnabledAt DateTime?
+  workflowId                   String?              @unique
+  utmTemplateId                String?              @unique
+  createdAt                    DateTime             @default(now())
+  updatedAt                    DateTime             @updatedAt
+
+  program                  Program                   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  clickReward              Reward?                   @relation("ClickReward", fields: [clickRewardId], references: [id])
+  leadReward               Reward?                   @relation("LeadReward", fields: [leadRewardId], references: [id])
+  saleReward               Reward?                   @relation("SaleReward", fields: [saleRewardId], references: [id])
+  referralReward           Reward?                   @relation("ReferralReward", fields: [referralRewardId], references: [id])
+  discount                 Discount?                 @relation(fields: [discountId], references: [id])
+  partners                 ProgramEnrollment[]
+  applications             ProgramApplication[]
+  bounties                 BountyGroup[]
+  campaigns                CampaignGroup[]
+  workflow                 Workflow?                 @relation(fields: [workflowId], references: [id])
+  utmTemplate              UtmTemplate?              @relation(fields: [utmTemplateId], references: [id])
+  partnerGroupDefaultLinks PartnerGroupDefaultLink[]
+
+  @@unique([programId, slug])
+}
+
+model PartnerGroupDefaultLink {
+  id        String   @id
+  programId String
+  groupId   String? // can be null for soft-deleted default links
+  domain    String
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program      Program       @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partnerGroup PartnerGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  links        Link[]
+
+  @@unique([groupId, url])
+  @@index(programId)
+}

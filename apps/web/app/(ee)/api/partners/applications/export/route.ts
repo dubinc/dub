@@ -1,11 +1,11 @@
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import {
   exportApplicationColumns,
   exportApplicationsColumnsDefault,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 
 const columnIdToLabel = exportApplicationColumns.reduce((acc, column) => {
@@ -90,9 +90,6 @@ export const GET = withWorkspace(
   {
     requiredPlan: [
       "business",
-      "business extra",
-      "business max",
-      "business plus",
       "advanced",
       "enterprise",
     ],

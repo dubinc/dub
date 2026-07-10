@@ -1,11 +1,13 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import {
+  CARD_PAYOUT_HARD_COST_RATE,
   CUTOFF_PERIOD_MAX_PAYOUTS,
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE,
   FAST_ACH_FEE_CENTS,
   INVOICE_MIN_PAYOUT_AMOUNT_CENTS,
+  STRIPE_PAYMENT_METHOD_NORMALIZATION,
 } from "@/lib/constants/payouts";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
@@ -17,6 +19,7 @@ import {
   calculatePayoutFeeForMethod,
   STRIPE_PAYMENT_METHODS,
 } from "@/lib/stripe/payment-methods";
+import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -50,6 +53,7 @@ import {
   pluralize,
   truncate,
 } from "@dub/utils";
+import { CommissionStatus } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import {
@@ -188,38 +192,6 @@ function ConfirmPayoutsSheetContent() {
     ? eligiblePayoutsSummaryCount?.count ?? 0
     : eligiblePayoutsTableTotalCount?.count ?? 0;
 
-  const { data: payoutsCount } = useSWR<
-    {
-      status: string;
-      count: number;
-      amount: number | null;
-    }[]
-  >(
-    workspaceId
-      ? `/api/payouts/count?${new URLSearchParams({
-          workspaceId,
-          groupBy: "status",
-          status: "hold",
-        }).toString()}`
-      : null,
-    fetcher,
-  );
-
-  const { holdPayoutsCount, holdPayoutsAmount } = useMemo(() => {
-    if (!payoutsCount || payoutsCount.length === 0) {
-      return { holdPayoutsCount: 0, holdPayoutsAmount: 0 };
-    }
-
-    const pendingPayoutsCount = payoutsCount.find(
-      (p) => p.status === "pending",
-    );
-
-    return {
-      holdPayoutsCount: pendingPayoutsCount?.count ?? 0,
-      holdPayoutsAmount: pendingPayoutsCount?.amount ?? 0,
-    };
-  }, [payoutsCount]);
-
   const [page, setPage] = useState(1);
   const { pagination, setPagination } = useTablePagination({
     pageSize: ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE,
@@ -269,6 +241,16 @@ function ConfirmPayoutsSheetContent() {
     () => !isExplicitSelectionMode || resolvedSelectedPayoutIds.length > 1,
     [isExplicitSelectionMode, resolvedSelectedPayoutIds.length],
   );
+
+  const { commissionsCount } = useCommissionsCount({
+    include: [],
+    status: CommissionStatus.hold,
+    // for explicitly selected payouts, filter by the payouts for those partners
+    ...(isExplicitSelectionMode &&
+      payoutsIncludedInInvoice && {
+        partnerId: payoutsIncludedInInvoice.map((p) => p.partner.id).join(","),
+      }),
+  });
 
   const { executeAsync: confirmPayouts } = useAction(confirmPayoutsAction, {
     onError: ({ error }) => {
@@ -446,16 +428,19 @@ function ConfirmPayoutsSheetContent() {
       0,
     );
 
-    const fastAchFee = selectedPaymentMethod.fastSettlement
-      ? FAST_ACH_FEE_CENTS
-      : 0;
+    const invoicePaymentMethod = selectedPaymentMethod.fastSettlement
+      ? "ach_fast"
+      : STRIPE_PAYMENT_METHOD_NORMALIZATION[selectedPaymentMethod.type];
+
+    const fastAchFee =
+      invoicePaymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
 
     const { fee } = calculatePayoutFeeWithWaiver({
       payoutAmount: amount,
       payoutFeeWaiverLimit: payoutFeeWaiverLimit ?? 0,
       payoutFeeWaiverUsage: payoutFeeWaiverUsage ?? 0,
       payoutFee: selectedPaymentMethod.fee,
-      fastAchFee,
+      paymentMethod: invoicePaymentMethod,
     });
 
     const total = amount + fee;
@@ -951,23 +936,26 @@ function ConfirmPayoutsSheetContent() {
             )
           }
         />
-        {!isExplicitSelectionMode && holdPayoutsCount > 0 && (
+        {commissionsCount && commissionsCount.hold.count > 0 && (
           <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
             <span>
               Excluding{" "}
               <span className="font-medium text-neutral-800">
-                {nFormatter(holdPayoutsCount, { full: true })}
+                {nFormatter(commissionsCount.hold.count, { full: true })}
               </span>
-              {` on hold ${pluralize("payout", holdPayoutsCount)} `}
+              {` on hold ${pluralize("commission", commissionsCount.hold.count)} `}
               <span className="font-medium text-neutral-800">
                 (
-                {currencyFormatter(holdPayoutsAmount, {
+                {currencyFormatter(commissionsCount.hold.earnings, {
                   trailingZeroDisplay: "stripIfInteger",
                 })}
                 )
               </span>
             </span>
-            <a href={`/${slug}/program/payouts?status=hold`} target="_blank">
+            <a
+              href={`/${slug}/program/commissions?status=hold`}
+              target="_blank"
+            >
               <Button
                 variant="secondary"
                 text="Review"
@@ -1221,13 +1209,11 @@ function buildPayoutFeeTooltip({
     payoutFeeWaiverLimit > 0 && payoutFeeWaiverUsage < payoutFeeWaiverLimit;
 
   const fastAchFeeText =
-    fastAchFee > 0 ? ` + ${currencyFormatter(fastAchFee)} Fast ACH fee` : "";
-
-  if (isWithinWaiver) {
-    const waiverLimitFormatted = nFormatter(payoutFeeWaiverLimit / 100);
-
-    return `0% processing fee for the first $${waiverLimitFormatted} payouts, then ${feePercentage}%${fastAchFeeText}. [Learn more](https://d.to/payouts)`;
-  }
+    fastAchFee > 0
+      ? isWithinWaiver
+        ? ` A ${currencyFormatter(fastAchFee)} Fast ACH fee still applies.`
+        : ` + ${currencyFormatter(fastAchFee)} Fast ACH fee`
+      : "";
 
   const isDirectDebit = DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(
     selectedPaymentMethod.type as any,
@@ -1235,7 +1221,16 @@ function buildPayoutFeeTooltip({
 
   const directDebitSuggestion = isDirectDebit
     ? ""
-    : " Switch to Direct Debit for a reduced fee.";
+    : ` [Switch to Direct Debit](https://dub.co/help/article/how-to-set-up-bank-account) for ${isWithinWaiver ? "0% fees" : "a reduced fee"}.`;
 
-  return `${feePercentage}% processing fee${fastAchFeeText}. ${directDebitSuggestion} [Learn more](https://d.to/payouts)`;
+  if (isWithinWaiver) {
+    const effectiveFeePercentage = isDirectDebit
+      ? 0
+      : CARD_PAYOUT_HARD_COST_RATE * 100;
+    const waiverLimitFormatted = nFormatter(payoutFeeWaiverLimit / 100);
+
+    return `${effectiveFeePercentage}% processing fee for the first $${waiverLimitFormatted} payouts, then ${feePercentage}%${fastAchFeeText}.${directDebitSuggestion} [Learn more](https://d.to/payouts)`;
+  }
+
+  return `${feePercentage}% processing fee${fastAchFeeText}.${directDebitSuggestion} [Learn more](https://d.to/payouts)`;
 }

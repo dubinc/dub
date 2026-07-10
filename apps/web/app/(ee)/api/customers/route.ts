@@ -6,6 +6,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getCustomers } from "@/lib/customers/api/get-customers";
 import { generateRandomName } from "@/lib/names";
+import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import {
   createCustomerBodySchema,
@@ -14,7 +15,6 @@ import {
   getCustomersQuerySchemaExtended,
 } from "@/lib/zod/schemas/customers";
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
-import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -51,9 +51,6 @@ export const GET = withWorkspace(
   {
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],
@@ -137,9 +134,6 @@ export const POST = withWorkspace(
   {
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],

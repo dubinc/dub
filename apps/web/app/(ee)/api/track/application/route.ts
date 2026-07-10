@@ -13,13 +13,13 @@ import { getSession } from "@/lib/auth";
 import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
+import { prisma } from "@/lib/prisma";
 import {
   recordClickZod,
   recordClickZodSchema,
 } from "@/lib/tinybird/record-click-zod";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
-import { Partner, Program } from "@dub/prisma/client";
+import { MARKETPLACE_RESERVED_SLUGS } from "@/ui/program-marketplace/utils/urls";
 import {
   capitalize,
   EU_COUNTRY_CODES,
@@ -32,6 +32,7 @@ import {
   NETWORK_PROGRAM_SLUG,
   NETWORK_WORKSPACE_ID,
 } from "@dub/utils";
+import { Partner, Program } from "@prisma/client";
 import { geolocation, ipAddress, waitUntil } from "@vercel/functions";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";
@@ -175,6 +176,39 @@ async function trackVisitEvent({
   }
 
   const session = await getSession();
+  const partnerId = session?.user?.defaultPartnerId;
+
+  if (partnerId) {
+    const existingEnrollment = await prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId: program.id,
+        },
+      },
+      select: {
+        partnerId: true,
+      },
+    });
+
+    if (existingEnrollment) {
+      console.log(
+        `Partner ${partnerId} is already enrolled in program ${program.id}. Skipping visit tracking...`,
+      );
+      return;
+    }
+
+    const isSelfReferral =
+      referredByPartner?.id && partnerId === referredByPartner.id;
+
+    if (isSelfReferral) {
+      console.log(
+        `Self-referral detected for partner ${partnerId} on program ${program.id}. Skipping visit tracking...`,
+      );
+      return;
+    }
+  }
+
   const requestContext = await getRequestContext(req, { referrer, url });
 
   try {
@@ -189,7 +223,7 @@ async function trackVisitEvent({
               ? getDomainWithoutWWW(referrer) || "direct"
               : "direct",
           referredByPartnerId: referredByPartner?.id,
-          partnerId: session?.user?.defaultPartnerId,
+          partnerId,
           visitedAt: new Date(),
           country: requestContext.country,
           metadata: requestContext,
@@ -215,19 +249,19 @@ async function trackVisitEvent({
   }
 
   // for network program application events, track the click event
-  if (program.id === NETWORK_PROGRAM_ID && referredByPartner) {
+  if (referredByPartner) {
     waitUntil(
       (async () => {
-        const networkPartnerLink = await prisma.link.findFirst({
+        const networkReferralLink = await prisma.link.findFirst({
           where: {
             programId: NETWORK_PROGRAM_ID,
             partnerId: referredByPartner.id,
           },
         });
 
-        if (!networkPartnerLink) {
+        if (!networkReferralLink) {
           console.log(
-            `No network partner link found for partner ${referredByPartner.id}, skipping...`,
+            `No network referral link found for partner ${referredByPartner.id} (not enrolled in network program yet), skipping...`,
           );
           return;
         }
@@ -237,9 +271,9 @@ async function trackVisitEvent({
           ...requestContext,
           timestamp: new Date().toISOString(),
           workspace_id: NETWORK_WORKSPACE_ID,
-          link_id: networkPartnerLink.id,
-          domain: networkPartnerLink.domain,
-          key: networkPartnerLink.key,
+          link_id: networkReferralLink.id,
+          domain: networkReferralLink.domain,
+          key: networkReferralLink.key,
         });
 
         await recordClickZod(generatedClickEvent);
@@ -249,7 +283,7 @@ async function trackVisitEvent({
 
         await prisma.link.update({
           where: {
-            id: networkPartnerLink.id,
+            id: networkReferralLink.id,
           },
           data: {
             clicks: { increment: 1 },
@@ -257,7 +291,7 @@ async function trackVisitEvent({
           },
         });
         console.log(
-          `Updated link ${networkPartnerLink.id} to ${networkPartnerLink.clicks + 1} clicks`,
+          `Updated link ${networkReferralLink.id} to ${networkReferralLink.clicks + 1} clicks`,
         );
 
         await syncPartnerLinksStats({
@@ -293,6 +327,22 @@ async function trackStartEvent({
   const partnerId = session?.user?.defaultPartnerId;
 
   try {
+    const applicationEvent = partnerId
+      ? await prisma.programApplicationEvent.findUnique({
+          where: {
+            id: eventId,
+          },
+          select: {
+            referredByPartnerId: true,
+          },
+        })
+      : null;
+
+    const isSelfReferral =
+      partnerId &&
+      applicationEvent?.referredByPartnerId &&
+      partnerId === applicationEvent.referredByPartnerId;
+
     await prisma.programApplicationEvent.update({
       where: {
         id: eventId,
@@ -301,6 +351,7 @@ async function trackStartEvent({
       data: {
         startedAt: new Date(),
         ...(partnerId ? { partnerId } : {}),
+        ...(isSelfReferral ? { referredByPartnerId: null } : {}),
       },
     });
 
@@ -369,8 +420,15 @@ async function getRequestContext(
 // Supports:
 //   - https://partners.dub.co/{programSlug}
 //   - https://partners.dub.co/programs/{programSlug}/apply
-//   - https://partners.dub.co/programs/marketplace/{programSlug}
+//   - https://partners.dub.co/marketplace/{programSlug}
+//   - https://dub.co/marketplace/{programSlug}
+//   - https://partners.dub.co/programs/marketplace/{programSlug} (legacy)
 //   - https://partners.dub.co/register (platform-level signup -> network program)
+//
+// Marketplace list routes (no program slug):
+//   - /marketplace
+//   - /marketplace/all
+//   - /marketplace/c/{category}
 function identityProgramSlug(url: string) {
   try {
     const urlObj = new URL(url);
@@ -380,23 +438,60 @@ function identityProgramSlug(url: string) {
       return { programSlug: null, isMarketplace: false };
     }
 
-    // Platform-level /register page is associated with the network program
     if (parts[0] === "register") {
       return { programSlug: NETWORK_PROGRAM_SLUG, isMarketplace: false };
     }
 
-    const isMarketplace = parts[0] === "programs" && parts[1] === "marketplace";
-    const programSlug = isMarketplace // e.g. https://partners.dub.co/programs/marketplace/acme
-      ? parts[2]
-      : parts[0] === "programs" // e.g. https://partners.dub.co/programs/acme/apply
-        ? parts[1]
-        : parts[0]; // e.g. https://partners.dub.co/acme, or https://partners.dub.co/acme/apply, or https://partners.dub.co/acme/group/apply
+    if (parts[0] === "marketplace") {
+      if (parts.length === 1) {
+        return { programSlug: null, isMarketplace: true };
+      }
+
+      if (parts[1] === "c") {
+        return { programSlug: null, isMarketplace: true };
+      }
+
+      if (parts.length === 2) {
+        if (MARKETPLACE_RESERVED_SLUGS.has(parts[1])) {
+          return { programSlug: null, isMarketplace: true };
+        }
+
+        return {
+          programSlug: parts[1].toLowerCase(),
+          isMarketplace: true,
+        };
+      }
+
+      return { programSlug: null, isMarketplace: true };
+    }
+
+    if (parts[0] === "programs" && parts[1] === "marketplace") {
+      if (!parts[2] || MARKETPLACE_RESERVED_SLUGS.has(parts[2])) {
+        return { programSlug: null, isMarketplace: false };
+      }
+
+      return {
+        programSlug: parts[2].toLowerCase(),
+        isMarketplace: true,
+      };
+    }
+
+    if (parts[0] === "programs") {
+      if (!parts[1]) {
+        return { programSlug: null, isMarketplace: false };
+      }
+
+      return {
+        programSlug: parts[1].toLowerCase(),
+        isMarketplace: false,
+      };
+    }
 
     return {
-      programSlug: programSlug.toLowerCase(),
-      isMarketplace,
+      programSlug: parts[0].toLowerCase(),
+      isMarketplace: false,
     };
-  } catch (error) {
+  } catch {
     return { programSlug: null, isMarketplace: false };
   }
 }

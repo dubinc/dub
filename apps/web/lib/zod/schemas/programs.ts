@@ -2,10 +2,8 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
-import {
-  ALLOWED_MIN_PAYOUT_AMOUNTS,
-  PAYOUT_HOLDING_PERIOD_DAYS,
-} from "@/lib/constants/payouts";
+import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
+import { COUNTRY_CODES } from "@dub/utils";
 import {
   Category,
   EventType,
@@ -13,8 +11,7 @@ import {
   ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   ProgramPayoutMode,
-} from "@dub/prisma/client";
-import { COUNTRY_CODES } from "@dub/utils";
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";
@@ -98,11 +95,7 @@ export const updateProgramSchema = z.object({
     .refine((val) => PAYOUT_HOLDING_PERIOD_DAYS.includes(val), {
       message: `Holding period must be ${PAYOUT_HOLDING_PERIOD_DAYS.join(", ")} days`,
     }),
-  minPayoutAmount: z.coerce
-    .number()
-    .refine((val) => ALLOWED_MIN_PAYOUT_AMOUNTS.includes(val), {
-      message: `Minimum payout amount must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.join(", ")}`,
-    }),
+  minPayoutAmount: z.coerce.number(),
   supportEmail: z.email().max(255).nullish(),
   helpUrl: z.httpUrl().max(500).nullish(),
   termsUrl: z.httpUrl().max(500).nullish(),
@@ -199,6 +192,7 @@ export const ProgramEnrollmentSchema = z.object({
   application: ProgramEnrollmentApplicationSchema.nullish().describe(
     "Linked program application, including review outcome when applicable.",
   ),
+  riskMonitoringDisabledAt: z.date().nullable(),
 });
 
 export const ProgramInviteSchema = z.object({
@@ -235,7 +229,7 @@ export const createProgramApplicationSchema = z.object({
   groupId: z.string().optional(),
   name: z.string().trim().min(1).max(100),
   email: z.email().trim().min(1).max(100),
-  country: z.enum(COUNTRY_CODES),
+  country: z.enum(COUNTRY_CODES).optional(),
   formData: programApplicationFormDataWithValuesSchema,
   inAppApplication: z.boolean().optional(),
 });

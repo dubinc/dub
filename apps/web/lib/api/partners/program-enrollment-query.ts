@@ -1,10 +1,10 @@
+import { sanitizeFullTextSearch } from "@/lib/prisma";
 import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
-import { sanitizeFullTextSearch } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 
 /**
- * Email / search filters on `Partner` (exact email, or full-text on email/name/company).
+ * Email / search filters on `Partner` (exact email, exact partner ID, or full-text on email/name/company).
  */
 export function buildPartnerEmailSearchWhere({
   email,
@@ -19,6 +19,9 @@ export function buildPartnerEmailSearchWhere({
   if (search) {
     if (search.includes("@")) {
       return { email: search };
+    }
+    if (search.startsWith("pn_")) {
+      return { id: search };
     }
     const q = sanitizeFullTextSearch(search);
     return {

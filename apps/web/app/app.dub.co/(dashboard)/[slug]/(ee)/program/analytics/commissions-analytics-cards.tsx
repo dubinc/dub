@@ -86,9 +86,9 @@ function useUrlListFilter(paramKey: string) {
   const applyFilterValues = useCallback(
     (values: string[]) => {
       if (values.length === 0) {
-        queryParams({ del: paramKey, scroll: false });
+        queryParams({ del: paramKey });
       } else {
-        queryParams({ set: { [paramKey]: values.join(",") }, scroll: false });
+        queryParams({ set: { [paramKey]: values.join(",") } });
       }
       setSelected([]);
     },
@@ -98,7 +98,7 @@ function useUrlListFilter(paramKey: string) {
   const clearFilter = useCallback(() => {
     setSelected([]);
     if (searchParams.has(paramKey)) {
-      queryParams({ del: paramKey, scroll: false });
+      queryParams({ del: paramKey });
     }
   }, [paramKey, queryParams, searchParams]);
 

@@ -1,17 +1,16 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
-import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
 import { recordSale } from "@/lib/tinybird";
 import { LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
-import { prisma } from "@dub/prisma";
-import { nanoid, pick } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";
 
@@ -132,12 +131,12 @@ export async function createShopifySale({
   ]);
 
   // for program links
-  let createdCommission:
-    | Awaited<ReturnType<typeof createPartnerCommission>>
+  let result:
+    | Awaited<ReturnType<typeof queuePartnerCommissionCreation>>
     | undefined = undefined;
 
   if (link.programId && link.partnerId) {
-    createdCommission = await createPartnerCommission({
+    result = await queuePartnerCommissionCreation({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -157,9 +156,12 @@ export async function createShopifySale({
           amount: saleData.amount,
         },
       },
+      clickEvent: {
+        url: saleData.url,
+        referer: saleData.referer,
+      },
+      isFirstConversion: firstConversionFlag,
     });
-
-    const { webhookPartner, programEnrollment } = createdCommission;
 
     waitUntil(
       Promise.allSettled([
@@ -170,11 +172,13 @@ export async function createShopifySale({
             workspaceId: workspaceId,
             programId: link.programId,
             partnerId: link.partnerId,
+            customerId: customer.id,
+            customerFirstSaleAt: customer.firstSaleAt ?? new Date(),
           },
           metrics: {
             current: {
-              saleAmount: saleData.amount,
               conversions: firstConversionFlag ? 1 : 0,
+              saleAmount: saleData.amount,
             },
           },
         }),
@@ -184,20 +188,6 @@ export async function createShopifySale({
           programId: link.programId,
           eventType: "sale",
         }),
-
-        webhookPartner &&
-          detectAndRecordFraudEvent({
-            program: { id: link.programId },
-            partner: pick(webhookPartner, ["id", "email", "name"]),
-            programEnrollment: pick(programEnrollment, ["status"]),
-            customer: {
-              ...pick(customer, ["id", "email", "name"]),
-              isFirstConversion: firstConversionFlag,
-            },
-            link: pick(link, ["id"]),
-            click: pick(saleData, ["url", "referer"]),
-            event: { id: saleData.event_id },
-          }),
       ]),
     );
   }
@@ -212,7 +202,7 @@ export async function createShopifySale({
           link,
           clickedAt: customer.clickedAt || customer.createdAt,
           customer,
-          partner: createdCommission?.webhookPartner,
+          partner: result?.webhookPartner,
           metadata: null,
         }),
       }),

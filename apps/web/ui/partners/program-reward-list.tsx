@@ -1,6 +1,5 @@
 "use client";
 
-import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { Button, Gift, Icon } from "@dub/ui";
@@ -9,7 +8,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PropsWithChildren } from "react";
 import { formatDiscountDescription } from "./format-discount-description";
-import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
+import { ProgramRewardDescription } from "./program-reward-description";
 import { REWARD_EVENT_ICON } from "./rewards/reward-event-icon";
 
 export function ProgramRewardList({
@@ -65,45 +64,10 @@ export function ProgramRewardList({
           icon={REWARD_EVENT_ICON[reward.event]}
           iconClassName={iconClassName}
         >
-          {reward.description || (
-            <>
-              {constructRewardAmount(reward)}{" "}
-              {reward.event === "sale" && reward.maxDuration === 0 ? (
-                <>for the first sale</>
-              ) : (
-                <>per {reward.event}</>
-              )}
-              {reward.maxDuration === null ? (
-                <>
-                  {" "}
-                  for the{" "}
-                  <strong className={cn("font-semibold")}>
-                    customer's lifetime
-                  </strong>
-                </>
-              ) : reward.maxDuration && reward.maxDuration > 1 ? (
-                <>
-                  {" "}
-                  for{" "}
-                  <strong className={cn("font-semibold")}>
-                    {reward.maxDuration % 12 === 0
-                      ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
-                      : `${reward.maxDuration} months`}
-                  </strong>
-                </>
-              ) : null}
-            </>
-          )}
-
-          {/* Modifiers */}
-          {showModifiersTooltip &&
-            (!!reward.modifiers?.length ||
-              Boolean(reward.tooltipDescription)) && (
-              <>
-                {" "}
-                <ProgramRewardModifiersTooltip reward={reward} />
-              </>
-            )}
+          <ProgramRewardDescription
+            reward={reward}
+            showModifiersTooltip={showModifiersTooltip}
+          />
         </Item>
       ))}
 

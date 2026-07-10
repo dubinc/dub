@@ -1,6 +1,5 @@
-import { CopyButton, LinkLogo } from "@dub/ui";
+import { CopyButton, Flag, LinkLogo } from "@dub/ui";
 import { getApexDomain, linkConstructor } from "@dub/utils";
-import { Flag } from "lucide-react";
 import Link from "next/link";
 
 export default function LinkInspectorCard({
@@ -48,7 +47,7 @@ export default function LinkInspectorCard({
         target="_blank"
         className="rounded-md p-2 transition-all duration-75 hover:bg-red-100 focus:outline-none active:bg-red-200"
       >
-        <Flag className="h-4 w-4 text-red-500" />
+        <Flag variant="fill" className="h-4 w-4 text-red-500" />
       </Link>
     </div>
   );

@@ -2,6 +2,9 @@ import "dotenv-flow/config";
 
 import { defineConfig, devices } from "@playwright/test";
 
+const workspaceBaseURL = "http://localhost:8888";
+const partnersBaseURL = "http://partners.localhost:8888";
+
 export default defineConfig({
   globalSetup: require.resolve("./global-setup"),
   testDir: "./playwright",
@@ -16,8 +19,7 @@ export default defineConfig({
     timeout: 30000,
   },
   use: {
-    baseURL:
-      process.env.PLAYWRIGHT_BASE_URL || "http://partners.localhost:8888",
+    baseURL: workspaceBaseURL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -26,11 +28,15 @@ export default defineConfig({
     {
       name: "partner-setup",
       testMatch: /partners\/auth\.setup\.ts/,
+      use: {
+        baseURL: partnersBaseURL,
+      },
     },
     {
       name: "partners",
       use: {
         ...devices["Desktop Chrome"],
+        baseURL: partnersBaseURL,
         storageState: "playwright/.auth/partner.json",
       },
       testDir: "./playwright/partners",
@@ -41,15 +47,11 @@ export default defineConfig({
     {
       name: "workspace-setup",
       testMatch: /workspaces\/auth\.setup\.ts/,
-      use: {
-        baseURL: "http://app.localhost:8888",
-      },
     },
     {
       name: "workspaces",
       use: {
         ...devices["Desktop Chrome"],
-        baseURL: "http://app.localhost:8888",
         storageState: "playwright/.auth/workspace.json",
       },
       testDir: "./playwright/workspaces",
@@ -63,7 +65,6 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         storageState: "playwright/.auth/workspace.json",
-        baseURL: "http://app.localhost:8888",
       },
       dependencies: ["workspaces"],
     },

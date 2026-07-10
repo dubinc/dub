@@ -211,11 +211,30 @@ export const searchDomainSchema = z.object({
 export const DomainStatusSchema = z.object({
   domain: z.string().describe("The domain name."),
   available: z.boolean().describe("Whether the domain is available."),
-  price: z.string().nullable().describe("The price description."),
   premium: z
     .boolean()
     .nullable()
     .describe("Whether the domain is a premium domain."),
+  prices: z
+    .object({
+      registration: z
+        .number()
+        .nullable()
+        .describe("The domain's registration price in USD cents."),
+      renewal: z
+        .number()
+        .nullable()
+        .describe("The domain's renewal price in USD cents."),
+    })
+    .nullable()
+    .describe(
+      "Price details for the domain. Will be null if the domain is not available.",
+    ),
+  price: z
+    .string()
+    .nullable()
+    .describe("Deprecated: Use `prices` instead.")
+    .meta({ deprecated: true }),
 });
 
 export const RegisterDomainSchema = z.object({

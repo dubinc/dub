@@ -1,8 +1,8 @@
 import { reportCrossProgramBanToNetwork } from "@/lib/api/fraud/report-cross-program-ban-to-network";
 import { withAdmin } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -24,13 +24,8 @@ export const PATCH = withAdmin(
       where: {
         id,
       },
-      include: {
-        programEnrollment: {
-          select: {
-            bannedAt: true,
-            bannedReason: true,
-          },
-        },
+      select: {
+        partnerId: true,
       },
     });
 
@@ -73,12 +68,18 @@ export const PATCH = withAdmin(
       },
       select: {
         id: true,
+        createdAt: true,
         programEnrollment: {
           select: {
             programId: true,
             partnerId: true,
             bannedReason: true,
             bannedAt: true,
+            application: {
+              select: {
+                reviewedAt: true,
+              },
+            },
           },
         },
       },
@@ -105,12 +106,15 @@ export const PATCH = withAdmin(
 
     waitUntil(
       Promise.allSettled(
-        pendingFraudAlerts.map(({ programEnrollment }) =>
+        pendingFraudAlerts.map(({ programEnrollment, createdAt }) =>
           reportCrossProgramBanToNetwork({
             partnerId: programEnrollment.partnerId,
             programId: programEnrollment.programId,
-            bannedReason: programEnrollment.bannedReason,
-            bannedAt: programEnrollment.bannedAt,
+            bannedReason: programEnrollment.bannedReason ?? "fraud",
+            bannedAt:
+              programEnrollment.bannedAt ??
+              programEnrollment.application?.reviewedAt ??
+              createdAt,
           }),
         ),
       ),

@@ -1,6 +1,6 @@
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { getDefaultDomainsQuerySchema } from "@/lib/zod/schemas/domains";
-import { prisma } from "@dub/prisma";
 import { DUB_DOMAINS_ARRAY } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

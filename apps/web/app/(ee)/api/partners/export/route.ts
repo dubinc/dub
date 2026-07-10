@@ -45,6 +45,7 @@ export const GET = withWorkspace(
       page: 1,
       pageSize: MAX_PARTNERS_TO_EXPORT,
       programId,
+      includeGroup: columns.includes("group"),
     });
 
     const formattedPartners = formatPartnersForExport(partners, columns);
@@ -59,9 +60,6 @@ export const GET = withWorkspace(
   {
     requiredPlan: [
       "business",
-      "business extra",
-      "business max",
-      "business plus",
       "advanced",
       "enterprise",
     ],

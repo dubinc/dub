@@ -6,6 +6,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { prisma } from "@/lib/prisma";
 import {
   createGroupSchema,
   DEFAULT_PARTNER_GROUP,
@@ -13,7 +14,6 @@ import {
   GroupSchema,
   GroupSchemaExtended,
 } from "@/lib/zod/schemas/groups";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -37,9 +37,6 @@ export const GET = withWorkspace(
     requiredPermissions: ["groups.read"],
     requiredPlan: [
       "business",
-      "business extra",
-      "business max",
-      "business plus",
       "advanced",
       "enterprise",
     ],
@@ -184,9 +181,6 @@ export const POST = withWorkspace(
     requiredPermissions: ["groups.write"],
     requiredPlan: [
       "business",
-      "business extra",
-      "business max",
-      "business plus",
       "advanced",
       "enterprise",
     ],

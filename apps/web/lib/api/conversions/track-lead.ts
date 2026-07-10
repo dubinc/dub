@@ -1,10 +1,10 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
-import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-event";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
+import { prisma } from "@/lib/prisma";
 import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { CustomerSource, WorkspaceProps } from "@/lib/types";
@@ -15,9 +15,8 @@ import {
   trackLeadRequestSchema,
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
-import { prisma } from "@dub/prisma";
-import { Link } from "@dub/prisma/client";
-import { nanoid, pick, R2_URL } from "@dub/utils";
+import { nanoid, R2_URL } from "@dub/utils";
+import { Link } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
@@ -287,12 +286,12 @@ export const trackLead = async ({
           ]);
           link = updatedLink; // update the link variable to the latest version
 
-          let createdCommission:
-            | Awaited<ReturnType<typeof createPartnerCommission>>
-            | undefined = undefined;
+          let result: Awaited<
+            ReturnType<typeof queuePartnerCommissionCreation>
+          > | null = null;
 
           if (link.programId && link.partnerId && customer) {
-            createdCommission = await createPartnerCommission({
+            result = await queuePartnerCommissionCreation({
               event: "lead",
               programId: link.programId,
               partnerId: link.partnerId,
@@ -305,11 +304,15 @@ export const trackLead = async ({
                   country: customer.country,
                   source,
                 },
+                lead: {
+                  ...(metadata != null && { metadata }),
+                },
+              },
+              clickEvent: {
+                url: clickData.url,
+                referer: clickData.referer,
               },
             });
-
-            const { commission, webhookPartner, programEnrollment } =
-              createdCommission;
 
             await Promise.allSettled([
               executeWorkflows({
@@ -332,19 +335,6 @@ export const trackLead = async ({
                 programId: link.programId,
                 eventType: "lead",
               }),
-
-              // only run fraud checks if the commission was created
-              commission &&
-                webhookPartner &&
-                detectAndRecordFraudEvent({
-                  program: { id: link.programId },
-                  partner: pick(webhookPartner, ["id", "email", "name"]),
-                  programEnrollment: pick(programEnrollment, ["status"]),
-                  customer: pick(customer, ["id", "email", "name"]),
-                  link: pick(link, ["id"]),
-                  click: pick(clickData, ["url", "referer"]),
-                  event: { id: leadEventId },
-                }),
             ]);
           }
 
@@ -356,7 +346,7 @@ export const trackLead = async ({
                 eventName,
                 link,
                 customer,
-                partner: createdCommission?.webhookPartner,
+                partner: result?.webhookPartner,
                 metadata,
               }),
               workspace,

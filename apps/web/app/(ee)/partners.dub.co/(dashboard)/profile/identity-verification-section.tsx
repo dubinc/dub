@@ -132,10 +132,12 @@ export function IdentityVerificationSection({
     <div
       id="identity-verification"
       className={cn(
-        failedReason && "overflow-hidden rounded-lg bg-amber-100 p-1",
+        identityVerificationStatus !== "approved" &&
+          failedReason &&
+          "overflow-hidden rounded-lg bg-amber-100 p-1",
       )}
     >
-      {failedReason && (
+      {identityVerificationStatus !== "approved" && failedReason && (
         <div className="flex items-center gap-2 px-2 py-2">
           <TriangleWarning className="size-3.5 shrink-0 text-amber-500" />
           <p className="leading-0 text-sm font-medium text-amber-900">

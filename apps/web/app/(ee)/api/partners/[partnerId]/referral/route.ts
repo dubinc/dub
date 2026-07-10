@@ -2,7 +2,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { partnerReferralSchema } from "@/lib/partner-referrals/schemas";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -84,9 +84,6 @@ export const GET = withWorkspace(
   {
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],

@@ -4,8 +4,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { prisma } from "@/lib/prisma";
 import { FolderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -28,9 +28,6 @@ export const GET = withWorkspace(
     requiredPlan: [
       "pro",
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],
@@ -98,9 +95,6 @@ export const PATCH = withWorkspace(
     requiredPlan: [
       "pro",
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],
@@ -199,9 +193,6 @@ export const DELETE = withWorkspace(
     requiredPlan: [
       "pro",
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],

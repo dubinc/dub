@@ -14,16 +14,6 @@ export const APPSFLYER_HARDCODED_PARAMETERS = [
     value: "{dub_id}",
     description: "Dub click ID",
   },
-  {
-    key: "af_ua",
-    value: "{userAgent}",
-    description: "User agent",
-  },
-  {
-    key: "af_ip",
-    value: "{ipAddress}",
-    description: "IP address",
-  },
 ];
 
 export const APPSFLYER_REQUIRED_PARAMETERS = [

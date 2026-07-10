@@ -7,7 +7,6 @@ import UploadAvatar from "@/ui/account/upload-avatar";
 import UserId from "@/ui/account/user-id";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { Form, useCurrentSubdomain } from "@dub/ui";
-import { APP_NAME } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -19,7 +18,7 @@ export function SettingsPageClient() {
     <PageWidthWrapper className="mb-8 grid gap-8">
       <Form
         title="Your Name"
-        description={`This is your display name on ${APP_NAME}.`}
+        description="This is your display name on Dub."
         inputAttrs={{
           name: "name",
           defaultValue:
@@ -48,7 +47,7 @@ export function SettingsPageClient() {
       />
       <Form
         title="Your Email"
-        description={`This will be the email you use to log in to ${APP_NAME} and receive notifications. A confirmation is required for changes.`}
+        description="This will be the email you use to log in to Dub and receive notifications. A confirmation is required for changes."
         inputAttrs={{
           name: "email",
           type: "email",

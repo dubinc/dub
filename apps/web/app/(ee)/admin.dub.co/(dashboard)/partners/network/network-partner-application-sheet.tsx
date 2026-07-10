@@ -9,7 +9,6 @@ import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { X } from "@/ui/shared/icons";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import {
   Button,
   ChevronLeft,
@@ -24,9 +23,11 @@ import {
   Users,
 } from "@dub/ui";
 import { cn, COUNTRIES, currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
+import { NetworkIdentityVerification } from "./identity-verification";
 import { NetworkPartnerChangeHistory } from "./network-partner-change-history";
 
 type NetworkPartnerSheetTabId = "about" | "programs" | "duplicates";
@@ -228,7 +229,7 @@ export function NetworkPartnerApplicationSheet({
     <Sheet
       open={isOpen}
       onOpenChange={setIsOpen}
-      onClose={() => queryParams({ del: "partnerId", scroll: false })}
+      onClose={() => queryParams({ del: "partnerId" })}
       contentProps={{
         className: "md:w-[max(min(calc(100vw-334px),1170px),540px)]",
       }}
@@ -272,8 +273,8 @@ export function NetworkPartnerApplicationSheet({
           </div>
         </div>
 
-        <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
-          <div className="@3xl/sheet:order-2 @3xl/sheet:sticky @3xl/sheet:top-0 @3xl/sheet:self-start space-y-4">
+        <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] @3xl/sheet:grid-rows-[minmax(0,1fr)] @3xl/sheet:overflow-hidden scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
+          <div className="@3xl/sheet:order-2 @3xl/sheet:min-h-0 @3xl/sheet:overflow-y-auto scrollbar-hide space-y-4">
             <PartnerInfoCards
               type="admin"
               partner={partner}
@@ -302,13 +303,16 @@ export function NetworkPartnerApplicationSheet({
                 />
               </div>
             </div>
-            <div className="@3xl/sheet:max-h-[50dvh] @3xl/sheet:overflow-y-auto @3xl/sheet:pr-1 overflow-x-hidden">
+            <div className="overflow-x-hidden">
+              <NetworkIdentityVerification partner={partner} />
+            </div>
+            <div className="overflow-x-hidden">
               <NetworkPartnerChangeHistory
                 changeHistoryLog={partner.changeHistoryLog}
               />
             </div>
           </div>
-          <div className="@3xl/sheet:order-1">
+          <div className="@3xl/sheet:order-1 @3xl/sheet:min-h-0 @3xl/sheet:overflow-y-auto scrollbar-hide">
             <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
               <NetworkPartnerSheetTabs
                 currentTabId={currentTabId}
@@ -323,13 +327,13 @@ export function NetworkPartnerApplicationSheet({
                   </div>
                 )}
                 {currentTabId === "programs" && (
-                  <ScrollContainer className="@3xl/sheet:max-h-[72dvh]">
+                  <ScrollContainer>
                     <NetworkPartnerProgramPerformance partner={partner} />
                   </ScrollContainer>
                 )}
                 {currentTabId === "duplicates" &&
                   partner.duplicatePartnerAccounts.length > 0 && (
-                    <ScrollContainer className="@3xl/sheet:max-h-[72dvh]">
+                    <ScrollContainer>
                       <NetworkPartnerDuplicateAccounts
                         duplicatePartnerAccounts={
                           partner.duplicatePartnerAccounts

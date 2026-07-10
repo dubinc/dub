@@ -79,47 +79,33 @@ export function PartnersUpgradeModal({
           },
           {
             id: "email",
-            text: "Email campaigns",
+            text: "Email campaigns + Messaging center",
             tooltip: {
               title:
-                "Send marketing and transactional emails to your partners to increase engagement and drive conversions.",
-              cta: "Learn more.",
-              href: "https://dub.co/help/article/email-campaigns",
-            },
-          },
-          {
-            id: "messages",
-            text: "Messaging center",
-            tooltip: {
-              title:
-                "Easily communicate with your partners using our messaging center.",
-              cta: "Learn more.",
-              href: "https://dub.co/help/article/messaging-partners",
+                "Send [marketing/transactional emails](https://dub.co/help/article/email-campaigns) and communicate with your partners using our [messaging center](https://dub.co/help/article/messaging-partners).",
             },
           },
           {
             id: "sso",
-            text: "Fraud detection",
+            text: "Risk monitoring",
             tooltip: {
               title:
                 "Safeguard your partner program by automatically flagging, reviewing, and resolving suspicious activity.",
               cta: "Learn more.",
-              href: "https://dub.co/help/article/fraud-detection",
+              href: "https://dub.co/help/article/risk-monitoring",
             },
           },
           {
             id: "partnergroups",
-            text: `${plan.limits.groups < INFINITY_NUMBER ? plan.limits.groups : "Unlimited"} partner groups`,
+            text: "Unlimited partner groups & tags",
             tooltip: {
               title:
-                "Learn how you can create partner groups to segment partners by rewards, discounts, performance, location, and more.",
-              cta: "Learn more.",
-              href: "https://dub.co/help/article/partner-groups",
+                "Create unlimited [partner groups](https://dub.co/help/article/partner-groups) and [tags](https://dub.co/help/article/partner-tags) to segment partners by rewards, discounts, performance, location, and more.",
             },
           },
           {
-            id: "slack",
-            text: "Priority Slack support",
+            id: "success",
+            text: "Priority email support",
           },
         ],
         Enterprise: [
@@ -146,8 +132,8 @@ export function PartnersUpgradeModal({
             text: "Custom SLA",
           },
           {
-            id: "success",
-            text: "Dedicated success manager",
+            id: "slack",
+            text: "Dedicated Slack support",
           },
         ],
       }[plan.name] ?? []),

@@ -6,25 +6,26 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
-import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
+import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
-import { webhookCache } from "@/lib/webhook/cache";
 import { sendEmail } from "@dub/email";
 import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
-import { prisma } from "@dub/prisma";
 import { capitalize, FREE_PLAN, log } from "@dub/utils";
 import Stripe from "stripe";
-import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
+import {
+  CANCELLATION_FEEDBACK_EMAIL_TYPE,
+  sendCancellationFeedback,
+} from "./utils/send-cancellation-feedback";
 import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 
 export async function customerSubscriptionDeleted(
   event: Stripe.CustomerSubscriptionDeletedEvent,
 ) {
-  const subscriptionDeleted = event.data.object;
+  const deletedSubscription = event.data.object;
 
-  const stripeId = subscriptionDeleted.customer.toString();
+  const stripeId = deletedSubscription.customer.toString();
 
   // If a workspace deletes their subscription, reset their usage limit in the database to 1000.
   // Also remove the root domain link for all their domains from MySQL, Redis, and Tinybird
@@ -101,10 +102,6 @@ export async function customerSubscriptionDeleted(
   const workspaceLinks = workspace.links;
   const workspaceUsers = workspace.users.map(({ user }) => user);
 
-  const isBlacklistedCancellation = await isBlacklistedEmail(
-    workspaceUsers.filter(({ email }) => email).map(({ email }) => email!),
-  );
-
   await prisma.project.update({
     where: {
       stripeId,
@@ -174,17 +171,15 @@ export async function customerSubscriptionDeleted(
           workspace.slug +
           "`* deleted their *`" +
           capitalize(workspace.plan) +
-          "`* subscription" +
-          (isBlacklistedCancellation ? " (blacklisted / banned)" : ""),
+          "`* subscription",
         type: "cron",
         mention: true,
       }),
 
-    // Don't send feedback if the user was blacklisted / banned
-    !isBlacklistedCancellation &&
-      sendCancellationFeedback({
-        owners: workspaceUsers,
-      }),
+    sendCancellationFeedback({
+      workspace,
+      owners: workspaceUsers,
+    }),
 
     // Disable the webhooks
     prisma.webhook.updateMany({
@@ -211,21 +206,13 @@ export async function customerSubscriptionDeleted(
     }),
   ]);
 
-  // Update the webhooks cache
-  const webhooks = await prisma.webhook.findMany({
+  // Reset cancellation feedback dedupe so a future resubscribe + cancel can send again
+  await prisma.sentEmail.deleteMany({
     where: {
       projectId: workspace.id,
-    },
-    select: {
-      id: true,
-      url: true,
-      secret: true,
-      triggers: true,
-      disabledAt: true,
+      type: CANCELLATION_FEEDBACK_EMAIL_TYPE,
     },
   });
-
-  await webhookCache.mset(webhooks);
 
   await deleteWorkspaceFolders({
     workspaceId: workspace.id,

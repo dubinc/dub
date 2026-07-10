@@ -7,10 +7,8 @@ import usePartnerPayoutSettings from "@/lib/swr/use-partner-payout-settings";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
-import {
-  PAYOUT_METHODS,
-  PayoutMethodSelector,
-} from "@/ui/partners/payouts/payout-method-cards";
+import { PayoutMethodSelector } from "@/ui/partners/payouts/payout-method-cards";
+import { PAYOUT_METHODS } from "@/ui/partners/payouts/payout-method-config";
 import { PayoutMethodDropdown } from "@/ui/partners/payouts/payout-method-dropdown";
 import {
   BlurImage,
@@ -225,9 +223,11 @@ function PayoutMethodsSection() {
   }
 
   // Show stablecoin as a recommended option when available but not yet connected, to encourage partners to add it
-  const showStablecoinRecommended =
-    availablePayoutMethods.includes("stablecoin") &&
-    !payoutMethodsData?.some((m) => m.type === "stablecoin" && m.connected);
+  // TODO: Add this back when stablecoin is supported in Connect
+  // const showStablecoinRecommended =
+  //   availablePayoutMethods.includes("stablecoin") &&
+  //   !payoutMethodsData?.some((m) => m.type === "stablecoin" && m.connected);
+  const showStablecoinRecommended = false;
 
   return (
     <div>

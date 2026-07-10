@@ -54,7 +54,6 @@ export function ApplicationsPartnersTable() {
     queryParams({
       set: { partnerId: stagedPartnerIds.join(",") },
       del: "page",
-      scroll: false,
     });
 
     setStagedPartnerIds(null);
@@ -64,7 +63,7 @@ export function ApplicationsPartnersTable() {
     setStagedPartnerIds(null);
 
     if (searchParams.has("partnerId")) {
-      queryParams({ del: ["partnerId", "page"], scroll: false });
+      queryParams({ del: ["partnerId", "page"] });
     }
   }, [queryParams, searchParams]);
 
@@ -103,7 +102,6 @@ export function ApplicationsPartnersTable() {
                 queryParams({
                   set: { partnerId: partner.id },
                   del: "page",
-                  scroll: false,
                 });
                 setStagedPartnerIds(null);
               }}

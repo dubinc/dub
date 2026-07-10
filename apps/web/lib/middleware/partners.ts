@@ -4,6 +4,7 @@ import { getUserViaToken } from "./utils/get-user-via-token";
 import { isValidInternalRedirect } from "./utils/is-valid-internal-redirect";
 import { parse } from "./utils/parse";
 import {
+  partnersMarketplaceRedirects,
   partnersProgramRedirects,
   partnersRedirect,
 } from "./utils/partners-redirect";
@@ -35,6 +36,18 @@ export async function PartnersMiddleware(req: NextRequest) {
     (p) => path.startsWith(p) || path.endsWith(p),
   );
 
+  if (partnersMarketplaceRedirects(path, searchParamsObj)) {
+    return NextResponse.redirect(
+      new URL(
+        `${partnersMarketplaceRedirects(path, searchParamsObj)}${searchParamsString}`,
+        req.url,
+      ),
+      {
+        status: 301,
+      },
+    );
+  }
+
   if (partnersProgramRedirects(path)) {
     return NextResponse.redirect(
       new URL(
@@ -45,7 +58,9 @@ export async function PartnersMiddleware(req: NextRequest) {
         status: 301,
       },
     );
-  } else if (!user && isAuthenticatedPath) {
+  }
+
+  if (!user && isAuthenticatedPath) {
     if (path.startsWith("/programs/")) {
       const programSlug = path.split("/")[2];
       return NextResponse.redirect(new URL(`/${programSlug}/login`, req.url));

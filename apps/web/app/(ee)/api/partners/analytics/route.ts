@@ -5,11 +5,11 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
+import { prisma } from "@/lib/prisma";
 import {
   partnerAnalyticsQuerySchema,
   partnersTopLinksSchema,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import { parseFilterValue } from "@dub/utils";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
@@ -207,6 +207,6 @@ export const GET = withWorkspace(
     return NextResponse.json(topLinksWithEarnings);
   },
   {
-    requiredPlan: ["advanced", "enterprise"],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

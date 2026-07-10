@@ -5,8 +5,8 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
+import { prisma } from "@/lib/prisma";
 import { deactivatePartnerApiSchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // POST /api/partners/deactivate – Deactivate a partner via API
@@ -58,7 +58,7 @@ export const POST = withWorkspace(
     });
   },
   {
-    requiredPlan: ["advanced", "enterprise"],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );

@@ -1,12 +1,10 @@
 "use client";
 
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
-import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import useGroups from "@/lib/swr/use-groups";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CommissionResponse, FraudGroupCountByPartner } from "@/lib/types";
+import { CommissionResponse } from "@/lib/types";
 import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { useBulkEditCommissionsModal } from "@/ui/partners/bulk-edit-commissions-modal";
@@ -128,16 +126,6 @@ export function CommissionsTable() {
     },
   );
 
-  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
-    query: {
-      groupBy: "partnerId",
-      status: "pending",
-    },
-    ignoreParams: true,
-  });
-
-  const { canManageFraudEvents } = getPlanCapabilities(workspace?.plan ?? "");
-
   const { openBulkEditCommissionsModal, BulkEditCommissionsModal } =
     useBulkEditCommissionsModal();
 
@@ -195,7 +183,7 @@ export function CommissionsTable() {
         },
         {
           id: "group",
-          header: "Group",
+          header: "Partner Group",
           cell: ({ row }) => {
             if (!groups) return "-";
 
@@ -208,9 +196,16 @@ export function CommissionsTable() {
             return (
               <div className="flex items-center gap-2">
                 <GroupColorCircle group={group} />
-                <span className="truncate text-sm font-medium">
+                <Link
+                  href={`/${slug}/program/groups/${group.slug}`}
+                  target="_blank"
+                  onClick={(e) => e.stopPropagation()}
+                  onAuxClick={(e) => e.stopPropagation()}
+                  className="min-w-0 cursor-alias truncate text-sm font-medium decoration-dotted hover:underline"
+                  title={group.name}
+                >
                   {group.name}
-                </span>
+                </Link>
               </div>
             );
           },
@@ -279,18 +274,7 @@ export function CommissionsTable() {
           id: "status",
           header: "Status",
           cell: ({ row }) => {
-            const partnerHasPendingFraud = fraudGroupCount?.find(
-              ({ partnerId }) => partnerId === row.original.partner.id,
-            );
-
-            const status =
-              canManageFraudEvents &&
-              partnerHasPendingFraud &&
-              ["pending", "processed"].includes(row.original.status)
-                ? "hold"
-                : row.original.status;
-
-            const badge = CommissionStatusBadges[status];
+            const badge = CommissionStatusBadges[row.original.status];
 
             return (
               <StatusBadge
@@ -320,7 +304,7 @@ export function CommissionsTable() {
           cell: ({ row }) => <CommissionRowMenu row={row} />,
         },
       ].filter((c) => c.id === "menu" || commissionsColumns.all.includes(c.id)),
-    [slug, groups, program, workspace, fraudGroupCount],
+    [slug, groups, program, workspace],
   );
 
   const { table, ...tableProps } = useTable<CommissionResponse>({
@@ -341,7 +325,6 @@ export function CommissionsTable() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
     onRowClick: (row, e) => {
       const url = `/${slug}/program/commissions/${row.original.id}`;

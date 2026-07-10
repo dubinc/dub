@@ -1,5 +1,10 @@
 import { ReactNode } from "react";
 import { nFormatter } from "../../functions/nformatter";
+import {
+  getPlanLimitForPeriod,
+  getPlanPeriodSuffix,
+  PlanPeriod,
+} from "./plan-period-utils";
 import { PLANS } from "./pricing-plans";
 
 type Plan = (typeof PLANS)[number];
@@ -12,12 +17,15 @@ type HeroFeature = {
     | ReactNode
     | {
         title: string;
-        cta: string;
-        href: string;
+        cta?: string;
+        href?: string;
       };
 };
 
-const getLinksStandards = (plan: Plan): HeroFeature[] => {
+const getLinksStandards = (
+  plan: Plan,
+  planPeriod: PlanPeriod = "monthly",
+): HeroFeature[] => {
   return [
     // Tracked events
     {
@@ -25,7 +33,12 @@ const getLinksStandards = (plan: Plan): HeroFeature[] => {
       text:
         plan.name === "Enterprise"
           ? "Unlimited tracked events"
-          : `${nFormatter(plan.limits.clicks)} tracked events/mo`,
+          : `${nFormatter(
+              getPlanLimitForPeriod({
+                limit: plan.limits.clicks,
+                planPeriod,
+              }),
+            )} tracked events${getPlanPeriodSuffix({ planPeriod })}`,
     },
     // New links
     {
@@ -33,22 +46,39 @@ const getLinksStandards = (plan: Plan): HeroFeature[] => {
       text:
         plan.name === "Enterprise"
           ? "Unlimited new links"
-          : `${nFormatter(plan.limits.links)} new links/mo`,
+          : `${nFormatter(
+              getPlanLimitForPeriod({
+                limit: plan.limits.links,
+                planPeriod,
+              }),
+            )} new links${getPlanPeriodSuffix({ planPeriod })}`,
     },
-    {
-      id: "retention",
-      text: `${plan.limits.retention} analytics retention`,
-    },
+    ...(plan.name !== "Enterprise"
+      ? [
+          {
+            id: "retention",
+            text: `${plan.limits.retention} analytics retention`,
+          },
+        ]
+      : []),
   ];
 };
 
-const getPartnersStandards = (plan: Plan): HeroFeature[] => [
+const getPartnersStandards = (
+  plan: Plan,
+  planPeriod: PlanPeriod = "monthly",
+): HeroFeature[] => [
   {
     id: "payouts",
     text:
       plan.name === "Enterprise"
         ? "Unlimited partner payouts"
-        : `$${nFormatter(plan.limits.payouts / 100)} partner payouts/mo`,
+        : `$${nFormatter(
+            getPlanLimitForPeriod({
+              limit: plan.limits.payouts,
+              planPeriod,
+            }) / 100,
+          )} partner payouts${getPlanPeriodSuffix({ planPeriod })}`,
     tooltip: {
       title:
         "Send payouts to your partners with 1-click (or automate it completely) – all across the world.",
@@ -58,15 +88,24 @@ const getPartnersStandards = (plan: Plan): HeroFeature[] => [
   },
 ];
 
-export const PRICING_PLAN_MAIN_FEATURES = {
+export const getPricingPlanMainFeatures = (
+  planPeriod: PlanPeriod = "monthly",
+) => ({
   links: {
     Pro: [
       {
         features: [
-          ...getLinksStandards(PLANS.find((p) => p.name === "Pro")!),
+          ...getLinksStandards(
+            PLANS.find((p) => p.name === "Pro")!,
+            planPeriod,
+          ),
           {
             id: "advanced",
             text: "Advanced link features",
+            tooltip: {
+              title:
+                "Supercharge your links with [custom link previews](https://dub.co/help/article/custom-link-previews), [device targeting](https://dub.co/help/article/device-targeting), [geo targeting](https://dub.co/help/article/geo-targeting), [link cloaking](https://dub.co/help/article/link-cloaking), [password protection](https://dub.co/help/article/password-protected-links), and more.",
+            },
           },
           {
             id: "dotlink",
@@ -104,14 +143,29 @@ export const PRICING_PLAN_MAIN_FEATURES = {
     Business: [
       {
         features: [
-          ...getLinksStandards(PLANS.find((p) => p.name === "Business")!),
+          ...getLinksStandards(
+            PLANS.find((p) => p.name === "Business")!,
+            planPeriod,
+          ),
           {
             id: "conversions",
             text: "Conversion tracking",
+            tooltip: {
+              title:
+                "Track how your link clicks are converting to signups and sales.",
+              cta: "Learn more.",
+              href: "https://dub.co/docs/quickstart/server",
+            },
           },
           {
             id: "tests",
             text: "A/B testing",
+            tooltip: {
+              title:
+                "Run A/B tests to compare different short-link variations and identify what drives the highest conversions.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/ab-testing",
+            },
           },
           {
             id: "roles",
@@ -139,10 +193,21 @@ export const PRICING_PLAN_MAIN_FEATURES = {
     Advanced: [
       {
         features: [
-          ...getLinksStandards(PLANS.find((p) => p.name === "Advanced")!),
+          ...getLinksStandards(
+            PLANS.find((p) => p.name === "Advanced")!,
+            planPeriod,
+          ),
           {
-            id: "slack",
-            text: "Priority Slack support",
+            id: "api",
+            text: "Elevated API rate limits",
+            tooltip: {
+              title:
+                "Get access to elevated [API rate limits](https://dub.co/docs/api-reference/rate-limits) to build advanced integrations and automate your workflows.",
+            },
+          },
+          {
+            id: "success",
+            text: "Priority email support",
           },
         ],
       },
@@ -150,7 +215,10 @@ export const PRICING_PLAN_MAIN_FEATURES = {
     Enterprise: [
       {
         features: [
-          ...getLinksStandards(PLANS.find((p) => p.name === "Enterprise")!),
+          ...getLinksStandards(
+            PLANS.find((p) => p.name === "Enterprise")!,
+            planPeriod,
+          ),
           {
             id: "sso",
             text: "SSO/SAML",
@@ -160,8 +228,8 @@ export const PRICING_PLAN_MAIN_FEATURES = {
             text: "Audit logs",
           },
           {
-            id: "sla",
-            text: "Custom SLA",
+            id: "slack",
+            text: "Dedicated Slack support",
           },
         ],
       },
@@ -171,7 +239,10 @@ export const PRICING_PLAN_MAIN_FEATURES = {
     Business: [
       {
         features: [
-          ...getPartnersStandards(PLANS.find((p) => p.name === "Business")!),
+          ...getPartnersStandards(
+            PLANS.find((p) => p.name === "Business")!,
+            planPeriod,
+          ),
           {
             id: "basicrewards",
             text: "Basic reward structures",
@@ -242,7 +313,10 @@ export const PRICING_PLAN_MAIN_FEATURES = {
     Advanced: [
       {
         features: [
-          ...getPartnersStandards(PLANS.find((p) => p.name === "Advanced")!),
+          ...getPartnersStandards(
+            PLANS.find((p) => p.name === "Advanced")!,
+            planPeriod,
+          ),
           {
             id: "flexiblerewards",
             text: "Advanced reward structures",
@@ -272,13 +346,13 @@ export const PRICING_PLAN_MAIN_FEATURES = {
             },
           },
           {
-            id: "frauddetection",
-            text: "Fraud detection",
+            id: "sso",
+            text: "Risk monitoring",
             tooltip: {
               title:
                 "Safeguard your partner program by automatically flagging, reviewing, and resolving suspicious activity.",
               cta: "Learn more.",
-              href: "https://dub.co/help/article/fraud-detection",
+              href: "https://dub.co/help/article/risk-monitoring",
             },
           },
           {
@@ -292,18 +366,18 @@ export const PRICING_PLAN_MAIN_FEATURES = {
             },
           },
           {
-            id: "api",
-            text: "Partners API",
+            id: "partnerreferrals",
+            text: "Partner referral rewards",
             tooltip: {
               title:
-                "Leverage our partners API to build a bespoke, white-labeled referral program that lives within your app.",
+                "Reward partners for referring other partners to your affiliate program.",
               cta: "Learn more.",
-              href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
+              href: "https://dub.co/help/article/partner-referrals",
             },
           },
           {
-            id: "slack",
-            text: "Priority Slack support",
+            id: "success",
+            text: "Priority email support",
           },
         ],
       },
@@ -311,13 +385,16 @@ export const PRICING_PLAN_MAIN_FEATURES = {
     Enterprise: [
       {
         features: [
-          ...getPartnersStandards(PLANS.find((p) => p.name === "Enterprise")!),
+          ...getPartnersStandards(
+            PLANS.find((p) => p.name === "Enterprise")!,
+            planPeriod,
+          ),
           {
             id: "volume",
             text: "Volume discounts",
             tooltip: {
               title:
-                "Get access to volume discounts for payout fees and tracked events usage.",
+                "Get access to volume discounts for [payout fees](https://dub.co/help/article/partner-payouts#payout-fees-and-timing) and [tracked events usage](https://dub.co/help/article/dub-analytics-limits).",
             },
           },
           {
@@ -357,11 +434,11 @@ export const PRICING_PLAN_MAIN_FEATURES = {
             text: "Custom SLA",
           },
           {
-            id: "success",
-            text: "Dedicated success manager",
+            id: "slack",
+            text: "Dedicated Slack support",
           },
         ],
       },
     ],
   },
-};
+});

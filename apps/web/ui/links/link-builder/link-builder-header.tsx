@@ -2,6 +2,7 @@ import { unsortedLinks } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useFolder from "@/lib/swr/use-folder";
 import useLinks from "@/lib/swr/use-links";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { FolderIcon } from "@/ui/folders/folder-icon";
 import { Combobox, LinkLogo } from "@dub/ui";
@@ -30,7 +31,8 @@ export function LinkBuilderHeader({
   onSelectLink?: (link: LinkProps) => void;
   className?: string;
 }>) {
-  const { props, workspace } = useLinkBuilderContext();
+  const { props } = useLinkBuilderContext();
+  const workspace = useWorkspace();
   const { isDirty } = useFormState();
 
   const [url, key, domain, folderId] = useWatch({

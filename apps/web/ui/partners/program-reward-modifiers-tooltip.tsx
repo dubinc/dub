@@ -99,6 +99,8 @@ export function ProgramRewardModifiersTooltipContent({
                   modifier.maxDuration === undefined
                     ? reward.maxDuration
                     : modifier.maxDuration, // fallback to primary
+                spendLimitAmount: reward.spendLimitAmount,
+                spendLimitInterval: reward.spendLimitInterval,
               }}
               conditions={modifier.conditions}
               operator={modifier.operator}
@@ -169,7 +171,13 @@ const RewardItem = ({
                 <span className="shrink-0 text-lg leading-none">&bull;</span>
                 <span className="min-w-0">
                   {idx === 0 ? "If" : capitalize(operator)}{" "}
-                  {capitalize(condition.entity)} {capitalize(attribute?.label)}{" "}
+                  {capitalize(condition.entity)}{" "}
+                  {(condition.entity === "lead" ||
+                    condition.entity === "sale") &&
+                  condition.attribute === "metadata" &&
+                  condition.metadataField?.trim()
+                    ? `"${condition.metadataField.trim()}"`
+                    : capitalize(attribute?.label)}{" "}
                   {condition.label
                     ? "is" // if custom label is set, use "is" instead of the actual operator to sound more natural
                     : CONDITION_OPERATOR_LABELS[condition.operator]}{" "}

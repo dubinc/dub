@@ -1,5 +1,9 @@
 import { PARTNER_REFERRAL_TRIGGER } from "@/lib/partner-referrals/constants";
-import { EventType, RewardStructure } from "@dub/prisma/client";
+import {
+  EventType,
+  RewardSpendLimitInterval,
+  RewardStructure,
+} from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 import { centsSchema } from "./utils";
@@ -22,17 +26,29 @@ export const COMMISSION_TYPES = [
 export type RewardConditionEntityAttribute = {
   id: string;
   label: string;
-  type: "string" | "enum" | "number" | "currency" | "date";
+  type: "string" | "enum" | "number" | "currency" | "date" | "metadata";
   options?: {
     id: string;
     label: string;
   }[];
 };
 
-export type RewardConditionEntity = {
-  id: "partner" | "customer" | "sale";
+type RewardConditionEntity = {
+  id: "partner" | "customer" | "sale" | "lead";
   label: string;
   attributes: RewardConditionEntityAttribute[];
+};
+
+const LEAD_ENTITY: RewardConditionEntity = {
+  id: "lead",
+  label: "Lead",
+  attributes: [
+    {
+      id: "metadata",
+      label: "Metadata",
+      type: "metadata",
+    },
+  ],
 };
 
 const PARTNER_ENTITY: RewardConditionEntity = {
@@ -124,6 +140,7 @@ export const REWARD_CONDITIONS: Record<
         ],
       },
       PARTNER_ENTITY,
+      LEAD_ENTITY,
     ],
   },
 
@@ -196,6 +213,11 @@ export const REWARD_CONDITIONS: Record<
               },
             ],
           },
+          {
+            id: "metadata",
+            label: "Metadata",
+            type: "metadata",
+          },
         ],
       },
     ],
@@ -207,25 +229,29 @@ export const REWARD_CONDITIONS: Record<
   },
 };
 
-export const REWARD_CONDITION_ENTITIES = [
+const REWARD_CONDITION_ENTITIES = [
   ...new Set(
     Object.values(REWARD_CONDITIONS).flatMap(({ entities }) => entities),
   ),
 ];
 
-export const REWARD_CONDITION_ATTRIBUTES = [
-  ...new Set(
-    Object.values(REWARD_CONDITIONS).flatMap(({ entities }) =>
-      entities.flatMap(({ attributes }) => attributes),
-    ),
-  ),
+export const REWARD_CONDITION_ATTRIBUTES = Object.values(
+  REWARD_CONDITIONS,
+).flatMap(({ entities }) => entities.flatMap(({ attributes }) => attributes));
+
+const REWARD_CONDITION_ATTRIBUTE_IDS = [
+  ...new Set(REWARD_CONDITION_ATTRIBUTES.map(({ id }) => id)),
 ];
+
+const REWARD_METADATA_CONDITION_ENTITIES = ["lead", "sale"] as const;
 
 export const CONDITION_OPERATORS = [
   "equals_to",
   "not_equals",
   "starts_with",
   "ends_with",
+  "contains",
+  "not_contains",
   "in",
   "not_in",
   "greater_than",
@@ -253,11 +279,32 @@ export const NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] 
 export const DATE_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
   ["greater_than", "greater_than_or_equal", "less_than", "less_than_or_equal"];
 
+export const METADATA_NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+  ["greater_than", "greater_than_or_equal", "less_than", "less_than_or_equal"];
+
+export const METADATA_TEXT_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+  [
+    "equals_to",
+    "not_equals",
+    "starts_with",
+    "ends_with",
+    "contains",
+    "not_contains",
+  ];
+
+export const METADATA_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+  [
+    ...METADATA_TEXT_CONDITION_OPERATORS,
+    ...METADATA_NUMBER_CONDITION_OPERATORS,
+  ];
+
 export const CONDITION_OPERATOR_LABELS = {
   equals_to: "is",
   not_equals: "is not",
   starts_with: "starts with",
   ends_with: "ends with",
+  contains: "contains",
+  not_contains: "does not contain",
   in: "is one of",
   not_in: "is not one of",
   greater_than: "is greater than",
@@ -266,13 +313,9 @@ export const CONDITION_OPERATOR_LABELS = {
   less_than_or_equal: "is less than or equal to",
 } as const;
 
-export const rewardConditionSchema = z.object({
-  entity: z.enum(
-    REWARD_CONDITION_ENTITIES.map(({ id }) => id) as [string, ...string[]],
-  ),
-  attribute: z.enum(
-    REWARD_CONDITION_ATTRIBUTES.map(({ id }) => id) as [string, ...string[]],
-  ),
+export const rewardConditionBaseSchema = z.object({
+  entity: z.enum(REWARD_CONDITION_ENTITIES.map(({ id }) => id)),
+  attribute: z.enum(REWARD_CONDITION_ATTRIBUTE_IDS),
   operator: z.enum(CONDITION_OPERATORS),
   value: z.union([
     z.string(),
@@ -284,7 +327,46 @@ export const rewardConditionSchema = z.object({
     .string()
     .nullish()
     .describe("Product name used for display purposes in the UI."),
+  metadataField: z.string().optional(),
 });
+
+export const rewardConditionSchema = rewardConditionBaseSchema.superRefine(
+  (data, ctx) => {
+    if (data.entity === "lead" && data.attribute !== "metadata") {
+      ctx.addIssue({
+        code: "custom",
+        message: "Lead conditions only support the Metadata attribute.",
+        path: ["attribute"],
+      });
+      return;
+    }
+
+    if (data.attribute !== "metadata") {
+      return;
+    }
+
+    const metadataEntities =
+      REWARD_METADATA_CONDITION_ENTITIES as readonly string[];
+    if (!metadataEntities.includes(data.entity)) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "Metadata is only valid for lead and sale reward condition entities.",
+        path: ["entity"],
+      });
+      return;
+    }
+
+    const key = data.metadataField?.trim() ?? "";
+    if (!key) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Metadata field name is required when attribute is Metadata.",
+        path: ["metadataField"],
+      });
+    }
+  },
+);
 
 export const PERCENTAGE_REWARD_AMOUNT_SCHEMA = z
   .number()
@@ -300,6 +382,18 @@ export const FLAT_REWARD_AMOUNT_SCHEMA = z
   .max(999_999_99, {
     message: "Reward amount cannot be greater than $999,999.99",
   });
+
+const rewardSpendLimitSchema = z.object({
+  spendLimitAmount: z
+    .number()
+    .int()
+    .min(1, { message: "Spend limit amount must be greater than $0" })
+    .max(999_999_99, {
+      message: "Spend limit amount cannot be greater than $999,999.99",
+    })
+    .nullish(),
+  spendLimitInterval: z.enum(RewardSpendLimitInterval).nullish(),
+});
 
 export const rewardConditionsSchema = z.object({
   id: z.string().optional(),
@@ -333,6 +427,7 @@ export const RewardSchema = z.object({
   modifiers: z.any().nullish(), // TODO: Fix this
   config: z.any().nullish(),
   updatedAt: z.coerce.date(),
+  ...rewardSpendLimitSchema.shape,
 });
 
 export const REWARD_DESCRIPTION_MAX_LENGTH = 100;
@@ -371,6 +466,7 @@ export const createOrUpdateRewardSchema = z.object({
     .max(REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH)
     .nullish(),
   groupId: z.string(),
+  ...rewardSpendLimitSchema.shape,
 });
 
 export const createRewardSchema = createOrUpdateRewardSchema.superRefine(
@@ -411,9 +507,15 @@ export const rewardContextSchema = z.object({
     .object({
       country: z.string().nullish(),
       source: z.enum(CUSTOMER_SOURCES).default("tracked").nullish(),
-      signupDate: z.date().nullish(),
-      subscriptionStartDate: z.date().nullish(),
+      signupDate: z.coerce.date().nullish(),
+      subscriptionStartDate: z.coerce.date().nullish(),
       subscriptionDurationMonths: z.number().nullish(),
+    })
+    .optional(),
+
+  lead: z
+    .object({
+      metadata: z.record(z.string(), z.unknown()).optional(),
     })
     .optional(),
 
@@ -422,6 +524,17 @@ export const rewardContextSchema = z.object({
       productId: z.string().nullish(),
       amount: z.number().nullish(),
       type: z.enum(["new", "recurring"]).nullish(),
+      metadata: z.record(z.string(), z.unknown()).optional(),
+      products: z
+        .array(
+          z.object({
+            id: z.string(),
+            amount: z.number(),
+            quantity: z.number(),
+          }),
+        )
+        .nullish()
+        .describe("Only used in Stripe integration."),
     })
     .optional(),
 

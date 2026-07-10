@@ -11,6 +11,9 @@ import {
   CONDITION_OPERATORS,
   DATE_CONDITION_OPERATORS,
   ENUM_CONDITION_OPERATORS,
+  METADATA_CONDITION_OPERATORS,
+  METADATA_NUMBER_CONDITION_OPERATORS,
+  METADATA_TEXT_CONDITION_OPERATORS,
   NUMBER_CONDITION_OPERATORS,
   REWARD_CONDITIONS,
   RewardConditionEntityAttribute,
@@ -19,7 +22,6 @@ import {
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import { X } from "@/ui/shared/icons";
-import { RewardStructure } from "@dub/prisma/client";
 import {
   ArrowTurnRight2,
   Button,
@@ -32,6 +34,7 @@ import {
   User,
   Users,
 } from "@dub/ui";
+import { UserPlus } from "@dub/ui/icons";
 import {
   capitalize,
   cn,
@@ -41,15 +44,17 @@ import {
   pluralize,
   truncate,
 } from "@dub/utils";
+import { RewardStructure } from "@prisma/client";
 import { Command } from "cmdk";
 import { Package } from "lucide-react";
 import { motion } from "motion/react";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import {
   InlineBadgePopover,
   InlineBadgePopoverAmountInput,
+  InlineBadgePopoverContext,
   InlineBadgePopoverInput,
   InlineBadgePopoverInputs,
   InlineBadgePopoverMenu,
@@ -223,7 +228,17 @@ function ConditionalGroup({
 const formatValue = (
   value: string | number | string[] | number[] | undefined,
   attribute?: Pick<RewardConditionEntityAttribute, "type" | "options">,
+  metadataOperator?: (typeof CONDITION_OPERATORS)[number],
 ) => {
+  if (
+    metadataOperator &&
+    METADATA_NUMBER_CONDITION_OPERATORS.includes(metadataOperator)
+  ) {
+    if (value === "" || value === undefined || isNaN(Number(value)))
+      return "Value";
+    return String(value);
+  }
+
   const type = attribute?.type ?? "string";
 
   if (
@@ -281,6 +296,60 @@ const formatValue = (
   return truncate(value!.toString(), 20);
 };
 
+function MetadataConditionOperatorMenu({
+  selectedValue,
+  onSelect,
+}: {
+  selectedValue?: (typeof CONDITION_OPERATORS)[number];
+  onSelect: (value: (typeof CONDITION_OPERATORS)[number]) => void;
+}) {
+  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  const renderItem = (op: (typeof CONDITION_OPERATORS)[number]) => (
+    <Command.Item
+      key={op}
+      value={`${CONDITION_OPERATOR_LABELS[op]} ${op}`}
+      onSelect={() => {
+        onSelect(op);
+        setIsOpen(false);
+      }}
+      className="flex cursor-pointer items-center justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100"
+    >
+      <span className="text-content-default pr-3 text-left text-sm font-medium">
+        {CONDITION_OPERATOR_LABELS[op]}
+      </span>
+      {selectedValue === op && (
+        <Check2 className="text-content-emphasis size-3.5 shrink-0" />
+      )}
+    </Command.Item>
+  );
+
+  return (
+    <div className="-mx-1 box-border w-[calc(100%+0.5rem)] min-w-0 max-w-none">
+      <Command loop className="w-full focus:outline-none">
+        <Command.List className="scrollbar-hide flex max-h-64 w-full max-w-52 flex-col gap-1 overflow-y-auto transition-all">
+          <div className="text-content-subtle mx-2 py-2 text-xs font-medium">
+            Text fields
+          </div>
+          <div className="mx-1 flex flex-col gap-1">
+            {METADATA_TEXT_CONDITION_OPERATORS.map(renderItem)}
+          </div>
+          <div
+            className="bg-border-subtle mt-1 h-px w-full min-w-0 shrink-0"
+            role="separator"
+          />
+          <div className="text-content-subtle mx-2 py-2 text-xs font-medium">
+            Number fields
+          </div>
+          <div className="mx-1 flex flex-col gap-1">
+            {METADATA_NUMBER_CONDITION_OPERATORS.map(renderItem)}
+          </div>
+        </Command.List>
+      </Command>
+    </div>
+  );
+}
+
 function ConditionLogic({
   modifierIndex,
   conditionIndex,
@@ -312,12 +381,29 @@ function ConditionLogic({
 
   const attributeType = attribute?.type ?? "string";
 
+  const isMetadataCondition =
+    (condition.entity === "lead" || condition.entity === "sale") &&
+    condition.attribute === "metadata";
+
+  const isMetadataNumeric =
+    isMetadataCondition &&
+    !!condition.operator &&
+    METADATA_NUMBER_CONDITION_OPERATORS.includes(condition.operator);
+
   const icon = entity
-    ? { customer: User, sale: InvoiceDollar, partner: Users }[entity.id] ?? User
+    ? {
+        customer: User,
+        sale: InvoiceDollar,
+        partner: Users,
+        lead: UserPlus,
+      }[entity.id] ?? User
     : ArrowTurnRight2;
 
   const isArrayValue =
-    condition.operator && ["in", "not_in"].includes(condition.operator);
+    condition.operator === "in" || condition.operator === "not_in";
+
+  const isContainsOperator =
+    condition.operator === "contains" || condition.operator === "not_contains";
 
   const [displayProductLabel, setDisplayProductLabel] = useState(false);
 
@@ -327,16 +413,42 @@ function ConditionLogic({
   const isSaleTypeCondition =
     condition.entity === "sale" && condition.attribute === "type";
 
-  const availableConditionOperators: (typeof CONDITION_OPERATORS)[number][] = [
-    "number",
-    "currency",
-  ].includes(attributeType)
-    ? NUMBER_CONDITION_OPERATORS
-    : attributeType === "enum"
-      ? ENUM_CONDITION_OPERATORS
-      : attributeType === "date"
-        ? DATE_CONDITION_OPERATORS
-        : STRING_CONDITION_OPERATORS;
+  const availableConditionOperators: (typeof CONDITION_OPERATORS)[number][] =
+    attributeType === "metadata"
+      ? METADATA_CONDITION_OPERATORS
+      : ["number", "currency"].includes(attributeType)
+        ? NUMBER_CONDITION_OPERATORS
+        : attributeType === "enum"
+          ? ENUM_CONDITION_OPERATORS
+          : attributeType === "date"
+            ? DATE_CONDITION_OPERATORS
+            : STRING_CONDITION_OPERATORS;
+
+  useEffect(() => {
+    if (
+      isMetadataCondition &&
+      condition.operator &&
+      !METADATA_CONDITION_OPERATORS.includes(condition.operator)
+    ) {
+      setValue(
+        conditionKey,
+        {
+          ...condition,
+          operator: undefined,
+          value: undefined,
+        },
+        {
+          shouldDirty: true,
+        },
+      );
+    }
+  }, [
+    isMetadataCondition,
+    condition.operator,
+    condition,
+    conditionKey,
+    setValue,
+  ]);
 
   useEffect(() => {
     if (
@@ -385,6 +497,7 @@ function ConditionLogic({
                       attribute: undefined,
                       operator: undefined,
                       value: undefined,
+                      metadataField: undefined,
                     },
                     {
                       shouldDirty: true,
@@ -417,6 +530,9 @@ function ConditionLogic({
                         {
                           entity: condition.entity,
                           attribute: value,
+                          ...(value !== "metadata"
+                            ? { metadataField: undefined }
+                            : {}),
                         },
                         {
                           shouldDirty: true,
@@ -438,6 +554,23 @@ function ConditionLogic({
                       }))}
                   />
                 </InlineBadgePopover>{" "}
+                {isMetadataCondition && (
+                  <>
+                    <InlineBadgePopover
+                      text={
+                        condition.metadataField?.trim()
+                          ? truncate(condition.metadataField.trim(), 24)
+                          : "Field name"
+                      }
+                      invalid={!condition.metadataField?.trim()}
+                    >
+                      <InlineBadgePopoverInput
+                        placeholder="Field name"
+                        {...register(`${conditionKey}.metadataField`)}
+                      />
+                    </InlineBadgePopover>{" "}
+                  </>
+                )}
                 {isCustomerSourceCondition || isSaleTypeCondition ? (
                   <span className="text-content-emphasis font-medium">is </span>
                 ) : (
@@ -449,47 +582,77 @@ function ConditionLogic({
                     }
                     invalid={!condition.operator}
                   >
-                    <InlineBadgePopoverMenu
-                      selectedValue={condition.operator}
-                      onSelect={(value) =>
-                        setValue(
-                          conditionKey,
-                          {
-                            ...condition,
-                            operator:
-                              value as (typeof CONDITION_OPERATORS)[number],
-                            // Update value to array / string / number if needed
-                            ...(["in", "not_in"].includes(value)
-                              ? !Array.isArray(condition.value)
+                    {isMetadataCondition ? (
+                      <MetadataConditionOperatorMenu
+                        selectedValue={condition.operator}
+                        onSelect={(value) => {
+                          const metadataNumeric =
+                            METADATA_NUMBER_CONDITION_OPERATORS.includes(value);
+                          setValue(
+                            conditionKey,
+                            {
+                              ...condition,
+                              operator: value,
+                              ...(["in", "not_in"].includes(value)
                                 ? { value: [] }
-                                : null
-                              : ["number", "currency"].includes(attributeType)
-                                ? typeof condition.value !== "number"
+                                : ["contains", "not_contains"].includes(value)
                                   ? { value: "" }
-                                  : null
-                                : attributeType === "date"
+                                  : metadataNumeric
+                                    ? typeof condition.value !== "number"
+                                      ? { value: "" }
+                                      : null
+                                    : typeof condition.value !== "string" &&
+                                        !Array.isArray(condition.value)
+                                      ? { value: "" }
+                                      : null),
+                            },
+                            {
+                              shouldDirty: true,
+                            },
+                          );
+                        }}
+                      />
+                    ) : (
+                      <InlineBadgePopoverMenu
+                        selectedValue={condition.operator}
+                        onSelect={(value) =>
+                          setValue(
+                            conditionKey,
+                            {
+                              ...condition,
+                              operator:
+                                value as (typeof CONDITION_OPERATORS)[number],
+                              // Reset value shape when operator changes
+                              ...(["in", "not_in"].includes(value)
+                                ? { value: [] }
+                                : ["number", "currency"].includes(attributeType)
                                   ? typeof condition.value !== "number"
-                                    ? { value: undefined }
-                                    : null
-                                  : typeof condition.value !== "string"
                                     ? { value: "" }
-                                    : null),
-                          },
-                          {
-                            shouldDirty: true,
-                          },
-                        )
-                      }
-                      items={availableConditionOperators.map((operator) => ({
-                        text: CONDITION_OPERATOR_LABELS[operator],
-                        value: operator,
-                      }))}
-                    />
+                                    : null
+                                  : attributeType === "date"
+                                    ? typeof condition.value !== "number"
+                                      ? { value: undefined }
+                                      : null
+                                    : typeof condition.value !== "string"
+                                      ? { value: "" }
+                                      : null),
+                            },
+                            {
+                              shouldDirty: true,
+                            },
+                          )
+                        }
+                        items={availableConditionOperators.map((operator) => ({
+                          text: CONDITION_OPERATOR_LABELS[operator],
+                          value: operator,
+                        }))}
+                      />
+                    )}
                   </InlineBadgePopover>
                 )}{" "}
                 {condition.operator && (
                   <>
-                    {attributeType === "date" ? (
+                    {attributeType === "date" && !isMetadataCondition ? (
                       <DatePicker
                         value={
                           condition.value
@@ -521,28 +684,36 @@ function ConditionLogic({
                       />
                     ) : (
                       <InlineBadgePopover
-                        text={formatValue(condition.value, attribute)}
+                        text={formatValue(
+                          condition.value,
+                          attribute,
+                          isMetadataCondition ? condition.operator : undefined,
+                        )}
                         invalid={
-                          Array.isArray(condition.value)
-                            ? condition.value.filter(Boolean).length === 0
-                            : ["number", "currency"].includes(attributeType)
-                              ? condition.value === "" ||
-                                isNaN(Number(condition.value))
-                              : !condition.value
+                          isContainsOperator
+                            ? String(condition.value ?? "").trim() === ""
+                            : Array.isArray(condition.value)
+                              ? condition.value.filter(Boolean).length === 0
+                              : isMetadataNumeric
+                                ? condition.value === "" ||
+                                  isNaN(Number(condition.value))
+                                : ["number", "currency"].includes(attributeType)
+                                  ? condition.value === "" ||
+                                    isNaN(Number(condition.value))
+                                  : !condition.value
                         }
                         buttonClassName={cn(
                           condition.attribute === "productId" &&
                             "rounded-r-none",
                         )}
                       >
-                        {/* Country selection */}
-                        {condition.attribute === "country" ? (
+                        {/* Country selection (single value only) */}
+                        {condition.attribute === "country" && !isArrayValue ? (
                           // Country selector
                           <InlineBadgePopoverMenu
                             search
                             selectedValue={
-                              (condition.value as string[] | undefined) ??
-                              (isArrayValue ? [] : undefined)
+                              condition.value as string | undefined
                             }
                             items={Object.entries(COUNTRIES).map(
                               ([key, name]) => ({
@@ -559,30 +730,16 @@ function ConditionLogic({
                             onSelect={(value) => {
                               setValue(conditionKey, {
                                 ...condition,
-                                value: isArrayValue
-                                  ? Array.isArray(condition.value)
-                                    ? (condition.value as string[]).includes(
-                                        value,
-                                      )
-                                      ? (condition.value.filter(
-                                          (v) => v !== value,
-                                        ) as string[])
-                                      : ([
-                                          ...condition.value,
-                                          value,
-                                        ] as string[])
-                                    : [value]
-                                  : value,
+                                value,
                               });
                             }}
                           />
-                        ) : attribute?.options ? (
+                        ) : attribute?.options && !isArrayValue ? (
                           // Select option selector
                           <InlineBadgePopoverMenu
                             search={attribute.options.length > 4}
                             selectedValue={
-                              (condition.value as string[] | undefined) ??
-                              (isArrayValue ? [] : undefined)
+                              condition.value as string | undefined
                             }
                             items={attribute.options.map(({ id, label }) => ({
                               text: label,
@@ -591,32 +748,24 @@ function ConditionLogic({
                             onSelect={(value) => {
                               setValue(conditionKey, {
                                 ...condition,
-                                value: isArrayValue
-                                  ? Array.isArray(condition.value)
-                                    ? (condition.value as string[]).includes(
-                                        value,
-                                      )
-                                      ? (condition.value.filter(
-                                          (v) => v !== value,
-                                        ) as string[])
-                                      : ([
-                                          ...condition.value,
-                                          value,
-                                        ] as string[])
-                                    : [value]
-                                  : value,
+                                value,
                               });
                             }}
                           />
+                        ) : isContainsOperator ? (
+                          <InlineBadgePopoverInput
+                            placeholder="Substring to match"
+                            {...register(`${conditionKey}.value`, {
+                              required: true,
+                            })}
+                          />
                         ) : isArrayValue ? (
-                          // String array input
+                          // Multi-value list input for is one of / is not one of
                           <InlineBadgePopoverInputs
                             values={
-                              condition.value
-                                ? Array.isArray(condition.value)
-                                  ? condition.value.map(String)
-                                  : [condition.value.toString()]
-                                : [""]
+                              Array.isArray(condition.value)
+                                ? (condition.value as string[])
+                                : []
                             }
                             onChange={(values) => {
                               setValue(conditionKey, {
@@ -625,11 +774,16 @@ function ConditionLogic({
                               });
                             }}
                           />
-                        ) : ["number", "currency"].includes(attributeType) ? (
+                        ) : ["number", "currency"].includes(attributeType) ||
+                          isMetadataNumeric ? (
                           // Number/currency input
                           <AmountInput
                             fieldKey={`${conditionKey}.value`}
-                            type={attributeType as "number" | "currency"}
+                            type={
+                              attributeType === "currency"
+                                ? "currency"
+                                : "number"
+                            }
                           />
                         ) : (
                           // String input

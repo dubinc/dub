@@ -1,5 +1,4 @@
 import { PartnerProps } from "@/lib/types";
-import { Commission, PartnerGroup, Program } from "@dub/prisma/client";
 import {
   CircleCheck,
   CircleHalfDottedClock,
@@ -13,6 +12,7 @@ import {
   formatDateTimeSmart,
   PARTNERS_DOMAIN,
 } from "@dub/utils";
+import { Commission, PartnerGroup, Program } from "@prisma/client";
 import { addDays } from "date-fns";
 
 interface CommissionTooltipDataProps {
@@ -128,7 +128,6 @@ export const CommissionStatusBadges = {
       return title;
     },
   },
-  // extra status for hold (not in OpenAPI spec)
   hold: {
     label: "On Hold",
     variant: "error",
@@ -137,7 +136,7 @@ export const CommissionStatusBadges = {
     tooltip: (data: CommissionTooltipDataProps) => {
       if (data.variant === "partner") {
         const title =
-          "This commission is on hold due to pending fraud events and cannot be paid out until they are resolved.";
+          "This commission is on hold due to pending risk events and cannot be paid out until they are resolved.";
 
         if (data.program?.name && data.program?.slug) {
           return `${title} If you believe this is incorrect, [reach out to the ${data.program.name} team](${PARTNERS_DOMAIN}/messages/${data.program.slug}).`;
@@ -146,11 +145,7 @@ export const CommissionStatusBadges = {
         return title;
       }
 
-      const linkToFraudEvents = data.partner?.id
-        ? `/${data.workspace?.slug}/program/fraud?partnerId=${data.partner.id}`
-        : `/${data.workspace?.slug}/program/fraud`;
-
-      return `This partner's commissions are on hold due to [unresolved fraud events](${linkToFraudEvents}). They cannot be paid out until resolved.`;
+      return `This commission is on hold due to [unresolved risk events](${`/${data.workspace?.slug}/program/risks${data.partner?.id ? `?partnerId=${data.partner.id}` : ""}`}). They cannot be paid out until resolved.`;
     },
   },
 };

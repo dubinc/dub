@@ -1,5 +1,5 @@
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "../zod/schemas/misc";
 import { PartnerSchema } from "../zod/schemas/partners";
@@ -72,4 +72,11 @@ export const networkReferralsTimeseriesSchema = z.object({
   start: z.string(),
   partners: z.number().int().nonnegative(),
   earnings: z.number().int(),
+});
+
+export const attributeReferringPartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+  referredByPartnerId: z.string(),
+  createCommissionsForPastEvents: z.boolean().default(false),
 });

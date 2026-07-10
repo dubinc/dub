@@ -1,6 +1,6 @@
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { getWebhookEvents } from "@/lib/tinybird/get-webhook-events";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/webhooks/[webhookId]/events - get logs for a webhook
@@ -21,6 +21,7 @@ export const GET = withWorkspace(
 
     const parsedEvents = events.data.map((event) => ({
       ...event,
+      timestamp: new Date(event.timestamp + "Z"), // timestamp is always in UTC
       request_body: JSON.parse(event.request_body),
     }));
 
@@ -30,9 +31,6 @@ export const GET = withWorkspace(
     requiredPermissions: ["webhooks.read"],
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],

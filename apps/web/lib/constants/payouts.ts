@@ -1,14 +1,33 @@
-import { PayoutStatus } from "@dub/prisma/client";
+import { ACME_WORKSPACE_ID } from "@dub/utils";
+import { PayoutStatus } from "@prisma/client";
 import Stripe from "stripe";
+import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { PaymentMethodOption } from "../types";
 
 export const PAYOUT_HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
 export const ALLOWED_MIN_PAYOUT_AMOUNTS = [0, 1000, 2000, 5000, 10000];
 
+const EXTENDED_MIN_PAYOUT_AMOUNT_CENTS = 20000; // $200
+const EXTENDED_MIN_PAYOUT_WORKSPACE_IDS = new Set<string>([
+  "clsvopiw0000ejy0grp821me0",
+  ACME_WORKSPACE_ID,
+]);
+
+export function getAllowedMinPayoutAmounts(workspaceId: string): number[] {
+  if (
+    EXTENDED_MIN_PAYOUT_WORKSPACE_IDS.has(normalizeWorkspaceId(workspaceId))
+  ) {
+    return [...ALLOWED_MIN_PAYOUT_AMOUNTS, EXTENDED_MIN_PAYOUT_AMOUNT_CENTS];
+  }
+
+  return ALLOWED_MIN_PAYOUT_AMOUNTS;
+}
+
 export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;
 export const ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE = 500;
 export const CUTOFF_PERIOD_MAX_PAYOUTS = 1000;
 
+export const CARD_PAYOUT_HARD_COST_RATE = 0.03; // 3% Stripe card processing cost (non-waivable)
 export const STABLECOIN_PAYOUT_FEE_RATE = 0.005; // 0.5%
 export const STABLECOIN_PAYOUT_FIXED_FEE_CENTS = 50; // $0.50
 export const FAST_ACH_FEE_CENTS = 2500; // $25

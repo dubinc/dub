@@ -1,16 +1,16 @@
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
+import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import { ResendBulkEmailOptions } from "@dub/email/resend/types";
 import PendingApplicationsSummary from "@dub/email/templates/pending-applications-summary";
-import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   chunk,
   nFormatter,
   pluralize,
 } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../utils";
 
@@ -33,6 +33,7 @@ export const GET = withCron(async ({ rawBody }) => {
   // Get batch of programs with pending applications
   const programs = await prisma.program.findMany({
     where: {
+      deactivatedAt: null,
       partners: {
         some: {
           status: "pending",

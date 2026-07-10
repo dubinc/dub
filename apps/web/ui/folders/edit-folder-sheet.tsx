@@ -12,7 +12,6 @@ import { useFolderUsers } from "@/lib/swr/use-folder-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { FolderUserRole, WorkspaceRole } from "@dub/prisma/client";
 import {
   BlurImage,
   Button,
@@ -23,6 +22,7 @@ import {
 } from "@dub/ui";
 import { UserCheck } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { FolderUserRole, WorkspaceRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";

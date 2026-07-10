@@ -1,7 +1,7 @@
 import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
-import { CommissionStatus, CommissionType } from "@dub/prisma/client";
+import { CommissionStatus, CommissionType } from "@prisma/client";
 import * as z from "zod/v4";
-import { CustomerSchema } from "./customers";
+import { createCustomerBodySchema, CustomerSchema } from "./customers";
 import { LinkSchema } from "./links";
 import {
   getCursorPaginationQuerySchema,
@@ -9,7 +9,7 @@ import {
 } from "./misc";
 import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
 import { PayoutSchema } from "./payouts";
-import { RewardSchema } from "./rewards";
+import { rewardContextSchema, RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { centsSchema, parseDateSchema } from "./utils";
 
@@ -192,30 +192,6 @@ export const getCommissionsCountQuerySchema = getCommissionsQuerySchema
     // Accept raw string to support comma-separated multi-value (e.g. "sale,lead")
     type: z.string().optional(),
   });
-
-export const createCommissionSchema = z.object({
-  workspaceId: z.string(),
-  partnerId: z.string(),
-  commissionType: z.enum(CommissionType),
-  useExistingEvents: z.boolean(),
-
-  // Custom
-  date: parseDateSchema.nullish(),
-  amount: z.number().min(0).nullish(),
-  description: z.string().max(190).nullish(),
-
-  // Lead
-  customerId: z.string().nullish(),
-  linkId: z.string().nullish(),
-  leadEventDate: parseDateSchema.nullish(),
-  leadEventName: z.string().nullish(),
-
-  // Sale
-  saleEventDate: parseDateSchema.nullish(),
-  saleAmount: centsSchema.pipe(z.number().min(0)).nullish(),
-  invoiceId: z.string().nullish(),
-  productId: z.string().nullish(),
-});
 
 export const commissionPatchStatusSchema = z.enum([
   "pending",
@@ -416,7 +392,12 @@ export const commissionsExportQuerySchema = getCommissionsQuerySchema
     columns: z
       .string()
       .default(DEFAULT_COMMISSION_EXPORT_COLUMNS.join(","))
-      .transform((v) => v.split(","))
+      .transform((v) =>
+        v
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      )
       .refine(
         (columns): columns is CommissionExportColumnId[] => {
           const validColumnIds = COMMISSION_EXPORT_COLUMNS.map((col) => col.id);
@@ -431,3 +412,173 @@ export const commissionsExportQuerySchema = getCommissionsQuerySchema
         },
       ),
   });
+
+export const createPartnerCommissionSchema = z.object({
+  event: z.enum(CommissionType),
+  partnerId: z.string(),
+  programId: z.string(),
+  linkId: z.string().optional(),
+  customerId: z.string().optional(),
+  eventId: z.string().optional(),
+  invoiceId: z.string().nullish(),
+  amount: z.number().default(0).optional(),
+  quantity: z.number().default(1),
+  currency: z.string().optional(),
+  description: z.string().nullish(),
+  createdAt: z.coerce.date().optional(),
+  status: commissionPatchStatusSchema.optional(), // used for create-manual-commission (import commission as refunded)
+  userId: z.string().optional(),
+  context: rewardContextSchema.optional(),
+  skipWorkflow: z.boolean().default(false).optional(),
+  isFirstConversion: z.boolean().optional(),
+  bountySubmissionId: z
+    .string()
+    .optional()
+    .describe(
+      "The ID of the bounty submission that the commission should be created for.",
+    ),
+  clickEvent: z
+    .object({
+      url: z.string().nullable(),
+      referer: z.string().nullable(),
+    })
+    .optional(),
+  triggerAggregateDueCommissions: z
+    .boolean()
+    .default(false)
+    .optional()
+    .describe(
+      "Whether to trigger the triggerAggregateDueCommissionsCronJob or not.",
+    ),
+});
+
+export const createManualCommissionBodySchema = z
+  .discriminatedUnion("type", [
+    // Custom commission
+    z.object({
+      type: z.literal("custom"),
+      partnerId: z
+        .string()
+        .describe("The ID of the partner to create the commission for."),
+      amount: centsSchema
+        .pipe(z.number().min(1))
+        .describe("The commission amount in cents."),
+      date: parseDateSchema
+        .nullish()
+        .describe("If not provided, the current date will be used."),
+      description: z
+        .string()
+        .max(190)
+        .nullish()
+        .describe("The description of the commission."),
+    }),
+
+    // Lead commission
+    z.object({
+      type: z.literal("lead"),
+      partnerId: z
+        .string()
+        .describe("The ID of the partner to create the commission for."),
+      customerId: z
+        .string()
+        .nullish()
+        .describe(
+          "The customer ID to associate the commission with. Useful if the customer was already created in a prior operation and you want to associate the commission with it.",
+        ),
+      customer: createCustomerBodySchema
+        .nullish()
+        .describe(
+          "The full customer object to associate the commission with. Useful for creating the customer on demand.",
+        ),
+      linkId: z
+        .string()
+        .nullish()
+        .describe(
+          "The partner link ID to associate the commission with. If not provided, default to the link with the most revenue.",
+        ),
+      leadEventDate: parseDateSchema
+        .nullish()
+        .describe(
+          "The date and time of the lead event. If not provided, defaults to the current date and time.",
+        ),
+      leadEventName: z
+        .string()
+        .nullish()
+        .default("Sign up")
+        .describe(
+          "The name of the lead event. If not provided, defaults to 'Sign up'.",
+        ),
+    }),
+
+    // Sale commission
+    z.object({
+      type: z.literal("sale"),
+      partnerId: z
+        .string()
+        .describe("The ID of the partner to create the commission for."),
+      customerId: z
+        .string()
+        .nullish()
+        .describe(
+          "The customer ID to associate the commission with. Useful if the customer was already created in a prior operation and you want to associate the commission with it.",
+        ),
+      customer: createCustomerBodySchema
+        .nullish()
+        .describe(
+          "The full customer object to associate the commission with. Useful for creating the customer on demand.",
+        ),
+      linkId: z
+        .string()
+        .nullish()
+        .describe(
+          "The partner link ID to associate the commission with. If not provided, default to the link with the most revenue.",
+        ),
+      importStripeInvoices: z
+        .boolean()
+        .nullish()
+        .default(false)
+        .describe(
+          "When `true`, import all unimported paid Stripe invoices for the customer and create a commission for each. When `false`, create a single manual sale event using `saleAmount`.",
+        ),
+      saleAmount: centsSchema
+        .pipe(z.number().min(0))
+        .nullish()
+        .describe(
+          "Required when `importStripeInvoices` is `false`. The sale amount in cents for the manual sale event. Ignored when importing from Stripe.",
+        ),
+      saleEventDate: parseDateSchema
+        .nullish()
+        .describe(
+          "Only used when `importStripeInvoices` is `false`. The date of the manual sale event. Defaults to the current date and time if not provided.",
+        ),
+      invoiceId: z
+        .string()
+        .nullish()
+        .describe(
+          "Only used when `importStripeInvoices` is `false`. An optional invoice ID to attach to the generated sale event and commission entry for deduplication.",
+        ),
+      productId: z
+        .string()
+        .nullish()
+        .describe(
+          "Only used when `importStripeInvoices` is `false`. An optional product ID stored on the sale event metadata – will also impact commission earnings calculation (if a `Sale` `Product ID` modifier is set).",
+        ),
+    }),
+  ])
+  .superRefine((data, ctx) => {
+    if (data.type !== "sale") return;
+
+    if (!data.importStripeInvoices && data.saleAmount == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "`saleAmount` is required when `importStripeInvoices` is false.",
+        path: ["saleAmount"],
+      });
+    }
+  });
+
+export const createCommissionResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+});

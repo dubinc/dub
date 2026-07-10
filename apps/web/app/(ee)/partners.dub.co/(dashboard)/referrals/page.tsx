@@ -28,13 +28,14 @@ import {
   usePagination,
   useTable,
 } from "@dub/ui";
-import { Gift, UserArrowRight } from "@dub/ui/icons";
+import { ArrowTurnRight2, Gift, UserArrowRight } from "@dub/ui/icons";
 import {
   COUNTRIES,
   currencyFormatter,
   DUB_LOGO,
   formatDate,
   getPrettyUrl,
+  PARTNERS_DOMAIN,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Check, HelpCircle, Lock } from "lucide-react";
@@ -96,14 +97,14 @@ export default function NetworkReferralsPage() {
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(268px,22rem)] lg:items-stretch">
               <div className="order-2 flex min-h-0 flex-col gap-4 lg:order-1">
-                <ReferralsStats />
-                <ReferralLink />
+                <NetworkReferralsStats />
+                <NetworkReferralLink />
               </div>
               <div className="order-1 lg:order-2">
-                <ReferralsPromoCard />
+                <NetworkReferralsPromoCard />
               </div>
             </div>
-            <ReferralRewards />
+            <NetworkReferralRewards />
           </div>
         </div>
         <ReferredPartners />
@@ -112,7 +113,7 @@ export default function NetworkReferralsPage() {
   );
 }
 
-function ReferralsEmptyState({
+function NetworkReferralsEmptyState({
   title,
   description,
   button,
@@ -163,7 +164,7 @@ function ReferralsEmptyState({
   );
 }
 
-function ReferralsStatItem({
+function NetworkReferralsStatItem({
   label,
   tooltipContent,
   children,
@@ -208,7 +209,7 @@ function ReferralsStatItem({
   );
 }
 
-function ReferralsStats() {
+function NetworkReferralsStats() {
   const {
     loading: partnerLoading,
     profileReady,
@@ -235,25 +236,25 @@ function ReferralsStats() {
 
   return (
     <div className="grid grid-cols-2 divide-x divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
-      <ReferralsStatItem
+      <NetworkReferralsStatItem
         label="Referred partners"
-        tooltipContent="Partners who joined Dub using your referral link."
+        tooltipContent="Partners who joined Dub using your network referral link."
         isLoading={partnerLoading || statsLoading}
         chartData={partnersChartData}
       >
         {stats?.count ?? 0}
-      </ReferralsStatItem>
+      </NetworkReferralsStatItem>
 
-      <ReferralsStatItem
+      <NetworkReferralsStatItem
         label="Your earnings"
-        tooltipContent="Total commission earned from your referrals."
+        tooltipContent="Total commission earned from your network referrals."
         isLoading={partnerLoading || statsLoading}
         chartData={earningsChartData}
       >
         {currencyFormatter(stats?.totalEarnings ?? 0, {
           trailingZeroDisplay: "stripIfInteger",
         })}
-      </ReferralsStatItem>
+      </NetworkReferralsStatItem>
     </div>
   );
 }
@@ -262,7 +263,7 @@ function ReferralLinkLocked() {
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-4">
       <p className="text-content-default mb-2 text-sm font-semibold">
-        Referral link
+        Network referral link
       </p>
       <div className="rounded-xl border border-neutral-200 p-2">
         <div className="flex items-center justify-between gap-3">
@@ -286,7 +287,8 @@ function ReferralLinkLocked() {
   );
 }
 
-function ReferralLink() {
+function NetworkReferralLink() {
+  const { partner } = usePartnerProfile();
   const { profileReady, isEligible, referralLink } = useNetworkReferralAccess();
   const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
@@ -313,43 +315,57 @@ function ReferralLink() {
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-4">
       <p className="text-content-default mb-2 text-sm font-semibold">
-        Referral link
+        Network referral link
       </p>
-      <div className="rounded-xl border border-neutral-200 p-2">
-        <div className="flex min-w-0 items-center justify-between gap-2">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <div className="relative flex size-9 shrink-0 items-center justify-center sm:size-10">
-              <div className="absolute inset-0 rounded-full border border-neutral-200">
-                <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
-              </div>
-              <img
-                src={DUB_LOGO}
-                alt="Dub Partners"
-                className="relative z-10 size-6 shrink-0 rounded-full"
-              />
+      <div className="relative z-10 flex min-w-0 items-center justify-between gap-2 rounded-xl border border-neutral-200 bg-white p-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="relative flex size-9 shrink-0 items-center justify-center sm:size-10">
+            <div className="absolute inset-0 rounded-full border border-neutral-200">
+              <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
             </div>
-            <CopyText
-              className="text-content-default min-w-0 truncate text-sm font-semibold"
-              value={referralLink}
-            >
-              {getPrettyUrl(referralLink)}
-            </CopyText>
+            <img
+              src={DUB_LOGO}
+              alt="Dub Partners"
+              className="relative z-10 size-6 shrink-0 rounded-full"
+            />
           </div>
-          <Button
-            text={isMobile ? undefined : "Copy link"}
-            variant="primary"
-            icon={
-              copied ? (
-                <Check className="size-4" />
-              ) : (
-                <Copy className="size-4" />
-              )
-            }
-            className="h-9 w-fit shrink-0"
-            onClick={copyReferralLink}
-            aria-label="Copy referral link"
-          />
+          <CopyText
+            className="text-content-default min-w-0 truncate text-sm font-semibold"
+            value={referralLink}
+          >
+            {getPrettyUrl(referralLink)}
+          </CopyText>
         </div>
+        <Button
+          text={isMobile ? undefined : "Copy link"}
+          variant="primary"
+          icon={
+            copied ? <Check className="size-4" /> : <Copy className="size-4" />
+          }
+          className="h-9 w-fit shrink-0"
+          onClick={copyReferralLink}
+          aria-label="Copy referral link"
+        />
+      </div>
+      <div className="-mt-3.5 flex flex-wrap items-start gap-x-1 gap-y-0.5 rounded-b-md rounded-t-none border border-t-0 border-neutral-200 bg-neutral-100 p-1.5 pl-2.5 pt-5 text-xs text-neutral-600">
+        <ArrowTurnRight2 className="mt-0.5 size-3 shrink-0" />
+        or link to any page on{" "}
+        <a
+          href={referralLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="cursor-alias break-all font-mono text-neutral-700 decoration-dotted underline-offset-2 hover:underline"
+        >
+          {getPrettyUrl(PARTNERS_DOMAIN)}
+        </a>{" "}
+        by adding{" "}
+        <CopyText
+          value={`?via=${partner?.username ?? ""}`}
+          className="break-all font-mono text-xs text-neutral-700"
+        >
+          ?via={partner?.username ?? ""}
+        </CopyText>{" "}
+        to the URL
       </div>
     </div>
   );
@@ -373,11 +389,11 @@ function ReferralRewardListItem(props: {
   );
 }
 
-function ReferralRewards() {
+function NetworkReferralRewards() {
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-4">
       <p className="text-content-default mb-2 text-sm font-semibold">
-        Referral rewards
+        Network referral rewards
       </p>
       <ul className="flex flex-col gap-2">
         <ReferralRewardListItem icon={UserArrowRight}>
@@ -420,7 +436,7 @@ function ReferredPartners() {
   const copyReferralLink = () => {
     if (!referralLink) return;
     toast.promise(copyToClipboard(referralLink), {
-      success: "Copied referral link to clipboard!",
+      success: "Copied network referral link to clipboard!",
     });
   };
 
@@ -526,7 +542,7 @@ function ReferredPartners() {
   if (profileReady && !isEligible) {
     return (
       <div className="flex flex-col gap-4">
-        <ReferralsEmptyState
+        <NetworkReferralsEmptyState
           title="No referred partners"
           description="Get accepted to the Dub Network to start earning from referred partners."
           button={
@@ -553,9 +569,9 @@ function ReferredPartners() {
 
   return (
     <div className="flex flex-col gap-4">
-      <ReferralsEmptyState
+      <NetworkReferralsEmptyState
         title="No referred partners"
-        description="Share your referral link to start earning from partners joining the Dub Network."
+        description="Share your network referral link to start earning from partners joining the Dub Network."
         button={
           <Button
             text="Copy link"
@@ -575,7 +591,7 @@ function ReferredPartners() {
   );
 }
 
-function ReferralsPromoCard() {
+function NetworkReferralsPromoCard() {
   const cards = [
     {
       containerClassName:
@@ -628,7 +644,7 @@ function ReferralsPromoCard() {
           Dub Network Referral Bonus
         </p>
         <p className="text-sm font-normal text-neutral-200">
-          Bring on other partners to the Dub network, and earn from their
+          Bring on other partners to the Dub Network, and earn from their
           activity for up to {NETWORK_REFERRAL_REWARD.maxDuration} months.{" "}
           <Link
             href="https://dub.co/help/article/network-referral-bonus"

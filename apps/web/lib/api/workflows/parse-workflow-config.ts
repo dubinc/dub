@@ -2,7 +2,7 @@ import {
   workflowActionSchema,
   workflowConditionSchema,
 } from "@/lib/zod/schemas/workflows";
-import { Workflow } from "@dub/prisma/client";
+import { Workflow } from "@prisma/client";
 import * as z from "zod/v4";
 
 export function parseWorkflowConfig(

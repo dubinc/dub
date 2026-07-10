@@ -25,6 +25,7 @@ type FormData = {
   tenantId: string | null;
   customerDataSharingEnabledAt: Date | null;
   groupMoveDisabledAt: Date | null;
+  riskMonitoringDisabledAt: Date | null;
 };
 
 function PartnerAdvancedSettingsModal({
@@ -36,11 +37,16 @@ function PartnerAdvancedSettingsModal({
   setShowPartnerAdvancedSettingsModal: Dispatch<SetStateAction<boolean>>;
   partner: Pick<
     EnrolledPartnerExtendedProps,
-    "id" | "tenantId" | "customerDataSharingEnabledAt" | "groupMoveDisabledAt"
+    | "id"
+    | "tenantId"
+    | "customerDataSharingEnabledAt"
+    | "groupMoveDisabledAt"
+    | "riskMonitoringDisabledAt"
   >;
 }) {
   const { id: workspaceId, plan } = useWorkspace();
-  const { canUseGroupMoveRule } = getPlanCapabilities(plan);
+  const { canUseGroupMoveRule, canManageFraudEvents } =
+    getPlanCapabilities(plan);
 
   const [hasCustomerDataSharing, setHasCustomerDataSharing] = useState(
     !!partner.customerDataSharingEnabledAt,
@@ -48,6 +54,10 @@ function PartnerAdvancedSettingsModal({
 
   const [hasGroupMoveDisabled, setHasGroupMoveDisabled] = useState(
     !!partner.groupMoveDisabledAt,
+  );
+
+  const [hasRiskDetectionDisabled, setHasRiskDetectionDisabled] = useState(
+    !!partner.riskMonitoringDisabledAt,
   );
 
   const { executeAsync } = useAction(updatePartnerEnrollmentAction, {
@@ -69,6 +79,7 @@ function PartnerAdvancedSettingsModal({
       tenantId: partner.tenantId,
       customerDataSharingEnabledAt: partner.customerDataSharingEnabledAt,
       groupMoveDisabledAt: partner.groupMoveDisabledAt ?? null,
+      riskMonitoringDisabledAt: partner.riskMonitoringDisabledAt ?? null,
     },
   });
 
@@ -83,6 +94,14 @@ function PartnerAdvancedSettingsModal({
   const handleGroupMoveDisabledToggle = (checked: boolean) => {
     setHasGroupMoveDisabled(checked);
     setValue("groupMoveDisabledAt", checked ? new Date() : null, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const handleRiskDetectionDisabledToggle = (checked: boolean) => {
+    setHasRiskDetectionDisabled(checked);
+    setValue("riskMonitoringDisabledAt", checked ? new Date() : null, {
       shouldDirty: true,
       shouldValidate: true,
     });
@@ -107,6 +126,7 @@ function PartnerAdvancedSettingsModal({
             tenantId: data.tenantId || null,
             customerDataSharingEnabledAt: data.customerDataSharingEnabledAt,
             groupMoveDisabledAt: data.groupMoveDisabledAt,
+            riskMonitoringDisabledAt: data.riskMonitoringDisabledAt,
           });
 
           if (result?.serverError || result?.validationErrors) {
@@ -189,6 +209,30 @@ function PartnerAdvancedSettingsModal({
                     When enabled, this partner will remain in their current
                     group and won't be subject to [group move
                     rules](https://dub.co/help/article/partner-groups#group-move-rules).
+                  </MarkdownDescription>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {canManageFraudEvents && (
+            <div className="mt-6">
+              <div className="flex items-start gap-3">
+                <Switch
+                  fn={handleRiskDetectionDisabledToggle}
+                  checked={hasRiskDetectionDisabled}
+                  trackDimensions="w-8 h-4"
+                  thumbDimensions="w-3 h-3"
+                  thumbTranslate="translate-x-4"
+                />
+                <div className="flex flex-col gap-1.5">
+                  <h3 className="text-sm font-medium leading-none text-neutral-700">
+                    Exclude from risk monitoring
+                  </h3>
+                  <MarkdownDescription className="text-xs text-neutral-500">
+                    Future [risk
+                    events](https://dub.co/help/article/risk-monitoring) won't
+                    be detected for this partner.
                   </MarkdownDescription>
                 </div>
               </div>

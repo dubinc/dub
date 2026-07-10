@@ -2,6 +2,7 @@
 
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
+import { canDeletePartner } from "@/lib/partners/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -9,11 +10,13 @@ import {
   EnrolledPartnerExtendedProps,
   EnrolledPartnerProps,
 } from "@/lib/types";
+import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
+import { useDeletePartnerModal } from "@/ui/modals/delete-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
 import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { usePartnerAdvancedSettingsModal } from "@/ui/partners/partner-advanced-settings-modal";
@@ -176,7 +179,18 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
       nested: true,
     });
 
-  useKeyboardShortcut("c", () => setCreateCommissionSheetOpen(true));
+  const canCreateCommission = COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES.includes(
+    partner.status,
+  );
+  const createCommissionDisabledTooltip = canCreateCommission
+    ? undefined
+    : `You can't create a commission for a partner that is ${partner.status}.`;
+
+  useKeyboardShortcut("c", () => {
+    if (canCreateCommission) {
+      setCreateCommissionSheetOpen(true);
+    }
+  });
 
   const { createClawbackSheet, setIsOpen: setClawbackSheetOpen } =
     useCreateClawbackSheet({});
@@ -230,6 +244,12 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
     useArchivePartnerModal({
       partner,
     });
+  const { DeletePartnerModal, setShowDeletePartnerModal } =
+    useDeletePartnerModal({
+      partner,
+    });
+
+  const canDelete = canDeletePartner(partner);
 
   return (
     <>
@@ -241,6 +261,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
       <DeactivatePartnerModal />
       <ReactivatePartnerModal />
       <ArchivePartnerModal />
+      <DeletePartnerModal />
 
       {partner.status === "invited" ? (
         <Button
@@ -272,6 +293,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
             text="Create commission"
             shortcut="C"
             onClick={() => setCreateCommissionSheetOpen(true)}
+            disabledTooltip={createCommissionDisabledTooltip}
             className="hidden h-8 w-fit px-3 sm:h-9 md:flex"
           />
 
@@ -337,6 +359,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
                       setCreateCommissionSheetOpen(true);
                       setIsOpen(false);
                     }}
+                    disabledTooltip={createCommissionDisabledTooltip}
                     className="md:hidden"
                   >
                     Create commission
@@ -425,6 +448,19 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
                       }}
                     >
                       Ban partner
+                    </MenuItem>
+                  )}
+
+                  {canDelete && (
+                    <MenuItem
+                      icon={Trash}
+                      variant="danger"
+                      onClick={() => {
+                        setShowDeletePartnerModal(true);
+                        setIsOpen(false);
+                      }}
+                    >
+                      Permanently delete
                     </MenuItem>
                   )}
                 </div>

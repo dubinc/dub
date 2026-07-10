@@ -1,11 +1,11 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { prisma, sanitizeFullTextSearch } from "@/lib/prisma";
 import {
   getSubmittedLeadsQuerySchema,
   submittedLeadSchema,
 } from "@/lib/zod/schemas/submitted-leads";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
-import { SubmittedLeadStatus } from "@dub/prisma/client";
+import { SubmittedLeadStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -69,9 +69,6 @@ export const GET = withWorkspace(
   {
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],

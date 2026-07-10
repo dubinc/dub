@@ -7,11 +7,11 @@ import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
+import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { bulkInvitePartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
-import { prisma } from "@dub/prisma";
 import { constructURLFromUTMParams, nanoid } from "@dub/utils";
 import { prettyPrint } from "@dub/utils/src";
 import slugify from "@sindresorhus/slugify";

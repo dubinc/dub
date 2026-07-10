@@ -27,6 +27,7 @@ import { useAddEditTagModal } from "./add-edit-tag-modal";
 import { useImportPartnerStackModal } from "./import-partnerstack-modal";
 import { useImportRebrandlyModal } from "./import-rebrandly-modal";
 import { useImportRewardfulModal } from "./import-rewardful-modal";
+import { useImportTapfiliateModal } from "./import-tapfiliate-modal";
 import { useImportToltModal } from "./import-tolt-modal";
 import { useLinkBuilder } from "./link-builder";
 import { useProgramWelcomeModal } from "./program-welcome-modal";
@@ -44,6 +45,7 @@ export const ModalContext = createContext<{
   setShowImportPartnerStackModal: Dispatch<SetStateAction<boolean>>;
   setShowImportRewardfulModal: Dispatch<SetStateAction<boolean>>;
   setShowImportToltModal: Dispatch<SetStateAction<boolean>>;
+  setShowImportTapfiliateModal: Dispatch<SetStateAction<boolean>>;
 }>({
   setShowAddWorkspaceModal: () => {},
   setShowAddEditDomainModal: () => {},
@@ -56,6 +58,7 @@ export const ModalContext = createContext<{
   setShowImportPartnerStackModal: () => {},
   setShowImportRewardfulModal: () => {},
   setShowImportToltModal: () => {},
+  setShowImportTapfiliateModal: () => {},
 });
 
 export function ModalProvider({ children }: { children: ReactNode }) {
@@ -109,6 +112,8 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
   const { setShowImportRewardfulModal, ImportRewardfulModal } =
     useImportRewardfulModal();
   const { setShowImportToltModal, ImportToltModal } = useImportToltModal();
+  const { setShowImportTapfiliateModal, ImportTapfiliateModal } =
+    useImportTapfiliateModal();
 
   useEffect(() => {
     setShowProgramWelcomeModal(searchParams.has("onboarded-program"));
@@ -194,6 +199,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
         setShowImportPartnerStackModal,
         setShowImportRewardfulModal,
         setShowImportToltModal,
+        setShowImportTapfiliateModal,
       }}
     >
       <AddWorkspaceModal />
@@ -207,6 +213,7 @@ function ModalProviderClient({ children }: { children: ReactNode }) {
       <ImportPartnerStackModal />
       <ImportRewardfulModal />
       <ImportToltModal />
+      <ImportTapfiliateModal />
       <UpgradedModal />
       <ProgramWelcomeModal />
       {children}

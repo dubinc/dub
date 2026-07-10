@@ -1,4 +1,4 @@
-import { Bounty } from "@dub/prisma/client";
+import { Bounty } from "@prisma/client";
 import { addDays, addMonths, subDays } from "date-fns";
 import { E2E_PARTNER_GROUP } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";

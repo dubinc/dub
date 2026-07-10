@@ -4,7 +4,7 @@ import {
   findFolderUserRole,
   getFolderPermissions,
 } from "@/lib/folder/permissions";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/folders/permissions - get folders and their permissions for authenticated user
@@ -51,9 +51,6 @@ export const GET = withWorkspace(
     requiredPermissions: ["folders.read"],
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],

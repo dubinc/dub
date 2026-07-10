@@ -94,12 +94,11 @@ function ApplicationsAnalyticsCardShell({
   const onApplyFilterValues = useCallback(
     (values: string[]) => {
       if (values.length === 0) {
-        queryParams({ del: [filterParamKey, "page"], scroll: false });
+        queryParams({ del: [filterParamKey, "page"] });
       } else {
         queryParams({
           set: { [filterParamKey]: values.join(",") },
           del: "page",
-          scroll: false,
         });
       }
       setSelectedItems([]);
@@ -110,7 +109,7 @@ function ApplicationsAnalyticsCardShell({
   const onClearFilter = useCallback(() => {
     setSelectedItems([]);
     if (isFilterActive) {
-      queryParams({ del: [filterParamKey, "page"], scroll: false });
+      queryParams({ del: [filterParamKey, "page"] });
     }
   }, [filterParamKey, isFilterActive, queryParams]);
 

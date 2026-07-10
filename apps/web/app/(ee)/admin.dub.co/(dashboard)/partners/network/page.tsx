@@ -7,7 +7,6 @@ import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { CountryFlag } from "@/ui/shared/country-flag";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
-import { PartnerNetworkStatus, PlatformType } from "@dub/prisma/client";
 import {
   Filter,
   StatusBadge,
@@ -19,11 +18,12 @@ import {
 } from "@dub/ui";
 import { CircleDotted, FlagWavy } from "@dub/ui/icons";
 import { cn, COUNTRIES, fetcher, formatDate } from "@dub/utils";
+import { PartnerNetworkStatus, PlatformType } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
-import { NetworkPartnerApplicationSheet } from "app/(ee)/admin.dub.co/(dashboard)/partners/network/network-partner-application-sheet";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { NetworkPartnerApplicationSheet } from "./network-partner-application-sheet";
 
 const SOCIAL_FIELDS = [
   { id: "website", label: "Website" },
@@ -129,7 +129,8 @@ export default function NetworkApplicationsPage() {
   const onSearchChange = (value: string) => {
     const search = value.trim();
     const hasActiveFilters =
-      Boolean(searchParamsObj.networkStatus) || Boolean(searchParamsObj.country);
+      Boolean(searchParamsObj.networkStatus) ||
+      Boolean(searchParamsObj.country);
 
     if (!search || !hasActiveFilters) {
       return;
@@ -253,19 +254,18 @@ export default function NetworkApplicationsPage() {
             : "Partner rejected from the network.",
       );
 
-      await mutate();
-
       if (fallbackPartnerId) {
         queryParams({
           set: {
             partnerId: fallbackPartnerId,
           },
-          scroll: false,
         });
       } else {
         setDetailsSheetState({ open: false, partnerId: null });
-        queryParams({ del: "partnerId", scroll: false });
+        queryParams({ del: "partnerId" });
       }
+
+      mutate();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to review partner.",
@@ -390,7 +390,6 @@ export default function NetworkApplicationsPage() {
         set: {
           partnerId: row.original.id,
         },
-        scroll: false,
       }),
     loading: isLoading,
     sortableColumns: ["createdAt"],
@@ -403,7 +402,6 @@ export default function NetworkApplicationsPage() {
           ...(sortOrder && { sortOrder }),
         },
         del: "page",
-        scroll: false,
       }),
 
     pagination,
@@ -427,7 +425,6 @@ export default function NetworkApplicationsPage() {
                     set: {
                       partnerId: previousPartnerId,
                     },
-                    scroll: false,
                   })
               : undefined
           }
@@ -438,7 +435,6 @@ export default function NetworkApplicationsPage() {
                     set: {
                       partnerId: nextPartnerId,
                     },
-                    scroll: false,
                   })
               : undefined
           }

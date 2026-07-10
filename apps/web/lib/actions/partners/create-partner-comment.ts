@@ -1,8 +1,9 @@
 "use server";
 
+import { DubApiError } from "@/lib/api/errors";
+import { partnerReachableByProgramWhereInput } from "@/lib/api/partners/partner-reachable-by-program-where-input";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import {
   PartnerCommentSchema,
   createPartnerCommentSchema,
@@ -24,11 +25,23 @@ export const createPartnerCommentAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await getProgramEnrollmentOrThrow({
-      partnerId,
-      programId,
-      include: {},
+    // Allow commenting on partners that are enrolled in the program OR
+    // discoverable via the partner network, so the team can discuss a partner
+    // (e.g. whether to invite them) before they're enrolled.
+    const partner = await prisma.partner.findFirst({
+      where: {
+        id: partnerId,
+        ...partnerReachableByProgramWhereInput(programId),
+      },
+      select: { id: true },
     });
+
+    if (!partner) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Partner not found.",
+      });
+    }
 
     const comment = await prisma.partnerComment.create({
       data: {

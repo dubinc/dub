@@ -1,6 +1,6 @@
-import { prisma } from "@dub/prisma";
-import { FraudRuleType } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { currencyFormatter } from "@dub/utils";
+import { FraudRuleType } from "@prisma/client";
 import "dotenv-flow/config";
 import { createFraudEvents } from "../../../lib/api/fraud/create-fraud-events";
 

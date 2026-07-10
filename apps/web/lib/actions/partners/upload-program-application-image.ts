@@ -1,10 +1,10 @@
 "use server";
 
 import { getIP } from "@/lib/api/utils/get-ip";
+import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { RATELIMIT_POLICIES } from "@/lib/upstash/ratelimit-policies";
-import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { actionClient } from "../safe-action";

@@ -20,7 +20,6 @@ import {
   InlineBadgePopoverInput,
 } from "@/ui/shared/inline-badge-popover";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { BountySubmissionFrequency } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -42,6 +41,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, FormProvider } from "react-hook-form";
 import { BountyCriteria } from "./bounty-criteria";
@@ -616,7 +616,7 @@ export function BountySheet({
     <Sheet
       open={isOpen}
       onOpenChange={rest.setIsOpen}
-      onClose={() => queryParams({ del: "bountyId", scroll: false })}
+      onClose={() => queryParams({ del: "bountyId" })}
       nested={nested}
     >
       <BountySheetContent {...rest} />

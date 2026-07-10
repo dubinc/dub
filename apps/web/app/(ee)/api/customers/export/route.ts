@@ -5,8 +5,8 @@ import { qstash } from "@/lib/cron";
 import { buildCustomerCountWhere } from "@/lib/customers/api/customer-count-where";
 import { formatCustomersForExport } from "@/lib/customers/api/format-customers-export";
 import { getCustomers } from "@/lib/customers/api/get-customers";
+import { prisma } from "@/lib/prisma";
 import { customersExportQuerySchema } from "@/lib/zod/schemas/customers";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -69,9 +69,6 @@ export const GET = withWorkspace(
   {
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],

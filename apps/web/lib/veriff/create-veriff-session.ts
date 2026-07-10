@@ -1,4 +1,4 @@
-import { Partner } from "@dub/prisma/client";
+import { Partner } from "@prisma/client";
 import {
   veriffCreateSessionInputSchema,
   veriffCreateSessionOutputSchema,

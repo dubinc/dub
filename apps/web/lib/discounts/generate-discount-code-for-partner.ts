@@ -1,5 +1,5 @@
+import { prisma } from "@/lib/prisma";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
 import { createDiscountCode } from "./create-discount-code";
 
 export async function generateDiscountCodeForPartner({

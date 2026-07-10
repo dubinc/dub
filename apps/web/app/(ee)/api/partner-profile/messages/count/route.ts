@@ -1,6 +1,6 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { countMessagesQuerySchema } from "@/lib/zod/schemas/messages";
-import { prisma } from "@dub/prisma";
+import { countMessagesQuerySchema } from "@/lib/messages/schemas";
+import { prisma } from "@/lib/prisma";
 import { NETWORK_PROGRAM_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 

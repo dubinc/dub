@@ -5,8 +5,8 @@ import { verifyDomain } from "@/lib/api/domains/verify-domain";
 import { withWorkspace } from "@/lib/auth";
 import { discoverDomainConnectIfEligible } from "@/lib/domain-connect/discover";
 import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
+import { prisma } from "@/lib/prisma";
 import { DomainVerificationStatusProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
 import { getApexDomain } from "@dub/utils";
 import { NextResponse } from "next/server";
 

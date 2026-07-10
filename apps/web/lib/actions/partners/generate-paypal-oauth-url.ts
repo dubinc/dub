@@ -3,8 +3,8 @@
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
 import { paypalOAuthProvider } from "@/lib/paypal/oauth";
-import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { COUNTRIES } from "@dub/utils";
+import { PartnerPayoutMethod } from "@prisma/client";
 import { authPartnerActionClient } from "../safe-action";
 
 export const generatePaypalOAuthUrl = authPartnerActionClient.action(

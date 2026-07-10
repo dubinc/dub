@@ -4,8 +4,8 @@ import {
   getTrialEmailSubject,
 } from "@/lib/email/trial-email-schedule";
 import { sendBatchEmail as defaultSendBatchEmail } from "@dub/email";
-import type { PrismaClient } from "@dub/prisma/client";
 import { chunk, log } from "@dub/utils";
+import type { PrismaClient } from "@prisma/client";
 import { createHash } from "crypto";
 
 const CRON_BATCH_SIZE = 50;

@@ -28,7 +28,7 @@ export const POST = withWorkspace(
       throw new DubApiError({
         code: "forbidden",
         message:
-          "Priority Slack support is only available on Advanced and Enterprise plans. Upgrade your workspace to request access.",
+          "Priority Slack support is only available on Enterprise plans. Upgrade your workspace to request access.",
       });
     }
 
@@ -104,7 +104,7 @@ export const POST = withWorkspace(
     return NextResponse.json({ inviteIds });
   },
   {
-    requiredPlan: ["advanced", "enterprise"],
+    requiredPlan: ["enterprise"],
     requiredPermissions: ["workspaces.write"],
   },
 );

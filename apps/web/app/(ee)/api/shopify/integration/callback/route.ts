@@ -3,7 +3,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { encrypt } from "@/lib/encryption";
 import { installIntegration } from "@/lib/integrations/install";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { SHOPIFY_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -87,9 +87,6 @@ export const PATCH = withWorkspace(
     requiredRoles: ["owner", "member"],
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],

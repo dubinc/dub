@@ -5,12 +5,12 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { prisma } from "@/lib/prisma";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   createPartnerLinkSchema,
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
 import { getUTMParamsFromURL } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -37,6 +37,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     return {
       ...link,
       discountCode: discountCode?.code,
+      discountCodeDisabledAt: discountCode?.disabledAt ?? null,
     };
   });
 

@@ -138,7 +138,6 @@ export function ApplicationsFunnelChart({
                     queryParams({
                       set: { applicationEvent: id },
                       del: "page",
-                      scroll: false,
                       getNewPath: true,
                     }) as string
                   }
@@ -277,7 +276,6 @@ export function ApplicationsFunnelChart({
                 selectAction={(next) =>
                   queryParams({
                     set: { view: next },
-                    scroll: false,
                   })
                 }
               />

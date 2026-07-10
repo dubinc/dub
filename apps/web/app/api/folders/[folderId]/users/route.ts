@@ -3,7 +3,7 @@ import {
   findFolderUserRole,
   verifyFolderAccess,
 } from "@/lib/folder/permissions";
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/folders/[folderId]/users – get users with access to a folder
@@ -79,9 +79,6 @@ export const GET = withWorkspace(
     requiredPermissions: ["folders.read"],
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],

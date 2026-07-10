@@ -1,6 +1,6 @@
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
-import { BountyType, EventType, Reward } from "@dub/prisma/client";
+import { BountyType, EventType, Reward } from "@prisma/client";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { serializeReward } from "./serialize-reward";
 
@@ -8,7 +8,7 @@ const REWARD_ICONS: Record<EventType, string> = {
   click: "https://assets.dub.co/email-assets/icons/cursor-rays.png",
   lead: "https://assets.dub.co/email-assets/icons/user-plus.png",
   sale: "https://assets.dub.co/email-assets/icons/invoice-dollar.png",
-  referral: "https://assets.dub.co/email-assets/icons/users.png",
+  referral: "https://assets.dub.co/email-assets/icons/nodes-4.png",
 };
 
 const BOUNTY_ICONS: Record<BountyType, string> = {

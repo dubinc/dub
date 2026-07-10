@@ -1,6 +1,6 @@
-import { prisma } from "@dub/prisma";
-import { PartnerGroup, Program } from "@dub/prisma/client";
+import { prisma } from "@/lib/prisma";
 import { COUNTRIES, COUNTRY_CODES } from "@dub/utils";
+import { PartnerGroup, Program } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";

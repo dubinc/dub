@@ -24,11 +24,6 @@ export interface EdgeLinkProps {
   partnerId: string | null;
 }
 
-/** Link from edge (getLinkViaEdge) with webhooks, matching ExpandedLink shape */
-export type EdgeLinkWithWebhooks = EdgeLinkProps & {
-  webhooks: { webhookId: string }[];
-};
-
 export interface EdgeDomainProps {
   id: string;
   slug: string;

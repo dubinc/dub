@@ -1,10 +1,10 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import {
   PartnerTagSchema,
   getPartnerTagsQuerySchema,
 } from "@/lib/zod/schemas/partner-tags";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -48,9 +48,6 @@ export const GET = withWorkspace(
   {
     requiredPlan: [
       "business",
-      "business extra",
-      "business max",
-      "business plus",
       "advanced",
       "enterprise",
     ],

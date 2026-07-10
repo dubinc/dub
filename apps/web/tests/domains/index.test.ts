@@ -1,5 +1,5 @@
 import { DomainStatusSchema } from "@/lib/zod/schemas/domains";
-import { Domain } from "@dub/prisma/client";
+import { Domain } from "@prisma/client";
 import { describe, expect, onTestFinished, test } from "vitest";
 import * as z from "zod/v4";
 import { randomId } from "../utils/helpers";
@@ -137,14 +137,19 @@ describe.sequential("/domains/**", async () => {
       {
         domain: domains[0],
         available: false,
-        price: null,
         premium: null,
+        prices: null,
+        price: null,
       },
       {
         domain: domains[1],
         available: true,
-        price: expect.any(String),
         premium: expect.any(Boolean),
+        prices: {
+          registration: expect.any(Number),
+          renewal: expect.any(Number),
+        },
+        price: expect.any(String),
       },
     ]);
   });

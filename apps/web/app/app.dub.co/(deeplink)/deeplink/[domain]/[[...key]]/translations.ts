@@ -1,36 +1,44 @@
 export const translations = {
   en: {
     poweredBy: "Powered by",
-    description: "Clicking below will copy this page and open it in the app.",
+    description: "Click below to open the page in {appName}.",
     openInApp: "Open in the app",
-    openInAppWithoutCopying: "Open in the app without copying",
   },
   zh: {
     poweredBy: "由",
-    description: "点击下方将复制此页面并在应用中打开。",
+    description: "点击下方在 {appName} 中打开页面。",
     openInApp: "在应用中打开",
-    openInAppWithoutCopying: "在应用中打开（不复制）",
   },
   es: {
     poweredBy: "Desarrollado por",
-    description:
-      "Al hacer clic a continuación, se copiará esta página y se abrirá en la aplicación.",
+    description: "Haz clic abajo para abrir la página en {appName}.",
     openInApp: "Abrir en la aplicación",
-    openInAppWithoutCopying: "Abrir en la aplicación sin copiar",
   },
   fr: {
     poweredBy: "Propulsé par",
-    description:
-      "En cliquant ci-dessous, cette page sera copiée et ouverte dans l'application.",
+    description: "Cliquez ci-dessous pour ouvrir la page dans {appName}.",
     openInApp: "Ouvrir dans l'application",
-    openInAppWithoutCopying: "Ouvrir dans l'application sans copier",
+  },
+  it: {
+    poweredBy: "Offerto da",
+    description: "Clicca qui sotto per aprire la pagina in {appName}.",
+    openInApp: "Apri nell'app",
+  },
+  pt: {
+    poweredBy: "Desenvolvido por",
+    description: "Clique abaixo para abrir a página no {appName}.",
+    openInApp: "Abrir no aplicativo",
+  },
+  de: {
+    poweredBy: "Bereitgestellt von",
+    description: "Klicke unten, um die Seite in {appName} zu öffnen.",
+    openInApp: "In der App öffnen",
   },
   tr: {
     poweredBy: "tarafından desteklenmektedir",
     poweredByOrder: "inverted",
-    description: "Linki uygulamada açmak için aşağıdaki butona tıklayın.",
+    description: "Sayfayı {appName} içinde açmak için aşağıya tıklayın.",
     openInApp: "Uygulamada aç",
-    openInAppWithoutCopying: "Kopyalamadan uygulamada aç",
   },
 } as const;
 

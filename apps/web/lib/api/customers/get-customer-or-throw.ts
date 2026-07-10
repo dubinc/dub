@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "@/lib/prisma";
 import { DubApiError } from "../errors";
 import { CustomerWithLink } from "./transform-customer";
 

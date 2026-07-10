@@ -34,7 +34,7 @@ export const sendInviteReferralEmail = authActionClient
 
     try {
       return await sendEmail({
-        subject: `You've been invited to start using ${process.env.NEXT_PUBLIC_APP_NAME}`,
+        subject: "You've been invited to start using Dub",
         to: email,
         react: ReferralInvite({
           email,

@@ -38,6 +38,7 @@ const prefixes = [
   "bnty_sub_", // bounty submission
   "wf_", // workflow
   "msg_", // message
+  "msa_", // message attachment
   "em_", // notification email,
   "cmp_", // campaign
   "fr_", // fraud rule
