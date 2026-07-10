@@ -67,7 +67,7 @@ const PRO_TIER_PRICE_IDS = {
     "price_1SQtg3AlJJEpqkPVNHYhTRy7", // monthly 2025 (prod)
     "price_1SQ8hiAlJJEpqkPVIy8pfvAC", // yearly 2025 (test)
     "price_1TrQKGAlJJEpqkPVXz5gGere", // monthly 2025 (test)
-    "price_", // yearly 2026 (prod)
+    "price_1TrSHvAlJJEpqkPVOv8okJ4L", // yearly 2026 (prod)
     "price_1TrOzqAlJJEpqkPVXBwEbPo4", // yearly 2026 (test)
   ],
 };
@@ -77,7 +77,7 @@ const NEW_PRO_PRICE_IDS = [
   "price_1R8XtEAlJJEpqkPV4opVvVPq", // monthly 2025 (prod)
   "price_1R8XxZAlJJEpqkPVqGi0wOqD", // yearly 2025 (test),
   "price_1R7oeBAlJJEpqkPVh6q5q3h8", // monthly 2025 (test),
-  "price_", // yearly 2026 (prod)
+  "price_1TrSHYAlJJEpqkPVtJ0mnJMQ", // yearly 2026 (prod)
   "price_1TrOyDAlJJEpqkPVxoOc1eet", // yearly 2026 (test)
   ...Object.values(PRO_TIER_PRICE_IDS).flat(),
 ];
@@ -97,7 +97,7 @@ const BUSINESS_TIER_PRICE_IDS = {
     "price_1SQtdxAlJJEpqkPV7cvJTv4g", // monthly 2025 (prod)
     "price_1SQ8iwAlJJEpqkPVEGmKd6Lg", // yearly 2025 (test)
     "price_1TrQMNAlJJEpqkPVREg73wkW", // monthly 2025 (test)
-    "price_", // yearly 2026 (prod)
+    "price_1TrSJkAlJJEpqkPVtUyuZ7Z2", // yearly 2026 (prod)
     "price_1TrQGrAlJJEpqkPVmBqGRdsP", // yearly 2026 (test)
   ],
 };
@@ -107,7 +107,7 @@ export const NEW_BUSINESS_PRICE_IDS = [
   "price_1R6JedAlJJEpqkPVMUkfjch4", // monthly 2025 (prod)
   "price_1R8XypAlJJEpqkPVdjzOcYUC", // yearly 2025 (test),
   "price_1R7ofLAlJJEpqkPV3MlgDpyx", // monthly 2025 (test),
-  "price_", // yearly 2026 (prod)
+  "price_1TrSIiAlJJEpqkPVUNjLPUxY", // yearly 2026 (prod)
   "price_1TrQBOAlJJEpqkPVCOGYIwVy", // yearly 2026 (test)
   ...Object.values(BUSINESS_TIER_PRICE_IDS).flat(),
 ];
@@ -118,7 +118,7 @@ const ADVANCED_TIER_PRICE_IDS = {
     "price_1SQtg6AlJJEpqkPVaZNisQdm", // monthly 2025 (prod)
     "price_1SQ8jlAlJJEpqkPV6EanvSXl", // yearly 2025 (test)
     "price_1TrQU1AlJJEpqkPVmgLd5cR1", // monthly 2025 (test)
-    "price_", // yearly 2026 (prod)
+    "price_1TrSKzAlJJEpqkPVHkhc8cUx", // yearly 2026 (prod)
     "price_1TrQTSAlJJEpqkPV1cqueTie", // yearly 2026 (test)
   ],
   3: [
@@ -126,7 +126,7 @@ const ADVANCED_TIER_PRICE_IDS = {
     "price_1SQtg8AlJJEpqkPV4Nks8MkS", // monthly 2025 (prod)
     "price_1SQ8lqAlJJEpqkPVzBaioV3I", // yearly 2025 (test)
     "price_1TrQXfAlJJEpqkPV7RXjqb74", // monthly 2025 (test)
-    "price_", // yearly 2026 (prod)
+    "price_1TrSLRAlJJEpqkPVOHrNc2hI", // yearly 2026 (prod)
     "price_1TrQXMAlJJEpqkPVIzWw9iHW", // yearly 2026 (test)
   ],
 };
@@ -136,7 +136,7 @@ const ADVANCED_PRICE_IDS = [
   "price_1R3j0qAlJJEpqkPVkfGNXRwb", // monthly 2025 (prod)
   "price_1R8XztAlJJEpqkPVnHmIU2tf", // yearly 2025 (test),
   "price_1R7ofzAlJJEpqkPV0L2TwyJo", // monthly 2025 (test),
-  "price_", // yearly 2026 (prod)
+  "price_1TrSKLAlJJEpqkPV2QG2AFUQ", // yearly 2026 (prod)
   "price_1TrQN3AlJJEpqkPVqX1Rt9el", // yearly 2026 (test)
   ...Object.values(ADVANCED_TIER_PRICE_IDS).flat(),
 ];
