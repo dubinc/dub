@@ -16,6 +16,7 @@ import {
   SELF_SERVE_PAID_PLANS,
   capitalize,
   cn,
+  getMonthlyLimitFromPeriod,
   getPlanLimitForPeriod,
   getPlanPeriodSuffix,
   getSuggestedPlan,
@@ -70,8 +71,10 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
   const defaultValue = useMemo(() => {
     const currentLimit =
       workspace[{ events: "usageLimit", links: "linksLimit" }[type]];
-    const monthlyCurrentLimit =
-      planPeriod === "yearly" ? currentLimit / 12 : currentLimit;
+    const monthlyCurrentLimit = getMonthlyLimitFromPeriod({
+      limit: currentLimit,
+      planPeriod,
+    });
 
     return usageSteps.reduce((prev, curr) =>
       Math.abs(curr - monthlyCurrentLimit) <
@@ -98,9 +101,11 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
       storedPeriod?: string | null;
       targetPeriod: PlanPeriod;
     }) => {
-      const monthlyLimit = storedPeriod === "yearly" ? limit / 12 : limit;
       return getPlanLimitForPeriod({
-        limit: monthlyLimit,
+        limit: getMonthlyLimitFromPeriod({
+          limit,
+          planPeriod: storedPeriod,
+        }),
         planPeriod: targetPeriod,
       });
     },

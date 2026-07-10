@@ -12,6 +12,16 @@ export function getPlanLimitForPeriod({
   return planPeriod === "yearly" ? limit * YEARLY_USAGE_MULTIPLIER : limit;
 }
 
+export function getMonthlyLimitFromPeriod({
+  limit,
+  planPeriod = "monthly",
+}: {
+  limit: number;
+  planPeriod?: PlanPeriod | string | null;
+}) {
+  return planPeriod === "yearly" ? limit / YEARLY_USAGE_MULTIPLIER : limit;
+}
+
 export function getPlanPeriodSuffix({
   planPeriod = "monthly",
   isUnlimited = false,

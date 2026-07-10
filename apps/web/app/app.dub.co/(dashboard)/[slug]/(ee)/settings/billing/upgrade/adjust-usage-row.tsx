@@ -7,6 +7,7 @@ import {
   SELF_SERVE_PAID_PLANS,
   cn,
   getPlanDetails,
+  getMonthlyLimitFromPeriod,
   getPlanLimitForPeriod,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
@@ -123,8 +124,10 @@ function UsageSlider({
     }
 
     const currentLimit = workspace[workspaceLimitKey];
-    const monthlyCurrentLimit =
-      workspacePlanPeriod === "yearly" ? currentLimit / 12 : currentLimit;
+    const monthlyCurrentLimit = getMonthlyLimitFromPeriod({
+      limit: currentLimit,
+      planPeriod: workspacePlanPeriod,
+    });
 
     return usageSteps.reduce((prev, curr) =>
       Math.abs(curr - monthlyCurrentLimit) < Math.abs(prev - monthlyCurrentLimit)
@@ -142,10 +145,10 @@ function UsageSlider({
 
   if (usageSteps.length < 2) return null;
 
-  const monthlyWorkspaceLimit =
-    workspacePlanPeriod === "yearly"
-      ? workspace[workspaceLimitKey] / 12
-      : workspace[workspaceLimitKey];
+  const monthlyWorkspaceLimit = getMonthlyLimitFromPeriod({
+    limit: workspace[workspaceLimitKey],
+    planPeriod: workspacePlanPeriod,
+  });
 
   return (
     <div className="flex flex-col">
