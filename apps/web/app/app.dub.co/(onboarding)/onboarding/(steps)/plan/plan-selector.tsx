@@ -16,7 +16,7 @@ import {
   BUSINESS_PLAN,
   cn,
   ENTERPRISE_PLAN,
-  PRICING_PLAN_MAIN_FEATURES,
+  getPricingPlanMainFeatures,
   PRICING_PLAN_TAGLINES,
   PRO_PLAN,
 } from "@dub/utils";
@@ -81,7 +81,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
         >
           {plans.map((plan) => {
             const features =
-              PRICING_PLAN_MAIN_FEATURES[product][plan.name] || [];
+              getPricingPlanMainFeatures(period)[product][plan.name] || [];
 
             return (
               <div

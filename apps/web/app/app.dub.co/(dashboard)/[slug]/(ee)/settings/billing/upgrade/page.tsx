@@ -334,6 +334,7 @@ export default function WorkspaceBillingUpgradePage() {
             <div className="bg-bg-muted border-subtle absolute inset-x-0 -top-2.5 bottom-0 rounded-b-[12px] border" />
 
             <AdjustUsageRow
+              planPeriod={period}
               onEventsUsageChange={(value) => setEventsUsage(value)}
               onLinksUsageChange={(value) => setLinksUsage(value)}
             />
@@ -350,6 +351,7 @@ export default function WorkspaceBillingUpgradePage() {
               features={section.features}
               mobilePlanIndex={mobilePlanIndex}
               plans={plans}
+              planPeriod={period}
             />
           ))}
         </div>
@@ -404,9 +406,11 @@ function BillingCompareSection({
   features,
   mobilePlanIndex,
   plans,
+  planPeriod,
 }: (typeof PRICING_PLAN_COMPARE_FEATURES)[number] & {
   mobilePlanIndex: number;
   plans: { plan: PlanDetails; planTier: number }[];
+  planPeriod: "monthly" | "yearly";
 }) {
   const [isExpanded, setIsExpanded] = useState(true);
   const { defaultProgramId } = useWorkspace();
@@ -520,6 +524,7 @@ function BillingCompareSection({
                             ? (text({
                                 id,
                                 plan,
+                                planPeriod,
                               }) as React.ReactNode)
                             : text}
                         </As>
