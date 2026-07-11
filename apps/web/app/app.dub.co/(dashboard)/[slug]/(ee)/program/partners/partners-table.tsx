@@ -2,6 +2,7 @@
 
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
+import { canDeletePartner } from "@/lib/partners/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -16,6 +17,7 @@ import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkDeactivatePartnersModal } from "@/ui/modals/bulk-deactivate-partners-modal";
 import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
+import { useDeletePartnerModal } from "@/ui/modals/delete-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
 import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
@@ -724,6 +726,13 @@ function RowMenuButton({
       partner: row.original,
     });
 
+  const { DeletePartnerModal, setShowDeletePartnerModal } =
+    useDeletePartnerModal({
+      partner: row.original,
+    });
+
+  const canDelete = canDeletePartner(row.original);
+
   const { executeAsync: resendInvite, isPending: isResendingInvite } =
     useAction(resendProgramInviteAction, {
       onSuccess: async () => {
@@ -762,6 +771,7 @@ function RowMenuButton({
       <UnbanPartnerModal />
       <DeactivatePartnerModal />
       <ReactivatePartnerModal />
+      <DeletePartnerModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -898,6 +908,18 @@ function RowMenuButton({
                         variant="danger"
                         onSelect={() => {
                           setShowBanPartnerModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    )}
+
+                    {canDelete && (
+                      <MenuItem
+                        icon={Trash}
+                        label="Permanently delete"
+                        variant="danger"
+                        onSelect={() => {
+                          setShowDeletePartnerModal(true);
                           setIsOpen(false);
                         }}
                       />

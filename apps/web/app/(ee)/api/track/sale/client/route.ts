@@ -70,9 +70,6 @@ export const POST = withPublishableKey(
   {
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],
