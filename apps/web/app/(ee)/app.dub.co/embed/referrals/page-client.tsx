@@ -1,5 +1,6 @@
 "use client";
 
+import { constructPartnerReferralLink } from "@/lib/partner-referrals/utils";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
 import { TREMENDOUS_ENABLED_PROGRAM_IDS } from "@/lib/tremendous/constants";
@@ -89,6 +90,7 @@ type ReferralsEmbedData = {
     | "id"
     | "name"
     | "email"
+    | "username"
     | "country"
     | "tremendousEmail"
     | "defaultPayoutMethod"
@@ -120,8 +122,7 @@ type ReferralsEmbedData = {
   stats: {
     clicks: number;
     leads: number;
-    sales: number;
-    saleAmount: number;
+    conversions: number;
   };
   bounties: PartnerBountyProps[];
 };
@@ -210,6 +211,19 @@ export function ReferralsEmbedPageClient({
     (partner.defaultPayoutMethod === "tremendous" ||
       (!partner.defaultPayoutMethod && isTremendousCountrySupported));
 
+  const customerRewards = useMemo(
+    () => rewards.filter((reward) => reward.event !== "referral"),
+    [rewards],
+  );
+
+  const referralRewards = useMemo(
+    () => rewards.filter((reward) => reward.event === "referral"),
+    [rewards],
+  );
+
+  const showPartnerReferralSection =
+    referralRewards.length > 0 && Boolean(partner.username);
+
   const tabs = useMemo(
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
@@ -294,25 +308,46 @@ export function ReferralsEmbedPageClient({
           <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
             <HeroBackground logo={group.logo} color={group.brandColor} embed />
 
-            <ReferralLinkDisplay onSelectTab={setSelectedTab} />
+            <ReferralLinkDisplay
+              termsHref={termsHref}
+              onSelectTab={setSelectedTab}
+              hasPartnerReferralReward={showPartnerReferralSection}
+            />
 
-            <div className="mt-12 sm:max-w-[50%]">
-              <div className="flex items-end justify-between">
-                <span className="text-content-emphasis text-base font-semibold leading-none">
-                  Rewards
-                </span>
-                {termsHref && (
-                  <a
-                    href={termsHref}
-                    target="_blank"
-                    className="text-content-subtle text-xs font-medium leading-none underline-offset-2 hover:underline"
-                  >
-                    View terms ↗
-                  </a>
+            <div
+              className={cn(
+                "sm:max-w-[50%]",
+                !showPartnerReferralSection && "mt-12",
+              )}
+            >
+              {!showPartnerReferralSection && (
+                <div className="flex items-end justify-between">
+                  <span className="text-content-emphasis text-base font-semibold leading-none">
+                    Rewards
+                  </span>
+                  {termsHref && (
+                    <a
+                      href={termsHref}
+                      target="_blank"
+                      className="text-content-subtle text-xs font-medium leading-none underline-offset-2 hover:underline"
+                    >
+                      View terms ↗
+                    </a>
+                  )}
+                </div>
+              )}
+              <div
+                className={cn(
+                  "text-content-emphasis relative text-lg",
+                  showPartnerReferralSection ? "mt-2" : "mt-4",
                 )}
-              </div>
-              <div className="text-content-emphasis relative mt-4 text-lg">
-                <ProgramRewardList rewards={rewards} discount={discount} />
+              >
+                <ProgramRewardList
+                  rewards={customerRewards}
+                  discount={discount}
+                  className="rounded-lg"
+                />
+
                 <ProgramRewardTerms
                   minPayoutAmount={
                     programEmbedData?.hideEarnings ? 0 : program.minPayoutAmount
@@ -325,6 +360,11 @@ export function ReferralsEmbedPageClient({
                 />
               </div>
             </div>
+
+            {showPartnerReferralSection && (
+              <PartnerReferralLinkDisplay referralRewards={referralRewards} />
+            )}
+
             {!programEmbedData?.hidePoweredByBadge && (
               <div className="mt-4 flex justify-center md:absolute md:bottom-3 md:right-3 md:mt-0">
                 <a
@@ -476,7 +516,15 @@ function ReferralsEmbedUnapproved({
   );
 }
 
-function ReferralLinkDisplay({ onSelectTab }) {
+function ReferralLinkDisplay({
+  onSelectTab,
+  termsHref,
+  hasPartnerReferralReward,
+}: {
+  onSelectTab: (tab: string) => void;
+  termsHref: string | undefined;
+  hasPartnerReferralReward: boolean;
+}) {
   const { links, group } = useReferralsEmbedData();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
@@ -544,7 +592,7 @@ function ReferralLinkDisplay({ onSelectTab }) {
           </div>
         }
         text={copied ? "Copied link" : "Copy link"}
-        className="xs:w-fit"
+        className="h-10 w-fit shrink-0 rounded-lg"
         onClick={() => copyToClipboard(partnerLink)}
       />
     );
@@ -553,31 +601,40 @@ function ReferralLinkDisplay({ onSelectTab }) {
       <Button
         text="Create a link"
         onClick={() => onSelectTab("Links")}
-        className="xs:w-fit"
+        className="h-10 w-fit shrink-0 rounded-lg"
       />
     );
   }
 
   return (
     <>
-      <span className="text-content-emphasis text-base font-semibold">
-        Referral link
-      </span>
-      <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 sm:max-w-[50%]">
+      <div className="flex items-center justify-between sm:max-w-[50%]">
+        <span className="text-content-emphasis text-base font-semibold">
+          {hasPartnerReferralReward
+            ? "Customer referral rewards"
+            : "Referral link"}
+        </span>
+        {hasPartnerReferralReward && termsHref && (
+          <a
+            href={termsHref}
+            target="_blank"
+            className="text-content-subtle text-xs font-medium leading-none underline-offset-2 hover:underline"
+          >
+            View terms ↗
+          </a>
+        )}
+      </div>
+
+      <div className="xs:flex-row xs:items-center relative mt-2 flex flex-col gap-2 sm:max-w-[50%]">
         {links.length <= 1 ? (
-          <>
-            <input
-              type="text"
-              readOnly
-              value={
-                partnerLink ? getPrettyUrl(partnerLink) : "No referral link"
-              }
-              className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
-            />
-            {actionButton}
-          </>
+          <input
+            type="text"
+            readOnly
+            value={partnerLink ? getPrettyUrl(partnerLink) : "No referral link"}
+            className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 grow rounded-lg border px-3 text-sm focus:outline-none focus:ring-0"
+          />
         ) : (
-          <>
+          <div className="min-w-0 grow">
             <Combobox
               selected={selectedOption}
               setSelected={(option) => {
@@ -610,7 +667,7 @@ function ReferralLinkDisplay({ onSelectTab }) {
               trigger={
                 <button
                   type="button"
-                  className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default flex h-10 min-w-0 shrink grow items-center gap-2 rounded-md border px-3 text-left text-sm outline-none focus:ring-neutral-500"
+                  className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default flex h-10 w-full min-w-0 items-center gap-2 rounded-lg border px-3 text-left text-sm outline-none focus:ring-0"
                 >
                   <span className="min-w-0 shrink grow truncate">
                     {partnerLink
@@ -621,15 +678,75 @@ function ReferralLinkDisplay({ onSelectTab }) {
                 </button>
               }
             />
-            {actionButton}
-          </>
+          </div>
         )}
+        {actionButton}
       </div>
 
       {partnerLink && group.linkStructure === "query" && (
         <QueryLinkStructureHelpText link={selectedLink} className="mt-1.5" />
       )}
     </>
+  );
+}
+
+function PartnerReferralLinkDisplay({
+  referralRewards,
+}: {
+  referralRewards: RewardProps[];
+}) {
+  const { partner, program } = useReferralsEmbedData();
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
+  const partnerReferralApplyLink = constructPartnerReferralLink({
+    partner,
+    program,
+  });
+
+  return (
+    <div className="mt-8 sm:max-w-[50%]">
+      <span className="text-content-emphasis text-base font-semibold leading-none">
+        Partner referral rewards
+      </span>
+
+      <div className="xs:flex-row xs:items-center relative mt-2 flex flex-col gap-2">
+        <input
+          type="text"
+          readOnly
+          value={getPrettyUrl(partnerReferralApplyLink)}
+          className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 grow rounded-lg border px-3 text-sm focus:outline-none focus:ring-0"
+        />
+        <Button
+          icon={
+            <div className="relative size-4">
+              <div
+                className={cn(
+                  "absolute inset-0 transition-[transform,opacity]",
+                  copied && "translate-y-1 opacity-0",
+                )}
+              >
+                <Copy className="size-4" />
+              </div>
+              <div
+                className={cn(
+                  "absolute inset-0 transition-[transform,opacity]",
+                  !copied && "translate-y-1 opacity-0",
+                )}
+              >
+                <Check className="size-4" />
+              </div>
+            </div>
+          }
+          text={copied ? "Copied link" : "Copy link"}
+          className="h-10 w-fit shrink-0 rounded-lg"
+          onClick={() => copyToClipboard(partnerReferralApplyLink)}
+        />
+      </div>
+
+      <div className="text-content-emphasis relative mt-2 text-lg">
+        <ProgramRewardList rewards={referralRewards} className="rounded-lg" />
+      </div>
+    </div>
   );
 }
 

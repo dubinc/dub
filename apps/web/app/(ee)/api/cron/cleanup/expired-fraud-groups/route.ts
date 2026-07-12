@@ -1,4 +1,5 @@
 import { FRAUD_GROUP_EXPIRY_DAYS } from "@/lib/api/fraud/constants";
+import { queueReleaseHoldCommissions } from "@/lib/api/fraud/release-hold-commissions";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { subDays } from "date-fns";
@@ -12,31 +13,47 @@ const BATCH_SIZE = 250;
 // Runs once every day at 02:30:00 AM UTC (30 2 * * *)
 // POST /api/cron/cleanup/expired-fraud-groups
 export const POST = withCron(async () => {
-  // TODO: remove this after July 9th, 2026
-  // skip cron if it's before July 9th, 2026
-  if (new Date() < new Date("2026-07-09")) {
-    return logAndRespond("Skipping cron because it's before July 9th, 2026.");
-  }
-
   let expiredCount = 0;
   while (true) {
-    const { count } = await prisma.fraudEventGroup.updateMany({
+    const groupsToExpire = await prisma.fraudEventGroup.findMany({
       where: {
         status: "pending",
         lastEventAt: {
           lt: subDays(new Date(), FRAUD_GROUP_EXPIRY_DAYS),
         },
       },
+      select: {
+        id: true,
+      },
+      take: BATCH_SIZE,
+    });
+
+    if (groupsToExpire.length === 0) {
+      break;
+    }
+
+    const groupIds = groupsToExpire.map((g) => g.id);
+
+    const { count } = await prisma.fraudEventGroup.updateMany({
+      where: {
+        id: {
+          in: groupIds,
+        },
+        status: "pending",
+      },
       data: {
         status: "expired",
       },
-      limit: BATCH_SIZE,
     });
 
     expiredCount += count;
     console.log(`Expired ${count} fraud groups`);
 
-    if (count < BATCH_SIZE) {
+    if (count > 0) {
+      await queueReleaseHoldCommissions(groupIds);
+    }
+
+    if (groupsToExpire.length < BATCH_SIZE) {
       break;
     }
   }

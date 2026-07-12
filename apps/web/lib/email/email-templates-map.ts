@@ -1,7 +1,6 @@
 import BountyApproved from "@dub/email/templates/bounty-approved";
 import IdentityVerificationAnnouncement from "@dub/email/templates/broadcasts/identity-verification-announcement";
 import DubLaunchWeekDay5 from "@dub/email/templates/broadcasts/launch-week-day-5";
-import RiskCenterChangeAnnouncement from "@dub/email/templates/broadcasts/risk-center-change-announcement";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
 import ConnectPlatformsReminder from "@dub/email/templates/connect-platforms-reminder";
 import PartnerBanned from "@dub/email/templates/partner-banned";
@@ -34,5 +33,4 @@ export const EMAIL_TEMPLATES_MAP = {
   // ProgramMarketplaceAnnouncement,
   // StablecoinPayoutsAnnouncement,
   DubLaunchWeekDay5,
-  RiskCenterChangeAnnouncement,
 } as const;

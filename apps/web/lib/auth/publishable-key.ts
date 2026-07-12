@@ -30,9 +30,6 @@ export const withPublishableKey = (
       "free",
       "pro",
       "business",
-      "business plus",
-      "business max",
-      "business extra",
       "advanced",
       "enterprise",
     ],
@@ -100,7 +97,15 @@ export const withPublishableKey = (
             });
           }
 
-          if (!requiredPlan.includes(workspace.plan)) {
+          const normalizedWorkspacePlan = [
+            "business plus",
+            "business max",
+            "business extra",
+          ].includes(workspace.plan)
+            ? "business"
+            : workspace.plan;
+
+          if (!requiredPlan.includes(normalizedWorkspacePlan)) {
             throw new DubApiError({
               code: "forbidden",
               message: "Unauthorized: Need higher plan.",

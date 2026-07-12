@@ -75,9 +75,6 @@ export const DELETE = withWorkspace(
   {
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],
