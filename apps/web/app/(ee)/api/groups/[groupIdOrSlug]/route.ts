@@ -37,9 +37,6 @@ export const GET = withWorkspace(
     requiredPermissions: ["groups.read"],
     requiredPlan: [
       "business",
-      "business extra",
-      "business max",
-      "business plus",
       "advanced",
       "enterprise",
     ],
@@ -260,9 +257,6 @@ export const PATCH = withWorkspace(
     requiredPermissions: ["groups.write"],
     requiredPlan: [
       "business",
-      "business extra",
-      "business max",
-      "business plus",
       "advanced",
       "enterprise",
     ],
@@ -420,9 +414,6 @@ export const DELETE = withWorkspace(
     requiredPermissions: ["groups.write"],
     requiredPlan: [
       "business",
-      "business extra",
-      "business max",
-      "business plus",
       "advanced",
       "enterprise",
     ],

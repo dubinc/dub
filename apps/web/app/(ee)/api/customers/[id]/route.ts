@@ -41,9 +41,6 @@ export const GET = withWorkspace(
   {
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],
@@ -152,9 +149,6 @@ export const PATCH = withWorkspace(
   {
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],
@@ -189,9 +183,6 @@ export const DELETE = withWorkspace(
   {
     requiredPlan: [
       "business",
-      "business plus",
-      "business extra",
-      "business max",
       "advanced",
       "enterprise",
     ],

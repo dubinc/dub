@@ -1,5 +1,10 @@
 import { ReactNode } from "react";
 import { nFormatter } from "../../functions/nformatter";
+import {
+  getPlanLimitForPeriod,
+  getPlanPeriodSuffix,
+  PlanPeriod,
+} from "./plan-period-utils";
 import { PLANS } from "./pricing-plans";
 
 type Plan = (typeof PLANS)[number];
@@ -17,7 +22,10 @@ type HeroFeature = {
       };
 };
 
-const getLinksStandards = (plan: Plan): HeroFeature[] => {
+const getLinksStandards = (
+  plan: Plan,
+  planPeriod: PlanPeriod = "monthly",
+): HeroFeature[] => {
   return [
     // Tracked events
     {
@@ -25,7 +33,12 @@ const getLinksStandards = (plan: Plan): HeroFeature[] => {
       text:
         plan.name === "Enterprise"
           ? "Unlimited tracked events"
-          : `${nFormatter(plan.limits.clicks)} tracked events/mo`,
+          : `${nFormatter(
+              getPlanLimitForPeriod({
+                limit: plan.limits.clicks,
+                planPeriod,
+              }),
+            )} tracked events${getPlanPeriodSuffix({ planPeriod })}`,
     },
     // New links
     {
@@ -33,7 +46,12 @@ const getLinksStandards = (plan: Plan): HeroFeature[] => {
       text:
         plan.name === "Enterprise"
           ? "Unlimited new links"
-          : `${nFormatter(plan.limits.links)} new links/mo`,
+          : `${nFormatter(
+              getPlanLimitForPeriod({
+                limit: plan.limits.links,
+                planPeriod,
+              }),
+            )} new links${getPlanPeriodSuffix({ planPeriod })}`,
     },
     ...(plan.name !== "Enterprise"
       ? [
@@ -46,13 +64,21 @@ const getLinksStandards = (plan: Plan): HeroFeature[] => {
   ];
 };
 
-const getPartnersStandards = (plan: Plan): HeroFeature[] => [
+const getPartnersStandards = (
+  plan: Plan,
+  planPeriod: PlanPeriod = "monthly",
+): HeroFeature[] => [
   {
     id: "payouts",
     text:
       plan.name === "Enterprise"
         ? "Unlimited partner payouts"
-        : `$${nFormatter(plan.limits.payouts / 100)} partner payouts/mo`,
+        : `$${nFormatter(
+            getPlanLimitForPeriod({
+              limit: plan.limits.payouts,
+              planPeriod,
+            }) / 100,
+          )} partner payouts${getPlanPeriodSuffix({ planPeriod })}`,
     tooltip: {
       title:
         "Send payouts to your partners with 1-click (or automate it completely) – all across the world.",
@@ -62,12 +88,17 @@ const getPartnersStandards = (plan: Plan): HeroFeature[] => [
   },
 ];
 
-export const PRICING_PLAN_MAIN_FEATURES = {
+export const getPricingPlanMainFeatures = (
+  planPeriod: PlanPeriod = "monthly",
+) => ({
   links: {
     Pro: [
       {
         features: [
-          ...getLinksStandards(PLANS.find((p) => p.name === "Pro")!),
+          ...getLinksStandards(
+            PLANS.find((p) => p.name === "Pro")!,
+            planPeriod,
+          ),
           {
             id: "advanced",
             text: "Advanced link features",
@@ -112,7 +143,10 @@ export const PRICING_PLAN_MAIN_FEATURES = {
     Business: [
       {
         features: [
-          ...getLinksStandards(PLANS.find((p) => p.name === "Business")!),
+          ...getLinksStandards(
+            PLANS.find((p) => p.name === "Business")!,
+            planPeriod,
+          ),
           {
             id: "conversions",
             text: "Conversion tracking",
@@ -159,7 +193,10 @@ export const PRICING_PLAN_MAIN_FEATURES = {
     Advanced: [
       {
         features: [
-          ...getLinksStandards(PLANS.find((p) => p.name === "Advanced")!),
+          ...getLinksStandards(
+            PLANS.find((p) => p.name === "Advanced")!,
+            planPeriod,
+          ),
           {
             id: "api",
             text: "Elevated API rate limits",
@@ -178,7 +215,10 @@ export const PRICING_PLAN_MAIN_FEATURES = {
     Enterprise: [
       {
         features: [
-          ...getLinksStandards(PLANS.find((p) => p.name === "Enterprise")!),
+          ...getLinksStandards(
+            PLANS.find((p) => p.name === "Enterprise")!,
+            planPeriod,
+          ),
           {
             id: "sso",
             text: "SSO/SAML",
@@ -199,7 +239,10 @@ export const PRICING_PLAN_MAIN_FEATURES = {
     Business: [
       {
         features: [
-          ...getPartnersStandards(PLANS.find((p) => p.name === "Business")!),
+          ...getPartnersStandards(
+            PLANS.find((p) => p.name === "Business")!,
+            planPeriod,
+          ),
           {
             id: "basicrewards",
             text: "Basic reward structures",
@@ -270,7 +313,10 @@ export const PRICING_PLAN_MAIN_FEATURES = {
     Advanced: [
       {
         features: [
-          ...getPartnersStandards(PLANS.find((p) => p.name === "Advanced")!),
+          ...getPartnersStandards(
+            PLANS.find((p) => p.name === "Advanced")!,
+            planPeriod,
+          ),
           {
             id: "flexiblerewards",
             text: "Advanced reward structures",
@@ -339,7 +385,10 @@ export const PRICING_PLAN_MAIN_FEATURES = {
     Enterprise: [
       {
         features: [
-          ...getPartnersStandards(PLANS.find((p) => p.name === "Enterprise")!),
+          ...getPartnersStandards(
+            PLANS.find((p) => p.name === "Enterprise")!,
+            planPeriod,
+          ),
           {
             id: "volume",
             text: "Volume discounts",
@@ -392,4 +441,4 @@ export const PRICING_PLAN_MAIN_FEATURES = {
       },
     ],
   },
-};
+});

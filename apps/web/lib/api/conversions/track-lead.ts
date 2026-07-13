@@ -304,6 +304,9 @@ export const trackLead = async ({
                   country: customer.country,
                   source,
                 },
+                lead: {
+                  ...(metadata != null && { metadata }),
+                },
               },
               clickEvent: {
                 url: clickData.url,
