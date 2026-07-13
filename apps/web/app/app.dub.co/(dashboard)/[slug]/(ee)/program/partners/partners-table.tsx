@@ -2,7 +2,7 @@
 
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
-import { canDeletePartner } from "@/lib/partners/utils";
+import { getDeletePartnerDisabledTooltip } from "@/lib/partners/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -731,7 +731,9 @@ function RowMenuButton({
       partner: row.original,
     });
 
-  const canDelete = canDeletePartner(row.original);
+  const deletePartnerDisabledTooltip = getDeletePartnerDisabledTooltip(
+    row.original,
+  );
 
   const { executeAsync: resendInvite, isPending: isResendingInvite } =
     useAction(resendProgramInviteAction, {
@@ -913,17 +915,16 @@ function RowMenuButton({
                       />
                     )}
 
-                    {canDelete && (
-                      <MenuItem
-                        icon={Trash}
-                        label="Permanently delete"
-                        variant="danger"
-                        onSelect={() => {
-                          setShowDeletePartnerModal(true);
-                          setIsOpen(false);
-                        }}
-                      />
-                    )}
+                    <MenuItem
+                      icon={Trash}
+                      label="Permanently delete"
+                      variant="danger"
+                      onSelect={() => {
+                        setShowDeletePartnerModal(true);
+                        setIsOpen(false);
+                      }}
+                      disabledTooltip={deletePartnerDisabledTooltip}
+                    />
                   </Command.Group>
                 </>
               )}
@@ -1101,25 +1102,29 @@ function MenuItem({
     },
   };
 
-  const { text, icon } = variantStyles[variant];
+  const { text, icon } = disabledTooltip
+    ? { text: "text-content-disabled", icon: "text-content-disabled" }
+    : variantStyles[variant];
 
   return (
     <DynamicTooltipWrapper
       tooltipProps={disabledTooltip ? { content: disabledTooltip } : undefined}
     >
-      <Command.Item
-        className={cn(
-          "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
-          disabledTooltip
-            ? "cursor-not-allowed opacity-75"
-            : "data-[selected=true]:bg-neutral-100",
-          text,
-        )}
-        onSelect={disabledTooltip ? undefined : onSelect}
-      >
-        <IconComp className={cn("size-4 shrink-0", icon)} />
-        {label}
-      </Command.Item>
+      <div>
+        <Command.Item
+          className={cn(
+            "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
+            disabledTooltip
+              ? "cursor-not-allowed opacity-50"
+              : "data-[selected=true]:bg-neutral-100",
+            text,
+          )}
+          onSelect={disabledTooltip ? undefined : onSelect}
+        >
+          <IconComp className={cn("size-4 shrink-0", icon)} />
+          {label}
+        </Command.Item>
+      </div>
     </DynamicTooltipWrapper>
   );
 }
