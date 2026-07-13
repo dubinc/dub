@@ -235,7 +235,7 @@ export const updateUsage = async () => {
         (email) => email.type === "firstUsageLimitEmail",
       );
       if (!sentFirstUsageLimitEmail) {
-        sendWorkspaceLimitAlert({
+        await sendWorkspaceLimitAlert({
           emails,
           workspace: workspace as unknown as WorkspaceProps,
           type: "firstUsageLimitEmail",

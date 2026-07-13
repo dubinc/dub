@@ -59,6 +59,21 @@ export const getSlackWebhooks = async (workspaceIds: string[]) => {
   return slackWebhookByWorkspace;
 };
 
+const getUpgradePlanButton = (billingUrl: string) => ({
+  type: "actions",
+  elements: [
+    {
+      type: "button",
+      text: {
+        type: "plain_text",
+        text: "Upgrade your plan",
+      },
+      url: billingUrl,
+      style: "primary",
+    },
+  ],
+});
+
 const formatLimitSlackMessage = ({
   workspace,
   type,
@@ -99,15 +114,7 @@ const formatLimitSlackMessage = ({
             },
           ],
         },
-        {
-          type: "context",
-          elements: [
-            {
-              type: "mrkdwn",
-              text: `<${billingUrl}|Upgrade your plan>`,
-            },
-          ],
-        },
+        getUpgradePlanButton(billingUrl),
       ],
     };
   }
@@ -145,20 +152,12 @@ const formatLimitSlackMessage = ({
           },
         ],
       },
-      {
-        type: "context",
-        elements: [
-          {
-            type: "mrkdwn",
-            text: `<${billingUrl}|Upgrade your plan>`,
-          },
-        ],
-      },
+      getUpgradePlanButton(billingUrl),
     ],
   };
 };
 
-const sendLimitSlackAlert = async ({
+const notifyViaSlack = async ({
   workspace,
   type,
   slackWebhookUrl,
@@ -174,6 +173,7 @@ const sendLimitSlackAlert = async ({
         "Content-Type": "application/json",
       },
       body: JSON.stringify(formatLimitSlackMessage({ workspace, type })),
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (!response.ok) {
@@ -234,7 +234,7 @@ export const sendWorkspaceLimitAlert = async ({
 
     ...(slackWebhookUrl
       ? [
-          sendLimitSlackAlert({
+          notifyViaSlack({
             workspace,
             type,
             slackWebhookUrl,
