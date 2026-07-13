@@ -1,5 +1,8 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { sendLimitEmail } from "@/lib/cron/send-limit-email";
+import {
+  getSlackWebhooks,
+  sendWorkspaceLimitAlert,
+} from "@/lib/cron/send-limit-alert";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
@@ -186,49 +189,54 @@ const processWorkspaceLinksUsageBatch = () =>
       let notificationsSent = 0;
 
       if (workspaceIds.length > 0) {
-        const sentEmails = await prisma.sentEmail.findMany({
-          where: {
-            projectId: {
-              in: workspaceIds,
-            },
-            type: {
-              in: ["firstLinksLimitEmail", "secondLinksLimitEmail"],
-            },
-          },
-          select: {
-            projectId: true,
-            type: true,
-          },
-        });
-
-        const sentEmailSet = new Set(
-          sentEmails.map((email) => `${email.projectId}:${email.type}`),
-        );
-
-        const users = await prisma.user.findMany({
-          where: {
-            projects: {
-              some: {
-                projectId: {
-                  in: workspaceIds,
-                },
-              },
-            },
-          },
-          select: {
-            email: true,
-            projects: {
+        const [sentEmails, users, slackWebhookUrlByWorkspace] =
+          await Promise.all([
+            prisma.sentEmail.findMany({
               where: {
                 projectId: {
                   in: workspaceIds,
                 },
+                type: {
+                  in: ["firstLinksLimitEmail", "secondLinksLimitEmail"],
+                },
               },
               select: {
                 projectId: true,
+                type: true,
               },
-            },
-          },
-        });
+            }),
+
+            prisma.user.findMany({
+              where: {
+                projects: {
+                  some: {
+                    projectId: {
+                      in: workspaceIds,
+                    },
+                  },
+                },
+              },
+              select: {
+                email: true,
+                projects: {
+                  where: {
+                    projectId: {
+                      in: workspaceIds,
+                    },
+                  },
+                  select: {
+                    projectId: true,
+                  },
+                },
+              },
+            }),
+
+            getSlackWebhooks(workspaceIds),
+          ]);
+
+        const sentEmailSet = new Set(
+          sentEmails.map((email) => `${email.projectId}:${email.type}`),
+        );
 
         const emailsByWorkspace = new Map<string, string[]>();
         for (const user of users) {
@@ -262,10 +270,11 @@ const processWorkspaceLinksUsageBatch = () =>
               }
 
               await Promise.allSettled([
-                sendLimitEmail({
+                sendWorkspaceLimitAlert({
                   emails,
                   workspace: workspace as WorkspaceProps,
                   type: emailType,
+                  slackWebhookUrl: slackWebhookUrlByWorkspace.get(workspace.id),
                 }),
                 log({
                   message: `*${workspace.slug}* has used ${percentage.toString()}% of its links limit for the month.`,
