@@ -1,7 +1,6 @@
 import { extractEmailDomain } from "./email/extract-email-domain";
 
 const GENERIC_EMAIL_DOMAINS = [
-  "gmail.com",
   "googlemail.com",
   "ymail.com",
   "icloud.com",
@@ -58,6 +57,16 @@ const GENERIC_EMAIL_DOMAINS = [
   "bluewin.ch",
   "web-library.net",
   "8shield.net",
+  "tormails.com",
+  "sugtbt.com",
+  "kakao.com",
+  "luxudata.com",
+  "homephit.com",
+  "fexpost.com",
+  "rambler.ru",
+  "charter.net",
+  "mailbox.in.ua",
+  "hi2.in",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [
@@ -69,6 +78,8 @@ const GENERIC_EMAIL_DOMAIN_PREFIXES = [
   "live.",
   "student.",
   "passmail.",
+  "gmail.",
+  "fexbox.",
 ];
 
 const GENERIC_EMAIL_DOMAIN_SUFFIXES = [
@@ -83,6 +94,9 @@ const GENERIC_EMAIL_DOMAIN_SUFFIXES = [
   ".click",
   ".digital",
   ".pro",
+  ".lol",
+  ".monster",
+  ".buzz",
 ];
 
 export const isGenericEmail = (email: string) => {
