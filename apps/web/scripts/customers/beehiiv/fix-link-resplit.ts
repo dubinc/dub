@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { retallyPayoutsAmount } from "@/lib/payouts/retally-payouts-amount";
 import { prisma } from "@/lib/prisma";
 import { chunk, groupBy } from "@dub/utils";
-import { Link } from "@prisma/client";
+import { Link, Prisma } from "@prisma/client";
 import "dotenv-flow/config";
 import * as z from "zod/v4";
 import { bulkCreateLinks } from "../../../lib/api/links/bulk-create-links";
@@ -23,9 +23,8 @@ import { recordSaleWithTimestamp } from "../../../lib/tinybird/record-sale";
 // Tinybird click/lead/sale events are migrated (or deleted, when unattributed) inline. All affected
 // links are handled in a single run – just list their IDs in SOURCE_LINK_IDS.
 
+const DRY_RUN = true;
 const PROGRAM_ID = "prog_xxx";
-
-// the links to re-split (filled with the affected link IDs)
 const SOURCE_LINK_IDS: string[] = [
   // "link_xxx",
 ];
@@ -213,13 +212,6 @@ async function deleteCustomerTbEvents({
   }
 }
 
-async function main() {
-  for (const sourceLinkId of SOURCE_LINK_IDS) {
-    console.log(`\n=== Re-splitting link ${sourceLinkId} ===`);
-    await resplitLink(sourceLinkId);
-  }
-}
-
 // classify a customer by reading the true affiliate from their imported sale events' metadata:
 //   - "no-sale": no sale event to derive from -> leave in place
 //   - "no-metadata": sale(s) exist but none carry parseable import metadata (likely a live-tracked
@@ -298,6 +290,564 @@ async function resolvePartnerId(
     partnerIdCache.set(cacheKey, partnerId);
   }
   return partnerId;
+}
+
+async function moveGroup({
+  sourceLink,
+  group,
+}: {
+  sourceLink: Link;
+  group: { partnerId: string; customerIds: string[] };
+}) {
+  // aggregate the group's current stats before moving anything (for the link stat resync)
+  const stats = await prisma.customer.aggregate({
+    where: {
+      id: { in: group.customerIds },
+      linkId: sourceLink.id,
+    },
+    _count: { id: true },
+    _sum: { sales: true, saleAmount: true },
+  });
+  const movedCount = stats._count.id;
+  const movedSales = stats._sum.sales ?? 0;
+  const movedSaleAmount = stats._sum.saleAmount ?? BigInt(0);
+
+  if (movedCount === 0) {
+    console.log(
+      `No customers to move for partner ${group.partnerId} on link ${sourceLink.id}`,
+    );
+    return;
+  }
+
+  // create a fresh dedicated link for the true affiliate
+  const newLinkKey = `${sourceLink.key}-${group.partnerId}`;
+  let newLink: { id: string; key: string };
+  if (DRY_RUN) {
+    newLink = { id: `link_dryrun_${group.partnerId}`, key: newLinkKey };
+    console.log(
+      `[dry] would create link "${newLinkKey}" for partner ${group.partnerId}`,
+    );
+  } else {
+    const [created] = await bulkCreateLinks({
+      links: [
+        {
+          domain: sourceLink.domain!,
+          key: newLinkKey,
+          url: sourceLink.url!,
+          trackConversion: true,
+          programId: PROGRAM_ID,
+          partnerId: group.partnerId,
+          folderId: sourceLink.folderId,
+          userId: sourceLink.userId,
+          projectId: sourceLink.projectId,
+          comments: `Re-split from source link ${sourceLink.id}`,
+        },
+      ],
+      skipRedisCache: true,
+    });
+    if (!created) {
+      console.error(
+        `Failed to create link for partner ${group.partnerId}, skipping group`,
+      );
+      return;
+    }
+    newLink = created;
+    console.log(
+      `Created link ${created.id} (${created.shortLink}) for partner ${group.partnerId}`,
+    );
+  }
+
+  // move the customers to the new link / partner
+  if (DRY_RUN) {
+    console.log(
+      `[dry] would move ${movedCount} customers (sales ${movedSales}, saleAmount ${movedSaleAmount}) to partner ${group.partnerId} / link ${newLink.key}`,
+    );
+  } else {
+    const updatedCustomers = await prisma.customer.updateMany({
+      where: {
+        id: { in: group.customerIds },
+        linkId: sourceLink.id,
+      },
+      data: {
+        linkId: newLink.id,
+        partnerId: group.partnerId,
+        programId: PROGRAM_ID,
+      },
+    });
+    console.log(
+      `Updated ${updatedCustomers.count} customers to partner ${group.partnerId} / link ${newLink.id}`,
+    );
+  }
+
+  // update non processed and non paid commissions (but include imported paid commissions) directly
+  const nonProcessedWhere: Prisma.CommissionWhereInput = {
+    customerId: { in: group.customerIds },
+    OR: [
+      { status: { in: ["pending", "canceled"] } },
+      { status: "paid", payoutId: null },
+    ],
+  };
+  if (DRY_RUN) {
+    const count = await prisma.commission.count({ where: nonProcessedWhere });
+    console.log(
+      `[dry] would update ${count} non-processed commissions for partner ${group.partnerId}`,
+    );
+  } else {
+    const updatedCommissions = await prisma.commission.updateMany({
+      where: nonProcessedWhere,
+      data: {
+        linkId: newLink.id,
+        partnerId: group.partnerId,
+      },
+    });
+    console.log(
+      `Updated ${updatedCommissions.count} non-processed commissions for partner ${group.partnerId}`,
+    );
+  }
+
+  // update processed and paid commissions separately cause they're tied to a payout
+  const processedAndPaidCommissions = await prisma.commission.findMany({
+    where: {
+      customerId: { in: group.customerIds },
+      linkId: sourceLink.id,
+      status: { in: ["processed", "paid"] },
+    },
+  });
+  console.log(
+    `Found ${processedAndPaidCommissions.length} processed and paid commissions for partner ${group.partnerId}`,
+  );
+
+  if (DRY_RUN) {
+    console.log(
+      `[dry] would move ${processedAndPaidCommissions.length} processed/paid commissions to partner ${group.partnerId} (reset payout, status -> pending) and delete their activity logs`,
+    );
+  } else {
+    const updatedProcessedAndPaidCommissions =
+      await prisma.commission.updateMany({
+        where: {
+          id: {
+            in: processedAndPaidCommissions.map((commission) => commission.id),
+          },
+        },
+        data: {
+          partnerId: group.partnerId,
+          payoutId: null,
+          status: "pending",
+        },
+      });
+    console.log(
+      `Updated ${updatedProcessedAndPaidCommissions.count} processed and paid commissions for partner ${group.partnerId}`,
+    );
+
+    // delete activity logs cause they'll be re-added to a new payout
+    const deletedActivityLogs = await prisma.activityLog.deleteMany({
+      where: {
+        resourceType: "commission",
+        resourceId: {
+          in: processedAndPaidCommissions.map((commission) => commission.id),
+        },
+      },
+    });
+    console.log(
+      `Deleted ${deletedActivityLogs.count} activity logs for commissions`,
+    );
+  }
+
+  // the source link's partner was credited + paid for these customers, so for any commissions
+  // already paid via Dub we create a dummy commission to represent the overpayment + a clawback to
+  // balance the books
+  const paidCommissionsViaDub = processedAndPaidCommissions.filter(
+    (commission) =>
+      commission.status === "paid" && commission.payoutId !== null,
+  );
+  const groupedByPayoutId = groupBy(
+    paidCommissionsViaDub,
+    (commission) => commission.payoutId!,
+  );
+
+  for (const payoutId of Object.keys(groupedByPayoutId)) {
+    const paidCommissionsTotal = groupedByPayoutId[payoutId].reduce(
+      (acc, commission) => acc + commission.earnings,
+      0,
+    );
+    console.log(
+      `Total paid commissions for payout ${payoutId}: ${paidCommissionsTotal}`,
+    );
+
+    if (DRY_RUN) {
+      console.log(
+        `[dry] would create overpayment + clawback of ${paidCommissionsTotal} for partner ${sourceLink.partnerId} (payout ${payoutId})`,
+      );
+      continue;
+    }
+
+    const createdCommission = await prisma.commission.create({
+      data: {
+        id: createId({ prefix: "cm_" }),
+        type: "custom",
+        partnerId: sourceLink.partnerId!,
+        programId: PROGRAM_ID,
+        description: `Overpayment for payout ${payoutId}`,
+        earnings: paidCommissionsTotal,
+        payoutId,
+        amount: 0,
+        quantity: 1,
+        userId: sourceLink.userId,
+        status: "paid",
+      },
+    });
+    console.log(
+      `Created dummy commission ${createdCommission.id} for overpayment of ${paidCommissionsTotal} for payout ${payoutId}`,
+    );
+
+    const createdClawback = await prisma.commission.create({
+      data: {
+        id: createId({ prefix: "cm_" }),
+        type: "custom",
+        partnerId: sourceLink.partnerId!,
+        programId: PROGRAM_ID,
+        description: `Clawback for commission "${createdCommission.id}" (re-split of source link ${sourceLink.id})`,
+        earnings: -paidCommissionsTotal,
+        amount: 0,
+        quantity: 1,
+        userId: sourceLink.userId,
+      },
+    });
+    console.log(
+      `Created clawback ${createdClawback.id} for ${paidCommissionsTotal} paid commissions for partner ${sourceLink.partnerId}`,
+    );
+  }
+
+  // retally old payout ID values for processed commissions
+  const processedCommissions = processedAndPaidCommissions.filter(
+    (commission) => commission.status === "processed",
+  );
+  const payoutIdsToRetally = [
+    ...new Set(
+      processedCommissions
+        .map((commission) => commission.payoutId!)
+        .filter((payoutId): payoutId is string => Boolean(payoutId)),
+    ),
+  ];
+
+  if (DRY_RUN) {
+    console.log(
+      `[dry] would retally ${payoutIdsToRetally.length} payout(s): ${payoutIdsToRetally.join(", ")}`,
+    );
+  } else {
+    await retallyPayoutsAmount(payoutIdsToRetally);
+  }
+
+  // resync denormalized link counters: move the group's stats from source link to the new link
+  if (DRY_RUN) {
+    console.log(
+      `[dry] would decrement source link ${sourceLink.id} and increment new link "${newLink.key}" by ${movedCount} clicks/leads/conversions, ${movedSales} sales, ${movedSaleAmount} saleAmount`,
+    );
+  } else {
+    const updatedSourceLink = await prisma.link.update({
+      where: { id: sourceLink.id },
+      data: {
+        clicks: { decrement: movedCount },
+        leads: { decrement: movedCount },
+        conversions: { decrement: movedCount },
+        sales: { decrement: movedSales },
+        saleAmount: { decrement: movedSaleAmount },
+      },
+    });
+    console.log(
+      `Decremented source link ${sourceLink.id}: ${updatedSourceLink.clicks} clicks, ${updatedSourceLink.leads} leads, ${updatedSourceLink.conversions} conversions, ${updatedSourceLink.sales} sales, ${updatedSourceLink.saleAmount} saleAmount`,
+    );
+
+    const updatedNewLink = await prisma.link.update({
+      where: { id: newLink.id },
+      data: {
+        clicks: { increment: movedCount },
+        leads: { increment: movedCount },
+        conversions: { increment: movedCount },
+        sales: { increment: movedSales },
+        saleAmount: { increment: movedSaleAmount },
+      },
+    });
+    console.log(
+      `Incremented new link ${newLink.id}: ${updatedNewLink.clicks} clicks, ${updatedNewLink.leads} leads, ${updatedNewLink.conversions} conversions, ${updatedNewLink.sales} sales, ${updatedNewLink.saleAmount} saleAmount`,
+    );
+  }
+
+  if (DRY_RUN) {
+    console.log(
+      `[dry] would sync total commissions for partners ${sourceLink.partnerId} and ${group.partnerId}`,
+    );
+  } else {
+    await syncTotalCommissions({
+      partnerId: sourceLink.partnerId!,
+      programId: PROGRAM_ID,
+    });
+    await syncTotalCommissions({
+      partnerId: group.partnerId,
+      programId: PROGRAM_ID,
+    });
+  }
+
+  // migrate the moved customers' tinybird events onto the new link
+  if (DRY_RUN) {
+    console.log(
+      `[dry] would migrate tinybird events for ${group.customerIds.length} customers to link "${newLink.key}"`,
+    );
+  } else {
+    for (const customerId of group.customerIds) {
+      await moveCustomerTbEvents({
+        customerId,
+        oldLinkId: sourceLink.id,
+        newLink,
+      });
+    }
+    console.log(
+      `Migrated tinybird events for ${group.customerIds.length} customers to link ${newLink.id}`,
+    );
+  }
+}
+
+// these customers had no referring affiliate, so nobody earns for them – detach the customers,
+// cancel their commissions, and claw back any overpayment from the source link's partner
+async function unattributeCustomers({
+  sourceLink,
+  unattributeCustomerIds,
+}: {
+  sourceLink: Link;
+  unattributeCustomerIds: string[];
+}) {
+  const stats = await prisma.customer.aggregate({
+    where: {
+      id: { in: unattributeCustomerIds },
+      linkId: sourceLink.id,
+    },
+    _count: { id: true },
+    _sum: { sales: true, saleAmount: true },
+  });
+  const detachedCount = stats._count.id;
+  const detachedSales = stats._sum.sales ?? 0;
+  const detachedSaleAmount = stats._sum.saleAmount ?? BigInt(0);
+
+  if (detachedCount === 0) {
+    console.log(`No customers to unattribute on link ${sourceLink.id}`);
+    return;
+  }
+
+  // cancel non processed and non paid commissions (including imported paid) – nobody earns these
+  const nonProcessedWhere: Prisma.CommissionWhereInput = {
+    customerId: { in: unattributeCustomerIds },
+    OR: [
+      { status: { in: ["pending", "canceled"] } },
+      { status: "paid", payoutId: null },
+    ],
+  };
+  if (DRY_RUN) {
+    const count = await prisma.commission.count({ where: nonProcessedWhere });
+    console.log(
+      `[dry] would cancel ${count} non-processed commissions for unattributed customers`,
+    );
+  } else {
+    const canceledCommissions = await prisma.commission.updateMany({
+      where: nonProcessedWhere,
+      data: {
+        status: "canceled",
+      },
+    });
+    console.log(
+      `Canceled ${canceledCommissions.count} non-processed commissions for unattributed customers`,
+    );
+  }
+
+  // processed and paid commissions are tied to a payout, handle separately
+  const processedAndPaidCommissions = await prisma.commission.findMany({
+    where: {
+      customerId: { in: unattributeCustomerIds },
+      linkId: sourceLink.id,
+      status: { in: ["processed", "paid"] },
+    },
+  });
+  console.log(
+    `Found ${processedAndPaidCommissions.length} processed and paid commissions for unattributed customers`,
+  );
+
+  if (DRY_RUN) {
+    console.log(
+      `[dry] would cancel ${processedAndPaidCommissions.length} processed/paid commissions (reset payout) and delete their activity logs`,
+    );
+  } else {
+    const updatedProcessedAndPaidCommissions =
+      await prisma.commission.updateMany({
+        where: {
+          id: {
+            in: processedAndPaidCommissions.map((commission) => commission.id),
+          },
+        },
+        data: {
+          payoutId: null,
+          status: "canceled",
+        },
+      });
+    console.log(
+      `Canceled ${updatedProcessedAndPaidCommissions.count} processed and paid commissions for unattributed customers`,
+    );
+
+    // delete activity logs cause the commissions are no longer tied to a payout
+    const deletedActivityLogs = await prisma.activityLog.deleteMany({
+      where: {
+        resourceType: "commission",
+        resourceId: {
+          in: processedAndPaidCommissions.map((commission) => commission.id),
+        },
+      },
+    });
+    console.log(
+      `Deleted ${deletedActivityLogs.count} activity logs for commissions`,
+    );
+  }
+
+  // for any commissions already paid via Dub, create a dummy commission to represent the overpayment
+  // + a clawback to balance the source partner's books
+  const paidCommissionsViaDub = processedAndPaidCommissions.filter(
+    (commission) =>
+      commission.status === "paid" && commission.payoutId !== null,
+  );
+  const groupedByPayoutId = groupBy(
+    paidCommissionsViaDub,
+    (commission) => commission.payoutId!,
+  );
+
+  for (const payoutId of Object.keys(groupedByPayoutId)) {
+    const paidCommissionsTotal = groupedByPayoutId[payoutId].reduce(
+      (acc, commission) => acc + commission.earnings,
+      0,
+    );
+    console.log(
+      `Total paid commissions for payout ${payoutId}: ${paidCommissionsTotal}`,
+    );
+
+    if (DRY_RUN) {
+      console.log(
+        `[dry] would create overpayment + clawback of ${paidCommissionsTotal} for partner ${sourceLink.partnerId} (payout ${payoutId})`,
+      );
+      continue;
+    }
+
+    const createdCommission = await prisma.commission.create({
+      data: {
+        id: createId({ prefix: "cm_" }),
+        type: "custom",
+        partnerId: sourceLink.partnerId!,
+        programId: PROGRAM_ID,
+        description: `Overpayment for payout ${payoutId}`,
+        earnings: paidCommissionsTotal,
+        payoutId,
+        amount: 0,
+        quantity: 1,
+        userId: sourceLink.userId,
+        status: "paid",
+      },
+    });
+    console.log(
+      `Created dummy commission ${createdCommission.id} for overpayment of ${paidCommissionsTotal} for payout ${payoutId}`,
+    );
+
+    const createdClawback = await prisma.commission.create({
+      data: {
+        id: createId({ prefix: "cm_" }),
+        type: "custom",
+        partnerId: sourceLink.partnerId!,
+        programId: PROGRAM_ID,
+        description: `Clawback for commission "${createdCommission.id}" (unattributed sales on source link ${sourceLink.id})`,
+        earnings: -paidCommissionsTotal,
+        amount: 0,
+        quantity: 1,
+        userId: sourceLink.userId,
+      },
+    });
+    console.log(
+      `Created clawback ${createdClawback.id} for ${paidCommissionsTotal} paid commissions for partner ${sourceLink.partnerId}`,
+    );
+  }
+
+  // retally old payout ID values for processed commissions
+  const processedCommissions = processedAndPaidCommissions.filter(
+    (commission) => commission.status === "processed",
+  );
+  const payoutIdsToRetally = [
+    ...new Set(
+      processedCommissions
+        .map((commission) => commission.payoutId!)
+        .filter((payoutId): payoutId is string => Boolean(payoutId)),
+    ),
+  ];
+
+  if (DRY_RUN) {
+    console.log(
+      `[dry] would retally ${payoutIdsToRetally.length} payout(s): ${payoutIdsToRetally.join(", ")}`,
+    );
+  } else {
+    await retallyPayoutsAmount(payoutIdsToRetally);
+  }
+
+  // fully detach the customers – they belong to no partner/program/link
+  if (DRY_RUN) {
+    console.log(
+      `[dry] would detach ${detachedCount} customers and decrement source link ${sourceLink.id} by ${detachedCount} clicks/leads/conversions, ${detachedSales} sales, ${detachedSaleAmount} saleAmount`,
+    );
+  } else {
+    const updatedCustomers = await prisma.customer.updateMany({
+      where: {
+        id: { in: unattributeCustomerIds },
+        linkId: sourceLink.id,
+      },
+      data: {
+        linkId: null,
+        partnerId: null,
+        programId: null,
+      },
+    });
+    console.log(`Detached ${updatedCustomers.count} customers`);
+
+    // resync denormalized link counters: remove the detached customers' stats from the source link
+    const updatedSourceLink = await prisma.link.update({
+      where: { id: sourceLink.id },
+      data: {
+        clicks: { decrement: detachedCount },
+        leads: { decrement: detachedCount },
+        conversions: { decrement: detachedCount },
+        sales: { decrement: detachedSales },
+        saleAmount: { decrement: detachedSaleAmount },
+      },
+    });
+    console.log(
+      `Decremented source link ${sourceLink.id}: ${updatedSourceLink.clicks} clicks, ${updatedSourceLink.leads} leads, ${updatedSourceLink.conversions} conversions, ${updatedSourceLink.sales} sales, ${updatedSourceLink.saleAmount} saleAmount`,
+    );
+  }
+
+  if (DRY_RUN) {
+    console.log(
+      `[dry] would sync total commissions for partner ${sourceLink.partnerId}`,
+    );
+  } else {
+    await syncTotalCommissions({
+      partnerId: sourceLink.partnerId!,
+      programId: PROGRAM_ID,
+    });
+  }
+
+  // delete the detached customers' tinybird events on the source link
+  if (DRY_RUN) {
+    console.log(
+      `[dry] would delete tinybird events for ${unattributeCustomerIds.length} unattributed customers on link ${sourceLink.id}`,
+    );
+  } else {
+    for (const customerId of unattributeCustomerIds) {
+      await deleteCustomerTbEvents({ customerId, oldLinkId: sourceLink.id });
+    }
+    console.log(
+      `Deleted tinybird events for ${unattributeCustomerIds.length} unattributed customers`,
+    );
+  }
 }
 
 async function resplitLink(sourceLinkId: string) {
@@ -397,458 +947,16 @@ async function resplitLink(sourceLinkId: string) {
   }
 }
 
-async function moveGroup({
-  sourceLink,
-  group,
-}: {
-  sourceLink: Link;
-  group: { partnerId: string; customerIds: string[] };
-}) {
-  // aggregate the group's current stats before moving anything (for the link stat resync)
-  const stats = await prisma.customer.aggregate({
-    where: {
-      id: { in: group.customerIds },
-      linkId: sourceLink.id,
-    },
-    _count: { id: true },
-    _sum: { sales: true, saleAmount: true },
-  });
-  const movedCount = stats._count.id;
-  const movedSales = stats._sum.sales ?? 0;
-  const movedSaleAmount = stats._sum.saleAmount ?? BigInt(0);
-
-  if (movedCount === 0) {
-    console.log(
-      `No customers to move for partner ${group.partnerId} on link ${sourceLink.id}`,
-    );
-    return;
+async function main() {
+  console.log(
+    DRY_RUN
+      ? "DRY RUN – no changes will be written (set DRY_RUN = false to apply)"
+      : "LIVE RUN – changes will be written",
+  );
+  for (const sourceLinkId of SOURCE_LINK_IDS) {
+    console.log(`\n=== Re-splitting link ${sourceLinkId} ===`);
+    await resplitLink(sourceLinkId);
   }
-
-  // create a fresh dedicated link for the true affiliate
-  const [newLink] = await bulkCreateLinks({
-    links: [
-      {
-        domain: sourceLink.domain!,
-        key: `${sourceLink.key}-${group.partnerId}`,
-        url: sourceLink.url!,
-        trackConversion: true,
-        programId: PROGRAM_ID,
-        partnerId: group.partnerId,
-        folderId: sourceLink.folderId,
-        userId: sourceLink.userId,
-        projectId: sourceLink.projectId,
-        comments: `Re-split from source link ${sourceLink.id}`,
-      },
-    ],
-    skipRedisCache: true,
-  });
-  if (!newLink) {
-    console.error(
-      `Failed to create link for partner ${group.partnerId}, skipping group`,
-    );
-    return;
-  }
-  console.log(
-    `Created link ${newLink.id} (${newLink.shortLink}) for partner ${group.partnerId}`,
-  );
-
-  // move the customers to the new link / partner
-  const updatedCustomers = await prisma.customer.updateMany({
-    where: {
-      id: { in: group.customerIds },
-      linkId: sourceLink.id,
-    },
-    data: {
-      linkId: newLink.id,
-      partnerId: group.partnerId,
-      programId: PROGRAM_ID,
-    },
-  });
-  console.log(
-    `Updated ${updatedCustomers.count} customers to partner ${group.partnerId} / link ${newLink.id}`,
-  );
-
-  // update non processed and non paid commissions (but include imported paid commissions) directly
-  const updatedCommissions = await prisma.commission.updateMany({
-    where: {
-      customerId: { in: group.customerIds },
-      OR: [
-        { status: { in: ["pending", "canceled"] } },
-        { status: "paid", payoutId: null },
-      ],
-    },
-    data: {
-      linkId: newLink.id,
-      partnerId: group.partnerId,
-    },
-  });
-  console.log(
-    `Updated ${updatedCommissions.count} non-processed commissions for partner ${group.partnerId}`,
-  );
-
-  // update processed and paid commissions separately cause they're tied to a payout
-  const processedAndPaidCommissions = await prisma.commission.findMany({
-    where: {
-      customerId: { in: group.customerIds },
-      linkId: sourceLink.id,
-      status: { in: ["processed", "paid"] },
-    },
-  });
-  console.log(
-    `Found ${processedAndPaidCommissions.length} processed and paid commissions for partner ${group.partnerId}`,
-  );
-
-  const updatedProcessedAndPaidCommissions = await prisma.commission.updateMany(
-    {
-      where: {
-        id: {
-          in: processedAndPaidCommissions.map((commission) => commission.id),
-        },
-      },
-      data: {
-        partnerId: group.partnerId,
-        payoutId: null,
-        status: "pending",
-      },
-    },
-  );
-  console.log(
-    `Updated ${updatedProcessedAndPaidCommissions.count} processed and paid commissions for partner ${group.partnerId}`,
-  );
-
-  // delete activity logs cause they'll be re-added to a new payout
-  const deletedActivityLogs = await prisma.activityLog.deleteMany({
-    where: {
-      resourceType: "commission",
-      resourceId: {
-        in: processedAndPaidCommissions.map((commission) => commission.id),
-      },
-    },
-  });
-  console.log(
-    `Deleted ${deletedActivityLogs.count} activity logs for commissions`,
-  );
-
-  // the source link's partner was credited + paid for these customers, so for any commissions
-  // already paid via Dub we create a dummy commission to represent the overpayment + a clawback to
-  // balance the books
-  const paidCommissionsViaDub = processedAndPaidCommissions.filter(
-    (commission) =>
-      commission.status === "paid" && commission.payoutId !== null,
-  );
-  const groupedByPayoutId = groupBy(
-    paidCommissionsViaDub,
-    (commission) => commission.payoutId!,
-  );
-
-  for (const payoutId of Object.keys(groupedByPayoutId)) {
-    const paidCommissionsTotal = groupedByPayoutId[payoutId].reduce(
-      (acc, commission) => acc + commission.earnings,
-      0,
-    );
-    console.log(
-      `Total paid commissions for payout ${payoutId}: ${paidCommissionsTotal}`,
-    );
-
-    const createdCommission = await prisma.commission.create({
-      data: {
-        id: createId({ prefix: "cm_" }),
-        type: "custom",
-        partnerId: sourceLink.partnerId!,
-        programId: PROGRAM_ID,
-        description: `Overpayment for payout ${payoutId}`,
-        earnings: paidCommissionsTotal,
-        payoutId,
-        amount: 0,
-        quantity: 1,
-        userId: sourceLink.userId,
-        status: "paid",
-      },
-    });
-    console.log(
-      `Created dummy commission ${createdCommission.id} for overpayment of ${paidCommissionsTotal} for payout ${payoutId}`,
-    );
-
-    const createdClawback = await prisma.commission.create({
-      data: {
-        id: createId({ prefix: "cm_" }),
-        type: "custom",
-        partnerId: sourceLink.partnerId!,
-        programId: PROGRAM_ID,
-        description: `Clawback for commission "${createdCommission.id}" (re-split of source link ${sourceLink.id})`,
-        earnings: -paidCommissionsTotal,
-        amount: 0,
-        quantity: 1,
-        userId: sourceLink.userId,
-      },
-    });
-    console.log(
-      `Created clawback ${createdClawback.id} for ${paidCommissionsTotal} paid commissions for partner ${sourceLink.partnerId}`,
-    );
-  }
-
-  // retally old payout ID values for processed commissions
-  const processedCommissions = processedAndPaidCommissions.filter(
-    (commission) => commission.status === "processed",
-  );
-  const payoutIdsToRetally = [
-    ...new Set(
-      processedCommissions
-        .map((commission) => commission.payoutId!)
-        .filter((payoutId): payoutId is string => Boolean(payoutId)),
-    ),
-  ];
-
-  await retallyPayoutsAmount(payoutIdsToRetally);
-
-  // resync denormalized link counters: move the group's stats from source link to the new link
-  const updatedSourceLink = await prisma.link.update({
-    where: { id: sourceLink.id },
-    data: {
-      clicks: { decrement: movedCount },
-      leads: { decrement: movedCount },
-      conversions: { decrement: movedCount },
-      sales: { decrement: movedSales },
-      saleAmount: { decrement: movedSaleAmount },
-    },
-  });
-  console.log(
-    `Decremented source link ${sourceLink.id}: ${updatedSourceLink.clicks} clicks, ${updatedSourceLink.leads} leads, ${updatedSourceLink.conversions} conversions, ${updatedSourceLink.sales} sales, ${updatedSourceLink.saleAmount} saleAmount`,
-  );
-
-  const updatedNewLink = await prisma.link.update({
-    where: { id: newLink.id },
-    data: {
-      clicks: { increment: movedCount },
-      leads: { increment: movedCount },
-      conversions: { increment: movedCount },
-      sales: { increment: movedSales },
-      saleAmount: { increment: movedSaleAmount },
-    },
-  });
-  console.log(
-    `Incremented new link ${newLink.id}: ${updatedNewLink.clicks} clicks, ${updatedNewLink.leads} leads, ${updatedNewLink.conversions} conversions, ${updatedNewLink.sales} sales, ${updatedNewLink.saleAmount} saleAmount`,
-  );
-
-  await syncTotalCommissions({
-    partnerId: sourceLink.partnerId!,
-    programId: PROGRAM_ID,
-  });
-  await syncTotalCommissions({
-    partnerId: group.partnerId,
-    programId: PROGRAM_ID,
-  });
-
-  // migrate the moved customers' tinybird events onto the new link
-  for (const customerId of group.customerIds) {
-    await moveCustomerTbEvents({
-      customerId,
-      oldLinkId: sourceLink.id,
-      newLink,
-    });
-  }
-  console.log(
-    `Migrated tinybird events for ${group.customerIds.length} customers to link ${newLink.id}`,
-  );
-}
-
-// these customers had no referring affiliate, so nobody earns for them – detach the customers,
-// cancel their commissions, and claw back any overpayment from the source link's partner
-async function unattributeCustomers({
-  sourceLink,
-  unattributeCustomerIds,
-}: {
-  sourceLink: Link;
-  unattributeCustomerIds: string[];
-}) {
-  const stats = await prisma.customer.aggregate({
-    where: {
-      id: { in: unattributeCustomerIds },
-      linkId: sourceLink.id,
-    },
-    _count: { id: true },
-    _sum: { sales: true, saleAmount: true },
-  });
-  const detachedCount = stats._count.id;
-  const detachedSales = stats._sum.sales ?? 0;
-  const detachedSaleAmount = stats._sum.saleAmount ?? BigInt(0);
-
-  if (detachedCount === 0) {
-    console.log(`No customers to unattribute on link ${sourceLink.id}`);
-    return;
-  }
-
-  // cancel non processed and non paid commissions (including imported paid) – nobody earns these
-  const canceledCommissions = await prisma.commission.updateMany({
-    where: {
-      customerId: { in: unattributeCustomerIds },
-      OR: [
-        { status: { in: ["pending", "canceled"] } },
-        { status: "paid", payoutId: null },
-      ],
-    },
-    data: {
-      status: "canceled",
-    },
-  });
-  console.log(
-    `Canceled ${canceledCommissions.count} non-processed commissions for unattributed customers`,
-  );
-
-  // processed and paid commissions are tied to a payout, handle separately
-  const processedAndPaidCommissions = await prisma.commission.findMany({
-    where: {
-      customerId: { in: unattributeCustomerIds },
-      linkId: sourceLink.id,
-      status: { in: ["processed", "paid"] },
-    },
-  });
-  console.log(
-    `Found ${processedAndPaidCommissions.length} processed and paid commissions for unattributed customers`,
-  );
-
-  const updatedProcessedAndPaidCommissions = await prisma.commission.updateMany(
-    {
-      where: {
-        id: {
-          in: processedAndPaidCommissions.map((commission) => commission.id),
-        },
-      },
-      data: {
-        payoutId: null,
-        status: "canceled",
-      },
-    },
-  );
-  console.log(
-    `Canceled ${updatedProcessedAndPaidCommissions.count} processed and paid commissions for unattributed customers`,
-  );
-
-  // delete activity logs cause the commissions are no longer tied to a payout
-  const deletedActivityLogs = await prisma.activityLog.deleteMany({
-    where: {
-      resourceType: "commission",
-      resourceId: {
-        in: processedAndPaidCommissions.map((commission) => commission.id),
-      },
-    },
-  });
-  console.log(
-    `Deleted ${deletedActivityLogs.count} activity logs for commissions`,
-  );
-
-  // for any commissions already paid via Dub, create a dummy commission to represent the overpayment
-  // + a clawback to balance the source partner's books
-  const paidCommissionsViaDub = processedAndPaidCommissions.filter(
-    (commission) =>
-      commission.status === "paid" && commission.payoutId !== null,
-  );
-  const groupedByPayoutId = groupBy(
-    paidCommissionsViaDub,
-    (commission) => commission.payoutId!,
-  );
-
-  for (const payoutId of Object.keys(groupedByPayoutId)) {
-    const paidCommissionsTotal = groupedByPayoutId[payoutId].reduce(
-      (acc, commission) => acc + commission.earnings,
-      0,
-    );
-    console.log(
-      `Total paid commissions for payout ${payoutId}: ${paidCommissionsTotal}`,
-    );
-
-    const createdCommission = await prisma.commission.create({
-      data: {
-        id: createId({ prefix: "cm_" }),
-        type: "custom",
-        partnerId: sourceLink.partnerId!,
-        programId: PROGRAM_ID,
-        description: `Overpayment for payout ${payoutId}`,
-        earnings: paidCommissionsTotal,
-        payoutId,
-        amount: 0,
-        quantity: 1,
-        userId: sourceLink.userId,
-        status: "paid",
-      },
-    });
-    console.log(
-      `Created dummy commission ${createdCommission.id} for overpayment of ${paidCommissionsTotal} for payout ${payoutId}`,
-    );
-
-    const createdClawback = await prisma.commission.create({
-      data: {
-        id: createId({ prefix: "cm_" }),
-        type: "custom",
-        partnerId: sourceLink.partnerId!,
-        programId: PROGRAM_ID,
-        description: `Clawback for commission "${createdCommission.id}" (unattributed sales on source link ${sourceLink.id})`,
-        earnings: -paidCommissionsTotal,
-        amount: 0,
-        quantity: 1,
-        userId: sourceLink.userId,
-      },
-    });
-    console.log(
-      `Created clawback ${createdClawback.id} for ${paidCommissionsTotal} paid commissions for partner ${sourceLink.partnerId}`,
-    );
-  }
-
-  // retally old payout ID values for processed commissions
-  const processedCommissions = processedAndPaidCommissions.filter(
-    (commission) => commission.status === "processed",
-  );
-  const payoutIdsToRetally = [
-    ...new Set(
-      processedCommissions
-        .map((commission) => commission.payoutId!)
-        .filter((payoutId): payoutId is string => Boolean(payoutId)),
-    ),
-  ];
-
-  await retallyPayoutsAmount(payoutIdsToRetally);
-
-  // fully detach the customers – they belong to no partner/program/link
-  const updatedCustomers = await prisma.customer.updateMany({
-    where: {
-      id: { in: unattributeCustomerIds },
-      linkId: sourceLink.id,
-    },
-    data: {
-      linkId: null,
-      partnerId: null,
-      programId: null,
-    },
-  });
-  console.log(`Detached ${updatedCustomers.count} customers`);
-
-  // resync denormalized link counters: remove the detached customers' stats from the source link
-  const updatedSourceLink = await prisma.link.update({
-    where: { id: sourceLink.id },
-    data: {
-      clicks: { decrement: detachedCount },
-      leads: { decrement: detachedCount },
-      conversions: { decrement: detachedCount },
-      sales: { decrement: detachedSales },
-      saleAmount: { decrement: detachedSaleAmount },
-    },
-  });
-  console.log(
-    `Decremented source link ${sourceLink.id}: ${updatedSourceLink.clicks} clicks, ${updatedSourceLink.leads} leads, ${updatedSourceLink.conversions} conversions, ${updatedSourceLink.sales} sales, ${updatedSourceLink.saleAmount} saleAmount`,
-  );
-
-  await syncTotalCommissions({
-    partnerId: sourceLink.partnerId!,
-    programId: PROGRAM_ID,
-  });
-
-  // delete the detached customers' tinybird events on the source link
-  for (const customerId of unattributeCustomerIds) {
-    await deleteCustomerTbEvents({ customerId, oldLinkId: sourceLink.id });
-  }
-  console.log(
-    `Deleted tinybird events for ${unattributeCustomerIds.length} unattributed customers`,
-  );
 }
 
 main();
