@@ -13,17 +13,21 @@ import { recordLeadWithTimestamp } from "../../../lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "../../../lib/tinybird/record-sale";
 
 // re-split links whose customers were all attributed to a single partner, even though they were
-// actually referred by multiple affiliates. The true affiliate is recorded in each imported sale
-// event's Tinybird metadata (the original commission JSON -> `sale.affiliate`). For every customer on
-// a source link the script reads that affiliate, resolves it to a Dub partner, and:
+// actually referred by multiple affiliates. The true affiliate is read from each imported sale
+// event's Tinybird metadata (the original commission JSON -> `sale.affiliate`). Because the commission
+// import didn't expand `affiliate`, that field is sometimes empty in the metadata even though the
+// customer does have a referrer – so when TB shows no affiliate we fall back to LIVE Rewardful
+// (/referrals by stripe id, then email) to recover the true affiliate. Per customer the script:
 //   - moves the customer (+ commissions) onto a fresh dedicated link for the true affiliate,
 //   - leaves them put if the true affiliate is already the source link's partner,
-//   - detaches them if the sale has no affiliate, or the affiliate isn't an enrolled Dub partner
-//     (nobody earns for them; unresolved-affiliate customers are logged so the affiliate can be
+//   - detaches them only if neither TB nor Rewardful shows an affiliate, or the affiliate isn't an
+//     enrolled Dub partner (unresolved-affiliate customers are logged so the affiliate can be
 //     enrolled and the customers re-credited later).
 // Overpayments already paid to the source link's partner are clawed back, and each customer's
 // Tinybird click/lead/sale events are migrated (or deleted, when unattributed) inline. All affected
 // links are handled in a single run – just list their IDs in SOURCE_LINK_IDS.
+//
+// Requires REWARDFUL_API_KEY in the environment (used for the no-affiliate fallback).
 
 const DRY_RUN = true;
 const PROGRAM_ID = "prog_xxx";
@@ -53,6 +57,91 @@ type SaleAffiliate = {
 const partnerIdCache = new Map<string, string | null>();
 
 const failedTbOps: { dataSource: string; condition: string }[] = [];
+
+const REWARDFUL_BASE = "https://api.getrewardful.com/v1";
+const REWARDFUL_DELAY_MS = 300;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// fallback used only when TB metadata has NO affiliate (the commission import dropped it): ask live
+// Rewardful for the customer's referral affiliate, by stripe id then email. Read-only. Returns the
+// affiliate (email/id) or null when Rewardful also shows no referrer.
+async function resolveAffiliateFromRewardful(
+  stripeCustomerId: string | null,
+  email: string | null,
+): Promise<SaleAffiliate | null> {
+  const token = process.env.REWARDFUL_API_KEY!;
+  const queries: string[] = [];
+  if (stripeCustomerId) {
+    queries.push(`stripe_customer_id=${encodeURIComponent(stripeCustomerId)}`);
+  }
+  if (email) {
+    queries.push(`email=${encodeURIComponent(email)}`);
+  }
+
+  for (const query of queries) {
+    await sleep(REWARDFUL_DELAY_MS);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    let referrals: any[] = [];
+    try {
+      const res = await fetch(
+        `${REWARDFUL_BASE}/referrals?${query}&expand[]=affiliate`,
+        {
+          headers: {
+            Authorization: `Basic ${Buffer.from(`${token}:`).toString("base64")}`,
+          },
+          signal: controller.signal,
+        },
+      );
+      if (!res.ok) {
+        console.error(`Rewardful ${res.status} for ${query}`);
+        continue;
+      }
+      const json = await res.json();
+      referrals = json?.data ?? [];
+    } catch (error) {
+      console.error(`Rewardful lookup failed for ${query}:`, error);
+      continue;
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    const withAffiliate = referrals.find(
+      (r) => r.affiliate && (r.affiliate.email || r.affiliate.id),
+    );
+    if (withAffiliate) {
+      return {
+        id: withAffiliate.affiliate.id,
+        email: withAffiliate.affiliate.email,
+      };
+    }
+  }
+
+  return null;
+}
+
+// decide what to do with a resolved affiliate for a given source link
+async function decideAffiliate(
+  affiliate: SaleAffiliate,
+  sourceLink: Link,
+): Promise<
+  | { type: "stay" }
+  | { type: "move"; partnerId: string }
+  | { type: "unresolved"; affiliate: string }
+> {
+  const partnerId = await resolvePartnerId(affiliate, sourceLink.domain);
+  if (!partnerId) {
+    return {
+      type: "unresolved",
+      affiliate: affiliate.email || affiliate.id || "unknown",
+    };
+  }
+  if (partnerId === sourceLink.partnerId) {
+    return { type: "stay" };
+  }
+  return { type: "move", partnerId };
+}
 
 async function tbDelete(dataSource: string, condition: string) {
   try {
@@ -874,7 +963,7 @@ async function resplitLink(sourceLinkId: string) {
 
   const customers = await prisma.customer.findMany({
     where: { linkId: sourceLinkId },
-    select: { id: true },
+    select: { id: true, stripeCustomerId: true, email: true },
   });
   console.log(`Found ${customers.length} customers on link ${sourceLinkId}`);
 
@@ -883,12 +972,37 @@ async function resplitLink(sourceLinkId: string) {
   const unattributeCustomerIds: string[] = [];
   let stayCount = 0;
   let noSaleCount = 0;
+  let genuineNoAffiliateCount = 0;
+  let rewardfulResolvedCount = 0;
   const noMetadata: string[] = [];
-  // affiliate is named in the metadata but isn't an enrolled Dub partner: we unattribute these (so
-  // they don't stay credited to the wrong owner) and log the intended affiliate for manual
-  // enrollment + re-credit later
+  // affiliate is named (in TB metadata or recovered from Rewardful) but isn't an enrolled Dub
+  // partner: we unattribute these (so they don't stay credited to the wrong owner) and log the
+  // intended affiliate for manual enrollment + re-credit later
   const unresolved: { customerId: string; affiliate: string }[] = [];
+  // TB metadata had no affiliate – deferred to a sequential Rewardful fallback pass below
+  const noAffiliatePending: {
+    customerId: string;
+    stripe: string | null;
+    email: string | null;
+  }[] = [];
 
+  const applyDecision = (
+    customerId: string,
+    decision: Awaited<ReturnType<typeof decideAffiliate>>,
+  ) => {
+    if (decision.type === "stay") {
+      stayCount++;
+    } else if (decision.type === "unresolved") {
+      unresolved.push({ customerId, affiliate: decision.affiliate });
+      unattributeCustomerIds.push(customerId);
+    } else {
+      const existing = groupsMap.get(decision.partnerId);
+      if (existing) existing.push(customerId);
+      else groupsMap.set(decision.partnerId, [customerId]);
+    }
+  };
+
+  // pass 1: TB metadata classification (concurrent – TB reads only)
   for (const batch of chunk(customers, 20)) {
     await Promise.all(
       batch.map(async (customer) => {
@@ -905,45 +1019,48 @@ async function resplitLink(sourceLinkId: string) {
             noMetadata.push(customer.id);
             return;
 
-          // import commission with no referring affiliate – nobody earns for this customer
+          // TB metadata has no affiliate – the import may have dropped it; resolve via Rewardful next
           case "no-affiliate":
-            unattributeCustomerIds.push(customer.id);
+            noAffiliatePending.push({
+              customerId: customer.id,
+              stripe: customer.stripeCustomerId,
+              email: customer.email,
+            });
             return;
 
-          case "affiliate": {
-            const partnerId = await resolvePartnerId(
-              result.affiliate,
-              sourceLink.domain,
+          case "affiliate":
+            applyDecision(
+              customer.id,
+              await decideAffiliate(result.affiliate, sourceLink),
             );
-            if (!partnerId) {
-              // true affiliate isn't an enrolled partner – unattribute instead of leaving the sale
-              // credited to the current (wrong) owner; record the affiliate to enroll + re-credit later
-              unresolved.push({
-                customerId: customer.id,
-                affiliate:
-                  result.affiliate.email || result.affiliate.id || "unknown",
-              });
-              unattributeCustomerIds.push(customer.id);
-              return;
-            }
-
-            // already attributed to the true affiliate – nothing to do
-            if (partnerId === sourceLink.partnerId) {
-              stayCount++;
-              return;
-            }
-
-            const existing = groupsMap.get(partnerId);
-            if (existing) {
-              existing.push(customer.id);
-            } else {
-              groupsMap.set(partnerId, [customer.id]);
-            }
             return;
-          }
         }
       }),
     );
+  }
+
+  // pass 2: for TB no-affiliate customers, fall back to LIVE Rewardful (sequential for rate limits)
+  if (noAffiliatePending.length > 0) {
+    console.log(
+      `Resolving ${noAffiliatePending.length} no-affiliate customers via Rewardful fallback...`,
+    );
+    for (const pending of noAffiliatePending) {
+      const affiliate = await resolveAffiliateFromRewardful(
+        pending.stripe,
+        pending.email,
+      );
+      if (!affiliate) {
+        // neither TB nor Rewardful shows an affiliate – genuinely unattributed
+        genuineNoAffiliateCount++;
+        unattributeCustomerIds.push(pending.customerId);
+        continue;
+      }
+      rewardfulResolvedCount++;
+      applyDecision(
+        pending.customerId,
+        await decideAffiliate(affiliate, sourceLink),
+      );
+    }
   }
 
   const groups = [...groupsMap.entries()].map(([partnerId, customerIds]) => ({
@@ -952,7 +1069,7 @@ async function resplitLink(sourceLinkId: string) {
   }));
 
   console.log(
-    `Classified: ${groups.length} affiliate group(s) to move, ${unattributeCustomerIds.length} to unattribute (${unattributeCustomerIds.length - unresolved.length} no-affiliate + ${unresolved.length} unresolved-affiliate), ${stayCount} staying, ${noSaleCount} without a sale event, ${noMetadata.length} without import metadata (left in place)`,
+    `Classified: ${groups.length} affiliate group(s) to move, ${stayCount} staying, ${unattributeCustomerIds.length} to unattribute (${genuineNoAffiliateCount} confirmed no-affiliate + ${unresolved.length} unresolved-affiliate), ${rewardfulResolvedCount} recovered via Rewardful fallback, ${noSaleCount} without a sale event, ${noMetadata.length} without import metadata (left in place)`,
   );
   if (noMetadata.length > 0) {
     console.log(
@@ -978,6 +1095,11 @@ async function resplitLink(sourceLinkId: string) {
 }
 
 async function main() {
+  if (!process.env.REWARDFUL_API_KEY) {
+    throw new Error(
+      "Set REWARDFUL_API_KEY in the environment (used for the no-affiliate Rewardful fallback).",
+    );
+  }
   console.log(
     DRY_RUN
       ? "DRY RUN – no changes will be written (set DRY_RUN = false to apply)"
