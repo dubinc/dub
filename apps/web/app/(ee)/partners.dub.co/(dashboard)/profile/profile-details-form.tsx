@@ -322,6 +322,9 @@ function BasicInfoForm({
       onCancel: async () => {
         await submitProfile(false);
       },
+      onDismiss: () => {
+        pendingSubmitRef.current = null;
+      },
     });
 
   return (
