@@ -140,11 +140,7 @@ export const GET = withWorkspace(
     return NextResponse.json(data);
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -329,11 +325,7 @@ export const POST = withWorkspace(
     return NextResponse.json(createdBounty);
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );
