@@ -73,8 +73,7 @@ export async function deleteLink(linkId: string) {
           },
         }),
 
-      link.discountCode?.discount &&
-        enqueueDeleteDiscountCode([link.discountCode]),
+      link.discountCode && enqueueDeleteDiscountCode([link.discountCode]),
     ]),
   );
 
