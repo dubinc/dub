@@ -18,7 +18,9 @@ import { recordSaleWithTimestamp } from "../../../lib/tinybird/record-sale";
 // a source link the script reads that affiliate, resolves it to a Dub partner, and:
 //   - moves the customer (+ commissions) onto a fresh dedicated link for the true affiliate,
 //   - leaves them put if the true affiliate is already the source link's partner,
-//   - detaches them if the sale has no affiliate at all (no partner earns for them).
+//   - detaches them if the sale has no affiliate, or the affiliate isn't an enrolled Dub partner
+//     (nobody earns for them; unresolved-affiliate customers are logged so the affiliate can be
+//     enrolled and the customers re-credited later).
 // Overpayments already paid to the source link's partner are clawed back, and each customer's
 // Tinybird click/lead/sale events are migrated (or deleted, when unattributed) inline. All affected
 // links are handled in a single run – just list their IDs in SOURCE_LINK_IDS.
@@ -882,7 +884,10 @@ async function resplitLink(sourceLinkId: string) {
   let stayCount = 0;
   let noSaleCount = 0;
   const noMetadata: string[] = [];
-  const unresolved: string[] = [];
+  // affiliate is named in the metadata but isn't an enrolled Dub partner: we unattribute these (so
+  // they don't stay credited to the wrong owner) and log the intended affiliate for manual
+  // enrollment + re-credit later
+  const unresolved: { customerId: string; affiliate: string }[] = [];
 
   for (const batch of chunk(customers, 20)) {
     await Promise.all(
@@ -911,7 +916,14 @@ async function resplitLink(sourceLinkId: string) {
               sourceLink.domain,
             );
             if (!partnerId) {
-              unresolved.push(customer.id);
+              // true affiliate isn't an enrolled partner – unattribute instead of leaving the sale
+              // credited to the current (wrong) owner; record the affiliate to enroll + re-credit later
+              unresolved.push({
+                customerId: customer.id,
+                affiliate:
+                  result.affiliate.email || result.affiliate.id || "unknown",
+              });
+              unattributeCustomerIds.push(customer.id);
               return;
             }
 
@@ -940,7 +952,7 @@ async function resplitLink(sourceLinkId: string) {
   }));
 
   console.log(
-    `Classified: ${groups.length} affiliate group(s) to move, ${unattributeCustomerIds.length} to unattribute, ${stayCount} staying, ${noSaleCount} without a sale event, ${noMetadata.length} without import metadata (left in place), ${unresolved.length} unresolved`,
+    `Classified: ${groups.length} affiliate group(s) to move, ${unattributeCustomerIds.length} to unattribute (${unattributeCustomerIds.length - unresolved.length} no-affiliate + ${unresolved.length} unresolved-affiliate), ${stayCount} staying, ${noSaleCount} without a sale event, ${noMetadata.length} without import metadata (left in place)`,
   );
   if (noMetadata.length > 0) {
     console.log(
@@ -949,8 +961,11 @@ async function resplitLink(sourceLinkId: string) {
   }
   if (unresolved.length > 0) {
     console.log(
-      `Unresolved customers (affiliate found but no matching Dub partner) – review manually: ${unresolved.join(", ")}`,
+      `Unattributed (${unresolved.length}) because the true affiliate is not an enrolled Dub partner – enroll the affiliate + re-credit these customers later:`,
     );
+    for (const u of unresolved) {
+      console.log(`  ${u.customerId} (affiliate: ${u.affiliate})`);
+    }
   }
 
   for (const group of groups) {
