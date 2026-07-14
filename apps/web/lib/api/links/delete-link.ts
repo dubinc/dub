@@ -29,6 +29,7 @@ export async function deleteLink(linkId: string) {
     },
   });
 
+  // Delete the discount code and link in a transaction
   await prisma.$transaction([
     ...(link.discountCode
       ? [
