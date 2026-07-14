@@ -1,6 +1,9 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { qstash } from "@/lib/cron";
-import { sendLimitEmail } from "@/lib/cron/send-limit-email";
+import {
+  getSlackWebhooks,
+  sendWorkspaceLimitAlert,
+} from "@/lib/cron/send-limit-alert";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
@@ -208,11 +211,16 @@ export const updateUsage = async () => {
     ({ usage, usageLimit }) => usage > usageLimit,
   );
 
+  const slackWebhookByWorkspace = await getSlackWebhooks(
+    exceedingUsage.map(({ id }) => id),
+  );
+
   // Send email to notify overages
   await Promise.allSettled(
     exceedingUsage.map(async (workspace) => {
       const { slug, plan, usage, usageLimit, users, sentEmails } = workspace;
       const emails = users.map((user) => user.user.email) as string[];
+      const slackWebhookUrl = slackWebhookByWorkspace.get(workspace.id);
 
       await log({
         message: `*${slug}* is over their *${capitalize(
@@ -227,10 +235,11 @@ export const updateUsage = async () => {
         (email) => email.type === "firstUsageLimitEmail",
       );
       if (!sentFirstUsageLimitEmail) {
-        sendLimitEmail({
+        await sendWorkspaceLimitAlert({
           emails,
           workspace: workspace as unknown as WorkspaceProps,
           type: "firstUsageLimitEmail",
+          slackWebhookUrl,
         });
       } else {
         const sentSecondUsageLimitEmail = sentEmails.some(
@@ -243,10 +252,11 @@ export const updateUsage = async () => {
               (1000 * 3600 * 24),
           );
           if (daysSinceFirstEmail >= 3) {
-            sendLimitEmail({
+            sendWorkspaceLimitAlert({
               emails,
               workspace: workspace as unknown as WorkspaceProps,
               type: "secondUsageLimitEmail",
+              slackWebhookUrl,
             });
           }
         }
