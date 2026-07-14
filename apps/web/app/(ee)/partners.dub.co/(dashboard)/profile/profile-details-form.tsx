@@ -277,7 +277,7 @@ function BasicInfoForm({
     });
 
     if (!result?.data) {
-      return;
+      throw new Error("Profile update failed");
     }
 
     if (result.data.needsEmailVerification) {
@@ -304,11 +304,8 @@ function BasicInfoForm({
       return;
     }
 
-    try {
-      await saveProfile({ ...pending, syncIdentity });
-    } finally {
-      pendingSubmitRef.current = null;
-    }
+    await saveProfile({ ...pending, syncIdentity });
+    pendingSubmitRef.current = null;
   };
 
   const { setShowModal: setShowConfirmModal, confirmModal } =

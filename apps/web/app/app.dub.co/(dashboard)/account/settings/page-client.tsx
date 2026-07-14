@@ -117,12 +117,12 @@ export function SettingsPageClient() {
         syncIdentity,
       });
       pending.onSuccess();
+      pendingPatchRef.current = null;
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong.",
       );
-    } finally {
-      pendingPatchRef.current = null;
+      throw error;
     }
   };
 
