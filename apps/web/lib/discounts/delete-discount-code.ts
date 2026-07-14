@@ -10,6 +10,13 @@ type DeleteDiscountCodesParams = Pick<
   discount: Pick<Discount, "provider"> | null;
 };
 
+type EnqueueDeleteDiscountCodeParams = Pick<
+  DiscountCode,
+  "code" | "programId"
+> & {
+  discount: Pick<Discount, "provider"> | null;
+};
+
 // Triggered in the following cases:
 // 1. When a discount is deleted
 // 2. When a link is deleted that has a discount code associated with it
@@ -61,19 +68,22 @@ export async function deleteDiscountCodes(
     );
   }
 
-  // Only enqueue external-provider cleanup for codes whose provider is known.
-  // Orphaned codes (discount relation is null) still get deleted locally above
-  // but we can't tell which external provider to clean up, so we skip them.
+  await enqueueDeleteDiscountCode(discountCodes);
+}
+
+// Only enqueue external-provider cleanup for codes whose provider is known.
+// Orphaned codes (discount relation is null) still get deleted locally above
+// but we can't tell which external provider to clean up, so we skip them.
+export async function enqueueDeleteDiscountCode(
+  discountCodes: EnqueueDeleteDiscountCodeParams[],
+) {
   const codesWithProvider = discountCodes.filter(
     (dc): dc is typeof dc & { discount: Pick<Discount, "provider"> } =>
       dc.discount != null,
   );
 
-  const orphanedCount = discountCodes.length - codesWithProvider.length;
-  if (orphanedCount > 0) {
-    console.warn(
-      `[deleteDiscountCodes] Skipping external provider cleanup for ${orphanedCount} orphaned discount code(s) with no discount relation.`,
-    );
+  if (codesWithProvider.length === 0) {
+    return;
   }
 
   // Queue the job to remove the discount codes from provider
@@ -81,14 +91,14 @@ export async function deleteDiscountCodes(
 
   for (const chunkOfCodes of chunks) {
     await enqueueBatchJobs(
-      chunkOfCodes.map((discountCode) => ({
+      chunkOfCodes.map(({ code, programId, discount }) => ({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/disable`,
         method: "POST",
         queueName: "delete-discount-code",
         body: {
-          code: discountCode.code,
-          programId: discountCode.programId,
-          provider: discountCode.discount.provider,
+          code,
+          programId,
+          provider: discount.provider,
         },
       })),
     );

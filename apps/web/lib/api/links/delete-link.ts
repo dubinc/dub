@@ -1,9 +1,9 @@
+import { enqueueDeleteDiscountCode } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { deleteDiscountCodes } from "../../discounts/delete-discount-code";
 import { linkCache } from "./cache";
 import { includeProgramEnrollment } from "./include-program-enrollment";
 import { includeTags } from "./include-tags";
@@ -29,17 +29,23 @@ export async function deleteLink(linkId: string) {
     },
   });
 
-  // DiscountCode.linkId is a required relation (onDelete: Restrict),
-  // so the discount code must be deleted before the link
-  if (link.discountCode) {
-    await deleteDiscountCodes([link.discountCode]);
-  }
+  await prisma.$transaction([
+    ...(link.discountCode
+      ? [
+          prisma.discountCode.delete({
+            where: {
+              id: link.discountCode.id,
+            },
+          }),
+        ]
+      : []),
 
-  await prisma.link.delete({
-    where: {
-      id: linkId,
-    },
-  });
+    prisma.link.delete({
+      where: {
+        id: linkId,
+      },
+    }),
+  ]);
 
   waitUntil(
     Promise.allSettled([
@@ -65,6 +71,9 @@ export async function deleteLink(linkId: string) {
             },
           },
         }),
+
+      link.discountCode?.discount &&
+        enqueueDeleteDiscountCode([link.discountCode]),
     ]),
   );
 
