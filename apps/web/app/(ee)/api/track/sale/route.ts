@@ -63,11 +63,7 @@ export const POST = withWorkspace(
     return NextResponse.json(response);
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );

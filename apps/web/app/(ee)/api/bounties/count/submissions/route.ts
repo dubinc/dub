@@ -54,10 +54,6 @@ export const GET = withWorkspace(
     return NextResponse.json(counts);
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
