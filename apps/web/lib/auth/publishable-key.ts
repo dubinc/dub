@@ -25,15 +25,7 @@ interface WithPublishableKeyHandler {
 
 export const withPublishableKey = (
   handler: WithPublishableKeyHandler,
-  {
-    requiredPlan = [
-      "free",
-      "pro",
-      "business",
-      "advanced",
-      "enterprise",
-    ],
-  },
+  { requiredPlan = ["free", "pro", "business", "advanced", "enterprise"] },
 ) =>
   withAxiom(
     async (

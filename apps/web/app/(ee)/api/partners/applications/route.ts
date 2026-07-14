@@ -77,10 +77,6 @@ export const GET = withWorkspace(
     return NextResponse.json(z.array(PartnerApplicationSchema).parse(result));
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

@@ -39,11 +39,7 @@ export const GET = withWorkspace(
     return NextResponse.json(responseSchema.parse(transformCustomer(customer)));
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -147,11 +143,7 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );
@@ -181,11 +173,7 @@ export const DELETE = withWorkspace(
     });
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );
