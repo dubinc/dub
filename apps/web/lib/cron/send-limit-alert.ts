@@ -180,6 +180,10 @@ const notifyViaSlack = async ({
       console.error(
         `Failed to send usage limit Slack alert for workspace ${workspace.id}: ${response.status} ${response.statusText}`,
       );
+    } else {
+      console.log(
+        `Successfully sent usage limit Slack alert for workspace ${workspace.id}`,
+      );
     }
   } catch (error) {
     console.error(
