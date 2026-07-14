@@ -91,14 +91,14 @@ export async function enqueueDeleteDiscountCode(
 
   for (const chunkOfCodes of chunks) {
     await enqueueBatchJobs(
-      chunkOfCodes.map(({ code, programId, discount }) => ({
+      chunkOfCodes.map((discountCode) => ({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/disable`,
         method: "POST",
         queueName: "delete-discount-code",
         body: {
-          code,
-          programId,
-          provider: discount.provider,
+          code: discountCode.code,
+          programId: discountCode.programId,
+          provider: discountCode.discount.provider,
         },
       })),
     );
