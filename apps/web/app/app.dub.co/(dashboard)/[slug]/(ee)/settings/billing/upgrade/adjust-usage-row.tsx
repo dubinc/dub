@@ -6,8 +6,8 @@ import {
   PlanPeriod,
   SELF_SERVE_PAID_PLANS,
   cn,
-  getPlanDetails,
   getMonthlyLimitFromPeriod,
+  getPlanDetails,
   getPlanLimitForPeriod,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
@@ -130,7 +130,8 @@ function UsageSlider({
     });
 
     return usageSteps.reduce((prev, curr) =>
-      Math.abs(curr - monthlyCurrentLimit) < Math.abs(prev - monthlyCurrentLimit)
+      Math.abs(curr - monthlyCurrentLimit) <
+      Math.abs(prev - monthlyCurrentLimit)
         ? curr
         : prev,
     );
