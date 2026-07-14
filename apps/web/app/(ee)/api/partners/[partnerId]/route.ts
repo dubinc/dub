@@ -26,10 +26,6 @@ export const GET = withWorkspace(
     return NextResponse.json(EnrolledPartnerSchemaExtended.parse(partner));
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

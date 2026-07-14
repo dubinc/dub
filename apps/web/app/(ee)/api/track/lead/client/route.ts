@@ -55,11 +55,7 @@ export const POST = withPublishableKey(
     return NextResponse.json(response, { headers: COMMON_CORS_HEADERS });
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 

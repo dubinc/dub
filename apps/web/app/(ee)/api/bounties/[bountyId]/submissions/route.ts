@@ -78,10 +78,6 @@ export const GET = withWorkspace(
     return NextResponse.json(bountySubmissions);
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

@@ -89,10 +89,6 @@ export const GET = withWorkspace(
     return NextResponse.json(submittedLeadsCountResponseSchema.parse(count));
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

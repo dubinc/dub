@@ -73,11 +73,7 @@ export const DELETE = withWorkspace(
     return NextResponse.json({ id: discountCode.id });
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
     requiredRoles: ["owner", "member"],
   },
 );
