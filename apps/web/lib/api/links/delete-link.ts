@@ -10,7 +10,7 @@ import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
 
 export async function deleteLink(linkId: string) {
-  const link = await prisma.link.delete({
+  const link = await prisma.link.findUniqueOrThrow({
     where: {
       id: linkId,
     },
@@ -26,6 +26,18 @@ export async function deleteLink(linkId: string) {
           },
         },
       },
+    },
+  });
+
+  // DiscountCode.linkId is a required relation (onDelete: Restrict),
+  // so the discount code must be deleted before the link
+  if (link.discountCode) {
+    await deleteDiscountCodes([link.discountCode]);
+  }
+
+  await prisma.link.delete({
+    where: {
+      id: linkId,
     },
   });
 
@@ -53,8 +65,6 @@ export async function deleteLink(linkId: string) {
             },
           },
         }),
-
-      link.discountCode && deleteDiscountCodes([link.discountCode]),
     ]),
   );
 
