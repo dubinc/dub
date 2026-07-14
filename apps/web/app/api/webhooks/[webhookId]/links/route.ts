@@ -28,10 +28,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.read"],
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

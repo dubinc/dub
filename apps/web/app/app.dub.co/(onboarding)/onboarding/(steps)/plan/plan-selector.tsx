@@ -64,7 +64,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
         optionClassName="text-xs normal-case text-neutral-800 data-[selected=true]:text-neutral-800 px-3 h-8 leading-none"
         indicatorClassName="bg-white border-neutral-200 rounded-md"
       />
-      <div className="w-full overflow-hidden max-lg:rounded-lg [container-type:inline-size]">
+      <div className="w-full overflow-hidden [container-type:inline-size] max-lg:rounded-lg">
         <div
           className={cn(
             "grid max-w-[calc(var(--cols)*342px)] grid-cols-[repeat(var(--cols),1fr)] lg:mx-auto",

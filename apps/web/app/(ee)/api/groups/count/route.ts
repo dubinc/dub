@@ -34,10 +34,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["groups.read"],
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
