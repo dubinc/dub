@@ -167,6 +167,8 @@ function IdentitySyncConfirmModal({
     <Modal
       showModal={showModal}
       setShowModal={setShowModal}
+      onClose={handleCancel}
+      preventDefaultClose={isLoading}
       className="max-w-md"
     >
       <div className="border-b border-neutral-200 px-4 py-3 sm:px-6 sm:py-4">
