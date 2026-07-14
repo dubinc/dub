@@ -38,13 +38,13 @@ const PLATFORM_INFO: Record<
         Add the 6-digit code above to your English channel description
         temporarily.
         {"\n\n"}
-        Add to your main description if it’s in English. Otherwise, add the code
+        Add to your main description if it's in English. Otherwise, add the code
         to an existing English description, or create one first.{" "}
         <a
           href="https://dub.co/help/article/partner-profile#youtube"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline transition-colors hover:text-content-emphasis"
+          className="hover:text-content-emphasis underline transition-colors"
         >
           Learn more
         </a>
