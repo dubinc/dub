@@ -50,20 +50,28 @@ type SaleAffiliate = {
 // affiliate identifier -> resolved Dub partnerId (null = unresolvable), cached across the whole run
 const partnerIdCache = new Map<string, string | null>();
 
+const failedTbOps: { dataSource: string; condition: string }[] = [];
+
 async function tbDelete(dataSource: string, condition: string) {
-  const res = await fetch(
-    `https://api.us-east.tinybird.co/v0/datasources/${dataSource}/delete`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-        "Content-Type": "application/x-www-form-urlencoded",
+  try {
+    const res = await fetch(
+      `https://api.us-east.tinybird.co/v0/datasources/${dataSource}/delete`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: `delete_condition=${condition}`,
       },
-      body: `delete_condition=${condition}`,
-    },
-  );
-  if (!res.ok) {
-    console.error(`TB delete failed on ${dataSource} (${res.status})`);
+    );
+    if (!res.ok) {
+      console.error(`TB delete failed on ${dataSource} (${res.status})`);
+      failedTbOps.push({ dataSource, condition });
+    }
+  } catch (error) {
+    console.error(`TB delete threw on ${dataSource}:`, error);
+    failedTbOps.push({ dataSource, condition });
   }
 }
 
@@ -143,6 +151,10 @@ async function moveCustomerTbEvents({
     );
     if (!res.ok) {
       console.error(`Failed to re-record click ${clickId} (${res.status})`);
+      failedTbOps.push({
+        dataSource: "dub_click_events (re-record)",
+        condition: `click_id='${clickId}' -> link_id='${newLink.id}'`,
+      });
       continue;
     }
     await Promise.allSettled([
@@ -382,6 +394,7 @@ async function moveGroup({
   // update non processed and non paid commissions (but include imported paid commissions) directly
   const nonProcessedWhere: Prisma.CommissionWhereInput = {
     customerId: { in: group.customerIds },
+    linkId: sourceLink.id,
     OR: [
       { status: { in: ["pending", "canceled"] } },
       { status: "paid", payoutId: null },
@@ -430,6 +443,7 @@ async function moveGroup({
           },
         },
         data: {
+          linkId: newLink.id,
           partnerId: group.partnerId,
           payoutId: null,
           status: "pending",
@@ -636,6 +650,7 @@ async function unattributeCustomers({
   // cancel non processed and non paid commissions (including imported paid) – nobody earns these
   const nonProcessedWhere: Prisma.CommissionWhereInput = {
     customerId: { in: unattributeCustomerIds },
+    linkId: sourceLink.id,
     OR: [
       { status: { in: ["pending", "canceled"] } },
       { status: "paid", payoutId: null },
@@ -953,9 +968,37 @@ async function main() {
       ? "DRY RUN – no changes will be written (set DRY_RUN = false to apply)"
       : "LIVE RUN – changes will be written",
   );
+  const failedLinks: { sourceLinkId: string; error: unknown }[] = [];
   for (const sourceLinkId of SOURCE_LINK_IDS) {
     console.log(`\n=== Re-splitting link ${sourceLinkId} ===`);
-    await resplitLink(sourceLinkId);
+    try {
+      await resplitLink(sourceLinkId);
+    } catch (error) {
+      console.error(`Failed to re-split link ${sourceLinkId}:`, error);
+      failedLinks.push({ sourceLinkId, error });
+    }
+  }
+
+  if (failedLinks.length > 0) {
+    console.log(
+      `\n=== ${failedLinks.length} FAILED link(s) - may be partially applied, review before re-running ===`,
+    );
+    for (const { sourceLinkId, error } of failedLinks) {
+      console.log(
+        `  ${sourceLinkId}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  if (failedTbOps.length > 0) {
+    console.log(
+      `\n=== ${failedTbOps.length} FAILED Tinybird operation(s) – re-run manually ===`,
+    );
+    for (const op of failedTbOps) {
+      console.log(`  ${op.dataSource} WHERE ${op.condition}`);
+    }
+  } else {
+    console.log("\nAll Tinybird operations succeeded (no failed deletes).");
   }
 }
 
