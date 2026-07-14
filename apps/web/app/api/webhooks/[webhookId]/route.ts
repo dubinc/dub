@@ -28,11 +28,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.read"],
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -184,11 +180,7 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.write"],
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -218,10 +210,6 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.write"],
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

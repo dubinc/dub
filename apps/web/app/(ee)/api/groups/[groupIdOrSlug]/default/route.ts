@@ -107,10 +107,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["groups.write"],
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

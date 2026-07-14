@@ -127,11 +127,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["folders.write"],
-    requiredPlan: [
-      "pro",
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["pro", "business", "advanced", "enterprise"],
   },
 );
