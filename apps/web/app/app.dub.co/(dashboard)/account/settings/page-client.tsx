@@ -140,6 +140,9 @@ export function SettingsPageClient() {
       onCancel: async () => {
         await finishPendingPatch(false);
       },
+      onDismiss: () => {
+        pendingPatchRef.current = null;
+      },
     });
 
   const requestSubmit = ({

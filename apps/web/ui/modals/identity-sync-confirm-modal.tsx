@@ -121,6 +121,7 @@ type IdentitySyncConfirmModalProps = {
   next: IdentitySyncSnapshot;
   onConfirm: () => Promise<void> | void;
   onCancel?: () => Promise<void> | void;
+  onDismiss?: () => void;
 };
 
 function IdentitySyncConfirmModal({
@@ -133,6 +134,7 @@ function IdentitySyncConfirmModal({
   next,
   onConfirm,
   onCancel,
+  onDismiss,
 }: {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
@@ -167,7 +169,7 @@ function IdentitySyncConfirmModal({
     <Modal
       showModal={showModal}
       setShowModal={setShowModal}
-      onClose={handleCancel}
+      onClose={onDismiss}
       preventDefaultClose={isLoading}
       className="max-w-md"
     >
