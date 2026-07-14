@@ -27,10 +27,6 @@ export const GET = withWorkspace(
     return NextResponse.json(z.array(PartnerCommentSchema).parse(comments));
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
