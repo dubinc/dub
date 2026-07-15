@@ -1,6 +1,11 @@
 import { ReactNode } from "react";
 import { nFormatter } from "../../functions/nformatter";
 import { INFINITY_NUMBER } from "../misc";
+import {
+  getPlanLimitForPeriod,
+  getPlanPeriodSuffix,
+  PlanPeriod,
+} from "./plan-period-utils";
 import { PLANS } from "./pricing-plans";
 
 export const PRICING_PLAN_COMPARE_FEATURES: {
@@ -9,7 +14,11 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
   features: {
     text:
       | string
-      | ((d: { id: string; plan: (typeof PLANS)[number] }) => ReactNode);
+      | ((d: {
+          id: string;
+          plan: (typeof PLANS)[number];
+          planPeriod?: PlanPeriod;
+        }) => ReactNode);
     href?: string;
     check?:
       | boolean
@@ -28,15 +37,23 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
     href: "https://dub.co/links",
     features: [
       {
-        text: ({ plan }) => (
+        text: ({ plan, planPeriod = "monthly" }) => (
           <>
             <strong>
               {plan.name === "Enterprise"
                 ? "Unlimited"
-                : nFormatter(plan.limits.links)}
+                : nFormatter(
+                    getPlanLimitForPeriod({
+                      limit: plan.limits.links,
+                      planPeriod,
+                    }),
+                  )}
             </strong>{" "}
             new links
-            {plan.name === "Enterprise" ? "" : "/mo"}
+            {getPlanPeriodSuffix({
+              planPeriod,
+              isUnlimited: plan.name === "Enterprise",
+            })}
           </>
         ),
       },
@@ -165,7 +182,7 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: ({ id, plan }) =>
+        text: ({ id, plan, planPeriod = "monthly" }) =>
           id === "free" || id === "pro" ? (
             "No partner payouts"
           ) : (
@@ -173,10 +190,18 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
               <strong>
                 {plan.name === "Enterprise"
                   ? "Unlimited"
-                  : `$${nFormatter(plan.limits.payouts / 100)}`}
+                  : `$${nFormatter(
+                      getPlanLimitForPeriod({
+                        limit: plan.limits.payouts,
+                        planPeriod,
+                      }) / 100,
+                    )}`}
               </strong>{" "}
               partner payouts
-              {plan.name === "Enterprise" ? "" : "/mo"}
+              {getPlanPeriodSuffix({
+                planPeriod,
+                isUnlimited: plan.name === "Enterprise",
+              })}
             </>
           ),
       },
@@ -341,15 +366,6 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Partners API",
-        href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
-      },
-      {
-        check: {
-          default: false,
-          advanced: true,
-          enterprise: true,
-        },
         text: "Messaging center",
         href: "https://dub.co/help/article/messaging-partners",
       },
@@ -389,15 +405,23 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
         href: "https://dub.co/help/article/dub-analytics",
       },
       {
-        text: ({ plan }) => (
+        text: ({ plan, planPeriod = "monthly" }) => (
           <>
             <strong>
               {plan.name === "Enterprise"
                 ? "Unlimited"
-                : nFormatter(plan.limits.clicks)}
+                : nFormatter(
+                    getPlanLimitForPeriod({
+                      limit: plan.limits.clicks,
+                      planPeriod,
+                    }),
+                  )}
             </strong>{" "}
             tracked events
-            {plan.name === "Enterprise" ? "" : "/mo"}
+            {getPlanPeriodSuffix({
+              planPeriod,
+              isUnlimited: plan.name === "Enterprise",
+            })}
           </>
         ),
         href: "https://dub.co/help/article/dub-analytics-limits",

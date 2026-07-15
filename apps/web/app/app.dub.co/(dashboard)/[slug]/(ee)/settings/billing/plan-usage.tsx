@@ -284,7 +284,9 @@ export default function PlanUsage() {
                   : capitalize(plan)}{" "}
                 Plan
               </span>
-              <Badge variant="gray">{capitalize(planPeriod)}</Badge>
+              {planPeriod && (
+                <Badge variant="gray">{capitalize(planPeriod)}</Badge>
+              )}
             </h2>
             {billingStart && billingEnd && (
               <p className="mt-1.5 text-balance text-sm font-medium leading-normal text-neutral-700">
