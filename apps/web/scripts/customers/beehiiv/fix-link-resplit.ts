@@ -29,10 +29,10 @@ import { recordSaleWithTimestamp } from "../../../lib/tinybird/record-sale";
 //
 // Requires REWARDFUL_API_KEY in the environment (used for the no-affiliate fallback).
 
-const DRY_RUN = true;
+const DRY_RUN = false;
 const PROGRAM_ID = "prog_xxx";
 const SOURCE_LINK_IDS: string[] = [
-  // "link_xxx",
+  // "link_xxx"
 ];
 
 const getSaleEvents = tb.buildPipe({
@@ -82,7 +82,7 @@ async function resolveAffiliateFromRewardful(
     await sleep(REWARDFUL_DELAY_MS);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    const timeout = setTimeout(() => controller.abort(), 5000);
     let referrals: any[] = [];
     try {
       const res = await fetch(
@@ -160,6 +160,9 @@ async function tbDelete(dataSource: string, condition: string) {
       console.error(`TB delete failed on ${dataSource} (${res.status})`);
       failedTbOps.push({ dataSource, condition });
     }
+    console.log(
+      `TB delete succeeded on "${dataSource}" for condition: ${condition}`,
+    );
   } catch (error) {
     console.error(`TB delete threw on ${dataSource}:`, error);
     failedTbOps.push({ dataSource, condition });
@@ -188,16 +191,14 @@ async function moveCustomerTbEvents({
       return { ...event, link_id: newLink.id, key: newLink.key };
     });
     await recordSaleWithTimestamp(updated);
-    await Promise.allSettled([
-      tbDelete(
-        "dub_sale_events",
-        `customer_id='${customerId}' and link_id='${oldLinkId}'`,
-      ),
-      tbDelete(
-        "dub_sale_events_mv",
-        `customer_id='${customerId}' and link_id='${oldLinkId}'`,
-      ),
-    ]);
+    await tbDelete(
+      "dub_sale_events",
+      `customer_id='${customerId}' and link_id='${oldLinkId}'`,
+    );
+    await tbDelete(
+      "dub_sale_events_mv",
+      `customer_id='${customerId}' and link_id='${oldLinkId}'`,
+    );
   }
 
   const { data: leadData } = await getLeadEvents({ customerId });
@@ -213,16 +214,14 @@ async function moveCustomerTbEvents({
         key: newLink.key,
       });
     }
-    await Promise.allSettled([
-      tbDelete(
-        "dub_lead_events",
-        `customer_id='${customerId}' and link_id='${oldLinkId}'`,
-      ),
-      tbDelete(
-        "dub_lead_events_mv",
-        `customer_id='${customerId}' and link_id='${oldLinkId}'`,
-      ),
-    ]);
+    await tbDelete(
+      "dub_lead_events",
+      `customer_id='${customerId}' and link_id='${oldLinkId}'`,
+    );
+    await tbDelete(
+      "dub_lead_events_mv",
+      `customer_id='${customerId}' and link_id='${oldLinkId}'`,
+    );
   }
 
   for (const clickId of clickIds) {
@@ -248,16 +247,6 @@ async function moveCustomerTbEvents({
       });
       continue;
     }
-    await Promise.allSettled([
-      tbDelete(
-        "dub_click_events_mv",
-        `click_id='${clickId}' and link_id='${oldLinkId}'`,
-      ),
-      tbDelete(
-        "dub_click_events_id",
-        `click_id='${clickId}' and link_id='${oldLinkId}'`,
-      ),
-    ]);
   }
 }
 
@@ -283,36 +272,22 @@ async function deleteCustomerTbEvents({
     if (event.click_id) clickIds.add(event.click_id);
   }
 
-  await Promise.allSettled([
-    tbDelete(
-      "dub_sale_events",
-      `customer_id='${customerId}' and link_id='${oldLinkId}'`,
-    ),
-    tbDelete(
-      "dub_sale_events_mv",
-      `customer_id='${customerId}' and link_id='${oldLinkId}'`,
-    ),
-    tbDelete(
-      "dub_lead_events",
-      `customer_id='${customerId}' and link_id='${oldLinkId}'`,
-    ),
-    tbDelete(
-      "dub_lead_events_mv",
-      `customer_id='${customerId}' and link_id='${oldLinkId}'`,
-    ),
-  ]);
-  for (const clickId of clickIds) {
-    await Promise.allSettled([
-      tbDelete(
-        "dub_click_events_mv",
-        `click_id='${clickId}' and link_id='${oldLinkId}'`,
-      ),
-      tbDelete(
-        "dub_click_events_id",
-        `click_id='${clickId}' and link_id='${oldLinkId}'`,
-      ),
-    ]);
-  }
+  await tbDelete(
+    "dub_sale_events",
+    `customer_id='${customerId}' and link_id='${oldLinkId}'`,
+  );
+  await tbDelete(
+    "dub_sale_events_mv",
+    `customer_id='${customerId}' and link_id='${oldLinkId}'`,
+  );
+  await tbDelete(
+    "dub_lead_events",
+    `customer_id='${customerId}' and link_id='${oldLinkId}'`,
+  );
+  await tbDelete(
+    "dub_lead_events_mv",
+    `customer_id='${customerId}' and link_id='${oldLinkId}'`,
+  );
 }
 
 // classify a customer by reading the true affiliate from their imported sale events' metadata:
@@ -466,20 +441,26 @@ async function moveGroup({
       `[dry] would move ${movedCount} customers (sales ${movedSales}, saleAmount ${movedSaleAmount}) to partner ${group.partnerId} / link ${newLink.key}`,
     );
   } else {
-    const updatedCustomers = await prisma.customer.updateMany({
-      where: {
-        id: { in: group.customerIds },
-        linkId: sourceLink.id,
-      },
-      data: {
-        linkId: newLink.id,
-        partnerId: group.partnerId,
-        programId: PROGRAM_ID,
-      },
-    });
-    console.log(
-      `Updated ${updatedCustomers.count} customers to partner ${group.partnerId} / link ${newLink.id}`,
-    );
+    while (true) {
+      const updatedCustomers = await prisma.customer.updateMany({
+        where: {
+          id: { in: group.customerIds },
+          linkId: sourceLink.id,
+        },
+        data: {
+          linkId: newLink.id,
+          partnerId: group.partnerId,
+          programId: PROGRAM_ID,
+        },
+        limit: 250,
+      });
+      console.log(
+        `Updated ${updatedCustomers.count} customers to partner ${group.partnerId} / link ${newLink.id}`,
+      );
+      if (updatedCustomers.count < 250) {
+        break;
+      }
+    }
   }
 
   // update non processed and non paid commissions (but include imported paid commissions) directly
@@ -497,25 +478,32 @@ async function moveGroup({
       `[dry] would update ${count} non-processed commissions for partner ${group.partnerId}`,
     );
   } else {
-    const updatedCommissions = await prisma.commission.updateMany({
-      where: nonProcessedWhere,
-      data: {
-        linkId: newLink.id,
-        partnerId: group.partnerId,
-      },
-    });
-    console.log(
-      `Updated ${updatedCommissions.count} non-processed commissions for partner ${group.partnerId}`,
-    );
+    while (true) {
+      const updatedCommissions = await prisma.commission.updateMany({
+        where: nonProcessedWhere,
+        data: {
+          linkId: newLink.id,
+          partnerId: group.partnerId,
+        },
+        limit: 250,
+      });
+      console.log(
+        `Updated ${updatedCommissions.count} non-processed commissions for partner ${group.partnerId}`,
+      );
+      if (updatedCommissions.count < 250) {
+        break;
+      }
+    }
   }
 
+  const processedAndPaidWhere: Prisma.CommissionWhereInput = {
+    customerId: { in: group.customerIds },
+    linkId: sourceLink.id,
+    status: { in: ["processed", "paid"] },
+  };
   // update processed and paid commissions separately cause they're tied to a payout
   const processedAndPaidCommissions = await prisma.commission.findMany({
-    where: {
-      customerId: { in: group.customerIds },
-      linkId: sourceLink.id,
-      status: { in: ["processed", "paid"] },
-    },
+    where: processedAndPaidWhere,
   });
   console.log(
     `Found ${processedAndPaidCommissions.length} processed and paid commissions for partner ${group.partnerId}`,
@@ -526,36 +514,44 @@ async function moveGroup({
       `[dry] would move ${processedAndPaidCommissions.length} processed/paid commissions to partner ${group.partnerId} (reset payout, status -> pending) and delete their activity logs`,
     );
   } else {
-    const updatedProcessedAndPaidCommissions =
-      await prisma.commission.updateMany({
+    while (true) {
+      const updatedProcessedAndPaidCommissions =
+        await prisma.commission.updateMany({
+          where: processedAndPaidWhere,
+          data: {
+            linkId: newLink.id,
+            partnerId: group.partnerId,
+            payoutId: null,
+            status: "pending",
+          },
+          limit: 250,
+        });
+      console.log(
+        `Updated ${updatedProcessedAndPaidCommissions.count} processed and paid commissions for partner ${group.partnerId}`,
+      );
+      if (updatedProcessedAndPaidCommissions.count < 250) {
+        break;
+      }
+    }
+
+    const chunkedProcessedAndPaidCommissions = chunk(
+      processedAndPaidCommissions,
+      250,
+    );
+    for (const chunk of chunkedProcessedAndPaidCommissions) {
+      // delete activity logs cause they'll be re-added to a new payout
+      const deletedActivityLogs = await prisma.activityLog.deleteMany({
         where: {
-          id: {
-            in: processedAndPaidCommissions.map((commission) => commission.id),
+          resourceType: "commission",
+          resourceId: {
+            in: chunk.map((commission) => commission.id),
           },
         },
-        data: {
-          linkId: newLink.id,
-          partnerId: group.partnerId,
-          payoutId: null,
-          status: "pending",
-        },
       });
-    console.log(
-      `Updated ${updatedProcessedAndPaidCommissions.count} processed and paid commissions for partner ${group.partnerId}`,
-    );
-
-    // delete activity logs cause they'll be re-added to a new payout
-    const deletedActivityLogs = await prisma.activityLog.deleteMany({
-      where: {
-        resourceType: "commission",
-        resourceId: {
-          in: processedAndPaidCommissions.map((commission) => commission.id),
-        },
-      },
-    });
-    console.log(
-      `Deleted ${deletedActivityLogs.count} activity logs for commissions`,
-    );
+      console.log(
+        `Deleted ${deletedActivityLogs.count} activity logs for commissions`,
+      );
+    }
   }
 
   // the source link's partner was credited + paid for these customers, so for any commissions
@@ -753,24 +749,31 @@ async function unattributeCustomers({
       `[dry] would cancel ${count} non-processed commissions for unattributed customers`,
     );
   } else {
-    const canceledCommissions = await prisma.commission.updateMany({
-      where: nonProcessedWhere,
-      data: {
-        status: "canceled",
-      },
-    });
-    console.log(
-      `Canceled ${canceledCommissions.count} non-processed commissions for unattributed customers`,
-    );
+    while (true) {
+      const canceledCommissions = await prisma.commission.updateMany({
+        where: nonProcessedWhere,
+        data: {
+          status: "canceled",
+        },
+        limit: 250,
+      });
+      console.log(
+        `Canceled ${canceledCommissions.count} non-processed commissions for unattributed customers`,
+      );
+      if (canceledCommissions.count < 250) {
+        break;
+      }
+    }
   }
 
+  const processedAndPaidWhere: Prisma.CommissionWhereInput = {
+    customerId: { in: unattributeCustomerIds },
+    linkId: sourceLink.id,
+    status: { in: ["processed", "paid"] },
+  };
   // processed and paid commissions are tied to a payout, handle separately
   const processedAndPaidCommissions = await prisma.commission.findMany({
-    where: {
-      customerId: { in: unattributeCustomerIds },
-      linkId: sourceLink.id,
-      status: { in: ["processed", "paid"] },
-    },
+    where: processedAndPaidWhere,
   });
   console.log(
     `Found ${processedAndPaidCommissions.length} processed and paid commissions for unattributed customers`,
@@ -781,34 +784,42 @@ async function unattributeCustomers({
       `[dry] would cancel ${processedAndPaidCommissions.length} processed/paid commissions (reset payout) and delete their activity logs`,
     );
   } else {
-    const updatedProcessedAndPaidCommissions =
-      await prisma.commission.updateMany({
+    while (true) {
+      const updatedProcessedAndPaidCommissions =
+        await prisma.commission.updateMany({
+          where: processedAndPaidWhere,
+          data: {
+            payoutId: null,
+            status: "canceled",
+          },
+          limit: 250,
+        });
+      console.log(
+        `Updated ${updatedProcessedAndPaidCommissions.count} processed and paid commissions for unattributed customers`,
+      );
+      if (updatedProcessedAndPaidCommissions.count < 250) {
+        break;
+      }
+    }
+
+    const chunkedProcessedAndPaidCommissions = chunk(
+      processedAndPaidCommissions,
+      250,
+    );
+    for (const chunk of chunkedProcessedAndPaidCommissions) {
+      // delete activity logs cause the commissions are no longer tied to a payout
+      const deletedActivityLogs = await prisma.activityLog.deleteMany({
         where: {
-          id: {
-            in: processedAndPaidCommissions.map((commission) => commission.id),
+          resourceType: "commission",
+          resourceId: {
+            in: chunk.map((commission) => commission.id),
           },
         },
-        data: {
-          payoutId: null,
-          status: "canceled",
-        },
       });
-    console.log(
-      `Canceled ${updatedProcessedAndPaidCommissions.count} processed and paid commissions for unattributed customers`,
-    );
-
-    // delete activity logs cause the commissions are no longer tied to a payout
-    const deletedActivityLogs = await prisma.activityLog.deleteMany({
-      where: {
-        resourceType: "commission",
-        resourceId: {
-          in: processedAndPaidCommissions.map((commission) => commission.id),
-        },
-      },
-    });
-    console.log(
-      `Deleted ${deletedActivityLogs.count} activity logs for commissions`,
-    );
+      console.log(
+        `Deleted ${deletedActivityLogs.count} activity logs for commissions`,
+      );
+    }
   }
 
   // for any commissions already paid via Dub, create a dummy commission to represent the overpayment
