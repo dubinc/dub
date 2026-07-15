@@ -2,12 +2,21 @@ import { log } from "@dub/utils";
 import * as z from "zod/v4";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
 
-const responseSchema = z.object({
-  SetRenewOptionResponse: z.object({
-    ResponseCode: z.number(),
-    Status: z.string(),
+const responseSchema = z.union([
+  z.object({
+    SetRenewOptionResponse: z.object({
+      ResponseCode: z.union([z.number(), z.string()]),
+      Status: z.string(),
+    }),
   }),
-});
+
+  z.object({
+    Response: z.object({
+      ResponseCode: z.union([z.number(), z.string()]),
+      Error: z.string(),
+    }),
+  }),
+]);
 
 export const setRenewOption = async ({
   domain,
@@ -39,14 +48,22 @@ export const setRenewOption = async ({
 
     const responseBody = await response.json();
 
-    console.info(responseBody);
+    console.info(`[setRenewOption] ${domain}`, responseBody);
 
-    const {
-      SetRenewOptionResponse: { Status },
-    } = responseSchema.parse(responseBody);
+    const parsedResponse = responseSchema.parse(responseBody);
 
-    if (Status !== "success") {
-      throw new Error(`Failed to set renew option: ${Status}`);
+    if ("Response" in parsedResponse) {
+      throw new Error(
+        `Failed to set renew option: ${parsedResponse.Response.Error}`,
+      );
+    }
+
+    if ("SetRenewOptionResponse" in parsedResponse) {
+      const { Status } = parsedResponse.SetRenewOptionResponse;
+
+      if (Status !== "success") {
+        throw new Error(`Failed to set renew option: ${Status}`);
+      }
     }
 
     console.log(
