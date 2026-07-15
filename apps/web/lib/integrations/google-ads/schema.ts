@@ -34,7 +34,10 @@ export const googleAdsConversionActionSchema = z.object({
 export const googleAdsConversionUploadSchema = z.object({
   workspaceId: z.string(),
   eventType: z.enum(["lead", "sale"]),
-  clickId: z.string(),
+  click: z.object({
+    id: z.string(),
+    url: z.string(),
+  }),
   conversionDateTime: z.string(),
   eventId: z.string(),
   conversionValue: z.number().optional(),

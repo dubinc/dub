@@ -624,12 +624,14 @@ const _trackSale = async ({
         queueGoogleAdsConversionUpload({
           workspaceId: workspace.id,
           eventType: EventType.sale,
-          clickId: leadEventData.click_id,
           conversionDateTime: new Date().toISOString(),
-          eventId: invoiceId || saleData.event_id,
-          // Dub stores USD cents; Data Manager expects major currency units
-          conversionValue: amount / 100,
+          eventId: saleData.event_id,
+          conversionValue: amount / 100, // Data Manager expects major currency units
           currencyCode: currency,
+          click: {
+            id: leadEventData.click_id,
+            url: leadEventData.url,
+          },
         }),
 
         ...(link.partnerId

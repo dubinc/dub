@@ -1,7 +1,6 @@
 import { getErrorMetadata, logger } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { getClickEvent } from "@/lib/tinybird";
 import {
   APP_DOMAIN_WITH_NGROK,
   getSearchParams,
@@ -15,43 +14,6 @@ import {
   googleAdsConversionUploadSchema,
   googleAdsSettingsSchema,
 } from "./schema";
-
-export const queueGoogleAdsConversionUpload = async (
-  payload: z.infer<typeof googleAdsConversionUploadSchema>,
-) => {
-  if (!(await googleAdsInstalledWorkspaces.has(payload.workspaceId))) {
-    return;
-  }
-
-  try {
-    const response = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/google-ads/upload-conversion`,
-      body: payload,
-      retries: 3,
-      deduplicationId: `google-ads-${payload.workspaceId}-${payload.eventId}`,
-    });
-
-    if (!response.messageId) {
-      throw new Error("Failed to queue Google Ads conversion upload");
-    }
-
-    return response;
-  } catch (error) {
-    logger.error("google-ads.queue_conversion_failed", {
-      service: "google-ads",
-      ...getErrorMetadata(error),
-      correlation: {
-        workspaceId: payload.workspaceId,
-        eventId: payload.eventId,
-        eventType: payload.eventType,
-        clickId: payload.clickId,
-      },
-    });
-
-    await logger.flush();
-    throw error;
-  }
-};
 
 const extractGoogleAdsClickId = (url: string): GoogleAdsClickId | null => {
   const queryParams = getSearchParams(url);
@@ -77,13 +39,54 @@ const extractGoogleAdsClickId = (url: string): GoogleAdsClickId | null => {
   return null;
 };
 
+export const queueGoogleAdsConversionUpload = async (
+  payload: z.infer<typeof googleAdsConversionUploadSchema>,
+) => {
+  if (!extractGoogleAdsClickId(payload.click.url)) {
+    return;
+  }
+
+  if (!(await googleAdsInstalledWorkspaces.has(payload.workspaceId))) {
+    return;
+  }
+
+  try {
+    const response = await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/google-ads/upload-conversion`,
+      body: payload,
+      retries: 3,
+      deduplicationId: `google-ads-${payload.workspaceId}-${payload.eventId}`,
+    });
+
+    if (!response.messageId) {
+      throw new Error("Failed to queue Google Ads conversion upload");
+    }
+
+    return response;
+  } catch (error) {
+    logger.error("google-ads.queue_conversion_failed", {
+      service: "google-ads",
+      ...getErrorMetadata(error),
+      correlation: {
+        workspaceId: payload.workspaceId,
+        eventId: payload.eventId,
+        eventType: payload.eventType,
+        clickId: payload.click.id,
+      },
+    });
+
+    await logger.flush();
+    throw error;
+  }
+};
+
 export const uploadGoogleAdsConversion = async (
   payload: z.infer<typeof googleAdsConversionUploadSchema>,
 ) => {
   const {
     workspaceId,
     eventType,
-    clickId,
+    click,
     conversionDateTime,
     eventId,
     conversionValue,
@@ -127,20 +130,11 @@ export const uploadGoogleAdsConversion = async (
       return;
     }
 
-    const clickEvent = await getClickEvent({ clickId });
-
-    if (!clickEvent?.url) {
-      console.warn(
-        `[Google Ads] Skipping ${eventType} conversion upload for workspace ${workspaceId}: no click event URL found for clickId ${clickId}`,
-      );
-      return;
-    }
-
-    const googleClickId = extractGoogleAdsClickId(clickEvent.url);
+    const googleClickId = extractGoogleAdsClickId(click.url);
 
     if (!googleClickId) {
       console.warn(
-        `[Google Ads] Skipping ${eventType} conversion upload for workspace ${workspaceId}: no gclid/gbraid/wbraid found on click ${clickId}`,
+        `[Google Ads] Skipping ${eventType} conversion upload for workspace ${workspaceId}: no gclid/gbraid/wbraid found on click ${click.id}`,
       );
       return;
     }
@@ -200,7 +194,7 @@ export const uploadGoogleAdsConversion = async (
         workspaceId,
         eventId,
         eventType,
-        clickId,
+        clickId: click.id,
       },
     });
 

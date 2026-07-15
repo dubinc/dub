@@ -356,10 +356,13 @@ export const trackLead = async ({
             queueGoogleAdsConversionUpload({
               workspaceId: workspace.id,
               eventType: EventType.lead,
-              clickId,
               eventId: leadEventId,
               conversionDateTime: new Date().toISOString(),
               conversionCount: eventQuantity ?? undefined,
+              click: {
+                id: clickData.click_id,
+                url: clickData.url,
+              },
             }),
 
             ...(link.partnerId
