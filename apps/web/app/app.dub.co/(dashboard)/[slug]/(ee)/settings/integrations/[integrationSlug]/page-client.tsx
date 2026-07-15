@@ -61,8 +61,7 @@ import {
 } from "@dub/utils/src/constants/integrations";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 const integrationSettings = {
@@ -81,23 +80,8 @@ export default function IntegrationPageClient({
   integration: InstalledIntegrationInfoProps;
 }) {
   const { id: workspaceId, slug, plan, role, stripeConnectId } = useWorkspace();
-  const searchParams = useSearchParams();
   const { isMobile } = useMediaQuery();
   const [openPopover, setOpenPopover] = useState(false);
-
-  useEffect(() => {
-    const error = searchParams?.get("error");
-
-    if (!error) {
-      return;
-    }
-
-    toast.error(error);
-
-    const url = new URL(window.location.href);
-    url.searchParams.delete("error");
-    window.history.replaceState({}, "", url.toString());
-  }, [searchParams]);
 
   const permissionsError = clientAccessCheck({
     action: "integrations.write",

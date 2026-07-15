@@ -9,17 +9,17 @@ import {
 } from "@dub/utils";
 import * as z from "zod/v4";
 import { GoogleAdsApi, GoogleAdsClickId } from "./api";
+import { googleAdsInstalledWorkspaces } from "./installed-workspaces";
 import { googleAdsOAuthProvider } from "./oauth";
 import {
   googleAdsConversionUploadSchema,
   googleAdsSettingsSchema,
 } from "./schema";
-import { isGoogleAdsAllowedWorkspace } from "./utils";
 
 export const queueGoogleAdsConversionUpload = async (
   payload: z.infer<typeof googleAdsConversionUploadSchema>,
 ) => {
-  if (!isGoogleAdsAllowedWorkspace(payload.workspaceId)) {
+  if (!(await googleAdsInstalledWorkspaces.has(payload.workspaceId))) {
     return;
   }
 

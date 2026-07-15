@@ -1,8 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { googleAdsInstalledWorkspaces } from "@/lib/integrations/google-ads/installed-workspaces";
 import { slackOAuthProvider } from "@/lib/integrations/slack/oauth";
 import { prisma } from "@/lib/prisma";
-import { SLACK_INTEGRATION_ID } from "@dub/utils";
+import { GOOGLE_ADS_INTEGRATION_ID, SLACK_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -53,6 +54,9 @@ export const DELETE = withWorkspace(
       Promise.all([
         ...(integrationId === SLACK_INTEGRATION_ID
           ? [slackOAuthProvider.uninstall(installation)]
+          : []),
+        ...(integrationId === GOOGLE_ADS_INTEGRATION_ID
+          ? [googleAdsInstalledWorkspaces.remove(workspace.id)]
           : []),
       ]),
     );

@@ -1,10 +1,11 @@
-import { DubApiError } from "@/lib/api/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
 import { encrypt } from "@/lib/encryption";
 import {
   GoogleAdsApi,
   inferLoginCustomerId,
 } from "@/lib/integrations/google-ads/api";
+import { googleAdsInstalledWorkspaces } from "@/lib/integrations/google-ads/installed-workspaces";
 import { googleAdsOAuthProvider } from "@/lib/integrations/google-ads/oauth";
 import {
   googleAdsAuthTokenSchema,
@@ -13,28 +14,22 @@ import {
 import { installIntegration } from "@/lib/integrations/install";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
+import { WorkspaceProps } from "@/lib/types";
 import { GOOGLE_ADS_INTEGRATION_ID } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 // GET /api/gad/callback - OAuth callback from Google Ads
 export const GET = async (req: Request) => {
-  const session = await getSession();
-
-  const integration = await prisma.integration.findFirstOrThrow({
-    where: {
-      id: GOOGLE_ADS_INTEGRATION_ID,
-    },
-    select: {
-      slug: true,
-    },
-  });
-
-  let workspaceSlug: string | null = null;
-  let errorMessage: string | null = null;
+  let workspace:
+    | (Pick<WorkspaceProps, "id" | "slug" | "users"> & { plan: string })
+    | null = null;
 
   try {
+    const session = await getSession();
+
     if (!session?.user.id) {
       throw new DubApiError({
         code: "unauthorized",
@@ -45,7 +40,7 @@ export const GET = async (req: Request) => {
     const { token, contextId: workspaceId } =
       await googleAdsOAuthProvider.exchangeCodeForToken<string>(req);
 
-    const workspace = await prisma.project.findUniqueOrThrow({
+    workspace = await prisma.project.findUniqueOrThrow({
       where: {
         id: workspaceId,
       },
@@ -64,8 +59,6 @@ export const GET = async (req: Request) => {
         },
       },
     });
-
-    workspaceSlug = workspace.slug;
 
     if (workspace.users.length === 0) {
       throw new DubApiError({
@@ -130,44 +123,11 @@ export const GET = async (req: Request) => {
       credentials,
       settings,
     });
+
+    waitUntil(googleAdsInstalledWorkspaces.add(workspaceId));
   } catch (error) {
-    errorMessage =
-      error instanceof DubApiError || error instanceof Error
-        ? error.message
-        : "Failed to connect Google Ads. Please try again.";
+    return handleAndReturnErrorResponse(error);
   }
 
-  if (!workspaceSlug) {
-    redirect(
-      `/login?error=${encodeURIComponent(errorMessage || "Failed to connect Google Ads. Please try again.")}`,
-    );
-  }
-
-  redirectToIntegrationPage({
-    workspaceSlug,
-    integrationSlug: integration.slug,
-    error: errorMessage ?? undefined,
-  });
-};
-
-const redirectToIntegrationPage = ({
-  workspaceSlug,
-  integrationSlug,
-  error,
-}: {
-  workspaceSlug: string;
-  integrationSlug: string;
-  error?: string;
-}) => {
-  const params = new URLSearchParams();
-
-  if (error) {
-    params.set("error", error);
-  }
-
-  const query = params.toString();
-
-  redirect(
-    `/${workspaceSlug}/settings/integrations/${integrationSlug}${query ? `?${query}` : ""}`,
-  );
+  redirect(`/${workspace.slug}/settings/integrations/google-ads`);
 };
