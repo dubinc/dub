@@ -74,7 +74,7 @@ const googleAdsFetch = async <T>({
     console.error("[Google Ads API]", path, text);
 
     throw new Error(
-      `[Google Ads API] Request failed for ${path} (${response.status}). Please try again.`,
+      `[Google Ads API] Request failed for ${path} (${response.status}): ${text || "Unknown error"}`,
     );
   }
 
@@ -82,7 +82,7 @@ const googleAdsFetch = async <T>({
     console.error("[Google Ads API]", path, data);
 
     throw new Error(
-      `[Google Ads API] Request failed for ${path} (${response.status}). Please try again.`,
+      `[Google Ads API] Request failed for ${path} (${response.status}): ${formatApiErrorDetail(data, text)}`,
     );
   }
 
@@ -119,7 +119,7 @@ const dataManagerFetch = async <T>({
     console.error("[Data Manager API]", path, text);
 
     throw new Error(
-      `[Data Manager API] Request failed for ${path} (${response.status}). Please try again.`,
+      `[Data Manager API] Request failed for ${path} (${response.status}): ${text || "Unknown error"}`,
     );
   }
 
@@ -127,11 +127,15 @@ const dataManagerFetch = async <T>({
     console.error("[Data Manager API]", path, data);
 
     throw new Error(
-      `[Data Manager API] Request failed for ${path} (${response.status}). Please try again.`,
+      `[Data Manager API] Request failed for ${path} (${response.status}): ${formatApiErrorDetail(data, text)}`,
     );
   }
 
   return data as T;
+};
+
+const formatApiErrorDetail = (data: any, rawText: string) => {
+  return data?.error?.message ?? JSON.stringify(data) ?? rawText;
 };
 
 const searchStream = async ({
@@ -357,7 +361,7 @@ export class GoogleAdsApi {
       event.conversionCount = conversionCount;
     }
 
-    return dataManagerFetch({
+    return dataManagerFetch<{ requestId: string }>({
       accessToken: this.options.accessToken,
       path: "events:ingest",
       body: {

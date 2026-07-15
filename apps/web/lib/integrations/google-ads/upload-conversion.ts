@@ -80,9 +80,14 @@ export const queueGoogleAdsConversionUpload = async (
   }
 };
 
+export type GoogleAdsConversionUploadResult = {
+  message: string;
+  status: "failed" | "skipped" | "uploaded";
+};
+
 export const uploadGoogleAdsConversion = async (
   payload: z.infer<typeof googleAdsConversionUploadSchema>,
-) => {
+): Promise<GoogleAdsConversionUploadResult> => {
   const {
     workspaceId,
     eventType,
@@ -108,10 +113,10 @@ export const uploadGoogleAdsConversion = async (
     });
 
     if (!installedIntegration) {
-      console.warn(
-        `[Google Ads] Skipping ${eventType} conversion upload: Google Ads integration not installed for workspace ${workspaceId}`,
-      );
-      return;
+      return {
+        message: `Google Ads integration not installed for workspace ${workspaceId}. Skipping...`,
+        status: "skipped",
+      };
     }
 
     const settings = googleAdsSettingsSchema.parse(
@@ -124,19 +129,19 @@ export const uploadGoogleAdsConversion = async (
         : settings.saleConversionAction;
 
     if (!settings.customerId || !conversionAction) {
-      console.warn(
-        `[Google Ads] Skipping ${eventType} conversion upload for workspace ${workspaceId}: missing ${!settings.customerId ? "customerId" : `${eventType}ConversionAction`}`,
-      );
-      return;
+      return {
+        message: `Missing ${!settings.customerId ? "customerId" : `${eventType}ConversionAction`}. Skipping...`,
+        status: "skipped",
+      };
     }
 
     const googleClickId = extractGoogleAdsClickId(click.url);
 
     if (!googleClickId) {
-      console.warn(
-        `[Google Ads] Skipping ${eventType} conversion upload for workspace ${workspaceId}: no gclid/gbraid/wbraid found on click ${click.id}`,
-      );
-      return;
+      return {
+        message: `No gclid/gbraid/wbraid found on click ${click.id}. Skipping...`,
+        status: "skipped",
+      };
     }
 
     const token =
@@ -172,9 +177,10 @@ export const uploadGoogleAdsConversion = async (
           eventId,
         });
 
-        console.log("uploadClickConversion response", response);
-
-        return response;
+        return {
+          message: `Uploaded ${eventType} conversion for workspace ${workspaceId} (requestId: ${response.requestId})`,
+          status: "uploaded",
+        };
       } catch (error) {
         if (attempt < maxRetries) {
           await new Promise((resolve) =>
@@ -186,7 +192,14 @@ export const uploadGoogleAdsConversion = async (
         throw error;
       }
     }
+
+    return {
+      message: `Failed to upload ${eventType} conversion for workspace ${workspaceId}: unknown error`,
+      status: "failed",
+    };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
     logger.error("google-ads.upload_conversion_failed", {
       service: "google-ads",
       ...getErrorMetadata(error),
@@ -199,6 +212,10 @@ export const uploadGoogleAdsConversion = async (
     });
 
     await logger.flush();
-    throw error;
+
+    return {
+      message: `Failed to upload ${eventType} conversion for workspace ${workspaceId}: ${errorMessage}`,
+      status: "failed",
+    };
   }
 };

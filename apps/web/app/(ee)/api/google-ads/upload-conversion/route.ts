@@ -1,6 +1,7 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { googleAdsConversionUploadSchema } from "@/lib/integrations/google-ads/schema";
 import { uploadGoogleAdsConversion } from "@/lib/integrations/google-ads/upload-conversion";
+import { logAndRespond } from "../../cron/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -8,7 +9,13 @@ export const dynamic = "force-dynamic";
 export const POST = withCron(async ({ rawBody }) => {
   const payload = googleAdsConversionUploadSchema.parse(JSON.parse(rawBody));
 
-  await uploadGoogleAdsConversion(payload);
+  const { message, status } = await uploadGoogleAdsConversion(payload);
 
-  return new Response("OK");
+  if (status === "failed") {
+    return logAndRespond(message, { status: 500, logLevel: "error" });
+  }
+
+  return logAndRespond(message, {
+    logLevel: status === "skipped" ? "warn" : "info",
+  });
 });
