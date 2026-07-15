@@ -25,7 +25,7 @@ export const queueGoogleAdsConversionUpload = async (
 
   try {
     const response = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/gad/upload-conversion`,
+      url: `${APP_DOMAIN_WITH_NGROK}/api/google-ads/upload-conversion`,
       body: payload,
       retries: 3,
       deduplicationId: `google-ads-${payload.workspaceId}-${payload.eventId}`,

@@ -399,7 +399,7 @@ export const inferLoginCustomerId = ({
 };
 
 // Formats a date as RFC 3339 for Data Manager API event uploads.
-export const formatGoogleAdsEventTimestamp = (input: string | Date) => {
+const formatGoogleAdsEventTimestamp = (input: string | Date) => {
   const date = typeof input === "string" ? new Date(input) : input;
   return date.toISOString();
 };

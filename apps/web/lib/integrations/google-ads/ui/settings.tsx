@@ -79,7 +79,7 @@ export const GoogleAdsSettings = ({
     error: conversionActionsError,
   } = useSWR<ConversionActionsResponse>(
     workspaceId && installed && customerId
-      ? `/api/gad/conversion-actions?workspaceId=${workspaceId}&customerId=${customerId}`
+      ? `/api/google-ads/conversion-actions?workspaceId=${workspaceId}&customerId=${customerId}`
       : null,
     fetcher,
   );

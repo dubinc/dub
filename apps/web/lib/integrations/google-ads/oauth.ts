@@ -225,7 +225,7 @@ export const googleAdsOAuthProvider = new GoogleAdsOAuthProvider({
   clientSecret: process.env.GOOGLE_ADS_CLIENT_SECRET!,
   authUrl: "https://accounts.google.com/o/oauth2/v2/auth",
   tokenUrl: "https://oauth2.googleapis.com/token",
-  redirectUri: `${APP_DOMAIN_WITH_NGROK}/api/gad/callback`,
+  redirectUri: `${APP_DOMAIN_WITH_NGROK}/api/google-ads/callback`,
   redisStatePrefix: "google-ads:oauth:state",
   tokenSchema: googleAdsAuthTokenSchema,
   bodyFormat: "form",

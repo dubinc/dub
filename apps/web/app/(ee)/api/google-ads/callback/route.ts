@@ -21,7 +21,7 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/gad/callback - OAuth callback from Google Ads
+// GET /api/google-ads/callback - OAuth callback from Google Ads
 export const GET = async (req: Request) => {
   let workspace:
     | (Pick<WorkspaceProps, "id" | "slug" | "users"> & { plan: string })

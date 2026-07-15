@@ -11,7 +11,7 @@ import { GOOGLE_ADS_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// GET /api/gad/conversion-actions - List UPLOAD_CLICKS conversion actions for a customer
+// GET /api/google-ads/conversion-actions - List UPLOAD_CLICKS conversion actions for a customer
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const { customerId } = z

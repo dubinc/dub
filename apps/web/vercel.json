@@ -85,7 +85,7 @@
       "schedule": "*/5 * * * *"
     },
     {
-      "path": "/api/cron/gad/sync-installed-workspaces",
+      "path": "/api/cron/google-ads/sync-installed-workspaces",
       "schedule": "* * * * *"
     }
   ],

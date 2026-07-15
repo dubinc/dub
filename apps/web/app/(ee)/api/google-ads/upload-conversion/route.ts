@@ -4,7 +4,7 @@ import { uploadGoogleAdsConversion } from "@/lib/integrations/google-ads/upload-
 
 export const dynamic = "force-dynamic";
 
-// POST /api/gad/upload-conversion - Upload a conversion to Google Ads
+// POST /api/google-ads/upload-conversion - Upload a conversion to Google Ads
 export const POST = withCron(async ({ rawBody }) => {
   const payload = googleAdsConversionUploadSchema.parse(JSON.parse(rawBody));
 
