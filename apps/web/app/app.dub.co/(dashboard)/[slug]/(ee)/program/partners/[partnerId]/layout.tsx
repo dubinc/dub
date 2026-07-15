@@ -2,7 +2,7 @@
 
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
-import { canDeletePartner } from "@/lib/partners/utils";
+import { getDeletePartnerDisabledTooltip } from "@/lib/partners/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -249,7 +249,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
       partner,
     });
 
-  const canDelete = canDeletePartner(partner);
+  const deletePartnerDisabledTooltip = getDeletePartnerDisabledTooltip(partner);
 
   return (
     <>
@@ -451,18 +451,17 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
                     </MenuItem>
                   )}
 
-                  {canDelete && (
-                    <MenuItem
-                      icon={Trash}
-                      variant="danger"
-                      onClick={() => {
-                        setShowDeletePartnerModal(true);
-                        setIsOpen(false);
-                      }}
-                    >
-                      Permanently delete
-                    </MenuItem>
-                  )}
+                  <MenuItem
+                    icon={Trash}
+                    variant="danger"
+                    onClick={() => {
+                      setShowDeletePartnerModal(true);
+                      setIsOpen(false);
+                    }}
+                    disabledTooltip={deletePartnerDisabledTooltip}
+                  >
+                    Permanently delete
+                  </MenuItem>
                 </div>
               </>
             )}

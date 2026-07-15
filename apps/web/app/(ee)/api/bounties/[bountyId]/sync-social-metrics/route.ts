@@ -193,10 +193,6 @@ export const POST = withWorkspace(
     return NextResponse.json({});
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

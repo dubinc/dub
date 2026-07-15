@@ -82,10 +82,6 @@ export const GET = withWorkspace(
     return NextResponse.json(fraudGroupCountSchema.parse(count));
   },
   {
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
