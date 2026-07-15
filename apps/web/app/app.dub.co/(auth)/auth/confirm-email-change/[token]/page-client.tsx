@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
-export default async function ConfirmEmailChangePageClient({
+export default function ConfirmEmailChangePageClient({
   isPartnerProfile,
+  redirectTo,
 }: {
   isPartnerProfile: boolean;
+  redirectTo?: "/profile" | "/account/settings";
 }) {
   const router = useRouter();
   const { update, status } = useSession();
@@ -24,11 +26,13 @@ export default async function ConfirmEmailChangePageClient({
       hasUpdatedSession.current = true;
       await update();
       toast.success("Successfully updated your email!");
-      router.replace(isPartnerProfile ? "/profile" : "/account/settings");
+      router.replace(
+        redirectTo ?? (isPartnerProfile ? "/profile" : "/account/settings"),
+      );
     }
 
     updateSession();
-  }, [status, update]);
+  }, [status, update, isPartnerProfile, redirectTo, router]);
 
   return (
     <EmptyState
