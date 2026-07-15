@@ -17,7 +17,11 @@ type UploadClickConversionParams = {
   googleClickId: GoogleAdsClickId;
 } & Pick<
   z.infer<typeof googleAdsConversionUploadSchema>,
-  "conversionDateTime" | "eventId" | "conversionValue" | "currencyCode"
+  | "conversionDateTime"
+  | "eventId"
+  | "conversionValue"
+  | "currencyCode"
+  | "conversionCount"
 >;
 
 type GoogleAdsRequestOptions = {
@@ -94,14 +98,17 @@ const dataManagerFetch = async <T>({
   path: string;
   body: unknown;
 }): Promise<T> => {
-  const response = await fetch(`https://datamanager.googleapis.com/v1/${path}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
+  const response = await fetch(
+    `https://datamanager.googleapis.com/v1/${path}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
     },
-    body: JSON.stringify(body),
-  });
+  );
 
   const text = await response.text();
   let data: any;
@@ -305,6 +312,7 @@ export class GoogleAdsApi {
     conversionDateTime,
     conversionValue,
     currencyCode,
+    conversionCount,
     eventId,
   }: UploadClickConversionParams) {
     const normalizedCustomerId = customerId.replace(/-/g, "");
@@ -343,6 +351,10 @@ export class GoogleAdsApi {
 
     if (currencyCode) {
       event.currency = currencyCode.toUpperCase();
+    }
+
+    if (conversionCount !== undefined) {
+      event.conversionCount = conversionCount;
     }
 
     return dataManagerFetch({

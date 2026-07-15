@@ -359,6 +359,7 @@ export const trackLead = async ({
               clickId,
               eventId: leadEventId,
               conversionDateTime: `${clickData.timestamp}Z`,
+              conversionCount: eventQuantity ?? undefined,
             }),
 
             ...(link.partnerId

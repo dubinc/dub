@@ -73,6 +73,12 @@ export const updateGoogleAdsSettingsAction = authActionClient
         })
       : null;
 
+    if (!customerId && (leadConversionAction || saleConversionAction)) {
+      throw new Error(
+        "A Google Ads account is required to configure conversion actions.",
+      );
+    }
+
     if (customerId) {
       const normalizedCustomerId = customerId.replace(/-/g, "");
       const expectedPrefix = `customers/${normalizedCustomerId}/conversionActions/`;

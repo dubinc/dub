@@ -39,4 +39,5 @@ export const googleAdsConversionUploadSchema = z.object({
   eventId: z.string(),
   conversionValue: z.number().optional(),
   currencyCode: z.string().optional(),
+  conversionCount: z.number().positive().optional(),
 });

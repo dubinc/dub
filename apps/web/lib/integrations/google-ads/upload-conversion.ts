@@ -88,6 +88,7 @@ export const uploadGoogleAdsConversion = async (
     eventId,
     conversionValue,
     currencyCode,
+    conversionCount,
   } = googleAdsConversionUploadSchema.parse(payload);
 
   try {
@@ -173,6 +174,7 @@ export const uploadGoogleAdsConversion = async (
           conversionDateTime,
           conversionValue,
           currencyCode,
+          conversionCount,
           eventId,
         });
 
