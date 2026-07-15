@@ -98,10 +98,7 @@ export const GoogleAdsSettings = ({
       return;
     }
 
-    setValue(
-      "loginCustomerId",
-      conversionActionsData.loginCustomerId ?? "",
-    );
+    setValue("loginCustomerId", conversionActionsData.loginCustomerId ?? "");
   }, [conversionActionsData, setValue]);
 
   const conversionActionOptions = useMemo<ComboboxOption[]>(

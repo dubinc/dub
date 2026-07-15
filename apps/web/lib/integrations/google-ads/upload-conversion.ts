@@ -16,27 +16,31 @@ import {
 } from "./schema";
 
 const extractGoogleAdsClickId = (url: string): GoogleAdsClickId | null => {
-  const queryParams = getSearchParams(url);
+  try {
+    const queryParams = getSearchParams(url);
 
-  if (queryParams.gclid) {
-    return {
-      gclid: queryParams.gclid,
-    };
+    if (queryParams.gclid) {
+      return {
+        gclid: queryParams.gclid,
+      };
+    }
+
+    if (queryParams.gbraid) {
+      return {
+        gbraid: queryParams.gbraid,
+      };
+    }
+
+    if (queryParams.wbraid) {
+      return {
+        wbraid: queryParams.wbraid,
+      };
+    }
+
+    return null;
+  } catch {
+    return null;
   }
-
-  if (queryParams.gbraid) {
-    return {
-      gbraid: queryParams.gbraid,
-    };
-  }
-
-  if (queryParams.wbraid) {
-    return {
-      wbraid: queryParams.wbraid,
-    };
-  }
-
-  return null;
 };
 
 export const queueGoogleAdsConversionUpload = async (
