@@ -627,7 +627,8 @@ const _trackSale = async ({
           clickId: leadEventData.click_id,
           conversionDateTime: new Date().toISOString(),
           eventId: invoiceId || saleData.event_id,
-          conversionValue: amount,
+          // Dub stores USD cents; Data Manager expects major currency units
+          conversionValue: amount / 100,
           currencyCode: currency,
         }),
 

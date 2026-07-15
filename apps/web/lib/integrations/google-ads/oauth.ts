@@ -40,15 +40,87 @@ class GoogleAdsOAuthProvider extends OAuthProvider<
   async getAccessToken(
     installation: Pick<InstalledIntegration, "id" | "credentials">,
   ): Promise<z.infer<typeof googleAdsAuthTokenSchema>> {
-    let existingCredentials = googleAdsAuthTokenSchema.parse(
+    const existingCredentials = this.decryptCredentials(
       installation.credentials,
     );
 
-    existingCredentials = {
-      ...existingCredentials,
-      access_token: decrypt(existingCredentials.access_token),
-      refresh_token: decrypt(existingCredentials.refresh_token),
+    if (this.isTokenValid(existingCredentials)) {
+      return existingCredentials;
+    }
+
+    if (!existingCredentials.refresh_token) {
+      throw new Error(
+        "[Google Ads] Missing refresh token. Please reconnect the integration.",
+      );
+    }
+
+    const lockKey = `googleAds:oauth:refresh:${installation.id}`;
+
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const refreshed = await this.withRefreshLock(lockKey, () =>
+        this.refreshCredentialsUnderLock(installation.id),
+      );
+
+      if (refreshed) {
+        return refreshed;
+      }
+
+      const waited = await this.waitForRefreshedCredentials(installation.id);
+
+      if (waited) {
+        return waited;
+      }
+    }
+
+    throw new Error(
+      "[Google Ads] Failed to refresh the access token. Please try again.",
+    );
+  }
+
+  private async withRefreshLock<T>(
+    lockKey: string,
+    fn: () => Promise<T>,
+  ): Promise<T | null> {
+    const acquired = await redis.set(lockKey, "1", { nx: true, ex: 20 });
+
+    if (!acquired) {
+      return null;
+    }
+
+    try {
+      return await fn();
+    } finally {
+      await redis.del(lockKey);
+    }
+  }
+
+  private decryptCredentials(
+    credentials: InstalledIntegration["credentials"],
+  ): z.infer<typeof googleAdsAuthTokenSchema> {
+    const parsed = googleAdsAuthTokenSchema.parse(credentials);
+
+    return {
+      ...parsed,
+      access_token: decrypt(parsed.access_token),
+      refresh_token: decrypt(parsed.refresh_token),
     };
+  }
+
+  private async loadCredentials(installationId: string) {
+    const installation = await prisma.installedIntegration.findUniqueOrThrow({
+      where: {
+        id: installationId,
+      },
+      select: {
+        credentials: true,
+      },
+    });
+
+    return this.decryptCredentials(installation.credentials);
+  }
+
+  private async refreshCredentialsUnderLock(installationId: string) {
+    const existingCredentials = await this.loadCredentials(installationId);
 
     if (this.isTokenValid(existingCredentials)) {
       return existingCredentials;
@@ -71,7 +143,7 @@ class GoogleAdsOAuthProvider extends OAuthProvider<
 
     await prisma.installedIntegration.update({
       where: {
-        id: installation.id,
+        id: installationId,
       },
       data: {
         credentials: googleAdsAuthTokenSchema.parse({
@@ -83,6 +155,25 @@ class GoogleAdsOAuthProvider extends OAuthProvider<
     });
 
     return newCredentials;
+  }
+
+  private async waitForRefreshedCredentials(installationId: string) {
+    const pollIntervalMs = 200;
+    const timeoutMs = 5_000;
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+      const delay = pollIntervalMs + Math.floor(Math.random() * pollIntervalMs);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      const credentials = await this.loadCredentials(installationId);
+
+      if (this.isTokenValid(credentials)) {
+        return credentials;
+      }
+    }
+
+    return null;
   }
 
   private async fetchRefreshedToken(refreshToken: string) {

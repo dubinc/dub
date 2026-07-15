@@ -358,7 +358,7 @@ export const trackLead = async ({
               eventType: EventType.lead,
               clickId,
               eventId: leadEventId,
-              conversionDateTime: `${clickData.timestamp}Z`,
+              conversionDateTime: new Date().toISOString(),
               conversionCount: eventQuantity ?? undefined,
             }),
 
