@@ -28,14 +28,31 @@ async function main() {
 
   console.log(`Found ${domains.length} domains for invoice`, invoiceId);
 
-  const domainChunks = chunk(domains, 10);
+  const registeredDomains = await prisma.registeredDomain.findMany({
+    where: {
+      slug: {
+        in: domains,
+      },
+    },
+    select: {
+      slug: true,
+      autoRenewalDisabledAt: true,
+    },
+  });
+
+  if (registeredDomains.length === 0) {
+    console.error("No registered domains found for invoice", invoiceId);
+    return;
+  }
+
+  const domainChunks = chunk(registeredDomains, 10);
 
   for (const domainChunk of domainChunks) {
     await Promise.all(
       domainChunk.map(async (domain) => {
         const success = await setRenewOption({
-          domain,
-          autoRenew: true,
+          domain: domain.slug,
+          autoRenew: domain.autoRenewalDisabledAt === null,
         });
 
         if (success) {

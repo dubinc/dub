@@ -5,9 +5,12 @@ import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import DomainRenewed from "@dub/email/templates/domain-renewed";
 import { log, pluralize } from "@dub/utils";
+import { RegisteredDomain } from "@prisma/client";
 import { addDays, startOfDay } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
+
+export const maxDuration = 600;
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +50,10 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`Invoice ${invoiceId} is not completed. Skipping...`);
   }
 
+  if (!invoice.paidAt) {
+    return logAndRespond(`Invoice ${invoiceId} has no paidAt. Skipping...`);
+  }
+
   const slugs = parseRegisteredDomainSlugs(invoice.registeredDomains);
 
   const domains = await prisma.registeredDomain.findMany({
@@ -66,63 +73,50 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const earliestExpiresAt = domains[0].expiresAt;
-  const paidAtStart = startOfDay(invoice.paidAt!);
-
-  if (earliestExpiresAt >= addDays(paidAtStart, 365)) {
-    return logAndRespond(
-      `Domain renewal for invoice ${invoiceId} already applied. Skipping...`,
-    );
-  }
-
-  // Extend expiration by 1 year from the later of the current expiry or today.
-  // If the domain hasn't expired yet, remaining time is preserved; if it's already
-  // expired, the new term starts from today.
   const todayStart = startOfDay(new Date());
-  const renewalBase =
-    earliestExpiresAt > todayStart ? earliestExpiresAt : todayStart;
-  const newExpiresAt = addDays(renewalBase, 365);
+  const alreadyAppliedThreshold = addDays(startOfDay(invoice.paidAt), 365);
 
-  const domainsRenewed: typeof domains = [];
-  const domainsToUpdate: typeof domains = [];
   const domainsFailed: typeof domains = [];
+  const domainsRenewed: Pick<RegisteredDomain, "slug" | "expiresAt">[] = [];
 
   for (const domain of domains) {
-    // Domain is already renewed, no further action needed
-    if (domain.expiresAt >= newExpiresAt) {
-      domainsRenewed.push(domain);
+    if (domain.expiresAt >= alreadyAppliedThreshold) {
       continue;
     }
+
+    // Extend expiration by 1 year from the later of this domain's expiry or today.
+    // Remaining time is preserved when not yet expired; otherwise the new term
+    // starts from today.
+    const renewalBase =
+      domain.expiresAt > todayStart ? domain.expiresAt : todayStart;
+    const newExpiresAt = addDays(renewalBase, 365);
 
     const renewSucceeded = await setRenewOption({
       domain: domain.slug,
       autoRenew: true,
     });
 
-    // Failed to set auto-renew option on Dynadot
     if (!renewSucceeded) {
       domainsFailed.push(domain);
       continue;
     }
 
-    domainsToUpdate.push(domain);
-    domainsRenewed.push(domain);
-
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-  }
-
-  if (domainsToUpdate.length > 0) {
-    await prisma.registeredDomain.updateMany({
+    await prisma.registeredDomain.update({
       where: {
-        id: {
-          in: domainsToUpdate.map(({ id }) => id),
-        },
+        id: domain.id,
       },
       data: {
         expiresAt: newExpiresAt,
         autoRenewalDisabledAt: null,
       },
     });
+
+    domainsRenewed.push({
+      slug: domain.slug,
+      expiresAt: newExpiresAt,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
 
   if (domainsFailed.length > 0) {
@@ -136,10 +130,16 @@ export const POST = withCron(async ({ rawBody }) => {
       type: "errors",
       mention: true,
     });
+
+    throw new Error(
+      `Domain renewal partially failed for invoice ${invoiceId}.`,
+    );
   }
 
   if (domainsRenewed.length === 0) {
-    return logAndRespond(`No domains were renewed for invoice ${invoiceId}.`);
+    return logAndRespond(
+      `Domain renewal for invoice ${invoiceId} already applied. Skipping...`,
+    );
   }
 
   const workspace = await prisma.project.findUniqueOrThrow({
@@ -166,6 +166,11 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
+  // Email shows a single "active until" date; use the earliest new expiry.
+  const earliestNewExpiresAt = domainsRenewed
+    .map(({ expiresAt }) => expiresAt)
+    .sort((a, b) => a.getTime() - b.getTime())[0];
+
   await sendBatchEmail(
     workspaceOwners.map(({ user }) => ({
       variant: "notifications",
@@ -177,7 +182,7 @@ export const POST = withCron(async ({ rawBody }) => {
           slug: workspace.slug,
         },
         domains: domainsRenewed.map(({ slug }) => ({ slug })),
-        expiresAt: newExpiresAt,
+        expiresAt: earliestNewExpiresAt,
       }),
     })),
   );
