@@ -15,7 +15,7 @@ export const setRenewOption = async ({
 }: {
   domain: string;
   autoRenew: boolean;
-}) => {
+}): Promise<boolean> => {
   const searchParams = new URLSearchParams({
     key: DYNADOT_API_KEY,
     command: "set_renew_option",
@@ -34,13 +34,16 @@ export const setRenewOption = async ({
     );
 
     if (!response.ok) {
-      console.error(response);
       throw new Error(`Failed to set renew option: ${response.statusText}`);
     }
 
+    const responseBody = await response.json();
+
+    console.info(responseBody);
+
     const {
       SetRenewOptionResponse: { Status },
-    } = responseSchema.parse(await response.json());
+    } = responseSchema.parse(responseBody);
 
     if (Status !== "success") {
       throw new Error(`Failed to set renew option: ${Status}`);
@@ -49,6 +52,8 @@ export const setRenewOption = async ({
     console.log(
       `Auto-renew for ${domain} is ${autoRenew ? "enabled" : "disabled"}.`,
     );
+
+    return true;
   } catch (error) {
     await log({
       message: `Failed to set renew option for ${domain}: ${error instanceof Error ? error.message : String(error)}`,
@@ -57,5 +62,7 @@ export const setRenewOption = async ({
     });
 
     console.error(error);
+
+    return false;
   }
 };
