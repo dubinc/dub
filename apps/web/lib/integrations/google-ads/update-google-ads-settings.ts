@@ -20,7 +20,6 @@ export const updateGoogleAdsSettingsAction = authActionClient
     const { workspace } = ctx;
     const {
       customerId,
-      loginCustomerId,
       customerName,
       leadConversionAction,
       saleConversionAction,
@@ -67,29 +66,12 @@ export const updateGoogleAdsSettingsAction = authActionClient
       }
     }
 
-    let resolvedLoginCustomerId = loginCustomerId ?? null;
-
-    if (resolvedLoginCustomerId) {
-      const normalizedLoginCustomerId = resolvedLoginCustomerId.replace(
-        /-/g,
-        "",
-      );
-      const loginCustomer = currentSettings.customers.find(
-        (customer) =>
-          customer.id.replace(/-/g, "") === normalizedLoginCustomerId,
-      );
-
-      if (!loginCustomer) {
-        throw new Error(
-          "The selected Google Ads login account is not available for this workspace. Please reconnect the integration.",
-        );
-      }
-    } else if (customerId) {
-      resolvedLoginCustomerId = inferLoginCustomerId({
-        customers: currentSettings.customers,
-        selectedCustomerId: customerId,
-      });
-    }
+    const resolvedLoginCustomerId = customerId
+      ? inferLoginCustomerId({
+          customers: currentSettings.customers,
+          selectedCustomerId: customerId,
+        })
+      : null;
 
     if (customerId) {
       const normalizedCustomerId = customerId.replace(/-/g, "");

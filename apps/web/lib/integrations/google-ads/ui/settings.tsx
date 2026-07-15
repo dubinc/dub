@@ -94,10 +94,15 @@ export const GoogleAdsSettings = ({
   }, [conversionActionsError]);
 
   useEffect(() => {
-    if (conversionActionsData?.loginCustomerId) {
-      setValue("loginCustomerId", conversionActionsData.loginCustomerId);
+    if (!conversionActionsData) {
+      return;
     }
-  }, [conversionActionsData?.loginCustomerId, setValue]);
+
+    setValue(
+      "loginCustomerId",
+      conversionActionsData.loginCustomerId ?? "",
+    );
+  }, [conversionActionsData, setValue]);
 
   const conversionActionOptions = useMemo<ComboboxOption[]>(
     () =>
@@ -194,6 +199,7 @@ export const GoogleAdsSettings = ({
 
                     setValue("customerId", option.value);
                     setValue("customerName", option.label);
+                    setValue("loginCustomerId", "");
                     setValue("leadConversionAction", "");
                     setValue("saleConversionAction", "");
                   }}
