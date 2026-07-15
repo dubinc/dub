@@ -18,7 +18,7 @@ import type Stripe from "stripe";
 
 type SyncCustomerResponse = {
   response: string;
-  workspaceId: string | null;
+  workspaceId?: string;
 };
 
 export async function syncCustomer(
@@ -35,7 +35,6 @@ export async function syncCustomer(
     return {
       response:
         "External ID not found in Stripe customer metadata, skipping...",
-      workspaceId: null,
     };
   }
 
@@ -52,7 +51,6 @@ export async function syncCustomer(
   if (!workspace) {
     return {
       response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
-      workspaceId: null,
     };
   }
 
@@ -79,6 +77,7 @@ export async function syncCustomer(
         stripeCustomerId: stripeCustomer.id,
         projectConnectId: stripeAccountId,
         externalId: dubCustomerExternalId,
+        // Only update name/email when Stripe provides non-empty values
         ...(stripeCustomer.name && { name: stripeCustomer.name }),
         ...(stripeCustomer.email && { email: stripeCustomer.email }),
       },
@@ -171,6 +170,7 @@ export async function syncCustomer(
         stripeCustomerId: stripeCustomer.id,
         projectConnectId: stripeAccountId,
         externalId: dubCustomerExternalId,
+        // Only update name/email when Stripe provides non-empty values
         ...(stripeCustomer.name && { name: stripeCustomer.name }),
         ...(stripeCustomer.email && { email: stripeCustomer.email }),
       },
@@ -318,7 +318,7 @@ async function updateStripeCustomer({
     });
 
     return {
-      response: `Dub customer with ID ${customerId} updated with data: ${JSON.stringify(data)}`,
+      response: `Dub customer with ID ${customerId} updated.`,
       workspaceId,
     };
   } catch (error) {
