@@ -41,6 +41,19 @@ export const GET = withWorkspace(
       installedIntegration.settings ?? {},
     );
 
+    const normalizedCustomerId = customerId.replace(/-/g, "");
+    const selectedCustomer = currentSettings.customers.find(
+      (customer) => customer.id.replace(/-/g, "") === normalizedCustomerId,
+    );
+
+    if (!selectedCustomer) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "The selected Google Ads account is not available for this workspace. Please reconnect the integration.",
+      });
+    }
+
     const loginCustomerId = inferLoginCustomerId({
       customers: currentSettings.customers,
       selectedCustomerId: customerId,

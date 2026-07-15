@@ -20,14 +20,7 @@ export const dynamic = "force-dynamic";
 
 // GET /api/gad/callback - OAuth callback from Google Ads
 export const GET = async (req: Request) => {
-  const { searchParams } = new URL(req.url);
-
   const session = await getSession();
-
-  if (!session?.user.id) {
-    const callbackPath = `/api/gad/callback?${searchParams.toString()}`;
-    redirect(`/login?next=${encodeURIComponent(callbackPath)}`);
-  }
 
   const integration = await prisma.integration.findFirstOrThrow({
     where: {
@@ -42,6 +35,13 @@ export const GET = async (req: Request) => {
   let errorMessage: string | null = null;
 
   try {
+    if (!session?.user.id) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "Unauthorized. Please login to continue.",
+      });
+    }
+
     const { token, contextId: workspaceId } =
       await googleAdsOAuthProvider.exchangeCodeForToken<string>(req);
 

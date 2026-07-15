@@ -61,3 +61,19 @@ export const withAxiomBodyLog = createAxiomRouteHandler(logger, {
 });
 
 export const withAxiom = createAxiomRouteHandler(logger);
+
+export const getErrorMetadata = (error: unknown) => {
+  if (error instanceof Error) {
+    return {
+      errorName: error.name,
+      errorMessage: error.message,
+      errorStack: error.stack,
+    };
+  }
+
+  return {
+    errorName: undefined,
+    errorMessage: String(error),
+    errorStack: undefined,
+  };
+};
