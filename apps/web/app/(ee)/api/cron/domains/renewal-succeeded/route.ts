@@ -4,7 +4,7 @@ import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { prisma } from "@/lib/prisma";
 import { sendBatchEmail } from "@dub/email";
 import DomainRenewed from "@dub/email/templates/domain-renewed";
-import { log, pluralize } from "@dub/utils";
+import { chunk, log, pluralize } from "@dub/utils";
 import { RegisteredDomain } from "@prisma/client";
 import { addDays, startOfDay } from "date-fns";
 import * as z from "zod/v4";
@@ -65,6 +65,11 @@ export const POST = withCron(async ({ rawBody }) => {
     orderBy: {
       expiresAt: "asc",
     },
+    select: {
+      id: true,
+      slug: true,
+      expiresAt: true,
+    },
   });
 
   if (domains.length === 0) {
@@ -76,47 +81,73 @@ export const POST = withCron(async ({ rawBody }) => {
   const todayStart = startOfDay(new Date());
   const alreadyAppliedThreshold = addDays(startOfDay(invoice.paidAt), 365);
 
+  const domainsToRenew = domains.filter(
+    (domain) => domain.expiresAt < alreadyAppliedThreshold,
+  );
+
   const domainsFailed: typeof domains = [];
   const domainsRenewed: Pick<RegisteredDomain, "slug" | "expiresAt">[] = [];
 
-  for (const domain of domains) {
-    if (domain.expiresAt >= alreadyAppliedThreshold) {
-      continue;
+  const succeeded: {
+    domain: (typeof domains)[number];
+    newExpiresAt: Date;
+  }[] = [];
+
+  for (const domainChunk of chunk(domainsToRenew, 10)) {
+    const results = await Promise.all(
+      domainChunk.map(async (domain) => {
+        const renewSucceeded = await setRenewOption({
+          domain: domain.slug,
+          autoRenew: true,
+        });
+
+        return {
+          domain,
+          renewSucceeded,
+        };
+      }),
+    );
+
+    for (const { domain, renewSucceeded } of results) {
+      if (!renewSucceeded) {
+        domainsFailed.push(domain);
+        continue;
+      }
+
+      // Extend expiration by 1 year from the later of this domain's expiry or today.
+      // Remaining time is preserved when not yet expired; otherwise the new term
+      // starts from today.
+      const renewalBase =
+        domain.expiresAt > todayStart ? domain.expiresAt : todayStart;
+
+      succeeded.push({
+        domain,
+        newExpiresAt: addDays(renewalBase, 365),
+      });
     }
-
-    // Extend expiration by 1 year from the later of this domain's expiry or today.
-    // Remaining time is preserved when not yet expired; otherwise the new term
-    // starts from today.
-    const renewalBase =
-      domain.expiresAt > todayStart ? domain.expiresAt : todayStart;
-    const newExpiresAt = addDays(renewalBase, 365);
-
-    const renewSucceeded = await setRenewOption({
-      domain: domain.slug,
-      autoRenew: true,
-    });
-
-    if (!renewSucceeded) {
-      domainsFailed.push(domain);
-      continue;
-    }
-
-    await prisma.registeredDomain.update({
-      where: {
-        id: domain.id,
-      },
-      data: {
-        expiresAt: newExpiresAt,
-        autoRenewalDisabledAt: null,
-      },
-    });
-
-    domainsRenewed.push({
-      slug: domain.slug,
-      expiresAt: newExpiresAt,
-    });
 
     await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  for (const updateChunk of chunk(succeeded, 10)) {
+    await Promise.all(
+      updateChunk.map(async ({ domain, newExpiresAt }) => {
+        await prisma.registeredDomain.update({
+          where: {
+            id: domain.id,
+          },
+          data: {
+            expiresAt: newExpiresAt,
+            autoRenewalDisabledAt: null,
+          },
+        });
+
+        domainsRenewed.push({
+          slug: domain.slug,
+          expiresAt: newExpiresAt,
+        });
+      }),
+    );
   }
 
   if (domainsFailed.length > 0) {
