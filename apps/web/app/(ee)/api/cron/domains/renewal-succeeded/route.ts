@@ -18,6 +18,8 @@ const inputSchema = z.object({
   invoiceId: z.string(),
 });
 
+const BATCH_SIZE = 5;
+
 // POST /api/cron/domains/renewal-succeeded - Renews domains for a given invoice
 export const POST = withCron(async ({ rawBody }) => {
   const { invoiceId } = inputSchema.parse(JSON.parse(rawBody));
@@ -93,7 +95,7 @@ export const POST = withCron(async ({ rawBody }) => {
     newExpiresAt: Date;
   }[] = [];
 
-  for (const domainChunk of chunk(domainsToRenew, 10)) {
+  for (const domainChunk of chunk(domainsToRenew, BATCH_SIZE)) {
     const results = await Promise.all(
       domainChunk.map(async (domain) => {
         const renewSucceeded = await setRenewOption({
@@ -129,7 +131,7 @@ export const POST = withCron(async ({ rawBody }) => {
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
-  for (const updateChunk of chunk(succeeded, 10)) {
+  for (const updateChunk of chunk(succeeded, BATCH_SIZE)) {
     await Promise.all(
       updateChunk.map(async ({ domain, newExpiresAt }) => {
         await prisma.registeredDomain.update({
