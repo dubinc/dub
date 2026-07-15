@@ -116,7 +116,7 @@ export const POST = withCron(async ({ rawBody }) => {
       expiresAt: newExpiresAt,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
   if (domainsFailed.length > 0) {
