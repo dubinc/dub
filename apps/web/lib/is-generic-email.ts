@@ -67,6 +67,7 @@ const GENERIC_EMAIL_DOMAINS = [
   "charter.net",
   "mailbox.in.ua",
   "hi2.in",
+  "tempmailplus.net",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [
