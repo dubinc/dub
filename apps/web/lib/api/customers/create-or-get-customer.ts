@@ -13,9 +13,11 @@ import { Prisma } from "@prisma/client";
 export async function createOrGetCustomer({
   where,
   create,
+  findMode = "unique",
 }: {
-  where: Prisma.CustomerWhereInput;
+  where: Prisma.CustomerWhereUniqueInput | Prisma.CustomerWhereInput;
   create: Prisma.CustomerUncheckedCreateInput;
+  findMode?: "first" | "unique";
 }) {
   try {
     const customer = await prisma.customer.create({
@@ -31,9 +33,14 @@ export async function createOrGetCustomer({
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      const customer = await prisma.customer.findFirstOrThrow({
-        where,
-      });
+      const customer =
+        findMode === "first"
+          ? await prisma.customer.findFirstOrThrow({
+              where: where as Prisma.CustomerWhereInput,
+            })
+          : await prisma.customer.findUniqueOrThrow({
+              where: where as Prisma.CustomerWhereUniqueInput,
+            });
 
       return {
         customer,

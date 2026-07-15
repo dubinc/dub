@@ -11,7 +11,7 @@ import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
-import { nanoid } from "@dub/utils";
+import { nanoid, pick } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -30,6 +30,11 @@ export async function syncCustomer(
     stripeCustomer.metadata?.dubCustomerExternalId ||
     stripeCustomer.metadata?.dubCustomerId;
   const clickId = stripeCustomer.metadata?.dubClickId;
+
+  console.log(
+    "Stripe customer",
+    pick(stripeCustomer, ["id", "name", "metadata"]),
+  );
 
   if (!dubCustomerExternalId) {
     return {
@@ -132,6 +137,7 @@ export async function syncCustomer(
   }
 
   const { customer, created } = await createOrGetCustomer({
+    findMode: "first",
     where: {
       OR: [
         {
