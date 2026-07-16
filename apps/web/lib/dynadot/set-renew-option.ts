@@ -39,6 +39,7 @@ export const setRenewOption = async ({
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
+        signal: AbortSignal.timeout(10_000),
       },
     );
 
