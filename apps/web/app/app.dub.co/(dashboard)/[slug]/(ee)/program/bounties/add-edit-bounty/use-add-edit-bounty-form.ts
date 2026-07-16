@@ -11,7 +11,10 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
-import { bountyPerformanceConditionSchema } from "@/lib/zod/schemas/bounties";
+import {
+  bountyPerformanceConditionSchema,
+  bountySocialContentRequirementsSchema,
+} from "@/lib/zod/schemas/bounties";
 import { formatDate } from "@dub/utils";
 import { BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -29,6 +32,20 @@ const ACCORDION_ITEMS = [
   "bounty-criteria",
   "groups",
 ];
+
+const DEFAULT_SOCIAL_METRICS_CRITERIA = {
+  platform: "youtube",
+  metric: "views",
+} as const;
+
+const resolveSocialMetricsCriteria = (
+  existing?: NonNullable<
+    CreateBountyInputExtended["submissionRequirements"]
+  >["socialMetrics"],
+) => ({
+  ...DEFAULT_SOCIAL_METRICS_CRITERIA,
+  ...existing,
+});
 
 const isEmpty = (value: unknown) =>
   value === undefined || value === null || value === "";
@@ -333,12 +350,13 @@ export function useAddEditBountyForm({
       setValue(
         "submissionRequirements",
         {
-          socialMetrics:
+          socialMetrics: resolveSocialMetricsCriteria(
             currentSubmissionRequirements &&
-            typeof currentSubmissionRequirements === "object" &&
-            "socialMetrics" in currentSubmissionRequirements
+              typeof currentSubmissionRequirements === "object" &&
+              currentSubmissionRequirements.socialMetrics
               ? currentSubmissionRequirements.socialMetrics
               : undefined,
+          ),
         },
         { shouldDirty: true },
       );
@@ -419,17 +437,34 @@ export function useAddEditBountyForm({
       }
 
       if ((rewardType ?? "flat") === "custom") {
-        const isSocialMetrics =
-          submissionRequirements &&
-          typeof submissionRequirements === "object" &&
-          "socialMetrics" in submissionRequirements;
-        if (!isSocialMetrics) {
+        if (bountyTypeUI !== "socialMetrics") {
           if (!rewardDescription?.trim()) {
             return "Reward description is required for custom rewards.";
           }
           if (rewardDescription && rewardDescription.length > 100) {
             return "Reward description must be 100 characters or less.";
           }
+        }
+      }
+
+      if (bountyTypeUI === "socialMetrics") {
+        const socialMetrics = submissionRequirements?.socialMetrics;
+
+        if (!socialMetrics) {
+          return "Social metrics criteria are required.";
+        }
+
+        const parsed =
+          bountySocialContentRequirementsSchema.safeParse(socialMetrics);
+
+        if (!parsed.success) {
+          return (
+            parsed.error.issues[0]?.message ?? "Invalid social metrics criteria."
+          );
+        }
+
+        if (!socialMetrics.minCount || socialMetrics.minCount <= 0) {
+          return "Minimum metric count must be greater than 0.";
         }
       }
     }

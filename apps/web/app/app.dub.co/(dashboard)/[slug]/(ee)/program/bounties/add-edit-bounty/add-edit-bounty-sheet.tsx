@@ -42,10 +42,9 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { BountySubmissionFrequency } from "@prisma/client";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, FormProvider } from "react-hook-form";
 import { BountyCriteria } from "./bounty-criteria";
-import { BountyTypeUI } from "./bounty-form-context";
 import { useAddEditBountyForm } from "./use-add-edit-bounty-form";
 
 interface BountySheetProps {
@@ -96,11 +95,8 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     type,
     bountyTypeUI,
     handleBountyTypeUIChange,
-    name,
     control,
     register,
-    setValue,
-    watch,
     errors,
     isDirty,
     validationError,
@@ -113,19 +109,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     getPlanCapabilities(plan).canUseBountySocialMetrics;
   const showBountySocialMetricsUpsell =
     bountyTypeUI === "socialMetrics" && !canUseBountySocialMetrics;
-
-  const bountyTypeOptions = useMemo(
-    () =>
-      BOUNTY_TYPES.map((option) =>
-        option.key === "socialMetrics" && !canUseBountySocialMetrics
-          ? {
-              ...option,
-              description: `${option.description} (Advanced plan required)`,
-            }
-          : option,
-      ),
-    [canUseBountySocialMetrics],
-  );
 
   return (
     <form onSubmit={onSubmit} className="flex h-full flex-col">
@@ -164,11 +147,9 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                         Choose the type of bounty you want to create
                       </p>
                       <CardSelector
-                        options={bountyTypeOptions}
+                        options={BOUNTY_TYPES}
                         value={bountyTypeUI}
-                        onChange={(value: BountyTypeUI) =>
-                          handleBountyTypeUIChange(value)
-                        }
+                        onChange={handleBountyTypeUIChange}
                         name="bounty-type"
                         gridCols="3"
                       />
@@ -560,7 +541,11 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
               text={bounty ? "Update bounty" : "Create bounty"}
               className="h-9 w-fit"
               loading={isSubmitting}
-              disabled={Boolean(validationError) || (bounty && !isDirty)}
+              disabled={
+                Boolean(validationError) ||
+                (bounty && !isDirty) ||
+                showBountySocialMetricsUpsell
+              }
               disabledTooltip={
                 showBountySocialMetricsUpsell ? (
                   <TooltipContent
