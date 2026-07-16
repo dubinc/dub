@@ -9,6 +9,7 @@ import {
   INVOICE_MIN_PAYOUT_AMOUNT_CENTS,
   STRIPE_PAYMENT_METHOD_NORMALIZATION,
 } from "@/lib/constants/payouts";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import {
   CUTOFF_PERIOD,
@@ -923,11 +924,12 @@ function ConfirmPayoutsSheetContent() {
             typeof amount === "number" &&
             payoutsUsage + amount > payoutsLimit ? (
               <TooltipContent
-                title={
-                  planPeriod === "yearly"
-                    ? `You've reached your yearly limit of ${currencyFormatter(payoutsLimit)} on the ${capitalize(plan)} plan. Upgrade for higher limits.`
-                    : `You've reached your monthly limit of ${currencyFormatter(payoutsLimit)} on the ${capitalize(plan)} plan. Go yearly for 12x usage upfront, or upgrade for higher limits.`
-                }
+                title={exceededLimitError({
+                  plan,
+                  planPeriod,
+                  limit: payoutsLimit,
+                  type: "payouts",
+                })}
                 cta="Upgrade"
                 href={`/${slug}/settings/billing/upgrade?planPeriod=yearly`}
               />
