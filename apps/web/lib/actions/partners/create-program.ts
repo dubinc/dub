@@ -86,14 +86,20 @@ export const createProgram = async ({
 
   const programId = createId({ prefix: "prog_" });
 
-  const logoUrl = uploadedLogo
-    ? await storage
-        .upload({
-          key: `programs/${programId}/logo_${nanoid(7)}`,
-          body: uploadedLogo,
-        })
-        .then(({ url }) => url)
-    : null;
+  let logoUrl: string | null = null;
+
+  if (uploadedLogo) {
+    try {
+      const { url } = await storage.upload({
+        key: `programs/${programId}/logo_${nanoid(7)}`,
+        body: uploadedLogo,
+      });
+
+      logoUrl = url;
+    } catch (error) {
+      console.error(`Failed to upload program logo for ${programId}`, error);
+    }
+  }
 
   // create a new program
   const program = await prisma.$transaction(async (tx) => {
