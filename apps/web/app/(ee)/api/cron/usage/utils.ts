@@ -5,6 +5,7 @@ import {
   sendWorkspaceLimitAlert,
 } from "@/lib/cron/send-limit-alert";
 import { prisma } from "@/lib/prisma";
+import { getWorkspaceUsage } from "@/lib/tinybird/get-workspace-usage";
 import { WorkspaceProps } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
 import ClicksSummary from "@dub/email/templates/clicks-summary";
@@ -171,6 +172,14 @@ export const updateUsage = async () => {
           0,
         );
 
+        const createdLinks = await getWorkspaceUsage({
+          workspaceId: workspace.id,
+          resource: "links",
+          interval: "30d",
+        }).then((data) =>
+          data.reduce((acc, curr) => acc + (curr.value ?? 0), 0),
+        );
+
         const emails = workspace.users.map(
           (user) => user.user.email,
         ) as string[];
@@ -184,7 +193,7 @@ export const updateUsage = async () => {
               workspaceName: workspace.name,
               workspaceSlug: workspace.slug,
               totalClicks,
-              createdLinks: workspace.linksUsage,
+              createdLinks,
               topLinks: topFiveLinks,
             }),
             variant: "notifications",
