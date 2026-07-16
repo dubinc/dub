@@ -7,7 +7,7 @@ import {
   shopifyAdminGraphql,
 } from "../integrations/shopify/admin-graphql";
 import { integrationCredentialsSchema } from "../integrations/shopify/schema";
-import { DiscountIntegrationNotAvailableError } from "./discount-error";
+import { DiscountProviderError } from "./discount-error";
 
 interface ShopifyDiscountCodeBasicCreate {
   codeDiscountNode: {
@@ -38,10 +38,11 @@ async function requireInstalledIntegration(
   workspace: Pick<Project, "id" | "shopifyStoreId">,
 ) {
   if (!workspace.shopifyStoreId) {
-    throw new DiscountIntegrationNotAvailableError({
-      message:
-        "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
-    });
+    throw new DiscountProviderError(
+      "shopify",
+      "INTEGRATION_NOT_AVAILABLE",
+      "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
+    );
   }
 
   const installation = await prisma.installedIntegration.findFirst({
@@ -52,10 +53,11 @@ async function requireInstalledIntegration(
   });
 
   if (!installation) {
-    throw new DiscountIntegrationNotAvailableError({
-      message:
-        "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
-    });
+    throw new DiscountProviderError(
+      "shopify",
+      "INTEGRATION_NOT_AVAILABLE",
+      "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
+    );
   }
 
   let credentials = integrationCredentialsSchema.parse(
@@ -63,10 +65,11 @@ async function requireInstalledIntegration(
   );
 
   if (!credentials?.scope?.includes("write_discounts")) {
-    throw new DiscountIntegrationNotAvailableError({
-      message:
-        "SHOPIFY_APP_UPGRADE_REQUIRED: Your connected Shopify store doesn't have permission to create discount codes. Please reinstall or upgrade the Dub Shopify app.",
-    });
+    throw new DiscountProviderError(
+      "shopify",
+      "PERMISSIONS_REQUIRED",
+      "SHOPIFY_APP_UPGRADE_REQUIRED: Your connected Shopify store doesn't have permission to create discount codes. Please reinstall or upgrade the Dub Shopify app.",
+    );
   }
 
   return {
@@ -187,7 +190,7 @@ function createShopifyDiscountProvider() {
         if (!codeDiscountNode) {
           throw new ShopifyAdminGraphqlError(
             "no_node_returned",
-            "Shopify did not return a discount code node.",
+            "Shopify did not return a discount code. Please try again.",
           );
         }
 
@@ -199,27 +202,70 @@ function createShopifyDiscountProvider() {
           error instanceof ShopifyAdminGraphqlError &&
           (error.code === "TAKEN" || error.code === "DUPLICATE");
 
-        if (!isDuplicate || !shouldRetry) {
-          throw error;
+        if (isDuplicate) {
+          if (!shouldRetry) {
+            throw new DiscountProviderError(
+              "shopify",
+              "DISCOUNT_ALREADY_EXISTS",
+              `The discount code ${currentCode} is already in use. Please choose a different code.`,
+            );
+          }
+
+          attempt++;
+
+          if (attempt >= MAX_ATTEMPTS) {
+            throw new DiscountProviderError(
+              "shopify",
+              "DISCOUNT_ALREADY_EXISTS",
+              `The discount code ${currentCode} is already in use. Please choose a different code.`,
+            );
+          }
+
+          const newCode = `${currentCode}${nanoid(2)}`;
+
+          console.warn(
+            `Discount code "${currentCode}" already exists in Shopify. Retrying with "${newCode}" (attempt ${attempt}/${MAX_ATTEMPTS}).`,
+          );
+
+          currentCode = newCode;
+          continue;
         }
 
-        attempt++;
+        if (error instanceof ShopifyAdminGraphqlError) {
+          if (error.code === "unauthorized") {
+            throw new DiscountProviderError(
+              "shopify",
+              "PERMISSIONS_REQUIRED",
+              error.message,
+            );
+          }
 
-        if (attempt >= MAX_ATTEMPTS) {
-          throw error;
+          throw new DiscountProviderError(
+            "shopify",
+            "CREATE_FAILED",
+            error.code === "no_node_returned"
+              ? "Shopify did not return a discount code. Please try again."
+              : error.code === "http_error" || error.code === "graphql_error"
+                ? `Unable to create the discount code in Shopify. ${error.message}`
+                : error.message,
+          );
         }
 
-        const newCode = `${currentCode}${nanoid(2)}`;
-
-        console.warn(
-          `Discount code "${currentCode}" already exists in Shopify. Retrying with "${newCode}" (attempt ${attempt}/${MAX_ATTEMPTS}).`,
+        throw new DiscountProviderError(
+          "shopify",
+          "CREATE_FAILED",
+          error instanceof Error
+            ? error.message
+            : "Failed to create Shopify discount code.",
         );
-
-        currentCode = newCode;
       }
     }
 
-    throw new Error("Failed to create Shopify discount code.");
+    throw new DiscountProviderError(
+      "shopify",
+      "CREATE_FAILED",
+      "Failed to create Shopify discount code.",
+    );
   };
 
   const disableDiscountCode = async ({
