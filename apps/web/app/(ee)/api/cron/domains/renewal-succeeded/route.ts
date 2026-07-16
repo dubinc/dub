@@ -18,7 +18,7 @@ const inputSchema = z.object({
   invoiceId: z.string(),
 });
 
-const UPDATE_BATCH_SIZE = 10;
+const BATCH_SIZE = 10;
 
 // POST /api/cron/domains/renewal-succeeded - Renews domains for a given invoice
 export const POST = withCron(async ({ rawBody }) => {
@@ -121,8 +121,7 @@ export const POST = withCron(async ({ rawBody }) => {
     });
   }
 
-  // Update the state in database
-  for (const updateChunk of chunk(succeeded, UPDATE_BATCH_SIZE)) {
+  for (const updateChunk of chunk(succeeded, BATCH_SIZE)) {
     await Promise.all(
       updateChunk.map(async ({ domain, newExpiresAt }) => {
         await prisma.registeredDomain.update({
