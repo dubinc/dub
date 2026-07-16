@@ -18,7 +18,7 @@ const inputSchema = z.object({
   invoiceId: z.string(),
 });
 
-const BATCH_SIZE = 5;
+const UPDATE_BATCH_SIZE = 10;
 
 // POST /api/cron/domains/renewal-succeeded - Renews domains for a given invoice
 export const POST = withCron(async ({ rawBody }) => {
@@ -95,43 +95,34 @@ export const POST = withCron(async ({ rawBody }) => {
     newExpiresAt: Date;
   }[] = [];
 
-  for (const domainChunk of chunk(domainsToRenew, BATCH_SIZE)) {
-    const results = await Promise.all(
-      domainChunk.map(async (domain) => {
-        const renewSucceeded = await setRenewOption({
-          domain: domain.slug,
-          autoRenew: true,
-        });
-
-        return {
-          domain,
-          renewSucceeded,
-        };
-      }),
-    );
-
-    for (const { domain, renewSucceeded } of results) {
-      if (!renewSucceeded) {
-        domainsFailed.push(domain);
-        continue;
-      }
-
-      // Extend expiration by 1 year from the later of this domain's expiry or today.
-      // Remaining time is preserved when not yet expired; otherwise the new term
-      // starts from today.
-      const renewalBase =
-        domain.expiresAt > todayStart ? domain.expiresAt : todayStart;
-
-      succeeded.push({
-        domain,
-        newExpiresAt: addDays(renewalBase, 365),
-      });
-    }
+  // Process Dynadot renewals sequentially to avoid rate limiting.
+  for (const domain of domainsToRenew) {
+    const renewSucceeded = await setRenewOption({
+      domain: domain.slug,
+      autoRenew: true,
+    });
 
     await new Promise((resolve) => setTimeout(resolve, 500));
+
+    if (!renewSucceeded) {
+      domainsFailed.push(domain);
+      continue;
+    }
+
+    // Extend expiration by 1 year from the later of this domain's expiry or today.
+    // Remaining time is preserved when not yet expired; otherwise the new term
+    // starts from today.
+    const renewalBase =
+      domain.expiresAt > todayStart ? domain.expiresAt : todayStart;
+
+    succeeded.push({
+      domain,
+      newExpiresAt: addDays(renewalBase, 365),
+    });
   }
 
-  for (const updateChunk of chunk(succeeded, BATCH_SIZE)) {
+  // Update the state in database
+  for (const updateChunk of chunk(succeeded, UPDATE_BATCH_SIZE)) {
     await Promise.all(
       updateChunk.map(async ({ domain, newExpiresAt }) => {
         await prisma.registeredDomain.update({
