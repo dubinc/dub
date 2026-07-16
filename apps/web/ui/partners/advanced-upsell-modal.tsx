@@ -173,7 +173,7 @@ function AdvancedUpsellModal({
             </span>
           </div>
 
-          <div className="mt-4 flex flex-col gap-2 text-sm">
+          <ul className="mt-4 flex flex-col gap-2 text-sm">
             {features.map(({ id, text, tooltip }) => {
               const Icon =
                 id && PLAN_FEATURE_ICONS[id] ? PLAN_FEATURE_ICONS[id] : Check;
@@ -201,7 +201,7 @@ function AdvancedUpsellModal({
                 </li>
               );
             })}
-          </div>
+          </ul>
         </div>
 
         <div className="relative mt-6 flex min-w-0 flex-col gap-3">
