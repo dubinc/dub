@@ -11,12 +11,12 @@ import {
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 
-function AdvancedModal({
-  showPartnersUpgradeModal,
-  setShowAdvancedModal,
+function AdvancedLinkFeaturesModal({
+  showAdvancedLinkFeaturesModal,
+  setShowAdvancedLinkFeaturesModal,
 }: {
-  showPartnersUpgradeModal: boolean;
-  setShowAdvancedModal: Dispatch<SetStateAction<boolean>>;
+  showAdvancedLinkFeaturesModal: boolean;
+  setShowAdvancedLinkFeaturesModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const id = useId();
 
@@ -44,12 +44,14 @@ function AdvancedModal({
 
   const parentEnabled = Boolean(externalIdParent || tenantIdParent);
 
-  useLinkBuilderKeyboardShortcut("v", () => setShowAdvancedModal(true));
+  useLinkBuilderKeyboardShortcut("v", () =>
+    setShowAdvancedLinkFeaturesModal(true),
+  );
 
   return (
     <Modal
-      showModal={showPartnersUpgradeModal}
-      setShowModal={setShowAdvancedModal}
+      showModal={showAdvancedLinkFeaturesModal}
+      setShowModal={setShowAdvancedLinkFeaturesModal}
       className="sm:max-w-[500px]"
     >
       <form
@@ -63,7 +65,7 @@ function AdvancedModal({
             setValueParent("tenantId", data.tenantId, {
               shouldDirty: true,
             });
-            setShowAdvancedModal(false);
+            setShowAdvancedLinkFeaturesModal(false);
           })(e);
         }}
       >
@@ -143,7 +145,7 @@ function AdvancedModal({
                 className="text-xs font-medium text-neutral-700 transition-colors hover:text-neutral-950"
                 onClick={() => {
                   setValueParent("externalId", null, { shouldDirty: true });
-                  setShowAdvancedModal(false);
+                  setShowAdvancedLinkFeaturesModal(false);
                 }}
               >
                 Remove advanced options
@@ -156,7 +158,7 @@ function AdvancedModal({
               variant="secondary"
               text="Cancel"
               className="h-9 w-fit"
-              onClick={() => setShowAdvancedModal(false)}
+              onClick={() => setShowAdvancedLinkFeaturesModal(false)}
             />
             <Button
               type="submit"
@@ -172,23 +174,24 @@ function AdvancedModal({
   );
 }
 
-export function useAdvancedModal() {
-  const [showPartnersUpgradeModal, setShowAdvancedModal] = useState(false);
+export function useAdvancedLinkFeaturesModal() {
+  const [showAdvancedLinkFeaturesModal, setShowAdvancedLinkFeaturesModal] =
+    useState(false);
 
-  const AdvancedModalCallback = useCallback(() => {
+  const AdvancedLinkFeaturesModalCallback = useCallback(() => {
     return (
-      <AdvancedModal
-        showPartnersUpgradeModal={showPartnersUpgradeModal}
-        setShowAdvancedModal={setShowAdvancedModal}
+      <AdvancedLinkFeaturesModal
+        showAdvancedLinkFeaturesModal={showAdvancedLinkFeaturesModal}
+        setShowAdvancedLinkFeaturesModal={setShowAdvancedLinkFeaturesModal}
       />
     );
-  }, [showPartnersUpgradeModal, setShowAdvancedModal]);
+  }, [showAdvancedLinkFeaturesModal, setShowAdvancedLinkFeaturesModal]);
 
   return useMemo(
     () => ({
-      setShowAdvancedModal,
-      AdvancedModal: AdvancedModalCallback,
+      setShowAdvancedLinkFeaturesModal,
+      AdvancedLinkFeaturesModal: AdvancedLinkFeaturesModalCallback,
     }),
-    [setShowAdvancedModal, AdvancedModalCallback],
+    [setShowAdvancedLinkFeaturesModal, AdvancedLinkFeaturesModalCallback],
   );
 }
