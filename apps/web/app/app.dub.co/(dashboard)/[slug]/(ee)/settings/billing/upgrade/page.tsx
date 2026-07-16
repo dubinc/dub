@@ -69,6 +69,7 @@ export default function WorkspaceBillingUpgradePage() {
     stripeId,
     partnersLimit,
     trialEndsAt,
+    defaultProgramId,
   } = workspace;
 
   const { error: permissionsError } = clientAccessCheck({
@@ -108,20 +109,35 @@ export default function WorkspaceBillingUpgradePage() {
     });
   }, [linksUsage, eventsUsage]);
 
+  const hideProPlan = Boolean(
+    defaultProgramId &&
+      currentPlan &&
+      currentPlan !== "pro" &&
+      currentPlan !== "free",
+  );
+
   const plans: { plan: PlanDetails; planTier: number }[] = useMemo(
     () =>
-      ["Pro", "Business", "Advanced", "Enterprise"].map((p) => {
-        const planDetails = PLANS.find(({ name }) => name === p)!;
-        if (
-          recommendedPlan &&
-          recommendedPlan.plan.name.toLowerCase() === p.toLowerCase()
-        ) {
-          return recommendedPlan;
-        }
-        return { plan: planDetails, planTier: 1 };
-      }),
-    [recommendedPlan],
+      ["Pro", "Business", "Advanced", "Enterprise"]
+        .filter((p) => !(hideProPlan && p === "Pro"))
+        .map((p) => {
+          const planDetails = PLANS.find(({ name }) => name === p)!;
+          if (
+            recommendedPlan &&
+            recommendedPlan.plan.name.toLowerCase() === p.toLowerCase()
+          ) {
+            return recommendedPlan;
+          }
+          return { plan: planDetails, planTier: 1 };
+        }),
+    [recommendedPlan, hideProPlan],
   );
+
+  useEffect(() => {
+    if (mobilePlanIndex >= plans.length) {
+      setMobilePlanIndex(Math.max(0, plans.length - 1));
+    }
+  }, [mobilePlanIndex, plans.length]);
 
   const { isMobile } = useMediaQuery();
 
@@ -169,10 +185,11 @@ export default function WorkspaceBillingUpgradePage() {
           <div className="overflow-x-hidden rounded-b-[12px] from-neutral-200 [container-type:inline-size] lg:bg-gradient-to-t lg:p-px">
             <div
               className={cn(
-                "grid grid-cols-4 gap-px overflow-hidden rounded-b-[11px] text-sm text-neutral-800 [&_strong]:font-medium",
+                "grid gap-px overflow-hidden rounded-b-[11px] text-sm text-neutral-800 [&_strong]:font-medium",
+                getPlanGridClasses(plans.length),
 
                 // Mobile
-                "max-lg:w-[calc(400cqw+3*32px)] max-lg:translate-x-[calc(-1*var(--index)*(100cqw+32px))] max-lg:gap-x-8 max-lg:transition-transform",
+                "max-lg:translate-x-[calc(-1*var(--index)*(100cqw+32px))] max-lg:gap-x-8 max-lg:transition-transform",
               )}
               style={
                 {
@@ -276,6 +293,7 @@ export default function WorkspaceBillingUpgradePage() {
                           className={cn(
                             "flex h-8 w-full items-center justify-center rounded-md text-center text-sm ring-gray-200 transition-all duration-200 ease-in-out",
                             "border border-neutral-200 bg-white text-neutral-900 shadow-sm hover:bg-neutral-50",
+                            !hideProPlan && "xl:text-xs",
                           )}
                         >
                           Contact us
@@ -312,7 +330,10 @@ export default function WorkspaceBillingUpgradePage() {
                                         : `Upgrade to ${plan.name} ${capitalize(period)}`
                           }
                           variant={isDowngrade ? "secondary" : "primary"}
-                          className="h-8 shadow-sm"
+                          className={cn(
+                            "h-8 shadow-sm",
+                            !hideProPlan && "xl:text-xs",
+                          )}
                         />
                       )}
                       <button
@@ -357,6 +378,15 @@ export default function WorkspaceBillingUpgradePage() {
         </div>
       </PageWidthWrapper>
     </PageContent>
+  );
+}
+
+function getPlanGridClasses(planCount: number) {
+  return cn(
+    planCount === 3 ? "grid-cols-3" : "grid-cols-4",
+    planCount === 3
+      ? "max-lg:w-[calc(300cqw+2*32px)]"
+      : "max-lg:w-[calc(400cqw+3*32px)]",
   );
 }
 
@@ -467,10 +497,11 @@ function BillingCompareSection({
       >
         <table
           className={cn(
-            "grid grid-cols-4 overflow-hidden text-sm text-neutral-800 [&_strong]:font-medium",
+            "grid overflow-hidden text-sm text-neutral-800 [&_strong]:font-medium",
+            getPlanGridClasses(plans.length),
 
             // Mobile
-            "max-lg:w-[calc(400cqw+3*32px)] max-lg:translate-x-[calc(-1*var(--index)*(100cqw+32px))] max-lg:gap-x-8 max-lg:transition-transform",
+            "max-lg:translate-x-[calc(-1*var(--index)*(100cqw+32px))] max-lg:gap-x-8 max-lg:transition-transform",
           )}
           style={
             {
