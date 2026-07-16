@@ -114,7 +114,7 @@ function AdvancedUpsellModal({
       showModal={showAdvancedUpsellModal}
       setShowModal={setShowAdvancedUpsellModal}
       onClose={() => queryParams({ del: "showAdvancedUpsellModal" })}
-      className="flex max-h-[calc(100dvh-32px)] flex-col overflow-hidden sm:max-h-[min(90dvh,640px)]"
+      className="flex max-h-[calc(100dvh-32px)] flex-col overflow-hidden sm:max-h-[min(95dvh,720px)]"
     >
       <div className="scrollbar-hide relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-8">
         <div className="pointer-events-none absolute inset-0 hidden overflow-hidden [mask-image:linear-gradient(black,transparent_280px)] sm:block">
