@@ -35,11 +35,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["groups.read"],
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -179,10 +175,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["groups.write"],
-    requiredPlan: [
-      "business",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
