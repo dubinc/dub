@@ -17,7 +17,10 @@ import { BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { CreateBountyInputExtended } from "./bounty-form-context";
+import {
+  BountyTypeUI,
+  CreateBountyInputExtended,
+} from "./bounty-form-context";
 import { useConfirmCreateBountyModal } from "./confirm-create-bounty-modal";
 
 const ACCORDION_ITEMS = [
@@ -94,6 +97,16 @@ export function useAddEditBountyForm({
         : undefined,
       rewardDescription: bounty?.rewardDescription || undefined,
       type: bounty?.type || "performance",
+      bountyTypeUI:
+        bounty?.type === "performance"
+          ? "performance"
+          : bounty?.submissionRequirements &&
+              typeof bounty.submissionRequirements === "object" &&
+              "socialMetrics" in bounty.submissionRequirements
+            ? "socialMetrics"
+            : bounty
+              ? "submission"
+              : "performance",
       submissionRequirements: initialSubmissionRequirements,
       groupIds: bounty?.groups?.map(({ id }) => id) || null,
       performanceCondition: bounty?.performanceCondition
@@ -108,12 +121,6 @@ export function useAddEditBountyForm({
           },
       performanceScope: bounty?.performanceScope ?? "new",
       rewardType: bounty ? (bounty.rewardAmount ? "flat" : "custom") : "flat",
-      submissionCriteriaType:
-        bounty?.submissionRequirements &&
-        typeof bounty.submissionRequirements === "object" &&
-        "socialMetrics" in bounty.submissionRequirements
-          ? "socialMetrics"
-          : "manualSubmission",
     },
     shouldUnregister: false,
   });
@@ -133,6 +140,7 @@ export function useAddEditBountyForm({
     rewardAmount,
     rewardDescription,
     type,
+    bountyTypeUI,
     name,
     description,
     performanceCondition,
@@ -145,6 +153,7 @@ export function useAddEditBountyForm({
     "rewardAmount",
     "rewardDescription",
     "type",
+    "bountyTypeUI",
     "name",
     "description",
     "performanceCondition",
@@ -305,6 +314,53 @@ export function useAddEditBountyForm({
     }
   };
 
+  const handleBountyTypeUIChange = (bountyTypeUI: BountyTypeUI) => {
+    setValue("bountyTypeUI", bountyTypeUI, { shouldDirty: true });
+
+    if (bountyTypeUI === "performance") {
+      setValue("type", "performance", { shouldDirty: true });
+      setValue("submissionRequirements", null, { shouldDirty: true });
+      return;
+    }
+
+    setValue("type", "submission", { shouldDirty: true });
+
+    const currentSubmissionRequirements = form.getValues(
+      "submissionRequirements",
+    );
+
+    if (bountyTypeUI === "socialMetrics") {
+      setValue(
+        "submissionRequirements",
+        {
+          socialMetrics:
+            currentSubmissionRequirements &&
+            typeof currentSubmissionRequirements === "object" &&
+            "socialMetrics" in currentSubmissionRequirements
+              ? currentSubmissionRequirements.socialMetrics
+              : undefined,
+        },
+        { shouldDirty: true },
+      );
+      return;
+    }
+
+    if (
+      currentSubmissionRequirements &&
+      typeof currentSubmissionRequirements === "object" &&
+      "socialMetrics" in currentSubmissionRequirements
+    ) {
+      const { socialMetrics: _socialMetrics, ...rest } =
+        currentSubmissionRequirements;
+
+      setValue(
+        "submissionRequirements",
+        Object.keys(rest).length > 0 ? rest : null,
+        { shouldDirty: true },
+      );
+    }
+  };
+
   const validationError = useMemo(() => {
     const now = new Date();
 
@@ -424,6 +480,7 @@ export function useAddEditBountyForm({
     rewardDescription,
     rewardType,
     type,
+    bountyTypeUI,
     name,
     description,
     performanceCondition?.attribute,
@@ -439,7 +496,7 @@ export function useAddEditBountyForm({
 
     const {
       rewardType: formRewardType,
-      submissionCriteriaType: _submissionCriteriaType,
+      bountyTypeUI: _bountyTypeUI,
       ...data
     } = form.getValues();
 
@@ -560,6 +617,7 @@ export function useAddEditBountyForm({
     openAccordions,
     setOpenAccordions,
     type,
+    bountyTypeUI,
     name,
     control,
     register,
@@ -578,6 +636,7 @@ export function useAddEditBountyForm({
     submissionWindow,
     handleSubmissionWindowToggle,
     handleSubmissionWindowChange,
+    handleBountyTypeUIChange,
     validationError,
     confirmCreateBountyModal,
     setShowConfirmCreateBountyModal,
