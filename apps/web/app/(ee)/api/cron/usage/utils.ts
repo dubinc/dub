@@ -250,10 +250,10 @@ export const updateUsage = async () => {
           type: plan === "free" ? "cron" : "alerts",
           mention: plan !== "free",
         });
-        const sentFirstUsageLimitEmail = sentEmails.some(
+        const firstUsageLimitEmail = sentEmails.find(
           (email) => email.type === "firstUsageLimitEmail",
         );
-        if (!sentFirstUsageLimitEmail) {
+        if (!firstUsageLimitEmail) {
           await sendWorkspaceLimitAlert({
             emails,
             workspace: workspace as unknown as WorkspaceProps,
@@ -267,11 +267,11 @@ export const updateUsage = async () => {
           if (!sentSecondUsageLimitEmail) {
             const daysSinceFirstEmail = Math.floor(
               (new Date().getTime() -
-                new Date(sentEmails[0].createdAt).getTime()) /
+                firstUsageLimitEmail.createdAt.getTime()) /
                 (1000 * 3600 * 24),
             );
             if (daysSinceFirstEmail >= 3) {
-              sendWorkspaceLimitAlert({
+              await sendWorkspaceLimitAlert({
                 emails,
                 workspace: workspace as unknown as WorkspaceProps,
                 type: "secondUsageLimitEmail",
