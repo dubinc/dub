@@ -5,7 +5,7 @@ import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import {
   Badge,
@@ -87,12 +87,12 @@ export default function WorkspaceBillingUpgradePage() {
         : "monthly",
   );
 
-  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal();
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
 
   useEffect(() => {
-    if (searchParams.get("showPartnersUpgradeModal")) {
-      setShowPartnersUpgradeModal(true);
+    if (searchParams.get("showAdvancedUpsellModal")) {
+      setShowAdvancedUpsellModal(true);
     }
   }, [searchParams]);
 
@@ -163,7 +163,7 @@ export default function WorkspaceBillingUpgradePage() {
         </div>
       }
     >
-      {partnersUpgradeModal}
+      {advancedUpsellModal}
       <PageWidthWrapper className="grid gap-8">
         <div className="sticky -top-px z-10">
           <div className="overflow-x-hidden rounded-b-[12px] from-neutral-200 [container-type:inline-size] lg:bg-gradient-to-t lg:p-px">
