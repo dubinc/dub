@@ -384,6 +384,15 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
+        text: "Social metrics bounties",
+        href: "https://dub.co/help/article/program-bounties#social-metrics",
+      },
+      {
+        check: {
+          default: false,
+          advanced: true,
+          enterprise: true,
+        },
         text: "Risk monitoring",
         href: "https://dub.co/help/article/risk-monitoring",
       },
