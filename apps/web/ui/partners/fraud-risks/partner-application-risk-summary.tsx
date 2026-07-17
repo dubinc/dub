@@ -8,7 +8,7 @@ import { FraudSeverity } from "@/lib/types";
 import { Button, Flag } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
+import { useAdvancedUpsellModal } from "../advanced-upsell-modal";
 import { PartnerApplicationFraudSeverityIndicator } from "./partner-application-fraud-severity-indicator";
 import { usePartnerApplicationRiskSummaryModal } from "./partner-application-risk-summary-modal";
 import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
@@ -123,8 +123,8 @@ const APPLICATION_RISK_CONFIG = {
 };
 
 export function PartnerApplicationRiskSummaryUpsell() {
-  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal();
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
 
   // Dummy risk items for blur effect
   const dummyRisks: Array<{ severity: FraudSeverity; text: string }> = [
@@ -138,7 +138,7 @@ export function PartnerApplicationRiskSummaryUpsell() {
 
   return (
     <>
-      {partnersUpgradeModal}
+      {advancedUpsellModal}
       <div className="relative flex flex-col gap-4 p-4">
         {/* Blurred dummy risk list */}
         <div className="pointer-events-none flex select-none flex-col gap-4 blur-[3px]">
@@ -198,7 +198,7 @@ export function PartnerApplicationRiskSummaryUpsell() {
               text="Upgrade to Advanced"
               variant="secondary"
               className="h-7 w-full rounded-lg font-medium"
-              onClick={() => setShowPartnersUpgradeModal(true)}
+              onClick={() => setShowAdvancedUpsellModal(true)}
             />
           </div>
         </div>

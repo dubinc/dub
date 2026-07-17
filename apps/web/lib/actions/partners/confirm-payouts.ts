@@ -96,6 +96,7 @@ export const confirmPayoutsAction = authActionClient
       throw new Error(
         exceededLimitError({
           plan: workspace.plan,
+          planPeriod: workspace.planPeriod,
           limit: workspace.payoutsLimit,
           type: "payouts",
         }),

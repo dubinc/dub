@@ -100,7 +100,9 @@ export const appRedirect = async (path: string) => {
     );
 
   // Redirect "/[slug]/[*]/customers/:customerId" to "/[slug]/[*]/customers/:customerId/sales"
-  const customersPageRegex = /^\/([^\/]+)\/([^\/]+)\/customers\/([^\/]+)$/;
+  // Exclude "leads" since it's a tab route, not a customer ID
+  const customersPageRegex =
+    /^\/([^\/]+)\/([^\/]+)\/customers\/(?!leads$)([^\/]+)$/;
   if (customersPageRegex.test(path))
     return path.replace(customersPageRegex, "/$1/$2/customers/$3/sales");
 

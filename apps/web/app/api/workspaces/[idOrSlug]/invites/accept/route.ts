@@ -62,6 +62,7 @@ export const POST = withSession(async ({ session, params }) => {
         id: true,
         slug: true,
         plan: true,
+        planPeriod: true,
         usersLimit: true,
         stagingWorkspaceId: true,
         _count: {
@@ -96,6 +97,7 @@ export const POST = withSession(async ({ session, params }) => {
       code: "exceeded_limit",
       message: exceededLimitError({
         plan: workspace.plan as PlanProps,
+        planPeriod: workspace.planPeriod,
         limit: workspace.usersLimit,
         type: "users",
       }),
@@ -137,6 +139,7 @@ export const POST = withSession(async ({ session, params }) => {
         code: "exceeded_limit",
         message: exceededLimitError({
           plan: workspace.plan as PlanProps,
+          planPeriod: workspace.planPeriod,
           limit: workspace.usersLimit,
           type: "users",
         }),

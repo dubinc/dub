@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
@@ -165,10 +166,8 @@ export const trackLead = async ({
         : basePayload;
     };
 
-    // if the customer doesn't exist in our MySQL DB yet, upsert it
-    // (here we're doing upsert and not create in case of race conditions)
     if (!customer) {
-      customer = await prisma.customer.upsert({
+      const { customer: existingOrNewCustomer } = await getOrCreateCustomer({
         where: {
           projectId_externalId: {
             projectId: workspace.id,
@@ -190,8 +189,9 @@ export const trackLead = async ({
           country: clickData.country,
           clickedAt: new Date(clickData.timestamp + "Z"),
         },
-        update: {},
       });
+
+      customer = existingOrNewCustomer;
     }
 
     // if wait mode, record the lead event synchronously

@@ -1,6 +1,8 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { sendLimitEmail } from "@/lib/cron/send-limit-email";
-import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import {
+  getSlackWebhooks,
+  sendWorkspaceLimitAlert,
+} from "@/lib/cron/send-limit-alert";
+import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
 import { RedisStreamEntry } from "@/lib/upstash/redis-streams/client";
@@ -186,49 +188,53 @@ const processWorkspaceLinksUsageBatch = () =>
       let notificationsSent = 0;
 
       if (workspaceIds.length > 0) {
-        const sentEmails = await prisma.sentEmail.findMany({
-          where: {
-            projectId: {
-              in: workspaceIds,
+        const [sentEmails, users, slackWebhookByWorkspace] = await Promise.all([
+          prisma.sentEmail.findMany({
+            where: {
+              projectId: {
+                in: workspaceIds,
+              },
+              type: {
+                in: ["firstLinksLimitEmail", "secondLinksLimitEmail"],
+              },
             },
-            type: {
-              in: ["firstLinksLimitEmail", "secondLinksLimitEmail"],
+            select: {
+              projectId: true,
+              type: true,
             },
-          },
-          select: {
-            projectId: true,
-            type: true,
-          },
-        });
+          }),
+
+          prisma.user.findMany({
+            where: {
+              projects: {
+                some: {
+                  projectId: {
+                    in: workspaceIds,
+                  },
+                },
+              },
+            },
+            select: {
+              email: true,
+              projects: {
+                where: {
+                  projectId: {
+                    in: workspaceIds,
+                  },
+                },
+                select: {
+                  projectId: true,
+                },
+              },
+            },
+          }),
+
+          getSlackWebhooks(workspaceIds),
+        ]);
 
         const sentEmailSet = new Set(
           sentEmails.map((email) => `${email.projectId}:${email.type}`),
         );
-
-        const users = await prisma.user.findMany({
-          where: {
-            projects: {
-              some: {
-                projectId: {
-                  in: workspaceIds,
-                },
-              },
-            },
-          },
-          select: {
-            email: true,
-            projects: {
-              where: {
-                projectId: {
-                  in: workspaceIds,
-                },
-              },
-              select: {
-                projectId: true,
-              },
-            },
-          },
-        });
 
         const emailsByWorkspace = new Map<string, string[]>();
         for (const user of users) {
@@ -262,10 +268,11 @@ const processWorkspaceLinksUsageBatch = () =>
               }
 
               await Promise.allSettled([
-                sendLimitEmail({
+                sendWorkspaceLimitAlert({
                   emails,
                   workspace: workspace as WorkspaceProps,
                   type: emailType,
+                  slackWebhookUrl: slackWebhookByWorkspace.get(workspace.id),
                 }),
                 log({
                   message: `*${workspace.slug}* has used ${percentage.toString()}% of its links limit for the month.`,
@@ -300,41 +307,36 @@ const processWorkspaceLinksUsageBatch = () =>
     },
   );
 
-export async function GET(req: Request) {
-  try {
-    await verifyVercelSignature(req);
+export const GET = withCron(async () => {
+  const {
+    updates,
+    errors,
+    totalProcessed,
+    notificationsSent,
+    lastProcessedId,
+  } = await processWorkspaceLinksUsageBatch();
 
-    const {
-      updates,
-      errors,
-      totalProcessed,
-      notificationsSent,
-      lastProcessedId,
-    } = await processWorkspaceLinksUsageBatch();
-
-    if (!updates.length) {
-      return NextResponse.json({
-        success: true,
-        message: "No updates to process",
-        processed: 0,
-      });
-    }
-
-    const streamInfo = await workspaceLinksUsageStream.getStreamInfo();
-    const response = {
+  if (!updates.length) {
+    return NextResponse.json({
       success: true,
-      processed: totalProcessed,
-      notificationsSent,
-      errors: errors?.length || 0,
-      lastProcessedId,
-      streamInfo,
-      message: `Successfully processed ${totalProcessed} workspace links usage updates`,
-    };
-
-    console.log(response);
-    return NextResponse.json(response);
-  } catch (error) {
-    console.error("Failed to process workspace links usage updates:", error);
-    return handleAndReturnErrorResponse(error);
+      message: "No updates to process",
+      processed: 0,
+    });
   }
-}
+
+  const streamInfo = await workspaceLinksUsageStream.getStreamInfo();
+
+  const response = {
+    success: true,
+    processed: totalProcessed,
+    notificationsSent,
+    errors: errors?.length || 0,
+    lastProcessedId,
+    streamInfo,
+    message: `Successfully processed ${totalProcessed} workspace links usage updates`,
+  };
+
+  console.log(response);
+
+  return NextResponse.json(response);
+});

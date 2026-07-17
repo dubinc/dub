@@ -366,15 +366,6 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           advanced: true,
           enterprise: true,
         },
-        text: "Partners API",
-        href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
-      },
-      {
-        check: {
-          default: false,
-          advanced: true,
-          enterprise: true,
-        },
         text: "Messaging center",
         href: "https://dub.co/help/article/messaging-partners",
       },
@@ -386,6 +377,15 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
         },
         text: "Email campaigns",
         href: "https://dub.co/help/article/email-campaigns",
+      },
+      {
+        check: {
+          default: false,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Social metrics bounties",
+        href: "https://dub.co/help/article/program-bounties#social-metrics",
       },
       {
         check: {

@@ -27,14 +27,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.read"],
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );
 
@@ -107,13 +100,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPermissions: ["webhooks.write"],
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["business", "advanced", "enterprise"],
   },
 );

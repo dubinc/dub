@@ -54,7 +54,7 @@ export default function WorkspaceMembersPage() {
 
   const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
 
-  const { role, plan, usersLimit, environment } = useWorkspace();
+  const { role, plan, planPeriod, usersLimit, environment } = useWorkspace();
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
   const { users: workspaceUsers } = useWorkspaceUsers();
@@ -107,7 +107,12 @@ export default function WorkspaceMembersPage() {
 
   const inviteUserLimitError =
     isAtUserLimit && plan
-      ? exceededLimitError({ plan, limit: usersLimit, type: "users" })
+      ? exceededLimitError({
+          plan,
+          planPeriod,
+          limit: usersLimit,
+          type: "users",
+        })
       : undefined;
 
   const availableRolesForPlan = useMemo(() => {
