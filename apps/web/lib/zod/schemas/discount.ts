@@ -62,6 +62,12 @@ export const DiscountCodeSchema = z.object({
   discountId: z.string().nullable(),
   partnerId: z.string(),
   linkId: z.string(),
+  disabledAt: z.coerce
+    .date()
+    .nullish()
+    .describe(
+      "When this discount code was disabled, which happens when a partner is banned or deactivated.",
+    ),
 });
 
 export const createDiscountCodeSchema = z.object({

@@ -32,7 +32,7 @@ export default function PaymentMethods() {
   const router = useRouter();
   const { paymentMethods, defaultPaymentMethodId } = usePaymentMethods();
   const [isLoading, setIsLoading] = useState(false);
-  const { slug, stripeId, plan, role } = useWorkspace();
+  const { slug, stripeId, role } = useWorkspace();
 
   const regularPaymentMethods = paymentMethods?.filter(
     (pm) => !DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
@@ -55,7 +55,7 @@ export default function PaymentMethods() {
     router.push(url);
   };
 
-  if (plan === "free") {
+  if (!stripeId) {
     return null;
   }
 

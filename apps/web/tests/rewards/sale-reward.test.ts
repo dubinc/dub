@@ -207,5 +207,28 @@ describe("Sale rewards with conditions", async () => {
         expectedEarnings: E2E_SALE_REWARD.modifiers[4].amountInCents!,
       });
     });
+
+    test("when {Sale} {Metadata} {Key} is {Value}", async () => {
+      const sale = randomSale("E2E sale metadata key-value condition");
+
+      const trackSaleResponse = await http.post<TrackSaleResponse>({
+        path: "/track/sale",
+        body: {
+          ...sale,
+          customerExternalId: newCustomer.externalId,
+          metadata: {
+            bookTitle: "THGTTG",
+          },
+        },
+      });
+
+      expect(trackSaleResponse.status).toEqual(200);
+
+      await verifyCommission({
+        http,
+        invoiceId: sale.invoiceId,
+        expectedEarnings: E2E_SALE_REWARD.modifiers[6].amountInCents!,
+      });
+    });
   });
 });

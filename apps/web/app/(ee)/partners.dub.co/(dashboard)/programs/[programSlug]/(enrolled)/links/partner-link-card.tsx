@@ -28,6 +28,7 @@ import {
   getApexDomain,
   getPrettyUrl,
   nFormatter,
+  PARTNERS_DOMAIN,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
@@ -74,6 +75,19 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   });
 
   const isDeactivated = programEnrollment?.status === "deactivated";
+
+  const discountCodeSection = link.discountCode ? (
+    <div className="hidden items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1 sm:flex">
+      <span className="text-sm leading-none text-neutral-500">
+        Discount code
+      </span>
+      <DiscountCodeBadge
+        code={link.discountCode}
+        disabledAt={link.discountCodeDisabledAt}
+        disabledTooltip={`This discount code was disabled by the program. [Contact the program owner](${PARTNERS_DOMAIN}/messages/${programEnrollment?.program.slug}) if you need a new code.`}
+      />
+    </div>
+  ) : null;
 
   return (
     <CardList.Card
@@ -153,20 +167,14 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                   </StatusBadge>
                 );
               })()}
-            {link.discountCode && (
-              <Tooltip
-                content={
-                  "This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc. [Learn more](https://dub.co/help/article/dual-sided-incentives)"
-                }
-              >
-                <div className="hidden items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1 sm:flex">
-                  <span className="text-sm leading-none text-neutral-500">
-                    Discount code
-                  </span>
-                  <DiscountCodeBadge code={link.discountCode} />
-                </div>
-              </Tooltip>
-            )}
+            {discountCodeSection &&
+              (link.discountCodeDisabledAt ? (
+                discountCodeSection
+              ) : (
+                <Tooltip content="This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc. [Learn more](https://dub.co/help/article/dual-sided-incentives)">
+                  {discountCodeSection}
+                </Tooltip>
+              ))}
             {displayOption === "cards" && <StatsBadge link={link} />}
             <Controls link={link} />
           </div>

@@ -21,7 +21,7 @@ export function getSubscriptionTrialEndsAt(
  * timestamps (`cancel_at`, then `canceled_at`) so the value is stable across webhooks.
  * `billingCycleEndsAt` uses subscription item `current_period_end` (Basil API).
  */
-export function getSubscriptionCancellationFields(
+export function getSubscriptionBillingFields(
   subscription?: Pick<
     Stripe.Subscription,
     "cancel_at_period_end" | "cancel_at" | "canceled_at" | "items"
@@ -36,10 +36,12 @@ export function getSubscriptionCancellationFields(
       billingCycleEndsAt: null,
     };
   }
+
   const cancelAtPeriodEnd = subscription.cancel_at_period_end ?? false;
   const currentPeriodEnd = subscription.items.data[0]?.current_period_end;
   const cancelAtUnix =
     subscription.cancel_at ?? subscription.canceled_at ?? null;
+
   return {
     subscriptionCanceledAt:
       cancelAtPeriodEnd && cancelAtUnix != null
