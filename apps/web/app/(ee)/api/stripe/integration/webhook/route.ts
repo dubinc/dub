@@ -10,13 +10,12 @@ import { accountApplicationDeauthorized } from "./account-application-deauthoriz
 import { chargeRefunded } from "./charge-refunded";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
 import { couponDeleted } from "./coupon-deleted";
-import { customerCreated } from "./customer-created";
 import { customerSubscriptionCreated } from "./customer-subscription-created";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
-import { customerUpdated } from "./customer-updated";
 import { invoicePaid } from "./invoice-paid";
 import { promotionCodeUpdated } from "./promotion-code-updated";
 import { WebhookHandlerResponse } from "./types";
+import { syncCustomer } from "./utils/sync-customer";
 
 export const dynamic = "force-dynamic";
 
@@ -158,13 +157,8 @@ export const POST = withAxiom(async (req: Request) => {
       });
       break;
     case "customer.created":
-      result = await customerCreated({
-        event,
-        workspace,
-      });
-      break;
     case "customer.updated":
-      result = await customerUpdated({
+      result = await syncCustomer({
         event,
         workspace,
       });

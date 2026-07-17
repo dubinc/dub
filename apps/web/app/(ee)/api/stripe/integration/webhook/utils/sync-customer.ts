@@ -15,15 +15,14 @@ import { nanoid, pick } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { StripeWebhookInput, StripeWebhookOutput } from "./types";
 
-type SyncCustomerResponse = {
-  response: string;
-  workspaceId?: string;
-};
-
-export async function syncCustomer(
-  event: Stripe.CustomerCreatedEvent | Stripe.CustomerUpdatedEvent,
-): Promise<SyncCustomerResponse> {
+export async function syncCustomer({
+  event,
+  workspace,
+}: Omit<StripeWebhookInput, "mode"> & {
+  event: Stripe.CustomerCreatedEvent | Stripe.CustomerUpdatedEvent;
+}): Promise<StripeWebhookOutput> {
   const stripeCustomer = event.data.object;
   const stripeAccountId = event.account as string;
   const dubCustomerExternalId =
@@ -40,22 +39,6 @@ export async function syncCustomer(
     return {
       response:
         "External ID not found in Stripe customer metadata, skipping...",
-    };
-  }
-
-  const workspace = await prisma.project.findUnique({
-    where: {
-      stripeConnectId: stripeAccountId,
-    },
-    select: {
-      id: true,
-      webhookEnabled: true,
-    },
-  });
-
-  if (!workspace) {
-    return {
-      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
     };
   }
 
@@ -94,7 +77,6 @@ export async function syncCustomer(
   if (!clickId) {
     return {
       response: "Click ID not found in Stripe customer metadata, skipping...",
-      workspaceId: workspace.id,
     };
   }
 
@@ -105,7 +87,6 @@ export async function syncCustomer(
   if (!clickData) {
     return {
       response: `Click event with ID ${clickId} not found, skipping...`,
-      workspaceId: workspace.id,
     };
   }
 
@@ -125,14 +106,12 @@ export async function syncCustomer(
   if (!link || !link.projectId) {
     return {
       response: `Link with ID ${linkId} not found or does not have a project, skipping...`,
-      workspaceId: workspace.id,
     };
   }
 
   if (link.projectId !== workspace.id) {
     return {
       response: `Link ${linkId} does not belong to workspace ${workspace.id}, skipping...`,
-      workspaceId: workspace.id,
     };
   }
 
@@ -302,19 +281,17 @@ export async function syncCustomer(
 
   return {
     response: `New Dub customer created: ${customer.id}. Lead event recorded: ${leadData.event_id}`,
-    workspaceId: workspace.id,
   };
 }
 
 async function updateStripeCustomer({
   customerId,
-  workspaceId,
   data,
 }: {
   customerId: string;
   workspaceId: string;
   data: Prisma.CustomerUncheckedUpdateInput;
-}): Promise<SyncCustomerResponse> {
+}): Promise<{ response: string }> {
   try {
     await prisma.customer.update({
       where: {
@@ -325,12 +302,10 @@ async function updateStripeCustomer({
 
     return {
       response: `Dub customer with ID ${customerId} updated.`,
-      workspaceId,
     };
   } catch (error) {
     return {
       response: `Error updating Dub customer with ID ${customerId}: ${error}`,
-      workspaceId,
     };
   }
 }
