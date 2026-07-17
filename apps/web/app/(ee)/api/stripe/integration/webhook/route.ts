@@ -199,11 +199,6 @@ export const POST = withAxiom(async (req: Request) => {
     response: result.response,
   };
 
-  // If the event is not from the workspace's Stripe Connect account, skip logging
-  if (event.account !== workspace.stripeConnectId) {
-    return logAndRespond(responseBody);
-  }
-
   waitUntil(
     captureWebhookLog({
       workspaceId: workspace.id,
