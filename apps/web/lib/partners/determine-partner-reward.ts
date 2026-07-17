@@ -1,4 +1,4 @@
-import { toCentsNumber } from "@dub/utils";
+import { prettyPrint, toCentsNumber } from "@dub/utils";
 import { EventType, Link, Prisma, Reward } from "@prisma/client";
 import { serializeReward } from "../api/partners/serialize-reward";
 import { RewardContext, RewardProps } from "../types";
@@ -177,7 +177,7 @@ export const determinePartnerRewards = ({
     }
   }
 
-  console.info("Resolved rewards", rewards);
+  console.log("Reward context", prettyPrint(context));
 
   return rewards;
 };
