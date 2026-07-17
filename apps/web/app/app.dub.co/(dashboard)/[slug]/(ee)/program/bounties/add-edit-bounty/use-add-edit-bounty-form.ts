@@ -11,13 +11,19 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
-import { bountyPerformanceConditionSchema } from "@/lib/zod/schemas/bounties";
+import {
+  bountyPerformanceConditionSchema,
+  bountySocialContentRequirementsSchema,
+} from "@/lib/zod/schemas/bounties";
 import { formatDate } from "@dub/utils";
 import { BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { CreateBountyInputExtended } from "./bounty-form-context";
+import {
+  BountyTypeUI,
+  CreateBountyInputExtended,
+} from "./bounty-form-context";
 import { useConfirmCreateBountyModal } from "./confirm-create-bounty-modal";
 
 const ACCORDION_ITEMS = [
@@ -26,6 +32,20 @@ const ACCORDION_ITEMS = [
   "bounty-criteria",
   "groups",
 ];
+
+const DEFAULT_SOCIAL_METRICS_CRITERIA = {
+  platform: "youtube",
+  metric: "views",
+} as const;
+
+const resolveSocialMetricsCriteria = (
+  existing?: NonNullable<
+    CreateBountyInputExtended["submissionRequirements"]
+  >["socialMetrics"],
+) => ({
+  ...DEFAULT_SOCIAL_METRICS_CRITERIA,
+  ...existing,
+});
 
 const isEmpty = (value: unknown) =>
   value === undefined || value === null || value === "";
@@ -94,6 +114,16 @@ export function useAddEditBountyForm({
         : undefined,
       rewardDescription: bounty?.rewardDescription || undefined,
       type: bounty?.type || "performance",
+      bountyTypeUI:
+        bounty?.type === "performance"
+          ? "performance"
+          : bounty?.submissionRequirements &&
+              typeof bounty.submissionRequirements === "object" &&
+              "socialMetrics" in bounty.submissionRequirements
+            ? "socialMetrics"
+            : bounty
+              ? "submission"
+              : "performance",
       submissionRequirements: initialSubmissionRequirements,
       groupIds: bounty?.groups?.map(({ id }) => id) || null,
       performanceCondition: bounty?.performanceCondition
@@ -108,12 +138,6 @@ export function useAddEditBountyForm({
           },
       performanceScope: bounty?.performanceScope ?? "new",
       rewardType: bounty ? (bounty.rewardAmount ? "flat" : "custom") : "flat",
-      submissionCriteriaType:
-        bounty?.submissionRequirements &&
-        typeof bounty.submissionRequirements === "object" &&
-        "socialMetrics" in bounty.submissionRequirements
-          ? "socialMetrics"
-          : "manualSubmission",
     },
     shouldUnregister: false,
   });
@@ -133,6 +157,7 @@ export function useAddEditBountyForm({
     rewardAmount,
     rewardDescription,
     type,
+    bountyTypeUI,
     name,
     description,
     performanceCondition,
@@ -145,6 +170,7 @@ export function useAddEditBountyForm({
     "rewardAmount",
     "rewardDescription",
     "type",
+    "bountyTypeUI",
     "name",
     "description",
     "performanceCondition",
@@ -305,6 +331,54 @@ export function useAddEditBountyForm({
     }
   };
 
+  const handleBountyTypeUIChange = (bountyTypeUI: BountyTypeUI) => {
+    setValue("bountyTypeUI", bountyTypeUI, { shouldDirty: true });
+
+    if (bountyTypeUI === "performance") {
+      setValue("type", "performance", { shouldDirty: true });
+      setValue("submissionRequirements", null, { shouldDirty: true });
+      return;
+    }
+
+    setValue("type", "submission", { shouldDirty: true });
+
+    const currentSubmissionRequirements = form.getValues(
+      "submissionRequirements",
+    );
+
+    if (bountyTypeUI === "socialMetrics") {
+      setValue(
+        "submissionRequirements",
+        {
+          socialMetrics: resolveSocialMetricsCriteria(
+            currentSubmissionRequirements &&
+              typeof currentSubmissionRequirements === "object" &&
+              currentSubmissionRequirements.socialMetrics
+              ? currentSubmissionRequirements.socialMetrics
+              : undefined,
+          ),
+        },
+        { shouldDirty: true },
+      );
+      return;
+    }
+
+    if (
+      currentSubmissionRequirements &&
+      typeof currentSubmissionRequirements === "object" &&
+      "socialMetrics" in currentSubmissionRequirements
+    ) {
+      const { socialMetrics: _socialMetrics, ...rest } =
+        currentSubmissionRequirements;
+
+      setValue(
+        "submissionRequirements",
+        Object.keys(rest).length > 0 ? rest : null,
+        { shouldDirty: true },
+      );
+    }
+  };
+
   const validationError = useMemo(() => {
     const now = new Date();
 
@@ -363,17 +437,34 @@ export function useAddEditBountyForm({
       }
 
       if ((rewardType ?? "flat") === "custom") {
-        const isSocialMetrics =
-          submissionRequirements &&
-          typeof submissionRequirements === "object" &&
-          "socialMetrics" in submissionRequirements;
-        if (!isSocialMetrics) {
+        if (bountyTypeUI !== "socialMetrics") {
           if (!rewardDescription?.trim()) {
             return "Reward description is required for custom rewards.";
           }
           if (rewardDescription && rewardDescription.length > 100) {
             return "Reward description must be 100 characters or less.";
           }
+        }
+      }
+
+      if (bountyTypeUI === "socialMetrics") {
+        const socialMetrics = submissionRequirements?.socialMetrics;
+
+        if (!socialMetrics) {
+          return "Social metrics criteria are required.";
+        }
+
+        const parsed =
+          bountySocialContentRequirementsSchema.safeParse(socialMetrics);
+
+        if (!parsed.success) {
+          return (
+            parsed.error.issues[0]?.message ?? "Invalid social metrics criteria."
+          );
+        }
+
+        if (!socialMetrics.minCount || socialMetrics.minCount <= 0) {
+          return "Minimum metric count must be greater than 0.";
         }
       }
     }
@@ -424,6 +515,7 @@ export function useAddEditBountyForm({
     rewardDescription,
     rewardType,
     type,
+    bountyTypeUI,
     name,
     description,
     performanceCondition?.attribute,
@@ -439,7 +531,7 @@ export function useAddEditBountyForm({
 
     const {
       rewardType: formRewardType,
-      submissionCriteriaType: _submissionCriteriaType,
+      bountyTypeUI: _bountyTypeUI,
       ...data
     } = form.getValues();
 
@@ -560,6 +652,7 @@ export function useAddEditBountyForm({
     openAccordions,
     setOpenAccordions,
     type,
+    bountyTypeUI,
     name,
     control,
     register,
@@ -578,6 +671,7 @@ export function useAddEditBountyForm({
     submissionWindow,
     handleSubmissionWindowToggle,
     handleSubmissionWindowChange,
+    handleBountyTypeUIChange,
     validationError,
     confirmCreateBountyModal,
     setShowConfirmCreateBountyModal,

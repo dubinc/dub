@@ -5,7 +5,7 @@ import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkflowCondition } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
+import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import {
   InlineBadgePopover,
   InlineBadgePopoverAmountInput,
@@ -336,19 +336,19 @@ function NoGroupRule() {
 }
 
 function GroupMoveRuleUpsell() {
-  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal();
+  const { advancedUpsellModal, setShowAdvancedUpsellModal } =
+    useAdvancedUpsellModal();
 
   return (
     <>
-      {partnersUpgradeModal}
+      {advancedUpsellModal}
       <div className="flex h-40 w-full flex-col items-center justify-center space-y-4 rounded-lg bg-neutral-50 py-1.5">
         <UserArrowRight className="size-4 text-neutral-600" />
         <p className="text-sm font-normal text-neutral-500">
           Make managing partner groups even easier
         </p>
         <Button
-          onClick={() => setShowPartnersUpgradeModal(true)}
+          onClick={() => setShowAdvancedUpsellModal(true)}
           text="Upgrade to Advanced"
           className="h-9 w-fit rounded-lg px-3"
         />
