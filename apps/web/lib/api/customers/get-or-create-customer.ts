@@ -49,6 +49,11 @@ export async function getOrCreateCustomer({
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
+      console.info(
+        "[getOrCreateCustomer] Unique constraint conflict (P2002), falling back to find",
+        { target: error.meta?.target },
+      );
+
       const customer =
         findMode === "first"
           ? await prisma.customer.findFirstOrThrow({
