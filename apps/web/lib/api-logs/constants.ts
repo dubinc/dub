@@ -98,11 +98,11 @@ export const ROUTE_PATTERNS = [
   "/dashboards",
 
   // Groups
-  "/groups/:groupIdOrSlug/default-links/:defaultLinkId",
-  "/groups/:groupIdOrSlug/default-links",
-  "/groups/:groupIdOrSlug/default",
-  "/groups/:groupIdOrSlug/partners",
-  "/groups/:groupIdOrSlug",
+  "/groups/:groupId/default-links/:defaultLinkId",
+  "/groups/:groupId/default-links",
+  "/groups/:groupId/default",
+  "/groups/:groupId/partners",
+  "/groups/:groupId",
   "/groups",
 
   // Discount codes
