@@ -1,6 +1,6 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
-import { createOrGetCustomer } from "@/lib/api/customers/create-or-get-customer";
+import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
@@ -184,8 +184,8 @@ export const trackSale = async ({
         ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
         : customerAvatar;
 
-    const { customer: createdOrFoundCustomer, created } =
-      await createOrGetCustomer({
+    const { customer: existingOrNewCustomer, created } =
+      await getOrCreateCustomer({
         where: {
           projectId_externalId: {
             projectId: workspace.id,
@@ -208,9 +208,9 @@ export const trackSale = async ({
       });
 
     if (created) {
-      newCustomer = createdOrFoundCustomer;
+      newCustomer = existingOrNewCustomer;
     } else {
-      existingCustomer = createdOrFoundCustomer;
+      existingCustomer = existingOrNewCustomer;
     }
 
     // Persist customer avatar to R2 if it's not already stored

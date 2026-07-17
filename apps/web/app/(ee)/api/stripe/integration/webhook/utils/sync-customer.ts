@@ -1,5 +1,5 @@
 import { createId } from "@/lib/api/create-id";
-import { createOrGetCustomer } from "@/lib/api/customers/create-or-get-customer";
+import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
@@ -136,7 +136,7 @@ export async function syncCustomer(
     };
   }
 
-  const { customer, created } = await createOrGetCustomer({
+  const { customer, created } = await getOrCreateCustomer({
     findMode: "first",
     where: {
       OR: [
