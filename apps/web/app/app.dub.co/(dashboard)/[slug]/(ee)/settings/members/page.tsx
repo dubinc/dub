@@ -105,7 +105,7 @@ export default function WorkspaceMembersPage() {
   }).error;
 
   const inviteUserLimitError =
-    isAtUserLimit && plan && planPeriod
+    isAtUserLimit && plan
       ? exceededLimitError({
           plan,
           planPeriod,
