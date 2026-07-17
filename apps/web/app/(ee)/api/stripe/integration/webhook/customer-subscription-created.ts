@@ -31,6 +31,9 @@ export async function customerSubscriptionCreated({
       projectId: workspace.id,
       integrationId: STRIPE_INTEGRATION_ID,
     },
+    orderBy: {
+      createdAt: "asc",
+    },
   });
 
   if (!installedIntegration) {
