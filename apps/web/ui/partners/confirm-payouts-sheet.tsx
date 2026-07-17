@@ -918,7 +918,7 @@ function ConfirmPayoutsSheetContent() {
           }
           disabledTooltip={
             plan &&
-            plan !== "enterprise" &&
+            planPeriod &&
             typeof payoutsUsage === "number" &&
             typeof payoutsLimit === "number" &&
             typeof amount === "number" &&
