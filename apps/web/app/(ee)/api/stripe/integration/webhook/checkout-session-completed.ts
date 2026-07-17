@@ -1,6 +1,7 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
+import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
@@ -88,25 +89,6 @@ export async function checkoutSessionCompleted(
       };
     }
 
-    existingCustomer = await prisma.customer.findFirst({
-      where: {
-        projectId: workspace.id,
-        // check for existing customer with the same externalId (via clickId or email)
-        OR: [
-          {
-            externalId: clickEvent.click_id,
-          },
-          ...(stripeCustomerEmail
-            ? [
-                {
-                  externalId: stripeCustomerEmail,
-                },
-              ]
-            : []),
-        ],
-      },
-    });
-
     const payload = {
       name: stripeCustomerName,
       email: stripeCustomerEmail,
@@ -121,17 +103,47 @@ export async function checkoutSessionCompleted(
       clickedAt: new Date(clickEvent.timestamp + "Z"),
     };
 
-    if (existingCustomer) {
+    // Race-safe create: also match stripeCustomerId so P2002 fallback can resolve the row
+    const { customer: existingOrNewCustomer, created } =
+      await getOrCreateCustomer({
+        findMode: "first",
+        where: {
+          OR: [
+            {
+              projectId: workspace.id,
+              externalId: clickEvent.click_id,
+            },
+            ...(stripeCustomerEmail
+              ? [
+                  {
+                    projectId: workspace.id,
+                    externalId: stripeCustomerEmail,
+                  },
+                ]
+              : []),
+            ...(stripeCustomerId
+              ? [
+                  {
+                    stripeCustomerId,
+                  },
+                ]
+              : []),
+          ],
+        },
+        create: {
+          id: createId({ prefix: "cus_" }),
+          ...payload,
+        },
+      });
+
+    if (created) {
+      customer = existingOrNewCustomer;
+    } else {
       customer = await prisma.customer.update({
         where: {
-          id: existingCustomer.id,
+          id: existingOrNewCustomer.id,
         },
-        data: payload,
-      });
-    } else {
-      customer = await prisma.customer.create({
         data: {
-          id: createId({ prefix: "cus_" }),
           ...payload,
         },
       });
@@ -148,7 +160,7 @@ export async function checkoutSessionCompleted(
       metadata: "",
     };
 
-    if (!existingCustomer) {
+    if (created) {
       await recordLead(leadEvent);
       waitUntil(incrementLinkLeads(clickEvent.link_id));
     }

@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
@@ -7,12 +8,12 @@ import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
 import { recordLead } from "@/lib/tinybird";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
-import { StripeMode } from "@/lib/types";
+import { ClickEventTB, LeadEventTB, StripeMode } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
-import { Project } from "@prisma/client";
+import { Customer, Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { getPromotionCode } from "./get-promotion-code";
@@ -22,6 +23,14 @@ export type PromoCodeCustomerDetails = {
   name?: string | null;
   email?: string | null;
   address?: Pick<Stripe.Address, "country" | "state"> | null;
+};
+
+export type AttributeViaPromotionCodeIdResponse = {
+  linkId: string;
+  customer: Customer;
+  clickEvent: ClickEventTB;
+  leadEvent: LeadEventTB;
+  created: boolean;
 };
 
 export async function attributeViaPromotionCodeId({
@@ -41,7 +50,7 @@ export async function attributeViaPromotionCodeId({
   mode: StripeMode;
   stripeCustomerId: string;
   customerDetails: PromoCodeCustomerDetails;
-}) {
+}): Promise<AttributeViaPromotionCodeIdResponse | null> {
   // Find the promotion code for the promotion code id
   const promotionCode = await getPromotionCode({
     promotionCodeId,
@@ -106,39 +115,39 @@ export async function attributeViaPromotionCodeId({
     },
   });
 
-  let customer: Awaited<ReturnType<typeof prisma.customer.create>>;
-  try {
-    customer = await prisma.customer.create({
-      data: {
-        id: createId({ prefix: "cus_" }),
-        name:
-          customerDetails.name || customerDetails.email || generateRandomName(),
-        email: customerDetails.email,
-        externalId: clickEvent.click_id,
-        stripeCustomerId,
-        linkId: clickEvent.link_id,
-        clickId: clickEvent.click_id,
-        clickedAt: new Date(clickEvent.timestamp + "Z"),
-        country: customerAddress?.country,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-      },
-    });
-  } catch (error) {
-    // a concurrent webhook may have created the customer first (unique stripeCustomerId)
-    if (error.code === "P2002") {
-      console.log(
-        `Customer with stripeCustomerId ${stripeCustomerId} was created concurrently, skipping promo code attribution...`,
-      );
-      return null;
-    }
-    throw error;
-  }
+  const { customer, created } = await getOrCreateCustomer({
+    findMode: "first",
+    where: {
+      OR: [
+        {
+          stripeCustomerId,
+        },
+        {
+          projectId: workspace.id,
+          externalId: clickEvent.click_id,
+        },
+      ],
+    },
+    create: {
+      id: createId({ prefix: "cus_" }),
+      name:
+        customerDetails.name || customerDetails.email || generateRandomName(),
+      email: customerDetails.email,
+      externalId: clickEvent.click_id,
+      stripeCustomerId,
+      linkId: clickEvent.link_id,
+      clickId: clickEvent.click_id,
+      clickedAt: new Date(clickEvent.timestamp + "Z"),
+      country: customerAddress?.country,
+      projectId: workspace.id,
+      projectConnectId: workspace.stripeConnectId,
+    },
+  });
 
   // Prepare the payload for the lead event
   const { timestamp, ...rest } = clickEvent;
 
-  const leadEvent = {
+  const leadEvent: LeadEventTB = {
     ...rest,
     workspace_id: clickEvent.workspace_id || customer.projectId,
     event_id: nanoid(16),
@@ -146,6 +155,19 @@ export async function attributeViaPromotionCodeId({
     customer_id: customer.id,
     metadata: "",
   };
+
+  // Concurrent webhook already created this customer — continue sale without re-recording lead
+  if (!created) {
+    const cachedLead = await redis.get<LeadEventTB>(`leadCache:${customer.id}`);
+
+    return {
+      linkId: cachedLead?.link_id ?? customer.linkId ?? linkId,
+      customer,
+      clickEvent,
+      leadEvent: cachedLead ?? leadEvent,
+      created: false,
+    };
+  }
 
   await recordLead(leadEvent);
 
@@ -239,5 +261,6 @@ export async function attributeViaPromotionCodeId({
     customer,
     clickEvent,
     leadEvent,
+    created: true,
   };
 }
