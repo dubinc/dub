@@ -13,8 +13,11 @@ import { transformLeadEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { WebhookHandlerResponse } from "../types";
 
-export async function createNewCustomer(event: Stripe.Event) {
+export async function createNewCustomer(
+  event: Stripe.Event,
+): Promise<WebhookHandlerResponse> {
   const stripeCustomer = event.data.object as Stripe.Customer;
   const stripeAccountId = event.account as string;
   const dubCustomerExternalId =
@@ -48,7 +51,6 @@ export async function createNewCustomer(event: Stripe.Event) {
   if (!link || !link.projectId) {
     return {
       response: `Link with ID ${linkId} not found or does not have a project, skipping...`,
-      workspaceId: link?.projectId ? link.projectId : undefined,
     };
   }
 
@@ -203,6 +205,5 @@ export async function createNewCustomer(event: Stripe.Event) {
 
   return {
     response: `New Dub customer created: ${customer.id}. Lead event recorded: ${leadData.event_id}`,
-    workspaceId: workspace.id,
   };
 }

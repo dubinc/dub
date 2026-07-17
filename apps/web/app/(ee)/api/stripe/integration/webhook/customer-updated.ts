@@ -1,9 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { createNewCustomer } from "./utils/create-new-customer";
 
 // Handle event "customer.updated"
-export async function customerUpdated(event: Stripe.CustomerUpdatedEvent) {
+export async function customerUpdated({
+  event,
+  workspace,
+}: Omit<
+  WebhookHandlerInput<Stripe.CustomerUpdatedEvent>,
+  "mode"
+>): Promise<WebhookHandlerResponse> {
   const stripeCustomer = event.data.object;
   const stripeAccountId = event.account as string;
   const dubCustomerExternalId =
@@ -16,23 +23,6 @@ export async function customerUpdated(event: Stripe.CustomerUpdatedEvent) {
         "External ID not found in Stripe customer metadata, skipping...",
     };
   }
-
-  const workspace = await prisma.project.findUnique({
-    where: {
-      stripeConnectId: stripeAccountId,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!workspace) {
-    return {
-      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
-    };
-  }
-
-  const workspaceId = workspace.id;
 
   const customer = await prisma.customer.findFirst({
     where: {
@@ -65,13 +55,11 @@ export async function customerUpdated(event: Stripe.CustomerUpdatedEvent) {
 
       return {
         response: `Dub customer with ID ${customer.id} updated.`,
-        workspaceId,
       };
     } catch (error) {
       console.error(error);
       return {
         response: `Error updating Dub customer with ID ${customer.id}: ${error}`,
-        workspaceId,
       };
     }
   }
