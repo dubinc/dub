@@ -45,6 +45,7 @@ const PARTNERS_PROGRAM_REDIRECTS = {
   heynavii: "navii",
   galaxyai: "magica",
   "voice-os": "voiceos",
+  "speechify-inc": "speechify",
 };
 
 export const partnersProgramRedirects = (path: string) => {
