@@ -11,7 +11,7 @@ import { evaluateSocialContentRequirements } from "@/ui/partners/bounties/evalua
 import { X } from "@/ui/shared/icons";
 import {
   Button,
-  CircleCheckFill,
+  CircleCheck,
   FileUpload,
   Label,
   LoadingSpinner,
@@ -314,7 +314,8 @@ export function EmbedSocialUrlField({
               : "text-content-muted",
           )}
         >
-          <CircleCheckFill
+          <CircleCheck
+            variant="fill"
             className={cn(
               "size-2.5 transition-opacity",
               isPostedFromYourAccount
@@ -331,7 +332,8 @@ export function EmbedSocialUrlField({
               isAfterStartDate ? "text-content-success" : "text-content-muted",
             )}
           >
-            <CircleCheckFill
+            <CircleCheck
+              variant="fill"
               className={cn(
                 "size-2.5 transition-opacity",
                 isAfterStartDate

@@ -6,10 +6,10 @@ import { nanoid, toCamelCase } from "@dub/utils";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import { generateRandomName } from "../names";
 import { ClickEventTB } from "../types";
-import type { WebhookTrigger } from "./types";
 import { clickEventSchema } from "../zod/schemas/clicks";
 import { WEBHOOK_EVENT_ID_PREFIX } from "./constants";
 import { leadWebhookEventSchema, saleWebhookEventSchema } from "./schemas";
+import type { WebhookTrigger } from "./types";
 
 export const transformClickEventData = (
   data: ClickEventTB & {

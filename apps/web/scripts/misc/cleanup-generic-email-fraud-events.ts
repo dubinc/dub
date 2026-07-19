@@ -63,7 +63,6 @@ async function main() {
         },
       },
     });
-
     console.log(`Removed ${count} fraud events`);
   }
 
@@ -91,8 +90,54 @@ async function main() {
         },
       },
     });
-
     console.log(`Removed ${count} fraud event groups`);
+  }
+
+  const commissionsToRelease = await prisma.commission.findMany({
+    where: {
+      customerId: {
+        in: fraudEvents.map((event) => event.customerId!).filter(Boolean),
+      },
+      status: "hold",
+    },
+  });
+
+  console.log(`Found ${commissionsToRelease.length} commissions to release`);
+  console.table(commissionsToRelease, [
+    "programId",
+    "partnerId",
+    "customerId",
+    "status",
+    "amount",
+    "earnings",
+    "createdAt",
+  ]);
+
+  if (commissionsToRelease.length > 0) {
+    const { count } = await prisma.commission.updateMany({
+      where: {
+        id: {
+          in: commissionsToRelease.map((commission) => commission.id),
+        },
+        status: "hold",
+      },
+      data: {
+        status: "pending",
+      },
+    });
+    console.log(`Released ${count} commissions`);
+    // delete activity logs cause they'll be re-added to a new payout
+    const deletedActivityLogs = await prisma.activityLog.deleteMany({
+      where: {
+        resourceType: "commission",
+        resourceId: {
+          in: commissionsToRelease.map((commission) => commission.id),
+        },
+      },
+    });
+    console.log(
+      `Deleted ${deletedActivityLogs.count} activity logs for commissions`,
+    );
   }
 }
 

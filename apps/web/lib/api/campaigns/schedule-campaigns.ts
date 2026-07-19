@@ -33,7 +33,7 @@ export const scheduleMarketingCampaign = async ({
   // Delete the existing message
   if (campaign.qstashMessageId) {
     try {
-      await qstash.messages.delete(campaign.qstashMessageId);
+      await qstash.messages.cancel(campaign.qstashMessageId);
       qstashMessageId = null;
     } catch (error) {
       console.warn(

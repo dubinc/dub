@@ -147,6 +147,22 @@ export const E2E_SALE_REWARD = {
       maxDuration: null,
       amountInCents: 9000,
     },
+    {
+      id: "939e0cbd-fe8d-4cee-8a71-f5b7a5737887",
+      type: "flat",
+      operator: "AND",
+      conditions: [
+        {
+          value: "THGTTG",
+          entity: "sale",
+          operator: "equals_to",
+          attribute: "metadata",
+          metadataField: "bookTitle",
+        },
+      ],
+      maxDuration: null,
+      amountInCents: 4200,
+    },
   ],
 };
 

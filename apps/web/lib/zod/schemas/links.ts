@@ -861,11 +861,11 @@ export const linkEventSchema = LinkSchema.extend({
   // coerce date fields
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
-  lastClicked: z.coerce.date(),
-  expiresAt: z.coerce.date(),
-  disabledAt: z.coerce.date(),
-  testCompletedAt: z.coerce.date(),
-  testStartedAt: z.coerce.date(),
+  lastClicked: z.coerce.date().nullable(),
+  expiresAt: z.coerce.date().nullable(),
+  disabledAt: z.coerce.date().nullable(),
+  testCompletedAt: z.coerce.date().nullable(),
+  testStartedAt: z.coerce.date().nullable(),
   // userId can be null
   userId: z.string().nullable(),
 });

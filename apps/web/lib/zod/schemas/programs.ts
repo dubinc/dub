@@ -97,8 +97,14 @@ export const updateProgramSchema = z.object({
     }),
   minPayoutAmount: z.coerce.number(),
   supportEmail: z.email().max(255).nullish(),
-  helpUrl: z.httpUrl().max(500).nullish(),
-  termsUrl: z.httpUrl().max(500).nullish(),
+  helpUrl: z
+    .httpUrl({ error: "Please enter a valid help center URL." })
+    .max(500)
+    .nullish(),
+  termsUrl: z
+    .httpUrl({ error: "Please enter a valid terms of service URL." })
+    .max(500)
+    .nullish(),
   messagingEnabledAt: z.coerce.date().nullish(),
   referralFormData: submittedLeadFormSchema.nullish(),
 });

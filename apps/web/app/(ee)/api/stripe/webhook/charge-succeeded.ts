@@ -4,13 +4,9 @@ import {
   parseRegisteredDomainSlugs,
 } from "@/lib/api/domains/is-domain-registration-invoice";
 import { qstash } from "@/lib/cron";
-import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { prisma } from "@/lib/prisma";
-import { sendBatchEmail } from "@dub/email";
-import DomainRenewed from "@dub/email/templates/domain-renewed";
-import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Invoice } from "@prisma/client";
-import { addDays, startOfDay } from "date-fns";
 import Stripe from "stripe";
 
 export async function chargeSucceeded(event: Stripe.ChargeSucceededEvent) {
@@ -139,70 +135,17 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
     return `No domains found for invoice ${invoice.id}, skipping...`;
   }
 
-  const earliestExpiresAt = domains[0].expiresAt;
-  const todayStart = startOfDay(new Date());
-  const renewalBase =
-    earliestExpiresAt > todayStart ? earliestExpiresAt : todayStart;
-  const newExpiresAt = addDays(renewalBase, 365);
-
-  await prisma.registeredDomain.updateMany({
-    where: {
-      id: {
-        in: domains.map(({ id }) => id),
-      },
-    },
-    data: {
-      expiresAt: newExpiresAt,
-      autoRenewalDisabledAt: null,
+  const qstashResponse = await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/renewal-succeeded`,
+    deduplicationId: `domain-renewal-${invoice.id}`,
+    body: {
+      invoiceId: invoice.id,
     },
   });
 
-  await Promise.allSettled(
-    domains.map((domain) =>
-      setRenewOption({
-        domain: domain.slug,
-        autoRenew: true,
-      }),
-    ),
-  );
-
-  const workspace = await prisma.project.findUniqueOrThrow({
-    where: {
-      id: invoice.workspaceId,
-    },
-    include: {
-      users: {
-        where: {
-          role: "owner",
-        },
-        select: {
-          user: true,
-        },
-      },
-    },
-  });
-
-  const workspaceOwners = workspace.users.filter(({ user }) => user.email);
-
-  if (workspaceOwners.length === 0) {
-    return "No users found to send domain renewal success email.";
+  if (qstashResponse.messageId) {
+    return `Message sent to Qstash with id ${qstashResponse.messageId}`;
+  } else {
+    return `Error sending message to Qstash: ${JSON.stringify(qstashResponse)}`;
   }
-
-  await sendBatchEmail(
-    workspaceOwners.map(({ user }) => ({
-      variant: "notifications",
-      to: user.email!,
-      subject: `Your ${pluralize("domain", domains.length)} ${domains.length === 1 ? "has" : "have"} been renewed`,
-      react: DomainRenewed({
-        email: user.email!,
-        workspace: {
-          slug: workspace.slug,
-        },
-        domains: domains.map(({ slug }) => ({ slug })),
-        expiresAt: newExpiresAt,
-      }),
-    })),
-  );
-
-  return `Domain renewal success email sent to ${workspaceOwners.length} users.`;
 }

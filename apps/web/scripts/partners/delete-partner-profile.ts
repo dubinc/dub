@@ -24,9 +24,28 @@ async function main() {
   });
   console.log("Deleted customers", deletedCustomers);
 
-  const deletedCommissions = await prisma.commission.deleteMany({
+  const commissionsToDelete = await prisma.commission.findMany({
     where: {
       partnerId: partner.id,
+    },
+  });
+  console.log("Found commissions to delete", commissionsToDelete.length);
+
+  const deletedActivityLogs = await prisma.activityLog.deleteMany({
+    where: {
+      resourceType: "commission",
+      resourceId: {
+        in: commissionsToDelete.map((commission) => commission.id),
+      },
+    },
+  });
+  console.log("Deleted activity logs", deletedActivityLogs);
+
+  const deletedCommissions = await prisma.commission.deleteMany({
+    where: {
+      id: {
+        in: commissionsToDelete.map((commission) => commission.id),
+      },
     },
   });
   console.log("Deleted commissions", deletedCommissions);

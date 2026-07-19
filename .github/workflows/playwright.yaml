@@ -43,6 +43,7 @@ jobs:
       UPSTASH_REDIS_REST_TOKEN: "e2e_srh_token"
       UPSTASH_VECTOR_REST_URL: "https://sensible-camel-xxxx.upstash.io"
       UPSTASH_VECTOR_REST_TOKEN: "xx"
+      QSTASH_URL: "https://qstash-us-east-1.upstash.io"
       QSTASH_TOKEN: "xx"
       QSTASH_CURRENT_SIGNING_KEY: "xx"
       QSTASH_NEXT_SIGNING_KEY: "xx"
