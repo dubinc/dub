@@ -30,15 +30,9 @@ const COLUMN_TYPE_SCHEMAS = {
     .default("")
     .transform((value) => value || ""),
   date: z
-    .union([z.date(), z.string()])
+    .date()
     .nullable()
-    .transform((date) => {
-      if (!date) {
-        return "";
-      }
-
-      return date instanceof Date ? date.toISOString() : date;
-    }),
+    .transform((date) => (date ? date.toISOString() : "")),
   string: z
     .string()
     .nullable()

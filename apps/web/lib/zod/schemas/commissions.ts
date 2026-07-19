@@ -37,9 +37,9 @@ export const CommissionSchema = z.object({
 export const CommissionEnrichedSchema = CommissionSchema.extend({
   paidAt: z
     .date()
-    .nullish()
+    .nullable()
     .describe(
-      "The date the commission was paid out to the partner. Only present when linked to a payout that has been paid.",
+      "The date the commission was paid out to the partner. Null if not paid yet.",
     ),
   partner: EnrolledPartnerSchema.pick({
     id: true,
