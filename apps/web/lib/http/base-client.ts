@@ -1,4 +1,5 @@
 import { logger } from "@/lib/axiom/server";
+import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -73,6 +74,10 @@ export abstract class HttpBaseClient {
   // Query params whose values are replaced with "REDACTED" in every log
   // message and error. Request headers are never logged.
   protected readonly redactedQueryParams: string[] = [];
+
+  // When false, response bodies are omitted from Axiom/console logs and
+  // HttpClientError (for vendors that return PII).
+  protected readonly logResponseBodies: boolean = true;
 
   // Override to translate HTTP failures into vendor-specific errors
   // (e.g. a DubApiError with a caller-facing message).
@@ -157,7 +162,32 @@ export abstract class HttpBaseClient {
     let input: unknown = options.input;
 
     if (options.inputSchema && options.input !== undefined) {
-      input = options.inputSchema.parse(options.input);
+      const parsedInput = options.inputSchema.safeParse(options.input);
+
+      if (!parsedInput.success) {
+        const safeUrl = this.redactUrl(url);
+        const message = `[${this.vendor}] ${method} ${safeUrl} request validation failed`;
+
+        waitUntil(
+          this.logError(message, {
+            method,
+            url: safeUrl,
+            status: null,
+            issues: z.prettifyError(parsedInput.error),
+          }),
+        );
+
+        throw new HttpClientError({
+          vendor: this.vendor,
+          method,
+          url: safeUrl,
+          status: null,
+          responseBody: null,
+          message,
+        });
+      }
+
+      input = parsedInput.data;
     }
 
     // GET/DELETE requests carry no body — their input becomes query params
@@ -203,12 +233,14 @@ export abstract class HttpBaseClient {
       const reason = error instanceof Error ? error.message : String(error);
       const message = `[${this.vendor}] ${method} ${safeUrl} network error: ${reason}`;
 
-      await this.logError(message, {
-        method,
-        url: safeUrl,
-        status: null,
-        error: reason,
-      });
+      waitUntil(
+        this.logError(message, {
+          method,
+          url: safeUrl,
+          status: null,
+          error: reason,
+        }),
+      );
 
       throw new HttpClientError({
         vendor: this.vendor,
@@ -239,16 +271,18 @@ export abstract class HttpBaseClient {
     }
 
     if (!response.ok) {
-      const responseBody = this.truncate(text);
+      const responseBody = this.responseBodyForLog(text);
 
-      await this.logError(
-        `[${this.vendor}] ${method} ${safeUrl} failed with status ${response.status}`,
-        {
-          method,
-          url: safeUrl,
-          status: response.status,
-          responseBody,
-        },
+      waitUntil(
+        this.logError(
+          `[${this.vendor}] ${method} ${safeUrl} failed with status ${response.status}`,
+          {
+            method,
+            url: safeUrl,
+            status: response.status,
+            responseBody,
+          },
+        ),
       );
 
       throw this.mapError({
@@ -264,21 +298,24 @@ export abstract class HttpBaseClient {
 
     if (!parsed.success) {
       const message = `[${this.vendor}] ${method} ${safeUrl} response validation failed`;
+      const responseBody = this.responseBodyForLog(text);
 
-      await this.logError(message, {
-        method,
-        url: safeUrl,
-        status: response.status,
-        issues: z.prettifyError(parsed.error),
-        responseBody: this.truncate(text),
-      });
+      waitUntil(
+        this.logError(message, {
+          method,
+          url: safeUrl,
+          status: response.status,
+          issues: z.prettifyError(parsed.error),
+          responseBody,
+        }),
+      );
 
       throw new HttpClientError({
         vendor: this.vendor,
         method,
         url: safeUrl,
         status: response.status,
-        responseBody: this.truncate(text),
+        responseBody,
         message,
       });
     }
@@ -324,6 +361,14 @@ export abstract class HttpBaseClient {
     }
 
     return safe.toString();
+  }
+
+  private responseBodyForLog(text: string): string | null {
+    if (!this.logResponseBodies) {
+      return null;
+    }
+
+    return this.truncate(text);
   }
 
   private truncate(text: string): string | null {

@@ -11,6 +11,7 @@ import {
 class VeriffClient extends HttpBaseClient {
   protected readonly vendor = "Veriff";
   protected readonly baseUrl = "https://stationapi.veriff.com/v1";
+  protected readonly logResponseBodies = false;
 
   protected buildAuthHeaders() {
     return {
@@ -43,6 +44,4 @@ class VeriffClient extends HttpBaseClient {
   }
 }
 
-export const veriffClient = new VeriffClient({
-  debug: true,
-});
+export const veriffClient = new VeriffClient();

@@ -10,13 +10,19 @@ export async function createVeriffSession({
   const firstName = nameParts[0] || partner.name;
   const lastName = nameParts.slice(1).join(" ") || partner.name;
 
-  return await veriffClient.createSession({
-    verification: {
-      vendorData: partner.id,
-      person: {
-        firstName,
-        lastName,
+  try {
+    return await veriffClient.createSession({
+      verification: {
+        vendorData: partner.id,
+        person: {
+          firstName,
+          lastName,
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    throw new Error(
+      "Failed to create Veriff session. Please try again later or contact support.",
+    );
+  }
 }
