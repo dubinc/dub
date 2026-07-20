@@ -42,7 +42,7 @@ export const getQRCodeQuerySchema = z.object({
     .optional()
     .default(DEFAULT_BGCOLOR)
     .describe(
-      "The background color of the QR code in hex format. Defaults to `#ffffff` if not provided.",
+      "The background color of the QR code in hex format. Defaults to `#ffffff` if not provided. Only applies to `png` format; `svg` responses have a transparent background.",
     ),
   hideLogo: booleanQuerySchema
     .optional()
@@ -64,4 +64,9 @@ export const getQRCodeQuerySchema = z.object({
       "DEPRECATED: Margin is included by default. Use the `margin` prop to customize the margin size.",
     )
     .meta({ deprecated: true }),
+  format: z
+    .enum(["png", "svg"])
+    .optional()
+    .default("png")
+    .describe("The format of the QR code. Defaults to `png` if not provided."),
 });
