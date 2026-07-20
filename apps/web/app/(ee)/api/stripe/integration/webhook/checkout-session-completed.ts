@@ -188,14 +188,13 @@ export async function checkoutSessionCompleted({
         if (promotionCodeId) {
           const promoCodeResponse = await attributeViaPromotionCodeId({
             promotionCodeId,
-            stripeAccountId,
             workspace,
             mode,
-            stripeCustomerId,
             customerDetails: {
               name: charge.customer_details?.name,
               email: charge.customer_details?.email,
               address: charge.customer_details?.address,
+              stripeCustomerId,
             },
           });
           if (promoCodeResponse) {
@@ -260,14 +259,13 @@ export async function checkoutSessionCompleted({
         } else if (promotionCodeId) {
           const promoCodeResponse = await attributeViaPromotionCodeId({
             promotionCodeId,
-            stripeAccountId,
             workspace,
             mode,
-            stripeCustomerId,
             customerDetails: {
               name: charge.customer_details?.name,
               email: charge.customer_details?.email,
               address: charge.customer_details?.address,
+              stripeCustomerId,
             },
           });
           if (promoCodeResponse) {
