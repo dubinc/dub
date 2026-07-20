@@ -240,6 +240,7 @@ export async function attributeViaPromotionCodeId({
           workspace,
           data: transformLeadEventData({
             ...leadEvent,
+            timestamp,
             link: linkUpdated,
             customer,
             partner: result?.webhookPartner,
@@ -254,6 +255,7 @@ export async function attributeViaPromotionCodeId({
                 event: "lead.created",
                 data: {
                   ...leadEvent,
+                  timestamp,
                   link: linkUpdated,
                   customer,
                 },
