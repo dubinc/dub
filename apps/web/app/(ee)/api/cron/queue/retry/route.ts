@@ -10,8 +10,12 @@ export const dynamic = "force-dynamic";
 
 const MAX_ATTEMPTS = 10;
 const BATCH_SIZE = 100;
+
+// Lock for the cron job. TTL must be ≥ cron maxDuration (600s in vercel.json)
+// so the lock cannot expire while a run is still alive and allow a concurrent
+// minute-cron invocation
 const LOCK_KEY = "lock:queue-retry";
-const LOCK_TTL_SECONDS = 120;
+const LOCK_TTL_SECONDS = 600;
 
 // GET /api/cron/queue/retry – republish background jobs that failed to
 // publish to QStash at dispatch time; rows are deleted on successful publish
