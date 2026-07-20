@@ -127,6 +127,7 @@ export const DELETE = withWorkspace(
       where: {
         folderId,
       },
+      take: 100,
     });
 
     await prisma.$transaction([
