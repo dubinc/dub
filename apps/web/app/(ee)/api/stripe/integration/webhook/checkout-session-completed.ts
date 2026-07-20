@@ -38,7 +38,7 @@ export async function checkoutSessionCompleted({
   let dubCustomerExternalId =
     charge.metadata?.dubCustomerExternalId || charge.metadata?.dubCustomerId;
   const clientReferenceId = charge.client_reference_id;
-  const stripeAccountId = event.account as string;
+  const stripeAccountId = workspace.stripeConnectId!;
   const stripeCustomerId = charge.customer as string;
   const stripeCustomerName = charge.customer_details?.name;
   const stripeCustomerEmail = charge.customer_details?.email;

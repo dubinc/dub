@@ -126,6 +126,7 @@ export const POST = withAxiom(async (req: Request) => {
   switch (event.type) {
     case "account.application.deauthorized":
       result = await accountApplicationDeauthorized({
+        event,
         mode,
         workspace,
       });

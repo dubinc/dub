@@ -27,7 +27,7 @@ export async function invoicePaid({
 }: WebhookHandlerInput<Stripe.InvoicePaidEvent>): Promise<WebhookHandlerResponse> {
   const invoice = event.data.object;
   const stripeCustomerId = invoice.customer as string | null;
-  const stripeAccountId = event.account as string;
+  const stripeAccountId = workspace.stripeConnectId!;
   const invoiceId = invoice.id;
 
   if (!invoiceId) {
@@ -53,7 +53,7 @@ export async function invoicePaid({
   if (!customer) {
     const connectedCustomer = await getConnectedCustomer({
       stripeCustomerId,
-      stripeAccountId: workspace.stripeConnectId,
+      stripeAccountId,
       mode,
     });
 
@@ -67,7 +67,7 @@ export async function invoicePaid({
         customer = await prisma.customer.update({
           where: {
             projectConnectId_externalId: {
-              projectConnectId: workspace.stripeConnectId!,
+              projectConnectId: stripeAccountId,
               externalId: dubCustomerExternalId,
             },
           },
@@ -143,7 +143,7 @@ export async function invoicePaid({
       timestamp: new Date().toISOString(),
       dubCustomerExternalId: customer.externalId,
       stripeCustomerId,
-      stripeAccountId: workspace.stripeConnectId,
+      stripeAccountId,
       invoiceId,
       customerId: customer.id,
       workspaceId: customer.projectId,
