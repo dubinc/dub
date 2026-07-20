@@ -7,20 +7,22 @@ import DiscountDeleted from "@dub/email/templates/discount-deleted";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
-import { StripeWebhookInput, StripeWebhookOutput } from "./utils/types";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 
 // Handle event "coupon.deleted"
 export async function couponDeleted({
   event,
   workspace,
-}: StripeWebhookInput & {
-  event: Stripe.CouponDeletedEvent;
-}): Promise<StripeWebhookOutput> {
+}: Omit<
+  WebhookHandlerInput<Stripe.CouponDeletedEvent>,
+  "mode"
+>): Promise<WebhookHandlerResponse> {
   const coupon = event.data.object;
+  const stripeAccountId = event.account as string;
 
   if (!workspace.defaultProgramId) {
     return {
-      response: `Workspace ${workspace.id} for stripe account ${workspace.stripeConnectId} has no programs.`,
+      response: `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no programs.`,
     };
   }
 

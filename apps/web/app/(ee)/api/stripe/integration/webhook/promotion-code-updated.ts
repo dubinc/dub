@@ -1,19 +1,21 @@
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
-import { StripeWebhookInput, StripeWebhookOutput } from "./utils/types";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 
 // Handle event "promotion_code.updated"
 export async function promotionCodeUpdated({
   event,
   workspace,
-}: Omit<StripeWebhookInput, "mode"> & {
-  event: Stripe.PromotionCodeUpdatedEvent;
-}): Promise<StripeWebhookOutput> {
+}: Omit<
+  WebhookHandlerInput<Stripe.PromotionCodeUpdatedEvent>,
+  "mode"
+>): Promise<WebhookHandlerResponse> {
   const promotionCode = event.data.object;
+  const stripeAccountId = event.account as string;
 
   if (!workspace.defaultProgramId) {
     return {
-      response: `Workspace ${workspace.id} for stripe account ${workspace.stripeConnectId} has no programs.`,
+      response: `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no programs.`,
     };
   }
 

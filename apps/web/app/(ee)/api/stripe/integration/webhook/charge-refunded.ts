@@ -3,16 +3,14 @@ import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions"
 import { prisma } from "@/lib/prisma";
 import { stripeAppClient } from "@/lib/stripe";
 import type Stripe from "stripe";
-import { StripeWebhookInput, StripeWebhookOutput } from "./utils/types";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 
 // Handle event "charge.refunded"
 export async function chargeRefunded({
   event,
   mode,
   workspace,
-}: StripeWebhookInput & {
-  event: Stripe.ChargeRefundedEvent;
-}): Promise<StripeWebhookOutput> {
+}: WebhookHandlerInput<Stripe.ChargeRefundedEvent>): Promise<WebhookHandlerResponse> {
   const charge = event.data.object;
   const stripeAccountId = event.account as string;
 
@@ -44,7 +42,7 @@ export async function chargeRefunded({
 
   if (!workspace.defaultProgramId) {
     return {
-      response: `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no default program, skipping...`,
+      response: `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no program, skipping...`,
     };
   }
 

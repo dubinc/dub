@@ -15,14 +15,17 @@ import { nanoid, pick } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
-import { StripeWebhookInput, StripeWebhookOutput } from "./types";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "../types";
 
 export async function syncCustomer({
   event,
   workspace,
-}: Omit<StripeWebhookInput, "mode"> & {
-  event: Stripe.CustomerCreatedEvent | Stripe.CustomerUpdatedEvent;
-}): Promise<StripeWebhookOutput> {
+}: Omit<
+  WebhookHandlerInput<
+    Stripe.CustomerCreatedEvent | Stripe.CustomerUpdatedEvent
+  >,
+  "mode"
+>): Promise<WebhookHandlerResponse> {
   const stripeCustomer = event.data.object;
   const stripeAccountId = event.account as string;
   const dubCustomerExternalId =

@@ -5,8 +5,8 @@ import { pick, STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
-import { StripeWebhookInput, StripeWebhookOutput } from "./utils/types";
 
 // Handle event "customer.subscription.created"
 // only used for recording free trial creations
@@ -14,9 +14,7 @@ export async function customerSubscriptionCreated({
   event,
   mode,
   workspace,
-}: StripeWebhookInput & {
-  event: Stripe.CustomerSubscriptionCreatedEvent;
-}): Promise<StripeWebhookOutput> {
+}: WebhookHandlerInput<Stripe.CustomerSubscriptionCreatedEvent>): Promise<WebhookHandlerResponse> {
   const createdSubscription = event.data.object;
 
   if (createdSubscription.status !== "trialing") {
@@ -29,11 +27,11 @@ export async function customerSubscriptionCreated({
 
   const installedIntegration = await prisma.installedIntegration.findFirst({
     where: {
-      integrationId: STRIPE_INTEGRATION_ID,
       projectId: workspace.id,
+      integrationId: STRIPE_INTEGRATION_ID,
     },
-    select: {
-      settings: true,
+    orderBy: {
+      createdAt: "asc",
     },
   });
 

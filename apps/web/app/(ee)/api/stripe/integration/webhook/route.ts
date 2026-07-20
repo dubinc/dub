@@ -3,7 +3,7 @@ import { withAxiom } from "@/lib/axiom/server";
 import { stripe } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
 import { waitUntil } from "@vercel/functions";
-import { NextResponse } from "next/server";
+import { logAndRespond } from "app/(ee)/api/cron/utils";
 import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
 import { chargeRefunded } from "./charge-refunded";
@@ -13,9 +13,11 @@ import { customerSubscriptionCreated } from "./customer-subscription-created";
 import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { invoicePaid } from "./invoice-paid";
 import { promotionCodeUpdated } from "./promotion-code-updated";
+import { WebhookHandlerResponse } from "./types";
 import { resolveWebhookWorkspace } from "./utils/resolve-webhook-workspace";
 import { syncCustomer } from "./utils/sync-customer";
-import { StripeWebhookOutput } from "./utils/types";
+
+export const dynamic = "force-dynamic";
 
 const relevantEvents = new Set([
   "account.application.deauthorized",
@@ -53,7 +55,7 @@ export const POST = withAxiom(async (req: Request) => {
   }
 
   if (!sig || !webhookSecret) {
-    return new Response("Invalid request", {
+    return logAndRespond("Invalid request", {
       status: 400,
     });
   }
@@ -62,16 +64,23 @@ export const POST = withAxiom(async (req: Request) => {
   try {
     event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
   } catch (err: any) {
-    console.log(`❌ Error message: ${err.message}`);
-    return new Response(`Webhook Error: ${err.message}`, {
+    return logAndRespond(`Webhook Error: ${err.message}`, {
       status: 400,
     });
   }
 
+  console.log("Webhook event", {
+    eventId: event.id,
+    eventType: event.type,
+    accountId: event.account,
+    mode,
+  });
+
   // Ignore unsupported events
   if (!relevantEvents.has(event.type)) {
-    return new Response("Unsupported event, skipping...", {
-      status: 200,
+    return logAndRespond({
+      eventType: event.type,
+      response: "Unsupported event, skipping...",
     });
   }
 
@@ -80,35 +89,44 @@ export const POST = withAxiom(async (req: Request) => {
   // and live mode events are sent to the live mode endpoint.
   // See: https://docs.stripe.com/stripe-apps/build-backend#event-behavior-depends-on-install-mode
   if (!event.livemode && mode === "live") {
-    const response =
-      "Received a test webhook event on our live webhook receiver endpoint, skipping...";
-    console.log(`[${event.type}]: ${response}`);
-    return NextResponse.json({
+    return logAndRespond({
       eventType: event.type,
-      response,
+      response:
+        "Received a test webhook event on our live webhook receiver endpoint, skipping...",
     });
   }
 
+  // Should never happen, but just in case
+  if (!event.account) {
+    return logAndRespond({
+      eventType: event.type,
+      response: "Missing Stripe Connect account on event, skipping...",
+    });
+  }
+
+  // Find the workspace
   const workspace = await resolveWebhookWorkspace({
     stripeAccountId: event.account,
     mode,
   });
 
-  // Workspace not found
-  if (workspace === null) {
-    return NextResponse.json({
+  if (!workspace) {
+    return logAndRespond({
       eventType: event.type,
       response: `Workspace not found for Stripe account ${event.account}, skipping...`,
     });
   }
 
-  let result: StripeWebhookOutput = {
+  console.log("Workspace found", workspace);
+
+  let result: WebhookHandlerResponse = {
     response: "OK",
   };
 
   switch (event.type) {
     case "account.application.deauthorized":
       result = await accountApplicationDeauthorized({
+        event,
         mode,
         workspace,
       });
@@ -130,7 +148,6 @@ export const POST = withAxiom(async (req: Request) => {
     case "coupon.deleted":
       result = await couponDeleted({
         event,
-        mode,
         workspace,
       });
       break;
@@ -149,9 +166,7 @@ export const POST = withAxiom(async (req: Request) => {
       });
       break;
     case "customer.subscription.deleted":
-      result = await customerSubscriptionDeleted({
-        event,
-      });
+      result = await customerSubscriptionDeleted(event);
       break;
     case "invoice.paid":
       result = await invoicePaid({
@@ -186,7 +201,5 @@ export const POST = withAxiom(async (req: Request) => {
     }),
   );
 
-  console.log(`[${event.type}]: ${result.response}`);
-
-  return NextResponse.json(responseBody);
+  return logAndRespond(responseBody);
 });

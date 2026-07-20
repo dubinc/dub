@@ -21,11 +21,11 @@ import { nanoid } from "@dub/utils";
 import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getCheckoutSessionProducts } from "./utils/get-checkout-session-products";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 import { incrementLinkLeads } from "./utils/increment-link-leads";
-import { StripeWebhookInput, StripeWebhookOutput } from "./utils/types";
 import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
 
 // Handle event "checkout.session.completed"
@@ -33,9 +33,7 @@ export async function checkoutSessionCompleted({
   event,
   mode,
   workspace,
-}: StripeWebhookInput & {
-  event: Stripe.CheckoutSessionCompletedEvent;
-}): Promise<StripeWebhookOutput> {
+}: WebhookHandlerInput<Stripe.CheckoutSessionCompletedEvent>): Promise<WebhookHandlerResponse> {
   let charge = event.data.object;
   let dubCustomerExternalId =
     charge.metadata?.dubCustomerExternalId || charge.metadata?.dubCustomerId;

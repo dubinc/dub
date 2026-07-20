@@ -15,18 +15,16 @@ import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
-import { StripeWebhookInput, StripeWebhookOutput } from "./utils/types";
 
 // Handle event "invoice.paid"
 export async function invoicePaid({
   event,
   mode,
   workspace,
-}: StripeWebhookInput & {
-  event: Stripe.InvoicePaidEvent;
-}): Promise<StripeWebhookOutput> {
+}: WebhookHandlerInput<Stripe.InvoicePaidEvent>): Promise<WebhookHandlerResponse> {
   const invoice = event.data.object;
   const stripeCustomerId = invoice.customer as string | null;
   const stripeAccountId = event.account as string;
@@ -88,24 +86,6 @@ export async function invoicePaid({
 
   // if customer is still not found, try to attribute via partner discount on the invoice
   if (!customer) {
-    const workspace = await prisma.project.findUnique({
-      where: {
-        stripeConnectId: stripeAccountId,
-      },
-      select: {
-        id: true,
-        defaultProgramId: true,
-        stripeConnectId: true,
-        webhookEnabled: true,
-      },
-    });
-
-    if (!workspace) {
-      return {
-        response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
-      };
-    }
-
     if (!workspace.defaultProgramId) {
       return {
         response: `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub and workspace has no default program, skipping...`,
