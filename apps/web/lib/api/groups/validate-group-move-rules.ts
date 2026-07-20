@@ -10,7 +10,29 @@ export const validateGroupMoveRules = (rules?: WorkflowCondition[]) => {
 
     // Check if attribute is selected
     if (!rule.attribute) {
-      throw new Error(`Rule ${i + 1}: Please select an activity.`);
+      throw new Error(`Rule ${i + 1}: Please select a detail.`);
+    }
+
+    // Group conditions have their own operator/value shape
+    if (rule.attribute === "groupId") {
+      if (
+        !["equals_to", "not_equals", "in", "not_in"].includes(rule.operator)
+      ) {
+        throw new Error(`Rule ${i + 1}: Please select a condition.`);
+      }
+
+      if (["equals_to", "not_equals"].includes(rule.operator)) {
+        if (typeof rule.value !== "string" || !rule.value) {
+          throw new Error(`Rule ${i + 1}: Please select a group.`);
+        }
+      } else if (
+        !Array.isArray(rule.value) ||
+        rule.value.filter(Boolean).length === 0
+      ) {
+        throw new Error(`Rule ${i + 1}: Please select at least one group.`);
+      }
+
+      continue;
     }
 
     // Check if value is set
@@ -31,7 +53,11 @@ export const validateGroupMoveRules = (rules?: WorkflowCondition[]) => {
 
     // For between operator, check min and max
     if (rule.operator === "between") {
-      if (typeof rule.value !== "object" || rule.value === null) {
+      if (
+        typeof rule.value !== "object" ||
+        rule.value === null ||
+        Array.isArray(rule.value)
+      ) {
         throw new Error(`Rule ${i + 1}: Please enter a valid value.`);
       }
 

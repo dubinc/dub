@@ -58,7 +58,7 @@ export async function upsertGroupMoveRules({
 
     throw new DubApiError({
       code: "bad_request",
-      message: `This rule is already in use by the ${groupNames} ${pluralize("group", groupsWithMatchingRules.length)}. Select a different activity or amount.`,
+      message: `This rule is already in use by the ${groupNames} ${pluralize("group", groupsWithMatchingRules.length)}. Select a different detail or amount.`,
     });
   }
 

@@ -137,7 +137,7 @@ function GroupAdditionalSettingsForm({
             .map((g) => g.name)
             .join(", ");
           toast.error(
-            `This rule is already in use by the ${groupNames} ${pluralize("group", groupsWithMatchingRules.length)}. Select a different activity or amount.`,
+            `This rule is already in use by the ${groupNames} ${pluralize("group", groupsWithMatchingRules.length)}. Select a different detail or amount.`,
           );
           return;
         }

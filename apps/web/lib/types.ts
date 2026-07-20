@@ -205,6 +205,7 @@ import {
 import {
   WORKFLOW_ATTRIBUTES,
   WORKFLOW_COMPARISON_OPERATORS,
+  WORKFLOW_CONDITION_ATTRIBUTES,
   workflowActionSchema,
   workflowConditionSchema,
 } from "./zod/schemas/workflows";
@@ -732,7 +733,8 @@ export type CampaignTriggerCondition = z.infer<
   typeof campaignTriggerConditionSchema
 >;
 
-export type WorkflowConditionAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
+export type WorkflowConditionAttribute =
+  (typeof WORKFLOW_CONDITION_ATTRIBUTES)[number];
 
 export type WorkflowComparisonOperator =
   (typeof WORKFLOW_COMPARISON_OPERATORS)[number];
@@ -740,8 +742,8 @@ export type WorkflowComparisonOperator =
 export type WorkflowAction = z.infer<typeof workflowActionSchema>;
 
 export type OperatorFn = (
-  aV: number,
-  cV: number | { min: number; max?: number },
+  aV: number | string,
+  cV: number | { min: number; max?: number } | string | string[],
 ) => boolean;
 
 export type BountySubmissionsQueryFilters = z.infer<
