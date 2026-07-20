@@ -7,34 +7,22 @@ import DiscountDeleted from "@dub/email/templates/discount-deleted";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 
 // Handle event "coupon.deleted"
-export async function couponDeleted(event: Stripe.CouponDeletedEvent) {
+export async function couponDeleted({
+  event,
+  workspace,
+}: Omit<
+  WebhookHandlerInput<Stripe.CouponDeletedEvent>,
+  "mode"
+>): Promise<WebhookHandlerResponse> {
   const coupon = event.data.object;
   const stripeAccountId = event.account as string;
-
-  const workspace = await prisma.project.findUnique({
-    where: {
-      stripeConnectId: stripeAccountId,
-    },
-    select: {
-      id: true,
-      slug: true,
-      defaultProgramId: true,
-      stripeConnectId: true,
-    },
-  });
-
-  if (!workspace) {
-    return {
-      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
-    };
-  }
 
   if (!workspace.defaultProgramId) {
     return {
       response: `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no programs.`,
-      workspaceId: workspace.id,
     };
   }
 
@@ -51,7 +39,6 @@ export async function couponDeleted(event: Stripe.CouponDeletedEvent) {
   if (!discounts.length) {
     return {
       response: `Discount not found for Stripe coupon ${coupon.id}.`,
-      workspaceId: workspace.id,
     };
   }
 
@@ -139,6 +126,5 @@ export async function couponDeleted(event: Stripe.CouponDeletedEvent) {
 
   return {
     response: `Stripe coupon ${coupon.id} deleted.`,
-    workspaceId: workspace.id,
   };
 }
