@@ -105,7 +105,7 @@ export async function getCommissions(filters: CommissionsFilters) {
 
   const statusFilter = status
     ? status
-    : customerId || partnerFilter || typeFilter
+    : type || customerId || payoutId || partnerId
       ? undefined
       : {
           notIn: [
