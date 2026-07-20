@@ -9,7 +9,7 @@ import { subMinutes } from "date-fns";
 import { authActionClient } from "../actions/safe-action";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 import { createId } from "../api/create-id";
-import { logger } from "../axiom/server";
+import { getErrorMetadata, logger } from "../axiom/server";
 import { qstash } from "../cron";
 import { attributeReferringPartnerSchema } from "./schemas";
 
@@ -153,8 +153,7 @@ export const attributeReferringPartnerAction = authActionClient
           service: "qstash",
           event: "publishJSON.failed",
           url: `/api/cron/commissions/referrals/backfill`,
-          errorName: error instanceof Error ? error.name : undefined,
-          errorStack: error instanceof Error ? error.stack : undefined,
+          ...getErrorMetadata(error),
           correlation: {
             programId,
             partnerId,
