@@ -143,6 +143,7 @@ model ProgramEnrollment {
   customerDataSharingEnabledAt DateTime?
   groupMoveDisabledAt          DateTime?
   bannedAt                     DateTime?
+  groupJoinedAt                DateTime? // date when the partner joined their current group
   bannedReason                 PartnerBannedReason?
   reapplicationTimeframe       ReapplicationTimeframe @default(standard)
   riskMonitoringDisabledAt     DateTime?
