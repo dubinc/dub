@@ -4,22 +4,13 @@ import Stripe from "stripe";
 import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 
 // Handle event "account.application.deauthorized"
-// export async function accountApplicationDeauthorized({
-//   mode,
-//   workspace,
-// }: StripeWebhookInput): Promise<StripeWebhookOutput> {
-//   if (mode === "test") {
-//     return {
-//       response: `Stripe Connect account ${workspace.stripeConnectId} deauthorized in test mode. Skipping...`,
-// import type Stripe from "stripe";
-// import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
-
-// Handle event "account.application.deauthorized"
 export async function accountApplicationDeauthorized({
-  event,
   mode,
   workspace,
-}: WebhookHandlerInput<Stripe.AccountApplicationDeauthorizedEvent>): Promise<WebhookHandlerResponse> {
+}: Omit<
+  WebhookHandlerInput<Stripe.AccountApplicationDeauthorizedEvent>,
+  "event"
+>): Promise<WebhookHandlerResponse> {
   const stripeAccountId = workspace.stripeConnectId!;
 
   if (mode === "test") {
