@@ -55,7 +55,7 @@ export const POST = withCron(async ({ rawBody }) => {
   const discountProvider = getDiscountProvider(discount.provider);
 
   try {
-    await discountProvider.assertDiscountIntegrationAvailable({
+    await discountProvider.assertDiscountIntegration({
       workspace: program.workspace,
     });
   } catch (error) {

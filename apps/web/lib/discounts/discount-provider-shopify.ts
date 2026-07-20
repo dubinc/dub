@@ -338,7 +338,7 @@ function createShopifyDiscountProvider() {
     return { id, code };
   };
 
-  const assertDiscountIntegrationAvailable = async ({
+  const assertDiscountIntegration = async ({
     workspace,
   }: {
     workspace: Pick<Project, "id" | "stripeConnectId" | "shopifyStoreId">;
@@ -351,7 +351,7 @@ function createShopifyDiscountProvider() {
     createCoupon,
     createDiscountCode,
     disableDiscountCode,
-    assertDiscountIntegrationAvailable,
+    assertDiscountIntegration,
   };
 }
 

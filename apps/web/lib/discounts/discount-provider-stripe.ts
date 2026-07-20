@@ -296,7 +296,7 @@ function createStripeDiscountProvider() {
     return promotionCode;
   };
 
-  const assertDiscountIntegrationAvailable = async ({
+  const assertDiscountIntegration = async ({
     workspace,
   }: {
     workspace: Pick<Project, "id" | "stripeConnectId" | "shopifyStoreId">;
@@ -309,7 +309,7 @@ function createStripeDiscountProvider() {
     createCoupon,
     createDiscountCode,
     disableDiscountCode,
-    assertDiscountIntegrationAvailable,
+    assertDiscountIntegration,
   };
 }
 
