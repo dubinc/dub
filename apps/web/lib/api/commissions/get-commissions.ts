@@ -173,6 +173,11 @@ export async function getCommissions(filters: CommissionsFilters) {
       customer: true,
       partner: true,
       programEnrollment: true,
+      payout: {
+        select: {
+          paidAt: true,
+        },
+      },
     },
     ...paginationQuery,
   });
