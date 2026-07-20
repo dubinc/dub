@@ -572,7 +572,7 @@ export const DELETE = withWorkspace(
       });
     }
 
-    links = links.filter((link) => link.key !== "_root");
+    links = links.filter((link) => !["_root", "akoJCU0="].includes(link.key));
 
     const { count: deletedCount } = await prisma.link.deleteMany({
       where: {
