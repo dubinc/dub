@@ -59,16 +59,7 @@ interface WithWorkspaceHandler {
 export const withWorkspace = (
   handler: WithWorkspaceHandler,
   {
-    requiredPlan = [
-      "free",
-      "pro",
-      "business",
-      "business plus",
-      "business max",
-      "business extra",
-      "advanced",
-      "enterprise",
-    ], // if the action needs a specific plan
+    requiredPlan = ["free", "pro", "business", "advanced", "enterprise"], // if the action needs a specific plan
     requiredPermissions = [],
     requiredRoles = [],
     featureFlag, // if the action needs a specific feature flag
@@ -453,8 +444,16 @@ export const withWorkspace = (
           }
         }
 
+        const normalizedWorkspacePlan = [
+          "business plus",
+          "business max",
+          "business extra",
+        ].includes(workspace.plan)
+          ? "business"
+          : workspace.plan;
+
         // plan checks
-        if (!requiredPlan.includes(workspace.plan)) {
+        if (!requiredPlan.includes(normalizedWorkspacePlan)) {
           throw new DubApiError({
             code: "forbidden",
             message: "Unauthorized: Need higher plan.",
@@ -463,7 +462,7 @@ export const withWorkspace = (
 
         // analytics API checks
         if (
-          workspace.plan === "free" &&
+          normalizedWorkspacePlan === "free" &&
           apiKey &&
           url.pathname.includes("/analytics")
         ) {

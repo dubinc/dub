@@ -2,6 +2,7 @@
 
 import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program-invite";
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
+import { getDeletePartnerDisabledTooltip } from "@/lib/partners/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -16,6 +17,7 @@ import { useBulkBanPartnersModal } from "@/ui/modals/bulk-ban-partners-modal";
 import { useBulkDeactivatePartnersModal } from "@/ui/modals/bulk-deactivate-partners-modal";
 import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
+import { useDeletePartnerModal } from "@/ui/modals/delete-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
 import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
@@ -724,6 +726,15 @@ function RowMenuButton({
       partner: row.original,
     });
 
+  const { DeletePartnerModal, setShowDeletePartnerModal } =
+    useDeletePartnerModal({
+      partner: row.original,
+    });
+
+  const deletePartnerDisabledTooltip = getDeletePartnerDisabledTooltip(
+    row.original,
+  );
+
   const { executeAsync: resendInvite, isPending: isResendingInvite } =
     useAction(resendProgramInviteAction, {
       onSuccess: async () => {
@@ -762,6 +773,7 @@ function RowMenuButton({
       <UnbanPartnerModal />
       <DeactivatePartnerModal />
       <ReactivatePartnerModal />
+      <DeletePartnerModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -902,6 +914,17 @@ function RowMenuButton({
                         }}
                       />
                     )}
+
+                    <MenuItem
+                      icon={Trash}
+                      label="Permanently delete"
+                      variant="danger"
+                      onSelect={() => {
+                        setShowDeletePartnerModal(true);
+                        setIsOpen(false);
+                      }}
+                      disabledTooltip={deletePartnerDisabledTooltip}
+                    />
                   </Command.Group>
                 </>
               )}
@@ -1079,25 +1102,29 @@ function MenuItem({
     },
   };
 
-  const { text, icon } = variantStyles[variant];
+  const { text, icon } = disabledTooltip
+    ? { text: "text-content-disabled", icon: "text-content-disabled" }
+    : variantStyles[variant];
 
   return (
     <DynamicTooltipWrapper
       tooltipProps={disabledTooltip ? { content: disabledTooltip } : undefined}
     >
-      <Command.Item
-        className={cn(
-          "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
-          disabledTooltip
-            ? "cursor-not-allowed opacity-75"
-            : "data-[selected=true]:bg-neutral-100",
-          text,
-        )}
-        onSelect={disabledTooltip ? undefined : onSelect}
-      >
-        <IconComp className={cn("size-4 shrink-0", icon)} />
-        {label}
-      </Command.Item>
+      <div>
+        <Command.Item
+          className={cn(
+            "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
+            disabledTooltip
+              ? "cursor-not-allowed opacity-50"
+              : "data-[selected=true]:bg-neutral-100",
+            text,
+          )}
+          onSelect={disabledTooltip ? undefined : onSelect}
+        >
+          <IconComp className={cn("size-4 shrink-0", icon)} />
+          {label}
+        </Command.Item>
+      </div>
     </DynamicTooltipWrapper>
   );
 }

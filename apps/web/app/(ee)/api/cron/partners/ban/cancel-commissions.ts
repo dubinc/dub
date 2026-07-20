@@ -21,11 +21,13 @@ export async function cancelCommissions({
         where: {
           programId,
           partnerId,
-          // cancel all commissions that are pending
+          // cancel all commissions that are pending or hold
           // as well as processed commissions (added to a payout) but the payout was canceled
           OR: [
             {
-              status: "pending",
+              status: {
+                in: ["pending", "hold"],
+              },
             },
             {
               status: "processed",

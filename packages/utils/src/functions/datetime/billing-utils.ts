@@ -1,3 +1,39 @@
+import { getFirstAndLastDay } from "./get-first-and-last-day";
+
+// Returns the current billing period bounds for usage display.
+// Yearly plans use Stripe's period end; monthly plans use billingCycleStart day-of-month.
+export function getBillingPeriodBounds({
+  planPeriod,
+  billingCycleStart,
+  billingCycleEndsAt,
+}: {
+  planPeriod?: string | null;
+  billingCycleStart: number;
+  billingCycleEndsAt?: Date | string | null;
+}): { start: Date; end: Date; displayEnd: Date } {
+  if (planPeriod === "yearly" && billingCycleEndsAt) {
+    const periodEnd = new Date(billingCycleEndsAt);
+    const start = new Date(periodEnd);
+    start.setFullYear(start.getFullYear() - 1);
+    const now = new Date();
+    const end = now < periodEnd ? now : periodEnd;
+
+    return {
+      start,
+      end,
+      displayEnd: periodEnd,
+    };
+  }
+
+  const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart);
+
+  return {
+    start: firstDay,
+    end: lastDay,
+    displayEnd: lastDay,
+  };
+}
+
 // Function to get the last day of the current month
 export const getLastDayOfMonth = () => {
   const today = new Date();
@@ -22,6 +58,7 @@ export const getBillingStartDate = (billingCycleStart: number) => {
   const currentYear = today.getFullYear();
   const adjustedBillingCycleStart =
     getAdjustedBillingCycleStart(billingCycleStart);
+
   if (currentDay <= adjustedBillingCycleStart) {
     // if the current day is less than the billing cycle start, we need to go back a month
     const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1; // if the current month is January, we need to go back to December

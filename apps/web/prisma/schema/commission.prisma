@@ -6,6 +6,7 @@ enum CommissionStatus {
   duplicate
   fraud
   canceled
+  hold
 }
 
 enum CommissionType {

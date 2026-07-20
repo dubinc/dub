@@ -6,7 +6,7 @@ import PlanUsage from "./plan-usage";
 export default function WorkspaceBilling() {
   return (
     <PageContent title="Billing">
-      <PageWidthWrapper className="grid gap-8">
+      <PageWidthWrapper className="grid gap-8 pb-12">
         <PlanUsage />
         <PaymentMethods />
       </PageWidthWrapper>

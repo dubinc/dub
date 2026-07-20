@@ -486,12 +486,6 @@ export const createLinkBodySchema = z.object({
   ref: utmTagInputSchema.describe(
     "The referral tag of the short link. If set, this will populate or override the `ref` query parameter in the destination URL.",
   ),
-  webhookIds: z
-    .array(z.string())
-    .nullish()
-    .describe(
-      "An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
-    ),
   testVariants: ABTestVariantsSchema.nullish(),
   testStartedAt: z
     .string()
@@ -515,6 +509,13 @@ export const createLinkBodySchema = z.object({
     .nullish()
     .describe(
       "Deprecated: Use `tagIds` instead. The unique ID of the tag assigned to the short link.",
+    )
+    .meta({ deprecated: true }),
+  webhookIds: z
+    .array(z.string())
+    .nullish()
+    .describe(
+      "Deprecated: You can now enable link.clicked webhooks for all links in a workspace or folder without passing this field manually. An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
     )
     .meta({ deprecated: true }),
 });
@@ -702,11 +703,6 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The unique ID of the folder assigned to the short link."),
-    webhookIds: z
-      .array(z.string())
-      .describe(
-        "The IDs of the webhooks that the short link is associated with.",
-      ),
     comments: z
       .string()
       .nullable()
@@ -798,6 +794,12 @@ export const LinkSchema = z
         "Deprecated: Use `workspaceId` instead. The project ID of the short link.",
       )
       .meta({ deprecated: true }),
+    webhookIds: z
+      .array(z.string())
+      .describe(
+        "Deprecated: You can now enable link.clicked webhooks for all links in a workspace or folder without passing this field manually. An array of webhook IDs to trigger when the link is clicked. These webhooks will receive click event data.",
+      )
+      .meta({ deprecated: true }),
   })
   .meta({ title: "Link" });
 
@@ -859,11 +861,11 @@ export const linkEventSchema = LinkSchema.extend({
   // coerce date fields
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
-  lastClicked: z.coerce.date(),
-  expiresAt: z.coerce.date(),
-  disabledAt: z.coerce.date(),
-  testCompletedAt: z.coerce.date(),
-  testStartedAt: z.coerce.date(),
+  lastClicked: z.coerce.date().nullable(),
+  expiresAt: z.coerce.date().nullable(),
+  disabledAt: z.coerce.date().nullable(),
+  testCompletedAt: z.coerce.date().nullable(),
+  testStartedAt: z.coerce.date().nullable(),
   // userId can be null
   userId: z.string().nullable(),
 });

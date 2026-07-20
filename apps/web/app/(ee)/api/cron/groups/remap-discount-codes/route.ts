@@ -1,7 +1,7 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { createDiscountCode } from "@/lib/discounts/create-discount-code";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
-import { isDiscountIntegrationNotAvailableError } from "@/lib/discounts/discount-error";
+import { isDiscountProviderError } from "@/lib/discounts/discount-error";
 import { isDiscountEquivalent } from "@/lib/discounts/is-discount-equivalent";
 import { prisma } from "@/lib/prisma";
 import { Discount, DiscountCode } from "@prisma/client";
@@ -164,13 +164,19 @@ export const POST = withCron(async ({ rawBody }) => {
             discount: group.discount,
           });
         } catch (error) {
-          if (isDiscountIntegrationNotAvailableError(error)) {
-            console.warn(
-              `Workspace has not installed the ${group.discount.provider} integration. Skipping remaining discount code creation for remap.`,
-            );
-            break;
+          if (isDiscountProviderError(error)) {
+            if (
+              error.providerCode === "INTEGRATION_NOT_AVAILABLE" ||
+              error.providerCode === "AUTH_EXPIRED" ||
+              error.providerCode === "PERMISSIONS_REQUIRED" ||
+              error.providerCode === "COUPON_NOT_FOUND"
+            ) {
+              console.warn(
+                `${error.message} Skipping remaining discount code creation for remap.`,
+              );
+              break;
+            }
           }
-
           throw error;
         }
       }

@@ -333,7 +333,12 @@ const PartnerDiscountCodes = ({
       {
         id: "code",
         header: "Code",
-        cell: ({ row }) => <DiscountCodeBadge code={row.original.code} />,
+        cell: ({ row }) => (
+          <DiscountCodeBadge
+            code={row.original.code}
+            disabledAt={row.original.disabledAt}
+          />
+        ),
       },
       {
         id: "shortLink",

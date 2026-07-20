@@ -1,13 +1,24 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CursorRays, Hyperlink, Modal, Slider, ToggleGroup } from "@dub/ui";
+import {
+  Badge,
+  CursorRays,
+  Hyperlink,
+  Modal,
+  Slider,
+  ToggleGroup,
+} from "@dub/ui";
 import {
   DUB_TRIAL_PERIOD_DAYS,
   ENTERPRISE_PLAN,
+  PlanPeriod,
   SELF_SERVE_PAID_PLANS,
   capitalize,
   cn,
+  getMonthlyLimitFromPeriod,
+  getPlanLimitForPeriod,
+  getPlanPeriodSuffix,
   getSuggestedPlan,
   isDowngradePlan,
 } from "@dub/utils";
@@ -60,19 +71,50 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
   const defaultValue = useMemo(() => {
     const currentLimit =
       workspace[{ events: "usageLimit", links: "linksLimit" }[type]];
+    const monthlyCurrentLimit = getMonthlyLimitFromPeriod({
+      limit: currentLimit,
+      planPeriod,
+    });
+
     return usageSteps.reduce((prev, curr) =>
-      Math.abs(curr - currentLimit) < Math.abs(prev - currentLimit)
+      Math.abs(curr - monthlyCurrentLimit) <
+      Math.abs(prev - monthlyCurrentLimit)
         ? curr
         : prev,
     );
-  }, [usageSteps, workspace]);
+  }, [usageSteps, workspace, type, planPeriod]);
 
   const [selectedValue, setSelectedValue] = useState<number | null>(null);
-  const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
+  const [period, setPeriod] = useState<PlanPeriod>(
+    planPeriod === "yearly" ? "yearly" : "monthly",
+  );
+
+  const monthlySelectedValue = selectedValue ?? defaultValue;
+
+  const getLimitInPeriod = useCallback(
+    ({
+      limit,
+      storedPeriod,
+      targetPeriod,
+    }: {
+      limit: number;
+      storedPeriod?: string | null;
+      targetPeriod: PlanPeriod;
+    }) => {
+      return getPlanLimitForPeriod({
+        limit: getMonthlyLimitFromPeriod({
+          limit,
+          planPeriod: storedPeriod,
+        }),
+        planPeriod: targetPeriod,
+      });
+    },
+    [],
+  );
 
   const { plan: suggestedPlan, planTier: suggestedPlanTier } = getSuggestedPlan(
     {
-      [type]: selectedValue ?? defaultValue,
+      [type]: monthlySelectedValue,
     },
   );
 
@@ -102,18 +144,21 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
         <p className="text-content-default text-sm font-medium">
           {
             {
-              events: "Events tracked per month",
-              links: "Links created per month",
+              events: `Events tracked per ${period === "yearly" ? "year" : "month"}`,
+              links: `Links created per ${period === "yearly" ? "year" : "month"}`,
             }[type]
           }
         </p>
         <NumberFlow
-          value={selectedValue ?? defaultValue}
+          value={getPlanLimitForPeriod({
+            limit: monthlySelectedValue,
+            planPeriod: period,
+          })}
           className="text-content-emphasis mb-4 text-lg font-semibold"
         />
 
         <Slider
-          value={usageSteps.indexOf(selectedValue ?? defaultValue)}
+          value={usageSteps.indexOf(monthlySelectedValue)}
           min={0}
           max={usageSteps.length - 1}
           onChange={(idx) => setSelectedValue(usageSteps[idx])}
@@ -126,7 +171,12 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
               { value: "monthly", label: "Monthly" },
               {
                 value: "yearly",
-                label: "Yearly (Save 17%)",
+                label: "Yearly",
+                badge: (
+                  <Badge variant="blueGradient" className="py-0 text-xs">
+                    10% discount + 12x usage upfront
+                  </Badge>
+                ),
               },
             ]}
             className="flex overflow-hidden rounded-lg bg-transparent p-0.5"
@@ -205,15 +255,39 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
               {[
                 {
                   icon: CursorRays,
-                  value: suggestedPlan.limits.clicks,
-                  label: `total tracked events/mo`,
-                  difference: suggestedPlan.limits.clicks - (usageLimit ?? 0),
+                  value: getPlanLimitForPeriod({
+                    limit: suggestedPlan.limits.clicks,
+                    planPeriod: period,
+                  }),
+                  label: `total tracked events${getPlanPeriodSuffix({ planPeriod: period })}`,
+                  difference:
+                    getPlanLimitForPeriod({
+                      limit: suggestedPlan.limits.clicks,
+                      planPeriod: period,
+                    }) -
+                    getLimitInPeriod({
+                      limit: usageLimit ?? 0,
+                      storedPeriod: planPeriod,
+                      targetPeriod: period,
+                    }),
                 },
                 {
                   icon: Hyperlink,
-                  value: suggestedPlan.limits.links,
-                  label: `new links/mo`,
-                  difference: suggestedPlan.limits.links - (linksLimit ?? 0),
+                  value: getPlanLimitForPeriod({
+                    limit: suggestedPlan.limits.links,
+                    planPeriod: period,
+                  }),
+                  label: `new links${getPlanPeriodSuffix({ planPeriod: period })}`,
+                  difference:
+                    getPlanLimitForPeriod({
+                      limit: suggestedPlan.limits.links,
+                      planPeriod: period,
+                    }) -
+                    getLimitInPeriod({
+                      limit: linksLimit ?? 0,
+                      storedPeriod: planPeriod,
+                      targetPeriod: period,
+                    }),
                 },
               ].map(({ icon: Icon, value, label, difference }) => (
                 <div
