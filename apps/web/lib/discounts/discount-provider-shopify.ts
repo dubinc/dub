@@ -83,6 +83,15 @@ async function requireInstalledIntegration(
   };
 }
 
+function throwIfShopifyUnauthorized(error: unknown): void {
+  if (
+    error instanceof ShopifyAdminGraphqlError &&
+    error.code === "unauthorized"
+  ) {
+    throw new DiscountProviderError("shopify", "AUTH_EXPIRED", error.message);
+  }
+}
+
 function createShopifyDiscountProvider() {
   const getCoupon = async () => {
     throw new Error("Shopify does not this method.");
@@ -216,8 +225,8 @@ function createShopifyDiscountProvider() {
           if (attempt >= MAX_ATTEMPTS) {
             throw new DiscountProviderError(
               "shopify",
-              "DISCOUNT_ALREADY_EXISTS",
-              `The discount code ${currentCode} is already in use. Please choose a different code.`,
+              "CREATE_FAILED",
+              `Failed to create a unique discount code after ${MAX_ATTEMPTS} attempts. Please try again.`,
             );
           }
 
@@ -232,13 +241,7 @@ function createShopifyDiscountProvider() {
         }
 
         if (error instanceof ShopifyAdminGraphqlError) {
-          if (error.code === "unauthorized") {
-            throw new DiscountProviderError(
-              "shopify",
-              "PERMISSIONS_REQUIRED",
-              error.message,
-            );
-          }
+          throwIfShopifyUnauthorized(error);
 
           throw new DiscountProviderError(
             "shopify",
@@ -277,65 +280,73 @@ function createShopifyDiscountProvider() {
   }) => {
     const { credentials } = await requireInstalledIntegration(workspace);
 
-    const lookup = await shopifyAdminGraphql<{
-      codeDiscountNodeByCode: { id: string } | null;
-    }>({
-      shopifyStoreId: workspace.shopifyStoreId!,
-      accessToken: credentials.accessToken!,
-      query: /* GraphQL */ `
-        query CodeDiscountNodeByCode($code: String!) {
-          codeDiscountNodeByCode(code: $code) {
-            id
-          }
-        }
-      `,
-      variables: { code },
-    });
-
-    const id = lookup.codeDiscountNodeByCode?.id;
-
-    if (!id) {
-      console.error(
-        `Shopify discount code ${code} not found (shopifyStoreId=${workspace.shopifyStoreId!}).`,
-      );
-      return;
-    }
-
-    const data = await shopifyAdminGraphql<{
-      discountCodeDelete: ShopifyDiscountCodeDelete;
-    }>({
-      shopifyStoreId: workspace.shopifyStoreId!,
-      accessToken: credentials.accessToken!,
-      query: /* GraphQL */ `
-        mutation DiscountCodeDelete($id: ID!) {
-          discountCodeDelete(id: $id) {
-            deletedCodeDiscountId
-            userErrors {
-              field
-              message
-              code
+    try {
+      const lookup = await shopifyAdminGraphql<{
+        codeDiscountNodeByCode: { id: string } | null;
+      }>({
+        shopifyStoreId: workspace.shopifyStoreId!,
+        accessToken: credentials.accessToken!,
+        query: /* GraphQL */ `
+          query CodeDiscountNodeByCode($code: String!) {
+            codeDiscountNodeByCode(code: $code) {
+              id
             }
           }
-        }
-      `,
-      variables: { id },
-    });
+        `,
+        variables: { code },
+      });
 
-    const { userErrors } = data.discountCodeDelete;
+      const id = lookup.codeDiscountNodeByCode?.id;
 
-    if (userErrors.length > 0) {
-      throw new ShopifyAdminGraphqlError(
-        userErrors[0].code,
-        userErrors[0].message,
-        userErrors,
+      if (!id) {
+        console.error(
+          `Shopify discount code ${code} not found (shopifyStoreId=${workspace.shopifyStoreId!}).`,
+        );
+        return;
+      }
+
+      const data = await shopifyAdminGraphql<{
+        discountCodeDelete: ShopifyDiscountCodeDelete;
+      }>({
+        shopifyStoreId: workspace.shopifyStoreId!,
+        accessToken: credentials.accessToken!,
+        query: /* GraphQL */ `
+          mutation DiscountCodeDelete($id: ID!) {
+            discountCodeDelete(id: $id) {
+              deletedCodeDiscountId
+              userErrors {
+                field
+                message
+                code
+              }
+            }
+          }
+        `,
+        variables: { id },
+      });
+
+      const { userErrors } = data.discountCodeDelete;
+
+      if (userErrors.length > 0) {
+        throw new ShopifyAdminGraphqlError(
+          userErrors[0].code,
+          userErrors[0].message,
+          userErrors,
+        );
+      }
+
+      console.info(
+        `Deleted Shopify discount code ${code} (id=${id}, shopifyStoreId=${workspace.shopifyStoreId}).`,
       );
+
+      return {
+        id,
+        code,
+      };
+    } catch (error) {
+      throwIfShopifyUnauthorized(error);
+      throw error;
     }
-
-    console.info(
-      `Deleted Shopify discount code ${code} (id=${id}, shopifyStoreId=${workspace.shopifyStoreId}).`,
-    );
-
-    return { id, code };
   };
 
   const assertDiscountIntegration = async ({

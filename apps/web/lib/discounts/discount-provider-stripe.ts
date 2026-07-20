@@ -52,6 +52,23 @@ async function requireInstalledIntegration(
   };
 }
 
+function isStripePermissionsError(error: {
+  code?: string;
+  message?: string;
+  raw?: { message?: string };
+}): boolean {
+  const errorMessage = error.raw?.message || error.message;
+
+  return (
+    error.code === "more_permissions_required_for_application" ||
+    Boolean(
+      errorMessage?.includes(
+        "This application does not have the required permissions",
+      ),
+    )
+  );
+}
+
 function createStripeDiscountProvider() {
   const getCoupon = async ({
     couponId,
@@ -195,8 +212,8 @@ function createStripeDiscountProvider() {
           if (attempt >= MAX_ATTEMPTS) {
             throw new DiscountProviderError(
               "stripe",
-              "DISCOUNT_ALREADY_EXISTS",
-              `The discount code ${currentCode} is already in use. Please choose a different code.`,
+              "CREATE_FAILED",
+              `Failed to create a unique discount code after ${MAX_ATTEMPTS} attempts. Please try again.`,
             );
           }
 
@@ -210,13 +227,7 @@ function createStripeDiscountProvider() {
           continue;
         }
 
-        const needsUpgrade =
-          error.code === "more_permissions_required_for_application" ||
-          errorMessage?.includes(
-            "This application does not have the required permissions",
-          );
-
-        if (needsUpgrade) {
+        if (isStripePermissionsError(error)) {
           throw new DiscountProviderError(
             "stripe",
             "PERMISSIONS_REQUIRED",
@@ -260,40 +271,52 @@ function createStripeDiscountProvider() {
       mode: settings.stripeMode,
     });
 
-    const promotionCodes = await stripeApp.promotionCodes.list(
-      {
-        code,
-        limit: 1,
-      },
-      {
-        stripeAccount: workspace.stripeConnectId!,
-      },
-    );
-
-    if (promotionCodes.data.length === 0) {
-      console.error(
-        `Stripe promotion code ${code} not found (stripeConnectId=${workspace.stripeConnectId}).`,
+    try {
+      const promotionCodes = await stripeApp.promotionCodes.list(
+        {
+          code,
+          limit: 1,
+        },
+        {
+          stripeAccount: workspace.stripeConnectId!,
+        },
       );
-      return;
+
+      if (promotionCodes.data.length === 0) {
+        console.error(
+          `Stripe promotion code ${code} not found (stripeConnectId=${workspace.stripeConnectId}).`,
+        );
+        return;
+      }
+
+      const promotionCode = promotionCodes.data[0];
+
+      await stripeApp.promotionCodes.update(
+        promotionCode.id,
+        {
+          active: false,
+        },
+        {
+          stripeAccount: workspace.stripeConnectId!,
+        },
+      );
+
+      console.info(
+        `Disabled Stripe promotion code ${promotionCode.code} (id=${promotionCode.id}, stripeConnectId=${workspace.stripeConnectId}).`,
+      );
+
+      return promotionCode;
+    } catch (error: any) {
+      if (isStripePermissionsError(error)) {
+        throw new DiscountProviderError(
+          "stripe",
+          "PERMISSIONS_REQUIRED",
+          error.raw?.message || error.message,
+        );
+      }
+
+      throw error;
     }
-
-    const promotionCode = promotionCodes.data[0];
-
-    await stripeApp.promotionCodes.update(
-      promotionCode.id,
-      {
-        active: false,
-      },
-      {
-        stripeAccount: workspace.stripeConnectId!,
-      },
-    );
-
-    console.info(
-      `Disabled Stripe promotion code ${promotionCode.code} (id=${promotionCode.id}, stripeConnectId=${workspace.stripeConnectId}).`,
-    );
-
-    return promotionCode;
   };
 
   const assertDiscountIntegration = async ({

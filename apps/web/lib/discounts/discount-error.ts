@@ -2,6 +2,7 @@ import { DubApiError } from "../api/errors";
 
 export type DiscountProviderErrorCode =
   | "INTEGRATION_NOT_AVAILABLE"
+  | "AUTH_EXPIRED"
   | "DISCOUNT_ALREADY_EXISTS"
   | "COUPON_NOT_FOUND"
   | "PERMISSIONS_REQUIRED"
@@ -12,6 +13,7 @@ const API_CODE_BY_PROVIDER_CODE: Record<
   "bad_request" | "conflict" | "internal_server_error"
 > = {
   INTEGRATION_NOT_AVAILABLE: "bad_request",
+  AUTH_EXPIRED: "bad_request",
   DISCOUNT_ALREADY_EXISTS: "conflict",
   COUPON_NOT_FOUND: "bad_request",
   PERMISSIONS_REQUIRED: "bad_request",
@@ -27,6 +29,12 @@ function resolveDiscountProviderMessage(
     return provider === "stripe"
       ? "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create a discount."
       : "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.";
+  }
+
+  if (providerCode === "AUTH_EXPIRED") {
+    return provider === "stripe"
+      ? "STRIPE_RECONNECT_REQUIRED: Your Stripe connection has expired or been revoked. Please reconnect the Dub Stripe app in settings."
+      : "SHOPIFY_RECONNECT_REQUIRED: Your Shopify connection has expired or been revoked. Please reconnect the Dub Shopify app in settings.";
   }
 
   if (providerCode === "PERMISSIONS_REQUIRED") {
