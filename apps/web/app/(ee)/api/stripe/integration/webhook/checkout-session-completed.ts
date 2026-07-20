@@ -114,6 +114,14 @@ export async function checkoutSessionCompleted({
                   },
                 ]
               : []),
+
+            ...(stripeCustomerId
+              ? [
+                  {
+                    stripeCustomerId,
+                  },
+                ]
+              : []),
           ],
         },
         create: {

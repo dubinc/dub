@@ -138,8 +138,7 @@ export async function attributeViaPromotionCodeId({
 
   // Concurrent webhook already created this customer — continue sale without re-recording lead
   if (!created) {
-    const cachedLead = await redis.get<LeadEventTB>(`leadCache:${customer.id}`);
-    let existingLead = cachedLead;
+    let existingLead = await redis.get<LeadEventTB>(`leadCache:${customer.id}`);
 
     if (!existingLead) {
       existingLead = await getLeadEvent({
