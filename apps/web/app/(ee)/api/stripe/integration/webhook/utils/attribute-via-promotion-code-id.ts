@@ -40,8 +40,19 @@ export async function attributeViaPromotionCodeId({
   mode: StripeMode;
   customerDetails: PromoCodeCustomerDetails;
 }) {
+  console.log(
+    `Attributing via promotion code ID ${promotionCodeId} for customer ${customerDetails.stripeCustomerId} in workspace ${workspace.id}`,
+  );
+
   const stripeAccountId = workspace.stripeConnectId!;
   const stripeCustomerId = customerDetails.stripeCustomerId;
+
+  if (!workspace.defaultProgramId) {
+    console.log(
+      `Workspace with stripeConnectId ${stripeAccountId} has no default program, skipping...`,
+    );
+    return null;
+  }
 
   // Find the promotion code for the promotion code id
   const promotionCode = await getPromotionCode({
@@ -57,12 +68,7 @@ export async function attributeViaPromotionCodeId({
     return null;
   }
 
-  if (!workspace.defaultProgramId) {
-    console.log(
-      `Workspace with stripeConnectId ${stripeAccountId} has no default program, skipping...`,
-    );
-    return null;
-  }
+  console.log(`Promotion code found: ${promotionCode.code}`);
 
   const discountCode = await prisma.discountCode.findUnique({
     where: {
@@ -133,6 +139,8 @@ export async function attributeViaPromotionCodeId({
       country: customerAddress?.country,
       projectId: workspace.id,
       projectConnectId: workspace.stripeConnectId,
+      programId: link.programId,
+      partnerId: link.partnerId,
     },
   });
 
