@@ -5,10 +5,16 @@ import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@/lib/prisma";
 import {
+  removeWorkspaceMemberFromStaging,
+  syncWorkspaceMemberRoleToStaging,
+} from "@/lib/sandbox/sync-workspace";
+import { assertNotStagingWorkspace } from "@/lib/sandbox/workspace-guards";
+import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { WorkspaceRole } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -59,6 +65,8 @@ const updateRoleSchema = z.object({
 // PATCH /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
+    assertNotStagingWorkspace(workspace);
+
     const { userId, role } = updateRoleSchema.parse(await req.json());
 
     assertRoleAllowedForPlan({
@@ -66,7 +74,7 @@ export const PATCH = withWorkspace(
       plan: workspace.plan,
     });
 
-    const response = await prisma.projectUsers.update({
+    const workspaceUser = await prisma.projectUsers.update({
       where: {
         userId_projectId: {
           projectId: workspace.id,
@@ -80,7 +88,18 @@ export const PATCH = withWorkspace(
         role,
       },
     });
-    return NextResponse.json(response);
+
+    waitUntil(
+      syncWorkspaceMemberRoleToStaging({
+        workspace,
+        user: {
+          id: workspaceUser.userId,
+          role: workspaceUser.role,
+        },
+      }),
+    );
+
+    return NextResponse.json(workspaceUser);
   },
   {
     requiredPermissions: ["workspaces.write"],
@@ -116,6 +135,7 @@ export const DELETE = withWorkspace(
           role: true,
           user: {
             select: {
+              id: true,
               isMachine: true,
               defaultWorkspace: true,
             },
@@ -138,6 +158,10 @@ export const DELETE = withWorkspace(
       });
     }
 
+    assertNotStagingWorkspace(workspace, {
+      when: !projectUser.user.isMachine,
+    });
+
     // If there is only one owner and the user is an owner and the user is trying to remove themselves
     if (
       totalOwners === 1 &&
@@ -151,7 +175,7 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const [response] = await Promise.allSettled([
+    await Promise.allSettled([
       // Remove the user from the workspace
       prisma.projectUsers.delete({
         where: {
@@ -182,6 +206,13 @@ export const DELETE = withWorkspace(
         }),
     ]);
 
+    waitUntil(
+      removeWorkspaceMemberFromStaging({
+        workspace,
+        user: projectUser.user,
+      }),
+    );
+
     // delete the user if it's a machine user
     if (projectUser.user.isMachine) {
       await prisma.user.delete({
@@ -191,6 +222,6 @@ export const DELETE = withWorkspace(
       });
     }
 
-    return NextResponse.json(response);
+    return NextResponse.json({});
   },
 );

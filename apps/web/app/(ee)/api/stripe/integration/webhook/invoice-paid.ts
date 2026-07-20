@@ -26,8 +26,8 @@ export async function invoicePaid({
   workspace,
 }: WebhookHandlerInput<Stripe.InvoicePaidEvent>): Promise<WebhookHandlerResponse> {
   const invoice = event.data.object;
-  const stripeAccountId = event.account as string;
   const stripeCustomerId = invoice.customer as string | null;
+  const stripeAccountId = workspace.stripeConnectId!;
   const invoiceId = invoice.id;
 
   if (!invoiceId) {

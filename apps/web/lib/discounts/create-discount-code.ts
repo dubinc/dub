@@ -6,7 +6,10 @@ import { constructDiscountCode } from "./construct-discount-code";
 import { getDiscountProvider } from "./discount-provider";
 
 interface CreateDiscountCodeArgs {
-  workspace: Pick<Project, "id" | "stripeConnectId" | "shopifyStoreId">;
+  workspace: Pick<
+    Project,
+    "id" | "environment" | "stripeConnectId" | "shopifyStoreId"
+  >;
   partner: Pick<Partner, "id" | "name">;
   link: Pick<Link, "id">;
   discount: Discount;

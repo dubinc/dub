@@ -34,6 +34,11 @@ export async function queueExternalPayouts(
       slug: true,
       logo: true,
       supportEmail: true,
+      workspace: {
+        select: {
+          environment: true,
+        },
+      },
     },
   });
 
@@ -128,6 +133,7 @@ export async function queueExternalPayouts(
       templateName: "PartnerPayoutConfirmed",
       templateProps: {
         email: payout.partner.email!,
+        workspace: program.workspace,
         program: {
           id: program.id,
           name: program.name,

@@ -6,6 +6,11 @@ import {
   DIRECT_DEBIT_PAYMENT_TYPES_INFO,
   PAYMENT_METHOD_TYPES,
 } from "@/lib/constants/payouts";
+import { SANDBOX_PAYMENT_METHOD } from "@/lib/sandbox/mock-payment-provider";
+import {
+  assertNotStagingWorkspace,
+  isProductionEnvironment,
+} from "@/lib/sandbox/workspace-guards";
 import { stripe } from "@/lib/stripe";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -46,6 +51,13 @@ async function getWorkspacePaymentMethod({
 // GET /api/workspaces/[idOrSlug]/billing/payment-methods - get all payment methods
 export const GET = withWorkspace(
   async ({ workspace }) => {
+    if (!isProductionEnvironment(workspace.environment)) {
+      return NextResponse.json({
+        paymentMethods: [SANDBOX_PAYMENT_METHOD],
+        defaultPaymentMethodId: SANDBOX_PAYMENT_METHOD.id,
+      });
+    }
+
     if (!workspace.stripeId) {
       return NextResponse.json({
         paymentMethods: [],
@@ -101,6 +113,8 @@ export const GET = withWorkspace(
 // POST /api/workspaces/[idOrSlug]/billing/payment-methods - add a payment method for the workspace
 export const POST = withWorkspace(
   async ({ workspace, req }) => {
+    assertNotStagingWorkspace(workspace);
+
     if (!workspace.stripeId) {
       throw new DubApiError({
         code: "bad_request",
@@ -159,6 +173,8 @@ export const POST = withWorkspace(
 // PATCH /api/workspaces/[idOrSlug]/billing/payment-methods - set default payment method
 export const PATCH = withWorkspace(
   async ({ workspace, req }) => {
+    assertNotStagingWorkspace(workspace);
+
     if (!workspace.stripeId) {
       throw new DubApiError({
         code: "bad_request",
@@ -199,6 +215,8 @@ export const PATCH = withWorkspace(
 // DELETE /api/workspaces/[idOrSlug]/billing/payment-methods - remove a payment method
 export const DELETE = withWorkspace(
   async ({ workspace, req }) => {
+    assertNotStagingWorkspace(workspace);
+
     if (!workspace.stripeId) {
       throw new DubApiError({
         code: "bad_request",

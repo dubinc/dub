@@ -1,6 +1,8 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { useCopyRewardToLiveModal } from "@/lib/sandbox/components/copy-reward-to-live-modal";
+import { isStagingEnvironment } from "@/lib/sandbox/environment";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import type { GroupProps, RewardProps } from "@/lib/types";
@@ -20,7 +22,7 @@ import {
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, formatDate } from "@dub/utils";
+import { cn, formatDate, isClickOnInteractiveChild } from "@dub/utils";
 import { EventType } from "@prisma/client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -135,11 +137,14 @@ const RewardItem = ({
   group: GroupProps;
 }) => {
   const { slug } = useParams();
-  const { plan } = useWorkspace();
+  const { plan, environment } = useWorkspace();
   const { queryParams } = useRouterStuff();
-  const { canCreateReferralReward } = getPlanCapabilities(plan);
+  const { openCopyRewardToLiveModal, CopyRewardToLiveModal } =
+    useCopyRewardToLiveModal();
   const { advancedUpsellModal, setShowAdvancedUpsellModal } =
     useAdvancedUpsellModal();
+
+  const { canCreateReferralReward } = getPlanCapabilities(plan);
 
   const { RewardSheet, setIsOpen } = useRewardSheet({
     event,
@@ -165,19 +170,28 @@ const RewardItem = ({
       {advancedUpsellModal}
       {RewardSheet}
       {rewardHistorySheet}
+      {reward && isStagingEnvironment(environment) && <CopyRewardToLiveModal />}
       <As
         href={
           reward
             ? `/${slug}/program/groups/${group.slug}/rewards?rewardId=${reward.id}`
-            : "#"
+            : ""
         }
         scroll={false}
         className={cn(
-          "flex flex-col gap-4 rounded-lg p-6 transition-all md:flex-row md:items-center",
-          reward &&
-            "cursor-pointer border border-neutral-200 hover:border-neutral-300",
+          "flex cursor-pointer flex-col gap-4 rounded-lg p-6 transition-all md:flex-row md:items-center",
+          reward && "border border-neutral-200 hover:border-neutral-300",
           !reward && "bg-neutral-50 hover:bg-neutral-100",
         )}
+        onClick={(e) => {
+          e.preventDefault();
+          if (isClickOnInteractiveChild(e)) return;
+          queryParams({
+            set: {
+              rewardId: reward?.id ?? `new-${event}`,
+            },
+          });
+        }}
       >
         <div className="flex size-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white">
           <Icon className="size-4 text-neutral-600" />
@@ -256,20 +270,35 @@ const RewardItem = ({
           </div>
 
           {reward ? (
-            <Button
-              text="Edit"
-              variant="secondary"
-              className="h-9 w-fit rounded-lg"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                queryParams({
-                  set: {
-                    rewardId: reward.id,
-                  },
-                });
-              }}
-            />
+            <div className="flex items-center gap-2">
+              {isStagingEnvironment(environment) && (
+                <Button
+                  text="Copy to live"
+                  variant="secondary"
+                  className="h-9 w-fit rounded-lg"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openCopyRewardToLiveModal(reward);
+                  }}
+                />
+              )}
+
+              <Button
+                text="Edit"
+                variant="secondary"
+                className="h-9 w-fit rounded-lg"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  queryParams({
+                    set: {
+                      rewardId: reward.id,
+                    },
+                  });
+                }}
+              />
+            </div>
           ) : (
             <div className="flex flex-col-reverse items-center gap-2 md:flex-row">
               {group.slug !== DEFAULT_PARTNER_GROUP.slug &&

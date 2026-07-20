@@ -1,5 +1,6 @@
 "use client";
 
+import { useDashboardBannerVisible } from "@/lib/hooks/use-dashboard-banner-visible";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { Button, Crown, TriangleWarning, useMediaQuery } from "@dub/ui";
@@ -40,8 +41,8 @@ export function UpgradeBanner() {
     useTrialLimitActivateModal();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const { isVisible, needsUpgrade, paymentFailed, subscriptionCanceled } =
-    useUpgradeBannerVisibility();
+  const { needsUpgrade, subscriptionCanceled } = useUpgradeBannerVisibility();
+  const { isUpgradeBannerVisible } = useDashboardBannerVisible();
 
   const overageLimitResource = getTrialLimitResourceForOverageBanner({
     exceededEvents: Boolean(exceededEvents),
@@ -53,7 +54,7 @@ export function UpgradeBanner() {
 
   const { isMobile } = useMediaQuery();
 
-  if (!isVisible) return null;
+  if (!isUpgradeBannerVisible) return null;
 
   return (
     <>

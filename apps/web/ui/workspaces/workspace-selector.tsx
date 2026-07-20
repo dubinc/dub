@@ -1,17 +1,22 @@
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { Button, Combobox } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { WorkspaceEnvironment } from "@prisma/client";
 import { useMemo, useState } from "react";
 import { useAddWorkspaceModal } from "../modals/add-workspace-modal";
 
 interface WorkspaceSelectorProps {
   selectedWorkspace: string;
-  setSelectedWorkspace: (workspace: string) => void;
+  setSelectedWorkspace: (workspace: string | null) => void;
+  environments?: WorkspaceEnvironment[]; // Only display workspaces that are in the environments
+  showAddWorkspaceButton?: boolean;
 }
 
 export function WorkspaceSelector({
   selectedWorkspace,
   setSelectedWorkspace,
+  environments,
+  showAddWorkspaceButton = true,
 }: WorkspaceSelectorProps) {
   const [openPopover, setOpenPopover] = useState(false);
   const { workspaces, loading } = useWorkspaces();
@@ -19,26 +24,41 @@ export function WorkspaceSelector({
   const { AddWorkspaceModal, setShowAddWorkspaceModal } =
     useAddWorkspaceModal();
 
-  const workspaceOptions = useMemo(() => {
-    return workspaces?.map((workspace) => ({
-      value: workspace.slug,
-      label: workspace.name,
-      icon: (
-        <img
-          src={workspace.logo || `${OG_AVATAR_URL}${workspace.name}`}
-          alt={workspace.name}
-          className="size-4 rounded-full"
-        />
-      ),
-    }));
-  }, [workspaces]);
+  const filteredWorkspaces = useMemo(() => {
+    if (!workspaces) {
+      return [];
+    }
+
+    return workspaces.filter(
+      (workspace) =>
+        !environments || environments.includes(workspace.environment),
+    );
+  }, [workspaces, environments]);
+
+  const workspaceOptions = useMemo(
+    () =>
+      filteredWorkspaces.map((workspace) => ({
+        value: workspace.slug,
+        label: workspace.name,
+        icon: (
+          <img
+            src={workspace.logo || `${OG_AVATAR_URL}${workspace.name}`}
+            alt={workspace.name}
+            className="size-4 rounded-full"
+          />
+        ),
+      })),
+    [filteredWorkspaces],
+  );
 
   const selectedOption = useMemo(() => {
     if (!selectedWorkspace) {
       return null;
     }
 
-    const workspace = workspaces?.find((w) => w.slug === selectedWorkspace);
+    const workspace = filteredWorkspaces.find(
+      (w) => w.slug === selectedWorkspace,
+    );
 
     if (!workspace) {
       return null;
@@ -55,15 +75,15 @@ export function WorkspaceSelector({
         />
       ),
     };
-  }, [workspaces, selectedWorkspace]);
+  }, [filteredWorkspaces, selectedWorkspace]);
 
   return (
     <>
-      <AddWorkspaceModal />
+      {showAddWorkspaceButton && <AddWorkspaceModal />}
       <Combobox
         options={loading ? undefined : workspaceOptions}
         setSelected={(option) => {
-          setSelectedWorkspace(option.value);
+          setSelectedWorkspace(option?.value ?? null);
         }}
         selected={selectedOption}
         icon={loading ? null : selectedOption?.icon}
@@ -83,15 +103,17 @@ export function WorkspaceSelector({
         emptyState={
           <div className="flex w-full flex-col items-center gap-2 py-4">
             No workspaces found
-            <Button
-              onClick={() => {
-                setOpenPopover(false);
-                setShowAddWorkspaceModal(true);
-              }}
-              variant="primary"
-              className="h-7 w-fit px-2"
-              text="Create new workspace"
-            />
+            {showAddWorkspaceButton && (
+              <Button
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowAddWorkspaceModal(true);
+                }}
+                variant="primary"
+                className="h-7 w-fit px-2"
+                text="Create new workspace"
+              />
+            )}
           </div>
         }
       >
