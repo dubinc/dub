@@ -3,7 +3,7 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { Badge, useRouterStuff } from "@dub/ui";
+import { Badge, InfoTooltip, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { cn, currencyFormatter, fetcher } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
@@ -13,7 +13,7 @@ import useSWR from "swr";
 const revenueTabs = [
   {
     id: "totalRevenue",
-    label: "Total Revenue",
+    label: "Monthly Revenue",
     colorClassName: "text-green-500 bg-green-500/50 border-green-500",
   },
   {
@@ -24,9 +24,11 @@ const revenueTabs = [
   {
     id: "payoutFees",
     label: "Payout Fees",
+    labelTooltip:
+      "Payout fees are computed based on a trailing 6-month rolling average.",
     colorClassName: "text-orange-500 bg-orange-500/50 border-orange-500",
   },
-] as const;
+];
 
 type RevenueTab = (typeof revenueTabs)[number]["id"];
 
@@ -145,14 +147,10 @@ function RevenuePageClient() {
 
   return (
     <div className="mx-auto flex w-full max-w-screen-xl flex-col space-y-6 p-6">
-      <SimpleDateRangePicker
-        defaultInterval="30d"
-        presets={["30d", "mtd", "qtd", "ytd", "1y", "all"]}
-        className="w-fit"
-      />
+      <SimpleDateRangePicker defaultInterval="30d" className="w-fit" />
       <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
         <div className="grid w-full grid-cols-1 divide-x sm:grid-cols-3">
-          {revenueTabs.map(({ id, label, colorClassName }) => (
+          {revenueTabs.map(({ id, label, colorClassName, labelTooltip }) => (
             <button
               key={id}
               onClick={() =>
@@ -161,7 +159,7 @@ function RevenuePageClient() {
                 })
               }
               className={cn(
-                "border-box relative block h-full w-full flex-none px-4 py-3 text-left sm:px-8 sm:py-6",
+                "border-box group relative block h-full w-full flex-none px-4 py-3 text-left sm:px-8 sm:py-6",
                 "transition-colors hover:bg-neutral-50 focus:outline-none active:bg-neutral-100",
                 "ring-inset ring-neutral-500 focus-visible:ring-1",
               )}
@@ -169,6 +167,51 @@ function RevenuePageClient() {
               {selectedTab === id && (
                 <div className="absolute bottom-0 left-0 h-0.5 w-full bg-black" />
               )}
+              {(() => {
+                const annualizedMetric =
+                  id === "mrr"
+                    ? { label: "ARR", value: totals.mrr }
+                    : id === "totalRevenue"
+                      ? { label: "Annualized", value: totals.totalRevenue }
+                      : null;
+
+                if (
+                  !annualizedMetric ||
+                  (annualizedMetric.value !== 0 && !annualizedMetric.value) ||
+                  isLoading
+                ) {
+                  return null;
+                }
+
+                const annualizedValue = (annualizedMetric.value * 12) / 100;
+
+                return (
+                  <div className="group absolute right-4 top-3 flex cursor-default items-center gap-1 text-xs text-neutral-400 sm:right-8 sm:top-6">
+                    <span>{annualizedMetric.label}</span>
+                    <NumberFlow
+                      className="group-hover:hidden"
+                      value={annualizedValue}
+                      format={{
+                        style: "currency",
+                        currency: "USD",
+                        notation: "compact",
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }}
+                    />
+                    <NumberFlow
+                      className="hidden group-hover:inline"
+                      value={annualizedValue}
+                      format={{
+                        style: "currency",
+                        currency: "USD",
+                        // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                        trailingZeroDisplay: "stripIfInteger",
+                      }}
+                    />
+                  </div>
+                );
+              })()}
               <div className="flex items-center gap-2.5 text-sm text-neutral-600">
                 <div
                   className={cn(
@@ -177,6 +220,7 @@ function RevenuePageClient() {
                   )}
                 />
                 <span>{label}</span>
+                {labelTooltip ? <InfoTooltip content={labelTooltip} /> : null}
               </div>
               <div className="mt-1 flex h-12 items-center">
                 {(totals[id] || totals[id] === 0) && !isLoading ? (

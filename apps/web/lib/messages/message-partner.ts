@@ -14,6 +14,10 @@ import * as z from "zod/v4";
 import { authActionClient } from "../actions/safe-action";
 import { throwIfNoPermission } from "../actions/throw-if-no-permission";
 import { MessageSchema, messagePartnerSchema } from "./schemas";
+import {
+  mapMessageAttachmentsForCreate,
+  messageAttachmentsOrderBy,
+} from "./utils";
 
 const schema = messagePartnerSchema
   .extend({
@@ -48,49 +52,66 @@ export const messagePartnerAction = authActionClient
     }
 
     // Make sure partner is either approved or trusted in the partner network, enrolled in the program, or already has a message with the program
-    const { _count, programs, ...partner } =
-      await prisma.partner.findFirstOrThrow({
-        where: {
-          id: partnerId,
-          ...partnerReachableByProgramWhereInput(programId),
-        },
-        include: {
-          _count: {
-            select: {
-              messages: {
-                where: {
-                  programId,
-                },
+    const {
+      _count,
+      programs,
+      messages: partnerReplies,
+      ...partner
+    } = await prisma.partner.findFirstOrThrow({
+      where: {
+        id: partnerId,
+        ...partnerReachableByProgramWhereInput(programId),
+      },
+      include: {
+        _count: {
+          select: {
+            messages: {
+              where: {
+                programId,
+                senderPartnerId: null,
               },
             },
           },
-          programs: {
-            where: {
-              programId,
-            },
-            select: {
-              status: true,
-            },
+        },
+        // Any partner reply unlocks further program messages
+        messages: {
+          where: {
+            programId,
+            senderPartnerId: { not: null },
+          },
+          take: 1,
+          select: { id: true },
+        },
+        programs: {
+          where: {
+            programId,
+          },
+          select: {
+            status: true,
           },
         },
-      });
+      },
+    });
 
-    // if the partner is not enrolled / is in invited status, cap at one message
     const enrollment = programs[0];
+    const programMessageCount = _count.messages;
+    const partnerHasReplied = partnerReplies.length > 0;
+
+    // Cap unsolicited outreach while invited / not enrolled; unlock once partner replies
     if (
       (!enrollment || enrollment.status === "invited") &&
-      _count.messages >= 1
+      !partnerHasReplied &&
+      programMessageCount >= 1
     ) {
       throw new DubApiError({
         code: "forbidden",
-        message:
-          "You can only send one initial message to a partner you've invited.",
+        message: "You can only send one message until the partner replies.",
       });
     }
 
-    // if partner is not enrolled in the program and it's the first message
+    // if partner is not enrolled in the program and it's the first program message
     // it means the program is reaching out via the partner network
-    if (!enrollment && _count.messages === 0) {
+    if (!enrollment && programMessageCount === 0) {
       const networkInvitesUsage = await getNetworkInvitesUsage(workspace);
 
       if (networkInvitesUsage >= workspace.networkInvitesLimit) {
@@ -136,20 +157,16 @@ export const messagePartnerAction = authActionClient
         text,
         ...(attachments.length > 0 && {
           attachments: {
-            create: attachments.map((att) => ({
-              id: createId({ prefix: "msa_" }),
-              storageKey: att.storageKey,
-              name: att.name,
-              size: att.size,
-              type: att.type,
-            })),
+            create: mapMessageAttachmentsForCreate(attachments),
           },
         }),
       },
       include: {
         senderUser: true,
         senderPartner: true,
-        attachments: true,
+        attachments: {
+          orderBy: messageAttachmentsOrderBy,
+        },
       },
     });
 

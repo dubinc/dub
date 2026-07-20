@@ -1,5 +1,6 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
@@ -31,7 +32,7 @@ import {
   trackSaleResponseSchema,
 } from "@/lib/zod/schemas/sales";
 import { nanoid, R2_URL } from "@dub/utils";
-import { Customer, Prisma } from "@prisma/client";
+import { Customer } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { createId } from "../create-id";
@@ -183,9 +184,15 @@ export const trackSale = async ({
         ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
         : customerAvatar;
 
-    try {
-      newCustomer = await prisma.customer.create({
-        data: {
+    const { customer: existingOrNewCustomer, created } =
+      await getOrCreateCustomer({
+        where: {
+          projectId_externalId: {
+            projectId: workspace.id,
+            externalId: customerExternalId,
+          },
+        },
+        create: {
           id: finalCustomerId,
           name: finalCustomerName,
           email: customerEmail,
@@ -199,22 +206,11 @@ export const trackSale = async ({
           clickedAt: new Date(clickData.timestamp + "Z"),
         },
       });
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
-        existingCustomer = await prisma.customer.findUniqueOrThrow({
-          where: {
-            projectId_externalId: {
-              projectId: workspace.id,
-              externalId: customerExternalId,
-            },
-          },
-        });
-      } else {
-        throw error;
-      }
+
+    if (created) {
+      newCustomer = existingOrNewCustomer;
+    } else {
+      existingCustomer = existingOrNewCustomer;
     }
 
     // Persist customer avatar to R2 if it's not already stored
@@ -568,6 +564,7 @@ const _trackSale = async ({
             sale: {
               productId: metadata?.productId,
               amount: saleData.amount,
+              ...(metadata != null && { metadata }),
             },
           },
           clickEvent: {

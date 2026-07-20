@@ -15,14 +15,16 @@ import { transformSaleEventData } from "@/lib/webhook/transform";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 
 // Handle event "invoice.paid"
-export async function invoicePaid(
-  event: Stripe.InvoicePaidEvent,
-  mode: StripeMode,
-) {
+export async function invoicePaid({
+  event,
+  mode,
+  workspace,
+}: WebhookHandlerInput<Stripe.InvoicePaidEvent>): Promise<WebhookHandlerResponse> {
   const invoice = event.data.object;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = invoice.customer as string | null;
@@ -84,28 +86,9 @@ export async function invoicePaid(
 
   // if customer is still not found, try to attribute via partner discount on the invoice
   if (!customer) {
-    const workspace = await prisma.project.findUnique({
-      where: {
-        stripeConnectId: stripeAccountId,
-      },
-      select: {
-        id: true,
-        defaultProgramId: true,
-        stripeConnectId: true,
-        webhookEnabled: true,
-      },
-    });
-
-    if (!workspace) {
-      return {
-        response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
-      };
-    }
-
     if (!workspace.defaultProgramId) {
       return {
         response: `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub and workspace has no default program, skipping...`,
-        workspaceId: workspace.id,
       };
     }
 
@@ -119,14 +102,13 @@ export async function invoicePaid(
     if (promotionCodeId) {
       const promoCodeResponse = await attributeViaPromotionCodeId({
         promotionCodeId,
-        stripeAccountId,
         workspace,
         mode,
-        stripeCustomerId,
         customerDetails: {
           name: invoice.customer_name,
           email: invoice.customer_email,
           address: invoice.customer_address,
+          stripeCustomerId,
         },
       });
 
@@ -142,7 +124,6 @@ export async function invoicePaid(
     if (!customer) {
       return {
         response: `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId or partner discount code on the invoice), skipping...`,
-        workspaceId: workspace.id,
       };
     }
   }
@@ -181,7 +162,6 @@ export async function invoicePaid(
     );
     return {
       response: `Invoice with ID ${invoiceId} already processed, skipping...`,
-      workspaceId: customer.projectId,
     };
   }
 
@@ -189,7 +169,6 @@ export async function invoicePaid(
   if (invoiceSaleAmount <= 0) {
     return {
       response: `Invoice with ID ${invoiceId} has an amount of 0, skipping...`,
-      workspaceId: customer.projectId,
     };
   }
 
@@ -211,7 +190,6 @@ export async function invoicePaid(
   if (!leadEvent) {
     return {
       response: `Lead event with customer ID ${customer.id} not found, skipping...`,
-      workspaceId: customer.projectId,
     };
   }
 
@@ -246,7 +224,6 @@ export async function invoicePaid(
   if (!link) {
     return {
       response: `Link with ID ${linkId} not found, skipping...`,
-      workspaceId: customer.projectId,
     };
   }
 
@@ -255,7 +232,7 @@ export async function invoicePaid(
     linkId,
   });
 
-  const [_sale, linkUpdated, workspace] = await Promise.all([
+  const [_sale, linkUpdated] = await Promise.all([
     recordSale(saleData),
 
     // update link stats
@@ -321,6 +298,12 @@ export async function invoicePaid(
     | undefined = undefined;
 
   if (link.programId && link.partnerId) {
+    const saleMetadata = {
+      ...invoice.parent?.subscription_details?.metadata,
+      ...invoice.lines.data[0]?.metadata,
+      ...invoice.metadata,
+    };
+
     const products = invoice.lines.data
       .map((line) => {
         const productId = line.pricing?.price_details?.product;
@@ -357,6 +340,9 @@ export async function invoicePaid(
         sale: {
           products,
           amount: saleData.amount,
+          ...(Object.keys(saleMetadata).length > 0
+            ? { metadata: saleMetadata }
+            : {}),
         },
       },
       clickEvent: {
@@ -429,7 +415,6 @@ export async function invoicePaid(
 
   return {
     response: `Sale recorded for customer ID ${customer.id} and invoice ID ${invoiceId}`,
-    workspaceId: customer.projectId,
   };
 }
 

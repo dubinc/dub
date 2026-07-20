@@ -63,7 +63,6 @@ import {
 import { MessageAttachmentSchema, MessageSchema } from "./messages/schemas";
 import { POSTBACK_TRIGGERS } from "./postback/constants";
 import { postbackEventInputSchemaTB, postbackSchema } from "./postback/schemas";
-import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   activityLogActionSchema,
   activityLogResourceTypeSchema,
@@ -157,6 +156,8 @@ import {
 import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
+  payoutsCountQuerySchema,
+  payoutsQuerySchema,
 } from "./zod/schemas/payouts";
 import { PartnerApplicationSchema } from "./zod/schemas/program-application";
 import {
@@ -470,8 +471,6 @@ export type InstalledIntegrationInfoProps = Pick<
   settings?: Prisma.JsonValue;
   webhookId?: string; // Only if the webhook is managed by an integration
 };
-
-export type WebhookTrigger = keyof typeof WEBHOOK_TRIGGER_DESCRIPTIONS;
 
 export type WebhookProps = z.infer<typeof WebhookSchema>;
 
@@ -999,3 +998,7 @@ export type CommissionProps = z.infer<typeof CommissionSchema>;
 export type CreatePartnerCommissionProps = z.infer<
   typeof createPartnerCommissionSchema
 >;
+
+export type PayoutsQueryFilters = z.infer<typeof payoutsQuerySchema>;
+
+export type PayoutsCountQueryFilters = z.infer<typeof payoutsCountQuerySchema>;

@@ -81,6 +81,8 @@ export * from "./default-domains/github-enhanced";
 export * from "./default-domains/google-enhanced";
 export * from "./default-domains/spotify";
 
+export * from "./with-fill-variant";
+
 // Nucleo icons
 export * from "./nucleo";
 

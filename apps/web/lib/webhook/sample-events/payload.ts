@@ -1,4 +1,4 @@
-import { WebhookTrigger } from "@/lib/types";
+import type { WebhookTrigger } from "@/lib/webhook/types";
 import bountyCreated from "./bounty-created.json";
 import bountyUpdated from "./bounty-updated.json";
 import commissionCreated from "./commission-created.json";

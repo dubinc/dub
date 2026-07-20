@@ -2,19 +2,22 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { WebhookProps, WebhookTrigger } from "@/lib/types";
+import { WebhookProps } from "@/lib/types";
 import {
-  LINK_LEVEL_WEBHOOK_TRIGGERS,
+  LINK_CLICK_WEBHOOK_TRIGGER,
   PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
-  WEBHOOK_TRIGGER_DESCRIPTIONS,
   WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "@/lib/webhook/constants";
+import type { WebhookTrigger } from "@/lib/webhook/types";
 import { Link } from "@/ui/shared/icons";
-import { LinksSelector } from "@/ui/webhooks/link-selector";
-import { Button, Checkbox } from "@dub/ui";
+import {
+  isWebhookTriggerSelectionInvalid,
+  WebhookTriggerSelector,
+  WebhookTriggerSelectorValue,
+} from "@/ui/webhooks/webhook-trigger-selector";
+import { Button } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { cn } from "@dub/utils/src/functions";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 
@@ -33,49 +36,36 @@ export function ConfigureWebhook({
     fetcher,
   );
 
-  const [data, setData] = useState<Pick<WebhookProps, "triggers">>({
-    triggers: [],
-  });
-  const [linkIds, setLinkIds] = useState<string[]>([]);
-  const [linkIdsInitialized, setLinkIdsInitialized] = useState(false);
+  const [triggerSelection, setTriggerSelection] =
+    useState<WebhookTriggerSelectorValue>({
+      triggers: [],
+      linkScope: "workspace",
+      linkIds: [],
+      folderIds: [],
+    });
 
   useEffect(() => {
     if (webhook) {
-      setData({
+      setTriggerSelection((prev) => ({
+        ...prev,
         triggers: webhook.triggers,
-      });
+        linkScope: webhook.linkScope ?? "workspace",
+      }));
     }
   }, [webhook]);
-
-  const { triggers } = data;
-
-  const hasLinkLevelWebhook = LINK_LEVEL_WEBHOOK_TRIGGERS.some((trigger) =>
-    triggers.includes(trigger),
-  );
-
-  const { data: fetchedLinkIds, isLoading: isLoadingLinks } = useSWR<string[]>(
-    hasLinkLevelWebhook &&
-      `/api/webhooks/${webhookId}/links?workspaceId=${workspaceId}`,
-    fetcher,
-  );
-
-  useEffect(() => {
-    if (fetchedLinkIds && !linkIdsInitialized) {
-      setLinkIds(fetchedLinkIds);
-      setLinkIdsInitialized(true);
-    }
-  }, [fetchedLinkIds, linkIdsInitialized]);
 
   const { error: permissionsError } = clientAccessCheck({
     action: "webhooks.write",
     role,
   });
 
-  // Save the form data
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     setSaving(true);
+
+    const { triggers, linkScope, linkIds, folderIds } = triggerSelection;
+    const hasLinkClicked = triggers.includes(LINK_CLICK_WEBHOOK_TRIGGER);
 
     const response = await fetch(
       `/api/webhooks/${webhookId}?workspaceId=${workspaceId}`,
@@ -84,7 +74,14 @@ export function ConfigureWebhook({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...data, linkIds }),
+        body: JSON.stringify({
+          triggers,
+          ...(hasLinkClicked && {
+            linkScope,
+            ...(linkScope === "links" && { linkIds }),
+            ...(linkScope === "folders" && { folderIds }),
+          }),
+        }),
       },
     );
 
@@ -98,20 +95,34 @@ export function ConfigureWebhook({
     }
 
     mutate(`/api/webhooks/${webhookId}?workspaceId=${workspaceId}`, result);
-    mutate(
-      `/api/webhooks/${webhookId}/links?workspaceId=${workspaceId}`,
-      linkIds,
-    );
+    await Promise.all([
+      mutate(
+        `/api/webhooks/${webhookId}/links?workspaceId=${workspaceId}`,
+        result.linkScope === "links" ? linkIds : [],
+        { revalidate: true },
+      ),
+      mutate(
+        `/api/webhooks/${webhookId}/folders?workspaceId=${workspaceId}`,
+        result.linkScope === "folders" ? folderIds : [],
+        { revalidate: true },
+      ),
+    ]);
     toast.success("Webhook preferences saved!");
   };
 
   const canManageWebhook =
     !permissionsError || plan === "free" || plan === "pro";
 
-  const availableWebhookTriggers = [
-    ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
-    ...(defaultProgramId ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS : []),
-  ];
+  const availableTriggers = useMemo(
+    () =>
+      [
+        ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
+        ...(defaultProgramId ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS : []),
+      ].filter((trigger) => supportedEvents.includes(trigger)),
+    [defaultProgramId, supportedEvents],
+  );
+
+  const selectionInvalid = isWebhookTriggerSelectionInvalid(triggerSelection);
 
   return (
     <form onSubmit={onSubmit}>
@@ -122,114 +133,14 @@ export function ConfigureWebhook({
         </div>
 
         <div className="p-4">
-          <div>
-            <label htmlFor="triggers" className="flex flex-col gap-1">
-              <h2 className="text-sm font-medium text-neutral-900">
-                Workspace level events
-              </h2>
-              <span className="text-xs text-neutral-500">
-                These events are triggered at the workspace level.
-              </span>
-            </label>
-            <div className="mt-3 flex flex-col gap-2">
-              {availableWebhookTriggers
-                .filter(
-                  (trigger) =>
-                    canManageWebhook && supportedEvents.includes(trigger),
-                )
-                .map((trigger) => (
-                  <div key={trigger} className="group flex gap-2">
-                    <Checkbox
-                      value={trigger}
-                      id={trigger}
-                      checked={triggers.includes(trigger)}
-                      disabled={
-                        !canManageWebhook || !supportedEvents.includes(trigger)
-                      }
-                      onCheckedChange={(checked) => {
-                        setData({
-                          ...data,
-                          triggers: checked
-                            ? [...triggers, trigger]
-                            : triggers.filter((t) => t !== trigger),
-                        });
-                      }}
-                      title={
-                        !supportedEvents.includes(trigger)
-                          ? "Not supported"
-                          : undefined
-                      }
-                    />
-                    <label
-                      htmlFor={trigger}
-                      className={cn(
-                        "select-none text-sm text-neutral-600",
-                        supportedEvents.includes(trigger)
-                          ? "group-hover:text-neutral-800"
-                          : "opacity-50",
-                      )}
-                    >
-                      {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
-                    </label>
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <label htmlFor="triggers" className="flex flex-col gap-1">
-              <h2 className="text-sm font-medium text-neutral-900">
-                Link level events{" "}
-                <span className="rounded bg-yellow-100 px-1 py-0.5 text-xs font-medium text-yellow-800">
-                  High traffic
-                </span>
-              </h2>
-              <span className="text-xs text-neutral-500">
-                These events are triggered at the link level.
-              </span>
-            </label>
-            <div className="mt-3 flex flex-col gap-2">
-              {LINK_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
-                <div key={trigger} className="group flex gap-2">
-                  <Checkbox
-                    value={trigger}
-                    id={trigger}
-                    checked={triggers.includes(trigger)}
-                    disabled={!canManageWebhook}
-                    onCheckedChange={(checked) => {
-                      setData({
-                        ...data,
-                        triggers: checked
-                          ? [...triggers, trigger]
-                          : triggers.filter((t) => t !== trigger),
-                      });
-                    }}
-                  />
-                  <label
-                    htmlFor={trigger}
-                    className="flex select-none items-center gap-2 text-sm text-neutral-600 group-hover:text-neutral-800"
-                  >
-                    {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
-                  </label>
-                </div>
-              ))}
-            </div>
-
-            {hasLinkLevelWebhook && linkIds.length < 1000 ? (
-              <div className="mt-4">
-                <h2 className="text-sm font-medium text-neutral-900">
-                  Choose links we should send events for
-                </h2>
-                <div className="mt-3">
-                  <LinksSelector
-                    selectedLinkIds={linkIds}
-                    setSelectedLinkIds={setLinkIds}
-                    disabled={!canManageWebhook}
-                  />
-                </div>
-              </div>
-            ) : null}
-          </div>
+          <WebhookTriggerSelector
+            value={triggerSelection}
+            onChange={setTriggerSelection}
+            availableTriggers={availableTriggers}
+            disabled={!canManageWebhook}
+            webhookId={webhookId}
+            savedLinkScope={webhook?.linkScope}
+          />
         </div>
 
         <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-4 py-3">
@@ -241,12 +152,7 @@ export function ConfigureWebhook({
               {...(permissionsError && {
                 disabledTooltip: permissionsError,
               })}
-              disabled={
-                !canManageWebhook ||
-                isLoading ||
-                isLoadingLinks ||
-                !linkIdsInitialized
-              }
+              disabled={!canManageWebhook || isLoading || selectionInvalid}
               className="h-8"
             />
           </div>

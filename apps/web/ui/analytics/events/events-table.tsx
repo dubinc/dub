@@ -16,6 +16,7 @@ import {
   TimestampTooltip,
   Tooltip,
   useColumnVisibility,
+  useCurrentProduct,
   usePagination,
   useRouterStuff,
   useTable,
@@ -275,7 +276,7 @@ export default function EventsTable({
               href={
                 partnerPage
                   ? `/programs/${programSlug}/customers/${getValue().id}`
-                  : `/${slug}/customers/${getValue().id}`
+                  : `/${slug}/links/customers/${getValue().id}`
               }
               className="px-4 py-2.5"
             />
@@ -728,8 +729,12 @@ export default function EventsTable({
     [setExportQueryString, queryString, columnVisibility, tab],
   );
 
+  const { product } = useCurrentProduct();
+
   const { data, isLoading, error } = useSWR<EventDatum[]>(
-    !requiresUpgrade && `${eventsApiPath || "/api/events"}?${queryString}`,
+    !requiresUpgrade &&
+      product &&
+      `${eventsApiPath || "/api/events"}?${queryString}`,
     fetcher,
     {
       keepPreviousData: true,

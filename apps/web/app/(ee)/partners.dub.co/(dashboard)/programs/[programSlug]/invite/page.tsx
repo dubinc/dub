@@ -9,7 +9,7 @@ import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { CircleCheckFill } from "@dub/ui";
+import { CircleCheck } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { Reward } from "@prisma/client";
 import { redirect } from "next/navigation";
@@ -99,7 +99,7 @@ export default async function ProgramInvitePage(props: {
             className="-ml-4 size-20 rotate-[15deg] rounded-full drop-shadow-md"
           />
           <div className="absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white p-0.5">
-            <CircleCheckFill className="size-8 text-green-500" />
+            <CircleCheck variant="fill" className="size-8 text-green-500" />
           </div>
         </div>
 

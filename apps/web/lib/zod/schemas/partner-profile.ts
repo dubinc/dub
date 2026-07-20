@@ -100,6 +100,7 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   createdAt: z.string().or(z.date()),
   partnerGroupDefaultLinkId: z.string().nullish(),
   discountCode: z.string().nullable().default(null),
+  discountCodeDisabledAt: z.coerce.date().nullable().default(null),
 });
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({

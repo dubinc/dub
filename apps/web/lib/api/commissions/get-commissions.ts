@@ -2,13 +2,10 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { prisma } from "@/lib/prisma";
 import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { parseFilterValue } from "@dub/utils";
-import {
-  CommissionStatus,
-  CommissionType,
-  FraudEventStatus,
-} from "@prisma/client";
+import { CommissionStatus, CommissionType } from "@prisma/client";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
+import { getFraudEventGroupEventIds } from "../fraud/get-fraud-event-group-event-ids";
 import { buildPaginationQuery } from "../pagination";
 
 type CommissionsFilters = Omit<
@@ -17,7 +14,6 @@ type CommissionsFilters = Omit<
 > & {
   type?: string;
   programId: string;
-  isHoldStatus?: boolean;
   fraudEventGroupId?: string;
 };
 
@@ -37,7 +33,6 @@ export async function getCommissions(filters: CommissionsFilters) {
     end,
     interval,
     timezone,
-    isHoldStatus,
     startingAfter,
     endingBefore,
   } = filters;
@@ -66,24 +61,13 @@ export async function getCommissions(filters: CommissionsFilters) {
     }
   }
 
-  // Resolve fraudEventGroupId to eventIds
-  let eventIds: string[] | undefined;
-
-  if (fraudEventGroupId) {
-    const fraudEvents = await prisma.fraudEvent.findMany({
-      where: {
+  // Filter the commissions based on the risk event group
+  const eventIds = fraudEventGroupId
+    ? await getFraudEventGroupEventIds({
         fraudEventGroupId,
-        eventId: {
-          not: null,
-        },
-      },
-      select: {
-        eventId: true,
-      },
-    });
-
-    eventIds = fraudEvents.map((e) => e.eventId!);
-  }
+        programId,
+      })
+    : undefined;
 
   const { startDate, endDate } = getStartEndDates({
     interval,
@@ -119,19 +103,17 @@ export async function getCommissions(filters: CommissionsFilters) {
         }
       : null;
 
-  const statusFilter = isHoldStatus
-    ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
-    : status
-      ? status
-      : customerId || partnerFilter || typeFilter
-        ? undefined
-        : {
-            notIn: [
-              CommissionStatus.duplicate,
-              CommissionStatus.fraud,
-              CommissionStatus.canceled,
-            ],
-          };
+  const statusFilter = status
+    ? status
+    : type || customerId || payoutId || partnerId
+      ? undefined
+      : {
+          notIn: [
+            CommissionStatus.duplicate,
+            CommissionStatus.fraud,
+            CommissionStatus.canceled,
+          ],
+        };
 
   const programEnrollmentFilter = {
     ...(groupFilter && {
@@ -145,13 +127,6 @@ export async function getCommissions(filters: CommissionsFilters) {
         partnerTagFilter.sqlOperator === "NOT IN"
           ? { none: { partnerTagId: { in: partnerTagFilter.values } } }
           : { some: { partnerTagId: { in: partnerTagFilter.values } } },
-    }),
-    ...(isHoldStatus && {
-      fraudEventGroups: {
-        some: {
-          status: FraudEventStatus.pending,
-        },
-      },
     }),
   };
 
@@ -198,6 +173,11 @@ export async function getCommissions(filters: CommissionsFilters) {
       customer: true,
       partner: true,
       programEnrollment: true,
+      payout: {
+        select: {
+          paidAt: true,
+        },
+      },
     },
     ...paginationQuery,
   });

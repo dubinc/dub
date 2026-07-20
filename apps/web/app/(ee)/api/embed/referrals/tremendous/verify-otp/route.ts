@@ -73,30 +73,16 @@ export const POST = withReferralsEmbedToken(
       });
     }
 
-    const [partner, duplicatePartner] = await prisma.$transaction([
-      prisma.partner.findUniqueOrThrow({
-        where: {
-          id: partnerId,
-        },
-        select: {
-          id: true,
-          country: true,
-          defaultPayoutMethod: true,
-        },
-      }),
-
-      prisma.partner.findFirst({
-        where: {
-          tremendousEmail: email,
-          id: {
-            not: partnerId,
-          },
-        },
-        select: {
-          id: true,
-        },
-      }),
-    ]);
+    const partner = await prisma.partner.findUniqueOrThrow({
+      where: {
+        id: partnerId,
+      },
+      select: {
+        id: true,
+        country: true,
+        defaultPayoutMethod: true,
+      },
+    });
 
     if (
       partner.country &&
@@ -112,14 +98,6 @@ export const POST = withReferralsEmbedToken(
       throw new DubApiError({
         code: "bad_request",
         message: "You already have a payout method connected.",
-      });
-    }
-
-    if (duplicatePartner) {
-      throw new DubApiError({
-        code: "conflict",
-        message:
-          "Unable to save partner details. Please verify the email address and try again.",
       });
     }
 

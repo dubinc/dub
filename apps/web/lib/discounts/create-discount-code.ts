@@ -41,33 +41,12 @@ export async function createDiscountCode({
 
   const discountProvider = getDiscountProvider(discount.provider);
 
-  let externalDiscountCode: Awaited<
-    ReturnType<typeof discountProvider.createDiscountCode>
-  >;
-
-  try {
-    externalDiscountCode = await discountProvider.createDiscountCode({
-      workspace,
-      discount,
-      code: finalCode,
-      shouldRetry: code ? false : true,
-    });
-  } catch (error) {
-    const message = error?.raw?.message || error?.message || "";
-    const isDuplicateCode =
-      message.includes("already exists") ||
-      error?.code === "TAKEN" ||
-      error?.code === "DUPLICATE";
-
-    if (isDuplicateCode) {
-      throw new DubApiError({
-        code: "conflict",
-        message: `The discount code ${finalCode} is already in use. Please choose a different code.`,
-      });
-    }
-
-    throw error;
-  }
+  const externalDiscountCode = await discountProvider.createDiscountCode({
+    workspace,
+    discount,
+    code: finalCode,
+    shouldRetry: code ? false : true,
+  });
 
   try {
     return await prisma.discountCode.create({

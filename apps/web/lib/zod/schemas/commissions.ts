@@ -35,6 +35,12 @@ export const CommissionSchema = z.object({
 
 // Represents the commission object used in webhook and API responses (/api/commissions/**)
 export const CommissionEnrichedSchema = CommissionSchema.extend({
+  paidAt: z
+    .date()
+    .nullable()
+    .describe(
+      "The date the commission was paid out to the partner. Null if not paid yet.",
+    ),
   partner: EnrolledPartnerSchema.pick({
     id: true,
     name: true,
@@ -331,6 +337,7 @@ export const COMMISSION_EXPORT_COLUMNS = [
   { id: "invoiceId", label: "Invoice ID", type: "string", default: true },
   { id: "quantity", label: "Quantity", type: "number", default: true },
   { id: "createdAt", label: "Created at", type: "date", default: true },
+  { id: "paidAt", label: "Paid at", type: "date", default: false },
   { id: "updatedAt", label: "Updated at", type: "date", default: false },
   { id: "partnerId", label: "Partner ID", type: "string", default: false },
   { id: "partnerName", label: "Partner name", type: "string", default: false },

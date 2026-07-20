@@ -1,5 +1,4 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { withCron } from "@/lib/cron/with-cron";
 import { conn } from "@/lib/planetscale";
 import { RedisStreamEntry } from "@/lib/upstash/redis-streams/client";
 import {
@@ -179,38 +178,30 @@ const processWorkspaceUpdateStreamBatch = () =>
 
 // This route is used to process aggregated workspace usage events from Redis streams
 // It runs every minute with a batch size of 10,000 to consume high-frequency usage updates
-export async function GET(req: Request) {
-  try {
-    await verifyVercelSignature(req);
+export const GET = withCron(async () => {
+  const { updates, errors, totalProcessed, lastProcessedId } =
+    await processWorkspaceUpdateStreamBatch();
 
-    console.log("Processing workspace usage updates from Redis stream...");
-
-    const { updates, errors, totalProcessed, lastProcessedId } =
-      await processWorkspaceUpdateStreamBatch();
-
-    if (!updates.length) {
-      return NextResponse.json({
-        success: true,
-        message: "No updates to process",
-        processed: 0,
-      });
-    }
-
-    // Get stream info for monitoring
-    const streamInfo = await workspaceClicksUsageStream.getStreamInfo();
-    const response = {
+  if (!updates.length) {
+    return NextResponse.json({
       success: true,
-      processed: totalProcessed,
-      errors: errors?.length || 0,
-      lastProcessedId,
-      streamInfo,
-      message: `Successfully processed ${totalProcessed} workspace usage updates`,
-    };
-    console.log(response);
-
-    return NextResponse.json(response);
-  } catch (error) {
-    console.error("Failed to process workspace usage updates:", error);
-    return handleAndReturnErrorResponse(error);
+      message: "No updates to process",
+      processed: 0,
+    });
   }
-}
+
+  const streamInfo = await workspaceClicksUsageStream.getStreamInfo();
+
+  const response = {
+    success: true,
+    processed: totalProcessed,
+    errors: errors?.length || 0,
+    lastProcessedId,
+    streamInfo,
+    message: `Successfully processed ${totalProcessed} workspace usage updates`,
+  };
+
+  console.log(response);
+
+  return NextResponse.json(response);
+});

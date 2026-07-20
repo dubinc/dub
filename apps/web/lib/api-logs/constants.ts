@@ -13,7 +13,8 @@ export const PUBLISHABLE_KEY_REQUEST_PATHS = [
 ] as const;
 
 // Route patterns for parameterized path matching.
-// Used both for logging eligibility and route pattern extraction.
+// Also the allowlist for which mutation routes are recorded in API logs.
+// Used for route_pattern extraction and sensitive-field masking keys.
 // Order matters: more specific patterns must come before less specific ones.
 export const ROUTE_PATTERNS = [
   // Track
@@ -35,6 +36,7 @@ export const ROUTE_PATTERNS = [
   // Links
   "/links/bulk",
   "/links/upsert",
+  "/links/:linkId/transfer",
   "/links/:linkId",
   "/links",
 
@@ -50,9 +52,73 @@ export const ROUTE_PATTERNS = [
   // Bounties
   "/bounties/:bountyId/submissions/:submissionId/approve",
   "/bounties/:bountyId/submissions/:submissionId/reject",
+  "/bounties/:bountyId/sync-social-metrics",
+  "/bounties/:bountyId",
+  "/bounties",
+
+  // Campaigns
+  "/campaigns/:campaignId/duplicate",
+  "/campaigns/:campaignId/preview",
+  "/campaigns/:campaignId",
+  "/campaigns",
+
+  // Folders
+  "/folders/:folderId",
+  "/folders",
+
+  // Domains
+  "/domains/client/register",
+  "/domains/client/saved",
+  "/domains/default",
+  "/domains/register",
+  "/domains/:domain/primary",
+  "/domains/:domain/transfer",
+  "/domains/:domain",
+  "/domains",
+
+  // Tags
+  "/tags/:id",
+  "/tags",
 
   // Tokens
   "/tokens/embed/referrals",
+  "/tokens/:id",
+  "/tokens",
+
+  // Webhooks
+  "/webhooks/:webhookId",
+  "/webhooks",
+
+  // UTM
+  "/utm/:id",
+  "/utm",
+
+  // Dashboards
+  "/dashboards/:id",
+  "/dashboards",
+
+  // Groups
+  "/groups/:groupId/default-links/:defaultLinkId",
+  "/groups/:groupId/default-links",
+  "/groups/:groupId/default",
+  "/groups/:groupId/partners",
+  "/groups/:groupId",
+  "/groups",
+
+  // Discount codes
+  "/discount-codes/:discountCodeId",
+  "/discount-codes",
+
+  // Email domains
+  "/email-domains/:domain",
+  "/email-domains",
+
+  // OAuth
+  "/oauth/apps/:appId",
+  "/oauth/apps",
+
+  // Workspaces
+  "/workspaces/:id",
 ] as const;
 
 export const REQUEST_TYPES = [
