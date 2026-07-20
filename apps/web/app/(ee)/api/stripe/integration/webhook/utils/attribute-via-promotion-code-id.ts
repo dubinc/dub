@@ -160,7 +160,7 @@ export async function attributeViaPromotionCodeId({
       clickEvent,
       leadEvent: {
         ...existingLead,
-        workspace_id: customer.projectId,
+        workspace_id: workspace.id,
       },
     };
   }
@@ -170,7 +170,7 @@ export async function attributeViaPromotionCodeId({
 
   const leadEvent = {
     ...rest,
-    workspace_id: customer.projectId,
+    workspace_id: workspace.id,
     event_id: nanoid(16),
     event_name: "Attributed via discount code",
     customer_id: customer.id,
