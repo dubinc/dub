@@ -212,6 +212,14 @@ export const DELETE = withWorkspace(
       linkId: params.linkId,
     });
 
+    if (link.key === "_root") {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You can't delete a custom domain link. You can delete the domain instead.",
+      });
+    }
+
     if (link.folderId) {
       await verifyFolderAccess({
         workspace,
