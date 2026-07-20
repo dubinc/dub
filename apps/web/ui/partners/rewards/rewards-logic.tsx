@@ -707,13 +707,14 @@ function ConditionLogic({
                             "rounded-r-none",
                         )}
                       >
-                        {/* Country selection (single value only) */}
-                        {condition.attribute === "country" && !isArrayValue ? (
+                        {/* Country selection */}
+                        {condition.attribute === "country" ? (
                           // Country selector
                           <InlineBadgePopoverMenu
                             search
                             selectedValue={
-                              condition.value as string | undefined
+                              (condition.value as string[] | undefined) ??
+                              (isArrayValue ? [] : undefined)
                             }
                             items={Object.entries(COUNTRIES).map(
                               ([key, name]) => ({
@@ -730,16 +731,30 @@ function ConditionLogic({
                             onSelect={(value) => {
                               setValue(conditionKey, {
                                 ...condition,
-                                value,
+                                value: isArrayValue
+                                  ? Array.isArray(condition.value)
+                                    ? (condition.value as string[]).includes(
+                                        value,
+                                      )
+                                      ? (condition.value.filter(
+                                          (v) => v !== value,
+                                        ) as string[])
+                                      : ([
+                                          ...condition.value,
+                                          value,
+                                        ] as string[])
+                                    : [value]
+                                  : value,
                               });
                             }}
                           />
-                        ) : attribute?.options && !isArrayValue ? (
+                        ) : attribute?.options ? (
                           // Select option selector
                           <InlineBadgePopoverMenu
                             search={attribute.options.length > 4}
                             selectedValue={
-                              condition.value as string | undefined
+                              (condition.value as string[] | undefined) ??
+                              (isArrayValue ? [] : undefined)
                             }
                             items={attribute.options.map(({ id, label }) => ({
                               text: label,
@@ -748,7 +763,20 @@ function ConditionLogic({
                             onSelect={(value) => {
                               setValue(conditionKey, {
                                 ...condition,
-                                value,
+                                value: isArrayValue
+                                  ? Array.isArray(condition.value)
+                                    ? (condition.value as string[]).includes(
+                                        value,
+                                      )
+                                      ? (condition.value.filter(
+                                          (v) => v !== value,
+                                        ) as string[])
+                                      : ([
+                                          ...condition.value,
+                                          value,
+                                        ] as string[])
+                                    : [value]
+                                  : value,
                               });
                             }}
                           />
