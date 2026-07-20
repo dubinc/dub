@@ -1,6 +1,7 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
+import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
@@ -49,7 +50,6 @@ export async function checkoutSessionCompleted({
     | undefined;
 
   let customer: Customer | null = null;
-  let existingCustomer: Customer | null = null;
   let clickEvent: ClickEventTB | null = null;
   let leadEvent: LeadEventTB | undefined;
   let linkId: string | undefined;
@@ -71,25 +71,6 @@ export async function checkoutSessionCompleted({
       };
     }
 
-    existingCustomer = await prisma.customer.findFirst({
-      where: {
-        projectId: workspace.id,
-        // check for existing customer with the same externalId (via clickId or email)
-        OR: [
-          {
-            externalId: clickEvent.click_id,
-          },
-          ...(stripeCustomerEmail
-            ? [
-                {
-                  externalId: stripeCustomerEmail,
-                },
-              ]
-            : []),
-        ],
-      },
-    });
-
     const payload = {
       name: stripeCustomerName,
       email: stripeCustomerEmail,
@@ -104,19 +85,59 @@ export async function checkoutSessionCompleted({
       clickedAt: new Date(clickEvent.timestamp + "Z"),
     };
 
-    if (existingCustomer) {
-      customer = await prisma.customer.update({
+    const { customer: existingOrNewCustomer, created } =
+      await getOrCreateCustomer({
+        findMode: "first",
         where: {
-          id: existingCustomer.id,
+          OR: [
+            {
+              projectId: workspace.id,
+              externalId: clickEvent.click_id,
+            },
+
+            ...(stripeCustomerEmail
+              ? [
+                  {
+                    projectId: workspace.id,
+                    externalId: stripeCustomerEmail,
+                  },
+                ]
+              : []),
+
+            // include create unique keys so concurrent P2002 fallbacks can find
+            // the customer that won the insert (externalId / stripeCustomerId)
+            ...(payload.externalId
+              ? [
+                  {
+                    projectId: workspace.id,
+                    externalId: payload.externalId,
+                  },
+                ]
+              : []),
+
+            ...(stripeCustomerId
+              ? [
+                  {
+                    stripeCustomerId,
+                  },
+                ]
+              : []),
+          ],
         },
-        data: payload,
-      });
-    } else {
-      customer = await prisma.customer.create({
-        data: {
+        create: {
           id: createId({ prefix: "cus_" }),
           ...payload,
         },
+      });
+
+    if (created) {
+      customer = existingOrNewCustomer;
+    } else {
+      customer = await prisma.customer.update({
+        where: {
+          id: existingOrNewCustomer.id,
+        },
+        data: payload,
       });
     }
 
@@ -131,7 +152,8 @@ export async function checkoutSessionCompleted({
       metadata: "",
     };
 
-    if (!existingCustomer) {
+    // if the customer was created, we record the lead event and increment the link leads
+    if (created) {
       await recordLead(leadEvent);
       waitUntil(incrementLinkLeads(clickEvent.link_id));
     }
@@ -174,14 +196,13 @@ export async function checkoutSessionCompleted({
         if (promotionCodeId) {
           const promoCodeResponse = await attributeViaPromotionCodeId({
             promotionCodeId,
-            stripeAccountId,
             workspace,
             mode,
-            stripeCustomerId,
             customerDetails: {
               name: charge.customer_details?.name,
               email: charge.customer_details?.email,
               address: charge.customer_details?.address,
+              stripeCustomerId,
             },
           });
           if (promoCodeResponse) {
@@ -199,7 +220,7 @@ export async function checkoutSessionCompleted({
       }
     } else {
       // find customer by stripeCustomerId or email
-      existingCustomer = await prisma.customer.findFirst({
+      const existingCustomer = await prisma.customer.findFirst({
         where: {
           OR: [
             {
@@ -246,14 +267,13 @@ export async function checkoutSessionCompleted({
         } else if (promotionCodeId) {
           const promoCodeResponse = await attributeViaPromotionCodeId({
             promotionCodeId,
-            stripeAccountId,
             workspace,
             mode,
-            stripeCustomerId,
             customerDetails: {
               name: charge.customer_details?.name,
               email: charge.customer_details?.email,
               address: charge.customer_details?.address,
+              stripeCustomerId,
             },
           });
           if (promoCodeResponse) {
