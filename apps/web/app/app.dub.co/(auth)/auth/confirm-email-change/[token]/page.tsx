@@ -1,5 +1,6 @@
 import { getSession, hashToken } from "@/lib/auth";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
+import { syncPlainCustomerEmail } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@/lib/prisma";
 import { redis } from "@/lib/upstash";
 import EmptyState from "@/ui/shared/empty-state";
@@ -211,6 +212,9 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
     });
   }
 
+  const shouldSyncPlainCustomerEmail =
+    !!data.syncIdentity || !data.isPartnerProfile;
+
   waitUntil(
     Promise.allSettled([
       deleteRequest(tokenFound),
@@ -225,6 +229,16 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
           syncIdentity: !!data.syncIdentity,
         }),
       }),
+
+      ...(shouldSyncPlainCustomerEmail
+        ? [
+            syncPlainCustomerEmail({
+              id: userId,
+              name: session.user.name ?? null,
+              email: data.newEmail,
+            }),
+          ]
+        : []),
     ]),
   );
 
