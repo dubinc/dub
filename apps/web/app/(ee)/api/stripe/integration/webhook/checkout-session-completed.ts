@@ -103,6 +103,17 @@ export async function checkoutSessionCompleted({
                   },
                 ]
               : []),
+
+            // include create unique keys so concurrent P2002 fallbacks can find
+            // the customer that won the insert (externalId / stripeCustomerId)
+            ...(payload.externalId
+              ? [
+                  {
+                    projectId: workspace.id,
+                    externalId: payload.externalId,
+                  },
+                ]
+              : []),
           ],
         },
         create: {
