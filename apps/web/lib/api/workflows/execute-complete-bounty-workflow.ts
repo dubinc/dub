@@ -75,6 +75,9 @@ export const executeCompleteBountyWorkflow = async ({
           id: true,
           status: true,
         },
+        where: {
+          partnerId,
+        },
       },
     },
   });
