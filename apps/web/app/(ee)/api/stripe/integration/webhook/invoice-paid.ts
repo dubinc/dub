@@ -102,14 +102,13 @@ export async function invoicePaid({
     if (promotionCodeId) {
       const promoCodeResponse = await attributeViaPromotionCodeId({
         promotionCodeId,
-        stripeAccountId,
         workspace,
         mode,
-        stripeCustomerId,
         customerDetails: {
           name: invoice.customer_name,
           email: invoice.customer_email,
           address: invoice.customer_address,
+          stripeCustomerId,
         },
       });
 
