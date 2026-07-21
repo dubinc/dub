@@ -1,11 +1,9 @@
 import { Bounty, Prisma, ProgramEnrollment } from "@prisma/client";
 import { addDays } from "date-fns";
 
-export function buildBountyEligibilityWhere({
-  groupId,
-}: {
-  groupId: string | undefined;
-}): Prisma.BountyWhereInput {
+export function buildBountyEligibilityWhere(
+  groupId: string | undefined,
+): Prisma.BountyWhereInput {
   return {
     OR: [
       {
@@ -56,3 +54,23 @@ export function getEffectiveBountyPeriod({
     endsAt: endsAfterDays ? addDays(bountyStartDate, endsAfterDays) : endsAt,
   };
 }
+
+export const canPartnerSeeBounty = ({
+  programEnrollment,
+  bounty,
+}: {
+  programEnrollment: Pick<ProgramEnrollment, "groupJoinedAt" | "createdAt">;
+  bounty: Pick<Bounty, "startsAt" | "endsAt" | "endsAfterDays" | "startMode">;
+}) => {
+  //
+};
+
+export const canPartnerSubmitToBounty = ({
+  programEnrollment,
+  bounty,
+}: {
+  programEnrollment: Pick<ProgramEnrollment, "groupJoinedAt" | "createdAt">;
+  bounty: Pick<Bounty, "startsAt" | "endsAt" | "endsAfterDays" | "startMode">;
+}) => {
+  //
+};

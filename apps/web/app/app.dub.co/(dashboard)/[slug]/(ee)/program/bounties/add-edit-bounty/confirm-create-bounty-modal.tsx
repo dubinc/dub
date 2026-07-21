@@ -1,3 +1,4 @@
+import { getProgramBountyMeta } from "@/lib/bounty/bounty-period";
 import { getBountyRewardDescription } from "@/lib/bounty/rewards";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroups from "@/lib/swr/use-groups";
@@ -17,8 +18,8 @@ import {
   Tooltip,
   TooltipContent,
 } from "@dub/ui";
-import { Users6 } from "@dub/ui/icons";
-import { formatDate, nFormatter, pluralize } from "@dub/utils";
+import { Users, Users6 } from "@dub/ui/icons";
+import { nFormatter, pluralize } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
@@ -29,6 +30,8 @@ type ConfirmCreateBountyModalProps = {
     | "name"
     | "startsAt"
     | "endsAt"
+    | "startMode"
+    | "endsAfterDays"
     | "rewardAmount"
     | "rewardDescription"
     | "submissionRequirements"
@@ -79,7 +82,13 @@ function ConfirmCreateBountyModal({
     }
   };
 
-  return bounty ? (
+  if (!bounty) {
+    return null;
+  }
+
+  const { dateRangeLabel, partnerAudienceLabel } = getProgramBountyMeta(bounty);
+
+  return (
     <Modal
       showModal={showConfirmCreateBountyModal}
       setShowModal={setShowConfirmCreateBountyModal}
@@ -107,15 +116,7 @@ function ConfirmCreateBountyModal({
 
               <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
                 <Calendar6 className="size-3.5" />
-                <span>
-                  {formatDate(bounty.startsAt, { month: "short" })}
-                  {bounty.endsAt && (
-                    <>
-                      {" → "}
-                      {formatDate(bounty.endsAt, { month: "short" })}
-                    </>
-                  )}
-                </span>
+                <span>{dateRangeLabel}</span>
               </div>
 
               {!isOwner && (
@@ -126,6 +127,11 @@ function ConfirmCreateBountyModal({
                   </span>
                 </div>
               )}
+
+              <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
+                <Users className="size-3.5" />
+                <span>{partnerAudienceLabel}</span>
+              </div>
 
               {isOwner && (
                 <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
@@ -236,7 +242,7 @@ function ConfirmCreateBountyModal({
         />
       </div>
     </Modal>
-  ) : null;
+  );
 }
 
 export function useConfirmCreateBountyModal(

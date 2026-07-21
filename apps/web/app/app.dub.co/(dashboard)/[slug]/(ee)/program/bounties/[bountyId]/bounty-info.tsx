@@ -1,47 +1,20 @@
 "use client";
 
+import { getProgramBountyMeta } from "@/lib/bounty/bounty-period";
 import useBounty from "@/lib/swr/use-bounty";
-import {
-  SubmissionsCountByStatus,
-  useBountySubmissionsCount,
-} from "@/lib/swr/use-bounty-submissions-count";
 import useGroups from "@/lib/swr/use-groups";
-import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { ScrollableTooltipContent, Tooltip } from "@dub/ui";
 import { Calendar6, Users, Users6 } from "@dub/ui/icons";
-import { formatDate, nFormatter, pluralize } from "@dub/utils";
 import { useMemo } from "react";
 import { BountyActionButton } from "../bounty-action-button";
 
 export function BountyInfo() {
   const { bounty, loading } = useBounty();
   const { isOwner } = useWorkspace();
-
-  const { submissionsCount } = useBountySubmissionsCount<
-    SubmissionsCountByStatus[]
-  >({
-    ignoreParams: true,
-    enabled: Boolean(bounty),
-  });
-
-  const totalSubmissions = useMemo(() => {
-    return submissionsCount
-      ?.filter((s) => s.status === "submitted" || s.status === "approved")
-      ?.reduce((acc, curr) => acc + curr.count, 0);
-  }, [submissionsCount]);
-
-  const readyForReviewSubmissions = useMemo(() => {
-    return submissionsCount?.find((s) => s.status === "submitted")?.count ?? 0;
-  }, [submissionsCount]);
-
-  const { totalPartners, loading: totalPartnersForBountyLoading } =
-    usePartnersCountByGroupIds({
-      groupIds: bounty?.groups?.map((group) => group.id) ?? [],
-    });
 
   const { groups } = useGroups();
 
@@ -62,6 +35,8 @@ export function BountyInfo() {
     return null;
   }
 
+  const { dateRangeLabel, partnerAudienceLabel } = getProgramBountyMeta(bounty);
+
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
       <div className="relative flex h-[100px] w-full items-center justify-center rounded-lg bg-neutral-100 p-4 sm:h-[128px] sm:w-[100px] sm:shrink-0">
@@ -80,63 +55,14 @@ export function BountyInfo() {
 
         <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
           <Calendar6 className="size-4 shrink-0" />
-          <span>
-            {formatDate(bounty.startsAt, { month: "short" })}
-            {" → "}
-            {bounty.endsAt
-              ? formatDate(bounty.endsAt, { month: "short" })
-              : "No end date"}
-          </span>
+          <span>{dateRangeLabel}</span>
         </div>
 
         <BountyRewardDescription bounty={bounty} className="font-regular" />
 
         <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
           <Users className="size-4 shrink-0" />
-          <div>
-            {totalPartnersForBountyLoading ? (
-              <span className="inline-block h-4 w-8 animate-pulse rounded bg-neutral-200 align-middle" />
-            ) : totalPartners === 0 ? (
-              <>
-                <span className="text-content-default">0</span>{" "}
-                {pluralize("partner", 0)}{" "}
-                {bounty.type === "performance" ? "completed" : "submitted"}
-              </>
-            ) : totalSubmissions === totalPartners ? (
-              <>
-                All{" "}
-                <span className="text-content-default">
-                  {nFormatter(totalPartners, { full: true })}
-                </span>{" "}
-                {pluralize("partner", totalPartners)}{" "}
-                {bounty.type === "performance" ? "completed" : "submitted"}
-              </>
-            ) : (
-              <>
-                <span className="text-content-default">
-                  {nFormatter(totalSubmissions ?? 0, {
-                    full: true,
-                  })}
-                </span>{" "}
-                of{" "}
-                <span className="text-content-default">
-                  {nFormatter(totalPartners, { full: true })}
-                </span>{" "}
-                {pluralize("partner", totalPartners)}{" "}
-                {bounty.type === "performance" ? "completed" : "submitted"}
-              </>
-            )}
-            {readyForReviewSubmissions > 0 && (
-              <>
-                {" "}
-                (
-                <span className="text-content-default">
-                  {nFormatter(readyForReviewSubmissions, { full: true })}
-                </span>{" "}
-                awaiting review)
-              </>
-            )}
-          </div>
+          <span>{partnerAudienceLabel}</span>
         </div>
 
         {isOwner && (

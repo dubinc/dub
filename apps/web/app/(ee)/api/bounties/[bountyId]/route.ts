@@ -4,7 +4,7 @@ import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { bountyEligibilityIncludes } from "@/lib/bounty/api/bounty-eligibility";
+import { bountyEligibilityIncludes } from "@/lib/bounty/api/bounty-availability";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getBountyWithDetails } from "@/lib/bounty/api/get-bounty-with-details";

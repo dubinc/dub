@@ -10,7 +10,7 @@ import {
   bountyEligibilityIncludes,
   buildBountyEligibilityWhere,
   getEffectiveBountyPeriod,
-} from "@/lib/bounty/api/bounty-eligibility";
+} from "@/lib/bounty/api/bounty-availability";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { qstash } from "@/lib/cron";
@@ -63,9 +63,7 @@ export const GET = withWorkspace(
         where: {
           programId,
           ...(programEnrollment && {
-            ...buildBountyEligibilityWhere({
-              groupId: partnerGroupId,
-            }),
+            ...buildBountyEligibilityWhere(partnerGroupId),
           }),
         },
         include: {

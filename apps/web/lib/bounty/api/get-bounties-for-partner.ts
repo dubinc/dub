@@ -6,44 +6,69 @@ import { prisma } from "@/lib/prisma";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { Program, ProgramEnrollment } from "@prisma/client";
 import * as z from "zod/v4";
+import {
+  buildBountyEligibilityWhere,
+  getEffectiveBountyPeriod,
+} from "./bounty-availability";
 
 type GetBountiesForPartnerParams = Pick<
   ProgramEnrollment,
-  "groupId" | "partnerId" | "totalCommissions"
+  "groupId" | "partnerId" | "totalCommissions" | "groupJoinedAt" | "createdAt"
 > & {
   links: PartnerLink[];
   program: Pick<Program, "id" | "defaultGroupId">;
 };
 
-export async function getBountiesForPartner(
-  params: GetBountiesForPartnerParams,
-) {
-  const { groupId, partnerId, totalCommissions, program, links } = params;
-
+export async function getBountiesForPartner({
+  partnerId,
+  groupId,
+  totalCommissions,
+  createdAt,
+  groupJoinedAt,
+  program,
+  links,
+}: GetBountiesForPartnerParams) {
   const now = new Date();
+  const partnerGroupId = groupId || program.defaultGroupId;
 
   const bounties = await prisma.bounty.findMany({
     where: {
       programId: program.id,
-      startsAt: {
-        lte: now,
-      },
-      // If bounty has no groups, it's available to all partners
-      // If bounty has groups, only partners in those groups can see it
+      archivedAt: null,
       OR: [
+        // Relative bounties start when a partner joins (no startsAt filter).
         {
-          groups: {
-            none: {},
-          },
+          startMode: "relative",
         },
+
+        // Absolute bounties must have started and not expired.
         {
-          groups: {
+          startMode: "absolute",
+          startsAt: {
+            lt: now,
+          },
+          OR: [
+            {
+              endsAt: null,
+            },
+            {
+              endsAt: {
+                gt: now,
+              },
+            },
+          ],
+        },
+
+        // Bounties the partner has a submission on stay visible
+        {
+          submissions: {
             some: {
-              groupId: groupId || program.defaultGroupId,
+              partnerId,
             },
           },
         },
       ],
+      ...buildBountyEligibilityWhere(partnerGroupId),
     },
     include: {
       workflow: {
@@ -72,13 +97,28 @@ export async function getBountiesForPartner(
   const partnerLinkStats = aggregatePartnerLinksStats(links);
 
   return z.array(PartnerBountySchema).parse(
-    bounties.map((bounty) => ({
-      ...bounty,
-      performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
-      partner: {
-        ...partnerLinkStats,
-        totalCommissions,
-      },
-    })),
+    bounties.map((bounty) => {
+      const performanceCondition =
+        bounty.workflow?.triggerConditions?.[0] || null;
+
+      const { startsAt, endsAt } = getEffectiveBountyPeriod({
+        programEnrollment: {
+          createdAt,
+          groupJoinedAt,
+        },
+        bounty,
+      });
+
+      return {
+        ...bounty,
+        startsAt,
+        endsAt,
+        performanceCondition,
+        partner: {
+          ...partnerLinkStats,
+          totalCommissions,
+        },
+      };
+    }),
   );
 }
