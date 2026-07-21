@@ -39,7 +39,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { BountySubmissionFrequency } from "@prisma/client";
+import { BountyStartMode, BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, FormProvider } from "react-hook-form";
 import { BountyCriteria } from "./bounty-criteria";
@@ -111,7 +111,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
   const bountyTimingValue = useMemo(
     () => ({
-      startMode: startMode ?? "absolute",
+      startMode: startMode ?? BountyStartMode.absolute,
       startsAt: startsAt ? new Date(startsAt) : new Date(),
       endsAt: endsAt ? new Date(endsAt) : null,
       endsAfterDays: endsAfterDays ?? null,

@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { CreateBountyInput } from "@/lib/types";
+import { BountyStartMode } from "@prisma/client";
 
 export function validateBounty({
   type,
@@ -14,11 +15,11 @@ export function validateBounty({
   rewardDescription,
   performanceScope,
 }: Partial<CreateBountyInput>) {
-  startMode = startMode ?? "absolute";
+  startMode = startMode ?? BountyStartMode.absolute;
 
   // startsAt is required when startMode is absolute and must be null when
   // startMode is relative (relative bounties start when a partner joins).
-  if (startMode === "relative") {
+  if (startMode === BountyStartMode.relative) {
     if (startsAt != null) {
       throw new DubApiError({
         message:
@@ -39,7 +40,7 @@ export function validateBounty({
     });
   }
 
-  if (startMode === "absolute" && endsAfterDays) {
+  if (startMode === BountyStartMode.absolute && endsAfterDays) {
     throw new DubApiError({
       message:
         "endsAfterDays is only supported when the bounty starts when a partner joins.",

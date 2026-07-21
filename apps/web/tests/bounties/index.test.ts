@@ -1,4 +1,4 @@
-import { Bounty } from "@prisma/client";
+import { Bounty, BountyStartMode } from "@prisma/client";
 import { addDays, addMonths, subDays } from "date-fns";
 import { E2E_PARTNER_GROUP } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
@@ -397,7 +397,7 @@ describe.sequential(
         path: "/bounties",
         body: {
           ...base,
-          startMode: "relative",
+          startMode: BountyStartMode.relative,
           startsAt: null,
           endsAt: null,
           endsAfterDays: 30,
@@ -408,7 +408,7 @@ describe.sequential(
 
       expect(status).toEqual(200);
       expect(bounty).toMatchObject({
-        startMode: "relative",
+        startMode: BountyStartMode.relative,
         startsAt: null,
         endsAt: null,
         endsAfterDays: 30,

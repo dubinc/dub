@@ -20,7 +20,7 @@ import {
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
 import { arrayEqual, deepEqual } from "@dub/utils";
-import { PartnerGroup, Prisma } from "@prisma/client";
+import { BountyStartMode, PartnerGroup, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -93,7 +93,10 @@ export const PATCH = withWorkspace(
       endsAtUpdate = { endsAt };
     } else if (endsAfterDays != null) {
       endsAtUpdate = { endsAt: null };
-    } else if (nextStartMode === "relative" && bounty.endsAt != null) {
+    } else if (
+      nextStartMode === BountyStartMode.relative &&
+      bounty.endsAt != null
+    ) {
       endsAtUpdate = { endsAt: null };
     }
 
@@ -102,7 +105,7 @@ export const PATCH = withWorkspace(
       // Relative bounties never store startsAt; coerce so mode switches don't
       // fail validation against a leftover absolute startsAt.
       startsAt:
-        nextStartMode === "relative"
+        nextStartMode === BountyStartMode.relative
           ? null
           : startsAt !== undefined
             ? startsAt
@@ -113,7 +116,7 @@ export const PATCH = withWorkspace(
       endsAfterDays:
         endsAfterDays !== undefined
           ? endsAfterDays
-          : nextStartMode === "absolute"
+          : nextStartMode === BountyStartMode.absolute
             ? null
             : bounty.endsAfterDays,
       submissionsOpenAt,
@@ -220,7 +223,7 @@ export const PATCH = withWorkspace(
     // For absolute bounties, only update startsAt when explicitly provided.
     let startsAtUpdate: { startsAt?: Date | null } = {};
 
-    if (nextStartMode === "relative") {
+    if (nextStartMode === BountyStartMode.relative) {
       startsAtUpdate = { startsAt: null };
     } else if (startsAt !== undefined) {
       startsAtUpdate = { startsAt: startsAt ?? new Date() };
@@ -242,7 +245,8 @@ export const PATCH = withWorkspace(
           ...(startMode !== undefined && { startMode }),
           ...(endsAfterDays !== undefined
             ? { endsAfterDays }
-            : nextStartMode === "absolute" && bounty.endsAfterDays != null
+            : nextStartMode === BountyStartMode.absolute &&
+                bounty.endsAfterDays != null
               ? { endsAfterDays: null }
               : {}),
           submissionsOpenAt:

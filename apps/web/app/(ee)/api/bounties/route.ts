@@ -29,7 +29,7 @@ import {
   WORKFLOW_ATTRIBUTE_TRIGGER,
 } from "@/lib/zod/schemas/workflows";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Workflow } from "@prisma/client";
+import { BountyStartMode, Workflow } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -210,7 +210,8 @@ export const POST = withWorkspace(
 
     // startsAt is only stored for absolute bounties (defaulting to now when
     // omitted); relative bounties start when a partner joins, so it stays null.
-    startsAt = startMode === "absolute" ? startsAt || new Date() : null;
+    startsAt =
+      startMode === BountyStartMode.absolute ? startsAt || new Date() : null;
 
     const bounty = await prisma.$transaction(async (tx) => {
       let workflow: Workflow | null = null;
@@ -286,12 +287,12 @@ export const POST = withWorkspace(
     const shouldScheduleDraftSubmissions =
       bounty.type === "performance" &&
       bounty.performanceScope === "lifetime" &&
-      bounty.startMode === "absolute";
+      bounty.startMode === BountyStartMode.absolute;
 
     const shouldSchedulePartnerNotifications =
       sendNotificationEmails &&
       canSendEmailCampaigns &&
-      bounty.startMode === "absolute";
+      bounty.startMode === BountyStartMode.absolute;
 
     waitUntil(
       Promise.allSettled([

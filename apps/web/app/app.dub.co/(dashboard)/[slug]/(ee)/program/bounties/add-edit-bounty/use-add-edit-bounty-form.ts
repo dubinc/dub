@@ -17,7 +17,7 @@ import {
   bountySocialContentRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
 import { formatDate } from "@dub/utils";
-import { BountySubmissionFrequency } from "@prisma/client";
+import { BountyStartMode, BountySubmissionFrequency } from "@prisma/client";
 import { addDays } from "date-fns";
 import {
   Dispatch,
@@ -250,7 +250,8 @@ export function useAddEditBountyForm({
 
       setHasEndDate(
         Boolean(nextEndsAt) ||
-          (nextStartMode === "relative" && Boolean(nextEndsAfterDays)),
+          (nextStartMode === BountyStartMode.relative &&
+            Boolean(nextEndsAfterDays)),
       );
 
       if (!nextEndsAt) {
@@ -603,7 +604,7 @@ export function useAddEditBountyForm({
     } = form.getValues();
 
     // Relative bounties start when a partner joins, so startsAt must be null
-    if (data.startMode === "relative") {
+    if (data.startMode === BountyStartMode.relative) {
       data.startsAt = null;
     }
 
@@ -694,14 +695,17 @@ export function useAddEditBountyForm({
                       : performanceCondition,
                   })
                 : name || "New bounty",
-            startsAt: startMode === "relative" ? null : startsAt || new Date(),
+            startsAt:
+              startMode === BountyStartMode.relative
+                ? null
+                : startsAt || new Date(),
             endsAt:
-              startMode === "relative"
+              startMode === BountyStartMode.relative
                 ? endsAfterDays != null
                   ? null
                   : endsAt ?? null
                 : effectiveEndsAt,
-            startMode: startMode ?? "absolute",
+            startMode: startMode ?? BountyStartMode.absolute,
             endsAfterDays: endsAfterDays ?? null,
             rewardAmount: rewardAmount ? rewardAmount * 100 : null,
             rewardDescription: rewardDescription || null,

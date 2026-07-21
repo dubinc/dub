@@ -14,6 +14,7 @@ import {
 } from "@/ui/shared/inline-badge-popover";
 import { CalendarIcon, DatePicker } from "@dub/ui";
 import { formatDate } from "@dub/utils";
+import { BountyStartMode } from "@prisma/client";
 import { addDays, addMonths, addWeeks } from "date-fns";
 import { useEffect, useState } from "react";
 
@@ -98,7 +99,7 @@ function parsePresets(value: BountyTimingInput): ParsedPresets {
   let startPreset: StartPreset;
   let customStartsAt: Date | null;
 
-  if (value.startMode === "relative") {
+  if (value.startMode === BountyStartMode.relative) {
     startPreset = "onPartnerJoin";
     customStartsAt = null;
   } else {
@@ -142,7 +143,7 @@ function parsePresets(value: BountyTimingInput): ParsedPresets {
   if (!value.endsAt) {
     endPreset = "never";
     customEndsAt = null;
-  } else if (value.startMode === "absolute") {
+  } else if (value.startMode === BountyStartMode.absolute) {
     const matchedEndPreset = (
       Object.entries(BOUNTY_DURATION_DAYS) as [DurationPreset, number][]
     ).find(([, days]) =>
@@ -171,7 +172,7 @@ function parsePresets(value: BountyTimingInput): ParsedPresets {
 }
 
 function parsePresetsForEdit(value: BountyTimingInput): ParsedPresets {
-  if (value.startMode === "relative") {
+  if (value.startMode === BountyStartMode.relative) {
     const startPreset: StartPreset = "onPartnerJoin";
     const customStartsAt = null;
 
@@ -385,7 +386,7 @@ export function BountyDuration({
   const endSuffix =
     customEndsAfterDays != null ||
     (endPreset !== "never" && endPreset !== "custom")
-      ? value.startMode === "relative"
+      ? value.startMode === BountyStartMode.relative
         ? "after joining"
         : "from start date"
       : null;

@@ -104,7 +104,9 @@ export function getEffectiveBountyPeriod({
   // If startMode is absolute, use the startsAt (Assumed to be set).
   // If startMode is relative, use the groupJoinedAt or createdAt.
   const bountyStartDate =
-    startMode === "absolute" ? startsAt! : groupJoinedAt || createdAt;
+    startMode === BountyStartMode.absolute
+      ? startsAt!
+      : groupJoinedAt || createdAt;
 
   return {
     startsAt: bountyStartDate,
@@ -135,7 +137,7 @@ export function isPartnerEligibleForBounty({
   }
 
   // Relative bounties are for new partners only (joined on/after bounty creation)
-  if (bounty.startMode === "relative") {
+  if (bounty.startMode === BountyStartMode.relative) {
     const partnerJoinedAt =
       programEnrollment.groupJoinedAt || programEnrollment.createdAt;
 

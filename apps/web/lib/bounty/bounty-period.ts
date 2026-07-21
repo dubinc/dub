@@ -38,7 +38,7 @@ export function resolveBountyTiming({
 }) {
   const now = new Date();
 
-  let startMode: BountyStartMode = "absolute";
+  let startMode: BountyStartMode = BountyStartMode.absolute;
   let startsAt = now;
 
   switch (startPreset) {
@@ -55,7 +55,7 @@ export function resolveBountyTiming({
       startsAt = addMonths(now, 6);
       break;
     case "onPartnerJoin":
-      startMode = "relative";
+      startMode = BountyStartMode.relative;
       startsAt = now;
       break;
     case "custom":
@@ -72,7 +72,7 @@ export function resolveBountyTiming({
     case "twoWeeks":
     case "oneMonth":
     case "sixMonths":
-      if (startMode === "absolute") {
+      if (startMode === BountyStartMode.absolute) {
         endsAt = addDays(startsAt, BOUNTY_DURATION_DAYS[endPreset]);
       } else {
         endsAfterDays = BOUNTY_DURATION_DAYS[endPreset];
@@ -110,7 +110,7 @@ export function getProgramBountyMeta({
   startMode: BountyStartMode;
   endsAfterDays: number | null;
 }) {
-  const isRelative = startMode === "relative" || !startsAt;
+  const isRelative = startMode === BountyStartMode.relative || !startsAt;
 
   let dateRangeLabel: string;
 
