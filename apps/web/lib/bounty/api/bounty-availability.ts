@@ -14,7 +14,13 @@ type PartnerBountyEligibilityInput = {
   program: Pick<Program, "defaultGroupId">;
   bounty: Pick<
     Bounty,
-    "id" | "startsAt" | "endsAt" | "endsAfterDays" | "startMode" | "archivedAt"
+    | "id"
+    | "startsAt"
+    | "endsAt"
+    | "endsAfterDays"
+    | "startMode"
+    | "archivedAt"
+    | "createdAt"
   > & {
     groups: Pick<BountyGroup, "groupId">[];
   };
@@ -125,6 +131,19 @@ function isPartnerEligibleForBounty({
       `Partner doesn't belong to any of the bounty's ${bounty.id} groups.`,
     );
     return false;
+  }
+
+  // Relative bounties are for new partners only (joined on/after bounty creation)
+  if (bounty.startMode === "relative") {
+    const partnerJoinedAt =
+      programEnrollment.groupJoinedAt || programEnrollment.createdAt;
+
+    if (partnerJoinedAt < bounty.createdAt) {
+      console.log(
+        `Partner joined before relative bounty ${bounty.id} was created.`,
+      );
+      return false;
+    }
   }
 
   // Check if the bounty is in the active period

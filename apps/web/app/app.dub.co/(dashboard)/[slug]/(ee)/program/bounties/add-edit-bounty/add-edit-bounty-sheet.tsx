@@ -40,7 +40,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { BountySubmissionFrequency } from "@prisma/client";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, FormProvider } from "react-hook-form";
 import { BountyCriteria } from "./bounty-criteria";
 import { BountyDuration } from "./bounty-duration";
@@ -109,6 +109,16 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     getPlanCapabilities(plan).canUseBountySocialMetrics;
   const showBountySocialMetricsUpsell =
     bountyTypeUI === "socialMetrics" && !canUseBountySocialMetrics;
+
+  const bountyTimingValue = useMemo(
+    () => ({
+      startMode: startMode ?? "absolute",
+      startsAt: startsAt ? new Date(startsAt) : new Date(),
+      endsAt: endsAt ? new Date(endsAt) : null,
+      endsAfterDays: endsAfterDays ?? null,
+    }),
+    [startMode, startsAt, endsAt, endsAfterDays],
+  );
 
   return (
     <form onSubmit={onSubmit} className="flex h-full flex-col">
@@ -248,12 +258,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
                     <BountyDuration
                       isEditing={!!bounty}
-                      value={{
-                        startMode: startMode ?? "absolute",
-                        startsAt: startsAt ? new Date(startsAt) : new Date(),
-                        endsAt: endsAt ? new Date(endsAt) : null,
-                        endsAfterDays: endsAfterDays ?? null,
-                      }}
+                      value={bountyTimingValue}
                       onChange={handleTimingChange}
                     />
 

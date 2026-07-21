@@ -392,6 +392,35 @@ describe.sequential(
       });
     });
 
+    test("POST /bounties - submissionFrequency with relative endsAfterDays is accepted", async () => {
+      const { status, data: bounty } = await http.post<Bounty>({
+        path: "/bounties",
+        body: {
+          ...base,
+          startMode: "relative",
+          startsAt: null,
+          endsAt: null,
+          endsAfterDays: 30,
+          maxSubmissions: 4,
+          submissionFrequency: "week",
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(bounty).toMatchObject({
+        startMode: "relative",
+        startsAt: null,
+        endsAt: null,
+        endsAfterDays: 30,
+        maxSubmissions: 4,
+        submissionFrequency: "week",
+      });
+
+      onTestFinished(async () => {
+        await h.deleteBounty(bounty.id);
+      });
+    });
+
     test("POST /bounties - submissionsOpenAt without endsAt is rejected", async () => {
       const submissionsOpenAt = addDays(bountyStartsAt, 5).toISOString();
 

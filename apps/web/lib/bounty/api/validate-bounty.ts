@@ -114,7 +114,7 @@ export function validateBounty({
       });
     }
 
-    if (submissionFrequency && !endsAt) {
+    if (submissionFrequency && !endsAt && !endsAfterDays) {
       throw new DubApiError({
         code: "bad_request",
         message: "An end date is required when submissionFrequency is set.",

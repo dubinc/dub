@@ -339,8 +339,8 @@ export function BountyDuration({
   }, [
     isEditing,
     value.startMode,
-    value.startsAt,
-    value.endsAt,
+    value.startsAt?.getTime(),
+    value.endsAt?.getTime(),
     value.endsAfterDays,
   ]);
 
@@ -408,7 +408,12 @@ export function BountyDuration({
                   setStartPreset(preset);
 
                   if (preset === "custom") {
-                    setCustomStartsAt(customStartsAt ?? value.startsAt);
+                    const nextCustomStartsAt = customStartsAt ?? value.startsAt;
+                    setCustomStartsAt(nextCustomStartsAt);
+                    applyTiming({
+                      nextStartPreset: "custom",
+                      nextCustomStartsAt,
+                    });
                     return;
                   }
 
@@ -450,11 +455,15 @@ export function BountyDuration({
                   setCustomEndsAfterDays(null);
 
                   if (preset === "custom") {
-                    setCustomEndsAt(
+                    const nextCustomEndsAt =
                       customEndsAt ??
-                        value.endsAt ??
-                        addWeeks(value.startsAt, 2),
-                    );
+                      value.endsAt ??
+                      addWeeks(value.startsAt, 2);
+                    setCustomEndsAt(nextCustomEndsAt);
+                    applyTiming({
+                      nextEndPreset: "custom",
+                      nextCustomEndsAt,
+                    });
                     return;
                   }
 
