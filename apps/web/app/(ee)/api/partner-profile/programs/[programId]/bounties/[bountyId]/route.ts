@@ -38,7 +38,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
 
   const bounty = await getBountyOrThrow({
-    programId,
+    programId: program.id,
     bountyId,
     include: {
       workflow: {

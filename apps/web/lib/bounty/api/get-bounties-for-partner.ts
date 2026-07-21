@@ -34,41 +34,45 @@ export async function getBountiesForPartner({
   const bounties = await prisma.bounty.findMany({
     where: {
       programId: program.id,
-      archivedAt: null,
       OR: [
-        // Relative bounties start when a partner joins (no startsAt filter).
         {
-          startMode: "relative",
-        },
-
-        // Absolute bounties must have started and not expired.
-        {
-          startMode: "absolute",
-          startsAt: {
-            lt: now,
-          },
+          archivedAt: null,
+          ...buildBountyEligibilityWhere(partnerGroupId),
           OR: [
+            // Relative bounties start when a partner joins (no startsAt filter).
             {
-              endsAt: null,
+              startMode: "relative",
             },
+
+            // Absolute bounties must have started and not expired.
             {
-              endsAt: {
-                gt: now,
+              startMode: "absolute",
+              startsAt: {
+                lt: now,
+              },
+              OR: [
+                {
+                  endsAt: null,
+                },
+                {
+                  endsAt: {
+                    gt: now,
+                  },
+                },
+              ],
+            },
+
+            // Bounties the partner has a submission on stay visible
+            {
+              submissions: {
+                some: {
+                  partnerId,
+                },
               },
             },
           ],
         },
-
-        // Bounties the partner has a submission on stay visible
-        {
-          submissions: {
-            some: {
-              partnerId,
-            },
-          },
-        },
       ],
-      ...buildBountyEligibilityWhere(partnerGroupId),
     },
     include: {
       workflow: {

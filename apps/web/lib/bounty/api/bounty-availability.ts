@@ -67,7 +67,7 @@ type PartnerBountyEligibilityInput = {
   program: Pick<Program, "defaultGroupId">;
   bounty: Pick<
     Bounty,
-    "startsAt" | "endsAt" | "endsAfterDays" | "startMode" | "archivedAt"
+    "id" | "startsAt" | "endsAt" | "endsAfterDays" | "startMode" | "archivedAt"
   > & {
     groups: Pick<BountyGroup, "groupId">[];
   };
@@ -92,6 +92,9 @@ export function isPartnerEligibleForBounty({
   const partnerGroupId = programEnrollment.groupId || program.defaultGroupId;
 
   if (bountyGroupIds.length > 0 && !bountyGroupIds.includes(partnerGroupId)) {
+    console.log(
+      `Partner doesn't belong to any of the bounty's ${bounty.id} groups.`,
+    );
     return false;
   }
 
@@ -102,7 +105,13 @@ export function isPartnerEligibleForBounty({
   });
 
   // If the bounty is not in the active period, it is not visible
-  if (!isBountyStarted(startsAt) || isBountyExpired(endsAt)) {
+  if (!isBountyStarted(startsAt)) {
+    console.log(`Bounty ${bounty.id} is not started.`);
+    return false;
+  }
+
+  if (isBountyExpired(endsAt)) {
+    console.log(`Bounty ${bounty.id} is expired.`);
     return false;
   }
 

@@ -242,7 +242,8 @@ export class BountySubmissionHandler {
     ) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You are not allowed to submit a bounty for this program.",
+        message:
+          "You are not allowed to submit this bounty. Please contact the program if you think this is an error.",
       });
     }
 
