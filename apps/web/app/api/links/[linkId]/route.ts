@@ -6,6 +6,7 @@ import {
   updateLink,
 } from "@/lib/api/links";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
+import { isRootDomainLinkKey } from "@/lib/api/links/utils/is-root-domain-link-key";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
@@ -212,7 +213,7 @@ export const DELETE = withWorkspace(
       linkId: params.linkId,
     });
 
-    if (link.key === "_root") {
+    if (isRootDomainLinkKey(link.key)) {
       throw new DubApiError({
         code: "forbidden",
         message:
