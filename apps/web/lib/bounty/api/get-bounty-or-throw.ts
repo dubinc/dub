@@ -25,14 +25,14 @@ export async function getBountyOrThrow<T extends Prisma.BountyInclude = {}>({
   if (!bounty) {
     throw new DubApiError({
       code: "not_found",
-      message: `Bounty ${bountyId} not founde.`,
+      message: `Bounty ${bountyId} not found.`,
     });
   }
 
   if (bounty.programId !== programId) {
     throw new DubApiError({
       code: "not_found",
-      message: `Bounty ${bountyId} not foundee.`,
+      message: `Bounty ${bountyId} not found.`,
     });
   }
 
