@@ -865,7 +865,7 @@ export interface WorkflowContext {
     current?: PartnerMetrics;
     aggregated?: PartnerMetrics;
   };
-  programEnrollment: Pick<
+  programEnrollment?: Pick<
     ProgramEnrollment,
     | "groupId"
     | "createdAt"

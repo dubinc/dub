@@ -43,6 +43,12 @@ export const executeCompleteBountyWorkflow = async ({
   const { bountyId } = action.data;
   const { identity, metrics, programEnrollment } = context;
   const { customerId, customerFirstSaleAt } = identity;
+
+  if (!programEnrollment) {
+    console.error("Program enrollment not set in the context.");
+    return;
+  }
+
   const { partnerId, groupId } = programEnrollment;
 
   if (!groupId) {

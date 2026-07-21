@@ -136,7 +136,7 @@ function ConfirmCreateBountyModal({
                 </div>
               )}
 
-              <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
+              <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
                 <Users className="size-3.5" />
                 <span>{partnerAudienceLabel}</span>
               </div>

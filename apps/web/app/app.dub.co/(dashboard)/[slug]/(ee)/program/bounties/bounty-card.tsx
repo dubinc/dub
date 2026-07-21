@@ -70,23 +70,23 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
               {bounty.name}
             </h3>
 
-            <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
+            <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
               <Calendar6 className="size-3.5" />
               <span>{dateRangeLabel}</span>
             </div>
 
             <BountyRewardDescription
               bounty={bounty}
-              className="font-regular"
+              className="font-normal"
               onTooltipClick={(e) => e.preventDefault()}
             />
 
-            <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
+            <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
               <Users className="size-3.5" />
               <span>{partnerAudienceLabel}</span>
             </div>
 
-            <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
+            <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
               <Users6 className="size-3.5" />
               {bounty.groups.length === 0 ? (
                 <span>All groups</span>
@@ -103,7 +103,7 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
                                   className="flex items-center gap-2"
                                 >
                                   <GroupColorCircle group={group} />
-                                  <span className="font-regular text-sm text-neutral-700">
+                                  <span className="text-sm font-normal text-neutral-700">
                                     {group.name}
                                   </span>
                                 </div>
