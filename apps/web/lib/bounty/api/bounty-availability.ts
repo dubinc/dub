@@ -10,6 +10,20 @@ import {
 import { addDays } from "date-fns";
 import { isBountyExpired, isBountyStarted } from "../bounty-period";
 
+type PartnerBountyEligibilityInput = {
+  program: Pick<Program, "defaultGroupId">;
+  bounty: Pick<
+    Bounty,
+    "id" | "startsAt" | "endsAt" | "endsAfterDays" | "startMode" | "archivedAt"
+  > & {
+    groups: Pick<BountyGroup, "groupId">[];
+  };
+  programEnrollment: Pick<
+    ProgramEnrollment,
+    "groupJoinedAt" | "createdAt" | "groupId" | "status"
+  >;
+};
+
 export function buildBountyEligibilityWhere(
   groupId: string | undefined,
 ): Prisma.BountyWhereInput {
@@ -35,30 +49,32 @@ export function buildBountyEligibilityWhere(
   };
 }
 
-export function buildBountyActivePeriodWhere(): Prisma.BountyWhereInput[] {
+export function buildBountyActivePeriodWhere(): Prisma.BountyWhereInput {
   const now = new Date();
 
-  return [
-    {
-      startMode: BountyStartMode.relative,
-    },
-    {
-      startMode: BountyStartMode.absolute,
-      startsAt: {
-        lte: now,
+  return {
+    OR: [
+      {
+        startMode: BountyStartMode.relative,
       },
-      OR: [
-        {
-          endsAt: null,
+      {
+        startMode: BountyStartMode.absolute,
+        startsAt: {
+          lte: now,
         },
-        {
-          endsAt: {
-            gte: now,
+        OR: [
+          {
+            endsAt: null,
           },
-        },
-      ],
-    },
-  ];
+          {
+            endsAt: {
+              gte: now,
+            },
+          },
+        ],
+      },
+    ],
+  };
 }
 
 export const bountyEligibilityIncludes = {
@@ -90,21 +106,7 @@ export function getEffectiveBountyPeriod({
   };
 }
 
-type PartnerBountyEligibilityInput = {
-  program: Pick<Program, "defaultGroupId">;
-  bounty: Pick<
-    Bounty,
-    "id" | "startsAt" | "endsAt" | "endsAfterDays" | "startMode" | "archivedAt"
-  > & {
-    groups: Pick<BountyGroup, "groupId">[];
-  };
-  programEnrollment: Pick<
-    ProgramEnrollment,
-    "groupJoinedAt" | "createdAt" | "groupId" | "status"
-  >;
-};
-
-export function isPartnerEligibleForBounty({
+function isPartnerEligibleForBounty({
   program,
   bounty,
   programEnrollment,
@@ -154,6 +156,10 @@ export const canPartnerSeeBounty = ({
     submissions: Pick<BountySubmission, "id">[];
   };
 }): boolean => {
+  if (bounty.archivedAt) {
+    return false;
+  }
+
   // Bounties the partner has a submission on stay visible
   if (bounty.submissions.length > 0) {
     return true;

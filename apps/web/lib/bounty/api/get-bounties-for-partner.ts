@@ -7,53 +7,58 @@ import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { Program, ProgramEnrollment } from "@prisma/client";
 import * as z from "zod/v4";
 import {
+  bountyEligibilityIncludes,
   buildBountyActivePeriodWhere,
   buildBountyEligibilityWhere,
+  canPartnerSeeBounty,
   getEffectiveBountyPeriod,
 } from "./bounty-availability";
 
 type GetBountiesForPartnerParams = Pick<
   ProgramEnrollment,
-  "groupId" | "partnerId" | "totalCommissions" | "groupJoinedAt" | "createdAt"
+  | "groupId"
+  | "partnerId"
+  | "totalCommissions"
+  | "groupJoinedAt"
+  | "createdAt"
+  | "status"
 > & {
   links: PartnerLink[];
   program: Pick<Program, "id" | "defaultGroupId">;
 };
 
 export async function getBountiesForPartner({
-  partnerId,
-  groupId,
-  totalCommissions,
-  createdAt,
-  groupJoinedAt,
   program,
   links,
+  ...programEnrollment
 }: GetBountiesForPartnerParams) {
-  const now = new Date();
+  const { groupId, partnerId, totalCommissions, createdAt, groupJoinedAt } =
+    programEnrollment;
+
   const partnerGroupId = groupId || program.defaultGroupId;
 
   const bounties = await prisma.bounty.findMany({
     where: {
       programId: program.id,
+      archivedAt: null,
       OR: [
         {
-          archivedAt: null,
-          ...buildBountyEligibilityWhere(partnerGroupId),
-          OR: [
-            ...buildBountyActivePeriodWhere(),
-            // Bounties the partner has a submission on stay visible
-            {
-              submissions: {
-                some: {
-                  partnerId,
-                },
-              },
+          submissions: {
+            some: {
+              partnerId,
             },
+          },
+        },
+        {
+          AND: [
+            buildBountyEligibilityWhere(partnerGroupId),
+            buildBountyActivePeriodWhere(),
           ],
         },
       ],
     },
     include: {
+      ...bountyEligibilityIncludes,
       workflow: {
         select: {
           triggerConditions: true,
@@ -79,8 +84,16 @@ export async function getBountiesForPartner({
 
   const partnerLinkStats = aggregatePartnerLinksStats(links);
 
+  const visibleBounties = bounties.filter((bounty) =>
+    canPartnerSeeBounty({
+      program,
+      bounty,
+      programEnrollment,
+    }),
+  );
+
   return z.array(PartnerBountySchema).parse(
-    bounties.map((bounty) => {
+    visibleBounties.map((bounty) => {
       const performanceCondition =
         bounty.workflow?.triggerConditions?.[0] || null;
 

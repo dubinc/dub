@@ -62,9 +62,7 @@ export const GET = withWorkspace(
       prisma.bounty.findMany({
         where: {
           programId,
-          ...(programEnrollment && {
-            ...buildBountyEligibilityWhere(partnerGroupId),
-          }),
+          ...(programEnrollment && buildBountyEligibilityWhere(partnerGroupId)),
         },
         include: {
           ...bountyEligibilityIncludes,
