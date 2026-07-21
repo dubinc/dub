@@ -10,6 +10,9 @@ const jobLoaders = {
     import("./handlers/partner-tag-deleted-job").then(
       (m) => m.partnerTagDeletedJob,
     ),
+
+  "link-tag-deleted-job": () =>
+    import("./handlers/link-tag-deleted-job").then((m) => m.linkTagDeletedJob),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();
