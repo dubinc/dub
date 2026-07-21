@@ -296,6 +296,23 @@ const formatValue = (
   return truncate(value!.toString(), 20);
 };
 
+function getConditionMenuSelectedValue(
+  value: string | number | string[] | number[] | undefined,
+  isArrayValue: boolean,
+): string | string[] | undefined {
+  if (isArrayValue) {
+    if (Array.isArray(value)) {
+      return value as string[];
+    }
+    if (value != null && value !== "") {
+      return [String(value)];
+    }
+    return [];
+  }
+
+  return value as string | undefined;
+}
+
 function MetadataConditionOperatorMenu({
   selectedValue,
   onSelect,
@@ -712,10 +729,10 @@ function ConditionLogic({
                           // Country selector
                           <InlineBadgePopoverMenu
                             search
-                            selectedValue={
-                              (condition.value as string[] | undefined) ??
-                              (isArrayValue ? [] : undefined)
-                            }
+                            selectedValue={getConditionMenuSelectedValue(
+                              condition.value,
+                              isArrayValue,
+                            )}
                             items={Object.entries(COUNTRIES).map(
                               ([key, name]) => ({
                                 text: name,
@@ -752,10 +769,10 @@ function ConditionLogic({
                           // Select option selector
                           <InlineBadgePopoverMenu
                             search={attribute.options.length > 4}
-                            selectedValue={
-                              (condition.value as string[] | undefined) ??
-                              (isArrayValue ? [] : undefined)
-                            }
+                            selectedValue={getConditionMenuSelectedValue(
+                              condition.value,
+                              isArrayValue,
+                            )}
                             items={attribute.options.map(({ id, label }) => ({
                               text: label,
                               value: id,
