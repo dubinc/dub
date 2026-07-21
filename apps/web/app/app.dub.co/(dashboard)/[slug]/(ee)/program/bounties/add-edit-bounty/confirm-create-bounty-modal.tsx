@@ -183,55 +183,57 @@ function ConfirmCreateBountyModal({
           </div>
         </div>
 
-        <DynamicTooltipWrapper
-          tooltipProps={
-            !canSendEmailCampaigns || isRelative
-              ? {
-                  content: (
-                    <TooltipContent
-                      title="New bounty notifications are only available on Advanced plans and above."
-                      cta="Upgrade to Advanced"
-                      href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
-                      target="_blank"
-                    />
-                  ),
-                }
-              : undefined
-          }
-        >
-          <label
-            className={cn(
-              "mt-4 flex items-center gap-2",
-              !canSendEmailCampaigns ||
-                (isRelative && "pointer-events-none cursor-not-allowed"),
-            )}
+        {!isRelative && (
+          <DynamicTooltipWrapper
+            tooltipProps={
+              !canSendEmailCampaigns
+                ? {
+                    content: (
+                      <TooltipContent
+                        title="New bounty notifications are only available on Advanced plans and above."
+                        cta="Upgrade to Advanced"
+                        href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
+                        target="_blank"
+                      />
+                    ),
+                  }
+                : undefined
+            }
           >
-            <Checkbox
-              checked={canSendEmailCampaigns ? sendNotificationEmails : false}
-              onCheckedChange={(checked) =>
-                setSendNotificationEmails(Boolean(checked))
-              }
-              disabled={!canSendEmailCampaigns || isRelative}
-              className="data-[state=checked]:bg-black"
-            />
-            <span
+            <label
               className={cn(
-                "text-content-default select-none text-sm font-medium",
-                !canSendEmailCampaigns || (isRelative && "opacity-50"),
+                "mt-4 flex items-center gap-2",
+                !canSendEmailCampaigns &&
+                  "pointer-events-none cursor-not-allowed",
               )}
             >
-              Send notification to{" "}
-              <strong className="text-content-emphasis font-semibold">
-                {loading ? (
-                  <span className="inline-block h-4 w-6 animate-pulse rounded bg-neutral-200 align-text-bottom" />
-                ) : (
-                  nFormatter(totalPartners, { full: true })
-                )}{" "}
-                selected {pluralize("partner", totalPartners)}
-              </strong>
-            </span>
-          </label>
-        </DynamicTooltipWrapper>
+              <Checkbox
+                checked={canSendEmailCampaigns ? sendNotificationEmails : false}
+                onCheckedChange={(checked) =>
+                  setSendNotificationEmails(Boolean(checked))
+                }
+                disabled={!canSendEmailCampaigns}
+                className="data-[state=checked]:bg-black"
+              />
+              <span
+                className={cn(
+                  "text-content-default select-none text-sm font-medium",
+                  !canSendEmailCampaigns && "opacity-50",
+                )}
+              >
+                Send notification to{" "}
+                <strong className="text-content-emphasis font-semibold">
+                  {loading ? (
+                    <span className="inline-block h-4 w-6 animate-pulse rounded bg-neutral-200 align-text-bottom" />
+                  ) : (
+                    nFormatter(totalPartners, { full: true })
+                  )}{" "}
+                  selected {pluralize("partner", totalPartners)}
+                </strong>
+              </span>
+            </label>
+          </DynamicTooltipWrapper>
+        )}
       </div>
 
       <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">
