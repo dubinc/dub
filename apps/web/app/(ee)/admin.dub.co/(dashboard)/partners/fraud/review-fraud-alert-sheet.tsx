@@ -14,6 +14,7 @@ import {
 } from "@/lib/zod/schemas/programs";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { Markdown } from "@/ui/shared/markdown";
 import {
   Button,
   LoadingSpinner,
@@ -193,7 +194,9 @@ function SheetContent({
                 {formatDateTime(fraudAlert.createdAt)}
               </span>
             </div>
-            <p className="mt-2 text-sm text-neutral-600">{fraudAlert.reason}</p>
+            <Markdown className="prose-headings:text-base prose-headings:font-semibold mt-2 text-sm text-neutral-600">
+              {fraudAlert.reason}
+            </Markdown>
           </div>
 
           {/* Partner info */}
