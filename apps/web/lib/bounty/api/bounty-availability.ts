@@ -1,6 +1,7 @@
 import {
   Bounty,
   BountyGroup,
+  BountyStartMode,
   BountySubmission,
   Prisma,
   Program,
@@ -32,6 +33,32 @@ export function buildBountyEligibilityWhere(
         : []),
     ],
   };
+}
+
+export function buildBountyActivePeriodWhere(): Prisma.BountyWhereInput[] {
+  const now = new Date();
+
+  return [
+    {
+      startMode: BountyStartMode.relative,
+    },
+    {
+      startMode: BountyStartMode.absolute,
+      startsAt: {
+        lte: now,
+      },
+      OR: [
+        {
+          endsAt: null,
+        },
+        {
+          endsAt: {
+            gte: now,
+          },
+        },
+      ],
+    },
+  ];
 }
 
 export const bountyEligibilityIncludes = {

@@ -85,6 +85,18 @@ export const PATCH = withWorkspace(
     const nextStartMode =
       startMode !== undefined ? startMode : bounty.startMode;
 
+    // Absolute end dates are cleared when switching to relative (unless the
+    // client explicitly sends endsAt) or when setting endsAfterDays.
+    let endsAtUpdate: { endsAt?: Date | null } = {};
+
+    if (endsAt !== undefined) {
+      endsAtUpdate = { endsAt };
+    } else if (endsAfterDays != null) {
+      endsAtUpdate = { endsAt: null };
+    } else if (nextStartMode === "relative" && bounty.endsAt != null) {
+      endsAtUpdate = { endsAt: null };
+    }
+
     validateBounty({
       type: bounty.type,
       // Relative bounties never store startsAt; coerce so mode switches don't
@@ -95,7 +107,8 @@ export const PATCH = withWorkspace(
           : startsAt !== undefined
             ? startsAt
             : bounty.startsAt,
-      endsAt: endsAt !== undefined ? endsAt : bounty.endsAt,
+      endsAt:
+        endsAtUpdate.endsAt !== undefined ? endsAtUpdate.endsAt : bounty.endsAt,
       startMode: nextStartMode,
       endsAfterDays:
         endsAfterDays !== undefined
@@ -225,7 +238,7 @@ export const PATCH = withWorkspace(
           name: bountyName ?? undefined,
           description,
           ...startsAtUpdate,
-          ...(endsAt !== undefined && { endsAt }),
+          ...endsAtUpdate,
           ...(startMode !== undefined && { startMode }),
           ...(endsAfterDays !== undefined
             ? { endsAfterDays }

@@ -321,6 +321,14 @@ export function BountyDuration({
     initialPresets.customEndsAfterDays,
   );
 
+  const [endDateLocked] = useState(
+    () => isEditing && (value.endsAt != null || value.endsAfterDays != null),
+  );
+
+  const endOptions = endDateLocked
+    ? END_OPTIONS.filter((option) => option.value !== "never")
+    : END_OPTIONS;
+
   useEffect(() => {
     const presets = parsePresetsFromValue(value, isEditing);
     setStartPreset(presets.startPreset);
@@ -426,7 +434,7 @@ export function BountyDuration({
           <span className="inline-flex items-center gap-0.5">
             <InlineBadgePopover text={endLabel} buttonClassName="mx-0.5">
               <InlineBadgePopoverMenu
-                items={END_OPTIONS.map((option) => ({
+                items={endOptions.map((option) => ({
                   value: option.value,
                   text: option.label,
                 }))}
@@ -434,6 +442,10 @@ export function BountyDuration({
                   customEndsAfterDays != null ? undefined : endPreset
                 }
                 onSelect={(preset) => {
+                  if (endDateLocked && preset === "never") {
+                    return;
+                  }
+
                   setEndPreset(preset);
                   setCustomEndsAfterDays(null);
 

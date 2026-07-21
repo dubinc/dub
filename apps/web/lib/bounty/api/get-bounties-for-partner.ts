@@ -7,6 +7,7 @@ import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { Program, ProgramEnrollment } from "@prisma/client";
 import * as z from "zod/v4";
 import {
+  buildBountyActivePeriodWhere,
   buildBountyEligibilityWhere,
   getEffectiveBountyPeriod,
 } from "./bounty-availability";
@@ -39,29 +40,7 @@ export async function getBountiesForPartner({
           archivedAt: null,
           ...buildBountyEligibilityWhere(partnerGroupId),
           OR: [
-            // Relative bounties start when a partner joins (no startsAt filter).
-            {
-              startMode: "relative",
-            },
-
-            // Absolute bounties must have started and not expired.
-            {
-              startMode: "absolute",
-              startsAt: {
-                lt: now,
-              },
-              OR: [
-                {
-                  endsAt: null,
-                },
-                {
-                  endsAt: {
-                    gt: now,
-                  },
-                },
-              ],
-            },
-
+            ...buildBountyActivePeriodWhere(),
             // Bounties the partner has a submission on stay visible
             {
               submissions: {
