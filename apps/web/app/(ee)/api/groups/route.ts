@@ -8,6 +8,7 @@ import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { prisma } from "@/lib/prisma";
 import {
+  additionalPartnerLinkSchema,
   createGroupSchema,
   DEFAULT_PARTNER_GROUP,
   getGroupsQuerySchema,
@@ -31,7 +32,19 @@ export const GET = withWorkspace(
     });
     console.timeEnd("getGroups");
 
-    return NextResponse.json(z.array(GroupSchemaExtended).parse(groups));
+    return NextResponse.json(
+      z.array(GroupSchemaExtended).parse(
+        groups.map((group) => ({
+          ...group,
+          additionalLinks: Array.isArray(group.additionalLinks)
+            ? group.additionalLinks.flatMap((link) => {
+                const parsed = additionalPartnerLinkSchema.safeParse(link);
+                return parsed.success ? [parsed.data] : [];
+              })
+            : group.additionalLinks,
+        })),
+      ),
+    );
   },
   {
     requiredPermissions: ["groups.read"],

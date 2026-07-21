@@ -11,6 +11,7 @@ import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { GroupWithProgramSchema } from "@/lib/zod/schemas/group-with-program";
 import {
+  additionalPartnerLinkSchema,
   DEFAULT_PARTNER_GROUP,
   GroupSchema,
   updateGroupSchema,
@@ -31,7 +32,17 @@ export const GET = withWorkspace(
       includeBounties: true,
     });
 
-    return NextResponse.json(GroupWithProgramSchema.parse(group));
+    return NextResponse.json(
+      GroupWithProgramSchema.parse({
+        ...group,
+        additionalLinks: Array.isArray(group.additionalLinks)
+          ? group.additionalLinks.flatMap((link) => {
+              const parsed = additionalPartnerLinkSchema.safeParse(link);
+              return parsed.success ? [parsed.data] : [];
+            })
+          : group.additionalLinks,
+      }),
+    );
   },
   {
     requiredPermissions: ["groups.read"],
