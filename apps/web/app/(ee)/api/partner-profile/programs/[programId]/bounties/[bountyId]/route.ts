@@ -1,15 +1,14 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
+import {
+  canPartnerSeeBounty,
+  getEffectiveBountyPeriod,
+} from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
-import { isBountyExpired, isBountyStarted } from "@/lib/bounty/bounty-period";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
-
-// TODO:
-// Allow partners to see a bounty if they have a submission
 
 // GET /api/partner-profile/programs/[programId]/bounties/[bountyId] – get a single bounty for an enrolled program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
@@ -20,8 +19,21 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       partnerId: partner.id,
       programId,
       include: {
-        program: true,
-        links: true,
+        program: {
+          select: {
+            id: true,
+            defaultGroupId: true,
+          },
+        },
+        links: {
+          select: {
+            clicks: true,
+            leads: true,
+            conversions: true,
+            sales: true,
+            saleAmount: true,
+          },
+        },
       },
     });
 
@@ -53,13 +65,13 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     },
   });
 
-  const partnerGroupId = programEnrollment.groupId || program.defaultGroupId;
-  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
-  const partnerCanSeeBounty =
-    bountyGroupIds.length === 0 ||
-    (partnerGroupId && bountyGroupIds.includes(partnerGroupId));
+  const canSeeBounty = canPartnerSeeBounty({
+    program,
+    bounty,
+    programEnrollment,
+  });
 
-  if (!partnerCanSeeBounty) {
+  if (!canSeeBounty) {
     throw new DubApiError({
       code: "not_found",
       message: "Bounty not found.",
@@ -70,13 +82,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     programEnrollment,
     bounty,
   });
-
-  if (!isBountyStarted(startsAt) || isBountyExpired(endsAt)) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Bounty not found.",
-    });
-  }
 
   const { groups, ...bountyWithoutGroups } = bounty;
 

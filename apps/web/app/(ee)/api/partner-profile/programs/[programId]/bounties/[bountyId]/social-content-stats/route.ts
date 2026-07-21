@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { canPartnerSubmitBounty } from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { ratelimit } from "@/lib/upstash";
@@ -30,16 +31,44 @@ export const GET = withPartnerProfile(
       });
     }
 
-    const programEnrollment = await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId,
-      include: {},
-    });
+    const [programEnrollment, bounty] = await Promise.all([
+      getProgramEnrollmentOrThrow({
+        partnerId: partner.id,
+        programId,
+        include: {
+          program: {
+            select: {
+              id: true,
+              defaultGroupId: true,
+            },
+          },
+        },
+      }),
 
-    const bounty = await getBountyOrThrow({
-      bountyId,
-      programId: programEnrollment.programId,
-    });
+      getBountyOrThrow({
+        bountyId,
+        programId,
+        include: {
+          groups: {
+            select: {
+              groupId: true,
+            },
+          },
+          submissions: {
+            where: {
+              partnerId: partner.id,
+            },
+          },
+        },
+      }),
+    ]);
+
+    if (bounty.submissions.length > 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "You have already submitted a social content for this bounty.",
+      });
+    }
 
     const bountyInfo = resolveBountyDetails(bounty);
 
@@ -47,6 +76,19 @@ export const GET = withPartnerProfile(
       throw new DubApiError({
         code: "bad_request",
         message: "This bounty does not have social content requirements.",
+      });
+    }
+
+    const canSubmitBounty = canPartnerSubmitBounty({
+      program: programEnrollment.program,
+      bounty,
+      programEnrollment,
+    });
+
+    if (!canSubmitBounty) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Bounty not found.",
       });
     }
 
