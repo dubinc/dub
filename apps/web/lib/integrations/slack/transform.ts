@@ -1,4 +1,5 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { getProgramBountyMeta } from "@/lib/bounty/bounty-period";
 import { getBountyRewardDescription } from "@/lib/bounty/rewards";
 import { APP_DOMAIN, COUNTRIES, currencyFormatter, truncate } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
@@ -451,6 +452,8 @@ const bountyTemplates = ({
     type,
     startsAt,
     endsAt,
+    startMode,
+    endsAfterDays,
   } = data;
 
   const eventMessages = {
@@ -462,6 +465,13 @@ const bountyTemplates = ({
     rewardAmount,
     rewardDescription,
     submissionRequirements,
+  });
+
+  const { dateRangeLabel } = getProgramBountyMeta({
+    startsAt,
+    endsAt,
+    startMode,
+    endsAfterDays,
   });
 
   const hrefToBounty = `${APP_DOMAIN}/program/bounties/${id}`;
@@ -497,7 +507,7 @@ const bountyTemplates = ({
           },
           {
             type: "mrkdwn",
-            text: `*Duration*\n${new Date(startsAt).toLocaleDateString()}${endsAt ? ` - ${new Date(endsAt).toLocaleDateString()}` : " (No end date)"}`,
+            text: `*Duration*\n${dateRangeLabel}`,
           },
         ],
       },
