@@ -3,6 +3,7 @@ import { ratelimitOrThrow } from "@/lib/api/utils";
 import { getShortLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { getDomainViaEdge } from "@/lib/planetscale/get-domain-via-edge";
 import { getQRAsSVG } from "@/lib/qr/api";
+import { DEFAULT_BGCOLOR } from "@/lib/qr/constants";
 import { QRCodeSVG } from "@/lib/qr/utils";
 import { getQRCodeQuerySchema } from "@/lib/zod/schemas/qr";
 import { DUB_QR_LOGO, getSearchParams, isDubDomain } from "@dub/utils";
@@ -41,7 +42,6 @@ export async function GET(req: NextRequest) {
       size,
       level,
       fgColor,
-      bgColor,
       margin,
       ...(qrCodeLogo
         ? {
@@ -56,18 +56,28 @@ export async function GET(req: NextRequest) {
     };
 
     if (format === "svg") {
-      const svgString = await getQRAsSVG(qrProps);
+      const svgString = await getQRAsSVG({
+        ...qrProps,
+        ...(bgColor ? { bgColor } : {}),
+      });
       const headers = new Headers(CORS_HEADERS);
       headers.set("Content-Type", "image/svg+xml");
       headers.set("Content-Disposition", "inline; filename=qr.svg");
       return new Response(svgString, { headers });
     }
 
-    return new ImageResponse(QRCodeSVG({ ...qrProps, isOGContext: true }), {
-      width: size,
-      height: size,
-      headers: CORS_HEADERS,
-    });
+    return new ImageResponse(
+      QRCodeSVG({
+        ...qrProps,
+        bgColor: bgColor ?? DEFAULT_BGCOLOR,
+        isOGContext: true,
+      }),
+      {
+        width: size,
+        height: size,
+        headers: CORS_HEADERS,
+      },
+    );
   } catch (error) {
     return handleAndReturnErrorResponse(error, CORS_HEADERS);
   }
