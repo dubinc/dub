@@ -40,19 +40,20 @@ export async function getQRAsSVG(props: QRPropsSVG): Promise<string> {
 
   let image = "";
   if (imageSettings != null && calculatedImageSettings != null) {
-    if (calculatedImageSettings.excavation != null) {
-      cells = excavateModules(cells, calculatedImageSettings.excavation);
-    }
-
     try {
       const base64Image = await fetch(
         `https://wsrv.nl/?url=${encodeURIComponent(imageSettings.src)}&w=100&h=100&encoding=base64`,
+        { signal: AbortSignal.timeout(5_000) },
       ).then((res) => {
         if (!res.ok) {
           throw new Error(`Failed to fetch logo: ${res.status}`);
         }
         return res.text();
       });
+
+      if (calculatedImageSettings.excavation != null) {
+        cells = excavateModules(cells, calculatedImageSettings.excavation);
+      }
 
       image = [
         `<image href="${base64Image}"`,
