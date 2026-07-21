@@ -79,6 +79,8 @@ export async function approvePartner({
     groupId: finalGroupId,
   });
 
+  const now = new Date();
+
   await prisma.$transaction(async (tx) => {
     throwIfPartnersLimitExceeded(program.workspace);
 
@@ -91,7 +93,8 @@ export async function approvePartner({
       },
       data: {
         status: "approved",
-        createdAt: new Date(),
+        createdAt: now,
+        groupJoinedAt: now,
         groupId: group.id,
         clickRewardId: group.clickRewardId,
         leadRewardId: group.leadRewardId,
@@ -107,7 +110,7 @@ export async function approvePartner({
           id: programEnrollment.applicationId,
         },
         data: {
-          reviewedAt: new Date(),
+          reviewedAt: now,
           rejectionReason: null,
           rejectionNote: null,
           userId,

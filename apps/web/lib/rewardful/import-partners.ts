@@ -196,6 +196,7 @@ async function createPartnerAndLinks({
       programId: program.id,
       partnerId: partner.id,
       status: "approved",
+      groupJoinedAt: new Date(),
       ...defaultGroupAttributes,
     },
     update: {
