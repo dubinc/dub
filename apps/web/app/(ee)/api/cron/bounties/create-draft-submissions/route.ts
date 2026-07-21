@@ -162,6 +162,9 @@ export async function POST(req: Request) {
       }[condition.attribute];
 
       if (!performanceCount || performanceCount <= 0) {
+        console.log(
+          `Partner ${programEnrollment.partnerId} has no performance count for bounty ${bountyId}.`,
+        );
         continue;
       }
 
@@ -172,6 +175,9 @@ export async function POST(req: Request) {
       });
 
       if (!canSubmitBounty) {
+        console.log(
+          `Partner ${programEnrollment.partnerId} is not eligible to submit bounty ${bountyId}.`,
+        );
         continue;
       }
 
