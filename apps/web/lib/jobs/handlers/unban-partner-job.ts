@@ -1,6 +1,7 @@
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { recordLink } from "@/lib/tinybird";
 import {
   BountySubmissionStatus,
@@ -60,6 +61,11 @@ export const unbanPartnerJob = defineJob({
       workspaceId,
       programId,
       partnerId,
+    });
+
+    await syncTotalCommissions({
+      partnerId,
+      programId,
     });
 
     const [payouts, bountySubmissions] = await Promise.all([

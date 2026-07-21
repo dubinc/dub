@@ -78,11 +78,16 @@ export const unbanPartnerAction = authActionClient
       }),
     ]);
 
-    await unbanPartnerJob.dispatch({
-      workspaceId: workspace.id,
-      programId,
-      partnerId,
-    });
+    await unbanPartnerJob.dispatch(
+      {
+        workspaceId: workspace.id,
+        programId,
+        partnerId,
+      },
+      {
+        label: partnerId,
+      },
+    );
 
     waitUntil(
       trackActivityLog({
