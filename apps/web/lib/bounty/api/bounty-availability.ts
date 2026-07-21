@@ -131,7 +131,7 @@ export function isPartnerEligibleForBounty({
 
   if (bountyGroupIds.length > 0 && !bountyGroupIds.includes(partnerGroupId)) {
     console.log(
-      `Partner doesn't belong to any of the bounty's ${bounty.id} groups.`,
+      `Partner is not eligible for bounty ${bounty.id} because they are not in any of the assigned groups. Partner's groupId: ${partnerGroupId}. Assigned groupIds: ${bountyGroupIds.join(", ")}.`,
     );
     return false;
   }

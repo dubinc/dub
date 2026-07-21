@@ -127,9 +127,7 @@ export async function executeWorkflows({
           programId,
         },
       },
-      select: {
-        partnerId: true,
-        groupId: true,
+      include: {
         links: {
           select: {
             clicks: true,
@@ -177,6 +175,7 @@ export async function executeWorkflows({
     aggregatePartnerLinksStats(programEnrollment.links);
 
   const workflowContext: WorkflowContext = {
+    programEnrollment,
     trigger,
     reason,
     identity: {
