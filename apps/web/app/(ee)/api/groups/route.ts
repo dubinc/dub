@@ -8,12 +8,12 @@ import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { prisma } from "@/lib/prisma";
 import {
-  additionalPartnerLinkSchema,
   createGroupSchema,
   DEFAULT_PARTNER_GROUP,
   getGroupsQuerySchema,
   GroupSchema,
   GroupSchemaExtended,
+  parseAdditionalLinks,
 } from "@/lib/zod/schemas/groups";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -37,10 +37,7 @@ export const GET = withWorkspace(
         groups.map((group) => ({
           ...group,
           additionalLinks: Array.isArray(group.additionalLinks)
-            ? group.additionalLinks.flatMap((link) => {
-                const parsed = additionalPartnerLinkSchema.safeParse(link);
-                return parsed.success ? [parsed.data] : [];
-              })
+            ? parseAdditionalLinks(group.additionalLinks)
             : group.additionalLinks,
         })),
       ),
@@ -140,7 +137,9 @@ export const POST = withWorkspace(
           brandColor,
           holdingPeriodDays,
           autoApprovePartnersEnabledAt,
-          ...(additionalLinks && { additionalLinks }),
+          ...(additionalLinks && {
+            additionalLinks: parseAdditionalLinks(additionalLinks),
+          }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),
           ...(applicationFormData && { applicationFormData }),
