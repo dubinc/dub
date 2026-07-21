@@ -112,13 +112,14 @@ export function getEffectiveBountyPeriod({
   };
 }
 
-function isPartnerEligibleForBounty({
+export function isPartnerEligibleForBounty({
   program,
   bounty,
   programEnrollment,
 }: PartnerBountyEligibilityInput): boolean {
   // Archived bounties are not visible
   if (bounty.archivedAt) {
+    console.log(`Bounty ${bounty.id} is archived.`);
     return false;
   }
 

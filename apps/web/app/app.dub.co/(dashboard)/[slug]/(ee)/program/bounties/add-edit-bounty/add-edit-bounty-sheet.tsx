@@ -77,7 +77,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     form,
     openAccordions,
     setOpenAccordions,
-    hasEndDate,
     startsAt,
     endsAt,
     startMode,
@@ -281,7 +280,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                         <div>
                           <Tooltip
                             content={
-                              !hasEndDate
+                              !endsAt
                                 ? "Set an end date to use submission window."
                                 : allowedSubmissions > 1
                                   ? "Decrease allowed submissions to 1 to use submission window."
@@ -291,7 +290,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                             <div
                               className={cn(
                                 "flex items-center gap-4 transition-opacity",
-                                (!hasEndDate || allowedSubmissions > 1) &&
+                                (!endsAt || allowedSubmissions > 1) &&
                                   "opacity-30",
                               )}
                             >
@@ -301,7 +300,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                 trackDimensions="w-8 h-4"
                                 thumbDimensions="w-3 h-3"
                                 thumbTranslate="translate-x-4"
-                                disabled={!hasEndDate || allowedSubmissions > 1}
+                                disabled={!endsAt || allowedSubmissions > 1}
                               />
                               <Label>Submission window</Label>
                             </div>

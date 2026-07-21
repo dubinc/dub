@@ -31,44 +31,35 @@ export const GET = withPartnerProfile(
       });
     }
 
-    const [programEnrollment, bounty] = await Promise.all([
-      getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId,
-        include: {
-          program: {
-            select: {
-              id: true,
-              defaultGroupId: true,
-            },
+    const programEnrollment = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId,
+      include: {
+        program: {
+          select: {
+            id: true,
+            defaultGroupId: true,
           },
         },
-      }),
+      },
+    });
 
-      getBountyOrThrow({
-        bountyId,
-        programId,
-        include: {
-          groups: {
-            select: {
-              groupId: true,
-            },
-          },
-          submissions: {
-            where: {
-              partnerId: partner.id,
-            },
+    const bounty = await getBountyOrThrow({
+      bountyId,
+      programId: programEnrollment.programId,
+      include: {
+        groups: {
+          select: {
+            groupId: true,
           },
         },
-      }),
-    ]);
-
-    if (bounty.submissions.length > 0) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "You have already submitted a social content for this bounty.",
-      });
-    }
+        submissions: {
+          where: {
+            partnerId: partner.id,
+          },
+        },
+      },
+    });
 
     const bountyInfo = resolveBountyDetails(bounty);
 

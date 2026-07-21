@@ -119,6 +119,8 @@ export function getProgramBountyMeta({
       const durationLabel =
         ENDS_AFTER_DAYS_LABELS[endsAfterDays] ?? `${endsAfterDays} days`;
       dateRangeLabel = `${durationLabel} after joining`;
+    } else if (endsAt) {
+      dateRangeLabel = `when a new partner joins → ${formatDate(endsAt, { month: "short" })}`;
     } else {
       dateRangeLabel = "when a new partner joins";
     }

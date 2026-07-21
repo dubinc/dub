@@ -695,7 +695,12 @@ export function useAddEditBountyForm({
                   })
                 : name || "New bounty",
             startsAt: startMode === "relative" ? null : startsAt || new Date(),
-            endsAt: startMode === "relative" ? null : effectiveEndsAt,
+            endsAt:
+              startMode === "relative"
+                ? endsAfterDays != null
+                  ? null
+                  : endsAt ?? null
+                : effectiveEndsAt,
             startMode: startMode ?? "absolute",
             endsAfterDays: endsAfterDays ?? null,
             rewardAmount: rewardAmount ? rewardAmount * 100 : null,
