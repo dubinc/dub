@@ -847,9 +847,13 @@ export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.extend({
   includeWebhooks: booleanQuerySchema.default(false),
 });
 
+// Root domain links (`_root`) can have an empty destination URL.
+export const linkUrlSchema = z
+  .string()
+  .describe("The destination URL of the short link.");
+
 export const linkEventSchema = LinkSchema.extend({
-  // here we use string because url can be empty
-  url: z.string(),
+  url: linkUrlSchema,
   expiredUrl: z.string().nullable(),
   // coerce boolean fields
   archived: z.coerce.boolean(),

@@ -26,7 +26,7 @@ import {
 } from "./commissions";
 import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
-import { LinkSchema } from "./links";
+import { LinkSchema, linkUrlSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
@@ -46,8 +46,11 @@ export const PartnerEarningsSchema = CommissionSchema.omit({
   link: LinkSchema.pick({
     id: true,
     shortLink: true,
-    url: true,
-  }).nullish(),
+  })
+    .extend({
+      url: linkUrlSchema,
+    })
+    .nullish(),
 });
 
 export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
@@ -90,13 +93,13 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   domain: true,
   key: true,
   shortLink: true,
-  url: true,
   clicks: true,
   leads: true,
   sales: true,
   saleAmount: true,
   comments: true,
 }).extend({
+  url: linkUrlSchema,
   createdAt: z.string().or(z.date()),
   partnerGroupDefaultLinkId: z.string().nullish(),
   discountCode: z.string().nullable().default(null),
