@@ -1,18 +1,16 @@
 {
   "extends": "tsconfig/nextjs.json",
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "baseUrl": ".",
     "paths": {
-      "@/pages/*": ["pages/*"],
-      "@/styles/*": ["styles/*"],
-      "@/ui/*": ["ui/*"],
-      "@/lib/*": ["lib/*"]
+      "@/pages/*": ["./pages/*"],
+      "@/styles/*": ["./styles/*"],
+      "@/ui/*": ["./ui/*"],
+      "@/lib/*": ["./lib/*"]
     },
-    "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
