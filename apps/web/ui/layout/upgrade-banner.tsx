@@ -1,9 +1,16 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRetryPaymentModal } from "@/ui/modals/retry-payment-modal";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
-import { Button, Crown, TriangleWarning, useMediaQuery } from "@dub/ui";
+import {
+  Button,
+  Crown,
+  DynamicTooltipWrapper,
+  TriangleWarning,
+  useMediaQuery,
+} from "@dub/ui";
 import {
   cn,
   getTrialLimitResourceForOverageBanner,
@@ -34,8 +41,14 @@ export function useUpgradeBannerVisibility() {
 }
 
 export function UpgradeBanner() {
-  const { slug, exceededEvents, exceededLinks, exceededPayouts, trialEndsAt } =
-    useWorkspace();
+  const {
+    slug,
+    exceededEvents,
+    exceededLinks,
+    exceededPayouts,
+    trialEndsAt,
+    role,
+  } = useWorkspace();
   const { openTrialLimitModal, TrialLimitActivateModal } =
     useTrialLimitActivateModal();
   const { setShowRetryPaymentModal, RetryPaymentModal } =
@@ -44,6 +57,11 @@ export function UpgradeBanner() {
 
   const { isVisible, needsUpgrade, subscriptionCanceled } =
     useUpgradeBannerVisibility();
+
+  const permissionsError = clientAccessCheck({
+    action: "billing.write",
+    role,
+  }).error;
 
   const overageLimitResource = getTrialLimitResourceForOverageBanner({
     exceededEvents: Boolean(exceededEvents),
@@ -136,12 +154,19 @@ export function UpgradeBanner() {
             </Link>
           )
         ) : (
-          <Button
-            text={isMobile ? "Retry" : "Retry payment"}
-            variant="secondary"
-            onClick={() => setShowRetryPaymentModal(true)}
-            className={customButtonClassname}
-          />
+          <DynamicTooltipWrapper
+            tooltipProps={
+              permissionsError ? { content: permissionsError } : undefined
+            }
+          >
+            <Button
+              text={isMobile ? "Retry" : "Retry payment"}
+              variant="secondary"
+              disabled={Boolean(permissionsError)}
+              onClick={() => setShowRetryPaymentModal(true)}
+              className={customButtonClassname}
+            />
+          </DynamicTooltipWrapper>
         )}
       </motion.div>
     </>

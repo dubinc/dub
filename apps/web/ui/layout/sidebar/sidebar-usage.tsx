@@ -229,18 +229,25 @@ function UsageInner() {
           </div>
 
           {paymentFailedAt ? (
-            <Button
-              text="Retry payment"
-              variant="primary"
-              className="mt-4 w-full"
-              onClick={() => setShowRetryPaymentModal(true)}
-              onMouseEnter={() => {
-                setHovered(true);
-              }}
-              onMouseLeave={() => {
-                setHovered(false);
-              }}
-            />
+            <DynamicTooltipWrapper
+              tooltipProps={
+                permissionsError ? { content: permissionsError } : undefined
+              }
+            >
+              <Button
+                text="Retry payment"
+                variant="primary"
+                className="mt-4 w-full"
+                disabled={Boolean(permissionsError)}
+                onClick={() => setShowRetryPaymentModal(true)}
+                onMouseEnter={() => {
+                  setHovered(true);
+                }}
+                onMouseLeave={() => {
+                  setHovered(false);
+                }}
+              />
+            </DynamicTooltipWrapper>
           ) : isTrial ? (
             <DynamicTooltipWrapper
               tooltipProps={

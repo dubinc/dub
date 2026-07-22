@@ -10,6 +10,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
@@ -30,6 +31,7 @@ function RetryPaymentModal({
 }) {
   const { id: workspaceId, slug, mutate } = useWorkspace();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(false);
   const [invoice, setInvoice] = useState<OpenInvoice | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -81,18 +83,25 @@ function RetryPaymentModal({
 
   const handleConfirm = async () => {
     if (
-      isSubmitting ||
+      submittingRef.current ||
       !workspaceId ||
       !invoice ||
       !invoice.hasDefaultPaymentMethod
     ) {
       return;
     }
+    submittingRef.current = true;
     setIsSubmitting(true);
     try {
       const res = await fetch(
         `/api/workspaces/${workspaceId}/billing/retry-payment`,
-        { method: "POST" },
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ invoiceId: invoice.invoiceId }),
+        },
       );
       if (res.ok) {
         toast.success("Payment succeeded.");
@@ -117,6 +126,7 @@ function RetryPaymentModal({
         "Failed to retry payment. Please update your payment method and try again.",
       );
     } finally {
+      submittingRef.current = false;
       setIsSubmitting(false);
     }
   };

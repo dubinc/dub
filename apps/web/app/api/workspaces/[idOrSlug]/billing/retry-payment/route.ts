@@ -1,8 +1,14 @@
 import { DubApiError } from "@/lib/api/errors";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import * as z from "zod/v4";
+
+const retryPaymentSchema = z.object({
+  invoiceId: z.string().startsWith("in_"),
+});
 
 async function getOpenInvoice(stripeId: string) {
   const { data } = await stripe.invoices.list({
@@ -12,6 +18,21 @@ async function getOpenInvoice(stripeId: string) {
   });
 
   return data[0] ?? null;
+}
+
+function getInvoiceCustomerId(invoice: Stripe.Invoice): string | null {
+  if (typeof invoice.customer === "string") {
+    return invoice.customer;
+  }
+  return invoice.customer?.id ?? null;
+}
+
+function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+  const subscription = invoice.parent?.subscription_details?.subscription;
+  if (!subscription) {
+    return null;
+  }
+  return typeof subscription === "string" ? subscription : subscription.id;
 }
 
 async function hasDefaultPaymentMethod({
@@ -25,12 +46,23 @@ async function hasDefaultPaymentMethod({
     return true;
   }
 
+  const subscriptionId = getInvoiceSubscriptionId(invoice);
+  if (subscriptionId) {
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    if (subscription.default_payment_method || subscription.default_source) {
+      return true;
+    }
+  }
+
   const customer = await stripe.customers.retrieve(stripeId);
   if (customer.deleted) {
     return false;
   }
 
-  return Boolean(customer.invoice_settings?.default_payment_method);
+  return Boolean(
+    customer.invoice_settings?.default_payment_method ||
+      customer.default_source,
+  );
 }
 
 function assertStripeCustomer(stripeId: string | null) {
@@ -43,7 +75,7 @@ function assertStripeCustomer(stripeId: string | null) {
 }
 
 function handleStripeError(error: unknown): never {
-  if (error instanceof DubApiError) {
+  if (error instanceof DubApiError || error instanceof z.ZodError) {
     throw error;
   }
 
@@ -89,18 +121,29 @@ export const GET = withWorkspace(
   },
 );
 
-// POST /api/workspaces/[idOrSlug]/billing/retry-payment — pay the latest open invoice
+// POST /api/workspaces/[idOrSlug]/billing/retry-payment — pay a specific open invoice
 export const POST = withWorkspace(
-  async ({ workspace }) => {
+  async ({ workspace, req }) => {
     assertStripeCustomer(workspace.stripeId);
 
     try {
-      const invoice = await getOpenInvoice(workspace.stripeId!);
+      const { invoiceId } = retryPaymentSchema.parse(
+        await parseRequestBody(req),
+      );
 
-      if (!invoice?.id) {
+      const invoice = await stripe.invoices.retrieve(invoiceId);
+
+      if (getInvoiceCustomerId(invoice) !== workspace.stripeId) {
         throw new DubApiError({
           code: "not_found",
           message: "No open invoice found to retry.",
+        });
+      }
+
+      if (invoice.status !== "open") {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "Invoice is not open and cannot be retried.",
         });
       }
 
@@ -117,7 +160,15 @@ export const POST = withWorkspace(
         });
       }
 
-      const paidInvoice = await stripe.invoices.pay(invoice.id);
+      const paidInvoice = await stripe.invoices.pay(invoiceId);
+
+      if (paidInvoice.status !== "paid") {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "Payment could not be completed. Please update your payment method and try again.",
+        });
+      }
 
       return NextResponse.json({
         invoiceId: paidInvoice.id,
