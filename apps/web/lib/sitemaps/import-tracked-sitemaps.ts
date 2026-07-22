@@ -1,8 +1,8 @@
 import { bulkCreateLinks } from "@/lib/api/links/bulk-create-links";
+import { safeFetch } from "@/lib/api/safe-fetch";
 import { prisma } from "@/lib/prisma";
 import type { TrackedSitemap } from "@/lib/sitemaps/site-visit-tracking";
 import { ProcessedLinkProps } from "@/lib/types";
-import { fetchWithTimeout } from "@dub/utils/src";
 import { XMLParser } from "fast-xml-parser";
 
 type SitemapXmlUrlEntry = {
@@ -72,7 +72,12 @@ async function decompressIfGzip(buffer: ArrayBuffer): Promise<string> {
 async function fetchAndParseSitemap(
   sitemapUrl: string,
 ): Promise<SitemapXmlResult> {
-  const response = await fetchWithTimeout(sitemapUrl, { redirect: "error" }); // don't follow redirects
+  const response = await safeFetch(sitemapUrl, undefined, { maxRedirects: 0 });
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch sitemap: ${response.status} ${response.statusText}`,
+    );
+  }
   const MAX_SITEMAP_BYTES = 10 * 1024 * 1024; // 10 MB
   const contentLength = response.headers.get("content-length");
   if (contentLength && parseInt(contentLength, 10) > MAX_SITEMAP_BYTES) {
