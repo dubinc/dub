@@ -194,3 +194,14 @@ export const getGroupsCountQuerySchema = z.object({
 export const groupRulesSchema = z.array(
   GroupSchema.pick({ id: true, name: true, moveRules: true }),
 );
+
+export function sanitizeAdditionalLinks(links: unknown) {
+  if (!Array.isArray(links)) {
+    return [];
+  }
+
+  return links.flatMap((link) => {
+    const parsed = additionalPartnerLinkSchema.safeParse(link);
+    return parsed.success ? [parsed.data] : [];
+  });
+}
