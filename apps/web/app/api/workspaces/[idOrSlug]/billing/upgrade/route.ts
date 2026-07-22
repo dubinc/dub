@@ -148,6 +148,11 @@ export const POST = withWorkspace(
           ? {
               subscription_data: {
                 trial_period_days: DUB_TRIAL_PERIOD_DAYS,
+                trial_settings: {
+                  end_behavior: {
+                    missing_payment_method: "cancel",
+                  },
+                },
               },
             }
           : {}),
