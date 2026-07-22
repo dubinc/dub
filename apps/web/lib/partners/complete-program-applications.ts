@@ -103,6 +103,13 @@ export async function completeProgramApplications(userEmail: string) {
         discountId: programApplication?.partnerGroup?.discountId,
       }));
 
+    const enrollmentsByApplicationId = new Map(
+      programEnrollments.map((enrollment) => [
+        enrollment.applicationId!,
+        enrollment,
+      ]),
+    );
+
     await prisma.programEnrollment.createMany({
       data: programEnrollments,
       skipDuplicates: true,
@@ -131,8 +138,8 @@ export async function completeProgramApplications(userEmail: string) {
       const application = programApplication;
       const program = programApplication.program;
       const group = programApplication.partnerGroup;
-      const programEnrollment = partner.programs.find(
-        (p) => p.programId === programApplication.programId,
+      const programEnrollment = enrollmentsByApplicationId.get(
+        programApplication.id,
       );
 
       const socialPlatforms = buildSocialPlatformLookup(partner.platforms);
