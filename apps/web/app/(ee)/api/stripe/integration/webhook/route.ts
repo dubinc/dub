@@ -1,7 +1,7 @@
 import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { withAxiom } from "@/lib/axiom/server";
 import { prisma } from "@/lib/prisma";
-import { stripe } from "@/lib/stripe";
+import { isStripeRateLimitError, stripe } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
 import { waitUntil } from "@vercel/functions";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
@@ -128,64 +128,82 @@ export const POST = withAxiom(async (req: Request) => {
     response: "OK",
   };
 
-  switch (event.type) {
-    case "account.application.deauthorized":
-      result = await accountApplicationDeauthorized({
-        event,
-        mode,
-        workspace,
-      });
-      break;
-    case "charge.refunded":
-      result = await chargeRefunded({
-        event,
-        mode,
-        workspace,
-      });
-      break;
-    case "checkout.session.completed":
-      result = await checkoutSessionCompleted({
-        event,
-        mode,
-        workspace,
-      });
-      break;
-    case "coupon.deleted":
-      result = await couponDeleted({
-        event,
-        workspace,
-      });
-      break;
-    case "customer.created":
-    case "customer.updated":
-      result = await syncCustomer({
-        event,
-        workspace,
-      });
-      break;
-    case "customer.subscription.created":
-      result = await customerSubscriptionCreated({
-        event,
-        mode,
-        workspace,
-      });
-      break;
-    case "customer.subscription.deleted":
-      result = await customerSubscriptionDeleted(event);
-      break;
-    case "invoice.paid":
-      result = await invoicePaid({
-        event,
-        mode,
-        workspace,
-      });
-      break;
-    case "promotion_code.updated":
-      result = await promotionCodeUpdated({
-        event,
-        workspace,
-      });
-      break;
+  try {
+    switch (event.type) {
+      case "account.application.deauthorized":
+        result = await accountApplicationDeauthorized({
+          event,
+          mode,
+          workspace,
+        });
+        break;
+      case "charge.refunded":
+        result = await chargeRefunded({
+          event,
+          mode,
+          workspace,
+        });
+        break;
+      case "checkout.session.completed":
+        result = await checkoutSessionCompleted({
+          event,
+          mode,
+          workspace,
+        });
+        break;
+      case "coupon.deleted":
+        result = await couponDeleted({
+          event,
+          workspace,
+        });
+        break;
+      case "customer.created":
+      case "customer.updated":
+        result = await syncCustomer({
+          event,
+          workspace,
+        });
+        break;
+      case "customer.subscription.created":
+        result = await customerSubscriptionCreated({
+          event,
+          mode,
+          workspace,
+        });
+        break;
+      case "customer.subscription.deleted":
+        result = await customerSubscriptionDeleted(event);
+        break;
+      case "invoice.paid":
+        result = await invoicePaid({
+          event,
+          mode,
+          workspace,
+        });
+        break;
+      case "promotion_code.updated":
+        result = await promotionCodeUpdated({
+          event,
+          workspace,
+        });
+        break;
+    }
+  } catch (error) {
+    // Return 429 so Stripe retries lock_timeout / rate-limit errors instead of treating them as 500s.
+    if (isStripeRateLimitError(error)) {
+      return logAndRespond(
+        {
+          eventType: event.type,
+          response: error.message,
+        },
+        {
+          status: 429,
+          logLevel: "warn",
+        },
+      );
+    }
+
+    throw error;
   }
 
   const responseBody = {
