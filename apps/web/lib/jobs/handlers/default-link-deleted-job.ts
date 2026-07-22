@@ -14,7 +14,7 @@ const inputSchema = z.object({
 
 const MAX_BATCHES = 20;
 
-// Job to delete a default link and all its link associations
+// Job to delete a PartnerGroupDefaultLink and all its link associations
 export const defaultLinkDeletedJob = defineJob({
   name: "default-link-deleted-job",
   schema: inputSchema,
