@@ -139,6 +139,9 @@ export function BountySubmissionsTable({
         header: "",
         minSize: 98,
         size: 98,
+        meta: {
+          disableTruncate: true,
+        },
         cell: ({ row: { original } }) => {
           const { status } = original;
           const bountyInfo = resolveBountyDetails(bounty);
