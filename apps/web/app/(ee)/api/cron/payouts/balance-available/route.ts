@@ -1,7 +1,4 @@
-import {
-  handleAndReturnErrorResponse,
-  isStripeRateLimitError,
-} from "@/lib/api/errors";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { BANK_ACCOUNT_STATUS_DESCRIPTIONS } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -220,12 +217,10 @@ export async function POST(req: Request) {
       `Processed "balance.available" for partner ${partner.email} (${stripeAccount})`,
     );
   } catch (error) {
-    if (!isStripeRateLimitError(error)) {
-      await log({
-        message: `Error handling "balance.available" ${error.message}.`,
-        type: "errors",
-      });
-    }
+    await log({
+      message: `Error handling "balance.available" ${error.message}.`,
+      type: "errors",
+    });
 
     return handleAndReturnErrorResponse(error);
   }
