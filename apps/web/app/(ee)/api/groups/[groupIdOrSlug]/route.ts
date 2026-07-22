@@ -13,6 +13,7 @@ import { GroupWithProgramSchema } from "@/lib/zod/schemas/group-with-program";
 import {
   DEFAULT_PARTNER_GROUP,
   GroupSchema,
+  sanitizeAdditionalLinks,
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
@@ -133,7 +134,9 @@ export const PATCH = withWorkspace(
           name,
           slug,
           color,
-          additionalLinks,
+          ...(additionalLinks !== undefined && {
+            additionalLinks: sanitizeAdditionalLinks(additionalLinks),
+          }),
           maxPartnerLinks,
           linkStructure,
           utmTemplateId,

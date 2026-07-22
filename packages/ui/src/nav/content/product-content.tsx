@@ -57,7 +57,7 @@ const products = [
 const largeLinks = [
   {
     title: "Dub Integrations",
-    description: "Enhance your short links",
+    description: "Connect Dub with your favorite tools",
     href: "/integrations",
     graphic: (
       <div className="absolute -right-4 top-1/2 h-[180px] w-[240px] -translate-y-1/2 [mask-image:linear-gradient(90deg,black_50%,transparent_95%)] dark:opacity-80">
@@ -70,8 +70,8 @@ const largeLinks = [
     ),
   },
   {
-    title: "Dub API",
-    description: "Unlock further capabilities",
+    title: "Dub API & MCP",
+    description: "Connect your agent to Dub",
     href: "/docs/api-reference/introduction",
     graphic: (
       <div className="absolute -right-4 top-2.5 h-[180px] w-[240px] [mask-image:linear-gradient(90deg,black_50%,transparent_95%)] dark:opacity-60">
