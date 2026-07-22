@@ -1,3 +1,4 @@
+import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
 import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { linkCache } from "../../api/links/cache";
@@ -132,19 +133,31 @@ export const domainDeletedJob = defineJob({
       }
     }
 
-    // No more links left. Delete the domain and logo.
+    // No more links left – delete the domain
     await prisma.domain.delete({
       where: {
         slug: domain,
       },
     });
 
-    if (domainRecord.logo) {
-      await storage.delete({
-        key: domainRecord.logo.replace(`${R2_URL}/`, ""),
-      });
-    }
+    // side effects: remove from Vercel, and delete the logo (if it exists)
+    const response = await Promise.allSettled([
+      removeDomainFromVercel(domain),
+      domainRecord.logo &&
+        storage.delete({
+          key: domainRecord.logo.replace(`${R2_URL}/`, ""),
+        }),
+    ]);
 
-    console.log(`[domainDeletedJob] Domain ${domain} deleted from database.`);
+    response.forEach((promise) => {
+      if (promise.status === "rejected") {
+        console.error("domainDeletedJob", {
+          reason: promise.reason,
+          domain,
+        });
+      }
+    });
+
+    console.log(`[domainDeletedJob] Domain "${domain}" fully deleted.`);
   },
 });
