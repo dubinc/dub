@@ -10,6 +10,7 @@ import {
   bountyEligibilityIncludes,
   buildBountyEligibilityWhere,
   getEffectiveBountyPeriod,
+  isPartnerEligibleForBounty,
 } from "@/lib/bounty/api/bounty-availability";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
@@ -110,17 +111,22 @@ export const GET = withWorkspace(
     };
 
     // Transform the bounties to the response schema
-    const now = new Date();
     const data = bounties.flatMap((bounty) => {
       if (programEnrollment) {
+        const isEligible = isPartnerEligibleForBounty({
+          program: programEnrollment.program,
+          bounty,
+          programEnrollment,
+        });
+
+        if (!isEligible) {
+          return [];
+        }
+
         const { startsAt, endsAt } = getEffectiveBountyPeriod({
           programEnrollment,
           bounty,
         });
-
-        if (now < startsAt || (endsAt && now > endsAt)) {
-          return [];
-        }
 
         bounty = {
           ...bounty,

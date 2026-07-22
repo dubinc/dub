@@ -5,7 +5,7 @@ import { withWorkspace } from "@/lib/auth";
 import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
-import { isBountyExpired, isBountyStarted } from "@/lib/bounty/bounty-period";
+import { isBountyEnded, isBountyStarted } from "@/lib/bounty/bounty-period";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -123,7 +123,7 @@ export const POST = withWorkspace(
       });
     }
 
-    if (isBountyExpired(endsAt)) {
+    if (isBountyEnded(endsAt)) {
       throw new DubApiError({
         code: "bad_request",
         message: "Social metrics can't be synced after the bounty ends.",

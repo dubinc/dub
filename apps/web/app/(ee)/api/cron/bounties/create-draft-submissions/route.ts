@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
-import { canPartnerSubmitBounty } from "@/lib/bounty/api/bounty-availability";
+import { isPartnerEligibleForBounty } from "@/lib/bounty/api/bounty-availability";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
@@ -168,15 +168,15 @@ export async function POST(req: Request) {
         continue;
       }
 
-      const canSubmitBounty = canPartnerSubmitBounty({
+      const isEligible = isPartnerEligibleForBounty({
         program: bounty.program,
         bounty,
         programEnrollment,
       });
 
-      if (!canSubmitBounty) {
+      if (!isEligible) {
         console.log(
-          `Partner ${programEnrollment.partnerId} is not eligible to submit bounty ${bountyId}.`,
+          `Partner ${programEnrollment.partnerId} is not eligible for bounty ${bountyId}.`,
         );
         continue;
       }

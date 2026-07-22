@@ -1,6 +1,6 @@
 import { getEffectiveBountyPeriod } from "@/lib/bounty/api/bounty-availability";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
-import { isBountyExpired } from "@/lib/bounty/bounty-period";
+import { isBountyEnded } from "@/lib/bounty/bounty-period";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
@@ -134,7 +134,7 @@ export const POST = withCron(async ({ rawBody }) => {
       bounty,
     });
 
-    if (isBountyExpired(endsAt)) {
+    if (isBountyEnded(endsAt)) {
       continue;
     }
 

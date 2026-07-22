@@ -95,7 +95,7 @@ export function isBountyStarted(startsAt: Date) {
   return startsAt <= new Date();
 }
 
-export function isBountyExpired(endsAt: Date | null) {
+export function isBountyEnded(endsAt: Date | null) {
   return endsAt !== null && endsAt <= new Date();
 }
 

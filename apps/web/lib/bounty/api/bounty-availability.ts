@@ -8,7 +8,7 @@ import {
   ProgramEnrollment,
 } from "@prisma/client";
 import { addDays } from "date-fns";
-import { isBountyExpired, isBountyStarted } from "../bounty-period";
+import { isBountyEnded, isBountyStarted } from "../bounty-period";
 
 type PartnerBountyEligibilityInput = {
   program: Pick<Program, "defaultGroupId">;
@@ -156,7 +156,7 @@ export function isPartnerEligibleForBounty({
     return false;
   }
 
-  if (isBountyExpired(endsAt)) {
+  if (isBountyEnded(endsAt)) {
     console.log(`Bounty ${bounty.id} is expired.`);
     return false;
   }
