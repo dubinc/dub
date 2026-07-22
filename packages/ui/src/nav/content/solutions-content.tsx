@@ -74,7 +74,7 @@ export function SolutionsContent({ domain }: { domain: string }) {
                   <span className="text-sm font-medium text-neutral-900 dark:text-white">
                     {title}
                   </span>
-                  <p className="mt-2 text-xs text-neutral-500 dark:text-white/60">
+                  <p className="mt-2 text-xs text-neutral-500 dark:text-white/80">
                     {description}
                   </p>
                 </div>
