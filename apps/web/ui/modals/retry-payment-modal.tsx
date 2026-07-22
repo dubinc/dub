@@ -1,6 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import { InvoiceProps } from "@/lib/types";
 import { Button, LoadingSpinner, Modal } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import Link from "next/link";
@@ -15,13 +16,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-type OpenInvoice = {
-  invoiceId: string;
-  amountDue: number;
-  currency: string;
-  hasDefaultPaymentMethod: boolean;
-};
-
 function RetryPaymentModal({
   showModal,
   setShowModal,
@@ -33,7 +27,7 @@ function RetryPaymentModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submittingRef = useRef(false);
   const [isLoadingInvoice, setIsLoadingInvoice] = useState(false);
-  const [invoice, setInvoice] = useState<OpenInvoice | null>(null);
+  const [invoice, setInvoice] = useState<InvoiceProps | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,7 +38,9 @@ function RetryPaymentModal({
     setInvoice(null);
     setLoadError(null);
 
-    fetch(`/api/workspaces/${workspaceId}/billing/retry-payment`)
+    fetch(
+      `/api/workspaces/${workspaceId}/billing/invoices?type=subscription&status=open`,
+    )
       .then(async (res) => {
         const body = await res.json().catch(() => null);
         if (!res.ok) {
@@ -52,13 +48,9 @@ function RetryPaymentModal({
             body?.error?.message ?? "Failed to load open invoice.",
           );
         }
+        const openInvoice = Array.isArray(body) ? body[0] : null;
         if (!cancelled) {
-          setInvoice({
-            invoiceId: body.invoiceId,
-            amountDue: body.amountDue,
-            currency: body.currency,
-            hasDefaultPaymentMethod: Boolean(body.hasDefaultPaymentMethod),
-          });
+          setInvoice(openInvoice ?? null);
         }
       })
       .catch((error) => {
@@ -82,12 +74,7 @@ function RetryPaymentModal({
   }, [showModal, workspaceId]);
 
   const handleConfirm = async () => {
-    if (
-      submittingRef.current ||
-      !workspaceId ||
-      !invoice ||
-      !invoice.hasDefaultPaymentMethod
-    ) {
+    if (submittingRef.current || !workspaceId || !invoice) {
       return;
     }
     submittingRef.current = true;
@@ -100,7 +87,7 @@ function RetryPaymentModal({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ invoiceId: invoice.invoiceId }),
+          body: JSON.stringify({ invoiceId: invoice.id }),
         },
       );
       if (res.ok) {
@@ -130,8 +117,6 @@ function RetryPaymentModal({
       setIsSubmitting(false);
     }
   };
-
-  const missingPaymentMethod = invoice && !invoice.hasDefaultPaymentMethod;
 
   return (
     <Modal
@@ -170,28 +155,12 @@ function RetryPaymentModal({
             <div className="rounded-lg border border-neutral-200 bg-white p-4">
               <p className="text-sm text-neutral-500">Amount due</p>
               <p className="mt-1 text-base font-semibold tabular-nums text-neutral-900">
-                {currencyFormatter(invoice.amountDue, {
-                  currency: invoice.currency.toUpperCase(),
-                })}
+                {currencyFormatter(invoice.total)}
               </p>
             </div>
-            {missingPaymentMethod ? (
-              <p className="text-sm text-neutral-600">
-                No default payment method found. Please{" "}
-                <Link
-                  href={`/${slug}/settings/billing#payment-methods`}
-                  className="font-medium text-neutral-900 underline underline-offset-2"
-                  onClick={() => setShowModal(false)}
-                >
-                  add a payment method
-                </Link>{" "}
-                to retry this payment.
-              </p>
-            ) : (
-              <p className="text-sm text-neutral-600">
-                We&apos;ll charge your default payment method for this amount.
-              </p>
-            )}
+            <p className="text-sm text-neutral-600">
+              We&apos;ll charge your default payment method for this amount.
+            </p>
           </>
         )}
       </div>
@@ -209,17 +178,7 @@ function RetryPaymentModal({
           className="h-8 rounded-lg px-3 text-sm"
           text="Retry payment"
           loading={isSubmitting}
-          disabled={
-            isSubmitting ||
-            isLoadingInvoice ||
-            !invoice ||
-            !invoice.hasDefaultPaymentMethod
-          }
-          disabledTooltip={
-            missingPaymentMethod
-              ? "Add a payment method to retry this payment."
-              : undefined
-          }
+          disabled={isSubmitting || isLoadingInvoice || !invoice}
           onClick={handleConfirm}
         />
       </div>

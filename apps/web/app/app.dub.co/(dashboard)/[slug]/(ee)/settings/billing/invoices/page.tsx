@@ -16,6 +16,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, currencyFormatter, fetcher } from "@dub/utils";
+import { StripeInvoiceStatusBadges } from "app/app.dub.co/(dashboard)/[slug]/(ee)/settings/billing/invoices/stripe-invoice-status-badges";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -85,6 +86,7 @@ export default function WorkspaceInvoices() {
                     key={invoice.id}
                     invoice={invoice}
                     displayPaymentMethod={displayPaymentMethod}
+                    isSubscription={selectedInvoiceType.id === "subscription"}
                   />
                 ))
               ) : (
@@ -123,12 +125,50 @@ export default function WorkspaceInvoices() {
 const InvoiceCard = ({
   invoice,
   displayPaymentMethod = false,
+  isSubscription = false,
 }: {
   invoice: InvoiceProps;
   displayPaymentMethod: boolean;
+  isSubscription?: boolean;
 }) => {
   const invoicePaymentMethod =
     INVOICE_PAYMENT_METHODS[invoice.paymentMethod ?? "ach"];
+
+  const formattedTotal = currencyFormatter(invoice.total);
+
+  const statusBadge = isSubscription
+    ? invoice.stripeStatus && (
+        <StatusBadge
+          variant={StripeInvoiceStatusBadges[invoice.stripeStatus].variant}
+          className="rounded-md py-0.5"
+        >
+          {StripeInvoiceStatusBadges[invoice.stripeStatus].label}
+        </StatusBadge>
+      )
+    : invoice.status &&
+      (() => {
+        const badge = PayoutStatusBadges[invoice.status];
+        return (
+          <StatusBadge
+            icon={invoice.status === "failed" ? AlertCircle : null}
+            variant={badge.variant}
+            className="rounded-md py-0.5"
+            {...(invoice.status === "failed" && invoice.failedReason
+              ? { tooltip: invoice.failedReason }
+              : {})}
+          >
+            {badge.label}
+          </StatusBadge>
+        );
+      })();
+
+  const pdfUrl =
+    invoice.pdfUrl &&
+    (isSubscription
+      ? invoice.stripeStatus !== "void"
+      : invoice.status !== "failed")
+      ? invoice.pdfUrl
+      : null;
 
   return (
     <div className="px-3 py-4 xl:px-12">
@@ -146,9 +186,9 @@ const InvoiceCard = ({
             </div>
           </div>
           <div className="flex items-center">
-            {invoice.pdfUrl && invoice.status !== "failed" ? (
+            {pdfUrl ? (
               <a
-                href={invoice.pdfUrl}
+                href={pdfUrl}
                 target="_blank"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
@@ -167,25 +207,8 @@ const InvoiceCard = ({
           <div className="text-left text-sm">
             <div className="font-medium">Total</div>
             <div className="flex items-center gap-1.5 text-neutral-500">
-              <span className="text-sm font-medium">
-                {currencyFormatter(invoice.total)}
-              </span>
-              {invoice.status &&
-                (() => {
-                  const badge = PayoutStatusBadges[invoice.status];
-                  return (
-                    <StatusBadge
-                      icon={invoice.status === "failed" ? AlertCircle : null}
-                      variant={badge.variant}
-                      className="rounded-md py-0.5"
-                      {...(invoice.status === "failed" && invoice.failedReason
-                        ? { tooltip: invoice.failedReason }
-                        : {})}
-                    >
-                      {badge.label}
-                    </StatusBadge>
-                  );
-                })()}
+              <span className="text-sm font-medium">{formattedTotal}</span>
+              {statusBadge}
             </div>
           </div>
 
@@ -229,25 +252,8 @@ const InvoiceCard = ({
         <div className="text-left text-sm sm:col-span-1">
           <div className="font-medium">Total</div>
           <div className="flex items-center gap-1.5 text-neutral-500">
-            <span className="text-sm font-medium">
-              {currencyFormatter(invoice.total)}
-            </span>
-            {invoice.status &&
-              (() => {
-                const badge = PayoutStatusBadges[invoice.status];
-                return (
-                  <StatusBadge
-                    icon={invoice.status === "failed" ? AlertCircle : null}
-                    variant={badge.variant}
-                    className="rounded-md py-0.5"
-                    {...(invoice.status === "failed" && invoice.failedReason
-                      ? { tooltip: invoice.failedReason }
-                      : {})}
-                  >
-                    {badge.label}
-                  </StatusBadge>
-                );
-              })()}
+            <span className="text-sm font-medium">{formattedTotal}</span>
+            {statusBadge}
           </div>
         </div>
 
@@ -274,9 +280,9 @@ const InvoiceCard = ({
         )}
 
         <div className="flex items-center justify-end sm:col-span-1 sm:justify-end">
-          {invoice.pdfUrl && invoice.status !== "failed" ? (
+          {pdfUrl ? (
             <a
-              href={invoice.pdfUrl}
+              href={pdfUrl}
               target="_blank"
               className={cn(
                 buttonVariants({ variant: "secondary" }),
