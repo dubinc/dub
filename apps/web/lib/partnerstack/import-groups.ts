@@ -4,7 +4,7 @@ import { getDomainWithoutWWW, randomValue } from "@dub/utils";
 import { createId } from "../api/create-id";
 import {
   DEFAULT_ADDITIONAL_PARTNER_LINKS,
-  parseAdditionalLinks,
+  sanitizeAdditionalLinks,
 } from "../zod/schemas/groups";
 import { PartnerStackApi } from "./api";
 import { partnerStackImporter } from "./importer";
@@ -54,7 +54,7 @@ export async function importGroups(payload: PartnerStackImportPayload) {
           name: group.name,
           slug: group.slug,
           color: randomValue(RESOURCE_COLORS),
-          additionalLinks: parseAdditionalLinks([
+          additionalLinks: sanitizeAdditionalLinks([
             {
               domain: getDomainWithoutWWW(program.url),
               validationMode: "domain",

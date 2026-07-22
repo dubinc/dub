@@ -13,7 +13,7 @@ import {
   getGroupsQuerySchema,
   GroupSchema,
   GroupSchemaExtended,
-  parseAdditionalLinks,
+  sanitizeAdditionalLinks,
 } from "@/lib/zod/schemas/groups";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -32,16 +32,7 @@ export const GET = withWorkspace(
     });
     console.timeEnd("getGroups");
 
-    return NextResponse.json(
-      z.array(GroupSchemaExtended).parse(
-        groups.map((group) => ({
-          ...group,
-          additionalLinks: Array.isArray(group.additionalLinks)
-            ? parseAdditionalLinks(group.additionalLinks)
-            : group.additionalLinks,
-        })),
-      ),
-    );
+    return NextResponse.json(z.array(GroupSchemaExtended).parse(groups));
   },
   {
     requiredPermissions: ["groups.read"],
@@ -138,7 +129,7 @@ export const POST = withWorkspace(
           holdingPeriodDays,
           autoApprovePartnersEnabledAt,
           ...(additionalLinks && {
-            additionalLinks: parseAdditionalLinks(additionalLinks),
+            additionalLinks: sanitizeAdditionalLinks(additionalLinks),
           }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),

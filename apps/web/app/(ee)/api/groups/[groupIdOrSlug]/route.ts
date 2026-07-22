@@ -13,7 +13,7 @@ import { GroupWithProgramSchema } from "@/lib/zod/schemas/group-with-program";
 import {
   DEFAULT_PARTNER_GROUP,
   GroupSchema,
-  parseAdditionalLinks,
+  sanitizeAdditionalLinks,
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
@@ -32,14 +32,7 @@ export const GET = withWorkspace(
       includeBounties: true,
     });
 
-    return NextResponse.json(
-      GroupWithProgramSchema.parse({
-        ...group,
-        additionalLinks: Array.isArray(group.additionalLinks)
-          ? parseAdditionalLinks(group.additionalLinks)
-          : group.additionalLinks,
-      }),
-    );
+    return NextResponse.json(GroupWithProgramSchema.parse(group));
   },
   {
     requiredPermissions: ["groups.read"],
@@ -141,7 +134,7 @@ export const PATCH = withWorkspace(
           name,
           slug,
           color,
-          additionalLinks,
+          additionalLinks: sanitizeAdditionalLinks(additionalLinks),
           maxPartnerLinks,
           linkStructure,
           utmTemplateId,
@@ -255,14 +248,7 @@ export const PATCH = withWorkspace(
       })(),
     );
 
-    return NextResponse.json(
-      GroupSchema.parse({
-        ...updatedGroup,
-        additionalLinks: Array.isArray(updatedGroup.additionalLinks)
-          ? parseAdditionalLinks(updatedGroup.additionalLinks)
-          : updatedGroup.additionalLinks,
-      }),
-    );
+    return NextResponse.json(GroupSchema.parse(updatedGroup));
   },
   {
     requiredPermissions: ["groups.write"],

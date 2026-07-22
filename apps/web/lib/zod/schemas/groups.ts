@@ -53,19 +53,6 @@ export const additionalPartnerLinkSchemaOptionalPath =
     path: z.string().optional(),
   });
 
-export function parseAdditionalLinks(
-  links: unknown,
-): z.infer<typeof additionalPartnerLinkSchema>[] {
-  if (!Array.isArray(links)) {
-    return [];
-  }
-
-  return links.flatMap((link) => {
-    const parsed = additionalPartnerLinkSchema.safeParse(link);
-    return parsed.success ? [parsed.data] : [];
-  });
-}
-
 // This is the standard response we send for all /api/groups/** endpoints
 export const GroupSchema = z.object({
   id: z.string(),
@@ -207,3 +194,14 @@ export const getGroupsCountQuerySchema = z.object({
 export const groupRulesSchema = z.array(
   GroupSchema.pick({ id: true, name: true, moveRules: true }),
 );
+
+export function sanitizeAdditionalLinks(links: unknown) {
+  if (!Array.isArray(links)) {
+    return [];
+  }
+
+  return links.flatMap((link) => {
+    const parsed = additionalPartnerLinkSchema.safeParse(link);
+    return parsed.success ? [parsed.data] : [];
+  });
+}

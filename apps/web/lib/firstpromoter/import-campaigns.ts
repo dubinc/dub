@@ -5,7 +5,7 @@ import slugify from "@sindresorhus/slugify";
 import { createId } from "../api/create-id";
 import {
   DEFAULT_PARTNER_GROUP,
-  parseAdditionalLinks,
+  sanitizeAdditionalLinks,
 } from "../zod/schemas/groups";
 import { FirstPromoterApi } from "./api";
 import { firstPromoterImporter, MAX_BATCHES } from "./importer";
@@ -92,7 +92,7 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
           holdingPeriodDays,
           autoApprovePartnersEnabledAt,
           ...(additionalLinks && {
-            additionalLinks: parseAdditionalLinks(additionalLinks),
+            additionalLinks: sanitizeAdditionalLinks(additionalLinks),
           }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),
