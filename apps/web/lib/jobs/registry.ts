@@ -17,6 +17,9 @@ const jobLoaders = {
   "link-tag-deleted-job": () =>
     import("./handlers/link-tag-deleted-job").then((m) => m.linkTagDeletedJob),
 
+  "domain-deleted-job": () =>
+    import("./handlers/domain-deleted-job").then((m) => m.domainDeletedJob),
+
   "default-link-deleted-job": () =>
     import("./handlers/default-link-deleted-job").then(
       (m) => m.defaultLinkDeletedJob,
