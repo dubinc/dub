@@ -19,6 +19,11 @@ const jobLoaders = {
 
   "domain-deleted-job": () =>
     import("./handlers/domain-deleted-job").then((m) => m.domainDeletedJob),
+
+  "default-link-deleted-job": () =>
+    import("./handlers/default-link-deleted-job").then(
+      (m) => m.defaultLinkDeletedJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();
