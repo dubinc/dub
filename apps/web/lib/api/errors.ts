@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import "server-only";
+import Stripe from "stripe";
 import { generateErrorMessage } from "zod-error";
 import { ZodOpenApiResponseObject } from "zod-openapi";
 import * as z from "zod/v4";
@@ -89,6 +90,18 @@ export function fromZodError(error: z.ZodError): ErrorResponse {
   };
 }
 
+export function isStripeRateLimitError(error: unknown): boolean {
+  if (!(error instanceof Stripe.errors.StripeError)) {
+    return false;
+  }
+
+  return (
+    error instanceof Stripe.errors.StripeRateLimitError ||
+    error.statusCode === 429 ||
+    error.code === "lock_timeout"
+  );
+}
+
 function handleApiError(error: any): ErrorResponse & { status: number } {
   console.error(error.message);
 
@@ -128,6 +141,18 @@ function handleApiError(error: any): ErrorResponse & { status: number } {
         doc_url: `${docErrorUrl}#not-found`,
       },
       status: 404,
+    };
+  }
+
+  // Stripe rate limit errors
+  if (isStripeRateLimitError(error)) {
+    return {
+      error: {
+        code: "rate_limit_exceeded",
+        message: error.message,
+        doc_url: `${docErrorUrl}#rate-limit-exceeded`,
+      },
+      status: ErrorCodes.rate_limit_exceeded,
     };
   }
 
