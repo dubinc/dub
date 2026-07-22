@@ -36,30 +36,39 @@ export const sendOtpAction = actionClient
     const isFallbackIp = source === "fallback";
 
     if (isFallbackIp) {
-      logger.warn("send-otp.ip_fallback", { email, ip, source });
-      after(logger.flush());
+      logger.warn("send-otp.ip_fallback", {
+        email,
+        ip,
+        source,
+      });
     }
 
-    const [{ success: emailSuccess }, ipResult] = await Promise.all([
-      // Rate limit by email and IP
-      ratelimit(2, "1 m").limit(`send-otp:${email}:${ip}`),
-      // Skip IP-only limit when IP is unknown to avoid a shared global bucket
-      isFallbackIp
-        ? Promise.resolve({ success: true as const })
-        : ratelimit(15, "1 h").limit(`send-otp:${ip}`),
-    ]);
+    const [{ success: emailSuccess }, { success: ipSuccess }] =
+      await Promise.all([
+        // Rate limit by email
+        ratelimit(2, "1 m").limit(`send-otp:email:${email}`),
 
-    const ipSuccess = ipResult.success;
+        // Skip IP rate limiting when IP is unknown to avoid a shared fallback bucket
+        isFallbackIp
+          ? Promise.resolve({ success: true })
+          : ratelimit(15, "1 h").limit(`send-otp:ip:${ip}`),
+      ]);
 
     if (!emailSuccess || !ipSuccess) {
       logger.warn("send-otp.rate_limited", {
         email,
         ip,
         source,
-        emailLimitExceeded: !emailSuccess,
-        ipLimitExceeded: !ipSuccess,
+        ...(!emailSuccess && { emailLimitExceeded: true }),
+        ...(!ipSuccess && { ipLimitExceeded: true }),
       });
-      after(logger.flush());
+    }
+
+    if (isFallbackIp || !emailSuccess || !ipSuccess) {
+      after(() => logger.flush());
+    }
+
+    if (!emailSuccess || !ipSuccess) {
       throw new Error("Too many requests. Please try again later.");
     }
 

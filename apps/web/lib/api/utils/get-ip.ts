@@ -1,30 +1,31 @@
+import { ipAddress } from "@vercel/functions";
 import { headers } from "next/headers";
 
-export const FALLBACK_IP_ADDRESS = "0.0.0.0";
+const FALLBACK_IP_ADDRESS = "0.0.0.0";
 
-export type IPSource = "x-forwarded-for" | "x-real-ip" | "fallback";
+type IPSource = "x-real-ip" | "fallback";
 
 export const getIPWithSource = async (): Promise<{
   ip: string;
   source: IPSource;
 }> => {
-  const forwardedFor = (await headers()).get("x-forwarded-for");
+  const trusted = ipAddress({ headers: await headers() })?.trim();
 
-  if (forwardedFor) {
-    const ip = forwardedFor.split(",")[0]?.trim();
-    if (ip) {
-      return { ip, source: "x-forwarded-for" };
-    }
+  if (trusted) {
+    return {
+      ip: trusted,
+      source: "x-real-ip",
+    };
   }
 
-  const realIp = (await headers()).get("x-real-ip")?.trim();
-  if (realIp) {
-    return { ip: realIp, source: "x-real-ip" };
-  }
-
-  return { ip: FALLBACK_IP_ADDRESS, source: "fallback" };
+  return {
+    ip: FALLBACK_IP_ADDRESS,
+    source: "fallback",
+  };
 };
 
 export const getIP = async () => {
-  return (await getIPWithSource()).ip;
+  const { ip } = await getIPWithSource();
+
+  return ip;
 };

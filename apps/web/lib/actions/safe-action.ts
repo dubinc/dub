@@ -12,7 +12,7 @@ export const actionClient = createSafeActionClient({
 
     // Send error to Axiom
     logger.error(e.message, e);
-    after(logger.flush());
+    after(() => logger.flush());
 
     if (e instanceof Error) {
       return e.message;
