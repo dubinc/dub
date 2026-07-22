@@ -14,12 +14,7 @@ import {
   recordLead,
   recordSale,
 } from "@/lib/tinybird";
-import {
-  ClickEventTB,
-  CustomerSource,
-  LeadEventTB,
-  WorkspaceProps,
-} from "@/lib/types";
+import { CustomerSource, LeadEventTB, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { publishWorkspaceClicksUsageEvent } from "@/lib/upstash/redis-streams/workspace-clicks-usage";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -149,11 +144,9 @@ export const trackSale = async ({
     };
   }
 
-  let clickData: ClickEventTB | null = null;
-
-  // Find the click event for the given clickId
-  if (clickId) {
-    clickData = await getClickEvent({
+  // Direct sale tracking: create the customer from the passed clickId (if exists)
+  if (!existingCustomer && clickId) {
+    const clickData = await getClickEvent({
       clickId,
     });
 
@@ -172,11 +165,7 @@ export const trackSale = async ({
         ...clickData,
       };
     }
-  }
 
-  // Direct sale tracking: create the customer from the click event.
-  // On concurrent requests, fall back to fetching the existing row (P2002) instead of failing.
-  if (!existingCustomer && clickData) {
     const clickDataLink = await prisma.link.findUnique({
       where: {
         id: clickData.link_id,
