@@ -78,7 +78,6 @@ export const POST = withCron(async ({ rawBody }) => {
       },
       programEnrollment: {
         select: {
-          groupJoinedAt: true,
           createdAt: true,
         },
       },

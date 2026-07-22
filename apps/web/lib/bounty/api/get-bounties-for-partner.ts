@@ -16,12 +16,7 @@ import {
 
 type GetBountiesForPartnerParams = Pick<
   ProgramEnrollment,
-  | "groupId"
-  | "partnerId"
-  | "totalCommissions"
-  | "groupJoinedAt"
-  | "createdAt"
-  | "status"
+  "groupId" | "partnerId" | "totalCommissions" | "createdAt" | "status"
 > & {
   links: PartnerLink[];
   program: Pick<Program, "id" | "defaultGroupId">;
@@ -32,8 +27,7 @@ export async function getBountiesForPartner({
   links,
   ...programEnrollment
 }: GetBountiesForPartnerParams) {
-  const { groupId, partnerId, totalCommissions, createdAt, groupJoinedAt } =
-    programEnrollment;
+  const { groupId, partnerId, totalCommissions, createdAt } = programEnrollment;
 
   const partnerGroupId = groupId || program.defaultGroupId;
 
@@ -100,7 +94,6 @@ export async function getBountiesForPartner({
       const { startsAt, endsAt } = getEffectiveBountyPeriod({
         programEnrollment: {
           createdAt,
-          groupJoinedAt,
         },
         bounty,
       });

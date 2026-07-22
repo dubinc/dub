@@ -56,7 +56,6 @@ export const POST = withWorkspace(
                 partner: true,
                 programEnrollment: {
                   select: {
-                    groupJoinedAt: true,
                     createdAt: true,
                   },
                 },

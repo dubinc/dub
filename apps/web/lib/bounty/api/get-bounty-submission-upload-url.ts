@@ -17,12 +17,7 @@ type GetBountySubmissionUploadUrlParams = {
   contentLength: number;
   programEnrollment: Pick<
     ProgramEnrollment,
-    | "programId"
-    | "partnerId"
-    | "groupId"
-    | "status"
-    | "createdAt"
-    | "groupJoinedAt"
+    "programId" | "partnerId" | "groupId" | "status" | "createdAt"
   >;
 };
 

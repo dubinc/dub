@@ -182,7 +182,6 @@ async function createPartner({
       partnerId,
       status: "approved",
       groupId: group.id,
-      groupJoinedAt: new Date(),
       clickRewardId: group.clickRewardId,
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,

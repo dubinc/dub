@@ -26,7 +26,7 @@ type PartnerBountyEligibilityInput = {
   };
   programEnrollment: Pick<
     ProgramEnrollment,
-    "groupJoinedAt" | "createdAt" | "groupId" | "status"
+    "createdAt" | "groupId" | "status"
   >;
 };
 
@@ -95,18 +95,16 @@ export function getEffectiveBountyPeriod({
   programEnrollment,
   bounty,
 }: {
-  programEnrollment: Pick<ProgramEnrollment, "groupJoinedAt" | "createdAt">;
+  programEnrollment: Pick<ProgramEnrollment, "createdAt">;
   bounty: Pick<Bounty, "startsAt" | "endsAt" | "endsAfterDays" | "startMode">;
 }) {
-  const { createdAt, groupJoinedAt } = programEnrollment;
+  const { createdAt } = programEnrollment;
   const { startsAt, endsAt, endsAfterDays, startMode } = bounty;
 
   // If startMode is absolute, use the startsAt (Assumed to be set).
-  // If startMode is relative, use the groupJoinedAt or createdAt.
+  // If startMode is relative, use the program enrollment createdAt.
   const bountyStartDate =
-    startMode === BountyStartMode.absolute
-      ? startsAt!
-      : groupJoinedAt || createdAt;
+    startMode === BountyStartMode.absolute ? startsAt! : createdAt;
 
   return {
     startsAt: bountyStartDate,
@@ -136,14 +134,11 @@ export function isPartnerEligibleForBounty({
     return false;
   }
 
-  // Relative bounties are for new partners only (joined on/after bounty creation)
+  // Relative bounties are for new partners only (enrolled on/after bounty creation)
   if (bounty.startMode === BountyStartMode.relative) {
-    const partnerJoinedAt =
-      programEnrollment.groupJoinedAt || programEnrollment.createdAt;
-
-    if (partnerJoinedAt < bounty.createdAt) {
+    if (programEnrollment.createdAt < bounty.createdAt) {
       console.log(
-        `Partner joined before relative bounty ${bounty.id} was created.`,
+        `Partner enrolled before relative bounty ${bounty.id} was created.`,
       );
       return false;
     }

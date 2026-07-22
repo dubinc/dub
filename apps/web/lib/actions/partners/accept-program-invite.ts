@@ -34,7 +34,6 @@ export const acceptProgramInviteAction = authPartnerActionClient
       data: {
         status: "approved",
         createdAt: now,
-        groupJoinedAt: now,
       },
       include: {
         links: true,

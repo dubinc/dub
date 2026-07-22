@@ -867,12 +867,7 @@ export interface WorkflowContext {
   };
   programEnrollment?: Pick<
     ProgramEnrollment,
-    | "groupId"
-    | "createdAt"
-    | "groupJoinedAt"
-    | "partnerId"
-    | "programId"
-    | "status"
+    "groupId" | "createdAt" | "partnerId" | "programId" | "status"
   >;
 }
 
