@@ -60,9 +60,9 @@ const largeLinks = [
     description: "Connect Dub with your favorite tools",
     href: "/integrations",
     graphic: (
-      <div className="absolute -right-4 top-1/2 h-[180px] w-[240px] -translate-y-1/2 [mask-image:linear-gradient(90deg,black_50%,transparent_95%)] dark:opacity-80">
+      <div className="absolute -right-6 top-1/2 h-[180px] w-[240px] -translate-y-1/2 [mask-image:linear-gradient(90deg,black_50%,transparent_95%)] dark:opacity-80">
         <Image
-          src="https://assets.dub.co/misc/integrations-grid.png"
+          src="https://assets.dub.co/cms/integrations-grid2.png"
           alt=""
           fill
         />
@@ -155,7 +155,7 @@ export function ProductContent({ domain }: { domain: string }) {
               <Grid
                 className="[mask-image:linear-gradient(90deg,transparent,black)] dark:text-white/5"
                 cellSize={60}
-                patternOffset={[-39, -49]}
+                patternOffset={[-32, -49]}
               />
               <div
                 className="pointer-events-none absolute inset-0 overflow-hidden"
