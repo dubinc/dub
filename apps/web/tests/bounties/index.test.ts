@@ -587,3 +587,94 @@ describe.sequential(
     });
   },
 );
+
+describe.sequential("/bounties - relative start mode", async () => {
+  const h = new IntegrationHarness();
+  const { http } = await h.init();
+
+  const relativeSubmissionBase = {
+    name: "Relative Submission Bounty",
+    description: "starts when a partner joins",
+    type: "submission",
+    startMode: BountyStartMode.relative,
+    startsAt: null,
+    endsAt: null,
+    rewardAmount: 1000,
+    submissionRequirements: { image: { max: 4 } },
+    groupIds: [E2E_PARTNER_GROUP.id],
+  };
+
+  test("POST /bounties - relative with endsAfterDays", async () => {
+    const { status, data: bounty } = await http.post<Bounty>({
+      path: "/bounties",
+      body: {
+        ...relativeSubmissionBase,
+        endsAfterDays: 30,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(bounty).toMatchObject({
+      startMode: BountyStartMode.relative,
+      startsAt: null,
+      endsAt: null,
+      endsAfterDays: 30,
+    });
+
+    const { status: patchStatus, data: updated } = await http.patch<Bounty>({
+      path: `/bounties/${bounty.id}`,
+      body: { endsAfterDays: 180 },
+    });
+
+    expect(patchStatus).toEqual(200);
+    expect(updated).toMatchObject({
+      startMode: BountyStartMode.relative,
+      startsAt: null,
+      endsAfterDays: 180,
+    });
+
+    onTestFinished(async () => {
+      await h.deleteBounty(bounty.id);
+    });
+  });
+
+  test("POST /bounties - relative with startsAt is rejected", async () => {
+    const { status, data } = await http.post({
+      path: "/bounties",
+      body: {
+        ...relativeSubmissionBase,
+        startsAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+        endsAfterDays: 30,
+      },
+    });
+
+    expect(status).toEqual(400);
+    expect(data).toMatchObject({
+      error: {
+        message:
+          "startsAt is not supported when the bounty starts when a partner joins. It must be null for relative bounties.",
+        code: "bad_request",
+      },
+    });
+  });
+
+  test("POST /bounties - both endsAt and endsAfterDays is rejected", async () => {
+    const { status, data } = await http.post({
+      path: "/bounties",
+      body: {
+        ...relativeSubmissionBase,
+        endsAt: addDays(new Date(), 30).toISOString(),
+        endsAfterDays: 30,
+      },
+    });
+
+    expect(status).toEqual(400);
+    expect(data).toMatchObject({
+      error: {
+        message:
+          "Bounty cannot have both an end date (endsAt) and endsAfterDays.",
+        code: "bad_request",
+      },
+    });
+  });
+});
