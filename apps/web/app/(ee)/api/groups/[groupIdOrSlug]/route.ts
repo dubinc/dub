@@ -134,7 +134,9 @@ export const PATCH = withWorkspace(
           name,
           slug,
           color,
-          additionalLinks: sanitizeAdditionalLinks(additionalLinks),
+          ...(additionalLinks !== undefined && {
+            additionalLinks: sanitizeAdditionalLinks(additionalLinks),
+          }),
           maxPartnerLinks,
           linkStructure,
           utmTemplateId,
