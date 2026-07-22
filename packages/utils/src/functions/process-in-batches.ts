@@ -5,6 +5,10 @@ export async function processInBatches(
   maxBatches: number,
   processBatch: () => Promise<{ count: number }>,
 ): Promise<{ hasMore: boolean }> {
+  if (maxBatches <= 0) {
+    throw new Error("maxBatches must be greater than 0.");
+  }
+
   for (let batch = 0; batch < maxBatches; batch++) {
     const { count } = await processBatch();
 
