@@ -2,8 +2,8 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useRetryPaymentModal } from "@/ui/modals/retry-payment-modal";
 import { useStartPaidPlanModal } from "@/ui/modals/start-paid-plan-modal";
-import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
 import {
   AnimatedSizeContainer,
   Button,
@@ -63,6 +63,8 @@ function UsageInner() {
 
   const { StartPaidPlanModal, setShowStartPaidPlanModal } =
     useStartPaidPlanModal();
+  const { RetryPaymentModal, setShowRetryPaymentModal } =
+    useRetryPaymentModal();
 
   const trialDaysLeft = useMemo(() => {
     if (!trialEndsAt || !isWorkspaceBillingTrialActive(trialEndsAt)) {
@@ -117,6 +119,7 @@ function UsageInner() {
   return loading || usage !== undefined ? (
     <>
       {isTrial ? <StartPaidPlanModal /> : null}
+      {paymentFailedAt ? <RetryPaymentModal /> : null}
       <AnimatedSizeContainer height>
         <div className="border-t border-neutral-300/80 p-3">
           {isTrial ? (
@@ -226,10 +229,11 @@ function UsageInner() {
           </div>
 
           {paymentFailedAt ? (
-            <ManageSubscriptionButton
-              text="Update Payment Method"
+            <Button
+              text="Retry payment"
               variant="primary"
               className="mt-4 w-full"
+              onClick={() => setShowRetryPaymentModal(true)}
               onMouseEnter={() => {
                 setHovered(true);
               }}

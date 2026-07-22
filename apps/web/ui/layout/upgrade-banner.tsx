@@ -1,6 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useRetryPaymentModal } from "@/ui/modals/retry-payment-modal";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { Button, Crown, TriangleWarning, useMediaQuery } from "@dub/ui";
 import {
@@ -10,7 +11,6 @@ import {
 } from "@dub/utils";
 import { motion } from "motion/react";
 import Link from "next/link";
-import ManageSubscriptionButton from "../workspaces/manage-subscription-button";
 
 export function useUpgradeBannerVisibility() {
   const {
@@ -38,9 +38,11 @@ export function UpgradeBanner() {
     useWorkspace();
   const { openTrialLimitModal, TrialLimitActivateModal } =
     useTrialLimitActivateModal();
+  const { setShowRetryPaymentModal, RetryPaymentModal } =
+    useRetryPaymentModal();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const { isVisible, needsUpgrade, paymentFailed, subscriptionCanceled } =
+  const { isVisible, needsUpgrade, subscriptionCanceled } =
     useUpgradeBannerVisibility();
 
   const overageLimitResource = getTrialLimitResourceForOverageBanner({
@@ -58,6 +60,7 @@ export function UpgradeBanner() {
   return (
     <>
       <TrialLimitActivateModal />
+      <RetryPaymentModal />
       <motion.div
         initial={{ transform: "translateY(-100%)" }}
         animate={{ transform: "translateY(0)" }}
@@ -94,7 +97,16 @@ export function UpgradeBanner() {
           ) : subscriptionCanceled ? (
             "Your subscription has been canceled. To reactivate, please upgrade to a paid plan."
           ) : (
-            "Your last payment failed. Please update your payment method to avoid service disruption."
+            <>
+              Your last payment failed. Please{" "}
+              <Link
+                href={`/${slug}/settings/billing#payment-methods`}
+                className="underline"
+              >
+                update your payment method
+              </Link>{" "}
+              to avoid service disruption.
+            </>
           )}
         </p>
         {needsUpgrade || subscriptionCanceled ? (
@@ -124,9 +136,10 @@ export function UpgradeBanner() {
             </Link>
           )
         ) : (
-          <ManageSubscriptionButton
-            text={isMobile ? "Update" : "Update Payment Method"}
+          <Button
+            text={isMobile ? "Retry" : "Retry payment"}
             variant="secondary"
+            onClick={() => setShowRetryPaymentModal(true)}
             className={customButtonClassname}
           />
         )}
