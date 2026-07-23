@@ -63,14 +63,6 @@ export const OPERATOR_FUNCTIONS: Record<
   },
 };
 
-export const WORKFLOW_COMPARISON_OPERATOR_LABELS: Record<
-  WorkflowComparisonOperator,
-  string
-> = {
-  gte: "more than",
-  between: "between",
-} as const;
-
 export enum WORKFLOW_ACTION_TYPES {
   AwardBounty = "awardBounty",
   SendCampaign = "sendCampaign",

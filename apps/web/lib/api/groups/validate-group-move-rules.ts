@@ -1,6 +1,6 @@
-import { WorkflowCondition } from "@/lib/types";
+import type { GroupMoveRules } from "@/lib/zod/schemas/group-move-workflows";
 
-export const validateGroupMoveRules = (rules?: WorkflowCondition[]) => {
+export const validateGroupMoveRules = (rules?: GroupMoveRules) => {
   if (!rules || rules.length === 0) {
     return;
   }

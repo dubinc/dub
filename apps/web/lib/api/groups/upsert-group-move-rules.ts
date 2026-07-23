@@ -1,6 +1,7 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { WorkflowAction, WorkflowCondition, WorkspaceProps } from "@/lib/types";
+import { WorkflowAction, WorkspaceProps } from "@/lib/types";
+import type { GroupMoveRules } from "@/lib/zod/schemas/group-move-workflows";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { pluralize } from "@dub/utils";
 import { PartnerGroup, WorkflowTrigger } from "@prisma/client";
@@ -16,7 +17,7 @@ export async function upsertGroupMoveRules({
 }: {
   workspace: Pick<WorkspaceProps, "plan" | "defaultProgramId">;
   group: PartnerGroup;
-  moveRules?: WorkflowCondition[];
+  moveRules?: GroupMoveRules;
 }): Promise<{ workflowId: string | null | undefined }> {
   const { canUseGroupMoveRule } = getPlanCapabilities(workspace.plan);
 

@@ -3,9 +3,16 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { WorkflowCondition } from "@/lib/types";
-import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
+import {
+  GROUP_MOVE_ATTRIBUTE_CONFIG,
+  GROUP_MOVE_ATTRIBUTES,
+  type GroupMoveAttribute,
+  type GroupMoveAttributeConfig,
+  type GroupMoveCondition,
+  type GroupMoveRules as GroupMoveRulesForm,
+} from "@/lib/zod/schemas/group-move-workflows";
 import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
   InlineBadgePopover,
   InlineBadgePopoverAmountInput,
@@ -17,21 +24,9 @@ import { X } from "lucide-react";
 import { Fragment, useMemo } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 
-const ATTRIBUTES = [
-  { key: "totalLeads", text: "total leads", type: "number" },
-  { key: "totalConversions", text: "total conversions", type: "number" },
-  { key: "totalSaleAmount", text: "total revenue", type: "currency" },
-  { key: "totalCommissions", text: "total commissions", type: "currency" },
-] as const;
-
-type Attribute = (typeof ATTRIBUTES)[number];
-type AttributeType = (typeof ATTRIBUTES)[number]["type"];
+// Draft form value shapes (partial ranges allowed while editing)
 type RangeValue = { min: number; max?: number };
 type ValueType = number | RangeValue | undefined;
-
-const ATTRIBUTE_BY_KEY = Object.fromEntries(
-  ATTRIBUTES.map(({ key, text, type }) => [key, { text, type }]),
-);
 
 const RANGE_SELECTOR_OPTIONS = [
   { text: "and no limit", value: "noLimit" },
@@ -42,7 +37,7 @@ export function GroupMoveRules() {
   const { plan } = useWorkspace();
 
   const { control, watch } = useFormContext<{
-    moveRules?: WorkflowCondition[];
+    moveRules?: GroupMoveRulesForm;
   }>();
 
   const moveRules = watch("moveRules") ?? [];
@@ -66,7 +61,8 @@ export function GroupMoveRules() {
     [moveRules],
   );
 
-  const disableAddRuleButton = ruleFields.length >= ATTRIBUTES.length;
+  const disableAddRuleButton =
+    ruleFields.length >= GROUP_MOVE_ATTRIBUTES.length;
 
   const { canUseGroupMoveRule } = getPlanCapabilities(plan);
 
@@ -85,9 +81,10 @@ export function GroupMoveRules() {
             }
 
             // Filter out attributes already used by other rules
-            const availableAttributes = ATTRIBUTES.filter(
-              (a) =>
-                a.key === rule.attribute || !usedAttributes?.includes(a.key),
+            const availableAttributes = GROUP_MOVE_ATTRIBUTES.filter(
+              (attribute) =>
+                attribute === rule.attribute ||
+                !usedAttributes?.includes(attribute),
             );
 
             return (
@@ -126,7 +123,7 @@ export function GroupMoveRules() {
               attribute: undefined,
               operator: "gte",
               value: undefined,
-            } as unknown as WorkflowCondition);
+            } as unknown as GroupMoveCondition);
           }}
           disabled={disableAddRuleButton}
           disabledTooltip={
@@ -147,14 +144,17 @@ function GroupRule({
   index,
   availableAttributes,
 }: {
-  rule: WorkflowCondition;
-  onUpdate: (updates: Partial<WorkflowCondition>) => void;
+  rule: GroupMoveCondition;
+  onUpdate: (updates: Partial<GroupMoveCondition>) => void;
   onRemove: () => void;
   index: number;
-  availableAttributes: Attribute[];
+  availableAttributes: GroupMoveAttribute[];
 }) {
   const isFirst = index === 0;
-  const attributeType = ATTRIBUTE_BY_KEY[rule.attribute]?.type || "number";
+  const attributeConfig = rule.attribute
+    ? GROUP_MOVE_ATTRIBUTE_CONFIG[rule.attribute]
+    : undefined;
+  const attributeType = attributeConfig?.inputType || "number";
 
   // Determine if "and less than" is selected based on operator
   // If operator is "between", it means "and less than" was selected (even if max is not set yet)
@@ -206,14 +206,14 @@ function GroupRule({
             {isFirst ? "If partner" : "And if partner"}
             {/* Select the attribute */}
             <InlineBadgePopover
-              text={ATTRIBUTE_BY_KEY[rule.attribute]?.text || "activity"}
+              text={attributeConfig?.label || "activity"}
               invalid={!rule.attribute}
               buttonClassName="mx-1"
             >
               <InlineBadgePopoverMenu
-                items={availableAttributes.map((a) => ({
-                  value: a.key,
-                  text: a.text,
+                items={availableAttributes.map((attribute) => ({
+                  value: attribute,
+                  text: GROUP_MOVE_ATTRIBUTE_CONFIG[attribute].label,
                 }))}
                 selectedValue={rule.attribute}
                 onSelect={(value) => {
@@ -365,13 +365,13 @@ function ValueInput({
   onUpdate,
 }: {
   index: number;
-  rule: WorkflowCondition;
-  attributeType: AttributeType;
+  rule: GroupMoveCondition;
+  attributeType: GroupMoveAttributeConfig["inputType"];
   part: "min" | "max";
-  onUpdate: (updates: Partial<WorkflowCondition>) => void;
+  onUpdate: (updates: Partial<GroupMoveCondition>) => void;
 }) {
   const { control } = useFormContext<{
-    moveRules?: WorkflowCondition[];
+    moveRules?: GroupMoveRulesForm;
   }>();
 
   const isCurrency = attributeType === "currency";
@@ -451,7 +451,7 @@ const handleClearValue = (
 const handleUpdateMinValue = (
   currentFieldValue: ValueType,
   convertedValue: number,
-  operator: WorkflowCondition["operator"],
+  operator: GroupMoveCondition["operator"],
 ): ValueType => {
   if (operator === "between" && isRangeValue(currentFieldValue)) {
     const rangeValue = currentFieldValue as RangeValue;
@@ -463,8 +463,8 @@ const handleUpdateMinValue = (
 const handleUpdateMaxValue = (
   currentFieldValue: ValueType,
   convertedValue: number,
-  onUpdate: (updates: Partial<WorkflowCondition>) => void,
-  ruleOperator: WorkflowCondition["operator"],
+  onUpdate: (updates: Partial<GroupMoveCondition>) => void,
+  ruleOperator: GroupMoveCondition["operator"],
 ): ValueType => {
   if (isRangeValue(currentFieldValue)) {
     const rangeValue = currentFieldValue as RangeValue;
@@ -537,7 +537,7 @@ const convertFromDisplayValue = (
 // Format the value based on the attribute type
 const formatValue = (
   value: ValueType,
-  type: AttributeType | undefined,
+  type: GroupMoveAttributeConfig["inputType"] | undefined,
   part: "min" | "max" = "min",
 ) => {
   const numValue = part === "min" ? getMinValue(value) : getMaxValue(value);
