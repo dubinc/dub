@@ -84,12 +84,11 @@ export default function ProgramCustomerLayout({
               customerActivity={customerActivity}
               isCustomerActivityLoading={!customer || isCustomerActivityLoading}
               workspaceSlug={workspaceSlug}
-              isProgramPage
             />
           </div>
           <div className="@3xl/page:order-1">
             <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
-              <CustomerTabs customer={customer} isProgramPage />
+              <CustomerTabs customer={customer} />
               <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
                 {children}
               </div>

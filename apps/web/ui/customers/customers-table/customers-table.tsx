@@ -25,6 +25,7 @@ import {
   TimestampTooltip,
   useColumnVisibility,
   useCopyToClipboard,
+  useCurrentProduct,
   usePagination,
   useRouterStuff,
   useTable,
@@ -59,12 +60,11 @@ type ColumnMeta = {
 
 export function CustomersTable({
   query,
-  isProgramPage = false,
 }: {
   query?: Partial<z.infer<typeof getCustomersQuerySchema>>;
-  isProgramPage?: boolean;
 }) {
   const { id: workspaceId, slug: workspaceSlug, plan } = useWorkspace();
+  const { product } = useCurrentProduct();
   const { canManageCustomers } = getPlanCapabilities(plan);
 
   const router = useRouter();
@@ -104,7 +104,7 @@ export function CustomersTable({
     all: [
       "customer",
       "country",
-      ...(isProgramPage ? ["partner"] : []),
+      ...(product === "program" ? ["partner"] : ["link"]),
       "link",
       "saleAmount",
       "createdAt",
@@ -115,7 +115,7 @@ export function CustomersTable({
     defaultVisible: [
       "customer",
       "country",
-      ...(isProgramPage ? ["partner"] : ["link"]),
+      ...(product === "program" ? ["partner"] : ["link"]),
       "saleAmount",
       "createdAt",
       "firstSaleAt",
@@ -124,7 +124,7 @@ export function CustomersTable({
   };
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    isProgramPage
+    product === "program"
       ? "program-customers-table-columns"
       : "customers-table-columns",
     customersColumns,
@@ -328,13 +328,11 @@ export function CustomersTable({
           cell: ({ row }) => <RowMenuButton row={row} />,
         },
       ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),
-    [isProgramPage, workspaceSlug],
+    [product, workspaceSlug],
   );
 
   const getCustomerUrl = (row: Row<CustomerProps>) =>
-    isProgramPage
-      ? `/${workspaceSlug}/program/customers/${row.original.id}`
-      : `/${workspaceSlug}/links/customers/${row.original.id}`;
+    `/${workspaceSlug}/${product}/customers/${row.original.id}`;
 
   const { table, ...tableProps } = useTable({
     data: canManageCustomers ? customers || [] : EXAMPLE_CUSTOMER_DATA,
@@ -398,7 +396,6 @@ export function CustomersTable({
         sortBy={sortBy}
         sortOrder={sortOrder}
         enabled={canManageCustomers}
-        isProgramPage={isProgramPage}
       />
       {!canManageCustomers || customers?.length !== 0 ? (
         <Table
@@ -486,12 +483,10 @@ function CustomersFilters({
   sortBy,
   sortOrder,
   enabled,
-  isProgramPage,
 }: {
   sortBy: string;
   sortOrder: "asc" | "desc";
   enabled: boolean;
-  isProgramPage: boolean;
 }) {
   const {
     filters,
@@ -501,7 +496,7 @@ function CustomersFilters({
     onRemoveAll,
     setSearch,
     setSelectedFilter,
-  } = useCustomerFilters({ sortBy, sortOrder }, { enabled, isProgramPage });
+  } = useCustomerFilters({ sortBy, sortOrder }, { enabled });
 
   return (
     <div>
