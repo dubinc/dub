@@ -4,8 +4,8 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkflowCondition } from "@/lib/types";
-import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
   InlineBadgePopover,
   InlineBadgePopoverAmountInput,
