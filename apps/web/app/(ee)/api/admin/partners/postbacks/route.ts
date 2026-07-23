@@ -29,12 +29,6 @@ class PartnerDoesNotHaveAccessError extends Error {
   }
 }
 
-const assertEdgeConfigReadable = () => {
-  if (!process.env.EDGE_CONFIG) {
-    throw new EdgeConfigNotConfiguredError();
-  }
-};
-
 const assertEdgeConfigConfigured = () => {
   if (!process.env.EDGE_CONFIG || !process.env.EDGE_CONFIG_ID) {
     throw new EdgeConfigNotConfiguredError();
@@ -42,7 +36,9 @@ const assertEdgeConfigConfigured = () => {
 };
 
 const getPartnerBetaFeatures = async (): Promise<PartnerBetaFeaturesRecord> => {
-  assertEdgeConfigReadable();
+  if (!process.env.EDGE_CONFIG) {
+    throw new EdgeConfigNotConfiguredError();
+  }
 
   try {
     return (await get<PartnerBetaFeaturesRecord>("partnerBetaFeatures")) ?? {};
@@ -50,15 +46,6 @@ const getPartnerBetaFeatures = async (): Promise<PartnerBetaFeaturesRecord> => {
     console.error(`Error getting partner beta features: ${e}`);
     throw e;
   }
-};
-
-const getPostbackPartnerIdsForList = async (): Promise<string[]> => {
-  if (!process.env.EDGE_CONFIG) {
-    return [];
-  }
-
-  const betaFeatures = await getPartnerBetaFeatures();
-  return betaFeatures.postbacks ?? [];
 };
 
 const updatePostbackPartnerIds = async ({
@@ -140,7 +127,12 @@ export const GET = withAdmin(async () => {
   let partnerIds: string[];
 
   try {
-    partnerIds = await getPostbackPartnerIdsForList();
+    if (!process.env.EDGE_CONFIG) {
+      partnerIds = [];
+    } else {
+      const betaFeatures = await getPartnerBetaFeatures();
+      partnerIds = betaFeatures.postbacks ?? [];
+    }
   } catch (error) {
     console.error(`Error listing partner postback access: ${error}`);
     return new Response("Failed to load partner postback access.", {
@@ -184,18 +176,15 @@ export const GET = withAdmin(async () => {
   });
 });
 
-const grantPostbackAccessSchema = z.object({
-  partnerIdOrEmail: z.string().trim().min(1),
-});
-
-const revokePostbackAccessSchema = z.object({
-  partnerId: z.string().trim().min(1),
-});
-
 // POST /api/admin/partners/postbacks
 export const POST = withAdmin(
   async ({ req }) => {
-    const parsed = grantPostbackAccessSchema.safeParse(await req.json());
+    const parsed = z
+      .object({
+        partnerIdOrEmail: z.string().trim().min(1),
+      })
+      .safeParse(await req.json());
+
     if (!parsed.success) {
       return new Response("Invalid request body.", { status: 400 });
     }
@@ -238,7 +227,12 @@ export const POST = withAdmin(
 // DELETE /api/admin/partners/postbacks
 export const DELETE = withAdmin(
   async ({ req }) => {
-    const parsed = revokePostbackAccessSchema.safeParse(await req.json());
+    const parsed = z
+      .object({
+        partnerId: z.string().trim().min(1),
+      })
+      .safeParse(await req.json());
+
     if (!parsed.success) {
       return new Response("Invalid request body.", { status: 400 });
     }
