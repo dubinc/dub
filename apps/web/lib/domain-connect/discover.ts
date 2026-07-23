@@ -28,7 +28,7 @@ const ALLOWED_SETTINGS_HOST_SUFFIXES = [
   ".cloudflare.com",
 ];
 
-function settingsHostFromTxtRecords(records: string[][]): string | null {
+function settingsBaseFromTxtRecords(records: string[][]): string | null {
   const candidates = records
     .map((chunks) =>
       chunks
@@ -39,23 +39,33 @@ function settingsHostFromTxtRecords(records: string[][]): string | null {
     .map((s) =>
       s
         .replace(/^https?:\/\//i, "")
-        .split("/")[0]
+        .replace(/\/$/, "")
         .toLowerCase(),
     )
-    .filter(
-      (h) =>
-        h.includes(".") &&
-        /^[a-z0-9.-]+$/.test(h) &&
-        !/^\d+\.\d+\.\d+\.\d+$/.test(h),
-    );
+    .filter((s) => {
+      if (!s.includes(".")) return false;
+      const [host, ...pathParts] = s.split("/");
+      if (
+        !host ||
+        !/^[a-z0-9.-]+$/.test(host) ||
+        /^\d+\.\d+\.\d+\.\d+$/.test(host)
+      ) {
+        return false;
+      }
+      // Allow only simple path segments (no query/fragment)
+      if (
+        pathParts.some(
+          (p) => !p || !/^[a-z0-9._-]+$/i.test(p) || p === "." || p === "..",
+        )
+      ) {
+        return false;
+      }
+      return ALLOWED_SETTINGS_HOST_SUFFIXES.some(
+        (suffix) => host === suffix.replace(/^\./, "") || host.endsWith(suffix),
+      );
+    });
 
-  return (
-    candidates.find((h) =>
-      ALLOWED_SETTINGS_HOST_SUFFIXES.some(
-        (suffix) => h === suffix.replace(/^\./, "") || h.endsWith(suffix),
-      ),
-    ) ?? null
-  );
+  return candidates[0] ?? null;
 }
 
 /**
@@ -74,10 +84,10 @@ export async function discoverDomainConnect(
     return null;
   }
 
-  const settingsHost = settingsHostFromTxtRecords(txtRecords);
-  if (!settingsHost) return null;
+  const settingsBase = settingsBaseFromTxtRecords(txtRecords);
+  if (!settingsBase) return null;
 
-  const settingsUrl = `https://${settingsHost}/v2/${encodeURIComponent(apexDomain.toLowerCase())}/settings`;
+  const settingsUrl = `https://${settingsBase}/v2/${encodeURIComponent(apexDomain.toLowerCase())}/settings`;
   let res: Response;
   try {
     res = await fetch(settingsUrl, {
