@@ -5,16 +5,13 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { defaultLinkDeletedJob } from "@/lib/jobs/handlers/default-link-deleted-job";
 import { prisma } from "@/lib/prisma";
 import {
   createOrUpdateDefaultLinkSchema,
   PartnerGroupDefaultLinkSchema,
 } from "@/lib/zod/schemas/groups";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  constructURLFromUTMParams,
-  prettyPrint,
-} from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -191,17 +188,6 @@ export const DELETE = withWorkspace(
 
     const defaultLinkId = group.partnerGroupDefaultLinks[0].id;
 
-    const deleteDefaultLinksJob = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/delete-default-links`,
-      body: {
-        partnerGroupDefaultLinkId: defaultLinkId,
-      },
-    });
-
-    console.log(
-      `Scheduled delete-default-links job for partner group default link ${defaultLinkId}: ${prettyPrint(deleteDefaultLinksJob)}`,
-    );
-
     // soft delete the default link by setting the groupId to null
     await prisma.partnerGroupDefaultLink.update({
       where: {
@@ -211,7 +197,15 @@ export const DELETE = withWorkspace(
         groupId: null,
       },
     });
-    console.log(`Soft deleted default link ${defaultLinkId}`);
+
+    await defaultLinkDeletedJob.dispatch(
+      {
+        defaultLinkId,
+      },
+      {
+        label: defaultLinkId,
+      },
+    );
 
     return NextResponse.json({
       id: defaultLinkId,
