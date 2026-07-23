@@ -28,7 +28,7 @@ export async function createTremendousCampaign(
 
     const { campaign } = data as CreateCampaign200Response;
 
-    await prisma.program.updateMany({
+    const { count: updatedCount } = await prisma.program.updateMany({
       where: {
         id: program.id,
         tremendousCampaignId: null,
@@ -37,6 +37,16 @@ export async function createTremendousCampaign(
         tremendousCampaignId: campaign.id,
       },
     });
+
+    if (updatedCount === 0) {
+      console.log(
+        `[createTremendousCampaign] Program ${program.id} already has a Tremendous campaign. Skipping...`,
+      );
+    } else {
+      console.log(
+        `[createTremendousCampaign] Updated the Tremendous campaign ${campaign.id} for the program ${program.id}.`,
+      );
+    }
   } catch (error) {
     logger.error("create_campaign_failed", {
       service: "tremendous",
