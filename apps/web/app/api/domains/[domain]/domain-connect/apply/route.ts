@@ -6,6 +6,7 @@ import { withWorkspace } from "@/lib/auth";
 import {
   DEFAULT_DC_SERVICE_APEX,
   DEFAULT_DC_SERVICE_SUBDOMAIN,
+  DOMAIN_CONNECT_KEY_HOST,
 } from "@/lib/domain-connect/constants";
 import { discoverDomainConnect } from "@/lib/domain-connect/discover";
 import { buildSignedApplyUrl } from "@/lib/domain-connect/sign-apply-url";
@@ -24,9 +25,8 @@ export const POST = withWorkspace(
     const privateKeyPem =
       process.env.DOMAIN_CONNECT_PRIVATE_KEY?.trim().replace(/\\n/g, "\n") ||
       null;
-    const keyHost = process.env.DOMAIN_CONNECT_KEY_HOST?.trim() || null;
 
-    if (!privateKeyPem || !keyHost) {
+    if (!privateKeyPem) {
       throw new DubApiError({
         code: "internal_server_error",
         message: "Domain Connect signing is not configured.",
@@ -142,7 +142,7 @@ export const POST = withWorkspace(
       urlSyncUX: discovery.urlSyncUX,
       serviceId,
       privateKeyPem,
-      keyHost,
+      keyHost: DOMAIN_CONNECT_KEY_HOST,
       queryParams,
     });
 

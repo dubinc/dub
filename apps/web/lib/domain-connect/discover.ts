@@ -114,11 +114,7 @@ export async function discoverDomainConnectIfEligible(
   apexDomain: string,
   status: string,
 ): Promise<DomainConnectDiscovery | null> {
-  if (
-    !process.env.DOMAIN_CONNECT_PRIVATE_KEY?.trim() ||
-    !process.env.DOMAIN_CONNECT_KEY_HOST?.trim()
-  )
-    return null;
+  if (!process.env.DOMAIN_CONNECT_PRIVATE_KEY?.trim()) return null;
   if (status !== "Pending Verification" && status !== "Invalid Configuration")
     return null;
   return discoverDomainConnect(apexDomain);
