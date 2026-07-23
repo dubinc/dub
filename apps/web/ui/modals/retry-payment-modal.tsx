@@ -39,7 +39,7 @@ function RetryPaymentModal({
     setLoadError(null);
 
     fetch(
-      `/api/workspaces/${workspaceId}/billing/invoices?type=subscription&status=open`,
+      `/api/workspaces/${workspaceId}/billing/invoices?type=subscription&stripeStatus=open`,
     )
       .then(async (res) => {
         const body = await res.json().catch(() => null);
@@ -48,9 +48,9 @@ function RetryPaymentModal({
             body?.error?.message ?? "Failed to load open invoice.",
           );
         }
-        const openInvoice = Array.isArray(body) ? body[0] : null;
+        const firstOpenInvoice = Array.isArray(body) ? body[0] : null;
         if (!cancelled) {
-          setInvoice(openInvoice ?? null);
+          setInvoice(firstOpenInvoice ?? null);
         }
       })
       .catch((error) => {
@@ -92,7 +92,7 @@ function RetryPaymentModal({
       );
       if (res.ok) {
         toast.success("Payment succeeded.");
-        // Hide the banner immediately; charge.succeeded / subscription webhooks clear paymentFailedAt in DB
+        // optimistically hide the banner; charge.succeeded / subscription webhooks clear paymentFailedAt in DB
         await mutate(
           (current) =>
             current ? { ...current, paymentFailedAt: null } : current,

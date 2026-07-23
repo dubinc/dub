@@ -12,7 +12,7 @@ const querySchema = z.object({
     .enum(["subscription", "partnerPayout", "domainRenewal"])
     .optional()
     .default("subscription"),
-  status: z.enum(["open"]).optional(), // only for Stripe subscription invoices for now
+  stripeStatus: z.enum(["open"]).optional(), // only for Stripe subscription invoices
 });
 
 // TODO: move to GET /invoices
@@ -22,11 +22,13 @@ export const GET = withWorkspace(
       return NextResponse.json([]);
     }
 
-    const { type, status } = querySchema.parse(searchParams);
+    const { type, stripeStatus } = querySchema.parse(searchParams);
 
     const invoices =
       type === "subscription"
-        ? await getSubscriptionInvoices(workspace.stripeId, { status })
+        ? await getSubscriptionInvoices(workspace.stripeId, {
+            status: stripeStatus,
+          })
         : await getOtherInvoices({
             workspaceId: workspace.id,
             type,
@@ -46,6 +48,7 @@ const getSubscriptionInvoices = async (
   try {
     const invoices = await stripe.invoices.list({
       customer: stripeId,
+      limit: 100,
       ...(status && { status }),
     });
 

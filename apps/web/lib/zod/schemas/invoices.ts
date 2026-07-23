@@ -13,7 +13,7 @@ export const InvoiceSchema = z.object({
   id: z.string(),
   total: z.number(),
   status: z.enum(InvoiceStatus).optional(),
-  stripeStatus: StripeInvoiceStatusSchema.optional(),
+  stripeStatus: StripeInvoiceStatusSchema.nullish(), // only for Stripe subscription invoices
   paymentMethod: z.enum(PaymentMethod).nullable().optional(),
   createdAt: z.date(),
   description: z.string().default("Dub payout"),
