@@ -31,6 +31,7 @@ import { capitalize, pluralize } from "@dub/utils";
 import { ChevronDown, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useSWRConfig } from "swr";
 
 export function CustomDomains() {
   const {
@@ -45,6 +46,7 @@ export function CustomDomains() {
 
   const [openPopover, setOpenPopover] = useState(false);
   const { searchParams, queryParams } = useRouterStuff();
+  const { mutate } = useSWRConfig();
   const { allWorkspaceDomains, loading } = useDomains({
     opts: { includeLink: "true" },
   });
@@ -84,8 +86,15 @@ export function CustomDomains() {
           : "Your DNS provider returned an error. Try again or configure manually.",
       );
     } else {
-      toast.success(
-        "DNS changes submitted. Open the domain card to check verification status.",
+      toast.success("DNS changes submitted. Checking domain verification…");
+      void mutate(
+        (key) =>
+          typeof key === "string" &&
+          key.includes("/api/domains/") &&
+          key.includes("/verify"),
+      );
+      void mutate(
+        (key) => typeof key === "string" && key.startsWith("/api/domains"),
       );
     }
     queryParams({
@@ -93,7 +102,7 @@ export function CustomDomains() {
       replace: true,
       scroll: false,
     });
-  }, [searchParams, queryParams]);
+  }, [searchParams, queryParams, mutate]);
 
   const { error: permissionsError } = clientAccessCheck({
     action: "domains.write",

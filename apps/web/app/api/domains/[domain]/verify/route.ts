@@ -65,11 +65,37 @@ export const GET = withWorkspace(
       status = "Pending Verification";
       const verificationJson = await verifyDomain(domain);
 
-      if (verificationJson && verificationJson.verified) {
-        /**
-         * Domain was just verified
-         */
-        status = "Valid Configuration";
+      if (verificationJson?.verified) {
+        // Re-check config after Vercel ownership verification succeeds
+        const freshConfig = await getConfigResponse(domain);
+        if (freshConfig?.conflicts?.length) {
+          status = "Conflicting DNS Records";
+        } else if (freshConfig?.misconfigured) {
+          status = "Invalid Configuration";
+          await prisma.domain.update({
+            where: { slug: domain },
+            data: { verified: false, lastChecked: new Date() },
+          });
+        } else {
+          status = "Valid Configuration";
+          await prisma.domain.update({
+            where: { slug: domain },
+            data: { verified: true, lastChecked: new Date() },
+          });
+        }
+
+        const domainConnect: DomainConnectDiscovery | null =
+          await discoverDomainConnectIfEligible(apex, status);
+
+        return NextResponse.json({
+          status,
+          response: {
+            configJson: freshConfig,
+            domainJson: { ...domainJson, verified: true },
+            verificationJson,
+          },
+          domainConnect,
+        });
       }
 
       const domainConnect: DomainConnectDiscovery | null =
