@@ -1,4 +1,7 @@
-import { WorkflowCondition } from "@/lib/types";
+import type {
+  GroupMoveCondition,
+  GroupMoveRules,
+} from "@/lib/zod/schemas/group-move-workflows";
 import { groupRulesSchema } from "@/lib/zod/schemas/groups";
 import * as z from "zod/v4";
 
@@ -8,7 +11,7 @@ export const findGroupsWithMatchingRules = ({
   currentGroupId,
 }: {
   groups: z.infer<typeof groupRulesSchema>;
-  currentRules: WorkflowCondition[] | null | undefined;
+  currentRules: GroupMoveRules | null | undefined;
   currentGroupId: string;
 }): Array<{ id: string; name: string }> => {
   if (
@@ -34,15 +37,15 @@ export const findGroupsWithMatchingRules = ({
 // Two rule sets conflict if there exists ANY set of attribute values that would satisfy both simultaneously.
 // This ensures that for any given set of attribute values, at most one group rule set will match.
 const doRuleSetsOverlap = (
-  rules1: WorkflowCondition[],
-  rules2: WorkflowCondition[],
+  rules1: GroupMoveRules,
+  rules2: GroupMoveRules,
 ): boolean => {
-  const rules1ByAttribute = new Map<string, WorkflowCondition>();
+  const rules1ByAttribute = new Map<string, GroupMoveCondition>();
   for (const rule of rules1) {
     rules1ByAttribute.set(rule.attribute, rule);
   }
 
-  const rules2ByAttribute = new Map<string, WorkflowCondition>();
+  const rules2ByAttribute = new Map<string, GroupMoveCondition>();
   for (const rule of rules2) {
     rules2ByAttribute.set(rule.attribute, rule);
   }
@@ -78,7 +81,7 @@ const doRuleSetsOverlap = (
 };
 
 const conditionToInterval = (
-  condition: WorkflowCondition,
+  condition: GroupMoveCondition,
 ): { min: number; max: number } | null => {
   switch (condition.operator) {
     case "gte":
@@ -105,8 +108,8 @@ const conditionToInterval = (
 };
 
 const doConditionsOverlap = (
-  condition1: WorkflowCondition,
-  condition2: WorkflowCondition,
+  condition1: GroupMoveCondition,
+  condition2: GroupMoveCondition,
 ): boolean => {
   // Conditions must be for the same attribute to overlap
   if (condition1.attribute !== condition2.attribute) {

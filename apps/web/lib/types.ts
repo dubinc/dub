@@ -740,11 +740,6 @@ export type WorkflowComparisonOperator =
 
 export type WorkflowAction = z.infer<typeof workflowActionSchema>;
 
-export type OperatorFn = (
-  aV: number,
-  cV: number | { min: number; max?: number },
-) => boolean;
-
 export type BountySubmissionsQueryFilters = z.infer<
   typeof getBountySubmissionsQuerySchema
 >;
