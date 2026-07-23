@@ -1,8 +1,16 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useRetryPaymentModal } from "@/ui/modals/retry-payment-modal";
 import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
-import { Button, Crown, TriangleWarning, useMediaQuery } from "@dub/ui";
+import {
+  Button,
+  Crown,
+  DynamicTooltipWrapper,
+  TriangleWarning,
+  useMediaQuery,
+} from "@dub/ui";
 import {
   cn,
   getTrialLimitResourceForOverageBanner,
@@ -10,7 +18,6 @@ import {
 } from "@dub/utils";
 import { motion } from "motion/react";
 import Link from "next/link";
-import ManageSubscriptionButton from "../workspaces/manage-subscription-button";
 
 export function useUpgradeBannerVisibility() {
   const {
@@ -34,14 +41,27 @@ export function useUpgradeBannerVisibility() {
 }
 
 export function UpgradeBanner() {
-  const { slug, exceededEvents, exceededLinks, exceededPayouts, trialEndsAt } =
-    useWorkspace();
+  const {
+    slug,
+    exceededEvents,
+    exceededLinks,
+    exceededPayouts,
+    trialEndsAt,
+    role,
+  } = useWorkspace();
   const { openTrialLimitModal, TrialLimitActivateModal } =
     useTrialLimitActivateModal();
+  const { setShowRetryPaymentModal, RetryPaymentModal } =
+    useRetryPaymentModal();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
-  const { isVisible, needsUpgrade, paymentFailed, subscriptionCanceled } =
+  const { isVisible, needsUpgrade, subscriptionCanceled } =
     useUpgradeBannerVisibility();
+
+  const permissionsError = clientAccessCheck({
+    action: "billing.write",
+    role,
+  }).error;
 
   const overageLimitResource = getTrialLimitResourceForOverageBanner({
     exceededEvents: Boolean(exceededEvents),
@@ -58,6 +78,7 @@ export function UpgradeBanner() {
   return (
     <>
       <TrialLimitActivateModal />
+      <RetryPaymentModal />
       <motion.div
         initial={{ transform: "translateY(-100%)" }}
         animate={{ transform: "translateY(0)" }}
@@ -94,7 +115,16 @@ export function UpgradeBanner() {
           ) : subscriptionCanceled ? (
             "Your subscription has been canceled. To reactivate, please upgrade to a paid plan."
           ) : (
-            "Your last payment failed. Please update your payment method to avoid service disruption."
+            <>
+              Your last payment failed. Please{" "}
+              <Link
+                href={`/${slug}/settings/billing#payment-methods`}
+                className="underline"
+              >
+                update your payment method
+              </Link>{" "}
+              to avoid service disruption.
+            </>
           )}
         </p>
         {needsUpgrade || subscriptionCanceled ? (
@@ -124,11 +154,19 @@ export function UpgradeBanner() {
             </Link>
           )
         ) : (
-          <ManageSubscriptionButton
-            text={isMobile ? "Update" : "Update Payment Method"}
-            variant="secondary"
-            className={customButtonClassname}
-          />
+          <DynamicTooltipWrapper
+            tooltipProps={
+              permissionsError ? { content: permissionsError } : undefined
+            }
+          >
+            <Button
+              text={isMobile ? "Retry" : "Retry payment"}
+              variant="secondary"
+              disabled={Boolean(permissionsError)}
+              onClick={() => setShowRetryPaymentModal(true)}
+              className={customButtonClassname}
+            />
+          </DynamicTooltipWrapper>
         )}
       </motion.div>
     </>

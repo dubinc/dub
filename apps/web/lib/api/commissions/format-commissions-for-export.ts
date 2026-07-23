@@ -29,7 +29,10 @@ const COLUMN_TYPE_SCHEMAS = {
     .nullable()
     .default("")
     .transform((value) => value || ""),
-  date: z.date().transform((date) => date?.toISOString() || ""),
+  date: z
+    .date()
+    .nullable()
+    .transform((date) => (date ? date.toISOString() : "")),
   string: z
     .string()
     .nullable()
@@ -51,6 +54,7 @@ export function formatCommissionsForExport(
   const formattedCommissions = commissions.map((commission) => {
     const row: Record<string, unknown> = {
       ...commission,
+      paidAt: commission.payout?.paidAt ?? null,
       customerName: commission.customer?.name || "",
       customerEmail: commission.customer?.email || "",
       customerExternalId: commission.customer?.externalId || "",

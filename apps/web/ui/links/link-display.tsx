@@ -80,17 +80,19 @@ export default function LinkDisplay() {
               );
             })}
           </div>
-          {totalLinks && totalLinks < SORTABLE_LINKS_LIMIT && (
-            <div className="flex h-16 items-center justify-between gap-2 px-4">
-              <span className="flex items-center gap-2">
-                <ArrowsOppositeDirectionY className="h-4 w-4 text-neutral-800" />
-                Ordering
-              </span>
-              <div>
-                <LinkSort />
+          {totalLinks != null &&
+            totalLinks > 0 &&
+            totalLinks < SORTABLE_LINKS_LIMIT && (
+              <div className="flex h-16 items-center justify-between gap-2 px-4">
+                <span className="flex items-center gap-2">
+                  <ArrowsOppositeDirectionY className="h-4 w-4 text-neutral-800" />
+                  Ordering
+                </span>
+                <div>
+                  <LinkSort />
+                </div>
               </div>
-            </div>
-          )}
+            )}
           {!isMegaWorkspace && (
             <div className="group flex h-16 items-center justify-between gap-2 px-4">
               <div className="flex items-center gap-2">

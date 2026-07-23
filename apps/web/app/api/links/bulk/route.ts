@@ -11,6 +11,7 @@ import { includeProgramEnrollment } from "@/lib/api/links/include-program-enroll
 import { includeTags } from "@/lib/api/links/include-tags";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { checkIfLinksHaveFolders } from "@/lib/api/links/utils/check-if-links-have-folders";
+import { isRootDomainLinkKey } from "@/lib/api/links/utils/is-root-domain-link-key";
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -52,6 +53,7 @@ export const POST = withWorkspace(
         code: "exceeded_limit",
         message: exceededLimitError({
           plan: workspace.plan,
+          planPeriod: workspace.planPeriod,
           limit: workspace.linksLimit,
           type: "links",
         }),
@@ -570,6 +572,8 @@ export const DELETE = withWorkspace(
         return validFolder?.hasPermission ?? false;
       });
     }
+
+    links = links.filter((link) => !isRootDomainLinkKey(link.key));
 
     const { count: deletedCount } = await prisma.link.deleteMany({
       where: {
