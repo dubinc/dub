@@ -2,32 +2,51 @@
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
+import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { WorkflowCondition } from "@/lib/types";
-import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
+import { GroupProps, WorkflowCondition } from "@/lib/types";
+import {
+  WORKFLOW_COMPARISON_OPERATOR_LABELS,
+  WORKFLOW_ENUM_COMPARISON_OPERATORS,
+} from "@/lib/zod/schemas/workflows";
 import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
   InlineBadgePopover,
   InlineBadgePopoverAmountInput,
+  InlineBadgePopoverContext,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
-import { ArrowTurnRight2, Button, UserArrowRight, Users } from "@dub/ui";
-import { currencyFormatter, nFormatter } from "@dub/utils";
+import {
+  ArrowTurnRight2,
+  Button,
+  Check2,
+  UserArrowRight,
+  Users,
+} from "@dub/ui";
+import { currencyFormatter, nFormatter, truncate } from "@dub/utils";
+import { Command } from "cmdk";
 import { X } from "lucide-react";
-import { Fragment, useMemo } from "react";
+import { Fragment, useContext, useMemo } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 
-const ATTRIBUTES = [
+const PERFORMANCE_ATTRIBUTES = [
   { key: "totalLeads", text: "total leads", type: "number" },
   { key: "totalConversions", text: "total conversions", type: "number" },
   { key: "totalSaleAmount", text: "total revenue", type: "currency" },
   { key: "totalCommissions", text: "total commissions", type: "currency" },
 ] as const;
 
+const PROFILE_ATTRIBUTES = [
+  { key: "groupId", text: "group", type: "group" },
+] as const;
+
+const ATTRIBUTES = [...PERFORMANCE_ATTRIBUTES, ...PROFILE_ATTRIBUTES] as const;
+
 type Attribute = (typeof ATTRIBUTES)[number];
 type AttributeType = (typeof ATTRIBUTES)[number]["type"];
 type RangeValue = { min: number; max?: number };
-type ValueType = number | RangeValue | undefined;
+type ValueType = number | RangeValue | string | string[] | undefined;
 
 const ATTRIBUTE_BY_KEY = Object.fromEntries(
   ATTRIBUTES.map(({ key, text, type }) => [key, { text, type }]),
@@ -202,33 +221,38 @@ function GroupRule({
               <ArrowTurnRight2 className="size-4 text-neutral-600" />
             )}
           </div>
-          <span className="text-sm font-medium text-neutral-800">
+          <span className="text-sm font-medium leading-relaxed text-neutral-800">
             {isFirst ? "If partner" : "And if partner"}
             {/* Select the attribute */}
             <InlineBadgePopover
-              text={ATTRIBUTE_BY_KEY[rule.attribute]?.text || "activity"}
+              text={ATTRIBUTE_BY_KEY[rule.attribute]?.text || "Detail"}
               invalid={!rule.attribute}
               buttonClassName="mx-1"
             >
-              <InlineBadgePopoverMenu
-                items={availableAttributes.map((a) => ({
-                  value: a.key,
-                  text: a.text,
-                }))}
+              <AttributeMenu
+                attributes={availableAttributes}
                 selectedValue={rule.attribute}
                 onSelect={(value) => {
-                  // Reset to default gte operator when attribute changes
+                  const isGroup = ATTRIBUTE_BY_KEY[value]?.type === "group";
+
+                  // Reset the operator and value when the attribute changes
                   onUpdate({
                     ...rule,
                     attribute: value,
-                    operator: "gte",
+                    operator: (isGroup
+                      ? undefined
+                      : "gte") as WorkflowCondition["operator"],
                     value: undefined,
                   });
                 }}
               />
             </InlineBadgePopover>
+            {/* Select the condition + group(s) for group attributes */}
+            {rule.attribute && attributeType === "group" && (
+              <GroupConditionSelectors rule={rule} onUpdate={onUpdate} />
+            )}
             {/* Select the attribute value */}
-            {rule.attribute && (
+            {rule.attribute && attributeType !== "group" && (
               <>
                 is at least
                 <InlineBadgePopover
@@ -293,6 +317,199 @@ function GroupRule({
     </div>
   );
 }
+
+function AttributeMenu({
+  attributes,
+  selectedValue,
+  onSelect,
+}: {
+  attributes: Attribute[];
+  selectedValue?: WorkflowCondition["attribute"];
+  onSelect: (value: Attribute["key"]) => void;
+}) {
+  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  const sections = [
+    {
+      label: "Performance data",
+      items: attributes.filter((a) => a.type !== "group"),
+    },
+    {
+      label: "Profile data",
+      items: attributes.filter((a) => a.type === "group"),
+    },
+  ].filter((section) => section.items.length > 0);
+
+  return (
+    <div className="-mx-1 box-border w-[calc(100%+0.5rem)] min-w-0 max-w-none">
+      <Command loop className="w-full focus:outline-none">
+        <Command.List className="scrollbar-hide flex max-h-64 w-full max-w-52 flex-col gap-1 overflow-y-auto transition-all">
+          {sections.map((section, sectionIndex) => (
+            <Fragment key={section.label}>
+              {sectionIndex > 0 && (
+                <div
+                  className="bg-border-subtle mt-1 h-px w-full min-w-0 shrink-0"
+                  role="separator"
+                />
+              )}
+              <div className="text-content-subtle mx-2 py-2 text-xs font-medium">
+                {section.label}
+              </div>
+              <div className="mx-1 flex flex-col gap-1">
+                {section.items.map(({ key, text }) => (
+                  <Command.Item
+                    key={key}
+                    value={`${text} ${key}`}
+                    onSelect={() => {
+                      onSelect(key);
+                      setIsOpen(false);
+                    }}
+                    className="flex cursor-pointer items-center justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100"
+                  >
+                    <span className="text-content-default pr-3 text-left text-sm font-medium">
+                      {text}
+                    </span>
+                    {selectedValue === key && (
+                      <Check2 className="text-content-emphasis size-3.5 shrink-0" />
+                    )}
+                  </Command.Item>
+                ))}
+              </div>
+            </Fragment>
+          ))}
+        </Command.List>
+      </Command>
+    </div>
+  );
+}
+
+function GroupConditionSelectors({
+  rule,
+  onUpdate,
+}: {
+  rule: WorkflowCondition;
+  onUpdate: (updates: Partial<WorkflowCondition>) => void;
+}) {
+  const { group: currentGroup } = useGroup();
+  const { groups } = useGroups();
+
+  const isEnumOperator = WORKFLOW_ENUM_COMPARISON_OPERATORS.includes(
+    rule.operator as (typeof WORKFLOW_ENUM_COMPARISON_OPERATORS)[number],
+  );
+  const isMulti = rule.operator === "in" || rule.operator === "not_in";
+
+  const selectedGroupIds = Array.isArray(rule.value)
+    ? rule.value
+    : typeof rule.value === "string" && rule.value
+      ? [rule.value]
+      : [];
+
+  // Exclude the current group: partners already in it can't be moved to it
+  const selectableGroups = (groups ?? []).filter(
+    (group) => group.id !== currentGroup?.id,
+  );
+
+  return (
+    <>
+      <InlineBadgePopover
+        text={
+          isEnumOperator
+            ? WORKFLOW_COMPARISON_OPERATOR_LABELS[rule.operator]
+            : "Condition"
+        }
+        invalid={!isEnumOperator}
+        buttonClassName="mx-1"
+      >
+        <InlineBadgePopoverMenu
+          selectedValue={
+            isEnumOperator
+              ? (rule.operator as (typeof WORKFLOW_ENUM_COMPARISON_OPERATORS)[number])
+              : undefined
+          }
+          items={WORKFLOW_ENUM_COMPARISON_OPERATORS.map((operator) => ({
+            text: WORKFLOW_COMPARISON_OPERATOR_LABELS[operator],
+            value: operator,
+          }))}
+          onSelect={(operator) => {
+            const multi = operator === "in" || operator === "not_in";
+
+            // Preserve the selection when switching between single and multi operators
+            onUpdate({
+              operator,
+              value: (multi
+                ? selectedGroupIds
+                : selectedGroupIds[0]) as WorkflowCondition["value"],
+            });
+          }}
+        />
+      </InlineBadgePopover>
+      {isEnumOperator && (
+        <InlineBadgePopover
+          text={formatGroupValue(selectedGroupIds, groups, isMulti)}
+          invalid={selectedGroupIds.length === 0}
+          buttonClassName="mx-1"
+        >
+          <InlineBadgePopoverMenu
+            search
+            selectedValue={isMulti ? selectedGroupIds : selectedGroupIds[0]}
+            items={selectableGroups.map((group) => ({
+              text: group.name,
+              value: group.id,
+              icon: <GroupColorCircle group={group} />,
+            }))}
+            onSelect={(groupId) => {
+              if (isMulti) {
+                const newGroupIds = selectedGroupIds.includes(groupId)
+                  ? selectedGroupIds.filter((id) => id !== groupId)
+                  : [...selectedGroupIds, groupId];
+
+                onUpdate({ value: newGroupIds });
+              } else {
+                onUpdate({ value: groupId });
+              }
+            }}
+          />
+        </InlineBadgePopover>
+      )}
+    </>
+  );
+}
+
+const formatGroupValue = (
+  selectedGroupIds: string[],
+  groups: GroupProps[] | undefined,
+  isMulti: boolean,
+) => {
+  if (selectedGroupIds.length === 0) {
+    return isMulti ? "Select groups" : "Select group";
+  }
+
+  if (!isMulti) {
+    const group = groups?.find(({ id }) => id === selectedGroupIds[0]);
+
+    if (!group) {
+      return "Select group";
+    }
+
+    return (
+      <span className="inline-flex items-center gap-1.5 align-middle">
+        <GroupColorCircle group={group} />
+        {truncate(group.name, 24)}
+      </span>
+    );
+  }
+
+  const names = selectedGroupIds.map(
+    (groupId) => groups?.find(({ id }) => id === groupId)?.name ?? "…",
+  );
+
+  return (
+    names
+      .map((name) => truncate(name, 16))
+      .slice(0, 2)
+      .join(", ") + (names.length > 2 ? ` +${names.length - 2}` : "")
+  );
+};
 
 function GroupMoveTarget() {
   const { group, loading } = useGroup();
@@ -414,7 +631,7 @@ function ValueInput({
 
         return (
           <InlineBadgePopoverAmountInput
-            type={attributeType}
+            type={isCurrency ? "currency" : "number"}
             value={displayValue}
             onChange={handleChange}
             onBlur={field.onBlur}
@@ -495,7 +712,7 @@ const getMinValue = (value: ValueType): number | null => {
     return value;
   }
 
-  if (typeof value === "object" && value !== null && value.min != null) {
+  if (isRangeValue(value) && value.min != null) {
     return value.min;
   }
 
@@ -503,7 +720,7 @@ const getMinValue = (value: ValueType): number | null => {
 };
 
 const getMaxValue = (value: ValueType): number | null => {
-  if (typeof value === "object" && value !== null && value.max != null) {
+  if (isRangeValue(value) && value.max != null) {
     return value.max;
   }
 
@@ -514,6 +731,7 @@ const isRangeValue = (value: ValueType): value is RangeValue => {
   return (
     typeof value === "object" &&
     value !== null &&
+    !Array.isArray(value) &&
     ("min" in value || "max" in value)
   );
 };

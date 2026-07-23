@@ -91,7 +91,11 @@ const conditionToInterval = (
       return null;
 
     case "between":
-      if (typeof condition.value === "object" && condition.value !== null) {
+      if (
+        typeof condition.value === "object" &&
+        condition.value !== null &&
+        !Array.isArray(condition.value)
+      ) {
         return {
           min: condition.value.min,
           max: condition.value.max,
@@ -113,6 +117,10 @@ const doConditionsOverlap = (
     return false;
   }
 
+  if (condition1.attribute === "groupId") {
+    return doGroupConditionsOverlap(condition1, condition2);
+  }
+
   const interval1 = conditionToInterval(condition1);
   const interval2 = conditionToInterval(condition2);
 
@@ -121,4 +129,59 @@ const doConditionsOverlap = (
   }
 
   return interval1.min <= interval2.max && interval2.min <= interval1.max;
+};
+
+// Normalize a group condition to either an allowed set (is / is one of)
+// or an excluded set (is not / is not one of) of group IDs
+const conditionToGroupSet = (
+  condition: WorkflowCondition,
+): { mode: "include" | "exclude"; groupIds: string[] } | null => {
+  const groupIds = Array.isArray(condition.value)
+    ? condition.value
+    : typeof condition.value === "string"
+      ? [condition.value]
+      : null;
+
+  if (!groupIds) {
+    return null;
+  }
+
+  switch (condition.operator) {
+    case "equals_to":
+    case "in":
+      return { mode: "include", groupIds };
+    case "not_equals":
+    case "not_in":
+      return { mode: "exclude", groupIds };
+    default:
+      return null;
+  }
+};
+
+// Two group conditions overlap if there exists a group that satisfies both
+const doGroupConditionsOverlap = (
+  condition1: WorkflowCondition,
+  condition2: WorkflowCondition,
+): boolean => {
+  const set1 = conditionToGroupSet(condition1);
+  const set2 = conditionToGroupSet(condition2);
+
+  if (!set1 || !set2) {
+    return false;
+  }
+
+  if (set1.mode === "include" && set2.mode === "include") {
+    return set1.groupIds.some((id) => set2.groupIds.includes(id));
+  }
+
+  if (set1.mode === "include") {
+    return set1.groupIds.some((id) => !set2.groupIds.includes(id));
+  }
+
+  if (set2.mode === "include") {
+    return set2.groupIds.some((id) => !set1.groupIds.includes(id));
+  }
+
+  // Both are exclusions: any group outside both excluded sets satisfies both
+  return true;
 };

@@ -6,7 +6,9 @@ export function evaluateWorkflowConditions({
   attributes,
 }: {
   conditions: WorkflowCondition[];
-  attributes: Partial<Record<WorkflowConditionAttribute, number | null>>;
+  attributes: Partial<
+    Record<WorkflowConditionAttribute, number | string | null>
+  >;
 }): boolean {
   if (conditions.length === 0) return false;
 

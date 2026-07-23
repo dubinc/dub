@@ -62,13 +62,15 @@ export const executeMoveGroupWorkflow = async ({
     return;
   }
 
-  const attributes: Partial<Record<WorkflowConditionAttribute, number | null>> =
-    {
-      totalLeads: metrics?.aggregated?.leads ?? 0,
-      totalConversions: metrics?.aggregated?.conversions ?? 0,
-      totalSaleAmount: metrics?.aggregated?.saleAmount ?? 0,
-      totalCommissions: metrics?.aggregated?.commissions ?? 0,
-    };
+  const attributes: Partial<
+    Record<WorkflowConditionAttribute, number | string | null>
+  > = {
+    totalLeads: metrics?.aggregated?.leads ?? 0,
+    totalConversions: metrics?.aggregated?.conversions ?? 0,
+    totalSaleAmount: metrics?.aggregated?.saleAmount ?? 0,
+    totalCommissions: metrics?.aggregated?.commissions ?? 0,
+    groupId: programEnrollment.groupId,
+  };
 
   const shouldExecute = evaluateWorkflowConditions({
     conditions,
