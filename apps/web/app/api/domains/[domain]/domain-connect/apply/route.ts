@@ -89,11 +89,8 @@ export const POST = withWorkspace(
       });
     }
 
-    const subdomain = getSubdomain(
-      domainJson.name?.toLowerCase() ?? domain,
-      domainJson.apexName?.toLowerCase() ?? apex,
-    );
-    const isApex = body.recordType === "A" || !subdomain;
+    const subdomain = getSubdomain(domain.toLowerCase(), apex);
+    const isApex = !subdomain;
     const serviceId = isApex
       ? DEFAULT_DC_SERVICE_APEX
       : DEFAULT_DC_SERVICE_SUBDOMAIN;

@@ -45,7 +45,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import useSWRImmutable from "swr/immutable";
+import useSWR from "swr";
 import { useAddEditDomainModal } from "../modals/add-edit-domain-modal";
 import { useArchiveDomainModal } from "../modals/archive-domain-modal";
 import { useDeleteDomainModal } from "../modals/delete-domain-modal";
@@ -67,7 +67,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
   const domainRef = useRef<HTMLDivElement>(null);
   const isVisible = useInViewport(domainRef, { defaultValue: true });
 
-  const { data, isValidating, mutate } = useSWRImmutable<{
+  const { data, isValidating, mutate } = useSWR<{
     status: DomainVerificationStatusProps;
     response: any;
     domainConnect?: DomainConnectDiscovery | null;
@@ -76,6 +76,11 @@ export default function DomainCard({ props }: { props: DomainProps }) {
       isVisible &&
       `/api/domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
+    {
+      // After Domain Connect, Vercel may take a few seconds to see DNS
+      revalidateOnFocus: true,
+      dedupingInterval: 5000,
+    },
   );
 
   const verificationData = useMemo(() => {

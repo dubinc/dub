@@ -87,15 +87,21 @@ export function CustomDomains() {
       );
     } else {
       toast.success("DNS changes submitted. Checking domain verification…");
-      void mutate(
-        (key) =>
-          typeof key === "string" &&
-          key.includes("/api/domains/") &&
-          key.includes("/verify"),
-      );
-      void mutate(
-        (key) => typeof key === "string" && key.startsWith("/api/domains"),
-      );
+      const revalidateDomains = () => {
+        void mutate(
+          (key) =>
+            typeof key === "string" &&
+            key.includes("/api/domains/") &&
+            key.includes("/verify"),
+        );
+        void mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/domains"),
+        );
+      };
+      // Immediate check, then again after DNS has a moment to propagate to Vercel
+      revalidateDomains();
+      window.setTimeout(revalidateDomains, 4000);
+      window.setTimeout(revalidateDomains, 10000);
     }
     queryParams({
       del: ["domain_connect", "error", "error_description", "state"],

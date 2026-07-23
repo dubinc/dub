@@ -1,7 +1,7 @@
 import { getConfigResponse } from "@/lib/api/domains/get-config-response";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getDomainResponse } from "@/lib/api/domains/get-domain-response";
-import { verifyDomain } from "@/lib/api/domains/verify-domain";
+import { verifyDomainWithRetry } from "@/lib/api/domains/verify-domain";
 import { withWorkspace } from "@/lib/auth";
 import { discoverDomainConnectIfEligible } from "@/lib/domain-connect/discover";
 import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
@@ -63,7 +63,7 @@ export const GET = withWorkspace(
      */
     if (!domainJson.verified) {
       status = "Pending Verification";
-      const verificationJson = await verifyDomain(domain);
+      const verificationJson = await verifyDomainWithRetry(domain);
 
       if (verificationJson?.verified) {
         // Re-check config after Vercel ownership verification succeeds
