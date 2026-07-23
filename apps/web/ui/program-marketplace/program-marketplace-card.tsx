@@ -2,7 +2,6 @@
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { useProgramMarketplacePromo } from "@/ui/program-marketplace/use-program-marketplace-promo";
-import { getMarketplaceHref } from "@/ui/program-marketplace/utils/urls";
 import { Grid, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
@@ -55,7 +54,7 @@ export function ProgramMarketplaceCard() {
             </div>
 
             <Link
-              href={getMarketplaceHref()}
+              href="/marketplace"
               className={cn(
                 buttonVariants({ variant: "primary" }),
                 "flex h-6 w-fit items-center justify-center whitespace-nowrap rounded-md border px-1.5 text-xs",

@@ -1,62 +1,23 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { buildNetworkProgramCountWhereSql } from "@/lib/fetchers/get-network-program-counts";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { getNetworkProgramsCountQuerySchema } from "@/lib/zod/schemas/program-network";
-import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
-
-const rewardTypeMap = {
-  sale: Prisma.sql`pg.saleRewardId IS NOT NULL`,
-  lead: Prisma.sql`pg.leadRewardId IS NOT NULL`,
-  click: Prisma.sql`pg.clickRewardId IS NOT NULL`,
-  discount: Prisma.sql`pg.discountId IS NOT NULL`,
-};
 
 // GET /api/network/programs/count - get the number of available programs in the network
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const { groupBy, category, rewardType, status, featured, search } =
     getNetworkProgramsCountQuerySchema.parse(searchParams);
 
-  const searchSql = search ? Prisma.sql`CONCAT('%', ${search}, '%')` : null;
-  const commonWhereSql = Prisma.sql`
-    p.addedToMarketplaceAt IS NOT NULL
-    AND EXISTS (
-      SELECT 1 FROM PartnerGroup pg
-      WHERE
-        pg.programId = p.id 
-        AND pg.slug = ${DEFAULT_PARTNER_GROUP.slug}
-        AND pg.applicationFormPublishedAt IS NOT NULL
-        ${
-          rewardType && groupBy !== "rewardType"
-            ? Prisma.sql`
-              AND ${rewardTypeMap[rewardType]}`
-            : Prisma.sql``
-        }
-    )
-    ${
-      category && groupBy !== "category"
-        ? Prisma.sql`
-          AND EXISTS (
-            SELECT 1 FROM ProgramCategory pc
-            WHERE pc.programId = p.id AND pc.category = ${category}
-          )`
-        : Prisma.sql``
-    }
-    ${
-      status !== undefined && groupBy !== "status"
-        ? Prisma.sql`
-          AND ${status === null ? Prisma.sql`NOT` : Prisma.sql``} EXISTS (
-            SELECT 1 FROM ProgramEnrollment pe
-            WHERE
-              pe.programId = p.id 
-              AND pe.partnerId = ${partner.id}
-              ${status === null ? Prisma.sql`` : Prisma.sql`AND pe.status = ${status}`}
-          )`
-        : Prisma.sql``
-    }
-    ${featured !== undefined ? Prisma.sql`AND p.featuredOnMarketplaceAt IS ${featured ? Prisma.sql`NOT` : Prisma.sql``} NULL` : Prisma.sql``}
-    ${searchSql ? Prisma.sql`AND (p.name LIKE ${searchSql} OR p.slug LIKE ${searchSql} OR p.domain LIKE ${searchSql})` : Prisma.sql``}
-  `;
+  const commonWhereSql = buildNetworkProgramCountWhereSql({
+    category: groupBy === "category" ? undefined : category,
+    rewardType: groupBy === "rewardType" ? undefined : rewardType,
+    status: groupBy === "status" ? undefined : status,
+    partnerId: partner.id,
+    featured,
+    search,
+  });
 
   if (groupBy === "category") {
     const categories = (await prisma.$queryRaw`
@@ -97,7 +58,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       SELECT pe.status, COUNT(p.id) AS _count
       FROM Program p
       LEFT JOIN ProgramEnrollment pe ON p.id = pe.programId AND pe.partnerId = ${partner.id}
-      WHERE p.addedToMarketplaceAt IS NOT NULL AND ${commonWhereSql}
+      WHERE ${commonWhereSql}
       GROUP BY pe.status
       ORDER BY _count DESC
     `) as { status: string | null; _count: bigint }[];

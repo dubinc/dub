@@ -1,14 +1,9 @@
 import { MarketplaceRouter } from "@/ui/program-marketplace/marketplace-router";
-import {
-  generateMarketplaceProgramStaticParams,
+
+export {
+  generateStaticParams,
   revalidate,
-} from "@/ui/program-marketplace/pages/marketplace-program-page";
-
-export { revalidate };
-
-export async function generateStaticParams() {
-  return generateMarketplaceProgramStaticParams();
-}
+} from "@/ui/program-marketplace/utils/default-exports";
 
 export default async function MarketplacePage(props: {
   params: Promise<{ segments?: string[] }>;
