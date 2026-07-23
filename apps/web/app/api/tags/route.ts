@@ -116,33 +116,30 @@ export const POST = withWorkspace(
 
     const { tag, color, name } = createTagBodySchema.parse(await req.json());
 
-    const existingTag = await prisma.tag.findFirst({
-      where: {
-        projectId: workspace.id,
-        name: name || tag,
-      },
-    });
-
-    if (existingTag) {
-      throw new DubApiError({
-        code: "conflict",
-        message: "A tag with that name already exists.",
+    try {
+      const createdTag = await prisma.tag.create({
+        data: {
+          id: createId({ prefix: "tag_" }),
+          name: tag || name!,
+          color: color || randomBadgeColor(),
+          projectId: workspace.id,
+        },
       });
+
+      return NextResponse.json(LinkTagSchema.parse(createdTag), {
+        headers,
+        status: 201,
+      });
+    } catch (error) {
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: "A tag with that name already exists.",
+        });
+      }
+
+      throw error;
     }
-
-    const response = await prisma.tag.create({
-      data: {
-        id: createId({ prefix: "tag_" }),
-        name: tag || name!,
-        color: color || randomBadgeColor(),
-        projectId: workspace.id,
-      },
-    });
-
-    return NextResponse.json(LinkTagSchema.parse(response), {
-      headers,
-      status: 201,
-    });
   },
   {
     requiredPermissions: ["tags.write"],
