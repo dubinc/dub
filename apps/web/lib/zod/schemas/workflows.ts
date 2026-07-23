@@ -23,7 +23,19 @@ export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
   partnerJoined: WorkflowTrigger.partnerEnrolled,
 } as const;
 
-export const WORKFLOW_COMPARISON_OPERATORS = ["gte", "between"] as const;
+export const WORKFLOW_NUMERIC_OPERATORS = ["gte", "between"] as const;
+
+export const WORKFLOW_ENUM_OPERATORS = [
+  "equals_to",
+  "not_equals",
+  "in",
+  "not_in",
+] as const;
+
+export const WORKFLOW_COMPARISON_OPERATORS = [
+  ...WORKFLOW_NUMERIC_OPERATORS,
+  ...WORKFLOW_ENUM_OPERATORS,
+] as const;
 
 export const SCHEDULED_WORKFLOW_TRIGGERS: WorkflowTrigger[] = [
   "partnerEnrolled",
@@ -41,10 +53,10 @@ export enum WORKFLOW_ACTION_TYPES {
 
 export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
 
-// Individual condition
+// Individual condition (bounty/campaign workflows stay numeric-only)
 export const workflowConditionSchema = z.object({
   attribute: z.enum(WORKFLOW_ATTRIBUTES),
-  operator: z.enum(WORKFLOW_COMPARISON_OPERATORS).default("gte"),
+  operator: z.enum(WORKFLOW_NUMERIC_OPERATORS).default("gte"),
   value: z.union([
     z.number(),
     z.object({

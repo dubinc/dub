@@ -50,9 +50,10 @@ export async function upsertGroupMoveRules({
   }
 
   try {
-    validateGroupMoveRules({
+    await validateGroupMoveRules({
       rules: moveRules,
       destinationGroupId: group.id,
+      programId: group.programId,
     });
   } catch (error) {
     throw new DubApiError({

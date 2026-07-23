@@ -1,12 +1,15 @@
-import { WorkflowCondition, WorkflowConditionAttribute } from "@/lib/types";
+import { WorkflowCondition } from "@/lib/types";
+import type { GroupMoveCondition } from "@/lib/zod/schemas/group-move-workflows";
 import { COMPARISON_OPERATORS } from "./operators";
+
+type EvaluableCondition = WorkflowCondition | GroupMoveCondition;
 
 export function evaluateWorkflowConditions({
   conditions,
   attributes,
 }: {
-  conditions: WorkflowCondition[];
-  attributes: Partial<Record<WorkflowConditionAttribute, number | null>>;
+  conditions: EvaluableCondition[];
+  attributes: Partial<Record<string, number | string | null>>;
 }): boolean {
   if (conditions.length === 0) return false;
 

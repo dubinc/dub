@@ -2,6 +2,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { movePartnersToGroup } from "@/lib/api/groups/move-partners-to-group";
+import { scrubFromPartnerGroupReferences } from "@/lib/api/groups/scrub-from-partner-group-references";
 import { upsertGroupMoveRules } from "@/lib/api/groups/upsert-group-move-rules";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -365,7 +366,17 @@ export const DELETE = withWorkspace(
       // for `remap-discount-codes` that runs in movePartnersToGroup
       // but we will delete the Discount in `remap-discount-codes` once there are no remaining discount codes.
 
-      // 2. Delete the group move workflow
+      // TODO:
+      // Move this to a background job using defineJob
+
+      // 2. Remove this group from other groups' fromPartnerGroup move-rule conditions
+      await scrubFromPartnerGroupReferences({
+        programId,
+        deletedGroupId: group.id,
+        tx,
+      });
+
+      // 3. Delete the group move workflow
       if (group.workflowId) {
         await tx.workflow.delete({
           where: {
@@ -374,7 +385,7 @@ export const DELETE = withWorkspace(
         });
       }
 
-      // 3. Delete the group
+      // 4. Delete the group
       await tx.partnerGroup.delete({
         where: {
           id: group.id,

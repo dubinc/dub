@@ -1,10 +1,17 @@
 import { WorkflowComparisonOperator } from "@/lib/types";
 
-type ConditionValue = number | { min: number; max?: number };
+type ConditionValue =
+  | number
+  | string
+  | string[]
+  | { min: number; max?: number };
 
 type ComparisonOperator = {
   validate: (value: ConditionValue) => void;
-  evaluate: (attributeValue: number, conditionValue: ConditionValue) => boolean;
+  evaluate: (
+    attributeValue: number | string,
+    conditionValue: ConditionValue,
+  ) => boolean;
 };
 
 export const COMPARISON_OPERATORS: Record<
@@ -19,7 +26,10 @@ export const COMPARISON_OPERATORS: Record<
       }
     },
     evaluate(attributeValue, conditionValue) {
-      if (typeof conditionValue !== "number") {
+      if (
+        typeof attributeValue !== "number" ||
+        typeof conditionValue !== "number"
+      ) {
         return false;
       }
 
@@ -30,7 +40,7 @@ export const COMPARISON_OPERATORS: Record<
   // Between (inclusive)
   between: {
     validate(value) {
-      if (typeof value !== "object" || value === null) {
+      if (typeof value !== "object" || value === null || Array.isArray(value)) {
         throw new Error("Please enter a valid value.");
       }
 
@@ -50,7 +60,12 @@ export const COMPARISON_OPERATORS: Record<
       }
     },
     evaluate(attributeValue, conditionValue) {
-      if (typeof conditionValue !== "object" || conditionValue === null) {
+      if (
+        typeof attributeValue !== "number" ||
+        typeof conditionValue !== "object" ||
+        conditionValue === null ||
+        Array.isArray(conditionValue)
+      ) {
         return false;
       }
 
@@ -61,6 +76,78 @@ export const COMPARISON_OPERATORS: Record<
       }
 
       return attributeValue >= min && attributeValue <= max;
+    },
+  },
+
+  // Equals (string)
+  equals_to: {
+    validate(value) {
+      if (typeof value !== "string" || !value) {
+        throw new Error("Please select a group.");
+      }
+    },
+    evaluate(attributeValue, conditionValue) {
+      if (typeof conditionValue !== "string") {
+        return false;
+      }
+
+      return attributeValue === conditionValue;
+    },
+  },
+
+  // Not equals (string)
+  not_equals: {
+    validate(value) {
+      if (typeof value !== "string" || !value) {
+        throw new Error("Please select a group.");
+      }
+    },
+    evaluate(attributeValue, conditionValue) {
+      if (typeof conditionValue !== "string") {
+        return false;
+      }
+
+      return attributeValue !== conditionValue;
+    },
+  },
+
+  // In (string array)
+  in: {
+    validate(value) {
+      if (
+        !Array.isArray(value) ||
+        value.length === 0 ||
+        value.some((id) => !id)
+      ) {
+        throw new Error("Please select at least one group.");
+      }
+    },
+    evaluate(attributeValue, conditionValue) {
+      if (!Array.isArray(conditionValue)) {
+        return false;
+      }
+
+      return conditionValue.includes(attributeValue as string);
+    },
+  },
+
+  // Not in (string array)
+  not_in: {
+    validate(value) {
+      if (
+        !Array.isArray(value) ||
+        value.length === 0 ||
+        value.some((id) => !id)
+      ) {
+        throw new Error("Please select at least one group.");
+      }
+    },
+    evaluate(attributeValue, conditionValue) {
+      if (!Array.isArray(conditionValue)) {
+        return false;
+      }
+
+      return !conditionValue.includes(attributeValue as string);
     },
   },
 };

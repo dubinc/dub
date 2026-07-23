@@ -94,7 +94,11 @@ const conditionToInterval = (
       return null;
 
     case "between":
-      if (typeof condition.value === "object" && condition.value !== null) {
+      if (
+        typeof condition.value === "object" &&
+        condition.value !== null &&
+        !Array.isArray(condition.value)
+      ) {
         return {
           min: condition.value.min,
           max: condition.value.max,
@@ -107,6 +111,62 @@ const conditionToInterval = (
   }
 };
 
+const getGroupIdSet = (condition: GroupMoveCondition): Set<string> | null => {
+  if (typeof condition.value === "string") {
+    return new Set([condition.value]);
+  }
+
+  if (Array.isArray(condition.value)) {
+    return new Set(condition.value);
+  }
+
+  return null;
+};
+
+const doFromPartnerGroupConditionsOverlap = (
+  condition1: GroupMoveCondition,
+  condition2: GroupMoveCondition,
+): boolean => {
+  const set1 = getGroupIdSet(condition1);
+  const set2 = getGroupIdSet(condition2);
+
+  if (!set1 || !set2 || set1.size === 0 || set2.size === 0) {
+    return false;
+  }
+
+  const isPositive1 =
+    condition1.operator === "equals_to" || condition1.operator === "in";
+  const isPositive2 =
+    condition2.operator === "equals_to" || condition2.operator === "in";
+
+  // Both positive: overlap if value sets intersect
+  if (isPositive1 && isPositive2) {
+    for (const id of set1) {
+      if (set2.has(id)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Both negative (not_equals / not_in): a partner outside both exclusion sets can match both
+  if (!isPositive1 && !isPositive2) {
+    return true;
+  }
+
+  // One positive, one negative: overlap unless the positive set is entirely contained in the exclusion set
+  const positiveSet = isPositive1 ? set1 : set2;
+  const negativeSet = isPositive1 ? set2 : set1;
+
+  for (const id of positiveSet) {
+    if (!negativeSet.has(id)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 const doConditionsOverlap = (
   condition1: GroupMoveCondition,
   condition2: GroupMoveCondition,
@@ -114,6 +174,10 @@ const doConditionsOverlap = (
   // Conditions must be for the same attribute to overlap
   if (condition1.attribute !== condition2.attribute) {
     return false;
+  }
+
+  if (condition1.attribute === "fromPartnerGroup") {
+    return doFromPartnerGroupConditionsOverlap(condition1, condition2);
   }
 
   const interval1 = conditionToInterval(condition1);

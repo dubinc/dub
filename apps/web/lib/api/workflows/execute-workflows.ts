@@ -1,11 +1,16 @@
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
-import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
+import {
+  WORKFLOW_ACTION_TYPES,
+  workflowActionSchema,
+} from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@prisma/client";
+import * as z from "zod/v4";
 import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
 import { executeMoveGroupWorkflow } from "./execute-move-group-workflow";
 import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";
+import { parseMoveGroupWorkflowConfig } from "./parse-move-group-workflow-config";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 
 interface WorkflowActionHandler {
@@ -40,6 +45,21 @@ const REASON_TO_ATTRIBUTES: Record<
   commission: ["totalCommissions"],
 };
 
+type ParsedWorkflowConfig =
+  | ReturnType<typeof parseWorkflowConfig>
+  | ReturnType<typeof parseMoveGroupWorkflowConfig>;
+
+function parseWorkflowForExecution(workflow: Workflow): ParsedWorkflowConfig {
+  const actions = z.array(workflowActionSchema).parse(workflow.actions);
+  const action = actions[0];
+
+  if (action?.type === WORKFLOW_ACTION_TYPES.MoveGroup) {
+    return parseMoveGroupWorkflowConfig(workflow);
+  }
+
+  return parseWorkflowConfig(workflow);
+}
+
 export async function executeWorkflows({
   trigger,
   reason,
@@ -69,7 +89,7 @@ export async function executeWorkflows({
       try {
         return {
           workflow,
-          config: parseWorkflowConfig(workflow),
+          config: parseWorkflowForExecution(workflow),
         };
       } catch (error) {
         console.error(
@@ -84,7 +104,7 @@ export async function executeWorkflows({
         item,
       ): item is {
         workflow: Workflow;
-        config: ReturnType<typeof parseWorkflowConfig>;
+        config: ParsedWorkflowConfig;
       } => item !== null,
     );
 
@@ -101,7 +121,7 @@ export async function executeWorkflows({
     const expectedAttributes = REASON_TO_ATTRIBUTES[reason];
     filteredWorkflows = parsedWorkflows.filter(({ config }) =>
       config.conditions.some(({ attribute }) =>
-        expectedAttributes.includes(attribute),
+        (expectedAttributes as string[]).includes(attribute),
       ),
     );
 

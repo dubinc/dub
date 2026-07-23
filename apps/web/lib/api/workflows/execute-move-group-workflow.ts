@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
+import { WorkflowContext } from "@/lib/types";
+import type { GroupMoveAttribute } from "@/lib/zod/schemas/group-move-workflows";
 import { redis } from "@/lib/upstash/redis";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@prisma/client";
 import { movePartnersToGroup } from "../groups/move-partners-to-group";
 import { evaluateWorkflowConditions } from "./evaluate-workflow-conditions";
-import { parseWorkflowConfig } from "./parse-workflow-config";
+import { parseMoveGroupWorkflowConfig } from "./parse-move-group-workflow-config";
 
 export const executeMoveGroupWorkflow = async ({
   workflow,
@@ -14,7 +15,7 @@ export const executeMoveGroupWorkflow = async ({
   workflow: Workflow;
   context: WorkflowContext;
 }) => {
-  const { conditions, action } = parseWorkflowConfig(workflow);
+  const { conditions, action } = parseMoveGroupWorkflowConfig(workflow);
 
   if (action.type !== WORKFLOW_ACTION_TYPES.MoveGroup) {
     console.error(
@@ -62,13 +63,15 @@ export const executeMoveGroupWorkflow = async ({
     return;
   }
 
-  const attributes: Partial<Record<WorkflowConditionAttribute, number | null>> =
-    {
-      totalLeads: metrics?.aggregated?.leads ?? 0,
-      totalConversions: metrics?.aggregated?.conversions ?? 0,
-      totalSaleAmount: metrics?.aggregated?.saleAmount ?? 0,
-      totalCommissions: metrics?.aggregated?.commissions ?? 0,
-    };
+  const attributes: Partial<
+    Record<GroupMoveAttribute, number | string | null>
+  > = {
+    totalLeads: metrics?.aggregated?.leads ?? 0,
+    totalConversions: metrics?.aggregated?.conversions ?? 0,
+    totalSaleAmount: metrics?.aggregated?.saleAmount ?? 0,
+    totalCommissions: metrics?.aggregated?.commissions ?? 0,
+    fromPartnerGroup: programEnrollment.groupId,
+  };
 
   const shouldExecute = evaluateWorkflowConditions({
     conditions,
