@@ -9,8 +9,21 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     partnerId: partner.id,
     programId: params.programId,
     include: {
-      program: true,
-      links: true,
+      program: {
+        select: {
+          id: true,
+          defaultGroupId: true,
+        },
+      },
+      links: {
+        select: {
+          clicks: true,
+          leads: true,
+          conversions: true,
+          sales: true,
+          saleAmount: true,
+        },
+      },
     },
   });
 

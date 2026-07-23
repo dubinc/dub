@@ -1,3 +1,4 @@
+import { getProgramBountyMeta } from "@/lib/bounty/bounty-period";
 import { getBountyRewardDescription } from "@/lib/bounty/rewards";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroups from "@/lib/swr/use-groups";
@@ -17,9 +18,10 @@ import {
   Tooltip,
   TooltipContent,
 } from "@dub/ui";
-import { Users6 } from "@dub/ui/icons";
-import { formatDate, nFormatter, pluralize } from "@dub/utils";
+import { Users, Users6 } from "@dub/ui/icons";
+import { nFormatter, pluralize } from "@dub/utils";
 import { cn } from "@dub/utils/src";
+import { BountyStartMode } from "@prisma/client";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
 type ConfirmCreateBountyModalProps = {
@@ -29,6 +31,8 @@ type ConfirmCreateBountyModalProps = {
     | "name"
     | "startsAt"
     | "endsAt"
+    | "startMode"
+    | "endsAfterDays"
     | "rewardAmount"
     | "rewardDescription"
     | "submissionRequirements"
@@ -46,40 +50,53 @@ function ConfirmCreateBountyModal({
   showConfirmCreateBountyModal: boolean;
   setShowConfirmCreateBountyModal: Dispatch<SetStateAction<boolean>>;
 } & ConfirmCreateBountyModalProps) {
+  const { groups } = useGroups();
   const { plan, slug: workspaceSlug, isOwner } = useWorkspace();
   const { canSendEmailCampaigns } = getPlanCapabilities(plan);
 
   const [isLoading, setIsLoading] = useState(false);
+
   const [sendNotificationEmails, setSendNotificationEmails] = useState(
     canSendEmailCampaigns,
   );
 
-  const { totalPartners, loading } = usePartnersCountByGroupIds({
-    groupIds: bounty?.groups?.map((group) => group.id) ?? [],
-  });
+  const isRelative = bounty?.startMode === BountyStartMode.relative;
 
-  const { groups } = useGroups();
+  const { totalPartners, loading } = usePartnersCountByGroupIds({
+    groupIds: isRelative
+      ? null
+      : bounty?.groups?.map((group) => group.id) ?? [],
+  });
 
   const eligibleGroups = useMemo(() => {
     if (!groups || !bounty || bounty.groups.length === 0) {
       return [];
     }
+
     return bounty.groups
       .map((bountyGroup) => groups.find((g) => g.id === bountyGroup.id))
       .filter((g): g is NonNullable<typeof g> => g !== undefined);
   }, [groups, bounty?.groups]);
 
+  if (!bounty) {
+    return null;
+  }
+
   const handleConfirm = async () => {
     setIsLoading(true);
     try {
-      await onConfirm({ sendNotificationEmails });
+      await onConfirm({
+        sendNotificationEmails: isRelative ? false : sendNotificationEmails,
+      });
       setShowConfirmCreateBountyModal(false);
     } finally {
       setIsLoading(false);
     }
   };
 
-  return bounty ? (
+  const { dateRangeLabel, partnerAudienceLabel } = getProgramBountyMeta(bounty);
+
+  return (
     <Modal
       showModal={showConfirmCreateBountyModal}
       setShowModal={setShowConfirmCreateBountyModal}
@@ -107,15 +124,7 @@ function ConfirmCreateBountyModal({
 
               <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
                 <Calendar6 className="size-3.5" />
-                <span>
-                  {formatDate(bounty.startsAt, { month: "short" })}
-                  {bounty.endsAt && (
-                    <>
-                      {" → "}
-                      {formatDate(bounty.endsAt, { month: "short" })}
-                    </>
-                  )}
-                </span>
+                <span>{dateRangeLabel}</span>
               </div>
 
               {!isOwner && (
@@ -126,6 +135,11 @@ function ConfirmCreateBountyModal({
                   </span>
                 </div>
               )}
+
+              <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
+                <Users className="size-3.5" />
+                <span>{partnerAudienceLabel}</span>
+              </div>
 
               {isOwner && (
                 <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
@@ -169,55 +183,57 @@ function ConfirmCreateBountyModal({
           </div>
         </div>
 
-        <DynamicTooltipWrapper
-          tooltipProps={
-            !canSendEmailCampaigns
-              ? {
-                  content: (
-                    <TooltipContent
-                      title="New bounty notifications are only available on Advanced plans and above."
-                      cta="Upgrade to Advanced"
-                      href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
-                      target="_blank"
-                    />
-                  ),
-                }
-              : undefined
-          }
-        >
-          <label
-            className={cn(
-              "mt-4 flex items-center gap-2",
-              !canSendEmailCampaigns &&
-                "pointer-events-none cursor-not-allowed",
-            )}
+        {!isRelative && (
+          <DynamicTooltipWrapper
+            tooltipProps={
+              !canSendEmailCampaigns
+                ? {
+                    content: (
+                      <TooltipContent
+                        title="New bounty notifications are only available on Advanced plans and above."
+                        cta="Upgrade to Advanced"
+                        href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
+                        target="_blank"
+                      />
+                    ),
+                  }
+                : undefined
+            }
           >
-            <Checkbox
-              checked={canSendEmailCampaigns ? sendNotificationEmails : false}
-              onCheckedChange={(checked) =>
-                setSendNotificationEmails(Boolean(checked))
-              }
-              disabled={!canSendEmailCampaigns}
-              className="data-[state=checked]:bg-black"
-            />
-            <span
+            <label
               className={cn(
-                "text-content-default select-none text-sm font-medium",
-                !canSendEmailCampaigns && "opacity-50",
+                "mt-4 flex items-center gap-2",
+                !canSendEmailCampaigns &&
+                  "pointer-events-none cursor-not-allowed",
               )}
             >
-              Send notification to{" "}
-              <strong className="text-content-emphasis font-semibold">
-                {loading ? (
-                  <span className="inline-block h-4 w-6 animate-pulse rounded bg-neutral-200 align-text-bottom" />
-                ) : (
-                  nFormatter(totalPartners, { full: true })
-                )}{" "}
-                selected {pluralize("partner", totalPartners)}
-              </strong>
-            </span>
-          </label>
-        </DynamicTooltipWrapper>
+              <Checkbox
+                checked={canSendEmailCampaigns ? sendNotificationEmails : false}
+                onCheckedChange={(checked) =>
+                  setSendNotificationEmails(Boolean(checked))
+                }
+                disabled={!canSendEmailCampaigns}
+                className="data-[state=checked]:bg-black"
+              />
+              <span
+                className={cn(
+                  "text-content-default select-none text-sm font-medium",
+                  !canSendEmailCampaigns && "opacity-50",
+                )}
+              >
+                Send notification to{" "}
+                <strong className="text-content-emphasis font-semibold">
+                  {loading ? (
+                    <span className="inline-block h-4 w-6 animate-pulse rounded bg-neutral-200 align-text-bottom" />
+                  ) : (
+                    nFormatter(totalPartners, { full: true })
+                  )}{" "}
+                  selected {pluralize("partner", totalPartners)}
+                </strong>
+              </span>
+            </label>
+          </DynamicTooltipWrapper>
+        )}
       </div>
 
       <div className="border-border-subtle flex items-center justify-end gap-2 border-t px-5 py-4">
@@ -236,7 +252,7 @@ function ConfirmCreateBountyModal({
         />
       </div>
     </Modal>
-  ) : null;
+  );
 }
 
 export function useConfirmCreateBountyModal(

@@ -1,4 +1,8 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
+import {
+  getEffectiveBountyPeriod,
+  isPartnerEligibleForBounty,
+} from "@/lib/bounty/api/bounty-availability";
 import { prisma } from "@/lib/prisma";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
@@ -37,8 +41,15 @@ export const executeCompleteBountyWorkflow = async ({
   }
 
   const { bountyId } = action.data;
-  const { identity, metrics } = context;
-  const { partnerId, groupId, customerId, customerFirstSaleAt } = identity;
+  const { identity, metrics, programEnrollment } = context;
+  const { customerId, customerFirstSaleAt } = identity;
+
+  if (!programEnrollment) {
+    console.error("Program enrollment not set in the context.");
+    return;
+  }
+
+  const { partnerId, groupId } = programEnrollment;
 
   if (!groupId) {
     console.error("Partner groupId not set in the context.");
@@ -51,9 +62,25 @@ export const executeCompleteBountyWorkflow = async ({
       id: bountyId,
     },
     include: {
-      program: true,
-      groups: true,
+      program: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          supportEmail: true,
+          defaultGroupId: true,
+        },
+      },
+      groups: {
+        select: {
+          groupId: true,
+        },
+      },
       submissions: {
+        select: {
+          id: true,
+          status: true,
+        },
         where: {
           partnerId,
         },
@@ -77,30 +104,19 @@ export const executeCompleteBountyWorkflow = async ({
     return;
   }
 
-  const now = new Date();
+  const { submissions, program } = bounty;
 
-  // Check if bounty is active
-  if (
-    (bounty.startsAt && bounty.startsAt > now) ||
-    (bounty.endsAt && bounty.endsAt < now) ||
-    bounty.archivedAt
-  ) {
-    console.log(`Bounty ${bounty.id} is no longer active.`);
+  const isEligible = isPartnerEligibleForBounty({
+    program,
+    bounty,
+    programEnrollment,
+  });
+
+  if (!isEligible) {
+    console.log(
+      `Partner ${partnerId} is not eligible for bounty ${bounty.id}.`,
+    );
     return;
-  }
-
-  const { groups, submissions } = bounty;
-
-  // If the bounty is part of a group, check if the partner is in the group
-  if (groups.length > 0) {
-    const groupIds = groups.map(({ groupId }) => groupId);
-
-    if (!groupIds.includes(groupId)) {
-      console.log(
-        `Partner ${partnerId} is not eligible for bounty ${bounty.id} because they are not in any of the assigned groups. Partner's groupId: ${groupId}. Assigned groupIds: ${groupIds.join(", ")}.`,
-      );
-      return;
-    }
   }
 
   if (submissions.length > 0) {
@@ -118,10 +134,15 @@ export const executeCompleteBountyWorkflow = async ({
     }
   }
 
+  const { startsAt } = getEffectiveBountyPeriod({
+    programEnrollment,
+    bounty,
+  });
+
   if (
     bounty.performanceScope === "new" &&
     customerFirstSaleAt &&
-    customerFirstSaleAt < bounty.startsAt
+    customerFirstSaleAt < startsAt
   ) {
     console.log(
       `Bounty ${bounty.id} is for net-new revenue only and partner ${partnerId} referred customer ${customerId} before the bounty started, skipping...`,

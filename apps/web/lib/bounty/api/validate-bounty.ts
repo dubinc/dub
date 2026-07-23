@@ -1,10 +1,13 @@
 import { DubApiError } from "@/lib/api/errors";
 import { CreateBountyInput } from "@/lib/types";
+import { BountyStartMode } from "@prisma/client";
 
 export function validateBounty({
   type,
   startsAt,
   endsAt,
+  startMode,
+  endsAfterDays,
   submissionsOpenAt,
   submissionFrequency,
   maxSubmissions,
@@ -12,9 +15,40 @@ export function validateBounty({
   rewardDescription,
   performanceScope,
 }: Partial<CreateBountyInput>) {
-  startsAt = startsAt || new Date();
+  startMode = startMode ?? BountyStartMode.absolute;
 
-  if (endsAt && endsAt < startsAt) {
+  // startsAt is required when startMode is absolute and must be null when
+  // startMode is relative (relative bounties start when a partner joins).
+  if (startMode === BountyStartMode.relative) {
+    if (startsAt != null) {
+      throw new DubApiError({
+        message:
+          "startsAt is not supported when the bounty starts when a partner joins. It must be null for relative bounties.",
+        code: "bad_request",
+      });
+    }
+  } else {
+    // Default to now when an absolute bounty doesn't specify a start date
+    startsAt = startsAt || new Date();
+  }
+
+  if (endsAt && endsAfterDays) {
+    throw new DubApiError({
+      message:
+        "Bounty cannot have both an end date (endsAt) and endsAfterDays.",
+      code: "bad_request",
+    });
+  }
+
+  if (startMode === BountyStartMode.absolute && endsAfterDays) {
+    throw new DubApiError({
+      message:
+        "endsAfterDays is only supported when the bounty starts when a partner joins.",
+      code: "bad_request",
+    });
+  }
+
+  if (endsAt && startsAt && endsAt < startsAt) {
     throw new DubApiError({
       message:
         "Bounty end date (endsAt) must be on or after start date (startsAt).",
@@ -31,7 +65,7 @@ export function validateBounty({
       });
     }
 
-    if (submissionsOpenAt < startsAt) {
+    if (startsAt && submissionsOpenAt < startsAt) {
       throw new DubApiError({
         message:
           "Bounty submissions open date (submissionsOpenAt) must be on or after start date (startsAt).",
@@ -81,7 +115,7 @@ export function validateBounty({
       });
     }
 
-    if (submissionFrequency && !endsAt) {
+    if (submissionFrequency && !endsAt && !endsAfterDays) {
       throw new DubApiError({
         code: "bad_request",
         message: "An end date is required when submissionFrequency is set.",

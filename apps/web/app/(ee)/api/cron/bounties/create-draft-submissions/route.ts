@@ -1,13 +1,14 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
+import { isPartnerEligibleForBounty } from "@/lib/bounty/api/bounty-availability";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
 import { APP_DOMAIN_WITH_NGROK, log, toCentsNumber } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { Prisma, ProgramEnrollmentStatus } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -41,9 +42,22 @@ export async function POST(req: Request) {
         id: bountyId,
       },
       include: {
-        groups: true,
-        program: true,
-        workflow: true,
+        workflow: {
+          select: {
+            triggerConditions: true,
+          },
+        },
+        groups: {
+          select: {
+            groupId: true,
+          },
+        },
+        program: {
+          select: {
+            id: true,
+            defaultGroupId: true,
+          },
+        },
       },
     });
 
@@ -53,12 +67,14 @@ export async function POST(req: Request) {
       });
     }
 
-    let diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
+    if (bounty.startsAt) {
+      let diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
 
-    if (diffMinutes >= 10) {
-      return logAndRespond(
-        `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
-      );
+      if (diffMinutes >= 10) {
+        return logAndRespond(
+          `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
+        );
+      }
     }
 
     if (bounty.type !== "performance") {
@@ -75,16 +91,15 @@ export async function POST(req: Request) {
       return logAndRespond(`Bounty ${bountyId} has no workflow.`);
     }
 
-    // Find groupIds
-    const groupIds = bounty.groups.map(({ groupId }) => groupId);
+    const bountyGroupIds = bounty.groups.map(({ groupId }) => groupId);
 
     // Find program enrollments
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         programId: bounty.programId,
-        ...(groupIds.length > 0 && {
+        ...(bountyGroupIds.length > 0 && {
           groupId: {
-            in: groupIds,
+            in: bountyGroupIds,
           },
         }),
         ...(partnerIds && {
@@ -93,12 +108,13 @@ export async function POST(req: Request) {
           },
         }),
         status: {
-          in: ["approved", "invited"],
+          in: [
+            ProgramEnrollmentStatus.approved,
+            ProgramEnrollmentStatus.invited,
+          ],
         },
       },
-      select: {
-        partnerId: true,
-        totalCommissions: true,
+      include: {
         links: {
           select: {
             clicks: true,
@@ -136,54 +152,71 @@ export async function POST(req: Request) {
       .array(workflowConditionSchema)
       .parse(bounty.workflow.triggerConditions)[0];
 
-    // Partners with their link metrics
-    const partners = programEnrollments.map((programEnrollment) => {
-      return {
-        id: programEnrollment.partnerId,
+    const bountySubmissionsToCreate: Prisma.BountySubmissionCreateManyInput[] =
+      [];
+
+    for (const programEnrollment of programEnrollments) {
+      const performanceCount = {
         ...aggregatePartnerLinksStats(programEnrollment.links),
         totalCommissions: toCentsNumber(programEnrollment.totalCommissions),
-      };
-    });
+      }[condition.attribute];
 
-    const bountySubmissionsToCreate: Prisma.BountySubmissionCreateManyInput[] =
-      partners
-        // only create submissions for partners that have at least 1 performanceCount
-        .filter((partner) => partner[condition.attribute] > 0)
-        .map((partner) => {
-          const performanceCount = partner[condition.attribute];
+      if (!performanceCount || performanceCount <= 0) {
+        console.log(
+          `Partner ${programEnrollment.partnerId} has no performance count for bounty ${bountyId}.`,
+        );
+        continue;
+      }
 
-          const conditionMet = evaluateWorkflowConditions({
-            conditions: [condition],
-            attributes: {
-              [condition.attribute]: performanceCount,
-            },
-          });
+      const isEligible = isPartnerEligibleForBounty({
+        program: bounty.program,
+        bounty,
+        programEnrollment,
+      });
 
-          return {
-            id: createId({ prefix: "bnty_sub_" }),
-            programId: bounty.programId,
-            partnerId: partner.id,
-            bountyId: bounty.id,
-            performanceCount,
-            // If the condition is met, automatically submit the submission
-            ...(conditionMet && {
-              status: "submitted",
-              completedAt: new Date(),
-            }),
-          };
-        });
+      if (!isEligible) {
+        console.log(
+          `Partner ${programEnrollment.partnerId} is not eligible for bounty ${bountyId}.`,
+        );
+        continue;
+      }
 
-    console.table(bountySubmissionsToCreate);
+      const conditionMet = evaluateWorkflowConditions({
+        conditions: [condition],
+        attributes: {
+          [condition.attribute]: performanceCount,
+        },
+      });
+
+      bountySubmissionsToCreate.push({
+        id: createId({ prefix: "bnty_sub_" }),
+        programId: bounty.programId,
+        partnerId: programEnrollment.partnerId,
+        bountyId: bounty.id,
+        performanceCount: Math.min(performanceCount, condition.value as number),
+        // If the condition is met, automatically submit the submission
+        ...(conditionMet && {
+          status: "submitted",
+          completedAt: new Date(),
+        }),
+      });
+    }
 
     // Create bounty submissions
-    const createdBountySubmissions = await prisma.bountySubmission.createMany({
-      data: bountySubmissionsToCreate,
-      skipDuplicates: true,
-    });
+    if (bountySubmissionsToCreate.length > 0) {
+      console.table(bountySubmissionsToCreate);
 
-    console.log(
-      `Created ${createdBountySubmissions.count} bounty submissions for bounty ${bountyId}.`,
-    );
+      const createdBountySubmissions = await prisma.bountySubmission.createMany(
+        {
+          data: bountySubmissionsToCreate,
+          skipDuplicates: true,
+        },
+      );
+
+      console.log(
+        `Created ${createdBountySubmissions.count} bounty submissions for bounty ${bountyId}.`,
+      );
+    }
 
     if (programEnrollments.length === MAX_PAGE_SIZE) {
       const response = await qstash.publishJSON({
@@ -201,7 +234,7 @@ export async function POST(req: Request) {
     }
 
     return logAndRespond(
-      `Finished creating submissions for ${createdBountySubmissions.count} partners for bounty ${bountyId}.`,
+      `Completed draft submission creation for bounty ${bountyId}`,
     );
   } catch (error) {
     await log({

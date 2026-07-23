@@ -5,11 +5,12 @@ import { prisma } from "@/lib/prisma";
 import { createBountySubmissionInputSchema } from "@/lib/zod/schemas/bounties";
 import { NextResponse } from "next/server";
 
-// POST /api/embed/referrals/submissions – submit a bounty via embed token
+// POST /api/embed/referrals/bounties/[bountyId]/submissions – submit a bounty via embed token
 export const POST = withReferralsEmbedToken(
-  async ({ req, programEnrollment }) => {
+  async ({ req, programEnrollment, params }) => {
+    const { bountyId } = params;
     const parsedInput = createBountySubmissionInputSchema
-      .omit({ programId: true })
+      .omit({ programId: true, bountyId: true })
       .parse(await parseRequestBody(req));
 
     const partner = await prisma.partner.findUniqueOrThrow({
@@ -26,6 +27,7 @@ export const POST = withReferralsEmbedToken(
 
     const submissionHandler = new BountySubmissionHandler({
       ...parsedInput,
+      bountyId,
       programId: programEnrollment.programId,
       partner,
     });

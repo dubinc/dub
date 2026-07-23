@@ -7,7 +7,7 @@ import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import NewBountyAvailable from "@dub/email/templates/new-bounty-available";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
-import { NotificationEmailType } from "@prisma/client";
+import { BountyStartMode, NotificationEmailType } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -69,28 +69,36 @@ export async function POST(req: Request) {
       });
     }
 
-    const diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
-
-    if (diffMinutes >= 10) {
+    if (bounty.startMode === BountyStartMode.relative) {
       return logAndRespond(
-        `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
+        `Bounty ${bountyId} is relative-start; partner notifications skipped.`,
       );
     }
 
-    // Find groupIds
-    const groupIds = bounty.groups.map(({ groupId }) => groupId);
+    if (bounty.startsAt) {
+      const diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
+
+      if (diffMinutes >= 10) {
+        return logAndRespond(
+          `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
+        );
+      }
+    }
+
+    const bountyGroupIds = bounty.groups.map(({ groupId }) => groupId);
+
     console.log(
       `Bounty ${bountyId} is applicable to ${
-        groupIds.length === 0 ? "all" : groupIds.length
-      } groups (groupIds: ${JSON.stringify(groupIds)})`,
+        bountyGroupIds.length === 0 ? "all" : bountyGroupIds.length
+      } groups (groupIds: ${JSON.stringify(bountyGroupIds)})`,
     );
 
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         programId: bounty.programId,
-        ...(groupIds.length > 0 && {
+        ...(bountyGroupIds.length > 0 && {
           groupId: {
-            in: groupIds,
+            in: bountyGroupIds,
           },
         }),
         status: {

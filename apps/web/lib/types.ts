@@ -23,6 +23,7 @@ import {
   PartnerRole,
   PayoutStatus,
   Prisma,
+  ProgramEnrollment,
   ProgramEnrollmentStatus,
   Project,
   SubmittedLead,
@@ -859,6 +860,10 @@ export interface WorkflowContext {
     current?: PartnerMetrics;
     aggregated?: PartnerMetrics;
   };
+  programEnrollment?: Pick<
+    ProgramEnrollment,
+    "groupId" | "createdAt" | "partnerId" | "programId" | "status"
+  >;
 }
 
 export type SubmittedLeadProps = z.infer<typeof submittedLeadSchema>;

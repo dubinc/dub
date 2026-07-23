@@ -97,7 +97,7 @@ function isEligiblePerformanceBounty(bounty: Bounty) {
 
   if (bounty.type !== "performance") return false;
   if (bounty.performanceScope === "new") return false;
-  if (bounty.startsAt > now) return false;
+  if (bounty.startsAt && bounty.startsAt > now) return false;
   if (bounty.endsAt && bounty.endsAt <= now) return false;
 
   return true;
