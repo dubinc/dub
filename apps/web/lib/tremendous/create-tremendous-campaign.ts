@@ -38,10 +38,17 @@ export async function createTremendousCampaign(
       },
     });
 
+    // Log the orphan campaign for ops cleanup
     if (updatedCount === 0) {
-      console.log(
-        `[createTremendousCampaign] Program ${program.id} already has a Tremendous campaign. Skipping...`,
-      );
+      logger.error("create_campaign_orphaned", {
+        service: "tremendous",
+        campaignId: campaign.id,
+        correlation: {
+          programId: program.id,
+        },
+      });
+
+      await logger.flush();
     } else {
       console.log(
         `[createTremendousCampaign] Updated the Tremendous campaign ${campaign.id} for the program ${program.id}.`,

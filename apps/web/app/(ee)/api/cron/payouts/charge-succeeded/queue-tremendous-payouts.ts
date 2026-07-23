@@ -59,6 +59,20 @@ export async function queueTremendousPayouts({
     return;
   }
 
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: invoice.programId,
+    },
+    select: {
+      tremendousCampaignId: true,
+    },
+  });
+
+  // Hard fail if the program has no Tremendous campaign.
+  if (!program.tremendousCampaignId) {
+    throw new Error(`Program ${invoice.programId} has no Tremendous campaign.`);
+  }
+
   const chunkedPartners = chunk(partnersInCurrentInvoice, 100);
 
   for (let i = 0; i < chunkedPartners.length; i++) {
