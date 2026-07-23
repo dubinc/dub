@@ -119,7 +119,10 @@ function GroupAdditionalSettingsForm({
     if (!group) return;
     if (data.moveRules && data.moveRules.length > 0) {
       try {
-        validateGroupMoveRules(data.moveRules);
+        validateGroupMoveRules({
+          rules: data.moveRules,
+          destinationGroupId: group.id,
+        });
       } catch (error) {
         toast.error(error.message);
         return;

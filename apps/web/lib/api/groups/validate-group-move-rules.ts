@@ -1,61 +1,99 @@
-import { WorkflowCondition } from "@/lib/types";
+import { COMPARISON_OPERATORS } from "@/lib/api/workflows/operators";
+import {
+  GROUP_MOVE_ATTRIBUTE_CONFIG,
+  GROUP_MOVE_OPERATOR_LABELS,
+  GroupMoveAttribute,
+  type GroupMoveCondition,
+  type GroupMoveRules,
+} from "@/lib/zod/schemas/group-move-workflows";
 
-export const validateGroupMoveRules = (rules?: WorkflowCondition[]) => {
+type GroupMoveAttributeValidator = (params: {
+  rule: GroupMoveCondition;
+  ruleIndex: number;
+  destinationGroupId: string;
+}) => void;
+
+// Add business rules for each attribute
+// NOTE: Keeping this empty for now, next PR will use this
+const GROUP_MOVE_ATTRIBUTE_VALIDATORS: Record<
+  GroupMoveAttribute,
+  GroupMoveAttributeValidator
+> = {
+  // Operator validators already cover performance value shape/constraints.
+  totalLeads: () => {},
+  totalConversions: () => {},
+  totalSaleAmount: () => {},
+  totalCommissions: () => {},
+};
+
+export const validateGroupMoveRules = ({
+  rules,
+  destinationGroupId,
+}: {
+  rules?: GroupMoveRules;
+  destinationGroupId: string;
+}) => {
   if (!rules || rules.length === 0) {
     return;
   }
 
   for (let i = 0; i < rules.length; i++) {
-    const rule = rules[i];
+    validateRule({
+      rule: rules[i],
+      ruleIndex: i,
+      destinationGroupId,
+    });
+  }
+};
 
-    // Check if attribute is selected
-    if (!rule.attribute) {
-      throw new Error(`Rule ${i + 1}: Please select an activity.`);
-    }
+// Validates a single group move rule
+const validateRule = ({
+  rule,
+  ruleIndex,
+  destinationGroupId,
+}: {
+  rule: GroupMoveCondition;
+  ruleIndex: number;
+  destinationGroupId: string;
+}) => {
+  if (!rule.attribute) {
+    throw new Error(`Rule ${ruleIndex + 1}: Please select an activity.`);
+  }
 
-    // Check if value is set
-    if (rule.value == null || rule.value === undefined) {
-      throw new Error(`Rule ${i + 1}: Please enter a value.`);
-    }
+  // Check if operator is valid for the attribute
+  const allowedOperators = GROUP_MOVE_ATTRIBUTE_CONFIG[rule.attribute]
+    .operators as readonly string[];
 
-    // For gte operator, value should be a number greater than 0
-    if (rule.operator === "gte") {
-      if (
-        typeof rule.value !== "number" ||
-        isNaN(rule.value) ||
-        rule.value <= 0
-      ) {
-        throw new Error(`Rule ${i + 1}: Please enter a value greater than 0.`);
-      }
-    }
+  const operatorLabel = GROUP_MOVE_OPERATOR_LABELS[rule.operator];
 
-    // For between operator, check min and max
-    if (rule.operator === "between") {
-      if (typeof rule.value !== "object" || rule.value === null) {
-        throw new Error(`Rule ${i + 1}: Please enter a valid value.`);
-      }
+  if (!allowedOperators.includes(rule.operator)) {
+    throw new Error(
+      `Operator "${operatorLabel}" is not valid for the activity "${rule.attribute}".`,
+    );
+  }
 
-      const min = rule.value.min;
-      const max = rule.value.max;
+  // Check if value is set
+  if (rule.value == null || rule.value === undefined) {
+    throw new Error(`Rule ${ruleIndex + 1}: Please enter a value.`);
+  }
 
-      if (min == null || min === undefined || isNaN(min) || min <= 0) {
-        throw new Error(
-          `Rule ${i + 1}: Please enter a minimum value greater than 0.`,
-        );
-      }
+  // Validate value shape/constraints for the selected operator
+  const operator = COMPARISON_OPERATORS[rule.operator];
 
-      if (max == null || max === undefined || isNaN(max) || max <= 0) {
-        throw new Error(
-          `Rule ${i + 1}: Please enter a maximum value (limit) greater than 0.`,
-        );
-      }
-
-      // Ensure max is greater than min
-      if (max <= min) {
-        throw new Error(
-          `Rule ${i + 1}: Maximum value must be greater than minimum value.`,
-        );
-      }
+  if (operator) {
+    try {
+      operator.validate(rule.value);
+    } catch (error) {
+      throw new Error(
+        `Rule ${ruleIndex + 1}: ${error instanceof Error ? error.message : "Invalid value."}`,
+      );
     }
   }
+
+  // Validate attribute-specific constraints (business rules)
+  GROUP_MOVE_ATTRIBUTE_VALIDATORS[rule.attribute]({
+    rule,
+    ruleIndex,
+    destinationGroupId,
+  });
 };
