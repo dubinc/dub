@@ -51,7 +51,7 @@ export async function createTremendousCampaign(
       await logger.flush();
     } else {
       console.log(
-        `[createTremendousCampaign] Updated the Tremendous campaign ${campaign.id} for the program ${program.id}.`,
+        `[createTremendousCampaign] Updated the Tremendous campaign (${campaign.id}) for the program ${program.id}.`,
       );
     }
   } catch (error) {
