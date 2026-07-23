@@ -184,14 +184,23 @@ export const GET = withAdmin(async () => {
   });
 });
 
+const grantPostbackAccessSchema = z.object({
+  partnerIdOrEmail: z.string().trim().min(1),
+});
+
+const revokePostbackAccessSchema = z.object({
+  partnerId: z.string().trim().min(1),
+});
+
 // POST /api/admin/partners/postbacks
 export const POST = withAdmin(
   async ({ req }) => {
-    const { partnerIdOrEmail } = z
-      .object({
-        partnerIdOrEmail: z.string().trim().min(1),
-      })
-      .parse(await req.json());
+    const parsed = grantPostbackAccessSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return new Response("Invalid request body.", { status: 400 });
+    }
+
+    const { partnerIdOrEmail } = parsed.data;
 
     if (
       !partnerIdOrEmail.startsWith("pn_") &&
@@ -229,11 +238,12 @@ export const POST = withAdmin(
 // DELETE /api/admin/partners/postbacks
 export const DELETE = withAdmin(
   async ({ req }) => {
-    const { partnerId } = z
-      .object({
-        partnerId: z.string().trim().min(1),
-      })
-      .parse(await req.json());
+    const parsed = revokePostbackAccessSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return new Response("Invalid request body.", { status: 400 });
+    }
+
+    const { partnerId } = parsed.data;
 
     try {
       assertEdgeConfigConfigured();
