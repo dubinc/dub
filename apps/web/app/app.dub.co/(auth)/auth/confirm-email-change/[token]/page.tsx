@@ -236,6 +236,7 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
               id: userId,
               name: session.user.name ?? null,
               email: data.newEmail,
+              oldEmail: data.email,
             }),
           ]
         : []),
