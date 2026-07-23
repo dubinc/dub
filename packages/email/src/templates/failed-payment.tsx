@@ -88,16 +88,16 @@ export default function FailedPayment({
                 href="https://dub.co/help/article/how-to-change-billing-information"
                 className="font-medium text-blue-600 no-underline"
               >
-                update your payment information
+                update your payment method
               </Link>{" "}
-              using the link below:
+              and retry your payment using the link below:
             </Text>
             <Section className="my-8">
               <Link
                 className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.co/${workspace.slug}/settings/billing`}
+                href={`https://app.dub.co/${workspace.slug}/settings/billing#payment-methods`}
               >
-                Update payment information
+                Update payment method
               </Link>
             </Section>
             <Text className="text-sm leading-6 text-black">
