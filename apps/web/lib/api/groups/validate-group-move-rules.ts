@@ -1,7 +1,7 @@
+import { COMPARISON_OPERATORS } from "@/lib/api/workflows/operators";
 import {
   GROUP_MOVE_ATTRIBUTE_CONFIG,
   GROUP_MOVE_OPERATOR_LABELS,
-  GROUP_MOVE_OPERATOR_VALIDATORS,
   GroupMoveAttribute,
   type GroupMoveCondition,
   type GroupMoveRules,
@@ -78,16 +78,16 @@ const validateRule = ({
   }
 
   // Validate value shape/constraints for the selected operator
-  const validateOperator =
-    GROUP_MOVE_OPERATOR_VALIDATORS[
-      rule.operator as keyof typeof GROUP_MOVE_OPERATOR_VALIDATORS
-    ];
+  const operator = COMPARISON_OPERATORS[rule.operator];
 
-  if (validateOperator) {
-    validateOperator({
-      rule,
-      ruleIndex,
-    });
+  if (operator) {
+    try {
+      operator.validate(rule.value);
+    } catch (error) {
+      throw new Error(
+        `Rule ${ruleIndex + 1}: ${error instanceof Error ? error.message : "Invalid value."}`,
+      );
+    }
   }
 
   // Validate attribute-specific constraints (business rules)

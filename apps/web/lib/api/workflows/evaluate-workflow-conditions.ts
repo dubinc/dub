@@ -1,5 +1,5 @@
 import { WorkflowCondition, WorkflowConditionAttribute } from "@/lib/types";
-import { OPERATOR_FUNCTIONS } from "@/lib/zod/schemas/workflows";
+import { COMPARISON_OPERATORS } from "./operators";
 
 export function evaluateWorkflowConditions({
   conditions,
@@ -11,9 +11,9 @@ export function evaluateWorkflowConditions({
   if (conditions.length === 0) return false;
 
   for (const condition of conditions) {
-    const operatorFn = OPERATOR_FUNCTIONS[condition.operator];
+    const operator = COMPARISON_OPERATORS[condition.operator];
 
-    if (!operatorFn) {
+    if (!operator) {
       console.error(`Operator ${condition.operator} is not supported.`);
       return false;
     }
@@ -25,7 +25,7 @@ export function evaluateWorkflowConditions({
       return false;
     }
 
-    if (!operatorFn(attributeValue, condition.value)) {
+    if (!operator.evaluate(attributeValue, condition.value)) {
       return false;
     }
   }

@@ -1,14 +1,6 @@
-import {
-  WorkflowComparisonOperator,
-  WorkflowConditionAttribute,
-} from "@/lib/types";
+import { WorkflowConditionAttribute } from "@/lib/types";
 import { WorkflowTrigger } from "@prisma/client";
 import * as z from "zod/v4";
-
-type OperatorFn = (
-  aV: number,
-  cV: number | { min: number; max?: number },
-) => boolean;
 
 export const WORKFLOW_ATTRIBUTES = [
   "totalLeads",
@@ -39,32 +31,6 @@ export const SCHEDULED_WORKFLOW_TRIGGERS: WorkflowTrigger[] = [
 
 export const WORKFLOW_SCHEDULES: Partial<Record<WorkflowTrigger, string>> = {
   partnerEnrolled: "0 */12 * * *", // every 12 hours
-};
-
-export const OPERATOR_FUNCTIONS: Record<
-  WorkflowComparisonOperator,
-  OperatorFn
-> = {
-  gte: (aV, cV) => {
-    if (typeof cV !== "number") {
-      return false;
-    }
-
-    return aV >= cV;
-  },
-  between: (aV, cV) => {
-    if (typeof cV !== "object" || cV === null) {
-      return false;
-    }
-
-    const { min, max } = cV;
-
-    if (min == null || max == null) {
-      return false;
-    }
-
-    return aV >= min && aV <= max;
-  },
 };
 
 export enum WORKFLOW_ACTION_TYPES {

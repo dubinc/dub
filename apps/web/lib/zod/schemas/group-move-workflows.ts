@@ -54,48 +54,6 @@ export const groupMoveConditionSchema = z.object({
 
 export const groupMoveRulesSchema = z.array(groupMoveConditionSchema);
 
-export const GROUP_MOVE_OPERATOR_VALIDATORS = {
-  gte({ rule, ruleIndex }: GroupMoveAttributeValidatorArgs) {
-    if (
-      typeof rule.value !== "number" ||
-      isNaN(rule.value) ||
-      rule.value <= 0
-    ) {
-      throw new Error(
-        `Rule ${ruleIndex + 1}: Please enter a value greater than 0.`,
-      );
-    }
-  },
-
-  between({ rule, ruleIndex }: GroupMoveAttributeValidatorArgs) {
-    if (typeof rule.value !== "object" || rule.value === null) {
-      throw new Error(`Rule ${ruleIndex + 1}: Please enter a valid value.`);
-    }
-
-    const min = rule.value.min;
-    const max = rule.value.max;
-
-    if (min == null || min === undefined || isNaN(min) || min <= 0) {
-      throw new Error(
-        `Rule ${ruleIndex + 1}: Please enter a minimum value greater than 0.`,
-      );
-    }
-
-    if (max == null || max === undefined || isNaN(max) || max <= 0) {
-      throw new Error(
-        `Rule ${ruleIndex + 1}: Please enter a maximum value (limit) greater than 0.`,
-      );
-    }
-
-    // Ensure max is greater than min
-    if (max <= min) {
-      throw new Error(
-        `Rule ${ruleIndex + 1}: Maximum value must be greater than minimum value.`,
-      );
-    }
-  },
-} as const;
-
 export type GroupMoveCondition = z.infer<typeof groupMoveConditionSchema>;
 
 export type GroupMoveRules = z.infer<typeof groupMoveRulesSchema>;
@@ -108,9 +66,4 @@ export type GroupMoveAttributeConfig = {
   label: string;
   inputType: "number" | "currency";
   operators: readonly GroupMoveOperator[];
-};
-
-type GroupMoveAttributeValidatorArgs = {
-  rule: GroupMoveCondition;
-  ruleIndex: number;
 };
