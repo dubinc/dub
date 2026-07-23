@@ -24,20 +24,21 @@ const getPostbackPartnerIds = async (): Promise<string[]> => {
 };
 
 const setPostbackPartnerIds = async (partnerIds: string[]) => {
-  if (!process.env.EDGE_CONFIG_ID) {
+  if (!process.env.EDGE_CONFIG || !process.env.EDGE_CONFIG_ID) {
     return;
   }
 
-  let betaFeatures: PartnerBetaFeaturesRecord = {};
+  let betaFeatures: PartnerBetaFeaturesRecord;
 
   try {
     betaFeatures =
       (await get<PartnerBetaFeaturesRecord>("partnerBetaFeatures")) ?? {};
   } catch (e) {
     console.error(`Error getting partner beta features: ${e}`);
+    throw e;
   }
 
-  await fetch(
+  const res = await fetch(
     `https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
       method: "PATCH",
@@ -59,6 +60,12 @@ const setPostbackPartnerIds = async (partnerIds: string[]) => {
       }),
     },
   );
+
+  if (!res.ok) {
+    throw new Error(
+      `Failed to update partner postback access: ${res.status} ${await res.text()}`,
+    );
+  }
 };
 
 // GET /api/admin/partners/postbacks
@@ -164,8 +171,6 @@ export const DELETE = withAdmin(
       });
     }
 
-    await setPostbackPartnerIds(partnerIds.filter((id) => id !== partnerId));
-
     await prisma.postback.updateMany({
       where: {
         partnerId,
@@ -175,6 +180,8 @@ export const DELETE = withAdmin(
         disabledAt: new Date(),
       },
     });
+
+    await setPostbackPartnerIds(partnerIds.filter((id) => id !== partnerId));
 
     return NextResponse.json({ success: true });
   },

@@ -76,6 +76,7 @@ export default function PartnersPostbacksPage() {
     setIsSubmitting(true);
     await fetch("/api/admin/partners/postbacks", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         partnerIdOrEmail: trimmedValue,
       }),
