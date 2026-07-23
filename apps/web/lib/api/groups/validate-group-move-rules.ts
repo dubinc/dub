@@ -1,6 +1,7 @@
 import {
   GROUP_MOVE_ATTRIBUTE_CONFIG,
   GROUP_MOVE_ATTRIBUTE_VALIDATORS,
+  GROUP_MOVE_OPERATOR_LABELS,
   GROUP_MOVE_OPERATOR_VALIDATORS,
   type GroupMoveCondition,
   type GroupMoveRules,
@@ -44,9 +45,11 @@ const validateRule = ({
   const allowedOperators = GROUP_MOVE_ATTRIBUTE_CONFIG[rule.attribute]
     .operators as readonly string[];
 
+  const operatorLabel = GROUP_MOVE_OPERATOR_LABELS[rule.operator];
+
   if (!allowedOperators.includes(rule.operator)) {
     throw new Error(
-      `Rule ${ruleIndex + 1}: Operator "${rule.operator}" is not valid for this condition.`,
+      `Operator "${operatorLabel}" is not valid for the activity "${rule.attribute}".`,
     );
   }
 
