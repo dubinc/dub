@@ -30,6 +30,8 @@ import {
 import { capitalize, pluralize } from "@dub/utils";
 import { ChevronDown, Crown } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useSWRConfig } from "swr";
 
 export function CustomDomains() {
   const {
@@ -44,6 +46,7 @@ export function CustomDomains() {
 
   const [openPopover, setOpenPopover] = useState(false);
   const { searchParams, queryParams } = useRouterStuff();
+  const { mutate } = useSWRConfig();
   const { allWorkspaceDomains, loading } = useDomains({
     opts: { includeLink: "true" },
   });
@@ -71,6 +74,41 @@ export function CustomDomains() {
     () => setShowRegisterDomainSuccessModal(searchParams.has("registered")),
     [searchParams],
   );
+
+  useEffect(() => {
+    if (searchParams.get("domain_connect") !== "callback") return;
+    const error = searchParams.get("error");
+    const errorDesc = searchParams.get("error_description");
+    if (error) {
+      toast.error(
+        errorDesc === "user_cancel"
+          ? "DNS setup was cancelled."
+          : "Your DNS provider returned an error. Try again or configure manually.",
+      );
+    } else {
+      toast.success("DNS changes submitted. Checking domain verification…");
+      const revalidateDomains = () => {
+        void mutate(
+          (key) =>
+            typeof key === "string" &&
+            key.includes("/api/domains/") &&
+            key.includes("/verify"),
+        );
+        void mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/domains"),
+        );
+      };
+      // Immediate check, then again after DNS has a moment to propagate to Vercel
+      revalidateDomains();
+      window.setTimeout(revalidateDomains, 4000);
+      window.setTimeout(revalidateDomains, 10000);
+    }
+    queryParams({
+      del: ["domain_connect", "error", "error_description", "state"],
+      replace: true,
+      scroll: false,
+    });
+  }, [searchParams, queryParams, mutate]);
 
   const { error: permissionsError } = clientAccessCheck({
     action: "domains.write",

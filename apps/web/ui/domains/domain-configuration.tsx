@@ -1,23 +1,102 @@
+"use client";
+
+import type { DomainConnectDiscovery } from "@/lib/domain-connect/types";
 import { DomainVerificationStatusProps } from "@/lib/types";
-import { CircleInfo, CopyButton, TabSelect } from "@dub/ui";
+import { useForwardDnsInstructionsModal } from "@/ui/modals/forward-dns-instructions-modal";
+import {
+  Button,
+  CircleInfo,
+  Cloudflare,
+  CopyButton,
+  TabSelect,
+  Vercel,
+} from "@dub/ui";
+import { EnvelopeArrowRight } from "@dub/ui/icons";
 import { cn, getSubdomain } from "@dub/utils";
+import { usePathname } from "next/navigation";
 import { Fragment, useState } from "react";
+import { toast } from "sonner";
 
 export default function DomainConfiguration({
   data,
+  domainConnect,
+  domain,
+  workspaceId,
+  workspaceSlug,
 }: {
   data: { status: DomainVerificationStatusProps; response: any };
+  domainConnect?: DomainConnectDiscovery | null;
+  domain?: string;
+  workspaceId?: string;
+  workspaceSlug?: string;
 }) {
+  const pathname = usePathname();
   const { domainJson, configJson } = data.response;
   const subdomain = getSubdomain(domainJson.name, domainJson.apexName);
-  const [recordType, setRecordType] = useState(!!subdomain ? "CNAME" : "A");
+  const [recordType, setRecordType] = useState<"A" | "CNAME">(
+    !!subdomain ? "CNAME" : "A",
+  );
+  const [autoLoading, setAutoLoading] = useState(false);
+
+  const { ForwardDnsInstructionsModal, setShowForwardDnsModal } =
+    useForwardDnsInstructionsModal({
+      domain: domain ?? "",
+      recordType,
+      workspaceId: workspaceId ?? "",
+    });
+
+  const handleAutoConfigure = async () => {
+    if (!domain || !workspaceId) return;
+    setAutoLoading(true);
+    try {
+      const res = await fetch(
+        `/api/domains/${encodeURIComponent(domain)}/domain-connect/apply?workspaceId=${workspaceId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            recordType,
+            returnTo: pathname ?? `/${workspaceSlug}/settings/domains`,
+          }),
+        },
+      );
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(json?.error?.message ?? "Could not start auto configure.");
+        return;
+      }
+      if (json?.applyUrl) {
+        try {
+          const url = new URL(json.applyUrl as string);
+          const allowedOrigins = [
+            "https://vercel.com",
+            "https://dash.cloudflare.com",
+          ];
+          if (!allowedOrigins.includes(url.origin)) {
+            toast.error("Invalid redirect URL from server.");
+            return;
+          }
+        } catch {
+          toast.error("Invalid redirect URL from server.");
+          return;
+        }
+        window.location.assign(json.applyUrl as string);
+        return;
+      }
+      toast.error("Could not start auto configure.");
+    } catch {
+      toast.error("Could not start auto configure.");
+    } finally {
+      setAutoLoading(false);
+    }
+  };
 
   if (data.status === "Conflicting DNS Records") {
     return (
       <div className="pt-5">
         <div className="flex justify-start space-x-4">
           <div className="ease border-b-2 border-black pb-1 text-sm text-black transition-all duration-150">
-            {configJson?.conflicts.some((x) => x.type === "A")
+            {configJson?.conflicts.some((x: { type: string }) => x.type === "A")
               ? "A Record (recommended)"
               : "CNAME Record (recommended)"}
           </div>
@@ -67,6 +146,11 @@ export default function DomainConfiguration({
     data.status === "Pending Verification"
       ? domainJson.verification.find((x: any) => x.type === "TXT")
       : undefined;
+
+  const providerLabel =
+    domainConnect?.providerKind === "cloudflare" ? "Cloudflare" : "Vercel";
+  const ProviderIcon =
+    domainConnect?.providerKind === "cloudflare" ? Cloudflare : Vercel;
 
   return (
     <div className="pt-2">
@@ -118,6 +202,42 @@ export default function DomainConfiguration({
             : undefined
         }
       />
+
+      {(domainConnect || (domain && workspaceId)) && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {domainConnect && domain && workspaceId && (
+            <Button
+              type="button"
+              variant="secondary"
+              text={`Auto configure with ${providerLabel}`}
+              icon={
+                <ProviderIcon
+                  className={cn(
+                    "size-4 shrink-0",
+                    domainConnect.providerKind === "cloudflare"
+                      ? "text-[#F6821F]"
+                      : "text-black",
+                  )}
+                />
+              }
+              className="w-fit"
+              onClick={handleAutoConfigure}
+              loading={autoLoading}
+            />
+          )}
+          {domain && workspaceId && (
+            <Button
+              type="button"
+              variant="secondary"
+              text="Forward instructions"
+              icon={<EnvelopeArrowRight className="size-4 shrink-0" />}
+              className="w-fit"
+              onClick={() => setShowForwardDnsModal(true)}
+            />
+          )}
+        </div>
+      )}
+      <ForwardDnsInstructionsModal />
     </div>
   );
 }
