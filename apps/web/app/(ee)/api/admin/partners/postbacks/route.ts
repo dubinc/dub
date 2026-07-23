@@ -8,34 +8,83 @@ type PartnerBetaFeaturesRecord = {
   postbacks?: string[];
 };
 
-const getPostbackPartnerIds = async (): Promise<string[]> => {
+class EdgeConfigNotConfiguredError extends Error {
+  constructor() {
+    super("Postback access storage is not configured.");
+    this.name = "EdgeConfigNotConfiguredError";
+  }
+}
+
+class PartnerAlreadyHasAccessError extends Error {
+  constructor() {
+    super("Partner already has postback access.");
+    this.name = "PartnerAlreadyHasAccessError";
+  }
+}
+
+class PartnerDoesNotHaveAccessError extends Error {
+  constructor() {
+    super("Partner does not have postback access.");
+    this.name = "PartnerDoesNotHaveAccessError";
+  }
+}
+
+const assertEdgeConfigReadable = () => {
+  if (!process.env.EDGE_CONFIG) {
+    throw new EdgeConfigNotConfiguredError();
+  }
+};
+
+const assertEdgeConfigConfigured = () => {
+  if (!process.env.EDGE_CONFIG || !process.env.EDGE_CONFIG_ID) {
+    throw new EdgeConfigNotConfiguredError();
+  }
+};
+
+const getPartnerBetaFeatures = async (): Promise<PartnerBetaFeaturesRecord> => {
+  assertEdgeConfigReadable();
+
+  try {
+    return (await get<PartnerBetaFeaturesRecord>("partnerBetaFeatures")) ?? {};
+  } catch (e) {
+    console.error(`Error getting partner beta features: ${e}`);
+    throw e;
+  }
+};
+
+const getPostbackPartnerIdsForList = async (): Promise<string[]> => {
   if (!process.env.EDGE_CONFIG) {
     return [];
   }
 
-  try {
-    const betaFeatures =
-      (await get<PartnerBetaFeaturesRecord>("partnerBetaFeatures")) ?? {};
-    return betaFeatures.postbacks ?? [];
-  } catch (e) {
-    console.error(`Error getting partner postback access: ${e}`);
-    return [];
-  }
+  const betaFeatures = await getPartnerBetaFeatures();
+  return betaFeatures.postbacks ?? [];
 };
 
-const setPostbackPartnerIds = async (partnerIds: string[]) => {
-  if (!process.env.EDGE_CONFIG || !process.env.EDGE_CONFIG_ID) {
-    return;
+const updatePostbackPartnerIds = async ({
+  add,
+  remove,
+}: {
+  add?: string;
+  remove?: string;
+}) => {
+  assertEdgeConfigConfigured();
+
+  const betaFeatures = await getPartnerBetaFeatures();
+  const partnerIds = new Set(betaFeatures.postbacks ?? []);
+
+  if (add) {
+    if (partnerIds.has(add)) {
+      throw new PartnerAlreadyHasAccessError();
+    }
+    partnerIds.add(add);
   }
 
-  let betaFeatures: PartnerBetaFeaturesRecord;
-
-  try {
-    betaFeatures =
-      (await get<PartnerBetaFeaturesRecord>("partnerBetaFeatures")) ?? {};
-  } catch (e) {
-    console.error(`Error getting partner beta features: ${e}`);
-    throw e;
+  if (remove) {
+    if (!partnerIds.has(remove)) {
+      throw new PartnerDoesNotHaveAccessError();
+    }
+    partnerIds.delete(remove);
   }
 
   const res = await fetch(
@@ -53,11 +102,12 @@ const setPostbackPartnerIds = async (partnerIds: string[]) => {
             key: "partnerBetaFeatures",
             value: {
               ...betaFeatures,
-              postbacks: partnerIds,
+              postbacks: Array.from(partnerIds),
             },
           },
         ],
       }),
+      signal: AbortSignal.timeout(10_000),
     },
   );
 
@@ -68,9 +118,35 @@ const setPostbackPartnerIds = async (partnerIds: string[]) => {
   }
 };
 
+const edgeConfigErrorResponse = (error: unknown) => {
+  if (
+    error instanceof EdgeConfigNotConfiguredError ||
+    error instanceof PartnerAlreadyHasAccessError ||
+    error instanceof PartnerDoesNotHaveAccessError
+  ) {
+    return new Response(error.message, {
+      status: error instanceof EdgeConfigNotConfiguredError ? 503 : 400,
+    });
+  }
+
+  console.error(`Partner postback access Edge Config error: ${error}`);
+  return new Response("Failed to update partner postback access.", {
+    status: 503,
+  });
+};
+
 // GET /api/admin/partners/postbacks
 export const GET = withAdmin(async () => {
-  const partnerIds = await getPostbackPartnerIds();
+  let partnerIds: string[];
+
+  try {
+    partnerIds = await getPostbackPartnerIdsForList();
+  } catch (error) {
+    console.error(`Error listing partner postback access: ${error}`);
+    return new Response("Failed to load partner postback access.", {
+      status: 503,
+    });
+  }
 
   if (partnerIds.length === 0) {
     return NextResponse.json({ partners: [] });
@@ -137,15 +213,11 @@ export const POST = withAdmin(
       return new Response("Partner not found.", { status: 404 });
     }
 
-    const partnerIds = await getPostbackPartnerIds();
-
-    if (partnerIds.includes(partner.id)) {
-      return new Response("Partner already has postback access.", {
-        status: 400,
-      });
+    try {
+      await updatePostbackPartnerIds({ add: partner.id });
+    } catch (error) {
+      return edgeConfigErrorResponse(error);
     }
-
-    await setPostbackPartnerIds([...partnerIds, partner.id]);
 
     return NextResponse.json({ success: true });
   },
@@ -163,13 +235,17 @@ export const DELETE = withAdmin(
       })
       .parse(await req.json());
 
-    const partnerIds = await getPostbackPartnerIds();
-
-    if (!partnerIds.includes(partnerId)) {
-      return new Response("Partner does not have postback access.", {
-        status: 400,
-      });
+    try {
+      assertEdgeConfigConfigured();
+      const betaFeatures = await getPartnerBetaFeatures();
+      if (!(betaFeatures.postbacks ?? []).includes(partnerId)) {
+        throw new PartnerDoesNotHaveAccessError();
+      }
+    } catch (error) {
+      return edgeConfigErrorResponse(error);
     }
+
+    const disabledAt = new Date();
 
     await prisma.postback.updateMany({
       where: {
@@ -177,11 +253,25 @@ export const DELETE = withAdmin(
         disabledAt: null,
       },
       data: {
-        disabledAt: new Date(),
+        disabledAt,
       },
     });
 
-    await setPostbackPartnerIds(partnerIds.filter((id) => id !== partnerId));
+    try {
+      await updatePostbackPartnerIds({ remove: partnerId });
+    } catch (error) {
+      await prisma.postback.updateMany({
+        where: {
+          partnerId,
+          disabledAt,
+        },
+        data: {
+          disabledAt: null,
+        },
+      });
+
+      return edgeConfigErrorResponse(error);
+    }
 
     return NextResponse.json({ success: true });
   },

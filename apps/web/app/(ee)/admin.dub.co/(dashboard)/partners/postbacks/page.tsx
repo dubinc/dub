@@ -87,7 +87,9 @@ export default function PartnersPostbacksPage() {
         }
         await mutate();
         setPartnerIdOrEmail("");
-        toast.success("Successfully granted postback access.");
+        toast.success(
+          "Postback access granted. Existing endpoints stay disabled until the partner re-enables them.",
+        );
       })
       .catch((error) => {
         toast.error(error.message || "Failed to grant postback access.");
@@ -107,7 +109,8 @@ export default function PartnersPostbacksPage() {
           </h1>
           <p className="mt-1 text-sm text-neutral-600">
             Add a partner by ID (e.g. pn_xxx) or email to grant postback beta
-            access.
+            access. Revoking disables their endpoints; re-granting restores
+            access but does not re-enable endpoints.
           </p>
         </div>
 
@@ -115,7 +118,11 @@ export default function PartnersPostbacksPage() {
           onSubmit={onSubmit}
           className="flex flex-col gap-2 sm:flex-row sm:items-center"
         >
+          <label htmlFor="partner-id-or-email" className="sr-only">
+            Partner ID or email
+          </label>
           <input
+            id="partner-id-or-email"
             type="text"
             value={partnerIdOrEmail}
             onChange={(e) => setPartnerIdOrEmail(e.target.value)}
