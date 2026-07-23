@@ -318,5 +318,4 @@ FROM
     {% elif eventType == 'composite' %} count_composite
     {% else %} count_clicks
     {% end %}
-
-
+TYPE ENDPOINT

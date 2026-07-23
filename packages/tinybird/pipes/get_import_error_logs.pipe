@@ -27,5 +27,4 @@ SQL >
                 }}
             ORDER BY timestamp DESC
             limit 5000
-
-
+TYPE ENDPOINT

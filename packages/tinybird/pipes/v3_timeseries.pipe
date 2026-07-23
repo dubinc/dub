@@ -434,5 +434,4 @@ FROM
     {% elif eventType == 'composite' %} timeseries_composite
     {% else %} timeseries_clicks
     {% end %}
-
-
+TYPE ENDPOINT

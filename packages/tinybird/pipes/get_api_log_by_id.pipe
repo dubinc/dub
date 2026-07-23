@@ -20,3 +20,4 @@ SQL >
         id = {{ String(id) }}
         AND workspace_id = {{ String(workspaceId) }}
     LIMIT 1
+TYPE ENDPOINT

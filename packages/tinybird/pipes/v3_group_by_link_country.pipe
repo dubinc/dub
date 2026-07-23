@@ -22,5 +22,4 @@ SQL >
         ORDER BY
             link_id ASC,
             clicks DESC
-
-
+TYPE ENDPOINT

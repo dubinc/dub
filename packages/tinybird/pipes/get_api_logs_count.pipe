@@ -49,3 +49,4 @@ SQL >
         {% if defined(groupBy) and groupBy == 'routePattern' %} count_by_route_pattern
         {% else %} count
         {% end %}
+TYPE ENDPOINT

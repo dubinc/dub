@@ -493,5 +493,4 @@ FROM
     {% elif eventType == 'composite' %}group_by_composite
     {% else %} group_by_clicks
     {% end %}
-
-
+TYPE ENDPOINT

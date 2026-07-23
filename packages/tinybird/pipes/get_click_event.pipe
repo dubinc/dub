@@ -16,5 +16,4 @@ SQL >
             }}
         ORDER BY timestamp DESC
         LIMIT 1
-
-
+TYPE ENDPOINT

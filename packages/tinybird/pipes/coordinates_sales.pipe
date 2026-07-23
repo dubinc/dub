@@ -22,5 +22,4 @@ SQL >
             AND city != 'Ashburn'
         ORDER BY timestamp DESC
         LIMIT 500
-
-
+TYPE ENDPOINT
