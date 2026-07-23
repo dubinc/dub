@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import "server-only";
 import { generateErrorMessage } from "zod-error";
 import { ZodOpenApiResponseObject } from "zod-openapi";
 import * as z from "zod/v4";
 import { logger } from "../axiom/server";
+import { WorkspaceProps } from "../types";
 import { ErrorCode, ErrorCodes } from "./error-codes";
 
 const speakeasyErrorOverrides: Record<z.infer<typeof ErrorCode>, string> = {
@@ -89,12 +90,22 @@ export function fromZodError(error: z.ZodError): ErrorResponse {
   };
 }
 
-function handleApiError(error: any): ErrorResponse & { status: number } {
+export function handleApiError({
+  error,
+  workspace,
+}: {
+  error: any;
+  workspace?: Pick<WorkspaceProps, "id">;
+}): ErrorResponse & { status: number } {
   console.error(error.message);
 
   // Send error to Axiom
-  logger.error(error.message, error);
-  logger.flush();
+  logger.error(error.message, {
+    error,
+    ...(workspace?.id ? { workspaceId: workspace.id } : {}),
+  });
+
+  after(() => logger.flush());
 
   // Zod errors
   if (error instanceof z.ZodError) {
@@ -145,7 +156,10 @@ function handleApiError(error: any): ErrorResponse & { status: number } {
 }
 
 export function handleAndReturnErrorResponse(err: unknown, headers?: Headers) {
-  const { error, status } = handleApiError(err);
+  const { error, status } = handleApiError({
+    error: err,
+  });
+
   return NextResponse.json<ErrorResponse>({ error }, { headers, status });
 }
 
