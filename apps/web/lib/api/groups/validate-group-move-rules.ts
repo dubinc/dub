@@ -1,11 +1,30 @@
 import {
   GROUP_MOVE_ATTRIBUTE_CONFIG,
-  GROUP_MOVE_ATTRIBUTE_VALIDATORS,
   GROUP_MOVE_OPERATOR_LABELS,
   GROUP_MOVE_OPERATOR_VALIDATORS,
+  GroupMoveAttribute,
   type GroupMoveCondition,
   type GroupMoveRules,
 } from "@/lib/zod/schemas/group-move-workflows";
+
+type GroupMoveAttributeValidator = (params: {
+  rule: GroupMoveCondition;
+  ruleIndex: number;
+  destinationGroupId: string;
+}) => void;
+
+// Add business rules for each attribute
+// NOTE: Keeping this empty for now, next PR will use this
+const GROUP_MOVE_ATTRIBUTE_VALIDATORS: Record<
+  GroupMoveAttribute,
+  GroupMoveAttributeValidator
+> = {
+  // Operator validators already cover performance value shape/constraints.
+  totalLeads: () => {},
+  totalConversions: () => {},
+  totalSaleAmount: () => {},
+  totalCommissions: () => {},
+};
 
 export const validateGroupMoveRules = ({
   rules,
@@ -65,7 +84,10 @@ const validateRule = ({
     ];
 
   if (validateOperator) {
-    validateOperator(rule, ruleIndex);
+    validateOperator({
+      rule,
+      ruleIndex,
+    });
   }
 
   // Validate attribute-specific constraints (business rules)

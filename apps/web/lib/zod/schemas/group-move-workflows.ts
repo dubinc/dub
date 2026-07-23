@@ -55,7 +55,7 @@ export const groupMoveConditionSchema = z.object({
 export const groupMoveRulesSchema = z.array(groupMoveConditionSchema);
 
 export const GROUP_MOVE_OPERATOR_VALIDATORS = {
-  gte(rule: GroupMoveCondition, ruleIndex: number) {
+  gte({ rule, ruleIndex }: GroupMoveAttributeValidatorArgs) {
     if (
       typeof rule.value !== "number" ||
       isNaN(rule.value) ||
@@ -67,7 +67,7 @@ export const GROUP_MOVE_OPERATOR_VALIDATORS = {
     }
   },
 
-  between(rule: GroupMoveCondition, ruleIndex: number) {
+  between({ rule, ruleIndex }: GroupMoveAttributeValidatorArgs) {
     if (typeof rule.value !== "object" || rule.value === null) {
       throw new Error(`Rule ${ruleIndex + 1}: Please enter a valid value.`);
     }
@@ -96,19 +96,6 @@ export const GROUP_MOVE_OPERATOR_VALIDATORS = {
   },
 } as const;
 
-// Add business rules for each attribute
-// Keeping this empty for now
-export const GROUP_MOVE_ATTRIBUTE_VALIDATORS: Record<
-  GroupMoveAttribute,
-  GroupMoveAttributeValidator
-> = {
-  // Operator validators already cover performance value shape/constraints.
-  totalLeads: () => {},
-  totalConversions: () => {},
-  totalSaleAmount: () => {},
-  totalCommissions: () => {},
-};
-
 export type GroupMoveCondition = z.infer<typeof groupMoveConditionSchema>;
 
 export type GroupMoveRules = z.infer<typeof groupMoveRulesSchema>;
@@ -126,9 +113,4 @@ export type GroupMoveAttributeConfig = {
 type GroupMoveAttributeValidatorArgs = {
   rule: GroupMoveCondition;
   ruleIndex: number;
-  destinationGroupId: string;
 };
-
-type GroupMoveAttributeValidator = (
-  params: GroupMoveAttributeValidatorArgs,
-) => void;
