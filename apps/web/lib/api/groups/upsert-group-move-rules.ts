@@ -9,6 +9,7 @@ import { createId } from "../create-id";
 import { DubApiError } from "../errors";
 import { findGroupsWithMatchingRules } from "./find-groups-with-matching-rules";
 import { getGroupMoveRules } from "./get-group-move-rules";
+import { validateGroupMoveRules } from "./validate-group-move-rules";
 
 export async function upsertGroupMoveRules({
   workspace,
@@ -46,6 +47,19 @@ export async function upsertGroupMoveRules({
     return {
       workflowId: undefined,
     };
+  }
+
+  try {
+    validateGroupMoveRules({
+      rules: moveRules,
+      destinationGroupId: group.id,
+    });
+  } catch (error) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        error instanceof Error ? error.message : "Invalid group move rules.",
+    });
   }
 
   const groupsWithMatchingRules = findGroupsWithMatchingRules({
