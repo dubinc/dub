@@ -15,7 +15,7 @@ import {
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";
-import { LinkSchema, linkUrlSchema } from "./links";
+import { LinkSchema } from "./links";
 import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
 import { programInviteEmailDataSchema } from "./program-invite-email";
 import { RewardSchema } from "./rewards";
@@ -114,13 +114,12 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
   domain: true,
   key: true,
   shortLink: true,
+  url: true,
   clicks: true,
   leads: true,
   conversions: true,
   sales: true,
   saleAmount: true,
-}).extend({
-  url: linkUrlSchema,
 });
 
 export const ProgramEnrollmentApplicationSchema = z.object({

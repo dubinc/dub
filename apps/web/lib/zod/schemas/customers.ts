@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
-import { LinkSchema, linkUrlSchema } from "./links";
+import { LinkSchema } from "./links";
 import {
   booleanQuerySchema,
   getCursorPaginationQuerySchema,
@@ -185,12 +185,9 @@ export const CustomerEnrichedSchema = CustomerSchema.extend({
     domain: true,
     key: true,
     shortLink: true,
+    url: true,
     programId: true,
-  })
-    .extend({
-      url: linkUrlSchema,
-    })
-    .nullish(),
+  }).nullish(),
   programId: z.string().nullish(),
   partner: PartnerSchema.pick({
     id: true,
