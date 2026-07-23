@@ -7,7 +7,6 @@ import { buildUrl, fetcher } from "@dub/utils";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
-import { useDebouncedCallback } from "use-debounce";
 import { CampaignEvent, EventStatus } from "./campaign-events";
 import { campaignEventsColumns } from "./campaign-events-columns";
 
@@ -32,12 +31,6 @@ export function CampaignEventsModal({
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-
-  const debounced = useDebouncedCallback((value) => {
-    setDebouncedSearch(value);
-    // Reset pagination to page 1 when search changes
-    setPagination((prev) => ({ ...prev, pageIndex: 1 }));
-  }, 500);
 
   const {
     data: events,
@@ -121,9 +114,11 @@ export function CampaignEventsModal({
       <div className="flex-shrink-0 border-b border-neutral-200 px-4 py-3">
         <SearchBox
           value={search}
-          onChange={(value) => {
-            setSearch(value);
-            debounced(value);
+          onChange={setSearch}
+          onChangeDebounced={(value) => {
+            setDebouncedSearch(value);
+            // Reset pagination to page 1 when search changes
+            setPagination((prev) => ({ ...prev, pageIndex: 1 }));
           }}
           placeholder="Search by partner name or email..."
           loading={isLoading && debouncedSearch.length > 0}

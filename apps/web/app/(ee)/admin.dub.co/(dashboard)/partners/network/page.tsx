@@ -139,6 +139,7 @@ export default function NetworkApplicationsPage() {
     queryParams({
       del: ["networkStatus", "country", "page"],
       scroll: false,
+      shallow: true,
     });
   };
 
