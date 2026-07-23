@@ -148,6 +148,8 @@ export default function EventsTable({
 }) {
   const { slug } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
+  const { product } = useCurrentProduct();
+
   const { setExportQueryString } = useContext(EventsContext);
   const {
     selectedTab: tab,
@@ -695,7 +697,7 @@ export default function EventsTable({
           minSize: col.minSize || 100,
           maxSize: col.maxSize || 1000,
         })),
-    [tab, partnerPage],
+    [tab, product, partnerPage],
   );
 
   const { pagination, setPagination } = usePagination();
@@ -728,8 +730,6 @@ export default function EventsTable({
       ),
     [setExportQueryString, queryString, columnVisibility, tab],
   );
-
-  const { product } = useCurrentProduct();
 
   const { data, isLoading, error } = useSWR<EventDatum[]>(
     !requiresUpgrade &&

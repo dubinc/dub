@@ -285,11 +285,7 @@ export function CustomerDetailsColumn({
                       <Fragment key={key}>
                         <span className="truncate">{label}</span>
                         <ConditionalLink
-                          href={
-                            workspaceSlug
-                              ? `/${workspaceSlug}/${product}/analytics?${key}=${encodeURIComponent(value)}`
-                              : undefined
-                          }
+                          href={`/${workspaceSlug ? `${workspaceSlug}/${product}` : `programs/${programSlug}`}/analytics?${key}=${encodeURIComponent(value)}`}
                           target="_blank"
                           className="truncate text-neutral-500"
                         >
