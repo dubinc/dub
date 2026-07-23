@@ -1,3 +1,4 @@
+import { logger } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
@@ -68,9 +69,19 @@ export async function queueTremendousPayouts({
     },
   });
 
-  // Hard fail if the program has no Tremendous campaign.
+  // Log and skip if the program has no Tremendous campaign.
   if (!program.tremendousCampaignId) {
-    throw new Error(`Program ${invoice.programId} has no Tremendous campaign.`);
+    logger.error("missing_campaign", {
+      service: "tremendous",
+      operation: "queue_tremendous_payouts",
+      correlation: {
+        invoiceId: invoice.id,
+        programId: invoice.programId,
+      },
+    });
+
+    await logger.flush();
+    return;
   }
 
   const chunkedPartners = chunk(partnersInCurrentInvoice, 100);
