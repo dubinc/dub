@@ -1,61 +1,74 @@
-import type { GroupMoveRules } from "@/lib/zod/schemas/group-move-workflows";
+import {
+  GROUP_MOVE_ATTRIBUTE_CONFIG,
+  GROUP_MOVE_ATTRIBUTE_VALIDATORS,
+  GROUP_MOVE_OPERATOR_VALIDATORS,
+  type GroupMoveCondition,
+  type GroupMoveRules,
+} from "@/lib/zod/schemas/group-move-workflows";
 
-export const validateGroupMoveRules = (rules?: GroupMoveRules) => {
+export const validateGroupMoveRules = ({
+  rules,
+  destinationGroupId,
+}: {
+  rules?: GroupMoveRules;
+  destinationGroupId: string;
+}) => {
   if (!rules || rules.length === 0) {
     return;
   }
 
   for (let i = 0; i < rules.length; i++) {
-    const rule = rules[i];
-
-    // Check if attribute is selected
-    if (!rule.attribute) {
-      throw new Error(`Rule ${i + 1}: Please select an activity.`);
-    }
-
-    // Check if value is set
-    if (rule.value == null || rule.value === undefined) {
-      throw new Error(`Rule ${i + 1}: Please enter a value.`);
-    }
-
-    // For gte operator, value should be a number greater than 0
-    if (rule.operator === "gte") {
-      if (
-        typeof rule.value !== "number" ||
-        isNaN(rule.value) ||
-        rule.value <= 0
-      ) {
-        throw new Error(`Rule ${i + 1}: Please enter a value greater than 0.`);
-      }
-    }
-
-    // For between operator, check min and max
-    if (rule.operator === "between") {
-      if (typeof rule.value !== "object" || rule.value === null) {
-        throw new Error(`Rule ${i + 1}: Please enter a valid value.`);
-      }
-
-      const min = rule.value.min;
-      const max = rule.value.max;
-
-      if (min == null || min === undefined || isNaN(min) || min <= 0) {
-        throw new Error(
-          `Rule ${i + 1}: Please enter a minimum value greater than 0.`,
-        );
-      }
-
-      if (max == null || max === undefined || isNaN(max) || max <= 0) {
-        throw new Error(
-          `Rule ${i + 1}: Please enter a maximum value (limit) greater than 0.`,
-        );
-      }
-
-      // Ensure max is greater than min
-      if (max <= min) {
-        throw new Error(
-          `Rule ${i + 1}: Maximum value must be greater than minimum value.`,
-        );
-      }
-    }
+    validateRule({
+      rule: rules[i],
+      ruleIndex: i,
+      destinationGroupId,
+    });
   }
+};
+
+// Validates a single group move rule
+const validateRule = ({
+  rule,
+  ruleIndex,
+  destinationGroupId,
+}: {
+  rule: GroupMoveCondition;
+  ruleIndex: number;
+  destinationGroupId: string;
+}) => {
+  if (!rule.attribute) {
+    throw new Error(`Rule ${ruleIndex + 1}: Please select an activity.`);
+  }
+
+  // Check if operator is valid for the attribute
+  const allowedOperators = GROUP_MOVE_ATTRIBUTE_CONFIG[rule.attribute]
+    .operators as readonly string[];
+
+  if (!allowedOperators.includes(rule.operator)) {
+    throw new Error(
+      `Rule ${ruleIndex + 1}: Operator "${rule.operator}" is not valid for this condition.`,
+    );
+  }
+
+  // Check if value is set
+  if (rule.value == null || rule.value === undefined) {
+    throw new Error(`Rule ${ruleIndex + 1}: Please enter a value.`);
+  }
+
+  // Validate value shape/constraints for the selected operator
+  const validateOperator =
+    GROUP_MOVE_OPERATOR_VALIDATORS[
+      rule.operator as keyof typeof GROUP_MOVE_OPERATOR_VALIDATORS
+    ];
+
+  if (validateOperator) {
+    validateOperator(rule, ruleIndex);
+  }
+
+  // Validate attribute-specific constraints (business rules)
+  GROUP_MOVE_ATTRIBUTE_VALIDATORS[rule.attribute]({
+    rule,
+    ruleIndex,
+    destinationGroupId,
+  });
 };

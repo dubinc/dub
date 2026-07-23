@@ -1,10 +1,14 @@
 import {
-  OperatorFn,
   WorkflowComparisonOperator,
   WorkflowConditionAttribute,
 } from "@/lib/types";
 import { WorkflowTrigger } from "@prisma/client";
 import * as z from "zod/v4";
+
+type OperatorFn = (
+  aV: number,
+  cV: number | { min: number; max?: number },
+) => boolean;
 
 export const WORKFLOW_ATTRIBUTES = [
   "totalLeads",
