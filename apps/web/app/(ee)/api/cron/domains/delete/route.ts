@@ -1,14 +1,5 @@
-import { queueDomainDeletion } from "@/lib/api/domains/queue-domain-update";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { linkCache } from "@/lib/api/links/cache";
-import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
-import { includeTags } from "@/lib/api/links/include-tags";
-import { limiter } from "@/lib/cron/limiter";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { prisma } from "@/lib/prisma";
-import { storage } from "@/lib/storage";
-import { recordLink } from "@/lib/tinybird/record-link";
-import { R2_URL } from "@dub/utils";
+import { withCron } from "@/lib/cron/with-cron";
+import { domainDeletedJob } from "@/lib/jobs/handlers/domain-deleted-job";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -18,123 +9,18 @@ const schema = z.object({
   domain: z.string(),
 });
 
+// Legacy QStash endpoint kept for in-flight messages published before the
+// jobs migration
+
+// TODO: Remove this route after old QStash traffic has drained.
+
 // POST /api/cron/domains/delete
-export async function POST(req: Request) {
-  try {
-    const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
+export const POST = withCron(async ({ rawBody }) => {
+  const { domain } = schema.parse(JSON.parse(rawBody));
 
-    const { domain } = schema.parse(JSON.parse(rawBody));
+  await domainDeletedJob.execute({ domain });
 
-    const domainRecord = await prisma.domain.findUnique({
-      where: {
-        slug: domain,
-      },
-    });
-
-    if (!domainRecord) {
-      return logAndRespond(`Domain ${domain} not found. Skipping...`);
-    }
-
-    const links = await prisma.link.findMany({
-      where: {
-        domain,
-      },
-      include: {
-        ...includeTags,
-        ...includeProgramEnrollment,
-      },
-      take: 100,
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    console.log(`Found ${links.length} links to delete`);
-
-    if (links.length > 0) {
-      const response = await Promise.allSettled([
-        // Remove the link from Redis
-        linkCache.deleteMany(links),
-
-        // Record link in Tinybird
-        recordLink(links, { deleted: true }),
-
-        // Remove image from R2 storage if it exists
-        links
-          .filter((link) =>
-            link.image?.startsWith(`${R2_URL}/images/${link.id}`),
-          )
-          .map((link) =>
-            limiter.schedule(() =>
-              storage.delete({ key: link.image!.replace(`${R2_URL}/`, "") }),
-            ),
-          ),
-
-        // Remove the link from MySQL
-        prisma.link.deleteMany({
-          where: {
-            id: { in: links.map((link) => link.id) },
-          },
-        }),
-
-        // Update the project's total links count
-        links[0].projectId &&
-          prisma.project.update({
-            where: {
-              id: links[0].projectId,
-            },
-            data: {
-              totalLinks: { decrement: links.length },
-            },
-          }),
-      ]);
-
-      console.log(response);
-
-      response.forEach((promise) => {
-        if (promise.status === "rejected") {
-          console.error("deleteDomainAndLinks", {
-            reason: promise.reason,
-            domain,
-          });
-        }
-      });
-    }
-
-    const remainingLinks = await prisma.link.count({
-      where: {
-        domain,
-      },
-    });
-
-    console.log(`Found ${remainingLinks} remaining links for ${domain}.`);
-
-    if (remainingLinks > 0) {
-      await queueDomainDeletion({
-        domain,
-        delay: 2,
-      });
-      return logAndRespond(
-        `Deleted ${links.length} links, ${remainingLinks} remaining. Starting next batch...`,
-      );
-    }
-
-    // After all links are deleted, delete the domain and image
-    await Promise.all([
-      prisma.domain.delete({
-        where: {
-          slug: domain,
-        },
-      }),
-      domainRecord.logo &&
-        storage.delete({ key: domainRecord.logo.replace(`${R2_URL}/`, "") }),
-    ]);
-
-    return logAndRespond(
-      `Deleted ${links.length} links, no more links remaining. Domain deleted.`,
-    );
-  } catch (error) {
-    return handleAndReturnErrorResponse(error);
-  }
-}
+  return logAndRespond(
+    `Forwarded domain ${domain} deletion to domainDeletedJob.`,
+  );
+});

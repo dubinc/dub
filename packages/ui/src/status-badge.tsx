@@ -33,6 +33,8 @@ const statusBadgeVariants = cva(
   },
 );
 
+export type StatusBadgeVariant = VariantProps<typeof statusBadgeVariants>;
+
 const defaultIcons = {
   neutral: CircleInfo,
   new: CircleHalfDottedCheck,
@@ -44,12 +46,12 @@ const defaultIcons = {
 
 interface BadgeProps
   extends React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof statusBadgeVariants> {
+    StatusBadgeVariant {
   icon?: Icon | null;
   tooltip?: string | React.ReactNode;
 }
 
-function StatusBadge({
+export function StatusBadge({
   className,
   variant,
   size,
@@ -79,5 +81,3 @@ function StatusBadge({
     </DynamicTooltipWrapper>
   );
 }
-
-export { StatusBadge, statusBadgeVariants };
