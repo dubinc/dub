@@ -109,12 +109,7 @@ export default function WorkspaceBillingUpgradePage() {
     });
   }, [linksUsage, eventsUsage]);
 
-  const hideProPlan = Boolean(
-    defaultProgramId &&
-      currentPlan &&
-      currentPlan !== "pro" &&
-      currentPlan !== "free",
-  );
+  const hideProPlan = Boolean(defaultProgramId && currentPlan !== "pro");
 
   const plans: { plan: PlanDetails; planTier: number }[] = useMemo(
     () =>
