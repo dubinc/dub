@@ -3,7 +3,6 @@ import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-lin
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { prisma } from "@/lib/prisma";
 import {
-  CampaignTriggerCondition,
   TiptapNode,
   WorkflowConditionAttribute,
   WorkflowContext,
@@ -14,10 +13,11 @@ import CampaignEmail from "@dub/email/templates/campaign-email";
 import { chunk } from "@dub/utils";
 import { NotificationEmailType, Prisma, Workflow } from "@prisma/client";
 import { addHours, differenceInDays, subDays } from "date-fns";
+import { renderCampaignEmailHTML } from "../../campaigns/render-campaign-email-html";
 import { validateCampaignFromAddress } from "../../campaigns/validate-campaign";
 import { createId } from "../../create-id";
 import { parseWorkflowConfig } from "../parse-workflow-config";
-import { renderCampaignEmailHTML } from "../../campaigns/render-campaign-email-html";
+import { SendCampaignCondition } from "./schema";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,
@@ -73,7 +73,7 @@ export const executeSendCampaignWorkflow = async ({
     programId,
     partnerId,
     groupIds: campaign.groups.map(({ groupId }) => groupId),
-    condition: condition as CampaignTriggerCondition,
+    condition: condition as SendCampaignCondition,
   });
 
   if (programEnrollments.length === 0) {
@@ -251,7 +251,7 @@ async function getProgramEnrollments({
   programId: string;
   partnerId?: string;
   groupIds: string[];
-  condition: CampaignTriggerCondition;
+  condition: SendCampaignCondition;
 }) {
   if (partnerId) {
     const { attribute } = condition;

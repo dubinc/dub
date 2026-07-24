@@ -1,8 +1,10 @@
-import { WorkflowCondition } from "@/lib/types";
-import { CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG } from "@/lib/zod/schemas/campaigns";
+import {
+  SEND_CAMPAIGN_ATTRIBUTE_CONFIG,
+  SendCampaignCondition,
+} from "@/lib/api/workflows/send-campaign/schema";
 
 export function isValidTriggerCondition(
-  triggerCondition: WorkflowCondition,
+  triggerCondition: SendCampaignCondition | null | undefined,
 ): boolean {
   // Null/undefined is valid (no trigger condition set)
   if (!triggerCondition) {
@@ -14,7 +16,7 @@ export function isValidTriggerCondition(
     return false;
   }
 
-  const config = CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG[triggerCondition.attribute];
+  const config = SEND_CAMPAIGN_ATTRIBUTE_CONFIG[triggerCondition.attribute];
 
   // If attribute doesn't exist in config, invalid
   if (!config) {

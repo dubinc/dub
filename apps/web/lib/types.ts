@@ -83,7 +83,6 @@ import {
   CampaignListSchema,
   CampaignSchema,
   campaignSummarySchema,
-  campaignTriggerConditionSchema,
   EMAIL_TEMPLATE_VARIABLES,
   updateCampaignSchema,
 } from "./zod/schemas/campaigns";
@@ -725,9 +724,7 @@ export type BountySocialMetricsIncrementalBonus = z.infer<
   typeof bountySocialContentIncrementalBonusSchema
 >;
 
-export type CampaignTriggerCondition = z.infer<
-  typeof campaignTriggerConditionSchema
->;
+export type { SendCampaignCondition } from "./api/workflows/send-campaign/schema";
 
 export type WorkflowConditionAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
 
@@ -765,12 +762,6 @@ export interface TiptapNode {
   attrs?: Record<string, any>;
   content?: TiptapNode[];
   marks?: Array<{ type: string; attrs?: Record<string, any> }>;
-}
-
-export interface CampaignWorkflowAttributeConfig {
-  label: string;
-  inputType: "number" | "currency" | "dropdown" | "none";
-  dropdownValues?: number[];
 }
 
 export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
