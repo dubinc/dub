@@ -5,7 +5,6 @@ import { GroupSchema } from "./groups";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
-import { workflowConditionSchema } from "./workflows";
 
 export const EMAIL_TEMPLATE_VARIABLES = [
   "PartnerName",
@@ -78,7 +77,7 @@ export const getCampaignsQuerySchema = z
       .pipe(
         z.preprocess(
           (input: string) => JSON.parse(input),
-          workflowConditionSchema,
+          sendCampaignConditionSchema,
         ),
       )
       .optional(),

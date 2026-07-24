@@ -1,11 +1,11 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
-import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
 import { APP_DOMAIN_WITH_NGROK, log, toCentsNumber } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
@@ -133,7 +133,7 @@ export async function POST(req: Request) {
 
     // Find the workflow condition
     const condition = z
-      .array(workflowConditionSchema)
+      .array(awardBountyConditionSchema)
       .parse(bounty.workflow.triggerConditions)[0];
 
     // Partners with their link metrics
