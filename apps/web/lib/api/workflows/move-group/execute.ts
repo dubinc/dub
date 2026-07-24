@@ -1,5 +1,8 @@
+import {
+  WorkflowConditionAttribute,
+  WorkflowContext,
+} from "@/lib/api/workflows/types";
 import { prisma } from "@/lib/prisma";
-import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/api/workflows/types";
 import { redis } from "@/lib/upstash/redis";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@prisma/client";

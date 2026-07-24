@@ -1,4 +1,7 @@
-import { WorkflowCondition, WorkflowConditionAttribute } from "@/lib/api/workflows/types";
+import {
+  WorkflowCondition,
+  WorkflowConditionAttribute,
+} from "@/lib/api/workflows/types";
 import { COMPARISON_OPERATORS } from "./operators";
 
 export function evaluateWorkflowConditions({

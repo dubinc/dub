@@ -53,9 +53,7 @@ describe("COMPARISON_OPERATORS.gte.validate", () => {
     expect(() => validate({ min: 1, max: 5 })).toThrow(
       "Please enter a value greater than 0.",
     );
-    expect(() => validate(NaN)).toThrow(
-      "Please enter a value greater than 0.",
-    );
+    expect(() => validate(NaN)).toThrow("Please enter a value greater than 0.");
     expect(() => validate(0)).toThrow("Please enter a value greater than 0.");
     expect(() => validate(-1)).toThrow("Please enter a value greater than 0.");
   });

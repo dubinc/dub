@@ -1,5 +1,5 @@
-import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { AwardBountyCondition } from "@/lib/api/workflows/award-bounty/types";
+import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "./performance-bounty-scope-attributes";
 
