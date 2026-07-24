@@ -23,14 +23,12 @@ import {
   PartnerRole,
   PayoutStatus,
   Prisma,
-  ProgramEnrollment,
   ProgramEnrollmentStatus,
   Project,
   SubmittedLead,
   User,
   UtmTemplate,
   Webhook,
-  WorkflowTrigger,
   WorkspaceRole,
 } from "@prisma/client";
 import * as z from "zod/v4";
@@ -802,36 +800,6 @@ export type CreateFraudEventInput = Pick<
   > & {
     metadata?: Record<string, unknown> | null;
   };
-
-interface WorkflowIdentity {
-  workspaceId: string;
-  programId: string;
-  partnerId: string;
-  groupId?: string;
-  customerId?: string;
-  customerFirstSaleAt?: Date;
-}
-
-interface PartnerMetrics {
-  leads?: number;
-  conversions?: number;
-  saleAmount?: number;
-  commissions?: number;
-}
-
-export interface WorkflowContext {
-  trigger: WorkflowTrigger;
-  reason?: "lead" | "sale" | "commission";
-  identity: WorkflowIdentity;
-  metrics?: {
-    current?: PartnerMetrics;
-    aggregated?: PartnerMetrics;
-  };
-  programEnrollment?: Pick<
-    ProgramEnrollment,
-    "groupId" | "createdAt" | "partnerId" | "programId" | "status"
-  >;
-}
 
 export type SubmittedLeadProps = z.infer<typeof submittedLeadSchema>;
 
