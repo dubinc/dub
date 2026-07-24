@@ -10,9 +10,9 @@ import {
   Workflow,
   WorkspaceRole,
 } from "@prisma/client";
-import { createId } from "../create-id";
-import { getWorkspaceUsers } from "../get-workspace-users";
-import { parseWorkflowConfig } from "./parse-workflow-config";
+import { createId } from "../../create-id";
+import { getWorkspaceUsers } from "../../get-workspace-users";
+import { parseWorkflowConfig } from "../parse-workflow-config";
 
 const terminalStatusReason: Record<
   Exclude<BountySubmissionStatus, "draft">,
@@ -23,7 +23,7 @@ const terminalStatusReason: Record<
   rejected: "been rejected",
 };
 
-export const executeCompleteBountyWorkflow = async ({
+export const executeAwardBountyWorkflow = async ({
   workflow,
   context,
 }: {

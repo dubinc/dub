@@ -14,10 +14,10 @@ import CampaignEmail from "@dub/email/templates/campaign-email";
 import { chunk } from "@dub/utils";
 import { NotificationEmailType, Prisma, Workflow } from "@prisma/client";
 import { addHours, differenceInDays, subDays } from "date-fns";
-import { validateCampaignFromAddress } from "../campaigns/validate-campaign";
-import { createId } from "../create-id";
-import { parseWorkflowConfig } from "./parse-workflow-config";
-import { renderCampaignEmailHTML } from "./render-campaign-email-html";
+import { validateCampaignFromAddress } from "../../campaigns/validate-campaign";
+import { createId } from "../../create-id";
+import { parseWorkflowConfig } from "../parse-workflow-config";
+import { renderCampaignEmailHTML } from "../../campaigns/render-campaign-email-html";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,

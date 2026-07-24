@@ -3,7 +3,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { renderCampaignEmailHTML } from "@/lib/api/workflows/render-campaign-email-html";
+import { renderCampaignEmailHTML } from "@/lib/api/campaigns/render-campaign-email-html";
 import { withWorkspace } from "@/lib/auth";
 import { TiptapNode } from "@/lib/types";
 import { CampaignSchema } from "@/lib/zod/schemas/campaigns";

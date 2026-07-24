@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@prisma/client";
-import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
-import { executeMoveGroupWorkflow } from "./execute-move-group-workflow";
-import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";
+import { executeAwardBountyWorkflow } from "./award-bounty/execute";
+import { executeMoveGroupWorkflow } from "./move-group/execute";
 import { parseWorkflowConfig } from "./parse-workflow-config";
+import { executeSendCampaignWorkflow } from "./send-campaign/execute";
 
 interface WorkflowActionHandler {
   execute(params: {
@@ -17,7 +17,7 @@ interface WorkflowActionHandler {
 
 const ACTION_HANDLERS: Record<WORKFLOW_ACTION_TYPES, WorkflowActionHandler> = {
   [WORKFLOW_ACTION_TYPES.AwardBounty]: {
-    execute: executeCompleteBountyWorkflow,
+    execute: executeAwardBountyWorkflow,
   },
 
   [WORKFLOW_ACTION_TYPES.SendCampaign]: {

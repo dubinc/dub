@@ -3,9 +3,9 @@ import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { redis } from "@/lib/upstash/redis";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@prisma/client";
-import { movePartnersToGroup } from "../groups/move-partners-to-group";
-import { evaluateWorkflowConditions } from "./evaluate-workflow-conditions";
-import { parseWorkflowConfig } from "./parse-workflow-config";
+import { movePartnersToGroup } from "../../groups/move-partners-to-group";
+import { evaluateWorkflowConditions } from "../evaluate-workflow-conditions";
+import { parseWorkflowConfig } from "../parse-workflow-config";
 
 export const executeMoveGroupWorkflow = async ({
   workflow,
