@@ -37,6 +37,12 @@ export const PROGRAM_IMPORT_SOURCES = [
     image: "https://assets.dub.co/misc/icons/tapfiliate.svg",
     helpUrl: "https://dub.co/help/article/migrating-from-tapfiliate",
   },
+  {
+    id: "lemonsqueezy",
+    value: "Lemon Squeezy",
+    image: "https://assets.dub.co/misc/icons/lemonsqueezy.svg",
+    helpUrl: "https://dub.co/help/article/migrating-from-lemonsqueezy",
+  },
 ] as const;
 
 export const PROGRAM_APPLICATION_IMAGE_MAX_FILE_SIZE_MB = 5;
