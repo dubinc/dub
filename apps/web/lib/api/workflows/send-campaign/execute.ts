@@ -1,5 +1,5 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
-import { WorkflowContext } from "@/lib/api/workflows/types";
+import { WorkflowCondition, WorkflowContext } from "@/lib/api/workflows/types";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { prisma } from "@/lib/prisma";
@@ -15,7 +15,6 @@ import { validateCampaignFromAddress } from "../../campaigns/validate-campaign";
 import { createId } from "../../create-id";
 import { WorkflowAttributeKey } from "../attribute-definitions";
 import { parseWorkflowConfig } from "../parse-workflow-config";
-import type { SendCampaignCondition } from "./types";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,
@@ -71,7 +70,7 @@ export const executeSendCampaignWorkflow = async ({
     programId,
     partnerId,
     groupIds: campaign.groups.map(({ groupId }) => groupId),
-    condition: condition as SendCampaignCondition,
+    condition: condition as WorkflowCondition,
   });
 
   if (programEnrollments.length === 0) {
@@ -249,7 +248,7 @@ async function getProgramEnrollments({
   programId: string;
   partnerId?: string;
   groupIds: string[];
-  condition: SendCampaignCondition;
+  condition: WorkflowCondition;
 }) {
   if (partnerId) {
     const { attribute } = condition;
@@ -349,7 +348,7 @@ async function getProgramEnrollments({
     return [programEnrollment];
   }
 
-  const startDate = subDays(new Date(), condition.value);
+  const startDate = subDays(new Date(), condition.value as number);
   // add 12 hours to the start date since we run the partnerEnrolled workflow every 12 hours
   const endDate = addHours(startDate, 12);
 

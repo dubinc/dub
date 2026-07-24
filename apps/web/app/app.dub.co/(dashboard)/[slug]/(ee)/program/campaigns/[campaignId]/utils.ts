@@ -1,8 +1,8 @@
 import { SEND_CAMPAIGN_ATTRIBUTES } from "@/lib/api/workflows/send-campaign/schema";
-import type { SendCampaignCondition } from "@/lib/api/workflows/send-campaign/types";
+import type { WorkflowCondition } from "@/lib/api/workflows/types";
 
 export function isValidTriggerCondition(
-  triggerCondition: SendCampaignCondition | null | undefined,
+  triggerCondition: WorkflowCondition | null | undefined,
 ): boolean {
   // Null/undefined is valid (no trigger condition set)
   if (!triggerCondition) {

@@ -1,4 +1,4 @@
-import { AwardBountyCondition } from "@/lib/api/workflows/award-bounty/types";
+import { WorkflowCondition } from "@/lib/api/workflows/types";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "./performance-bounty-scope-attributes";
@@ -8,7 +8,7 @@ export const generatePerformanceBountyName = ({
   condition,
 }: {
   rewardAmount: number;
-  condition: AwardBountyCondition;
+  condition: WorkflowCondition;
 }) => {
   const isCurrency = isCurrencyAttribute(condition.attribute);
   const attributeLabel =
