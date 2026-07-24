@@ -1,4 +1,5 @@
 import { WorkflowContext } from "@/lib/api/workflows/types";
+import { logger, toErrorFields } from "@/lib/axiom/server";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
@@ -209,7 +210,17 @@ export async function executeWorkflows({
       });
     } catch (error) {
       console.error(`Failed to execute workflow ${workflow.id}:`, error);
+
+      logger.error("workflows.execute_failed", {
+        error: toErrorFields(error),
+        correlation: {
+          workflowId: workflow.id,
+        },
+      });
+
       continue;
     }
   }
+
+  await logger.flush();
 }
