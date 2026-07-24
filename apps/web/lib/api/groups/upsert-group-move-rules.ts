@@ -8,9 +8,9 @@ import { pluralize } from "@dub/utils";
 import { PartnerGroup, WorkflowTrigger } from "@prisma/client";
 import { createId } from "../create-id";
 import { DubApiError } from "../errors";
+import { validateWorkflowConditions } from "../workflows/validate-workflow-conditions";
 import { findGroupsWithMatchingRules } from "./find-groups-with-matching-rules";
 import { getGroupMoveRules } from "./get-group-move-rules";
-import { validateGroupMoveRules } from "./validate-group-move-rules";
 
 export async function upsertGroupMoveRules({
   workspace,
@@ -50,18 +50,10 @@ export async function upsertGroupMoveRules({
     };
   }
 
-  try {
-    validateGroupMoveRules({
-      rules: moveRules,
-      destinationGroupId: group.id,
-    });
-  } catch (error) {
-    throw new DubApiError({
-      code: "bad_request",
-      message:
-        error instanceof Error ? error.message : "Invalid group move rules.",
-    });
-  }
+  await validateWorkflowConditions({
+    conditions: moveRules,
+    workflowType: "moveGroup",
+  });
 
   const groupsWithMatchingRules = findGroupsWithMatchingRules({
     groups: await getGroupMoveRules(group.programId),

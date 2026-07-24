@@ -1,10 +1,10 @@
 import { CampaignStatus, CampaignType } from "@prisma/client";
 import * as z from "zod/v4";
-import { sendCampaignConditionSchema } from "../../api/workflows/send-campaign/schema";
 import { GroupSchema } from "./groups";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
+import { workflowConditionSchema } from "./workflows";
 
 export const EMAIL_TEMPLATE_VARIABLES = [
   "PartnerName",
@@ -21,7 +21,7 @@ export const CampaignSchema = z.object({
   bodyJson: z.record(z.string(), z.any()),
   type: z.enum(CampaignType),
   status: z.enum(CampaignStatus),
-  triggerCondition: sendCampaignConditionSchema.nullable().default(null),
+  triggerCondition: workflowConditionSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
   scheduledAt: z.date().nullable(),
   createdAt: z.date(),
@@ -54,7 +54,7 @@ export const updateCampaignSchema = z
     preview: z.string().nullish(),
     from: z.email().trim().toLowerCase(),
     bodyJson: z.record(z.string(), z.any()),
-    triggerCondition: sendCampaignConditionSchema.nullish(),
+    triggerCondition: workflowConditionSchema.nullish(),
     groupIds: z.array(z.string()).nullable(),
     scheduledAt: parseDateSchema.nullish(),
     status: z.enum([
@@ -77,7 +77,7 @@ export const getCampaignsQuerySchema = z
       .pipe(
         z.preprocess(
           (input: string) => JSON.parse(input),
-          sendCampaignConditionSchema,
+          workflowConditionSchema,
         ),
       )
       .optional(),

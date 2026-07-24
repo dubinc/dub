@@ -34,3 +34,5 @@ export interface WorkflowContext {
     aggregated?: PartnerMetrics;
   };
 }
+
+export type WorkflowType = "awardBounty" | "sendCampaign" | "moveGroup";

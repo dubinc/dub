@@ -4,6 +4,7 @@ import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { WorkflowCondition } from "@/lib/api/workflows/types";
+import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
 import { withWorkspace } from "@/lib/auth";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { getBountyWithDetails } from "@/lib/bounty/api/get-bounty-with-details";
@@ -96,6 +97,13 @@ export const PATCH = withWorkspace(
       rewardDescription,
       performanceScope: bounty.performanceScope,
     });
+
+    if (bounty.type === "performance" && performanceCondition) {
+      await validateWorkflowConditions({
+        conditions: [performanceCondition],
+        workflowType: "awardBounty",
+      });
+    }
 
     if (
       submissionRequirements !== undefined &&

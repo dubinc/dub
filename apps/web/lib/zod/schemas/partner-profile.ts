@@ -2,7 +2,6 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
-import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
 import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/constants/partner-profile";
 import {
   CommissionType,
@@ -28,6 +27,7 @@ import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
 import { submittedLeadFormDataSchema } from "./submitted-lead-form";
 import { centsSchema } from "./utils";
+import { workflowConditionSchema } from "./workflows";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
   userId: true,
@@ -164,7 +164,7 @@ export const PartnerBountySchema = BountySchema.omit({
   socialMetricsLastSyncedAt: true,
 }).extend({
   submissions: z.array(partnerBountySubmissionSchema),
-  performanceCondition: awardBountyConditionSchema.nullable().default(null),
+  performanceCondition: workflowConditionSchema.nullable().default(null),
   partner: z.object({
     totalClicks: z.number(),
     totalLeads: z.number(),

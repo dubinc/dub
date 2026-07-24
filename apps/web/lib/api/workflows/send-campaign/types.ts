@@ -1,5 +1,3 @@
-import type * as z from "zod/v4";
+import type { WorkflowCondition } from "@/lib/api/workflows/types";
 
-import type { sendCampaignConditionSchema } from "./schema";
-
-export type SendCampaignCondition = z.infer<typeof sendCampaignConditionSchema>;
+export type SendCampaignCondition = WorkflowCondition;

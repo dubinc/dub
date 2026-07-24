@@ -1,4 +1,3 @@
-import type * as z from "zod/v4";
-import type { awardBountyConditionSchema } from "./schema";
+import type { WorkflowCondition } from "@/lib/api/workflows/types";
 
-export type AwardBountyCondition = z.infer<typeof awardBountyConditionSchema>;
+export type AwardBountyCondition = WorkflowCondition;

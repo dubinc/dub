@@ -6,6 +6,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { WorkflowAction } from "@/lib/api/workflows/types";
+import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
 import { withWorkspace } from "@/lib/auth";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
@@ -173,6 +174,13 @@ export const POST = withWorkspace(
     startsAt = startsAt || new Date();
 
     validateBounty(parsedBody);
+
+    if (type === "performance" && performanceCondition) {
+      await validateWorkflowConditions({
+        conditions: [performanceCondition],
+        workflowType: "awardBounty",
+      });
+    }
 
     const { canUseBountySocialMetrics, canSendEmailCampaigns } =
       getPlanCapabilities(workspace.plan);

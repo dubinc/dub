@@ -5,7 +5,6 @@ import { validSlugRegex } from "@dub/utils";
 import { PartnerLinkStructure } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
-import { groupMoveRulesSchema } from "../../api/workflows/move-group/schema";
 import { DiscountSchema } from "./discount";
 import { GroupBountySummarySchema } from "./group-bounties";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
@@ -14,6 +13,7 @@ import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
 import { centsSchemaWithDefault, parseUrlSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";
+import { workflowConditionsSchema } from "./workflows";
 
 export const DEFAULT_PARTNER_GROUP = {
   name: "Default Group",
@@ -73,7 +73,7 @@ export const GroupSchema = z.object({
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
   linkStructure: z.enum(PartnerLinkStructure),
-  moveRules: groupMoveRulesSchema.nullish().default(null),
+  moveRules: workflowConditionsSchema.nullish().default(null),
 });
 
 export const GroupWithFormDataSchema = GroupSchema.extend({
@@ -152,7 +152,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
   autoApprovePartners: z.coerce.boolean().optional(),
   updateAutoApprovePartnersForAllGroups: z.coerce.boolean().optional(),
   updateHoldingPeriodDaysForAllGroups: z.coerce.boolean().optional(),
-  moveRules: groupMoveRulesSchema.optional(),
+  moveRules: workflowConditionsSchema.optional(),
 });
 
 export const PartnerGroupDefaultLinkSchema = z.object({

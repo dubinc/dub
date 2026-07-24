@@ -45,6 +45,9 @@ export const workflowConditionSchema = z.object({
   ]),
 });
 
+// Array of conditions
+export const workflowConditionsSchema = z.array(workflowConditionSchema);
+
 // Individual action
 export const workflowActionSchema = z.discriminatedUnion("type", [
   z.object({

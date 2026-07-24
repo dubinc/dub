@@ -1,10 +1,9 @@
-import type * as z from "zod/v4";
+import type { WorkflowCondition } from "@/lib/api/workflows/types";
+import type { GROUP_MOVE_ATTRIBUTES } from "./schema";
 
-import type { GROUP_MOVE_ATTRIBUTES, groupMoveRulesSchema } from "./schema";
+export type GroupMoveCondition = WorkflowCondition;
 
-export type GroupMoveRules = z.infer<typeof groupMoveRulesSchema>;
-
-export type GroupMoveCondition = GroupMoveRules[number];
+export type GroupMoveRules = WorkflowCondition[];
 
 export type GroupMoveAttributeKey = keyof typeof GROUP_MOVE_ATTRIBUTES;
 
