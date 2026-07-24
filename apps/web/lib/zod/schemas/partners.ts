@@ -754,16 +754,6 @@ const partnerImageSchema = z.union([
   z.string().nullish(), // make image optional
 ]);
 
-export const sanitizeFormulaInput = <T extends string | null | undefined>(
-  value: T,
-): T => {
-  if (typeof value !== "string") {
-    return value;
-  }
-
-  return value.replace(/^[=+\-@\t\r]+/, "").trimStart() as T;
-};
-
 export const onboardPartnerSchema = createPartnerSchema
   .omit({
     username: true,
@@ -772,16 +762,10 @@ export const onboardPartnerSchema = createPartnerSchema
     linkProps: true,
   })
   .extend({
-    name: z
-      .string()
-      .min(1, "Name is required")
-      .transform(sanitizeFormulaInput)
-      .refine((v) => v.length > 0, "Name is required"),
-    description:
-      createPartnerSchema.shape.description.transform(sanitizeFormulaInput),
+    name: z.string().min(1, "Name is required"),
     image: partnerImageSchema,
     profileType: z.enum(PartnerProfileType).default("individual"),
-    companyName: z.string().nullish().transform(sanitizeFormulaInput),
+    companyName: z.string().nullish(),
   })
   .refine(
     (data) => {
