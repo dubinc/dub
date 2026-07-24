@@ -243,8 +243,33 @@ async function createPartnerAndLinks({
       userId,
     });
 
+    // Reject suffixed keys — customers/commissions look up by exact affiliate id
+    if (partnerLink.key !== affiliate.id) {
+      await logImportError({
+        workspace_id: program.workspaceId,
+        import_id: importId,
+        source: "lemonsqueezy",
+        entity: "partner",
+        entity_id: affiliate.id,
+        code: "LINK_NOT_FOUND",
+        message: `Partner link key conflict for affiliate ${affiliate.id}: generated key "${partnerLink.key}" instead of "${affiliate.id}".`,
+      });
+      return;
+    }
+
     await createLink(partnerLink);
   } catch (error) {
     console.error("Error creating partner link", error, affiliate);
+    await logImportError({
+      workspace_id: program.workspaceId,
+      import_id: importId,
+      source: "lemonsqueezy",
+      entity: "partner",
+      entity_id: affiliate.id,
+      code: "LINK_NOT_FOUND",
+      message: `Failed to create partner link for affiliate ${affiliate.id}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    });
   }
 }

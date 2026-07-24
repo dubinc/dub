@@ -42,6 +42,10 @@ type SaleEvent = {
   metadata: Record<string, unknown>;
 };
 
+// Only renewals/updates — initials are covered by the Order import.
+// Missing/unknown billing_reason is skipped to avoid double-counting.
+const IMPORTABLE_INVOICE_REASONS = new Set(["renewal", "updated"]);
+
 const toDubStatus = (status: string): CommissionStatus | null => {
   switch (status) {
     case "paid":
@@ -242,8 +246,10 @@ async function listInvoiceSaleEvents({
         affiliate_id: number;
       } =>
         Boolean(invoice.affiliate_id) &&
-        // Initial invoices are covered by the Order import
-        invoice.billing_reason !== "initial",
+        Boolean(
+          invoice.billing_reason &&
+            IMPORTABLE_INVOICE_REASONS.has(invoice.billing_reason),
+        ),
     )
     .map((invoice) => ({
       invoiceId: `ls_invoice_${invoice.id}`,
@@ -461,40 +467,33 @@ async function createCommission({
   }
 
   // Prefer LS-provided USD amounts; otherwise convert
-  let saleAmount = saleEvent.amountUsd ?? saleEvent.amount;
-  if (
-    saleEvent.amountUsd == null &&
-    saleEvent.currency.toUpperCase() !== "USD" &&
-    fxRates
-  ) {
-    const { amount: convertedAmount } = convertCurrencyWithFxRates({
+  let saleAmount: number | null =
+    saleEvent.amountUsd != null
+      ? saleEvent.amountUsd
+      : saleEvent.currency.toUpperCase() === "USD"
+        ? saleEvent.amount
+        : null;
+
+  if (saleAmount == null && fxRates) {
+    const converted = convertCurrencyWithFxRates({
       currency: saleEvent.currency,
-      amount: saleAmount,
+      amount: saleEvent.amount,
       fxRates,
     });
-    saleAmount = convertedAmount;
+    saleAmount =
+      converted.currency.toUpperCase() === "USD" ? converted.amount : null;
+  }
+
+  if (saleAmount == null) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "NOT_SUPPORTED_UNIT",
+      message: `Commission ${saleEvent.invoiceId} skipped: no USD amount and FX rate unavailable for currency ${saleEvent.currency}.`,
+    });
+    return;
   }
 
   const createdAt = new Date(saleEvent.createdAt);
-  const trackedCommission = await prisma.commission.findFirst({
-    where: {
-      customerId: existingCustomer.id,
-      programId: program.id,
-      createdAt: {
-        gte: new Date(createdAt.getTime() - 60 * 60 * 1000),
-        lte: new Date(createdAt.getTime() + 60 * 60 * 1000),
-      },
-      type: "sale",
-      amount: saleAmount,
-    },
-  });
-
-  if (trackedCommission) {
-    console.log(
-      `Commission ${saleEvent.invoiceId} with sale amount ${saleAmount} was already recorded on Dub. Skipping...`,
-    );
-    return;
-  }
 
   // LS does not expose per-order commission amounts; derive from Dub sale reward
   const earnings = saleReward
@@ -542,6 +541,10 @@ async function createCommission({
     saleAmount > 0 &&
       recordSaleWithTimestamp({
         ...clickData,
+        link_id: partnerLink.id,
+        domain: partnerLink.domain,
+        key: partnerLink.key,
+        url: partnerLink.url,
         event_id: eventId,
         event_name: "Invoice paid",
         amount: saleAmount,

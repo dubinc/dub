@@ -71,7 +71,7 @@ function ImportLemonSqueezyModal({
           <img
             src="https://assets.dub.co/misc/icons/lemonsqueezy.svg"
             alt="Lemon Squeezy logo"
-            className="h-10 w-10 rounded-full"
+            className="h-10 w-10"
           />
           <ArrowRight className="h-5 w-5 text-neutral-600" />
           <Logo />
