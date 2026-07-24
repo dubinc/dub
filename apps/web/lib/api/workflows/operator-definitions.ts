@@ -125,7 +125,7 @@ export const WORKFLOW_OPERATORS = {
   // In list (string[])
   in: {
     name: "in",
-    label: "is any of",
+    label: "is one of",
     validate(value: ConditionValue) {
       if (
         !Array.isArray(value) ||
@@ -150,7 +150,7 @@ export const WORKFLOW_OPERATORS = {
   // Not in list (string[])
   notIn: {
     name: "notIn",
-    label: "is not any of",
+    label: "is not one of",
     validate(value: ConditionValue) {
       if (
         !Array.isArray(value) ||

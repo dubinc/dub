@@ -130,6 +130,7 @@ export function GroupMoveRules() {
                 attribute === rule.attribute ||
                 !usedMetricAttributes.includes(attribute),
             );
+            const isLastMetric = metricIndex === metricRuleIndexes.length - 1;
 
             return (
               <Fragment key={ruleFields[index]?.id ?? index}>
@@ -145,46 +146,38 @@ export function GroupMoveRules() {
                     });
                   }}
                   onRemove={() => handleRemoveRule(index)}
+                  nestedCondition={
+                    isLastMetric
+                      ? hasPartnerGroupCondition
+                        ? {
+                            rule: moveRules[partnerGroupRuleIndex]!,
+                            onUpdate: (updatedRule) => {
+                              updateRule(partnerGroupRuleIndex, {
+                                ...moveRules[partnerGroupRuleIndex],
+                                ...updatedRule,
+                              });
+                            },
+                            onRemove: () => removeRule(partnerGroupRuleIndex),
+                          }
+                        : canAddPartnerGroupCondition
+                          ? {
+                              onAdd: () => {
+                                appendRule({
+                                  attribute: "partnerGroup",
+                                  operator: "eq",
+                                  value: undefined,
+                                } as unknown as WorkflowCondition);
+                              },
+                            }
+                          : undefined
+                      : undefined
+                  }
                 />
 
                 <div className="ml-6 h-4 w-px bg-neutral-200" />
               </Fragment>
             );
           })}
-
-          {hasPartnerGroupCondition && (
-            <>
-              <PartnerGroupCondition
-                rule={moveRules[partnerGroupRuleIndex]!}
-                onUpdate={(updatedRule) => {
-                  updateRule(partnerGroupRuleIndex, {
-                    ...moveRules[partnerGroupRuleIndex],
-                    ...updatedRule,
-                  });
-                }}
-                onRemove={() => removeRule(partnerGroupRuleIndex)}
-              />
-              <div className="ml-6 h-4 w-px bg-neutral-200" />
-            </>
-          )}
-
-          {canAddPartnerGroupCondition && (
-            <>
-              <Button
-                text="Add condition"
-                variant="secondary"
-                className="h-8 w-fit rounded-lg px-3"
-                onClick={() => {
-                  appendRule({
-                    attribute: "partnerGroup",
-                    operator: "eq",
-                    value: undefined,
-                  } as unknown as WorkflowCondition);
-                }}
-              />
-              <div className="ml-6 h-4 w-px bg-neutral-200" />
-            </>
-          )}
 
           <GroupMoveTarget />
         </div>
@@ -218,6 +211,7 @@ function MetricGroupRule({
   rule,
   onUpdate,
   onRemove,
+  nestedCondition,
   index,
   metricIndex,
   availableAttributes,
@@ -225,6 +219,13 @@ function MetricGroupRule({
   rule: WorkflowCondition;
   onUpdate: (updates: Partial<WorkflowCondition>) => void;
   onRemove: () => void;
+  nestedCondition?:
+    | { onAdd: () => void }
+    | {
+        rule: WorkflowCondition;
+        onUpdate: (updates: Partial<WorkflowCondition>) => void;
+        onRemove: () => void;
+      };
   index: number;
   metricIndex: number;
   availableAttributes: MetricAttributeKey[];
@@ -271,9 +272,9 @@ function MetricGroupRule({
   };
 
   return (
-    <div className="flex flex-col rounded-lg border border-neutral-200 bg-white">
+    <div className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_2px_4px_0_rgba(0,0,0,0.03)]">
       <div className="flex items-center justify-between p-2.5 pr-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
             {isFirst ? (
               <Users className="size-4 text-neutral-600" />
@@ -367,6 +368,28 @@ function MetricGroupRule({
           <X className="size-4" />
         </button>
       </div>
+
+      {nestedCondition && (
+        <div className="rounded-xl border border-neutral-200 bg-neutral-100 px-2.5 pb-2.5">
+          <div className="pt-2.5">
+            {"onAdd" in nestedCondition ? (
+              <Button
+                text="Add condition"
+                variant="secondary"
+                className="h-8 w-full justify-center gap-2 rounded-lg border-neutral-200 bg-white px-3 hover:bg-neutral-50"
+                icon={<ArrowTurnRight2 className="size-4" />}
+                onClick={nestedCondition.onAdd}
+              />
+            ) : (
+              <PartnerGroupCondition
+                rule={nestedCondition.rule}
+                onUpdate={nestedCondition.onUpdate}
+                onRemove={nestedCondition.onRemove}
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -412,11 +435,26 @@ function PartnerGroupCondition({
 
   const groupBadgeText = (() => {
     if (selectedGroups.length === 0) {
-      return isMulti ? "Select groups" : "Select group";
+      return isMulti ? "select groups" : "select group";
     }
 
     if (isMulti && selectedGroups.length > 1) {
-      return `${selectedGroups.length} Partner ${pluralize("Group", selectedGroups.length)}`;
+      return (
+        <span className="inline-flex items-center gap-2">
+          <span className="flex items-center">
+            {selectedGroups.slice(0, 2).map((group, index) => (
+              <span
+                key={group.id}
+                className={index > 0 ? "-ml-1.5" : undefined}
+              >
+                <GroupColorCircle group={group} />
+              </span>
+            ))}
+          </span>
+          {selectedGroups.length} Partner{" "}
+          {pluralize("Group", selectedGroups.length)}
+        </span>
+      );
     }
 
     return (
@@ -467,60 +505,55 @@ function PartnerGroupCondition({
   };
 
   return (
-    <div className="flex flex-col rounded-lg border border-neutral-200 bg-white">
-      <div className="flex items-center justify-between p-2.5 pr-3">
-        <div className="flex items-center gap-2">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
-            <ArrowTurnRight2 className="size-4 text-neutral-600" />
-          </div>
-          <span className="text-sm font-medium text-neutral-800">
-            And if
-            <span className="mx-1 inline-block rounded bg-blue-50 px-1.5 text-sm font-semibold text-blue-700">
-              partner group
-            </span>
-            <InlineBadgePopover
-              text={
-                GROUP_MOVE_OPERATORS[
-                  selectedOperator as keyof typeof GROUP_MOVE_OPERATORS
-                ]?.label ?? "condition"
-              }
-              buttonClassName="mx-1"
-            >
-              <InlineBadgePopoverMenu
-                selectedValue={selectedOperator}
-                onSelect={handleOperatorSelect}
-                items={PARTNER_GROUP_OPERATORS.map((operator) => ({
-                  value: operator,
-                  text: GROUP_MOVE_OPERATORS[operator].label,
-                }))}
-              />
-            </InlineBadgePopover>
-            <InlineBadgePopover
-              text={groupBadgeText}
-              invalid={selectedGroupIds.length === 0}
-              buttonClassName="mx-1"
-            >
-              <InlineBadgePopoverMenu
-                search
-                selectedValue={isMulti ? selectedGroupIds : selectedGroupIds[0]}
-                onSelect={handleGroupSelect}
-                items={availableGroups.map((group) => ({
-                  value: group.id,
-                  text: group.name,
-                  icon: <GroupColorCircle group={group} />,
-                }))}
-              />
-            </InlineBadgePopover>
-          </span>
+    <div className="flex items-center justify-between rounded-[10px] border border-neutral-200 bg-white p-2.5 pr-3 shadow-[0_2px_2px_0_rgba(0,0,0,0.03)]">
+      <div className="flex items-center gap-2.5">
+        <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+          <ArrowTurnRight2 className="size-4 text-neutral-600" />
         </div>
-        <button
-          type="button"
-          onClick={onRemove}
-          className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
-        >
-          <X className="size-4" />
-        </button>
+        <span className="text-sm font-medium text-neutral-800">
+          And if partner group
+          <InlineBadgePopover
+            text={
+              GROUP_MOVE_OPERATORS[
+                selectedOperator as keyof typeof GROUP_MOVE_OPERATORS
+              ]?.label ?? "condition"
+            }
+            buttonClassName="mx-1"
+          >
+            <InlineBadgePopoverMenu
+              selectedValue={selectedOperator}
+              onSelect={handleOperatorSelect}
+              items={PARTNER_GROUP_OPERATORS.map((operator) => ({
+                value: operator,
+                text: GROUP_MOVE_OPERATORS[operator].label,
+              }))}
+            />
+          </InlineBadgePopover>
+          <InlineBadgePopover
+            text={groupBadgeText}
+            invalid={selectedGroupIds.length === 0}
+            buttonClassName="mx-1"
+          >
+            <InlineBadgePopoverMenu
+              search
+              selectedValue={isMulti ? selectedGroupIds : selectedGroupIds[0]}
+              onSelect={handleGroupSelect}
+              items={availableGroups.map((group) => ({
+                value: group.id,
+                text: group.name,
+                icon: <GroupColorCircle group={group} />,
+              }))}
+            />
+          </InlineBadgePopover>
+        </span>
       </div>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+      >
+        <X className="size-4" />
+      </button>
     </div>
   );
 }
