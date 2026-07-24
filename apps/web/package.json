@@ -96,7 +96,7 @@
     "input-otp": "^1.2.4",
     "intercom-client": "^7.0.3",
     "jose": "^6.1.0",
-    "js-cookie": "^3.0.5",
+    "js-cookie": "^3.0.7",
     "json-2-csv": "^5.5.0",
     "jsondiffpatch": "^0.7.3",
     "jszip": "^3.10.1",
@@ -107,7 +107,7 @@
     "minimatch": "^10.1.1",
     "motion": "^12.23.22",
     "nanoid": "^5.0.1",
-    "next": "15.5.8",
+    "next": "15.5.18",
     "next-auth": "4.24.11",
     "next-plausible": "^4.0.0",
     "next-safe-action": "^8.0.11",
@@ -138,7 +138,7 @@
     "unique-names-generator": "^4.7.1",
     "unsplash-js": "^7.0.18",
     "use-debounce": "^10.0.4",
-    "uuid": "^11.0.3",
+    "uuid": "^14.0.0",
     "vaul": "^1.1.2",
     "zod": "^4.3.5",
     "zod-error": "2.0.0",
@@ -164,11 +164,11 @@
     "prisma": "6.19.1",
     "tailwindcss": "^3.4.4",
     "tsx": "^4.19.2",
-    "turbo": "^1.10.14",
+    "turbo": "^2.9.14",
     "typescript": "^5.4.4",
-    "vite": "7.2.2",
+    "vite": "7.3.2",
     "vite-tsconfig-paths": "5.1.4",
-    "vitest": "4.0.8"
+    "vitest": "4.1.0"
   },
   "browser": {
     "crypto": false
