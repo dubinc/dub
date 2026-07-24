@@ -130,7 +130,7 @@ export function GroupMoveRules() {
                 attribute === rule.attribute ||
                 !usedMetricAttributes.includes(attribute),
             );
-            const isLastMetric = metricIndex === metricRuleIndexes.length - 1;
+            const isFirstMetric = metricIndex === 0;
 
             return (
               <Fragment key={ruleFields[index]?.id ?? index}>
@@ -147,7 +147,7 @@ export function GroupMoveRules() {
                   }}
                   onRemove={() => handleRemoveRule(index)}
                   nestedCondition={
-                    isLastMetric
+                    isFirstMetric
                       ? hasPartnerGroupCondition
                         ? {
                             rule: moveRules[partnerGroupRuleIndex]!,
