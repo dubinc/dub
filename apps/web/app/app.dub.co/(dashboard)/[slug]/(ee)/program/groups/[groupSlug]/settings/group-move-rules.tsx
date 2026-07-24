@@ -7,9 +7,9 @@ import {
 import type {
   GroupMoveAttribute,
   GroupMoveAttributeKey,
-  GroupMoveCondition,
   GroupMoveRules as GroupMoveRulesForm,
 } from "@/lib/api/workflows/move-group/types";
+import { WorkflowCondition } from "@/lib/api/workflows/types";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -125,7 +125,7 @@ export function GroupMoveRules() {
               attribute: undefined,
               operator: "gte",
               value: undefined,
-            } as unknown as GroupMoveCondition);
+            } as unknown as WorkflowCondition);
           }}
           disabled={disableAddRuleButton}
           disabledTooltip={
@@ -146,8 +146,8 @@ function GroupRule({
   index,
   availableAttributes,
 }: {
-  rule: GroupMoveCondition;
-  onUpdate: (updates: Partial<GroupMoveCondition>) => void;
+  rule: WorkflowCondition;
+  onUpdate: (updates: Partial<WorkflowCondition>) => void;
   onRemove: () => void;
   index: number;
   availableAttributes: GroupMoveAttributeKey[];
@@ -367,10 +367,10 @@ function ValueInput({
   onUpdate,
 }: {
   index: number;
-  rule: GroupMoveCondition;
+  rule: WorkflowCondition;
   attributeType: GroupMoveAttribute["inputType"];
   part: "min" | "max";
-  onUpdate: (updates: Partial<GroupMoveCondition>) => void;
+  onUpdate: (updates: Partial<WorkflowCondition>) => void;
 }) {
   const { control } = useFormContext<{
     moveRules?: GroupMoveRulesForm;
@@ -453,7 +453,7 @@ const handleClearValue = (
 const handleUpdateMinValue = (
   currentFieldValue: ValueType,
   convertedValue: number,
-  operator: GroupMoveCondition["operator"],
+  operator: WorkflowCondition["operator"],
 ): ValueType => {
   if (operator === "between" && isRangeValue(currentFieldValue)) {
     const rangeValue = currentFieldValue as RangeValue;
@@ -465,8 +465,8 @@ const handleUpdateMinValue = (
 const handleUpdateMaxValue = (
   currentFieldValue: ValueType,
   convertedValue: number,
-  onUpdate: (updates: Partial<GroupMoveCondition>) => void,
-  ruleOperator: GroupMoveCondition["operator"],
+  onUpdate: (updates: Partial<WorkflowCondition>) => void,
+  ruleOperator: WorkflowCondition["operator"],
 ): ValueType => {
   if (isRangeValue(currentFieldValue)) {
     const rangeValue = currentFieldValue as RangeValue;
