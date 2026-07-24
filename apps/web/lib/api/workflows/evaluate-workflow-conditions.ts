@@ -1,7 +1,5 @@
-import {
-  WorkflowCondition,
-  WorkflowConditionAttribute,
-} from "@/lib/api/workflows/types";
+import { WorkflowCondition } from "@/lib/api/workflows/types";
+import { WorkflowAttributeKey } from "./attribute-definitions";
 import { WORKFLOW_OPERATORS } from "./operator-definitions";
 
 export function evaluateWorkflowConditions({
@@ -9,7 +7,7 @@ export function evaluateWorkflowConditions({
   attributes,
 }: {
   conditions: WorkflowCondition[];
-  attributes: Partial<Record<WorkflowConditionAttribute, number | null>>;
+  attributes: Partial<Record<WorkflowAttributeKey, number | null>>;
 }): boolean {
   if (conditions.length === 0) return false;
 

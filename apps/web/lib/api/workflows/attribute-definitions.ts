@@ -43,3 +43,9 @@ export const WORKFLOW_ATTRIBUTES = {
     operators: ["gte"],
   },
 } as const;
+
+export const WORKFLOW_ATTRIBUTE_KEYS = Object.keys(
+  WORKFLOW_ATTRIBUTES,
+) as readonly (keyof typeof WORKFLOW_ATTRIBUTES)[];
+
+export type WorkflowAttributeKey = (typeof WORKFLOW_ATTRIBUTE_KEYS)[number];

@@ -1,11 +1,9 @@
-import {
-  WorkflowConditionAttribute,
-  WorkflowContext,
-} from "@/lib/api/workflows/types";
+import { WorkflowContext } from "@/lib/api/workflows/types";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@prisma/client";
+import { WorkflowAttributeKey } from "./attribute-definitions";
 import { executeAwardBountyWorkflow } from "./award-bounty/execute";
 import { executeMoveGroupWorkflow } from "./move-group/execute";
 import { parseWorkflowConfig } from "./parse-workflow-config";
@@ -36,7 +34,7 @@ const ACTION_HANDLERS: Record<WORKFLOW_ACTION_TYPES, WorkflowActionHandler> = {
 // This prevents workflows from executing unnecessarily
 const REASON_TO_ATTRIBUTES: Record<
   NonNullable<WorkflowContext["reason"]>,
-  WorkflowConditionAttribute[]
+  WorkflowAttributeKey[]
 > = {
   lead: ["totalLeads"],
   sale: ["totalConversions", "totalSaleAmount"],

@@ -1,8 +1,5 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
-import {
-  WorkflowConditionAttribute,
-  WorkflowContext,
-} from "@/lib/api/workflows/types";
+import { WorkflowContext } from "@/lib/api/workflows/types";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { prisma } from "@/lib/prisma";
@@ -16,6 +13,7 @@ import { addHours, differenceInDays, subDays } from "date-fns";
 import { renderCampaignEmailHTML } from "../../campaigns/render-campaign-email-html";
 import { validateCampaignFromAddress } from "../../campaigns/validate-campaign";
 import { createId } from "../../create-id";
+import { WorkflowAttributeKey } from "../attribute-definitions";
 import { parseWorkflowConfig } from "../parse-workflow-config";
 import type { SendCampaignCondition } from "./types";
 
@@ -303,40 +301,39 @@ async function getProgramEnrollments({
       return [];
     }
 
-    const context: Partial<Record<WorkflowConditionAttribute, number | null>> =
-      {
-        ...(isPartnerLinkStatsAttribute
-          ? aggregatePartnerLinksStats(
-              programEnrollment.links as unknown as NonNullable<
-                Parameters<typeof aggregatePartnerLinksStats>[0]
-              >,
-            )
-          : {}),
-        ...(attribute === "totalCommissions"
-          ? {
-              totalCommissions:
-                (
-                  await prisma.commission.aggregate({
-                    where: {
-                      earnings: { not: 0 },
-                      programId,
-                      partnerId,
-                      status: { in: ["pending", "processed", "paid"] },
-                    },
-                    _sum: { earnings: true },
-                  })
-                )._sum.earnings || 0,
-            }
-          : {}),
-        ...(attribute === "partnerJoined"
-          ? {
-              partnerJoined: differenceInDays(
-                new Date(),
-                programEnrollment.createdAt,
-              ),
-            }
-          : {}),
-      };
+    const context: Partial<Record<WorkflowAttributeKey, number | null>> = {
+      ...(isPartnerLinkStatsAttribute
+        ? aggregatePartnerLinksStats(
+            programEnrollment.links as unknown as NonNullable<
+              Parameters<typeof aggregatePartnerLinksStats>[0]
+            >,
+          )
+        : {}),
+      ...(attribute === "totalCommissions"
+        ? {
+            totalCommissions:
+              (
+                await prisma.commission.aggregate({
+                  where: {
+                    earnings: { not: 0 },
+                    programId,
+                    partnerId,
+                    status: { in: ["pending", "processed", "paid"] },
+                  },
+                  _sum: { earnings: true },
+                })
+              )._sum.earnings || 0,
+          }
+        : {}),
+      ...(attribute === "partnerJoined"
+        ? {
+            partnerJoined: differenceInDays(
+              new Date(),
+              programEnrollment.createdAt,
+            ),
+          }
+        : {}),
+    };
 
     const shouldExecute = evaluateWorkflowConditions({
       conditions: [condition],

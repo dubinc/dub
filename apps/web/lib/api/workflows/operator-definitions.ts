@@ -1,28 +1,23 @@
-import { WorkflowComparisonOperator } from "@/lib/api/workflows/types";
-
 type ConditionValue = number | { min: number; max?: number };
 
 type WorkflowOperator = {
-  name: WorkflowComparisonOperator;
+  name: string;
   label: string;
   validate: (value: ConditionValue) => void;
   evaluate: (attributeValue: number, conditionValue: ConditionValue) => boolean;
 };
 
-export const WORKFLOW_OPERATORS: Record<
-  WorkflowComparisonOperator,
-  WorkflowOperator
-> = {
+export const WORKFLOW_OPERATORS = {
   // Greater than or equal to
   gte: {
     name: "gte",
     label: "at least",
-    validate(value) {
+    validate(value: ConditionValue) {
       if (typeof value !== "number" || isNaN(value) || value <= 0) {
         throw new Error("Please enter a value greater than 0.");
       }
     },
-    evaluate(attributeValue, conditionValue) {
+    evaluate(attributeValue: number, conditionValue: ConditionValue) {
       if (typeof conditionValue !== "number") {
         return false;
       }
@@ -35,7 +30,7 @@ export const WORKFLOW_OPERATORS: Record<
   between: {
     name: "between",
     label: "between",
-    validate(value) {
+    validate(value: ConditionValue) {
       if (typeof value !== "object" || value === null) {
         throw new Error("Please enter a valid value.");
       }
@@ -55,7 +50,7 @@ export const WORKFLOW_OPERATORS: Record<
         throw new Error("Maximum value must be greater than minimum value.");
       }
     },
-    evaluate(attributeValue, conditionValue) {
+    evaluate(attributeValue: number, conditionValue: ConditionValue) {
       if (typeof conditionValue !== "object" || conditionValue === null) {
         return false;
       }
@@ -69,4 +64,8 @@ export const WORKFLOW_OPERATORS: Record<
       return attributeValue >= min && attributeValue <= max;
     },
   },
-};
+} satisfies Record<string, WorkflowOperator>;
+
+export const WORKFLOW_OPERATOR_KEYS = Object.keys(
+  WORKFLOW_OPERATORS,
+) as readonly (keyof typeof WORKFLOW_OPERATORS)[];
