@@ -1,5 +1,6 @@
 "use client";
 
+import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import {
@@ -11,10 +12,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
-import {
-  bountyPerformanceConditionSchema,
-  bountySocialContentRequirementsSchema,
-} from "@/lib/zod/schemas/bounties";
+import { bountySocialContentRequirementsSchema } from "@/lib/zod/schemas/bounties";
 import { formatDate } from "@dub/utils";
 import { BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -542,7 +540,7 @@ export function useAddEditBountyForm({
       numAmount != null && numAmount > 0 ? numAmount * 100 : null;
 
     if (data.type === "performance") {
-      const result = bountyPerformanceConditionSchema.safeParse(
+      const result = awardBountyConditionSchema.safeParse(
         data.performanceCondition,
       );
 

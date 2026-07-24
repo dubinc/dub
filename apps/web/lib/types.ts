@@ -71,7 +71,6 @@ import {
 import { adminNetworkPartnerSchema } from "./zod/schemas/admin";
 import {
   BountyListSchema,
-  bountyPerformanceConditionSchema,
   BountySchema,
   bountySocialContentIncrementalBonusSchema,
   BountySubmissionExtendedSchema,
@@ -720,9 +719,7 @@ export type SocialMetricsChannel =
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 
-export type BountyPerformanceCondition = z.infer<
-  typeof bountyPerformanceConditionSchema
->;
+export type { AwardBountyCondition } from "./api/workflows/award-bounty/schema";
 
 export type BountySocialMetricsIncrementalBonus = z.infer<
   typeof bountySocialContentIncrementalBonusSchema
