@@ -4,6 +4,7 @@ import { PROGRAM_IMPORT_SOURCES } from "@/lib/constants/program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useExportPartnersModal } from "@/ui/modals/export-partners-modal";
 import { useImportFirstPromoterModal } from "@/ui/modals/import-firstpromoter-modal";
+import { useImportLemonSqueezyModal } from "@/ui/modals/import-lemonsqueezy-modal";
 import { useImportPartnerStackModal } from "@/ui/modals/import-partnerstack-modal";
 import { useImportRewardfulModal } from "@/ui/modals/import-rewardful-modal";
 import { useImportTapfiliateModal } from "@/ui/modals/import-tapfiliate-modal";
@@ -23,6 +24,7 @@ export function PartnersMenuPopover() {
   const { ImportPartnerStackModal } = useImportPartnerStackModal();
   const { ImportFirstPromoterModal } = useImportFirstPromoterModal();
   const { ImportTapfiliateModal } = useImportTapfiliateModal();
+  const { ImportLemonSqueezyModal } = useImportLemonSqueezyModal();
 
   const { ExportPartnersModal, setShowExportPartnersModal } =
     useExportPartnersModal();
@@ -34,6 +36,7 @@ export function PartnersMenuPopover() {
       <ImportFirstPromoterModal />
       <ImportPartnerStackModal />
       <ImportTapfiliateModal />
+      <ImportLemonSqueezyModal />
       <ExportPartnersModal />
       <Popover
         content={
