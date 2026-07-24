@@ -48,9 +48,10 @@ const doRuleSetsOverlap = (
     rules2ByAttribute.set(rule.attribute, rule);
   }
 
-  // Get all attributes that appear in BOTH rule sets (intersection)
-  const sharedAttributes = Array.from(rules1ByAttribute.keys()).filter((attr) =>
-    rules2ByAttribute.has(attr),
+  // Get all attributes that appear in BOTH rule sets (intersection).
+  // Skip partnerGroup — conflict detection is metric-interval only for now.
+  const sharedAttributes = Array.from(rules1ByAttribute.keys()).filter(
+    (attr) => attr !== "partnerGroup" && rules2ByAttribute.has(attr),
   );
 
   // If there are no shared attributes, the rule sets cannot conflict
@@ -92,7 +93,13 @@ const conditionToInterval = (
       return null;
 
     case "between":
-      if (typeof condition.value === "object" && condition.value !== null) {
+      if (
+        typeof condition.value === "object" &&
+        condition.value !== null &&
+        !Array.isArray(condition.value) &&
+        "min" in condition.value &&
+        "max" in condition.value
+      ) {
         return {
           min: condition.value.min,
           max: condition.value.max,

@@ -74,6 +74,10 @@ describe("WORKFLOW_OPERATORS.between.validate", () => {
     expect(() => validate(5)).toThrow("Please enter a valid value.");
   });
 
+  it("rejects arrays", () => {
+    expect(() => validate(["grp_1"])).toThrow("Please enter a valid value.");
+  });
+
   it("rejects non-positive or missing min", () => {
     expect(() => validate({ min: 0, max: 5 })).toThrow(
       "Please enter a minimum value greater than 0.",
@@ -98,6 +102,83 @@ describe("WORKFLOW_OPERATORS.between.validate", () => {
     );
     expect(() => validate({ min: 5, max: 4 })).toThrow(
       "Maximum value must be greater than minimum value.",
+    );
+  });
+});
+
+describe("WORKFLOW_OPERATORS.eq", () => {
+  const { evaluate, validate } = WORKFLOW_OPERATORS.eq;
+
+  it("evaluates string equality", () => {
+    expect(evaluate("grp_1", "grp_1")).toBe(true);
+    expect(evaluate("grp_1", "grp_2")).toBe(false);
+  });
+
+  it("returns false for non-string inputs", () => {
+    expect(evaluate(1, "grp_1")).toBe(false);
+    expect(evaluate("grp_1", 1)).toBe(false);
+  });
+
+  it("validates non-empty strings", () => {
+    expect(() => validate("grp_1")).not.toThrow();
+    expect(() => validate("")).toThrow("Please select a valid value.");
+    expect(() => validate(["grp_1"])).toThrow("Please select a valid value.");
+  });
+});
+
+describe("WORKFLOW_OPERATORS.ne", () => {
+  const { evaluate, validate } = WORKFLOW_OPERATORS.ne;
+
+  it("evaluates string inequality", () => {
+    expect(evaluate("grp_1", "grp_2")).toBe(true);
+    expect(evaluate("grp_1", "grp_1")).toBe(false);
+  });
+
+  it("validates non-empty strings", () => {
+    expect(() => validate("grp_1")).not.toThrow();
+    expect(() => validate("")).toThrow("Please select a valid value.");
+  });
+});
+
+describe("WORKFLOW_OPERATORS.in", () => {
+  const { evaluate, validate } = WORKFLOW_OPERATORS.in;
+
+  it("evaluates membership in a list", () => {
+    expect(evaluate("grp_1", ["grp_1", "grp_2"])).toBe(true);
+    expect(evaluate("grp_3", ["grp_1", "grp_2"])).toBe(false);
+  });
+
+  it("returns false for invalid shapes", () => {
+    expect(evaluate("grp_1", "grp_1")).toBe(false);
+    expect(evaluate(1, ["grp_1"])).toBe(false);
+  });
+
+  it("validates non-empty string arrays", () => {
+    expect(() => validate(["grp_1"])).not.toThrow();
+    expect(() => validate([])).toThrow(
+      "Please select at least one valid value.",
+    );
+    expect(() => validate("grp_1")).toThrow(
+      "Please select at least one valid value.",
+    );
+    expect(() => validate([""])).toThrow(
+      "Please select at least one valid value.",
+    );
+  });
+});
+
+describe("WORKFLOW_OPERATORS.notIn", () => {
+  const { evaluate, validate } = WORKFLOW_OPERATORS.notIn;
+
+  it("evaluates exclusion from a list", () => {
+    expect(evaluate("grp_3", ["grp_1", "grp_2"])).toBe(true);
+    expect(evaluate("grp_1", ["grp_1", "grp_2"])).toBe(false);
+  });
+
+  it("validates non-empty string arrays", () => {
+    expect(() => validate(["grp_1", "grp_2"])).not.toThrow();
+    expect(() => validate([])).toThrow(
+      "Please select at least one valid value.",
     );
   });
 });
