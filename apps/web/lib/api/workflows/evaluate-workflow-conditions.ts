@@ -1,17 +1,18 @@
-import { WorkflowCondition, WorkflowConditionAttribute } from "@/lib/types";
-import { COMPARISON_OPERATORS } from "./operators";
+import { WorkflowCondition } from "@/lib/api/workflows/types";
+import { WorkflowAttributeKey } from "./attribute-definitions";
+import { WORKFLOW_OPERATORS } from "./operator-definitions";
 
 export function evaluateWorkflowConditions({
   conditions,
   attributes,
 }: {
   conditions: WorkflowCondition[];
-  attributes: Partial<Record<WorkflowConditionAttribute, number | null>>;
+  attributes: Partial<Record<WorkflowAttributeKey, number | null>>;
 }): boolean {
   if (conditions.length === 0) return false;
 
   for (const condition of conditions) {
-    const operator = COMPARISON_OPERATORS[condition.operator];
+    const operator = WORKFLOW_OPERATORS[condition.operator];
 
     if (!operator) {
       console.error(`Operator ${condition.operator} is not supported.`);

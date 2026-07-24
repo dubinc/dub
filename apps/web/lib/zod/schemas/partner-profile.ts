@@ -2,6 +2,7 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
+import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
 import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/constants/partner-profile";
 import {
   CommissionType,
@@ -14,11 +15,7 @@ import {
 } from "@prisma/client";
 import * as z from "zod/v4";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
-import {
-  bountyPerformanceConditionSchema,
-  BountySchema,
-  BountySubmissionSchema,
-} from "./bounties";
+import { BountySchema, BountySubmissionSchema } from "./bounties";
 import {
   CommissionSchema,
   getCommissionsCountQuerySchema,
@@ -167,9 +164,7 @@ export const PartnerBountySchema = BountySchema.omit({
   socialMetricsLastSyncedAt: true,
 }).extend({
   submissions: z.array(partnerBountySubmissionSchema),
-  performanceCondition: bountyPerformanceConditionSchema
-    .nullable()
-    .default(null),
+  performanceCondition: awardBountyConditionSchema.nullable().default(null),
   partner: z.object({
     totalClicks: z.number(),
     totalLeads: z.number(),

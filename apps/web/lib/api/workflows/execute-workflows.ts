@@ -1,12 +1,14 @@
+import { WorkflowContext } from "@/lib/api/workflows/types";
+import { logger, toErrorFields } from "@/lib/axiom/server";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
-import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@prisma/client";
-import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
-import { executeMoveGroupWorkflow } from "./execute-move-group-workflow";
-import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";
+import { WorkflowAttributeKey } from "./attribute-definitions";
+import { executeAwardBountyWorkflow } from "./award-bounty/execute";
+import { executeMoveGroupWorkflow } from "./move-group/execute";
 import { parseWorkflowConfig } from "./parse-workflow-config";
+import { executeSendCampaignWorkflow } from "./send-campaign/execute";
 
 interface WorkflowActionHandler {
   execute(params: {
@@ -17,7 +19,7 @@ interface WorkflowActionHandler {
 
 const ACTION_HANDLERS: Record<WORKFLOW_ACTION_TYPES, WorkflowActionHandler> = {
   [WORKFLOW_ACTION_TYPES.AwardBounty]: {
-    execute: executeCompleteBountyWorkflow,
+    execute: executeAwardBountyWorkflow,
   },
 
   [WORKFLOW_ACTION_TYPES.SendCampaign]: {
@@ -33,7 +35,7 @@ const ACTION_HANDLERS: Record<WORKFLOW_ACTION_TYPES, WorkflowActionHandler> = {
 // This prevents workflows from executing unnecessarily
 const REASON_TO_ATTRIBUTES: Record<
   NonNullable<WorkflowContext["reason"]>,
-  WorkflowConditionAttribute[]
+  WorkflowAttributeKey[]
 > = {
   lead: ["totalLeads"],
   sale: ["totalConversions", "totalSaleAmount"],
@@ -48,7 +50,16 @@ export async function executeWorkflows({
 }: WorkflowContext) {
   const { programId, partnerId } = identity;
 
-  let workflows = await prisma.workflow.findMany({
+  console.log("[Workflows] Executing workflows...", {
+    trigger,
+    reason,
+    programId,
+    partnerId,
+    identity,
+    metrics,
+  });
+
+  const workflows = await prisma.workflow.findMany({
     where: {
       programId,
       disabledAt: null,
@@ -57,13 +68,12 @@ export async function executeWorkflows({
   });
 
   if (workflows.length === 0) {
-    console.log(
-      `No workflows found to execute for trigger ${trigger} and reason ${reason}.`,
-    );
+    console.log("[Workflows] No workflows found to execute for trigger.");
     return;
   }
 
-  // Parse all workflow configs once upfront, filtering out any that fail to parse
+  console.log(`[Workflows] Found ${workflows.length} workflows to execute.`);
+
   const parsedWorkflows = workflows
     .map((workflow) => {
       try {
@@ -72,10 +82,6 @@ export async function executeWorkflows({
           config: parseWorkflowConfig(workflow),
         };
       } catch (error) {
-        console.error(
-          `Failed to parse workflow config for workflow ${workflow.id}, skipping:`,
-          error,
-        );
         return null;
       }
     })
@@ -89,9 +95,7 @@ export async function executeWorkflows({
     );
 
   if (parsedWorkflows.length === 0) {
-    console.log(
-      `No valid workflows found to execute for trigger ${trigger} and reason ${reason}.`,
-    );
+    console.log("[Workflows] No valid workflows found to execute.");
     return;
   }
 
@@ -99,6 +103,7 @@ export async function executeWorkflows({
   let filteredWorkflows = parsedWorkflows;
   if (reason) {
     const expectedAttributes = REASON_TO_ATTRIBUTES[reason];
+
     filteredWorkflows = parsedWorkflows.filter(({ config }) =>
       config.conditions.some(({ attribute }) =>
         expectedAttributes.includes(attribute),
@@ -107,7 +112,7 @@ export async function executeWorkflows({
 
     if (filteredWorkflows.length === 0) {
       console.log(
-        `No relevant workflows found to execute for trigger ${trigger} and reason ${reason}.`,
+        `[Workflows] No relevant workflows found to execute for trigger.`,
       );
       return;
     }
@@ -161,14 +166,14 @@ export async function executeWorkflows({
 
   if (!programEnrollment) {
     console.error(
-      `Partner ${partnerId} is not enrolled in program ${programId}.`,
+      `[Workflows] Partner ${partnerId} is not enrolled in program ${programId}.`,
     );
     return;
   }
 
   if (!programEnrollment.groupId) {
     console.error(
-      `Partner ${partnerId} is not enrolled in a group in program ${programId}.`,
+      `[Workflows] Partner ${partnerId} is not enrolled in any group in program ${programId}.`,
     );
     return;
   }
@@ -207,8 +212,21 @@ export async function executeWorkflows({
         context: workflowContext,
       });
     } catch (error) {
-      console.error(`Failed to execute workflow ${workflow.id}:`, error);
+      console.error(
+        `[Workflows] Failed to execute workflow ${workflow.id}:`,
+        error,
+      );
+
+      logger.error("workflows.execute_failed", {
+        error: toErrorFields(error),
+        correlation: {
+          workflowId: workflow.id,
+        },
+      });
+
       continue;
     }
   }
+
+  await logger.flush();
 }

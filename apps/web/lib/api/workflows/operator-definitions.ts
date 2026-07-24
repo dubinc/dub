@@ -1,24 +1,23 @@
-import { WorkflowComparisonOperator } from "@/lib/types";
-
 type ConditionValue = number | { min: number; max?: number };
 
-type ComparisonOperator = {
+type WorkflowOperator = {
+  name: string;
+  label: string;
   validate: (value: ConditionValue) => void;
   evaluate: (attributeValue: number, conditionValue: ConditionValue) => boolean;
 };
 
-export const COMPARISON_OPERATORS: Record<
-  WorkflowComparisonOperator,
-  ComparisonOperator
-> = {
+export const WORKFLOW_OPERATORS = {
   // Greater than or equal to
   gte: {
-    validate(value) {
-      if (typeof value !== "number" || isNaN(value) || value <= 0) {
-        throw new Error("Please enter a value greater than 0.");
+    name: "gte",
+    label: "at least",
+    validate(value: ConditionValue) {
+      if (typeof value !== "number" || isNaN(value) || value < 0) {
+        throw new Error("Please enter a value greater than or equal to 0.");
       }
     },
-    evaluate(attributeValue, conditionValue) {
+    evaluate(attributeValue: number, conditionValue: ConditionValue) {
       if (typeof conditionValue !== "number") {
         return false;
       }
@@ -29,7 +28,9 @@ export const COMPARISON_OPERATORS: Record<
 
   // Between (inclusive)
   between: {
-    validate(value) {
+    name: "between",
+    label: "between",
+    validate(value: ConditionValue) {
       if (typeof value !== "object" || value === null) {
         throw new Error("Please enter a valid value.");
       }
@@ -49,7 +50,7 @@ export const COMPARISON_OPERATORS: Record<
         throw new Error("Maximum value must be greater than minimum value.");
       }
     },
-    evaluate(attributeValue, conditionValue) {
+    evaluate(attributeValue: number, conditionValue: ConditionValue) {
       if (typeof conditionValue !== "object" || conditionValue === null) {
         return false;
       }
@@ -63,4 +64,8 @@ export const COMPARISON_OPERATORS: Record<
       return attributeValue >= min && attributeValue <= max;
     },
   },
-};
+} satisfies Record<string, WorkflowOperator>;
+
+export const WORKFLOW_OPERATOR_KEYS = Object.keys(
+  WORKFLOW_OPERATORS,
+) as readonly (keyof typeof WORKFLOW_OPERATORS)[];

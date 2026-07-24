@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CampaignList } from "@/lib/types";
-import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
+import { sendCampaignConditionSchema } from "@/lib/api/workflows/send-campaign/schema";
 import { ChevronUp, Copy, LoadingSpinner } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";
@@ -21,7 +21,7 @@ export function DuplicateLogicWarning() {
   const triggerCondition = useWatch({ control, name: "triggerCondition" });
 
   const parsedTriggerCondition = triggerCondition
-    ? workflowConditionSchema.safeParse(triggerCondition)
+    ? sendCampaignConditionSchema.safeParse(triggerCondition)
     : undefined;
 
   const { data: campaigns, isLoading } = useSWR<CampaignList[]>(

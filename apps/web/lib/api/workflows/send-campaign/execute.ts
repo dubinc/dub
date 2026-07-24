@@ -1,23 +1,20 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
+import { WorkflowCondition, WorkflowContext } from "@/lib/api/workflows/types";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { prisma } from "@/lib/prisma";
-import {
-  CampaignTriggerCondition,
-  TiptapNode,
-  WorkflowConditionAttribute,
-  WorkflowContext,
-} from "@/lib/types";
+import { TiptapNode } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { chunk } from "@dub/utils";
 import { NotificationEmailType, Prisma, Workflow } from "@prisma/client";
 import { addHours, differenceInDays, subDays } from "date-fns";
-import { validateCampaignFromAddress } from "../campaigns/validate-campaign";
-import { createId } from "../create-id";
-import { parseWorkflowConfig } from "./parse-workflow-config";
-import { renderCampaignEmailHTML } from "./render-campaign-email-html";
+import { renderCampaignEmailHTML } from "../../campaigns/render-campaign-email-html";
+import { validateCampaignFromAddress } from "../../campaigns/validate-campaign";
+import { createId } from "../../create-id";
+import { WorkflowAttributeKey } from "../attribute-definitions";
+import { parseWorkflowConfig } from "../parse-workflow-config";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,
@@ -73,7 +70,7 @@ export const executeSendCampaignWorkflow = async ({
     programId,
     partnerId,
     groupIds: campaign.groups.map(({ groupId }) => groupId),
-    condition: condition as CampaignTriggerCondition,
+    condition: condition as WorkflowCondition,
   });
 
   if (programEnrollments.length === 0) {
@@ -251,7 +248,7 @@ async function getProgramEnrollments({
   programId: string;
   partnerId?: string;
   groupIds: string[];
-  condition: CampaignTriggerCondition;
+  condition: WorkflowCondition;
 }) {
   if (partnerId) {
     const { attribute } = condition;
@@ -303,40 +300,39 @@ async function getProgramEnrollments({
       return [];
     }
 
-    const context: Partial<Record<WorkflowConditionAttribute, number | null>> =
-      {
-        ...(isPartnerLinkStatsAttribute
-          ? aggregatePartnerLinksStats(
-              programEnrollment.links as unknown as NonNullable<
-                Parameters<typeof aggregatePartnerLinksStats>[0]
-              >,
-            )
-          : {}),
-        ...(attribute === "totalCommissions"
-          ? {
-              totalCommissions:
-                (
-                  await prisma.commission.aggregate({
-                    where: {
-                      earnings: { not: 0 },
-                      programId,
-                      partnerId,
-                      status: { in: ["pending", "processed", "paid"] },
-                    },
-                    _sum: { earnings: true },
-                  })
-                )._sum.earnings || 0,
-            }
-          : {}),
-        ...(attribute === "partnerJoined"
-          ? {
-              partnerJoined: differenceInDays(
-                new Date(),
-                programEnrollment.createdAt,
-              ),
-            }
-          : {}),
-      };
+    const context: Partial<Record<WorkflowAttributeKey, number | null>> = {
+      ...(isPartnerLinkStatsAttribute
+        ? aggregatePartnerLinksStats(
+            programEnrollment.links as unknown as NonNullable<
+              Parameters<typeof aggregatePartnerLinksStats>[0]
+            >,
+          )
+        : {}),
+      ...(attribute === "totalCommissions"
+        ? {
+            totalCommissions:
+              (
+                await prisma.commission.aggregate({
+                  where: {
+                    earnings: { not: 0 },
+                    programId,
+                    partnerId,
+                    status: { in: ["pending", "processed", "paid"] },
+                  },
+                  _sum: { earnings: true },
+                })
+              )._sum.earnings || 0,
+          }
+        : {}),
+      ...(attribute === "partnerJoined"
+        ? {
+            partnerJoined: differenceInDays(
+              new Date(),
+              programEnrollment.createdAt,
+            ),
+          }
+        : {}),
+    };
 
     const shouldExecute = evaluateWorkflowConditions({
       conditions: [condition],
@@ -352,7 +348,7 @@ async function getProgramEnrollments({
     return [programEnrollment];
   }
 
-  const startDate = subDays(new Date(), condition.value);
+  const startDate = subDays(new Date(), condition.value as number);
   // add 12 hours to the start date since we run the partnerEnrolled workflow every 12 hours
   const endDate = addHours(startDate, 12);
 

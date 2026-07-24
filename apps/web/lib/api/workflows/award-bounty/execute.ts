@@ -1,6 +1,6 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
+import { WorkflowContext } from "@/lib/api/workflows/types";
 import { prisma } from "@/lib/prisma";
-import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail, sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
@@ -10,9 +10,10 @@ import {
   Workflow,
   WorkspaceRole,
 } from "@prisma/client";
-import { createId } from "../create-id";
-import { getWorkspaceUsers } from "../get-workspace-users";
-import { parseWorkflowConfig } from "./parse-workflow-config";
+import { createId } from "../../create-id";
+import { getWorkspaceUsers } from "../../get-workspace-users";
+import { WorkflowAttributeKey } from "../attribute-definitions";
+import { parseWorkflowConfig } from "../parse-workflow-config";
 
 const terminalStatusReason: Record<
   Exclude<BountySubmissionStatus, "draft">,
@@ -23,7 +24,7 @@ const terminalStatusReason: Record<
   rejected: "been rejected",
 };
 
-export const executeCompleteBountyWorkflow = async ({
+export const executeAwardBountyWorkflow = async ({
   workflow,
   context,
 }: {
@@ -133,9 +134,7 @@ export const executeCompleteBountyWorkflow = async ({
     `Partner is eligible for bounty ${bounty.id}, executing workflow ${bounty.workflowId}...`,
   );
 
-  const finalContext: Partial<
-    Record<WorkflowConditionAttribute, number | null>
-  > = {
+  const finalContext: Partial<Record<WorkflowAttributeKey, number | null>> = {
     totalLeads: metrics?.current?.leads ?? 0,
     totalConversions: metrics?.current?.conversions ?? 0,
     totalSaleAmount: metrics?.current?.saleAmount ?? 0,

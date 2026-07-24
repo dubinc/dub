@@ -1,9 +1,9 @@
-import { WorkflowConditionAttribute } from "@/lib/types";
 import { SCHEDULED_WORKFLOW_TRIGGERS } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@prisma/client";
+import { WorkflowAttributeKey } from "./attribute-definitions";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 
-export const isCurrencyAttribute = (activity: WorkflowConditionAttribute) =>
+export const isCurrencyAttribute = (activity: WorkflowAttributeKey) =>
   activity === "totalCommissions" || activity === "totalSaleAmount";
 
 export const isScheduledWorkflow = (workflow: Workflow) => {
