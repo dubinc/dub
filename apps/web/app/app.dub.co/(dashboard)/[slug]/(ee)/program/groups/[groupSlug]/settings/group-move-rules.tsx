@@ -1,8 +1,5 @@
 "use client";
 
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import useGroup from "@/lib/swr/use-group";
-import useWorkspace from "@/lib/swr/use-workspace";
 import {
   GROUP_MOVE_ATTRIBUTE_CONFIG,
   GROUP_MOVE_ATTRIBUTES,
@@ -10,7 +7,10 @@ import {
   type GroupMoveAttributeConfig,
   type GroupMoveCondition,
   type GroupMoveRules as GroupMoveRulesForm,
-} from "@/lib/zod/schemas/group-move-workflows";
+} from "@/lib/api/workflows/move-group/schema";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useGroup from "@/lib/swr/use-group";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {

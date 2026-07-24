@@ -1,11 +1,11 @@
-import { COMPARISON_OPERATORS } from "@/lib/api/workflows/operators";
 import {
   GROUP_MOVE_ATTRIBUTE_CONFIG,
   GROUP_MOVE_OPERATOR_LABELS,
   GroupMoveAttribute,
   type GroupMoveCondition,
   type GroupMoveRules,
-} from "@/lib/zod/schemas/group-move-workflows";
+} from "@/lib/api/workflows/move-group/schema";
+import { COMPARISON_OPERATORS } from "@/lib/api/workflows/operators";
 
 type GroupMoveAttributeValidator = (params: {
   rule: GroupMoveCondition;
