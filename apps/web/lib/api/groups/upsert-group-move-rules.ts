@@ -1,6 +1,7 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { WorkflowAction, WorkflowCondition, WorkspaceProps } from "@/lib/types";
+import { WorkflowAction, WorkspaceProps } from "@/lib/types";
+import type { GroupMoveRules } from "@/lib/zod/schemas/group-move-workflows";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { pluralize } from "@dub/utils";
 import { PartnerGroup, WorkflowTrigger } from "@prisma/client";
@@ -8,6 +9,7 @@ import { createId } from "../create-id";
 import { DubApiError } from "../errors";
 import { findGroupsWithMatchingRules } from "./find-groups-with-matching-rules";
 import { getGroupMoveRules } from "./get-group-move-rules";
+import { validateGroupMoveRules } from "./validate-group-move-rules";
 
 export async function upsertGroupMoveRules({
   workspace,
@@ -16,7 +18,7 @@ export async function upsertGroupMoveRules({
 }: {
   workspace: Pick<WorkspaceProps, "plan" | "defaultProgramId">;
   group: PartnerGroup;
-  moveRules?: WorkflowCondition[];
+  moveRules?: GroupMoveRules;
 }): Promise<{ workflowId: string | null | undefined }> {
   const { canUseGroupMoveRule } = getPlanCapabilities(workspace.plan);
 
@@ -45,6 +47,19 @@ export async function upsertGroupMoveRules({
     return {
       workflowId: undefined,
     };
+  }
+
+  try {
+    validateGroupMoveRules({
+      rules: moveRules,
+      destinationGroupId: group.id,
+    });
+  } catch (error) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        error instanceof Error ? error.message : "Invalid group move rules.",
+    });
   }
 
   const groupsWithMatchingRules = findGroupsWithMatchingRules({

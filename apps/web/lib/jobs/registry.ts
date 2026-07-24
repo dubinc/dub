@@ -24,6 +24,11 @@ const jobLoaders = {
     import("./handlers/default-link-deleted-job").then(
       (m) => m.defaultLinkDeletedJob,
     ),
+
+  "create-tremendous-campaign-job": () =>
+    import("./handlers/create-tremendous-campaign-job").then(
+      (m) => m.createTremendousCampaignJob,
+    ),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();

@@ -20,10 +20,7 @@ import { BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import {
-  BountyTypeUI,
-  CreateBountyInputExtended,
-} from "./bounty-form-context";
+import { BountyTypeUI, CreateBountyInputExtended } from "./bounty-form-context";
 import { useConfirmCreateBountyModal } from "./confirm-create-bounty-modal";
 
 const ACCORDION_ITEMS = [
@@ -459,7 +456,8 @@ export function useAddEditBountyForm({
 
         if (!parsed.success) {
           return (
-            parsed.error.issues[0]?.message ?? "Invalid social metrics criteria."
+            parsed.error.issues[0]?.message ??
+            "Invalid social metrics criteria."
           );
         }
 

@@ -18,11 +18,8 @@ import { BountyLogic } from "./bounty-logic";
 export function BountyCriteria() {
   const { watch } = useBountyFormContext();
 
-  const [
-    bountyTypeUI = "performance",
-    rewardAmount,
-    rewardType = "flat",
-  ] = watch(["bountyTypeUI", "rewardAmount", "rewardType"]);
+  const [bountyTypeUI = "performance", rewardAmount, rewardType = "flat"] =
+    watch(["bountyTypeUI", "rewardAmount", "rewardType"]);
 
   const showPerformanceContent = bountyTypeUI === "performance";
   const showSubmissionContent = bountyTypeUI === "submission";
