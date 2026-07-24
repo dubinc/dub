@@ -9,6 +9,7 @@ import {
   Hyperlink,
   TimestampTooltip,
   Tooltip,
+  useCurrentProduct,
   UTM_PARAMETERS,
 } from "@dub/ui";
 import {
@@ -30,16 +31,16 @@ export function CustomerDetailsColumn({
   customer,
   customerActivity,
   isCustomerActivityLoading,
-  isProgramPage = false,
   workspaceSlug,
 }: {
   customer?: CustomerEnriched;
   customerActivity?: CustomerActivityResponse;
   isCustomerActivityLoading: boolean;
-  isProgramPage?: boolean;
   workspaceSlug?: string;
 }) {
   const { programSlug } = useParams<{ programSlug: string }>();
+  const { product } = useCurrentProduct();
+
   const { EditCustomerModal, openEditCustomerModal } = useEditCustomerModal();
 
   const basicFields = [
@@ -224,7 +225,7 @@ export function CustomerDetailsColumn({
                             href={
                               value === "Unknown"
                                 ? undefined
-                                : `/${workspaceSlug || `programs/${programSlug}`}/${isProgramPage ? "program/" : ""}analytics?${key}=${encodeURIComponent(value)}`
+                                : `/${workspaceSlug ? `${workspaceSlug}/${product}` : `programs/${programSlug}`}/analytics?${key}=${encodeURIComponent(value)}`
                             }
                             target="_blank"
                           >
@@ -284,11 +285,7 @@ export function CustomerDetailsColumn({
                       <Fragment key={key}>
                         <span className="truncate">{label}</span>
                         <ConditionalLink
-                          href={
-                            workspaceSlug
-                              ? `/${workspaceSlug}/${isProgramPage ? "program/" : ""}analytics?${key}=${encodeURIComponent(value)}`
-                              : undefined
-                          }
+                          href={`/${workspaceSlug ? `${workspaceSlug}/${product}` : `programs/${programSlug}`}/analytics?${key}=${encodeURIComponent(value)}`}
                           target="_blank"
                           className="truncate text-neutral-500"
                         >
