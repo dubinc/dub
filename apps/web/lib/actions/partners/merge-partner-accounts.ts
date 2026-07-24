@@ -1,13 +1,12 @@
 "use server";
 
 import { generateOTP } from "@/lib/auth/utils";
-import { qstash } from "@/lib/cron";
+import { triggerQStashWorkflow } from "@/lib/cron/qstash-workflow";
 import { prisma } from "@/lib/prisma";
 import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { sendBatchEmail } from "@dub/email";
 import VerifyEmailForAccountMerge from "@dub/email/templates/verify-email-for-account-merge";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -341,12 +340,17 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
 
   const { sourceEmail, targetEmail } = accounts;
 
-  await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/merge-accounts`,
+  await triggerQStashWorkflow({
+    workflowType: "merge-partner-account",
+    workflowLabel: userId,
     body: {
       userId,
       sourceEmail,
       targetEmail,
+    },
+    flowControl: {
+      key: userId,
+      parallelism: 1,
     },
   });
 };
