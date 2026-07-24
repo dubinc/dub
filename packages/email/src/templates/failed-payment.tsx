@@ -61,8 +61,9 @@ export default function FailedPayment({
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
-              {attemptCount == 2 ? "2nd " : attemptCount == 3 ? "3rd " : ""}
-              payment attempt failed
+              {attemptCount == 2 || attemptCount == 3
+                ? `${attemptCount == 2 ? "2nd" : "3rd"} payment attempt failed`
+                : "Failed Payment for Dub"}
             </Heading>
             <Text className="text-sm leading-6 text-black">
               Hey{user.name ? ` ${user.name}` : ""},

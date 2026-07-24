@@ -1,4 +1,4 @@
-import { interpolateEmailTemplate } from "@/lib/api/workflows/interpolate-email-template";
+import { interpolateEmailTemplate } from "@/lib/api/campaigns/interpolate-email-template";
 import { describe, expect, it } from "vitest";
 
 describe("interpolateEmailTemplate", () => {

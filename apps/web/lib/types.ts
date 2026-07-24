@@ -72,7 +72,6 @@ import {
 import { adminNetworkPartnerSchema } from "./zod/schemas/admin";
 import {
   BountyListSchema,
-  bountyPerformanceConditionSchema,
   BountySchema,
   bountySocialContentIncrementalBonusSchema,
   BountySubmissionExtendedSchema,
@@ -85,7 +84,6 @@ import {
   CampaignListSchema,
   CampaignSchema,
   campaignSummarySchema,
-  campaignTriggerConditionSchema,
   EMAIL_TEMPLATE_VARIABLES,
   updateCampaignSchema,
 } from "./zod/schemas/campaigns";
@@ -203,12 +201,6 @@ import {
   webhookEventSchemaTB,
   WebhookSchema,
 } from "./zod/schemas/webhooks";
-import {
-  WORKFLOW_ATTRIBUTES,
-  WORKFLOW_COMPARISON_OPERATORS,
-  workflowActionSchema,
-  workflowConditionSchema,
-} from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 import { workspaceUserSchema } from "./zod/schemas/workspaces";
 
@@ -719,26 +711,9 @@ export type BountySubmissionRequirement =
 export type SocialMetricsChannel =
   (typeof BOUNTY_SOCIAL_PLATFORMS)[number]["value"];
 
-export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
-
-export type BountyPerformanceCondition = z.infer<
-  typeof bountyPerformanceConditionSchema
->;
-
 export type BountySocialMetricsIncrementalBonus = z.infer<
   typeof bountySocialContentIncrementalBonusSchema
 >;
-
-export type CampaignTriggerCondition = z.infer<
-  typeof campaignTriggerConditionSchema
->;
-
-export type WorkflowConditionAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
-
-export type WorkflowComparisonOperator =
-  (typeof WORKFLOW_COMPARISON_OPERATORS)[number];
-
-export type WorkflowAction = z.infer<typeof workflowActionSchema>;
 
 export type BountySubmissionsQueryFilters = z.infer<
   typeof getBountySubmissionsQuerySchema
@@ -770,14 +745,6 @@ export interface TiptapNode {
   content?: TiptapNode[];
   marks?: Array<{ type: string; attrs?: Record<string, any> }>;
 }
-
-export interface CampaignWorkflowAttributeConfig {
-  label: string;
-  inputType: "number" | "currency" | "dropdown" | "none";
-  dropdownValues?: number[];
-}
-
-export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
 
 export type EmailDomainProps = z.infer<typeof EmailDomainSchema>;
 

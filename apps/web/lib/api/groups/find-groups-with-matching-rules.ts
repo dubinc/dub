@@ -1,9 +1,7 @@
-import type {
-  GroupMoveCondition,
-  GroupMoveRules,
-} from "@/lib/zod/schemas/group-move-workflows";
+import type { GroupMoveRules } from "@/lib/api/workflows/move-group/types";
 import { groupRulesSchema } from "@/lib/zod/schemas/groups";
 import * as z from "zod/v4";
+import { WorkflowCondition } from "../workflows/types";
 
 export const findGroupsWithMatchingRules = ({
   groups,
@@ -40,12 +38,12 @@ const doRuleSetsOverlap = (
   rules1: GroupMoveRules,
   rules2: GroupMoveRules,
 ): boolean => {
-  const rules1ByAttribute = new Map<string, GroupMoveCondition>();
+  const rules1ByAttribute = new Map<string, WorkflowCondition>();
   for (const rule of rules1) {
     rules1ByAttribute.set(rule.attribute, rule);
   }
 
-  const rules2ByAttribute = new Map<string, GroupMoveCondition>();
+  const rules2ByAttribute = new Map<string, WorkflowCondition>();
   for (const rule of rules2) {
     rules2ByAttribute.set(rule.attribute, rule);
   }
@@ -81,7 +79,7 @@ const doRuleSetsOverlap = (
 };
 
 const conditionToInterval = (
-  condition: GroupMoveCondition,
+  condition: WorkflowCondition,
 ): { min: number; max: number } | null => {
   switch (condition.operator) {
     case "gte":
@@ -108,8 +106,8 @@ const conditionToInterval = (
 };
 
 const doConditionsOverlap = (
-  condition1: GroupMoveCondition,
-  condition2: GroupMoveCondition,
+  condition1: WorkflowCondition,
+  condition2: WorkflowCondition,
 ): boolean => {
   // Conditions must be for the same attribute to overlap
   if (condition1.attribute !== condition2.attribute) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { resolveBountyTiming } from "@/lib/bounty/bounty-period";
@@ -12,10 +13,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
-import {
-  bountyPerformanceConditionSchema,
-  bountySocialContentRequirementsSchema,
-} from "@/lib/zod/schemas/bounties";
+import { bountySocialContentRequirementsSchema } from "@/lib/zod/schemas/bounties";
 import { formatDate } from "@dub/utils";
 import { BountyStartMode, BountySubmissionFrequency } from "@prisma/client";
 import { addDays } from "date-fns";
@@ -167,9 +165,11 @@ export function useAddEditBountyForm({
       performanceCondition: bounty?.performanceCondition
         ? {
             ...bounty.performanceCondition,
-            value: isCurrencyAttribute(bounty.performanceCondition.attribute)
-              ? bounty.performanceCondition.value / 100
-              : bounty.performanceCondition.value,
+            value:
+              typeof bounty.performanceCondition.value === "number" &&
+              isCurrencyAttribute(bounty.performanceCondition.attribute)
+                ? bounty.performanceCondition.value / 100
+                : bounty.performanceCondition.value,
           }
         : {
             operator: "gte",
@@ -551,7 +551,11 @@ export function useAddEditBountyForm({
         return "Performance value is required.";
       }
 
-      if (condition?.value !== null && condition.value < 0) {
+      if (
+        condition?.value !== null &&
+        typeof condition.value === "number" &&
+        condition.value < 0
+      ) {
         return "Performance value must be greater than or equal to 0.";
       }
 
@@ -617,7 +621,7 @@ export function useAddEditBountyForm({
       numAmount != null && numAmount > 0 ? numAmount * 100 : null;
 
     if (data.type === "performance") {
-      const result = bountyPerformanceConditionSchema.safeParse(
+      const result = awardBountyConditionSchema.safeParse(
         data.performanceCondition,
       );
 
@@ -632,9 +636,11 @@ export function useAddEditBountyForm({
 
       condition = {
         ...condition,
-        value: isCurrencyAttribute(condition.attribute)
-          ? condition.value * 100
-          : condition.value,
+        value:
+          typeof condition.value === "number" &&
+          isCurrencyAttribute(condition.attribute)
+            ? condition.value * 100
+            : condition.value,
       };
 
       data.performanceCondition = condition;
@@ -685,14 +691,14 @@ export function useAddEditBountyForm({
               type === "performance" && performanceCondition
                 ? generatePerformanceBountyName({
                     rewardAmount: rewardAmount ? rewardAmount * 100 : 0,
-                    condition: isCurrencyAttribute(
-                      performanceCondition?.attribute,
-                    )
-                      ? {
-                          ...performanceCondition,
-                          value: performanceCondition?.value * 100,
-                        }
-                      : performanceCondition,
+                    condition:
+                      typeof performanceCondition?.value === "number" &&
+                      isCurrencyAttribute(performanceCondition?.attribute)
+                        ? {
+                            ...performanceCondition,
+                            value: performanceCondition.value * 100,
+                          }
+                        : performanceCondition,
                   })
                 : name || "New bounty",
             startsAt:
