@@ -13,8 +13,8 @@ export const WORKFLOW_OPERATORS = {
     name: "gte",
     label: "at least",
     validate(value: ConditionValue) {
-      if (typeof value !== "number" || isNaN(value) || value <= 0) {
-        throw new Error("Please enter a value greater than 0.");
+      if (typeof value !== "number" || isNaN(value) || value < 0) {
+        throw new Error("Please enter a value greater than or equal to 0.");
       }
     },
     evaluate(attributeValue: number, conditionValue: ConditionValue) {

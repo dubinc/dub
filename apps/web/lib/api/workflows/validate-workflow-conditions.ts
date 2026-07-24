@@ -3,6 +3,7 @@ import { GROUP_MOVE_ATTRIBUTES } from "@/lib/api/workflows/move-group/schema";
 import { WORKFLOW_OPERATORS } from "@/lib/api/workflows/operator-definitions";
 import { SEND_CAMPAIGN_ATTRIBUTES } from "@/lib/api/workflows/send-campaign/schema";
 import type { WorkflowType } from "@/lib/api/workflows/types";
+import { DubApiError } from "../errors";
 
 // Map of workflow type to its attributes
 const WORKFLOW_TYPE_ATTRIBUTES = {
@@ -38,9 +39,10 @@ export async function validateWorkflowConditions({
     const conditionIndex = i;
 
     if (!condition.attribute) {
-      throw new Error(
-        `Condition ${conditionIndex + 1}: Please select an activity.`,
-      );
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Condition ${conditionIndex + 1}: Please select an activity.`,
+      });
     }
 
     // Find the attribute definition
@@ -48,7 +50,10 @@ export async function validateWorkflowConditions({
       attributes[condition.attribute as keyof typeof attributes];
 
     if (!attributeDefinition) {
-      throw new Error(`Condition ${conditionIndex + 1}: Invalid activity.`);
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Condition ${conditionIndex + 1}: Invalid activity.`,
+      });
     }
 
     // Find the operator definition
@@ -56,7 +61,10 @@ export async function validateWorkflowConditions({
       WORKFLOW_OPERATORS[condition.operator as keyof typeof WORKFLOW_OPERATORS];
 
     if (!operatorDefinition) {
-      throw new Error(`Condition ${conditionIndex + 1}: Invalid operator.`);
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Condition ${conditionIndex + 1}: Invalid operator.`,
+      });
     }
 
     if (
@@ -66,21 +74,26 @@ export async function validateWorkflowConditions({
     ) {
       const operatorLabel = operatorDefinition?.label ?? condition.operator;
 
-      throw new Error(
-        `Operator "${operatorLabel}" is not valid for the activity "${condition.attribute}".`,
-      );
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Operator "${operatorLabel}" is not valid for the activity "${condition.attribute}".`,
+      });
     }
 
     if (condition.value == null || condition.value === undefined) {
-      throw new Error(`Condition ${conditionIndex + 1}: Please enter a value.`);
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Condition ${conditionIndex + 1}: Please enter a value.`,
+      });
     }
 
     try {
       operatorDefinition.validate(condition.value as any);
     } catch (error) {
-      throw new Error(
-        `Condition ${conditionIndex + 1}: ${error instanceof Error ? error.message : "Invalid value."}`,
-      );
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Condition ${conditionIndex + 1}: ${error instanceof Error ? error.message : "Invalid value."}`,
+      });
     }
   }
 }
