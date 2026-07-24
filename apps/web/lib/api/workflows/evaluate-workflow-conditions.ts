@@ -2,7 +2,7 @@ import {
   WorkflowCondition,
   WorkflowConditionAttribute,
 } from "@/lib/api/workflows/types";
-import { COMPARISON_OPERATORS } from "./operators";
+import { WORKFLOW_OPERATORS } from "./operator-definitions";
 
 export function evaluateWorkflowConditions({
   conditions,
@@ -14,7 +14,7 @@ export function evaluateWorkflowConditions({
   if (conditions.length === 0) return false;
 
   for (const condition of conditions) {
-    const operator = COMPARISON_OPERATORS[condition.operator];
+    const operator = WORKFLOW_OPERATORS[condition.operator];
 
     if (!operator) {
       console.error(`Operator ${condition.operator} is not supported.`);

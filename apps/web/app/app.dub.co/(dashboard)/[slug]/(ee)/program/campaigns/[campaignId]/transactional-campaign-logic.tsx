@@ -1,5 +1,5 @@
 import {
-  SEND_CAMPAIGN_ATTRIBUTE_CONFIG,
+  SEND_CAMPAIGN_ATTRIBUTE_KEYS,
   SEND_CAMPAIGN_ATTRIBUTES,
 } from "@/lib/api/workflows/send-campaign/schema";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
@@ -21,7 +21,7 @@ export function TransactionalCampaignLogic() {
   const value = watch("triggerCondition.value");
   const prevAttributeRef = useRef(attribute);
 
-  const config = attribute ? SEND_CAMPAIGN_ATTRIBUTE_CONFIG[attribute] : null;
+  const config = attribute ? SEND_CAMPAIGN_ATTRIBUTES[attribute] : null;
 
   // Reset value when attribute changes
   useEffect(() => {
@@ -55,7 +55,7 @@ export function TransactionalCampaignLogic() {
               <InlineBadgePopover
                 text={
                   field.value
-                    ? SEND_CAMPAIGN_ATTRIBUTE_CONFIG[field.value].label
+                    ? SEND_CAMPAIGN_ATTRIBUTES[field.value].label
                     : "activity"
                 }
                 invalid={!field.value}
@@ -63,8 +63,8 @@ export function TransactionalCampaignLogic() {
                 <InlineBadgePopoverMenu
                   selectedValue={field.value}
                   onSelect={field.onChange}
-                  items={SEND_CAMPAIGN_ATTRIBUTES.map((attr) => ({
-                    text: SEND_CAMPAIGN_ATTRIBUTE_CONFIG[attr].label,
+                  items={SEND_CAMPAIGN_ATTRIBUTE_KEYS.map((attr) => ({
+                    text: SEND_CAMPAIGN_ATTRIBUTES[attr].label,
                     value: attr,
                   }))}
                 />
@@ -91,7 +91,7 @@ export function TransactionalCampaignLogic() {
 function DropdownValueInput({
   config,
 }: {
-  config: { dropdownValues?: number[] };
+  config: { dropdownValues?: readonly number[] };
 }) {
   const { control } = useCampaignFormContext();
 
@@ -112,7 +112,9 @@ function DropdownValueInput({
             <DurationPopoverContent
               value={field.value ?? undefined}
               onChange={field.onChange}
-              presetDurations={config.dropdownValues || []}
+              presetDurations={
+                config.dropdownValues ? Array.from(config.dropdownValues) : []
+              }
               presetsOnly
               unit="days"
               minValue={1}

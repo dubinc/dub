@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  GROUP_MOVE_ATTRIBUTE_CONFIG,
+  GROUP_MOVE_ATTRIBUTE_KEYS,
   GROUP_MOVE_ATTRIBUTES,
 } from "@/lib/api/workflows/move-group/schema";
 import type {
   GroupMoveAttribute,
-  GroupMoveAttributeConfig,
+  GroupMoveAttributeKey,
   GroupMoveCondition,
   GroupMoveRules as GroupMoveRulesForm,
 } from "@/lib/api/workflows/move-group/types";
@@ -64,7 +64,7 @@ export function GroupMoveRules() {
   );
 
   const disableAddRuleButton =
-    ruleFields.length >= GROUP_MOVE_ATTRIBUTES.length;
+    ruleFields.length >= GROUP_MOVE_ATTRIBUTE_KEYS.length;
 
   const { canUseGroupMoveRule } = getPlanCapabilities(plan);
 
@@ -83,7 +83,7 @@ export function GroupMoveRules() {
             }
 
             // Filter out attributes already used by other rules
-            const availableAttributes = GROUP_MOVE_ATTRIBUTES.filter(
+            const availableAttributes = GROUP_MOVE_ATTRIBUTE_KEYS.filter(
               (attribute) =>
                 attribute === rule.attribute ||
                 !usedAttributes?.includes(attribute),
@@ -150,11 +150,11 @@ function GroupRule({
   onUpdate: (updates: Partial<GroupMoveCondition>) => void;
   onRemove: () => void;
   index: number;
-  availableAttributes: GroupMoveAttribute[];
+  availableAttributes: GroupMoveAttributeKey[];
 }) {
   const isFirst = index === 0;
   const attributeConfig = rule.attribute
-    ? GROUP_MOVE_ATTRIBUTE_CONFIG[rule.attribute]
+    ? GROUP_MOVE_ATTRIBUTES[rule.attribute]
     : undefined;
   const attributeType = attributeConfig?.inputType || "number";
 
@@ -215,7 +215,7 @@ function GroupRule({
               <InlineBadgePopoverMenu
                 items={availableAttributes.map((attribute) => ({
                   value: attribute,
-                  text: GROUP_MOVE_ATTRIBUTE_CONFIG[attribute].label,
+                  text: GROUP_MOVE_ATTRIBUTES[attribute].label,
                 }))}
                 selectedValue={rule.attribute}
                 onSelect={(value) => {
@@ -368,7 +368,7 @@ function ValueInput({
 }: {
   index: number;
   rule: GroupMoveCondition;
-  attributeType: GroupMoveAttributeConfig["inputType"];
+  attributeType: GroupMoveAttribute["inputType"];
   part: "min" | "max";
   onUpdate: (updates: Partial<GroupMoveCondition>) => void;
 }) {
@@ -539,7 +539,7 @@ const convertFromDisplayValue = (
 // Format the value based on the attribute type
 const formatValue = (
   value: ValueType,
-  type: GroupMoveAttributeConfig["inputType"] | undefined,
+  type: GroupMoveAttribute["inputType"] | undefined,
   part: "min" | "max" = "min",
 ) => {
   const numValue = part === "min" ? getMinValue(value) : getMaxValue(value);

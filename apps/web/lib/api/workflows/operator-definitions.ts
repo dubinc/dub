@@ -2,17 +2,21 @@ import { WorkflowComparisonOperator } from "@/lib/api/workflows/types";
 
 type ConditionValue = number | { min: number; max?: number };
 
-type ComparisonOperator = {
+type WorkflowOperator = {
+  name: WorkflowComparisonOperator;
+  label: string;
   validate: (value: ConditionValue) => void;
   evaluate: (attributeValue: number, conditionValue: ConditionValue) => boolean;
 };
 
-export const COMPARISON_OPERATORS: Record<
+export const WORKFLOW_OPERATORS: Record<
   WorkflowComparisonOperator,
-  ComparisonOperator
+  WorkflowOperator
 > = {
   // Greater than or equal to
   gte: {
+    name: "gte",
+    label: "at least",
     validate(value) {
       if (typeof value !== "number" || isNaN(value) || value <= 0) {
         throw new Error("Please enter a value greater than 0.");
@@ -29,6 +33,8 @@ export const COMPARISON_OPERATORS: Record<
 
   // Between (inclusive)
   between: {
+    name: "between",
+    label: "between",
     validate(value) {
       if (typeof value !== "object" || value === null) {
         throw new Error("Please enter a valid value.");

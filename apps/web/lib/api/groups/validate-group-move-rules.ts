@@ -1,13 +1,13 @@
 import {
-  GROUP_MOVE_ATTRIBUTE_CONFIG,
-  GROUP_MOVE_OPERATOR_LABELS,
+  GROUP_MOVE_ATTRIBUTES,
+  GROUP_MOVE_OPERATORS,
 } from "@/lib/api/workflows/move-group/schema";
 import type {
-  GroupMoveAttribute,
+  GroupMoveAttributeKey,
   GroupMoveCondition,
   GroupMoveRules,
 } from "@/lib/api/workflows/move-group/types";
-import { COMPARISON_OPERATORS } from "@/lib/api/workflows/operators";
+import { WORKFLOW_OPERATORS } from "@/lib/api/workflows/operator-definitions";
 
 type GroupMoveAttributeValidator = (params: {
   rule: GroupMoveCondition;
@@ -18,7 +18,7 @@ type GroupMoveAttributeValidator = (params: {
 // Add business rules for each attribute
 // NOTE: Keeping this empty for now, next PR will use this
 const GROUP_MOVE_ATTRIBUTE_VALIDATORS: Record<
-  GroupMoveAttribute,
+  GroupMoveAttributeKey,
   GroupMoveAttributeValidator
 > = {
   // Operator validators already cover performance value shape/constraints.
@@ -63,10 +63,10 @@ const validateRule = ({
   }
 
   // Check if operator is valid for the attribute
-  const allowedOperators = GROUP_MOVE_ATTRIBUTE_CONFIG[rule.attribute]
+  const allowedOperators = GROUP_MOVE_ATTRIBUTES[rule.attribute]
     .operators as readonly string[];
 
-  const operatorLabel = GROUP_MOVE_OPERATOR_LABELS[rule.operator];
+  const operatorLabel = GROUP_MOVE_OPERATORS[rule.operator].label;
 
   if (!allowedOperators.includes(rule.operator)) {
     throw new Error(
@@ -80,7 +80,7 @@ const validateRule = ({
   }
 
   // Validate value shape/constraints for the selected operator
-  const operator = COMPARISON_OPERATORS[rule.operator];
+  const operator = WORKFLOW_OPERATORS[rule.operator];
 
   if (operator) {
     try {

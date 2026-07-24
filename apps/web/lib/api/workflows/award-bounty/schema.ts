@@ -1,57 +1,28 @@
+import { WORKFLOW_OPERATORS } from "@/lib/api/workflows/operator-definitions";
 import * as z from "zod/v4";
+import { WORKFLOW_ATTRIBUTES } from "../attribute-definitions";
 
-export const AWARD_BOUNTY_ATTRIBUTES = [
-  "totalLeads",
-  "totalConversions",
-  "totalSaleAmount",
-  "totalCommissions",
-] as const;
-
-export const AWARD_BOUNTY_OPERATORS = ["gte"] as const;
-
-type AwardBountyAttribute = (typeof AWARD_BOUNTY_ATTRIBUTES)[number];
-
-type AwardBountyOperator = (typeof AWARD_BOUNTY_OPERATORS)[number];
-
-type AwardBountyAttributeConfig = {
-  label: string;
-  inputType: "number" | "currency";
-  operators: readonly AwardBountyOperator[];
+const AWARD_BOUNTY_ATTRIBUTES = {
+  totalLeads: WORKFLOW_ATTRIBUTES.totalLeads,
+  totalConversions: WORKFLOW_ATTRIBUTES.totalConversions,
+  totalSaleAmount: WORKFLOW_ATTRIBUTES.totalSaleAmount,
+  totalCommissions: WORKFLOW_ATTRIBUTES.totalCommissions,
 };
 
-export const AWARD_BOUNTY_ATTRIBUTE_CONFIG: Record<
-  AwardBountyAttribute,
-  AwardBountyAttributeConfig
-> = {
-  totalLeads: {
-    label: "total leads",
-    inputType: "number",
-    operators: ["gte"],
-  },
-  totalConversions: {
-    label: "total conversions",
-    inputType: "number",
-    operators: ["gte"],
-  },
-  totalSaleAmount: {
-    label: "total revenue",
-    inputType: "currency",
-    operators: ["gte"],
-  },
-  totalCommissions: {
-    label: "total commissions",
-    inputType: "currency",
-    operators: ["gte"],
-  },
+export const AWARD_BOUNTY_ATTRIBUTE_KEYS = Object.keys(
+  AWARD_BOUNTY_ATTRIBUTES,
+) as readonly (keyof typeof AWARD_BOUNTY_ATTRIBUTES)[];
+
+export const AWARD_BOUNTY_OPERATORS = {
+  gte: WORKFLOW_OPERATORS.gte,
 };
 
-export const AWARD_BOUNTY_OPERATOR_LABELS: Record<AwardBountyOperator, string> =
-  {
-    gte: "at least",
-  } as const;
+const AWARD_BOUNTY_OPERATOR_KEYS = Object.keys(
+  AWARD_BOUNTY_OPERATORS,
+) as readonly (keyof typeof AWARD_BOUNTY_OPERATORS)[];
 
 export const awardBountyConditionSchema = z.object({
-  attribute: z.enum(AWARD_BOUNTY_ATTRIBUTES),
-  operator: z.enum(AWARD_BOUNTY_OPERATORS).default("gte"),
+  attribute: z.enum(AWARD_BOUNTY_ATTRIBUTE_KEYS),
+  operator: z.enum(AWARD_BOUNTY_OPERATOR_KEYS).default("gte"),
   value: z.number(),
 });

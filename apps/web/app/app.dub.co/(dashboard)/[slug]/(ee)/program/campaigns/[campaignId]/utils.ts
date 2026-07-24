@@ -1,4 +1,4 @@
-import { SEND_CAMPAIGN_ATTRIBUTE_CONFIG } from "@/lib/api/workflows/send-campaign/schema";
+import { SEND_CAMPAIGN_ATTRIBUTES } from "@/lib/api/workflows/send-campaign/schema";
 import type { SendCampaignCondition } from "@/lib/api/workflows/send-campaign/types";
 
 export function isValidTriggerCondition(
@@ -14,7 +14,7 @@ export function isValidTriggerCondition(
     return false;
   }
 
-  const config = SEND_CAMPAIGN_ATTRIBUTE_CONFIG[triggerCondition.attribute];
+  const config = SEND_CAMPAIGN_ATTRIBUTES[triggerCondition.attribute];
 
   // If attribute doesn't exist in config, invalid
   if (!config) {
