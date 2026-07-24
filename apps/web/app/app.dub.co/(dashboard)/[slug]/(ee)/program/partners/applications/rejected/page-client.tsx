@@ -88,7 +88,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         status: "rejected",
         sortBy,
         sortOrder,
-        includePartnerPlatformPropss: true,
+        includePartnerPlatforms: true,
       },
       { exclude: ["partnerId"] },
     )}`,

@@ -1073,3 +1073,14 @@ export const partnerSharedPlatformSchema = z.object({
     }),
   ),
 });
+
+// program-scoped variant: matched partners are enrolled in the program,
+// so each one carries its enrollment status
+export const partnerProgramSharedPlatformSchema =
+  partnerSharedPlatformSchema.extend({
+    partners: z.array(
+      partnerSharedPlatformSchema.shape.partners.element.extend({
+        status: z.enum(ProgramEnrollmentStatus),
+      }),
+    ),
+  });

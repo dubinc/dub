@@ -1,5 +1,10 @@
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
-import { PartnerPlatformProps, PartnerSharedPlatformProps } from "@/lib/types";
+import useWorkspace from "@/lib/swr/use-workspace";
+import {
+  PartnerPlatformProps,
+  PartnerProgramSharedPlatformProps,
+  PartnerSharedPlatformProps,
+} from "@/lib/types";
 import { AnimatedSizeContainer, useCurrentSubdomain } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import { Fragment, useMemo, useState } from "react";
@@ -12,17 +17,31 @@ export function PartnerPlatformSummary({
   platforms,
   partnerId,
   className,
+  showSharedPlatforms,
 }: {
   platforms: PartnerPlatformProps[] | undefined;
   partnerId: string;
   className?: string;
+  showSharedPlatforms?: boolean;
 }) {
   const { subdomain } = useCurrentSubdomain();
+  const { id: workspaceId } = useWorkspace();
   const { mutate } = useSWRConfig();
 
-  const { data: sharedPlatforms } = useSWR<PartnerSharedPlatformProps[]>(
-    subdomain === "admin" && partnerId
+  const isAdmin = subdomain === "admin";
+
+  const { data: adminSharedPlatforms } = useSWR<PartnerSharedPlatformProps[]>(
+    isAdmin && partnerId
       ? `/api/admin/partners/${partnerId}/shared-platforms`
+      : null,
+    fetcher,
+  );
+
+  const { data: programSharedPlatforms } = useSWR<
+    PartnerProgramSharedPlatformProps[]
+  >(
+    showSharedPlatforms && !isAdmin && partnerId && workspaceId
+      ? `/api/partners/${partnerId}/shared-platforms?workspaceId=${workspaceId}`
       : null,
     fetcher,
   );
@@ -130,9 +149,13 @@ export function PartnerPlatformSummary({
           info,
           identifier,
         }) => {
-          const sharedPlatform = sharedPlatforms?.find(
-            (platform) => platform.type === type,
-          );
+          const adminSharedPlatform = isAdmin
+            ? adminSharedPlatforms?.find((platform) => platform.type === type)
+            : undefined;
+
+          const programSharedPlatform = !isAdmin
+            ? programSharedPlatforms?.find((platform) => platform.type === type)
+            : undefined;
 
           return (
             <Fragment key={label}>
@@ -151,9 +174,15 @@ export function PartnerPlatformSummary({
                 />
 
                 <AnimatedSizeContainer height>
-                  {sharedPlatform && (
+                  {adminSharedPlatform && (
                     <PartnerPlatformSharedPartners
-                      sharedPartners={sharedPlatform.partners}
+                      sharedPartners={adminSharedPlatform.partners}
+                    />
+                  )}
+                  {programSharedPlatform && (
+                    <PartnerPlatformSharedPartners
+                      variant="program"
+                      sharedPartners={programSharedPlatform.partners}
                     />
                   )}
                 </AnimatedSizeContainer>
