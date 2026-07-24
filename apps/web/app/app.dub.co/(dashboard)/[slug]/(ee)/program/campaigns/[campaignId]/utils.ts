@@ -1,7 +1,5 @@
-import {
-  SEND_CAMPAIGN_ATTRIBUTE_CONFIG,
-  SendCampaignCondition,
-} from "@/lib/api/workflows/send-campaign/schema";
+import { SEND_CAMPAIGN_ATTRIBUTE_CONFIG } from "@/lib/api/workflows/send-campaign/schema";
+import type { SendCampaignCondition } from "@/lib/api/workflows/send-campaign/types";
 
 export function isValidTriggerCondition(
   triggerCondition: SendCampaignCondition | null | undefined,

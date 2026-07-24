@@ -1,12 +1,12 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
+import {
+  WorkflowConditionAttribute,
+  WorkflowContext,
+} from "@/lib/api/workflows/types";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { prisma } from "@/lib/prisma";
-import {
-  TiptapNode,
-  WorkflowConditionAttribute,
-  WorkflowContext,
-} from "@/lib/types";
+import { TiptapNode } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
@@ -17,7 +17,7 @@ import { renderCampaignEmailHTML } from "../../campaigns/render-campaign-email-h
 import { validateCampaignFromAddress } from "../../campaigns/validate-campaign";
 import { createId } from "../../create-id";
 import { parseWorkflowConfig } from "../parse-workflow-config";
-import { SendCampaignCondition } from "./schema";
+import type { SendCampaignCondition } from "./types";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,

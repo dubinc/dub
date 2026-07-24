@@ -1,6 +1,6 @@
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
-import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
+import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/api/workflows/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@prisma/client";
 import { executeAwardBountyWorkflow } from "./award-bounty/execute";

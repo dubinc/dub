@@ -11,6 +11,17 @@ export const SEND_CAMPAIGN_ATTRIBUTES = [
 
 export const SEND_CAMPAIGN_OPERATORS = ["gte"] as const;
 
+type SendCampaignAttribute = (typeof SEND_CAMPAIGN_ATTRIBUTES)[number];
+
+type SendCampaignOperator = (typeof SEND_CAMPAIGN_OPERATORS)[number];
+
+type SendCampaignAttributeConfig = {
+  label: string;
+  inputType: "number" | "currency" | "dropdown" | "none";
+  operators: readonly SendCampaignOperator[];
+  dropdownValues?: number[];
+};
+
 export const SEND_CAMPAIGN_ATTRIBUTE_CONFIG: Record<
   SendCampaignAttribute,
   SendCampaignAttributeConfig
@@ -60,16 +71,3 @@ export const sendCampaignConditionSchema = z.object({
   operator: z.enum(SEND_CAMPAIGN_OPERATORS).default("gte"),
   value: z.number(),
 });
-
-export type SendCampaignCondition = z.infer<typeof sendCampaignConditionSchema>;
-
-export type SendCampaignAttribute = (typeof SEND_CAMPAIGN_ATTRIBUTES)[number];
-
-type SendCampaignOperator = (typeof SEND_CAMPAIGN_OPERATORS)[number];
-
-export type SendCampaignAttributeConfig = {
-  label: string;
-  inputType: "number" | "currency" | "dropdown" | "none";
-  operators: readonly SendCampaignOperator[];
-  dropdownValues?: number[];
-};

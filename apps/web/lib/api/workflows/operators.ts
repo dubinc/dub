@@ -1,4 +1,4 @@
-import { WorkflowComparisonOperator } from "@/lib/types";
+import { WorkflowComparisonOperator } from "@/lib/api/workflows/types";
 
 type ConditionValue = number | { min: number; max?: number };
 

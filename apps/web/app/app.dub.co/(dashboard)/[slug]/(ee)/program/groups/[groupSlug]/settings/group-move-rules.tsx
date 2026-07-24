@@ -3,11 +3,13 @@
 import {
   GROUP_MOVE_ATTRIBUTE_CONFIG,
   GROUP_MOVE_ATTRIBUTES,
-  type GroupMoveAttribute,
-  type GroupMoveAttributeConfig,
-  type GroupMoveCondition,
-  type GroupMoveRules as GroupMoveRulesForm,
 } from "@/lib/api/workflows/move-group/schema";
+import type {
+  GroupMoveAttribute,
+  GroupMoveAttributeConfig,
+  GroupMoveCondition,
+  GroupMoveRules as GroupMoveRulesForm,
+} from "@/lib/api/workflows/move-group/types";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";

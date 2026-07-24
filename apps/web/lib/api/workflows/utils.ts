@@ -1,4 +1,4 @@
-import { WorkflowConditionAttribute } from "@/lib/types";
+import { WorkflowConditionAttribute } from "@/lib/api/workflows/types";
 import { SCHEDULED_WORKFLOW_TRIGGERS } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@prisma/client";
 import { parseWorkflowConfig } from "./parse-workflow-config";

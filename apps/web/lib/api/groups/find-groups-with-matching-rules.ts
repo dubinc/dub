@@ -1,7 +1,7 @@
 import type {
   GroupMoveCondition,
   GroupMoveRules,
-} from "@/lib/api/workflows/move-group/schema";
+} from "@/lib/api/workflows/move-group/types";
 import { groupRulesSchema } from "@/lib/zod/schemas/groups";
 import * as z from "zod/v4";
 

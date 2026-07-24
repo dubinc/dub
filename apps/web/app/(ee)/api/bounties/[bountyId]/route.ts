@@ -10,7 +10,7 @@ import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performanc
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { WorkflowCondition } from "@/lib/types";
+import { WorkflowCondition } from "@/lib/api/workflows/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   BountySchema,

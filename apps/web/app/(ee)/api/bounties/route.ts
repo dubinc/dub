@@ -11,7 +11,7 @@ import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { qstash } from "@/lib/cron";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { WorkflowAction } from "@/lib/types";
+import { WorkflowAction } from "@/lib/api/workflows/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   BountyListSchema,

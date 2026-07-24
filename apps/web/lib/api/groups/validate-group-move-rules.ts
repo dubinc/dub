@@ -1,10 +1,12 @@
 import {
   GROUP_MOVE_ATTRIBUTE_CONFIG,
   GROUP_MOVE_OPERATOR_LABELS,
-  GroupMoveAttribute,
-  type GroupMoveCondition,
-  type GroupMoveRules,
 } from "@/lib/api/workflows/move-group/schema";
+import type {
+  GroupMoveAttribute,
+  GroupMoveCondition,
+  GroupMoveRules,
+} from "@/lib/api/workflows/move-group/types";
 import { COMPARISON_OPERATORS } from "@/lib/api/workflows/operators";
 
 type GroupMoveAttributeValidator = (params: {

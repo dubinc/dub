@@ -1,7 +1,8 @@
-import type { GroupMoveRules } from "@/lib/api/workflows/move-group/schema";
+import type { GroupMoveRules } from "@/lib/api/workflows/move-group/types";
+import type { WorkflowAction } from "@/lib/api/workflows/types";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
-import { WorkflowAction, WorkspaceProps } from "@/lib/types";
+import { WorkspaceProps } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { pluralize } from "@dub/utils";
 import { PartnerGroup, WorkflowTrigger } from "@prisma/client";

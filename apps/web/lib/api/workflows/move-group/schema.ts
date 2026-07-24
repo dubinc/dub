@@ -9,6 +9,16 @@ export const GROUP_MOVE_ATTRIBUTES = [
 
 export const GROUP_MOVE_OPERATORS = ["gte", "between"] as const;
 
+type GroupMoveAttribute = (typeof GROUP_MOVE_ATTRIBUTES)[number];
+
+type GroupMoveOperator = (typeof GROUP_MOVE_OPERATORS)[number];
+
+type GroupMoveAttributeConfig = {
+  label: string;
+  inputType: "number" | "currency";
+  operators: readonly GroupMoveOperator[];
+};
+
 export const GROUP_MOVE_ATTRIBUTE_CONFIG: Record<
   GroupMoveAttribute,
   GroupMoveAttributeConfig
@@ -53,17 +63,3 @@ export const groupMoveConditionSchema = z.object({
 });
 
 export const groupMoveRulesSchema = z.array(groupMoveConditionSchema);
-
-export type GroupMoveCondition = z.infer<typeof groupMoveConditionSchema>;
-
-export type GroupMoveRules = z.infer<typeof groupMoveRulesSchema>;
-
-export type GroupMoveAttribute = (typeof GROUP_MOVE_ATTRIBUTES)[number];
-
-type GroupMoveOperator = (typeof GROUP_MOVE_OPERATORS)[number];
-
-export type GroupMoveAttributeConfig = {
-  label: string;
-  inputType: "number" | "currency";
-  operators: readonly GroupMoveOperator[];
-};

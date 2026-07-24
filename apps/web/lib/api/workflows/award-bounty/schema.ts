@@ -9,6 +9,16 @@ export const AWARD_BOUNTY_ATTRIBUTES = [
 
 export const AWARD_BOUNTY_OPERATORS = ["gte"] as const;
 
+type AwardBountyAttribute = (typeof AWARD_BOUNTY_ATTRIBUTES)[number];
+
+type AwardBountyOperator = (typeof AWARD_BOUNTY_OPERATORS)[number];
+
+type AwardBountyAttributeConfig = {
+  label: string;
+  inputType: "number" | "currency";
+  operators: readonly AwardBountyOperator[];
+};
+
 export const AWARD_BOUNTY_ATTRIBUTE_CONFIG: Record<
   AwardBountyAttribute,
   AwardBountyAttributeConfig
@@ -45,15 +55,3 @@ export const awardBountyConditionSchema = z.object({
   operator: z.enum(AWARD_BOUNTY_OPERATORS).default("gte"),
   value: z.number(),
 });
-
-export type AwardBountyCondition = z.infer<typeof awardBountyConditionSchema>;
-
-export type AwardBountyAttribute = (typeof AWARD_BOUNTY_ATTRIBUTES)[number];
-
-type AwardBountyOperator = (typeof AWARD_BOUNTY_OPERATORS)[number];
-
-export type AwardBountyAttributeConfig = {
-  label: string;
-  inputType: "number" | "currency";
-  operators: readonly AwardBountyOperator[];
-};
