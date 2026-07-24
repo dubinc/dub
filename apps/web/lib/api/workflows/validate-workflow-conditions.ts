@@ -4,6 +4,10 @@ import { WORKFLOW_OPERATORS } from "@/lib/api/workflows/operator-definitions";
 import { SEND_CAMPAIGN_ATTRIBUTES } from "@/lib/api/workflows/send-campaign/schema";
 import type { WorkflowType } from "@/lib/api/workflows/types";
 import { DubApiError } from "../errors";
+import {
+  WORKFLOW_ATTRIBUTE_VALIDATORS,
+  type WorkflowAttributeValidatorContext,
+} from "./attribute-validators";
 
 // Map of workflow type to its attributes
 const WORKFLOW_TYPE_ATTRIBUTES = {
@@ -24,12 +28,34 @@ type WorkflowConditionInput = {
 export async function validateWorkflowConditions({
   conditions,
   workflowType,
+  context,
 }: {
   conditions?: WorkflowConditionInput[] | null;
   workflowType: WorkflowType;
+  context?: WorkflowAttributeValidatorContext;
 }): Promise<void> {
   if (!conditions || conditions.length === 0) {
     return;
+  }
+
+  // Move group workflow requires at least one metric condition and one partner group condition
+  if (workflowType === "moveGroup") {
+    const hasPartnerGroup = conditions.some(
+      (condition) => condition.attribute === "partnerGroup",
+    );
+
+    const hasMetricCondition = conditions.some(
+      (condition) =>
+        condition.attribute && condition.attribute !== "partnerGroup",
+    );
+
+    if (hasPartnerGroup && !hasMetricCondition) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Partner group can only be used as an additional condition alongside a metric rule.",
+      });
+    }
   }
 
   const attributes = WORKFLOW_TYPE_ATTRIBUTES[workflowType];
@@ -94,6 +120,31 @@ export async function validateWorkflowConditions({
         code: "bad_request",
         message: `Condition ${conditionIndex + 1}: ${error instanceof Error ? error.message : "Invalid value."}`,
       });
+    }
+
+    const attributeValidator =
+      WORKFLOW_ATTRIBUTE_VALIDATORS[condition.attribute];
+
+    if (attributeValidator && context) {
+      try {
+        await attributeValidator({
+          value: condition.value,
+          operator: condition.operator,
+          context,
+        });
+      } catch (error) {
+        if (error instanceof DubApiError) {
+          throw new DubApiError({
+            code: error.code,
+            message: `Condition ${conditionIndex + 1}: ${error.message}`,
+          });
+        }
+
+        throw new DubApiError({
+          code: "bad_request",
+          message: `Condition ${conditionIndex + 1}: ${error instanceof Error ? error.message : "Invalid value."}`,
+        });
+      }
     }
   }
 }

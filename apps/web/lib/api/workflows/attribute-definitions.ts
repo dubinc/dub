@@ -42,6 +42,12 @@ export const WORKFLOW_ATTRIBUTES = {
     inputType: "none",
     operators: ["gte"],
   },
+  partnerGroup: {
+    name: "partnerGroup",
+    label: "group",
+    inputType: "group",
+    operators: ["eq", "ne", "in", "notIn"],
+  },
 } as const;
 
 export const WORKFLOW_ATTRIBUTE_KEYS = Object.keys(

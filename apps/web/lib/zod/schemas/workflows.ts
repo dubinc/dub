@@ -16,6 +16,7 @@ export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
   totalCommissions: WorkflowTrigger.partnerMetricsUpdated,
   partnerEnrolledDays: WorkflowTrigger.partnerEnrolled,
   partnerJoined: WorkflowTrigger.partnerEnrolled,
+  partnerGroup: WorkflowTrigger.partnerMetricsUpdated,
 } as const;
 
 export const SCHEDULED_WORKFLOW_TRIGGERS: WorkflowTrigger[] = [
@@ -42,6 +43,8 @@ export const workflowConditionSchema = z.object({
       min: z.number(),
       max: z.number(),
     }),
+    z.string(),
+    z.array(z.string()).min(1),
   ]),
 });
 
