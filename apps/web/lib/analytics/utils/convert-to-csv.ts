@@ -1,8 +1,11 @@
 import { json2csv } from "json-2-csv";
 
-const FORMULA_TRIGGER_CHARS = /^[=+\-@\t\r]/;
-const neutralizeFormula = (value: string) =>
-  FORMULA_TRIGGER_CHARS.test(value) ? `'${value}` : value;
+const FORMULA_PREFIXES = new Set(["=", "+", "-", "@", "\t", "\r"]);
+
+// Prevents CSV/Excel formula injection
+function neutralizeCsvFormula(value: string): string {
+  return FORMULA_PREFIXES.has(value[0] ?? "") ? `'${value}` : value;
+}
 
 export const convertToCSV = (data: object[]) => {
   return json2csv(data, {
@@ -16,7 +19,7 @@ export const convertToCSV = (data: object[]) => {
       }
 
       if (typeof fieldValue === "string") {
-        return defaultParser(neutralizeFormula(fieldValue));
+        return defaultParser(neutralizeCsvFormula(fieldValue));
       }
 
       return defaultParser(fieldValue);
