@@ -1,7 +1,7 @@
+import { renderCampaignEmailHTML } from "@/lib/api/campaigns/render-campaign-email-html";
 import { validateCampaignFromAddress } from "@/lib/api/campaigns/validate-campaign";
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { renderCampaignEmailHTML } from "@/lib/api/workflows/render-campaign-email-html";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";

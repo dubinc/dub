@@ -47,6 +47,7 @@ const prefixes = [
   "sbl_", // submitted lead
   "pb_", // partner postback
   "req_", // api request log
+  "job_", // background job
 ] as const;
 
 // ULID uses base32 encoding

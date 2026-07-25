@@ -1,8 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
-import { queueFolderDeletion } from "@/lib/api/folders/queue-folder-deletion";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { folderDeletedJob } from "@/lib/jobs/handlers/folder-deleted-job";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
 import { FolderSchema, updateFolderSchema } from "@/lib/zod/schemas/folders";
@@ -127,43 +127,41 @@ export const DELETE = withWorkspace(
       where: {
         folderId,
       },
+      take: 100,
     });
 
-    // if there are no links associated with the folder, we can just delete it
-    if (linksCount === 0) {
-      await prisma.folder.delete({
+    await prisma.$transaction([
+      // If there are no links associated with the folder, we can just delete it
+      ...(linksCount === 0
+        ? [
+            prisma.folder.delete({
+              where: {
+                id: folderId,
+              },
+            }),
+          ]
+        : [
+            prisma.folder.update({
+              where: {
+                id: folderId,
+              },
+              data: {
+                projectId: "",
+              },
+            }),
+          ]),
+
+      // Remove the default folder assignment for all users whose defaultFolderId matches the given folderId
+      prisma.projectUsers.updateMany({
         where: {
-          id: folderId,
+          defaultFolderId: folderId,
         },
-      });
-    } else {
-      await Promise.all([
-        prisma.folder.update({
-          where: {
-            id: folderId,
-          },
-          data: {
-            projectId: "",
-          },
-        }),
+        data: {
+          defaultFolderId: null,
+        },
+      }),
 
-        queueFolderDeletion({
-          folderId,
-        }),
-      ]);
-    }
-
-    // Remove the default folder assignment for all users whose defaultFolderId matches the given folderId
-    await prisma.projectUsers.updateMany({
-      where: {
-        defaultFolderId: folderId,
-      },
-      data: {
-        defaultFolderId: null,
-      },
-    });
-
-    waitUntil(
+      // Decrement the folders usage for the workspace
       prisma.project.update({
         where: {
           id: workspace.id,
@@ -174,7 +172,20 @@ export const DELETE = withWorkspace(
           },
         },
       }),
-    );
+    ]);
+
+    if (linksCount > 0) {
+      waitUntil(
+        folderDeletedJob.dispatch(
+          {
+            folderId,
+          },
+          {
+            label: folderId,
+          },
+        ),
+      );
+    }
 
     return NextResponse.json({ id: folderId });
   },

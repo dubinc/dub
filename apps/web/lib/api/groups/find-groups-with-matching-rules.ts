@@ -1,6 +1,7 @@
-import { WorkflowCondition } from "@/lib/types";
+import type { GroupMoveRules } from "@/lib/api/workflows/move-group/types";
 import { groupRulesSchema } from "@/lib/zod/schemas/groups";
 import * as z from "zod/v4";
+import { WorkflowCondition } from "../workflows/types";
 
 export const findGroupsWithMatchingRules = ({
   groups,
@@ -8,7 +9,7 @@ export const findGroupsWithMatchingRules = ({
   currentGroupId,
 }: {
   groups: z.infer<typeof groupRulesSchema>;
-  currentRules: WorkflowCondition[] | null | undefined;
+  currentRules: GroupMoveRules | null | undefined;
   currentGroupId: string;
 }): Array<{ id: string; name: string }> => {
   if (
@@ -34,8 +35,8 @@ export const findGroupsWithMatchingRules = ({
 // Two rule sets conflict if there exists ANY set of attribute values that would satisfy both simultaneously.
 // This ensures that for any given set of attribute values, at most one group rule set will match.
 const doRuleSetsOverlap = (
-  rules1: WorkflowCondition[],
-  rules2: WorkflowCondition[],
+  rules1: GroupMoveRules,
+  rules2: GroupMoveRules,
 ): boolean => {
   const rules1ByAttribute = new Map<string, WorkflowCondition>();
   for (const rule of rules1) {

@@ -94,6 +94,9 @@ export function EmbedBountySubmissionsTable({
         header: "",
         minSize: 98,
         size: 98,
+        meta: {
+          disableTruncate: true,
+        },
         cell: ({ row: { original } }) => {
           const { status, periodNumber } = original;
           const isExpired =
