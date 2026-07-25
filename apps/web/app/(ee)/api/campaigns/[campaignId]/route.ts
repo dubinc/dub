@@ -8,6 +8,7 @@ import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
+import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
@@ -75,6 +76,13 @@ export const PATCH = withWorkspace(
       input: updateCampaignSchema.parse(await parseRequestBody(req)),
       campaign,
     });
+
+    if (triggerCondition) {
+      await validateWorkflowConditions({
+        conditions: [triggerCondition],
+        workflowType: "sendCampaign",
+      });
+    }
 
     // if groupIds is provided and is different from the current groupIds, update the groups
     let updatedPartnerGroups: PartnerGroup[] | undefined = undefined;

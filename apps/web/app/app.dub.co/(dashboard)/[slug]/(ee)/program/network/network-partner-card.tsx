@@ -359,7 +359,7 @@ function PlatformStatCard({
       </div>
       <span
         className={cn(
-          "text-[9px] font-medium leading-none",
+          "whitespace-nowrap text-[9px] font-medium leading-none",
           verified && stat ? "text-content-default" : "text-content-subtle",
         )}
       >

@@ -13,7 +13,7 @@ import useSWR from "swr";
 const revenueTabs = [
   {
     id: "totalRevenue",
-    label: "Total Revenue",
+    label: "Monthly Revenue",
     colorClassName: "text-green-500 bg-green-500/50 border-green-500",
   },
   {
@@ -159,7 +159,7 @@ function RevenuePageClient() {
                 })
               }
               className={cn(
-                "border-box relative block h-full w-full flex-none px-4 py-3 text-left sm:px-8 sm:py-6",
+                "border-box group relative block h-full w-full flex-none px-4 py-3 text-left sm:px-8 sm:py-6",
                 "transition-colors hover:bg-neutral-50 focus:outline-none active:bg-neutral-100",
                 "ring-inset ring-neutral-500 focus-visible:ring-1",
               )}
@@ -167,6 +167,51 @@ function RevenuePageClient() {
               {selectedTab === id && (
                 <div className="absolute bottom-0 left-0 h-0.5 w-full bg-black" />
               )}
+              {(() => {
+                const annualizedMetric =
+                  id === "mrr"
+                    ? { label: "ARR", value: totals.mrr }
+                    : id === "totalRevenue"
+                      ? { label: "Annualized", value: totals.totalRevenue }
+                      : null;
+
+                if (
+                  !annualizedMetric ||
+                  (annualizedMetric.value !== 0 && !annualizedMetric.value) ||
+                  isLoading
+                ) {
+                  return null;
+                }
+
+                const annualizedValue = (annualizedMetric.value * 12) / 100;
+
+                return (
+                  <div className="group absolute right-4 top-3 flex cursor-default items-center gap-1 text-xs text-neutral-400 sm:right-8 sm:top-6">
+                    <span>{annualizedMetric.label}</span>
+                    <NumberFlow
+                      className="group-hover:hidden"
+                      value={annualizedValue}
+                      format={{
+                        style: "currency",
+                        currency: "USD",
+                        notation: "compact",
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      }}
+                    />
+                    <NumberFlow
+                      className="hidden group-hover:inline"
+                      value={annualizedValue}
+                      format={{
+                        style: "currency",
+                        currency: "USD",
+                        // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                        trailingZeroDisplay: "stripIfInteger",
+                      }}
+                    />
+                  </div>
+                );
+              })()}
               <div className="flex items-center gap-2.5 text-sm text-neutral-600">
                 <div
                   className={cn(
