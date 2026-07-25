@@ -7,7 +7,7 @@ import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats"
 import { recordClick, recordLeadWithTimestamp } from "../tinybird";
 import { logImportError } from "../tinybird/log-import-error";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
-import { TapfiliateApi } from "./api";
+import { TapfiliateClient } from "./api";
 import { TAPFILIATE_MAX_BATCHES, tapfiliateImporter } from "./importer";
 import { TapfiliateCustomer, TapfiliateImportPayload } from "./types";
 
@@ -43,7 +43,7 @@ export async function importCustomers(payload: TapfiliateImportPayload) {
 
   const { apiKey } = await tapfiliateImporter.getCredentials(workspace.id);
 
-  const tapfiliateApi = new TapfiliateApi({
+  const tapfiliateApi = new TapfiliateClient({
     apiKey,
   });
 

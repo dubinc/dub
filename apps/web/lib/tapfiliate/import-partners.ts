@@ -7,7 +7,7 @@ import { generatePartnerLink } from "../api/partners/generate-partner-link";
 import { logImportError } from "../tinybird/log-import-error";
 import { WorkspaceProps } from "../types";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
-import { TapfiliateApi } from "./api";
+import { TapfiliateClient } from "./api";
 import { TAPFILIATE_MAX_BATCHES, tapfiliateImporter } from "./importer";
 import { TapfiliateImportPayload, TapfiliatePartner } from "./types";
 
@@ -65,7 +65,7 @@ export async function importPartners(payload: TapfiliateImportPayload) {
     program.workspace.id,
   );
 
-  const tapfiliateApi = new TapfiliateApi({
+  const tapfiliateApi = new TapfiliateClient({
     apiKey,
   });
 

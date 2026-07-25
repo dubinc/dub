@@ -13,7 +13,7 @@ import { recordSaleWithTimestamp } from "../tinybird/record-sale";
 import { LeadEventTB } from "../types";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
-import { TapfiliateApi } from "./api";
+import { TapfiliateClient } from "./api";
 import { TAPFILIATE_MAX_BATCHES, tapfiliateImporter } from "./importer";
 import {
   TapfiliateConversionWithCommission,
@@ -42,7 +42,7 @@ export async function importCommissions(payload: TapfiliateImportPayload) {
     program.workspaceId,
   );
 
-  const tapfiliateApi = new TapfiliateApi({
+  const tapfiliateApi = new TapfiliateClient({
     apiKey,
   });
 

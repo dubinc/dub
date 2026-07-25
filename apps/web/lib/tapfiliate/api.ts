@@ -1,70 +1,64 @@
+import { HttpBaseClient } from "@/lib/http/base-client";
 import {
   tapfiliateConversionSchema,
   tapfiliateCustomerSchema,
   tapfiliateGroupSchema,
+  tapfiliateListConversionsInputSchema,
+  tapfiliateListCustomersInputSchema,
+  tapfiliateListPartnersInputSchema,
   tapfiliatePartnerSchema,
   tapfiliateProgramSchema,
 } from "./schemas";
 
-export class TapfiliateApi {
-  private readonly baseUrl = "https://api.tapfiliate.com/1.6";
+export class TapfiliateClient extends HttpBaseClient {
+  protected readonly vendor = "Tapfiliate";
+  protected readonly baseUrl = "https://api.tapfiliate.com/1.6";
+  protected readonly logResponseBodies = false;
+
   private readonly apiKey: string;
 
   constructor({ apiKey }: { apiKey: string }) {
+    super();
     this.apiKey = apiKey;
   }
 
-  private async fetch(path: string) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-
-    const response = await fetch(`${this.baseUrl}${path}`, {
-      headers: {
-        "X-Api-Key": this.apiKey,
-        "Content-Type": "application/json",
-      },
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-
-    if (!response.ok) {
-      const error = await response.text();
-
-      console.error("Tapfiliate API Error:", error);
-
-      throw new Error(
-        `[Tapfiliate API] ${error || `Request to ${path} failed with status ${response.status}.`}`,
-      );
-    }
-
-    return await response.json();
+  protected buildAuthHeaders() {
+    return {
+      "X-Api-Key": this.apiKey,
+    };
   }
 
+  // GET /programs/
   async listPrograms() {
-    const data = await this.fetch(`/programs/`);
-
-    return tapfiliateProgramSchema.array().parse(data);
+    return await this.get("/programs/", {
+      outputSchema: tapfiliateProgramSchema.array(),
+    });
   }
 
+  // GET /programs/{programId}/
   async getProgram({ programId }: { programId: string }) {
-    const data = await this.fetch(`/programs/${programId}/`);
-
-    return tapfiliateProgramSchema.parse(data);
+    return await this.get(`/programs/${programId}/`, {
+      outputSchema: tapfiliateProgramSchema,
+    });
   }
 
+  // GET /affiliate-groups/
   async listGroups() {
-    const data = await this.fetch(`/affiliate-groups/`);
-
-    return tapfiliateGroupSchema.array().parse(data);
+    return await this.get("/affiliate-groups/", {
+      outputSchema: tapfiliateGroupSchema.array(),
+    });
   }
 
+  // GET /affiliates/?page=
   async listPartners({ page = 1 }: { page?: number }) {
-    const data = await this.fetch(`/affiliates/?page=${page}`);
-
-    return tapfiliatePartnerSchema.array().parse(data);
+    return await this.get("/affiliates/", {
+      input: { page },
+      inputSchema: tapfiliateListPartnersInputSchema,
+      outputSchema: tapfiliatePartnerSchema.array(),
+    });
   }
 
+  // GET /customers?program_id=&page=
   async listCustomers({
     programId,
     page = 1,
@@ -72,17 +66,17 @@ export class TapfiliateApi {
     programId: string;
     page?: number;
   }) {
-    const searchParams = new URLSearchParams({
-      program_id: programId,
-      page: page.toString(),
+    return await this.get("/customers", {
+      input: {
+        program_id: programId,
+        page,
+      },
+      inputSchema: tapfiliateListCustomersInputSchema,
+      outputSchema: tapfiliateCustomerSchema.array(),
     });
-
-    const data = await this.fetch(`/customers?${searchParams.toString()}`);
-
-    return tapfiliateCustomerSchema.array().parse(data);
   }
 
-  // Fetch conversions and commissions
+  // GET /conversions/?program_id=&page=
   async listConversions({
     programId,
     page = 1,
@@ -90,13 +84,13 @@ export class TapfiliateApi {
     programId: string;
     page?: number;
   }) {
-    const searchParams = new URLSearchParams({
-      program_id: programId,
-      page: page.toString(),
+    return await this.get("/conversions/", {
+      input: {
+        program_id: programId,
+        page,
+      },
+      inputSchema: tapfiliateListConversionsInputSchema,
+      outputSchema: tapfiliateConversionSchema.array(),
     });
-
-    const data = await this.fetch(`/conversions/?${searchParams.toString()}`);
-
-    return tapfiliateConversionSchema.array().parse(data);
   }
 }
