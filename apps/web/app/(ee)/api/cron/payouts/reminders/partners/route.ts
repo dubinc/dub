@@ -1,4 +1,5 @@
 import { MIN_PAYOUT_AMOUNT_FOR_REMINDERS } from "@/lib/constants/misc";
+import { PAYOUT_SUPPORTED_COUNTRIES } from "@/lib/constants/payouts-supported-countries";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
@@ -34,6 +35,9 @@ export const GET = withCron(async () => {
       },
       partner: {
         payoutsEnabledAt: null,
+        country: {
+          in: PAYOUT_SUPPORTED_COUNTRIES.map((c) => c.code),
+        },
         OR: [
           { connectPayoutsLastRemindedAt: null },
           {

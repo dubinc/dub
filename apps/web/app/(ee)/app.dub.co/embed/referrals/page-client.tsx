@@ -186,6 +186,8 @@ export function ReferralsEmbedPageClient({
   const termsHref =
     (programEmbedData?.customTermsUrl || program.termsUrl) ?? undefined;
 
+  const hasFAQ = !programEmbedData?.faq || programEmbedData.faq.length > 0;
+
   const hasResources =
     resources && Object.values(resources).some((resource) => resource.length);
 
@@ -233,7 +235,7 @@ export function ReferralsEmbedPageClient({
       ...(programEmbedData?.leaderboard?.mode === "disabled"
         ? []
         : ["Leaderboard"]),
-      "FAQ",
+      ...(hasFAQ ? ["FAQ"] : []),
       ...(hasResources ? ["Resources"] : []),
       ...(showSettingsTab ? ["Settings"] : []),
     ],
@@ -242,6 +244,7 @@ export function ReferralsEmbedPageClient({
       activeBountiesCount,
       group.additionalLinks,
       programEmbedData,
+      hasFAQ,
       hasResources,
       showSettingsTab,
     ],

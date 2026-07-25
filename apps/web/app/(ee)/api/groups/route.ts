@@ -13,6 +13,7 @@ import {
   getGroupsQuerySchema,
   GroupSchema,
   GroupSchemaExtended,
+  sanitizeAdditionalLinks,
 } from "@/lib/zod/schemas/groups";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -127,7 +128,9 @@ export const POST = withWorkspace(
           brandColor,
           holdingPeriodDays,
           autoApprovePartnersEnabledAt,
-          ...(additionalLinks && { additionalLinks }),
+          ...(additionalLinks && {
+            additionalLinks: sanitizeAdditionalLinks(additionalLinks),
+          }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),
           ...(applicationFormData && { applicationFormData }),

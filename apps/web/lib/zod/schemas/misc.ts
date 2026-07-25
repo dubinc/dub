@@ -39,6 +39,7 @@ export const getPaginationQuerySchema = ({
 }) => ({
   page: z.coerce
     .number({ error: "Page must be a number." })
+    .int({ message: "Page must be an integer." })
     .positive({ message: "Page must be greater than 0." })
     .optional()
     .describe(
@@ -52,6 +53,7 @@ export const getPaginationQuerySchema = ({
     }),
   pageSize: z.coerce
     .number({ error: "Page size must be a number." })
+    .int({ message: "Page size must be an integer." })
     .positive({ message: "Page size must be greater than 0." })
     .max(pageSize, {
       message: `Max page size is ${pageSize}.`,

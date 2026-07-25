@@ -29,6 +29,7 @@ export * from "./parse-filter-value";
 export * from "./pick";
 export * from "./pluralize";
 export * from "./pretty-print";
+export * from "./process-in-batches";
 export * from "./promises";
 export * from "./punycode";
 export * from "./random-value";

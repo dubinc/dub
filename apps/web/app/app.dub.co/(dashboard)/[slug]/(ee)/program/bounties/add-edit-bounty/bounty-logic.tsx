@@ -1,8 +1,11 @@
 "use client";
 
+import {
+  AWARD_BOUNTY_ATTRIBUTE_KEYS,
+  AWARD_BOUNTY_OPERATORS,
+} from "@/lib/api/workflows/award-bounty/schema";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
-import { WORKFLOW_ATTRIBUTES } from "@/lib/zod/schemas/workflows";
 import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,
@@ -80,9 +83,7 @@ export function BountyLogic({ className }: { className?: string }) {
                 <InlineBadgePopoverMenu
                   selectedValue={field.value}
                   onSelect={field.onChange}
-                  items={WORKFLOW_ATTRIBUTES.filter(
-                    (attr) => PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[attr],
-                  ).map((attribute) => ({
+                  items={AWARD_BOUNTY_ATTRIBUTE_KEYS.map((attribute) => ({
                     text: PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[
                       attribute
                     ].toLowerCase(),
@@ -96,7 +97,7 @@ export function BountyLogic({ className }: { className?: string }) {
         {attribute && (
           <>
             {" "}
-            is at least{" "}
+            is {AWARD_BOUNTY_OPERATORS.gte.label}{" "}
             <InlineBadgePopover
               text={
                 value
