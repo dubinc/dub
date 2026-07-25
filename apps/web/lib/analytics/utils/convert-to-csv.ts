@@ -1,6 +1,6 @@
 import { json2csv } from "json-2-csv";
 
-const FORMULA_PREFIXES = new Set(["=", "+", "-", "@", "\t", "\r"]);
+const FORMULA_PREFIXES = new Set(["=", "+", "-", "@", "\t", "\r", "\n"]);
 
 // Prevents CSV/Excel formula injection
 function neutralizeCsvFormula(value: string): string {
