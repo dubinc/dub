@@ -1,4 +1,4 @@
-import { Receiver } from "@upstash/qstash";
+import { Receiver, SignatureError } from "@upstash/qstash";
 import { DubApiError } from "../api/errors";
 
 // we're using Upstash's Receiver to verify the request signature
@@ -25,12 +25,25 @@ export const verifyQstashSignature = async ({
     });
   }
 
-  const isValid = await receiver.verify({
-    signature,
-    body: rawBody,
-    // Pass the region header for multi-region support
-    upstashRegion: req.headers.get("upstash-region") ?? undefined,
-  });
+  let isValid: boolean;
+
+  try {
+    isValid = await receiver.verify({
+      signature,
+      body: rawBody,
+      // Pass the region header for multi-region support
+      upstashRegion: req.headers.get("upstash-region") ?? undefined,
+    });
+  } catch (error) {
+    if (error instanceof SignatureError) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "Invalid Upstash-Signature header.",
+      });
+    }
+
+    throw error;
+  }
 
   if (!isValid) {
     throw new DubApiError({
