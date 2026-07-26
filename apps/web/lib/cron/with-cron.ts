@@ -1,6 +1,7 @@
 import { getSearchParams } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
-import { ErrorCodes, HttpStatusCode } from "../api/error-codes";
+import { ErrorCodes } from "../api/error-codes";
+import { DubApiError } from "../api/errors";
 import { logger, withAxiomBodyLog } from "../axiom/server";
 import { verifyQstashSignature } from "./verify-qstash";
 import { verifyVercelSignature } from "./verify-vercel";
@@ -63,8 +64,10 @@ export const withCron = (handler: WithCronHandler) => {
         logger.error(errorMessage, error);
         await logger.flush();
 
-        const statusCode: HttpStatusCode =
-          ErrorCodes[error.code ?? "internal_server_error"];
+        const statusCode =
+          error instanceof DubApiError
+            ? ErrorCodes[error.code]
+            : ErrorCodes.internal_server_error;
 
         return logAndRespond(errorMessage, { status: statusCode });
       }
