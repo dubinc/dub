@@ -1,5 +1,6 @@
-import { APP_DOMAIN_WITH_NGROK, getSearchParams, log } from "@dub/utils";
+import { getSearchParams } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
+import { ErrorCodes, HttpStatusCode } from "../api/error-codes";
 import { logger, withAxiomBodyLog } from "../axiom/server";
 import { verifyQstashSignature } from "./verify-qstash";
 import { verifyVercelSignature } from "./verify-vercel";
@@ -30,7 +31,6 @@ export const withCron = (handler: WithCronHandler) => {
 
       const params = (await initialParams) || {};
       const searchParams = getSearchParams(req.url);
-      const url = new URL(req.url || "", APP_DOMAIN_WITH_NGROK);
 
       try {
         let rawBody: string | undefined;
@@ -63,12 +63,10 @@ export const withCron = (handler: WithCronHandler) => {
         logger.error(errorMessage, error);
         await logger.flush();
 
-        await log({
-          message: `Cron job "${url.pathname}" failed during execution. Error: ${errorMessage}`,
-          type: "errors",
-        });
+        const statusCode: HttpStatusCode =
+          ErrorCodes[error.code ?? "internal_server_error"];
 
-        return logAndRespond(errorMessage, { status: 500 });
+        return logAndRespond(errorMessage, { status: statusCode });
       }
     },
   );
