@@ -72,8 +72,15 @@ export const trackSale = async ({
     ]);
 
     if (cachedResponse) {
-      return cachedResponse;
-    } else if (legacyRecord) {
+      const parsedCachedResponse =
+        trackSaleResponseSchema.safeParse(cachedResponse);
+
+      if (parsedCachedResponse.success) {
+        return parsedCachedResponse.data;
+      }
+    }
+
+    if (cachedResponse || legacyRecord) {
       return {
         eventName,
         customer: null,
