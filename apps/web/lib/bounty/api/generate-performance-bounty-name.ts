@@ -20,7 +20,8 @@ export const generatePerformanceBountyName = ({
       ? condition.value
       : typeof condition.value === "object" &&
           condition.value !== null &&
-          !Array.isArray(condition.value)
+          !Array.isArray(condition.value) &&
+          typeof condition.value.min === "number"
         ? condition.value.min
         : 0;
   const valueFormatted = isCurrency
