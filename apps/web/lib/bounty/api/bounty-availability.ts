@@ -7,6 +7,7 @@ import {
   Prisma,
   Program,
   ProgramEnrollment,
+  ProgramPartnerTag,
 } from "@prisma/client";
 import { addDays } from "date-fns";
 import { isBountyEnded, isBountyStarted } from "../bounty-period";
@@ -30,7 +31,7 @@ type PartnerBountyEligibilityInput = {
     ProgramEnrollment,
     "createdAt" | "groupId" | "status"
   > & {
-    partnerTagIds: string[];
+    programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
   };
 };
 
@@ -175,15 +176,18 @@ export function isPartnerEligibleForBounty({
 
   // If the bounty has partner tags, the partner must have at least one matching tag
   const bountyPartnerTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
+  const partnerTagIds = programEnrollment.programPartnerTags.map(
+    (t) => t.partnerTagId,
+  );
 
   if (bountyPartnerTagIds.length > 0) {
-    const hasMatchingTag = programEnrollment.partnerTagIds.some((tagId) =>
+    const hasMatchingTag = partnerTagIds.some((tagId) =>
       bountyPartnerTagIds.includes(tagId),
     );
 
     if (!hasMatchingTag) {
       console.log(
-        `Partner is not eligible for bounty ${bounty.id} because they do not have any of the assigned partner tags. Partner's partnerTagIds: ${programEnrollment.partnerTagIds.join(", ")}. Assigned partnerTagIds: ${bountyPartnerTagIds.join(", ")}.`,
+        `Partner is not eligible for bounty ${bounty.id} because they do not have any of the assigned partner tags. Partner's partnerTagIds: ${partnerTagIds.join(", ")}. Assigned partnerTagIds: ${bountyPartnerTagIds.join(", ")}.`,
       );
       return false;
     }

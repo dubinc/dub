@@ -41,6 +41,11 @@ export const GET = withPartnerProfile(
             defaultGroupId: true,
           },
         },
+        programPartnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
       },
     });
 
@@ -51,6 +56,11 @@ export const GET = withPartnerProfile(
         groups: {
           select: {
             groupId: true,
+          },
+        },
+        partnerTags: {
+          select: {
+            partnerTagId: true,
           },
         },
         submissions: {

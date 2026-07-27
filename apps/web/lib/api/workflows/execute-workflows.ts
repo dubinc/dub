@@ -142,6 +142,11 @@ export async function executeWorkflows({
             saleAmount: true,
           },
         },
+        programPartnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
       },
     }),
 
@@ -180,7 +185,14 @@ export async function executeWorkflows({
     aggregatePartnerLinksStats(programEnrollment.links);
 
   const workflowContext: WorkflowContext = {
-    programEnrollment,
+    programEnrollment: {
+      groupId: programEnrollment.groupId,
+      createdAt: programEnrollment.createdAt,
+      partnerId: programEnrollment.partnerId,
+      programId: programEnrollment.programId,
+      status: programEnrollment.status,
+      programPartnerTags: programEnrollment.programPartnerTags,
+    },
     trigger,
     reason,
     identity: {

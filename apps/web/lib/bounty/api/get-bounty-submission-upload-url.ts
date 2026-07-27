@@ -3,7 +3,7 @@ import { storage } from "@/lib/storage";
 import { ratelimit } from "@/lib/upstash";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
 import { nanoid, R2_URL } from "@dub/utils";
-import { ProgramEnrollment } from "@prisma/client";
+import { ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
 import { canPartnerSubmitBounty } from "./bounty-availability";
 import { getBountyOrThrow } from "./get-bounty-or-throw";
 
@@ -18,7 +18,9 @@ type GetBountySubmissionUploadUrlParams = {
   programEnrollment: Pick<
     ProgramEnrollment,
     "programId" | "partnerId" | "groupId" | "status" | "createdAt"
-  >;
+  > & {
+    programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
+  };
 };
 
 const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024;
@@ -82,6 +84,11 @@ export async function getBountySubmissionUploadUrl({
       groups: {
         select: {
           groupId: true,
+        },
+      },
+      partnerTags: {
+        select: {
+          partnerTagId: true,
         },
       },
       program: {

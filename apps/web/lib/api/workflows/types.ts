@@ -2,7 +2,11 @@ import {
   workflowActionSchema,
   workflowConditionSchema,
 } from "@/lib/zod/schemas/workflows";
-import { ProgramEnrollment, WorkflowTrigger } from "@prisma/client";
+import {
+  ProgramEnrollment,
+  ProgramPartnerTag,
+  WorkflowTrigger,
+} from "@prisma/client";
 import type * as z from "zod/v4";
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
@@ -37,7 +41,7 @@ export interface WorkflowContext {
     ProgramEnrollment,
     "groupId" | "createdAt" | "partnerId" | "programId" | "status"
   > & {
-    partnerTagIds: string[];
+    programPartnerTags: Pick<ProgramPartnerTag, "partnerTagId">[];
   };
 }
 

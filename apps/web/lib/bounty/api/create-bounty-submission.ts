@@ -41,6 +41,7 @@ type CreateBountySubmissionParams = z.infer<
 type BountyWithRelations = Prisma.BountyGetPayload<{
   include: {
     groups: true;
+    partnerTags: true;
     submissions: true;
   };
 }>;
@@ -67,6 +68,11 @@ export class BountySubmissionHandler {
         select: {
           id: true;
           defaultGroupId: true;
+        };
+      };
+      programPartnerTags: {
+        select: {
+          partnerTagId: true;
         };
       };
     };
@@ -118,6 +124,11 @@ export class BountySubmissionHandler {
               defaultGroupId: true,
             },
           },
+          programPartnerTags: {
+            select: {
+              partnerTagId: true,
+            },
+          },
         },
       }),
 
@@ -126,6 +137,7 @@ export class BountySubmissionHandler {
         programId: this.programId,
         include: {
           groups: true,
+          partnerTags: true,
           submissions: {
             where: {
               partnerId: this.partner.id,

@@ -51,6 +51,7 @@ export async function POST(req: Request) {
       },
       include: {
         groups: true,
+        partnerTags: true,
         program: {
           include: {
             emailDomains: {
@@ -86,11 +87,16 @@ export async function POST(req: Request) {
     }
 
     const bountyGroupIds = bounty.groups.map(({ groupId }) => groupId);
+    const bountyPartnerTagIds = bounty.partnerTags.map(
+      ({ partnerTagId }) => partnerTagId,
+    );
 
     console.log(
       `Bounty ${bountyId} is applicable to ${
         bountyGroupIds.length === 0 ? "all" : bountyGroupIds.length
-      } groups (groupIds: ${JSON.stringify(bountyGroupIds)})`,
+      } groups (groupIds: ${JSON.stringify(bountyGroupIds)}) and ${
+        bountyPartnerTagIds.length === 0 ? "all" : bountyPartnerTagIds.length
+      } partner tags (partnerTagIds: ${JSON.stringify(bountyPartnerTagIds)})`,
     );
 
     const programEnrollments = await prisma.programEnrollment.findMany({
@@ -99,6 +105,15 @@ export async function POST(req: Request) {
         ...(bountyGroupIds.length > 0 && {
           groupId: {
             in: bountyGroupIds,
+          },
+        }),
+        ...(bountyPartnerTagIds.length > 0 && {
+          programPartnerTags: {
+            some: {
+              partnerTagId: {
+                in: bountyPartnerTagIds,
+              },
+            },
           },
         }),
         status: {

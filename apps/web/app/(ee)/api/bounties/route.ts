@@ -132,10 +132,7 @@ export const GET = withWorkspace(
         const isEligible = isPartnerEligibleForBounty({
           program: programEnrollment.program,
           bounty,
-          programEnrollment: {
-            ...programEnrollment,
-            partnerTagIds,
-          },
+          programEnrollment,
         });
 
         if (!isEligible) {

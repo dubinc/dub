@@ -34,6 +34,11 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
             saleAmount: true,
           },
         },
+        programPartnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
       },
     });
 
@@ -47,6 +52,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
         },
       },
       groups: true,
+      partnerTags: true,
       submissions: {
         where: {
           partnerId: partner.id,
@@ -83,7 +89,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     bounty,
   });
 
-  const { groups, ...bountyWithoutGroups } = bounty;
+  const { groups, partnerTags, ...bountyWithoutGroups } = bounty;
 
   return NextResponse.json(
     PartnerBountySchema.parse({

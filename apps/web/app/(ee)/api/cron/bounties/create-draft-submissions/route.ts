@@ -52,6 +52,11 @@ export async function POST(req: Request) {
             groupId: true,
           },
         },
+        partnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
         program: {
           select: {
             id: true,
@@ -92,6 +97,9 @@ export async function POST(req: Request) {
     }
 
     const bountyGroupIds = bounty.groups.map(({ groupId }) => groupId);
+    const bountyPartnerTagIds = bounty.partnerTags.map(
+      ({ partnerTagId }) => partnerTagId,
+    );
 
     // Find program enrollments
     const programEnrollments = await prisma.programEnrollment.findMany({
@@ -100,6 +108,15 @@ export async function POST(req: Request) {
         ...(bountyGroupIds.length > 0 && {
           groupId: {
             in: bountyGroupIds,
+          },
+        }),
+        ...(bountyPartnerTagIds.length > 0 && {
+          programPartnerTags: {
+            some: {
+              partnerTagId: {
+                in: bountyPartnerTagIds,
+              },
+            },
           },
         }),
         ...(partnerIds && {
@@ -127,6 +144,11 @@ export async function POST(req: Request) {
         partner: {
           select: {
             name: true,
+          },
+        },
+        programPartnerTags: {
+          select: {
+            partnerTagId: true,
           },
         },
       },

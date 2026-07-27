@@ -77,6 +77,11 @@ export const executeAwardBountyWorkflow = async ({
           groupId: true,
         },
       },
+      partnerTags: {
+        select: {
+          partnerTagId: true,
+        },
+      },
       submissions: {
         select: {
           id: true,

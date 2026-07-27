@@ -1,11 +1,9 @@
-import { Prisma } from "@prisma/client";
+import { BountyGroup, BountyPartnerTag, Workflow } from "@prisma/client";
 
 export type TransformBountyInput = {
-  groups: { groupId: string }[];
-  partnerTags: { partnerTagId: string }[];
-  workflow?: {
-    triggerConditions: Prisma.JsonValue;
-  } | null;
+  groups: Pick<BountyGroup, "groupId">[];
+  partnerTags: Pick<BountyPartnerTag, "partnerTagId">[];
+  workflow?: Pick<Workflow, "triggerConditions"> | null;
 };
 
 export const transformBounty = <T extends TransformBountyInput>(bounty: T) => {
