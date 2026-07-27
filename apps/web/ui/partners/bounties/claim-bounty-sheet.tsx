@@ -8,7 +8,10 @@ import {
   BOUNTY_MAX_SUBMISSION_URLS,
 } from "@/lib/bounty/constants";
 import { getPeriodLabel } from "@/lib/bounty/periods";
-import { resolveBountyDetails } from "@/lib/bounty/utils";
+import {
+  buildInitialSubmissionUrls,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerBountyProps } from "@/lib/types";
@@ -29,7 +32,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
-import { SocialContentUrlField } from "./bounty-social-content";
+import { SocialContentUrlFields } from "./bounty-social-content";
 import {
   ClaimBountyProvider,
   useClaimBountyContext,
@@ -236,7 +239,7 @@ function UrlsField({ bounty }: { bounty: PartnerBountyProps }) {
   const { watch, setValue, getValues } = useClaimBountyForm();
 
   const bountyInfo = resolveBountyDetails(bounty);
-  const socialPlatform = bountyInfo?.socialPlatform;
+  const numSocialSlots = bountyInfo?.socialUrlSlotCount ?? 0;
 
   const urlMax = bounty.submissionRequirements?.url?.max;
   const maxUrls = urlMax ?? BOUNTY_MAX_SUBMISSION_URLS;
@@ -247,7 +250,7 @@ function UrlsField({ bounty }: { bounty: PartnerBountyProps }) {
   const placeholderUrl = firstDomain ? `https://${firstDomain}` : "https://";
 
   const formUrls = watch("urls") ?? [];
-  const displayUrls = socialPlatform ? formUrls.slice(1) : formUrls;
+  const displayUrls = formUrls.slice(numSocialSlots);
   const rows = displayUrls.length > 0 ? displayUrls : [""];
 
   return (
@@ -267,7 +270,7 @@ function UrlsField({ bounty }: { bounty: PartnerBountyProps }) {
               value={url}
               onChange={(e) => {
                 const prev = getValues("urls") ?? [];
-                const idx = socialPlatform ? i + 1 : i;
+                const idx = numSocialSlots + i;
                 const next =
                   prev.length > idx
                     ? [...prev]
@@ -283,7 +286,7 @@ function UrlsField({ bounty }: { bounty: PartnerBountyProps }) {
               className="w-10 shrink-0 bg-red-50 p-0 text-red-700 hover:bg-red-100"
               onClick={() => {
                 const prev = getValues("urls") ?? [];
-                const idx = socialPlatform ? i + 1 : i;
+                const idx = numSocialSlots + i;
                 setValue(
                   "urls",
                   prev.filter((_, j) => j !== idx),
@@ -371,25 +374,17 @@ function ClaimBountySheetContent({
   const {
     socialContentVerifying,
     socialContentRequirementsMet,
-    setSocialContentVerifying,
-    setSocialContentRequirementsMet,
+    resetSocialContentState,
   } = useClaimBountyContext();
 
   const [isDraft, setIsDraft] = useState<boolean | null>(null);
   const [fileUploading, setFileUploading] = useState(false);
 
   const bountyInfo = resolveBountyDetails(bounty);
-  const socialPlatform = bountyInfo?.socialPlatform;
+  const socialPlatforms = bountyInfo?.socialPlatforms ?? [];
   const isSocialMetricsBounty = bountyInfo?.hasSocialMetrics ?? false;
 
-  const initialUrls = (() => {
-    if (submission?.urls && submission.urls.length > 0) {
-      return socialPlatform
-        ? [submission.urls[0] ?? "", ...submission.urls.slice(1)]
-        : [...submission.urls];
-    }
-    return [""];
-  })();
+  const initialUrls = buildInitialSubmissionUrls(bountyInfo, submission?.urls);
 
   const claimForm = useForm<CreateBountySubmissionInput>({
     defaultValues: {
@@ -422,13 +417,8 @@ function ClaimBountySheetContent({
     const b = bountyRef.current;
     const ep = periodNumber ?? 1;
     const sub = b.submissions?.find((s) => s.periodNumber === ep) ?? null;
-    const sp = resolveBountyDetails(b)?.socialPlatform;
 
-    const urls = sub?.urls?.length
-      ? sp
-        ? [sub.urls[0] ?? "", ...sub.urls.slice(1)]
-        : [...sub.urls]
-      : [""];
+    const urls = buildInitialSubmissionUrls(resolveBountyDetails(b), sub?.urls);
 
     const formFiles =
       sub?.files?.map((f) => ({
@@ -452,8 +442,7 @@ function ClaimBountySheetContent({
       })),
     );
 
-    setSocialContentVerifying(false);
-    setSocialContentRequirementsMet(true);
+    resetSocialContentState();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, periodNumber]);
 
@@ -513,7 +502,9 @@ function ClaimBountySheetContent({
     setIsDraft(isDraft);
 
     const finalFiles = claimForm.getValues("files") ?? [];
-    const formUrls = (claimForm.getValues("urls") ?? []).filter(Boolean);
+    const rawUrls = claimForm.getValues("urls") ?? [];
+    const numSocialSlots = bountyInfo?.socialUrlSlotCount ?? 0;
+    const formUrls = rawUrls.filter(Boolean);
     const description = claimForm.getValues("description") ?? "";
 
     try {
@@ -524,8 +515,17 @@ function ClaimBountySheetContent({
           throw new Error("You must upload at least one image.");
         }
 
-        if (socialPlatform && !formUrls[0]?.trim()) {
-          throw new Error(`You must provide the ${socialPlatform.label} link.`);
+        if (bountyInfo?.isAndSocialMetrics) {
+          const missing = socialPlatforms.filter((_, i) => !rawUrls[i]?.trim());
+          if (missing.length > 0) {
+            throw new Error(
+              `You must provide a link for each of: ${missing.map((p) => p.label).join(", ")}.`,
+            );
+          }
+        } else if (numSocialSlots > 0 && !rawUrls[0]?.trim()) {
+          throw new Error(
+            `You must provide the ${socialPlatforms.map((p) => p.label).join(" or ")} link.`,
+          );
         }
 
         if (urlRequired && formUrls.length === 0) {
@@ -570,7 +570,7 @@ function ClaimBountySheetContent({
     fileUploading ||
     isDraft === false ||
     socialContentVerifying ||
-    (!!socialPlatform && !socialContentRequirementsMet);
+    (socialPlatforms.length > 0 && !socialContentRequirementsMet);
 
   const isDisabled = submissionsNotOpenYet || isBusy;
 
@@ -633,7 +633,9 @@ function ClaimBountySheetContent({
                   />
                 )}
                 {urlRequired && <UrlsField bounty={bounty} />}
-                {socialPlatform && <SocialContentUrlField bounty={bounty} />}
+                {socialPlatforms.length > 0 && (
+                  <SocialContentUrlFields bounty={bounty} />
+                )}
                 <DescriptionField />
               </div>
             </div>

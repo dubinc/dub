@@ -1,10 +1,16 @@
 "use client";
 
 import {
+  BOUNTY_SOCIAL_METRIC_LOGIC,
   BOUNTY_SOCIAL_PLATFORM_METRICS_MAP,
   BOUNTY_SOCIAL_PLATFORMS,
 } from "@/lib/bounty/social-content";
-import type { BountySocialMetricsIncrementalBonus } from "@/lib/types";
+import { formatSocialPlatformsList } from "@/lib/bounty/utils";
+import type {
+  BountySocialMetricsIncrementalBonus,
+  BountySocialPlatform,
+  BountySocialPlatformMetric,
+} from "@/lib/types";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
 import {
@@ -34,8 +40,36 @@ import {
 interface SocialMetricsVariableBonusProps {
   variableBonus: BountySocialMetricsIncrementalBonus;
   metricLabel: string;
+  isMultiPlatform: boolean;
   onUpdate: (updates: Partial<BountySocialMetricsIncrementalBonus>) => void;
   onRemove: () => void;
+}
+
+const LOGIC_ITEMS: {
+  value: (typeof BOUNTY_SOCIAL_METRIC_LOGIC)[number];
+  text: string;
+}[] = [
+  { value: "OR", text: "any" },
+  { value: "AND", text: "all" },
+];
+
+// Metrics common to every one of the given platforms
+function getCommonMetrics(
+  platforms: BountySocialPlatform[],
+): BountySocialPlatformMetric[] {
+  if (platforms.length === 0) {
+    return [];
+  }
+
+  return platforms.reduce<BountySocialPlatformMetric[]>(
+    (common, platform) => {
+      const platformMetrics =
+        BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[platform]?.map((m) => m.value) ?? [];
+
+      return common.filter((metric) => platformMetrics.includes(metric));
+    },
+    BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[platforms[0]]?.map((m) => m.value) ?? [],
+  );
 }
 
 export function BountyCriteriaSocialMetrics() {
@@ -47,7 +81,11 @@ export function BountyCriteriaSocialMetrics() {
   ]);
 
   const socialMetrics = submissionRequirements?.socialMetrics;
-  const hasChannel = socialMetrics?.platform != null;
+  const selectedPlatforms: BountySocialPlatform[] =
+    socialMetrics?.platforms ?? [];
+  const hasChannel = selectedPlatforms.length > 0;
+  const isMultiPlatform = selectedPlatforms.length > 1;
+  const logic = socialMetrics?.logic ?? "OR";
   const hasMinCount =
     socialMetrics?.minCount != null && socialMetrics.minCount > 0;
   const hasMetric = socialMetrics?.metric != null;
@@ -69,17 +107,58 @@ export function BountyCriteriaSocialMetrics() {
   };
 
   const channelLabel = hasChannel
-    ? BOUNTY_SOCIAL_PLATFORMS.find((c) => c.value === socialMetrics.platform)
-        ?.label ?? socialMetrics.platform
+    ? formatSocialPlatformsList(
+        selectedPlatforms
+          .map((value) =>
+            BOUNTY_SOCIAL_PLATFORMS.find((c) => c.value === value),
+          )
+          .filter((p): p is (typeof BOUNTY_SOCIAL_PLATFORMS)[number] => !!p),
+        logic,
+      )
     : "channel";
 
+  const commonMetrics = getCommonMetrics(selectedPlatforms);
+  const metricMenuPlatform = selectedPlatforms[0] ?? "youtube";
+  const metricItems = (
+    commonMetrics.length > 0
+      ? commonMetrics
+      : BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[metricMenuPlatform]?.map(
+          (m) => m.value,
+        ) ?? []
+  ).map((value) => ({
+    value,
+    text:
+      BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[metricMenuPlatform]?.find(
+        (m) => m.value === value,
+      )?.label ?? value,
+  }));
+
   const metricLabel = hasMetric
-    ? BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[socialMetrics.platform]?.find(
-        (m) => m.value === socialMetrics.metric,
-      )?.label ?? socialMetrics.metric
+    ? metricItems.find((m) => m.value === socialMetrics!.metric)?.text ??
+      socialMetrics!.metric
     : "metric";
 
-  const metricPlatformForMenu = socialMetrics?.platform ?? "youtube";
+  const togglePlatform = (value: BountySocialPlatform) => {
+    const next = selectedPlatforms.includes(value)
+      ? selectedPlatforms.filter((v) => v !== value)
+      : [...selectedPlatforms, value];
+
+    const nextCommonMetrics = getCommonMetrics(next);
+
+    const metric =
+      socialMetrics?.metric && nextCommonMetrics.includes(socialMetrics.metric)
+        ? socialMetrics.metric
+        : nextCommonMetrics[0] ?? "views";
+
+    updateRequirements({
+      socialMetrics: {
+        ...socialMetrics,
+        logic: socialMetrics?.logic ?? "OR",
+        platforms: next,
+        metric,
+      },
+    });
+  };
 
   return (
     <div className="flex flex-col gap-0">
@@ -89,7 +168,32 @@ export function BountyCriteriaSocialMetrics() {
             <Megaphone className="size-4 text-neutral-800" />
           </div>
           <span className="text-content-emphasis text-sm font-medium leading-relaxed">
-            If their post on{" "}
+            {isMultiPlatform && (
+              <>
+                If{" "}
+                <InlineBadgePopover
+                  text={
+                    LOGIC_ITEMS.find((l) => l.value === logic)?.text ?? "any"
+                  }
+                  buttonClassName="!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
+                >
+                  <InlineBadgePopoverMenu
+                    items={LOGIC_ITEMS}
+                    selectedValue={logic}
+                    onSelect={(value) =>
+                      updateRequirements({
+                        socialMetrics: {
+                          ...socialMetrics!,
+                          logic: value,
+                        },
+                      })
+                    }
+                  />
+                </InlineBadgePopover>{" "}
+                of their posts on{" "}
+              </>
+            )}
+            {!isMultiPlatform && "If their post on "}
             <InlineBadgePopover
               text={channelLabel}
               invalid={!hasChannel}
@@ -104,30 +208,11 @@ export function BountyCriteriaSocialMetrics() {
                   value: c.value,
                   text: c.label,
                 }))}
-                selectedValue={socialMetrics?.platform}
-                onSelect={(value) => {
-                  const platformMetrics =
-                    BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[value];
-
-                  const metric =
-                    socialMetrics?.metric &&
-                    platformMetrics?.some(
-                      (m) => m.value === socialMetrics.metric,
-                    )
-                      ? socialMetrics.metric
-                      : platformMetrics?.[0]?.value ?? "views";
-
-                  updateRequirements({
-                    socialMetrics: {
-                      ...socialMetrics,
-                      platform: value,
-                      metric,
-                    },
-                  });
-                }}
+                selectedValue={selectedPlatforms}
+                onSelect={togglePlatform}
               />
             </InlineBadgePopover>{" "}
-            has at least{" "}
+            {isMultiPlatform ? "have" : "has"} at least{" "}
             <InlineBadgePopover
               text={
                 hasMinCount
@@ -157,7 +242,8 @@ export function BountyCriteriaSocialMetrics() {
                     updateRequirements({
                       socialMetrics: {
                         ...socialMetrics,
-                        platform: socialMetrics?.platform ?? "youtube",
+                        logic: socialMetrics?.logic ?? "OR",
+                        platforms: selectedPlatforms,
                         metric: socialMetrics?.metric ?? "views",
                         minCount: 0,
                       },
@@ -170,7 +256,8 @@ export function BountyCriteriaSocialMetrics() {
                   updateRequirements({
                     socialMetrics: {
                       ...socialMetrics,
-                      platform: socialMetrics?.platform ?? "youtube",
+                      logic: socialMetrics?.logic ?? "OR",
+                      platforms: selectedPlatforms,
                       metric: socialMetrics?.metric ?? "views",
                       minCount: Number.isNaN(num) ? 0 : Math.max(0, num),
                     },
@@ -189,17 +276,14 @@ export function BountyCriteriaSocialMetrics() {
               }
             >
               <InlineBadgePopoverMenu
-                items={
-                  BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[
-                    metricPlatformForMenu
-                  ]?.map((m) => ({ value: m.value, text: m.label })) ?? []
-                }
+                items={metricItems}
                 selectedValue={socialMetrics?.metric}
                 onSelect={(v) =>
                   updateRequirements({
                     socialMetrics: {
                       ...socialMetrics,
-                      platform: socialMetrics?.platform ?? "youtube",
+                      logic: socialMetrics?.logic ?? "OR",
+                      platforms: selectedPlatforms,
                       metric: v,
                     },
                   })
@@ -265,6 +349,7 @@ export function BountyCriteriaSocialMetrics() {
         <SocialMetricsIncrementalBonus
           variableBonus={incrementalBonus}
           metricLabel={metricLabel}
+          isMultiPlatform={isMultiPlatform}
           onUpdate={(updates) =>
             updateRequirements({
               socialMetrics: {
@@ -293,6 +378,7 @@ export function BountyCriteriaSocialMetrics() {
 function SocialMetricsIncrementalBonus({
   variableBonus,
   metricLabel,
+  isMultiPlatform,
   onUpdate,
   onRemove,
 }: SocialMetricsVariableBonusProps) {
@@ -305,7 +391,11 @@ function SocialMetricsIncrementalBonus({
             Variable bonus
           </span>
           <Tooltip
-            content="Partners earn the base payout when they hit the threshold, plus an extra amount for each additional increment up to the cap."
+            content={
+              isMultiPlatform
+                ? "Partners earn the base payout once all criteria are met, plus an extra amount for each additional increment reached on each platform, up to the cap."
+                : "Partners earn the base payout when they hit the threshold, plus an extra amount for each additional increment up to the cap."
+            }
             side="top"
           >
             <div className="text-neutral-400 hover:text-neutral-600">
@@ -376,6 +466,7 @@ function SocialMetricsIncrementalBonus({
                 />
               </InlineBadgePopover>{" "}
               {metricLabel}
+              {isMultiPlatform ? " on each platform" : ""}
             </span>
           </div>
         </div>
@@ -413,6 +504,7 @@ function SocialMetricsIncrementalBonus({
                   onChange={(v) => onUpdate({ bonusPerIncrement: v })}
                 />
               </InlineBadgePopover>
+              {isMultiPlatform ? " per platform" : ""}
             </span>
           </div>
         </div>
@@ -461,6 +553,7 @@ function SocialMetricsIncrementalBonus({
                 />
               </InlineBadgePopover>{" "}
               {metricLabel}
+              {isMultiPlatform ? " on each platform" : ""}
             </span>
           </div>
         </div>

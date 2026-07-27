@@ -7,8 +7,11 @@ import {
   BOUNTY_MAX_SUBMISSIONS,
 } from "@/lib/bounty/constants";
 import {
+  BOUNTY_SOCIAL_METRIC_LOGIC,
   BOUNTY_SOCIAL_PLATFORM_METRICS,
+  BOUNTY_SOCIAL_PLATFORM_METRICS_MAP,
   BOUNTY_SOCIAL_PLATFORM_VALUES,
+  BOUNTY_SOCIAL_PLATFORMS,
 } from "@/lib/bounty/social-content";
 import {
   BountyPerformanceScope,
@@ -52,16 +55,84 @@ export const bountySocialContentIncrementalBonusSchema = z
     },
   );
 
-export const bountySocialContentRequirementsSchema = z.object({
-  platform: z.enum(BOUNTY_SOCIAL_PLATFORM_VALUES),
-  metric: z.enum(BOUNTY_SOCIAL_PLATFORM_METRICS),
-  minCount: z
+// Backward compatible: legacy bounties stored a single `platform` instead of
+// `platforms`. Normalize that shape to the new multi-platform shape so old
+// data keeps parsing correctly (as a single-platform, "OR" logic bounty).
+export const bountySocialContentRequirementsSchema = z.preprocess(
+  (value) => {
+    if (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      "platform" in value &&
+      !("platforms" in value)
+    ) {
+      const { platform, ...rest } = value as Record<string, unknown>;
+
+      return {
+        logic: "OR",
+        platforms: [platform],
+        ...rest,
+      };
+    }
+
+    return value;
+  },
+  z
+    .object({
+      logic: z
+        .enum(BOUNTY_SOCIAL_METRIC_LOGIC)
+        .default("OR")
+        .describe(
+          "How the selected platforms are combined: OR (any one platform) or AND (every platform)",
+        ),
+      platforms: z
+        .array(z.enum(BOUNTY_SOCIAL_PLATFORM_VALUES))
+        .min(1)
+        .max(BOUNTY_SOCIAL_PLATFORMS.length)
+        .describe(
+          "The social platform(s) content must be submitted from. A single platform behaves the same regardless of `logic`; multiple platforms are combined using `logic` (OR: any one platform reaching the target qualifies; AND: every platform must reach the target).",
+        ),
+      metric: z
+        .enum(BOUNTY_SOCIAL_PLATFORM_METRICS)
+        .describe(
+          "The social metric (e.g. views, likes) to track against `minCount`. Must be supported by every platform in `platforms`.",
+        ),
+      minCount: z
+        .number()
+        .int()
+        .positive()
+        .optional()
+        .describe("Minimum metric required for eligibility"),
+      incrementalBonus: bountySocialContentIncrementalBonusSchema.optional(),
+    })
+    .refine(
+      (data) =>
+        data.platforms.every((platform) =>
+          BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[platform]?.some(
+            (m) => m.value === data.metric,
+          ),
+        ),
+      {
+        message: "Selected metric isn't available on all selected platforms.",
+        path: ["metric"],
+      },
+    ),
+);
+
+export const bountySocialMetricResultSchema = z.object({
+  platform: z
+    .enum(BOUNTY_SOCIAL_PLATFORM_VALUES)
+    .describe("The social platform this result was scraped from."),
+  url: z.string().describe("The submitted URL for this platform."),
+  metricCount: z
     .number()
     .int()
-    .positive()
-    .optional()
-    .describe("Minimum metric required for eligibility"),
-  incrementalBonus: bountySocialContentIncrementalBonusSchema.optional(),
+    .nullable()
+    .describe("The scraped metric count for this platform's content."),
+  meetsCriteria: z
+    .boolean()
+    .describe("Whether this platform's content meets the metric target."),
 });
 
 export const submissionRequirementsSchema = z.object({
@@ -76,7 +147,14 @@ export const submissionRequirementsSchema = z.object({
       domains: z.array(z.string()).optional(),
     })
     .optional(),
-  socialMetrics: bountySocialContentRequirementsSchema.optional(),
+  socialMetrics: bountySocialContentRequirementsSchema
+    .optional()
+    .describe(
+      "Social media engagement requirements. Accepts either the current shape " +
+        "(`{ platforms: string[], logic: 'OR' | 'AND', metric, minCount, incrementalBonus }`) " +
+        "or, for backward compatibility, the legacy single-platform shape (`{ platform: string, metric, minCount, incrementalBonus }`), " +
+        "which is normalized to `platforms: [platform], logic: 'OR'` on read.",
+    ),
 });
 
 export const createBountySchema = z.object({
@@ -199,6 +277,14 @@ export const BountySubmissionSchema = z.object({
     description:
       "The social metric count (views or likes) for the social content",
   }),
+  socialMetricResults: z
+    .array(bountySocialMetricResultSchema)
+    .nullable()
+    .optional()
+    .meta({
+      description:
+        "Per-platform breakdown of social metrics for this submission (populated for multi-platform bounties)",
+    }),
   socialMetricsLastSyncedAt: z.date().nullable().optional().meta({
     description:
       "The date and time the submission's social metrics were last synced",

@@ -5,7 +5,10 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
 import { addFrequency, getCurrentPeriodNumber } from "@/lib/bounty/periods";
-import { resolveBountyDetails } from "@/lib/bounty/utils";
+import {
+  formatSocialPlatformsList,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
 import { prisma } from "@/lib/prisma";
 import {
   createBountySubmissionInputSchema,
@@ -14,7 +17,7 @@ import {
 import { sendBatchEmail, sendEmail } from "@dub/email";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
-import { getDomainWithoutWWW, isValidUrl, R2_URL } from "@dub/utils";
+import { getDomainWithoutWWW, R2_URL } from "@dub/utils";
 import {
   BountySubmission,
   Partner,
@@ -25,7 +28,7 @@ import {
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";
 import * as z from "zod/v4";
-import { SOCIAL_URL_HOST_TO_PLATFORM } from "../social-content";
+import { getPlatformFromSocialUrl } from "../social-content";
 
 type CreateBountySubmissionParams = z.infer<
   typeof createBountySubmissionInputSchema
@@ -445,119 +448,199 @@ export class BountySubmissionHandler {
       return;
     }
 
-    const contentUrl = this.urls[0];
+    const { logic, minCount, metric } = bountyInfo.socialMetrics;
+    const platforms = bountyInfo.socialPlatforms;
 
-    if (!bountyInfo.socialPlatform) {
+    if (platforms.length === 0) {
       throw new DubApiError({
         code: "bad_request",
         message: "Invalid bounty platform.",
       });
     }
 
-    const platform = bountyInfo.socialPlatform;
+    // AND only makes sense with 2+ platforms — otherwise behaves like OR
+    const isAnd = logic === "AND" && platforms.length > 1;
+    const platformsList = formatSocialPlatformsList(platforms, logic);
 
-    if (!contentUrl) {
+    const submittedUrls = this.urls.filter(Boolean);
+
+    if (submittedUrls.length === 0) {
       throw new DubApiError({
         code: "unprocessable_entity",
-        message: `You must provide a ${platform.label} URL to submit this bounty.`,
+        message: isAnd
+          ? `You must provide a link for each of: ${platforms.map((p) => p.label).join(", ")}.`
+          : `You must provide a ${platformsList} URL to submit this bounty.`,
       });
     }
 
-    const urlPlatform = getPlatformFromSocialUrl(contentUrl);
+    const detectedUrls = submittedUrls.map((url) => ({
+      url,
+      platform: getPlatformFromSocialUrl(url),
+    }));
 
-    if (urlPlatform !== platform.value) {
+    const unmatchedUrls = detectedUrls.filter(
+      ({ platform }) =>
+        !platform || !platforms.some((p) => p.value === platform),
+    );
+
+    if (unmatchedUrls.length > 0) {
       throw new DubApiError({
         code: "unprocessable_entity",
-        message: `This link must be a ${platform.label} link. You submitted a link from another platform.`,
+        message:
+          platforms.length > 1
+            ? `Each link must be from one of: ${platforms.map((p) => p.label).join(", ")}.`
+            : `This link must be a ${platforms[0].label} link. You submitted a link from another platform.`,
       });
     }
 
-    const partnerPlatform = await prisma.partnerPlatform.findUnique({
-      where: {
-        partnerId_type: {
-          partnerId: this.partner.id,
-          type: platform.value,
+    // OR: only the first submitted (and matched) URL is considered.
+    // AND: resolve at most one URL per required platform (first match wins).
+    const pendingChecks: { platform: string; label: string; url: string }[] =
+      isAnd
+        ? platforms.flatMap((platform) => {
+            const match = detectedUrls.find(
+              (d) => d.platform === platform.value,
+            );
+
+            return match
+              ? [
+                  {
+                    platform: platform.value,
+                    label: platform.label,
+                    url: match.url,
+                  },
+                ]
+              : [];
+          })
+        : [
+            {
+              platform: detectedUrls[0].platform!,
+              label: platforms.find(
+                (p) => p.value === detectedUrls[0].platform,
+              )!.label,
+              url: detectedUrls[0].url,
+            },
+          ];
+
+    const results: {
+      platform: string;
+      url: string;
+      metricCount: number | null;
+      meetsCriteria: boolean;
+    }[] = [];
+
+    for (const check of pendingChecks) {
+      const partnerPlatform = await prisma.partnerPlatform.findUnique({
+        where: {
+          partnerId_type: {
+            partnerId: this.partner.id,
+            type: check.platform as PlatformType,
+          },
         },
-      },
-      select: {
-        identifier: true,
-        verifiedAt: true,
-      },
-    });
+        select: {
+          identifier: true,
+          verifiedAt: true,
+        },
+      });
 
-    if (!partnerPlatform) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: `You must connect your ${platform.label} account to your profile before submitting this bounty.`,
+      if (!partnerPlatform) {
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: `You must connect your ${check.label} account to your profile before submitting this bounty.`,
+        });
+      }
+
+      if (!partnerPlatform.verifiedAt) {
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: `You must verify your ${check.label} account before submitting this bounty.`,
+        });
+      }
+
+      const socialContent = await getSocialContent({
+        platform: check.platform as PlatformType,
+        url: check.url,
+      });
+
+      if (!socialContent.handle || !socialContent.publishedAt) {
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message:
+            "We were unable to verify this content. Please review the submission and try again.",
+        });
+      }
+
+      if (
+        socialContent.handle.toLowerCase() !==
+        partnerPlatform.identifier.toLowerCase()
+      ) {
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: `The content was not published from your connected ${check.label} account.`,
+        });
+      }
+
+      if (
+        socialContent.publishedAt &&
+        this.bounty.startsAt &&
+        isBefore(socialContent.publishedAt, this.bounty.startsAt)
+      ) {
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message:
+            "This content was published before the bounty started. Please submit content posted after the start date.",
+        });
+      }
+
+      const metricValue = socialContent[metric];
+      const metricCount =
+        typeof metricValue === "number" && Number.isInteger(metricValue)
+          ? metricValue
+          : null;
+
+      results.push({
+        platform: check.platform,
+        url: check.url,
+        metricCount,
+        meetsCriteria:
+          metricCount != null && !!minCount && metricCount >= minCount,
       });
     }
 
-    if (!partnerPlatform.verifiedAt) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: `You must verify your ${platform.label} account before submitting this bounty.`,
-      });
-    }
+    const hasAllRequiredPlatforms = isAnd
+      ? platforms.every((p) => results.some((r) => r.platform === p.value))
+      : results.length > 0;
 
-    const socialContent = await getSocialContent({
-      platform: platform.value,
-      url: contentUrl,
-    });
+    const validCounts = results
+      .map((r) => r.metricCount)
+      .filter((c): c is number => c != null);
 
-    if (!socialContent.handle || !socialContent.publishedAt) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message:
-          "We were unable to verify this content. Please review the submission and try again.",
-      });
-    }
+    const aggregateMetricCount =
+      isAnd && hasAllRequiredPlatforms && validCounts.length === results.length
+        ? Math.min(...validCounts)
+        : !isAnd
+          ? results[0]?.metricCount ?? null
+          : null;
 
-    if (
-      socialContent.handle.toLowerCase() !==
-      partnerPlatform.identifier.toLowerCase()
-    ) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: `The content was not published from your connected ${platform.label} account.`,
-      });
-    }
-
-    if (
-      socialContent.publishedAt &&
-      this.bounty.startsAt &&
-      isBefore(socialContent.publishedAt, this.bounty.startsAt)
-    ) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message:
-          "This content was published before the bounty started. Please submit content posted after the start date.",
-      });
-    }
+    const hasMetCriteria =
+      hasAllRequiredPlatforms &&
+      aggregateMetricCount != null &&
+      !!minCount &&
+      aggregateMetricCount >= minCount;
 
     this.submissionData = {
       ...this.submissionData,
       status: "draft",
       completedAt: null,
+      urls: pendingChecks.map((c) => c.url),
+      socialMetricResults: results,
+      socialMetricCount: aggregateMetricCount,
+      socialMetricsLastSyncedAt: new Date(),
     };
 
-    const metricValue = socialContent[bountyInfo.socialMetrics!.metric];
-
-    if (typeof metricValue === "number" && Number.isInteger(metricValue)) {
-      this.submissionData = {
-        ...this.submissionData,
-        urls: [contentUrl],
-        socialMetricCount: metricValue,
-        socialMetricsLastSyncedAt: new Date(),
-      };
-
-      if (
-        metricValue &&
-        bountyInfo.socialMetrics!.minCount &&
-        metricValue >= bountyInfo.socialMetrics!.minCount
-      ) {
-        this.submissionData.status = "submitted";
-        this.submissionData.completedAt = new Date();
-      }
+    if (hasMetCriteria) {
+      this.submissionData.status = "submitted";
+      this.submissionData.completedAt = new Date();
     }
   }
 
@@ -677,22 +760,5 @@ export class BountySubmissionHandler {
         }
       })(),
     );
-  }
-}
-
-function getPlatformFromSocialUrl(url: string): PlatformType | null {
-  const trimmed = url?.trim();
-
-  if (!trimmed || !isValidUrl(trimmed)) {
-    return null;
-  }
-
-  try {
-    const parsed = new URL(trimmed);
-    const host = parsed.hostname.replace(/^www\./, "");
-
-    return SOCIAL_URL_HOST_TO_PLATFORM[host] ?? null;
-  } catch {
-    return null;
   }
 }

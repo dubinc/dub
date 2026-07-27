@@ -5,7 +5,14 @@ import {
   BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_URLS,
 } from "@/lib/bounty/constants";
-import { resolveBountyDetails } from "@/lib/bounty/utils";
+import {
+  BOUNTY_SOCIAL_PLATFORMS,
+  getPlatformFromSocialUrl,
+} from "@/lib/bounty/social-content";
+import {
+  formatSocialPlatformsList,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
 import { PartnerBountyProps, PartnerPlatformProps } from "@/lib/types";
 import { evaluateSocialContentRequirements } from "@/ui/partners/bounties/evaluate-social-content-requirements";
 import { X } from "@/ui/shared/icons";
@@ -18,6 +25,7 @@ import {
   Trash,
 } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
+import { PlatformType } from "@prisma/client";
 import { AlertTriangle } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import ReactTextareaAutosize from "react-textarea-autosize";
@@ -207,6 +215,7 @@ export function EmbedImagesField({
 
 export function EmbedSocialUrlField({
   bounty,
+  platforms,
   value,
   onChange,
   partnerPlatform,
@@ -214,14 +223,13 @@ export function EmbedSocialUrlField({
   onRequirementsMetChange,
 }: {
   bounty: PartnerBountyProps;
+  platforms: (typeof BOUNTY_SOCIAL_PLATFORMS)[number][];
   value: string;
   onChange: (v: string) => void;
   partnerPlatform?: Pick<PartnerPlatformProps, "identifier" | "verifiedAt">;
   onVerifyingChange: (value: boolean) => void;
   onRequirementsMetChange: (value: boolean) => void;
 }) {
-  const bountyInfo = resolveBountyDetails(bounty);
-  const socialPlatform = bountyInfo?.socialPlatform;
   const inputId = useId();
   const [urlToCheck, setUrlToCheck] = useState("");
 
@@ -240,7 +248,11 @@ export function EmbedSocialUrlField({
     return () => onVerifyingChange(false);
   }, [isValidating, onVerifyingChange]);
 
-  if (!socialPlatform) return null;
+  const detectedPlatform = getPlatformFromSocialUrl(value);
+  const matchedPlatform =
+    platforms.find((p) => p.value === detectedPlatform) ?? platforms[0];
+
+  if (!matchedPlatform) return null;
 
   const { isPostedFromYourAccount, isAfterStartDate } =
     evaluateSocialContentRequirements({
@@ -262,12 +274,16 @@ export function EmbedSocialUrlField({
   }, [isAfterStartDate, isPostedFromYourAccount, onRequirementsMetChange]);
 
   const showIcon = isValidating || (!!error && !!urlToCheck);
+  const isSinglePlatform = platforms.length === 1;
+  const label = isSinglePlatform
+    ? `${matchedPlatform.label} URL`
+    : `${formatSocialPlatformsList(platforms, "OR")} URL`;
 
   return (
     <div>
       <label htmlFor={inputId} className="block">
         <span className="text-content-emphasis text-sm font-medium">
-          {`${socialPlatform.label} URL`}
+          {label}
         </span>
       </label>
       <div className="relative mt-2">
@@ -276,7 +292,7 @@ export function EmbedSocialUrlField({
           type="text"
           inputMode="url"
           autoComplete="url"
-          placeholder={socialPlatform.placeholder}
+          placeholder={matchedPlatform.placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={(e) => {
@@ -345,6 +361,96 @@ export function EmbedSocialUrlField({
           </li>
         )}
       </ul>
+    </div>
+  );
+}
+
+/**
+ * Renders the social content URL field(s) for a bounty in the embed widget: a single
+ * field accepting any of the allowed platforms for OR bounties, or one field per
+ * required platform for AND bounties.
+ */
+export function EmbedSocialUrlFields({
+  bounty,
+  urls,
+  setUrls,
+  partnerPlatforms,
+  verifyingBySlot,
+  setVerifyingBySlot,
+  requirementsMetBySlot,
+  setRequirementsMetBySlot,
+}: {
+  bounty: PartnerBountyProps;
+  urls: string[];
+  setUrls: React.Dispatch<React.SetStateAction<string[]>>;
+  partnerPlatforms: Array<{
+    type: PlatformType;
+    identifier: string;
+    verifiedAt: Date | null;
+  }>;
+  verifyingBySlot: Record<number, boolean>;
+  setVerifyingBySlot: React.Dispatch<
+    React.SetStateAction<Record<number, boolean>>
+  >;
+  requirementsMetBySlot: Record<number, boolean>;
+  setRequirementsMetBySlot: React.Dispatch<
+    React.SetStateAction<Record<number, boolean>>
+  >;
+}) {
+  const bountyInfo = resolveBountyDetails(bounty);
+  const platforms = bountyInfo?.socialPlatforms ?? [];
+
+  if (platforms.length === 0) {
+    return null;
+  }
+
+  const setSlotVerifying = (slot: number, value: boolean) =>
+    setVerifyingBySlot((prev) =>
+      prev[slot] === value ? prev : { ...prev, [slot]: value },
+    );
+
+  const setSlotRequirementsMet = (slot: number, value: boolean) =>
+    setRequirementsMetBySlot((prev) =>
+      prev[slot] === value ? prev : { ...prev, [slot]: value },
+    );
+
+  const fieldPlatforms = bountyInfo?.isAndSocialMetrics
+    ? platforms.map((p) => [p])
+    : [platforms];
+
+  return (
+    <div className="flex flex-col gap-5">
+      {fieldPlatforms.map((fieldPlatformSet, slot) => {
+        const detectedPlatform = getPlatformFromSocialUrl(urls[slot] ?? "");
+        const matchedPlatform =
+          fieldPlatformSet.find((p) => p.value === detectedPlatform) ??
+          fieldPlatformSet[0];
+        const partnerPlatform = partnerPlatforms.find(
+          (p) => p.type === matchedPlatform?.value,
+        );
+
+        return (
+          <EmbedSocialUrlField
+            key={matchedPlatform?.value ?? slot}
+            bounty={bounty}
+            platforms={fieldPlatformSet}
+            value={urls[slot] ?? ""}
+            onChange={(v) =>
+              setUrls((prev) => {
+                const next =
+                  prev.length > slot
+                    ? [...prev]
+                    : [...prev, ...Array(slot - prev.length + 1).fill("")];
+                next[slot] = v;
+                return next;
+              })
+            }
+            partnerPlatform={partnerPlatform}
+            onVerifyingChange={(v) => setSlotVerifying(slot, v)}
+            onRequirementsMetChange={(v) => setSlotRequirementsMet(slot, v)}
+          />
+        );
+      })}
     </div>
   );
 }

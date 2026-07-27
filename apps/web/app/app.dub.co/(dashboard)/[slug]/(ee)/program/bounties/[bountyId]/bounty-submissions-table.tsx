@@ -3,7 +3,10 @@
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { BountySubmissionStatusBadges } from "@/lib/bounty/bounty-submission-status-badges";
-import { resolveBountyDetails } from "@/lib/bounty/utils";
+import {
+  formatSocialPlatformsList,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
@@ -320,12 +323,12 @@ export function BountySubmissionsTable() {
         : []),
 
       ...(showColumns.includes("socialMetrics") &&
-      bountyInfo?.socialPlatform &&
+      bountyInfo?.socialPlatforms.length &&
       bountyInfo?.socialMetrics
         ? [
             {
               id: "socialMetricCount",
-              header: `${bountyInfo.socialPlatform.label} ${capitalize(bountyInfo.socialMetrics.metric)}`,
+              header: `${formatSocialPlatformsList(bountyInfo.socialPlatforms, bountyInfo.isAndSocialMetrics ? "AND" : "OR")} ${capitalize(bountyInfo.socialMetrics.metric)}`,
               cell: ({ row }: { row: Row<BountySubmissionProps> }) => {
                 const value = row.original.socialMetricCount ?? 0;
                 const minCount = bountyInfo.socialMetrics?.minCount ?? 0;

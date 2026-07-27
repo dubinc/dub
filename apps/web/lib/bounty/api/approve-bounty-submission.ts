@@ -7,6 +7,7 @@ import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-com
 import { prisma } from "@/lib/prisma";
 import {
   approveBountySubmissionBodySchema,
+  bountySocialMetricResultSchema,
   BountySubmissionSchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
@@ -39,6 +40,7 @@ export async function approveBountySubmission({
       bountyId: true,
       status: true,
       socialMetricCount: true,
+      socialMetricResults: true,
       bounty: {
         select: {
           name: true,
@@ -91,9 +93,15 @@ export async function approveBountySubmission({
   let finalRewardAmount = bounty.rewardAmount ?? rewardAmount;
 
   if (bountyInfo?.hasSocialMetrics) {
+    const socialMetricResults = z
+      .array(bountySocialMetricResultSchema)
+      .nullable()
+      .catch(null)
+      .parse(submission.socialMetricResults);
+
     const socialRewardAmount = calculateSocialMetricsRewardAmount({
       bounty,
-      submission,
+      submission: { ...submission, socialMetricResults },
     });
 
     finalRewardAmount = socialRewardAmount;

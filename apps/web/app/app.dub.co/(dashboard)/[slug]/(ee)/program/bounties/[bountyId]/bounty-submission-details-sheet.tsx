@@ -10,10 +10,9 @@ import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
 import { useConfirmApproveBountySubmissionModal } from "@/ui/modals/confirm-approve-bounty-submission-modal";
-import { PLATFORM_ICONS } from "@/ui/partners/bounties/bounty-platform-icons";
-import { EmphasisNumber } from "@/ui/partners/bounties/bounty-progress-bar-row";
 import { getBountyRewardCriteria } from "@/ui/partners/bounties/bounty-reward-criteria";
 import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
+import { BountySocialMetricsProgress } from "@/ui/partners/bounties/bounty-social-metrics-progress";
 import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
 import { useRejectBountySubmissionModal } from "@/ui/partners/bounties/reject-bounty-submission-modal";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
@@ -37,7 +36,6 @@ import {
   currencyFormatter,
   formatDate,
   getPrettyUrl,
-  nFormatter,
   timeAgo,
 } from "@dub/utils";
 import Linkify from "linkify-react";
@@ -165,18 +163,6 @@ function BountySubmissionDetailsSheetContent({
 
   const hasSocialContent =
     bountyInfo?.hasSocialMetrics && (submission.urls?.length ?? 0) > 0;
-
-  const socialPlatform = bountyInfo?.socialPlatform;
-  const SocialPlatformIcon = socialPlatform
-    ? PLATFORM_ICONS[socialPlatform.value]
-    : null;
-  const socialMetricCount = submission.socialMetricCount ?? 0;
-  const socialMinCount = bountyInfo?.socialMetrics?.minCount ?? 0;
-  const socialMetricPercent =
-    socialMinCount > 0
-      ? Math.min((socialMetricCount / socialMinCount) * 100, 100)
-      : 100;
-  const socialMetricComplete = socialMetricPercent >= 100;
 
   return (
     <div className="flex h-full flex-col">
@@ -401,33 +387,10 @@ function BountySubmissionDetailsSheetContent({
                 {hasSocialContent && (
                   <div className="rounded-xl border border-neutral-200 bg-neutral-50">
                     <div className="flex flex-col gap-3 px-4 pb-3 pt-4">
-                      <div className="h-1 w-full rounded-full bg-neutral-200">
-                        <div
-                          className={cn(
-                            "h-full rounded-full",
-                            socialMetricComplete
-                              ? "bg-green-600"
-                              : "bg-amber-600",
-                          )}
-                          style={{ width: `${socialMetricPercent}%` }}
-                        />
-                      </div>
-
-                      {SocialPlatformIcon && bountyInfo?.socialMetrics && (
-                        <div className="flex items-center gap-2">
-                          <SocialPlatformIcon className="size-4 shrink-0" />
-                          <p className="text-sm font-medium text-neutral-600">
-                            <EmphasisNumber>
-                              {nFormatter(socialMetricCount, { full: true })}
-                            </EmphasisNumber>
-                            {" of "}
-                            <EmphasisNumber>
-                              {nFormatter(socialMinCount, { full: true })}
-                            </EmphasisNumber>
-                            {` ${bountyInfo.socialMetrics.metric} generated`}
-                          </p>
-                        </div>
-                      )}
+                      <BountySocialMetricsProgress
+                        bounty={bounty}
+                        submission={submission}
+                      />
                     </div>
                     <BountySocialContentPreview
                       bounty={bounty}

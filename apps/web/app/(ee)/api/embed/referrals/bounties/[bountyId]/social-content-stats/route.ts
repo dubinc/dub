@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
+import { getPlatformFromSocialUrl } from "@/lib/bounty/social-content";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { ratelimit } from "@/lib/upstash";
@@ -81,8 +82,20 @@ export const GET = withReferralsEmbedToken(
       });
     }
 
+    const platform = getPlatformFromSocialUrl(url);
+
+    if (
+      !platform ||
+      !bountyInfo.socialPlatforms.some((p) => p.value === platform)
+    ) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `This link must be from one of: ${bountyInfo.socialPlatforms.map((p) => p.label).join(", ")}.`,
+      });
+    }
+
     const content = await getSocialContent({
-      platform: bountyInfo.socialMetrics.platform,
+      platform,
       url,
     });
 
