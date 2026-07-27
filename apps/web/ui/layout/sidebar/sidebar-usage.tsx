@@ -217,7 +217,7 @@ function UsageInner() {
                   paymentFailedAt && "text-red-600",
                 )}
               >
-                {paymentFailedAt
+                {paymentFailedAt && plan !== "free"
                   ? "Your last payment failed. Please update your payment method to continue using Dub."
                   : isTrial && trialEndsAt
                     ? null
@@ -228,7 +228,7 @@ function UsageInner() {
             )}
           </div>
 
-          {paymentFailedAt ? (
+          {paymentFailedAt && plan !== "free" ? (
             <DynamicTooltipWrapper
               tooltipProps={
                 permissionsError ? { content: permissionsError } : undefined
@@ -237,7 +237,7 @@ function UsageInner() {
               <Button
                 text="Retry payment"
                 variant="primary"
-                className="mt-4 w-full"
+                className="mt-4 h-8 w-full rounded-lg"
                 disabled={Boolean(permissionsError)}
                 onClick={() => setShowRetryPaymentModal(true)}
                 onMouseEnter={() => {
