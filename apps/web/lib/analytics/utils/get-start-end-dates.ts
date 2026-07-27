@@ -8,22 +8,30 @@ export const getStartEndDates = ({
   end,
   dataAvailableFrom,
   timezone,
+  preserveTime = false,
 }: {
   interval?: string;
   start?: string | Date | null;
   end?: string | Date | null;
   dataAvailableFrom?: Date;
   timezone?: string;
+  // When true, custom `start`/`end` are respected with full time-of-day
+  // precision instead of being floored/ceiled to calendar-day boundaries.
+  preserveTime?: boolean;
 }) => {
   let startDate: TZDate;
   let endDate: TZDate;
   let granularity: "minute" | "hour" | "day" | "month" = "day";
 
   if (start || (interval === "all" && dataAvailableFrom)) {
-    startDate = startOfDay(
-      new TZDate(new Date(start ?? dataAvailableFrom ?? Date.now()), timezone),
+    const rawStart = new TZDate(
+      new Date(start ?? dataAvailableFrom ?? Date.now()),
+      timezone,
     );
-    endDate = endOfDay(new TZDate(new Date(end ?? Date.now()), timezone));
+    const rawEnd = new TZDate(new Date(end ?? Date.now()), timezone);
+
+    startDate = preserveTime ? rawStart : startOfDay(rawStart);
+    endDate = preserveTime ? rawEnd : endOfDay(rawEnd);
 
     const daysDifference = differenceInDays(endDate, startDate, {
       in: timezone ? tz(timezone) : undefined,

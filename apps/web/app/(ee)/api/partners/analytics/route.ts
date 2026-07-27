@@ -79,6 +79,7 @@ export const GET = withWorkspace(
       end,
       timezone,
       query,
+      preserveTime: true,
     });
 
     const { startDate, endDate, granularity } = getStartEndDates({
@@ -86,6 +87,7 @@ export const GET = withWorkspace(
       start,
       end,
       timezone,
+      preserveTime: true,
     });
 
     // Group by count

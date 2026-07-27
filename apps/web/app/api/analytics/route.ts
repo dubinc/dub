@@ -123,6 +123,7 @@ export const GET = withWorkspace(
       groupBy,
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,
+      preserveTime: true,
       // dataAvailableFrom is only relevant for timeseries groupBy
       ...(groupBy === "timeseries" && {
         dataAvailableFrom: programStartedAt ?? workspace.createdAt,

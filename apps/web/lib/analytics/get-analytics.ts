@@ -41,6 +41,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     isDeprecatedClicksEndpoint = false,
     dataAvailableFrom,
     query,
+    preserveTime,
   } = params;
 
   const normalizedLinkId = ensureParsedFilter(linkId);
@@ -85,6 +86,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     end,
     dataAvailableFrom,
     timezone,
+    preserveTime,
   });
 
   const { triggerForPipe, countryForPipe, regionForPipe } =
