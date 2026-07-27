@@ -83,6 +83,9 @@ export async function captureRequestLog({
     responseBody = await responseClone.json();
   } catch {}
 
+  const queryParams =
+    url.searchParams.size > 0 ? Object.fromEntries(url.searchParams) : null;
+
   // Mask sensitive fields in the response body
   if (responseBody) {
     const sensitiveResponseFields =
@@ -105,6 +108,7 @@ export async function captureRequestLog({
     duration,
     userAgent: requestHeaders.get("user-agent"),
     requestBody,
+    queryParams,
     responseBody,
     tokenId: token?.id ?? null,
     userId: session?.user?.id ?? null,

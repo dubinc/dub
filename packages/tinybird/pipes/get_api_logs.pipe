@@ -11,6 +11,7 @@ SQL >
         duration,
         user_agent,
         request_body,
+        query_params,
         response_body,
         token_id,
         user_id,
