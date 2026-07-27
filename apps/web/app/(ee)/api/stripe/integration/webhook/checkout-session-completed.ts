@@ -1,5 +1,9 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import {
+  invoiceDedupeKey,
+  legacyStripeInvoiceDedupeKey,
+} from "@/lib/api/conversions/invoice-idempotency";
 import { createId } from "@/lib/api/create-id";
 import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { includeTags } from "@/lib/api/links/include-tags";
@@ -334,9 +338,24 @@ export async function checkoutSessionCompleted({
   }
 
   if (invoiceId) {
+    const legacyRecord = await redis.get(
+      legacyStripeInvoiceDedupeKey(invoiceId),
+    );
+
+    if (legacyRecord) {
+      console.info(
+        "[checkout.session.completed] Skipping already processed invoice (legacy key).",
+        invoiceId,
+      );
+
+      return {
+        response: `Invoice with ID ${invoiceId} already processed, skipping...`,
+      };
+    }
+
     // Skip if invoice id is already processed
     const ok = await redis.set(
-      `trackSale:stripe:invoiceId:${invoiceId}`, // here we assume that Stripe's invoice ID is unique across all customers
+      invoiceDedupeKey(workspace.id, invoiceId),
       {
         timestamp: new Date().toISOString(),
         dubCustomerExternalId,
