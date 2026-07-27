@@ -14,7 +14,7 @@ import {
   ScrollContainer,
   Switch,
 } from "@dub/ui";
-import { cn, nFormatter } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { Command } from "cmdk";
 import { ReactNode, useCallback, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -93,6 +93,9 @@ function AudienceLimitSelectShell<T extends { id: string }>({
                 setSearch("");
               }
             }}
+            trackDimensions="w-8 h-4"
+            thumbDimensions="w-3 h-3"
+            thumbTranslate="translate-x-4"
           />
         </div>
         <div className="flex flex-col gap-0.5">
@@ -291,11 +294,6 @@ function PartnerGroupsSelect({
             <GroupColorCircle group={group} />
             <span className="min-w-0 truncate">{group.name}</span>
           </div>
-          {typeof group.totalPartners === "number" && (
-            <span className="text-content-subtle shrink-0 text-xs font-medium">
-              {nFormatter(group.totalPartners, { full: true })} qualify
-            </span>
-          )}
         </>
       )}
     />
