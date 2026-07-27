@@ -3,11 +3,12 @@
 import { getProgramBountyMeta } from "@/lib/bounty/bounty-period";
 import useBounty from "@/lib/swr/use-bounty";
 import useGroups from "@/lib/swr/use-groups";
+import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { ScrollableTooltipContent, Tooltip } from "@dub/ui";
+import { ScrollableTooltipContent, Tag, Tooltip } from "@dub/ui";
 import { Calendar6, Users, Users6 } from "@dub/ui/icons";
 import { useMemo } from "react";
 import { BountyActionButton } from "../bounty-action-button";
@@ -17,6 +18,7 @@ export function BountyInfo() {
   const { isOwner } = useWorkspace();
 
   const { groups } = useGroups();
+  const { partnerTags } = usePartnerTags();
 
   const eligibleGroups = useMemo(() => {
     if (!groups || !bounty || bounty.groups.length === 0) {
@@ -26,6 +28,15 @@ export function BountyInfo() {
       .map((bountyGroup) => groups.find((g) => g.id === bountyGroup.id))
       .filter((g): g is NonNullable<typeof g> => g !== undefined);
   }, [groups, bounty]);
+
+  const eligibleTags = useMemo(() => {
+    if (!partnerTags || !bounty || bounty.partnerTags.length === 0) {
+      return [];
+    }
+    return bounty.partnerTags
+      .map((bountyTag) => partnerTags.find((t) => t.id === bountyTag.id))
+      .filter((t): t is NonNullable<typeof t> => t !== undefined);
+  }, [partnerTags, bounty]);
 
   if (loading) {
     return <BountyInfoSkeleton />;
@@ -96,6 +107,35 @@ export function BountyInfo() {
                     {eligibleGroups[0].name} +{eligibleGroups.length - 1}
                   </span>
                 </div>
+              </Tooltip>
+            ) : null}
+          </div>
+        )}
+
+        {isOwner && (
+          <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
+            <Tag className="size-4 shrink-0" />
+            {bounty.partnerTags.length === 0 ? (
+              <span>All tags</span>
+            ) : eligibleTags.length === 1 ? (
+              <span className="truncate">{eligibleTags[0].name}</span>
+            ) : eligibleTags.length > 1 ? (
+              <Tooltip
+                content={
+                  <ScrollableTooltipContent>
+                    {eligibleTags.map((tag) => (
+                      <div key={tag.id} className="flex items-center gap-2">
+                        <span className="font-regular text-sm text-neutral-700">
+                          {tag.name}
+                        </span>
+                      </div>
+                    ))}
+                  </ScrollableTooltipContent>
+                }
+              >
+                <span className="truncate">
+                  {eligibleTags[0].name} +{eligibleTags.length - 1}
+                </span>
               </Tooltip>
             ) : null}
           </div>

@@ -6,7 +6,7 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
-import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
+import { AudienceEligibilityPanel } from "@/ui/partners/audience-eligibility-panel";
 import {
   ProgramSheetAccordion,
   ProgramSheetAccordionContent,
@@ -397,18 +397,30 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
               <BountyCriteria />
 
-              <ProgramSheetAccordionItem value="groups">
+              <ProgramSheetAccordionItem value="eligibility">
                 <ProgramSheetAccordionTrigger>
-                  Groups
+                  Eligibility
                 </ProgramSheetAccordionTrigger>
                 <ProgramSheetAccordionContent>
                   <Controller
                     control={control}
                     name="groupIds"
-                    render={({ field }) => (
-                      <GroupsMultiSelect
-                        selectedGroupIds={field.value}
-                        setSelectedGroupIds={(ids) => field.onChange(ids)}
+                    render={({ field: groupField }) => (
+                      <Controller
+                        control={control}
+                        name="partnerTagIds"
+                        render={({ field: tagField }) => (
+                          <AudienceEligibilityPanel
+                            selectedGroupIds={groupField.value}
+                            setSelectedGroupIds={(ids) =>
+                              groupField.onChange(ids)
+                            }
+                            selectedPartnerTagIds={tagField.value ?? null}
+                            setSelectedPartnerTagIds={(ids) =>
+                              tagField.onChange(ids)
+                            }
+                          />
+                        )}
                       />
                     )}
                   />

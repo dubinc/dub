@@ -36,7 +36,9 @@ export interface WorkflowContext {
   programEnrollment?: Pick<
     ProgramEnrollment,
     "groupId" | "createdAt" | "partnerId" | "programId" | "status"
-  >;
+  > & {
+    partnerTagIds: string[];
+  };
 }
 
 export type WorkflowType = "awardBounty" | "sendCampaign" | "moveGroup";

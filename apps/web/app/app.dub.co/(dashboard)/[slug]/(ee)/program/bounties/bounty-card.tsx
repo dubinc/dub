@@ -1,5 +1,6 @@
 import { getProgramBountyMeta } from "@/lib/bounty/bounty-period";
 import useGroups from "@/lib/swr/use-groups";
+import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyListProps } from "@/lib/types";
@@ -10,7 +11,7 @@ import {
 import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { DynamicTooltipWrapper, ScrollableTooltipContent } from "@dub/ui";
+import { DynamicTooltipWrapper, ScrollableTooltipContent, Tag } from "@dub/ui";
 import { Calendar6, Users, Users6 } from "@dub/ui/icons";
 import { formatDate, nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
@@ -21,9 +22,11 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
 
   const { totalPartners, loading } = usePartnersCountByGroupIds({
     groupIds: bounty.groups.map((group) => group.id),
+    partnerTagIds: bounty.partnerTags.map((tag) => tag.id),
   });
 
   const { groups } = useGroups();
+  const { partnerTags } = usePartnerTags();
 
   const { dateRangeLabel, partnerAudienceLabel } = getProgramBountyMeta(bounty);
 
@@ -35,6 +38,16 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
       .map((bountyGroup) => groups.find((g) => g.id === bountyGroup.id))
       .filter((g): g is NonNullable<typeof g> => g !== undefined);
   }, [groups, bounty.groups]);
+
+  const eligibleTags = useMemo(() => {
+    if (!partnerTags || bounty.partnerTags.length === 0) {
+      return [];
+    }
+
+    return bounty.partnerTags
+      .map((bountyTag) => partnerTags.find((t) => t.id === bountyTag.id))
+      .filter((t): t is NonNullable<typeof t> => t !== undefined);
+  }, [partnerTags, bounty.partnerTags]);
 
   const submissionsCount = bounty.submissionsCountData?.total ?? 0;
   const progress =
@@ -123,6 +136,45 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
                         : ""}
                     </span>
                   </div>
+                </DynamicTooltipWrapper>
+              ) : (
+                <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
+              )}
+            </div>
+
+            <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
+              <Tag className="size-3.5" />
+              {bounty.partnerTags.length === 0 ? (
+                <span>All tags</span>
+              ) : eligibleTags.length > 0 ? (
+                <DynamicTooltipWrapper
+                  tooltipProps={
+                    eligibleTags.length > 1
+                      ? {
+                          content: (
+                            <ScrollableTooltipContent>
+                              {eligibleTags.map((tag) => (
+                                <div
+                                  key={tag.id}
+                                  className="flex items-center gap-2"
+                                >
+                                  <span className="text-sm font-normal text-neutral-700">
+                                    {tag.name}
+                                  </span>
+                                </div>
+                              ))}
+                            </ScrollableTooltipContent>
+                          ),
+                        }
+                      : undefined
+                  }
+                >
+                  <span className="truncate">
+                    {eligibleTags[0].name}{" "}
+                    {eligibleTags.length > 1
+                      ? `+${eligibleTags.length - 1}`
+                      : ""}
+                  </span>
                 </DynamicTooltipWrapper>
               ) : (
                 <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />

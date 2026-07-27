@@ -2,11 +2,11 @@
 
 import useGroups from "@/lib/swr/use-groups";
 import { usePartnerTags } from "@/lib/swr/use-partner-tags";
+import { AudienceEligibilityPanel } from "@/ui/partners/audience-eligibility-panel";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { Popover, Tag as TagIcon, Users } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useMemo, useState } from "react";
-import { CampaignAudiencePanel } from "./campaign-audience-panel";
 
 const MAX_DISPLAYED = 1;
 
@@ -56,7 +56,7 @@ export function CampaignRecipientsSelector({
     <Popover
       content={
         <div className="w-full p-3 sm:w-[440px]">
-          <CampaignAudiencePanel
+          <AudienceEligibilityPanel
             selectedGroupIds={selectedGroupIds}
             setSelectedGroupIds={setSelectedGroupIds}
             selectedPartnerTagIds={selectedPartnerTagIds}

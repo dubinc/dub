@@ -21,7 +21,7 @@ import { useDebounce } from "use-debounce";
 
 type GroupWithPartners = GroupProps & { totalPartners?: number };
 
-interface CampaignAudiencePanelProps {
+interface AudienceEligibilityPanelProps {
   selectedGroupIds: string[] | null;
   setSelectedGroupIds: (groupIds: string[] | null) => void;
   selectedPartnerTagIds: string[] | null;
@@ -29,13 +29,13 @@ interface CampaignAudiencePanelProps {
   className?: string;
 }
 
-export function CampaignAudiencePanel({
+export function AudienceEligibilityPanel({
   selectedGroupIds,
   setSelectedGroupIds,
   selectedPartnerTagIds,
   setSelectedPartnerTagIds,
   className,
-}: CampaignAudiencePanelProps) {
+}: AudienceEligibilityPanelProps) {
   return (
     <div className={cn("flex flex-col gap-6", className)}>
       <PartnerGroupsSelect
