@@ -1,3 +1,4 @@
+import { deleteLinks } from "@/lib/api/links/delete-links";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import { conn } from "../../lib/planetscale";
@@ -57,12 +58,12 @@ async function main() {
   });
   console.log("Deleted payouts", deletedPayouts);
 
-  const deletedLinks = await prisma.link.deleteMany({
+  const links = await prisma.link.findMany({
     where: {
       partnerId: partner.id,
     },
   });
-  console.log("Deleted links", deletedLinks);
+  await deleteLinks(links);
 
   const deletedProgramEnrollments = await prisma.programEnrollment.deleteMany({
     where: {

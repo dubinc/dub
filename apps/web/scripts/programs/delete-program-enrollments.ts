@@ -1,6 +1,6 @@
+import { deleteLinks } from "@/lib/api/links/delete-links";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
-import { bulkDeleteLinks } from "../../lib/api/links/bulk-delete-links";
 
 const programId = "prog_xxx";
 
@@ -35,17 +35,7 @@ async function main() {
       break;
     }
 
-    await bulkDeleteLinks(linksToDelete);
-
-    const deleteLinkPrisma = await prisma.link.deleteMany({
-      where: {
-        id: {
-          in: linksToDelete.map(({ id }) => id),
-        },
-      },
-    });
-
-    console.log("deleteLinkPrisma", deleteLinkPrisma);
+    await deleteLinks(linksToDelete);
 
     const deleteProgramEnrollment = await prisma.programEnrollment.deleteMany({
       where: {

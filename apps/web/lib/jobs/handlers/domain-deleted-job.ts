@@ -1,14 +1,12 @@
 import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
+import { deleteLinks } from "@/lib/api/links/delete-links";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
-import { linkCache } from "../../api/links/cache";
-import { includeProgramEnrollment } from "../../api/links/include-program-enrollment";
-import { includeTags } from "../../api/links/include-tags";
 import { CRON_BATCH_SIZE } from "../../cron";
-import { limiter } from "../../cron/limiter";
 import { prisma } from "../../prisma";
 import { storage } from "../../storage";
-import { recordLink } from "../../tinybird";
 import { defineJob } from "../index";
 
 const inputSchema = z.object({
@@ -63,60 +61,7 @@ export const domainDeletedJob = defineJob({
     console.log(`[domainDeletedJob] Found ${links.length} links to delete.`);
 
     if (links.length > 0) {
-      const workspaceId = links[0].projectId;
-
-      const { count } = await prisma.$transaction(async (tx) => {
-        const result = await tx.link.deleteMany({
-          where: {
-            id: {
-              in: links.map((link) => link.id),
-            },
-          },
-        });
-
-        if (result.count === 0) {
-          return result;
-        }
-
-        // Update the workspace's total links count
-        if (workspaceId) {
-          await tx.project.update({
-            where: {
-              id: workspaceId,
-            },
-            data: {
-              totalLinks: {
-                decrement: result.count,
-              },
-            },
-          });
-        }
-
-        return result;
-      });
-
-      if (count > 0) {
-        await Promise.allSettled([
-          // Remove the link from Redis
-          linkCache.deleteMany(links),
-
-          // Record link in Tinybird
-          recordLink(links, { deleted: true }),
-
-          // Remove image from R2 storage if it exists
-          ...links
-            .filter((link) =>
-              link.image?.startsWith(`${R2_URL}/images/${link.id}`),
-            )
-            .map((link) =>
-              limiter.schedule(() =>
-                storage.delete({
-                  key: link.image!.replace(`${R2_URL}/`, ""),
-                }),
-              ),
-            ),
-        ]);
-      }
+      await deleteLinks(links);
 
       // More links remain — queue the next batch.
       if (links.length === CRON_BATCH_SIZE) {

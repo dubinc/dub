@@ -5,8 +5,8 @@ import {
   checkIfLinksHaveWebhooks,
   processLink,
 } from "@/lib/api/links";
-import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
+import { deleteLinks } from "@/lib/api/links/delete-links";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
@@ -575,14 +575,11 @@ export const DELETE = withWorkspace(
 
     links = links.filter((link) => !isRootDomainLinkKey(link.key));
 
-    const { count: deletedCount } = await prisma.link.deleteMany({
+    const { deletedCount } = await deleteLinks(links, {
       where: {
-        id: { in: links.map((link) => link.id) },
         projectId: workspace.id,
       },
     });
-
-    waitUntil(bulkDeleteLinks(links));
 
     return NextResponse.json(
       {

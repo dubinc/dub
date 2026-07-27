@@ -2,6 +2,7 @@ export * from "./archive-link";
 export * from "./bulk-create-links";
 export * from "./create-link";
 export * from "./delete-link";
+export * from "./delete-links";
 export * from "./get-links-count";
 export * from "./get-links-for-workspace";
 export * from "./process-link";

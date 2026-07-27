@@ -1,8 +1,8 @@
+import { deleteLinks } from "@/lib/api/links/delete-links";
 import { withAdmin } from "@/lib/auth";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
-import { recordLink } from "@/lib/tinybird";
 import { prettyPrint } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -106,26 +106,13 @@ export const POST = withAdmin(
       }
 
       if (partner.programs.length > 0) {
-        for (const { program, links, groupId } of partner.programs) {
+        for (const { links, groupId } of partner.programs) {
           if (links.length > 0) {
-            await Promise.allSettled([
-              prisma.link.deleteMany({
-                where: {
-                  id: {
-                    in: links.map((link) => link.id),
-                  },
-                },
-              }),
-              recordLink(
-                links.map((link) => ({
-                  ...link,
-                  programEnrollment: { groupId },
-                })),
-                { deleted: true },
-              ),
-            ]);
-            console.log(
-              `Deleted ${links.length} links for program ${program.name} (${program.slug})`,
+            await deleteLinks(
+              links.map((link) => ({
+                ...link,
+                programEnrollment: { groupId },
+              })),
             );
           }
         }

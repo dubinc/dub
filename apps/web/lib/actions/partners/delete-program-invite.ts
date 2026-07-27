@@ -1,7 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
+import { deleteLinks } from "@/lib/api/links/delete-links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -60,15 +60,7 @@ export const deleteProgramInviteAction = authActionClient
     );
 
     await Promise.allSettled([
-      prisma.link.deleteMany({
-        where: {
-          id: {
-            in: linksToDelete.map((link) => link.id),
-          },
-        },
-      }),
-
-      bulkDeleteLinks(
+      deleteLinks(
         linksToDelete.map((link) => ({
           ...link,
           programEnrollment: {
