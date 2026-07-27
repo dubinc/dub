@@ -402,7 +402,7 @@ export const getPricingPlanMainFeatures = (
             text: "Access to Partner Network",
             tooltip: {
               title:
-                "Get access to our network of 10,000+ top affiliates to recruit from and grow your program.",
+                "Get access to our network of 7,000+ top affiliates to recruit from and grow your program.",
             },
           },
           {
