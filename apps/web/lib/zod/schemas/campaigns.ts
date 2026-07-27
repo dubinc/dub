@@ -3,6 +3,7 @@ import * as z from "zod/v4";
 import { sendCampaignConditionSchema } from "../../api/workflows/send-campaign/schema";
 import { GroupSchema } from "./groups";
 import { getPaginationQuerySchema } from "./misc";
+import { PartnerTagSchema } from "./partner-tags";
 import { EnrolledPartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
 
@@ -23,6 +24,7 @@ export const CampaignSchema = z.object({
   status: z.enum(CampaignStatus),
   triggerCondition: sendCampaignConditionSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
+  partnerTags: z.array(PartnerTagSchema.pick({ id: true })),
   scheduledAt: z.date().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -38,6 +40,7 @@ export const CampaignListSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
   groups: z.array(GroupSchema.pick({ id: true })),
+  partnerTags: z.array(PartnerTagSchema.pick({ id: true })),
 });
 
 export const createCampaignSchema = z.object({
@@ -56,6 +59,7 @@ export const updateCampaignSchema = z
     bodyJson: z.record(z.string(), z.any()),
     triggerCondition: sendCampaignConditionSchema.nullish(),
     groupIds: z.array(z.string()).nullable(),
+    partnerTagIds: z.array(z.string()).nullable(),
     scheduledAt: parseDateSchema.nullish(),
     status: z.enum([
       CampaignStatus.draft,

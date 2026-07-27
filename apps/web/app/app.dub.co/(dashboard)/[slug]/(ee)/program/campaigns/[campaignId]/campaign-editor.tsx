@@ -42,6 +42,7 @@ import { CampaignControls } from "./campaign-controls";
 import { CampaignEvents } from "./campaign-events";
 import { CampaignGroupsSelector } from "./campaign-groups-selector";
 import { CampaignMetrics } from "./campaign-metrics";
+import { CampaignPartnerTagsSelector } from "./campaign-partner-tags-selector";
 import { DuplicateLogicWarning } from "./duplicate-logic-warning";
 import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
 import { isValidTriggerCondition } from "./utils";
@@ -104,6 +105,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
       from: campaign.from ?? undefined,
       bodyJson: campaign.bodyJson,
       groupIds: campaign.groups.map(({ id }) => id),
+      partnerTagIds: campaign.partnerTags.map(({ id }) => id),
       triggerCondition: campaign.triggerCondition,
       scheduledAt: campaign.scheduledAt,
     },
@@ -158,6 +160,14 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         if ("groupIds" in changedFields) {
           changedFields.groupIds = Array.isArray(changedFields.groupIds)
             ? changedFields.groupIds
+            : null;
+        }
+
+        if ("partnerTagIds" in changedFields) {
+          changedFields.partnerTagIds = Array.isArray(
+            changedFields.partnerTagIds,
+          )
+            ? changedFields.partnerTagIds
             : null;
         }
 
@@ -396,6 +406,28 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   <CampaignGroupsSelector
                     selectedGroupIds={field.value ?? null}
                     setSelectedGroupIds={field.onChange}
+                  />
+                </DisabledInputWrapper>
+              )}
+            />
+
+            <span className={labelClassName}>Partner tags</span>
+            <Controller
+              control={control}
+              name="partnerTagIds"
+              render={({ field }) => (
+                <DisabledInputWrapper
+                  tooltip={
+                    isReadOnly
+                      ? statusMessages[campaign.status]
+                      : "Cannot change recipients while campaign is active. Pause the campaign to make changes."
+                  }
+                  disabled={isActive || isReadOnly}
+                  hideIcon={isReadOnly}
+                >
+                  <CampaignPartnerTagsSelector
+                    selectedPartnerTagIds={field.value ?? null}
+                    setSelectedPartnerTagIds={field.onChange}
                   />
                 </DisabledInputWrapper>
               )}

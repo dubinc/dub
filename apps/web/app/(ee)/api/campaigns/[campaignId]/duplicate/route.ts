@@ -17,8 +17,7 @@ export const POST = withWorkspace(
     const campaign = await getCampaignOrThrow({
       programId,
       campaignId,
-      includeWorkflow: true,
-      includeGroups: true,
+      includes: ["workflow", "groups", "partnerTags"],
     });
 
     const duplicatedCampaign = await prisma.$transaction(async (tx) => {
@@ -67,6 +66,13 @@ export const POST = withWorkspace(
             createMany: {
               data: campaign.groups.map(({ groupId }) => ({
                 groupId,
+              })),
+            },
+          },
+          partnerTags: {
+            createMany: {
+              data: campaign.partnerTags.map(({ partnerTagId }) => ({
+                partnerTagId,
               })),
             },
           },

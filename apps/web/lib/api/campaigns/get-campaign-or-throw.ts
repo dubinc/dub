@@ -1,25 +1,37 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { DubApiError } from "../errors";
 
-export const getCampaignOrThrow = async ({
-  campaignId,
+type CampaignInclude = "workflow" | "groups" | "partnerTags";
+
+type CampaignIncludeMap<T extends readonly CampaignInclude[]> = {
+  [K in T[number]]: true;
+};
+
+export async function getCampaignOrThrow<
+  const TIncludes extends readonly CampaignInclude[] = [],
+>({
   programId,
-  includeWorkflow = false,
-  includeGroups = false,
+  campaignId,
+  includes = [] as unknown as TIncludes,
 }: {
-  campaignId: string;
   programId: string;
-  includeWorkflow?: boolean;
-  includeGroups?: boolean;
-}) => {
+  campaignId: string;
+  includes?: TIncludes;
+}): Promise<
+  Prisma.CampaignGetPayload<{
+    include: CampaignIncludeMap<TIncludes>;
+  }>
+> {
+  const include = Object.fromEntries(
+    includes.map((key) => [key, true]),
+  ) as CampaignIncludeMap<TIncludes>;
+
   const campaign = await prisma.campaign.findUnique({
     where: {
       id: campaignId,
     },
-    include: {
-      workflow: includeWorkflow,
-      groups: includeGroups,
-    },
+    include,
   });
 
   if (!campaign) {
@@ -36,5 +48,7 @@ export const getCampaignOrThrow = async ({
     });
   }
 
-  return campaign;
-};
+  return campaign as Prisma.CampaignGetPayload<{
+    include: CampaignIncludeMap<TIncludes>;
+  }>;
+}

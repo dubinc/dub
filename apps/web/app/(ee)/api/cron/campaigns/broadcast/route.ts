@@ -55,6 +55,7 @@ export async function POST(req: Request) {
       },
       include: {
         groups: true,
+        partnerTags: true,
         program: {
           include: {
             emailDomains: {
@@ -141,6 +142,9 @@ export async function POST(req: Request) {
     }
 
     const campaignGroupIds = campaign.groups.map(({ groupId }) => groupId);
+    const campaignPartnerTagIds = campaign.partnerTags.map(
+      ({ partnerTagId }) => partnerTagId,
+    );
 
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
@@ -151,6 +155,17 @@ export async function POST(req: Request) {
         ...(campaignGroupIds.length > 0 && {
           groupId: {
             in: campaignGroupIds,
+          },
+        }),
+        ...(campaignPartnerTagIds.length > 0 && {
+          partner: {
+            programPartnerTags: {
+              some: {
+                partnerTagId: {
+                  in: campaignPartnerTagIds,
+                },
+              },
+            },
           },
         }),
       },

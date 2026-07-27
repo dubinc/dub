@@ -1,4 +1,5 @@
 import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns/constants";
+import { transformCampaign } from "@/lib/api/campaigns/transform-campaign";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -16,6 +17,7 @@ import {
 } from "@/lib/zod/schemas/workflows";
 import { CampaignStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/campaigns - get all email campaigns for a program
 export const GET = withWorkspace(
@@ -52,6 +54,7 @@ export const GET = withWorkspace(
       },
       include: {
         groups: true,
+        partnerTags: true,
         workflow: true,
       },
       orderBy: {
@@ -62,13 +65,7 @@ export const GET = withWorkspace(
     });
 
     return NextResponse.json(
-      campaigns.map((campaign) =>
-        CampaignSchema.parse({
-          ...campaign,
-          groups: campaign.groups.map(({ groupId }) => ({ id: groupId })),
-          triggerCondition: campaign.workflow?.triggerConditions?.[0],
-        }),
-      ),
+      z.array(CampaignSchema).parse(campaigns.map(transformCampaign)),
     );
   },
   {

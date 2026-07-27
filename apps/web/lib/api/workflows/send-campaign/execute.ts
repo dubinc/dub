@@ -8,7 +8,13 @@ import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { chunk } from "@dub/utils";
-import { NotificationEmailType, Prisma, Workflow } from "@prisma/client";
+import {
+  CommissionStatus,
+  NotificationEmailType,
+  Prisma,
+  ProgramEnrollmentStatus,
+  Workflow,
+} from "@prisma/client";
 import { addHours, differenceInDays, subDays } from "date-fns";
 import { renderCampaignEmailHTML } from "../../campaigns/render-campaign-email-html";
 import { validateCampaignFromAddress } from "../../campaigns/validate-campaign";
@@ -44,6 +50,7 @@ export const executeSendCampaignWorkflow = async ({
     },
     include: {
       groups: true,
+      partnerTags: true,
       program: {
         include: {
           emailDomains: {
@@ -66,12 +73,25 @@ export const executeSendCampaignWorkflow = async ({
     return;
   }
 
-  let programEnrollments = await getProgramEnrollments({
-    programId,
-    partnerId,
-    groupIds: campaign.groups.map(({ groupId }) => groupId),
-    condition: condition as WorkflowCondition,
-  });
+  const campaignGroupIds = campaign.groups.map(({ groupId }) => groupId);
+  const campaignPartnerTagIds = campaign.partnerTags.map(
+    ({ partnerTagId }) => partnerTagId,
+  );
+
+  let programEnrollments = partnerId
+    ? await resolveProgramEnrollment({
+        programId,
+        partnerId,
+        groupIds: campaignGroupIds,
+        partnerTagIds: campaignPartnerTagIds,
+        condition: condition as WorkflowCondition,
+      })
+    : await resolveProgramEnrollments({
+        programId,
+        groupIds: campaignGroupIds,
+        partnerTagIds: campaignPartnerTagIds,
+        condition: condition as WorkflowCondition,
+      });
 
   if (programEnrollments.length === 0) {
     console.log(
@@ -239,128 +259,179 @@ const includePartnerUsers = {
   },
 } satisfies Prisma.ProgramEnrollmentInclude;
 
-async function getProgramEnrollments({
+function campaignAudienceWhere({
+  groupIds,
+  partnerTagIds,
+}: {
+  groupIds: string[];
+  partnerTagIds: string[];
+}) {
+  return {
+    status: ProgramEnrollmentStatus.approved,
+    ...(groupIds.length > 0 && {
+      groupId: {
+        in: groupIds,
+      },
+    }),
+    ...(partnerTagIds.length > 0 && {
+      partner: {
+        programPartnerTags: {
+          some: {
+            partnerTagId: {
+              in: partnerTagIds,
+            },
+          },
+        },
+      },
+    }),
+  };
+}
+
+type ResolveProgramEnrollment = {
+  partnerId: string;
+  programId: string;
+  groupIds: string[];
+  partnerTagIds: string[];
+  condition: WorkflowCondition;
+};
+
+async function resolveProgramEnrollment({
   programId,
   partnerId,
   groupIds,
+  partnerTagIds,
   condition,
-}: {
-  programId: string;
-  partnerId?: string;
-  groupIds: string[];
-  condition: WorkflowCondition;
-}) {
-  if (partnerId) {
-    const { attribute } = condition;
+}: ResolveProgramEnrollment) {
+  const { attribute } = condition;
 
-    const isPartnerLinkStatsAttribute = [
-      "totalLeads",
-      "totalConversions",
-      "totalSaleAmount",
-    ].includes(attribute);
+  const isPartnerLinkStatsAttribute = [
+    "totalLeads",
+    "totalConversions",
+    "totalSaleAmount",
+  ].includes(attribute);
+  const shouldFetchCommissions = attribute === "totalCommissions";
 
-    const programEnrollment = await prisma.programEnrollment.findUnique({
-      where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
-        },
-        status: "approved",
-        ...(groupIds.length > 0 && {
-          groupId: {
-            in: groupIds,
-          },
-        }),
+  const programEnrollment = await prisma.programEnrollment.findUnique({
+    where: {
+      partnerId_programId: {
+        partnerId,
+        programId,
       },
-      include: {
-        ...includePartnerUsers,
-        ...(isPartnerLinkStatsAttribute
-          ? {
-              links: {
-                select: {
-                  shortLink: true,
-                  key: true,
-                  url: true,
-                  clicks: true,
-                  leads: true,
-                  conversions: true,
-                  sales: true,
-                  saleAmount: true,
-                },
-                orderBy: {
-                  id: "asc",
-                },
-              },
-            }
-          : {}),
-      },
-    });
-
-    if (!programEnrollment) {
-      return [];
-    }
-
-    const context: Partial<Record<WorkflowAttributeKey, number | null>> = {
+      ...campaignAudienceWhere({
+        groupIds,
+        partnerTagIds,
+      }),
+    },
+    include: {
+      ...includePartnerUsers,
       ...(isPartnerLinkStatsAttribute
-        ? aggregatePartnerLinksStats(
-            programEnrollment.links as unknown as NonNullable<
-              Parameters<typeof aggregatePartnerLinksStats>[0]
-            >,
-          )
-        : {}),
-      ...(attribute === "totalCommissions"
         ? {
-            totalCommissions:
-              (
-                await prisma.commission.aggregate({
-                  where: {
-                    earnings: { not: 0 },
-                    programId,
-                    partnerId,
-                    status: { in: ["pending", "processed", "paid"] },
-                  },
-                  _sum: { earnings: true },
-                })
-              )._sum.earnings || 0,
+            links: {
+              select: {
+                shortLink: true,
+                key: true,
+                url: true,
+                clicks: true,
+                leads: true,
+                conversions: true,
+                sales: true,
+                saleAmount: true,
+              },
+              orderBy: {
+                id: "asc",
+              },
+            },
           }
         : {}),
-      ...(attribute === "partnerJoined"
-        ? {
-            partnerJoined: differenceInDays(
-              new Date(),
-              programEnrollment.createdAt,
-            ),
-          }
-        : {}),
-    };
+    },
+  });
 
-    const shouldExecute = evaluateWorkflowConditions({
-      conditions: [condition],
-      attributes: {
-        [condition.attribute]: context[condition.attribute],
-      },
-    });
+  if (!programEnrollment) {
+    return [];
+  }
 
-    if (!shouldExecute) {
-      return [];
-    }
+  const totalCommissions = shouldFetchCommissions
+    ? await prisma.commission.aggregate({
+        where: {
+          earnings: {
+            not: 0,
+          },
+          programId,
+          partnerId,
+          status: {
+            in: [
+              CommissionStatus.pending,
+              CommissionStatus.processed,
+              CommissionStatus.paid,
+            ],
+          },
+        },
+        _sum: {
+          earnings: true,
+        },
+      })
+    : undefined;
 
-    return [programEnrollment];
+  const context: Partial<Record<WorkflowAttributeKey, number | null>> = {
+    ...(isPartnerLinkStatsAttribute
+      ? aggregatePartnerLinksStats(
+          programEnrollment.links as unknown as NonNullable<
+            Parameters<typeof aggregatePartnerLinksStats>[0]
+          >,
+        )
+      : {}),
+    ...(attribute === "totalCommissions"
+      ? {
+          totalCommissions: totalCommissions?._sum.earnings || 0,
+        }
+      : {}),
+    ...(attribute === "partnerJoined"
+      ? {
+          partnerJoined: differenceInDays(
+            new Date(),
+            programEnrollment.createdAt,
+          ),
+        }
+      : {}),
+  };
+
+  const shouldExecute = evaluateWorkflowConditions({
+    conditions: [condition],
+    attributes: {
+      [condition.attribute]: context[condition.attribute],
+    },
+  });
+
+  if (!shouldExecute) {
+    return [];
+  }
+
+  return [programEnrollment];
+}
+
+// Run only for scheduled workflows
+async function resolveProgramEnrollments({
+  programId,
+  groupIds,
+  partnerTagIds,
+  condition,
+}: Omit<ResolveProgramEnrollment, "partnerId">) {
+  const { attribute } = condition;
+
+  if (attribute !== "partnerEnrolledDays") {
+    return [];
   }
 
   const startDate = subDays(new Date(), condition.value as number);
   // add 12 hours to the start date since we run the partnerEnrolled workflow every 12 hours
   const endDate = addHours(startDate, 12);
 
-  // We need to get all program enrollments that match the condition for the scheduled workflows
   return await prisma.programEnrollment.findMany({
     where: {
       programId,
-      status: "approved",
-      ...(groupIds.length > 0 && {
-        groupId: {
-          in: groupIds,
-        },
+      ...campaignAudienceWhere({
+        groupIds,
+        partnerTagIds,
       }),
       createdAt: {
         gte: startDate,
