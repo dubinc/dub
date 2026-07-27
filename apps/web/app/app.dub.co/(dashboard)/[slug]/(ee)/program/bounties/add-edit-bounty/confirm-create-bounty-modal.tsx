@@ -1,13 +1,11 @@
 import { getProgramBountyMeta } from "@/lib/bounty/bounty-period";
 import { getBountyRewardDescription } from "@/lib/bounty/rewards";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import useGroups from "@/lib/swr/use-groups";
-import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
+import { BountyEligibilitySummary } from "@/ui/partners/bounties/bounty-eligibility-summary";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
   Button,
   Calendar6,
@@ -15,16 +13,13 @@ import {
   DynamicTooltipWrapper,
   Gift,
   Modal,
-  ScrollableTooltipContent,
-  Tag,
-  Tooltip,
   TooltipContent,
 } from "@dub/ui";
-import { Users, Users6 } from "@dub/ui/icons";
+import { Users } from "@dub/ui/icons";
 import { nFormatter, pluralize } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { BountyStartMode } from "@prisma/client";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 
 type ConfirmCreateBountyModalProps = {
   bounty?: Pick<
@@ -53,8 +48,6 @@ function ConfirmCreateBountyModal({
   showConfirmCreateBountyModal: boolean;
   setShowConfirmCreateBountyModal: Dispatch<SetStateAction<boolean>>;
 } & ConfirmCreateBountyModalProps) {
-  const { groups } = useGroups();
-  const { partnerTags } = usePartnerTags();
   const { plan, slug: workspaceSlug, isOwner } = useWorkspace();
   const { canSendEmailCampaigns } = getPlanCapabilities(plan);
 
@@ -74,26 +67,6 @@ function ConfirmCreateBountyModal({
       ? null
       : bounty?.partnerTags?.map((tag) => tag.id) ?? [],
   });
-
-  const eligibleGroups = useMemo(() => {
-    if (!groups || !bounty || bounty.groups.length === 0) {
-      return [];
-    }
-
-    return bounty.groups
-      .map((bountyGroup) => groups.find((g) => g.id === bountyGroup.id))
-      .filter((g): g is NonNullable<typeof g> => g !== undefined);
-  }, [groups, bounty?.groups]);
-
-  const eligibleTags = useMemo(() => {
-    if (!partnerTags || !bounty || bounty.partnerTags.length === 0) {
-      return [];
-    }
-
-    return bounty.partnerTags
-      .map((bountyTag) => partnerTags.find((t) => t.id === bountyTag.id))
-      .filter((t): t is NonNullable<typeof t> => t !== undefined);
-  }, [partnerTags, bounty?.partnerTags]);
 
   if (!bounty) {
     return null;
@@ -159,74 +132,11 @@ function ConfirmCreateBountyModal({
               </div>
 
               {isOwner && (
-                <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
-                  <Users6 className="size-3.5" />
-                  {bounty.groups.length === 0 ? (
-                    <span>All groups</span>
-                  ) : eligibleGroups.length === 1 ? (
-                    <div className="flex items-center gap-1.5">
-                      <GroupColorCircle group={eligibleGroups[0]} />
-                      <span className="truncate">{eligibleGroups[0].name}</span>
-                    </div>
-                  ) : eligibleGroups.length > 1 ? (
-                    <Tooltip
-                      content={
-                        <ScrollableTooltipContent>
-                          {eligibleGroups.map((group) => (
-                            <div
-                              key={group.id}
-                              className="flex items-center gap-2"
-                            >
-                              <GroupColorCircle group={group} />
-                              <span className="font-regular text-sm text-neutral-700">
-                                {group.name}
-                              </span>
-                            </div>
-                          ))}
-                        </ScrollableTooltipContent>
-                      }
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <GroupColorCircle group={eligibleGroups[0]} />
-                        <span className="truncate">
-                          {eligibleGroups[0].name} +{eligibleGroups.length - 1}
-                        </span>
-                      </div>
-                    </Tooltip>
-                  ) : null}
-                </div>
-              )}
-
-              {isOwner && (
-                <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
-                  <Tag className="size-3.5" />
-                  {bounty.partnerTags.length === 0 ? (
-                    <span>All tags</span>
-                  ) : eligibleTags.length === 1 ? (
-                    <span className="truncate">{eligibleTags[0].name}</span>
-                  ) : eligibleTags.length > 1 ? (
-                    <Tooltip
-                      content={
-                        <ScrollableTooltipContent>
-                          {eligibleTags.map((tag) => (
-                            <div
-                              key={tag.id}
-                              className="flex items-center gap-2"
-                            >
-                              <span className="font-regular text-sm text-neutral-700">
-                                {tag.name}
-                              </span>
-                            </div>
-                          ))}
-                        </ScrollableTooltipContent>
-                      }
-                    >
-                      <span className="truncate">
-                        {eligibleTags[0].name} +{eligibleTags.length - 1}
-                      </span>
-                    </Tooltip>
-                  ) : null}
-                </div>
+                <BountyEligibilitySummary
+                  groups={bounty.groups}
+                  partnerTags={bounty.partnerTags}
+                  className="font-regular"
+                />
               )}
             </div>
           </div>

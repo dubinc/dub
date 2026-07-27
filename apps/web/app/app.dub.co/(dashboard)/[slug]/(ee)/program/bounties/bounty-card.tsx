@@ -1,21 +1,17 @@
 import { getProgramBountyMeta } from "@/lib/bounty/bounty-period";
-import useGroups from "@/lib/swr/use-groups";
-import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyListProps } from "@/lib/types";
+import { BountyEligibilitySummary } from "@/ui/partners/bounties/bounty-eligibility-summary";
 import {
   BountyProgressBarRow,
   EmphasisNumber,
 } from "@/ui/partners/bounties/bounty-progress-bar-row";
 import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { DynamicTooltipWrapper, ScrollableTooltipContent, Tag } from "@dub/ui";
-import { Calendar6, Users, Users6 } from "@dub/ui/icons";
+import { Calendar6, Users } from "@dub/ui/icons";
 import { formatDate, nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
-import { useMemo } from "react";
 
 export function BountyCard({ bounty }: { bounty: BountyListProps }) {
   const { slug: workspaceSlug } = useWorkspace();
@@ -25,29 +21,7 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
     partnerTagIds: bounty.partnerTags.map((tag) => tag.id),
   });
 
-  const { groups } = useGroups();
-  const { partnerTags } = usePartnerTags();
-
   const { dateRangeLabel, partnerAudienceLabel } = getProgramBountyMeta(bounty);
-
-  const eligibleGroups = useMemo(() => {
-    if (!groups || bounty.groups.length === 0) {
-      return [];
-    }
-    return bounty.groups
-      .map((bountyGroup) => groups.find((g) => g.id === bountyGroup.id))
-      .filter((g): g is NonNullable<typeof g> => g !== undefined);
-  }, [groups, bounty.groups]);
-
-  const eligibleTags = useMemo(() => {
-    if (!partnerTags || bounty.partnerTags.length === 0) {
-      return [];
-    }
-
-    return bounty.partnerTags
-      .map((bountyTag) => partnerTags.find((t) => t.id === bountyTag.id))
-      .filter((t): t is NonNullable<typeof t> => t !== undefined);
-  }, [partnerTags, bounty.partnerTags]);
 
   const submissionsCount = bounty.submissionsCountData?.total ?? 0;
   const progress =
@@ -99,87 +73,10 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
               <span>{partnerAudienceLabel}</span>
             </div>
 
-            <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
-              <Users6 className="size-3.5" />
-              {bounty.groups.length === 0 ? (
-                <span>All groups</span>
-              ) : eligibleGroups.length > 0 ? (
-                <DynamicTooltipWrapper
-                  tooltipProps={
-                    eligibleGroups.length > 1
-                      ? {
-                          content: (
-                            <ScrollableTooltipContent>
-                              {eligibleGroups.map((group) => (
-                                <div
-                                  key={group.id}
-                                  className="flex items-center gap-2"
-                                >
-                                  <GroupColorCircle group={group} />
-                                  <span className="text-sm font-normal text-neutral-700">
-                                    {group.name}
-                                  </span>
-                                </div>
-                              ))}
-                            </ScrollableTooltipContent>
-                          ),
-                        }
-                      : undefined
-                  }
-                >
-                  <div className="flex items-center gap-1.5">
-                    <GroupColorCircle group={eligibleGroups[0]} />
-                    <span className="truncate">
-                      {eligibleGroups[0].name}{" "}
-                      {eligibleGroups.length > 1
-                        ? `+${eligibleGroups.length - 1}`
-                        : ""}
-                    </span>
-                  </div>
-                </DynamicTooltipWrapper>
-              ) : (
-                <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
-              )}
-            </div>
-
-            <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
-              <Tag className="size-3.5" />
-              {bounty.partnerTags.length === 0 ? (
-                <span>All tags</span>
-              ) : eligibleTags.length > 0 ? (
-                <DynamicTooltipWrapper
-                  tooltipProps={
-                    eligibleTags.length > 1
-                      ? {
-                          content: (
-                            <ScrollableTooltipContent>
-                              {eligibleTags.map((tag) => (
-                                <div
-                                  key={tag.id}
-                                  className="flex items-center gap-2"
-                                >
-                                  <span className="text-sm font-normal text-neutral-700">
-                                    {tag.name}
-                                  </span>
-                                </div>
-                              ))}
-                            </ScrollableTooltipContent>
-                          ),
-                        }
-                      : undefined
-                  }
-                >
-                  <span className="truncate">
-                    {eligibleTags[0].name}{" "}
-                    {eligibleTags.length > 1
-                      ? `+${eligibleTags.length - 1}`
-                      : ""}
-                  </span>
-                </DynamicTooltipWrapper>
-              ) : (
-                <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
-              )}
-            </div>
+            <BountyEligibilitySummary
+              groups={bounty.groups}
+              partnerTags={bounty.partnerTags}
+            />
           </div>
         </div>
 

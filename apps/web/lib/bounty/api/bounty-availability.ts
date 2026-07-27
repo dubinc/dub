@@ -1,6 +1,7 @@
 import {
   Bounty,
   BountyGroup,
+  BountyPartnerTag,
   BountyStartMode,
   BountySubmission,
   Prisma,
@@ -23,34 +24,67 @@ type PartnerBountyEligibilityInput = {
     | "createdAt"
   > & {
     groups: Pick<BountyGroup, "groupId">[];
+    partnerTags: Pick<BountyPartnerTag, "partnerTagId">[];
   };
   programEnrollment: Pick<
     ProgramEnrollment,
     "createdAt" | "groupId" | "status"
-  >;
+  > & {
+    partnerTagIds: string[];
+  };
 };
 
-export function buildBountyEligibilityWhere(
-  groupId: string | undefined,
-): Prisma.BountyWhereInput {
+export function buildBountyEligibilityWhere({
+  groupId,
+  partnerTagIds,
+}: {
+  groupId: string | undefined;
+  partnerTagIds?: string[];
+}): Prisma.BountyWhereInput {
   return {
-    OR: [
+    AND: [
       {
-        groups: {
-          none: {},
-        },
-      },
-      ...(groupId
-        ? [
-            {
-              groups: {
-                some: {
-                  groupId,
-                },
-              },
+        OR: [
+          {
+            groups: {
+              none: {},
             },
-          ]
-        : []),
+          },
+          ...(groupId
+            ? [
+                {
+                  groups: {
+                    some: {
+                      groupId,
+                    },
+                  },
+                },
+              ]
+            : []),
+        ],
+      },
+      {
+        OR: [
+          {
+            partnerTags: {
+              none: {},
+            },
+          },
+          ...(partnerTagIds && partnerTagIds.length > 0
+            ? [
+                {
+                  partnerTags: {
+                    some: {
+                      partnerTagId: {
+                        in: partnerTagIds,
+                      },
+                    },
+                  },
+                },
+              ]
+            : []),
+        ],
+      },
     ],
   };
 }
@@ -87,6 +121,11 @@ export const bountyEligibilityIncludes = {
   groups: {
     select: {
       groupId: true,
+    },
+  },
+  partnerTags: {
+    select: {
+      partnerTagId: true,
     },
   },
 } satisfies Prisma.BountyInclude;
@@ -132,6 +171,22 @@ export function isPartnerEligibleForBounty({
       `Partner is not eligible for bounty ${bounty.id} because they are not in any of the assigned groups. Partner's groupId: ${partnerGroupId}. Assigned groupIds: ${bountyGroupIds.join(", ")}.`,
     );
     return false;
+  }
+
+  // If the bounty has partner tags, the partner must have at least one matching tag
+  const bountyPartnerTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
+
+  if (bountyPartnerTagIds.length > 0) {
+    const hasMatchingTag = programEnrollment.partnerTagIds.some((tagId) =>
+      bountyPartnerTagIds.includes(tagId),
+    );
+
+    if (!hasMatchingTag) {
+      console.log(
+        `Partner is not eligible for bounty ${bounty.id} because they do not have any of the assigned partner tags. Partner's partnerTagIds: ${programEnrollment.partnerTagIds.join(", ")}. Assigned partnerTagIds: ${bountyPartnerTagIds.join(", ")}.`,
+      );
+      return false;
+    }
   }
 
   // Relative bounties are for new partners only (enrolled on/after bounty creation)
