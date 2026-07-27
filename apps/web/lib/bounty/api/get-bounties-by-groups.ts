@@ -22,6 +22,7 @@ export async function getBountiesByGroups({
     },
     include: {
       groups: true,
+      partnerTags: true,
     },
   });
 

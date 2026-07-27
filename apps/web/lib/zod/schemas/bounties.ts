@@ -23,6 +23,7 @@ import { awardBountyConditionSchema } from "../../api/workflows/award-bounty/sch
 import { CommissionSchema } from "./commissions";
 import { GroupSchema } from "./groups";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import { PartnerTagSchema } from "./partner-tags";
 import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { nullableCountSchema, parseDateSchema } from "./utils";
@@ -118,6 +119,7 @@ export const createBountySchema = z.object({
     .nullish(),
   submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
+  partnerTagIds: z.array(z.string()).nullable().optional(),
   performanceCondition: awardBountyConditionSchema.nullish(),
   performanceScope: z.enum(BountyPerformanceScope).nullish(),
   sendNotificationEmails: z.boolean().optional(),
@@ -159,6 +161,7 @@ export const BountySchema = z.object({
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   socialMetricsLastSyncedAt: z.date().nullable().optional(),
   groups: z.array(GroupSchema.pick({ id: true })),
+  partnerTags: z.array(PartnerTagSchema.pick({ id: true })),
 });
 
 export const getBountiesQuerySchema = z.object({

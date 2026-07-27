@@ -1,6 +1,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
+import { throwIfInvalidPartnerTagIds } from "@/lib/api/partner-tags/throw-if-invalid-partner-tag-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { WorkflowCondition } from "@/lib/api/workflows/types";
@@ -11,6 +12,7 @@ import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-perform
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getBountyWithDetails } from "@/lib/bounty/api/get-bounty-with-details";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
+import { transformBounty } from "@/lib/bounty/api/transform-bounty";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@/lib/prisma";
@@ -67,6 +69,7 @@ export const PATCH = withWorkspace(
       submissionRequirements,
       performanceCondition,
       groupIds,
+      partnerTagIds,
     } = updateBountySchema.parse(await parseRequestBody(req));
 
     const bounty = await getBountyOrThrow({
@@ -157,6 +160,8 @@ export const PATCH = withWorkspace(
     // if groupIds is provided and is different from the current groupIds, update the groups
     let updatedPartnerGroups: PartnerGroup[] | undefined = undefined;
     let shouldUpdatePartnerGroups = false;
+    let updatedPartnerTags: { id: string }[] | undefined = undefined;
+    let shouldUpdatePartnerTags = false;
 
     if (groupIds !== undefined) {
       const currentGroupIds = bounty.groups.map((group) => group.groupId);
@@ -171,6 +176,24 @@ export const PATCH = withWorkspace(
         }
 
         shouldUpdatePartnerGroups = true;
+      }
+    }
+
+    if (partnerTagIds !== undefined) {
+      const currentPartnerTagIds = bounty.partnerTags.map(
+        ({ partnerTagId }) => partnerTagId,
+      );
+      const newPartnerTagIds = partnerTagIds || [];
+
+      if (!arrayEqual(currentPartnerTagIds, newPartnerTagIds)) {
+        if (newPartnerTagIds.length > 0) {
+          updatedPartnerTags = await throwIfInvalidPartnerTagIds({
+            programId,
+            partnerTagIds: newPartnerTagIds,
+          });
+        }
+
+        shouldUpdatePartnerTags = true;
       }
     }
 
@@ -283,6 +306,17 @@ export const PATCH = withWorkspace(
                 }),
             },
           }),
+          ...(shouldUpdatePartnerTags && {
+            partnerTags: {
+              deleteMany: {},
+              ...(updatedPartnerTags &&
+                updatedPartnerTags.length > 0 && {
+                  create: updatedPartnerTags.map((tag) => ({
+                    partnerTagId: tag.id,
+                  })),
+                }),
+            },
+          }),
         },
         include: {
           workflow: true,
@@ -307,11 +341,7 @@ export const PATCH = withWorkspace(
       };
     });
 
-    const updatedBounty = BountySchema.parse({
-      ...data,
-      groups: data.groups.map(({ groupId }) => ({ id: groupId })),
-      performanceCondition: data.workflow?.triggerConditions?.[0],
-    });
+    const updatedBounty = BountySchema.parse(transformBounty(data));
 
     waitUntil(
       Promise.allSettled([
@@ -390,11 +420,7 @@ export const DELETE = withWorkspace(
       }
     });
 
-    const deletedBounty = BountySchema.parse({
-      ...bounty,
-      groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
-      performanceCondition: bounty.workflow?.triggerConditions?.[0],
-    });
+    const deletedBounty = BountySchema.parse(transformBounty(bounty));
 
     waitUntil(
       recordAuditLog({

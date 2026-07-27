@@ -161,8 +161,12 @@ export function useAddEditBountyForm({
               ? "submission"
               : "performance",
       submissionRequirements: initialSubmissionRequirements,
-      groupIds: bounty?.groups?.map(({ id }) => id) || null,
-      partnerTagIds: bounty?.partnerTags?.map(({ id }) => id) || null,
+      groupIds: bounty?.groups?.length
+        ? bounty.groups.map(({ id }) => id)
+        : null,
+      partnerTagIds: bounty?.partnerTags?.length
+        ? bounty.partnerTags.map(({ id }) => id)
+        : null,
       performanceCondition: bounty?.performanceCondition
         ? {
             ...bounty.performanceCondition,
