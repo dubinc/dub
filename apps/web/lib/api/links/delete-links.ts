@@ -2,16 +2,20 @@ import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
-import { R2_URL } from "@dub/utils";
+import { chunk, R2_URL } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { linkCache } from "./cache";
 import { ExpandedLink } from "./utils";
+
+const DELETE_LINKS_BATCH_SIZE = 100;
 
 /**
  * Canonical bulk link deletion:
  * 1. Delete related DiscountCodes (and enqueue provider cleanup)
  * 2. Delete Link rows + decrement totalLinks (transaction)
  * 3. Run side effects (Redis / Tinybird / R2)
+ *
+ * Processes links in batches of 100.
  */
 export async function deleteLinks(
   links: ExpandedLink[],
@@ -20,9 +24,36 @@ export async function deleteLinks(
   },
 ): Promise<{ deletedCount: number }> {
   if (links.length === 0) {
-    return { deletedCount: 0 };
+    return {
+      deletedCount: 0,
+    };
   }
 
+  let deletedCount = 0;
+
+  const batches = chunk(links, DELETE_LINKS_BATCH_SIZE);
+
+  for (const [batchIndex, batch] of batches.entries()) {
+    const batchDeletedCount = await deleteLinksBatch(batch, options);
+
+    deletedCount += batchDeletedCount;
+
+    console.log(
+      `Deleted ${batchDeletedCount} links in batch ${batchIndex + 1}/${batches.length}`,
+    );
+  }
+
+  return {
+    deletedCount,
+  };
+}
+
+async function deleteLinksBatch(
+  links: ExpandedLink[],
+  options?: {
+    where?: Omit<Prisma.LinkWhereInput, "id">;
+  },
+): Promise<number> {
   const linkIds = links.map((link) => link.id);
 
   const discountCodes = await prisma.discountCode.findMany({
@@ -87,9 +118,5 @@ export async function deleteLinks(
     ]);
   }
 
-  console.log(`Deleted ${deletedCount} links.`);
-
-  return {
-    deletedCount,
-  };
+  return deletedCount;
 }
