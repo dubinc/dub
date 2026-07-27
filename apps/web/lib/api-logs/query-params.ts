@@ -39,7 +39,7 @@ export function parseQueryParams(
     return null;
   }
 
-  const params: Record<string, string | string[]> = {};
+  const params: Record<string, string | string[]> = Object.create(null);
   let entryCount = 0;
 
   for (const [rawKey, rawValue] of searchParams.entries()) {
@@ -56,7 +56,7 @@ export function parseQueryParams(
       value = maskSensitiveValue(value);
     }
 
-    if (key in params) {
+    if (Object.hasOwn(params, key)) {
       const existing = params[key];
       Array.isArray(existing)
         ? existing.push(value)
