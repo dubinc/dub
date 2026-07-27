@@ -17,6 +17,7 @@ export const apiLogSchemaTB = z.object({
   duration: z.number(),
   user_agent: z.string(),
   request_body: z.string(),
+  query_params: z.string(),
   response_body: z.string(),
   token_id: z.string(),
   user_id: z.string(),
