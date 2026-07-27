@@ -54,11 +54,12 @@ const toDubStatus = (status: string): CommissionStatus | null => {
       return "pending";
     case "refunded":
     case "partial_refund":
-      return "canceled";
+      return "refunded";
+    case "fraudulent":
+      return "fraud";
     case "void":
     case "failed":
-    case "fraudulent":
-      return null; // skip
+      return "canceled";
     default:
       return "pending";
   }
