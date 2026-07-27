@@ -22,7 +22,7 @@ const WORKFLOW_TYPE_ATTRIBUTES = {
 type WorkflowConditionInput = {
   attribute: string;
   operator: string;
-  value: unknown;
+  value?: unknown;
 };
 
 export async function validateWorkflowConditions({

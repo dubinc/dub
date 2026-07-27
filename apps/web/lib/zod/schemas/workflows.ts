@@ -2,7 +2,10 @@ import {
   WORKFLOW_ATTRIBUTE_KEYS,
   WorkflowAttributeKey,
 } from "@/lib/api/workflows/attribute-definitions";
-import { WORKFLOW_OPERATOR_KEYS } from "@/lib/api/workflows/operator-definitions";
+import {
+  WORKFLOW_OPERATOR_KEYS,
+  WORKFLOW_OPERATORS,
+} from "@/lib/api/workflows/operator-definitions";
 import { WorkflowTrigger } from "@prisma/client";
 import * as z from "zod/v4";
 
@@ -34,19 +37,54 @@ export enum WORKFLOW_ACTION_TYPES {
 }
 
 // Individual condition
-export const workflowConditionSchema = z.object({
-  attribute: z.enum(WORKFLOW_ATTRIBUTE_KEYS),
-  operator: z.enum(WORKFLOW_OPERATOR_KEYS).default("gte"),
-  value: z.union([
-    z.number(),
-    z.object({
-      min: z.number(),
-      max: z.number(),
+export const workflowConditionSchema = z
+  .object({
+    attribute: z.enum(WORKFLOW_ATTRIBUTE_KEYS, {
+      error: "Please select an activity for this rule.",
     }),
-    z.string(),
-    z.array(z.string()).min(1),
-  ]),
-});
+    operator: z.enum(WORKFLOW_OPERATOR_KEYS).default("gte"),
+    value: z
+      .union([
+        z.number(),
+        z.object({
+          min: z.number().optional(),
+          max: z.number().optional(),
+        }),
+        z.string(),
+        z.array(z.string()),
+      ])
+      .optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.value == null) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          data.attribute === "partnerGroup"
+            ? "Please select a partner group."
+            : "Please enter a threshold value for this rule.",
+        path: ["value"],
+      });
+      return;
+    }
+
+    const operatorDefinition =
+      WORKFLOW_OPERATORS[data.operator as keyof typeof WORKFLOW_OPERATORS];
+
+    if (!operatorDefinition) {
+      return;
+    }
+
+    try {
+      operatorDefinition.validate(data.value as any);
+    } catch (error) {
+      ctx.addIssue({
+        code: "custom",
+        message: error instanceof Error ? error.message : "Invalid value.",
+        path: ["value"],
+      });
+    }
+  });
 
 // Array of conditions
 export const workflowConditionsSchema = z.array(workflowConditionSchema);

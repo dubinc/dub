@@ -29,7 +29,7 @@ import { Fragment, useMemo } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 
 // Draft form value shapes (partial ranges allowed while editing)
-type RangeValue = { min: number; max?: number };
+type RangeValue = { min?: number; max?: number };
 type ValueType = number | RangeValue | string | string[] | undefined;
 
 type MetricAttributeKey = (typeof GROUP_MOVE_METRIC_ATTRIBUTE_KEYS)[number];
@@ -47,6 +47,26 @@ const isMultiGroupOperator = (
 
 const isPartnerGroupRule = (rule: WorkflowCondition | undefined) =>
   rule?.attribute === "partnerGroup";
+
+const isMetricRuleComplete = (rule: WorkflowCondition | undefined): boolean => {
+  if (!rule?.attribute || isPartnerGroupRule(rule)) {
+    return false;
+  }
+
+  const min = getMinValue(rule.value as ValueType);
+  if (min == null || min === 0) {
+    return false;
+  }
+
+  if (rule.operator === "between") {
+    const max = getMaxValue(rule.value as ValueType);
+    if (max == null || max === 0) {
+      return false;
+    }
+  }
+
+  return true;
+};
 
 export function GroupMoveRules() {
   const { plan } = useWorkspace();
@@ -95,9 +115,11 @@ export function GroupMoveRules() {
   const canAddMetricRule =
     usedMetricAttributes.length < GROUP_MOVE_METRIC_ATTRIBUTE_KEYS.length;
 
-  // Source group is only an additional condition after at least one metric rule
+  // Source group is only an additional condition after a complete metric rule
   const canAddPartnerGroupCondition =
-    metricRuleIndexes.length > 0 && !hasPartnerGroupCondition;
+    metricRuleIndexes.length > 0 &&
+    !hasPartnerGroupCondition &&
+    isMetricRuleComplete(metricRuleIndexes[0].rule);
 
   const { canUseGroupMoveRule } = getPlanCapabilities(plan);
 
@@ -370,7 +392,7 @@ function MetricGroupRule({
       </div>
 
       {nestedCondition && (
-        <div className="rounded-xl border border-neutral-200 bg-neutral-100 px-2.5 pb-2.5">
+        <div className="-mx-px rounded-xl border-x border-t border-neutral-200 bg-neutral-100 px-2.5 pb-2.5">
           <div className="pt-2.5">
             {"onAdd" in nestedCondition ? (
               <Button

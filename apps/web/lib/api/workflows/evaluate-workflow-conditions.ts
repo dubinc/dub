@@ -26,6 +26,11 @@ export function evaluateWorkflowConditions({
       return false;
     }
 
+    if (condition.value == null) {
+      console.error(`Value is required for ${condition.attribute}.`);
+      return false;
+    }
+
     if (!operator.evaluate(attributeValue, condition.value)) {
       return false;
     }

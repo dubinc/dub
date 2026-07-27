@@ -1,6 +1,6 @@
 export type ConditionValue =
   | number
-  | { min: number; max?: number }
+  | { min?: number; max?: number }
   | string
   | string[];
 
