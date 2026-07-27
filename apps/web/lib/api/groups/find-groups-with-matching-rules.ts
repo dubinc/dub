@@ -96,14 +96,15 @@ const conditionToInterval = (
       if (
         typeof condition.value === "object" &&
         condition.value !== null &&
-        !Array.isArray(condition.value) &&
-        "min" in condition.value &&
-        "max" in condition.value
+        !Array.isArray(condition.value)
       ) {
-        return {
-          min: condition.value.min,
-          max: condition.value.max,
-        };
+        const { min, max } = condition.value;
+
+        if (typeof min !== "number" || typeof max !== "number") {
+          return null;
+        }
+
+        return { min, max };
       }
       return null;
 
