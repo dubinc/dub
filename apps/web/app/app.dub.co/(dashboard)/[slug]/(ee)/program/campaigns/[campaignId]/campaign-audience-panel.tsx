@@ -13,6 +13,7 @@ import {
   Magnifier,
   ScrollContainer,
   Switch,
+  Tag,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
@@ -393,7 +394,10 @@ function PartnerTagsSelect({
       items={sortedTags}
       getItemValue={(tag) => `${tag.name}::${tag.id}`}
       renderItem={(tag) => (
-        <span className="min-w-0 flex-1 truncate">{tag.name}</span>
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <Tag className="size-3.5 shrink-0" />
+          <span className="min-w-0 truncate">{tag.name}</span>
+        </div>
       )}
     />
   );
