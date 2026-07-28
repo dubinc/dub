@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { LEGAL_USER_ID } from "@dub/utils";
 import "dotenv-flow/config";
 import { linkCache } from "../../lib/api/links/cache";
-import { updateConfig } from "../../lib/edge-config";
+import { queueBatchEmail } from "../../lib/email/queue-batch-email";
 
 // script to disable all links for a workspace
 async function main() {
@@ -12,10 +11,17 @@ async function main() {
     },
     include: {
       users: {
+        where: {
+          role: "owner",
+          user: {
+            email: {
+              not: null,
+            },
+          },
+        },
         select: {
           user: {
             select: {
-              id: true,
               email: true,
             },
           },
@@ -23,11 +29,6 @@ async function main() {
       },
     },
   });
-
-  if (project.users.length === 0) {
-    console.log("No users found");
-    return;
-  }
 
   while (true) {
     const linksToDisable = await prisma.link.findMany({
@@ -61,37 +62,52 @@ async function main() {
     }
   }
 
-  const userToBan = project.users[0].user;
+  const owners = project.users.map(({ user }) => user.email);
 
-  await prisma.projectUsers.update({
+  if (owners.length > 0) {
+    await queueBatchEmail(
+      owners.map((email) => ({
+        to: email!,
+        variant: "notifications",
+        subject: "Your Dub workspace has been disabled",
+        templateName: "WorkspaceDisabled",
+        templateProps: {
+          email: email!,
+          workspace: {
+            name: project.name,
+            slug: project.slug,
+            usage: project.usage,
+            usageLimit: project.usageLimit,
+            plan: project.plan,
+          },
+        },
+      })),
+    );
+  }
+
+  const updatedOwners = await prisma.projectUsers.updateMany({
     where: {
-      userId_projectId: {
-        userId: userToBan.id,
-        projectId: project.id,
-      },
+      projectId: project.id,
+      role: "owner",
     },
     data: {
-      userId: LEGAL_USER_ID,
+      role: "billing",
     },
   });
 
-  await prisma.project.update({
+  console.log(`Updated ${updatedOwners.count} owners to billing role`);
+
+  const updatedMembers = await prisma.projectUsers.updateMany({
     where: {
-      id: project.id,
+      projectId: project.id,
+      role: "member",
     },
     data: {
-      name: userToBan.email!,
+      role: "viewer",
     },
   });
 
-  await updateConfig({
-    key: "emails",
-    value: userToBan.email!,
-  });
-
-  console.log(
-    `Banned ${userToBan.email}, transfered project ${project.slug} to legal user`,
-  );
+  console.log(`Updated ${updatedMembers.count} members to viewer role`);
 }
 
 main();
