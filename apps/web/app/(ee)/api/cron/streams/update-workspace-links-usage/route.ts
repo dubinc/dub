@@ -11,7 +11,7 @@ import {
   workspaceLinksUsageStream,
 } from "@/lib/upstash/redis-streams/workspace-links-usage";
 import { log } from "@dub/utils";
-import { NextResponse } from "next/server";
+import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -317,7 +317,7 @@ export const GET = withCron(async () => {
   } = await processWorkspaceLinksUsageBatch();
 
   if (!updates.length) {
-    return NextResponse.json({
+    return logAndRespond({
       success: true,
       message: "No updates to process",
       processed: 0,
@@ -326,7 +326,7 @@ export const GET = withCron(async () => {
 
   const streamInfo = await workspaceLinksUsageStream.getStreamInfo();
 
-  const response = {
+  return logAndRespond({
     success: true,
     processed: totalProcessed,
     notificationsSent,
@@ -334,9 +334,5 @@ export const GET = withCron(async () => {
     lastProcessedId,
     streamInfo,
     message: `Successfully processed ${totalProcessed} workspace links usage updates`,
-  };
-
-  console.log(response);
-
-  return NextResponse.json(response);
+  });
 });
