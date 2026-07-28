@@ -207,7 +207,7 @@ export async function POST(req: Request) {
         programId: bounty.programId,
         partnerId: programEnrollment.partnerId,
         bountyId: bounty.id,
-        performanceCount: Math.min(performanceCount, condition.value as number),
+        performanceCount,
         // If the condition is met, automatically submit the submission
         ...(conditionMet && {
           status: "submitted",

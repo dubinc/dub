@@ -707,6 +707,20 @@ describe.sequential("/bounties - relative start mode", async () => {
       endsAfterDays: 180,
     });
 
+    const { status: descriptionPatchStatus, data: descriptionUpdated } =
+      await http.patch<Bounty>({
+        path: `/bounties/${bounty.id}`,
+        body: { description: "updated description only" },
+      });
+
+    expect(descriptionPatchStatus).toEqual(200);
+    expect(descriptionUpdated).toMatchObject({
+      startMode: BountyStartMode.relative,
+      startsAt: null,
+      endsAfterDays: 180,
+      description: "updated description only",
+    });
+
     onTestFinished(async () => {
       await h.deleteBounty(bounty.id);
     });

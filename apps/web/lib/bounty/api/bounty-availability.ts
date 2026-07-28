@@ -8,6 +8,7 @@ import {
   Prisma,
   Program,
   ProgramEnrollment,
+  ProgramEnrollmentStatus,
   ProgramPartnerTag,
 } from "@prisma/client";
 import { addDays } from "date-fns";
@@ -258,7 +259,7 @@ export const canPartnerSubmitBounty = ({
   programEnrollment,
 }: PartnerBountyEligibilityInput): boolean => {
   // Only approved partners can submit bounties
-  if (programEnrollment.status !== "approved") {
+  if (programEnrollment.status !== ProgramEnrollmentStatus.approved) {
     return false;
   }
 

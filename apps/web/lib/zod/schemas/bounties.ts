@@ -133,7 +133,12 @@ export const updateBountySchema = createBountySchema
     type: true,
     performanceScope: true,
   })
-  .partial();
+  .partial()
+  // Avoid inheriting create's `.default(absolute)` — Zod still applies defaults
+  // on omitted keys after `.partial()`, which would coerce relative bounties.
+  .extend({
+    startMode: z.enum(BountyStartMode).optional(),
+  });
 
 export const BountySubmissionFileSchema = z.object({
   url: z.httpUrl().describe("The URL of the uploaded file."),
