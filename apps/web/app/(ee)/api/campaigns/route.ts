@@ -17,7 +17,7 @@ import {
 } from "@/lib/zod/schemas/workflows";
 import { CampaignStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/campaigns - get all email campaigns for a program
 export const GET = withWorkspace(

@@ -310,12 +310,12 @@ async function resolveProgramEnrollment({
 }: ResolveProgramEnrollment) {
   const { attribute } = condition;
 
+  const shouldFetchCommissions = attribute === "totalCommissions";
   const isPartnerLinkStatsAttribute = [
     "totalLeads",
     "totalConversions",
     "totalSaleAmount",
   ].includes(attribute);
-  const shouldFetchCommissions = attribute === "totalCommissions";
 
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {

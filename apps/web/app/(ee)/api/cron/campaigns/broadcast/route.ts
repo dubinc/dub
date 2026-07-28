@@ -54,8 +54,16 @@ export async function POST(req: Request) {
         id: campaignId,
       },
       include: {
-        groups: true,
-        partnerTags: true,
+        groups: {
+          select: {
+            groupId: true,
+          },
+        },
+        partnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
         program: {
           include: {
             emailDomains: {
