@@ -15,7 +15,7 @@ export interface PartnerActivityEvent {
   eventType: "lead" | "sale" | "commission";
 }
 
-// Publishes a partner activity event to the stream
+// Publishes a partner activity event to the stream to update programEnrollment stats (e.g. totalClicks, totalLeads, totalSales, totalCommissions)
 export const publishPartnerActivityEvent = async (
   event: PartnerActivityEvent,
 ) => {

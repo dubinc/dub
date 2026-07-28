@@ -13,7 +13,7 @@ import { detectBot } from "../middleware/utils/detect-bot";
 import { detectQr } from "../middleware/utils/detect-qr";
 import { getIdentityHash } from "../middleware/utils/get-identity-hash";
 import { redis } from "../upstash";
-import { publishClickStatsEvent } from "../upstash/redis-streams/click-stats";
+import { publishLinkClickEvent } from "../upstash/redis-streams/link-click-events";
 import { publishWorkspaceClickEvent } from "../upstash/redis-streams/workspace-click-events";
 
 /**
@@ -188,7 +188,7 @@ export async function recordClick({
           clickId,
         }),
 
-        publishClickStatsEvent({
+        publishLinkClickEvent({
           linkId,
           timestamp: clickData.timestamp,
           ...(workspaceId && url && { workspaceId }),

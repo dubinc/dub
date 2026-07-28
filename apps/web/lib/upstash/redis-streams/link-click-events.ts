@@ -3,11 +3,11 @@ import { conn } from "@/lib/planetscale";
 import { redis } from "../redis";
 import { RedisStream } from "./client";
 
-const CLICK_STATS_STREAM_KEY = "click:stats:updates";
+const STREAM_KEY = "link:click:events";
 
-export const clickStatsStream = new RedisStream(CLICK_STATS_STREAM_KEY);
+export const linkClickEventStream = new RedisStream(STREAM_KEY);
 
-export interface ClickStatsEvent {
+export interface LinkClickEvent {
   linkId: string;
   timestamp: string;
   workspaceId?: string;
@@ -15,13 +15,17 @@ export interface ClickStatsEvent {
   partnerId?: string;
 }
 
-export const publishClickStatsEvent = async ({
+// Publishes a link click event to the stream to update:
+// - link clicks count + lastClicked timestamp
+// - workspace usage + totalClicks
+// - program enrollment totalClicks
+export const publishLinkClickEvent = async ({
   linkId,
   timestamp,
   workspaceId,
   programId,
   partnerId,
-}: ClickStatsEvent) => {
+}: LinkClickEvent) => {
   const payload = {
     linkId,
     timestamp,
@@ -30,11 +34,11 @@ export const publishClickStatsEvent = async ({
   };
 
   try {
-    return await redis.xadd(CLICK_STATS_STREAM_KEY, "*", payload);
+    return await redis.xadd(STREAM_KEY, "*", payload);
   } catch (error) {
     logger.error("stream.publish_failed", {
       service: "upstash",
-      streamKey: CLICK_STATS_STREAM_KEY,
+      streamKey: STREAM_KEY,
       error: toErrorFields(error),
       correlation: {
         linkId,

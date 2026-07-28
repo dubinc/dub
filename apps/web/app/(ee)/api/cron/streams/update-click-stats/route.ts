@@ -2,11 +2,11 @@ import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { conn } from "@/lib/planetscale";
 import { redis } from "@/lib/upstash/redis";
-import {
-  ClickStatsEvent,
-  clickStatsStream,
-} from "@/lib/upstash/redis-streams/click-stats";
 import { RedisStreamEntry } from "@/lib/upstash/redis-streams/client";
+import {
+  LinkClickEvent,
+  linkClickEventStream,
+} from "@/lib/upstash/redis-streams/link-click-events";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
@@ -40,7 +40,7 @@ type EnrollmentAggregate = {
 };
 
 const aggregateClickStats = (
-  entries: RedisStreamEntry<ClickStatsEvent>[],
+  entries: RedisStreamEntry<LinkClickEvent>[],
 ): {
   linkUpdates: LinkAggregate[];
   workspaceUpdates: WorkspaceAggregate[];
@@ -152,7 +152,7 @@ const getStreamEntryAgeMs = (entryId: string | null) => {
 };
 
 const processClickStatsStreamBatch = () =>
-  clickStatsStream.processBatch<ClickStatsEvent>(
+  linkClickEventStream.processBatch<LinkClickEvent>(
     async (entries) => {
       if (!entries || entries.length === 0) {
         return {
@@ -325,7 +325,7 @@ const executeClickStatsCron = async () => {
     entriesProcessed = 0,
   } = await processClickStatsStreamBatch();
 
-  const streamInfo = await clickStatsStream.getStreamInfo();
+  const streamInfo = await linkClickEventStream.getStreamInfo();
   await maybeAlertOnBacklog(streamInfo);
 
   const hasMore =
