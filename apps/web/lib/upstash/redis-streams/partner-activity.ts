@@ -12,7 +12,7 @@ export interface PartnerActivityEvent {
   programId: string;
   partnerId: string;
   timestamp: string;
-  eventType: "click" | "lead" | "sale" | "commission";
+  eventType: "lead" | "sale" | "commission";
 }
 
 // Publishes a partner activity event to the stream

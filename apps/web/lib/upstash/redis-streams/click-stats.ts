@@ -3,10 +3,6 @@ import { conn } from "@/lib/planetscale";
 import { redis } from "../redis";
 import { RedisStream } from "./client";
 
-// TODO: clean up those legacy streams once remaining publishers
-// are migrated (track-sale → workspace-clicks-usage; lead/sale/commission →
-// partner-activity) or confirmed still needed.
-
 const CLICK_STATS_STREAM_KEY = "click:stats:updates";
 
 export const clickStatsStream = new RedisStream(CLICK_STATS_STREAM_KEY);
