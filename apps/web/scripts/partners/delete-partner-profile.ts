@@ -58,12 +58,12 @@ async function main() {
   });
   console.log("Deleted payouts", deletedPayouts);
 
-  const links = await prisma.link.findMany({
-    where: {
-      partnerId: partner.id,
-    },
-  });
-  await bulkDeleteLinks(links);
+  // Delete per enrollment so each bulkDeleteLinks call stays single-workspace
+  for (const { links } of partner.programs) {
+    if (links.length > 0) {
+      await bulkDeleteLinks(links);
+    }
+  }
 
   const deletedProgramEnrollments = await prisma.programEnrollment.deleteMany({
     where: {
