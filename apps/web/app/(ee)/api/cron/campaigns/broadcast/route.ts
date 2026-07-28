@@ -10,7 +10,7 @@ import { TiptapNode } from "@/lib/types";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
-import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, chunk, log, pluck } from "@dub/utils";
 import { NotificationEmailType } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import { headers } from "next/headers";
@@ -141,10 +141,8 @@ export async function POST(req: Request) {
       }
     }
 
-    const campaignGroupIds = campaign.groups.map(({ groupId }) => groupId);
-    const campaignPartnerTagIds = campaign.partnerTags.map(
-      ({ partnerTagId }) => partnerTagId,
-    );
+    const campaignGroupIds = pluck(campaign.groups, "groupId");
+    const campaignPartnerTagIds = pluck(campaign.partnerTags, "partnerTagId");
 
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {

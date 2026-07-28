@@ -7,7 +7,7 @@ import { TiptapNode } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
-import { chunk } from "@dub/utils";
+import { chunk, pluck } from "@dub/utils";
 import {
   CommissionStatus,
   NotificationEmailType,
@@ -81,10 +81,8 @@ export const executeSendCampaignWorkflow = async ({
     return;
   }
 
-  const campaignGroupIds = campaign.groups.map(({ groupId }) => groupId);
-  const campaignPartnerTagIds = campaign.partnerTags.map(
-    ({ partnerTagId }) => partnerTagId,
-  );
+  const campaignGroupIds = pluck(campaign.groups, "groupId");
+  const campaignPartnerTagIds = pluck(campaign.partnerTags, "partnerTagId");
 
   let programEnrollments = partnerId
     ? await resolveProgramEnrollment({

@@ -19,7 +19,7 @@ import {
   updateCampaignSchema,
 } from "@/lib/zod/schemas/campaigns";
 import { WORKFLOW_ATTRIBUTE_TRIGGER } from "@/lib/zod/schemas/workflows";
-import { arrayEqual } from "@dub/utils";
+import { arrayEqual, pluck } from "@dub/utils";
 import { PartnerGroup } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -118,7 +118,7 @@ export const PATCH = withWorkspace(
     let shouldUpdatePartnerTags = false;
 
     if (groupIds !== undefined) {
-      const currentGroupIds = campaign.groups.map(({ groupId }) => groupId);
+      const currentGroupIds = pluck(campaign.groups, "groupId");
       const newGroupIds = groupIds || []; // treat null as empty array (all groups)
 
       if (!arrayEqual(currentGroupIds, newGroupIds)) {
@@ -134,9 +134,7 @@ export const PATCH = withWorkspace(
     }
 
     if (partnerTagIds !== undefined) {
-      const currentPartnerTagIds = campaign.partnerTags.map(
-        ({ partnerTagId }) => partnerTagId,
-      );
+      const currentPartnerTagIds = pluck(campaign.partnerTags, "partnerTagId");
       const newPartnerTagIds = partnerTagIds || []; // treat null as empty array (no tag restriction)
 
       if (!arrayEqual(currentPartnerTagIds, newPartnerTagIds)) {

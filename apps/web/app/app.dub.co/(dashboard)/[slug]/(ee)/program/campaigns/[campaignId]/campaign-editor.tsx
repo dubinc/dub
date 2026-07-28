@@ -21,7 +21,7 @@ import {
   TooltipContent,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { capitalize, cn } from "@dub/utils";
+import { capitalize, cn, pluck } from "@dub/utils";
 import { CampaignStatus } from "@prisma/client";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
@@ -103,11 +103,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
       preview: campaign.preview,
       from: campaign.from ?? undefined,
       bodyJson: campaign.bodyJson,
-      groupIds: campaign.groups.length
-        ? campaign.groups.map(({ id }) => id)
-        : null,
+      groupIds: campaign.groups.length ? pluck(campaign.groups, "id") : null,
       partnerTagIds: campaign.partnerTags.length
-        ? campaign.partnerTags.map(({ id }) => id)
+        ? pluck(campaign.partnerTags, "id")
         : null,
       triggerCondition: campaign.triggerCondition,
       scheduledAt: campaign.scheduledAt,
