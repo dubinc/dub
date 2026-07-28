@@ -7,6 +7,7 @@ import {
 } from "@/lib/upstash/redis-streams/workspace-clicks-usage";
 import { NextResponse } from "next/server";
 
+// TODO: Remove once stream is drained
 export const dynamic = "force-dynamic";
 
 const BATCH_SIZE = 10000;

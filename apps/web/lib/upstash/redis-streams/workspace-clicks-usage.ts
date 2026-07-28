@@ -1,7 +1,7 @@
 import { redis } from "../redis";
 import { RedisStream } from "./client";
 
-/* Workspace Clicks Usage Stream */
+// TODO: Remove once stream is drained
 const WORKSPACE_CLICKS_USAGE_UPDATES_STREAM_KEY = "workspace:usage:updates";
 
 export const workspaceClicksUsageStream = new RedisStream(
