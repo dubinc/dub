@@ -1,7 +1,6 @@
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { deleteDiscountCodes } from "../../discounts/delete-discount-code";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
 
 const BATCH_SIZE = 250;
@@ -59,38 +58,7 @@ export async function bulkDeletePartners({
       console.log(`Deleted ${deletedCustomers.count} customers`);
     }
 
-    const discountCodesToDelete = await prisma.discountCode.findMany({
-      where: {
-        linkId: {
-          in: linksToDelete.map((link) => link.id),
-        },
-      },
-      select: {
-        id: true,
-        code: true,
-        programId: true,
-        discount: {
-          select: {
-            provider: true,
-          },
-        },
-      },
-    });
-
-    if (discountCodesToDelete.length > 0) {
-      await deleteDiscountCodes(discountCodesToDelete);
-    }
-
     await bulkDeleteLinks(linksToDelete);
-
-    const deletedLinks = await prisma.link.deleteMany({
-      where: {
-        id: {
-          in: linksToDelete.map((link) => link.id),
-        },
-      },
-    });
-    console.log(`Deleted ${deletedLinks.count} links`);
   }
 
   if (programEnrollmentIds.length > 0) {
