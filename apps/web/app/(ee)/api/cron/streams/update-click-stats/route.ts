@@ -1,4 +1,3 @@
-import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { conn } from "@/lib/planetscale";
 import { redis } from "@/lib/upstash/redis";
@@ -7,8 +6,7 @@ import {
   LinkClickEvent,
   linkClickEventStream,
 } from "@/lib/upstash/redis-streams/link-click-events";
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
-import { NextResponse } from "next/server";
+import { log } from "@dub/utils";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -317,53 +315,8 @@ const maybeAlertOnBacklog = async (streamInfo: {
   });
 };
 
-const executeClickStatsCron = async () => {
-  const {
-    linkUpdates,
-    errors,
-    totalProcessed,
-    entriesProcessed = 0,
-  } = await processClickStatsStreamBatch();
-
-  const streamInfo = await linkClickEventStream.getStreamInfo();
-  await maybeAlertOnBacklog(streamInfo);
-
-  const hasMore =
-    streamInfo.length > 0 || (entriesProcessed ?? 0) >= BATCH_SIZE;
-
-  if (hasMore) {
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/streams/update-click-stats`,
-      method: "POST",
-      body: {},
-    });
-  }
-
-  if (!linkUpdates.length) {
-    return NextResponse.json({
-      success: true,
-      message: "No updates to process",
-      processed: 0,
-      streamInfo,
-      hasMore,
-    });
-  }
-
-  const response = {
-    success: true,
-    processed: totalProcessed,
-    errors: errors?.length || 0,
-    streamInfo,
-    hasMore,
-    message: `Successfully processed ${totalProcessed} click stats updates`,
-  };
-
-  console.log(response);
-
-  return NextResponse.json(response);
-};
-
-const runWithLock = async () => {
+// GET /api/cron/streams/update-click-stats
+export const GET = withCron(async () => {
   const acquired = await redis.set(LOCK_KEY, "1", {
     nx: true,
     ex: LOCK_TTL_SECONDS,
@@ -375,15 +328,28 @@ const runWithLock = async () => {
     );
   }
 
-  try {
-    return await executeClickStatsCron();
-  } finally {
-    await redis.del(LOCK_KEY);
+  const { linkUpdates, errors, totalProcessed } =
+    await processClickStatsStreamBatch();
+
+  const streamInfo = await linkClickEventStream.getStreamInfo();
+  await maybeAlertOnBacklog(streamInfo);
+
+  if (!linkUpdates.length) {
+    return logAndRespond({
+      success: true,
+      processed: 0,
+      streamInfo,
+      message: "No updates to process",
+    });
   }
-};
 
-// GET /api/cron/streams/update-click-stats
-export const GET = withCron(async () => runWithLock());
+  await redis.del(LOCK_KEY);
 
-// POST /api/cron/streams/update-click-stats (recursively called by QStash)
-export const POST = withCron(async () => runWithLock());
+  return logAndRespond({
+    success: true,
+    processed: totalProcessed,
+    errors: errors?.length || 0,
+    streamInfo,
+    message: `Successfully processed ${totalProcessed} click stats updates`,
+  });
+});
