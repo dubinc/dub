@@ -21,10 +21,6 @@
       "schedule": "* * * * *"
     },
     {
-      "path": "/api/cron/streams/update-workspace-clicks",
-      "schedule": "* * * * *"
-    },
-    {
       "path": "/api/cron/streams/update-click-stats",
       "schedule": "* * * * *"
     },

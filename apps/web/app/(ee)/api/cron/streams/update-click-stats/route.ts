@@ -334,6 +334,8 @@ export const GET = withCron(async () => {
   const streamInfo = await linkClickEventStream.getStreamInfo();
   await maybeAlertOnBacklog(streamInfo);
 
+  await redis.del(LOCK_KEY);
+
   if (!linkUpdates.length) {
     return logAndRespond({
       success: true,
@@ -342,8 +344,6 @@ export const GET = withCron(async () => {
       message: "No updates to process",
     });
   }
-
-  await redis.del(LOCK_KEY);
 
   return logAndRespond({
     success: true,
