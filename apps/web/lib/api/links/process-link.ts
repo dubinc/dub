@@ -202,7 +202,7 @@ export async function processLink<T extends Record<string, any>>({
     // coerce type with ! cause we already checked if it exists
     const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
 
-    if (allowedHostnames?.length && (ios || android || geo || testVariants)) {
+    if (ios || android || geo || testVariants) {
       return {
         link: payload,
         error: `You cannot use geo targeting, device targeting, or A/B testing on ${domain} links.`,
