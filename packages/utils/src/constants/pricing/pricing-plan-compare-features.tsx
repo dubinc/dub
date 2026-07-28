@@ -539,7 +539,7 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
           enterprise: true,
         },
         text: "Event webhooks",
-        href: "https://dub.co/docs/concepts/webhooks/introduction",
+        href: "https://dub.co/docs/webhooks/introduction",
       },
     ],
   },
