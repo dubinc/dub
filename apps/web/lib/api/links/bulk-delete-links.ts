@@ -51,7 +51,7 @@ export async function bulkDeleteLinks(
         recordLink(links, { deleted: true }),
 
         // For links that have an image, delete the image from R2
-        links
+        ...links
           .filter((link) =>
             link.image?.startsWith(`${R2_URL}/images/${link.id}`),
           )
