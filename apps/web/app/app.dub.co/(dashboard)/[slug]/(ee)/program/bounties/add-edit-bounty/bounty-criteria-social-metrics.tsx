@@ -5,7 +5,6 @@ import {
   BOUNTY_SOCIAL_PLATFORM_METRICS_MAP,
   BOUNTY_SOCIAL_PLATFORMS,
 } from "@/lib/bounty/social-content";
-import { formatSocialPlatformsList } from "@/lib/bounty/utils";
 import type {
   BountySocialMetricsIncrementalBonus,
   BountySocialPlatform,
@@ -106,15 +105,17 @@ export function BountyCriteriaSocialMetrics() {
     );
   };
 
+  // Plain comma-separated platform names — the OR/AND logic is conveyed by the
+  // separate "any/all" toggle shown after the channel selector, so it's not
+  // baked into this label too.
   const channelLabel = hasChannel
-    ? formatSocialPlatformsList(
-        selectedPlatforms
-          .map((value) =>
-            BOUNTY_SOCIAL_PLATFORMS.find((c) => c.value === value),
-          )
-          .filter((p): p is (typeof BOUNTY_SOCIAL_PLATFORMS)[number] => !!p),
-        logic,
-      )
+    ? selectedPlatforms
+        .map(
+          (value) =>
+            BOUNTY_SOCIAL_PLATFORMS.find((c) => c.value === value)?.label ??
+            value,
+        )
+        .join(", ")
     : "channel";
 
   const commonMetrics = getCommonMetrics(selectedPlatforms);
@@ -168,9 +169,28 @@ export function BountyCriteriaSocialMetrics() {
             <Megaphone className="size-4 text-neutral-800" />
           </div>
           <span className="text-content-emphasis text-sm font-medium leading-relaxed">
+            If their post on{" "}
+            <InlineBadgePopover
+              text={channelLabel}
+              invalid={!hasChannel}
+              buttonClassName={
+                hasChannel
+                  ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
+                  : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
+              }
+            >
+              <InlineBadgePopoverMenu
+                items={BOUNTY_SOCIAL_PLATFORMS.map((c) => ({
+                  value: c.value,
+                  text: c.label,
+                }))}
+                selectedValue={selectedPlatforms}
+                onSelect={togglePlatform}
+              />
+            </InlineBadgePopover>{" "}
             {isMultiPlatform && (
               <>
-                If{" "}
+                has{" "}
                 <InlineBadgePopover
                   text={
                     LOGIC_ITEMS.find((l) => l.value === logic)?.text ?? "any"
@@ -190,29 +210,10 @@ export function BountyCriteriaSocialMetrics() {
                     }
                   />
                 </InlineBadgePopover>{" "}
-                of their posts on{" "}
+                reaching at least{" "}
               </>
             )}
-            {!isMultiPlatform && "If their post on "}
-            <InlineBadgePopover
-              text={channelLabel}
-              invalid={!hasChannel}
-              buttonClassName={
-                hasChannel
-                  ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
-                  : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
-              }
-            >
-              <InlineBadgePopoverMenu
-                items={BOUNTY_SOCIAL_PLATFORMS.map((c) => ({
-                  value: c.value,
-                  text: c.label,
-                }))}
-                selectedValue={selectedPlatforms}
-                onSelect={togglePlatform}
-              />
-            </InlineBadgePopover>{" "}
-            {isMultiPlatform ? "have" : "has"} at least{" "}
+            {!isMultiPlatform && "has at least "}
             <InlineBadgePopover
               text={
                 hasMinCount
