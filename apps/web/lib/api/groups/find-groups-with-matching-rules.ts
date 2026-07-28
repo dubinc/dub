@@ -48,8 +48,22 @@ const doRuleSetsOverlap = (
     rules2ByAttribute.set(rule.attribute, rule);
   }
 
-  // Get all attributes that appear in BOTH rule sets (intersection).
-  // Skip partnerGroup — conflict detection is metric-interval only for now.
+  const partnerGroup1 = rules1ByAttribute.get("partnerGroup");
+  const partnerGroup2 = rules2ByAttribute.get("partnerGroup");
+
+  if (partnerGroup1 && partnerGroup2) {
+    const partnerGroupOverlap = doPartnerGroupConditionsOverlap(
+      partnerGroup1,
+      partnerGroup2,
+    );
+
+    // Disjoint eq/in partner-group filters cannot both match the same partner.
+    if (partnerGroupOverlap === false) {
+      return false;
+    }
+  }
+
+  // Get all metric attributes that appear in BOTH rule sets (intersection).
   const sharedAttributes = Array.from(rules1ByAttribute.keys()).filter(
     (attr) => attr !== "partnerGroup" && rules2ByAttribute.has(attr),
   );
@@ -77,6 +91,51 @@ const doRuleSetsOverlap = (
   }
 
   return true;
+};
+
+const partnerGroupConditionToIdSet = (
+  condition: WorkflowCondition,
+): Set<string> | null => {
+  if (condition.attribute !== "partnerGroup") {
+    return null;
+  }
+
+  switch (condition.operator) {
+    case "eq":
+      if (typeof condition.value === "string") {
+        return new Set([condition.value]);
+      }
+      return null;
+
+    case "in":
+      if (Array.isArray(condition.value)) {
+        return new Set(condition.value);
+      }
+      return null;
+
+    default:
+      return null;
+  }
+};
+
+const doPartnerGroupConditionsOverlap = (
+  condition1: WorkflowCondition,
+  condition2: WorkflowCondition,
+): boolean | null => {
+  const ids1 = partnerGroupConditionToIdSet(condition1);
+  const ids2 = partnerGroupConditionToIdSet(condition2);
+
+  if (!ids1 || !ids2) {
+    return null;
+  }
+
+  for (const id of ids1) {
+    if (ids2.has(id)) {
+      return true;
+    }
+  }
+
+  return false;
 };
 
 const conditionToInterval = (
