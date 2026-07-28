@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Bounty } from "@prisma/client";
+import { bountyEligibilityIncludes } from "./bounty-availability";
 
 export async function getBountiesByGroups({
   programId,
@@ -21,8 +22,7 @@ export async function getBountiesByGroups({
       ],
     },
     include: {
-      groups: true,
-      partnerTags: true,
+      ...bountyEligibilityIncludes,
     },
   });
 

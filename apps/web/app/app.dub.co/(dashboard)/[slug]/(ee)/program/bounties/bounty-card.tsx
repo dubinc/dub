@@ -10,15 +10,15 @@ import {
 import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { Calendar6, Users } from "@dub/ui/icons";
-import { formatDate, nFormatter, pluralize } from "@dub/utils";
+import { formatDate, nFormatter, pluralize, pluck } from "@dub/utils";
 import Link from "next/link";
 
 export function BountyCard({ bounty }: { bounty: BountyListProps }) {
   const { slug: workspaceSlug } = useWorkspace();
 
   const { totalPartners, loading } = usePartnersCountByGroupIds({
-    groupIds: bounty.groups.map((group) => group.id),
-    partnerTagIds: bounty.partnerTags.map((tag) => tag.id),
+    groupIds: pluck(bounty.groups, "id"),
+    partnerTagIds: pluck(bounty.partnerTags, "id"),
   });
 
   const { dateRangeLabel, partnerAudienceLabel } = getProgramBountyMeta(bounty);

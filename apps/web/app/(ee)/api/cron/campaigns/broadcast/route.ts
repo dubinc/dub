@@ -1,4 +1,5 @@
 import { renderCampaignEmailHTML } from "@/lib/api/campaigns/render-campaign-email-html";
+import { campaignEligibilityIncludes } from "@/lib/api/campaigns/transform-campaign";
 import { validateCampaignFromAddress } from "@/lib/api/campaigns/validate-campaign";
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
@@ -54,16 +55,7 @@ export async function POST(req: Request) {
         id: campaignId,
       },
       include: {
-        groups: {
-          select: {
-            groupId: true,
-          },
-        },
-        partnerTags: {
-          select: {
-            partnerTagId: true,
-          },
-        },
+        ...campaignEligibilityIncludes,
         program: {
           include: {
             emailDomains: {

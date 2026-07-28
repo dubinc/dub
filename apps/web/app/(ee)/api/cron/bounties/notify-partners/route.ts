@@ -1,12 +1,13 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { bountyEligibilityIncludes } from "@/lib/bounty/api/bounty-availability";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import NewBountyAvailable from "@dub/email/templates/new-bounty-available";
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log, pluck } from "@dub/utils";
 import { BountyStartMode, NotificationEmailType } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
@@ -50,8 +51,7 @@ export async function POST(req: Request) {
         id: bountyId,
       },
       include: {
-        groups: true,
-        partnerTags: true,
+        ...bountyEligibilityIncludes,
         program: {
           include: {
             emailDomains: {
@@ -86,10 +86,8 @@ export async function POST(req: Request) {
       }
     }
 
-    const bountyGroupIds = bounty.groups.map(({ groupId }) => groupId);
-    const bountyPartnerTagIds = bounty.partnerTags.map(
-      ({ partnerTagId }) => partnerTagId,
-    );
+    const bountyGroupIds = pluck(bounty.groups, "groupId");
+    const bountyPartnerTagIds = pluck(bounty.partnerTags, "partnerTagId");
 
     console.log(
       `Bounty ${bountyId} is applicable to ${

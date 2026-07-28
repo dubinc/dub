@@ -2,7 +2,10 @@ import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { canPartnerSubmitBounty } from "@/lib/bounty/api/bounty-availability";
+import {
+  bountyEligibilityIncludes,
+  canPartnerSubmitBounty,
+} from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { ratelimit } from "@/lib/upstash";
@@ -53,16 +56,7 @@ export const GET = withPartnerProfile(
       bountyId,
       programId: programEnrollment.programId,
       include: {
-        groups: {
-          select: {
-            groupId: true,
-          },
-        },
-        partnerTags: {
-          select: {
-            partnerTagId: true,
-          },
-        },
+        ...bountyEligibilityIncludes,
         submissions: {
           where: {
             partnerId: partner.id,

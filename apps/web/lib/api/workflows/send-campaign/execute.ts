@@ -17,6 +17,7 @@ import {
 } from "@prisma/client";
 import { addHours, differenceInDays, subDays } from "date-fns";
 import { renderCampaignEmailHTML } from "../../campaigns/render-campaign-email-html";
+import { campaignEligibilityIncludes } from "../../campaigns/transform-campaign";
 import { validateCampaignFromAddress } from "../../campaigns/validate-campaign";
 import { createId } from "../../create-id";
 import { WorkflowAttributeKey } from "../attribute-definitions";
@@ -49,16 +50,7 @@ export const executeSendCampaignWorkflow = async ({
       id: campaignId,
     },
     include: {
-      groups: {
-        select: {
-          groupId: true,
-        },
-      },
-      partnerTags: {
-        select: {
-          partnerTagId: true,
-        },
-      },
+      ...campaignEligibilityIncludes,
       program: {
         include: {
           emailDomains: {

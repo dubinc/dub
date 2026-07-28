@@ -1,6 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
-import { canPartnerSubmitBounty } from "@/lib/bounty/api/bounty-availability";
+import {
+  bountyEligibilityIncludes,
+  canPartnerSubmitBounty,
+} from "@/lib/bounty/api/bounty-availability";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
@@ -34,16 +37,7 @@ export const GET = withReferralsEmbedToken(
       bountyId,
       programId: programEnrollment.programId,
       include: {
-        groups: {
-          select: {
-            groupId: true,
-          },
-        },
-        partnerTags: {
-          select: {
-            partnerTagId: true,
-          },
-        },
+        ...bountyEligibilityIncludes,
       },
     });
 

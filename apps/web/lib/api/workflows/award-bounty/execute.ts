@@ -1,6 +1,7 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { WorkflowContext } from "@/lib/api/workflows/types";
 import {
+  bountyEligibilityIncludes,
   getEffectiveBountyPeriod,
   isPartnerEligibleForBounty,
 } from "@/lib/bounty/api/bounty-availability";
@@ -63,6 +64,7 @@ export const executeAwardBountyWorkflow = async ({
       id: bountyId,
     },
     include: {
+      ...bountyEligibilityIncludes,
       program: {
         select: {
           id: true,
@@ -70,16 +72,6 @@ export const executeAwardBountyWorkflow = async ({
           slug: true,
           supportEmail: true,
           defaultGroupId: true,
-        },
-      },
-      groups: {
-        select: {
-          groupId: true,
-        },
-      },
-      partnerTags: {
-        select: {
-          partnerTagId: true,
         },
       },
       submissions: {

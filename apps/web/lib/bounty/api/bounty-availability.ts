@@ -1,3 +1,4 @@
+import { pluck } from "@dub/utils";
 import {
   Bounty,
   BountyGroup,
@@ -164,7 +165,7 @@ export function isPartnerEligibleForBounty({
   }
 
   // If the bounty has groups, check if the partner is in one of them
-  const bountyGroupIds = bounty.groups.map((g) => g.groupId);
+  const bountyGroupIds = pluck(bounty.groups, "groupId");
   const partnerGroupId = programEnrollment.groupId || program.defaultGroupId;
 
   if (bountyGroupIds.length > 0 && !bountyGroupIds.includes(partnerGroupId)) {
@@ -175,9 +176,10 @@ export function isPartnerEligibleForBounty({
   }
 
   // If the bounty has partner tags, the partner must have at least one matching tag
-  const bountyPartnerTagIds = bounty.partnerTags.map((t) => t.partnerTagId);
-  const partnerTagIds = programEnrollment.programPartnerTags.map(
-    (t) => t.partnerTagId,
+  const bountyPartnerTagIds = pluck(bounty.partnerTags, "partnerTagId");
+  const partnerTagIds = pluck(
+    programEnrollment.programPartnerTags,
+    "partnerTagId",
   );
 
   if (bountyPartnerTagIds.length > 0) {

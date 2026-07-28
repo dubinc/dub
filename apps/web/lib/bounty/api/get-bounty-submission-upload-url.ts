@@ -4,7 +4,10 @@ import { ratelimit } from "@/lib/upstash";
 import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
 import { nanoid, R2_URL } from "@dub/utils";
 import { ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
-import { canPartnerSubmitBounty } from "./bounty-availability";
+import {
+  bountyEligibilityIncludes,
+  canPartnerSubmitBounty,
+} from "./bounty-availability";
 import { getBountyOrThrow } from "./get-bounty-or-throw";
 
 const MAX_ATTEMPTS = 25;
@@ -81,16 +84,7 @@ export async function getBountySubmissionUploadUrl({
     bountyId,
     programId,
     include: {
-      groups: {
-        select: {
-          groupId: true,
-        },
-      },
-      partnerTags: {
-        select: {
-          partnerTagId: true,
-        },
-      },
+      ...bountyEligibilityIncludes,
       program: {
         select: {
           id: true,

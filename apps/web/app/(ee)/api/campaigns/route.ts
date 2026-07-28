@@ -1,5 +1,8 @@
 import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns/constants";
-import { transformCampaign } from "@/lib/api/campaigns/transform-campaign";
+import {
+  campaignEligibilityIncludes,
+  transformCampaign,
+} from "@/lib/api/campaigns/transform-campaign";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -53,16 +56,7 @@ export const GET = withWorkspace(
         }),
       },
       include: {
-        groups: {
-          select: {
-            groupId: true,
-          },
-        },
-        partnerTags: {
-          select: {
-            partnerTagId: true,
-          },
-        },
+        ...campaignEligibilityIncludes,
         workflow: {
           select: {
             triggerConditions: true,

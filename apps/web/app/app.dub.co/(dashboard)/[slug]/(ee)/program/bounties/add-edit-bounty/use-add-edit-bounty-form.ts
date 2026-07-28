@@ -14,7 +14,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
 import { bountySocialContentRequirementsSchema } from "@/lib/zod/schemas/bounties";
-import { formatDate } from "@dub/utils";
+import { formatDate, pluck } from "@dub/utils";
 import { BountyStartMode, BountySubmissionFrequency } from "@prisma/client";
 import { addDays } from "date-fns";
 import {
@@ -161,11 +161,9 @@ export function useAddEditBountyForm({
               ? "submission"
               : "performance",
       submissionRequirements: initialSubmissionRequirements,
-      groupIds: bounty?.groups?.length
-        ? bounty.groups.map(({ id }) => id)
-        : null,
+      groupIds: bounty?.groups?.length ? pluck(bounty.groups, "id") : null,
       partnerTagIds: bounty?.partnerTags?.length
-        ? bounty.partnerTags.map(({ id }) => id)
+        ? pluck(bounty.partnerTags, "id")
         : null,
       performanceCondition: bounty?.performanceCondition
         ? {

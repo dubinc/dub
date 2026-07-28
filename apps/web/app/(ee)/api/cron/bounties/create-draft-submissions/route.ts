@@ -2,12 +2,15 @@ import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
-import { isPartnerEligibleForBounty } from "@/lib/bounty/api/bounty-availability";
+import {
+  bountyEligibilityIncludes,
+  isPartnerEligibleForBounty,
+} from "@/lib/bounty/api/bounty-availability";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK, log, toCentsNumber } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log, pluck, toCentsNumber } from "@dub/utils";
 import { Prisma, ProgramEnrollmentStatus } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
@@ -42,19 +45,10 @@ export async function POST(req: Request) {
         id: bountyId,
       },
       include: {
+        ...bountyEligibilityIncludes,
         workflow: {
           select: {
             triggerConditions: true,
-          },
-        },
-        groups: {
-          select: {
-            groupId: true,
-          },
-        },
-        partnerTags: {
-          select: {
-            partnerTagId: true,
           },
         },
         program: {
@@ -96,10 +90,8 @@ export async function POST(req: Request) {
       return logAndRespond(`Bounty ${bountyId} has no workflow.`);
     }
 
-    const bountyGroupIds = bounty.groups.map(({ groupId }) => groupId);
-    const bountyPartnerTagIds = bounty.partnerTags.map(
-      ({ partnerTagId }) => partnerTagId,
-    );
+    const bountyGroupIds = pluck(bounty.groups, "groupId");
+    const bountyPartnerTagIds = pluck(bounty.partnerTags, "partnerTagId");
 
     // Find program enrollments
     const programEnrollments = await prisma.programEnrollment.findMany({

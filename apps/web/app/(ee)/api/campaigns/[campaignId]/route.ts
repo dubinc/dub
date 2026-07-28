@@ -3,7 +3,10 @@ import {
   scheduleMarketingCampaign,
   scheduleTransactionalCampaign,
 } from "@/lib/api/campaigns/schedule-campaigns";
-import { transformCampaign } from "@/lib/api/campaigns/transform-campaign";
+import {
+  campaignEligibilityIncludes,
+  transformCampaign,
+} from "@/lib/api/campaigns/transform-campaign";
 import { validateCampaign } from "@/lib/api/campaigns/validate-campaign";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { throwIfInvalidPartnerTagIds } from "@/lib/api/partner-tags/throw-if-invalid-partner-tag-ids";
@@ -34,16 +37,7 @@ export const GET = withWorkspace(
       programId,
       campaignId,
       include: {
-        groups: {
-          select: {
-            groupId: true,
-          },
-        },
-        partnerTags: {
-          select: {
-            partnerTagId: true,
-          },
-        },
+        ...campaignEligibilityIncludes,
         workflow: {
           select: {
             triggerConditions: true,
@@ -70,16 +64,7 @@ export const PATCH = withWorkspace(
       programId,
       campaignId,
       include: {
-        groups: {
-          select: {
-            groupId: true,
-          },
-        },
-        partnerTags: {
-          select: {
-            partnerTagId: true,
-          },
-        },
+        ...campaignEligibilityIncludes,
         workflow: {
           select: {
             triggerConditions: true,
@@ -204,16 +189,7 @@ export const PATCH = withWorkspace(
           }),
         },
         include: {
-          groups: {
-            select: {
-              groupId: true,
-            },
-          },
-          partnerTags: {
-            select: {
-              partnerTagId: true,
-            },
-          },
+          ...campaignEligibilityIncludes,
           workflow: true,
         },
       });

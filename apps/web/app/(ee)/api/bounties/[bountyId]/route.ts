@@ -22,7 +22,7 @@ import {
   submissionRequirementsSchema,
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
-import { arrayEqual, deepEqual } from "@dub/utils";
+import { arrayEqual, deepEqual, pluck } from "@dub/utils";
 import { BountyStartMode, PartnerGroup, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -164,7 +164,7 @@ export const PATCH = withWorkspace(
     let shouldUpdatePartnerTags = false;
 
     if (groupIds !== undefined) {
-      const currentGroupIds = bounty.groups.map((group) => group.groupId);
+      const currentGroupIds = pluck(bounty.groups, "groupId");
       const newGroupIds = groupIds || [];
 
       if (!arrayEqual(currentGroupIds, newGroupIds)) {
@@ -180,9 +180,7 @@ export const PATCH = withWorkspace(
     }
 
     if (partnerTagIds !== undefined) {
-      const currentPartnerTagIds = bounty.partnerTags.map(
-        ({ partnerTagId }) => partnerTagId,
-      );
+      const currentPartnerTagIds = pluck(bounty.partnerTags, "partnerTagId");
       const newPartnerTagIds = partnerTagIds || [];
 
       if (!arrayEqual(currentPartnerTagIds, newPartnerTagIds)) {

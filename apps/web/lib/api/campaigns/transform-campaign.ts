@@ -1,5 +1,18 @@
 import { Prisma } from "@prisma/client";
 
+export const campaignEligibilityIncludes = {
+  groups: {
+    select: {
+      groupId: true,
+    },
+  },
+  partnerTags: {
+    select: {
+      partnerTagId: true,
+    },
+  },
+} satisfies Prisma.CampaignInclude;
+
 export type TransformCampaignInput = Prisma.CampaignGetPayload<{
   include: {
     groups: {

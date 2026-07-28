@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
+  bountyEligibilityIncludes,
   canPartnerSeeBounty,
   getEffectiveBountyPeriod,
 } from "@/lib/bounty/api/bounty-availability";
@@ -46,13 +47,12 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     programId: program.id,
     bountyId,
     include: {
+      ...bountyEligibilityIncludes,
       workflow: {
         select: {
           triggerConditions: true,
         },
       },
-      groups: true,
-      partnerTags: true,
       submissions: {
         where: {
           partnerId: partner.id,
