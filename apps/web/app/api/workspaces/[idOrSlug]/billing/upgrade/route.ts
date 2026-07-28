@@ -84,24 +84,52 @@ export const POST = withWorkspace(
       }
 
       // Active subscriptions: use the billing portal's plan-change confirmation flow.
-      const { url } = await stripe.billingPortal.sessions.create({
-        customer: workspace.stripeId,
-        return_url: baseUrl,
-        flow_data: {
-          type: "subscription_update_confirm",
-          subscription_update_confirm: {
-            subscription: existingSubscription.id,
-            items: [
-              {
-                id: existingSubscription.items.data[0].id,
-                quantity: 1,
-                price: prices.data[0].id,
-              },
-            ],
+      const currentItem = existingSubscription.items.data[0];
+      const targetPriceId = prices.data[0].id;
+      const alreadyOnTargetPlan =
+        currentItem.price.id === targetPriceId &&
+        (currentItem.quantity ?? 1) === 1;
+
+      if (alreadyOnTargetPlan) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "You're already on this plan. Refresh the page or choose a different plan.",
+        });
+      }
+
+      try {
+        const { url } = await stripe.billingPortal.sessions.create({
+          customer: workspace.stripeId,
+          return_url: baseUrl,
+          flow_data: {
+            type: "subscription_update_confirm",
+            subscription_update_confirm: {
+              subscription: existingSubscription.id,
+              items: [
+                {
+                  id: currentItem.id,
+                  quantity: 1,
+                  price: targetPriceId,
+                },
+              ],
+            },
           },
-        },
-      });
-      return NextResponse.json({ url });
+        });
+        return NextResponse.json({ url });
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message.includes("no changes to confirm")
+        ) {
+          throw new DubApiError({
+            code: "bad_request",
+            message:
+              "You're already on this plan. Refresh the page or choose a different plan.",
+          });
+        }
+        throw error;
+      }
     } else {
       const customer = await getDubCustomer(session.user.id);
 
