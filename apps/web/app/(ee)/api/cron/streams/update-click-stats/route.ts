@@ -7,6 +7,7 @@ import {
   linkClickEventStream,
 } from "@/lib/upstash/redis-streams/link-click-events";
 import { log } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -332,9 +333,10 @@ export const GET = withCron(async () => {
     await processClickStatsStreamBatch();
 
   const streamInfo = await linkClickEventStream.getStreamInfo();
-  await maybeAlertOnBacklog(streamInfo);
 
   await redis.del(LOCK_KEY);
+
+  waitUntil(maybeAlertOnBacklog(streamInfo));
 
   if (!linkUpdates.length) {
     return logAndRespond({
