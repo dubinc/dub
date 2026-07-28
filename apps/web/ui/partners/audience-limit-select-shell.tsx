@@ -88,71 +88,75 @@ export function AudienceLimitSelectShell<T extends { id: string }>({
                     className="grow border-none px-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
                   />
                 </label>
-                <ScrollContainer className="h-[190px]">
-                  <Command.List className="flex w-full flex-col gap-1 py-1">
-                    {items !== undefined ? (
-                      <>
-                        {items.map((item) => {
-                          const checked = Boolean(
-                            selectedIds?.includes(item.id),
-                          );
+                <div className="mt-1">
+                  <ScrollContainer className="h-[190px]">
+                    <Command.List className="flex w-full flex-col gap-1 p-1">
+                      {items !== undefined ? (
+                        <>
+                          {items.map((item) => {
+                            const checked = Boolean(
+                              selectedIds?.includes(item.id),
+                            );
 
-                          return (
-                            <Command.Item
-                              key={item.id}
-                              value={getItemValue(item)}
-                              onSelect={() =>
-                                setSelectedIds(
-                                  selectedIds?.includes(item.id)
-                                    ? selectedIds.filter((id) => id !== item.id)
-                                    : [...(selectedIds ?? []), item.id],
-                                )
-                              }
-                              className={cn(
-                                "flex cursor-pointer select-none items-center gap-3 whitespace-nowrap rounded-md px-3 py-2.5 text-left text-sm text-neutral-700",
-                                "data-[selected=true]:bg-neutral-100",
-                              )}
-                            >
-                              <div
+                            return (
+                              <Command.Item
+                                key={item.id}
+                                value={getItemValue(item)}
+                                onSelect={() =>
+                                  setSelectedIds(
+                                    selectedIds?.includes(item.id)
+                                      ? selectedIds.filter(
+                                          (id) => id !== item.id,
+                                        )
+                                      : [...(selectedIds ?? []), item.id],
+                                  )
+                                }
                                 className={cn(
-                                  "border-border-emphasis flex size-4 shrink-0 items-center justify-center rounded border bg-white transition-colors duration-75",
-                                  checked &&
-                                    "border-neutral-900 bg-neutral-900",
+                                  "flex cursor-pointer select-none items-center gap-3 whitespace-nowrap rounded-md px-3 py-2.5 text-left text-sm text-neutral-700",
+                                  "data-[selected=true]:bg-neutral-100",
                                 )}
                               >
-                                {checked && (
-                                  <span className="sr-only">Checked</span>
-                                )}
-                                <Check2
+                                <div
                                   className={cn(
-                                    "size-2.5 text-white transition-[transform,opacity] duration-75",
-                                    !checked && "scale-75 opacity-0",
+                                    "border-border-emphasis flex size-4 shrink-0 items-center justify-center rounded border bg-white transition-colors duration-75",
+                                    checked &&
+                                      "border-neutral-900 bg-neutral-900",
                                   )}
-                                />
-                              </div>
-                              {renderItem(item)}
-                            </Command.Item>
-                          );
-                        })}
-                        {!useAsync ? (
-                          <Command.Empty className="flex min-h-12 items-center justify-center text-sm text-neutral-500">
-                            No matches
-                          </Command.Empty>
-                        ) : items.length === 0 ? (
-                          <div className="flex min-h-12 items-center justify-center text-sm text-neutral-500">
-                            No matches
+                                >
+                                  {checked && (
+                                    <span className="sr-only">Checked</span>
+                                  )}
+                                  <Check2
+                                    className={cn(
+                                      "size-2.5 text-white transition-[transform,opacity] duration-75",
+                                      !checked && "scale-75 opacity-0",
+                                    )}
+                                  />
+                                </div>
+                                {renderItem(item)}
+                              </Command.Item>
+                            );
+                          })}
+                          {!useAsync ? (
+                            <Command.Empty className="flex min-h-12 items-center justify-center text-sm text-neutral-500">
+                              No matches
+                            </Command.Empty>
+                          ) : items.length === 0 ? (
+                            <div className="flex min-h-12 items-center justify-center text-sm text-neutral-500">
+                              No matches
+                            </div>
+                          ) : null}
+                        </>
+                      ) : (
+                        <Command.Loading>
+                          <div className="flex h-12 items-center justify-center">
+                            <LoadingSpinner />
                           </div>
-                        ) : null}
-                      </>
-                    ) : (
-                      <Command.Loading>
-                        <div className="flex h-12 items-center justify-center">
-                          <LoadingSpinner />
-                        </div>
-                      </Command.Loading>
-                    )}
-                  </Command.List>
-                </ScrollContainer>
+                        </Command.Loading>
+                      )}
+                    </Command.List>
+                  </ScrollContainer>
+                </div>
               </Command>
             </div>
           )}
