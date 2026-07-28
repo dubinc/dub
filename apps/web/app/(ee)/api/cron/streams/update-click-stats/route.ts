@@ -8,7 +8,6 @@ import {
   linkClickEventStream,
 } from "@/lib/upstash/redis-streams/link-click-events";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
-import { format } from "date-fns";
 import { NextResponse } from "next/server";
 import { logAndRespond } from "../../utils";
 
@@ -195,13 +194,14 @@ const processClickStatsStreamBatch = () =>
         linkUpdates,
         async (update) => {
           try {
+            const lastClickedAt = new Date(update.lastClicked)
+              .toISOString()
+              .slice(0, 19)
+              .replace("T", " ");
+
             await conn.execute(
-              "UPDATE Link SET clicks = clicks + ?, lastClicked = ? WHERE id = ?",
-              [
-                update.clicks,
-                format(new Date(update.lastClicked), "yyyy-MM-dd HH:mm:ss"),
-                update.linkId,
-              ],
+              "UPDATE Link SET clicks = clicks + ?, lastClicked = GREATEST(COALESCE(lastClicked, ?), ?) WHERE id = ?",
+              [update.clicks, lastClickedAt, lastClickedAt, update.linkId],
             );
             processedEntryIds.push(...update.entryIds);
             return { success: true };
