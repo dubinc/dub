@@ -40,18 +40,12 @@ export const POST = withWorkspace(
     }
 
     const existingSubscription = workspace.stripeId
-      ? await Promise.all([
-          stripe.subscriptions.list({
+      ? await stripe.subscriptions
+          .list({
             customer: workspace.stripeId,
-            status: "active",
             limit: 1,
-          }),
-          stripe.subscriptions.list({
-            customer: workspace.stripeId,
-            status: "trialing",
-            limit: 1,
-          }),
-        ]).then(([active, trialing]) => active.data[0] ?? trialing.data[0])
+          })
+          .then((res) => res.data[0])
       : null;
 
     if (process.env.VERCEL === "1" && process.env.VERCEL_ENV === "preview") {
