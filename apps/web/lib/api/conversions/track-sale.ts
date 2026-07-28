@@ -32,10 +32,7 @@ import * as z from "zod/v4";
 import { createId } from "../create-id";
 import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { executeWorkflows } from "../workflows/execute-workflows";
-import {
-  invoiceDedupeKey,
-  legacyStripeInvoiceDedupeKey,
-} from "./invoice-idempotency";
+import { invoiceDedupeKey } from "./invoice-idempotency";
 
 type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
@@ -65,26 +62,12 @@ export const trackSale = async ({
 
   // Return idempotent response if invoiceId is already processed
   if (invoiceId) {
-    const [cachedResponse, legacyRecord] = await redis.mget([
+    const cachedResponse = await redis.get(
       invoiceDedupeKey(workspace.id, invoiceId),
-      legacyStripeInvoiceDedupeKey(invoiceId),
-    ]);
+    );
 
     if (cachedResponse) {
-      const parsedCachedResponse =
-        trackSaleResponseSchema.safeParse(cachedResponse);
-
-      if (parsedCachedResponse.success) {
-        return parsedCachedResponse.data;
-      }
-    }
-
-    if (cachedResponse || legacyRecord) {
-      return {
-        eventName,
-        customer: null,
-        sale: null,
-      };
+      return cachedResponse;
     }
   }
 
