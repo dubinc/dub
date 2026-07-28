@@ -16,6 +16,8 @@ const DELETE_LINKS_BATCH_SIZE = 100;
  * 3. Run side effects (Redis / Tinybird / R2)
  *
  * Processes links in batches of DELETE_LINKS_BATCH_SIZE.
+ * Callers must pass links from a single workspace — totalLinks is
+ * decremented on links[0].projectId for the whole batch.
  */
 export async function bulkDeleteLinks(
   links: ExpandedLink[],

@@ -34,11 +34,14 @@ async function main() {
     })),
   );
 
-  const linksToDelete = discoveredPartners.flatMap(
-    ({ programEnrollment }) => programEnrollment?.links ?? [],
-  );
+  // Delete per enrollment so each bulkDeleteLinks call stays single-workspace
+  for (const { programEnrollment } of discoveredPartners) {
+    const links = programEnrollment?.links ?? [];
 
-  await bulkDeleteLinks(linksToDelete);
+    if (links.length > 0) {
+      await bulkDeleteLinks(links);
+    }
+  }
 
   const res2 = await prisma.$transaction([
     prisma.discoveredPartner.deleteMany({
