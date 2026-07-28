@@ -8,6 +8,7 @@ import useGroup from "@/lib/swr/use-group";
 import { useGroupMoveRules } from "@/lib/swr/use-group-move-rules";
 import { GroupProps } from "@/lib/types";
 import { updateGroupSchema } from "@/lib/zod/schemas/groups";
+import { workflowConditionsSchema } from "@/lib/zod/schemas/workflows";
 import { GroupSettingsRow } from "@/ui/partners/groups/group-settings-row";
 import { Button, Checkbox, Modal, Switch } from "@dub/ui";
 import { pluralize } from "@dub/utils";
@@ -117,8 +118,15 @@ function GroupAdditionalSettingsForm({
   const onSubmit = async (data: FormData) => {
     if (!group) return;
     if (data.moveRules && data.moveRules.length > 0) {
-      // TODO
-      // Add a client-only validation for the move rules
+      const parsed = workflowConditionsSchema.safeParse(data.moveRules);
+
+      if (!parsed.success) {
+        toast.error(
+          parsed.error.issues[0]?.message ??
+            "Please complete the group move rule.",
+        );
+        return;
+      }
 
       if (groups) {
         const groupsWithMatchingRules = findGroupsWithMatchingRules({

@@ -11,6 +11,7 @@ SCHEMA >
     `duration` UInt32,
     `user_agent` String,
     `request_body` String,
+    `query_params` String,
     `response_body` String,
     `token_id` String,
     `user_id` String,
