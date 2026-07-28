@@ -1,6 +1,6 @@
 import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { deleteLinks } from "@/lib/api/links/delete-links";
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
 
     // Delete the links
     if (links.length > 0) {
-      await deleteLinks(links);
+      await bulkDeleteLinks(links);
     }
 
     // Delete the domains

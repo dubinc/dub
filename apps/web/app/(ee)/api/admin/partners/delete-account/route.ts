@@ -1,4 +1,4 @@
-import { deleteLinks } from "@/lib/api/links/delete-links";
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { withAdmin } from "@/lib/auth";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -108,10 +108,12 @@ export const POST = withAdmin(
       if (partner.programs.length > 0) {
         for (const { links, groupId } of partner.programs) {
           if (links.length > 0) {
-            await deleteLinks(
+            await bulkDeleteLinks(
               links.map((link) => ({
                 ...link,
-                programEnrollment: { groupId },
+                programEnrollment: {
+                  groupId,
+                },
               })),
             );
           }

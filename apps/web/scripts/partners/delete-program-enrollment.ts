@@ -1,4 +1,4 @@
-import { deleteLinks } from "@/lib/api/links/delete-links";
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 
@@ -15,7 +15,7 @@ async function main() {
     },
   });
 
-  await deleteLinks(programEnrollment.links);
+  await bulkDeleteLinks(programEnrollment.links);
 
   const deletedFraudEvents = await prisma.fraudEvent.deleteMany({
     where: {

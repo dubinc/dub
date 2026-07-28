@@ -1,7 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { deleteLinks } from "@/lib/api/links/delete-links";
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@/lib/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -60,7 +60,7 @@ export const deleteProgramInviteAction = authActionClient
     );
 
     await Promise.allSettled([
-      deleteLinks(
+      bulkDeleteLinks(
         linksToDelete.map((link) => ({
           ...link,
           programEnrollment: {

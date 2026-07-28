@@ -1,4 +1,4 @@
-import { deleteLinks } from "@/lib/api/links/delete-links";
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
@@ -55,7 +55,7 @@ export async function cleanupPartners(payload: TapfiliateImportPayload) {
         },
       });
 
-      await deleteLinks(linksToDelete);
+      await bulkDeleteLinks(linksToDelete);
 
       await prisma.programEnrollment.deleteMany({
         where: {

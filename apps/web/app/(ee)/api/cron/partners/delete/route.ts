@@ -1,5 +1,5 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { deleteLinks } from "@/lib/api/links/delete-links";
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { withCron } from "@/lib/cron/with-cron";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
@@ -127,7 +127,7 @@ export const POST = withCron(async ({ rawBody }) => {
   );
 
   if (links.length > 0) {
-    await deleteLinks(
+    await bulkDeleteLinks(
       links.map((link) => ({
         ...link,
         programEnrollment: {

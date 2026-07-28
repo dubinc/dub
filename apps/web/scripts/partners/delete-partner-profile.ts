@@ -1,4 +1,4 @@
-import { deleteLinks } from "@/lib/api/links/delete-links";
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { prisma } from "@/lib/prisma";
 import "dotenv-flow/config";
 import { conn } from "../../lib/planetscale";
@@ -63,7 +63,7 @@ async function main() {
       partnerId: partner.id,
     },
   });
-  await deleteLinks(links);
+  await bulkDeleteLinks(links);
 
   const deletedProgramEnrollments = await prisma.programEnrollment.deleteMany({
     where: {

@@ -1,7 +1,7 @@
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
-import { deleteLinks } from "../links/delete-links";
+import { bulkDeleteLinks } from "../links/bulk-delete-links";
 
 const BATCH_SIZE = 250;
 
@@ -58,7 +58,7 @@ export async function bulkDeletePartners({
       console.log(`Deleted ${deletedCustomers.count} customers`);
     }
 
-    await deleteLinks(linksToDelete);
+    await bulkDeleteLinks(linksToDelete);
   }
 
   if (programEnrollmentIds.length > 0) {

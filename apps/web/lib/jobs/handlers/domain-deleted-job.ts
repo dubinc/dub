@@ -1,5 +1,5 @@
 import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
-import { deleteLinks } from "@/lib/api/links/delete-links";
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { R2_URL } from "@dub/utils";
@@ -61,7 +61,7 @@ export const domainDeletedJob = defineJob({
     console.log(`[domainDeletedJob] Found ${links.length} links to delete.`);
 
     if (links.length > 0) {
-      await deleteLinks(links);
+      await bulkDeleteLinks(links);
 
       // More links remain — queue the next batch.
       if (links.length === CRON_BATCH_SIZE) {

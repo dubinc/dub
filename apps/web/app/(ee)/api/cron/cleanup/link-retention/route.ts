@@ -1,5 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { deleteLinks } from "@/lib/api/links/delete-links";
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@/lib/prisma";
@@ -101,7 +101,7 @@ async function deleteOldLinks(
 
     console.table(links, ["shortLink", "createdAt"]);
 
-    await deleteLinks(links);
+    await bulkDeleteLinks(links);
 
     ++processedBatches;
 

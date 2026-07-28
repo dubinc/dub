@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { chunk, R2_URL } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { linkCache } from "./cache";
 import { ExpandedLink } from "./utils";
 
@@ -15,13 +15,10 @@ const DELETE_LINKS_BATCH_SIZE = 100;
  * 2. Delete Link rows + decrement totalLinks (transaction)
  * 3. Run side effects (Redis / Tinybird / R2)
  *
- * Processes links in batches of 100.
+ * Processes links in batches of DELETE_LINKS_BATCH_SIZE.
  */
-export async function deleteLinks(
+export async function bulkDeleteLinks(
   links: ExpandedLink[],
-  options?: {
-    where?: Omit<Prisma.LinkWhereInput, "id">;
-  },
 ): Promise<{ deletedCount: number }> {
   if (links.length === 0) {
     return {
@@ -31,10 +28,11 @@ export async function deleteLinks(
 
   let deletedCount = 0;
 
+  // Delete links in batches
   const batches = chunk(links, DELETE_LINKS_BATCH_SIZE);
 
   for (const [batchIndex, batch] of batches.entries()) {
-    const batchDeletedCount = await deleteLinksBatch(batch, options);
+    const batchDeletedCount = await deleteLinksBatch(batch);
 
     deletedCount += batchDeletedCount;
 
@@ -43,17 +41,33 @@ export async function deleteLinks(
     );
   }
 
+  if (deletedCount > 0) {
+    waitUntil(
+      Promise.allSettled([
+        // Delete the links from Redis
+        linkCache.deleteMany(links),
+
+        // Record the links deletion in Tinybird
+        recordLink(links, { deleted: true }),
+
+        // For links that have an image, delete the image from R2
+        links
+          .filter((link) =>
+            link.image?.startsWith(`${R2_URL}/images/${link.id}`),
+          )
+          .map((link) =>
+            storage.delete({ key: link.image!.replace(`${R2_URL}/`, "") }),
+          ),
+      ]),
+    );
+  }
+
   return {
     deletedCount,
   };
 }
 
-async function deleteLinksBatch(
-  links: ExpandedLink[],
-  options?: {
-    where?: Omit<Prisma.LinkWhereInput, "id">;
-  },
-): Promise<number> {
+async function deleteLinksBatch(links: ExpandedLink[]): Promise<number> {
   const linkIds = links.map((link) => link.id);
 
   const discountCodes = await prisma.discountCode.findMany({
@@ -81,7 +95,6 @@ async function deleteLinksBatch(
         id: {
           in: linkIds,
         },
-        ...options?.where,
       },
     });
 
@@ -100,23 +113,6 @@ async function deleteLinksBatch(
 
     return result;
   });
-
-  if (deletedCount > 0) {
-    await Promise.allSettled([
-      // Delete the links from Redis
-      linkCache.deleteMany(links),
-
-      // Record the links deletion in Tinybird
-      recordLink(links, { deleted: true }),
-
-      // For links that have an image, delete the image from R2
-      links
-        .filter((link) => link.image?.startsWith(`${R2_URL}/images/${link.id}`))
-        .map((link) =>
-          storage.delete({ key: link.image!.replace(`${R2_URL}/`, "") }),
-        ),
-    ]);
-  }
 
   return deletedCount;
 }

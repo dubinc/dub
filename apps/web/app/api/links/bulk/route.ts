@@ -5,8 +5,8 @@ import {
   checkIfLinksHaveWebhooks,
   processLink,
 } from "@/lib/api/links";
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkUpdateLinks } from "@/lib/api/links/bulk-update-links";
-import { deleteLinks } from "@/lib/api/links/delete-links";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { throwIfLinksUsageExceeded } from "@/lib/api/links/usage-checks";
@@ -575,11 +575,7 @@ export const DELETE = withWorkspace(
 
     links = links.filter((link) => !isRootDomainLinkKey(link.key));
 
-    const { deletedCount } = await deleteLinks(links, {
-      where: {
-        projectId: workspace.id,
-      },
-    });
+    const { deletedCount } = await bulkDeleteLinks(links);
 
     return NextResponse.json(
       {

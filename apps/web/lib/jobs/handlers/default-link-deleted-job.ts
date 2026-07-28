@@ -1,4 +1,4 @@
-import { deleteLinks } from "@/lib/api/links/delete-links";
+import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { CRON_BATCH_SIZE } from "@/lib/cron";
@@ -59,7 +59,7 @@ export const defaultLinkDeletedJob = defineJob({
 
     // If there are links to delete, delete the discount codes and the links
     if (linksToDelete.length > 0) {
-      await deleteLinks(linksToDelete);
+      await bulkDeleteLinks(linksToDelete);
     }
 
     // More associations remain — queue the next batch.
