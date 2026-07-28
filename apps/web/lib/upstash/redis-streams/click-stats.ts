@@ -56,7 +56,7 @@ export const publishClickStatsEvent = async ({
 
       workspaceId
         ? conn.execute(
-            "UPDATE Project SET usage = usage + 1, totalClicks = totalClicks + 1 WHERE id = ?",
+            "UPDATE Project p SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE id = ?",
             [workspaceId],
           )
         : null,
