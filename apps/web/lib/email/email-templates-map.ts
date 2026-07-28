@@ -11,6 +11,7 @@ import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processe
 import PartnerRewardUpdated from "@dub/email/templates/partner-reward-updated";
 import ProgramPayoutThankYou from "@dub/email/templates/program-payout-thank-you";
 import UnresolvedRiskEventsSummary from "@dub/email/templates/unresolved-risk-events-summary";
+import WorkspaceDisabled from "@dub/email/templates/workspace-disabled";
 
 export const EMAIL_TEMPLATES_MAP = {
   BountyApproved,
@@ -24,7 +25,7 @@ export const EMAIL_TEMPLATES_MAP = {
   UnresolvedRiskEventsSummary,
   PartnerGroupChanged,
   PartnerRewardUpdated,
-
+  WorkspaceDisabled,
   // special broadcast emails
   // DubPartnerRewind,
   // DubProductUpdateMar26,
