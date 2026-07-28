@@ -6,7 +6,6 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
-import { AudienceEligibilityPanel } from "@/ui/partners/audience-eligibility-panel";
 import {
   ProgramSheetAccordion,
   ProgramSheetAccordionContent,
@@ -42,6 +41,7 @@ import { cn } from "@dub/utils";
 import { BountyStartMode, BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, FormProvider } from "react-hook-form";
+import { AudienceEligibilityPanel } from "./audience-eligibility-panel";
 import { BountyCriteria } from "./bounty-criteria";
 import { BountyDuration } from "./bounty-duration";
 import { useAddEditBountyForm } from "./use-add-edit-bounty-form";
@@ -402,28 +402,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                   Eligibility
                 </ProgramSheetAccordionTrigger>
                 <ProgramSheetAccordionContent>
-                  <Controller
-                    control={control}
-                    name="groupIds"
-                    render={({ field: groupField }) => (
-                      <Controller
-                        control={control}
-                        name="partnerTagIds"
-                        render={({ field: tagField }) => (
-                          <AudienceEligibilityPanel
-                            selectedGroupIds={groupField.value}
-                            setSelectedGroupIds={(ids) =>
-                              groupField.onChange(ids)
-                            }
-                            selectedPartnerTagIds={tagField.value ?? null}
-                            setSelectedPartnerTagIds={(ids) =>
-                              tagField.onChange(ids)
-                            }
-                          />
-                        )}
-                      />
-                    )}
-                  />
+                  <AudienceEligibilityPanel />
                 </ProgramSheetAccordionContent>
               </ProgramSheetAccordionItem>
             </ProgramSheetAccordion>

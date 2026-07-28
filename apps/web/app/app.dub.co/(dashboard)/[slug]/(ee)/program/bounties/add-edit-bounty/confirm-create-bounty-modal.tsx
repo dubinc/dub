@@ -16,7 +16,7 @@ import {
   TooltipContent,
 } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
-import { nFormatter, pluralize } from "@dub/utils";
+import { nFormatter, pluralize, pluck } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { BountyStartMode } from "@prisma/client";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -62,10 +62,14 @@ function ConfirmCreateBountyModal({
   const { totalPartners, loading } = usePartnersCountByGroupIds({
     groupIds: isRelative
       ? null
-      : bounty?.groups?.map((group) => group.id) ?? [],
+      : bounty?.groups
+        ? pluck(bounty.groups, "id")
+        : [],
     partnerTagIds: isRelative
       ? null
-      : bounty?.partnerTags?.map((tag) => tag.id) ?? [],
+      : bounty?.partnerTags
+        ? pluck(bounty.partnerTags, "id")
+        : [],
   });
 
   if (!bounty) {

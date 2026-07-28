@@ -1,6 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, pluck } from "@dub/utils";
 import { Bounty } from "@prisma/client";
 import { getBountiesByGroups } from "./get-bounties-by-groups";
 
@@ -31,9 +31,9 @@ export async function triggerDraftBountySubmissionCreation({
 
   const groupIds = [
     ...new Set(
-      programEnrollments
-        .map(({ groupId }) => groupId)
-        .filter((id): id is string => id !== null),
+      pluck(programEnrollments, "groupId").filter(
+        (id): id is string => id !== null,
+      ),
     ),
   ];
 

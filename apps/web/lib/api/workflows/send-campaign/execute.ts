@@ -108,7 +108,7 @@ export const executeSendCampaignWorkflow = async ({
       campaignId: campaign.id,
       type: "Campaign",
       partnerId: {
-        in: programEnrollments.map(({ partnerId }) => partnerId),
+        in: pluck(programEnrollments, "partnerId"),
       },
     },
     select: {
@@ -116,19 +116,19 @@ export const executeSendCampaignWorkflow = async ({
     },
   });
 
-  if (alreadySentEmails.length > 0) {
+  const alreadySentPartnerIds = pluck(alreadySentEmails, "partnerId");
+
+  if (alreadySentPartnerIds.length > 0) {
     console.log(
-      `Workflow ${workflow.id} already sent campaign emails to ${alreadySentEmails.length} partners: ${alreadySentEmails.map(({ partnerId }) => partnerId).join(", ")}`,
+      `Workflow ${workflow.id} already sent campaign emails to ${alreadySentPartnerIds.length} partners: ${alreadySentPartnerIds.join(", ")}`,
     );
   }
 
-  const alreadySentPartnerIds = new Set(
-    alreadySentEmails.map(({ partnerId }) => partnerId),
-  );
+  const alreadySentPartnerIdSet = new Set(alreadySentPartnerIds);
 
   // Exclude partners who already got the campaign
   programEnrollments = programEnrollments.filter(
-    ({ partnerId }) => !alreadySentPartnerIds.has(partnerId),
+    ({ partnerId }) => !alreadySentPartnerIdSet.has(partnerId),
   );
 
   if (programEnrollments.length === 0) {

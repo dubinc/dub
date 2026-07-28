@@ -2,29 +2,24 @@
 
 import useGroups from "@/lib/swr/use-groups";
 import { usePartnerTags } from "@/lib/swr/use-partner-tags";
-import { AudienceEligibilityPanel } from "@/ui/partners/audience-eligibility-panel";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { Popover, Tag as TagIcon, Users } from "@dub/ui";
+import { PartnerGroupsSelect } from "@/ui/partners/groups/partner-groups-select";
+import { PartnerTagsSelect } from "@/ui/partners/partner-tags-select";
+import { Popover, Tag as TagIcon } from "@dub/ui";
+import { Users6 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 
 const MAX_DISPLAYED = 1;
 
-interface CampaignRecipientsSelectorProps {
-  selectedGroupIds: string[] | null;
-  setSelectedGroupIds: (groupIds: string[] | null) => void;
-  selectedPartnerTagIds: string[] | null;
-  setSelectedPartnerTagIds: (tagIds: string[] | null) => void;
-}
-
-export function CampaignRecipientsSelector({
+export function CampaignGroupsSelector({
   selectedGroupIds,
   setSelectedGroupIds,
-  selectedPartnerTagIds,
-  setSelectedPartnerTagIds,
-}: CampaignRecipientsSelectorProps) {
+}: {
+  selectedGroupIds: string[] | null;
+  setSelectedGroupIds: (groupIds: string[] | null) => void;
+}) {
   const { groups, loading: groupsLoading } = useGroups();
-  const { partnerTags, isLoading: tagsLoading } = usePartnerTags();
   const [openPopover, setOpenPopover] = useState(false);
 
   const selectedGroups = useMemo(() => {
@@ -35,6 +30,60 @@ export function CampaignRecipientsSelector({
     return groups.filter((group) => selectedGroupIds.includes(group.id));
   }, [groups, selectedGroupIds]);
 
+  const hasGroupFilter = Boolean(selectedGroupIds?.length);
+  const isLoading = groupsLoading && hasGroupFilter;
+  const plusCount = Math.max(0, selectedGroups.length - MAX_DISPLAYED);
+
+  return (
+    <CampaignRecipientPopover
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
+      content={
+        <PartnerGroupsSelect
+          selectedGroupIds={selectedGroupIds}
+          setSelectedGroupIds={setSelectedGroupIds}
+        />
+      }
+    >
+      {isLoading ? (
+        <div className="h-5 w-1/3 animate-pulse rounded bg-neutral-200" />
+      ) : !hasGroupFilter ? (
+        <RecipientChip openPopover={openPopover}>
+          <Users6 className="size-3.5 shrink-0" />
+          <span className="text-content-default text-sm font-medium">
+            All groups
+          </span>
+        </RecipientChip>
+      ) : (
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {selectedGroups.slice(0, MAX_DISPLAYED).map((group) => (
+            <RecipientChip key={group.id} openPopover={openPopover}>
+              <GroupColorCircle group={group} />
+              <span className="text-content-default min-w-0 truncate text-sm font-medium">
+                {group.name}
+              </span>
+            </RecipientChip>
+          ))}
+
+          {plusCount > 0 && (
+            <PlusCountBadge count={plusCount} openPopover={openPopover} />
+          )}
+        </div>
+      )}
+    </CampaignRecipientPopover>
+  );
+}
+
+export function CampaignTagsSelector({
+  selectedPartnerTagIds,
+  setSelectedPartnerTagIds,
+}: {
+  selectedPartnerTagIds: string[] | null;
+  setSelectedPartnerTagIds: (tagIds: string[] | null) => void;
+}) {
+  const { partnerTags, isLoading: tagsLoading } = usePartnerTags();
+  const [openPopover, setOpenPopover] = useState(false);
+
   const selectedTags = useMemo(() => {
     if (!selectedPartnerTagIds?.length || !partnerTags) {
       return [];
@@ -43,27 +92,64 @@ export function CampaignRecipientsSelector({
     return partnerTags.filter((tag) => selectedPartnerTagIds.includes(tag.id));
   }, [partnerTags, selectedPartnerTagIds]);
 
-  const hasGroupFilter = Boolean(selectedGroupIds?.length);
   const hasTagFilter = Boolean(selectedPartnerTagIds?.length);
-  const isUnrestricted = !hasGroupFilter && !hasTagFilter;
-  const isLoading =
-    (groupsLoading && hasGroupFilter) || (tagsLoading && hasTagFilter);
-
-  const groupPlusCount = Math.max(0, selectedGroups.length - MAX_DISPLAYED);
-  const tagPlusCount = Math.max(0, selectedTags.length - MAX_DISPLAYED);
+  const isLoading = tagsLoading && hasTagFilter;
+  const plusCount = Math.max(0, selectedTags.length - MAX_DISPLAYED);
 
   return (
-    <Popover
+    <CampaignRecipientPopover
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
       content={
-        <div className="w-full p-3 sm:w-[440px]">
-          <AudienceEligibilityPanel
-            selectedGroupIds={selectedGroupIds}
-            setSelectedGroupIds={setSelectedGroupIds}
-            selectedPartnerTagIds={selectedPartnerTagIds}
-            setSelectedPartnerTagIds={setSelectedPartnerTagIds}
-          />
-        </div>
+        <PartnerTagsSelect
+          selectedPartnerTagIds={selectedPartnerTagIds}
+          setSelectedPartnerTagIds={setSelectedPartnerTagIds}
+        />
       }
+    >
+      {isLoading ? (
+        <div className="h-5 w-1/3 animate-pulse rounded bg-neutral-200" />
+      ) : !hasTagFilter ? (
+        <RecipientChip openPopover={openPopover}>
+          <TagIcon className="size-3.5 shrink-0" />
+          <span className="text-content-default text-sm font-medium">
+            All tags
+          </span>
+        </RecipientChip>
+      ) : (
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {selectedTags.slice(0, MAX_DISPLAYED).map((tag) => (
+            <RecipientChip key={tag.id} openPopover={openPopover}>
+              <TagIcon className="size-3.5 shrink-0" />
+              <span className="text-content-default min-w-0 truncate text-sm font-medium">
+                {tag.name}
+              </span>
+            </RecipientChip>
+          ))}
+
+          {plusCount > 0 && (
+            <PlusCountBadge count={plusCount} openPopover={openPopover} />
+          )}
+        </div>
+      )}
+    </CampaignRecipientPopover>
+  );
+}
+
+function CampaignRecipientPopover({
+  openPopover,
+  setOpenPopover,
+  content,
+  children,
+}: {
+  openPopover: boolean;
+  setOpenPopover: (open: boolean) => void;
+  content: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <Popover
+      content={<div className="w-full p-3 sm:w-[440px]">{content}</div>}
       align="start"
       openPopover={openPopover}
       setOpenPopover={setOpenPopover}
@@ -75,85 +161,7 @@ export function CampaignRecipientsSelector({
         )}
         onClick={() => setOpenPopover(true)}
       >
-        {isLoading ? (
-          <div className="h-5 w-1/3 animate-pulse rounded bg-neutral-200" />
-        ) : isUnrestricted ? (
-          <div
-            className={cn(
-              "flex h-5 items-center gap-1 rounded-md px-1.5 transition-colors",
-              openPopover
-                ? "bg-neutral-200"
-                : "bg-neutral-100 group-hover:bg-neutral-200",
-            )}
-          >
-            <Users className="size-3.5 shrink-0" />
-            <span className="text-content-default text-sm font-medium">
-              All partners
-            </span>
-          </div>
-        ) : (
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            {selectedGroups.slice(0, MAX_DISPLAYED).map((group) => (
-              <div
-                key={group.id}
-                className={cn(
-                  "flex h-5 min-w-0 items-center gap-1 rounded-md px-1.5 transition-colors",
-                  openPopover
-                    ? "bg-neutral-200"
-                    : "bg-neutral-100 group-hover:bg-neutral-200",
-                )}
-              >
-                <GroupColorCircle group={group} />
-                <span className="text-content-default min-w-0 truncate text-sm font-medium">
-                  {group.name}
-                </span>
-              </div>
-            ))}
-
-            {groupPlusCount > 0 && (
-              <span
-                className={cn(
-                  "flex items-center rounded-md px-2 py-0.5 text-xs font-medium text-neutral-600 transition-colors",
-                  openPopover
-                    ? "bg-neutral-200"
-                    : "bg-neutral-100 group-hover:bg-neutral-200",
-                )}
-              >
-                +{groupPlusCount}
-              </span>
-            )}
-
-            {selectedTags.slice(0, MAX_DISPLAYED).map((tag) => (
-              <div
-                key={tag.id}
-                className={cn(
-                  "flex h-5 min-w-0 items-center gap-1 rounded-md px-1.5 transition-colors",
-                  openPopover
-                    ? "bg-neutral-200"
-                    : "bg-neutral-100 group-hover:bg-neutral-200",
-                )}
-              >
-                <TagIcon className="size-3.5 shrink-0" />
-                <span className="text-content-default min-w-0 truncate text-sm font-medium">
-                  {tag.name}
-                </span>
-              </div>
-            ))}
-
-            {tagPlusCount > 0 && (
-              <span
-                className={cn(
-                  "flex items-center rounded-md px-2 py-0.5 text-xs font-medium text-neutral-600 transition-colors",
-                  openPopover
-                    ? "bg-neutral-200"
-                    : "bg-neutral-100 group-hover:bg-neutral-200",
-                )}
-              >
-                +{tagPlusCount}
-              </span>
-            )}
-          </div>
-        )}
+        {children}
 
         <button
           type="button"
@@ -170,5 +178,47 @@ export function CampaignRecipientsSelector({
         </button>
       </div>
     </Popover>
+  );
+}
+
+function RecipientChip({
+  openPopover,
+  children,
+}: {
+  openPopover: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex h-5 min-w-0 items-center gap-1 rounded-md px-1.5 transition-colors",
+        openPopover
+          ? "bg-neutral-200"
+          : "bg-neutral-100 group-hover:bg-neutral-200",
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function PlusCountBadge({
+  count,
+  openPopover,
+}: {
+  count: number;
+  openPopover: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "flex items-center rounded-md px-2 py-0.5 text-xs font-medium text-neutral-600 transition-colors",
+        openPopover
+          ? "bg-neutral-200"
+          : "bg-neutral-100 group-hover:bg-neutral-200",
+      )}
+    >
+      +{count}
+    </span>
   );
 }
