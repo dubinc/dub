@@ -2,7 +2,6 @@ import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { CRON_BATCH_SIZE } from "@/lib/cron";
-import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { processInBatches } from "@dub/utils";
 import * as z from "zod/v4";
 import { prisma } from "../../prisma";
@@ -60,40 +59,7 @@ export const defaultLinkDeletedJob = defineJob({
 
     // If there are links to delete, delete the discount codes and the links
     if (linksToDelete.length > 0) {
-      const linkIds = linksToDelete.map(({ id }) => id);
-
-      const discountCodesToDelete = await prisma.discountCode.findMany({
-        where: {
-          linkId: {
-            in: linkIds,
-          },
-        },
-        include: {
-          discount: {
-            select: {
-              provider: true,
-            },
-          },
-        },
-      });
-
-      await deleteDiscountCodes(discountCodesToDelete);
-
-      const deletedLinks = await prisma.link.deleteMany({
-        where: {
-          id: {
-            in: linkIds,
-          },
-        },
-      });
-
-      console.log(
-        `Deleted ${deletedLinks.count} links for default link ${defaultLinkId}.`,
-      );
-
-      if (deletedLinks.count > 0) {
-        await bulkDeleteLinks(linksToDelete);
-      }
+      await bulkDeleteLinks(linksToDelete);
     }
 
     // More associations remain — queue the next batch.
