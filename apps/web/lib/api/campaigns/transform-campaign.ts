@@ -2,9 +2,21 @@ import { Prisma } from "@prisma/client";
 
 export type TransformCampaignInput = Prisma.CampaignGetPayload<{
   include: {
-    groups: true;
-    partnerTags: true;
-    workflow: true;
+    groups: {
+      select: {
+        groupId: true;
+      };
+    };
+    partnerTags: {
+      select: {
+        partnerTagId: true;
+      };
+    };
+    workflow: {
+      select: {
+        triggerConditions: true;
+      };
+    };
   };
 }>;
 

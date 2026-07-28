@@ -33,7 +33,23 @@ export const GET = withWorkspace(
     const campaign = await getCampaignOrThrow({
       programId,
       campaignId,
-      includes: ["workflow", "groups", "partnerTags"],
+      include: {
+        groups: {
+          select: {
+            groupId: true,
+          },
+        },
+        partnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
+        workflow: {
+          select: {
+            triggerConditions: true,
+          },
+        },
+      },
     });
 
     return NextResponse.json(CampaignSchema.parse(transformCampaign(campaign)));
@@ -53,7 +69,23 @@ export const PATCH = withWorkspace(
     const campaign = await getCampaignOrThrow({
       programId,
       campaignId,
-      includes: ["workflow", "groups", "partnerTags"],
+      include: {
+        groups: {
+          select: {
+            groupId: true,
+          },
+        },
+        partnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
+        workflow: {
+          select: {
+            triggerConditions: true,
+          },
+        },
+      },
     });
 
     const {
@@ -216,7 +248,15 @@ export const DELETE = withWorkspace(
     const campaign = await getCampaignOrThrow({
       programId,
       campaignId,
-      includes: ["workflow"],
+      include: {
+        workflow: {
+          select: {
+            id: true,
+            actions: true,
+            triggerConditions: true,
+          },
+        },
+      },
     });
 
     await prisma.$transaction(async (tx) => {
@@ -226,8 +266,6 @@ export const DELETE = withWorkspace(
         },
       });
 
-      // TODO:
-      // Check if we need this or can onDelete cascade handlet this
       if (campaign.workflowId) {
         await tx.workflow.delete({
           where: {

@@ -53,9 +53,21 @@ export const GET = withWorkspace(
         }),
       },
       include: {
-        groups: true,
-        partnerTags: true,
-        workflow: true,
+        groups: {
+          select: {
+            groupId: true,
+          },
+        },
+        partnerTags: {
+          select: {
+            partnerTagId: true,
+          },
+        },
+        workflow: {
+          select: {
+            triggerConditions: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
