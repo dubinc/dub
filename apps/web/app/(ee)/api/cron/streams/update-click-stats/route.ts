@@ -221,7 +221,7 @@ const processClickStatsStreamBatch = () =>
         async (update) => {
           try {
             await conn.execute(
-              "UPDATE Project SET usage = usage + ?, totalClicks = totalClicks + ? WHERE id = ?",
+              "UPDATE Project p SET p.usage = p.usage + ?, p.totalClicks = p.totalClicks + ? WHERE id = ?",
               [update.clicks, update.clicks, update.workspaceId],
             );
             return { success: true };
