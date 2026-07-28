@@ -36,6 +36,8 @@ type PartnerBountyEligibilityInput = {
   };
 };
 
+// Audience filter only (groups + tags). A bounty with no groups/tags is open to all;
+// otherwise the partner must match an assigned group AND at least one assigned tag.
 export function buildBountyEligibilityWhere({
   groupId,
   partnerTagIds,

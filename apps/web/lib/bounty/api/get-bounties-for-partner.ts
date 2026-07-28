@@ -4,6 +4,7 @@ import {
 } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
+import { pluck } from "@dub/utils";
 import { Program, ProgramEnrollment, ProgramPartnerTag } from "@prisma/client";
 import * as z from "zod/v4";
 import {
@@ -32,9 +33,7 @@ export async function getBountiesForPartner({
   const { groupId, partnerId, totalCommissions, createdAt } = programEnrollment;
 
   const partnerGroupId = groupId || program.defaultGroupId;
-  const partnerTagIds = programPartnerTags.map(
-    ({ partnerTagId }) => partnerTagId,
-  );
+  const partnerTagIds = pluck(programPartnerTags, "partnerTagId");
 
   const bounties = await prisma.bounty.findMany({
     where: {
