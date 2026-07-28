@@ -144,7 +144,7 @@ function UsageInner() {
               href={`/${slug}/settings/billing`}
             >
               Usage
-              <ChevronRight className="size-2 text-neutral-400 transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-neutral-500" />
+              <ChevronRight className="size-3 text-neutral-400 transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-neutral-500" />
             </Link>
           )}
 
