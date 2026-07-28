@@ -155,7 +155,7 @@ export const getEvents = async (params: EventsFilters) => {
     ...(params.root !== undefined ? { root: params.root } : {}),
     ...(params.saleType ? { saleType: params.saleType } : {}),
     order: sortOrder,
-    offset: (params.page - 1) * params.limit,
+    offset: Math.max(0, (params.page - 1) * params.limit),
     limit: params.limit,
     sortBy: params.sortBy,
     start: formatUTCDateTimeClickhouse(startDate),

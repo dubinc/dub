@@ -535,11 +535,23 @@ export const eventsQuerySchema = analyticsQuerySchema
       .describe(
         "The type of event to retrieve analytics for. Defaults to 'clicks'.",
       ),
-    page: z.coerce.number().default(1),
+    page: z.coerce
+      .number({ error: "Page must be a number." })
+      .int({ message: "Page must be an integer." })
+      .positive({ message: "Page must be greater than 0." })
+      .default(1)
+      .describe(
+        "The page number for pagination (1-based). The first page is `1`.",
+      )
+      .meta({ example: 1 }),
     limit: z.coerce
-      .number()
+      .number({ error: "Limit must be a number." })
+      .int({ message: "Limit must be an integer." })
+      .positive({ message: "Limit must be greater than 0." })
       .max(1000, { message: "Max pagination limit is 1000 items per page." })
-      .default(DEFAULT_PAGINATION_LIMIT),
+      .default(DEFAULT_PAGINATION_LIMIT)
+      .describe("The number of events to return per page.")
+      .meta({ example: DEFAULT_PAGINATION_LIMIT }),
     sortOrder,
     sortBy: z
       .enum(["timestamp"])
