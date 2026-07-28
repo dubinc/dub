@@ -16,7 +16,6 @@ import {
 } from "@/lib/tinybird";
 import { CustomerSource, LeadEventTB, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { publishWorkspaceClicksUsageEvent } from "@/lib/upstash/redis-streams/workspace-clicks-usage";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   transformLeadEventData,
@@ -677,10 +676,15 @@ const _trackSale = async ({
             ]
           : []),
 
-        publishWorkspaceClicksUsageEvent({
-          linkId: link.id,
-          workspaceId: workspace.id,
-          timestamp: new Date().toISOString(),
+        prisma.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            usage: {
+              increment: 1,
+            },
+          },
         }),
       ]);
 
