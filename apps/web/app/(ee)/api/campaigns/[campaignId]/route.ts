@@ -204,8 +204,16 @@ export const PATCH = withWorkspace(
           }),
         },
         include: {
-          groups: true,
-          partnerTags: true,
+          groups: {
+            select: {
+              groupId: true,
+            },
+          },
+          partnerTags: {
+            select: {
+              partnerTagId: true,
+            },
+          },
           workflow: true,
         },
       });
