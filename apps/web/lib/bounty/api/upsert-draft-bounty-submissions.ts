@@ -29,6 +29,7 @@ export type DraftBountySubmissionUpdate = {
   id: string;
   performanceCount: number;
   promoteToSubmitted: boolean;
+  expectedStatus: "draft" | "submitted";
 };
 
 export function shouldUpsertDraftSubmissionsOnReopen({
@@ -83,8 +84,22 @@ export function planDraftBountySubmissionUpserts({
 
   for (const partner of partners) {
     const performanceCount = partner[condition.attribute];
+    const existing = existingByPartnerId.get(partner.id);
 
     if (performanceCount <= 0) {
+      if (!existing) {
+        continue;
+      }
+
+      if (existing.status === "draft" || existing.status === "submitted") {
+        toUpdate.push({
+          id: existing.id,
+          performanceCount,
+          promoteToSubmitted: false,
+          expectedStatus: existing.status,
+        });
+      }
+
       continue;
     }
 
@@ -94,8 +109,6 @@ export function planDraftBountySubmissionUpserts({
         [condition.attribute]: performanceCount,
       },
     });
-
-    const existing = existingByPartnerId.get(partner.id);
 
     if (!existing) {
       toCreate.push({
@@ -117,6 +130,7 @@ export function planDraftBountySubmissionUpserts({
         id: existing.id,
         performanceCount,
         promoteToSubmitted: conditionMet,
+        expectedStatus: "draft",
       });
       continue;
     }
@@ -126,6 +140,7 @@ export function planDraftBountySubmissionUpserts({
         id: existing.id,
         performanceCount,
         promoteToSubmitted: false,
+        expectedStatus: "submitted",
       });
     }
   }

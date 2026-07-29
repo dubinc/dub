@@ -202,6 +202,7 @@ describe("planDraftBountySubmissionUpserts", () => {
         id: "bnty_sub_1",
         performanceCount: 8_000,
         promoteToSubmitted: false,
+        expectedStatus: "draft",
       },
     ]);
   });
@@ -220,6 +221,7 @@ describe("planDraftBountySubmissionUpserts", () => {
         id: "bnty_sub_1",
         performanceCount: 12_000,
         promoteToSubmitted: true,
+        expectedStatus: "draft",
       },
     ]);
   });
@@ -238,6 +240,7 @@ describe("planDraftBountySubmissionUpserts", () => {
         id: "bnty_sub_1",
         performanceCount: 20_000,
         promoteToSubmitted: false,
+        expectedStatus: "submitted",
       },
     ]);
   });
@@ -269,10 +272,77 @@ describe("planDraftBountySubmissionUpserts", () => {
     expect(toUpdate).toHaveLength(0);
   });
 
-  it("skips partners with zero performanceCount", () => {
+  it("skips partners with zero performanceCount when there is no existing row", () => {
     const { toCreate, toUpdate } = planDraftBountySubmissionUpserts({
       partners: [makePartner({ totalSaleAmount: 0 })],
       existingSubmissions: [],
+      condition,
+      programId: PROGRAM_ID,
+      bountyId: BOUNTY_ID,
+    });
+
+    expect(toCreate).toHaveLength(0);
+    expect(toUpdate).toHaveLength(0);
+  });
+
+  it("refreshes a draft submission when performanceCount drops to zero", () => {
+    const { toCreate, toUpdate } = planDraftBountySubmissionUpserts({
+      partners: [makePartner({ totalSaleAmount: 0 })],
+      existingSubmissions: [makeSubmission({ status: "draft" })],
+      condition,
+      programId: PROGRAM_ID,
+      bountyId: BOUNTY_ID,
+    });
+
+    expect(toCreate).toHaveLength(0);
+    expect(toUpdate).toEqual([
+      {
+        id: "bnty_sub_1",
+        performanceCount: 0,
+        promoteToSubmitted: false,
+        expectedStatus: "draft",
+      },
+    ]);
+  });
+
+  it("refreshes a submitted submission when performanceCount drops to zero", () => {
+    const { toCreate, toUpdate } = planDraftBountySubmissionUpserts({
+      partners: [makePartner({ totalSaleAmount: 0 })],
+      existingSubmissions: [makeSubmission({ status: "submitted" })],
+      condition,
+      programId: PROGRAM_ID,
+      bountyId: BOUNTY_ID,
+    });
+
+    expect(toCreate).toHaveLength(0);
+    expect(toUpdate).toEqual([
+      {
+        id: "bnty_sub_1",
+        performanceCount: 0,
+        promoteToSubmitted: false,
+        expectedStatus: "submitted",
+      },
+    ]);
+  });
+
+  it("skips approved and rejected submissions when performanceCount is zero", () => {
+    const { toCreate, toUpdate } = planDraftBountySubmissionUpserts({
+      partners: [
+        makePartner({ id: "pn_approved", totalSaleAmount: 0 }),
+        makePartner({ id: "pn_rejected", totalSaleAmount: 0 }),
+      ],
+      existingSubmissions: [
+        makeSubmission({
+          id: "bnty_sub_approved",
+          partnerId: "pn_approved",
+          status: "approved",
+        }),
+        makeSubmission({
+          id: "bnty_sub_rejected",
+          partnerId: "pn_rejected",
+          status: "rejected",
+        }),
+      ],
       condition,
       programId: PROGRAM_ID,
       bountyId: BOUNTY_ID,

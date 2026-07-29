@@ -174,30 +174,33 @@ export async function POST(req: Request) {
     console.table(toCreate);
     console.table(toUpdate);
 
-    const [createdBountySubmissions] = await Promise.all([
+    const createdBountySubmissions =
       toCreate.length > 0
-        ? prisma.bountySubmission.createMany({
+        ? await prisma.bountySubmission.createMany({
             data: toCreate,
             skipDuplicates: true,
           })
-        : Promise.resolve({ count: 0 }),
-      toUpdate.length > 0
-        ? prisma.$transaction(
-            toUpdate.map((update) =>
-              prisma.bountySubmission.update({
-                where: { id: update.id },
-                data: {
-                  performanceCount: update.performanceCount,
-                  ...(update.promoteToSubmitted && {
-                    status: "submitted",
-                    completedAt: new Date(),
-                  }),
-                },
+        : { count: 0 };
+
+    if (toUpdate.length > 0) {
+      await prisma.$transaction(
+        toUpdate.map((update) =>
+          prisma.bountySubmission.updateMany({
+            where: {
+              id: update.id,
+              status: update.expectedStatus,
+            },
+            data: {
+              performanceCount: update.performanceCount,
+              ...(update.promoteToSubmitted && {
+                status: "submitted",
+                completedAt: new Date(),
               }),
-            ),
-          )
-        : Promise.resolve([]),
-    ]);
+            },
+          }),
+        ),
+      );
+    }
 
     console.log(
       `Upserted bounty submissions for bounty ${bountyId}: created ${createdBountySubmissions.count}, updated ${toUpdate.length}.`,
