@@ -1,7 +1,6 @@
 "use client";
 
 import { findGroupsWithMatchingRules } from "@/lib/api/groups/find-groups-with-matching-rules";
-import { validateGroupMoveRules } from "@/lib/api/groups/validate-group-move-rules";
 import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
@@ -9,6 +8,7 @@ import useGroup from "@/lib/swr/use-group";
 import { useGroupMoveRules } from "@/lib/swr/use-group-move-rules";
 import { GroupProps } from "@/lib/types";
 import { updateGroupSchema } from "@/lib/zod/schemas/groups";
+import { workflowConditionsSchema } from "@/lib/zod/schemas/workflows";
 import { GroupSettingsRow } from "@/ui/partners/groups/group-settings-row";
 import { Button, Checkbox, Modal, Switch } from "@dub/ui";
 import { pluralize } from "@dub/utils";
@@ -118,13 +118,13 @@ function GroupAdditionalSettingsForm({
   const onSubmit = async (data: FormData) => {
     if (!group) return;
     if (data.moveRules && data.moveRules.length > 0) {
-      try {
-        validateGroupMoveRules({
-          rules: data.moveRules,
-          destinationGroupId: group.id,
-        });
-      } catch (error) {
-        toast.error(error.message);
+      const parsed = workflowConditionsSchema.safeParse(data.moveRules);
+
+      if (!parsed.success) {
+        toast.error(
+          parsed.error.issues[0]?.message ??
+            "Please complete the group move rule.",
+        );
         return;
       }
 

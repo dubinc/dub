@@ -17,6 +17,7 @@ export const getFeatureFlags = async ({
 
   const workspaceFeatures: Record<BetaFeatures, boolean> = {
     analyticsSettingsSiteVisitTracking: false,
+    noProrationUpgrade: false,
   };
 
   if (!process.env.EDGE_CONFIG) {

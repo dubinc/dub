@@ -1,5 +1,5 @@
-import { executeSendCampaignWorkflow } from "@/lib/api/workflows/execute-send-campaign-workflow";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
+import { executeSendCampaignWorkflow } from "@/lib/api/workflows/send-campaign/execute";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@/lib/prisma";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";

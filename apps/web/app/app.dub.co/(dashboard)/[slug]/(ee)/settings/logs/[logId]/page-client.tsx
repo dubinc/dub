@@ -97,6 +97,7 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
   const [highlightedBodies, setHighlightedBodies] = useState<{
     request: string;
     response: string;
+    queryParams: string;
   } | null>(null);
 
   useEffect(() => {
@@ -130,6 +131,10 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
         lang: "json",
       }),
       response: highlighter.codeToHtml(toJsonString(log.response_body), {
+        theme: "min-light",
+        lang: "json",
+      }),
+      queryParams: highlighter.codeToHtml(toJsonString(log.query_params), {
         theme: "min-light",
         lang: "json",
       }),
@@ -227,6 +232,19 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
               </div>
             )}
           </div>
+          {log.query_params && (
+            <div className="flex flex-col gap-2">
+              <h3 className="text-content-emphasis text-lg font-semibold">
+                Query parameters
+              </h3>
+              <div
+                className="shiki-wrapper max-h-[800px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
+                dangerouslySetInnerHTML={{
+                  __html: highlightedBodies.queryParams,
+                }}
+              />
+            </div>
+          )}
           {log.method !== "DELETE" && (
             <div className="flex flex-col gap-2">
               <h3 className="text-content-emphasis text-lg font-semibold">

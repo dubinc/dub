@@ -6,6 +6,7 @@ import {
   maskSensitiveFields,
   SENSITIVE_RESPONSE_FIELDS_BY_ROUTE,
 } from "./mask-sensitive-fields";
+import { parseQueryParams } from "./query-params";
 import { recordApiLog } from "./record-api-log";
 
 // Precompile route patterns into regexes at module load
@@ -83,6 +84,8 @@ export async function captureRequestLog({
     responseBody = await responseClone.json();
   } catch {}
 
+  const queryParams = parseQueryParams(url.searchParams);
+
   // Mask sensitive fields in the response body
   if (responseBody) {
     const sensitiveResponseFields =
@@ -105,6 +108,7 @@ export async function captureRequestLog({
     duration,
     userAgent: requestHeaders.get("user-agent"),
     requestBody,
+    queryParams,
     responseBody,
     tokenId: token?.id ?? null,
     userId: session?.user?.id ?? null,

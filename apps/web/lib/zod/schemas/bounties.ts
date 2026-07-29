@@ -18,19 +18,13 @@ import {
   BountyType,
 } from "@prisma/client";
 import * as z from "zod/v4";
+import { awardBountyConditionSchema } from "../../api/workflows/award-bounty/schema";
 import { CommissionSchema } from "./commissions";
 import { GroupSchema } from "./groups";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { nullableCountSchema, parseDateSchema } from "./utils";
-import { WORKFLOW_ATTRIBUTES } from "./workflows";
-
-export const bountyPerformanceConditionSchema = z.object({
-  attribute: z.enum(WORKFLOW_ATTRIBUTES),
-  operator: z.literal("gte").default("gte"),
-  value: z.number(),
-});
 
 // Eg: for each additional 1000 views, earn $1, up to $100
 export const bountySocialContentIncrementalBonusSchema = z
@@ -123,7 +117,7 @@ export const createBountySchema = z.object({
     .nullish(),
   submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
-  performanceCondition: bountyPerformanceConditionSchema.nullish(),
+  performanceCondition: awardBountyConditionSchema.nullish(),
   performanceScope: z.enum(BountyPerformanceScope).nullish(),
   sendNotificationEmails: z.boolean().optional(),
 });
@@ -155,9 +149,7 @@ export const BountySchema = z.object({
   maxSubmissions: z.number(),
   rewardAmount: z.number().nullable(),
   rewardDescription: z.string().nullable(),
-  performanceCondition: bountyPerformanceConditionSchema
-    .nullable()
-    .default(null),
+  performanceCondition: awardBountyConditionSchema.nullable().default(null),
   performanceScope: z.enum(BountyPerformanceScope).nullable(),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   socialMetricsLastSyncedAt: z.date().nullable().optional(),

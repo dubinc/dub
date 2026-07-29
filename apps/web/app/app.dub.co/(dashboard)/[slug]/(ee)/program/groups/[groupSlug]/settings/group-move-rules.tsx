@@ -1,16 +1,20 @@
 "use client";
 
+import {
+  GROUP_MOVE_ATTRIBUTES,
+  GROUP_MOVE_METRIC_ATTRIBUTE_KEYS,
+  GROUP_MOVE_OPERATORS,
+} from "@/lib/api/workflows/move-group/schema";
+import type {
+  GroupMoveAttribute,
+  GroupMoveAttributeKey,
+  GroupMoveRules as GroupMoveRulesForm,
+} from "@/lib/api/workflows/move-group/types";
+import { WorkflowCondition } from "@/lib/api/workflows/types";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
+import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  GROUP_MOVE_ATTRIBUTE_CONFIG,
-  GROUP_MOVE_ATTRIBUTES,
-  type GroupMoveAttribute,
-  type GroupMoveAttributeConfig,
-  type GroupMoveCondition,
-  type GroupMoveRules as GroupMoveRulesForm,
-} from "@/lib/zod/schemas/group-move-workflows";
 import { useAdvancedUpsellModal } from "@/ui/partners/advanced-upsell-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
@@ -19,19 +23,50 @@ import {
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { ArrowTurnRight2, Button, UserArrowRight, Users } from "@dub/ui";
-import { currencyFormatter, nFormatter } from "@dub/utils";
+import { currencyFormatter, nFormatter, pluralize } from "@dub/utils";
 import { X } from "lucide-react";
 import { Fragment, useMemo } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 
 // Draft form value shapes (partial ranges allowed while editing)
-type RangeValue = { min: number; max?: number };
-type ValueType = number | RangeValue | undefined;
+type RangeValue = { min?: number; max?: number };
+type ValueType = number | RangeValue | string | string[] | undefined;
+
+type MetricAttributeKey = (typeof GROUP_MOVE_METRIC_ATTRIBUTE_KEYS)[number];
 
 const RANGE_SELECTOR_OPTIONS = [
   { text: "and no limit", value: "noLimit" },
   { text: "and less than", value: "lessThan" },
 ];
+
+const PARTNER_GROUP_OPERATORS = ["eq", "ne", "in", "notIn"] as const;
+
+const isMultiGroupOperator = (
+  operator: WorkflowCondition["operator"],
+): boolean => operator === "in" || operator === "notIn";
+
+const isPartnerGroupRule = (rule: WorkflowCondition | undefined) =>
+  rule?.attribute === "partnerGroup";
+
+const isMetricRuleComplete = (rule: WorkflowCondition | undefined): boolean => {
+  if (!rule?.attribute || isPartnerGroupRule(rule)) {
+    return false;
+  }
+
+  const min = getMinValue(rule.value as ValueType);
+  if (min == null || min === 0) {
+    return false;
+  }
+
+  if (rule.operator === "between") {
+    const max = getMaxValue(rule.value as ValueType);
+    if (max == null || max === 0) {
+      return false;
+    }
+  }
+
+  return true;
+};
 
 export function GroupMoveRules() {
   const { plan } = useWorkspace();
@@ -47,24 +82,61 @@ export function GroupMoveRules() {
     append: appendRule,
     remove: removeRule,
     update: updateRule,
+    replace: replaceRules,
   } = useFieldArray({
     control,
     name: "moveRules",
     shouldUnregister: false,
   });
 
-  const usedAttributes = useMemo(
+  const metricRuleIndexes = useMemo(
     () =>
       moveRules
-        ?.map((r) => r.attribute)
-        .filter((a): a is NonNullable<typeof a> => a != null),
+        .map((rule, index) => ({ rule, index }))
+        .filter(({ rule }) => !isPartnerGroupRule(rule)),
     [moveRules],
   );
 
-  const disableAddRuleButton =
-    ruleFields.length >= GROUP_MOVE_ATTRIBUTES.length;
+  const partnerGroupRuleIndex = useMemo(
+    () => moveRules.findIndex((rule) => isPartnerGroupRule(rule)),
+    [moveRules],
+  );
+
+  const hasPartnerGroupCondition = partnerGroupRuleIndex !== -1;
+
+  const usedMetricAttributes = useMemo(
+    () =>
+      metricRuleIndexes
+        .map(({ rule }) => rule.attribute)
+        .filter((a): a is NonNullable<typeof a> => a != null),
+    [metricRuleIndexes],
+  );
+
+  const canAddMetricRule =
+    usedMetricAttributes.length < GROUP_MOVE_METRIC_ATTRIBUTE_KEYS.length;
+
+  // Source group is only an additional condition after a complete metric rule
+  const canAddPartnerGroupCondition =
+    metricRuleIndexes.length > 0 &&
+    !hasPartnerGroupCondition &&
+    isMetricRuleComplete(metricRuleIndexes[0].rule);
 
   const { canUseGroupMoveRule } = getPlanCapabilities(plan);
+
+  const handleRemoveRule = (index: number) => {
+    const removingLastMetric =
+      !isPartnerGroupRule(moveRules[index]) &&
+      metricRuleIndexes.length === 1 &&
+      hasPartnerGroupCondition;
+
+    if (removingLastMetric) {
+      // Partner group can only exist as a second condition
+      replaceRules([]);
+      return;
+    }
+
+    removeRule(index);
+  };
 
   return (
     <>
@@ -74,24 +146,20 @@ export function GroupMoveRules() {
         <NoGroupRule />
       ) : (
         <div className="relative flex flex-col">
-          {ruleFields.map((field, index) => {
-            const rule = moveRules?.[index];
-            if (!rule) {
-              return null;
-            }
-
-            // Filter out attributes already used by other rules
-            const availableAttributes = GROUP_MOVE_ATTRIBUTES.filter(
+          {metricRuleIndexes.map(({ rule, index }, metricIndex) => {
+            const availableAttributes = GROUP_MOVE_METRIC_ATTRIBUTE_KEYS.filter(
               (attribute) =>
                 attribute === rule.attribute ||
-                !usedAttributes?.includes(attribute),
+                !usedMetricAttributes.includes(attribute),
             );
+            const isFirstMetric = metricIndex === 0;
 
             return (
-              <Fragment key={field.id}>
-                <GroupRule
+              <Fragment key={ruleFields[index]?.id ?? index}>
+                <MetricGroupRule
                   index={index}
                   rule={rule}
+                  metricIndex={metricIndex}
                   availableAttributes={availableAttributes}
                   onUpdate={(updatedRule) => {
                     updateRule(index, {
@@ -99,9 +167,33 @@ export function GroupMoveRules() {
                       ...updatedRule,
                     });
                   }}
-                  onRemove={() => {
-                    removeRule(index);
-                  }}
+                  onRemove={() => handleRemoveRule(index)}
+                  nestedCondition={
+                    isFirstMetric
+                      ? hasPartnerGroupCondition
+                        ? {
+                            rule: moveRules[partnerGroupRuleIndex]!,
+                            onUpdate: (updatedRule) => {
+                              updateRule(partnerGroupRuleIndex, {
+                                ...moveRules[partnerGroupRuleIndex],
+                                ...updatedRule,
+                              });
+                            },
+                            onRemove: () => removeRule(partnerGroupRuleIndex),
+                          }
+                        : canAddPartnerGroupCondition
+                          ? {
+                              onAdd: () => {
+                                appendRule({
+                                  attribute: "partnerGroup",
+                                  operator: "eq",
+                                  value: undefined,
+                                } as unknown as WorkflowCondition);
+                              },
+                            }
+                          : undefined
+                      : undefined
+                  }
                 />
 
                 <div className="ml-6 h-4 w-px bg-neutral-200" />
@@ -123,11 +215,11 @@ export function GroupMoveRules() {
               attribute: undefined,
               operator: "gte",
               value: undefined,
-            } as unknown as GroupMoveCondition);
+            } as unknown as WorkflowCondition);
           }}
-          disabled={disableAddRuleButton}
+          disabled={!canAddMetricRule && ruleFields.length > 0}
           disabledTooltip={
-            disableAddRuleButton
+            !canAddMetricRule && ruleFields.length > 0
               ? "All rules are in use. Delete existing rules."
               : undefined
           }
@@ -137,22 +229,32 @@ export function GroupMoveRules() {
   );
 }
 
-function GroupRule({
+function MetricGroupRule({
   rule,
   onUpdate,
   onRemove,
+  nestedCondition,
   index,
+  metricIndex,
   availableAttributes,
 }: {
-  rule: GroupMoveCondition;
-  onUpdate: (updates: Partial<GroupMoveCondition>) => void;
+  rule: WorkflowCondition;
+  onUpdate: (updates: Partial<WorkflowCondition>) => void;
   onRemove: () => void;
+  nestedCondition?:
+    | { onAdd: () => void }
+    | {
+        rule: WorkflowCondition;
+        onUpdate: (updates: Partial<WorkflowCondition>) => void;
+        onRemove: () => void;
+      };
   index: number;
-  availableAttributes: GroupMoveAttribute[];
+  metricIndex: number;
+  availableAttributes: MetricAttributeKey[];
 }) {
-  const isFirst = index === 0;
+  const isFirst = metricIndex === 0;
   const attributeConfig = rule.attribute
-    ? GROUP_MOVE_ATTRIBUTE_CONFIG[rule.attribute]
+    ? GROUP_MOVE_ATTRIBUTES[rule.attribute as GroupMoveAttributeKey]
     : undefined;
   const attributeType = attributeConfig?.inputType || "number";
 
@@ -192,9 +294,9 @@ function GroupRule({
   };
 
   return (
-    <div className="flex flex-col rounded-lg border border-neutral-200 bg-white">
+    <div className="flex flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_2px_4px_0_rgba(0,0,0,0.03)]">
       <div className="flex items-center justify-between p-2.5 pr-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
             {isFirst ? (
               <Users className="size-4 text-neutral-600" />
@@ -213,11 +315,10 @@ function GroupRule({
               <InlineBadgePopoverMenu
                 items={availableAttributes.map((attribute) => ({
                   value: attribute,
-                  text: GROUP_MOVE_ATTRIBUTE_CONFIG[attribute].label,
+                  text: GROUP_MOVE_ATTRIBUTES[attribute].label,
                 }))}
                 selectedValue={rule.attribute}
                 onSelect={(value) => {
-                  // Reset to default gte operator when attribute changes
                   onUpdate({
                     ...rule,
                     attribute: value,
@@ -227,7 +328,6 @@ function GroupRule({
                 }}
               />
             </InlineBadgePopover>
-            {/* Select the attribute value */}
             {rule.attribute && (
               <>
                 is at least
@@ -290,6 +390,192 @@ function GroupRule({
           <X className="size-4" />
         </button>
       </div>
+
+      {nestedCondition && (
+        <div className="-mx-px rounded-xl border-x border-t border-neutral-200 bg-neutral-100 px-2.5 pb-2.5">
+          <div className="pt-2.5">
+            {"onAdd" in nestedCondition ? (
+              <Button
+                text="Add condition"
+                variant="secondary"
+                className="h-8 w-full justify-center gap-2 rounded-lg border-neutral-200 bg-white px-3 hover:bg-neutral-50"
+                icon={<ArrowTurnRight2 className="size-4" />}
+                onClick={nestedCondition.onAdd}
+              />
+            ) : (
+              <PartnerGroupCondition
+                rule={nestedCondition.rule}
+                onUpdate={nestedCondition.onUpdate}
+                onRemove={nestedCondition.onRemove}
+              />
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PartnerGroupCondition({
+  rule,
+  onUpdate,
+  onRemove,
+}: {
+  rule: WorkflowCondition;
+  onUpdate: (updates: Partial<WorkflowCondition>) => void;
+  onRemove: () => void;
+}) {
+  const { group: currentGroup } = useGroup();
+  const { groups } = useGroups();
+
+  const availableGroups = useMemo(
+    () => groups?.filter((g) => g.id !== currentGroup?.id) ?? [],
+    [groups, currentGroup?.id],
+  );
+
+  const isMulti = isMultiGroupOperator(rule.operator);
+  const selectedOperator = PARTNER_GROUP_OPERATORS.includes(
+    rule.operator as (typeof PARTNER_GROUP_OPERATORS)[number],
+  )
+    ? rule.operator
+    : "eq";
+
+  const selectedGroupIds = useMemo(() => {
+    if (typeof rule.value === "string") {
+      return [rule.value];
+    }
+    if (Array.isArray(rule.value)) {
+      return rule.value;
+    }
+    return [];
+  }, [rule.value]);
+
+  const selectedGroups = useMemo(
+    () => (groups ?? []).filter((group) => selectedGroupIds.includes(group.id)),
+    [groups, selectedGroupIds],
+  );
+
+  const groupBadgeText = (() => {
+    if (selectedGroups.length === 0) {
+      return isMulti ? "select groups" : "select group";
+    }
+
+    if (isMulti && selectedGroups.length > 1) {
+      return (
+        <span className="inline-flex items-center gap-2">
+          <span className="flex items-center">
+            {selectedGroups.slice(0, 2).map((group, index) => (
+              <span
+                key={group.id}
+                className={index > 0 ? "-ml-1.5" : undefined}
+              >
+                <GroupColorCircle group={group} />
+              </span>
+            ))}
+          </span>
+          {selectedGroups.length} Partner{" "}
+          {pluralize("Group", selectedGroups.length)}
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex items-center gap-1.5">
+        <GroupColorCircle group={selectedGroups[0]} />
+        {selectedGroups[0].name}
+      </span>
+    );
+  })();
+
+  const handleOperatorSelect = (
+    operator: (typeof PARTNER_GROUP_OPERATORS)[number],
+  ) => {
+    const nextIsMulti = isMultiGroupOperator(operator);
+    const wasMulti = isMultiGroupOperator(rule.operator);
+
+    let nextValue: string | string[] | undefined;
+
+    if (nextIsMulti === wasMulti) {
+      nextValue = rule.value as string | string[] | undefined;
+    } else if (nextIsMulti) {
+      nextValue =
+        typeof rule.value === "string" && rule.value ? [rule.value] : [];
+    } else {
+      nextValue =
+        Array.isArray(rule.value) && rule.value.length > 0
+          ? rule.value[0]
+          : undefined;
+    }
+
+    onUpdate({
+      operator,
+      value: nextValue as any,
+    });
+  };
+
+  const handleGroupSelect = (groupId: string) => {
+    if (isMulti) {
+      const current = Array.isArray(rule.value) ? rule.value : [];
+      const next = current.includes(groupId)
+        ? current.filter((id) => id !== groupId)
+        : [...current, groupId];
+      onUpdate({ value: next as any });
+      return;
+    }
+
+    onUpdate({ value: groupId });
+  };
+
+  return (
+    <div className="flex items-center justify-between rounded-[10px] border border-neutral-200 bg-white p-2.5 pr-3 shadow-[0_2px_2px_0_rgba(0,0,0,0.03)]">
+      <div className="flex items-center gap-2.5">
+        <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+          <ArrowTurnRight2 className="size-4 text-neutral-600" />
+        </div>
+        <span className="text-sm font-medium text-neutral-800">
+          And if partner group
+          <InlineBadgePopover
+            text={
+              GROUP_MOVE_OPERATORS[
+                selectedOperator as keyof typeof GROUP_MOVE_OPERATORS
+              ]?.label ?? "condition"
+            }
+            buttonClassName="mx-1"
+          >
+            <InlineBadgePopoverMenu
+              selectedValue={selectedOperator}
+              onSelect={handleOperatorSelect}
+              items={PARTNER_GROUP_OPERATORS.map((operator) => ({
+                value: operator,
+                text: GROUP_MOVE_OPERATORS[operator].label,
+              }))}
+            />
+          </InlineBadgePopover>
+          <InlineBadgePopover
+            text={groupBadgeText}
+            invalid={selectedGroupIds.length === 0}
+            buttonClassName="mx-1"
+          >
+            <InlineBadgePopoverMenu
+              search
+              selectedValue={isMulti ? selectedGroupIds : selectedGroupIds[0]}
+              onSelect={handleGroupSelect}
+              items={availableGroups.map((group) => ({
+                value: group.id,
+                text: group.name,
+                icon: <GroupColorCircle group={group} />,
+              }))}
+            />
+          </InlineBadgePopover>
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="rounded p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+      >
+        <X className="size-4" />
+      </button>
     </div>
   );
 }
@@ -365,10 +651,10 @@ function ValueInput({
   onUpdate,
 }: {
   index: number;
-  rule: GroupMoveCondition;
-  attributeType: GroupMoveAttributeConfig["inputType"];
+  rule: WorkflowCondition;
+  attributeType: GroupMoveAttribute["inputType"];
   part: "min" | "max";
-  onUpdate: (updates: Partial<GroupMoveCondition>) => void;
+  onUpdate: (updates: Partial<WorkflowCondition>) => void;
 }) {
   const { control } = useFormContext<{
     moveRules?: GroupMoveRulesForm;
@@ -414,7 +700,7 @@ function ValueInput({
 
         return (
           <InlineBadgePopoverAmountInput
-            type={attributeType}
+            type={attributeType === "currency" ? "currency" : "number"}
             value={displayValue}
             onChange={handleChange}
             onBlur={field.onBlur}
@@ -451,7 +737,7 @@ const handleClearValue = (
 const handleUpdateMinValue = (
   currentFieldValue: ValueType,
   convertedValue: number,
-  operator: GroupMoveCondition["operator"],
+  operator: WorkflowCondition["operator"],
 ): ValueType => {
   if (operator === "between" && isRangeValue(currentFieldValue)) {
     const rangeValue = currentFieldValue as RangeValue;
@@ -463,8 +749,8 @@ const handleUpdateMinValue = (
 const handleUpdateMaxValue = (
   currentFieldValue: ValueType,
   convertedValue: number,
-  onUpdate: (updates: Partial<GroupMoveCondition>) => void,
-  ruleOperator: GroupMoveCondition["operator"],
+  onUpdate: (updates: Partial<WorkflowCondition>) => void,
+  ruleOperator: WorkflowCondition["operator"],
 ): ValueType => {
   if (isRangeValue(currentFieldValue)) {
     const rangeValue = currentFieldValue as RangeValue;
@@ -495,7 +781,7 @@ const getMinValue = (value: ValueType): number | null => {
     return value;
   }
 
-  if (typeof value === "object" && value !== null && value.min != null) {
+  if (isRangeValue(value) && value.min != null) {
     return value.min;
   }
 
@@ -503,7 +789,7 @@ const getMinValue = (value: ValueType): number | null => {
 };
 
 const getMaxValue = (value: ValueType): number | null => {
-  if (typeof value === "object" && value !== null && value.max != null) {
+  if (isRangeValue(value) && value.max != null) {
     return value.max;
   }
 
@@ -514,6 +800,7 @@ const isRangeValue = (value: ValueType): value is RangeValue => {
   return (
     typeof value === "object" &&
     value !== null &&
+    !Array.isArray(value) &&
     ("min" in value || "max" in value)
   );
 };
@@ -537,7 +824,7 @@ const convertFromDisplayValue = (
 // Format the value based on the attribute type
 const formatValue = (
   value: ValueType,
-  type: GroupMoveAttributeConfig["inputType"] | undefined,
+  type: GroupMoveAttribute["inputType"] | undefined,
   part: "min" | "max" = "min",
 ) => {
   const numValue = part === "min" ? getMinValue(value) : getMaxValue(value);
