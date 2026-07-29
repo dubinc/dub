@@ -165,15 +165,19 @@ export function PartnerInfoCards({
         ),
         text: `${isPendingApplication ? "Applied" : "Partner since"} ${formatDate(partner.createdAt)}`,
         timestamp: partner.createdAt,
-        wrapper: ({ children }) => (
-          <button
-            type="button"
-            onClick={() => setPartnerEnrollmentHistoryOpen(true)}
-            className="underline decoration-dotted underline-offset-2"
-          >
-            {children}
-          </button>
-        ),
+        ...(isPendingApplication
+          ? {}
+          : {
+              wrapper: ({ children }) => (
+                <button
+                  type="button"
+                  onClick={() => setPartnerEnrollmentHistoryOpen(true)}
+                  className="underline decoration-dotted underline-offset-2"
+                >
+                  {children}
+                </button>
+              ),
+            }),
       },
       {
         id: "payoutMethod" as const,
