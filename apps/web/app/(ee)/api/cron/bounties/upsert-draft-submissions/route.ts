@@ -1,13 +1,14 @@
-import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
-import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
+import {
+  PartnerLifetimeStats,
+  planDraftBountySubmissionUpserts,
+} from "@/lib/bounty/api/upsert-draft-bounty-submissions";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK, log, toCentsNumber } from "@dub/utils";
-import { Prisma } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -22,8 +23,8 @@ const schema = z.object({
 
 const MAX_PAGE_SIZE = 100;
 
-// POST /api/cron/bounties/create-draft-submissions
-// Create draft bounty submissions for performance bounties with lifetime performance scope
+// POST /api/cron/bounties/upsert-draft-submissions
+// Create or update draft/submitted bounty submissions for lifetime performance bounties
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -137,57 +138,74 @@ export async function POST(req: Request) {
       .parse(bounty.workflow.triggerConditions)[0];
 
     // Partners with their link metrics
-    const partners = programEnrollments.map((programEnrollment) => {
-      return {
-        id: programEnrollment.partnerId,
-        ...aggregatePartnerLinksStats(programEnrollment.links),
-        totalCommissions: toCentsNumber(programEnrollment.totalCommissions),
-      };
+    const partners: PartnerLifetimeStats[] = programEnrollments.map(
+      (programEnrollment) => {
+        return {
+          id: programEnrollment.partnerId,
+          ...aggregatePartnerLinksStats(programEnrollment.links),
+          totalCommissions: toCentsNumber(programEnrollment.totalCommissions),
+        };
+      },
+    );
+
+    const existingSubmissions = await prisma.bountySubmission.findMany({
+      where: {
+        bountyId: bounty.id,
+        partnerId: {
+          in: partners.map((partner) => partner.id),
+        },
+        periodNumber: 1,
+      },
+      select: {
+        id: true,
+        partnerId: true,
+        status: true,
+      },
     });
 
-    const bountySubmissionsToCreate: Prisma.BountySubmissionCreateManyInput[] =
-      partners
-        // only create submissions for partners that have at least 1 performanceCount
-        .filter((partner) => partner[condition.attribute] > 0)
-        .map((partner) => {
-          const performanceCount = partner[condition.attribute];
-
-          const conditionMet = evaluateWorkflowConditions({
-            conditions: [condition],
-            attributes: {
-              [condition.attribute]: performanceCount,
-            },
-          });
-
-          return {
-            id: createId({ prefix: "bnty_sub_" }),
-            programId: bounty.programId,
-            partnerId: partner.id,
-            bountyId: bounty.id,
-            performanceCount,
-            // If the condition is met, automatically submit the submission
-            ...(conditionMet && {
-              status: "submitted",
-              completedAt: new Date(),
-            }),
-          };
-        });
-
-    console.table(bountySubmissionsToCreate);
-
-    // Create bounty submissions
-    const createdBountySubmissions = await prisma.bountySubmission.createMany({
-      data: bountySubmissionsToCreate,
-      skipDuplicates: true,
+    const { toCreate, toUpdate } = planDraftBountySubmissionUpserts({
+      partners,
+      existingSubmissions,
+      condition,
+      programId: bounty.programId,
+      bountyId: bounty.id,
     });
+
+    console.table(toCreate);
+    console.table(toUpdate);
+
+    const [createdBountySubmissions] = await Promise.all([
+      toCreate.length > 0
+        ? prisma.bountySubmission.createMany({
+            data: toCreate,
+            skipDuplicates: true,
+          })
+        : Promise.resolve({ count: 0 }),
+      toUpdate.length > 0
+        ? prisma.$transaction(
+            toUpdate.map((update) =>
+              prisma.bountySubmission.update({
+                where: { id: update.id },
+                data: {
+                  performanceCount: update.performanceCount,
+                  ...(update.promoteToSubmitted && {
+                    status: "submitted",
+                    completedAt: new Date(),
+                  }),
+                },
+              }),
+            ),
+          )
+        : Promise.resolve([]),
+    ]);
 
     console.log(
-      `Created ${createdBountySubmissions.count} bounty submissions for bounty ${bountyId}.`,
+      `Upserted bounty submissions for bounty ${bountyId}: created ${createdBountySubmissions.count}, updated ${toUpdate.length}.`,
     );
 
     if (programEnrollments.length === MAX_PAGE_SIZE) {
       const response = await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/create-draft-submissions`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/upsert-draft-submissions`,
         body: {
           bountyId,
           partnerIds,
@@ -201,11 +219,11 @@ export async function POST(req: Request) {
     }
 
     return logAndRespond(
-      `Finished creating submissions for ${createdBountySubmissions.count} partners for bounty ${bountyId}.`,
+      `Finished upserting submissions for bounty ${bountyId}: created ${createdBountySubmissions.count}, updated ${toUpdate.length}.`,
     );
   } catch (error) {
     await log({
-      message: "New bounties submissions cron failed. Error: " + error.message,
+      message: "Upsert bounty submissions cron failed. Error: " + error.message,
       type: "errors",
     });
 
