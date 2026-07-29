@@ -168,6 +168,7 @@ export const analyticsQuerySchema = z.object({
   timezone: z
     .string()
     .optional()
+    .overwrite((v) => (v === undefined ? undefined : sanitizeTimezone(v)))
     .describe(
       "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
     )
@@ -400,10 +401,6 @@ export function parseAnalyticsQuery(searchParams: Record<string, string>) {
     data.tagId = data.tagIds;
   }
 
-  if (data.timezone !== undefined) {
-    data.timezone = sanitizeTimezone(data.timezone);
-  }
-
   return data;
 }
 export function parseEventsQuery(searchParams: Record<string, string>) {
@@ -411,10 +408,6 @@ export function parseEventsQuery(searchParams: Record<string, string>) {
 
   if (data.tagIds && !data.tagId) {
     data.tagId = data.tagIds;
-  }
-
-  if (data.timezone !== undefined) {
-    data.timezone = sanitizeTimezone(data.timezone);
   }
 
   return data;
