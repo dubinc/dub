@@ -26,6 +26,7 @@ import { WebhookHandlerInput, WebhookHandlerResponse } from "./types";
 import { attributeViaPromotionCodeId } from "./utils/attribute-via-promotion-code-id";
 import { getCheckoutSessionProducts } from "./utils/get-checkout-session-products";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
+import { getDubCustomerExternalIdFromMetadata } from "./utils/get-dub-customer-external-id-from-metadata";
 import { incrementLinkLeads } from "./utils/increment-link-leads";
 import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
 
@@ -36,8 +37,9 @@ export async function checkoutSessionCompleted({
   workspace,
 }: WebhookHandlerInput<Stripe.CheckoutSessionCompletedEvent>): Promise<WebhookHandlerResponse> {
   let charge = event.data.object;
-  let dubCustomerExternalId =
-    charge.metadata?.dubCustomerExternalId || charge.metadata?.dubCustomerId;
+  let dubCustomerExternalId = getDubCustomerExternalIdFromMetadata(
+    charge.metadata,
+  );
   const clientReferenceId = charge.client_reference_id;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = charge.customer as string;
@@ -249,8 +251,7 @@ export async function checkoutSessionCompleted({
         });
 
         const connectedCustomerDubCustomerExternalId =
-          connectedCustomer?.metadata.dubCustomerExternalId ||
-          connectedCustomer?.metadata.dubCustomerId;
+          getDubCustomerExternalIdFromMetadata(connectedCustomer?.metadata);
 
         if (connectedCustomerDubCustomerExternalId) {
           dubCustomerExternalId = connectedCustomerDubCustomerExternalId;

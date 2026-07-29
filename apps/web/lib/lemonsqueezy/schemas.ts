@@ -120,6 +120,12 @@ export const lemonSqueezyOrderSchema = z.object({
   total_usd: z.number().nullish(),
   refunded_amount: z.number().nullish(),
   refunded_amount_usd: z.number().nullish(),
+  referral_amount: z.number().nullish(),
+  first_order_item: z
+    .object({
+      price: z.number().nullish(),
+    })
+    .nullish(),
   status: z.string(),
   refunded: z.boolean().nullish(),
   refunded_at: z.string().nullish(),
@@ -152,6 +158,7 @@ export const lemonSqueezySubscriptionInvoiceSchema = z.object({
   tax_usd: z.number().nullish(),
   total_usd: z.number().nullish(),
   refunded_amount_usd: z.number().nullish(),
+  referral_amount: z.number().nullish(),
   created_at: z.string().nullish(),
   updated_at: z.string().nullish(),
   test_mode: z.boolean().nullish(),

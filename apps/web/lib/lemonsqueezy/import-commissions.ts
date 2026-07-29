@@ -2,20 +2,13 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@dub/email";
 import ProgramImported from "@dub/email/templates/program-imported";
 import { chunk, nanoid } from "@dub/utils";
-import {
-  CommissionStatus,
-  Customer,
-  Link,
-  Program,
-  Reward,
-} from "@prisma/client";
+import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
-import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { getLeadEvents } from "../tinybird/get-lead-events";
 import { logImportError } from "../tinybird/log-import-error";
 import { recordSaleWithTimestamp } from "../tinybird/record-sale";
@@ -37,10 +30,44 @@ type SaleEvent = {
   amount: number;
   currency: string;
   amountUsd: number | null | undefined;
+  firstOrderItemPrice?: number | null;
+  referralAmount: number | null | undefined;
   status: string;
   createdAt: string;
   metadata: Record<string, unknown>;
 };
+
+function resolveAmountUsd({
+  amount,
+  amountUsd,
+  currency,
+  fxRates,
+}: {
+  amount: number;
+  amountUsd: number | null | undefined;
+  currency: string;
+  fxRates: Record<string, string> | null;
+}): number | null {
+  if (amountUsd != null) {
+    return amountUsd;
+  }
+
+  if (currency.toUpperCase() === "USD") {
+    return amount;
+  }
+
+  if (!fxRates) {
+    return null;
+  }
+
+  const converted = convertCurrencyWithFxRates({
+    currency,
+    amount,
+    fxRates,
+  });
+
+  return converted.currency.toUpperCase() === "USD" ? converted.amount : null;
+}
 
 // Only renewals/updates — initials are covered by the Order import.
 // Missing/unknown billing_reason is skipped to avoid double-counting.
@@ -213,6 +240,8 @@ async function listOrderSaleEvents({
       amount: order.subtotal,
       currency: order.currency,
       amountUsd: order.subtotal_usd,
+      firstOrderItemPrice: order.first_order_item?.price,
+      referralAmount: order.referral_amount,
       status: order.status,
       createdAt: order.created_at || new Date().toISOString(),
       metadata: order as unknown as Record<string, unknown>,
@@ -259,6 +288,7 @@ async function listInvoiceSaleEvents({
       amount: invoice.subtotal,
       currency: invoice.currency,
       amountUsd: invoice.subtotal_usd,
+      referralAmount: invoice.referral_amount,
       status: invoice.status,
       createdAt: invoice.created_at || new Date().toISOString(),
       metadata: invoice as unknown as Record<string, unknown>,
@@ -314,33 +344,6 @@ async function processSaleEvents({
 
   const affiliateIdToLink = new Map(links.map((link) => [link.key, link]));
 
-  const partnerIds = [
-    ...new Set(
-      links
-        .map((link) => link.partnerId)
-        .filter((id): id is string => Boolean(id)),
-    ),
-  ];
-
-  const enrollments = await prisma.programEnrollment.findMany({
-    where: {
-      programId: program.id,
-      partnerId: {
-        in: partnerIds,
-      },
-    },
-    include: {
-      saleReward: true,
-    },
-  });
-
-  const partnerIdToSaleReward = new Map(
-    enrollments.map((enrollment) => [
-      enrollment.partnerId,
-      enrollment.saleReward,
-    ]),
-  );
-
   const customerLeadEvents = await getLeadEvents({
     customerIds: customersData.map((customer) => customer.id),
   }).then((res) => res.data);
@@ -354,14 +357,6 @@ async function processSaleEvents({
           program,
           saleEvent,
           partnerLink: affiliateIdToLink.get(saleEvent.affiliateId),
-          saleReward: (() => {
-            const partnerId = affiliateIdToLink.get(
-              saleEvent.affiliateId,
-            )?.partnerId;
-            return partnerId
-              ? partnerIdToSaleReward.get(partnerId) ?? null
-              : null;
-          })(),
           fxRates,
           importId,
           customersData,
@@ -376,7 +371,6 @@ async function createCommission({
   program,
   saleEvent,
   partnerLink,
-  saleReward,
   fxRates,
   importId,
   customersData,
@@ -385,7 +379,6 @@ async function createCommission({
   program: Pick<Program, "id" | "workspaceId">;
   saleEvent: SaleEvent;
   partnerLink?: Link;
-  saleReward: Reward | null;
   fxRates: Record<string, string> | null;
   importId: string;
   customersData: (Customer & { link: Link | null })[];
@@ -467,22 +460,26 @@ async function createCommission({
     return;
   }
 
-  // Prefer LS-provided USD amounts; otherwise convert
-  let saleAmount: number | null =
-    saleEvent.amountUsd != null
-      ? saleEvent.amountUsd
-      : saleEvent.currency.toUpperCase() === "USD"
-        ? saleEvent.amount
-        : null;
+  // Prefer LS-provided USD amounts; otherwise convert. For subscription first
+  // charges, order subtotal is often 0 while first_order_item.price has the amount.
+  let saleAmount = resolveAmountUsd({
+    amount: saleEvent.amount,
+    amountUsd: saleEvent.amountUsd,
+    currency: saleEvent.currency,
+    fxRates,
+  });
 
-  if (saleAmount == null && fxRates) {
-    const converted = convertCurrencyWithFxRates({
+  if (
+    (saleAmount == null || saleAmount === 0) &&
+    saleEvent.firstOrderItemPrice != null &&
+    saleEvent.firstOrderItemPrice > 0
+  ) {
+    saleAmount = resolveAmountUsd({
+      amount: saleEvent.firstOrderItemPrice,
+      amountUsd: null,
       currency: saleEvent.currency,
-      amount: saleEvent.amount,
       fxRates,
     });
-    saleAmount =
-      converted.currency.toUpperCase() === "USD" ? converted.amount : null;
   }
 
   if (saleAmount == null) {
@@ -496,22 +493,15 @@ async function createCommission({
 
   const createdAt = new Date(saleEvent.createdAt);
 
-  // LS does not expose per-order commission amounts; derive from Dub sale reward
-  const earnings = saleReward
-    ? calculateSaleEarnings({
-        reward: {
-          type: saleReward.type,
-          amountInCents: saleReward.amountInCents,
-          amountInPercentage: saleReward.amountInPercentage
-            ? Number(saleReward.amountInPercentage)
-            : null,
-        },
-        sale: {
-          amount: saleAmount,
-          quantity: 1,
-        },
-      })
-    : 0;
+  const earnings =
+    saleEvent.referralAmount == null
+      ? 0
+      : resolveAmountUsd({
+          amount: saleEvent.referralAmount,
+          amountUsd: null,
+          currency: saleEvent.currency,
+          fxRates,
+        }) ?? 0;
 
   const clickData = clickEventSchemaTB
     .omit({ timestamp: true })
