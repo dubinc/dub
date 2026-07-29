@@ -2,7 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { DubApiError } from "../errors";
 
-export async function getCampaignOrThrow<T extends Prisma.CampaignInclude = {}>({
+export async function getCampaignOrThrow<
+  T extends Prisma.CampaignInclude = {},
+>({
   programId,
   campaignId,
   include,

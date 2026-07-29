@@ -15,7 +15,7 @@ import {
   Modal,
   TooltipContent,
 } from "@dub/ui";
-import { nFormatter, pluralize, pluck } from "@dub/utils";
+import { nFormatter, pluck, pluralize } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { BountyStartMode } from "@prisma/client";
 import { Dispatch, SetStateAction, useState } from "react";
