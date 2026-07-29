@@ -36,7 +36,10 @@ export const executeAwardBountyWorkflow = async ({
   workflow: Workflow;
   context: WorkflowContext;
 }) => {
-  const { condition, action } = parseWorkflowConfig(workflow);
+  const { conditions, action } = parseWorkflowConfig(workflow);
+
+  // Not more than one condition is allowed for award bounty workflows
+  const condition = conditions[0];
 
   if (action.type !== WORKFLOW_ACTION_TYPES.AwardBounty) {
     return;

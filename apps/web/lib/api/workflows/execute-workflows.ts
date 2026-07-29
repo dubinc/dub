@@ -34,10 +34,8 @@ const ACTION_HANDLERS: Record<WORKFLOW_ACTION_TYPES, WorkflowActionHandler> = {
   },
 };
 
-// TODO:
-// This is not complete
 const EVENT_ATTRIBUTES: Record<WorkflowTriggerEvent, WorkflowAttributeKey[]> = {
-  partnerEnrolled: ["partnerEnrolledDays", "partnerJoined"],
+  partnerEnrolled: ["partnerJoined"],
   leadRecorded: ["totalLeads", "partnerGroup"],
   saleRecorded: ["totalConversions", "totalSaleAmount", "partnerGroup"],
   commissionRecorded: ["totalCommissions", "partnerGroup"],

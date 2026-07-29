@@ -77,7 +77,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
     });
 
     expect(workflow).not.toBeNull();
-    expect(workflow.trigger).toBe("partnerEnrolled");
     expect(workflow.disabledAt).toBeNull();
 
     const workflowActions = workflow.actions as any[];
@@ -661,7 +660,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
     });
 
     expect(workflow).not.toBeNull();
-    expect(workflow.trigger).toBe("partnerEnrolled");
     expect(workflow.disabledAt).toBeNull();
 
     const conditions = workflow.triggerConditions as any[];

@@ -3,10 +3,10 @@
 import {
   SEND_CAMPAIGN_ATTRIBUTES,
   SEND_CAMPAIGN_ATTRIBUTE_KEYS,
+  SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTE_KEYS,
   SEND_CAMPAIGN_OPERATORS,
   SEND_CAMPAIGN_OPERATOR_KEYS,
 } from "@/lib/api/workflows/send-campaign/schema";
-import { isSendCampaignEnrollmentAttribute } from "@/lib/api/workflows/send-campaign/utils";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import {
@@ -23,6 +23,14 @@ import { useCampaignFormContext } from "./campaign-form-context";
 
 type SendCampaignAttributeKey = (typeof SEND_CAMPAIGN_ATTRIBUTE_KEYS)[number];
 type SendCampaignOperatorKey = (typeof SEND_CAMPAIGN_OPERATOR_KEYS)[number];
+
+function isSendCampaignEnrollmentAttribute(
+  attribute: string,
+): attribute is (typeof SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTE_KEYS)[number] {
+  return (
+    SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTE_KEYS as readonly string[]
+  ).includes(attribute);
+}
 
 export function TransactionalCampaignLogic() {
   const { control, watch } = useCampaignFormContext();

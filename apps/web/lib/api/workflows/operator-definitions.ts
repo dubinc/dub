@@ -1,4 +1,4 @@
-export type ConditionValue =
+type ConditionValue =
   | number
   | { min?: number; max?: number }
   | string

@@ -398,7 +398,7 @@ async function resolveProgramEnrollments({
   }
 
   const startDate = subDays(new Date(), partnerEnrolledDays.value as number);
-  // add 12 hours to the start date since we run the partnerEnrolled workflow every 12 hours
+  // add 12 hours to the start date since we run the scheduled enrollment workflow every 12 hours
   const endDate = addHours(startDate, 12);
 
   // partnerEnrolledDays is enforced by the enrollment window query below —

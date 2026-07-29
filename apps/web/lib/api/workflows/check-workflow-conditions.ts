@@ -5,18 +5,16 @@ import type {
 } from "@/lib/api/workflows/types";
 import { WORKFLOW_TYPE_ATTRIBUTES } from "./workflow-type-attributes";
 
-export type WorkflowConditionCheckResult = {
-  valid: boolean;
-  errors: string[];
-};
-
 export function checkWorkflowConditions({
   conditions,
   workflowType,
 }: {
   conditions?: WorkflowCondition[] | null;
   workflowType: WorkflowType;
-}): WorkflowConditionCheckResult {
+}): {
+  valid: boolean;
+  errors: string[];
+} {
   if (!conditions || conditions.length === 0) {
     return {
       valid: true,

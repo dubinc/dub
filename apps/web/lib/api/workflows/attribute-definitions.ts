@@ -4,10 +4,7 @@
  * GROUP_MOVE_* / SEND_CAMPAIGN_* from the workflow schema instead.
  */
 
-export const WORKFLOW_DATA_REQUIREMENTS = [
-  "commissions",
-  "partnerLinkStats",
-] as const;
+const WORKFLOW_DATA_REQUIREMENTS = ["commissions", "partnerLinkStats"] as const;
 
 export const WORKFLOW_ATTRIBUTES = {
   totalLeads: {

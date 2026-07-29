@@ -102,11 +102,13 @@ export const POST = withWorkspace(
       });
 
       if (type === "transactional") {
-        const triggerCondition: WorkflowCondition = {
-          attribute: "partnerJoined",
-          operator: "gte",
-          value: 0,
-        };
+        const triggerConditions: WorkflowCondition[] = [
+          {
+            attribute: "partnerJoined",
+            operator: "gte",
+            value: 0,
+          },
+        ];
 
         const action: WorkflowAction = {
           type: WORKFLOW_ACTION_TYPES.SendCampaign,
@@ -119,7 +121,7 @@ export const POST = withWorkspace(
           data: {
             id: workflowId,
             programId,
-            triggerConditions: [triggerCondition],
+            triggerConditions,
             actions: [action],
             disabledAt: new Date(), // TODO: Replace this with publishedAt
           },

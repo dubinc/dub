@@ -2,7 +2,7 @@ import { WORKFLOW_OPERATORS } from "@/lib/api/workflows/operator-definitions";
 import * as z from "zod/v4";
 import { WORKFLOW_ATTRIBUTES } from "../attribute-definitions";
 
-export const SEND_CAMPAIGN_METRIC_ATTRIBUTES = {
+const SEND_CAMPAIGN_METRIC_ATTRIBUTES = {
   totalLeads: {
     ...WORKFLOW_ATTRIBUTES.totalLeads,
     operators: ["gte", "lte"] as const,
@@ -21,7 +21,7 @@ export const SEND_CAMPAIGN_METRIC_ATTRIBUTES = {
   },
 } as const;
 
-export const SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTES = {
+const SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTES = {
   partnerEnrolledDays: {
     ...WORKFLOW_ATTRIBUTES.partnerEnrolledDays,
     operators: ["gte"] as const,
@@ -40,10 +40,6 @@ export const SEND_CAMPAIGN_ATTRIBUTES = {
 export const SEND_CAMPAIGN_ATTRIBUTE_KEYS = Object.keys(
   SEND_CAMPAIGN_ATTRIBUTES,
 ) as readonly (keyof typeof SEND_CAMPAIGN_ATTRIBUTES)[];
-
-export const SEND_CAMPAIGN_METRIC_ATTRIBUTE_KEYS = Object.keys(
-  SEND_CAMPAIGN_METRIC_ATTRIBUTES,
-) as readonly (keyof typeof SEND_CAMPAIGN_METRIC_ATTRIBUTES)[];
 
 export const SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTE_KEYS = Object.keys(
   SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTES,
