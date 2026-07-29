@@ -1,4 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { sanitizeTimezone } from "@/lib/analytics/utils/sanitize-timezone";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import {
   applicationEventAnalyticsQuerySchema,
@@ -53,7 +54,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   } = parsedFilters;
 
   // Align with CONVERT_TZ in raw SQL and analyticsQuerySchema default (UTC when omitted).
-  const timezone = timezoneParam ?? "UTC";
+  const timezone = sanitizeTimezone(timezoneParam);
 
   const { startDate, endDate } = getStartEndDates({
     interval,
