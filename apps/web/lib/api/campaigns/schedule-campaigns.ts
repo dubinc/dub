@@ -1,6 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { WORKFLOW_SCHEDULES } from "@/lib/zod/schemas/workflows";
+import { PARTNER_ENROLLED_WORKFLOW_CRON } from "@/lib/zod/schemas/workflows";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Campaign, CampaignType, Workflow } from "@prisma/client";
 import { isScheduledWorkflow } from "../workflows/utils";
@@ -120,7 +120,7 @@ const scheduleMarketingCampaign = async ({
 };
 
 // Schedule a transactional campaign
-const scheduleTransactionalCampaign = async ({
+export const scheduleTransactionalCampaign = async ({
   campaign,
   updatedCampaign,
 }: ScheduleCampaignProps) => {
@@ -135,18 +135,10 @@ const scheduleTransactionalCampaign = async ({
     (campaign.status === "draft" || campaign.status === "paused") &&
     updatedCampaign.status === "active";
 
-  const cronSchedule = WORKFLOW_SCHEDULES["partnerEnrolled"];
-
-  if (!cronSchedule) {
-    throw new Error(
-      `Cron schedule not found for trigger ${updatedCampaign.workflow.trigger}`,
-    );
-  }
-
   if (shouldSchedule) {
     return await qstash.schedules.create({
       destination: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${updatedCampaign.workflow.id}`,
-      cron: cronSchedule,
+      cron: PARTNER_ENROLLED_WORKFLOW_CRON,
       scheduleId: updatedCampaign.workflow.id,
     });
   }

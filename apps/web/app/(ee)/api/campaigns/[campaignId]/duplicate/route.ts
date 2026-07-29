@@ -25,7 +25,6 @@ export const POST = withWorkspace(
             id: true,
             actions: true,
             triggerConditions: true,
-            trigger: true,
           },
         },
       },
@@ -45,7 +44,6 @@ export const POST = withWorkspace(
             id: createId({ prefix: "wf_" }),
             programId,
             name: campaign.name,
-            trigger: campaign.workflow.trigger,
             triggerConditions,
             actions: [
               {

@@ -28,10 +28,7 @@ import {
   createBountySchema,
   getBountiesQuerySchema,
 } from "@/lib/zod/schemas/bounties";
-import {
-  WORKFLOW_ACTION_TYPES,
-  WORKFLOW_ATTRIBUTE_TRIGGER,
-} from "@/lib/zod/schemas/workflows";
+import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { APP_DOMAIN_WITH_NGROK, pluck } from "@dub/utils";
 import { BountyStartMode, Workflow } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -263,7 +260,6 @@ export const POST = withWorkspace(
           data: {
             id: createId({ prefix: "wf_" }),
             programId,
-            trigger: WORKFLOW_ATTRIBUTE_TRIGGER[performanceCondition.attribute],
             triggerConditions: [performanceCondition],
             actions: [action],
           },
