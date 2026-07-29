@@ -237,8 +237,15 @@ async function listOrderSaleEvents({
   // One-time only — subscription first charges come from invoices (billing_reason: initial)
   const saleEvents = orders
     .filter(
-      (order): order is LemonSqueezyOrder & { affiliate_id: number } =>
-        Boolean(order.affiliate_id) && order.subscription_ids.length === 0,
+      (
+        order,
+      ): order is LemonSqueezyOrder & {
+        affiliate_id: number;
+        customer_id: number;
+      } =>
+        Boolean(order.affiliate_id) &&
+        order.customer_id != null &&
+        order.subscription_ids.length === 0,
     )
     .map((order) => ({
       invoiceId: `ls_order_${order.id}`,
@@ -281,8 +288,10 @@ async function listInvoiceSaleEvents({
         invoice,
       ): invoice is LemonSqueezySubscriptionInvoice & {
         affiliate_id: number;
+        customer_id: number;
       } =>
         Boolean(invoice.affiliate_id) &&
+        invoice.customer_id != null &&
         Boolean(
           invoice.billing_reason &&
             IMPORTABLE_INVOICE_REASONS.has(invoice.billing_reason),

@@ -102,7 +102,7 @@ export const lemonSqueezyCustomerSchema = z.object({
 export const lemonSqueezyOrderSchema = z.object({
   id: z.string(),
   store_id: z.number(),
-  customer_id: z.number(),
+  customer_id: z.number().nullish(),
   affiliate_id: z.number().nullish(),
   identifier: z.string().nullish(),
   order_number: z.number().nullish(),
@@ -140,7 +140,7 @@ export const lemonSqueezySubscriptionInvoiceSchema = z.object({
   id: z.string(),
   store_id: z.number(),
   subscription_id: z.number().nullish(),
-  customer_id: z.number(),
+  customer_id: z.number().nullish(),
   affiliate_id: z.number().nullish(),
   user_name: z.string().nullish(),
   user_email: z.string().nullish(),
