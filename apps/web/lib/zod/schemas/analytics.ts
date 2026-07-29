@@ -13,7 +13,7 @@ import {
   parseFilterValue,
 } from "@dub/utils";
 import * as z from "zod/v4";
-import { booleanQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
 
 const analyticsEvents = z
@@ -526,6 +526,11 @@ const sortOrder = z
   .optional()
   .describe("The sort order. The default is `desc`.");
 
+const eventsPaginationQuerySchema = getPaginationQuerySchema({
+  pageSize: DEFAULT_PAGINATION_LIMIT,
+  maxPageSize: 1000,
+});
+
 export const eventsQuerySchema = analyticsQuerySchema
   .omit({ groupBy: true })
   .extend({
@@ -535,23 +540,8 @@ export const eventsQuerySchema = analyticsQuerySchema
       .describe(
         "The type of event to retrieve analytics for. Defaults to 'clicks'.",
       ),
-    page: z.coerce
-      .number({ error: "Page must be a number." })
-      .int({ message: "Page must be an integer." })
-      .positive({ message: "Page must be greater than 0." })
-      .default(1)
-      .describe(
-        "The page number for pagination (1-based). The first page is `1`.",
-      )
-      .meta({ example: 1 }),
-    limit: z.coerce
-      .number({ error: "Limit must be a number." })
-      .int({ message: "Limit must be an integer." })
-      .positive({ message: "Limit must be greater than 0." })
-      .max(1000, { message: "Max pagination limit is 1000 items per page." })
-      .default(DEFAULT_PAGINATION_LIMIT)
-      .describe("The number of events to return per page.")
-      .meta({ example: DEFAULT_PAGINATION_LIMIT }),
+    page: eventsPaginationQuerySchema.page.default(1),
+    limit: eventsPaginationQuerySchema.pageSize,
     sortOrder,
     sortBy: z
       .enum(["timestamp"])

@@ -49,6 +49,8 @@ export const getEvents = async (params: EventsFilters) => {
     dataAvailableFrom,
     query,
     includeMetadata = true,
+    page,
+    limit,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -155,8 +157,8 @@ export const getEvents = async (params: EventsFilters) => {
     ...(params.root !== undefined ? { root: params.root } : {}),
     ...(params.saleType ? { saleType: params.saleType } : {}),
     order: sortOrder,
-    offset: Math.max(0, (params.page - 1) * params.limit),
-    limit: params.limit,
+    offset: (page - 1) * limit,
+    limit,
     sortBy: params.sortBy,
     start: formatUTCDateTimeClickhouse(startDate),
     end: formatUTCDateTimeClickhouse(endDate),
