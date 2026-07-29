@@ -6,6 +6,10 @@ const LAST_VISIBLE_CHARS = 6;
 // Map of route pattern -> response body fields that should be masked before logging.
 export const SENSITIVE_RESPONSE_FIELDS_BY_ROUTE = {
   "/tokens/embed/referrals": ["publicToken"],
+  "/tokens": ["token"],
+  "/oauth/apps": ["clientSecret"],
+  "/webhooks": ["secret"],
+  "/webhooks/:webhookId": ["secret"],
 } as const;
 
 // Stripe-style partial mask: visible prefix through the last `_` (e.g. `sk_live_`),

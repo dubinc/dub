@@ -1,7 +1,7 @@
+import { logger } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { TREMENDOUS_MAX_PAYOUT_AMOUNT_CENTS } from "@/lib/tremendous/constants";
-import { createTremendousCampaign } from "@/lib/tremendous/create-tremendous-campaign";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import {
   Invoice,
@@ -60,21 +60,28 @@ export async function queueTremendousPayouts({
     return;
   }
 
-  // if there are partners to send via Tremendous, we need to make sure the program has tremendousCampaignId set
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: invoice.programId,
     },
     select: {
-      id: true,
-      name: true,
-      logo: true,
       tremendousCampaignId: true,
     },
   });
 
+  // Log and skip if the program has no Tremendous campaign.
   if (!program.tremendousCampaignId) {
-    await createTremendousCampaign(program);
+    logger.error("missing_campaign", {
+      service: "tremendous",
+      operation: "queue_tremendous_payouts",
+      correlation: {
+        invoiceId: invoice.id,
+        programId: invoice.programId,
+      },
+    });
+
+    await logger.flush();
+    return;
   }
 
   const chunkedPartners = chunk(partnersInCurrentInvoice, 100);

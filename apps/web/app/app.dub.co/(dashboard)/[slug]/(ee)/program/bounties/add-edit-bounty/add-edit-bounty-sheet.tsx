@@ -5,7 +5,7 @@ import {
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyProps, CreateBountyInput } from "@/lib/types";
+import { BountyProps } from "@/lib/types";
 import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
   ProgramSheetAccordion,
@@ -63,6 +63,11 @@ const BOUNTY_TYPES: CardSelectorOption[] = [
     label: "Submission",
     description: "Reward for task completion",
   },
+  {
+    key: "socialMetrics",
+    label: "Social metrics",
+    description: "Reward based on social engagement",
+  },
 ];
 
 function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
@@ -88,11 +93,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     handleSubmissionFrequencyToggle,
     handleSubmissionFrequencyChange,
     type,
-    name,
+    bountyTypeUI,
+    handleBountyTypeUIChange,
     control,
     register,
-    setValue,
-    watch,
     errors,
     isDirty,
     validationError,
@@ -101,15 +105,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     isSubmitting,
   } = useAddEditBountyForm({ bounty, setIsOpen });
 
-  const submissionRequirements = watch("submissionRequirements");
-  const hasSocialMetrics =
-    submissionRequirements &&
-    typeof submissionRequirements === "object" &&
-    "socialMetrics" in submissionRequirements;
   const canUseBountySocialMetrics =
     getPlanCapabilities(plan).canUseBountySocialMetrics;
   const showBountySocialMetricsUpsell =
-    hasSocialMetrics && !canUseBountySocialMetrics;
+    bountyTypeUI === "socialMetrics" && !canUseBountySocialMetrics;
 
   return (
     <form onSubmit={onSubmit} className="flex h-full flex-col">
@@ -145,15 +144,14 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                   <ProgramSheetAccordionContent>
                     <div className="space-y-4">
                       <p className="text-content-default text-sm">
-                        Set how the bounty will be completed
+                        Choose the type of bounty you want to create
                       </p>
                       <CardSelector
                         options={BOUNTY_TYPES}
-                        value={watch("type")}
-                        onChange={(value: CreateBountyInput["type"]) =>
-                          setValue("type", value)
-                        }
+                        value={bountyTypeUI}
+                        onChange={handleBountyTypeUIChange}
                         name="bounty-type"
+                        gridCols="3"
                       />
                     </div>
                   </ProgramSheetAccordionContent>
@@ -543,13 +541,17 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
               text={bounty ? "Update bounty" : "Create bounty"}
               className="h-9 w-fit"
               loading={isSubmitting}
-              disabled={Boolean(validationError) || (bounty && !isDirty)}
+              disabled={
+                Boolean(validationError) ||
+                (bounty && !isDirty) ||
+                showBountySocialMetricsUpsell
+              }
               disabledTooltip={
                 showBountySocialMetricsUpsell ? (
                   <TooltipContent
-                    title="[Social metrics bounties](https://dub.co/help/article/program-bounties#social-metrics-bounties) are only available on the Advanced plan and above."
+                    title="[Social metrics bounties](https://dub.co/help/article/program-bounties#social-metrics) are only available on the Advanced plan and above."
                     cta="Upgrade to Advanced"
-                    href={`/${workspaceSlug}/upgrade?plan=advanced&showPartnersUpgradeModal=true`}
+                    href={`/${workspaceSlug}/upgrade?plan=advanced&showAdvancedUpsellModal=true`}
                     target="_blank"
                   />
                 ) : (
@@ -618,6 +620,9 @@ export function BountySheet({
       onOpenChange={rest.setIsOpen}
       onClose={() => queryParams({ del: "bountyId" })}
       nested={nested}
+      contentProps={{
+        className: "[--sheet-width:600px]",
+      }}
     >
       <BountySheetContent {...rest} />
     </Sheet>

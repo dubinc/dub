@@ -211,6 +211,11 @@ export async function updatePartnerCommission({
     include: {
       customer: true,
       partner: true,
+      payout: {
+        select: {
+          paidAt: true,
+        },
+      },
     },
   });
 

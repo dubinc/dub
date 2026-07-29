@@ -21,7 +21,7 @@
       "schedule": "* * * * *"
     },
     {
-      "path": "/api/cron/streams/update-workspace-clicks",
+      "path": "/api/cron/streams/update-click-stats",
       "schedule": "* * * * *"
     },
     {
@@ -85,7 +85,7 @@
       "schedule": "*/5 * * * *"
     },
     {
-      "path": "/api/cron/google-ads/sync-installed-workspaces",
+      "path": "/api/cron/queue/retry",
       "schedule": "* * * * *"
     }
   ],

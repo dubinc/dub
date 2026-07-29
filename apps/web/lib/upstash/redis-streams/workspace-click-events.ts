@@ -8,6 +8,7 @@ const STREAM_KEY = "workspace:click:events";
 
 export const workspaceClickEventStream = new RedisStream(STREAM_KEY);
 
+// Publishes a workspace click event to the stream (only for workspaces with link.clicked webhooks)
 export const publishWorkspaceClickEvent = async (event) => {
   try {
     const parsedEvent = clickEventSchemaTB.parse({

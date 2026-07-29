@@ -1,13 +1,14 @@
 import { createId } from "@/lib/api/create-id";
+import { getOrCreateCustomer } from "@/lib/api/customers/get-or-create-customer";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
 import { queuePartnerCommissionCreation } from "@/lib/partners/queue-partner-commission-creation";
 import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { prisma } from "@/lib/prisma";
-import { recordLead } from "@/lib/tinybird";
+import { getLeadEvent, recordLead } from "@/lib/tinybird";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
-import { StripeMode } from "@/lib/types";
+import { LeadEventTB, StripeMode } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -22,26 +23,37 @@ export type PromoCodeCustomerDetails = {
   name?: string | null;
   email?: string | null;
   address?: Pick<Stripe.Address, "country" | "state"> | null;
+  stripeCustomerId: string;
 };
 
 export async function attributeViaPromotionCodeId({
   promotionCodeId,
-  stripeAccountId,
   workspace,
   mode,
-  stripeCustomerId,
   customerDetails,
 }: {
   promotionCodeId: string; // must be Stripe's promotion code ID `promo_xxx`, not the actual promo code
-  stripeAccountId: string;
   workspace: Pick<
     Project,
     "id" | "defaultProgramId" | "stripeConnectId" | "webhookEnabled"
   >;
   mode: StripeMode;
-  stripeCustomerId: string;
   customerDetails: PromoCodeCustomerDetails;
 }) {
+  console.log(
+    `Attributing via promotion code ID ${promotionCodeId} for customer ${customerDetails.stripeCustomerId} in workspace ${workspace.id}`,
+  );
+
+  const stripeAccountId = workspace.stripeConnectId!;
+  const stripeCustomerId = customerDetails.stripeCustomerId;
+
+  if (!workspace.defaultProgramId) {
+    console.log(
+      `Workspace with stripeConnectId ${stripeAccountId} has no default program, skipping...`,
+    );
+    return null;
+  }
+
   // Find the promotion code for the promotion code id
   const promotionCode = await getPromotionCode({
     promotionCodeId,
@@ -56,12 +68,7 @@ export async function attributeViaPromotionCodeId({
     return null;
   }
 
-  if (!workspace.defaultProgramId) {
-    console.log(
-      `Workspace with stripeConnectId ${stripeAccountId} has no default program, skipping...`,
-    );
-    return null;
-  }
+  console.log(`Promotion code found: ${promotionCode.code}`);
 
   const discountCode = await prisma.discountCode.findUnique({
     where: {
@@ -106,33 +113,63 @@ export async function attributeViaPromotionCodeId({
     },
   });
 
-  let customer: Awaited<ReturnType<typeof prisma.customer.create>>;
-  try {
-    customer = await prisma.customer.create({
-      data: {
-        id: createId({ prefix: "cus_" }),
-        name:
-          customerDetails.name || customerDetails.email || generateRandomName(),
-        email: customerDetails.email,
-        externalId: clickEvent.click_id,
-        stripeCustomerId,
-        linkId: clickEvent.link_id,
-        clickId: clickEvent.click_id,
-        clickedAt: new Date(clickEvent.timestamp + "Z"),
-        country: customerAddress?.country,
-        projectId: workspace.id,
-        projectConnectId: workspace.stripeConnectId,
-      },
-    });
-  } catch (error) {
-    // a concurrent webhook may have created the customer first (unique stripeCustomerId)
-    if (error.code === "P2002") {
+  const { customer, created } = await getOrCreateCustomer({
+    findMode: "first",
+    where: {
+      OR: [
+        {
+          stripeCustomerId,
+        },
+        {
+          projectId: workspace.id,
+          externalId: clickEvent.click_id,
+        },
+      ],
+    },
+    create: {
+      id: createId({ prefix: "cus_" }),
+      name:
+        customerDetails.name || customerDetails.email || generateRandomName(),
+      email: customerDetails.email,
+      externalId: clickEvent.click_id,
+      stripeCustomerId,
+      linkId: clickEvent.link_id,
+      clickId: clickEvent.click_id,
+      clickedAt: new Date(clickEvent.timestamp + "Z"),
+      country: customerAddress?.country,
+      projectId: workspace.id,
+      projectConnectId: workspace.stripeConnectId,
+      programId: link.programId,
+      partnerId: link.partnerId,
+    },
+  });
+
+  // Concurrent webhook already created this customer — continue sale without re-recording lead
+  if (!created) {
+    let existingLead = await redis.get<LeadEventTB>(`leadCache:${customer.id}`);
+
+    if (!existingLead) {
+      existingLead = await getLeadEvent({
+        customerId: customer.id,
+      });
+    }
+
+    if (!existingLead) {
       console.log(
-        `Customer with stripeCustomerId ${stripeCustomerId} was created concurrently, skipping promo code attribution...`,
+        `Customer with stripeCustomerId ${stripeCustomerId} already exists but no lead event found, skipping promo code attribution...`,
       );
       return null;
     }
-    throw error;
+
+    return {
+      linkId,
+      customer,
+      clickEvent,
+      leadEvent: {
+        ...existingLead,
+        workspace_id: workspace.id,
+      },
+    };
   }
 
   // Prepare the payload for the lead event
@@ -140,7 +177,7 @@ export async function attributeViaPromotionCodeId({
 
   const leadEvent = {
     ...rest,
-    workspace_id: clickEvent.workspace_id || customer.projectId,
+    workspace_id: workspace.id,
     event_id: nanoid(16),
     event_name: "Attributed via discount code",
     customer_id: customer.id,
@@ -210,6 +247,7 @@ export async function attributeViaPromotionCodeId({
           workspace,
           data: transformLeadEventData({
             ...leadEvent,
+            timestamp,
             link: linkUpdated,
             customer,
             partner: result?.webhookPartner,
@@ -224,6 +262,7 @@ export async function attributeViaPromotionCodeId({
                 event: "lead.created",
                 data: {
                   ...leadEvent,
+                  timestamp,
                   link: linkUpdated,
                   customer,
                 },

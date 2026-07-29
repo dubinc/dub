@@ -15,12 +15,14 @@ import {
 } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { createTremendousCampaignJob } from "@/lib/jobs/handlers/create-tremendous-campaign-job";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { checkPaymentMethodMandate } from "@/lib/stripe/check-payment-method-mandate";
 import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -90,6 +92,7 @@ export const confirmPayoutsAction = authActionClient
       throw new Error(
         exceededLimitError({
           plan: workspace.plan,
+          planPeriod: workspace.planPeriod,
           limit: workspace.payoutsLimit,
           type: "payouts",
         }),
@@ -213,6 +216,20 @@ export const confirmPayoutsAction = authActionClient
         },
       });
     });
+
+    if (!program.tremendousCampaignId) {
+      waitUntil(
+        createTremendousCampaignJob.dispatch(
+          {
+            programId: program.id,
+          },
+          {
+            deduplicationId: program.id,
+            label: program.id,
+          },
+        ),
+      );
+    }
 
     // Send the message to Qstash to process the payouts
     const qstashResponse = await qstash.publishJSON({

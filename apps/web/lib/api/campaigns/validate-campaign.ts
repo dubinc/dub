@@ -37,7 +37,7 @@ export async function validateCampaign({
     input.preview ||
     input.bodyJson ||
     input.groupIds ||
-    input.triggerCondition ||
+    input.triggerCondition !== undefined ||
     input.from ||
     input.scheduledAt
   ) {

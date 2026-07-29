@@ -410,59 +410,71 @@ export default function IntegrationPageClient({
 
       <div className="w-full rounded-lg border border-neutral-200 bg-white">
         {integration.screenshots && integration.screenshots.length > 0 ? (
-          <Carousel autoplay={{ delay: 5000 }}>
-            <div className="relative rounded-t-lg bg-white p-4">
-              <CarouselContent>
-                {integration.screenshots.map((src, idx) => (
-                  <CarouselItem key={idx}>
-                    <BlurImage
-                      src={src}
-                      alt={`Screenshot ${idx + 1} of ${integration.name}`}
-                      width={900}
-                      height={580}
-                      className="aspect-[900/580] w-[5/6] overflow-hidden rounded-md border border-neutral-200 object-cover object-top"
-                    />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselNavBar
-                variant="simple"
-                className="absolute bottom-6 left-1/2 -translate-x-1/2"
+          integration.screenshots.length === 1 ? (
+            <div className="rounded-t-lg bg-white p-4">
+              <BlurImage
+                src={integration.screenshots[0]}
+                alt={`Screenshot of ${integration.name}`}
+                width={900}
+                height={580}
+                className="aspect-[900/580] w-[5/6] overflow-hidden rounded-md border border-neutral-200 object-cover object-top"
               />
             </div>
-            {!isMobile && (
-              <div className="relative">
-                <CarouselThumbnails className="py-0.5">
+          ) : (
+            <Carousel autoplay={{ delay: 5000 }}>
+              <div className="relative rounded-t-lg bg-white p-4">
+                <CarouselContent>
                   {integration.screenshots.map((src, idx) => (
-                    <CarouselThumbnail
-                      key={idx}
-                      index={idx}
-                      className={({ active }) =>
-                        cn(
-                          "aspect-[900/580] h-[100px] shrink-0 select-none overflow-hidden rounded-[6px] border",
-                          "border-neutral-200 ring-2 ring-transparent transition-all duration-100",
-                          active
-                            ? "border-neutral-300 ring-black/10"
-                            : "hover:ring-black/5",
-                        )
-                      }
-                    >
+                    <CarouselItem key={idx}>
                       <BlurImage
                         src={src}
-                        alt={`Screenshot ${idx + 1} thumbnail`}
+                        alt={`Screenshot ${idx + 1} of ${integration.name}`}
                         width={900}
                         height={580}
-                        className="overflow-hidden rounded-[5px] object-cover object-top"
+                        className="aspect-[900/580] w-[5/6] overflow-hidden rounded-md border border-neutral-200 object-cover object-top"
                       />
-                    </CarouselThumbnail>
+                    </CarouselItem>
                   ))}
-                </CarouselThumbnails>
-
-                <div className="absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-white" />
-                <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-white" />
+                </CarouselContent>
+                <CarouselNavBar
+                  variant="simple"
+                  className="absolute bottom-6 left-1/2 -translate-x-1/2"
+                />
               </div>
-            )}
-          </Carousel>
+              {!isMobile && (
+                <div className="relative">
+                  <CarouselThumbnails className="py-0.5">
+                    {integration.screenshots.map((src, idx) => (
+                      <CarouselThumbnail
+                        key={idx}
+                        index={idx}
+                        className={({ active }) =>
+                          cn(
+                            "aspect-[900/580] h-[100px] shrink-0 select-none overflow-hidden rounded-[6px] border",
+                            "border-neutral-200 ring-2 ring-transparent transition-all duration-100",
+                            active
+                              ? "border-neutral-300 ring-black/10"
+                              : "hover:ring-black/5",
+                          )
+                        }
+                      >
+                        <BlurImage
+                          src={src}
+                          alt={`Screenshot ${idx + 1} thumbnail`}
+                          width={900}
+                          height={580}
+                          className="overflow-hidden rounded-[5px] object-cover object-top"
+                        />
+                      </CarouselThumbnail>
+                    ))}
+                  </CarouselThumbnails>
+
+                  <div className="absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-white" />
+                  <div className="absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-white" />
+                </div>
+              )}
+            </Carousel>
+          )
         ) : null}
 
         {integration.readme && (

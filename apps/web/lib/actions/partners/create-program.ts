@@ -12,6 +12,7 @@ import { redis } from "@/lib/upstash";
 import {
   DEFAULT_ADDITIONAL_PARTNER_LINKS,
   DEFAULT_PARTNER_GROUP,
+  sanitizeAdditionalLinks,
 } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
@@ -86,14 +87,20 @@ export const createProgram = async ({
 
   const programId = createId({ prefix: "prog_" });
 
-  const logoUrl = uploadedLogo
-    ? await storage
-        .upload({
-          key: `programs/${programId}/logo_${nanoid(7)}`,
-          body: uploadedLogo,
-        })
-        .then(({ url }) => url)
-    : null;
+  let logoUrl: string | null = null;
+
+  if (uploadedLogo) {
+    try {
+      const { url } = await storage.upload({
+        key: `programs/${programId}/logo_${nanoid(7)}`,
+        body: uploadedLogo,
+      });
+
+      logoUrl = url;
+    } catch (error) {
+      console.error(`Failed to upload program logo for ${programId}`, error);
+    }
+  }
 
   // create a new program
   const program = await prisma.$transaction(async (tx) => {
@@ -178,12 +185,12 @@ export const createProgram = async ({
         ...(createdReward && {
           [REWARD_EVENT_COLUMN_MAPPING[createdReward.event]]: createdReward.id,
         }),
-        additionalLinks: [
+        additionalLinks: sanitizeAdditionalLinks([
           {
-            domain: getDomainWithoutWWW(programData.url!)!,
+            domain: getDomainWithoutWWW(programData.url!),
             validationMode: "domain",
           },
-        ],
+        ]),
         maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
         partnerGroupDefaultLinks: {
           create: {
