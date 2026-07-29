@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getDubAdminRole, withWorkspace } from "@/lib/auth";
 import { getDubCustomer } from "@/lib/dub";
+import { getFeatureFlags } from "@/lib/edge-config";
 import { stripe } from "@/lib/stripe";
 import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
@@ -77,9 +78,14 @@ export const POST = withWorkspace(
         return NextResponse.json({ url: successUrl.toString() });
       }
 
+      const flags = await getFeatureFlags({ workspaceId: workspace.id });
+
       // Active subscriptions: use the billing portal's plan-change confirmation flow.
       const { url } = await stripe.billingPortal.sessions.create({
         customer: workspace.stripeId,
+        ...(flags.noProrationUpgrade
+          ? { configuration: "bpc_1TyLVFAlJJEpqkPVbJdDVr4m" }
+          : {}),
         return_url: baseUrl,
         flow_data: {
           type: "subscription_update_confirm",
