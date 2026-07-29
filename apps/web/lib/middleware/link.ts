@@ -113,7 +113,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     ev.waitUntil(
       (async () => {
         if (!isPartnerLink) {
-          await linkCache.set(linkData as any);
+          await linkCache.set(linkData as any, { skipRevalidateTag: true });
           return;
         }
 
@@ -123,11 +123,14 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         });
 
         // we'll use this data on /track/click
-        await linkCache.set({
-          ...(linkData as any),
-          ...(partner && { partner }),
-          ...(discount && { discount }),
-        });
+        await linkCache.set(
+          {
+            ...(linkData as any),
+            ...(partner && { partner }),
+            ...(discount && { discount }),
+          },
+          { skipRevalidateTag: true },
+        );
       })(),
     );
   }

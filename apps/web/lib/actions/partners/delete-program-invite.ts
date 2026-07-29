@@ -60,14 +60,6 @@ export const deleteProgramInviteAction = authActionClient
     );
 
     await Promise.allSettled([
-      prisma.link.deleteMany({
-        where: {
-          id: {
-            in: linksToDelete.map((link) => link.id),
-          },
-        },
-      }),
-
       bulkDeleteLinks(
         linksToDelete.map((link) => ({
           ...link,
