@@ -1,7 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@/lib/prisma";
 import { Prisma, ProgramEnrollment } from "@prisma/client";
-import { throwIfExistingTenantEnrollmentExists } from "./throw-if-existing-tenant-id-exists";
+import { DubApiError } from "../errors";
 
 // Attempts to create a program enrollment.
 // If another request creates it concurrently, returns the existing enrollment.
@@ -74,7 +74,7 @@ export async function createOrGetProgramEnrollment({
       );
 
       // Same partner already enrolled (concurrent create on partnerId_programId)
-      const programEnrollment = await prisma.programEnrollment.findUnique({
+      let programEnrollment = await prisma.programEnrollment.findUnique({
         where: {
           partnerId_programId: {
             partnerId,
@@ -92,17 +92,16 @@ export async function createOrGetProgramEnrollment({
       });
 
       if (programEnrollment) {
-        return {
-          programEnrollment,
-          created: false as const,
-        };
-      }
+        if (!tenantId || tenantId === programEnrollment.tenantId) {
+          return {
+            programEnrollment,
+            created: false as const,
+          };
+        }
 
-      // Conflict was on tenantId_programId — another partner owns this tenant
-      if (tenantId) {
-        await throwIfExistingTenantEnrollmentExists({
-          tenantId,
-          programId,
+        throw new DubApiError({
+          message: `The tenantId '${tenantId}' is already in associated with another partner in this program.`,
+          code: "conflict",
         });
       }
     }
