@@ -5,6 +5,7 @@ import {
   OLD_TO_NEW_ANALYTICS_ENDPOINTS,
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
+import { sanitizeTimezone } from "@/lib/analytics/utils/sanitize-timezone";
 import {
   DEFAULT_PAGINATION_LIMIT,
   DUB_FOUNDING_DATE,
@@ -167,6 +168,7 @@ export const analyticsQuerySchema = z.object({
   timezone: z
     .string()
     .optional()
+    .overwrite((v) => (v === undefined ? undefined : sanitizeTimezone(v)))
     .describe(
       "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
     )
