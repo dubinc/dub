@@ -15,7 +15,7 @@ import {
   TabSelect,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, currencyFormatter, fetcher } from "@dub/utils";
+import { cn, currencyFormatter, fetcher, formatDateTime } from "@dub/utils";
 import { StripeInvoiceStatusBadges } from "app/app.dub.co/(dashboard)/[slug]/(ee)/settings/billing/invoices/stripe-invoice-status-badges";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -178,11 +178,7 @@ const InvoiceCard = ({
           <div className="text-sm">
             <div className="font-medium">{invoice.description}</div>
             <div className="text-neutral-500">
-              {new Date(invoice.createdAt).toLocaleDateString("en-US", {
-                month: "short",
-                year: "numeric",
-                day: "numeric",
-              })}
+              {formatDateTime(invoice.createdAt)}
             </div>
           </div>
           <div className="flex items-center">
@@ -241,11 +237,7 @@ const InvoiceCard = ({
         <div className="text-sm xl:col-span-1">
           <div className="font-medium">{invoice.description}</div>
           <div className="text-neutral-500">
-            {new Date(invoice.createdAt).toLocaleDateString("en-US", {
-              month: "short",
-              year: "numeric",
-              day: "numeric",
-            })}
+            {formatDateTime(invoice.createdAt)}
           </div>
         </div>
 
