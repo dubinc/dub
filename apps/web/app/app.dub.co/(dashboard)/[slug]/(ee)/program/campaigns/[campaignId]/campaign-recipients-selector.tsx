@@ -3,8 +3,8 @@
 import useGroups from "@/lib/swr/use-groups";
 import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { PartnerGroupsSelect } from "@/ui/partners/groups/partner-groups-select";
-import { PartnerTagsSelect } from "@/ui/partners/partner-tags-select";
+import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
+import { TagsMultiSelect } from "@/ui/partners/tags-multi-select";
 import { Popover, Tag as TagIcon } from "@dub/ui";
 import { Users6 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
@@ -39,7 +39,7 @@ export function CampaignGroupsSelector({
       openPopover={openPopover}
       setOpenPopover={setOpenPopover}
       content={
-        <PartnerGroupsSelect
+        <GroupsMultiSelect
           selectedGroupIds={selectedGroupIds}
           setSelectedGroupIds={setSelectedGroupIds}
         />
@@ -101,7 +101,7 @@ export function CampaignTagsSelector({
       openPopover={openPopover}
       setOpenPopover={setOpenPopover}
       content={
-        <PartnerTagsSelect
+        <TagsMultiSelect
           selectedPartnerTagIds={selectedPartnerTagIds}
           setSelectedPartnerTagIds={setSelectedPartnerTagIds}
         />

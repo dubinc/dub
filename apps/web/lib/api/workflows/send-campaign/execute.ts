@@ -432,7 +432,7 @@ async function resolveProgramEnrollments({
     (condition) => condition.attribute !== "partnerEnrolledDays",
   );
 
-  const { commissions, partnerLinkStats } = getWorkflowDataRequirements({
+  const { commissions } = getWorkflowDataRequirements({
     conditions: remainingConditions,
   });
 
