@@ -126,6 +126,8 @@ export const lemonSqueezyOrderSchema = z.object({
       price: z.number().nullish(),
     })
     .nullish(),
+  // Populated when listing with include=subscriptions
+  subscription_ids: z.array(z.string()).default([]),
   status: z.string(),
   refunded: z.boolean().nullish(),
   refunded_at: z.string().nullish(),

@@ -214,18 +214,23 @@ export class LemonSqueezyApi {
   async listOrders({
     storeId,
     page = 1,
+    include,
   }: {
     storeId: string;
     page?: number;
+    include?: string;
   }): Promise<LemonSqueezyOrder[]> {
     const { data } = await this.listResources({
       path: "/orders",
       storeId,
       page,
+      include,
     });
 
     return data.map((resource) =>
-      flattenResource(resource, lemonSqueezyOrderSchema),
+      flattenResource(resource, lemonSqueezyOrderSchema, {
+        subscription_ids: getRelationshipIds(resource, "subscriptions"),
+      }),
     );
   }
 

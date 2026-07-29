@@ -69,9 +69,10 @@ function resolveAmountUsd({
   return converted.currency.toUpperCase() === "USD" ? converted.amount : null;
 }
 
-// Only renewals/updates — initials are covered by the Order import.
-// Missing/unknown billing_reason is skipped to avoid double-counting.
-const IMPORTABLE_INVOICE_REASONS = new Set(["renewal", "updated"]);
+// Subscriptions: all periods come from invoices (including initial).
+// Orders are one-time only (no related subscriptions). Missing/unknown
+// billing_reason is skipped.
+const IMPORTABLE_INVOICE_REASONS = new Set(["initial", "renewal", "updated"]);
 
 const toDubStatus = (status: string): CommissionStatus | null => {
   switch (status) {
@@ -172,7 +173,7 @@ export async function importCommissions(payload: LemonSqueezyImportPayload) {
     return;
   }
 
-  // Finished orders → continue with subscription invoices (skip initial to avoid double-count)
+  // Finished one-time orders → continue with subscription invoices (all periods)
   if (resource === "orders") {
     await lemonSqueezyImporter.queue({
       ...payload,
@@ -223,15 +224,21 @@ async function listOrderSaleEvents({
   storeId: string;
   page: number;
 }): Promise<{ saleEvents: SaleEvent[]; pageEmpty: boolean }> {
-  const orders = await lemonSqueezyApi.listOrders({ storeId, page });
+  const orders = await lemonSqueezyApi.listOrders({
+    storeId,
+    page,
+    include: "subscriptions",
+  });
 
   if (orders.length === 0) {
     return { saleEvents: [], pageEmpty: true };
   }
 
+  // One-time only — subscription first charges come from invoices (billing_reason: initial)
   const saleEvents = orders
-    .filter((order): order is LemonSqueezyOrder & { affiliate_id: number } =>
-      Boolean(order.affiliate_id),
+    .filter(
+      (order): order is LemonSqueezyOrder & { affiliate_id: number } =>
+        Boolean(order.affiliate_id) && order.subscription_ids.length === 0,
     )
     .map((order) => ({
       invoiceId: `ls_order_${order.id}`,
