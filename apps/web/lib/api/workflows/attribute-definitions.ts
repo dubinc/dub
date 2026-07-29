@@ -4,30 +4,39 @@
  * GROUP_MOVE_* / SEND_CAMPAIGN_* from the workflow schema instead.
  */
 
+export const WORKFLOW_DATA_REQUIREMENTS = [
+  "commissions",
+  "partnerLinkStats",
+] as const;
+
 export const WORKFLOW_ATTRIBUTES = {
   totalLeads: {
     name: "totalLeads",
     label: "total leads",
     inputType: "number",
     operators: ["gte"],
+    requires: ["partnerLinkStats"],
   },
   totalConversions: {
     name: "totalConversions",
     label: "total conversions",
     inputType: "number",
     operators: ["gte"],
+    requires: ["partnerLinkStats"],
   },
   totalSaleAmount: {
     name: "totalSaleAmount",
     label: "total revenue",
     inputType: "currency",
     operators: ["gte"],
+    requires: ["partnerLinkStats"],
   },
   totalCommissions: {
     name: "totalCommissions",
     label: "total commissions",
     inputType: "currency",
     operators: ["gte"],
+    requires: ["commissions"],
   },
   partnerEnrolledDays: {
     name: "partnerEnrolledDays",
@@ -35,18 +44,21 @@ export const WORKFLOW_ATTRIBUTES = {
     inputType: "dropdown",
     operators: ["gte"],
     dropdownValues: [1, 3, 7, 14, 30],
+    requires: [],
   },
   partnerJoined: {
     name: "partnerJoined",
     label: "joins the program",
     inputType: "none",
     operators: ["gte"],
+    requires: [],
   },
   partnerGroup: {
     name: "partnerGroup",
     label: "group",
     inputType: "group",
     operators: ["eq", "ne", "in", "notIn"],
+    requires: [],
   },
 } as const;
 
@@ -55,3 +67,6 @@ export const WORKFLOW_ATTRIBUTE_KEYS = Object.keys(
 ) as readonly (keyof typeof WORKFLOW_ATTRIBUTES)[];
 
 export type WorkflowAttributeKey = (typeof WORKFLOW_ATTRIBUTE_KEYS)[number];
+
+export type WorkflowDataRequirement =
+  (typeof WORKFLOW_DATA_REQUIREMENTS)[number];

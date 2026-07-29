@@ -1,6 +1,11 @@
 import { Workflow } from "@prisma/client";
-import { WorkflowAttributeKey } from "./attribute-definitions";
+import {
+  WORKFLOW_ATTRIBUTES,
+  WorkflowAttributeKey,
+  WorkflowDataRequirement,
+} from "./attribute-definitions";
 import { parseWorkflowConfig } from "./parse-workflow-config";
+import { WorkflowCondition } from "./types";
 
 export const isCurrencyAttribute = (activity: WorkflowAttributeKey) =>
   activity === "totalCommissions" || activity === "totalSaleAmount";
@@ -14,3 +19,28 @@ export const isScheduledWorkflow = (
     (condition) => condition.attribute === "partnerEnrolledDays",
   );
 };
+
+export function getWorkflowDataRequirements({
+  conditions,
+}: {
+  conditions: Pick<WorkflowCondition, "attribute">[];
+}): Record<WorkflowDataRequirement, boolean> {
+  const requirements = new Set<WorkflowDataRequirement>();
+
+  for (const condition of conditions) {
+    const attribute = WORKFLOW_ATTRIBUTES[condition.attribute];
+
+    if (!attribute) {
+      continue;
+    }
+
+    for (const requirement of attribute.requires) {
+      requirements.add(requirement);
+    }
+  }
+
+  return {
+    commissions: requirements.has("commissions"),
+    partnerLinkStats: requirements.has("partnerLinkStats"),
+  };
+}

@@ -6,16 +6,16 @@ import { WORKFLOW_OPERATORS } from "./operator-definitions";
 
 export function evaluateWorkflowConditions({
   conditions,
-  attributes,
+  context,
 }: {
   conditions: WorkflowCondition[];
-  attributes: Partial<Record<WorkflowAttributeKey, number | string | null>>;
+  context: Partial<Record<WorkflowAttributeKey, number | string | null>>;
 }): boolean {
   if (conditions.length === 0) return false;
 
   if (isLocalDev) {
     console.log("[Workflows] Conditions", prettyPrint(conditions));
-    console.log("[Workflows] Attributes", prettyPrint(attributes));
+    console.log("[Workflows] Context", prettyPrint(context));
   }
 
   for (const condition of conditions) {
@@ -26,7 +26,7 @@ export function evaluateWorkflowConditions({
       return false;
     }
 
-    const attributeValue = attributes[condition.attribute];
+    const attributeValue = context[condition.attribute];
 
     if (attributeValue == null) {
       console.error(`${condition.attribute} doesn't exist in the context.`);

@@ -197,7 +197,7 @@ export async function POST(req: Request) {
 
       const conditionMet = evaluateWorkflowConditions({
         conditions: [condition],
-        attributes: {
+        context: {
           [condition.attribute]: performanceCount,
         },
       });

@@ -1,9 +1,12 @@
-import { WorkflowContext } from "@/lib/api/workflows/types";
+import {
+  WorkflowContext,
+  WorkflowTriggerEvent,
+} from "@/lib/api/workflows/types";
 import { logger, toErrorFields } from "@/lib/axiom/server";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
-import { Workflow } from "@prisma/client";
+import { CommissionStatus, Workflow } from "@prisma/client";
 import { WorkflowAttributeKey } from "./attribute-definitions";
 import { executeAwardBountyWorkflow } from "./award-bounty/execute";
 import { executeMoveGroupWorkflow } from "./move-group/execute";
@@ -31,39 +34,47 @@ const ACTION_HANDLERS: Record<WORKFLOW_ACTION_TYPES, WorkflowActionHandler> = {
   },
 };
 
-// Map reason to expected attributes for early filtering optimization.
-// This prevents workflows from executing unnecessarily
-const REASON_TO_ATTRIBUTES: Record<
-  NonNullable<WorkflowContext["reason"]>,
-  WorkflowAttributeKey[]
-> = {
-  lead: ["totalLeads"],
-  sale: ["totalConversions", "totalSaleAmount"],
-  commission: ["totalCommissions"],
+// TODO:
+// This is not complete
+const EVENT_ATTRIBUTES: Record<WorkflowTriggerEvent, WorkflowAttributeKey[]> = {
+  partnerEnrolled: ["partnerEnrolledDays", "partnerJoined"],
+  leadRecorded: ["totalLeads", "partnerGroup"],
+  saleRecorded: ["totalConversions", "totalSaleAmount", "partnerGroup"],
+  commissionRecorded: ["totalCommissions", "partnerGroup"],
 };
 
 export async function executeWorkflows({
-  trigger,
-  reason,
+  event,
   identity,
   metrics,
 }: WorkflowContext) {
   const { programId, partnerId } = identity;
 
   console.log("[Workflows] Executing workflows...", {
-    trigger,
-    reason,
+    event,
     programId,
     partnerId,
     identity,
     metrics,
   });
 
+  const attributes = EVENT_ATTRIBUTES[event];
+
+  if (attributes.length === 0) {
+    console.log("[Workflows] No attributes found to execute workflows.");
+    return;
+  }
+
   const workflows = await prisma.workflow.findMany({
     where: {
       programId,
       disabledAt: null,
-      trigger,
+      OR: attributes.map((attribute) => ({
+        triggerConditions: {
+          path: "$[*].attribute",
+          array_contains: attribute,
+        },
+      })),
     },
   });
 
@@ -99,28 +110,9 @@ export async function executeWorkflows({
     return;
   }
 
-  // Filter by reason if provided
-  let filteredWorkflows = parsedWorkflows;
-  if (reason) {
-    const expectedAttributes = REASON_TO_ATTRIBUTES[reason];
-
-    filteredWorkflows = parsedWorkflows.filter(({ config }) =>
-      config.conditions.some(({ attribute }) =>
-        expectedAttributes.includes(attribute),
-      ),
-    );
-
-    if (filteredWorkflows.length === 0) {
-      console.log(
-        `[Workflows] No relevant workflows found to execute for trigger.`,
-      );
-      return;
-    }
-  }
-
   // Commissions require a separate expensive aggregate query.
   // We only fetch if needed to avoid unnecessary database queries.
-  const shouldFetchCommissions = filteredWorkflows.some(({ config }) =>
+  const shouldFetchCommissions = parsedWorkflows.some(({ config }) =>
     config.conditions.some((c) => c.attribute === "totalCommissions"),
   );
 
@@ -153,18 +145,28 @@ export async function executeWorkflows({
     shouldFetchCommissions
       ? prisma.commission.aggregate({
           where: {
-            earnings: { not: 0 },
+            earnings: {
+              not: 0,
+            },
             programId,
             partnerId,
             status: {
-              in: ["pending", "processed", "paid"],
+              in: [
+                CommissionStatus.pending,
+                CommissionStatus.processed,
+                CommissionStatus.paid,
+              ],
             },
           },
           _sum: {
             earnings: true,
           },
         })
-      : Promise.resolve({ _sum: { earnings: null } }),
+      : Promise.resolve({
+          _sum: {
+            earnings: null,
+          },
+        }),
   ]);
 
   if (!programEnrollment) {
@@ -185,6 +187,7 @@ export async function executeWorkflows({
     aggregatePartnerLinksStats(programEnrollment.links);
 
   const workflowContext: WorkflowContext = {
+    event,
     programEnrollment: {
       groupId: programEnrollment.groupId,
       createdAt: programEnrollment.createdAt,
@@ -193,8 +196,6 @@ export async function executeWorkflows({
       status: programEnrollment.status,
       programPartnerTags: programEnrollment.programPartnerTags,
     },
-    trigger,
-    reason,
     identity: {
       ...identity,
       groupId: programEnrollment.groupId,
@@ -210,7 +211,7 @@ export async function executeWorkflows({
     },
   };
 
-  for (const { workflow, config } of filteredWorkflows) {
+  for (const { workflow, config } of parsedWorkflows) {
     try {
       const handler = ACTION_HANDLERS[config.action.type];
 

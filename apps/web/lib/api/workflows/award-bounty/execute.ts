@@ -190,7 +190,7 @@ export const executeAwardBountyWorkflow = async ({
   // Check if the bounty submission meet the reward criteria
   const shouldExecute = evaluateWorkflowConditions({
     conditions: [condition],
-    attributes: {
+    context: {
       [condition.attribute]: Number(bountySubmission.performanceCount ?? 0),
     },
   });
