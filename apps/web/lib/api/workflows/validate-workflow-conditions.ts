@@ -1,23 +1,11 @@
-import { AWARD_BOUNTY_ATTRIBUTES } from "@/lib/api/workflows/award-bounty/schema";
-import { GROUP_MOVE_ATTRIBUTES } from "@/lib/api/workflows/move-group/schema";
 import { WORKFLOW_OPERATORS } from "@/lib/api/workflows/operator-definitions";
-import { SEND_CAMPAIGN_ATTRIBUTES } from "@/lib/api/workflows/send-campaign/schema";
 import type { WorkflowType } from "@/lib/api/workflows/types";
 import { DubApiError } from "../errors";
 import {
   WORKFLOW_ATTRIBUTE_VALIDATORS,
   type WorkflowAttributeValidatorContext,
 } from "./attribute-validators";
-
-// Map of workflow type to its attributes
-const WORKFLOW_TYPE_ATTRIBUTES = {
-  awardBounty: AWARD_BOUNTY_ATTRIBUTES,
-  sendCampaign: SEND_CAMPAIGN_ATTRIBUTES,
-  moveGroup: GROUP_MOVE_ATTRIBUTES,
-} as const satisfies Record<
-  WorkflowType,
-  Record<string, { operators: readonly string[] }>
->;
+import { WORKFLOW_TYPE_ATTRIBUTES } from "./workflow-type-attributes";
 
 type WorkflowConditionInput = {
   attribute: string;
@@ -54,6 +42,32 @@ export async function validateWorkflowConditions({
         code: "bad_request",
         message:
           "Partner group can only be used as an additional condition alongside a metric rule.",
+      });
+    }
+  }
+
+  if (workflowType === "sendCampaign") {
+    const attributesUsed = conditions
+      .map((condition) => condition.attribute)
+      .filter(Boolean);
+
+    if (new Set(attributesUsed).size !== attributesUsed.length) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Each activity can only be used once in the campaign logic.",
+      });
+    }
+
+    const hasPartnerJoined = attributesUsed.includes("partnerJoined");
+    const hasPartnerEnrolledDays = attributesUsed.includes(
+      "partnerEnrolledDays",
+    );
+
+    if (hasPartnerJoined && hasPartnerEnrolledDays) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Campaign logic can only include one enrollment condition (joins the program or enrollment duration).",
       });
     }
   }
@@ -106,20 +120,25 @@ export async function validateWorkflowConditions({
       });
     }
 
-    if (condition.value == null || condition.value === undefined) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Condition ${conditionIndex + 1}: Please enter a value.`,
-      });
-    }
+    // Some conditions (inputType "none", e.g. partnerJoined) don't require a value.
+    if (attributeDefinition.inputType !== "none") {
+      if (condition.value == null || condition.value === undefined) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `Condition ${conditionIndex + 1}: Please enter a value.`,
+        });
+      }
 
-    try {
-      operatorDefinition.validate(condition.value as any);
-    } catch (error) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Condition ${conditionIndex + 1}: ${error instanceof Error ? error.message : "Invalid value."}`,
-      });
+      try {
+        operatorDefinition.validate(condition.value as any);
+      } catch (error) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `Condition ${conditionIndex + 1}: ${
+            error instanceof Error ? error.message : "Invalid value."
+          }`,
+        });
+      }
     }
 
     const attributeValidator =

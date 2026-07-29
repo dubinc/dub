@@ -7,8 +7,15 @@ import {
 import { parseWorkflowConfig } from "./parse-workflow-config";
 import { WorkflowCondition } from "./types";
 
-export const isCurrencyAttribute = (activity: WorkflowAttributeKey) =>
-  activity === "totalCommissions" || activity === "totalSaleAmount";
+export const isCurrencyAttribute = (activity: WorkflowAttributeKey) => {
+  const attribute = WORKFLOW_ATTRIBUTES[activity];
+
+  if (!attribute) {
+    return false;
+  }
+
+  return attribute.inputType === "currency";
+};
 
 export const isScheduledWorkflow = (
   workflow: Pick<Workflow, "id" | "triggerConditions" | "actions">,

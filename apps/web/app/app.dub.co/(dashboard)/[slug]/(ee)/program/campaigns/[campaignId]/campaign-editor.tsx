@@ -1,5 +1,6 @@
 import { uploadCampaignImageAction } from "@/lib/actions/partners/upload-campaign-image";
 import { CAMPAIGN_READONLY_STATUSES } from "@/lib/api/campaigns/constants";
+import { checkWorkflowConditions } from "@/lib/api/workflows/check-workflow-conditions";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -47,7 +48,6 @@ import {
 } from "./campaign-recipients-selector";
 import { DuplicateLogicWarning } from "./duplicate-logic-warning";
 import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
-import { isValidTriggerCondition } from "./utils";
 
 const inputClassName =
   "hover:border-border-subtle h-8 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 sm:text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
@@ -110,7 +110,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
       partnerTagIds: campaign.partnerTags.length
         ? pluck(campaign.partnerTags, "id")
         : null,
-      triggerCondition: campaign.triggerCondition,
+      triggerConditions: campaign.triggerConditions ?? [],
       scheduledAt: campaign.scheduledAt,
     },
   });
@@ -175,10 +175,19 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             : null;
         }
 
-        // Remove invalid triggerCondition when saving a draft to prevent API validation errors
-        if (isDraft && "triggerCondition" in changedFields) {
-          if (!isValidTriggerCondition(changedFields.triggerCondition)) {
-            delete changedFields.triggerCondition;
+        if ("triggerConditions" in changedFields) {
+          const { valid, errors } = checkWorkflowConditions({
+            conditions: changedFields.triggerConditions,
+            workflowType: "sendCampaign",
+          });
+
+          if (!valid) {
+            if (isDraft) {
+              delete changedFields.triggerConditions;
+            } else {
+              toast.error(errors[0]);
+              return;
+            }
           }
         }
 
@@ -520,7 +529,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
             {campaign.type === "transactional" && (
               <>
-                <span className={labelClassName}>Logic</span>
+                <span className={cn(labelClassName, "self-start pt-1")}>
+                  Logic
+                </span>
                 <DisabledInputWrapper
                   tooltip={
                     isReadOnly
