@@ -1,4 +1,4 @@
-import { sendCampaignConditionSchema } from "@/lib/api/workflows/send-campaign/schema";
+import { sendCampaignConditionsSchema } from "@/lib/api/workflows/send-campaign/schema";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CampaignList } from "@/lib/types";
 import { ChevronUp, Copy, LoadingSpinner } from "@dub/ui";
@@ -18,19 +18,19 @@ export function DuplicateLogicWarning() {
 
   const { control } = useCampaignFormContext();
 
-  const triggerCondition = useWatch({ control, name: "triggerCondition" });
+  const triggerConditions = useWatch({ control, name: "triggerConditions" });
 
-  const parsedTriggerCondition = triggerCondition
-    ? sendCampaignConditionSchema.safeParse(triggerCondition)
+  const parsedTriggerConditions = triggerConditions
+    ? sendCampaignConditionsSchema.safeParse(triggerConditions)
     : undefined;
 
   const { data: campaigns, isLoading } = useSWR<CampaignList[]>(
     workspaceId &&
-      parsedTriggerCondition?.success &&
+      parsedTriggerConditions?.success &&
       `/api/campaigns?${new URLSearchParams({
         workspaceId,
         type: "transactional",
-        triggerCondition: JSON.stringify(parsedTriggerCondition.data),
+        triggerConditions: JSON.stringify(parsedTriggerConditions.data),
       })}`,
     fetcher,
     {
@@ -60,7 +60,7 @@ export function DuplicateLogicWarning() {
         hasDuplicates &&
           cn(
             "grid-rows-[1fr] opacity-100",
-            (isLoading || !parsedTriggerCondition?.success) &&
+            (isLoading || !parsedTriggerConditions?.success) &&
               "pointer-events-none opacity-50",
           ),
       )}
