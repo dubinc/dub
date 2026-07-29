@@ -11,7 +11,7 @@ import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-de
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { DynamicTooltipWrapper, ScrollableTooltipContent } from "@dub/ui";
-import { Calendar6, Users, Users6 } from "@dub/ui/icons";
+import { Calendar6, Users6 } from "@dub/ui/icons";
 import { formatDate, nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -25,7 +25,7 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
 
   const { groups } = useGroups();
 
-  const { dateRangeLabel, partnerAudienceLabel } = getProgramBountyMeta(bounty);
+  const { dateRangeLabel } = getProgramBountyMeta(bounty);
 
   const eligibleGroups = useMemo(() => {
     if (!groups || bounty.groups.length === 0) {
@@ -80,11 +80,6 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
               className="font-normal"
               onTooltipClick={(e) => e.preventDefault()}
             />
-
-            <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
-              <Users className="size-3.5" />
-              <span>{partnerAudienceLabel}</span>
-            </div>
 
             <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
               <Users6 className="size-3.5" />
@@ -185,10 +180,6 @@ export function BountyCardSkeleton() {
           <div className="flex h-5 items-center gap-2">
             <div className="size-3.5 shrink-0 animate-pulse rounded bg-neutral-200" />
             <div className="h-5 w-24 animate-pulse rounded bg-neutral-200" />
-          </div>
-          <div className="flex h-5 items-center gap-2">
-            <div className="size-3.5 shrink-0 animate-pulse rounded bg-neutral-200" />
-            <div className="h-5 w-28 animate-pulse rounded bg-neutral-200" />
           </div>
           <div className="flex h-5 items-center gap-2">
             <div className="size-3.5 shrink-0 animate-pulse rounded bg-neutral-200" />

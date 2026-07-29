@@ -106,6 +106,17 @@ export function validateBounty({
     });
   }
 
+  if (
+    startMode === BountyStartMode.relative &&
+    performanceScope === "lifetime"
+  ) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "Lifetime stats are not supported when the bounty starts when a partner joins.",
+    });
+  }
+
   // submission bounty checks
   if (type === "submission") {
     if (submissionFrequency && maxSubmissions == null) {

@@ -8,7 +8,7 @@ import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-de
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { ScrollableTooltipContent, Tooltip } from "@dub/ui";
-import { Calendar6, Users, Users6 } from "@dub/ui/icons";
+import { Calendar6, Users6 } from "@dub/ui/icons";
 import { useMemo } from "react";
 import { BountyActionButton } from "../bounty-action-button";
 
@@ -35,7 +35,7 @@ export function BountyInfo() {
     return null;
   }
 
-  const { dateRangeLabel, partnerAudienceLabel } = getProgramBountyMeta(bounty);
+  const { dateRangeLabel } = getProgramBountyMeta(bounty);
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
@@ -59,11 +59,6 @@ export function BountyInfo() {
         </div>
 
         <BountyRewardDescription bounty={bounty} className="font-regular" />
-
-        <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
-          <Users className="size-4 shrink-0" />
-          <span>{partnerAudienceLabel}</span>
-        </div>
 
         {isOwner && (
           <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">

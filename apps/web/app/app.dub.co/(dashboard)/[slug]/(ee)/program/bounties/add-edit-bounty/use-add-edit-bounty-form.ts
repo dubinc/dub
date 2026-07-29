@@ -248,6 +248,13 @@ export function useAddEditBountyForm({
         shouldValidate: true,
       });
 
+      if (nextStartMode === BountyStartMode.relative) {
+        setValue("performanceScope", "new", {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+
       setHasEndDate(
         Boolean(nextEndsAt) ||
           (nextStartMode === BountyStartMode.relative &&
