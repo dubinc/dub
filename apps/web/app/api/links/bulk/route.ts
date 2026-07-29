@@ -575,14 +575,7 @@ export const DELETE = withWorkspace(
 
     links = links.filter((link) => !isRootDomainLinkKey(link.key));
 
-    const { count: deletedCount } = await prisma.link.deleteMany({
-      where: {
-        id: { in: links.map((link) => link.id) },
-        projectId: workspace.id,
-      },
-    });
-
-    waitUntil(bulkDeleteLinks(links));
+    const { deletedCount } = await bulkDeleteLinks(links);
 
     return NextResponse.json(
       {

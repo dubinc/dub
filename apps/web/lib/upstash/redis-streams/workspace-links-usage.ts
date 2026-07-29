@@ -15,6 +15,7 @@ export interface WorkspaceLinksUsageEvent {
   timestamp: string;
 }
 
+// Publishes a workspace links usage event to the stream to update workspace linksUsage and totalLinks
 export const publishWorkspaceLinksUsageEvent = async (
   event: WorkspaceLinksUsageEvent,
 ) => {
