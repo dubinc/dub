@@ -1,7 +1,7 @@
 import { getCampaignOrThrow } from "@/lib/api/campaigns/get-campaign-or-throw";
 import {
-  scheduleMarketingCampaign,
-  scheduleTransactionalCampaign,
+  deleteCampaignSchedule,
+  scheduleCampaign,
 } from "@/lib/api/campaigns/schedule-campaigns";
 import {
   campaignEligibilityIncludes,
@@ -12,16 +12,13 @@ import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-
 import { throwIfInvalidPartnerTagIds } from "@/lib/api/partner-tags/throw-if-invalid-partner-tag-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
 import { validateWorkflowConditions } from "@/lib/api/workflows/validate-workflow-conditions";
 import { withWorkspace } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import {
   CampaignSchema,
   updateCampaignSchema,
 } from "@/lib/zod/schemas/campaigns";
-import { WORKFLOW_ATTRIBUTE_TRIGGER } from "@/lib/zod/schemas/workflows";
 import { arrayEqual, pluck } from "@dub/utils";
 import { PartnerGroup } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -82,16 +79,16 @@ export const PATCH = withWorkspace(
       bodyJson,
       groupIds,
       partnerTagIds,
-      triggerCondition,
+      triggerConditions,
       scheduledAt,
     } = await validateCampaign({
       input: updateCampaignSchema.parse(await parseRequestBody(req)),
       campaign,
     });
 
-    if (triggerCondition) {
+    if (triggerConditions) {
       await validateWorkflowConditions({
-        conditions: [triggerCondition],
+        conditions: triggerConditions,
         workflowType: "sendCampaign",
       });
     }
@@ -141,10 +138,7 @@ export const PATCH = withWorkspace(
             id: campaign.workflowId,
           },
           data: {
-            ...(triggerCondition && {
-              triggerConditions: [triggerCondition],
-              trigger: WORKFLOW_ATTRIBUTE_TRIGGER[triggerCondition.attribute],
-            }),
+            ...(triggerConditions && { triggerConditions }),
             ...(status && {
               disabledAt: status === "paused" ? new Date() : null,
             }),
@@ -196,19 +190,10 @@ export const PATCH = withWorkspace(
     });
 
     waitUntil(
-      (async () => {
-        if (updatedCampaign.type === "marketing") {
-          await scheduleMarketingCampaign({
-            campaign,
-            updatedCampaign,
-          });
-        } else if (updatedCampaign.type === "transactional") {
-          await scheduleTransactionalCampaign({
-            campaign,
-            updatedCampaign,
-          });
-        }
-      })(),
+      scheduleCampaign({
+        campaign,
+        updatedCampaign,
+      }),
     );
 
     return NextResponse.json(
@@ -257,21 +242,7 @@ export const DELETE = withWorkspace(
       }
     });
 
-    waitUntil(
-      (async () => {
-        if (campaign.type === "marketing" && campaign.qstashMessageId) {
-          await qstash.messages.cancel(campaign.qstashMessageId);
-        } else if (campaign.type === "transactional" && campaign.workflow) {
-          const { condition } = parseWorkflowConfig(campaign.workflow);
-
-          if (condition.attribute === "partnerJoined") {
-            return;
-          }
-
-          await qstash.schedules.delete(campaign.workflow.id);
-        }
-      })(),
-    );
+    waitUntil(deleteCampaignSchedule(campaign));
 
     return NextResponse.json({ id: campaignId });
   },

@@ -14,10 +14,7 @@ import {
   createCampaignSchema,
   getCampaignsQuerySchema,
 } from "@/lib/zod/schemas/campaigns";
-import {
-  WORKFLOW_ACTION_TYPES,
-  WORKFLOW_ATTRIBUTE_TRIGGER,
-} from "@/lib/zod/schemas/workflows";
+import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { CampaignStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -31,7 +28,7 @@ export const GET = withWorkspace(
       type,
       status,
       search,
-      triggerCondition,
+      triggerConditions,
       page = 1,
       pageSize,
     } = getCampaignsQuerySchema.parse(searchParams);
@@ -47,10 +44,10 @@ export const GET = withWorkspace(
             { subject: { contains: search } },
           ],
         }),
-        ...(triggerCondition && {
+        ...(triggerConditions && {
           workflow: {
             triggerConditions: {
-              equals: [triggerCondition],
+              equals: triggerConditions,
             },
           },
         }),
@@ -105,8 +102,6 @@ export const POST = withWorkspace(
       });
 
       if (type === "transactional") {
-        const trigger = WORKFLOW_ATTRIBUTE_TRIGGER["partnerJoined"];
-
         const triggerCondition: WorkflowCondition = {
           attribute: "partnerJoined",
           operator: "gte",
@@ -124,7 +119,6 @@ export const POST = withWorkspace(
           data: {
             id: workflowId,
             programId,
-            trigger,
             triggerConditions: [triggerCondition],
             actions: [action],
             disabledAt: new Date(), // TODO: Replace this with publishedAt

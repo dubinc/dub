@@ -2,17 +2,58 @@ import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { WORKFLOW_SCHEDULES } from "@/lib/zod/schemas/workflows";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Campaign, Workflow } from "@prisma/client";
+import { Campaign, CampaignType, Workflow } from "@prisma/client";
 import { isScheduledWorkflow } from "../workflows/utils";
 
-// Schedule a marketing campaign
-export const scheduleMarketingCampaign = async ({
+type ScheduleCampaignProps = {
+  campaign: Campaign;
+  updatedCampaign: Campaign & {
+    workflow: Workflow | null;
+  };
+};
+
+export const scheduleCampaign = async ({
   campaign,
   updatedCampaign,
-}: {
-  campaign: Campaign;
-  updatedCampaign: Campaign;
-}) => {
+}: ScheduleCampaignProps) => {
+  if (campaign.type == CampaignType.marketing) {
+    return scheduleMarketingCampaign({
+      campaign,
+      updatedCampaign,
+    });
+  }
+
+  if (campaign.type == CampaignType.transactional) {
+    return scheduleTransactionalCampaign({
+      campaign,
+      updatedCampaign,
+    });
+  }
+};
+
+export const deleteCampaignSchedule = async (
+  campaign: Pick<Campaign, "type" | "qstashMessageId"> & {
+    workflow: Pick<Workflow, "id" | "triggerConditions" | "actions"> | null;
+  },
+) => {
+  if (campaign.type == CampaignType.marketing && campaign.qstashMessageId) {
+    return await qstash.messages.cancel(campaign.qstashMessageId);
+  }
+
+  if (
+    campaign.type == CampaignType.transactional &&
+    campaign.workflow &&
+    isScheduledWorkflow(campaign.workflow)
+  ) {
+    return await qstash.schedules.delete(campaign.workflow.id);
+  }
+};
+
+// Schedule a marketing campaign
+const scheduleMarketingCampaign = async ({
+  campaign,
+  updatedCampaign,
+}: ScheduleCampaignProps) => {
   if (updatedCampaign.status === "draft") {
     return;
   }
@@ -79,20 +120,14 @@ export const scheduleMarketingCampaign = async ({
 };
 
 // Schedule a transactional campaign
-export const scheduleTransactionalCampaign = async ({
+const scheduleTransactionalCampaign = async ({
   campaign,
   updatedCampaign,
-}: {
-  campaign: Campaign;
-  updatedCampaign: Campaign & {
-    workflow: Workflow | null;
-  };
-}) => {
-  if (!updatedCampaign.workflow) {
-    return;
-  }
-
-  if (!isScheduledWorkflow(updatedCampaign.workflow)) {
+}: ScheduleCampaignProps) => {
+  if (
+    !updatedCampaign.workflow ||
+    !isScheduledWorkflow(updatedCampaign.workflow)
+  ) {
     return;
   }
 
@@ -100,7 +135,7 @@ export const scheduleTransactionalCampaign = async ({
     (campaign.status === "draft" || campaign.status === "paused") &&
     updatedCampaign.status === "active";
 
-  const cronSchedule = WORKFLOW_SCHEDULES[updatedCampaign.workflow.trigger];
+  const cronSchedule = WORKFLOW_SCHEDULES["partnerEnrolled"];
 
   if (!cronSchedule) {
     throw new Error(

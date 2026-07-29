@@ -8,11 +8,13 @@ import { IntegrationHarness } from "../utils/integration";
 const campaign: z.infer<typeof updateCampaignSchema> = {
   name: "Updated Test Campaign",
   subject: "Updated Test Subject",
-  triggerCondition: {
-    attribute: "totalConversions",
-    operator: "gte",
-    value: 50,
-  },
+  triggerConditions: [
+    {
+      attribute: "totalConversions",
+      operator: "gte",
+      value: 50,
+    },
+  ],
   bodyJson: {
     type: "doc",
     content: [

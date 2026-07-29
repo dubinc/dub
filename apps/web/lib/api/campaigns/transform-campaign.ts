@@ -44,6 +44,6 @@ export const transformCampaign = (campaign: TransformCampaignInput) => {
     ...campaign,
     groups,
     partnerTags,
-    triggerCondition: campaign.workflow?.triggerConditions?.[0] ?? null,
+    triggerConditions: campaign.workflow?.triggerConditions,
   };
 };

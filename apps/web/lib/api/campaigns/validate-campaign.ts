@@ -38,7 +38,7 @@ export async function validateCampaign({
     input.bodyJson ||
     input.groupIds !== undefined ||
     input.partnerTagIds !== undefined ||
-    input.triggerCondition !== undefined ||
+    input.triggerConditions !== undefined ||
     input.from ||
     input.scheduledAt
   ) {
@@ -51,7 +51,7 @@ export async function validateCampaign({
   }
 
   if (campaign.type === "marketing") {
-    delete input.triggerCondition;
+    delete input.triggerConditions;
   }
 
   if (campaign.type === "transactional") {

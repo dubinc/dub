@@ -48,11 +48,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
             },
           ],
         },
-        triggerCondition: {
-          attribute: "partnerEnrolledDays",
-          operator: "gte",
-          value: 1,
-        },
+        triggerConditions: [
+          {
+            attribute: "partnerEnrolledDays",
+            operator: "gte",
+            value: 1,
+          },
+        ],
       },
     });
 
@@ -121,11 +123,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
               },
             ],
           },
-          triggerCondition: {
-            attribute: "partnerEnrolledDays",
-            operator: "gte",
-            value: 1,
-          },
+          triggerConditions: [
+            {
+              attribute: "partnerEnrolledDays",
+              operator: "gte",
+              value: 1,
+            },
+          ],
         },
       });
 
@@ -173,11 +177,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
             },
           ],
         },
-        triggerCondition: {
-          attribute: "partnerEnrolledDays",
-          operator: "gte",
-          value: 1,
-        },
+        triggerConditions: [
+          {
+            attribute: "partnerEnrolledDays",
+            operator: "gte",
+            value: 1,
+          },
+        ],
         status: "active",
       },
     });
@@ -229,11 +235,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
             },
           ],
         },
-        triggerCondition: {
-          attribute: "partnerEnrolledDays",
-          operator: "gte",
-          value: 1,
-        },
+        triggerConditions: [
+          {
+            attribute: "partnerEnrolledDays",
+            operator: "gte",
+            value: 1,
+          },
+        ],
         status: "active",
       },
     });
@@ -298,11 +306,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
             },
           ],
         },
-        triggerCondition: {
-          attribute: "partnerEnrolledDays",
-          operator: "gte",
-          value: 1,
-        },
+        triggerConditions: [
+          {
+            attribute: "partnerEnrolledDays",
+            operator: "gte",
+            value: 1,
+          },
+        ],
         status: "active",
       },
     });
@@ -374,11 +384,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
             },
           ],
         },
-        triggerCondition: {
-          attribute: "partnerEnrolledDays",
-          operator: "gte",
-          value: 1,
-        },
+        triggerConditions: [
+          {
+            attribute: "partnerEnrolledDays",
+            operator: "gte",
+            value: 1,
+          },
+        ],
         status: "active",
       },
     });
@@ -453,11 +465,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
             },
           ],
         },
-        triggerCondition: {
-          attribute: "partnerEnrolledDays",
-          operator: "gte",
-          value: 1,
-        },
+        triggerConditions: [
+          {
+            attribute: "partnerEnrolledDays",
+            operator: "gte",
+            value: 1,
+          },
+        ],
         status: "active",
       },
     });
@@ -551,11 +565,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
             },
           ],
         },
-        triggerCondition: {
-          attribute: "partnerEnrolledDays",
-          operator: "gte",
-          value: 1,
-        },
+        triggerConditions: [
+          {
+            attribute: "partnerEnrolledDays",
+            operator: "gte",
+            value: 1,
+          },
+        ],
         status: "active",
       },
     });
@@ -586,5 +602,82 @@ describe.sequential("Workflow - SendCampaign", async () => {
     });
 
     expect(pausedWorkflow.disabledAt).not.toBeNull();
+  });
+
+  test("Campaign supports mixed enrollment and metric conditions", async () => {
+    const { status: createStatus, data: campaign } = await http.post<{
+      id: string;
+    }>({
+      path: "/campaigns",
+      body: {
+        type: "transactional",
+      },
+    });
+
+    expect(createStatus).toEqual(201);
+
+    const campaignId = campaign.id;
+
+    onTestFinished(async () => {
+      await h.deleteCampaign(campaignId);
+    });
+
+    const { status: updateStatus, data: updatedCampaign } =
+      await http.patch<Campaign>({
+        path: `/campaigns/${campaignId}`,
+        body: {
+          name: "E2E Mixed Conditions Campaign",
+          subject: "Still no leads after 30 days",
+          bodyJson: {
+            type: "doc",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "Let's get those leads!" }],
+              },
+            ],
+          },
+          triggerConditions: [
+            {
+              attribute: "partnerEnrolledDays",
+              operator: "gte",
+              value: 30,
+            },
+            {
+              attribute: "totalLeads",
+              operator: "lte",
+              value: 0,
+            },
+          ],
+          status: "active",
+        },
+      });
+
+    expect(updateStatus).toEqual(200);
+
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { campaignId },
+    });
+
+    expect(workflow).not.toBeNull();
+    expect(workflow.trigger).toBe("partnerEnrolled");
+    expect(workflow.disabledAt).toBeNull();
+
+    const conditions = workflow.triggerConditions as any[];
+    expect(conditions).toHaveLength(2);
+    expect(conditions[0]).toMatchObject({
+      attribute: "partnerEnrolledDays",
+      operator: "gte",
+      value: 30,
+    });
+    expect(conditions[1]).toMatchObject({
+      attribute: "totalLeads",
+      operator: "lte",
+      value: 0,
+    });
+
+    // Response shape exposes the full conditions array
+    expect((updatedCampaign as any).triggerConditions).toEqual(conditions);
   });
 });

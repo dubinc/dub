@@ -1,6 +1,6 @@
 import { CampaignStatus, CampaignType } from "@prisma/client";
 import * as z from "zod/v4";
-import { sendCampaignConditionSchema } from "../../api/workflows/send-campaign/schema";
+import { sendCampaignConditionsSchema } from "../../api/workflows/send-campaign/schema";
 import { GroupSchema } from "./groups";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerTagSchema } from "./partner-tags";
@@ -22,7 +22,7 @@ export const CampaignSchema = z.object({
   bodyJson: z.record(z.string(), z.any()),
   type: z.enum(CampaignType),
   status: z.enum(CampaignStatus),
-  triggerCondition: sendCampaignConditionSchema.nullable().default(null),
+  triggerConditions: sendCampaignConditionsSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
   partnerTags: z.array(PartnerTagSchema.pick({ id: true })),
   scheduledAt: z.date().nullable(),
@@ -57,7 +57,7 @@ export const updateCampaignSchema = z
     preview: z.string().nullish(),
     from: z.email().trim().toLowerCase(),
     bodyJson: z.record(z.string(), z.any()),
-    triggerCondition: sendCampaignConditionSchema.nullish(),
+    triggerConditions: sendCampaignConditionsSchema.nullish(),
     groupIds: z.array(z.string()).nullable(),
     partnerTagIds: z.array(z.string()).nullable(),
     scheduledAt: parseDateSchema.nullish(),
@@ -76,12 +76,12 @@ export const getCampaignsQuerySchema = z
     type: z.enum(CampaignType).optional(),
     status: z.enum(CampaignStatus).optional(),
     search: z.string().optional(),
-    triggerCondition: z
+    triggerConditions: z
       .string()
       .pipe(
         z.preprocess(
           (input: string) => JSON.parse(input),
-          sendCampaignConditionSchema,
+          sendCampaignConditionsSchema,
         ),
       )
       .optional(),

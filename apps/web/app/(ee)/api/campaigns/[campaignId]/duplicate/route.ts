@@ -36,7 +36,9 @@ export const POST = withWorkspace(
       const campaignId = createId({ prefix: "cmp_" });
 
       if (campaign.workflow) {
-        const { action, condition } = parseWorkflowConfig(campaign.workflow);
+        const { action, conditions: triggerConditions } = parseWorkflowConfig(
+          campaign.workflow,
+        );
 
         const newWorkflow = await tx.workflow.create({
           data: {
@@ -44,7 +46,7 @@ export const POST = withWorkspace(
             programId,
             name: campaign.name,
             trigger: campaign.workflow.trigger,
-            triggerConditions: [condition],
+            triggerConditions,
             actions: [
               {
                 ...action,
