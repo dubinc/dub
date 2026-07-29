@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
     Rebuild various Redis resources:
     - syncClickWebhookWorkspaceSet: rebuild the Redis set of workspaces with active link.clicked webhooks
     - cleanupRedundantLinkWebhookEntries: remove redundant LinkWebhook entries for webhooks that are not scoped to links (folders, workspace)
+    - syncGoogleAdsInstalledWorkspaceSet: rebuild the Redis set of workspaces with Google Ads installed
 */
 
 // Runs every 5 minutes (*/5 * * * *)
