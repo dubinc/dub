@@ -1,4 +1,4 @@
-import { getErrorMetadata, logger } from "@/lib/axiom/server";
+import { logger, toErrorFields } from "@/lib/axiom/server";
 import { clickWebhookWorkspaces } from "@/lib/webhook/click-webhook-workspaces";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { redis } from "../redis";
@@ -30,7 +30,7 @@ export const publishWorkspaceClickEvent = async (event) => {
     logger.error("stream.publish_failed", {
       service: "upstash",
       streamKey: STREAM_KEY,
-      ...getErrorMetadata(error),
+      error: toErrorFields(error),
       correlation: {
         workspaceId: event.workspace_id,
         clickId: event.click_id,

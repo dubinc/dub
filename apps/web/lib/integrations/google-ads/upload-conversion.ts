@@ -1,4 +1,4 @@
-import { getErrorMetadata, logger } from "@/lib/axiom/server";
+import { logger, toErrorFields } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import {
@@ -70,7 +70,7 @@ export const queueGoogleAdsConversionUpload = async (
   } catch (error) {
     logger.error("google-ads.queue_conversion_failed", {
       service: "google-ads",
-      ...getErrorMetadata(error),
+      error: toErrorFields(error),
       correlation: {
         workspaceId: payload.workspaceId,
         eventId: payload.eventId,
@@ -206,7 +206,7 @@ export const uploadGoogleAdsConversion = async (
 
     logger.error("google-ads.upload_conversion_failed", {
       service: "google-ads",
-      ...getErrorMetadata(error),
+      error: toErrorFields(error),
       correlation: {
         workspaceId,
         eventId,

@@ -1,4 +1,4 @@
-import { getErrorMetadata, logger } from "@/lib/axiom/server";
+import { logger, toErrorFields } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { EventType } from "@prisma/client";
@@ -63,7 +63,7 @@ export async function queueRewardProcessing(params: RewardJob) {
       service: "qstash",
       event: "publishJSON.failed",
       url: `/api/cron/rewards/process`,
-      ...getErrorMetadata(error),
+      error: toErrorFields(error),
       correlation: {
         event: params.event,
         groupId: params.groupId,

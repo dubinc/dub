@@ -1,4 +1,4 @@
-import { getErrorMetadata, logger } from "@/lib/axiom/server";
+import { logger, toErrorFields } from "@/lib/axiom/server";
 import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
 import { FlowControl } from "@upstash/qstash";
 import { Client } from "@upstash/workflow";
@@ -62,7 +62,7 @@ export async function triggerQStashWorkflow(
           service: "qstash",
           event: "workflow.trigger_failed",
           workflowType: workflow.workflowType,
-          ...getErrorMetadata(error),
+          error: toErrorFields(error),
           correlation,
         });
       }
