@@ -30,6 +30,10 @@ export async function getOrCreatePartner({
       name: typeof create.name === "string" ? create.name : null,
     });
 
+    if (!username) {
+      throw new Error("Failed to generate a unique partner username.");
+    }
+
     const partner = await prisma.partner.create({
       data: {
         ...create,
@@ -46,10 +50,17 @@ export async function getOrCreatePartner({
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
+      const target = error.meta?.target as string | undefined;
+
       console.info(
         "[getOrCreatePartner] Unique constraint conflict (P2002), falling back to find",
-        { target: error.meta?.target },
+        { target },
       );
+
+      // Only fall back to "find by email" when the conflict was actually on email, not username
+      if (!target || !target.includes("email")) {
+        throw error;
+      }
 
       const partner = await prisma.partner.findUniqueOrThrow({
         where: {

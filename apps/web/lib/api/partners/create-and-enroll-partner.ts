@@ -137,25 +137,23 @@ export const createAndEnrollPartner = async ({
     });
   }
 
-  const [group, { partner: existingOrNewPartner }] = await Promise.all([
-    getGroupOrThrow({
-      programId: program.id,
-      groupId: finalGroupId,
-      includeExpandedFields: true,
-    }),
+  const group = await getGroupOrThrow({
+    programId: program.id,
+    groupId: finalGroupId,
+    includeExpandedFields: true,
+  });
 
-    getOrCreatePartner({
+  const { partner: existingOrNewPartner } = await getOrCreatePartner({
+    email: partner.email,
+    create: {
+      id: createId({ prefix: "pn_" }),
+      name: partner.name || partner.email,
       email: partner.email,
-      create: {
-        id: createId({ prefix: "pn_" }),
-        name: partner.name || partner.email,
-        email: partner.email,
-        image: partner.image && !isStored(partner.image) ? null : partner.image,
-        country: partner.country,
-        description: partner.description,
-      },
-    }),
-  ]);
+      image: partner.image && !isStored(partner.image) ? null : partner.image,
+      country: partner.country,
+      description: partner.description,
+    },
+  });
 
   const { programEnrollment, created } = await createOrGetProgramEnrollment({
     partnerId: existingOrNewPartner.id,
