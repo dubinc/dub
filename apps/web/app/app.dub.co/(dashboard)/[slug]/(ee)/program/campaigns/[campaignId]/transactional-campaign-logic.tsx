@@ -6,7 +6,9 @@ import {
   SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTE_KEYS,
   SEND_CAMPAIGN_OPERATORS,
   SEND_CAMPAIGN_OPERATOR_KEYS,
+  type SendCampaignAttributeKey,
 } from "@/lib/api/workflows/send-campaign/schema";
+import { satisfiesExclusiveAttributeRules } from "@/lib/api/workflows/utils";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { DurationPopoverContent } from "@/ui/shared/duration-popover-content";
 import {
@@ -21,7 +23,6 @@ import { useContext, useEffect, useMemo, useRef } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 import { useCampaignFormContext } from "./campaign-form-context";
 
-type SendCampaignAttributeKey = (typeof SEND_CAMPAIGN_ATTRIBUTE_KEYS)[number];
 type SendCampaignOperatorKey = (typeof SEND_CAMPAIGN_OPERATOR_KEYS)[number];
 
 function isSendCampaignEnrollmentAttribute(
@@ -52,26 +53,15 @@ export function TransactionalCampaignLogic() {
     [triggerConditions],
   );
 
-  const hasEnrollmentAttribute = usedAttributes.some(
-    isSendCampaignEnrollmentAttribute,
-  );
-
   const availableAttributesToAdd = useMemo(() => {
-    return SEND_CAMPAIGN_ATTRIBUTE_KEYS.filter((attribute) => {
-      if (usedAttributes.includes(attribute)) {
-        return false;
-      }
-
-      if (
-        hasEnrollmentAttribute &&
-        isSendCampaignEnrollmentAttribute(attribute)
-      ) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [usedAttributes, hasEnrollmentAttribute]);
+    return SEND_CAMPAIGN_ATTRIBUTE_KEYS.filter((attribute) =>
+      satisfiesExclusiveAttributeRules({
+        attribute,
+        usedAttributes,
+        attributes: SEND_CAMPAIGN_ATTRIBUTES,
+      }),
+    );
+  }, [usedAttributes]);
 
   const canAddCondition =
     fields.length > 0 && availableAttributesToAdd.length > 0;
@@ -81,22 +71,13 @@ export function TransactionalCampaignLogic() {
       {fields.map((field, index) => {
         const condition = triggerConditions[index];
         const availableAttributes = SEND_CAMPAIGN_ATTRIBUTE_KEYS.filter(
-          (attribute) => {
-            if (
-              attribute === condition?.attribute ||
-              !usedAttributes.includes(attribute)
-            ) {
-              if (
-                isSendCampaignEnrollmentAttribute(attribute) &&
-                hasEnrollmentAttribute &&
-                condition?.attribute !== attribute
-              ) {
-                return false;
-              }
-              return true;
-            }
-            return false;
-          },
+          (attribute) =>
+            satisfiesExclusiveAttributeRules({
+              attribute,
+              usedAttributes,
+              currentAttribute: condition?.attribute,
+              attributes: SEND_CAMPAIGN_ATTRIBUTES,
+            }),
         );
 
         return (

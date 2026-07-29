@@ -51,3 +51,65 @@ export function getWorkflowDataRequirements({
     partnerLinkStats: requirements.has("partnerLinkStats"),
   };
 }
+
+function isExclusiveAttributeDefinition(
+  definition: unknown,
+): definition is { exclusive: true } {
+  return (
+    typeof definition === "object" &&
+    definition != null &&
+    "exclusive" in definition &&
+    (definition as { exclusive?: boolean }).exclusive === true
+  );
+}
+
+export function isExclusiveWorkflowAttribute(
+  attribute: string,
+  attributes: Record<string, unknown>,
+): boolean {
+  return isExclusiveAttributeDefinition(attributes[attribute]);
+}
+
+// Enforces exclusive-attribute combination rules for workflow conditions.
+// Exclusive attributes (e.g. partnerJoined) must be the sole condition.
+export function satisfiesExclusiveAttributeRules<T extends string>({
+  attribute,
+  usedAttributes,
+  currentAttribute,
+  attributes,
+}: {
+  attribute: T;
+  usedAttributes: T[];
+  currentAttribute?: T;
+  attributes: Record<string, unknown>;
+}): boolean {
+  if (attribute === currentAttribute) {
+    return true;
+  }
+
+  if (usedAttributes.includes(attribute)) {
+    return false;
+  }
+
+  const otherUsedAttributes = usedAttributes.filter(
+    (used) => used !== currentAttribute,
+  );
+
+  if (
+    isExclusiveWorkflowAttribute(attribute, attributes) &&
+    otherUsedAttributes.length > 0
+  ) {
+    return false;
+  }
+
+  if (
+    !isExclusiveWorkflowAttribute(attribute, attributes) &&
+    otherUsedAttributes.some((used) =>
+      isExclusiveWorkflowAttribute(used, attributes),
+    )
+  ) {
+    return false;
+  }
+
+  return true;
+}

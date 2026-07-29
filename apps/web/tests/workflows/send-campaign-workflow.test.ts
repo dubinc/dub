@@ -5,6 +5,8 @@ import { describe, expect, onTestFinished, test } from "vitest";
 import { randomPartnerEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_USER_ID } from "../utils/resource";
+import { trackE2ELead } from "./utils/track-e2e-lead";
+import { verifyCampaignSent } from "./utils/verify-campaign-sent";
 
 describe.sequential("Workflow - SendCampaign", async () => {
   const h = new IntegrationHarness();
@@ -677,5 +679,194 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     // Response shape exposes the full conditions array
     expect((updatedCampaign as any).triggerConditions).toEqual(conditions);
+  });
+
+  test(
+    "Cron sends campaign when all conditions are met (AND)",
+    { timeout: 90000 },
+    async () => {
+      const { status: createStatus, data: campaign } = await http.post<{
+        id: string;
+      }>({
+        path: "/campaigns",
+        body: {
+          type: "transactional",
+        },
+      });
+
+      expect(createStatus).toEqual(201);
+
+      const campaignId = campaign.id;
+
+      onTestFinished(async () => {
+        await http.delete({
+          path: "/e2e/notification-emails",
+          query: { campaignId },
+        });
+        await h.deleteCampaign(campaignId);
+      });
+
+      await http.patch({
+        path: `/campaigns/${campaignId}`,
+        body: {
+          name: "E2E AND Match Campaign",
+          subject: "You got a lead!",
+          bodyJson: {
+            type: "doc",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "Congrats on your first lead!" }],
+              },
+            ],
+          },
+          triggerConditions: [
+            {
+              attribute: "partnerEnrolledDays",
+              operator: "gte",
+              value: 1,
+            },
+            {
+              attribute: "totalLeads",
+              operator: "gte",
+              value: 1,
+            },
+          ],
+          status: "active",
+        },
+      });
+
+      const { data: workflow } = await http.get<any>({
+        path: "/e2e/workflows",
+        query: { campaignId },
+      });
+
+      expect(workflow).not.toBeNull();
+
+      const { status: partnerStatus, data: partner } =
+        await http.post<EnrolledPartnerProps>({
+          path: "/partners",
+          body: {
+            name: "E2E Test Partner - AND Match",
+            email: randomPartnerEmail(),
+          },
+        });
+
+      expect(partnerStatus).toEqual(201);
+      expect(partner.links).not.toBeNull();
+
+      await http.patch({
+        path: "/e2e/enrollments",
+        body: {
+          partnerId: partner.id,
+          createdAt: subHours(new Date(), 18).toISOString(),
+        },
+      });
+
+      await trackE2ELead(http, partner.links![0]);
+
+      const { status, data } = await http.post<{ message: string }>({
+        path: `/e2e/trigger-workflow/${workflow.id}`,
+      });
+
+      expect(status).toEqual(200);
+      expect(data.message).toContain("Finished executing workflow");
+
+      await verifyCampaignSent({
+        http,
+        campaignId,
+        partnerId: partner.id,
+      });
+    },
+  );
+
+  test("Cron doesn't send when metric condition fails (AND)", async () => {
+    const { status: createStatus, data: campaign } = await http.post<{
+      id: string;
+    }>({
+      path: "/campaigns",
+      body: {
+        type: "transactional",
+      },
+    });
+
+    expect(createStatus).toEqual(201);
+
+    const campaignId = campaign.id;
+
+    onTestFinished(async () => {
+      await h.deleteCampaign(campaignId);
+    });
+
+    await http.patch({
+      path: `/campaigns/${campaignId}`,
+      body: {
+        name: "E2E AND Partial Match Campaign",
+        subject: "Should not be sent",
+        bodyJson: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Test" }],
+            },
+          ],
+        },
+        triggerConditions: [
+          {
+            attribute: "partnerEnrolledDays",
+            operator: "gte",
+            value: 1,
+          },
+          {
+            attribute: "totalLeads",
+            operator: "gte",
+            value: 1,
+          },
+        ],
+        status: "active",
+      },
+    });
+
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { campaignId },
+    });
+
+    expect(workflow).not.toBeNull();
+
+    const { status: partnerStatus, data: partner } =
+      await http.post<EnrolledPartnerProps>({
+        path: "/partners",
+        body: {
+          name: "E2E Test Partner - AND Partial",
+          email: randomPartnerEmail(),
+        },
+      });
+
+    expect(partnerStatus).toEqual(201);
+
+    // Enrollment window matches, but totalLeads is 0 — AND fails
+    await http.patch({
+      path: "/e2e/enrollments",
+      body: {
+        partnerId: partner.id,
+        createdAt: subHours(new Date(), 18).toISOString(),
+      },
+    });
+
+    const { status, data: triggerData } = await http.post<{ message: string }>({
+      path: `/e2e/trigger-workflow/${workflow.id}`,
+    });
+
+    expect(status).toEqual(200);
+    expect(triggerData.message).toContain("Finished executing workflow");
+
+    const { data: emailsSent } = await http.get<any[]>({
+      path: "/e2e/notification-emails",
+      query: { campaignId, partnerId: partner.id },
+    });
+
+    expect(emailsSent).toHaveLength(0);
   });
 });

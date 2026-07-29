@@ -49,6 +49,7 @@ export const WORKFLOW_ATTRIBUTES = {
     inputType: "none",
     operators: ["gte"],
     requires: [],
+    exclusive: true,
   },
   partnerGroup: {
     name: "partnerGroup",

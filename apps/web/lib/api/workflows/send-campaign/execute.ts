@@ -24,6 +24,21 @@ import { WorkflowAttributeKey } from "../attribute-definitions";
 import { parseWorkflowConfig } from "../parse-workflow-config";
 import { getWorkflowDataRequirements } from "../utils";
 
+type ResolveProgramEnrollment = {
+  partnerId: string;
+  programId: string;
+  groupIds: string[];
+  partnerTagIds: string[];
+  conditions: WorkflowCondition[];
+};
+
+type ProgramEnrollmentForWorkflowContext = Pick<
+  Prisma.ProgramEnrollmentGetPayload<{
+    include: typeof programEnrollmentInclude;
+  }>,
+  "links" | "createdAt" | "groupId"
+>;
+
 export const executeSendCampaignWorkflow = async ({
   workflow,
   context,
@@ -263,6 +278,32 @@ const programEnrollmentInclude = {
   },
 } satisfies Prisma.ProgramEnrollmentInclude;
 
+function buildWorkflowContext({
+  programEnrollment,
+  totalCommissions,
+}: {
+  programEnrollment: ProgramEnrollmentForWorkflowContext;
+  totalCommissions: number | null | undefined;
+}): Record<WorkflowAttributeKey, string | number | null> {
+  const { totalLeads, totalConversions, totalSaleAmount } =
+    aggregatePartnerLinksStats(programEnrollment.links);
+
+  const daysSinceEnrollment = differenceInDays(
+    new Date(),
+    programEnrollment.createdAt,
+  );
+
+  return {
+    totalLeads,
+    totalConversions,
+    totalSaleAmount,
+    totalCommissions: totalCommissions ?? 0,
+    partnerEnrolledDays: daysSinceEnrollment,
+    partnerJoined: daysSinceEnrollment,
+    partnerGroup: programEnrollment.groupId,
+  };
+}
+
 function campaignAudienceWhere({
   groupIds,
   partnerTagIds,
@@ -291,14 +332,6 @@ function campaignAudienceWhere({
   };
 }
 
-type ResolveProgramEnrollment = {
-  partnerId: string;
-  programId: string;
-  groupIds: string[];
-  partnerTagIds: string[];
-  conditions: WorkflowCondition[];
-};
-
 async function resolveProgramEnrollment({
   programId,
   partnerId,
@@ -306,7 +339,7 @@ async function resolveProgramEnrollment({
   partnerTagIds,
   conditions,
 }: ResolveProgramEnrollment) {
-  const { commissions, partnerLinkStats } = getWorkflowDataRequirements({
+  const { commissions } = getWorkflowDataRequirements({
     conditions,
   });
 
@@ -356,18 +389,10 @@ async function resolveProgramEnrollment({
     return [];
   }
 
-  const workflowContext: Partial<Record<WorkflowAttributeKey, number | null>> =
-    {
-      ...(partnerLinkStats
-        ? aggregatePartnerLinksStats(
-            programEnrollment.links as unknown as NonNullable<
-              Parameters<typeof aggregatePartnerLinksStats>[0]
-            >,
-          )
-        : {}),
-      totalCommissions: totalCommissions._sum.earnings,
-      partnerJoined: differenceInDays(new Date(), programEnrollment.createdAt),
-    };
+  const workflowContext = buildWorkflowContext({
+    programEnrollment,
+    totalCommissions: totalCommissions._sum.earnings,
+  });
 
   const shouldExecute = evaluateWorkflowConditions({
     conditions,
@@ -463,20 +488,10 @@ async function resolveProgramEnrollments({
   }
 
   return programEnrollments.filter((programEnrollment) => {
-    const workflowContext: Partial<
-      Record<WorkflowAttributeKey, number | null>
-    > = {
-      ...(partnerLinkStats
-        ? aggregatePartnerLinksStats(
-            programEnrollment.links as unknown as NonNullable<
-              Parameters<typeof aggregatePartnerLinksStats>[0]
-            >,
-          )
-        : {}),
-      totalCommissions:
-        commissionsByPartnerId.get(programEnrollment.partnerId) ?? 0,
-      partnerJoined: differenceInDays(new Date(), programEnrollment.createdAt),
-    };
+    const workflowContext = buildWorkflowContext({
+      programEnrollment,
+      totalCommissions: commissionsByPartnerId.get(programEnrollment.partnerId),
+    });
 
     return evaluateWorkflowConditions({
       conditions: remainingConditions,

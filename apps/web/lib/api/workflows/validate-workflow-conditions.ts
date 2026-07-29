@@ -5,6 +5,8 @@ import {
   WORKFLOW_ATTRIBUTE_VALIDATORS,
   type WorkflowAttributeValidatorContext,
 } from "./attribute-validators";
+import { SEND_CAMPAIGN_ATTRIBUTES } from "./send-campaign/schema";
+import { isExclusiveWorkflowAttribute } from "./utils";
 import { WORKFLOW_TYPE_ATTRIBUTES } from "./workflow-type-attributes";
 
 type WorkflowConditionInput = {
@@ -58,16 +60,14 @@ export async function validateWorkflowConditions({
       });
     }
 
-    const hasPartnerJoined = attributesUsed.includes("partnerJoined");
-    const hasPartnerEnrolledDays = attributesUsed.includes(
-      "partnerEnrolledDays",
+    const exclusiveUsed = attributesUsed.filter((attr) =>
+      isExclusiveWorkflowAttribute(attr, SEND_CAMPAIGN_ATTRIBUTES),
     );
 
-    if (hasPartnerJoined && hasPartnerEnrolledDays) {
+    if (exclusiveUsed.length > 0 && attributesUsed.length > 1) {
       throw new DubApiError({
         code: "bad_request",
-        message:
-          "Campaign logic can only include one enrollment condition (joins the program or enrollment duration).",
+        message: `Campaign logic with "${SEND_CAMPAIGN_ATTRIBUTES[exclusiveUsed[0]].label}" cannot include other conditions.`,
       });
     }
   }

@@ -41,6 +41,9 @@ export const SEND_CAMPAIGN_ATTRIBUTE_KEYS = Object.keys(
   SEND_CAMPAIGN_ATTRIBUTES,
 ) as readonly (keyof typeof SEND_CAMPAIGN_ATTRIBUTES)[];
 
+export type SendCampaignAttributeKey =
+  (typeof SEND_CAMPAIGN_ATTRIBUTE_KEYS)[number];
+
 export const SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTE_KEYS = Object.keys(
   SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTES,
 ) as readonly (keyof typeof SEND_CAMPAIGN_ENROLLMENT_ATTRIBUTES)[];
