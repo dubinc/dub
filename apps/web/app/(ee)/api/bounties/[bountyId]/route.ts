@@ -290,6 +290,7 @@ export const PATCH = withWorkspace(
             body: {
               bountyId: bounty.id,
             },
+            notBefore: Math.floor(data.startsAt.getTime() / 1000),
           }),
       ]),
     );

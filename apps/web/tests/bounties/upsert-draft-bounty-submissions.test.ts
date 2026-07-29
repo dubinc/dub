@@ -78,6 +78,34 @@ describe("shouldUpsertDraftSubmissionsOnReopen", () => {
     ).toBe(true);
   });
 
+  it("returns true when an expired bounty is rescheduled with a future startsAt", () => {
+    expect(
+      shouldUpsertDraftSubmissionsOnReopen({
+        type: "performance",
+        performanceScope: "lifetime",
+        previousEndsAt: new Date("2025-05-01T00:00:00.000Z"),
+        startsAt: new Date("2025-07-01T00:00:00.000Z"),
+        endsAt: new Date("2025-12-01T00:00:00.000Z"),
+        archivedAt: null,
+        now: NOW,
+      }),
+    ).toBe(true);
+  });
+
+  it("returns false when the bounty previously had no endsAt", () => {
+    expect(
+      shouldUpsertDraftSubmissionsOnReopen({
+        type: "performance",
+        performanceScope: "lifetime",
+        previousEndsAt: null,
+        startsAt: new Date("2025-01-01T00:00:00.000Z"),
+        endsAt: new Date("2025-12-01T00:00:00.000Z"),
+        archivedAt: null,
+        now: NOW,
+      }),
+    ).toBe(false);
+  });
+
   it("returns false for new-scope performance bounties", () => {
     expect(
       shouldUpsertDraftSubmissionsOnReopen({

@@ -53,10 +53,10 @@ export function shouldUpsertDraftSubmissionsOnReopen({
   if (performanceScope !== "lifetime") return false;
 
   const wasExpired = previousEndsAt != null && previousEndsAt < now;
-  const nowActive =
-    startsAt <= now && (endsAt == null || endsAt > now) && !archivedAt;
+  const stillExpired = endsAt != null && endsAt < now && startsAt <= now;
+  const nowOrSoonActive = !archivedAt && !stillExpired;
 
-  return wasExpired && nowActive;
+  return wasExpired && nowOrSoonActive;
 }
 
 export function planDraftBountySubmissionUpserts({
