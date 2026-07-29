@@ -9,7 +9,7 @@ import {
 } from "@/ui/partners/bounties/bounty-progress-bar-row";
 import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { Calendar6, Users } from "@dub/ui/icons";
+import { Calendar6 } from "@dub/ui/icons";
 import { formatDate, nFormatter, pluralize, pluck } from "@dub/utils";
 import Link from "next/link";
 
@@ -21,7 +21,7 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
     partnerTagIds: pluck(bounty.partnerTags, "id"),
   });
 
-  const { dateRangeLabel, partnerAudienceLabel } = getProgramBountyMeta(bounty);
+  const { dateRangeLabel } = getProgramBountyMeta(bounty);
 
   const submissionsCount = bounty.submissionsCountData?.total ?? 0;
   const progress =
@@ -67,11 +67,6 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
               className="font-normal"
               onTooltipClick={(e) => e.preventDefault()}
             />
-
-            <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
-              <Users className="size-3.5" />
-              <span>{partnerAudienceLabel}</span>
-            </div>
 
             <BountyEligibilitySummary
               groups={bounty.groups}
@@ -134,10 +129,6 @@ export function BountyCardSkeleton() {
           <div className="flex h-5 items-center gap-2">
             <div className="size-3.5 shrink-0 animate-pulse rounded bg-neutral-200" />
             <div className="h-5 w-24 animate-pulse rounded bg-neutral-200" />
-          </div>
-          <div className="flex h-5 items-center gap-2">
-            <div className="size-3.5 shrink-0 animate-pulse rounded bg-neutral-200" />
-            <div className="h-5 w-28 animate-pulse rounded bg-neutral-200" />
           </div>
           <div className="flex h-5 items-center gap-2">
             <div className="size-3.5 shrink-0 animate-pulse rounded bg-neutral-200" />

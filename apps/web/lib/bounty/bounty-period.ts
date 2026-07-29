@@ -120,9 +120,9 @@ export function getProgramBountyMeta({
         ENDS_AFTER_DAYS_LABELS[endsAfterDays] ?? `${endsAfterDays} days`;
       dateRangeLabel = `${durationLabel} after joining`;
     } else if (endsAt) {
-      dateRangeLabel = `when a new partner joins → ${formatDate(endsAt, { month: "short" })}`;
+      dateRangeLabel = `When a new partner joins → ${formatDate(endsAt, { month: "short" })}`;
     } else {
-      dateRangeLabel = "when a new partner joins";
+      dateRangeLabel = "When a new partner joins";
     }
   } else {
     const startLabel = formatDate(startsAt, { month: "short" });
@@ -133,6 +133,5 @@ export function getProgramBountyMeta({
 
   return {
     dateRangeLabel,
-    partnerAudienceLabel: isRelative ? "New partners only" : "All partners",
   };
 }

@@ -42,7 +42,7 @@ const START_OPTIONS = [
     value: p,
     label: DURATION_LABELS[p].start,
   })),
-  { value: "onPartnerJoin", label: "when a new partner joins" },
+  { value: "onPartnerJoin", label: "When a new partner joins" },
   { value: "custom", label: "custom" },
 ] satisfies PresetOption<StartPreset>[];
 

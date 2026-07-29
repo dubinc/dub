@@ -15,7 +15,6 @@ import {
   Modal,
   TooltipContent,
 } from "@dub/ui";
-import { Users } from "@dub/ui/icons";
 import { nFormatter, pluralize, pluck } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { BountyStartMode } from "@prisma/client";
@@ -88,7 +87,7 @@ function ConfirmCreateBountyModal({
     }
   };
 
-  const { dateRangeLabel, partnerAudienceLabel } = getProgramBountyMeta(bounty);
+  const { dateRangeLabel } = getProgramBountyMeta(bounty);
 
   return (
     <Modal
@@ -129,11 +128,6 @@ function ConfirmCreateBountyModal({
                   </span>
                 </div>
               )}
-
-              <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
-                <Users className="size-3.5" />
-                <span>{partnerAudienceLabel}</span>
-              </div>
 
               {isOwner && (
                 <BountyEligibilitySummary
