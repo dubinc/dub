@@ -1,5 +1,4 @@
 import { ActivityLog } from "@/lib/types";
-import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { ReactNode } from "react";
 import { PartnerStatusPill, UserChip } from "../activity-entry-chips";
@@ -19,8 +18,8 @@ export function PartnerStatusChangedRenderer({ log }: { log: ActivityLog }) {
   const statusChange = log.changeSet?.status as StatusChangeSet | undefined;
   const status = statusChange?.new ?? null;
 
-  if (!status || !(status in PartnerStatusBadges)) {
-    return <span>Status changed</span>;
+  if (!status) {
+    return <span>Status updated</span>;
   }
 
   return (

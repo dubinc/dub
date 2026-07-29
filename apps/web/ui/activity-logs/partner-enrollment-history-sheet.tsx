@@ -4,8 +4,8 @@ import { useActivityLogs } from "@/lib/swr/use-activity-logs";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { PartnerEnrollmentActivitySection } from "@/ui/activity-logs/partner-enrollment-activity-section";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet } from "@dub/ui";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Button, Sheet, useRouterStuff } from "@dub/ui";
+import { Dispatch, SetStateAction } from "react";
 
 interface PartnerEnrollmentHistorySheetProps {
   partner: Pick<EnrolledPartnerExtendedProps, "id">;
@@ -54,7 +54,20 @@ export function usePartnerEnrollmentHistorySheet({
 }: {
   partner: Pick<EnrolledPartnerExtendedProps, "id"> | null;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const { searchParams, queryParams } = useRouterStuff();
+
+  const isOpen = searchParams.has("history");
+
+  // TODO: refactor to use next/link ?history=true to help with prefetch (or use router.prefetch)
+  const setIsOpen: Dispatch<SetStateAction<boolean>> = (open) => {
+    const nextOpen = typeof open === "function" ? open(isOpen) : open;
+
+    if (nextOpen) {
+      queryParams({ set: { history: "true" } });
+    } else {
+      queryParams({ del: "history" });
+    }
+  };
 
   const { activityLogs } = useActivityLogs({
     query: partner

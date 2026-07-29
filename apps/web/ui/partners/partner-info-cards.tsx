@@ -165,7 +165,7 @@ export function PartnerInfoCards({
         ),
         text: `${isPendingApplication ? "Applied" : "Partner since"} ${formatDate(partner.createdAt)}`,
         timestamp: partner.createdAt,
-        ...(isPendingApplication
+        ...(isPendingApplication || !isEnrolled
           ? {}
           : {
               wrapper: ({ children }) => (
