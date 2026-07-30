@@ -43,9 +43,13 @@ export function buildBountyEligibilityWhere({
   groupId,
   partnerTagIds,
 }: {
-  groupId: string | undefined;
+  groupId: string | undefined | string[];
   partnerTagIds?: string[];
 }): Prisma.BountyWhereInput {
+  const groupIds = (Array.isArray(groupId) ? groupId : [groupId]).filter(
+    (id): id is string => Boolean(id),
+  );
+
   return {
     AND: [
       {
@@ -55,12 +59,14 @@ export function buildBountyEligibilityWhere({
               none: {},
             },
           },
-          ...(groupId
+          ...(groupIds && groupIds.length > 0
             ? [
                 {
                   groups: {
                     some: {
-                      groupId,
+                      groupId: {
+                        in: groupIds,
+                      },
                     },
                   },
                 },
