@@ -1,6 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
-import { APP_DOMAIN_WITH_NGROK, pluck } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, pluck, prettyPrint } from "@dub/utils";
 import { BountyPerformanceScope, BountyType } from "@prisma/client";
 import {
   bountyEligibilityIncludes,
@@ -120,6 +120,11 @@ export async function triggerDraftBountySubmissionCreation({
     );
     return;
   }
+
+  console.log(
+    `Triggering draft bounty submissions for ${bountySubmissionCreationData.length} bounties.`,
+    prettyPrint(bountySubmissionCreationData),
+  );
 
   const results = await Promise.allSettled(
     bountySubmissionCreationData.map(({ bountyId, partnerIds }) =>

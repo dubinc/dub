@@ -5,7 +5,7 @@ import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { GroupProps, PartnerTagProps } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { DynamicTooltipWrapper, ScrollableTooltipContent } from "@dub/ui";
-import { Users6 } from "@dub/ui/icons";
+import { Tag, Users6 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useMemo } from "react";
 
@@ -66,15 +66,16 @@ export function BountyEligibilitySummary({
           />
         )}
 
-        <span className="text-content-muted shrink-0">·</span>
+        {(tagsLoading || bountyPartnerTags.length > 0) && (
+          <>
+            <span className="text-content-muted shrink-0">·</span>
 
-        {tagsLoading ? (
-          <div className="h-5 w-20 animate-pulse rounded bg-neutral-200" />
-        ) : (
-          <TagsLabel
-            bountyTagCount={bountyPartnerTags.length}
-            eligibleTags={eligibleTags}
-          />
+            {tagsLoading ? (
+              <div className="h-5 w-20 animate-pulse rounded bg-neutral-200" />
+            ) : (
+              <TagsLabel eligibleTags={eligibleTags} />
+            )}
+          </>
         )}
       </div>
     </div>
@@ -132,30 +133,23 @@ function GroupsLabel({
   );
 }
 
-function TagsLabel({
-  bountyTagCount,
-  eligibleTags,
-}: {
-  bountyTagCount: number;
-  eligibleTags: PartnerTagProps[];
-}) {
-  if (bountyTagCount === 0) {
-    return <span>All tags</span>;
-  }
-
+function TagsLabel({ eligibleTags }: { eligibleTags: PartnerTagProps[] }) {
   if (eligibleTags.length === 0) {
     return null;
   }
 
-  const label = (
-    <span className="truncate">
-      {eligibleTags[0].name}
-      {eligibleTags.length > 1 ? ` +${eligibleTags.length - 1}` : ""}
-    </span>
+  const content = (
+    <div className="flex min-w-0 items-center gap-1.5">
+      <Tag className="size-3.5 shrink-0" />
+      <span className="truncate">
+        {eligibleTags[0].name}
+        {eligibleTags.length > 1 ? ` +${eligibleTags.length - 1}` : ""}
+      </span>
+    </div>
   );
 
   if (eligibleTags.length === 1) {
-    return label;
+    return content;
   }
 
   return (
@@ -174,7 +168,7 @@ function TagsLabel({
         ),
       }}
     >
-      {label}
+      {content}
     </DynamicTooltipWrapper>
   );
 }

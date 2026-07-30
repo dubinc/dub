@@ -39,6 +39,7 @@ const expectedCampaign: Partial<Campaign> = {
   from: null,
   scheduledAt: null,
   groups: [{ id: E2E_PARTNER_GROUP.id }],
+  partnerTags: [],
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
 };
@@ -92,6 +93,40 @@ describe.sequential("/campaigns/**", async () => {
       ...expectedCampaign,
       id: campaignId,
       status: "draft",
+    });
+  });
+
+  test("PATCH /campaigns/[campaignId] - invalid partner tag IDs", async () => {
+    const { status, data } = await http.patch({
+      path: `/campaigns/${campaignId}`,
+      body: {
+        partnerTagIds: ["invalid-partner-tag-id"],
+      },
+    });
+
+    expect(status).toEqual(400);
+    expect(data).toMatchObject({
+      error: {
+        message: "Invalid partner tag IDs detected: invalid-partner-tag-id",
+        code: "bad_request",
+      },
+    });
+  });
+
+  test("PATCH /campaigns/[campaignId] - clear partner tags", async () => {
+    const { status, data: updatedCampaign } = await http.patch<Campaign>({
+      path: `/campaigns/${campaignId}`,
+      body: {
+        partnerTagIds: null,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(updatedCampaign).toStrictEqual({
+      ...expectedCampaign,
+      id: campaignId,
+      status: "draft",
+      partnerTags: [],
     });
   });
 

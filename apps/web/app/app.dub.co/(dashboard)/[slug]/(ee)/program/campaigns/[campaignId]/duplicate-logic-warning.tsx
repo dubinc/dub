@@ -20,7 +20,7 @@ export function DuplicateLogicWarning() {
 
   const triggerConditions = useWatch({ control, name: "triggerConditions" });
 
-  const parsedTriggerConditions = triggerConditions
+  const parsedTriggerConditions = triggerConditions?.length
     ? sendCampaignConditionsSchema.safeParse(triggerConditions)
     : undefined;
 
