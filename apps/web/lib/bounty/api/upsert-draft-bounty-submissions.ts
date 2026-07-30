@@ -110,7 +110,8 @@ export function planDraftBountySubmissionUpserts({
       continue;
     }
 
-    if (existing.performanceCount !== performanceCount) {
+    // update if performanceCount changed or conditionMet (need to promote to submitted)
+    if (existing.performanceCount !== performanceCount || conditionMet) {
       toUpdate.push({
         id: existing.id,
         performanceCount,
