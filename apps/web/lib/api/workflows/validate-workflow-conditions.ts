@@ -24,16 +24,19 @@ export async function validateWorkflowConditions({
   workflowType: WorkflowType;
   context?: WorkflowAttributeValidatorContext;
 }): Promise<void> {
-  if (!conditions || conditions.length === 0) {
-    return;
-  }
-
   // Award bounty workflows require exactly one condition
-  if (workflowType === "awardBounty" && conditions.length !== 1) {
+  if (
+    workflowType === "awardBounty" &&
+    (!conditions || conditions.length !== 1)
+  ) {
     throw new DubApiError({
       code: "bad_request",
       message: "Award bounty workflows require exactly one condition.",
     });
+  }
+
+  if (!conditions || conditions.length === 0) {
+    return;
   }
 
   // Move group workflow requires at least one metric condition and one partner group condition

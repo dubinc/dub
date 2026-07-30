@@ -39,7 +39,7 @@ export const WORKFLOW_OPERATORS = {
   // Less than or equal to
   lte: {
     name: "lte",
-    label: "under",
+    label: "at most",
     validate(value: ConditionValue) {
       if (typeof value !== "number" || isNaN(value) || value < 0) {
         throw new Error("Please enter a value greater than or equal to 0.");
