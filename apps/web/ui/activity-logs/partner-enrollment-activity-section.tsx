@@ -6,7 +6,7 @@ import {
   ActivityFeedSkeleton,
 } from "@/ui/activity-logs/activity-feed";
 
-export function PartnerGroupActivitySection({
+export function PartnerEnrollmentActivitySection({
   partnerId,
 }: {
   partnerId: string;
@@ -15,7 +15,6 @@ export function PartnerGroupActivitySection({
     query: {
       resourceType: "partner",
       resourceId: partnerId,
-      action: "partner.groupChanged",
     },
     enabled: !!partnerId,
   });
@@ -37,7 +36,7 @@ export function PartnerGroupActivitySection({
   if (!activityLogs || activityLogs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
-        <p className="text-sm text-neutral-500">No group history yet</p>
+        <p className="text-sm text-neutral-500">No history yet</p>
       </div>
     );
   }

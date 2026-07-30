@@ -4,7 +4,6 @@ import { stripe } from "@/lib/stripe";
 import { InvoiceSchema } from "@/lib/zod/schemas/invoices";
 import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
 import * as z from "zod/v4";
 
 const querySchema = z.object({
@@ -52,21 +51,19 @@ const getSubscriptionInvoices = async (
       ...(status && { status }),
     });
 
-    return invoices.data.map((invoice) => mapSubscriptionInvoice(invoice));
+    return invoices.data.map((invoice) => ({
+      id: invoice.id,
+      total: invoice.total ?? invoice.amount_due,
+      stripeStatus: invoice.status,
+      createdAt: new Date(invoice.created * 1000),
+      description: "Dub subscription",
+      pdfUrl: invoice.invoice_pdf,
+    }));
   } catch (error) {
     console.log(error);
     return [];
   }
 };
-
-const mapSubscriptionInvoice = (invoice: Stripe.Invoice) => ({
-  id: invoice.id,
-  total: invoice.total ?? invoice.amount_due,
-  stripeStatus: invoice.status,
-  createdAt: new Date(invoice.created * 1000),
-  description: "Dub subscription",
-  pdfUrl: invoice.invoice_pdf,
-});
 
 const getOtherInvoices = async ({
   workspaceId,

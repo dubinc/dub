@@ -1,4 +1,4 @@
-import { punyEncode } from "@dub/utils";
+import { punyEncode, safeDecodeURIComponent } from "@dub/utils";
 import {
   decodeKeyIfCaseSensitive,
   encodeKey,
@@ -20,7 +20,7 @@ const getLinkViaEdgeHelper = async ({
       encodeKey(key)
     : // for non-case sensitive domains, we need to make sure that the key is always URI-decoded + punycode-encoded
       // (cause that's how we store it in MySQL)
-      punyEncode(decodeURIComponent(key));
+      punyEncode(safeDecodeURIComponent(key));
 
   const { rows } =
     (await conn.execute(`SELECT * FROM Link WHERE domain = ? AND \`key\` = ?`, [
