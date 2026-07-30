@@ -10,7 +10,7 @@ import {
 import { constructURLFromUTMParams, isFulfilled } from "@dub/utils";
 import { PartnerGroupDefaultLink } from "@prisma/client";
 import { bulkCreateLinks } from "../links";
-import { extractUtmParams } from "../utm/extract-utm-params";
+import { extractAndResolveUtmParams } from "../utm/extract-and-resolve-utm-params";
 import {
   buildPartnerDefaultLinkKey,
   generatePartnerLink,
@@ -66,6 +66,21 @@ export async function createPartnerDefaultLinks({
           hasMoreThanOneDefaultLink,
         });
 
+        const utmContext = {
+          partnerName: partner.name || key,
+          partnerLinkKey: key,
+        };
+
+        const resolvedUtmParams = extractAndResolveUtmParams(
+          utmTemplate,
+          utmContext,
+        );
+        const resolvedUtmColumns = extractAndResolveUtmParams(
+          utmTemplate,
+          utmContext,
+          { excludeRef: true },
+        );
+
         return generatePartnerLink({
           workspace,
           program,
@@ -74,11 +89,8 @@ export async function createPartnerDefaultLinks({
             ...link,
             key,
             domain: defaultLink.domain,
-            url: constructURLFromUTMParams(
-              defaultLink.url,
-              extractUtmParams(utmTemplate),
-            ),
-            ...extractUtmParams(utmTemplate, { excludeRef: true }),
+            url: constructURLFromUTMParams(defaultLink.url, resolvedUtmParams),
+            ...resolvedUtmColumns,
             partnerGroupDefaultLinkId: defaultLink.id,
           },
           userId,

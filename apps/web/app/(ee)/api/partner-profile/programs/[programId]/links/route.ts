@@ -3,7 +3,7 @@ import { createLink, processLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { extractAndResolveUtmParams } from "@/lib/api/utm/extract-and-resolve-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
@@ -109,6 +109,11 @@ export const POST = withPartnerProfile(
       : null;
 
     const linkUrl = url || program.url;
+    const partnerLinkKey = key || "";
+    const utmContext = {
+      partnerName: partner.name || partnerLinkKey,
+      partnerLinkKey: partnerLinkKey || partner.name || "",
+    };
 
     const { link, error, code } = await processLink({
       payload: {
@@ -117,7 +122,7 @@ export const POST = withPartnerProfile(
         url: linkUrl,
         ...(groupUtmTemplate
           ? {
-              ...extractUtmParams(groupUtmTemplate),
+              ...extractAndResolveUtmParams(groupUtmTemplate, utmContext),
               ...getUTMParamsFromURL(linkUrl),
             }
           : {}),
