@@ -17,6 +17,20 @@ export async function GET(
     return NextResponse.json({ error: "File not supported" }, { status: 400 });
   }
 
+  if (file === "openai-apps-challenge") {
+    if (domain !== "dub.sh") {
+      return NextResponse.json(
+        { error: "File not supported" },
+        { status: 400 },
+      );
+    }
+    return new Response(process.env.OPENAI_APPS_CHALLENGE_RESPONSE, {
+      headers: {
+        "Content-Type": "text/plain",
+      },
+    });
+  }
+
   const { appleAppSiteAssociation, assetLinks } =
     (await prisma.domain.findUnique({
       where: {

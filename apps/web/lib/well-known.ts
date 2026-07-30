@@ -6,11 +6,13 @@ export type WellKnownConfig = {
     };
   };
   "assetlinks.json": any[];
+  "openai-apps-challenge": any;
 };
 
 export const supportedWellKnownFiles = [
   "apple-app-site-association",
   "assetlinks.json",
+  "openai-apps-challenge",
 ];
 
 export type SupportedWellKnownFiles = keyof WellKnownConfig;
