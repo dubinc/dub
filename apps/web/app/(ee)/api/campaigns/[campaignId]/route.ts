@@ -86,7 +86,7 @@ export const PATCH = withWorkspace(
       campaign,
     });
 
-    if (triggerConditions) {
+    if (triggerConditions !== undefined && triggerConditions?.length) {
       await validateWorkflowConditions({
         conditions: triggerConditions,
         workflowType: "sendCampaign",
@@ -138,7 +138,9 @@ export const PATCH = withWorkspace(
             id: campaign.workflowId,
           },
           data: {
-            ...(triggerConditions && { triggerConditions }),
+            ...(triggerConditions !== undefined && {
+              triggerConditions: triggerConditions ?? [],
+            }),
             ...(status && {
               disabledAt: status === "paused" ? new Date() : null,
             }),

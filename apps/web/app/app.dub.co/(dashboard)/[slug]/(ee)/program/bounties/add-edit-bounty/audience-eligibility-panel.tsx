@@ -15,7 +15,7 @@ export function AudienceEligibilityPanel() {
         name="groupIds"
         render={({ field }) => (
           <PartnerGroupsSelect
-            selectedGroupIds={field.value}
+            selectedGroupIds={field.value ?? null}
             setSelectedGroupIds={field.onChange}
           />
         )}

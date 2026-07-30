@@ -105,9 +105,11 @@ export function AudienceLimitSelectShell<T extends { id: string }>({
                                 onSelect={() =>
                                   setSelectedIds(
                                     selectedIds?.includes(item.id)
-                                      ? selectedIds.filter(
-                                          (id) => id !== item.id,
-                                        )
+                                      ? selectedIds.length === 1
+                                        ? null // Revert to null if there will be no ids selected
+                                        : selectedIds.filter(
+                                            (id) => id !== item.id,
+                                          )
                                       : [...(selectedIds ?? []), item.id],
                                   )
                                 }

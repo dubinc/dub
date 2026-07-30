@@ -1,10 +1,10 @@
+import { workflowConditionsSchema } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@prisma/client";
 import {
   WORKFLOW_ATTRIBUTES,
   WorkflowAttributeKey,
   WorkflowDataRequirement,
 } from "./attribute-definitions";
-import { parseWorkflowConfig } from "./parse-workflow-config";
 import { WorkflowCondition } from "./types";
 
 export const isCurrencyAttribute = (activity: WorkflowAttributeKey) => {
@@ -20,11 +20,17 @@ export const isCurrencyAttribute = (activity: WorkflowAttributeKey) => {
 export const isScheduledWorkflow = (
   workflow: Pick<Workflow, "id" | "triggerConditions" | "actions">,
 ) => {
-  const { conditions } = parseWorkflowConfig(workflow);
+  const parsed = workflowConditionsSchema.safeParse(workflow.triggerConditions);
 
-  return conditions.some(
-    (condition) => condition.attribute === "partnerEnrolledDays",
-  );
+  if (!parsed.success || parsed.data.length === 0) {
+    return false;
+  }
+
+  return parsed.data.some((condition) => {
+    const attribute = WORKFLOW_ATTRIBUTES[condition.attribute];
+
+    return attribute?.scheduled === true;
+  });
 };
 
 export function getWorkflowDataRequirements({

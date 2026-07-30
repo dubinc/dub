@@ -63,8 +63,7 @@ export function TransactionalCampaignLogic() {
     );
   }, [usedAttributes]);
 
-  const canAddCondition =
-    fields.length > 0 && availableAttributesToAdd.length > 0;
+  const canAddCondition = availableAttributesToAdd.length > 0;
 
   return (
     <div className="flex w-full flex-col gap-1.5 px-2 py-1">
@@ -179,11 +178,7 @@ function ConditionRow({
           name={`triggerConditions.${index}.attribute`}
           render={({ field }) => (
             <InlineBadgePopover
-              text={
-                field.value
-                  ? SEND_CAMPAIGN_ATTRIBUTES[field.value].label
-                  : "activity"
-              }
+              text={SEND_CAMPAIGN_ATTRIBUTES[field.value]?.label ?? "activity"}
               invalid={!field.value}
             >
               <InlineBadgePopoverMenu

@@ -28,6 +28,14 @@ export async function validateWorkflowConditions({
     return;
   }
 
+  // Award bounty workflows require exactly one condition
+  if (workflowType === "awardBounty" && conditions.length !== 1) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Award bounty workflows require exactly one condition.",
+    });
+  }
+
   // Move group workflow requires at least one metric condition and one partner group condition
   if (workflowType === "moveGroup") {
     const hasPartnerGroup = conditions.some(

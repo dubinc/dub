@@ -37,7 +37,15 @@ export const deleteCampaignSchedule = async (
   },
 ) => {
   if (campaign.type == CampaignType.marketing && campaign.qstashMessageId) {
-    return await qstash.messages.cancel(campaign.qstashMessageId);
+    try {
+      await qstash.messages.cancel(campaign.qstashMessageId);
+    } catch (error) {
+      console.warn(
+        `Failed to delete QStash message ${campaign.qstashMessageId}:`,
+        error,
+      );
+    }
+    return;
   }
 
   if (
@@ -45,7 +53,14 @@ export const deleteCampaignSchedule = async (
     campaign.workflow &&
     isScheduledWorkflow(campaign.workflow)
   ) {
-    return await qstash.schedules.delete(campaign.workflow.id);
+    try {
+      await qstash.schedules.delete(campaign.workflow.id);
+    } catch (error) {
+      console.warn(
+        `Failed to delete QStash schedule ${campaign.workflow.id}:`,
+        error,
+      );
+    }
   }
 };
 
