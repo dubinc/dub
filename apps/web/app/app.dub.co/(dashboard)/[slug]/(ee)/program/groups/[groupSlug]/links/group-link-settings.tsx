@@ -1,6 +1,7 @@
 "use client";
 
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
+import { PARTNER_MACROS } from "@/lib/partners/macros";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
@@ -260,19 +261,30 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
               heading="UTM parameters"
               description="Configure [UTM tracking parameters](https://dub.co/help/article/partner-link-settings#utm-parameters) for all links in this group"
             >
-              <UTMBuilder
-                values={{
-                  utm_source: currentValues.utm_source || "",
-                  utm_medium: currentValues.utm_medium || "",
-                  utm_campaign: currentValues.utm_campaign || "",
-                  utm_term: currentValues.utm_term || "",
-                  utm_content: currentValues.utm_content || "",
-                  ref: currentValues.ref || "",
-                }}
-                onChange={(key, value) => {
-                  setValue(key, value, { shouldDirty: true });
-                }}
-              />
+              <div className="flex flex-col gap-3">
+                <UTMBuilder
+                  values={{
+                    utm_source: currentValues.utm_source || "",
+                    utm_medium: currentValues.utm_medium || "",
+                    utm_campaign: currentValues.utm_campaign || "",
+                    utm_term: currentValues.utm_term || "",
+                    utm_content: currentValues.utm_content || "",
+                    ref: currentValues.ref || "",
+                  }}
+                  onChange={(key, value) => {
+                    setValue(key, value, { shouldDirty: true });
+                  }}
+                  suggestions={PARTNER_MACROS.map((m) => ({
+                    value: m.macro,
+                    description: m.description,
+                  }))}
+                />
+                <p className="text-content-muted text-xs">
+                  Dynamic values:{" "}
+                  <code className="font-mono">{"{{PARTNER_NAME}}"}</code>,{" "}
+                  <code className="font-mono">{"{{PARTNER_LINK_KEY}}"}</code>
+                </p>
+              </div>
             </GroupSettingsRow>
           </motion.div>
         )}

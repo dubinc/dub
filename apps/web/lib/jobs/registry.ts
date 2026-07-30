@@ -29,6 +29,9 @@ const jobLoaders = {
     import("./handlers/create-tremendous-campaign-job").then(
       (m) => m.createTremendousCampaignJob,
     ),
+
+  "sync-group-utm-job": () =>
+    import("./handlers/sync-group-utm-job").then((m) => m.syncGroupUtmJob),
 } as const satisfies Record<string, () => Promise<JobDefinition>>;
 
 const jobCache = new Map<string, JobDefinition>();
