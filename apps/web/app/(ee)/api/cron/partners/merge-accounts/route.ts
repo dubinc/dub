@@ -4,6 +4,7 @@ import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -157,22 +158,34 @@ export async function POST(req: Request) {
       },
     };
 
-    // update links, commissions, bounty submissions, and payouts
+    // update links and payouts
     if (programIdsToTransfer.length > 0) {
-      const [
-        updatedLinksRes,
-        updatedCustomersRes,
-        updatedCommissionsRes,
-        updatedPayoutsRes,
-      ] = await Promise.all([
+      const [updatedLinksRes, updatedPayoutsRes] = await Promise.all([
         prisma.link.updateMany(updateManyPayload),
-        prisma.customer.updateMany(updateManyPayload),
-        prisma.commission.updateMany(updateManyPayload),
         prisma.payout.updateMany(updateManyPayload),
       ]);
       console.log(
-        `Updated ${updatedLinksRes.count} links, ${updatedCustomersRes.count} customers, ${updatedCommissionsRes.count} commissions, and ${updatedPayoutsRes.count} payouts`,
+        `Updated ${updatedLinksRes.count} links, and ${updatedPayoutsRes.count} payouts`,
       );
+
+      // for commissions / customers, we need to update them in batches of PRISMA_UPDATEMANY_LIMIT cause there can be a lot of them
+      while (true) {
+        const { count } = await prisma.commission.updateMany({
+          ...updateManyPayload,
+          limit: PRISMA_UPDATEMANY_LIMIT,
+        });
+        console.log(`Updated ${count} commissions`);
+        if (count < PRISMA_UPDATEMANY_LIMIT) break;
+      }
+
+      while (true) {
+        const { count } = await prisma.customer.updateMany({
+          ...updateManyPayload,
+          limit: PRISMA_UPDATEMANY_LIMIT,
+        });
+        console.log(`Updated ${count} customers`);
+        if (count < PRISMA_UPDATEMANY_LIMIT) break;
+      }
 
       // update discount codes, notification emails, messages, and partner comments
       const [
