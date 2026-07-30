@@ -1,12 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { awardBountyConditionSchema } from "@/lib/api/workflows/award-bounty/schema";
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
-import {
-  BountyPerformanceScope,
-  BountySubmissionStatus,
-  BountyType,
-  Prisma,
-} from "@prisma/client";
+import { BountyPerformanceScope, BountyType, Prisma } from "@prisma/client";
 import * as z from "zod/v4";
 
 type AwardBountyCondition = z.infer<typeof awardBountyConditionSchema>;
@@ -22,14 +17,13 @@ export type PartnerLifetimeStats = {
 export type ExistingBountySubmission = {
   id: string;
   partnerId: string;
-  status: BountySubmissionStatus;
+  performanceCount: number;
 };
 
 export type DraftBountySubmissionUpdate = {
   id: string;
   performanceCount: number;
   promoteToSubmitted: boolean;
-  expectedStatus: "draft" | "submitted";
 };
 
 export function shouldUpsertDraftSubmissionsOnReopen({
@@ -61,13 +55,13 @@ export function shouldUpsertDraftSubmissionsOnReopen({
 
 export function planDraftBountySubmissionUpserts({
   partners,
-  existingSubmissions,
+  existingDraftSubmissions,
   condition,
   programId,
   bountyId,
 }: {
   partners: PartnerLifetimeStats[];
-  existingSubmissions: ExistingBountySubmission[];
+  existingDraftSubmissions: ExistingBountySubmission[];
   condition: AwardBountyCondition;
   programId: string;
   bountyId: string;
@@ -76,7 +70,10 @@ export function planDraftBountySubmissionUpserts({
   toUpdate: DraftBountySubmissionUpdate[];
 } {
   const existingByPartnerId = new Map(
-    existingSubmissions.map((submission) => [submission.partnerId, submission]),
+    existingDraftSubmissions.map((submission) => [
+      submission.partnerId,
+      submission,
+    ]),
   );
 
   const toCreate: Prisma.BountySubmissionCreateManyInput[] = [];
@@ -86,20 +83,8 @@ export function planDraftBountySubmissionUpserts({
     const performanceCount = partner[condition.attribute];
     const existing = existingByPartnerId.get(partner.id);
 
+    // skip if no performanceCount
     if (performanceCount <= 0) {
-      if (!existing) {
-        continue;
-      }
-
-      if (existing.status === "draft" || existing.status === "submitted") {
-        toUpdate.push({
-          id: existing.id,
-          performanceCount,
-          promoteToSubmitted: false,
-          expectedStatus: existing.status,
-        });
-      }
-
       continue;
     }
 
@@ -125,22 +110,11 @@ export function planDraftBountySubmissionUpserts({
       continue;
     }
 
-    if (existing.status === "draft") {
+    if (existing.performanceCount !== performanceCount) {
       toUpdate.push({
         id: existing.id,
         performanceCount,
         promoteToSubmitted: conditionMet,
-        expectedStatus: "draft",
-      });
-      continue;
-    }
-
-    if (existing.status === "submitted") {
-      toUpdate.push({
-        id: existing.id,
-        performanceCount,
-        promoteToSubmitted: false,
-        expectedStatus: "submitted",
       });
     }
   }

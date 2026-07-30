@@ -24,7 +24,7 @@ const schema = z.object({
 const MAX_PAGE_SIZE = 100;
 
 // POST /api/cron/bounties/upsert-draft-submissions
-// Create or update draft/submitted bounty submissions for lifetime performance bounties
+// Create OR update draft bounty submissions for lifetime performance bounties
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -148,24 +148,30 @@ export async function POST(req: Request) {
       },
     );
 
-    const existingSubmissions = await prisma.bountySubmission.findMany({
+    const existingDraftSubmissions = await prisma.bountySubmission.findMany({
       where: {
         bountyId: bounty.id,
         partnerId: {
           in: partners.map((partner) => partner.id),
         },
-        periodNumber: 1,
+        periodNumber: 1, // only one submission is allowed for performance based bounties
+        status: "draft",
       },
       select: {
         id: true,
         partnerId: true,
-        status: true,
+        performanceCount: true,
       },
     });
 
     const { toCreate, toUpdate } = planDraftBountySubmissionUpserts({
       partners,
-      existingSubmissions,
+      existingDraftSubmissions: existingDraftSubmissions.map((submission) => ({
+        ...submission,
+        performanceCount: submission.performanceCount
+          ? Number(submission.performanceCount)
+          : 0,
+      })),
       condition,
       programId: bounty.programId,
       bountyId: bounty.id,
@@ -183,12 +189,12 @@ export async function POST(req: Request) {
         : { count: 0 };
 
     if (toUpdate.length > 0) {
-      await prisma.$transaction(
+      await Promise.allSettled(
         toUpdate.map((update) =>
-          prisma.bountySubmission.updateMany({
+          prisma.bountySubmission.update({
             where: {
               id: update.id,
-              status: update.expectedStatus,
+              status: "draft", // in case of race condition, we don't want to update an already submitted entry
             },
             data: {
               performanceCount: update.performanceCount,
