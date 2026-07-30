@@ -1,6 +1,8 @@
 import { ActivityLog, GroupProps, ProgramProps } from "@/lib/types";
 import { getResourceColorData, RAINBOW_CONIC_GRADIENT } from "@/ui/colors";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { SubmittedLeadStatusBadges } from "@/ui/submitted-leads/submitted-lead-status-badges";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { Bolt, Tooltip } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { SubmittedLeadStatus } from "@prisma/client";
@@ -132,6 +134,25 @@ export function SubmittedLeadStatusPill({
   if (!badge) return null;
 
   return <ActivityChip className={badge.className}>{badge.label}</ActivityChip>;
+}
+
+export function PartnerStatusPill({
+  status,
+}: {
+  status: ProgramEnrollmentStatus;
+}) {
+  const badge = PartnerStatusBadges[status];
+
+  if (!badge) return null;
+
+  const Icon = badge.icon;
+
+  return (
+    <ActivityChip className={badge.className}>
+      <Icon className="size-3.5" />
+      {badge.label}
+    </ActivityChip>
+  );
 }
 
 export function ActivityLogUserAvatar({ user }: { user: ActivityLog["user"] }) {
