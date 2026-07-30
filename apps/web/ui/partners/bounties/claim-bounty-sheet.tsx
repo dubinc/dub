@@ -688,7 +688,9 @@ export function ClaimBountySheet({
 }: ClaimBountySheetProps) {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <ClaimBountyProvider>
+      <ClaimBountyProvider
+        socialUrlSlotCount={resolveBountyDetails(bounty)?.socialUrlSlotCount}
+      >
         <ClaimBountySheetContent
           bounty={bounty}
           isOpen={isOpen}

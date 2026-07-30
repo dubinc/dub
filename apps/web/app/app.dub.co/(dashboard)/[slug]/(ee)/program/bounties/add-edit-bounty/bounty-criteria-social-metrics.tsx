@@ -144,6 +144,10 @@ export function BountyCriteriaSocialMetrics() {
       ? selectedPlatforms.filter((v) => v !== value)
       : [...selectedPlatforms, value];
 
+    if (next.length === 0) {
+      return;
+    }
+
     const nextCommonMetrics = getCommonMetrics(next);
 
     const metric =

@@ -522,6 +522,17 @@ export class BountySubmissionHandler {
             },
           ];
 
+    if (isAnd && pendingChecks.length < platforms.length) {
+      const missing = platforms.filter(
+        (p) => !pendingChecks.some((c) => c.platform === p.value),
+      );
+
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: `You must provide a link for each of: ${missing.map((p) => p.label).join(", ")}.`,
+      });
+    }
+
     const results: {
       platform: string;
       url: string;

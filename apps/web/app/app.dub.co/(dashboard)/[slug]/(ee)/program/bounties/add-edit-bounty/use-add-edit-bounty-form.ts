@@ -16,7 +16,7 @@ import {
   BountySocialPlatform,
   BountySocialPlatformMetric,
 } from "@/lib/types";
-import { bountySocialContentRequirementsSchema } from "@/lib/zod/schemas/bounties";
+import { bountySocialContentRequirementsWriteSchema } from "@/lib/zod/schemas/bounties";
 import { formatDate } from "@dub/utils";
 import { BountySubmissionFrequency } from "@prisma/client";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -461,7 +461,7 @@ export function useAddEditBountyForm({
         }
 
         const parsed =
-          bountySocialContentRequirementsSchema.safeParse(socialMetrics);
+          bountySocialContentRequirementsWriteSchema.safeParse(socialMetrics);
 
         if (!parsed.success) {
           return (

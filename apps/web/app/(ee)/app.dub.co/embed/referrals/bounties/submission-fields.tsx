@@ -215,28 +215,30 @@ export function EmbedImagesField({
 
 export function EmbedSocialUrlField({
   bounty,
+  slot,
   platforms,
   value,
   onChange,
   partnerPlatform,
-  onVerifyingChange,
-  onRequirementsMetChange,
+  setSocialContentVerifying,
+  setSocialContentRequirementsMet,
 }: {
   bounty: PartnerBountyProps;
+  slot: number;
   platforms: (typeof BOUNTY_SOCIAL_PLATFORMS)[number][];
   value: string;
   onChange: (v: string) => void;
   partnerPlatform?: Pick<PartnerPlatformProps, "identifier" | "verifiedAt">;
-  onVerifyingChange: (value: boolean) => void;
-  onRequirementsMetChange: (value: boolean) => void;
+  setSocialContentVerifying: (slot: number, value: boolean) => void;
+  setSocialContentRequirementsMet: (slot: number, value: boolean) => void;
 }) {
   const inputId = useId();
   const [urlToCheck, setUrlToCheck] = useState("");
 
   useEffect(() => {
     setUrlToCheck("");
-    onRequirementsMetChange(false);
-  }, [value, onRequirementsMetChange]);
+    setSocialContentRequirementsMet(slot, false);
+  }, [value, slot, setSocialContentRequirementsMet]);
 
   const { data, error, isValidating } = useEmbedSocialContent({
     bountyId: bounty.id,
@@ -244,15 +246,13 @@ export function EmbedSocialUrlField({
   });
 
   useEffect(() => {
-    onVerifyingChange(isValidating);
-    return () => onVerifyingChange(false);
-  }, [isValidating, onVerifyingChange]);
+    setSocialContentVerifying(slot, isValidating);
+    return () => setSocialContentVerifying(slot, false);
+  }, [isValidating, slot, setSocialContentVerifying]);
 
   const detectedPlatform = getPlatformFromSocialUrl(value);
   const matchedPlatform =
     platforms.find((p) => p.value === detectedPlatform) ?? platforms[0];
-
-  if (!matchedPlatform) return null;
 
   const { isPostedFromYourAccount, isAfterStartDate } =
     evaluateSocialContentRequirements({
@@ -269,9 +269,19 @@ export function EmbedSocialUrlField({
     });
 
   useEffect(() => {
-    onRequirementsMetChange(isPostedFromYourAccount && isAfterStartDate);
-    return () => onRequirementsMetChange(true);
-  }, [isAfterStartDate, isPostedFromYourAccount, onRequirementsMetChange]);
+    setSocialContentRequirementsMet(
+      slot,
+      isPostedFromYourAccount && isAfterStartDate,
+    );
+    return () => setSocialContentRequirementsMet(slot, false);
+  }, [
+    isAfterStartDate,
+    isPostedFromYourAccount,
+    slot,
+    setSocialContentRequirementsMet,
+  ]);
+
+  if (!matchedPlatform) return null;
 
   const showIcon = isValidating || (!!error && !!urlToCheck);
   const isSinglePlatform = platforms.length === 1;
@@ -375,10 +385,8 @@ export function EmbedSocialUrlFields({
   urls,
   setUrls,
   partnerPlatforms,
-  verifyingBySlot,
-  setVerifyingBySlot,
-  requirementsMetBySlot,
-  setRequirementsMetBySlot,
+  setSocialContentVerifying,
+  setSocialContentRequirementsMet,
 }: {
   bounty: PartnerBountyProps;
   urls: string[];
@@ -388,14 +396,8 @@ export function EmbedSocialUrlFields({
     identifier: string;
     verifiedAt: Date | null;
   }>;
-  verifyingBySlot: Record<number, boolean>;
-  setVerifyingBySlot: React.Dispatch<
-    React.SetStateAction<Record<number, boolean>>
-  >;
-  requirementsMetBySlot: Record<number, boolean>;
-  setRequirementsMetBySlot: React.Dispatch<
-    React.SetStateAction<Record<number, boolean>>
-  >;
+  setSocialContentVerifying: (slot: number, value: boolean) => void;
+  setSocialContentRequirementsMet: (slot: number, value: boolean) => void;
 }) {
   const bountyInfo = resolveBountyDetails(bounty);
   const platforms = bountyInfo?.socialPlatforms ?? [];
@@ -403,16 +405,6 @@ export function EmbedSocialUrlFields({
   if (platforms.length === 0) {
     return null;
   }
-
-  const setSlotVerifying = (slot: number, value: boolean) =>
-    setVerifyingBySlot((prev) =>
-      prev[slot] === value ? prev : { ...prev, [slot]: value },
-    );
-
-  const setSlotRequirementsMet = (slot: number, value: boolean) =>
-    setRequirementsMetBySlot((prev) =>
-      prev[slot] === value ? prev : { ...prev, [slot]: value },
-    );
 
   const fieldPlatforms = bountyInfo?.isAndSocialMetrics
     ? platforms.map((p) => [p])
@@ -431,8 +423,9 @@ export function EmbedSocialUrlFields({
 
         return (
           <EmbedSocialUrlField
-            key={matchedPlatform?.value ?? slot}
+            key={slot}
             bounty={bounty}
+            slot={slot}
             platforms={fieldPlatformSet}
             value={urls[slot] ?? ""}
             onChange={(v) =>
@@ -446,8 +439,8 @@ export function EmbedSocialUrlFields({
               })
             }
             partnerPlatform={partnerPlatform}
-            onVerifyingChange={(v) => setSlotVerifying(slot, v)}
-            onRequirementsMetChange={(v) => setSlotRequirementsMet(slot, v)}
+            setSocialContentVerifying={setSocialContentVerifying}
+            setSocialContentRequirementsMet={setSocialContentRequirementsMet}
           />
         );
       })}

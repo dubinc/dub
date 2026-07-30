@@ -55,10 +55,77 @@ export const bountySocialContentIncrementalBonusSchema = z
     },
   );
 
+const bountySocialContentRequirementsBaseSchema = z.object({
+  logic: z
+    .enum(BOUNTY_SOCIAL_METRIC_LOGIC)
+    .default("OR")
+    .describe(
+      "How the selected platforms are combined: OR (any one platform) or AND (every platform)",
+    ),
+  platforms: z
+    .array(z.enum(BOUNTY_SOCIAL_PLATFORM_VALUES))
+    .min(1)
+    .max(BOUNTY_SOCIAL_PLATFORMS.length)
+    .describe(
+      "The social platform(s) content must be submitted from. A single platform behaves the same regardless of `logic`; multiple platforms are combined using `logic` (OR: any one platform reaching the target qualifies; AND: every platform must reach the target).",
+    ),
+  // Legacy single-platform field kept for API/SDK compatibility.
+  // Always set to platforms[0] after parse; also accepted inbound via preprocess.
+  platform: z
+    .enum(BOUNTY_SOCIAL_PLATFORM_VALUES)
+    .optional()
+    .describe(
+      "Deprecated. Prefer `platforms`. The primary/first social platform (platforms[0]).",
+    ),
+  metric: z
+    .enum(BOUNTY_SOCIAL_PLATFORM_METRICS)
+    .describe(
+      "The social metric (e.g. views, likes) to track against `minCount`. Must be supported by every platform in `platforms`.",
+    ),
+  minCount: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Minimum metric required for eligibility"),
+  incrementalBonus: bountySocialContentIncrementalBonusSchema.optional(),
+});
+
+// Keep `platform` optional in the output type so form drafts can omit it;
+// responses still always include it after parse.
+const withLegacyPlatformField = (
+  data: z.infer<typeof bountySocialContentRequirementsBaseSchema>,
+): z.infer<typeof bountySocialContentRequirementsBaseSchema> => ({
+  ...data,
+  platform: data.platforms[0],
+});
+
 // Backward compatible: legacy bounties stored a single `platform` instead of
 // `platforms`. Normalize that shape to the new multi-platform shape so old
 // data keeps parsing correctly (as a single-platform, "OR" logic bounty).
-export const bountySocialContentRequirementsSchema = z.preprocess(
+// Also emit `platform: platforms[0]` on output so existing API clients keep working.
+export const bountySocialContentRequirementsSchema = z.preprocess((value) => {
+  if (
+    value &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    "platform" in value &&
+    !("platforms" in value)
+  ) {
+    const { platform, ...rest } = value as Record<string, unknown>;
+
+    return {
+      logic: "OR",
+      platforms: [platform],
+      ...rest,
+    };
+  }
+
+  return value;
+}, bountySocialContentRequirementsBaseSchema.transform(withLegacyPlatformField));
+
+// Stricter schema for create/update: metric must be supported by every selected platform.
+export const bountySocialContentRequirementsWriteSchema = z.preprocess(
   (value) => {
     if (
       value &&
@@ -78,34 +145,7 @@ export const bountySocialContentRequirementsSchema = z.preprocess(
 
     return value;
   },
-  z
-    .object({
-      logic: z
-        .enum(BOUNTY_SOCIAL_METRIC_LOGIC)
-        .default("OR")
-        .describe(
-          "How the selected platforms are combined: OR (any one platform) or AND (every platform)",
-        ),
-      platforms: z
-        .array(z.enum(BOUNTY_SOCIAL_PLATFORM_VALUES))
-        .min(1)
-        .max(BOUNTY_SOCIAL_PLATFORMS.length)
-        .describe(
-          "The social platform(s) content must be submitted from. A single platform behaves the same regardless of `logic`; multiple platforms are combined using `logic` (OR: any one platform reaching the target qualifies; AND: every platform must reach the target).",
-        ),
-      metric: z
-        .enum(BOUNTY_SOCIAL_PLATFORM_METRICS)
-        .describe(
-          "The social metric (e.g. views, likes) to track against `minCount`. Must be supported by every platform in `platforms`.",
-        ),
-      minCount: z
-        .number()
-        .int()
-        .positive()
-        .optional()
-        .describe("Minimum metric required for eligibility"),
-      incrementalBonus: bountySocialContentIncrementalBonusSchema.optional(),
-    })
+  bountySocialContentRequirementsBaseSchema
     .refine(
       (data) =>
         data.platforms.every((platform) =>
@@ -117,7 +157,8 @@ export const bountySocialContentRequirementsSchema = z.preprocess(
         message: "Selected metric isn't available on all selected platforms.",
         path: ["metric"],
       },
-    ),
+    )
+    .transform(withLegacyPlatformField),
 );
 
 export const bountySocialMetricResultSchema = z.object({
@@ -135,7 +176,7 @@ export const bountySocialMetricResultSchema = z.object({
     .describe("Whether this platform's content meets the metric target."),
 });
 
-export const submissionRequirementsSchema = z.object({
+const submissionRequirementsFields = {
   image: z
     .object({
       max: z.number().int().positive().optional(),
@@ -147,14 +188,29 @@ export const submissionRequirementsSchema = z.object({
       domains: z.array(z.string()).optional(),
     })
     .optional(),
+} as const;
+
+const socialMetricsDescribe =
+  "Social media engagement requirements. Accepts either the current shape " +
+  "(`{ platforms: string[], logic: 'OR' | 'AND', metric, minCount, incrementalBonus }`) " +
+  "or, for backward compatibility, the legacy single-platform shape (`{ platform: string, metric, minCount, incrementalBonus }`), " +
+  "which is normalized to `platforms: [platform], logic: 'OR'`. Responses also include deprecated `platform` (= platforms[0]).";
+
+// Lenient read schema — does not enforce metric/platform compatibility so
+// legacy rows (e.g. LinkedIn + views) still parse and keep verification enabled.
+export const submissionRequirementsSchema = z.object({
+  ...submissionRequirementsFields,
   socialMetrics: bountySocialContentRequirementsSchema
     .optional()
-    .describe(
-      "Social media engagement requirements. Accepts either the current shape " +
-        "(`{ platforms: string[], logic: 'OR' | 'AND', metric, minCount, incrementalBonus }`) " +
-        "or, for backward compatibility, the legacy single-platform shape (`{ platform: string, metric, minCount, incrementalBonus }`), " +
-        "which is normalized to `platforms: [platform], logic: 'OR'` on read.",
-    ),
+    .describe(socialMetricsDescribe),
+});
+
+// Stricter write schema used by create/update bounty endpoints.
+export const submissionRequirementsWriteSchema = z.object({
+  ...submissionRequirementsFields,
+  socialMetrics: bountySocialContentRequirementsWriteSchema
+    .optional()
+    .describe(socialMetricsDescribe),
 });
 
 export const createBountySchema = z.object({
@@ -193,7 +249,7 @@ export const createBountySchema = z.object({
     .max(100, "Reward description must be less than 100 characters")
     .transform((v) => (v === "" ? null : v))
     .nullish(),
-  submissionRequirements: submissionRequirementsSchema.nullish(),
+  submissionRequirements: submissionRequirementsWriteSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
   performanceCondition: awardBountyConditionSchema.nullish(),
   performanceScope: z.enum(BountyPerformanceScope).nullish(),

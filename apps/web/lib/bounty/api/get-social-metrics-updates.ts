@@ -81,14 +81,22 @@ export async function getSocialMetricsUpdates({
       ),
   );
 
-  const results = await Promise.allSettled(
-    tasks.map((task) =>
-      getSocialContent({
-        platform: task.platform,
-        url: task.url,
-      }),
-    ),
-  );
+  const results: PromiseSettledResult<
+    Awaited<ReturnType<typeof getSocialContent>>
+  >[] = [];
+
+  for (let i = 0; i < tasks.length; i += 10) {
+    const batch = tasks.slice(i, i + 10);
+    const batchResults = await Promise.allSettled(
+      batch.map((task) =>
+        getSocialContent({
+          platform: task.platform,
+          url: task.url,
+        }),
+      ),
+    );
+    results.push(...batchResults);
+  }
 
   const resultsBySubmission = new Map<string, SocialMetricResult[]>();
 
@@ -145,14 +153,24 @@ export async function getSocialMetricsUpdates({
       .map((r) => r.metricCount)
       .filter((c): c is number => c != null);
 
-    const socialMetricCount =
-      isAnd &&
-      hasAllRequiredPlatforms &&
-      validCounts.length === socialMetricResults.length
-        ? Math.min(...validCounts)
-        : !isAnd
-          ? socialMetricResults[0]?.metricCount ?? null
-          : null;
+    // Skip incomplete AND scrapes (or any null aggregate) so we don't wipe
+    // previously good socialMetricCount / socialMetricResults in the DB.
+    if (isAnd) {
+      if (
+        !hasAllRequiredPlatforms ||
+        validCounts.length !== socialMetricResults.length
+      ) {
+        continue;
+      }
+    }
+
+    const socialMetricCount = isAnd
+      ? Math.min(...validCounts)
+      : socialMetricResults[0]?.metricCount ?? null;
+
+    if (socialMetricCount == null) {
+      continue;
+    }
 
     updates.push({
       id: submission.id,

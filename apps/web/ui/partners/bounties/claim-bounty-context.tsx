@@ -21,8 +21,10 @@ const ClaimBountyContext = createContext<ClaimBountyContextValue | undefined>(
 );
 
 export function ClaimBountyProvider({
+  socialUrlSlotCount = 0,
   children,
 }: {
+  socialUrlSlotCount?: number;
   children: React.ReactNode;
 }) {
   const [verifyingBySlot, setVerifyingBySlot] = useState<
@@ -56,14 +58,22 @@ export function ClaimBountyProvider({
   }, []);
 
   const socialContentVerifying = useMemo(
-    () => Object.values(verifyingBySlot).some(Boolean),
-    [verifyingBySlot],
+    () =>
+      Array.from(
+        { length: socialUrlSlotCount },
+        (_, i) => verifyingBySlot[i],
+      ).some(Boolean),
+    [socialUrlSlotCount, verifyingBySlot],
   );
 
-  // Vacuously true when there are no social URL fields registered yet.
   const socialContentRequirementsMet = useMemo(
-    () => Object.values(requirementsMetBySlot).every(Boolean),
-    [requirementsMetBySlot],
+    () =>
+      socialUrlSlotCount === 0 ||
+      Array.from(
+        { length: socialUrlSlotCount },
+        (_, i) => requirementsMetBySlot[i] === true,
+      ).every(Boolean),
+    [socialUrlSlotCount, requirementsMetBySlot],
   );
 
   return (

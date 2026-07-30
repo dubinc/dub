@@ -20,17 +20,6 @@ export const GET = withPartnerProfile(
 
     const { url } = searchParamsSchema.parse(searchParams);
 
-    const { success } = await ratelimit(10, "1 h").limit(
-      `partner-profile:social-content-stats:${partner.id}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "You've been rate limited. Please try again later.",
-      });
-    }
-
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId,
@@ -48,6 +37,18 @@ export const GET = withPartnerProfile(
       throw new DubApiError({
         code: "bad_request",
         message: "This bounty does not have social content requirements.",
+      });
+    }
+
+    const rateLimit = 10 * Math.max(1, bountyInfo.socialPlatforms.length);
+    const { success } = await ratelimit(rateLimit, "1 h").limit(
+      `partner-profile:social-content-stats:${partner.id}`,
+    );
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "You've been rate limited. Please try again later.",
       });
     }
 

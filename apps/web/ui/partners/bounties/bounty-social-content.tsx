@@ -143,7 +143,7 @@ export function SocialContentUrlField({
       checks.isPostedFromYourAccount && checks.isAfterStartDate,
     );
 
-    return () => setSocialContentRequirementsMet(slot, true);
+    return () => setSocialContentRequirementsMet(slot, false);
   }, [data, bounty, partnerPlatform, slot, setSocialContentRequirementsMet]);
 
   const showIcon = isValidating || (error && urlToCheck);
@@ -281,11 +281,20 @@ export function SocialAccountNotVerifiedWarning({
     return !partnerPlatform?.verifiedAt;
   });
 
-  if (missingPlatforms.length === 0) {
+  // OR: warn only when no allowed platform is verified.
+  // AND: warn when any required platform is missing.
+  const shouldWarn = bountyInfo?.isAndSocialMetrics
+    ? missingPlatforms.length > 0
+    : missingPlatforms.length === platforms.length;
+
+  if (!shouldWarn) {
     return null;
   }
 
-  const platformsList = formatSocialPlatformsList(missingPlatforms, "AND");
+  const platformsList = formatSocialPlatformsList(
+    missingPlatforms,
+    bountyInfo?.isAndSocialMetrics ? "AND" : "OR",
+  );
 
   return (
     <div className="bg-bg-attention flex flex-col items-center justify-between gap-2 rounded-lg p-2 text-center sm:flex-row">

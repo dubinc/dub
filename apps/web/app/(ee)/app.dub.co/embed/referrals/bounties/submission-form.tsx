@@ -10,7 +10,7 @@ import { SocialAccountNotVerifiedWarning } from "@/ui/partners/bounties/bounty-s
 import { Button, ChevronRight, Popover, Trophy } from "@dub/ui";
 import { PlatformType } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import { useEmbedToken } from "../../use-embed-token";
@@ -94,9 +94,18 @@ export function EmbedBountySubmissionForm({
   const bountyInfo = resolveBountyDetails(bounty);
   const isSocialMetricsBounty = bountyInfo?.hasSocialMetrics ?? false;
   const socialPlatforms = bountyInfo?.socialPlatforms ?? [];
+  const socialUrlSlotCount = bountyInfo?.socialUrlSlotCount ?? 0;
   const imageRequired = !!bounty.submissionRequirements?.image;
   const urlRequired =
     !!bounty.submissionRequirements?.url && !isSocialMetricsBounty;
+
+  const initialSlotState = useMemo(
+    () =>
+      Object.fromEntries(
+        Array.from({ length: socialUrlSlotCount }, (_, i) => [i, false]),
+      ) as Record<number, boolean>,
+    [socialUrlSlotCount],
+  );
 
   const [files, setFiles] = useState<FileInput[]>(() =>
     (existingSubmission?.files ?? []).map((f) => ({
@@ -117,16 +126,48 @@ export function EmbedBountySubmissionForm({
   const [fileUploading, setFileUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDraftSaving, setIsDraftSaving] = useState(false);
-  const [verifyingBySlot, setVerifyingBySlot] = useState<
-    Record<number, boolean>
-  >({});
-  const [requirementsMetBySlot, setRequirementsMetBySlot] = useState<
-    Record<number, boolean>
-  >({});
-  const socialContentVerifying = Object.values(verifyingBySlot).some(Boolean);
-  const socialContentRequirementsMet = Object.values(
-    requirementsMetBySlot,
-  ).every(Boolean);
+  const [verifyingBySlot, setVerifyingBySlot] =
+    useState<Record<number, boolean>>(initialSlotState);
+  const [requirementsMetBySlot, setRequirementsMetBySlot] =
+    useState<Record<number, boolean>>(initialSlotState);
+
+  const setSocialContentVerifying = useCallback(
+    (slot: number, value: boolean) => {
+      setVerifyingBySlot((prev) =>
+        prev[slot] === value ? prev : { ...prev, [slot]: value },
+      );
+    },
+    [],
+  );
+
+  const setSocialContentRequirementsMet = useCallback(
+    (slot: number, value: boolean) => {
+      setRequirementsMetBySlot((prev) =>
+        prev[slot] === value ? prev : { ...prev, [slot]: value },
+      );
+    },
+    [],
+  );
+
+  const socialContentVerifying = useMemo(
+    () =>
+      Array.from(
+        { length: socialUrlSlotCount },
+        (_, i) => verifyingBySlot[i],
+      ).some(Boolean),
+    [socialUrlSlotCount, verifyingBySlot],
+  );
+
+  const socialContentRequirementsMet = useMemo(
+    () =>
+      socialUrlSlotCount === 0 ||
+      Array.from(
+        { length: socialUrlSlotCount },
+        (_, i) => requirementsMetBySlot[i] === true,
+      ).every(Boolean),
+    [socialUrlSlotCount, requirementsMetBySlot],
+  );
+
   const [confirmSubmitOpen, setConfirmSubmitOpen] = useState(false);
 
   const submissionsOpenAt = bounty.submissionsOpenAt
@@ -332,10 +373,8 @@ export function EmbedBountySubmissionForm({
               urls={urls}
               setUrls={setUrls}
               partnerPlatforms={partnerPlatforms}
-              verifyingBySlot={verifyingBySlot}
-              setVerifyingBySlot={setVerifyingBySlot}
-              requirementsMetBySlot={requirementsMetBySlot}
-              setRequirementsMetBySlot={setRequirementsMetBySlot}
+              setSocialContentVerifying={setSocialContentVerifying}
+              setSocialContentRequirementsMet={setSocialContentRequirementsMet}
             />
           </>
         ) : (
