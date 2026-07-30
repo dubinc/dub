@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
@@ -38,7 +39,7 @@ export function Form() {
       mutate();
     },
     onError: ({ error }) => {
-      toast.error(error.serverError as string);
+      toast.error(parseActionError(error, "Failed to save program settings."));
       setHasSubmitted(false);
     },
   });
