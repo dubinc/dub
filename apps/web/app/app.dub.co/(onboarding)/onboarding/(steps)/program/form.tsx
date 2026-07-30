@@ -45,11 +45,12 @@ export function Form() {
   });
 
   const onSubmit = async (data: ProgramData) => {
-    if (!workspaceId) return;
+    if (!workspaceId || !data.supportEmail) return;
 
     setHasSubmitted(true);
     await executeAsync({
       ...data,
+      supportEmail: data.supportEmail,
       workspaceId,
       step: "get-started",
     });
@@ -186,6 +187,7 @@ export function Form() {
         <Controller
           control={control}
           name="supportEmail"
+          rules={{ required: "Please enter a support email." }}
           render={({ field }) => (
             <Input
               value={field.value || ""}
