@@ -101,7 +101,7 @@ export function planDraftBountySubmissionUpserts({
         programId,
         partnerId: partner.id,
         bountyId,
-        performanceCount,
+        performanceCount: conditionMet ? condition.value : performanceCount,
         ...(conditionMet && {
           status: "submitted",
           completedAt: new Date(),
@@ -114,7 +114,7 @@ export function planDraftBountySubmissionUpserts({
     if (existing.performanceCount !== performanceCount || conditionMet) {
       toUpdate.push({
         id: existing.id,
-        performanceCount,
+        performanceCount: conditionMet ? condition.value : performanceCount,
         promoteToSubmitted: conditionMet,
       });
     }

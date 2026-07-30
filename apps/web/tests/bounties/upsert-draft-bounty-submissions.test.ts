@@ -211,7 +211,7 @@ describe("planDraftBountySubmissionUpserts", () => {
 
     expect(toCreate).toHaveLength(1);
     expect(toCreate[0]).toMatchObject({
-      performanceCount: 15_000,
+      performanceCount: condition.value,
       status: "submitted",
       completedAt: expect.any(Date),
     });
@@ -248,7 +248,7 @@ describe("planDraftBountySubmissionUpserts", () => {
     expect(toUpdate).toEqual([
       {
         id: "bnty_sub_1",
-        performanceCount: 12_000,
+        performanceCount: condition.value,
         promoteToSubmitted: true,
       },
     ]);
