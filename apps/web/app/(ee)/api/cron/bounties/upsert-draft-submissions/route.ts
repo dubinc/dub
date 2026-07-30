@@ -8,6 +8,7 @@ import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { prisma } from "@/lib/prisma";
+import { COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { APP_DOMAIN_WITH_NGROK, log, toCentsNumber } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
@@ -94,7 +95,7 @@ export async function POST(req: Request) {
           },
         }),
         status: {
-          in: ["approved", "invited"],
+          in: COMMISSION_ELIGIBLE_ENROLLMENT_STATUSES,
         },
       },
       select: {
