@@ -4,7 +4,7 @@ import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-ur
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { extractAndResolveUtmParams } from "@/lib/api/utm/extract-and-resolve-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { prisma } from "@/lib/prisma";
@@ -94,6 +94,11 @@ export const POST = withWorkspace(
         ? { partnerId_programId: { partnerId, programId } }
         : { tenantId_programId: { tenantId: tenantId!, programId } },
       include: {
+        partner: {
+          select: {
+            name: true,
+          },
+        },
         partnerGroup: {
           include: {
             partnerGroupDefaultLinks: true,
@@ -123,6 +128,11 @@ export const POST = withWorkspace(
     validatePartnerLinkUrl({ group: partnerGroup, url });
 
     const linkUrl = url || partnerGroup.partnerGroupDefaultLinks[0].url;
+    const partnerLinkKey = key || "";
+    const utmContext = {
+      partnerName: partner.partner.name || partnerLinkKey,
+      partnerLinkKey: partnerLinkKey || partner.partner.name || "",
+    };
 
     const { link, error, code } = await processLink({
       payload: {
@@ -132,7 +142,10 @@ export const POST = withWorkspace(
         url: linkUrl,
         ...(partnerGroup.utmTemplate
           ? {
-              ...extractUtmParams(partnerGroup.utmTemplate),
+              ...extractAndResolveUtmParams(
+                partnerGroup.utmTemplate,
+                utmContext,
+              ),
               ...getUTMParamsFromURL(linkUrl),
             }
           : {}),
