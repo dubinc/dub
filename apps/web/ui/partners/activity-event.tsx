@@ -44,7 +44,7 @@ export function ActivityEvent({
               side="right"
               rows={["local", "utc", "unix"]}
             >
-              <span className="shrink-0 text-xs text-neutral-400 sm:ml-auto">
+              <span className="w-fit shrink-0 cursor-help text-xs text-neutral-400 sm:ml-auto">
                 {formatDateTime(timestamp)}
               </span>
             </TimestampTooltip>
