@@ -359,7 +359,7 @@ async function resolveProgramEnrollment({
     }),
 
     commissions
-      ? await prisma.commission.aggregate({
+      ? prisma.commission.aggregate({
           where: {
             earnings: {
               not: 0,

@@ -39,19 +39,19 @@ export function BountyInfo() {
           </div>
         </div>
 
-        <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
+        <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
           <Calendar6 className="size-4 shrink-0" />
           <span>{dateRangeLabel}</span>
         </div>
 
-        <BountyRewardDescription bounty={bounty} className="font-regular" />
+        <BountyRewardDescription bounty={bounty} className="font-normal" />
 
         {isOwner && (
           <BountyEligibilitySummary
             groups={bounty.groups}
             partnerTags={bounty.partnerTags}
             iconClassName="size-4"
-            className="font-regular"
+            className="font-normal"
           />
         )}
       </div>

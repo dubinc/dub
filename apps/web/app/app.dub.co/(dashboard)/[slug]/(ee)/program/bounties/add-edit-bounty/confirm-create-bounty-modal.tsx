@@ -115,13 +115,13 @@ function ConfirmCreateBountyModal({
                 {bounty.name}
               </h3>
 
-              <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
+              <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
                 <Calendar6 className="size-3.5" />
                 <span>{dateRangeLabel}</span>
               </div>
 
               {!isOwner && (
-                <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
+                <div className="text-content-subtle flex items-center gap-2 text-sm font-normal">
                   <Gift className="size-3.5 shrink-0" />
                   <span className="truncate">
                     {getBountyRewardDescription(bounty)}
@@ -133,7 +133,7 @@ function ConfirmCreateBountyModal({
                 <BountyEligibilitySummary
                   groups={bounty.groups}
                   partnerTags={bounty.partnerTags}
-                  className="font-regular"
+                  className="font-normal"
                 />
               )}
             </div>
