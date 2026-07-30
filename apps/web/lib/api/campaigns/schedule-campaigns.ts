@@ -151,17 +151,32 @@ export const scheduleTransactionalCampaign = async ({
     updatedCampaign.status === "active";
 
   if (shouldSchedule) {
-    return await qstash.schedules.create({
-      destination: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${updatedCampaign.workflow.id}`,
-      cron: PARTNER_ENROLLED_WORKFLOW_CRON,
-      scheduleId: updatedCampaign.workflow.id,
-    });
+    try {
+      return await qstash.schedules.create({
+        destination: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${updatedCampaign.workflow.id}`,
+        cron: PARTNER_ENROLLED_WORKFLOW_CRON,
+        scheduleId: updatedCampaign.workflow.id,
+      });
+    } catch (error) {
+      console.warn(
+        `Failed to create QStash schedule ${updatedCampaign.workflow.id}:`,
+        error,
+      );
+    }
+    return;
   }
 
   const shouldDeleteSchedule =
     campaign.status === "active" && updatedCampaign.status === "paused";
 
   if (shouldDeleteSchedule) {
-    return await qstash.schedules.delete(updatedCampaign.workflow.id);
+    try {
+      return await qstash.schedules.delete(updatedCampaign.workflow.id);
+    } catch (error) {
+      console.warn(
+        `Failed to delete QStash schedule ${updatedCampaign.workflow.id}:`,
+        error,
+      );
+    }
   }
 };

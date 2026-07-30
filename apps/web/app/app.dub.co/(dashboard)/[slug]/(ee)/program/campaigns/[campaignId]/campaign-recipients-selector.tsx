@@ -8,7 +8,7 @@ import { TagsMultiSelect } from "@/ui/partners/tags-multi-select";
 import { Popover, Tag as TagIcon } from "@dub/ui";
 import { Users6 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { ReactNode, useMemo, useState } from "react";
+import { ReactNode, useState } from "react";
 
 const MAX_DISPLAYED = 1;
 
@@ -19,20 +19,15 @@ export function CampaignGroupsSelector({
   selectedGroupIds: string[] | null;
   setSelectedGroupIds: (groupIds: string[] | null) => void;
 }) {
-  const { groups, loading: groupsLoading } = useGroups();
+  const hasGroupFilter = Boolean(selectedGroupIds?.length);
+  const { groups: selectedGroups, loading: groupsLoading } = useGroups({
+    query: { groupIds: selectedGroupIds ?? undefined },
+    enabled: hasGroupFilter,
+  });
   const [openPopover, setOpenPopover] = useState(false);
 
-  const selectedGroups = useMemo(() => {
-    if (!selectedGroupIds?.length || !groups) {
-      return [];
-    }
-
-    return groups.filter((group) => selectedGroupIds.includes(group.id));
-  }, [groups, selectedGroupIds]);
-
-  const hasGroupFilter = Boolean(selectedGroupIds?.length);
   const isLoading = groupsLoading && hasGroupFilter;
-  const plusCount = Math.max(0, selectedGroups.length - MAX_DISPLAYED);
+  const plusCount = Math.max(0, (selectedGroups?.length ?? 0) - MAX_DISPLAYED);
 
   return (
     <CampaignRecipientPopover
@@ -56,7 +51,7 @@ export function CampaignGroupsSelector({
         </RecipientChip>
       ) : (
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          {selectedGroups.slice(0, MAX_DISPLAYED).map((group) => (
+          {selectedGroups?.slice(0, MAX_DISPLAYED).map((group) => (
             <RecipientChip key={group.id} openPopover={openPopover}>
               <GroupColorCircle group={group} />
               <span className="text-content-default min-w-0 truncate text-sm font-medium">
@@ -81,20 +76,15 @@ export function CampaignTagsSelector({
   selectedPartnerTagIds: string[] | null;
   setSelectedPartnerTagIds: (tagIds: string[] | null) => void;
 }) {
-  const { partnerTags, isLoading: tagsLoading } = usePartnerTags();
+  const hasTagFilter = Boolean(selectedPartnerTagIds?.length);
+  const { partnerTags: selectedTags, isLoading: tagsLoading } = usePartnerTags({
+    query: { ids: selectedPartnerTagIds ?? undefined },
+    enabled: hasTagFilter,
+  });
   const [openPopover, setOpenPopover] = useState(false);
 
-  const selectedTags = useMemo(() => {
-    if (!selectedPartnerTagIds?.length || !partnerTags) {
-      return [];
-    }
-
-    return partnerTags.filter((tag) => selectedPartnerTagIds.includes(tag.id));
-  }, [partnerTags, selectedPartnerTagIds]);
-
-  const hasTagFilter = Boolean(selectedPartnerTagIds?.length);
   const isLoading = tagsLoading && hasTagFilter;
-  const plusCount = Math.max(0, selectedTags.length - MAX_DISPLAYED);
+  const plusCount = Math.max(0, (selectedTags?.length ?? 0) - MAX_DISPLAYED);
 
   return (
     <CampaignRecipientPopover
@@ -118,7 +108,7 @@ export function CampaignTagsSelector({
         </RecipientChip>
       ) : (
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          {selectedTags.slice(0, MAX_DISPLAYED).map((tag) => (
+          {selectedTags?.slice(0, MAX_DISPLAYED).map((tag) => (
             <RecipientChip key={tag.id} openPopover={openPopover}>
               <TagIcon className="size-3.5 shrink-0" />
               <span className="text-content-default min-w-0 truncate text-sm font-medium">
