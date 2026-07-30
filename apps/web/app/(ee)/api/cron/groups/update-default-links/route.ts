@@ -1,6 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
-import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { extractAndResolveUtmParams } from "@/lib/api/utm/extract-and-resolve-utm-params";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import {
@@ -148,10 +148,24 @@ export async function POST(req: Request) {
       }[] = [];
 
       for (const defaultPartnerLink of defaultPartnerLinks) {
-        let url = constructURLFromUTMParams(
-          defaultLink.url,
-          extractUtmParams(group.utmTemplate),
+        const utmContext = {
+          partnerName:
+            defaultPartnerLink.partner?.name || defaultPartnerLink.key,
+          partnerLinkKey: defaultPartnerLink.key,
+        };
+
+        const resolvedUtmParams = extractAndResolveUtmParams(
+          group.utmTemplate,
+          utmContext,
         );
+
+        const resolvedUtmColumns = extractAndResolveUtmParams(
+          group.utmTemplate,
+          utmContext,
+          { excludeRef: true },
+        );
+
+        let url = constructURLFromUTMParams(defaultLink.url, resolvedUtmParams);
 
         // Inject AppsFlyer parameters with resolved macros
         if (
@@ -161,11 +175,7 @@ export async function POST(req: Request) {
           url = applyAppsFlyerParameters({
             url,
             parameters: appsFlyerParameters,
-            context: {
-              partnerName:
-                defaultPartnerLink.partner?.name || defaultPartnerLink.key,
-              partnerLinkKey: defaultPartnerLink.key,
-            },
+            context: utmContext,
           });
         }
 
@@ -173,7 +183,7 @@ export async function POST(req: Request) {
           id: defaultPartnerLink.id,
           link: {
             url,
-            ...extractUtmParams(group.utmTemplate, { excludeRef: true }),
+            ...resolvedUtmColumns,
           },
         });
       }
