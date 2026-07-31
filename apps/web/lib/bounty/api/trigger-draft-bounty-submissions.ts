@@ -129,7 +129,7 @@ export async function triggerDraftBountySubmissionCreation({
   const results = await Promise.allSettled(
     bountySubmissionCreationData.map(({ bountyId, partnerIds }) =>
       qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/create-draft-submissions`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/upsert-draft-submissions`,
         body: {
           bountyId,
           partnerIds,
