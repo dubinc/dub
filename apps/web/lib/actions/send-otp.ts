@@ -1,12 +1,14 @@
 "use server";
 
-import { getIP } from "@/lib/api/utils/get-ip";
+import { getIPWithSource } from "@/lib/api/utils/get-ip";
+import { logger } from "@/lib/axiom/server";
 import { prisma } from "@/lib/prisma";
 import { ratelimit, redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import VerifyEmail from "@dub/email/templates/verify-email";
 import { get } from "@vercel/edge-config";
 import { flattenValidationErrors } from "next-safe-action";
+import { after } from "next/server";
 import * as z from "zod/v4";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
@@ -30,11 +32,43 @@ export const sendOtpAction = actionClient
   .action(async ({ parsedInput }) => {
     const { email } = parsedInput;
 
-    const { success } = await ratelimit(2, "1 m").limit(
-      `send-otp:${email}:${await getIP()}`,
-    );
+    const { ip, source } = await getIPWithSource();
+    const isFallbackIp = source === "fallback";
 
-    if (!success) {
+    if (isFallbackIp) {
+      logger.warn("send-otp.ip_fallback", {
+        email,
+        ip,
+        source,
+      });
+    }
+
+    const [{ success: emailSuccess }, { success: ipSuccess }] =
+      await Promise.all([
+        // Rate limit by email
+        ratelimit(2, "1 m").limit(`send-otp:email:${email}`),
+
+        // Skip IP rate limiting when IP is unknown to avoid a shared fallback bucket
+        isFallbackIp
+          ? Promise.resolve({ success: true })
+          : ratelimit(15, "1 h").limit(`send-otp:ip:${ip}`),
+      ]);
+
+    if (!emailSuccess || !ipSuccess) {
+      logger.warn("send-otp.rate_limited", {
+        email,
+        ip,
+        source,
+        ...(!emailSuccess && { emailLimitExceeded: true }),
+        ...(!ipSuccess && { ipLimitExceeded: true }),
+      });
+    }
+
+    if (isFallbackIp || !emailSuccess || !ipSuccess) {
+      after(() => logger.flush());
+    }
+
+    if (!emailSuccess || !ipSuccess) {
       throw new Error("Too many requests. Please try again later.");
     }
 
@@ -95,6 +129,9 @@ export const sendOtpAction = actionClient
     const isExistingUser = await prisma.user.findUnique({
       where: {
         email,
+      },
+      select: {
+        id: true,
       },
     });
 
