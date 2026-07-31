@@ -1,9 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
-import {
-  derivePartnerLinkKey,
-  generatePartnerLink,
-} from "@/lib/api/partners/generate-partner-link";
+import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
 import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -132,11 +129,6 @@ export async function POST(req: Request) {
       const processedLinks = (
         await Promise.allSettled(
           programEnrollments.map(async ({ partner, ...programEnrollment }) => {
-            const partnerLinkKey = derivePartnerLinkKey({
-              name: partner.name,
-              email: partner.email!,
-            });
-
             const processedLink = await generatePartnerLink({
               workspace: {
                 id: workspace.id,
@@ -154,7 +146,6 @@ export async function POST(req: Request) {
               },
               link: {
                 domain: defaultLink.domain,
-                key: partnerLinkKey,
                 url: defaultLink.url,
                 tenantId: programEnrollment.tenantId ?? undefined,
                 partnerGroupDefaultLinkId: defaultLink.id,
