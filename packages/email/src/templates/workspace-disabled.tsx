@@ -70,9 +70,9 @@ export default function WorkspaceDisabled({
               >
                 <strong>{name}</strong>
               </Link>{" "}
-              has used <strong>{percentage}%</strong> of the monthly events
-              limit included in the {capitalize(plan)} plan, which is in
-              violation of our{" "}
+              has used <strong>{percentage}%</strong> of the events limit
+              included in the {capitalize(plan)} plan, which is in violation of
+              our{" "}
               <Link
                 href="https://dub.co/legal/terms"
                 className="font-semibold text-black underline"
@@ -81,8 +81,7 @@ export default function WorkspaceDisabled({
               </Link>
               . You have used a total of{" "}
               <strong>{nFormatter(usage, { full: true })} events</strong> (out
-              of a maximum of {nFormatter(usageLimit, { full: true })} events)
-              in your current billing cycle.
+              of a maximum of {nFormatter(usageLimit, { full: true })} events).
             </Text>
 
             <Text className="text-sm leading-6 text-black">

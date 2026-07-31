@@ -8,7 +8,7 @@ import { DubApiError } from "../api/errors";
 import { ratelimit, redis } from "../upstash";
 
 // Send the OTP to confirm the email address change for existing users/partners
-export const confirmEmailChange = async ({
+export const requestEmailChange = async ({
   email,
   newEmail,
   identifier,
@@ -54,20 +54,21 @@ export const confirmEmailChange = async ({
   });
 
   const token = randomBytes(32).toString("hex");
+  const hashedToken = await hashToken(token, { secret: true });
   const expiresIn = 15 * 60 * 1000;
 
   // Create a new verification token
   await prisma.verificationToken.create({
     data: {
       identifier,
-      token: await hashToken(token, { secret: true }),
+      token: hashedToken,
       expires: new Date(Date.now() + expiresIn),
     },
   });
 
   // Set the email change request in Redis, we'll use this to verify the email change in /auth/confirm-email-change/[token]
   await redis.set(
-    `email-change-request:user:${identifier}`,
+    `email-change-request:token:${hashedToken}`,
     {
       email,
       newEmail,

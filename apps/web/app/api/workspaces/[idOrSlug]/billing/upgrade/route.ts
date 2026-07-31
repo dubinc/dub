@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getDubAdminRole, withWorkspace } from "@/lib/auth";
 import { getDubCustomer } from "@/lib/dub";
+import { getFeatureFlags } from "@/lib/edge-config";
 import { stripe } from "@/lib/stripe";
 import { isEligibleForTrial } from "@/lib/stripe/is-eligible-for-trial";
 import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
@@ -40,18 +41,12 @@ export const POST = withWorkspace(
     }
 
     const existingSubscription = workspace.stripeId
-      ? await Promise.all([
-          stripe.subscriptions.list({
+      ? await stripe.subscriptions
+          .list({
             customer: workspace.stripeId,
-            status: "active",
             limit: 1,
-          }),
-          stripe.subscriptions.list({
-            customer: workspace.stripeId,
-            status: "trialing",
-            limit: 1,
-          }),
-        ]).then(([active, trialing]) => active.data[0] ?? trialing.data[0])
+          })
+          .then((res) => res.data[0])
       : null;
 
     if (process.env.VERCEL === "1" && process.env.VERCEL_ENV === "preview") {
@@ -98,9 +93,14 @@ export const POST = withWorkspace(
         });
       }
 
+      const flags = await getFeatureFlags({ workspaceId: workspace.id });
+
       try {
         const { url } = await stripe.billingPortal.sessions.create({
           customer: workspace.stripeId,
+          ...(flags.noProrationUpgrade
+            ? { configuration: "bpc_1TyLVFAlJJEpqkPVbJdDVr4m" }
+            : {}),
           return_url: baseUrl,
           flow_data: {
             type: "subscription_update_confirm",
