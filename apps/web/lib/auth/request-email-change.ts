@@ -8,7 +8,7 @@ import { DubApiError } from "../api/errors";
 import { ratelimit, redis } from "../upstash";
 
 // Send the OTP to confirm the email address change for existing users/partners
-export const confirmEmailChange = async ({
+export const requestEmailChange = async ({
   email,
   newEmail,
   identifier,
