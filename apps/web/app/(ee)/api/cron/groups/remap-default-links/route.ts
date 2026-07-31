@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
@@ -159,14 +160,14 @@ export async function POST(req: Request) {
 
       const processedLinks = (
         await Promise.allSettled(
-          linksToCreate.map((link) => {
+          linksToCreate.map(async (link) => {
             const programEnrollment = programEnrollments.find(
               (p) => p.partner.id === link.partnerId,
             );
 
             const partner = programEnrollment?.partner;
 
-            return generatePartnerLink({
+            const processedLink = await generatePartnerLink({
               workspace: {
                 id: program.workspace.id,
                 plan: program.workspace.plan as WorkspaceProps["plan"],
@@ -189,6 +190,12 @@ export async function POST(req: Request) {
               },
               userId: userId ?? undefined,
               appsFlyerParameters,
+            });
+
+            return applyGroupUtmToLink({
+              link: processedLink,
+              utmTemplate: partnerGroup.utmTemplate,
+              partnerName: partner?.name,
             });
           }),
         )

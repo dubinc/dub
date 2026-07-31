@@ -7,10 +7,10 @@ import {
   UtmTemplateProps,
   WorkspaceProps,
 } from "@/lib/types";
-import { constructURLFromUTMParams, isFulfilled } from "@dub/utils";
+import { isFulfilled } from "@dub/utils";
 import { PartnerGroupDefaultLink } from "@prisma/client";
 import { bulkCreateLinks } from "../links";
-import { extractAndResolveUtmParams } from "../utm/extract-and-resolve-utm-params";
+import { applyGroupUtmToLink } from "../utm/apply-group-utm-to-link";
 import {
   buildPartnerDefaultLinkKey,
   generatePartnerLink,
@@ -59,29 +59,14 @@ export async function createPartnerDefaultLinks({
 
   const processedLinks = (
     await Promise.allSettled(
-      defaultLinks.map((defaultLink) => {
+      defaultLinks.map(async (defaultLink) => {
         const key = buildPartnerDefaultLinkKey({
           link,
           partner,
           hasMoreThanOneDefaultLink,
         });
 
-        const utmContext = {
-          partnerName: partner.name || key,
-          partnerLinkKey: key,
-        };
-
-        const resolvedUtmParams = extractAndResolveUtmParams(
-          utmTemplate,
-          utmContext,
-        );
-        const resolvedUtmColumns = extractAndResolveUtmParams(
-          utmTemplate,
-          utmContext,
-          { excludeRef: true },
-        );
-
-        return generatePartnerLink({
+        const processedLink = await generatePartnerLink({
           workspace,
           program,
           partner,
@@ -89,12 +74,17 @@ export async function createPartnerDefaultLinks({
             ...link,
             key,
             domain: defaultLink.domain,
-            url: constructURLFromUTMParams(defaultLink.url, resolvedUtmParams),
-            ...resolvedUtmColumns,
+            url: defaultLink.url,
             partnerGroupDefaultLinkId: defaultLink.id,
           },
           userId,
           appsFlyerParameters,
+        });
+
+        return applyGroupUtmToLink({
+          link: processedLink,
+          utmTemplate,
+          partnerName: partner.name,
         });
       }),
     )

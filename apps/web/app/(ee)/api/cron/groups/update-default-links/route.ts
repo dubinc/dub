@@ -1,6 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
-import { extractAndResolveUtmParams } from "@/lib/api/utm/extract-and-resolve-utm-params";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import {
@@ -10,11 +10,8 @@ import {
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import { prisma } from "@/lib/prisma";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  constructURLFromUTMParams,
-  log,
-} from "@dub/utils";
+import { ProcessedLinkProps } from "@/lib/types";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { Link } from "@prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -154,18 +151,18 @@ export async function POST(req: Request) {
           partnerLinkKey: defaultPartnerLink.key,
         };
 
-        const resolvedUtmParams = extractAndResolveUtmParams(
-          group.utmTemplate,
-          utmContext,
-        );
+        const linkWithUtm = applyGroupUtmToLink({
+          link: {
+            domain: defaultPartnerLink.domain,
+            key: defaultPartnerLink.key,
+            url: defaultLink.url,
+            projectId: defaultLink.program.workspaceId,
+          } as ProcessedLinkProps,
+          utmTemplate: group.utmTemplate,
+          partnerName: defaultPartnerLink.partner?.name,
+        });
 
-        const resolvedUtmColumns = extractAndResolveUtmParams(
-          group.utmTemplate,
-          utmContext,
-          { excludeRef: true },
-        );
-
-        let url = constructURLFromUTMParams(defaultLink.url, resolvedUtmParams);
+        let url = linkWithUtm.url;
 
         // Inject AppsFlyer parameters with resolved macros
         if (
@@ -183,7 +180,11 @@ export async function POST(req: Request) {
           id: defaultPartnerLink.id,
           link: {
             url,
-            ...resolvedUtmColumns,
+            utm_source: linkWithUtm.utm_source ?? null,
+            utm_medium: linkWithUtm.utm_medium ?? null,
+            utm_campaign: linkWithUtm.utm_campaign ?? null,
+            utm_term: linkWithUtm.utm_term ?? null,
+            utm_content: linkWithUtm.utm_content ?? null,
           },
         });
       }

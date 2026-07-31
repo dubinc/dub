@@ -4,7 +4,7 @@ import {
   derivePartnerLinkKey,
   generatePartnerLink,
 } from "@/lib/api/partners/generate-partner-link";
-import { extractAndResolveUtmParams } from "@/lib/api/utm/extract-and-resolve-utm-params";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
@@ -12,12 +12,7 @@ import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import { prisma } from "@/lib/prisma";
 import { WorkspaceProps } from "@/lib/types";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  constructURLFromUTMParams,
-  isFulfilled,
-  log,
-} from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, isFulfilled, log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
@@ -136,29 +131,13 @@ export async function POST(req: Request) {
       // Create a new defaultLink for each partner in the group
       const processedLinks = (
         await Promise.allSettled(
-          programEnrollments.map(({ partner, ...programEnrollment }) => {
+          programEnrollments.map(async ({ partner, ...programEnrollment }) => {
             const partnerLinkKey = derivePartnerLinkKey({
               name: partner.name,
               email: partner.email!,
             });
 
-            const utmContext = {
-              partnerName: partner.name || partnerLinkKey,
-              partnerLinkKey,
-            };
-
-            const resolvedUtmParams = extractAndResolveUtmParams(
-              group.utmTemplate,
-              utmContext,
-            );
-
-            const resolvedUtmColumns = extractAndResolveUtmParams(
-              group.utmTemplate,
-              utmContext,
-              { excludeRef: true },
-            );
-
-            return generatePartnerLink({
+            const processedLink = await generatePartnerLink({
               workspace: {
                 id: workspace.id,
                 plan: workspace.plan as WorkspaceProps["plan"],
@@ -176,16 +155,18 @@ export async function POST(req: Request) {
               link: {
                 domain: defaultLink.domain,
                 key: partnerLinkKey,
-                url: constructURLFromUTMParams(
-                  defaultLink.url,
-                  resolvedUtmParams,
-                ),
-                ...resolvedUtmColumns,
+                url: defaultLink.url,
                 tenantId: programEnrollment.tenantId ?? undefined,
                 partnerGroupDefaultLinkId: defaultLink.id,
               },
               userId,
               appsFlyerParameters,
+            });
+
+            return applyGroupUtmToLink({
+              link: processedLink,
+              utmTemplate: group.utmTemplate,
+              partnerName: partner.name,
             });
           }),
         )
