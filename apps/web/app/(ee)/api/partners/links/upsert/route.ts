@@ -12,6 +12,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractAndResolveUtmParams } from "@/lib/api/utm/extract-and-resolve-utm-params";
 import { withWorkspace } from "@/lib/auth";
+import { dispatchGroupUtmSyncForPartner } from "@/lib/partners/dispatch-partner-utm-sync";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { prisma } from "@/lib/prisma";
 import { NewLinkProps } from "@/lib/types";
@@ -180,11 +181,25 @@ export const PUT = withWorkspace(
         });
 
         waitUntil(
-          sendWorkspaceWebhook({
-            trigger: "link.updated",
-            workspace,
-            data: linkEventSchema.parse(response),
-          }),
+          (async () => {
+            const linkKeyChanged =
+              key != null && link.key.toLowerCase() !== key.toLowerCase();
+
+            await Promise.allSettled([
+              sendWorkspaceWebhook({
+                trigger: "link.updated",
+                workspace,
+                data: linkEventSchema.parse(response),
+              }),
+
+              linkKeyChanged
+                ? dispatchGroupUtmSyncForPartner({
+                    partnerId: partner.partnerId,
+                    groupId: partnerGroup.id,
+                  })
+                : undefined,
+            ]);
+          })(),
         );
 
         return NextResponse.json(response, {

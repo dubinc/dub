@@ -1,8 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
+import { dispatchGroupUtmSyncForPartner } from "@/lib/partners/dispatch-partner-utm-sync";
 import { prisma } from "@/lib/prisma";
 import { storage } from "@/lib/storage";
 import { nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 
 export async function assertEmailAvailableForIdentitySync({
   newEmail,
@@ -101,6 +103,14 @@ export async function syncNameAndImageToPartner({
       ...(hasImageUpdate && { image: partnerImage ?? null }),
     },
   });
+
+  if (hasNameUpdate && name) {
+    waitUntil(
+      dispatchGroupUtmSyncForPartner({
+        partnerId,
+      }),
+    );
+  }
 }
 
 export async function syncNameAndImageToUser({
