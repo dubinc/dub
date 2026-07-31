@@ -69,6 +69,7 @@ const GENERIC_EMAIL_DOMAINS = [
   "hi2.in",
   "tempmailplus.net",
   "linuxmail.org",
+  "jk8h.info",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [

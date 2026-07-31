@@ -32,7 +32,7 @@ function RemoveWorkspaceUserModal({
   const { data: session } = useSession();
   const [removing, setRemoving] = useState(false);
   const [verification, setVerification] = useState("");
-  const { id: workspaceId, name: workspaceName } = useWorkspace();
+  const { id: workspaceId, name: workspaceName, slug } = useWorkspace();
 
   const searchParams = useSearchParams();
   const isInvite = searchParams.get("status") === "invited";
@@ -110,10 +110,14 @@ function RemoveWorkspaceUserModal({
             <ul className="mt-6 space-y-2">
               {restrictedTokens.map((token, index) => (
                 <li key={index} className="flex items-center justify-between">
-                  <span className="text-sm font-medium leading-4 text-amber-900">
+                  <a
+                    href={`/${slug}/settings/tokens`}
+                    target="_blank"
+                    className="line-clamp-1 text-sm font-medium leading-4 text-amber-900 underline underline-offset-2 hover:text-amber-700"
+                  >
                     {token.name}
-                  </span>
-                  <span className="text-xs font-normal leading-4 text-amber-700">
+                  </a>
+                  <span className="whitespace-nowrap text-xs font-normal leading-4 text-amber-700">
                     used {timeAgo(token.lastUsed, { withAgo: true })}
                   </span>
                 </li>
