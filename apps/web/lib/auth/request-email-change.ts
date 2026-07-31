@@ -5,6 +5,7 @@ import { waitUntil } from "@vercel/functions";
 import { randomBytes } from "crypto";
 import { hashToken } from ".";
 import { DubApiError } from "../api/errors";
+import { isEmailDomainBlocked } from "../email/is-email-domain-blocked";
 import { ratelimit, redis } from "../upstash";
 
 // Send the OTP to confirm the email address change for existing users/partners
@@ -31,6 +32,14 @@ export const requestEmailChange = async ({
     throw new DubApiError({
       code: "bad_request",
       message: "Partner ID is required when syncing identity.",
+    });
+  }
+
+  if (await isEmailDomainBlocked(newEmail)) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "This email domain is not allowed. Please use a different email address.",
     });
   }
 
