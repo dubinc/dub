@@ -39,10 +39,10 @@ export const sendOtpAction = actionClient
     }
 
     const isGenericEmailWithPlus = email.includes("+") && isGenericEmail(email);
-    const domainBlocked = await isEmailDomainBlocked(email);
+    const emailDomainBlocked = await isEmailDomainBlocked(email);
 
     // if any of the flags match, run one final edge case check, before throwing an error
-    if (isGenericEmailWithPlus || domainBlocked) {
+    if (isGenericEmailWithPlus || emailDomainBlocked) {
       // edge case: the user already has a partner account on Dub with this email address,
       // or they have an existing application for a program, we can allow them to continue
       const [isPartnerAccount, hasExistingApplications] = await Promise.all([

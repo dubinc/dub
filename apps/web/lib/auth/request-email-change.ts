@@ -6,6 +6,7 @@ import { randomBytes } from "crypto";
 import { hashToken } from ".";
 import { DubApiError } from "../api/errors";
 import { isEmailDomainBlocked } from "../email/is-email-domain-blocked";
+import { isGenericEmail } from "../is-generic-email";
 import { ratelimit, redis } from "../upstash";
 
 // Send the OTP to confirm the email address change for existing users/partners
@@ -35,14 +36,6 @@ export const requestEmailChange = async ({
     });
   }
 
-  if (await isEmailDomainBlocked(newEmail)) {
-    throw new DubApiError({
-      code: "bad_request",
-      message:
-        "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at dub.co/support",
-    });
-  }
-
   const { success } = await ratelimit(3, "1 d").limit(
     `email-change-request:${identifier}`,
   );
@@ -52,6 +45,16 @@ export const requestEmailChange = async ({
       code: "rate_limit_exceeded",
       message:
         "You've requested too many email change requests. Please try again later.",
+    });
+  }
+
+  const isGenericEmailWithPlus = email.includes("+") && isGenericEmail(email);
+  const emailDomainBlocked = await isEmailDomainBlocked(newEmail);
+  if (isGenericEmailWithPlus || emailDomainBlocked) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at dub.co/support",
     });
   }
 
