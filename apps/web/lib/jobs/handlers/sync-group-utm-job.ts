@@ -22,8 +22,7 @@ const inputSchema = z.object({
   1. a UTM template is created for a group
   2. a UTM template is updated
   3. in groups/remap-default-links cron
-  4. a partner's name changes (via dispatchPartnerUtmSync)
-  5. a partner link key changes on embed / partners upsert update paths
+  4. a partner's name changes (via dispatchGroupUtmSyncForPartner)
  */
 export const syncGroupUtmJob = defineJob({
   name: "sync-group-utm-job",

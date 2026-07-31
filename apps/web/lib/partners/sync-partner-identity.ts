@@ -105,11 +105,7 @@ export async function syncNameAndImageToPartner({
   });
 
   if (hasNameUpdate && name) {
-    waitUntil(
-      dispatchGroupUtmSyncForPartner({
-        partnerId,
-      }),
-    );
+    waitUntil(dispatchGroupUtmSyncForPartner(partnerId));
   }
 }
 

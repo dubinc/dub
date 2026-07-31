@@ -2,8 +2,8 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { processLink, updateLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { parseRequestBody } from "@/lib/api/utils";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
-import { dispatchGroupUtmSyncForPartner } from "@/lib/partners/dispatch-partner-utm-sync";
 import { prisma } from "@/lib/prisma";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
@@ -61,6 +61,25 @@ export const PATCH = withReferralsEmbedToken(
 
     validatePartnerLinkUrl({ group, url });
 
+    const [groupUtmTemplate, partner] = await Promise.all([
+      group.utmTemplateId
+        ? prisma.utmTemplate.findUnique({
+            where: {
+              id: group.utmTemplateId,
+            },
+          })
+        : null,
+
+      prisma.partner.findUnique({
+        where: {
+          id: programEnrollment.partnerId,
+        },
+        select: {
+          name: true,
+        },
+      }),
+    ]);
+
     // if domain and key are the same, we don't need to check if the key exists
     const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();
 
@@ -94,20 +113,23 @@ export const PATCH = withReferralsEmbedToken(
       });
     }
 
+    const linkWithUtm = applyGroupUtmToLink({
+      link: processedLink,
+      utmTemplate: groupUtmTemplate,
+      partnerName: partner?.name,
+    });
+
     const partnerLink = await updateLink({
       oldLink: {
         domain: link.domain,
         key: link.key,
         image: link.image,
       },
-      updatedLink: processedLink,
+      updatedLink: linkWithUtm,
     });
 
     waitUntil(
       (async () => {
-        const keyChanged =
-          key != null && link.key.toLowerCase() !== key.toLowerCase();
-
         const workspace = await prisma.project.findUnique({
           where: {
             id: program.workspaceId,
@@ -118,22 +140,13 @@ export const PATCH = withReferralsEmbedToken(
           },
         });
 
-        await Promise.allSettled([
-          workspace
-            ? sendWorkspaceWebhook({
-                trigger: "link.updated",
-                workspace,
-                data: linkEventSchema.parse(partnerLink),
-              })
-            : undefined,
-
-          keyChanged
-            ? dispatchGroupUtmSyncForPartner({
-                partnerId: programEnrollment.partnerId,
-                groupId: programEnrollment.groupId,
-              })
-            : undefined,
-        ]);
+        if (workspace) {
+          await sendWorkspaceWebhook({
+            trigger: "link.updated",
+            workspace,
+            data: linkEventSchema.parse(partnerLink),
+          });
+        }
       })(),
     );
 

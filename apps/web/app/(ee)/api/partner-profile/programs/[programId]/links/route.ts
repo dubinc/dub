@@ -3,7 +3,7 @@ import { createLink, processLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { extractAndResolveUtmParams } from "@/lib/api/utm/extract-and-resolve-utm-params";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@/lib/prisma";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
@@ -11,7 +11,6 @@ import {
   createPartnerLinkSchema,
   INACTIVE_ENROLLMENT_STATUSES,
 } from "@/lib/zod/schemas/partners";
-import { getUTMParamsFromURL } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -109,23 +108,12 @@ export const POST = withPartnerProfile(
       : null;
 
     const linkUrl = url || program.url;
-    const partnerLinkKey = key || "";
-    const utmContext = {
-      partnerName: partner.name || partnerLinkKey,
-      partnerLinkKey: partnerLinkKey || partner.name || "",
-    };
 
     const { link, error, code } = await processLink({
       payload: {
         domain: program.domain,
         key: key || undefined,
         url: linkUrl,
-        ...(groupUtmTemplate
-          ? {
-              ...extractAndResolveUtmParams(groupUtmTemplate, utmContext),
-              ...getUTMParamsFromURL(linkUrl),
-            }
-          : {}),
         programId: program.id,
         tenantId,
         partnerId: partner.id,
@@ -151,7 +139,13 @@ export const POST = withPartnerProfile(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const linkWithUtm = applyGroupUtmToLink({
+      link,
+      utmTemplate: groupUtmTemplate,
+      partnerName: partner.name,
+    });
+
+    const partnerLink = await createLink(linkWithUtm);
 
     return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink), {
       status: 201,

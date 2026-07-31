@@ -277,9 +277,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
               : undefined,
 
             partner.name !== updatedPartner.name
-              ? dispatchGroupUtmSyncForPartner({
-                  partnerId: partner.id,
-                })
+              ? dispatchGroupUtmSyncForPartner(partner.id)
               : undefined,
           ]);
         })(),

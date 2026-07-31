@@ -4,7 +4,7 @@ import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-ur
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { extractAndResolveUtmParams } from "@/lib/api/utm/extract-and-resolve-utm-params";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { withWorkspace } from "@/lib/auth";
 import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { prisma } from "@/lib/prisma";
@@ -15,7 +15,6 @@ import {
   retrievePartnerLinksSchema,
 } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
-import { getUTMParamsFromURL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -130,11 +129,6 @@ export const POST = withWorkspace(
     validatePartnerLinkUrl({ group: partnerGroup, url });
 
     const linkUrl = url || partnerGroup.partnerGroupDefaultLinks[0].url;
-    const partnerLinkKey = key || "";
-    const utmContext = {
-      partnerName: partner.partner.name || partnerLinkKey,
-      partnerLinkKey: partnerLinkKey || partner.partner.name || "",
-    };
 
     const { link, error, code } = await processLink({
       payload: {
@@ -142,15 +136,6 @@ export const POST = withWorkspace(
         domain: program.domain,
         key: key || undefined,
         url: linkUrl,
-        ...(partnerGroup.utmTemplate
-          ? {
-              ...extractAndResolveUtmParams(
-                partnerGroup.utmTemplate,
-                utmContext,
-              ),
-              ...getUTMParamsFromURL(linkUrl),
-            }
-          : {}),
         programId: program.id,
         tenantId: partner.tenantId,
         partnerId: partner.partnerId,
@@ -169,7 +154,13 @@ export const POST = withWorkspace(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const linkWithUtm = applyGroupUtmToLink({
+      link,
+      utmTemplate: partnerGroup.utmTemplate,
+      partnerName: partner.partner.name,
+    });
+
+    const partnerLink = await createLink(linkWithUtm);
 
     waitUntil(
       sendWorkspaceWebhook({
