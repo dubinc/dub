@@ -376,6 +376,10 @@ export const withWorkspace = (
             },
           });
 
+          // Clear so non-member denials are not attributed to this workspace
+          // in API logs or Axiom error context.
+          workspace = undefined;
+
           if (!pendingInvites) {
             throw new DubApiError({
               code: "not_found",
@@ -499,7 +503,7 @@ export const withWorkspace = (
           token,
         });
 
-        if (workspace) {
+        if (workspace?.users?.length) {
           waitUntil(
             captureRequestLog({
               req: reqForLog,
@@ -526,7 +530,7 @@ export const withWorkspace = (
           { headers: responseHeaders, status },
         );
 
-        if (workspace) {
+        if (workspace?.users?.length) {
           waitUntil(
             captureRequestLog({
               req: reqForLog,
