@@ -1,4 +1,4 @@
-import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { extractAndResolveUtmParams } from "@/lib/api/utm/extract-and-resolve-utm-params";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -24,7 +24,7 @@ interface AddPartnerLinkModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   onSuccess?: (link: LinkProps) => void;
-  partner: Pick<EnrolledPartnerProps, "id" | "email" | "groupId">;
+  partner: Pick<EnrolledPartnerProps, "id" | "name" | "email" | "groupId">;
 }
 
 interface FormData {
@@ -68,6 +68,22 @@ const AddPartnerLinkModal = ({
     setErrorMessage(null);
 
     try {
+      const utmContext = {
+        partnerName: partner.name || formData.key,
+        partnerLinkKey: formData.key,
+      };
+
+      const resolvedUtmParams = extractAndResolveUtmParams(
+        partnerGroup?.utmTemplate as UtmTemplate,
+        utmContext,
+      );
+
+      const resolvedUtmColumns = extractAndResolveUtmParams(
+        partnerGroup?.utmTemplate as UtmTemplate,
+        utmContext,
+        { excludeRef: true },
+      );
+
       const response = await fetch(`/api/links?workspaceId=${workspaceId}`, {
         method: "POST",
         headers: {
@@ -78,13 +94,8 @@ const AddPartnerLinkModal = ({
           partnerId: partner.id,
           programId: program.id,
           domain: program.domain,
-          url: constructURLFromUTMParams(
-            url,
-            extractUtmParams(partnerGroup?.utmTemplate as UtmTemplate),
-          ),
-          ...extractUtmParams(partnerGroup?.utmTemplate as UtmTemplate, {
-            excludeRef: true,
-          }),
+          url: constructURLFromUTMParams(url, resolvedUtmParams),
+          ...resolvedUtmColumns,
           trackConversion: true,
           folderId: program.defaultFolderId,
         }),
@@ -218,7 +229,7 @@ export function useAddPartnerLinkModal({
   partner,
 }: {
   onSuccess?: (link: LinkProps) => void;
-  partner: Pick<EnrolledPartnerProps, "id" | "email" | "groupId">;
+  partner: Pick<EnrolledPartnerProps, "id" | "name" | "email" | "groupId">;
 }) {
   const [showAddPartnerLinkModal, setShowAddPartnerLinkModal] = useState(false);
 

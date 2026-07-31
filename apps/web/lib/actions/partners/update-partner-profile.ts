@@ -5,6 +5,7 @@ import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { qstash } from "@/lib/cron";
 import { isReservedUsername } from "@/lib/edge-config";
+import { dispatchGroupUtmSyncForPartner } from "@/lib/partners/dispatch-partner-utm-sync";
 import {
   assertEmailAvailableForIdentitySync,
   requestSyncedEmailChange,
@@ -253,31 +254,33 @@ export const updatePartnerProfileAction = authPartnerActionClient
       }
 
       waitUntil(
-        Promise.allSettled([
-          (async () => {
-            const shouldExpireCache = !deepEqual(
-              {
-                name: partner.name,
-                image: partner.image,
-              },
-              {
-                name: updatedPartner.name,
-                image: updatedPartner.image,
-              },
-            );
+        (async () => {
+          const shouldExpireCache = !deepEqual(
+            {
+              name: partner.name,
+              image: partner.image,
+            },
+            {
+              name: updatedPartner.name,
+              image: updatedPartner.image,
+            },
+          );
 
-            if (!shouldExpireCache) {
-              return;
-            }
+          await Promise.allSettled([
+            shouldExpireCache
+              ? qstash.publishJSON({
+                  url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
+                  body: {
+                    partnerId: partner.id,
+                  },
+                })
+              : undefined,
 
-            await qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
-              body: {
-                partnerId: partner.id,
-              },
-            });
-          })(),
-        ]),
+            partner.name !== updatedPartner.name
+              ? dispatchGroupUtmSyncForPartner(partner.id)
+              : undefined,
+          ]);
+        })(),
       );
 
       return {
