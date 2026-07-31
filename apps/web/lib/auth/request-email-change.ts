@@ -39,7 +39,7 @@ export const requestEmailChange = async ({
     throw new DubApiError({
       code: "bad_request",
       message:
-        "This email domain is not allowed. Please use a different email address.",
+        "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at dub.co/support",
     });
   }
 
