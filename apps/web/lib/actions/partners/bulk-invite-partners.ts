@@ -5,14 +5,14 @@ import { createId } from "@/lib/api/create-id";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import { applyGroupUtmToLink } from "@/lib/api/utm/apply-group-utm-to-link";
 import { throwIfPartnersLimitExceeded } from "@/lib/partners/throw-if-partners-limit-exceeded";
 import { prisma } from "@/lib/prisma";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { bulkInvitePartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
-import { constructURLFromUTMParams, nanoid } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { prettyPrint } from "@dub/utils/src";
 import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
@@ -121,7 +121,6 @@ export const bulkInvitePartnersAction = authActionClient
 
     const group = program.groups[0];
     const partnerGroupDefaultLinks = group.partnerGroupDefaultLinks;
-    const utmTemplate = group.utmTemplate;
 
     const invitedCount = await prisma.$transaction(async (tx) => {
       const { count: invitedCount } = await tx.programEnrollment.createMany({
@@ -177,21 +176,27 @@ export const bulkInvitePartnersAction = authActionClient
         // Create default links for the partners for each group default link
         for (const partnerGroupDefaultLink of partnerGroupDefaultLinks) {
           const links = await bulkCreateLinks({
-            links: partners.map((partner) => ({
-              domain: partnerGroupDefaultLink.domain,
-              key: `${slugify(partner.email!.split("@")[0])}-${nanoid(4)}`,
-              url: constructURLFromUTMParams(
-                partnerGroupDefaultLink.url,
-                extractUtmParams(utmTemplate),
-              ),
-              ...extractUtmParams(utmTemplate, { excludeRef: true }),
-              projectId: workspace.id,
-              programId: program.id,
-              partnerId: partner.id,
-              userId: user.id,
-              folderId: program.defaultFolderId,
-              partnerGroupDefaultLinkId: partnerGroupDefaultLink.id,
-            })),
+            links: partners.map((partner) => {
+              const key = `${slugify(partner.email!.split("@")[0])}-${nanoid(4)}`;
+
+              const link = {
+                domain: partnerGroupDefaultLink.domain,
+                key,
+                url: partnerGroupDefaultLink.url,
+                projectId: workspace.id,
+                programId: program.id,
+                partnerId: partner.id,
+                userId: user.id,
+                folderId: program.defaultFolderId,
+                partnerGroupDefaultLinkId: partnerGroupDefaultLink.id,
+              };
+
+              return applyGroupUtmToLink({
+                link,
+                utmTemplate: group.utmTemplate,
+                partnerName: partner.name,
+              });
+            }),
           });
 
           console.log(

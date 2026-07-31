@@ -4,7 +4,7 @@ import {
 } from "@/lib/partners/macros";
 import * as z from "zod/v4";
 
-const UTM_TAG_MAX_LENGTH = 255;
+export const UTM_TAG_MAX_LENGTH = 255;
 
 export const utmTagInputSchema = z
   .string()

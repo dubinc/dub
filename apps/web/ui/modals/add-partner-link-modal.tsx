@@ -1,9 +1,6 @@
-import { extractAndResolveUtmParams } from "@/lib/api/utm/extract-and-resolve-utm-params";
-import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   ArrowTurnLeft,
   Button,
@@ -12,8 +9,6 @@ import {
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
-import { constructURLFromUTMParams } from "@dub/utils";
-import { UtmTemplate } from "@prisma/client";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -24,7 +19,7 @@ interface AddPartnerLinkModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   onSuccess?: (link: LinkProps) => void;
-  partner: Pick<EnrolledPartnerProps, "id" | "name" | "email" | "groupId">;
+  partner: Pick<EnrolledPartnerProps, "id" | "email">;
 }
 
 interface FormData {
@@ -53,14 +48,10 @@ const AddPartnerLinkModal = ({
     },
   });
 
-  const { group: partnerGroup } = useGroup({
-    groupIdOrSlug: partner.groupId ?? DEFAULT_PARTNER_GROUP.slug,
-  });
-
-  const [key, url] = watch(["key", "url"]);
+  const key = watch("key");
 
   const onSubmit = async (formData: FormData) => {
-    if (!program?.id || !partner.id) {
+    if (!partner.id) {
       return;
     }
 
@@ -68,38 +59,20 @@ const AddPartnerLinkModal = ({
     setErrorMessage(null);
 
     try {
-      const utmContext = {
-        partnerName: partner.name || formData.key,
-        partnerLinkKey: formData.key,
-      };
-
-      const resolvedUtmParams = extractAndResolveUtmParams(
-        partnerGroup?.utmTemplate as UtmTemplate,
-        utmContext,
-      );
-
-      const resolvedUtmColumns = extractAndResolveUtmParams(
-        partnerGroup?.utmTemplate as UtmTemplate,
-        utmContext,
-        { excludeRef: true },
-      );
-
-      const response = await fetch(`/api/links?workspaceId=${workspaceId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/partners/links?workspaceId=${workspaceId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            partnerId: partner.id,
+            key: formData.key,
+            url: formData.url || undefined,
+          }),
         },
-        body: JSON.stringify({
-          ...formData,
-          partnerId: partner.id,
-          programId: program.id,
-          domain: program.domain,
-          url: constructURLFromUTMParams(url, resolvedUtmParams),
-          ...resolvedUtmColumns,
-          trackConversion: true,
-          folderId: program.defaultFolderId,
-        }),
-      });
+      );
 
       const data = await response.json();
 
@@ -229,7 +202,7 @@ export function useAddPartnerLinkModal({
   partner,
 }: {
   onSuccess?: (link: LinkProps) => void;
-  partner: Pick<EnrolledPartnerProps, "id" | "name" | "email" | "groupId">;
+  partner: Pick<EnrolledPartnerProps, "id" | "email">;
 }) {
   const [showAddPartnerLinkModal, setShowAddPartnerLinkModal] = useState(false);
 
