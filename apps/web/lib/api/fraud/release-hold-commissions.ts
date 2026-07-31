@@ -2,7 +2,7 @@ import { triggerAggregateDueCommissionsCronJob } from "@/lib/actions/partners/tr
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { qstash } from "@/lib/cron";
+import { PRISMA_UPDATEMANY_LIMIT, qstash } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import {
@@ -129,7 +129,7 @@ export async function releaseHoldCommissions({
         earnings: true,
         status: true,
       },
-      take: 250,
+      take: PRISMA_UPDATEMANY_LIMIT,
     });
 
     if (commissionsToRelease.length === 0) {
