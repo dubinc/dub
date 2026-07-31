@@ -121,6 +121,7 @@ export function InlineBadgePopoverMenu<T extends any>({
   const { setIsOpen, isOpen } = useContext(InlineBadgePopoverContext);
 
   const isMultiSelect = Array.isArray(selectedValue);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const commandRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -129,6 +130,10 @@ export function InlineBadgePopoverMenu<T extends any>({
   useEffect(() => {
     if (!search) commandRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) setSearchQuery("");
+  }, [isOpen]);
 
   const sortedItems = useMemo(
     () =>
@@ -164,6 +169,8 @@ export function InlineBadgePopoverMenu<T extends any>({
       {search && (
         <div className="-mx-1 -mt-1 mb-1 flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
           <Command.Input
+            value={searchQuery}
+            onValueChange={setSearchQuery}
             placeholder="Search"
             className="border-0 bg-transparent py-2 pl-4 pr-2 outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm"
           />
@@ -179,6 +186,18 @@ export function InlineBadgePopoverMenu<T extends any>({
             ref={scrollRef}
             onScroll={updateScrollProgress}
           >
+            {search && (
+              <Command.Empty className="flex flex-col items-center justify-center px-4 py-[30px] text-center text-sm font-medium text-neutral-500">
+                {searchQuery.trim() ? (
+                  <>
+                    <p className="leading-5">No results for</p>
+                    <p className="leading-5">&ldquo;{searchQuery}&rdquo;</p>
+                  </>
+                ) : (
+                  <p className="leading-5">No results</p>
+                )}
+              </Command.Empty>
+            )}
             {displayedItems.map(
               ({
                 icon,

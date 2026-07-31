@@ -184,7 +184,7 @@ export const getPricingPlanMainFeatures = (
               title:
                 "Get real-time notifications when a link is clicked or a QR code is scanned using webhooks.",
               cta: "Learn more.",
-              href: "https://dub.co/docs/concepts/webhooks/introduction",
+              href: "https://dub.co/docs/webhooks/introduction",
             },
           },
         ],
@@ -300,7 +300,7 @@ export const getPricingPlanMainFeatures = (
               title:
                 "Get real-time notifications when a link is clicked or a QR code is scanned using webhooks.",
               cta: "Learn more.",
-              href: "https://dub.co/docs/concepts/webhooks/introduction",
+              href: "https://dub.co/docs/webhooks/introduction",
             },
           },
           {
@@ -402,7 +402,7 @@ export const getPricingPlanMainFeatures = (
             text: "Access to Partner Network",
             tooltip: {
               title:
-                "Get access to our network of 10,000+ top affiliates to recruit from and grow your program.",
+                "Get access to our network of 7,000+ top affiliates to recruit from and grow your program.",
             },
           },
           {

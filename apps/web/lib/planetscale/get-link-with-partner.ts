@@ -1,4 +1,4 @@
-import { punyEncode } from "@dub/utils";
+import { punyEncode, safeDecodeURIComponent } from "@dub/utils";
 import {
   decodeKeyIfCaseSensitive,
   encodeKey,
@@ -30,7 +30,7 @@ export const getLinkWithPartner = async ({
 }): Promise<QueryResult | null> => {
   const keyToQuery = isCaseSensitiveDomain(domain)
     ? encodeKey(key)
-    : punyEncode(decodeURIComponent(key));
+    : punyEncode(safeDecodeURIComponent(key));
 
   console.time("getLinkWithPartner");
 
