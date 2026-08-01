@@ -438,18 +438,30 @@ async function resolvePromotionCodeIdFromInvoice({
 > {
   const stripe = stripeAppClient({ mode });
 
+  type ExpandedDiscount = {
+    promotion_code: Stripe.PromotionCode | null;
+  };
+
   const expandedInvoice = (await stripe.invoices.retrieve(
     invoiceId,
     {
-      expand: ["discounts", "discounts.promotion_code"],
+      expand: [
+        "discounts",
+        "discounts.promotion_code",
+        "lines.data.discounts",
+        "lines.data.discounts.promotion_code",
+      ],
     },
     {
       stripeAccount: stripeAccountId,
     },
-  )) as Omit<Stripe.Invoice, "discounts"> & {
-    discounts: {
-      promotion_code: Stripe.PromotionCode | null;
-    }[];
+  )) as Omit<Stripe.Invoice, "discounts" | "lines"> & {
+    discounts: ExpandedDiscount[];
+    lines: {
+      data: {
+        discounts: (string | ExpandedDiscount)[];
+      }[];
+    };
   };
 
   if (!expandedInvoice) {
@@ -459,14 +471,24 @@ async function resolvePromotionCodeIdFromInvoice({
     };
   }
 
-  if (!expandedInvoice.discounts || expandedInvoice.discounts.length === 0) {
+  const invoiceDiscounts = expandedInvoice.discounts ?? [];
+  const lineItemDiscounts = (expandedInvoice.lines?.data ?? []).flatMap(
+    (line) =>
+      (line.discounts ?? []).filter(
+        (discount): discount is ExpandedDiscount =>
+          typeof discount === "object" && discount !== null,
+      ),
+  );
+  const discounts = [...invoiceDiscounts, ...lineItemDiscounts];
+
+  if (discounts.length === 0) {
     return {
       promotionCodeId: null,
       resolvePromotionCodeError: "No discounts found on invoice",
     };
   }
 
-  const discountWithPromotionCode = expandedInvoice.discounts.find((discount) =>
+  const discountWithPromotionCode = discounts.find((discount) =>
     Boolean(discount?.promotion_code?.id),
   );
 
