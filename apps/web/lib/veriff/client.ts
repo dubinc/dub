@@ -21,7 +21,7 @@ class VeriffClient extends HttpBaseClient {
 
   // POST /v1/sessions
   async createSession(input: z.input<typeof veriffCreateSessionInputSchema>) {
-    return await veriffClient.post("/sessions", {
+    return await this.post("/sessions", {
       input,
       inputSchema: veriffCreateSessionInputSchema,
       outputSchema: veriffCreateSessionOutputSchema,
@@ -35,7 +35,7 @@ class VeriffClient extends HttpBaseClient {
       .update(sessionId)
       .digest("hex");
 
-    return await veriffClient.get(`/sessions/${sessionId}/decision`, {
+    return await this.get(`/sessions/${sessionId}/decision`, {
       headers: {
         "X-HMAC-SIGNATURE": hmacSignature,
       },

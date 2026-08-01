@@ -120,7 +120,7 @@ const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
     syncIdentity?: boolean;
     partnerId?: string;
     redirectTo?: "/profile" | "/account/settings";
-  }>(`email-change-request:user:${tokenIdentifier}`);
+  }>(`email-change-request:token:${tokenFound.token}`);
 
   if (!data) {
     return (
@@ -259,6 +259,6 @@ const deleteRequest = async (tokenFound: VerificationToken) => {
       },
     }),
 
-    redis.del(`email-change-request:user:${tokenFound.identifier}`),
+    redis.del(`email-change-request:token:${tokenFound.token}`),
   ]);
 };

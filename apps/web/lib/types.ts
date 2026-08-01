@@ -34,7 +34,8 @@ import {
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import {
-  apiLogCountRowSchema,
+  apiLogCountGroupBySchema,
+  apiLogCountRowSchemas,
   apiLogEnrichedSchema,
   apiLogSchemaTB,
   requestTypeSchema,
@@ -272,7 +273,9 @@ export type UtmTemplateWithUserProps = UtmTemplateProps & {
 
 export type PlanProps = (typeof plans)[number];
 
-export type BetaFeatures = "analyticsSettingsSiteVisitTracking";
+export type BetaFeatures =
+  | "analyticsSettingsSiteVisitTracking"
+  | "noProrationUpgrade";
 
 export type PartnerBetaFeatures = "postbacks";
 
@@ -867,9 +870,19 @@ export type CommissionActivitySnapshot = Pick<
 
 export type EnrichedApiLog = z.infer<typeof apiLogEnrichedSchema>;
 
-export type ApiLogsCountRow = z.infer<typeof apiLogCountRowSchema>;
+export type ApiLogsCountRow = z.infer<
+  typeof apiLogCountRowSchemas.routePattern
+>;
 
 export type ApiLogsCountByRoutePattern = ApiLogsCountRow;
+
+export type ApiLogsCountByStatusCode = z.infer<
+  typeof apiLogCountRowSchemas.statusCode
+>;
+
+export type ApiLogsCountByMethod = z.infer<typeof apiLogCountRowSchemas.method>;
+
+export type ApiLogsCountGroupBy = z.infer<typeof apiLogCountGroupBySchema>;
 
 export type RequestType = z.infer<typeof requestTypeSchema>;
 

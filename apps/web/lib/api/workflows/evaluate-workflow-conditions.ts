@@ -7,7 +7,7 @@ export function evaluateWorkflowConditions({
   attributes,
 }: {
   conditions: WorkflowCondition[];
-  attributes: Partial<Record<WorkflowAttributeKey, number | null>>;
+  attributes: Partial<Record<WorkflowAttributeKey, number | string | null>>;
 }): boolean {
   if (conditions.length === 0) return false;
 
@@ -23,6 +23,11 @@ export function evaluateWorkflowConditions({
 
     if (attributeValue == null) {
       console.error(`${condition.attribute} doesn't exist in the context.`);
+      return false;
+    }
+
+    if (condition.value == null) {
+      console.error(`Value is required for ${condition.attribute}.`);
       return false;
     }
 

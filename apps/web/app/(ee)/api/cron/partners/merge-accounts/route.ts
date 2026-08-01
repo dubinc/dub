@@ -4,6 +4,7 @@ import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@/lib/prisma";
@@ -75,7 +76,6 @@ export async function POST(req: Request) {
             userId: true,
           },
         },
-        partnerRewinds: true,
       },
     });
 
@@ -118,29 +118,6 @@ export async function POST(req: Request) {
     const { id: targetPartnerId, programs: targetPartnerEnrollments } =
       targetAccount;
 
-    // Find new enrollments that are not in the target partner enrollments
-    const newEnrollments = sourcePartnerEnrollments.filter(
-      ({ programId }) =>
-        !targetPartnerEnrollments.some(
-          ({ programId: targetProgramId }) => programId === targetProgramId,
-        ),
-    );
-
-    // Update program enrollments
-    if (newEnrollments.length > 0) {
-      await prisma.programEnrollment.updateMany({
-        where: {
-          programId: {
-            in: newEnrollments.map(({ programId }) => programId),
-          },
-          partnerId: sourcePartnerId,
-        },
-        data: {
-          partnerId: targetPartnerId,
-        },
-      });
-    }
-
     const programIdsToTransfer = sourcePartnerEnrollments.map(
       ({ programId }) => programId,
     );
@@ -157,22 +134,34 @@ export async function POST(req: Request) {
       },
     };
 
-    // update links, commissions, bounty submissions, and payouts
     if (programIdsToTransfer.length > 0) {
-      const [
-        updatedLinksRes,
-        updatedCustomersRes,
-        updatedCommissionsRes,
-        updatedPayoutsRes,
-      ] = await Promise.all([
+      // update links and payouts
+      const [updatedLinksRes, updatedPayoutsRes] = await Promise.all([
         prisma.link.updateMany(updateManyPayload),
-        prisma.customer.updateMany(updateManyPayload),
-        prisma.commission.updateMany(updateManyPayload),
         prisma.payout.updateMany(updateManyPayload),
       ]);
       console.log(
-        `Updated ${updatedLinksRes.count} links, ${updatedCustomersRes.count} customers, ${updatedCommissionsRes.count} commissions, and ${updatedPayoutsRes.count} payouts`,
+        `Updated ${updatedLinksRes.count} links, and ${updatedPayoutsRes.count} payouts`,
       );
+
+      // for commissions / customers, we need to update them in batches of PRISMA_UPDATEMANY_LIMIT cause there can be a lot of them
+      while (true) {
+        const { count } = await prisma.commission.updateMany({
+          ...updateManyPayload,
+          limit: PRISMA_UPDATEMANY_LIMIT,
+        });
+        console.log(`Updated ${count} commissions`);
+        if (count < PRISMA_UPDATEMANY_LIMIT) break;
+      }
+
+      while (true) {
+        const { count } = await prisma.customer.updateMany({
+          ...updateManyPayload,
+          limit: PRISMA_UPDATEMANY_LIMIT,
+        });
+        console.log(`Updated ${count} customers`);
+        if (count < PRISMA_UPDATEMANY_LIMIT) break;
+      }
 
       // update discount codes, notification emails, messages, and partner comments
       const [
@@ -251,6 +240,29 @@ export async function POST(req: Request) {
       console.log(prettyPrint(res));
     }
 
+    // Update program enrollments – we do this last to avoid relational updates on Commission, Customer, etc. from running into transaction limits
+    // First, we start with new enrollments (enrollments that are not duplicate in both source and target)
+    const newEnrollments = sourcePartnerEnrollments.filter(
+      ({ programId }) =>
+        !targetPartnerEnrollments.some(
+          ({ programId: targetProgramId }) => programId === targetProgramId,
+        ),
+    );
+    if (newEnrollments.length > 0) {
+      await prisma.programEnrollment.updateMany({
+        where: {
+          programId: {
+            in: newEnrollments.map(({ programId }) => programId),
+          },
+          partnerId: sourcePartnerId,
+        },
+        data: {
+          partnerId: targetPartnerId,
+        },
+      });
+    }
+
+    // Then, we transfer existing enrollments (enrollments that are duplicate in both source and target) – needs to be handled delicately via a for loop
     const existingEnrollments = sourcePartnerEnrollments.filter(
       ({ programId }) =>
         targetPartnerEnrollments.some(
@@ -309,16 +321,6 @@ export async function POST(req: Request) {
           `Deleted old source enrollment for program ${sourceEnrollment.programId}.${sourceEnrollment.tenantId ? ` Since there was a tenantId, we updated the target enrollment with the same tenantId: ${sourceEnrollment.tenantId}` : ""}`,
         );
       }
-    }
-
-    // If source account has rewind, need to delete and recalculate for the target account
-    if (sourceAccount.partnerRewinds.length > 0) {
-      const deletedRewinds = await prisma.partnerRewind.deleteMany({
-        where: {
-          partnerId: sourcePartnerId,
-        },
-      });
-      console.log(`Deleted ${deletedRewinds.count} partner rewinds`);
     }
 
     // Remove the user if there are no workspaces left

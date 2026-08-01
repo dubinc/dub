@@ -6,15 +6,15 @@ import {
   getActivityLogRenderer,
 } from "./activity-log-registry";
 
-interface PartnerGroupActivityItemProps {
+interface PartnerEnrollmentActivityItemProps {
   log: ActivityLog;
   isLast?: boolean;
 }
 
-export function PartnerGroupActivityItem({
+export function PartnerEnrollmentActivityItem({
   log,
   isLast = false,
-}: PartnerGroupActivityItemProps) {
+}: PartnerEnrollmentActivityItemProps) {
   const icon = getActivityLogIcon(log);
   const Renderer = getActivityLogRenderer(log.action);
 
@@ -32,7 +32,7 @@ export function PartnerGroupActivityItem({
       )}
 
       <div
-        className="flex size-6 shrink-0 items-center justify-center text-neutral-500"
+        className="mt-0.5 flex size-6 shrink-0 items-center justify-center bg-white text-neutral-500"
         aria-hidden="true"
       >
         {icon}
@@ -47,7 +47,7 @@ export function PartnerGroupActivityItem({
           side="left"
           rows={["local", "utc", "unix"]}
         >
-          <time className="text-xs text-neutral-500">
+          <time className="w-fit shrink-0 cursor-help text-xs text-neutral-500">
             {formatDate(log.createdAt, {
               month: "short",
               year: "numeric",

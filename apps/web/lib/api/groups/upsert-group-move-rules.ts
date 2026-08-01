@@ -53,6 +53,10 @@ export async function upsertGroupMoveRules({
   await validateWorkflowConditions({
     conditions: moveRules,
     workflowType: "moveGroup",
+    context: {
+      programId: group.programId,
+      groupId: group.id,
+    },
   });
 
   const groupsWithMatchingRules = findGroupsWithMatchingRules({

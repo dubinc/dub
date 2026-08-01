@@ -1,6 +1,6 @@
+import { sendCampaignConditionSchema } from "@/lib/api/workflows/send-campaign/schema";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CampaignList } from "@/lib/types";
-import { sendCampaignConditionSchema } from "@/lib/api/workflows/send-campaign/schema";
 import { ChevronUp, Copy, LoadingSpinner } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import Link from "next/link";

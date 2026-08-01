@@ -266,7 +266,7 @@ export abstract class HttpBaseClient {
     if (this.debug) {
       console.log(
         `[${this.vendor}] ${method} ${safeUrl} -> ${response.status}`,
-        data,
+        ...(this.logResponseBodies ? [data] : []),
       );
     }
 

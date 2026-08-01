@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { LEGAL_USER_ID } from "@dub/utils";
 import "dotenv-flow/config";
 import { linkCache } from "../../lib/api/links/cache";
 
@@ -8,12 +7,6 @@ async function main() {
   const project = await prisma.project.findUniqueOrThrow({
     where: {
       slug: "xxx",
-    },
-  });
-
-  const user = await prisma.user.findUniqueOrThrow({
-    where: {
-      email: project.name,
     },
   });
 
@@ -51,30 +44,29 @@ async function main() {
     }
   }
 
-  await prisma.projectUsers.update({
+  const updatedOwners = await prisma.projectUsers.updateMany({
     where: {
-      userId_projectId: {
-        userId: LEGAL_USER_ID,
-        projectId: project.id,
-      },
+      projectId: project.id,
+      role: "billing",
     },
     data: {
-      userId: user.id,
+      role: "owner",
     },
   });
 
-  await prisma.project.update({
+  console.log(`Reverted ${updatedOwners.count} billing to owner role`);
+
+  const updatedMembers = await prisma.projectUsers.updateMany({
     where: {
-      id: project.id,
+      projectId: project.id,
+      role: "viewer",
     },
     data: {
-      name: project.slug,
+      role: "member",
     },
   });
 
-  console.log(
-    `Restored access to project ${project.slug} for user ${user.email}`,
-  );
+  console.log(`Reverted ${updatedMembers.count} viewers to member role`);
 }
 
 main();
