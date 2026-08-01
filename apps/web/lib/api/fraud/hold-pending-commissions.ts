@@ -1,4 +1,5 @@
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
+import { PRISMA_UPDATEMANY_LIMIT } from "@/lib/cron";
 import { prisma } from "@/lib/prisma";
 import { chunk, groupBy } from "@dub/utils";
 import { CommissionStatus, Prisma, ProgramEnrollment } from "@prisma/client";
@@ -60,7 +61,7 @@ export async function holdPendingCommissions(
             },
           },
         },
-        take: 250,
+        take: PRISMA_UPDATEMANY_LIMIT,
       });
 
       if (pendingCommissions.length === 0) {
